@@ -18,6 +18,8 @@ This document outlines the tasks required to implement Phase 2 of the `ehrtslib`
 *   **Testing & Quality:**
     *   Develop unit tests for the generated TypeScript libraries.
     *   Ensure traceability between generated code and BMM elements.
+*   **Research & Clarification:**
+    *   Utilize the Deepwiki MCP server for any questions or clarifications needed about the openEHR BMM files. This should be done using the official clients (`@modelcontextprotocol/sdk` or `fastmcp`) as outlined in `AGENTS.md`.
 
 ## Detailed Tasks (derived from FRs and NFRs):
 
