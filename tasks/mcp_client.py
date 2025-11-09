@@ -3,26 +3,36 @@ import json
 import urllib.request
 import urllib.parse
 
-BASE_URL = "https://mcp.deepwiki.com/sse"
+import uuid
+# ... (rest of the imports)
+
+BASE_URL = "https://mcp.deepwiki.com/mcp"
 
 def call_mcp(tool_name, repo_name, question=None):
     """
     Calls the Deepwiki MCP server with the specified tool and parameters.
     """
+    session_id = str(uuid.uuid4()) # Generate a unique session ID
+
     headers = {
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": "application/json, text/event-stream",
+        "Mcp-Session-Id": session_id
     }
 
     payload = {
-        "tool": tool_name,
-        "repoName": repo_name
+        "jsonrpc": "2.0",
+        "method": tool_name,
+        "params": {
+            "repoName": repo_name
+        },
+        "id": 1 # A unique ID for the request
     }
 
     if tool_name == "ask_question":
         if not question:
             raise ValueError("Question is required for 'ask_question' tool.")
-        payload["question"] = question
+        payload["params"]["question"] = question
     elif tool_name in ["read_wiki_structure", "read_wiki_contents"]:
         pass # No additional parameters for these tools beyond repoName
     else:
