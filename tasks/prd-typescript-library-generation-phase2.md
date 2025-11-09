@@ -46,7 +46,16 @@ This document outlines the requirements for Phase 2 of the `ehrtslib` project, f
 *   **NFR3: Testability:** The generated TypeScript libraries should be easily testable.
 *   **NFR4: Traceability:** It should be clear which parts of the generated TypeScript code correspond to which elements in the original BMM JSON.
 
-## 6. Open Questions / Dependencies
+## 6. Dependencies
+
+### 6.1. Deepwiki MCP Server
+For information and clarification regarding the openEHR BMM files, the Deepwiki MCP server should be utilized. All interactions with this server must be conducted using the official clients, as specified in the `AGENTS.md` file:
+*   **TypeScript:** `@modelcontextprotocol/sdk`
+*   **Python:** `fastmcp`
+
+Direct HTTP calls or unofficial scripts are not to be used.
+
+## 7. Open Questions
 
 *   Are there any specific tools or libraries preferred for parsing the BMM JSON files?
 *   What is the desired subdirectory name for archiving Phase 1 output?
