@@ -23,5 +23,50 @@
 * When working with Javascript or Typescript based projects prefer using Deno for management over using Node.js and NPM. Deno is installed in the local environment, but Jules might need to install Deno in its VM before using it.
 * The local environment is a Windows machine without admin privileges, Powershell is available. It uses [Scoop](https://scoop.sh/) for package installation, so base any advice on that
 
+## Interacting with MCP Servers
 
- 
+When you need to interact with an MCP server like Deepwiki, do not use `curl`. Instead, use one of the following client libraries:
+
+### TypeScript/JavaScript Client
+
+You can use the `mcp-client` library via `npx`.
+
+**Example:**
+```bash
+npx mcp-client --server-url <server_url> --tool-name <tool_name> --tool-params '{"repoName": "<owner>/<repo>"}'
+```
+
+For more details, refer to the [TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk?tab=readme-ov-file#writing-mcp-clients).
+
+### Python Client
+
+You can use the `fastmcp` library.
+
+**Installation:**
+```bash
+pip install fastmcp
+```
+
+**Example:**
+```python
+import asyncio
+from fastmcp import Client
+
+async def call_mcp_server(server_url, tool_name, params):
+    client = Client(server_url)
+    async with client:
+        response = await client.call_tool(tool_name, params)
+        return response
+
+# Example usage:
+# server_url = "https://mcp.deepwiki.com/mcp"
+# tool_name = "ask_question"
+# params = {"repoName": "owner/repo", "question": "What is the main purpose?"}
+# asyncio.run(call_mcp_server(server_url, tool_name, params))
+```
+
+For more details, refer to the [fastmcp documentation](https://gofastmcp.com/clients/client).
+
+### Fallback Approach
+
+If neither of the above clients work, you can try the approach described in this [Hugging Face blog post](https://huggingface.co/blog/tiny-agents).
