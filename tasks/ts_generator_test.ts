@@ -8,8 +8,7 @@ Deno.test("generateTypeScriptClass generates CODE_PHRASE class with JSDoc correc
     const bmmModel = await readAndParseBmmJson("./tasks/test_bmm.json");
     const codePhraseClass = bmmModel.class_definitions["CODE_PHRASE"];
 
-    const expectedTsClass = "type TERMINOLOGY_ID = any;\n\n" +
-        "/**\n" +
+    const expectedTsClass = "/**\n" +
         " * A fully coordinated (i.e. all coordination has been performed) term from a terminology service (as distinct from a particular terminology).\n" +
         " * \n" +
         " * Retain for LEGACY only, while ADL1.4 requires CODE_PHRASE.\n" +
@@ -24,7 +23,7 @@ Deno.test("generateTypeScriptClass generates CODE_PHRASE class with JSDoc correc
         "     */\n" +
         "    code_string?: string;\n" +
         "    /**\n" +
-        "     * Optional attribute to carry preferred term corresponding to the code or expression in `_code_string_`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.\n" +
+        "     * Optional attribute to carry preferred term corresponding to the code or expression in \\`_code_string_\\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.\n" +
         "     */\n" +
         "    preferred_term?: string;\n" +
         "}\n";

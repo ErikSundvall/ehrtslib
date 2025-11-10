@@ -567,7 +567,7 @@ export class LOCATABLE_REF extends OBJECT_REF {
     /**
      * Globally unique id of an object, regardless of where it is stored.
      */
-    id?: UID_BASED_ID;
+    override id?: UID_BASED_ID = undefined;
 }
 
 
@@ -731,19 +731,19 @@ export class Point_interval<T> extends Interval<T> {
     /**
      * Lower boundary open (i.e. = -infinity).
      */
-    lower_unbounded?: boolean = false;
+    override lower_unbounded?: boolean = false;
     /**
      * Upper boundary open (i.e. = +infinity).
      */
-    upper_unbounded?: boolean = false;
+    override upper_unbounded?: boolean = false;
     /**
      * Lower boundary value included in range if not \`_lower_unbounded_\`.
      */
-    lower_included?: boolean = true;
+    override lower_included?: boolean = true;
     /**
      * Upper boundary value included in range if not \`_upper_unbounded_\`.
      */
-    upper_included?: boolean = true;
+    override upper_included?: boolean = true;
 }
 
 /**
