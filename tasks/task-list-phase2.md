@@ -21,28 +21,24 @@ The goal of this milestone is to prepare the project for the new Phase 2 work an
 
 The goal of this milestone is to fetch the BMM JSON files from the remote repository and process them to extract the necessary information for code generation.
 
-*   [ ] **Task 2.1: Fetch BMM JSON Files**
-    *   **Goal:** Create a script or function to download the BMM JSON files from the `sebastian-iancu/code-generator` GitHub repository.
+*   [ ] **Task 2.1: Identify Latest BMM Versions**
+    *   **Goal:** Create a script that identifies the latest version of each BMM package from the `sebastian-iancu/code-generator` GitHub repository.
     *   **Steps:**
-        1.  [ ] Identify the URL for the `BMM-JSON` directory in the `sebastian-iancu/code-generator` repository.
-        2.  [ ] Write a script (e.g., a Deno task) to fetch the list of all files in that directory.
-        3.  [ ] Download each `.bmm.json` file and save it locally in a temporary directory (e.g., `tasks/bmm_json`).
-*   [ ] **Task 2.2: Implement BMM JSON Parsing**
-    *   **Goal:** Create a parser that can read a BMM JSON file and load its content into a structured format (e.g., TypeScript interfaces or classes) that is easy to work with.
-    *   **Steps:**
-        1.  [ ] Define TypeScript interfaces that represent the structure of a BMM JSON file. You can use a tool like `json2ts` to help with this.
-        2.  [ ] Write a function that takes a file path to a BMM JSON file as input.
-        3.  [ ] Inside the function, read the file and parse the JSON content.
-        4.  [ ] Validate that the parsed JSON conforms to the TypeScript interfaces you defined.
-        5.  [ ] Return the parsed and validated BMM data.
-*   [ ] **Task 2.3: Implement Latest Version Selection**
-    *   **Goal:** Create a function that can look at all the downloaded BMM files for a particular library (e.g., `openehr_base`) and select only the one with the latest version number.
-    *   **Steps:**
-        1.  [ ] Write a function that takes a list of BMM file names as input.
+        1.  [ ] Write a script (e.g., a Deno task) to fetch the list of all files in the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository.
         2.  [ ] For each file name, extract the library name (e.g., `openehr_base`) and the version number (e.g., `1.3.0`). You can use regular expressions for this.
         3.  [ ] Group the file names by library name.
         4.  [ ] For each group, use a semantic versioning (SemVer) comparison library to find the file with the highest version number.
-        5.  [ ] Return a list of file names, with only one (the latest) for each library.
+        5.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package. This file will be used to download the correct files.
+*   [ ] **Task 2.2: Download and Read BMM JSON Files**
+    *   **Goal:** Create a script or function to download the latest version of each BMM JSON file and read its content.
+    *   **Steps:**
+        1.  [ ] Read the `bmm_versions.json` configuration file to get the list of latest BMM files to download.
+        2.  [ ] For each file in the configuration, construct the download URL from the `sebastian-iancu/code-generator` repository.
+        3.  [ ] Download each `.bmm.json` file and save it locally in a temporary directory (e.g., `tasks/bmm_json`).
+        4.  [ ] Write a function that takes a file path to a BMM JSON file as input.
+        5.  [ ] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
+        6.  [ ] Write logic to traverse the JSON tree and extract the necessary information (classes, properties, documentation, etc.).
+        7.  [ ] Define TypeScript interfaces that represent the structure of the BMM JSON data to ensure type safety during traversal.
 
 ## Milestone 3: TypeScript Code Generation
 
