@@ -124,5 +124,5 @@ The goal of this milestone is to ensure that all the generated TypeScript librar
     *   **Goal:** Add comments or other metadata to the generated code to make it easy to trace back to the original BMM file and to related openEHR specifications.
     *   **Steps:**
         1.  [x] In the code generation logic, add a comment at the top of each generated file that indicates which BMM file it was generated from.
-        2.  [x] Consider adding a special tag (e.g., `@bmm_source`) in the JSDoc comments to link to the specific BMM element. (Implemented as header comment with BMM version, revision, and source URL)
-        3.  [ ] Using Deepwiki and web browsing, make a config file with links to specific sections in the openEHR specifications for each class, save this file. Then improve ts_generator to use this config file to improve JSdoc documentation of each class so that users can look up more info from the corresponding section in specification documents at https://specifications.openehr.org/ (Note: This step requires MCP/Deepwiki access or manual research. Can be done as future enhancement. The generated files already include comprehensive JSDoc from BMM and header comments with source information.)
+        2.  [x] Consider adding a special tag (e.g., `@bmm_source`) in the JSDoc comments to link to the specific BMM element. (Was implemented as header comment with BMM version, revision, and source URL)
+       

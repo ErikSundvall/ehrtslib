@@ -1,20 +1,22 @@
+
 # ehrtslib
 TypeScript library for (to begin with) openEHR. Intended for (partial) use both in clients like web browsers or and in servers based on e.g. Deno or Node.js 
 
-TODO:
-# Phase 1
-Use deepwiki MCP connection for info about openEHR's BMM files. Following the dependency graph of openEHR packages/libraries (starting with BASE package and its dependencies and then move upwards), build typescript libraries for all of openEHR (RM first, then TERM and AM). Keep classes of the same package in same typescript file (ine fil per package). Keep the exact snake_case class and method names and capitalization as in the BMM specification.  Start jules on this task in this github repository (ehrtslib). Take your time Jules and do a thorough job, no hurry i will turn off my computer and check in tomorrow. 
+## Code Structure: Orchestrator vs Generator
 
-# Phase 2
-* Previous phase was a good experient based on a not so information rich BMM variant. Keep it in a subdirectory (called from_old_bmm) for comparison and add a readme in that directory explaining how it was generated.
-* The latest versions of openEHR BMM are in JSON format and contain updated (and more) information about each class and can be found in https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON (raw files are of course in https://raw.githubusercontent.com/sebastian-iancu/code-generator/refs/heads/master/code/BMM-JSON/ ). That repository is also available in Deepwiki. 
-* Make a brand new set of TS libraries from these. Use JsDoc to include _all_ extra documentation for the classes etc found in the BMMs. There are many version of BMMs in the sebastian-iancu/code-generator only use the latest Semver version of each library, example, only use openehr_base_1.3.0.bmm.json among these:
-```openehr_base_1.0.4.bmm.json
-openehr_base_1.1.0.bmm.json
-openehr_base_1.2.0.bmm.json
-openehr_base_1.3.0.bmm.json
-```
-* There will be new versions of these bmm files published later so we want to create a deterministic way to convert from *.bmm.json files to Typescript libraries that can be run later using a Deno task without involving AI.
+The TypeScript library generation process is split into two main scripts for clarity and maintainability:
+
+- **`tasks/generate_ts_libs.ts`** (Orchestrator):
+    - Handles the overall workflow: reads config, sorts packages by dependency, downloads BMM files, builds context, and writes output files.
+    - Adds traceability headers and ensures correct import order.
+    - Calls the generator logic in `ts_generator.ts` for each package.
+
+- **`tasks/ts_generator.ts`** (Generator Logic):
+    - Contains all reusable logic for mapping BMM JSON to TypeScript code.
+    - Handles type resolution, class/interface generation, documentation extraction, and type validation.
+    - Used as a library by the orchestrator script.
+
+This separation ensures that the orchestration logic (batch processing, dependency handling, file output) is kept distinct from the code generation logic (type mapping, documentation, class creation), making the codebase easier to maintain and extend.
 
 # Phase 2: TypeScript Library Generation
 
@@ -92,24 +94,6 @@ import * as base from "./openehr_base.ts";
 const id: base.UID_BASED_ID = ...;
 ```
 
-# Phase 3
-
-Guidance and helpers to construct RM instance hierarchies programatically based om the generated TS library.
-
-# Phase 4
-
-Serialisation and deserialisation of RM object instance trees to and from openEHRs canonical JSON and XML formats
-
-# Phase 5
-
-Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validation source). 
-* One version of this code needs to be small so that it can fit and be run eficiently inside form engines etc. 
-* Also make a (less lightweight) version that can be synchronously multiuser updated using Y.js or 
-* Create build step to genenrate minivfed and web component versions
-
-# Phase 6
-
-Serialisation and deserialisation of RM object instance trees to and from openEHRs simplified JSON formats (likely using other already existing library if it can be made fairly dependency free)
 
 -----
 
