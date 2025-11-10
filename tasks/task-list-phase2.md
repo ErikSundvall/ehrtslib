@@ -2,6 +2,17 @@
 
 This document breaks down the work for Phase 2 into a logical sequence of tasks, designed to be easy to follow for a junior developer. The approach is to first develop and test the conversion logic using a single BMM package ('BASE') and then apply this logic to all BMM packages.
 
+## Instructions for Completing Tasks
+
+**IMPORTANT:** As you complete each task, you must check it off in this markdown file by changing `- [ ]` to `- [x]`. This helps track progress and ensures you don't skip any steps.
+
+Example:
+- `- [ ] 1.1 Read file` → `- [x] 1.1 Read file` (after completing)
+
+Update the file after completing each sub-task, not just after completing an entire parent task.
+
+If running in interactive mode (e.g. Gemini CLI) then stop after each parent task and let user review. If running in autonomus batch mode e.g. dispatched to Jules, then just stop if user input is crucial to understand furher steps.
+
 ## Milestone 1: Project Setup and Housekeeping
 
 The goal of this milestone is to prepare the project for the new Phase 2 work and archive the results of Phase 1.
