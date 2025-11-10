@@ -55,6 +55,9 @@ This document outlines the tasks required to implement Phase 2 of the `ehrtslib`
 *   **FR8: Phase 1 README Generation:**
     *   Task: Create a `README.md` file within the `phase1_archive` directory.
     *   Task: Document the generation process of the Phase 1 output within this `README.md`.
+*   **FR9: Deterministic Conversion Task:**
+    *   Task: Create a Deno task that takes a `.bmm.json` file as input and outputs a corresponding TypeScript library file.
+    *   Task: Ensure the Deno task is well-documented and can be run without AI intervention.
 
 ### Non-Functional Requirements (NFRs):
 

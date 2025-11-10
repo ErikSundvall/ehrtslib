@@ -38,6 +38,7 @@ This document outlines the requirements for Phase 2 of the `ehrtslib` project, f
 *   **FR6: Package-based File Organization:** The generated TypeScript code shall organize classes and interfaces such that all elements belonging to the same BMM package reside within a single TypeScript file.
 *   **FR7: Phase 1 Output Archiving:** The system shall move the previously generated Phase 1 TypeScript libraries into a designated subdirectory.
 *   **FR8: Phase 1 README Generation:** The system shall create a `README.md` file within the Phase 1 archive subdirectory, detailing the generation process of its contents.
+*   **FR9: Deterministic Conversion Task:** The system shall provide a deterministic, non-AI-based task (e.g., a Deno task) that can be run to convert `.bmm.json` files into TypeScript libraries.
 
 ## 5. Non-Functional Requirements
 
