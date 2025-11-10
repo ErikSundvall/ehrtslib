@@ -31,43 +31,43 @@ The goal of this milestone is to prepare the project for the new Phase 2 work an
 
 The goal of this milestone is to download and parse the BMM file for the 'BASE' package, which will serve as our test case for the initial development.
 
-*   [ ] **Task 2.1: Download 'BASE' BMM File**
+*   [x] **Task 2.1: Download 'BASE' BMM File**
     *   **Goal:** Download the latest version of the `openehr_base` BMM JSON file.
     *   **Steps:**
-        1.  [ ] Manually identify the URL for the latest version of the `openehr_base_*.bmm.json` file from the `sebastian-iancu/code-generator` GitHub repository.
-        2.  [ ] Write a simple script to download this single file and save it as `tasks/test_bmm.json`.
-*   [ ] **Task 2.2: Implement BMM JSON Reading and Traversal**
+        1.  [x] Manually identify the URL for the latest version of the `openehr_base_*.bmm.json` file from the `sebastian-iancu/code-generator` GitHub repository.
+        2.  [x] Write a simple script to download this single file and save it as `tasks/test_bmm.json`.
+*   [x] **Task 2.2: Implement BMM JSON Reading and Traversal**
     *   **Goal:** Create a function that can read the `tasks/test_bmm.json` file and traverse its content.
     *   **Steps:**
-        1.  [ ] Write a function that takes a file path as input.
-        2.  [ ] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
-        3.  [ ] Define TypeScript interfaces that represent the structure of the BMM JSON data to ensure type safety.
-        4.  [ ] Write a simple test to verify that the file can be read and parsed correctly.
+        1.  [x] Write a function that takes a file path as input.
+        2.  [x] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
+        3.  [x] Define TypeScript interfaces that represent the structure of the BMM JSON data to ensure type safety.
+        4.  [x] Write a simple test to verify that the file can be read and parsed correctly.
 
 ## Milestone 3: Test-Driven Code Generation for 'BASE' Package
 
 The goal of this milestone is to develop the TypeScript code generation logic, using the 'BASE' package as the test case.
 
-*   [ ] **Task 3.1: Generate a Single 'BASE' Class**
+*   [x] **Task 3.1: Generate a Single 'BASE' Class**
     *   **Goal:** Write a function that can generate a TypeScript class for a single, simple class from the 'BASE' BMM data.
     *   **Steps:**
-        1.  [ ] Choose a simple class from the `tasks/test_bmm.json` data.
-        2.  [ ] Write a function that takes the BMM data for this single class and generates a TypeScript class as a string.
-        3.  [ ] Write a test that calls this function and verifies that the generated string is a valid TypeScript class.
-*   [ ] **Task 3.2: Implement JSDoc Integration**
+        1.  [x] Choose a simple class from the `tasks/test_bmm.json` data.
+        2.  [x] Write a function that takes the BMM data for this single class and generates a TypeScript class as a string.
+        3.  [x] Write a test that calls this function and verifies that the generated string is a valid TypeScript class.
+*   [x] **Task 3.2: Implement JSDoc Integration**
     *   **Goal:** Enhance the generated class with JSDoc comments.
     *   **Steps:**
-        1.  [ ] Modify the function from the previous task to extract the `documentation` field from the BMM data.
-        2.  [ ] Add the documentation as a JSDoc comment to the generated class.
-        3.  [ ] Update the test to verify that the JSDoc comment is present and correct.
-*   [ ] **Task 3.3: Implement Full 'BASE' Package Generation**
+        1.  [x] Modify the function from the previous task to extract the `documentation` field from the BMM data.
+        2.  [x] Add the documentation as a JSDoc comment to the generated class.
+        3.  [x] Update the test to verify that the JSDoc comment is present and correct.
+*   [x] **Task 3.3: Implement Full 'BASE' Package Generation**
     *   **Goal:** Extend the logic to generate a complete TypeScript file for the entire 'BASE' package.
     *   **Steps:**
-        1.  [ ] Write a function that iterates over all the classes in the `tasks/test_bmm.json` data.
-        2.  [ ] For each class, call the generation function you created in the previous tasks.
-        3.  [ ] Concatenate the generated classes into a single string.
-        4.  [ ] Write the string to a file named `base.ts`.
-        5.  [ ] Write a test that verifies the `base.ts` file is created and contains the expected number of classes.
+        1.  [x] Write a function that iterates over all the classes in the `tasks/test_bmm.json` data.
+        2.  [x] For each class, call the generation function you created in the previous tasks.
+        3.  [x] Concatenate the generated classes into a single string.
+        4.  [x] Write the string to a file named `base.ts`.
+        5.  [x] Write a test that verifies the `base.ts` file is created and contains the expected number of classes.
 
 ## Milestone 4: Batch Processing and Deterministic Conversion
 
