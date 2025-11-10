@@ -73,19 +73,19 @@ The goal of this milestone is to develop the TypeScript code generation logic, u
 
 The goal of this milestone is to generalize the logic developed for the 'BASE' package and create a deterministic Deno task that can process all BMM files.
 
-*   [ ] **Task 4.1: Identify Latest Versions of All BMM Packages**
+*   [x] **Task 4.1: Identify Latest Versions of All BMM Packages**
     *   **Goal:** Create a script that identifies the latest version of all BMM packages.
     *   **Steps:**
-        1.  [ ] Write a script to fetch the list of all files from the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository.
-        2.  [ ] For each package, identify the latest version using SemVer comparison.
-        3.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package.
-*   [ ] **Task 4.2: Create Deno Task for Batch Conversion**
+        1.  [x] Write a script to fetch the list of all files from the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository.
+        2.  [x] For each package, identify the latest version using SemVer comparison.
+        3.  [x] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package.
+*   [x] **Task 4.2: Create Deno Task for Batch Conversion**
     *   **Goal:** Create a Deno task that reads the `bmm_versions.json` file and runs the conversion process for each BMM package.
     *   **Steps:**
-        1.  [ ] Create a new Deno script (e.g., `tasks/generate_ts_libs.ts`).
-        2.  [ ] In this script, read the `bmm_versions.json` file.
-        3.  [ ] For each entry in the file, download the corresponding BMM JSON file.
-        4.  [ ] Call the code generation logic from Milestone 3 to generate the TypeScript library file for that package.
+        1.  [x] Create a new Deno script (e.g., `tasks/generate_ts_libs.ts`).
+        2.  [x] In this script, read the `bmm_versions.json` file.
+        3.  [x] For each entry in the file, download the corresponding BMM JSON file.
+        4.  [x] Call the code generation logic from Milestone 3 to generate the TypeScript library file for that package.
 *   [ ] **Task 4.3: Document the Deno Task**
     *   **Goal:** Add clear instructions on how to run the Deno task.
     *   **Steps:**

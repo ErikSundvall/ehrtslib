@@ -16,6 +16,26 @@ openehr_base_1.3.0.bmm.json
 ```
 * There will be new versions of these bmm files published later so we want to create a deterministic way to convert from *.bmm.json files to Typescript libraries that can be run later using a Deno task without involving AI.
 
+# Phase 2: TypeScript Library Generation
+
+This section describes how to generate TypeScript libraries from the latest openEHR BMM JSON specifications.
+
+## Generating TypeScript Libraries
+
+To generate the TypeScript libraries for all openEHR BMM packages, run the following Deno script:
+
+```bash
+deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
+```
+
+This script will perform the following actions:
+1.  Read the `tasks/bmm_versions.json` file to identify the latest versions of all BMM packages.
+2.  Download the corresponding BMM JSON files from the `sebastian-iancu/code-generator` GitHub repository.
+3.  Generate TypeScript classes and interfaces for each BMM package, including JSDoc comments based on the BMM documentation.
+4.  Save the generated TypeScript code to individual files (e.g., `openehr_am.ts`, `openehr_base.ts`) in the root directory.
+
+**Note:** The generated TypeScript files will be placed in the root directory of the project.
+
 # Phase 3
 
 Guidance and helpers to construct RM instance hierarchies programatically based om the generated TS library.
