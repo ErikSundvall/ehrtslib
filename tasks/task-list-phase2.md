@@ -1,6 +1,6 @@
 # Task List for Phase 2: TypeScript Library Generation from Latest BMM JSON
 
-This document breaks down the work for Phase 2 into a logical sequence of tasks, designed to be easy to follow for a junior developer.
+This document breaks down the work for Phase 2 into a logical sequence of tasks, designed to be easy to follow for a junior developer. The approach is to first develop and test the conversion logic using a single BMM package ('BASE') and then apply this logic to all BMM packages.
 
 ## Milestone 1: Project Setup and Housekeeping
 
@@ -17,93 +17,80 @@ The goal of this milestone is to prepare the project for the new Phase 2 work an
         1.  [ ] Create a new file named `README.md` inside the `from_old_bmm` directory.
         2.  [ ] Write a brief explanation in the `README.md` file, stating that the code in this directory was generated from an older BMM variant and is kept for comparison purposes. The branch describing Jule's generation of these files using PHP is at https://github.com/ErikSundvall/code-generator/tree/feature-deno-library-generator (link to it)
 
-## Milestone 2: BMM Version Identification
+## Milestone 2: Initial BMM Processing for 'BASE' Package
 
-The goal of this milestone is to identify the latest versions of the BMM files that will be used for code generation.
+The goal of this milestone is to download and parse the BMM file for the 'BASE' package, which will serve as our test case for the initial development.
 
-*   [ ] **Task 2.1: Identify Latest BMM Versions**
-    *   **Goal:** Create a script that identifies the latest version of each BMM package from the `sebastian-iancu/code-generator` GitHub repository.
+*   [ ] **Task 2.1: Download 'BASE' BMM File**
+    *   **Goal:** Download the latest version of the `openehr_base` BMM JSON file.
     *   **Steps:**
-        1.  [ ] Write a script (e.g., a Deno task) to fetch the list of all files in the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository. The library is in https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
-        2.  [ ] For each file name, extract the library name (e.g., `openehr_base`) and the version number (e.g., `1.3.0`). You can use regular expressions for this.
-        3.  [ ] Group the file names by library name.
-        4.  [ ] For each group, use a semantic versioning (SemVer) comparison library to find the file with the highest version number.
-        5.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package. This file will be used to download the correct files in the next milestone.
-
-## Milestone 3: TypeScript Code Generation
-
-The goal of this milestone is to download the BMM JSON files, process them, and generate the corresponding TypeScript library files.
-
-*   [ ] **Task 3.1: Download and Read BMM JSON Files**
-    *   **Goal:** Create a script or function to download the latest version of each BMM JSON file (as defined in `bmm_versions.json`) and read its content.
+        1.  [ ] Manually identify the URL for the latest version of the `openehr_base_*.bmm.json` file from the `sebastian-iancu/code-generator` GitHub repository.
+        2.  [ ] Write a simple script to download this single file and save it as `tasks/test_bmm.json`.
+*   [ ] **Task 2.2: Implement BMM JSON Reading and Traversal**
+    *   **Goal:** Create a function that can read the `tasks/test_bmm.json` file and traverse its content.
     *   **Steps:**
-        1.  [ ] Read the `bmm_versions.json` configuration file to get the list of latest BMM files to download.
-        2.  [ ] For each file in the configuration, construct the download URL from the `sebastian-iancu/code-generator` repository.
-        3.  [ ] Download each such selected `.bmm.json` file and save it locally in a temporary directory (e.g., `tasks/bmm_json`).
-        4.  [ ] Write a function that takes a file path to a BMM JSON file as input.
-        5.  [ ] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
-        6.  [ ] Write logic to traverse the JSON tree and extract the necessary information (classes, properties, documentation, etc.).
-        7.  [ ] Define TypeScript interfaces that represent the structure of the BMM JSON data to ensure type safety during traversal.
-*   [ ] **Task 3.2: Design Code Generation Strategy**
-    *   **Goal:** Plan how to map the different parts of the BMM data (classes, properties, etc.) to TypeScript code.
-    *   **Steps:**
-        1.  [ ] Create a mapping document that shows how each BMM element will be represented in TypeScript. For example:
-            *   BMM `class` -> TypeScript `class`
-            *   BMM `property` -> TypeScript `property`
-            *   BMM `type` -> TypeScript `type`
-        2.  [ ] Decide how to handle BMM inheritance in TypeScript (e.g., using `extends`).
-*   [ ] **Task 3.3: Implement TypeScript Class Generation**
-    *   **Goal:** Write a function that takes the parsed BMM data for a single class and generates a TypeScript class definition as a string.
-    *   **Steps:**
-        1.  [ ] Create a function that accepts a BMM class object.
-        2.  [ ] Inside the function, build a string that represents the TypeScript class, including its name, properties, and any methods.
-        3.  [ ] Pay close attention to the naming conventions (snake_case) and capitalization from the BMM.
-*   [ ] **Task 3.4: Implement JSDoc Integration**
-    *   **Goal:** Enhance the generated TypeScript code with JSDoc comments from the BMM data.
-    *   **Steps:**
-        1.  [ ] Modify the class generation function from the previous task.
-        2.  [ ] For each class and property, check if there is a `documentation` field in the BMM data.
-        3.  [ ] If there is, format it as a JSDoc comment and add it above the class or property in the generated TypeScript string.
-*   [ ] **Task 3.5: Implement Package-based File Organization**
-    *   **Goal:** Group the generated TypeScript classes into files based on their BMM package.
-    *   **Steps:**
-        1.  [ ] Create a function that takes all the parsed BMM data.
-        2.  [ ] Group the BMM classes by their `package` property.
-        3.  [ ] For each package, create a single TypeScript file.
-        4.  [ ] Write all the generated TypeScript classes for that package into the file.
-        5.  [ ] Define a clear output directory for these new TypeScript library files.
+        1.  [ ] Write a function that takes a file path as input.
+        2.  [ ] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
+        3.  [ ] Define TypeScript interfaces that represent the structure of the BMM JSON data to ensure type safety.
+        4.  [ ] Write a simple test to verify that the file can be read and parsed correctly.
 
-## Milestone 4: Deterministic Conversion Task
+## Milestone 3: Test-Driven Code Generation for 'BASE' Package
 
-The goal of this milestone is to create a Deno task that can be run to perform the entire BMM-to-TypeScript conversion process without any AI involvement.
+The goal of this milestone is to develop the TypeScript code generation logic, using the 'BASE' package as the test case.
 
-*   [ ] **Task 4.1: Create Deno Task for Conversion**
-    *   **Goal:** Combine all the functions from the previous milestones into a single, runnable Deno task.
+*   [ ] **Task 3.1: Generate a Single 'BASE' Class**
+    *   **Goal:** Write a function that can generate a TypeScript class for a single, simple class from the 'BASE' BMM data.
+    *   **Steps:**
+        1.  [ ] Choose a simple class from the `tasks/test_bmm.json` data.
+        2.  [ ] Write a function that takes the BMM data for this single class and generates a TypeScript class as a string.
+        3.  [ ] Write a test that calls this function and verifies that the generated string is a valid TypeScript class.
+*   [ ] **Task 3.2: Implement JSDoc Integration**
+    *   **Goal:** Enhance the generated class with JSDoc comments.
+    *   **Steps:**
+        1.  [ ] Modify the function from the previous task to extract the `documentation` field from the BMM data.
+        2.  [ ] Add the documentation as a JSDoc comment to the generated class.
+        3.  [ ] Update the test to verify that the JSDoc comment is present and correct.
+*   [ ] **Task 3.3: Implement Full 'BASE' Package Generation**
+    *   **Goal:** Extend the logic to generate a complete TypeScript file for the entire 'BASE' package.
+    *   **Steps:**
+        1.  [ ] Write a function that iterates over all the classes in the `tasks/test_bmm.json` data.
+        2.  [ ] For each class, call the generation function you created in the previous tasks.
+        3.  [ ] Concatenate the generated classes into a single string.
+        4.  [ ] Write the string to a file named `base.ts`.
+        5.  [ ] Write a test that verifies the `base.ts` file is created and contains the expected number of classes.
+
+## Milestone 4: Batch Processing and Deterministic Conversion
+
+The goal of this milestone is to generalize the logic developed for the 'BASE' package and create a deterministic Deno task that can process all BMM files.
+
+*   [ ] **Task 4.1: Identify Latest Versions of All BMM Packages**
+    *   **Goal:** Create a script that identifies the latest version of all BMM packages.
+    *   **Steps:**
+        1.  [ ] Write a script to fetch the list of all files from the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository.
+        2.  [ ] For each package, identify the latest version using SemVer comparison.
+        3.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package.
+*   [ ] **Task 4.2: Create Deno Task for Batch Conversion**
+    *   **Goal:** Create a Deno task that reads the `bmm_versions.json` file and runs the conversion process for each BMM package.
     *   **Steps:**
         1.  [ ] Create a new Deno script (e.g., `tasks/generate_ts_libs.ts`).
-        2.  [ ] In this script, import and call the functions you created for:
-            *   [ ] Identifying the latest BMM versions.
-            *   [ ] Downloading and reading the BMM JSON files.
-            *   [ ] Generating the TypeScript code.
-            *   [ ] Writing the code to files.
-        3.  [ ] Add command-line arguments to the Deno task to allow for customization (e.g., specifying the output directory).
-*   [ ] **Task 4.2: Document the Deno Task**
+        2.  [ ] In this script, read the `bmm_versions.json` file.
+        3.  [ ] For each entry in the file, download the corresponding BMM JSON file.
+        4.  [ ] Call the code generation logic from Milestone 3 to generate the TypeScript library file for that package.
+*   [ ] **Task 4.3: Document the Deno Task**
     *   **Goal:** Add clear instructions on how to run the Deno task.
     *   **Steps:**
         1.  [ ] Update the main `README.md` file with a new section that explains how to run the Deno task.
         2.  [ ] Include examples of how to run the task with different options.
 
-## Milestone 5: Testing and Quality Assurance
+## Milestone 5: Final Testing and Quality Assurance
 
-The goal of this milestone is to ensure that the generated TypeScript libraries are correct and of high quality.
+The goal of this milestone is to ensure that all the generated TypeScript libraries are correct and of high quality.
 
-*   [ ] **Task 5.1: Develop Unit Tests**
-    *   **Goal:** Write unit tests for the generated TypeScript libraries to verify their functionality.
+*   [ ] **Task 5.1: Develop Unit Tests for All Generated Libraries**
+    *   **Goal:** Write unit tests for all the generated TypeScript libraries.
     *   **Steps:**
-        1.  [ ] Choose a testing framework for Deno (e.g., the built-in `Deno.test`).
-        2.  [ ] For each generated TypeScript class, write tests that:
-            *   [ ] Verify that the class can be instantiated.
-            *   [ ] Verify that the properties have the correct types.
+        1.  [ ] Create a separate test file for each generated library.
+        2.  [ ] For each class in the library, write a test that verifies it can be instantiated and its properties have the correct types.
 *   [ ] **Task 5.2: Implement Traceability**
     *   **Goal:** Add comments or other metadata to the generated code to make it easy to trace back to the original BMM file.
     *   **Steps:**
