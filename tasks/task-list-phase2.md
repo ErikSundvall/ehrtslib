@@ -15,7 +15,7 @@ The goal of this milestone is to prepare the project for the new Phase 2 work an
     *   **Goal:** Add a `README.md` file inside the `from_old_bmm` directory to explain what the code is and how it was generated.
     *   **Steps:**
         1.  [ ] Create a new file named `README.md` inside the `from_old_bmm` directory.
-        2.  [ ] Write a brief explanation in the `README.md` file, stating that the code in this directory was generated from an older BMM variant and is kept for comparison purposes.
+        2.  [ ] Write a brief explanation in the `README.md` file, stating that the code in this directory was generated from an older BMM variant and is kept for comparison purposes. The branch describing Jule's generation of these files using PHP is at https://github.com/ErikSundvall/code-generator/tree/feature-deno-library-generator (link to it)
 
 ## Milestone 2: BMM JSON Data Acquisition and Processing
 
@@ -24,17 +24,17 @@ The goal of this milestone is to fetch the BMM JSON files from the remote reposi
 *   [ ] **Task 2.1: Identify Latest BMM Versions**
     *   **Goal:** Create a script that identifies the latest version of each BMM package from the `sebastian-iancu/code-generator` GitHub repository.
     *   **Steps:**
-        1.  [ ] Write a script (e.g., a Deno task) to fetch the list of all files in the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository.
+        1.  [ ] Write a script (e.g., a Deno task) to fetch the list of all files in the `BMM-JSON` directory of the `sebastian-iancu/code-generator` repository. The library is in https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
         2.  [ ] For each file name, extract the library name (e.g., `openehr_base`) and the version number (e.g., `1.3.0`). You can use regular expressions for this.
         3.  [ ] Group the file names by library name.
         4.  [ ] For each group, use a semantic versioning (SemVer) comparison library to find the file with the highest version number.
-        5.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package. This file will be used to download the correct files.
+        5.  [ ] Create a configuration file (e.g., `bmm_versions.json`) that stores the latest version for each BMM package. This file will be used to download the correct files in later steps.
 *   [ ] **Task 2.2: Download and Read BMM JSON Files**
-    *   **Goal:** Create a script or function to download the latest version of each BMM JSON file and read its content.
+    *   **Goal:** Create a script or function to download the latest version of each BMM JSON file (as defined in above generated configuration file) and read its content.
     *   **Steps:**
-        1.  [ ] Read the `bmm_versions.json` configuration file to get the list of latest BMM files to download.
-        2.  [ ] For each file in the configuration, construct the download URL from the `sebastian-iancu/code-generator` repository.
-        3.  [ ] Download each `.bmm.json` file and save it locally in a temporary directory (e.g., `tasks/bmm_json`).
+        1.  [ ] Read the `bmm_versions.json` configuration file to get the list of latest BMM files to download from .
+        2.  [ ] For each file in the configuration, construct the download URL from the `sebastian-iancu/code-generator` repository. 
+        3.  [ ] Download each such selected `.bmm.json` file and save it locally in a temporary directory (e.g., `tasks/bmm_json`).
         4.  [ ] Write a function that takes a file path to a BMM JSON file as input.
         5.  [ ] Inside the function, use a standard JSON reader to parse the file content into a JavaScript object.
         6.  [ ] Write logic to traverse the JSON tree and extract the necessary information (classes, properties, documentation, etc.).
