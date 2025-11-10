@@ -33,3 +33,5 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
 ## Development tooling guidance
 * When working with Javascript or Typescript based projects prefer using Deno for management over using Node.js and NPM. Deno is installed in the local environment, but Jules might need to install Deno in its VM before using it.
 * The local environment is a Windows machine without admin privileges, Powershell is available. It uses [Scoop](https://scoop.sh/) for package installation, so base any advice on that.
+
+

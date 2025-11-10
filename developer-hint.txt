@@ -1,0 +1,3 @@
+## Hints to end users (not for AI)
+Example of how to execute: 
+execute @tasks/task-list-phase2.md while keeping @tasks/prd-typescript-library-generation-phase2.md , @README.md and @AGENTS.md in mind. Take your time, no hurry
