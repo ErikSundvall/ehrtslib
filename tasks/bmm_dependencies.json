@@ -1,0 +1,11 @@
+{
+  "openehr_am": [
+    "openehr_base_1.3.0"
+  ],
+  "openehr_base": [],
+  "openehr_lang": [],
+  "openehr_rm": [
+    "openehr_base_1.3.0"
+  ],
+  "openehr_term": []
+}

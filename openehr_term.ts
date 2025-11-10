@@ -1,5 +1,17 @@
-type undefined = any;
-type TERMINOLOGY_STATUS = any;
+// Generated from BMM schema: term v3.1.0
+// BMM Version: 2.4
+// Schema Revision: 3.1.0.2
+// Description: term
+// Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json
+// Generated: 2025-11-10T12:36:29.706Z
+// 
+// This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
+// Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
+//
+// For more information about openEHR specifications, visit: https://specifications.openehr.org/
+
+// Unknown types - defined as 'any' for now
+type Iso8601_date = any;
 
 /**
  * A code set.
@@ -10,11 +22,11 @@ export class CODE_SET {
      */
     name?: string;
     /**
-     * Identifier used for code set in the openEHR Reference Model. The value is inferred from the `_name_` attribute.
+     * Identifier used for code set in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
      * 
      * Valid values take the form of an xs:NCName value, i.e. cannot contain:
      * 
-     * * symbol characters `:, @, $, %, &, /, +, ,, ;`;
+     * * symbol characters \`:, @, $, %, &, /, +, ,, ;\`;
      * * whitespace characters or different parentheses. 
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
@@ -33,7 +45,7 @@ export class CODE_SET {
      * 
      * Valid values take the form of an xs:NCName value, i.e. cannot contain:
      * 
-     * * symbol characters `:, @, $, %, &, /, +, ,, ;`;
+     * * symbol characters \`:, @, $, %, &, /, +, ,, ;\`;
      * * whitespace characters or different parentheses. 
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
@@ -44,9 +56,6 @@ export class CODE_SET {
      */
     status?: TERMINOLOGY_STATUS;
 }
-
-type undefined = any;
-type TERMINOLOGY_STATUS = any;
 
 /**
  * A single vocabulary, in a particular language, within a Terminology.
@@ -61,11 +70,11 @@ export class TERMINOLOGY_GROUP {
      */
     concepts?: undefined;
     /**
-     * Identifier used for terminology group in the openEHR Reference Model. The value is inferred from the `_name_` attribute.
+     * Identifier used for terminology group in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
      * 
      * Valid values take the form of an xs:NCName value, i.e. cannot contain:
      * 
-     * * symbol characters `:, @, $, %, &, /, +, ,, ;`;
+     * * symbol characters \`:, @, $, %, &, /, +, ,, ;\`;
      * * whitespace characters or different parentheses. 
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
@@ -77,18 +86,16 @@ export class TERMINOLOGY_GROUP {
     status?: TERMINOLOGY_STATUS;
 }
 
-type TERMINOLOGY_STATUS = any;
-
 /**
  * A single code entity in a code set.
  */
 export class CODE {
     /**
-     * The code string for this code entity, e.g. `"AF"`.
+     * The code string for this code entity, e.g. \`"AF"\`.
      */
     value?: string;
     /**
-     * Optional description of this code, e.g. `"AFGHANISTAN"`.
+     * Optional description of this code, e.g. \`"AFGHANISTAN"\`.
      * 
      * This field may be used to hold translations of the description in a language-specific copy of the English language original code set.
      */
@@ -98,8 +105,6 @@ export class CODE {
      */
     status?: TERMINOLOGY_STATUS;
 }
-
-type TERMINOLOGY_STATUS = any;
 
 /**
  * A single terminology concept in a vocabulary.
@@ -118,9 +123,6 @@ export class TERMINOLOGY_CONCEPT {
      */
     status?: TERMINOLOGY_STATUS;
 }
-
-type undefined = any;
-type Iso8601_date = any;
 
 /**
  * Container for code sets and/or vocabularies that belong to a given logical terminology.

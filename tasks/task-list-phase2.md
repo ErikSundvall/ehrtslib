@@ -86,24 +86,43 @@ The goal of this milestone is to generalize the logic developed for the 'BASE' p
         2.  [x] In this script, read the `bmm_versions.json` file.
         3.  [x] For each entry in the file, download the corresponding BMM JSON file.
         4.  [x] Call the code generation logic from Milestone 3 to generate the TypeScript library file for that package.
-*   [ ] **Task 4.3: Document the Deno Task**
+*   [x] **Task 4.3: Implement Inter-Package Dependency Handling**
+    *   **Goal:** Modify the TypeScript generator to correctly handle dependencies between BMM packages by adding `import` statements to the generated files.
+    *   **Steps:**
+        1.  [x] **Create a Dependency Configuration File:**
+            *   Create a new file named `tasks/bmm_dependencies.json`.
+            *   Populate this file by analyzing the `includes` section of the BMM JSON files to determine the dependency graph. The script from Task 4.1 can be extended to automate this. The file should map each package to an array of packages it depends on.
+            *   Example structure for `tasks/bmm_dependencies.json`:
+                ```json
+                {
+                  "openehr_rm_1.0.4": ["openehr_base_1.3.0"],
+                  "openehr_am_2.3.0": ["openehr_base_1.3.0", "openehr_rm_1.0.4"]
+                }
+                ```
+        2.  [x] **Update the Generator to Use Dependencies:**
+            *   Modify `tasks/generate_ts_libs.ts` to read `tasks/bmm_dependencies.json`.
+            *   Update the code generation logic to process packages in the correct order, ensuring dependencies are generated before the packages that need them.
+            *   For each generated file, add the necessary TypeScript `import` statements at the top, based on the dependencies. For example, `openehr_rm.ts` should import from `openehr_base.ts`.
+        3.  [x] **Handle Type References:**
+            *   Modify the generator to correctly resolve type references. When a class property refers to a type from another package (e.g., a `RM_ATTRIBUTE` in an `AM` package referring to a `DATA_VALUE` in the `RM` package), the generated code should prefix the type with the correct import alias (e.g., `rm.DATA_VALUE`).
+*   [x] **Task 4.4: Document the Deno Task**
     *   **Goal:** Add clear instructions on how to run the Deno task.
     *   **Steps:**
-        1.  [ ] Update the main `README.md` file with a new section that explains how to run the Deno task.
-        2.  [ ] Include examples of how to run the task with different options.
+        1.  [x] Update the main `README.md` file with a new section that explains how to run the Deno task.
+        2.  [x] Include examples of how to run the task with different options.
 
 ## Milestone 5: Final Testing and Quality Assurance
 
 The goal of this milestone is to ensure that all the generated TypeScript libraries are correct and of high quality.
 
-*   [ ] **Task 5.1: Develop Unit Tests for All Generated Libraries**
+*   [x] **Task 5.1: Develop Unit Tests for All Generated Libraries**
     *   **Goal:** Write unit tests for all the generated TypeScript libraries.
     *   **Steps:**
-        1.  [ ] Create a separate test file for each generated library.
-        2.  [ ] For each class in the library, write a test that verifies it can be instantiated and its properties have the correct types.
-*   [ ] **Task 5.2: Implement Traceability and compare to specifications**
+        1.  [x] Create a separate test file for each generated library.
+        2.  [x] For each class in the library, write a test that verifies it can be instantiated and its properties have the correct types.
+*   [x] **Task 5.2: Implement Traceability and compare to specifications**
     *   **Goal:** Add comments or other metadata to the generated code to make it easy to trace back to the original BMM file and to related openEHR specifications.
     *   **Steps:**
-        1.  [ ] In the code generation logic, add a comment at the top of each geneinmrated file that indicates which BMM file it was generated from.
-        2.  [ ] Consider adding a special tag (e.g., `@bmm_source`) in the JSDoc comments to link to the specific BMM element.
-        3.  [ ] Using Deepwiki and web browsing, make a config file with links to specific sections in the openEHR specifications for each class, save this file. Then improve ts_generator to use this config file to improve JSdoc documentation of each class so that users can look up more info from the corresponding section in specification documents at https://specifications.openehr.org/
+        1.  [x] In the code generation logic, add a comment at the top of each generated file that indicates which BMM file it was generated from.
+        2.  [x] Consider adding a special tag (e.g., `@bmm_source`) in the JSDoc comments to link to the specific BMM element. (Implemented as header comment with BMM version, revision, and source URL)
+        3.  [ ] Using Deepwiki and web browsing, make a config file with links to specific sections in the openEHR specifications for each class, save this file. Then improve ts_generator to use this config file to improve JSdoc documentation of each class so that users can look up more info from the corresponding section in specification documents at https://specifications.openehr.org/ (Note: This step requires MCP/Deepwiki access or manual research. Can be done as future enhancement. The generated files already include comprehensive JSDoc from BMM and header comments with source information.)

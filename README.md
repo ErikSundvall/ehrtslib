@@ -20,21 +20,77 @@ openehr_base_1.3.0.bmm.json
 
 This section describes how to generate TypeScript libraries from the latest openEHR BMM JSON specifications.
 
+## Prerequisites
+
+- [Deno](https://deno.land/) runtime installed
+- Internet connection (to download BMM JSON files from GitHub)
+
 ## Generating TypeScript Libraries
 
-To generate the TypeScript libraries for all openEHR BMM packages, run the following Deno script:
+### Quick Start
+
+To generate the TypeScript libraries for all openEHR BMM packages, run:
 
 ```bash
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
-This script will perform the following actions:
-1.  Read the `tasks/bmm_versions.json` file to identify the latest versions of all BMM packages.
-2.  Download the corresponding BMM JSON files from the `sebastian-iancu/code-generator` GitHub repository.
-3.  Generate TypeScript classes and interfaces for each BMM package, including JSDoc comments based on the BMM documentation.
-4.  Save the generated TypeScript code to individual files (e.g., `openehr_am.ts`, `openehr_base.ts`) in the root directory.
+### What the Generator Does
 
-**Note:** The generated TypeScript files will be placed in the root directory of the project.
+The generator script performs the following steps:
+
+1.  **Reads package versions**: Loads `tasks/bmm_versions.json` to identify the latest SemVer version of each BMM package
+2.  **Reads dependencies**: Loads `tasks/bmm_dependencies.json` to understand inter-package dependencies
+3.  **Topological sorting**: Orders packages so dependencies are generated before packages that depend on them (e.g., `openehr_base` before `openehr_rm`)
+4.  **Downloads BMM files**: Fetches the corresponding BMM JSON files from the `sebastian-iancu/code-generator` GitHub repository
+5.  **Generates TypeScript code**: 
+    - Creates TypeScript classes and interfaces for each BMM package
+    - Includes comprehensive JSDoc comments extracted from BMM documentation
+    - Adds proper `import` statements for inter-package dependencies
+    - Resolves type references across packages (e.g., `openehr_base.UID_BASED_ID`)
+6.  **Saves output**: Writes generated TypeScript files to the root directory (e.g., `openehr_am.ts`, `openehr_base.ts`, `openehr_rm.ts`, `openehr_term.ts`, `openehr_lang.ts`)
+
+### Updating to Latest BMM Versions
+
+If new versions of BMM files are published, update the versions by running:
+
+```bash
+deno run --allow-net --allow-write tasks/extract_dependencies.ts
+```
+
+This will:
+- Discover the latest versions of all BMM packages
+- Update `tasks/bmm_versions.json`
+- Extract and update inter-package dependencies in `tasks/bmm_dependencies.json`
+
+Then regenerate the TypeScript libraries using the generation command above.
+
+### Manual Configuration
+
+The generation process is controlled by two JSON configuration files in the `tasks/` directory:
+
+- **`tasks/bmm_versions.json`**: Maps package names to their BMM JSON file URLs
+- **`tasks/bmm_dependencies.json`**: Maps package names to arrays of their dependencies
+
+You can manually edit these files if needed, though the automated discovery scripts should handle most cases.
+
+### Output Structure
+
+Generated files follow these conventions:
+- One TypeScript file per BMM package (e.g., `openehr_base.ts`)
+- All classes from the same BMM package are in the same file
+- Snake_case naming is preserved from BMM specifications
+- Classes are exported and can be imported individually or as a namespace
+
+Example usage of generated libraries:
+
+```typescript
+import { LOCATABLE } from "./openehr_rm.ts";
+import * as base from "./openehr_base.ts";
+
+// Use the classes...
+const id: base.UID_BASED_ID = ...;
+```
 
 # Phase 3
 
@@ -51,6 +107,20 @@ Simplified openEHR template specific forms of instance tree creation and validat
 * Also make a (less lightweight) version that can be synchronously multiuser updated using Y.js or 
 * Create build step to genenrate minivfed and web component versions
 
-# Phase 4
+# Phase 6
 
 Serialisation and deserialisation of RM object instance trees to and from openEHRs simplified JSON formats (likely using other already existing library if it can be made fairly dependency free)
+
+-----
+
+# Old refence perhaps covered above already:
+
+## Regenerate TypeScript libraries
+deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
+
+## Update BMM versions and dependencies
+deno run --allow-net --allow-write tasks/extract_dependencies.ts
+
+## Run tests
+deno test --allow-read tests/generated_libs_test.ts
+
