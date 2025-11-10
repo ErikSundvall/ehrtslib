@@ -17,7 +17,7 @@
 ## Development process guidance
 
 * If asked to make a `PRD` (Product Requirements Document) based on a prompt, then follow the instructions in https://raw.githubusercontent.com/snarktank/ai-dev-tasks/refs/heads/main/create-prd.md 
-* If asked to create a `task list` then look in the /tasks subdirectory for a PRD file to base it on. If there are several PRD files that don't already have associated task lists, then ask user for disambiguation. Then follow instructions in https://raw.githubusercontent.com/snarktank/ai-dev-tasks/refs/heads/main/generate-tasks.md using the PRD file as input.
+* If asked to create a `task list` then look in the /tasks subdirectory for a PRD file to base it on. If there are several PRD files that don't already have associated task lists, then ask user for disambiguation. Then follow instructions in https://raw.githubusercontent.com/snarktank/ai-dev-tasks/refs/heads/main/generate-tasks.md using the PRD file as input. Refer to PRD in task list document.
 * Put PRDs and task lists in a /tasks subdirectory
 * The task list file(s) should contain a section called "Instructions for Completing Tasks" with the following content:
 ```

@@ -4,29 +4,28 @@ This document breaks down the work for Phase 2 into a logical sequence of tasks,
 
 ## Instructions for Completing Tasks
 
-**IMPORTANT:** As you complete each task, you must check it off in this markdown file by changing `- [ ]` to `- [x]`. This helps track progress and ensures you don't skip any steps.
-
+**IMPORTANT:** As you complete each task, you must check it off in this markdown file by changing `- [ ]` to `- [x]`. This helps track progress and ensures you don't skip any steps. 
 Example:
 - `- [ ] 1.1 Read file` → `- [x] 1.1 Read file` (after completing)
 
-Update the file after completing each sub-task, not just after completing an entire parent task.
+Update the file after completing each sub-task, not just after completing an entire parent task. If implementation steps happen to fulfil several things at once then ticking off several boxes is OK.
 
-If running in interactive mode (e.g. Gemini CLI) then stop after each parent task and let user review. If running in autonomus batch mode e.g. dispatched to Jules, then just stop if user input is crucial to understand furher steps.
+If running in interactive mode (e.g. Gemini CLI) then stop after each parent task (milestone) and let user review. If running in autonomus batch mode e.g. dispatched to Jules, then just stop if user input is crucial in order to understand further steps.
 
 ## Milestone 1: Project Setup and Housekeeping
 
 The goal of this milestone is to prepare the project for the new Phase 2 work and archive the results of Phase 1.
 
-*   [ ] **Task 1.1: Archive Phase 1 Output**
+*   [x] **Task 1.1: Archive Phase 1 Output**
     *   **Goal:** Move the existing TypeScript files from Phase 1 into a separate directory to keep them for reference.
     *   **Steps:**
-        1.  [ ] Create a new directory named `from_old_bmm` in the root of the project.
-        2.  [ ] Move all the TypeScript files generated during Phase 1 into this new directory.
-*   [ ] **Task 1.2: Create README for Phase 1 Archive**
+        1.  [x] Create a new directory named `from_old_bmm` in the root of the project.
+        2.  [x] Move all the TypeScript files generated during Phase 1 into this new directory.
+*   [x] **Task 1.2: Create README for Phase 1 Archive**
     *   **Goal:** Add a `README.md` file inside the `from_old_bmm` directory to explain what the code is and how it was generated.
     *   **Steps:**
-        1.  [ ] Create a new file named `README.md` inside the `from_old_bmm` directory.
-        2.  [ ] Write a brief explanation in the `README.md` file, stating that the code in this directory was generated from an older BMM variant and is kept for comparison purposes. The branch describing Jule's generation of these files using PHP is at https://github.com/ErikSundvall/code-generator/tree/feature-deno-library-generator (link to it)
+        1.  [x] Create a new file named `README.md` inside the `from_old_bmm` directory.
+        2.  [x] Write a brief explanation in the `README.md` file, stating that the code in this directory was generated from an older BMM variant and is kept for comparison purposes. The branch describing Jule's generation of these files using PHP is at https://github.com/ErikSundvall/code-generator/tree/feature-deno-library-generator (link to it)
 
 ## Milestone 2: Initial BMM Processing for 'BASE' Package
 
