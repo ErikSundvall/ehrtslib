@@ -3,7 +3,7 @@
 // Schema Revision: 1.1.0.2
 // Description: lang
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Generated: 2025-11-11T08:25:30.770Z
+// Generated: 2025-11-11T08:30:07.143Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -46,7 +46,9 @@ export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
      * @returns Result value
      */
     Any_class(): BMM_SIMPLE_CLASS {
-        throw new Error("Method Any_class not implemented.");
+        // TODO: Implement Any_class behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method Any_class not yet implemented.");
     }
 
     /**
@@ -54,7 +56,9 @@ export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
      * @returns Result value
      */
     Any_type(): BMM_SIMPLE_TYPE {
-        throw new Error("Method Any_type not implemented.");
+        // TODO: Implement Any_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method Any_type not yet implemented.");
     }
 
     /**
@@ -69,7 +73,9 @@ export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
      * @returns Result value
      */
     create_schema_id(a_model_publisher: Any, a_schema_name: Any, a_model_release: String): String {
-        throw new Error("Method create_schema_id not implemented.");
+        // TODO: Implement create_schema_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_schema_id not yet implemented.");
     }
 
 }
@@ -101,7 +107,9 @@ export class BMM_MODEL_ACCESS {
      * @returns Result value
      */
     initialise_with_load_list(a_schema_dirs: undefined, a_schema_load_list: undefined): void {
-        throw new Error("Method initialise_with_load_list not implemented.");
+        // TODO: Implement initialise_with_load_list behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method initialise_with_load_list not yet implemented.");
     }
 
     /**
@@ -110,7 +118,9 @@ export class BMM_MODEL_ACCESS {
      * @returns Result value
      */
     initialise_all(a_schema_dirs: undefined): void {
-        throw new Error("Method initialise_all not implemented.");
+        // TODO: Implement initialise_all behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method initialise_all not yet implemented.");
     }
 
     /**
@@ -118,7 +128,9 @@ export class BMM_MODEL_ACCESS {
      * @returns Result value
      */
     reload_schemas(): void {
-        throw new Error("Method reload_schemas not implemented.");
+        // TODO: Implement reload_schemas behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method reload_schemas not yet implemented.");
     }
 
     /**
@@ -127,7 +139,9 @@ export class BMM_MODEL_ACCESS {
      * @returns Result value
      */
     bmm_model(a_model_key: String): BMM_MODEL {
-        throw new Error("Method bmm_model not implemented.");
+        // TODO: Implement bmm_model behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method bmm_model not yet implemented.");
     }
 
     /**
@@ -136,7 +150,9 @@ export class BMM_MODEL_ACCESS {
      * @returns Result value
      */
     has_bmm_model(a_model_key: String): Boolean {
-        throw new Error("Method has_bmm_model not implemented.");
+        // TODO: Implement has_bmm_model behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_bmm_model not yet implemented.");
     }
 
 }
@@ -154,6 +170,12 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      */
     bmm_model?: BMM_MODEL;
     /**
+     * Internal storage for schema_id
+     * @private
+     */
+    private _schema_id?: String;
+
+    /**
      * Schema id, formed by 
      * 
      * \`{BMM_DEFINITIONS}.create_schema_id(
@@ -163,7 +185,31 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * 
      * e.g. \`openehr_rm_1.0.3\`, \`openehr_test_1.0.1\`, \`iso_13606_1_2008_2.1.2\`.
      */
-    schema_id?: String;
+    get schema_id(): string | undefined {
+        return this._schema_id?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_id.
+     * Use this to access String methods.
+     */
+    get $schema_id(): String | undefined {
+        return this._schema_id;
+    }
+
+    /**
+     * Sets schema_id from either a primitive value or String wrapper.
+     */
+    set schema_id(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_id = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_id = String.from(val);
+        } else {
+            this._schema_id = val;
+        }
+    }
+
     /**
      * Table of \`{key, value}\` of schema meta-data, keys are string values defined by \`{BMM_DEFINITIONS}.Metadata_*\` constants.
      */
@@ -177,7 +223,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     is_top_level(): Boolean {
-        throw new Error("Method is_top_level not implemented.");
+        // TODO: Implement is_top_level behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_top_level not yet implemented.");
     }
 
     /**
@@ -185,7 +233,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     is_bmm_compatible(): Boolean {
-        throw new Error("Method is_bmm_compatible not implemented.");
+        // TODO: Implement is_bmm_compatible behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_bmm_compatible not yet implemented.");
     }
 
     /**
@@ -193,7 +243,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     load(): void {
-        throw new Error("Method load not implemented.");
+        // TODO: Implement load behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method load not yet implemented.");
     }
 
     /**
@@ -201,7 +253,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     validate_merged(): void {
-        throw new Error("Method validate_merged not implemented.");
+        // TODO: Implement validate_merged behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validate_merged not yet implemented.");
     }
 
     /**
@@ -210,7 +264,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     validate_includes(all_schemas_list: undefined): void {
-        throw new Error("Method validate_includes not implemented.");
+        // TODO: Implement validate_includes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validate_includes not yet implemented.");
     }
 
     /**
@@ -218,7 +274,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * @returns Result value
      */
     create_model(): void {
-        throw new Error("Method create_model not implemented.");
+        // TODO: Implement create_model behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_model not yet implemented.");
     }
 
 }
@@ -228,13 +286,73 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
  */
 export class BMM_MODEL_METADATA {
     /**
+     * Internal storage for rm_publisher
+     * @private
+     */
+    private _rm_publisher?: String;
+
+    /**
      * Publisher of model expressed in the schema.
      */
-    rm_publisher?: String;
+    get rm_publisher(): string | undefined {
+        return this._rm_publisher?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for rm_publisher.
+     * Use this to access String methods.
+     */
+    get $rm_publisher(): String | undefined {
+        return this._rm_publisher;
+    }
+
+    /**
+     * Sets rm_publisher from either a primitive value or String wrapper.
+     */
+    set rm_publisher(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_publisher = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_publisher = String.from(val);
+        } else {
+            this._rm_publisher = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_release
+     * @private
+     */
+    private _rm_release?: String;
+
     /**
      * Release of model expressed in the schema as a 3-part numeric, e.g. "3.1.0" . 
      */
-    rm_release?: String;
+    get rm_release(): string | undefined {
+        return this._rm_release?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for rm_release.
+     * Use this to access String methods.
+     */
+    get $rm_release(): String | undefined {
+        return this._rm_release;
+    }
+
+    /**
+     * Sets rm_release from either a primitive value or String wrapper.
+     */
+    set rm_release(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_release = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_release = String.from(val);
+        } else {
+            this._rm_release = val;
+        }
+    }
+
 }
 
 /**
@@ -242,9 +360,39 @@ export class BMM_MODEL_METADATA {
  */
 export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     /**
+     * Internal storage for bmm_version
+     * @private
+     */
+    private _bmm_version?: String;
+
+    /**
      * Version of BMM model, enabling schema evolution reasoning. Persisted attribute.
      */
-    bmm_version?: String;
+    get bmm_version(): string | undefined {
+        return this._bmm_version?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for bmm_version.
+     * Use this to access String methods.
+     */
+    get $bmm_version(): String | undefined {
+        return this._bmm_version;
+    }
+
+    /**
+     * Sets bmm_version from either a primitive value or String wrapper.
+     */
+    set bmm_version(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._bmm_version = undefined;
+        } else if (typeof val === 'string') {
+            this._bmm_version = String.from(val);
+        } else {
+            this._bmm_version = val;
+        }
+    }
+
     /**
      * Inclusion list of any form of BMM model, in the form of a hash of individual include specifications, each of which at least specifies the id of another schema, and may specify a namespace via which types from the included schemas are known in this schema.
      * Persisted attribute.
@@ -259,29 +407,209 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
      */
     state?: BMM_SCHEMA_STATE;
     /**
+     * Internal storage for model_name
+     * @private
+     */
+    private _model_name?: String;
+
+    /**
      * Name of this model, if this schema is a model root point. Not set for sub-schemas that are not considered models on their own.
      */
-    model_name?: String;
+    get model_name(): string | undefined {
+        return this._model_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for model_name.
+     * Use this to access String methods.
+     */
+    get $model_name(): String | undefined {
+        return this._model_name;
+    }
+
+    /**
+     * Sets model_name from either a primitive value or String wrapper.
+     */
+    set model_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._model_name = undefined;
+        } else if (typeof val === 'string') {
+            this._model_name = String.from(val);
+        } else {
+            this._model_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for schema_name
+     * @private
+     */
+    private _schema_name?: String;
+
     /**
      * Name of model expressed in schema; a 'schema' usually contains all of the packages of one 'model' of a publisher. A publisher with more than one model can have multiple schemas. 
      */
-    schema_name?: String;
+    get schema_name(): string | undefined {
+        return this._schema_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_name.
+     * Use this to access String methods.
+     */
+    get $schema_name(): String | undefined {
+        return this._schema_name;
+    }
+
+    /**
+     * Sets schema_name from either a primitive value or String wrapper.
+     */
+    set schema_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_name = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_name = String.from(val);
+        } else {
+            this._schema_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for schema_revision
+     * @private
+     */
+    private _schema_revision?: String;
+
     /**
      * Revision of schema.
      */
-    schema_revision?: String;
+    get schema_revision(): string | undefined {
+        return this._schema_revision?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_revision.
+     * Use this to access String methods.
+     */
+    get $schema_revision(): String | undefined {
+        return this._schema_revision;
+    }
+
+    /**
+     * Sets schema_revision from either a primitive value or String wrapper.
+     */
+    set schema_revision(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_revision = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_revision = String.from(val);
+        } else {
+            this._schema_revision = val;
+        }
+    }
+
+    /**
+     * Internal storage for schema_lifecycle_state
+     * @private
+     */
+    private _schema_lifecycle_state?: String;
+
     /**
      * Schema development lifecycle state. 
      */
-    schema_lifecycle_state?: String;
+    get schema_lifecycle_state(): string | undefined {
+        return this._schema_lifecycle_state?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_lifecycle_state.
+     * Use this to access String methods.
+     */
+    get $schema_lifecycle_state(): String | undefined {
+        return this._schema_lifecycle_state;
+    }
+
+    /**
+     * Sets schema_lifecycle_state from either a primitive value or String wrapper.
+     */
+    set schema_lifecycle_state(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_lifecycle_state = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_lifecycle_state = String.from(val);
+        } else {
+            this._schema_lifecycle_state = val;
+        }
+    }
+
+    /**
+     * Internal storage for schema_author
+     * @private
+     */
+    private _schema_author?: String;
+
     /**
      * Primary author of schema. 
      */
-    schema_author?: String;
+    get schema_author(): string | undefined {
+        return this._schema_author?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_author.
+     * Use this to access String methods.
+     */
+    get $schema_author(): String | undefined {
+        return this._schema_author;
+    }
+
+    /**
+     * Sets schema_author from either a primitive value or String wrapper.
+     */
+    set schema_author(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_author = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_author = String.from(val);
+        } else {
+            this._schema_author = val;
+        }
+    }
+
+    /**
+     * Internal storage for schema_description
+     * @private
+     */
+    private _schema_description?: String;
+
     /**
      * Description of schema. 
      */
-    schema_description?: String;
+    get schema_description(): string | undefined {
+        return this._schema_description?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for schema_description.
+     * Use this to access String methods.
+     */
+    get $schema_description(): String | undefined {
+        return this._schema_description;
+    }
+
+    /**
+     * Sets schema_description from either a primitive value or String wrapper.
+     */
+    set schema_description(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._schema_description = undefined;
+        } else if (typeof val === 'string') {
+            this._schema_description = String.from(val);
+        } else {
+            this._schema_description = val;
+        }
+    }
+
     /**
      * Contributing authors of schema. 
      */
@@ -331,7 +659,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
      * @returns Result value
      */
     read_to_validate(): Boolean {
-        throw new Error("Method read_to_validate not implemented.");
+        // TODO: Implement read_to_validate behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method read_to_validate not yet implemented.");
     }
 
     /**
@@ -343,7 +673,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
      * @returns Result value
      */
     schema_id(): String {
-        throw new Error("Method schema_id not implemented.");
+        // TODO: Implement schema_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method schema_id not yet implemented.");
     }
 
 }
@@ -353,9 +685,39 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
  */
 export class BMM_INCLUDE_SPEC {
     /**
+     * Internal storage for id
+     * @private
+     */
+    private _id?: String;
+
+    /**
      * Full identifier of the included schema, e.g. \`"openehr_primitive_types_1.0.2"\`.
      */
-    id?: String;
+    get id(): string | undefined {
+        return this._id?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for id.
+     * Use this to access String methods.
+     */
+    get $id(): String | undefined {
+        return this._id;
+    }
+
+    /**
+     * Sets id from either a primitive value or String wrapper.
+     */
+    set id(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._id = undefined;
+        } else if (typeof val === 'string') {
+            this._id = String.from(val);
+        } else {
+            this._id = val;
+        }
+    }
+
 }
 
 export class BMM_SCHEMA_METADATA_KEY extends String {
@@ -372,9 +734,39 @@ export class BMM_SCHEMA_STATE extends String {
  */
 export abstract class BMM_MODEL_ELEMENT {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of this model element.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Optional documentation of this element, as a keyed list.
      * 
@@ -402,7 +794,9 @@ export abstract class BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     is_root_scope(): Boolean {
-        throw new Error("Method is_root_scope not implemented.");
+        // TODO: Implement is_root_scope behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_root_scope not yet implemented.");
     }
 
 }
@@ -416,9 +810,39 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
      */
     type?: BMM_TYPE;
     /**
+     * Internal storage for is_nullable
+     * @private
+     */
+    private _is_nullable?: Boolean;
+
+    /**
      * True if this element can be null (Void) at execution time. May be interpreted as optionality in subtypes..
      */
-    is_nullable?: Boolean;
+    get is_nullable(): boolean | undefined {
+        return this._is_nullable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_nullable.
+     * Use this to access Boolean methods.
+     */
+    get $is_nullable(): Boolean | undefined {
+        return this._is_nullable;
+    }
+
+    /**
+     * Sets is_nullable from either a primitive value or Boolean wrapper.
+     */
+    set is_nullable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_nullable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_nullable = Boolean.from(val);
+        } else {
+            this._is_nullable = val;
+        }
+    }
+
     /**
      * Formal signature of this element, in the form:
      * 
@@ -434,7 +858,9 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     is_boolean(): Boolean {
-        throw new Error("Method is_boolean not implemented.");
+        // TODO: Implement is_boolean behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_boolean not yet implemented.");
     }
 
 }
@@ -444,9 +870,39 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
  */
 export abstract class BMM_FEATURE extends BMM_FORMAL_ELEMENT {
     /**
+     * Internal storage for is_synthesised_generic
+     * @private
+     */
+    private _is_synthesised_generic?: Boolean;
+
+    /**
      * True if this feature was synthesised due to generic substitution in an inherited type, or further constraining of a formal generic parameter.
      */
-    is_synthesised_generic?: Boolean;
+    get is_synthesised_generic(): boolean | undefined {
+        return this._is_synthesised_generic?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_synthesised_generic.
+     * Use this to access Boolean methods.
+     */
+    get $is_synthesised_generic(): Boolean | undefined {
+        return this._is_synthesised_generic;
+    }
+
+    /**
+     * Sets is_synthesised_generic from either a primitive value or Boolean wrapper.
+     */
+    set is_synthesised_generic(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_synthesised_generic = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_synthesised_generic = Boolean.from(val);
+        } else {
+            this._is_synthesised_generic = val;
+        }
+    }
+
     /**
      * Extensions to feature-level meta-types.
      */
@@ -488,23 +944,115 @@ export class BMM_CONSTANT extends BMM_STATIC {
  */
 export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     /**
+     * Internal storage for is_im_runtime
+     * @private
+     */
+    private _is_im_runtime?: Boolean;
+
+    /**
      * True if this property is marked with info model \`_im_runtime_\` property.
      */
-    is_im_runtime?: Boolean;
+    get is_im_runtime(): boolean | undefined {
+        return this._is_im_runtime?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_im_runtime.
+     * Use this to access Boolean methods.
+     */
+    get $is_im_runtime(): Boolean | undefined {
+        return this._is_im_runtime;
+    }
+
+    /**
+     * Sets is_im_runtime from either a primitive value or Boolean wrapper.
+     */
+    set is_im_runtime(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_im_runtime = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_im_runtime = Boolean.from(val);
+        } else {
+            this._is_im_runtime = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_im_infrastructure
+     * @private
+     */
+    private _is_im_infrastructure?: Boolean;
+
     /**
      * True if this property was marked with info model \`_im_infrastructure_\` flag.
      */
-    is_im_infrastructure?: Boolean;
+    get is_im_infrastructure(): boolean | undefined {
+        return this._is_im_infrastructure?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_im_infrastructure.
+     * Use this to access Boolean methods.
+     */
+    get $is_im_infrastructure(): Boolean | undefined {
+        return this._is_im_infrastructure;
+    }
+
+    /**
+     * Sets is_im_infrastructure from either a primitive value or Boolean wrapper.
+     */
+    set is_im_infrastructure(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_im_infrastructure = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_im_infrastructure = Boolean.from(val);
+        } else {
+            this._is_im_infrastructure = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_composition
+     * @private
+     */
+    private _is_composition?: Boolean;
+
     /**
      * True if this property instance is a compositional sub-part of the owning class instance. Equivalent to 'composition' in UML associations (but missing from UML properties without associations) and also 'cascade-delete' semantics in ER schemas.
      */
-    is_composition?: Boolean;
+    get is_composition(): boolean | undefined {
+        return this._is_composition?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_composition.
+     * Use this to access Boolean methods.
+     */
+    get $is_composition(): Boolean | undefined {
+        return this._is_composition;
+    }
+
+    /**
+     * Sets is_composition from either a primitive value or Boolean wrapper.
+     */
+    set is_composition(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_composition = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_composition = Boolean.from(val);
+        } else {
+            this._is_composition = val;
+        }
+    }
+
     /**
      * Interval form of \`0..1\`, \`1..1\` etc, derived from \`_is_nullable_\`.
      * @returns Result value
      */
     existence(): Multiplicity_interval {
-        throw new Error("Method existence not implemented.");
+        // TODO: Implement existence behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method existence not yet implemented.");
     }
 
     /**
@@ -512,7 +1060,9 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
      * @returns Result value
      */
     display_name(): String {
-        throw new Error("Method display_name not implemented.");
+        // TODO: Implement display_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method display_name not yet implemented.");
     }
 
 }
@@ -534,7 +1084,9 @@ export class BMM_CONTAINER_PROPERTY extends BMM_PROPERTY {
      * @returns Result value
      */
     display_name(): String {
-        throw new Error("Method display_name not implemented.");
+        // TODO: Implement display_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method display_name not yet implemented.");
     }
 
 }
@@ -568,7 +1120,9 @@ export abstract class BMM_ROUTINE extends BMM_FEATURE {
      * @returns Result value
      */
     arity(): Integer {
-        throw new Error("Method arity not implemented.");
+        // TODO: Implement arity behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method arity not yet implemented.");
     }
 
 }
@@ -622,9 +1176,39 @@ export class BMM_OPERATOR {
      */
     symbols?: undefined;
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Formal name of the operator, e.g. 'minus' etc.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -660,7 +1244,9 @@ export class BMM_PROCEDURE extends BMM_ROUTINE {
      * @returns Result value
      */
     signature(): BMM_PROCEDURE_TYPE {
-        throw new Error("Method signature not implemented.");
+        // TODO: Implement signature behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method signature not yet implemented.");
     }
 
 }
@@ -688,7 +1274,9 @@ export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
      * @returns Result value
      */
     display_name(): String {
-        throw new Error("Method display_name not implemented.");
+        // TODO: Implement display_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method display_name not yet implemented.");
     }
 
 }
@@ -698,9 +1286,39 @@ export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
  */
 export class BMM_RESULT extends BMM_WRITABLE_VARIABLE {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of this model element.
      */
-    override name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -734,9 +1352,39 @@ export class BMM_EXTERNAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
  */
 export class BMM_FEATURE_GROUP {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of this feature group; defaults to 'feature'.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Set of properties of this group, represented as name/value pairs. These are understood to apply logically to all of the features contained within the group.
      */
@@ -764,9 +1412,39 @@ export abstract class BMM_VISIBILITY {
  */
 export class BMM_SELF extends BMM_READONLY_VARIABLE {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of this model element.
      */
-    override name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -810,17 +1488,77 @@ export class BMM_PARAMETER_DIRECTION extends String {
  */
 export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
+     * Internal storage for value_literal
+     * @private
+     */
+    private _value_literal?: String;
+
+    /**
      * A serial representation of the value.
      */
-    value_literal?: String;
+    get value_literal(): string | undefined {
+        return this._value_literal?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value_literal.
+     * Use this to access String methods.
+     */
+    get $value_literal(): String | undefined {
+        return this._value_literal;
+    }
+
+    /**
+     * Sets value_literal from either a primitive value or String wrapper.
+     */
+    set value_literal(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value_literal = undefined;
+        } else if (typeof val === 'string') {
+            this._value_literal = String.from(val);
+        } else {
+            this._value_literal = val;
+        }
+    }
+
     /**
      * A native representation of the value, possibly derived by deserialising \`_value_literal_\`.
      */
     value?: Any;
     /**
+     * Internal storage for syntax
+     * @private
+     */
+    private _syntax?: String;
+
+    /**
      * Optional specification of formalism of the \`_value_literal_\` attribute for complex values. Value may be any of \`json | json5 | yawl | xml | odin | rdf\` or another value agreed by the user community. If not set, \`json\` is assumed.
      */
-    syntax?: String;
+    get syntax(): string | undefined {
+        return this._syntax?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for syntax.
+     * Use this to access String methods.
+     */
+    get $syntax(): String | undefined {
+        return this._syntax;
+    }
+
+    /**
+     * Sets syntax from either a primitive value or String wrapper.
+     */
+    set syntax(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._syntax = undefined;
+        } else if (typeof val === 'string') {
+            this._syntax = String.from(val);
+        } else {
+            this._syntax = val;
+        }
+    }
+
     /**
      * Concrete type of this literal.
      */
@@ -848,9 +1586,39 @@ export class BMM_PRIMITIVE_VALUE extends BMM_UNITARY_VALUE<T> {
  */
 export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: Integer;
+
+    /**
      * Native Integer value.
      */
-    override value?: Integer = undefined;
+    get value(): number | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the Integer wrapper object for value.
+     * Use this to access Integer methods.
+     */
+    get $value(): Integer | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or Integer wrapper.
+     */
+    set value(val: number | Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'number') {
+            this._value = Integer.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -858,9 +1626,39 @@ export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
  */
 export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: String;
+
+    /**
      * Native String value.
      */
-    override value?: String = undefined;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value.
+     * Use this to access String methods.
+     */
+    get $value(): String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or String wrapper.
+     */
+    set value(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -868,9 +1666,39 @@ export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
  */
 export class BMM_BOOLEAN_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: Boolean;
+
+    /**
      * Native Boolean value.
      */
-    override value?: Boolean = undefined;
+    get value(): boolean | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for value.
+     * Use this to access Boolean methods.
+     */
+    get $value(): Boolean | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or Boolean wrapper.
+     */
+    set value(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'boolean') {
+            this._value = Boolean.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -909,7 +1737,9 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     package_at_path(a_path: String): BMM_PACKAGE {
-        throw new Error("Method package_at_path not implemented.");
+        // TODO: Implement package_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method package_at_path not yet implemented.");
     }
 
     /**
@@ -918,7 +1748,9 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     do_recursive_packages(action: EL_PROCEDURE_AGENT): void {
-        throw new Error("Method do_recursive_packages not implemented.");
+        // TODO: Implement do_recursive_packages behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method do_recursive_packages not yet implemented.");
     }
 
     /**
@@ -927,7 +1759,9 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     has_package_path(a_path: String): Boolean {
-        throw new Error("Method has_package_path not implemented.");
+        // TODO: Implement has_package_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_package_path not yet implemented.");
     }
 
 }
@@ -957,7 +1791,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     model_id(): String {
-        throw new Error("Method model_id not implemented.");
+        // TODO: Implement model_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method model_id not yet implemented.");
     }
 
     /**
@@ -966,7 +1802,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     class_definition(a_name: String): BMM_CLASS {
-        throw new Error("Method class_definition not implemented.");
+        // TODO: Implement class_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method class_definition not yet implemented.");
     }
 
     /**
@@ -974,7 +1812,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     type_definition(): BMM_CLASS {
-        throw new Error("Method type_definition not implemented.");
+        // TODO: Implement type_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_definition not yet implemented.");
     }
 
     /**
@@ -983,7 +1823,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     has_class_definition(a_class_name: String): Boolean {
-        throw new Error("Method has_class_definition not implemented.");
+        // TODO: Implement has_class_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_class_definition not yet implemented.");
     }
 
     /**
@@ -992,7 +1834,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     has_type_definition(a_type_name: String): Boolean {
-        throw new Error("Method has_type_definition not implemented.");
+        // TODO: Implement has_type_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_type_definition not yet implemented.");
     }
 
     /**
@@ -1001,7 +1845,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     enumeration_definition(a_name: String): BMM_ENUMERATION {
-        throw new Error("Method enumeration_definition not implemented.");
+        // TODO: Implement enumeration_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method enumeration_definition not yet implemented.");
     }
 
     /**
@@ -1009,7 +1855,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     primitive_types(): String {
-        throw new Error("Method primitive_types not implemented.");
+        // TODO: Implement primitive_types behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method primitive_types not yet implemented.");
     }
 
     /**
@@ -1017,7 +1865,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     enumeration_types(): String {
-        throw new Error("Method enumeration_types not implemented.");
+        // TODO: Implement enumeration_types behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method enumeration_types not yet implemented.");
     }
 
     /**
@@ -1025,7 +1875,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     property_definition(): BMM_PROPERTY {
-        throw new Error("Method property_definition not implemented.");
+        // TODO: Implement property_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method property_definition not yet implemented.");
     }
 
     /**
@@ -1036,7 +1888,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     ms_conformant_property_type(a_bmm_type_name: String, a_bmm_property_name: String, a_ms_property_name: String): Boolean {
-        throw new Error("Method ms_conformant_property_type not implemented.");
+        // TODO: Implement ms_conformant_property_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method ms_conformant_property_type not yet implemented.");
     }
 
     /**
@@ -1044,7 +1898,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     property_definition_at_path(): BMM_PROPERTY {
-        throw new Error("Method property_definition_at_path not implemented.");
+        // TODO: Implement property_definition_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method property_definition_at_path not yet implemented.");
     }
 
     /**
@@ -1054,7 +1910,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     class_definition_at_path(a_type_name: String, a_prop_path: String): BMM_CLASS {
-        throw new Error("Method class_definition_at_path not implemented.");
+        // TODO: Implement class_definition_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method class_definition_at_path not yet implemented.");
     }
 
     /**
@@ -1063,7 +1921,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     all_ancestor_classes(a_class: String): String {
-        throw new Error("Method all_ancestor_classes not implemented.");
+        // TODO: Implement all_ancestor_classes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method all_ancestor_classes not yet implemented.");
     }
 
     /**
@@ -1073,7 +1933,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     is_descendant_of(a_class_name: String, a_parent_class_name: String): Boolean {
-        throw new Error("Method is_descendant_of not implemented.");
+        // TODO: Implement is_descendant_of behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_descendant_of not yet implemented.");
     }
 
     /**
@@ -1089,7 +1951,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     type_conforms_to(a_desc_type: String, an_anc_type: String): Boolean {
-        throw new Error("Method type_conforms_to not implemented.");
+        // TODO: Implement type_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_conforms_to not yet implemented.");
     }
 
     /**
@@ -1098,7 +1962,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     subtypes(a_type: String): String {
-        throw new Error("Method subtypes not implemented.");
+        // TODO: Implement subtypes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtypes not yet implemented.");
     }
 
     /**
@@ -1106,7 +1972,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     any_class_definition(): BMM_SIMPLE_CLASS {
-        throw new Error("Method any_class_definition not implemented.");
+        // TODO: Implement any_class_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_class_definition not yet implemented.");
     }
 
     /**
@@ -1114,7 +1982,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     any_type_definition(): BMM_SIMPLE_TYPE {
-        throw new Error("Method any_type_definition not implemented.");
+        // TODO: Implement any_type_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_type_definition not yet implemented.");
     }
 
     /**
@@ -1122,7 +1992,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     boolean_type_definition(): BMM_SIMPLE_TYPE {
-        throw new Error("Method boolean_type_definition not implemented.");
+        // TODO: Implement boolean_type_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method boolean_type_definition not yet implemented.");
     }
 
 }
@@ -1142,7 +2014,9 @@ export class BMM_PACKAGE extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     root_classes(): BMM_CLASS {
-        throw new Error("Method root_classes not implemented.");
+        // TODO: Implement root_classes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method root_classes not yet implemented.");
     }
 
     /**
@@ -1150,7 +2024,9 @@ export class BMM_PACKAGE extends BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     path(): String {
-        throw new Error("Method path not implemented.");
+        // TODO: Implement path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path not yet implemented.");
     }
 
 }
@@ -1172,7 +2048,9 @@ export abstract class EL_EXPRESSION {
      * @returns Result value
      */
     is_boolean(): Boolean {
-        throw new Error("Method is_boolean not implemented.");
+        // TODO: Implement is_boolean behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_boolean not yet implemented.");
     }
 
 }
@@ -1182,13 +2060,73 @@ export abstract class EL_EXPRESSION {
  */
 export abstract class EL_OPERATOR extends EL_EXPRESSION {
     /**
+     * Internal storage for precedence_overridden
+     * @private
+     */
+    private _precedence_overridden?: Boolean;
+
+    /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: Boolean;
+    get precedence_overridden(): boolean | undefined {
+        return this._precedence_overridden?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for precedence_overridden.
+     * Use this to access Boolean methods.
+     */
+    get $precedence_overridden(): Boolean | undefined {
+        return this._precedence_overridden;
+    }
+
+    /**
+     * Sets precedence_overridden from either a primitive value or Boolean wrapper.
+     */
+    set precedence_overridden(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._precedence_overridden = undefined;
+        } else if (typeof val === 'boolean') {
+            this._precedence_overridden = Boolean.from(val);
+        } else {
+            this._precedence_overridden = val;
+        }
+    }
+
+    /**
+     * Internal storage for symbol
+     * @private
+     */
+    private _symbol?: String;
+
     /**
      * The symbol actually used in the expression, or intended to be used for serialisation. Must be a member of \`OPERATOR_DEF._symbols_\`.
      */
-    symbol?: String;
+    get symbol(): string | undefined {
+        return this._symbol?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for symbol.
+     * Use this to access String methods.
+     */
+    get $symbol(): String | undefined {
+        return this._symbol;
+    }
+
+    /**
+     * Sets symbol from either a primitive value or String wrapper.
+     */
+    set symbol(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._symbol = undefined;
+        } else if (typeof val === 'string') {
+            this._symbol = String.from(val);
+        } else {
+            this._symbol = val;
+        }
+    }
+
     /**
      * Function call equivalent to this operator expression, inferred by matching operator against functions defined in interface of principal operand.
      */
@@ -1198,7 +2136,9 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
      * @returns Result value
      */
     operator_definition(): BMM_OPERATOR {
-        throw new Error("Method operator_definition not implemented.");
+        // TODO: Implement operator_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method operator_definition not yet implemented.");
     }
 
     /**
@@ -1206,7 +2146,9 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
      * @returns Result value
      */
     equivalent_call(): EL_FUNCTION_CALL {
-        throw new Error("Method equivalent_call not implemented.");
+        // TODO: Implement equivalent_call behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equivalent_call not yet implemented.");
     }
 
 }
@@ -1250,7 +2192,9 @@ export class EL_LITERAL extends EL_SIMPLE {
      * @returns Result value
      */
     eval_type(): BMM_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1269,17 +2213,79 @@ export class EL_UNARY_OPERATOR extends EL_OPERATOR {
  * Meta-type representing a value-generating simple expression.
  */
 export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
-    is_writable?: Boolean;
+    /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
+    /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
     /**
      * Name used to represent the reference or other entity.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Generated full reference name, based on constituent parts of the entity. Default version outputs \`_name_\` field.
      * @returns Result value
      */
     reference(): String {
-        throw new Error("Method reference not implemented.");
+        // TODO: Implement reference behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method reference not yet implemented.");
     }
 
 }
@@ -1297,7 +2303,9 @@ export abstract class EL_FEATURE_REF extends EL_VALUE_GENERATOR {
      * @returns Result value
      */
     reference(): String {
-        throw new Error("Method reference not implemented.");
+        // TODO: Implement reference behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method reference not yet implemented.");
     }
 
 }
@@ -1311,15 +2319,47 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
      */
     definition?: BMM_PROPERTY;
     /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    /**
      * Defined to return True.
      */
-    override is_writable?: Boolean;
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Type definition (i.e. BMM meta-type definition object) of the constant, property or variable, inferred by inspection of the current scoping instance. Return \`_definition.type_\`.
      * @returns Result value
      */
     eval_type(): BMM_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1337,7 +2377,9 @@ export abstract class EL_PREDICATE extends EL_SIMPLE {
      * @returns Result value
      */
     eval_type(): BMM_SIMPLE_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1369,15 +2411,47 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
      */
     override agent?: EL_FUNCTION_AGENT = undefined;
     /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    /**
      * Defined to return False.
      */
-    override is_writable?: Boolean;
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Return \`_agent.definition.type_\`.
      * @returns Result value
      */
     eval_type(): BMM_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
     /**
@@ -1385,7 +2459,9 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
      * @returns Result value
      */
     reference(): String {
-        throw new Error("Method reference not implemented.");
+        // TODO: Implement reference behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method reference not yet implemented.");
     }
 
 }
@@ -1399,9 +2475,39 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
  */
 export abstract class EL_AGENT extends EL_FEATURE_REF {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of the routine being called.
      */
-    override name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Closed arguments of a routine call as a tuple of objects.
      */
@@ -1414,13 +2520,45 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * Reference to definition of a routine for which this is an agent, if one exists. 
      */
     definition?: BMM_ROUTINE;
-    override is_writable?: Boolean;
+    /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Eval type is the signature corresponding to the (remaining) open arguments and return type, if any.
      * @returns Result value
      */
     eval_type(): BMM_ROUTINE_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
     /**
@@ -1428,7 +2566,9 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * @returns Result value
      */
     is_callable(): Boolean {
-        throw new Error("Method is_callable not implemented.");
+        // TODO: Implement is_callable behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_callable not yet implemented.");
     }
 
     /**
@@ -1436,7 +2576,9 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * @returns Result value
      */
     reference(): String {
-        throw new Error("Method reference not implemented.");
+        // TODO: Implement reference behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method reference not yet implemented.");
     }
 
 }
@@ -1450,9 +2592,39 @@ export class EL_TUPLE_ITEM {
      */
     item?: EL_EXPRESSION;
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Optional name of tuple item.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -1468,7 +2640,9 @@ export class EL_PROCEDURE_AGENT extends EL_AGENT {
      * @returns Result value
      */
     eval_type(): BMM_PROCEDURE_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1490,7 +2664,9 @@ export class EL_TUPLE extends EL_EXPRESSION {
      * @returns Result value
      */
     eval_type(): BMM_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1508,7 +2684,9 @@ export class EL_FUNCTION_AGENT extends EL_AGENT {
      * @returns Result value
      */
     eval_type(): BMM_FUNCTION_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1545,13 +2723,45 @@ export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
      * Type, directly from the name of the reference, e.g. \`{SOME_TYPE}\`.
      */
     type?: BMM_TYPE;
-    is_mutable?: Boolean;
+    /**
+     * Internal storage for is_mutable
+     * @private
+     */
+    private _is_mutable?: Boolean;
+
+    get is_mutable(): boolean | undefined {
+        return this._is_mutable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_mutable.
+     * Use this to access Boolean methods.
+     */
+    get $is_mutable(): Boolean | undefined {
+        return this._is_mutable;
+    }
+
+    /**
+     * Sets is_mutable from either a primitive value or Boolean wrapper.
+     */
+    set is_mutable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_mutable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_mutable = Boolean.from(val);
+        } else {
+            this._is_mutable = val;
+        }
+    }
+
     /**
      * Return \`_type_\`.
      * @returns Result value
      */
     eval_type(): BMM_TYPE {
-        throw new Error("Method eval_type not implemented.");
+        // TODO: Implement eval_type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method eval_type not yet implemented.");
     }
 
 }
@@ -1647,9 +2857,39 @@ export class EL_STATIC_REF extends EL_FEATURE_REF {
      */
     definition?: BMM_STATIC;
     /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    /**
      * Defined to return False.
      */
-    override is_writable?: Boolean;
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -1661,9 +2901,39 @@ export class EL_WRITABLE_VARIABLE extends EL_VARIABLE {
      */
     definition?: BMM_WRITABLE_VARIABLE;
     /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    /**
      * Defined to return True in all cases.
      */
-    override is_writable?: Boolean;
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -1675,9 +2945,39 @@ export class EL_READONLY_VARIABLE extends EL_VARIABLE {
      */
     definition?: BMM_READONLY_VARIABLE;
     /**
+     * Internal storage for is_writable
+     * @private
+     */
+    private _is_writable?: Boolean;
+
+    /**
      * Defined to return False in all cases.
      */
-    override is_writable?: Boolean;
+    get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_writable.
+     * Use this to access Boolean methods.
+     */
+    get $is_writable(): Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or Boolean wrapper.
+     */
+    set is_writable(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -1741,9 +3041,39 @@ export class BMM_ASSERTION extends BMM_SIMPLE_STATEMENT {
      */
     expression?: EL_BOOLEAN_EXPRESSION;
     /**
+     * Internal storage for tag
+     * @private
+     */
+    private _tag?: String;
+
+    /**
      * Optional tag, typically used to designate design intention of the assertion, e.g. \`"Inv_all_members_valid"\`.
      */
-    tag?: String;
+    get tag(): string | undefined {
+        return this._tag?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for tag.
+     * Use this to access String methods.
+     */
+    get $tag(): String | undefined {
+        return this._tag;
+    }
+
+    /**
+     * Sets tag from either a primitive value or String wrapper.
+     */
+    set tag(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._tag = undefined;
+        } else if (typeof val === 'string') {
+            this._tag = String.from(val);
+        } else {
+            this._tag = val;
+        }
+    }
+
 }
 
 /**
@@ -1770,7 +3100,37 @@ export class BMM_STATEMENT_BLOCK extends BMM_STATEMENT_ITEM {
  * Declaration of a writable variable, associating a name with a type.
  */
 export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
-    name?: String;
+    /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     result?: EL_WRITABLE_VARIABLE;
     /**
      * The declared type of the variable.
@@ -1783,9 +3143,39 @@ export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
  */
 export abstract class P_BMM_MODEL_ELEMENT {
     /**
+     * Internal storage for documentation
+     * @private
+     */
+    private _documentation?: String;
+
+    /**
      * Optional documentation of this element.
      */
-    documentation?: String;
+    get documentation(): string | undefined {
+        return this._documentation?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for documentation.
+     * Use this to access String methods.
+     */
+    get $documentation(): String | undefined {
+        return this._documentation;
+    }
+
+    /**
+     * Sets documentation from either a primitive value or String wrapper.
+     */
+    set documentation(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._documentation = undefined;
+        } else if (typeof val === 'string') {
+            this._documentation = String.from(val);
+        } else {
+            this._documentation = val;
+        }
+    }
+
 }
 
 /**
@@ -1793,9 +3183,39 @@ export abstract class P_BMM_MODEL_ELEMENT {
  */
 export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of the class. Persisted attribute.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * List of immediate inheritance parents. If there are generic ancestors, use \`_ancestor_defs_\` instead. Persisted attribute.
      */
@@ -1805,29 +3225,149 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
      */
     properties?: undefined;
     /**
+     * Internal storage for is_abstract
+     * @private
+     */
+    private _is_abstract?: Boolean;
+
+    /**
      * True if this is an abstract type. Persisted attribute.
      */
-    is_abstract?: Boolean;
+    get is_abstract(): boolean | undefined {
+        return this._is_abstract?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_abstract.
+     * Use this to access Boolean methods.
+     */
+    get $is_abstract(): Boolean | undefined {
+        return this._is_abstract;
+    }
+
+    /**
+     * Sets is_abstract from either a primitive value or Boolean wrapper.
+     */
+    set is_abstract(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_abstract = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_abstract = Boolean.from(val);
+        } else {
+            this._is_abstract = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_override
+     * @private
+     */
+    private _is_override?: Boolean;
+
     /**
      * True if this class definition overrides one found in an included schema.
      */
-    is_override?: Boolean;
+    get is_override(): boolean | undefined {
+        return this._is_override?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_override.
+     * Use this to access Boolean methods.
+     */
+    get $is_override(): Boolean | undefined {
+        return this._is_override;
+    }
+
+    /**
+     * Sets is_override from either a primitive value or Boolean wrapper.
+     */
+    set is_override(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_override = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_override = Boolean.from(val);
+        } else {
+            this._is_override = val;
+        }
+    }
+
     /**
      * List of generic parameter definitions. Persisted attribute.
      */
     generic_parameter_defs?: undefined;
     /**
+     * Internal storage for source_schema_id
+     * @private
+     */
+    private _source_schema_id?: String;
+
+    /**
      * Reference to original source schema defining this class. Set during \`BMM_SCHEMA\` materialise. Useful for GUI tools to enable user to edit the schema file containing a given class (i.e. taking into account that a class may be in any of the schemas in a schema inclusion hierarchy).
      */
-    source_schema_id?: String;
+    get source_schema_id(): string | undefined {
+        return this._source_schema_id?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for source_schema_id.
+     * Use this to access String methods.
+     */
+    get $source_schema_id(): String | undefined {
+        return this._source_schema_id;
+    }
+
+    /**
+     * Sets source_schema_id from either a primitive value or String wrapper.
+     */
+    set source_schema_id(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._source_schema_id = undefined;
+        } else if (typeof val === 'string') {
+            this._source_schema_id = String.from(val);
+        } else {
+            this._source_schema_id = val;
+        }
+    }
+
     /**
      * \`BMM_CLASS\` object built by \`_create_bmm_class_definition_\` and \`_populate_bmm_class_definition_\`.
      */
     bmm_class?: BMM_CLASS;
     /**
+     * Internal storage for uid
+     * @private
+     */
+    private _uid?: Integer;
+
+    /**
      * Unique id generated for later comparison during merging, in order to detect if two classes are the same. Assigned in post-load processing.
      */
-    uid?: Integer;
+    get uid(): number | undefined {
+        return this._uid?.value;
+    }
+
+    /**
+     * Gets the Integer wrapper object for uid.
+     * Use this to access Integer methods.
+     */
+    get $uid(): Integer | undefined {
+        return this._uid;
+    }
+
+    /**
+     * Sets uid from either a primitive value or Integer wrapper.
+     */
+    set uid(val: number | Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._uid = undefined;
+        } else if (typeof val === 'number') {
+            this._uid = Integer.from(val);
+        } else {
+            this._uid = val;
+        }
+    }
+
     /**
      * List of structured inheritance ancestors, used only in the case of generic inheritance. Persisted attribute.
      */
@@ -1837,7 +3377,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     is_generic(): Boolean {
-        throw new Error("Method is_generic not implemented.");
+        // TODO: Implement is_generic behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_generic not yet implemented.");
     }
 
     /**
@@ -1845,7 +3387,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     create_bmm_class(): void {
-        throw new Error("Method create_bmm_class not implemented.");
+        // TODO: Implement create_bmm_class behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_class not yet implemented.");
     }
 
     /**
@@ -1854,7 +3398,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     populate_bmm_class(a_bmm_schema: BMM_MODEL): void {
-        throw new Error("Method populate_bmm_class not implemented.");
+        // TODO: Implement populate_bmm_class behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method populate_bmm_class not yet implemented.");
     }
 
 }
@@ -1898,7 +3444,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     validate_created(): void {
-        throw new Error("Method validate_created not implemented.");
+        // TODO: Implement validate_created behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validate_created not yet implemented.");
     }
 
     /**
@@ -1906,7 +3454,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     load_finalise(): void {
-        throw new Error("Method load_finalise not implemented.");
+        // TODO: Implement load_finalise behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method load_finalise not yet implemented.");
     }
 
     /**
@@ -1915,7 +3465,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     merge(other: P_BMM_SCHEMA): void {
-        throw new Error("Method merge not implemented.");
+        // TODO: Implement merge behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method merge not yet implemented.");
     }
 
     /**
@@ -1923,7 +3475,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     validate(): void {
-        throw new Error("Method validate not implemented.");
+        // TODO: Implement validate behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validate not yet implemented.");
     }
 
     /**
@@ -1931,7 +3485,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     create_bmm_model(): void {
-        throw new Error("Method create_bmm_model not implemented.");
+        // TODO: Implement create_bmm_model behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_model not yet implemented.");
     }
 
     /**
@@ -1939,7 +3495,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     canonical_packages(): P_BMM_PACKAGE {
-        throw new Error("Method canonical_packages not implemented.");
+        // TODO: Implement canonical_packages behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method canonical_packages not yet implemented.");
     }
 
 }
@@ -1949,25 +3507,175 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
  */
 export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of this property within its class. Persisted attribute.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_mandatory
+     * @private
+     */
+    private _is_mandatory?: Boolean;
+
     /**
      * True if this property is mandatory in its class. Persisted attribute.
      */
-    is_mandatory?: Boolean;
+    get is_mandatory(): boolean | undefined {
+        return this._is_mandatory?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_mandatory.
+     * Use this to access Boolean methods.
+     */
+    get $is_mandatory(): Boolean | undefined {
+        return this._is_mandatory;
+    }
+
+    /**
+     * Sets is_mandatory from either a primitive value or Boolean wrapper.
+     */
+    set is_mandatory(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_mandatory = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_mandatory = Boolean.from(val);
+        } else {
+            this._is_mandatory = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_computed
+     * @private
+     */
+    private _is_computed?: Boolean;
+
     /**
      * True if this property is computed rather than stored in objects of this class. Persisted Attribute.
      */
-    is_computed?: Boolean;
+    get is_computed(): boolean | undefined {
+        return this._is_computed?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_computed.
+     * Use this to access Boolean methods.
+     */
+    get $is_computed(): Boolean | undefined {
+        return this._is_computed;
+    }
+
+    /**
+     * Sets is_computed from either a primitive value or Boolean wrapper.
+     */
+    set is_computed(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_computed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_computed = Boolean.from(val);
+        } else {
+            this._is_computed = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_im_infrastructure
+     * @private
+     */
+    private _is_im_infrastructure?: Boolean;
+
     /**
      * True if this property is info model 'infrastructure' rather than 'data'. Persisted attribute.
      */
-    is_im_infrastructure?: Boolean;
+    get is_im_infrastructure(): boolean | undefined {
+        return this._is_im_infrastructure?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_im_infrastructure.
+     * Use this to access Boolean methods.
+     */
+    get $is_im_infrastructure(): Boolean | undefined {
+        return this._is_im_infrastructure;
+    }
+
+    /**
+     * Sets is_im_infrastructure from either a primitive value or Boolean wrapper.
+     */
+    set is_im_infrastructure(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_im_infrastructure = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_im_infrastructure = Boolean.from(val);
+        } else {
+            this._is_im_infrastructure = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_im_runtime
+     * @private
+     */
+    private _is_im_runtime?: Boolean;
+
     /**
      * True if this property is info model 'runtime' settable property. Persisted attribute.
      */
-    is_im_runtime?: Boolean;
+    get is_im_runtime(): boolean | undefined {
+        return this._is_im_runtime?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_im_runtime.
+     * Use this to access Boolean methods.
+     */
+    get $is_im_runtime(): Boolean | undefined {
+        return this._is_im_runtime;
+    }
+
+    /**
+     * Sets is_im_runtime from either a primitive value or Boolean wrapper.
+     */
+    set is_im_runtime(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_im_runtime = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_im_runtime = Boolean.from(val);
+        } else {
+            this._is_im_runtime = val;
+        }
+    }
+
     /**
      * Type definition of this property, if not a simple String type reference. Persisted attribute.
      */
@@ -1983,7 +3691,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     create_bmm_property(a_bmm_schema: BMM_MODEL, a_class_def: BMM_CLASS): void {
-        throw new Error("Method create_bmm_property not implemented.");
+        // TODO: Implement create_bmm_property behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_property not yet implemented.");
     }
 
 }
@@ -1993,13 +3703,73 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
  */
 export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of the parameter, e.g. 'T' etc. Persisted attribute. Name is limited to 1 character, upper case.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
+    /**
+     * Internal storage for conforms_to_type
+     * @private
+     */
+    private _conforms_to_type?: String;
+
     /**
      * Optional conformance constraint - the name of a type to which a concrete substitution of this generic parameter must conform. Persisted attribute.
      */
-    conforms_to_type?: String;
+    get conforms_to_type(): string | undefined {
+        return this._conforms_to_type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for conforms_to_type.
+     * Use this to access String methods.
+     */
+    get $conforms_to_type(): String | undefined {
+        return this._conforms_to_type;
+    }
+
+    /**
+     * Sets conforms_to_type from either a primitive value or String wrapper.
+     */
+    set conforms_to_type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._conforms_to_type = undefined;
+        } else if (typeof val === 'string') {
+            this._conforms_to_type = String.from(val);
+        } else {
+            this._conforms_to_type = val;
+        }
+    }
+
     /**
      * \`BMM_GENERIC_PARAMETER\` created by \`_create_bmm_generic_parameter_\`.
      */
@@ -2010,7 +3780,9 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
      * @returns Result value
      */
     create_bmm_generic_parameter(a_bmm_schema: BMM_MODEL): void {
-        throw new Error("Method create_bmm_generic_parameter not implemented.");
+        // TODO: Implement create_bmm_generic_parameter behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_generic_parameter not yet implemented.");
     }
 
 }
@@ -2044,17 +3816,77 @@ export abstract class P_BMM_TYPE {
  */
 export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     /**
+     * Internal storage for container_type
+     * @private
+     */
+    private _container_type?: String;
+
+    /**
      * The type of the container. This converts to the \`_root_type_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
      */
-    container_type?: String;
+    get container_type(): string | undefined {
+        return this._container_type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for container_type.
+     * Use this to access String methods.
+     */
+    get $container_type(): String | undefined {
+        return this._container_type;
+    }
+
+    /**
+     * Sets container_type from either a primitive value or String wrapper.
+     */
+    set container_type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._container_type = undefined;
+        } else if (typeof val === 'string') {
+            this._container_type = String.from(val);
+        } else {
+            this._container_type = val;
+        }
+    }
+
     /**
      * Type definition of \`_type_\`, if not a simple String type reference. Persisted attribute.
      */
     type_def?: P_BMM_BASE_TYPE;
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
+    /**
      * The target type; this converts to the first parameter in \`_generic_parameters_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -2064,7 +3896,9 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
      * @returns Result value
      */
     type_ref(): P_BMM_BASE_TYPE {
-        throw new Error("Method type_ref not implemented.");
+        // TODO: Implement type_ref behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_ref not yet implemented.");
     }
 
 }
@@ -2073,7 +3907,37 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
  * Persistent form of \`BMM_PROPER_TYPE\`.
  */
 export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
-    value_constraint?: String;
+    /**
+     * Internal storage for value_constraint
+     * @private
+     */
+    private _value_constraint?: String;
+
+    get value_constraint(): string | undefined {
+        return this._value_constraint?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value_constraint.
+     * Use this to access String methods.
+     */
+    get $value_constraint(): String | undefined {
+        return this._value_constraint;
+    }
+
+    /**
+     * Sets value_constraint from either a primitive value or String wrapper.
+     */
+    set value_constraint(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value_constraint = undefined;
+        } else if (typeof val === 'string') {
+            this._value_constraint = String.from(val);
+        } else {
+            this._value_constraint = val;
+        }
+    }
+
 }
 
 /**
@@ -2081,9 +3945,39 @@ export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
  */
 export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
+    /**
      * Name of type - must be a simple class name.
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -2095,9 +3989,39 @@ export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
  */
 export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
+    /**
      * Simple type parameter as a single letter like 'T', 'G' etc.
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -2109,9 +4033,39 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
  */
 export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
     /**
+     * Internal storage for root_type
+     * @private
+     */
+    private _root_type?: String;
+
+    /**
      * Root type of this generic type, e.g. \`Interval\` in \`Interval<Integer>\`.
      */
-    root_type?: String;
+    get root_type(): string | undefined {
+        return this._root_type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for root_type.
+     * Use this to access String methods.
+     */
+    get $root_type(): String | undefined {
+        return this._root_type;
+    }
+
+    /**
+     * Sets root_type from either a primitive value or String wrapper.
+     */
+    set root_type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._root_type = undefined;
+        } else if (typeof val === 'string') {
+            this._root_type = String.from(val);
+        } else {
+            this._root_type = val;
+        }
+    }
+
     /**
      * Generic parameters of the root_type in this type specifier if non-simple types. The order must match the order of the owning class's formal generic parameter declarations. Persistent attribute.
      */
@@ -2129,7 +4083,9 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
      * @returns Result value
      */
     generic_parameter_refs(): P_BMM_TYPE {
-        throw new Error("Method generic_parameter_refs not implemented.");
+        // TODO: Implement generic_parameter_refs behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method generic_parameter_refs not yet implemented.");
     }
 
 }
@@ -2139,9 +4095,39 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
  */
 export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of the package from schema; this name may be qualified if it is a top-level package within the schema, or unqualified. Persistent attribute.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * List of classes in this package. Persistent attribute.
      */
@@ -2156,7 +4142,9 @@ export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     merge(other: P_BMM_PACKAGE): void {
-        throw new Error("Method merge not implemented.");
+        // TODO: Implement merge behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method merge not yet implemented.");
     }
 
     /**
@@ -2164,7 +4152,9 @@ export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
      * @returns Result value
      */
     create_bmm_package_definition(): void {
-        throw new Error("Method create_bmm_package_definition not implemented.");
+        // TODO: Implement create_bmm_package_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_package_definition not yet implemented.");
     }
 
 }
@@ -2192,7 +4182,9 @@ export class P_BMM_CONTAINER_PROPERTY extends P_BMM_PROPERTY {
      * @returns Result value
      */
     create_bmm_property(a_bmm_schema: BMM_MODEL, a_class_def: BMM_CLASS): void {
-        throw new Error("Method create_bmm_property not implemented.");
+        // TODO: Implement create_bmm_property behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method create_bmm_property not yet implemented.");
     }
 
 }
@@ -2202,9 +4194,39 @@ export class P_BMM_CONTAINER_PROPERTY extends P_BMM_PROPERTY {
  */
 export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
+    /**
      * If the type is a simple type, then this attribute will hold the type name. If the type is a container or generic, then type_ref will hold the type definition. The resulting type is generated in type_def.
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * Type definition of this property computed from \`_type_\` for later use in \`_bmm_property_\`.
      */
@@ -2218,7 +4240,9 @@ export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
      * @returns Result value
      */
     type_def(): P_BMM_SIMPLE_TYPE {
-        throw new Error("Method type_def not implemented.");
+        // TODO: Implement type_def behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_def not yet implemented.");
     }
 
 }
@@ -2232,9 +4256,39 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
      */
     type_ref?: P_BMM_OPEN_TYPE;
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
+    /**
      * Type definition of this property, if a simple String type reference. Really we should use \`_type_def_\` to be regular in the schema, but that makes the schema more wordy and less clear. So we use this persisted String value, and compute the \`_type_def_\` on the fly. Persisted attribute.
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
@@ -2244,7 +4298,9 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
      * @returns Result value
      */
     type_def(): P_BMM_OPEN_TYPE {
-        throw new Error("Method type_def not implemented.");
+        // TODO: Implement type_def behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_def not yet implemented.");
     }
 
 }
@@ -2305,7 +4361,37 @@ export class P_BMM_INDEXED_CONTAINER_PROPERTY extends P_BMM_CONTAINER_PROPERTY {
 }
 
 export class P_BMM_INDEXED_CONTAINER_TYPE extends P_BMM_CONTAINER_TYPE {
-    index_type?: String;
+    /**
+     * Internal storage for index_type
+     * @private
+     */
+    private _index_type?: String;
+
+    get index_type(): string | undefined {
+        return this._index_type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for index_type.
+     * Use this to access String methods.
+     */
+    get $index_type(): String | undefined {
+        return this._index_type;
+    }
+
+    /**
+     * Sets index_type from either a primitive value or String wrapper.
+     */
+    set index_type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._index_type = undefined;
+        } else if (typeof val === 'string') {
+            this._index_type = String.from(val);
+        } else {
+            this._index_type = val;
+        }
+    }
+
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -2323,13 +4409,73 @@ export abstract class STATEMENT {
  */
 export class ASSERTION extends STATEMENT {
     /**
+     * Internal storage for tag
+     * @private
+     */
+    private _tag?: String;
+
+    /**
      * Expression tag, used for differentiating multiple assertions.
      */
-    tag?: String;
+    get tag(): string | undefined {
+        return this._tag?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for tag.
+     * Use this to access String methods.
+     */
+    get $tag(): String | undefined {
+        return this._tag;
+    }
+
+    /**
+     * Sets tag from either a primitive value or String wrapper.
+     */
+    set tag(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._tag = undefined;
+        } else if (typeof val === 'string') {
+            this._tag = String.from(val);
+        } else {
+            this._tag = val;
+        }
+    }
+
+    /**
+     * Internal storage for string_expression
+     * @private
+     */
+    private _string_expression?: String;
+
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
      */
-    string_expression?: String;
+    get string_expression(): string | undefined {
+        return this._string_expression?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for string_expression.
+     * Use this to access String methods.
+     */
+    get $string_expression(): String | undefined {
+        return this._string_expression;
+    }
+
+    /**
+     * Sets string_expression from either a primitive value or String wrapper.
+     */
+    set string_expression(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._string_expression = undefined;
+        } else if (typeof val === 'string') {
+            this._string_expression = String.from(val);
+        } else {
+            this._string_expression = val;
+        }
+    }
+
     /**
      * Root of expression tree.
      */
@@ -2379,17 +4525,77 @@ export abstract class EXPRESSION extends EXPR_VALUE {
  */
 export abstract class EXPR_OPERATOR extends EXPRESSION {
     /**
+     * Internal storage for precedence_overridden
+     * @private
+     */
+    private _precedence_overridden?: Boolean;
+
+    /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: Boolean;
+    get precedence_overridden(): boolean | undefined {
+        return this._precedence_overridden?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for precedence_overridden.
+     * Use this to access Boolean methods.
+     */
+    get $precedence_overridden(): Boolean | undefined {
+        return this._precedence_overridden;
+    }
+
+    /**
+     * Sets precedence_overridden from either a primitive value or Boolean wrapper.
+     */
+    set precedence_overridden(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._precedence_overridden = undefined;
+        } else if (typeof val === 'boolean') {
+            this._precedence_overridden = Boolean.from(val);
+        } else {
+            this._precedence_overridden = val;
+        }
+    }
+
     /**
      * Operator definition.
      */
     operator?: OPERATOR_KIND;
     /**
+     * Internal storage for symbol
+     * @private
+     */
+    private _symbol?: String;
+
+    /**
      * The symbol actually used in the rule, or intended to be used for serialisation. Must be a member of \`operator_def.symbols\`.
      */
-    symbol?: String;
+    get symbol(): string | undefined {
+        return this._symbol?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for symbol.
+     * Use this to access String methods.
+     */
+    get $symbol(): String | undefined {
+        return this._symbol;
+    }
+
+    /**
+     * Sets symbol from either a primitive value or String wrapper.
+     */
+    set symbol(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._symbol = undefined;
+        } else if (typeof val === 'string') {
+            this._symbol = String.from(val);
+        } else {
+            this._symbol = val;
+        }
+    }
+
 }
 
 /**
@@ -2467,17 +4673,77 @@ export class EXPR_VARIABLE_REF extends EXPR_LEAF {
  */
 export class EXTERNAL_QUERY extends EXPR_VALUE {
     /**
+     * Internal storage for context
+     * @private
+     */
+    private _context?: String;
+
+    /**
      * Optional name of context. This allows a basic separation of query types to be done in more sophisticated environments. Possible values might be “patient”, “medications” and so on.
      * Not yet standardised.
      * 
      */
-    context?: String;
+    get context(): string | undefined {
+        return this._context?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for context.
+     * Use this to access String methods.
+     */
+    get $context(): String | undefined {
+        return this._context;
+    }
+
+    /**
+     * Sets context from either a primitive value or String wrapper.
+     */
+    set context(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._context = undefined;
+        } else if (typeof val === 'string') {
+            this._context = String.from(val);
+        } else {
+            this._context = val;
+        }
+    }
+
+    /**
+     * Internal storage for query_id
+     * @private
+     */
+    private _query_id?: String;
+
     /**
      * Identifier of query in the external context, e.g. “date_of_birth”.
      * Not yet standardised.
      * 
      */
-    query_id?: String;
+    get query_id(): string | undefined {
+        return this._query_id?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for query_id.
+     * Use this to access String methods.
+     */
+    get $query_id(): String | undefined {
+        return this._query_id;
+    }
+
+    /**
+     * Sets query_id from either a primitive value or String wrapper.
+     */
+    set query_id(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._query_id = undefined;
+        } else if (typeof val === 'string') {
+            this._query_id = String.from(val);
+        } else {
+            this._query_id = val;
+        }
+    }
+
     /**
      * Optional arguments to query.
      * Not yet standardised.
@@ -2495,15 +4761,47 @@ export class STATEMENT_SET {
      */
     statement?: undefined;
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Optional name of this rule set.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Execution result of the whole rule set. Determined by the and-ing of result values of Assertions in the rule set.
      * @returns Result value
      */
     execution_result(): Boolean {
-        throw new Error("Method execution_result not implemented.");
+        // TODO: Implement execution_result behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method execution_result not yet implemented.");
     }
 
 }
@@ -2513,9 +4811,39 @@ export class STATEMENT_SET {
  */
 export class VARIABLE_DECLARATION extends STATEMENT {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: String;
+
+    /**
      * Name of the variable.
      */
-    name?: String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for name.
+     * Use this to access String methods.
+     */
+    get $name(): String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or String wrapper.
+     */
+    set name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Primitive type of the variable, enabling its use to be type-checked in expressions.
      */
@@ -2553,9 +4881,39 @@ export class OPERATOR_KIND extends String {
  */
 export abstract class EXPR_TYPE_DEF {
     /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    /**
      * Natural language type name of this type as used in abstract rules syntax variable declarations.
      */
-    type_name?: String;
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     /**
      * Attribute of the openEHR primitive type (or Any) corresponding to this type definition meta-type.
      */
@@ -2566,15 +4924,105 @@ export abstract class EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Boolean.
  */
 export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
-    override type_name?: String;
-    override type_anchor?: Boolean = undefined;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for type_anchor
+     * @private
+     */
+    private _type_anchor?: Boolean;
+
+    get type_anchor(): boolean | undefined {
+        return this._type_anchor?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for type_anchor.
+     * Use this to access Boolean methods.
+     */
+    get $type_anchor(): Boolean | undefined {
+        return this._type_anchor;
+    }
+
+    /**
+     * Sets type_anchor from either a primitive value or Boolean wrapper.
+     */
+    set type_anchor(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._type_anchor = undefined;
+        } else if (typeof val === 'boolean') {
+            this._type_anchor = Boolean.from(val);
+        } else {
+            this._type_anchor = val;
+        }
+    }
+
 }
 
 /**
  * Rules meta-type representing the primitive type Date.
  */
 export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Iso8601_date = undefined;
 }
 
@@ -2582,7 +5030,37 @@ export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Date_time.
  */
 export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Iso8601_date_time = undefined;
 }
 
@@ -2590,7 +5068,37 @@ export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Duration.
  */
 export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Iso8601_duration = undefined;
 }
 
@@ -2598,22 +5106,142 @@ export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Integer.
  */
 export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
-    override type_name?: String;
-    override type_anchor?: Integer = undefined;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for type_anchor
+     * @private
+     */
+    private _type_anchor?: Integer;
+
+    get type_anchor(): number | undefined {
+        return this._type_anchor?.value;
+    }
+
+    /**
+     * Gets the Integer wrapper object for type_anchor.
+     * Use this to access Integer methods.
+     */
+    get $type_anchor(): Integer | undefined {
+        return this._type_anchor;
+    }
+
+    /**
+     * Sets type_anchor from either a primitive value or Integer wrapper.
+     */
+    set type_anchor(val: number | Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._type_anchor = undefined;
+        } else if (typeof val === 'number') {
+            this._type_anchor = Integer.from(val);
+        } else {
+            this._type_anchor = val;
+        }
+    }
+
 }
 
 /**
  * Rules meta-type representing the type Object_ref, which is assumed to by the type of any non-primitive reference target within a rule.
  */
 export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
 }
 
 /**
  * Rules meta-type representing the primitive type Real.
  */
 export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: number = undefined;
 }
 
@@ -2621,15 +5249,105 @@ export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type String.
  */
 export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
-    override type_name?: String;
-    override type_anchor?: String = undefined;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for type_anchor
+     * @private
+     */
+    private _type_anchor?: String;
+
+    get type_anchor(): string | undefined {
+        return this._type_anchor?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_anchor.
+     * Use this to access String methods.
+     */
+    get $type_anchor(): String | undefined {
+        return this._type_anchor;
+    }
+
+    /**
+     * Sets type_anchor from either a primitive value or String wrapper.
+     */
+    set type_anchor(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_anchor = undefined;
+        } else if (typeof val === 'string') {
+            this._type_anchor = String.from(val);
+        } else {
+            this._type_anchor = val;
+        }
+    }
+
 }
 
 /**
  * Rules meta-type representing the primitive type Terminology_code.
  */
 export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Terminology_code = undefined;
 }
 
@@ -2637,7 +5355,37 @@ export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Time.
  */
 export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Iso8601_time = undefined;
 }
 
@@ -2645,7 +5393,37 @@ export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Uri.
  */
 export class TYPE_DEF_URI extends EXPR_TYPE_DEF {
-    override type_name?: String;
+    /**
+     * Internal storage for type_name
+     * @private
+     */
+    private _type_name?: String;
+
+    get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type_name.
+     * Use this to access String methods.
+     */
+    get $type_name(): String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or String wrapper.
+     */
+    set type_name(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: Uri = undefined;
 }
 

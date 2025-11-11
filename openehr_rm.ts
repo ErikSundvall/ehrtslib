@@ -3,7 +3,7 @@
 // Schema Revision: 1.2.0.2
 // Description: openEHR Reference Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json
-// Generated: 2025-11-11T08:25:30.898Z
+// Generated: 2025-11-11T08:30:07.207Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -25,7 +25,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     parent(): PATHABLE {
-        throw new Error("Method parent not implemented.");
+        // TODO: Implement parent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method parent not yet implemented.");
     }
 
     /**
@@ -34,7 +36,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     item_at_path(a_path: openehr_base.String): openehr_base.Any {
-        throw new Error("Method item_at_path not implemented.");
+        // TODO: Implement item_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method item_at_path not yet implemented.");
     }
 
     /**
@@ -43,7 +47,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     items_at_path(a_path: openehr_base.String): openehr_base.Any {
-        throw new Error("Method items_at_path not implemented.");
+        // TODO: Implement items_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method items_at_path not yet implemented.");
     }
 
     /**
@@ -52,7 +58,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     path_exists(a_path: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method path_exists not implemented.");
+        // TODO: Implement path_exists behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path_exists not yet implemented.");
     }
 
     /**
@@ -61,7 +69,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     path_unique(a_path: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method path_unique not implemented.");
+        // TODO: Implement path_unique behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path_unique not yet implemented.");
     }
 
     /**
@@ -70,7 +80,9 @@ export abstract class PATHABLE extends openehr_base.Any {
      * @returns Result value
      */
     path_of_item(a_loc: PATHABLE): openehr_base.String {
-        throw new Error("Method path_of_item not implemented.");
+        // TODO: Implement path_of_item behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path_of_item not yet implemented.");
     }
 
 }
@@ -108,12 +120,42 @@ export abstract class LOCATABLE extends PATHABLE {
      */
     name?: DV_TEXT;
     /**
+     * Internal storage for archetype_node_id
+     * @private
+     */
+    private _archetype_node_id?: openehr_base.String;
+
+    /**
      * Design-time archetype identifier of this node taken from its generating archetype; used to build archetype paths. Always in the form of an at-code, e.g.  \`at0005\`. This value enables a 'standardised' name for this node to be generated, by referring to the generating archetype local terminology. 
      * 
      * At an archetype root point, the value of this attribute is always the stringified form of the \`_archetype_id_\` found in the \`_archetype_details_\` object. 
      * 
      */
-    archetype_node_id?: openehr_base.String;
+    get archetype_node_id(): string | undefined {
+        return this._archetype_node_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for archetype_node_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $archetype_node_id(): openehr_base.String | undefined {
+        return this._archetype_node_id;
+    }
+
+    /**
+     * Sets archetype_node_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_node_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_node_id = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_node_id = openehr_base.String.from(val);
+        } else {
+            this._archetype_node_id = val;
+        }
+    }
+
     /**
      * Optional globally unique object identifier for root points of archetyped structures. 
      */
@@ -135,7 +177,9 @@ export abstract class LOCATABLE extends PATHABLE {
      * @returns Result value
      */
     concept(): DV_TEXT {
-        throw new Error("Method concept not implemented.");
+        // TODO: Implement concept behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method concept not yet implemented.");
     }
 
     /**
@@ -143,7 +187,9 @@ export abstract class LOCATABLE extends PATHABLE {
      * @returns Result value
      */
     is_archetype_root(): openehr_base.Boolean {
-        throw new Error("Method is_archetype_root not implemented.");
+        // TODO: Implement is_archetype_root behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_archetype_root not yet implemented.");
     }
 
 }
@@ -163,9 +209,39 @@ export class ARCHETYPED {
      */
     template_id?: openehr_base.TEMPLATE_ID;
     /**
+     * Internal storage for rm_version
+     * @private
+     */
+    private _rm_version?: openehr_base.String;
+
+    /**
      * Version of the openEHR reference model used to create this object. Expressed in terms of the release version string, e.g.  1.0 ,  1.2.4 .
      */
-    rm_version?: openehr_base.String;
+    get rm_version(): string | undefined {
+        return this._rm_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_version(): openehr_base.String | undefined {
+        return this._rm_version;
+    }
+
+    /**
+     * Sets rm_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_version = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_version = openehr_base.String.from(val);
+        } else {
+            this._rm_version = val;
+        }
+    }
+
 }
 
 /**
@@ -199,10 +275,40 @@ export class FEEDER_AUDIT {
  */
 export class FEEDER_AUDIT_DETAILS {
     /**
+     * Internal storage for system_id
+     * @private
+     */
+    private _system_id?: openehr_base.String;
+
+    /**
      * Identifier of the system which handled the information item. This is the IT system owned by the organisation legally responsible for handling the data, and at which the data were previously created or passed by an earlier system.
      * 
      */
-    system_id?: openehr_base.String;
+    get system_id(): string | undefined {
+        return this._system_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for system_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $system_id(): openehr_base.String | undefined {
+        return this._system_id;
+    }
+
+    /**
+     * Sets system_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set system_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._system_id = undefined;
+        } else if (typeof val === 'string') {
+            this._system_id = openehr_base.String.from(val);
+        } else {
+            this._system_id = val;
+        }
+    }
+
     /**
      * Identifier of the particular site/facility within an organisation which handled the item. For computability, this identifier needs to be e.g. a PKI identifier which can be included in the identifier list of the \`PARTY_IDENTIFIED\` object. 
      */
@@ -220,9 +326,39 @@ export class FEEDER_AUDIT_DETAILS {
      */
     time?: DV_DATE_TIME;
     /**
+     * Internal storage for version_id
+     * @private
+     */
+    private _version_id?: openehr_base.String;
+
+    /**
      * Any identifier used in the system such as  "interim" ,  "final" , or numeric versions if available. 
      */
-    version_id?: openehr_base.String;
+    get version_id(): string | undefined {
+        return this._version_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for version_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $version_id(): openehr_base.String | undefined {
+        return this._version_id;
+    }
+
+    /**
+     * Sets version_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set version_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._version_id = undefined;
+        } else if (typeof val === 'string') {
+            this._version_id = openehr_base.String.from(val);
+        } else {
+            this._version_id = val;
+        }
+    }
+
     /**
      * Optional attribute to carry any custom meta-data. May be archetyped.
      */
@@ -250,7 +386,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     version_count(): openehr_base.Integer {
-        throw new Error("Method version_count not implemented.");
+        // TODO: Implement version_count behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_count not yet implemented.");
     }
 
     /**
@@ -258,7 +396,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     all_version_ids(): openehr_base.OBJECT_VERSION_ID {
-        throw new Error("Method all_version_ids not implemented.");
+        // TODO: Implement all_version_ids behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method all_version_ids not yet implemented.");
     }
 
     /**
@@ -266,7 +406,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     all_versions(): undefined {
-        throw new Error("Method all_versions not implemented.");
+        // TODO: Implement all_versions behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method all_versions not yet implemented.");
     }
 
     /**
@@ -275,7 +417,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     has_version_at_time(a_time: DV_DATE_TIME): openehr_base.Boolean {
-        throw new Error("Method has_version_at_time not implemented.");
+        // TODO: Implement has_version_at_time behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_version_at_time not yet implemented.");
     }
 
     /**
@@ -284,7 +428,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     has_version_id(a_version_uid: openehr_base.OBJECT_VERSION_ID): openehr_base.Boolean {
-        throw new Error("Method has_version_id not implemented.");
+        // TODO: Implement has_version_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_version_id not yet implemented.");
     }
 
     /**
@@ -294,7 +440,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     version_with_id(a_version_uid: openehr_base.OBJECT_VERSION_ID): VERSION {
-        throw new Error("Method version_with_id not implemented.");
+        // TODO: Implement version_with_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_with_id not yet implemented.");
     }
 
     /**
@@ -303,7 +451,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     is_original_version(a_version_uid: openehr_base.OBJECT_VERSION_ID): openehr_base.Boolean {
-        throw new Error("Method is_original_version not implemented.");
+        // TODO: Implement is_original_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_original_version not yet implemented.");
     }
 
     /**
@@ -312,7 +462,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     version_at_time(a_time: DV_DATE_TIME): VERSION {
-        throw new Error("Method version_at_time not implemented.");
+        // TODO: Implement version_at_time behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_at_time not yet implemented.");
     }
 
     /**
@@ -320,7 +472,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     revision_history(): REVISION_HISTORY {
-        throw new Error("Method revision_history not implemented.");
+        // TODO: Implement revision_history behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method revision_history not yet implemented.");
     }
 
     /**
@@ -328,7 +482,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     latest_version(): VERSION {
-        throw new Error("Method latest_version not implemented.");
+        // TODO: Implement latest_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method latest_version not yet implemented.");
     }
 
     /**
@@ -336,7 +492,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     latest_trunk_version(): VERSION {
-        throw new Error("Method latest_trunk_version not implemented.");
+        // TODO: Implement latest_trunk_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method latest_trunk_version not yet implemented.");
     }
 
     /**
@@ -344,7 +502,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     trunk_lifecycle_state(): DV_CODED_TEXT {
-        throw new Error("Method trunk_lifecycle_state not implemented.");
+        // TODO: Implement trunk_lifecycle_state behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method trunk_lifecycle_state not yet implemented.");
     }
 
     /**
@@ -359,7 +519,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     commit_original_version(a_contribution: openehr_base.OBJECT_REF, a_new_version_uid: openehr_base.OBJECT_VERSION_ID, a_preceding_version_id: openehr_base.OBJECT_VERSION_ID, an_audit: AUDIT_DETAILS, a_lifecycle_state: DV_CODED_TEXT, a_data: T, signing_key: openehr_base.String): void {
-        throw new Error("Method commit_original_version not implemented.");
+        // TODO: Implement commit_original_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method commit_original_version not yet implemented.");
     }
 
     /**
@@ -375,7 +537,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     commit_original_merged_version(a_contribution: openehr_base.OBJECT_REF, a_new_version_uid: openehr_base.OBJECT_VERSION_ID, a_preceding_version_id: openehr_base.OBJECT_VERSION_ID, an_audit: AUDIT_DETAILS, a_lifecycle_state: DV_CODED_TEXT, a_data: T, an_other_input_uids: undefined, signing_key: openehr_base.String): void {
-        throw new Error("Method commit_original_merged_version not implemented.");
+        // TODO: Implement commit_original_merged_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method commit_original_merged_version not yet implemented.");
     }
 
     /**
@@ -386,7 +550,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     commit_imported_version(a_contribution: openehr_base.OBJECT_REF, an_audit: AUDIT_DETAILS, a_version: ORIGINAL_VERSION): void {
-        throw new Error("Method commit_imported_version not implemented.");
+        // TODO: Implement commit_imported_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method commit_imported_version not yet implemented.");
     }
 
     /**
@@ -397,7 +563,9 @@ export class VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     commit_attestation(an_attestation: ATTESTATION, a_ver_id: openehr_base.OBJECT_VERSION_ID, signing_key: openehr_base.String): void {
-        throw new Error("Method commit_attestation not implemented.");
+        // TODO: Implement commit_attestation behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method commit_attestation not yet implemented.");
     }
 
 }
@@ -429,9 +597,39 @@ export abstract class VERSION<T> {
      */
     contribution?: openehr_base.OBJECT_REF;
     /**
+     * Internal storage for signature
+     * @private
+     */
+    private _signature?: openehr_base.String;
+
+    /**
      * OpenPGP digital signature or digest of content committed in this Version. 
      */
-    signature?: openehr_base.String;
+    get signature(): string | undefined {
+        return this._signature?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for signature.
+     * Use this to access openehr_base.String methods.
+     */
+    get $signature(): openehr_base.String | undefined {
+        return this._signature;
+    }
+
+    /**
+     * Sets signature from either a primitive value or openehr_base.String wrapper.
+     */
+    set signature(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._signature = undefined;
+        } else if (typeof val === 'string') {
+            this._signature = openehr_base.String.from(val);
+        } else {
+            this._signature = val;
+        }
+    }
+
     /**
      * Audit trail corresponding to the committal of this version to the \`VERSIONED_OBJECT\`.
      */
@@ -465,7 +663,9 @@ export abstract class VERSION<T> {
      * @returns Result value
      */
     canonical_form(): openehr_base.String {
-        throw new Error("Method canonical_form not implemented.");
+        // TODO: Implement canonical_form behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method canonical_form not yet implemented.");
     }
 
     /**
@@ -473,7 +673,9 @@ export abstract class VERSION<T> {
      * @returns Result value
      */
     owner_id(): openehr_base.HIER_OBJECT_ID {
-        throw new Error("Method owner_id not implemented.");
+        // TODO: Implement owner_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method owner_id not yet implemented.");
     }
 
     /**
@@ -481,7 +683,9 @@ export abstract class VERSION<T> {
      * @returns Result value
      */
     is_branch(): openehr_base.Boolean {
-        throw new Error("Method is_branch not implemented.");
+        // TODO: Implement is_branch behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_branch not yet implemented.");
     }
 
 }
@@ -499,7 +703,9 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
      * @returns Result value
      */
     uid(): openehr_base.OBJECT_VERSION_ID {
-        throw new Error("Method uid not implemented.");
+        // TODO: Implement uid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method uid not yet implemented.");
     }
 
     /**
@@ -507,7 +713,9 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
      * @returns Result value
      */
     preceding_version_uid(): openehr_base.OBJECT_VERSION_ID {
-        throw new Error("Method preceding_version_uid not implemented.");
+        // TODO: Implement preceding_version_uid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method preceding_version_uid not yet implemented.");
     }
 
     /**
@@ -515,7 +723,9 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
      * @returns Result value
      */
     lifecycle_state(): DV_CODED_TEXT {
-        throw new Error("Method lifecycle_state not implemented.");
+        // TODO: Implement lifecycle_state behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method lifecycle_state not yet implemented.");
     }
 
     /**
@@ -524,7 +734,9 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
      * @returns Result value
      */
     data(): T {
-        throw new Error("Method data not implemented.");
+        // TODO: Implement data behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method data not yet implemented.");
     }
 
 }
@@ -562,7 +774,9 @@ export class ORIGINAL_VERSION<T> extends VERSION<T> {
      * @returns Result value
      */
     is_merged(): openehr_base.Boolean {
-        throw new Error("Method is_merged not implemented.");
+        // TODO: Implement is_merged behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_merged not yet implemented.");
     }
 
 }
@@ -586,9 +800,39 @@ export class REVISION_HISTORY_ITEM {
  */
 export class AUDIT_DETAILS {
     /**
+     * Internal storage for system_id
+     * @private
+     */
+    private _system_id?: openehr_base.String;
+
+    /**
      * Identifier of the logical EHR system where the change was committed. This is almost always owned by the organisation legally responsible for the EHR, and is distinct from any application, or any hosting infrastructure.
      */
-    system_id?: openehr_base.String;
+    get system_id(): string | undefined {
+        return this._system_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for system_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $system_id(): openehr_base.String | undefined {
+        return this._system_id;
+    }
+
+    /**
+     * Sets system_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set system_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._system_id = undefined;
+        } else if (typeof val === 'string') {
+            this._system_id = openehr_base.String.from(val);
+        } else {
+            this._system_id = val;
+        }
+    }
+
     /**
      * Time of committal of the item. 
      */
@@ -621,9 +865,39 @@ export class ATTESTATION extends AUDIT_DETAILS {
      */
     attested_view?: DV_MULTIMEDIA;
     /**
+     * Internal storage for proof
+     * @private
+     */
+    private _proof?: openehr_base.String;
+
+    /**
      * Proof of attestation. 
      */
-    proof?: openehr_base.String;
+    get proof(): string | undefined {
+        return this._proof?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for proof.
+     * Use this to access openehr_base.String methods.
+     */
+    get $proof(): openehr_base.String | undefined {
+        return this._proof;
+    }
+
+    /**
+     * Sets proof from either a primitive value or openehr_base.String wrapper.
+     */
+    set proof(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._proof = undefined;
+        } else if (typeof val === 'string') {
+            this._proof = openehr_base.String.from(val);
+        } else {
+            this._proof = val;
+        }
+    }
+
     /**
      * Items attested, expressed as fully qualified runtime paths to the items in question. Although not recommended, these may include fine-grained items which have been attested in some other system. Otherwise it is assumed to be for the entire VERSION with which it is associated. 
      */
@@ -633,9 +907,39 @@ export class ATTESTATION extends AUDIT_DETAILS {
      */
     reason?: DV_TEXT;
     /**
+     * Internal storage for is_pending
+     * @private
+     */
+    private _is_pending?: openehr_base.Boolean;
+
+    /**
      * True if this attestation is outstanding; False means it has been completed.
      */
-    is_pending?: openehr_base.Boolean;
+    get is_pending(): boolean | undefined {
+        return this._is_pending?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_pending.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_pending(): openehr_base.Boolean | undefined {
+        return this._is_pending;
+    }
+
+    /**
+     * Sets is_pending from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_pending(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_pending = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_pending = openehr_base.Boolean.from(val);
+        } else {
+            this._is_pending = val;
+        }
+    }
+
 }
 
 /**
@@ -681,9 +985,39 @@ export abstract class PARTY_PROXY {
  */
 export class PARTY_IDENTIFIED extends PARTY_PROXY {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: openehr_base.String;
+
+    /**
      * Optional human-readable name (in String form).
      */
-    name?: openehr_base.String;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $name(): openehr_base.String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or openehr_base.String wrapper.
+     */
+    set name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = openehr_base.String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * One or more formal identifiers (possibly computable). 
      * 
@@ -720,7 +1054,9 @@ export class REVISION_HISTORY {
      * @returns Result value
      */
     most_recent_version(): openehr_base.String {
-        throw new Error("Method most_recent_version not implemented.");
+        // TODO: Implement most_recent_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method most_recent_version not yet implemented.");
     }
 
     /**
@@ -728,7 +1064,9 @@ export class REVISION_HISTORY {
      * @returns Result value
      */
     most_recent_version_time_committed(): openehr_base.String {
-        throw new Error("Method most_recent_version_time_committed not implemented.");
+        // TODO: Implement most_recent_version_time_committed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method most_recent_version_time_committed not yet implemented.");
     }
 
 }
@@ -770,9 +1108,39 @@ export abstract class AUTHORED_RESOURCE {
      */
     original_language?: CODE_PHRASE;
     /**
+     * Internal storage for is_controlled
+     * @private
+     */
+    private _is_controlled?: openehr_base.Boolean;
+
+    /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
      */
-    is_controlled?: openehr_base.Boolean;
+    get is_controlled(): boolean | undefined {
+        return this._is_controlled?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_controlled.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_controlled(): openehr_base.Boolean | undefined {
+        return this._is_controlled;
+    }
+
+    /**
+     * Sets is_controlled from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_controlled(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_controlled = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_controlled = openehr_base.Boolean.from(val);
+        } else {
+            this._is_controlled = val;
+        }
+    }
+
     /**
      * List of details for each natural-language translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
      */
@@ -790,7 +1158,9 @@ export abstract class AUTHORED_RESOURCE {
      * @returns Result value
      */
     current_revision(): openehr_base.String {
-        throw new Error("Method current_revision not implemented.");
+        // TODO: Implement current_revision behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method current_revision not yet implemented.");
     }
 
     /**
@@ -799,7 +1169,9 @@ export abstract class AUTHORED_RESOURCE {
      * @returns Result value
      */
     languages_available(): openehr_base.String {
-        throw new Error("Method languages_available not implemented.");
+        // TODO: Implement languages_available behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method languages_available not yet implemented.");
     }
 
 }
@@ -817,13 +1189,73 @@ export class RESOURCE_DESCRIPTION {
      */
     other_contributors?: undefined;
     /**
+     * Internal storage for lifecycle_state
+     * @private
+     */
+    private _lifecycle_state?: openehr_base.String;
+
+    /**
      * Lifecycle state of the resource, typically including states such as: \`initial | submitted | experimental | awaiting_approval | approved | superseded | obsolete\`.
      */
-    lifecycle_state?: openehr_base.String;
+    get lifecycle_state(): string | undefined {
+        return this._lifecycle_state?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for lifecycle_state.
+     * Use this to access openehr_base.String methods.
+     */
+    get $lifecycle_state(): openehr_base.String | undefined {
+        return this._lifecycle_state;
+    }
+
+    /**
+     * Sets lifecycle_state from either a primitive value or openehr_base.String wrapper.
+     */
+    set lifecycle_state(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._lifecycle_state = undefined;
+        } else if (typeof val === 'string') {
+            this._lifecycle_state = openehr_base.String.from(val);
+        } else {
+            this._lifecycle_state = val;
+        }
+    }
+
+    /**
+     * Internal storage for resource_package_uri
+     * @private
+     */
+    private _resource_package_uri?: openehr_base.String;
+
     /**
      * URI of package to which this resource belongs.
      */
-    resource_package_uri?: openehr_base.String;
+    get resource_package_uri(): string | undefined {
+        return this._resource_package_uri?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for resource_package_uri.
+     * Use this to access openehr_base.String methods.
+     */
+    get $resource_package_uri(): openehr_base.String | undefined {
+        return this._resource_package_uri;
+    }
+
+    /**
+     * Sets resource_package_uri from either a primitive value or openehr_base.String wrapper.
+     */
+    set resource_package_uri(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._resource_package_uri = undefined;
+        } else if (typeof val === 'string') {
+            this._resource_package_uri = openehr_base.String.from(val);
+        } else {
+            this._resource_package_uri = val;
+        }
+    }
+
     /**
      * Additional non language-senstive resource meta-data, as a list of name/value pairs. 
      */
@@ -851,9 +1283,39 @@ export class TRANSLATION_DETAILS {
      */
     author?: undefined;
     /**
+     * Internal storage for accreditaton
+     * @private
+     */
+    private _accreditaton?: openehr_base.String;
+
+    /**
      * Accreditation of translator, usually a national translator's registration or association membership id.
      */
-    accreditaton?: openehr_base.String;
+    get accreditaton(): string | undefined {
+        return this._accreditaton?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for accreditaton.
+     * Use this to access openehr_base.String methods.
+     */
+    get $accreditaton(): openehr_base.String | undefined {
+        return this._accreditaton;
+    }
+
+    /**
+     * Sets accreditaton from either a primitive value or openehr_base.String wrapper.
+     */
+    set accreditaton(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._accreditaton = undefined;
+        } else if (typeof val === 'string') {
+            this._accreditaton = openehr_base.String.from(val);
+        } else {
+            this._accreditaton = val;
+        }
+    }
+
     /**
      * Any other meta-data.
      */
@@ -869,27 +1331,147 @@ export class RESOURCE_DESCRIPTION_ITEM {
      */
     language?: CODE_PHRASE;
     /**
+     * Internal storage for purpose
+     * @private
+     */
+    private _purpose?: openehr_base.String;
+
+    /**
      * Purpose of the resource.
      */
-    purpose?: openehr_base.String;
+    get purpose(): string | undefined {
+        return this._purpose?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for purpose.
+     * Use this to access openehr_base.String methods.
+     */
+    get $purpose(): openehr_base.String | undefined {
+        return this._purpose;
+    }
+
+    /**
+     * Sets purpose from either a primitive value or openehr_base.String wrapper.
+     */
+    set purpose(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._purpose = undefined;
+        } else if (typeof val === 'string') {
+            this._purpose = openehr_base.String.from(val);
+        } else {
+            this._purpose = val;
+        }
+    }
+
     /**
      * Keywords which characterise this resource, used e.g. for indexing and searching. 
      */
     keywords?: undefined;
     /**
+     * Internal storage for use
+     * @private
+     */
+    private _use?: openehr_base.String;
+
+    /**
      * Description of the uses of the resource, i.e. contexts in which it could be used. 
      * 
      */
-    use?: openehr_base.String;
+    get use(): string | undefined {
+        return this._use?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for use.
+     * Use this to access openehr_base.String methods.
+     */
+    get $use(): openehr_base.String | undefined {
+        return this._use;
+    }
+
+    /**
+     * Sets use from either a primitive value or openehr_base.String wrapper.
+     */
+    set use(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._use = undefined;
+        } else if (typeof val === 'string') {
+            this._use = openehr_base.String.from(val);
+        } else {
+            this._use = val;
+        }
+    }
+
+    /**
+     * Internal storage for misuse
+     * @private
+     */
+    private _misuse?: openehr_base.String;
+
     /**
      * Description of any misuses of the resource, i.e. contexts in which it should not be used.
      */
-    misuse?: openehr_base.String;
+    get misuse(): string | undefined {
+        return this._misuse?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for misuse.
+     * Use this to access openehr_base.String methods.
+     */
+    get $misuse(): openehr_base.String | undefined {
+        return this._misuse;
+    }
+
+    /**
+     * Sets misuse from either a primitive value or openehr_base.String wrapper.
+     */
+    set misuse(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._misuse = undefined;
+        } else if (typeof val === 'string') {
+            this._misuse = openehr_base.String.from(val);
+        } else {
+            this._misuse = val;
+        }
+    }
+
+    /**
+     * Internal storage for copyright
+     * @private
+     */
+    private _copyright?: openehr_base.String;
+
     /**
      * Optional copyright statement for the resource as a knowledge resource. 
      * 
      */
-    copyright?: openehr_base.String;
+    get copyright(): string | undefined {
+        return this._copyright?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for copyright.
+     * Use this to access openehr_base.String methods.
+     */
+    get $copyright(): openehr_base.String | undefined {
+        return this._copyright;
+    }
+
+    /**
+     * Sets copyright from either a primitive value or openehr_base.String wrapper.
+     */
+    set copyright(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._copyright = undefined;
+        } else if (typeof val === 'string') {
+            this._copyright = openehr_base.String.from(val);
+        } else {
+            this._copyright = val;
+        }
+    }
+
     /**
      * URIs of original clinical document(s) or description of which resource is a formalisation, in the language of this description item; keyed by meaning. 
      */
@@ -905,21 +1487,111 @@ export class RESOURCE_DESCRIPTION_ITEM {
  */
 export class ITEM_TAG {
     /**
+     * Internal storage for key
+     * @private
+     */
+    private _key?: openehr_base.String;
+
+    /**
      * The tag key. May not be empty or contain leading or trailing whitespace.
      */
-    key?: openehr_base.String;
+    get key(): string | undefined {
+        return this._key?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for key.
+     * Use this to access openehr_base.String methods.
+     */
+    get $key(): openehr_base.String | undefined {
+        return this._key;
+    }
+
+    /**
+     * Sets key from either a primitive value or openehr_base.String wrapper.
+     */
+    set key(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._key = undefined;
+        } else if (typeof val === 'string') {
+            this._key = openehr_base.String.from(val);
+        } else {
+            this._key = val;
+        }
+    }
+
+    /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
     /**
      * The value. If set, may not be empty.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Identifier of target, which may be a \`VERSIONED_OBJECT<T>\` or a \`VERSION<T>\`.
      */
     target?: openehr_base.UID_BASED_ID;
     /**
+     * Internal storage for target_path
+     * @private
+     */
+    private _target_path?: openehr_base.String;
+
+    /**
      * Optional archetype (i.e. AQL) or RM path within \`_target_\`, used to tag a fine-grained element.
      */
-    target_path?: openehr_base.String;
+    get target_path(): string | undefined {
+        return this._target_path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_path(): openehr_base.String | undefined {
+        return this._target_path;
+    }
+
+    /**
+     * Sets target_path from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_path = undefined;
+        } else if (typeof val === 'string') {
+            this._target_path = openehr_base.String.from(val);
+        } else {
+            this._target_path = val;
+        }
+    }
+
     /**
      * Identifier of owner object, such as EHR.
      */
@@ -935,7 +1607,9 @@ export abstract class DATA_STRUCTURE extends LOCATABLE {
      * @returns Result value
      */
     as_hierarchy(): ITEM {
-        throw new Error("Method as_hierarchy not implemented.");
+        // TODO: Implement as_hierarchy behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_hierarchy not yet implemented.");
     }
 
 }
@@ -961,7 +1635,9 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     has_element_path(a_path: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_element_path not implemented.");
+        // TODO: Implement has_element_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_element_path not yet implemented.");
     }
 
     /**
@@ -970,7 +1646,9 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     element_at_path(a_path: openehr_base.String): ELEMENT {
-        throw new Error("Method element_at_path not implemented.");
+        // TODO: Implement element_at_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method element_at_path not yet implemented.");
     }
 
     /**
@@ -978,7 +1656,9 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     as_hierarchy(): CLUSTER {
-        throw new Error("Method as_hierarchy not implemented.");
+        // TODO: Implement as_hierarchy behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_hierarchy not yet implemented.");
     }
 
 }
@@ -993,7 +1673,9 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     as_hierarchy(): ELEMENT {
-        throw new Error("Method as_hierarchy not implemented.");
+        // TODO: Implement as_hierarchy behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_hierarchy not yet implemented.");
     }
 
 }
@@ -1017,7 +1699,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     row_count(): openehr_base.Integer {
-        throw new Error("Method row_count not implemented.");
+        // TODO: Implement row_count behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method row_count not yet implemented.");
     }
 
     /**
@@ -1025,7 +1709,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     column_count(): openehr_base.Integer {
-        throw new Error("Method column_count not implemented.");
+        // TODO: Implement column_count behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method column_count not yet implemented.");
     }
 
     /**
@@ -1033,7 +1719,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     row_names(): DV_TEXT {
-        throw new Error("Method row_names not implemented.");
+        // TODO: Implement row_names behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method row_names not yet implemented.");
     }
 
     /**
@@ -1041,7 +1729,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     column_names(): DV_TEXT {
-        throw new Error("Method column_names not implemented.");
+        // TODO: Implement column_names behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method column_names not yet implemented.");
     }
 
     /**
@@ -1050,7 +1740,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     ith_row(i: openehr_base.Integer): CLUSTER {
-        throw new Error("Method ith_row not implemented.");
+        // TODO: Implement ith_row behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method ith_row not yet implemented.");
     }
 
     /**
@@ -1059,7 +1751,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     has_row_with_name(a_key: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_row_with_name not implemented.");
+        // TODO: Implement has_row_with_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_row_with_name not yet implemented.");
     }
 
     /**
@@ -1068,7 +1762,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     has_column_with_name(a_key: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_column_with_name not implemented.");
+        // TODO: Implement has_column_with_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_column_with_name not yet implemented.");
     }
 
     /**
@@ -1077,7 +1773,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     named_row(a_key: openehr_base.String): CLUSTER {
-        throw new Error("Method named_row not implemented.");
+        // TODO: Implement named_row behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method named_row not yet implemented.");
     }
 
     /**
@@ -1086,7 +1784,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     has_row_with_key(keys: undefined): openehr_base.Boolean {
-        throw new Error("Method has_row_with_key not implemented.");
+        // TODO: Implement has_row_with_key behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_row_with_key not yet implemented.");
     }
 
     /**
@@ -1095,7 +1795,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     row_with_key(keys: undefined): CLUSTER {
-        throw new Error("Method row_with_key not implemented.");
+        // TODO: Implement row_with_key behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method row_with_key not yet implemented.");
     }
 
     /**
@@ -1105,7 +1807,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     element_at_cell_ij(i: openehr_base.Integer, j: openehr_base.Integer): ELEMENT {
-        throw new Error("Method element_at_cell_ij not implemented.");
+        // TODO: Implement element_at_cell_ij behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method element_at_cell_ij not yet implemented.");
     }
 
     /**
@@ -1113,7 +1817,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * @returns Result value
      */
     as_hierarchy(): CLUSTER {
-        throw new Error("Method as_hierarchy not implemented.");
+        // TODO: Implement as_hierarchy behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_hierarchy not yet implemented.");
     }
 
 }
@@ -1135,7 +1841,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * @returns Result value
      */
     item_count(): openehr_base.Integer {
-        throw new Error("Method item_count not implemented.");
+        // TODO: Implement item_count behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method item_count not yet implemented.");
     }
 
     /**
@@ -1143,7 +1851,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * @returns Result value
      */
     names(): DV_TEXT {
-        throw new Error("Method names not implemented.");
+        // TODO: Implement names behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method names not yet implemented.");
     }
 
     /**
@@ -1152,7 +1862,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * @returns Result value
      */
     named_item(a_name: openehr_base.String): ELEMENT {
-        throw new Error("Method named_item not implemented.");
+        // TODO: Implement named_item behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method named_item not yet implemented.");
     }
 
     /**
@@ -1161,7 +1873,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * @returns Result value
      */
     ith_item(i: openehr_base.Integer): ELEMENT {
-        throw new Error("Method ith_item not implemented.");
+        // TODO: Implement ith_item behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method ith_item not yet implemented.");
     }
 
     /**
@@ -1169,7 +1883,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * @returns Result value
      */
     as_hierarchy(): CLUSTER {
-        throw new Error("Method as_hierarchy not implemented.");
+        // TODO: Implement as_hierarchy behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_hierarchy not yet implemented.");
     }
 
 }
@@ -1195,7 +1911,9 @@ export abstract class EVENT<T extends ITEM_STRUCTURE> extends LOCATABLE {
      * @returns Result value
      */
     offset(): DV_DURATION {
-        throw new Error("Method offset not implemented.");
+        // TODO: Implement offset behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method offset not yet implemented.");
     }
 
 }
@@ -1215,9 +1933,39 @@ export class INTERVAL_EVENT<T> extends EVENT<T> {
      */
     width?: DV_DURATION;
     /**
+     * Internal storage for sample_count
+     * @private
+     */
+    private _sample_count?: openehr_base.Integer;
+
+    /**
      * Optional count of original samples to which this event corresponds.
      */
-    sample_count?: openehr_base.Integer;
+    get sample_count(): number | undefined {
+        return this._sample_count?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for sample_count.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $sample_count(): openehr_base.Integer | undefined {
+        return this._sample_count;
+    }
+
+    /**
+     * Sets sample_count from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set sample_count(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._sample_count = undefined;
+        } else if (typeof val === 'number') {
+            this._sample_count = openehr_base.Integer.from(val);
+        } else {
+            this._sample_count = val;
+        }
+    }
+
     /**
      * Mathematical function of the data of this event, e.g.  maximum, mean etc. Coded using https://github.com/openEHR/terminology/blob/master/openEHR_RM/en/openehr_terminology.xml[openEHR vocabulary \`event math function\`]. Default value \`640|actual|\`, meaning 'actual value'.
      */
@@ -1227,7 +1975,9 @@ export class INTERVAL_EVENT<T> extends EVENT<T> {
      * @returns Result value
      */
     interval_start_time(): DV_DATE_TIME {
-        throw new Error("Method interval_start_time not implemented.");
+        // TODO: Implement interval_start_time behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method interval_start_time not yet implemented.");
     }
 
 }
@@ -1264,7 +2014,9 @@ export class HISTORY<T extends ITEM_STRUCTURE> extends DATA_STRUCTURE {
      * @returns Result value
      */
     is_periodic(): openehr_base.Boolean {
-        throw new Error("Method is_periodic not implemented.");
+        // TODO: Implement is_periodic behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_periodic not yet implemented.");
     }
 
 }
@@ -1306,7 +2058,9 @@ export class ELEMENT extends ITEM {
      * @returns Result value
      */
     is_null(): openehr_base.Boolean {
-        throw new Error("Method is_null not implemented.");
+        // TODO: Implement is_null behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_null not yet implemented.");
     }
 
 }
@@ -1325,9 +2079,39 @@ export abstract class DATA_VALUE extends openehr_base.OPENEHR_DEFINITIONS {
  */
 export class DV_BOOLEAN extends DATA_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.Boolean;
+
+    /**
      * Boolean value of this item. Actual values may be language or implementation dependent.
      */
-    value?: openehr_base.Boolean;
+    get value(): boolean | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for value.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $value(): openehr_base.Boolean | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set value(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'boolean') {
+            this._value = openehr_base.Boolean.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -1342,9 +2126,39 @@ export class DV_STATE extends DATA_VALUE {
      */
     value?: DV_CODED_TEXT;
     /**
+     * Internal storage for is_terminal
+     * @private
+     */
+    private _is_terminal?: openehr_base.Boolean;
+
+    /**
      * Indicates whether this state is a terminal state, such as  "aborted",  "completed" etc. from which no further transitions are possible.
      */
-    is_terminal?: openehr_base.Boolean;
+    get is_terminal(): boolean | undefined {
+        return this._is_terminal?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_terminal.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_terminal(): openehr_base.Boolean | undefined {
+        return this._is_terminal;
+    }
+
+    /**
+     * Sets is_terminal from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_terminal(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_terminal = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_terminal = openehr_base.Boolean.from(val);
+        } else {
+            this._is_terminal = val;
+        }
+    }
+
 }
 
 /**
@@ -1356,21 +2170,141 @@ export class DV_STATE extends DATA_VALUE {
  */
 export class DV_IDENTIFIER extends DATA_VALUE {
     /**
+     * Internal storage for issuer
+     * @private
+     */
+    private _issuer?: openehr_base.String;
+
+    /**
      * Optional authority which issues the kind of id used in the id field of this object. 
      */
-    issuer?: openehr_base.String;
+    get issuer(): string | undefined {
+        return this._issuer?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for issuer.
+     * Use this to access openehr_base.String methods.
+     */
+    get $issuer(): openehr_base.String | undefined {
+        return this._issuer;
+    }
+
+    /**
+     * Sets issuer from either a primitive value or openehr_base.String wrapper.
+     */
+    set issuer(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._issuer = undefined;
+        } else if (typeof val === 'string') {
+            this._issuer = openehr_base.String.from(val);
+        } else {
+            this._issuer = val;
+        }
+    }
+
+    /**
+     * Internal storage for assigner
+     * @private
+     */
+    private _assigner?: openehr_base.String;
+
     /**
      * Optional organisation that assigned the id to the item being identified.
      */
-    assigner?: openehr_base.String;
+    get assigner(): string | undefined {
+        return this._assigner?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for assigner.
+     * Use this to access openehr_base.String methods.
+     */
+    get $assigner(): openehr_base.String | undefined {
+        return this._assigner;
+    }
+
+    /**
+     * Sets assigner from either a primitive value or openehr_base.String wrapper.
+     */
+    set assigner(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._assigner = undefined;
+        } else if (typeof val === 'string') {
+            this._assigner = openehr_base.String.from(val);
+        } else {
+            this._assigner = val;
+        }
+    }
+
+    /**
+     * Internal storage for id
+     * @private
+     */
+    private _id?: openehr_base.String;
+
     /**
      * The identifier value. Often structured, according to the definition of the issuing authority's rules. 
      */
-    id?: openehr_base.String;
+    get id(): string | undefined {
+        return this._id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $id(): openehr_base.String | undefined {
+        return this._id;
+    }
+
+    /**
+     * Sets id from either a primitive value or openehr_base.String wrapper.
+     */
+    set id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._id = undefined;
+        } else if (typeof val === 'string') {
+            this._id = openehr_base.String.from(val);
+        } else {
+            this._id = val;
+        }
+    }
+
+    /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: openehr_base.String;
+
     /**
      * Optional identifier type, such as  prescription , or  Social Security Number . One day a controlled vocabulary might be possible for this.
      */
-    type?: openehr_base.String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
+     */
+    get $type(): openehr_base.String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or openehr_base.String wrapper.
+     */
+    set type(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = openehr_base.String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
 }
 
 /**
@@ -1392,9 +2326,39 @@ export abstract class DV_ENCAPSULATED extends DATA_VALUE {
  */
 export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     /**
+     * Internal storage for alternate_text
+     * @private
+     */
+    private _alternate_text?: openehr_base.String;
+
+    /**
      * Text to display in lieu of multimedia display/replay.
      */
-    alternate_text?: openehr_base.String;
+    get alternate_text(): string | undefined {
+        return this._alternate_text?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for alternate_text.
+     * Use this to access openehr_base.String methods.
+     */
+    get $alternate_text(): openehr_base.String | undefined {
+        return this._alternate_text;
+    }
+
+    /**
+     * Sets alternate_text from either a primitive value or openehr_base.String wrapper.
+     */
+    set alternate_text(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._alternate_text = undefined;
+        } else if (typeof val === 'string') {
+            this._alternate_text = openehr_base.String.from(val);
+        } else {
+            this._alternate_text = val;
+        }
+    }
+
     /**
      * URI reference to electronic information stored outside the record as a file, database entry etc, if supplied as a reference. 
      * 
@@ -1426,15 +2390,47 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
      */
     thumbnail?: DV_MULTIMEDIA;
     /**
+     * Internal storage for size
+     * @private
+     */
+    private _size?: openehr_base.Integer;
+
+    /**
      * Original size in bytes of unencoded encapsulated data. I.e. encodings such as base64, hexadecimal etc do not change the value of this attribute.
      */
-    size?: openehr_base.Integer;
+    get size(): number | undefined {
+        return this._size?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for size.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $size(): openehr_base.Integer | undefined {
+        return this._size;
+    }
+
+    /**
+     * Sets size from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set size(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._size = undefined;
+        } else if (typeof val === 'number') {
+            this._size = openehr_base.Integer.from(val);
+        } else {
+            this._size = val;
+        }
+    }
+
     /**
      * Computed from the value of the \`_uri_\` attribute: True if  the data is stored externally to the record, as indicated by \`_uri_\`. A copy may also be stored internally, in which case \`_is_expanded_\` is also true.
      * @returns Result value
      */
     is_external(): openehr_base.Boolean {
-        throw new Error("Method is_external not implemented.");
+        // TODO: Implement is_external behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_external not yet implemented.");
     }
 
     /**
@@ -1442,7 +2438,9 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
      * @returns Result value
      */
     is_inline(): openehr_base.Boolean {
-        throw new Error("Method is_inline not implemented.");
+        // TODO: Implement is_inline behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_inline not yet implemented.");
     }
 
     /**
@@ -1450,7 +2448,9 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
      * @returns Result value
      */
     is_compressed(): openehr_base.Boolean {
-        throw new Error("Method is_compressed not implemented.");
+        // TODO: Implement is_compressed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_compressed not yet implemented.");
     }
 
     /**
@@ -1458,7 +2458,9 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
      * @returns Result value
      */
     has_integrity_check(): openehr_base.Boolean {
-        throw new Error("Method has_integrity_check not implemented.");
+        // TODO: Implement has_integrity_check behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_integrity_check not yet implemented.");
     }
 
 }
@@ -1468,19 +2470,81 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
  */
 export class DV_PARSABLE extends DV_ENCAPSULATED {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * The string, which may validly be empty in some syntaxes.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
+    /**
+     * Internal storage for formalism
+     * @private
+     */
+    private _formalism?: openehr_base.String;
+
     /**
      * Name of the formalism, e.g.  GLIF 1.0 ,  Proforma  etc.
      */
-    formalism?: openehr_base.String;
+    get formalism(): string | undefined {
+        return this._formalism?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for formalism.
+     * Use this to access openehr_base.String methods.
+     */
+    get $formalism(): openehr_base.String | undefined {
+        return this._formalism;
+    }
+
+    /**
+     * Sets formalism from either a primitive value or openehr_base.String wrapper.
+     */
+    set formalism(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._formalism = undefined;
+        } else if (typeof val === 'string') {
+            this._formalism = openehr_base.String.from(val);
+        } else {
+            this._formalism = val;
+        }
+    }
+
     /**
      * Size in bytes of value.
      * @returns Result value
      */
     size(): openehr_base.Integer {
-        throw new Error("Method size not implemented.");
+        // TODO: Implement size behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method size not yet implemented.");
     }
 
 }
@@ -1514,16 +2578,52 @@ export class DV_PARAGRAPH extends DATA_VALUE {
  */
 export class DV_TEXT extends DATA_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * Displayable rendition of the item, regardless of its underlying structure. For \`DV_CODED_TEXT\`, this is the rubric of the complete term as provided by the terminology service.
      * 
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * DEPRECATED: this field is deprecated; use markdown link/text in the \`_value_\` attribute, and \`"markdown"\` as the value of the \`_formatting_\` field.
      * 
      * Original usage, prior to RM Release 1.0.4: Optional link sitting behind a section of plain text or coded term item.
      */
     hyperlink?: DV_URI;
+    /**
+     * Internal storage for formatting
+     * @private
+     */
+    private _formatting?: openehr_base.String;
+
     /**
      * If set, contains one of the following values:
      * 
@@ -1533,7 +2633,31 @@ export class DV_TEXT extends DATA_VALUE {
      * 
      * DEPRECATED usage: contains a string of the form \`"name:value; name:value..."\` , e.g. \`"font-weight : bold; font-family : Arial; font-size : 12pt;"\`. Values taken from W3C CSS2 properties lists for background and font . 
      */
-    formatting?: openehr_base.String;
+    get formatting(): string | undefined {
+        return this._formatting?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for formatting.
+     * Use this to access openehr_base.String methods.
+     */
+    get $formatting(): openehr_base.String | undefined {
+        return this._formatting;
+    }
+
+    /**
+     * Sets formatting from either a primitive value or openehr_base.String wrapper.
+     */
+    set formatting(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._formatting = undefined;
+        } else if (typeof val === 'string') {
+            this._formatting = openehr_base.String.from(val);
+        } else {
+            this._formatting = val;
+        }
+    }
+
     /**
      * Terms from other terminologies most closely matching this term, typically used where the originator (e.g. pathology lab) of information uses a local terminology but also supplies one or more equivalents from well known terminologies (e.g. LOINC). 
      * 
@@ -1597,7 +2721,9 @@ export class TERM_MAPPING {
      * @returns Result value
      */
     narrower(): openehr_base.Boolean {
-        throw new Error("Method narrower not implemented.");
+        // TODO: Implement narrower behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method narrower not yet implemented.");
     }
 
     /**
@@ -1605,7 +2731,9 @@ export class TERM_MAPPING {
      * @returns Result value
      */
     broader(): openehr_base.Boolean {
-        throw new Error("Method broader not implemented.");
+        // TODO: Implement broader behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method broader not yet implemented.");
     }
 
     /**
@@ -1613,7 +2741,9 @@ export class TERM_MAPPING {
      * @returns Result value
      */
     equivalent(): openehr_base.Boolean {
-        throw new Error("Method equivalent not implemented.");
+        // TODO: Implement equivalent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equivalent not yet implemented.");
     }
 
     /**
@@ -1621,7 +2751,9 @@ export class TERM_MAPPING {
      * @returns Result value
      */
     unknown(): openehr_base.Boolean {
-        throw new Error("Method unknown not implemented.");
+        // TODO: Implement unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method unknown not yet implemented.");
     }
 
     /**
@@ -1630,7 +2762,9 @@ export class TERM_MAPPING {
      * @returns Result value
      */
     is_valid_match_code(c: string): openehr_base.Boolean {
-        throw new Error("Method is_valid_match_code not implemented.");
+        // TODO: Implement is_valid_match_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_valid_match_code not yet implemented.");
     }
 
 }
@@ -1644,13 +2778,73 @@ export class CODE_PHRASE {
      */
     terminology_id?: openehr_base.TERMINOLOGY_ID;
     /**
+     * Internal storage for code_string
+     * @private
+     */
+    private _code_string?: openehr_base.String;
+
+    /**
      * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context. 
      */
-    code_string?: openehr_base.String;
+    get code_string(): string | undefined {
+        return this._code_string?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for code_string.
+     * Use this to access openehr_base.String methods.
+     */
+    get $code_string(): openehr_base.String | undefined {
+        return this._code_string;
+    }
+
+    /**
+     * Sets code_string from either a primitive value or openehr_base.String wrapper.
+     */
+    set code_string(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._code_string = undefined;
+        } else if (typeof val === 'string') {
+            this._code_string = openehr_base.String.from(val);
+        } else {
+            this._code_string = val;
+        }
+    }
+
+    /**
+     * Internal storage for preferred_term
+     * @private
+     */
+    private _preferred_term?: openehr_base.String;
+
     /**
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
      */
-    preferred_term?: openehr_base.String;
+    get preferred_term(): string | undefined {
+        return this._preferred_term?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for preferred_term.
+     * Use this to access openehr_base.String methods.
+     */
+    get $preferred_term(): openehr_base.String | undefined {
+        return this._preferred_term;
+    }
+
+    /**
+     * Sets preferred_term from either a primitive value or openehr_base.String wrapper.
+     */
+    set preferred_term(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._preferred_term = undefined;
+        } else if (typeof val === 'string') {
+            this._preferred_term = openehr_base.String.from(val);
+        } else {
+            this._preferred_term = val;
+        }
+    }
+
 }
 
 /**
@@ -1684,7 +2878,9 @@ export abstract class DV_ORDERED extends DATA_VALUE {
      * @returns Result value
      */
     is_simple(): openehr_base.Boolean {
-        throw new Error("Method is_simple not implemented.");
+        // TODO: Implement is_simple behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_simple not yet implemented.");
     }
 
     /**
@@ -1693,7 +2889,9 @@ export abstract class DV_ORDERED extends DATA_VALUE {
      * @returns Result value
      */
     is_normal(): openehr_base.Boolean {
-        throw new Error("Method is_normal not implemented.");
+        // TODO: Implement is_normal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_normal not yet implemented.");
     }
 
     /**
@@ -1734,7 +2932,9 @@ export class REFERENCE_RANGE<T extends DV_ORDERED> {
      * @returns Result value
      */
     is_in_range(v: DV_ORDERED): openehr_base.Boolean {
-        throw new Error("Method is_in_range not implemented.");
+        // TODO: Implement is_in_range behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_in_range not yet implemented.");
     }
 
 }
@@ -1743,6 +2943,12 @@ export class REFERENCE_RANGE<T extends DV_ORDERED> {
  * Abstract class defining the concept of true quantified values, i.e. values which are not only ordered, but which have a precise magnitude.
  */
 export abstract class DV_QUANTIFIED extends DV_ORDERED {
+    /**
+     * Internal storage for magnitude_status
+     * @private
+     */
+    private _magnitude_status?: openehr_base.String;
+
     /**
      * Optional status of magnitude with values: 
      * 
@@ -1756,7 +2962,31 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
      * If not present, assumed meaning is  \`"="\` . 
      * 
      */
-    magnitude_status?: openehr_base.String;
+    get magnitude_status(): string | undefined {
+        return this._magnitude_status?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for magnitude_status.
+     * Use this to access openehr_base.String methods.
+     */
+    get $magnitude_status(): openehr_base.String | undefined {
+        return this._magnitude_status;
+    }
+
+    /**
+     * Sets magnitude_status from either a primitive value or openehr_base.String wrapper.
+     */
+    set magnitude_status(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._magnitude_status = undefined;
+        } else if (typeof val === 'string') {
+            this._magnitude_status = openehr_base.String.from(val);
+        } else {
+            this._magnitude_status = val;
+        }
+    }
+
     /**
      * Accuracy of measurement. Exact form of expression determined in descendants.
      */
@@ -1766,7 +2996,9 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
      * @returns Result value
      */
     valid_magnitude_status(): openehr_base.Boolean {
-        throw new Error("Method valid_magnitude_status not implemented.");
+        // TODO: Implement valid_magnitude_status behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_magnitude_status not yet implemented.");
     }
 
     abstract magnitude(): openehr_base.Ordered_Numeric;
@@ -1776,7 +3008,9 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
      * @returns Result value
      */
     accuracy_unknown(): openehr_base.Boolean {
-        throw new Error("Method accuracy_unknown not implemented.");
+        // TODO: Implement accuracy_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method accuracy_unknown not yet implemented.");
     }
 
     /**
@@ -1792,7 +3026,9 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
      * @returns Result value
      */
     less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
 }
@@ -1809,9 +3045,39 @@ export class PROPORTION_KIND extends openehr_base.Integer {
  */
 export abstract class DV_AMOUNT extends DV_QUANTIFIED {
     /**
+     * Internal storage for accuracy_is_percent
+     * @private
+     */
+    private _accuracy_is_percent?: openehr_base.Boolean;
+
+    /**
      * If \`True\`, indicates that when this object was created, \`_accuracy_\` was recorded as a percent value; if \`False\`, as an absolute quantity value.
      */
-    accuracy_is_percent?: openehr_base.Boolean;
+    get accuracy_is_percent(): boolean | undefined {
+        return this._accuracy_is_percent?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for accuracy_is_percent.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $accuracy_is_percent(): openehr_base.Boolean | undefined {
+        return this._accuracy_is_percent;
+    }
+
+    /**
+     * Sets accuracy_is_percent from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set accuracy_is_percent(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._accuracy_is_percent = undefined;
+        } else if (typeof val === 'boolean') {
+            this._accuracy_is_percent = openehr_base.Boolean.from(val);
+        } else {
+            this._accuracy_is_percent = val;
+        }
+    }
+
     /**
      * Accuracy of measurement, expressed either as a half-range percent value (\`_accuracy_is_percent_\` = \`True\`) or a half-range quantity. A value of \`0\` means that accuracy is 100%, i.e. no error.
      * 
@@ -1824,7 +3090,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     valid_percentage(number: openehr_base.Ordered_Numeric): openehr_base.Boolean {
-        throw new Error("Method valid_percentage not implemented.");
+        // TODO: Implement valid_percentage behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_percentage not yet implemented.");
     }
 
     /**
@@ -1838,7 +3106,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     add(other: DV_AMOUNT): DV_AMOUNT {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1852,7 +3122,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     subtract(other: DV_AMOUNT): DV_AMOUNT {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1868,7 +3140,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     multiply(factor: number): DV_AMOUNT {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -1876,7 +3150,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     negative(): DV_AMOUNT {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -1885,7 +3161,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
      * @returns Result value
      */
     less_than(other: DV_AMOUNT): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
 }
@@ -1907,13 +3185,73 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      */
     denominator?: number;
     /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: openehr_base.Integer;
+
+    /**
      * Indicates semantic type of proportion, including percent, unitary etc.
      */
-    type?: openehr_base.Integer;
+    get type(): number | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for type.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $type(): openehr_base.Integer | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set type(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'number') {
+            this._type = openehr_base.Integer.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
+    /**
+     * Internal storage for precision
+     * @private
+     */
+    private _precision?: openehr_base.Integer;
+
     /**
      * Precision  to  which  the  \`_numerator_\` and \`_denominator_\` values of  the  proportion are expressed, in terms of number  of decimal places. The value 0 implies an integral quantity. The value -1 implies no limit, i.e. any number of decimal places. 
      */
-    precision?: openehr_base.Integer;
+    get precision(): number | undefined {
+        return this._precision?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for precision.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $precision(): openehr_base.Integer | undefined {
+        return this._precision;
+    }
+
+    /**
+     * Sets precision from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set precision(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._precision = undefined;
+        } else if (typeof val === 'number') {
+            this._precision = openehr_base.Integer.from(val);
+        } else {
+            this._precision = val;
+        }
+    }
+
     /**
      * Optional normal range. 
      */
@@ -1927,7 +3265,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     magnitude(): number {
-        throw new Error("Method magnitude not implemented.");
+        // TODO: Implement magnitude behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method magnitude not yet implemented.");
     }
 
     /**
@@ -1935,7 +3275,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     is_integral(): openehr_base.Boolean {
-        throw new Error("Method is_integral not implemented.");
+        // TODO: Implement is_integral behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_integral not yet implemented.");
     }
 
     /**
@@ -1944,7 +3286,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     add(other: DV_PROPORTION): DV_PROPORTION {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1953,7 +3297,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     subtract(other: DV_PROPORTION): DV_PROPORTION {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1962,7 +3308,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     is_equal(other: DV_PROPORTION): openehr_base.Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -1971,7 +3319,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     multiply(factor: number): DV_PROPORTION {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -1980,7 +3330,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     less_than(other: DV_PROPORTION): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -1989,7 +3341,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2005,10 +3359,46 @@ export class DV_QUANTITY extends DV_AMOUNT {
      */
     magnitude?: number;
     /**
+     * Internal storage for precision
+     * @private
+     */
+    private _precision?: openehr_base.Integer;
+
+    /**
      * Precision to which the value of the quantity is expressed, in terms of number of decimal places. The value 0 implies an integral quantity.
      * The value -1 implies no limit, i.e. any number of decimal places.
      */
-    precision?: openehr_base.Integer;
+    get precision(): number | undefined {
+        return this._precision?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for precision.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $precision(): openehr_base.Integer | undefined {
+        return this._precision;
+    }
+
+    /**
+     * Sets precision from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set precision(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._precision = undefined;
+        } else if (typeof val === 'number') {
+            this._precision = openehr_base.Integer.from(val);
+        } else {
+            this._precision = val;
+        }
+    }
+
+    /**
+     * Internal storage for units
+     * @private
+     */
+    private _units?: openehr_base.String;
+
     /**
      * Quantity units, expressed as a code or syntax string from either UCUM (the default) or the units system specified in \`_units_system_\`, when set.
      * 
@@ -2018,7 +3408,31 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * 
      * Example values from UCUM: "kg/m^2", “mm[Hg]", "ms-1", "km/h".
      */
-    units?: openehr_base.String;
+    get units(): string | undefined {
+        return this._units?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for units.
+     * Use this to access openehr_base.String methods.
+     */
+    get $units(): openehr_base.String | undefined {
+        return this._units;
+    }
+
+    /**
+     * Sets units from either a primitive value or openehr_base.String wrapper.
+     */
+    set units(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._units = undefined;
+        } else if (typeof val === 'string') {
+            this._units = openehr_base.String.from(val);
+        } else {
+            this._units = val;
+        }
+    }
+
     /**
      * Optional normal range. 
      */
@@ -2028,11 +3442,47 @@ export class DV_QUANTITY extends DV_AMOUNT {
      */
     override other_reference_ranges?: undefined;
     /**
+     * Internal storage for units_system
+     * @private
+     */
+    private _units_system?: openehr_base.String;
+
+    /**
      * Optional field used to specify a units system from which codes in \`_units_\` are defined. Value is a URI identifying a terminology containing units concepts from the  (https://www.hl7.org/fhir/terminologies-systems.html[HL7 FHIR terminologies list]).
      * 
      * If not set, the UCUM standard (case-sensitive codes) is assumed as the units system.
      */
-    units_system?: openehr_base.String;
+    get units_system(): string | undefined {
+        return this._units_system?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for units_system.
+     * Use this to access openehr_base.String methods.
+     */
+    get $units_system(): openehr_base.String | undefined {
+        return this._units_system;
+    }
+
+    /**
+     * Sets units_system from either a primitive value or openehr_base.String wrapper.
+     */
+    set units_system(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._units_system = undefined;
+        } else if (typeof val === 'string') {
+            this._units_system = openehr_base.String.from(val);
+        } else {
+            this._units_system = val;
+        }
+    }
+
+    /**
+     * Internal storage for units_display_name
+     * @private
+     */
+    private _units_display_name?: openehr_base.String;
+
     /**
      * Optional field containing the displayable form of the \`_units_\` field, e.g. \`'°C'\`.
      * 
@@ -2040,14 +3490,40 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * 
      * NOTE: The display name may be language-dependent for various older and non-systematic units. For this reason, it is not recommended to add unit display names to archetypes, only to templates (for localisation purposes).
      */
-    units_display_name?: openehr_base.String;
+    get units_display_name(): string | undefined {
+        return this._units_display_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for units_display_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $units_display_name(): openehr_base.String | undefined {
+        return this._units_display_name;
+    }
+
+    /**
+     * Sets units_display_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set units_display_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._units_display_name = undefined;
+        } else if (typeof val === 'string') {
+            this._units_display_name = openehr_base.String.from(val);
+        } else {
+            this._units_display_name = val;
+        }
+    }
+
     /**
      * Sum of this \`DV_QUANTITY\` and \`_other_\`.
      * @param other - Parameter
      * @returns Result value
      */
     add(other: DV_QUANTITY): DV_QUANTITY {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2056,7 +3532,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * @returns Result value
      */
     subtract(other: DV_QUANTITY): DV_QUANTITY {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2065,7 +3543,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * @returns Result value
      */
     multiply(factor: number): DV_QUANTITY {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -2074,7 +3554,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * @returns Result value
      */
     less_than(other: DV_QUANTITY): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2082,7 +3564,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * @returns Result value
      */
     is_integral(): openehr_base.Boolean {
-        throw new Error("Method is_integral not implemented.");
+        // TODO: Implement is_integral behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_integral not yet implemented.");
     }
 
     /**
@@ -2091,7 +3575,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2102,7 +3588,37 @@ export class DV_QUANTITY extends DV_AMOUNT {
  * Misuse: Not to be used for amounts of physical entities (which all have units).
  */
 export class DV_COUNT extends DV_AMOUNT {
-    magnitude?: openehr_base.Integer64;
+    /**
+     * Internal storage for magnitude
+     * @private
+     */
+    private _magnitude?: openehr_base.Integer64;
+
+    get magnitude(): number | undefined {
+        return this._magnitude?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer64 wrapper object for magnitude.
+     * Use this to access openehr_base.Integer64 methods.
+     */
+    get $magnitude(): openehr_base.Integer64 | undefined {
+        return this._magnitude;
+    }
+
+    /**
+     * Sets magnitude from either a primitive value or openehr_base.Integer64 wrapper.
+     */
+    set magnitude(val: number | openehr_base.Integer64 | undefined) {
+        if (val === undefined || val === null) {
+            this._magnitude = undefined;
+        } else if (typeof val === 'number') {
+            this._magnitude = openehr_base.Integer64.from(val);
+        } else {
+            this._magnitude = val;
+        }
+    }
+
     /**
      * Optional normal range. 
      */
@@ -2117,7 +3633,9 @@ export class DV_COUNT extends DV_AMOUNT {
      * @returns Result value
      */
     add(other: DV_COUNT): DV_COUNT {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2126,7 +3644,9 @@ export class DV_COUNT extends DV_AMOUNT {
      * @returns Result value
      */
     subtract(other: DV_COUNT): DV_COUNT {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2135,7 +3655,9 @@ export class DV_COUNT extends DV_AMOUNT {
      * @returns Result value
      */
     multiply(factor: number): DV_COUNT {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -2144,7 +3666,9 @@ export class DV_COUNT extends DV_AMOUNT {
      * @returns Result value
      */
     less_than(other: DV_COUNT): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2153,7 +3677,9 @@ export class DV_COUNT extends DV_AMOUNT {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2224,17 +3750,49 @@ export class DV_ORDINAL extends DV_ORDERED {
      */
     symbol?: DV_CODED_TEXT;
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.Integer;
+
+    /**
      * Value in ordered enumeration of values. Any integer value can be used. 
      * 
      */
-    value?: openehr_base.Integer;
+    get value(): number | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for value.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $value(): openehr_base.Integer | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set value(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'number') {
+            this._value = openehr_base.Integer.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * True if this Ordinal value is less than \`_other_\`.
      * @param other - Parameter
      * @returns Result value
      */
     less_than(other: DV_ORDINAL): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2243,7 +3801,9 @@ export class DV_ORDINAL extends DV_ORDERED {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_ORDINAL): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2289,7 +3849,9 @@ export class DV_SCALE extends DV_ORDERED {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_SCALE): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
     /**
@@ -2298,7 +3860,9 @@ export class DV_SCALE extends DV_ORDERED {
      * @returns Result value
      */
     less_than(other: DV_SCALE): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
 }
@@ -2314,16 +3878,48 @@ export class DV_SCALE extends DV_ORDERED {
  */
 export class DV_DURATION extends DV_AMOUNT {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * ISO8601 duration string, including described deviations to support negative values and weeks.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Sum of this Duration and \`_other_\`.
      * @param other - Parameter
      * @returns Result value
      */
     add(other: DV_DURATION): DV_DURATION {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2332,7 +3928,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     subtract(other: DV_DURATION): DV_DURATION {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2341,7 +3939,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     multiply(factor: number): DV_DURATION {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -2350,7 +3950,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     less_than(other: DV_DURATION): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2359,7 +3961,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_DURATION): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
     /**
@@ -2369,7 +3973,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     negative(): DV_DURATION {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -2377,7 +3983,9 @@ export class DV_DURATION extends DV_AMOUNT {
      * @returns Result value
      */
     magnitude(): number {
-        throw new Error("Method magnitude not implemented.");
+        // TODO: Implement magnitude behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method magnitude not yet implemented.");
     }
 
 }
@@ -2419,15 +4027,47 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
  */
 export class DV_DATE extends DV_TEMPORAL {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * ISO8601 date string.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Numeric value of the date as days since the calendar origin date \`0001-01-01\`.
      * @returns Result value
      */
     magnitude(): openehr_base.Integer {
-        throw new Error("Method magnitude not implemented.");
+        // TODO: Implement magnitude behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method magnitude not yet implemented.");
     }
 
     /**
@@ -2436,7 +4076,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -2445,7 +4087,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     add(a_diff: DV_DURATION): DV_DATE {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2454,7 +4098,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     subtract(a_diff: DV_DURATION): DV_DATE {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2463,7 +4109,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     diff(other: DV_DATE): DV_DURATION {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
     /**
@@ -2472,7 +4120,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     less_than(other: DV_DATE): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2481,7 +4131,9 @@ export class DV_DATE extends DV_TEMPORAL {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_DATE): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2493,15 +4145,47 @@ export class DV_DATE extends DV_TEMPORAL {
  */
 export class DV_TIME extends DV_TEMPORAL {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * ISO8601 time string
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Numeric value of the time as seconds since the start of day, i.e. \`00:00:00\`. 
      * @returns Result value
      */
     magnitude(): number {
-        throw new Error("Method magnitude not implemented.");
+        // TODO: Implement magnitude behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method magnitude not yet implemented.");
     }
 
     /**
@@ -2510,7 +4194,9 @@ export class DV_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     add(a_diff: DV_DURATION): DV_TIME {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2519,7 +4205,9 @@ export class DV_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     subtract(a_diff: DV_DURATION): DV_TIME {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2528,7 +4216,9 @@ export class DV_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     diff(other: DV_TIME): DV_DURATION {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
     /**
@@ -2537,7 +4227,9 @@ export class DV_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     less_than(other: DV_TIME): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2546,7 +4238,9 @@ export class DV_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_TIME): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2559,16 +4253,48 @@ export class DV_TIME extends DV_TEMPORAL {
  */
 export class DV_DATE_TIME extends DV_TEMPORAL {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * ISO8601 date/time string.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Numeric value of the date/time as seconds since the calendar origin date/time \`0001-01-01T00:00:00Z\`. 
      * 
      * @returns Result value
      */
     magnitude(): number {
-        throw new Error("Method magnitude not implemented.");
+        // TODO: Implement magnitude behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method magnitude not yet implemented.");
     }
 
     /**
@@ -2577,7 +4303,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     add(a_diff: DV_DURATION): DV_DATE_TIME {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -2586,7 +4314,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     subtract(a_diff: DV_DURATION): DV_DATE_TIME {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -2595,7 +4325,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     diff(other: DV_DATE_TIME): DV_DURATION {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
     /**
@@ -2604,7 +4336,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     less_than(other: DV_DATE_TIME): openehr_base.Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -2613,7 +4347,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
      * @returns Result value
      */
     is_strictly_comparable_to(other: DV_DATE_TIME): openehr_base.Boolean {
-        throw new Error("Method is_strictly_comparable_to not implemented.");
+        // TODO: Implement is_strictly_comparable_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_strictly_comparable_to not yet implemented.");
     }
 
 }
@@ -2657,7 +4393,9 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     period(): DV_DURATION {
-        throw new Error("Method period not implemented.");
+        // TODO: Implement period behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method period not yet implemented.");
     }
 
     /**
@@ -2665,7 +4403,9 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     calendar_alignment(): openehr_base.String {
-        throw new Error("Method calendar_alignment not implemented.");
+        // TODO: Implement calendar_alignment behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method calendar_alignment not yet implemented.");
     }
 
     /**
@@ -2673,7 +4413,9 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     event_alignment(): openehr_base.String {
-        throw new Error("Method event_alignment not implemented.");
+        // TODO: Implement event_alignment behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method event_alignment not yet implemented.");
     }
 
     /**
@@ -2681,7 +4423,9 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     institution_specified(): openehr_base.Boolean {
-        throw new Error("Method institution_specified not implemented.");
+        // TODO: Implement institution_specified behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method institution_specified not yet implemented.");
     }
 
 }
@@ -2695,7 +4439,9 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     calendar_alignment(): openehr_base.String {
-        throw new Error("Method calendar_alignment not implemented.");
+        // TODO: Implement calendar_alignment behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method calendar_alignment not yet implemented.");
     }
 
     /**
@@ -2703,7 +4449,9 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     event_alignment(): openehr_base.String {
-        throw new Error("Method event_alignment not implemented.");
+        // TODO: Implement event_alignment behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method event_alignment not yet implemented.");
     }
 
     /**
@@ -2711,7 +4459,9 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
      * @returns Result value
      */
     institution_specified(): openehr_base.Boolean {
-        throw new Error("Method institution_specified not implemented.");
+        // TODO: Implement institution_specified behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method institution_specified not yet implemented.");
     }
 
 }
@@ -2721,16 +4471,48 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
  */
 export class DV_URI extends DATA_VALUE {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.String;
+
+    /**
      * Value of URI as a String. 'Plain-text' URIs are allowed, enabling better readability, but must be RFC-3986 encoded in use.
      */
-    value?: openehr_base.String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $value(): openehr_base.String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.String wrapper.
+     */
+    set value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = openehr_base.String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * A distributed information 'space' in which  information objects  exist. The scheme simultaneously specifies an information space and a mechanism for accessing objects in  that  space.  For  example  if  scheme  = "ftp", it identifies the information space in which  all  ftp-able objects  exist,  and also the application - ftp - which can be used to access them. Values may include: "ftp", "telnet", "mailto", etc. Refer to RFC-3986 for a full list. 
      * 
      * @returns Result value
      */
     scheme(): openehr_base.String {
-        throw new Error("Method scheme not implemented.");
+        // TODO: Implement scheme behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method scheme not yet implemented.");
     }
 
     /**
@@ -2738,7 +4520,9 @@ export class DV_URI extends DATA_VALUE {
      * @returns Result value
      */
     path(): openehr_base.String {
-        throw new Error("Method path not implemented.");
+        // TODO: Implement path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path not yet implemented.");
     }
 
     /**
@@ -2747,7 +4531,9 @@ export class DV_URI extends DATA_VALUE {
      * @returns Result value
      */
     fragment_id(): openehr_base.String {
-        throw new Error("Method fragment_id not implemented.");
+        // TODO: Implement fragment_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method fragment_id not yet implemented.");
     }
 
     /**
@@ -2756,7 +4542,9 @@ export class DV_URI extends DATA_VALUE {
      * @returns Result value
      */
     query(): openehr_base.String {
-        throw new Error("Method query not implemented.");
+        // TODO: Implement query behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method query not yet implemented.");
     }
 
 }
@@ -2779,7 +4567,9 @@ export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     valid_terminology_group_id(an_id: openehr_base.Boolean): openehr_base.Boolean {
-        throw new Error("Method valid_terminology_group_id not implemented.");
+        // TODO: Implement valid_terminology_group_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_terminology_group_id not yet implemented.");
     }
 
 }
@@ -2794,7 +4584,9 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
      * @returns Result value
      */
     valid_code_set_id(an_id: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method valid_code_set_id not implemented.");
+        // TODO: Implement valid_code_set_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_code_set_id not yet implemented.");
     }
 
 }
@@ -2813,7 +4605,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     terminology(name: openehr_base.String): TERMINOLOGY_ACCESS {
-        throw new Error("Method terminology not implemented.");
+        // TODO: Implement terminology behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method terminology not yet implemented.");
     }
 
     /**
@@ -2822,7 +4616,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     code_set(name: openehr_base.String): CODE_SET_ACCESS {
-        throw new Error("Method code_set not implemented.");
+        // TODO: Implement code_set behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method code_set not yet implemented.");
     }
 
     /**
@@ -2832,7 +4628,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     code_set_for_id(id: openehr_base.String): CODE_SET_ACCESS {
-        throw new Error("Method code_set_for_id not implemented.");
+        // TODO: Implement code_set_for_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method code_set_for_id not yet implemented.");
     }
 
     /**
@@ -2845,7 +4643,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     has_terminology(name: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_terminology not implemented.");
+        // TODO: Implement has_terminology behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_terminology not yet implemented.");
     }
 
     /**
@@ -2854,7 +4654,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     has_code_set(name: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_code_set not implemented.");
+        // TODO: Implement has_code_set behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_code_set not yet implemented.");
     }
 
     /**
@@ -2862,7 +4664,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     terminology_identifiers(): openehr_base.String {
-        throw new Error("Method terminology_identifiers not implemented.");
+        // TODO: Implement terminology_identifiers behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method terminology_identifiers not yet implemented.");
     }
 
     /**
@@ -2871,7 +4675,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     openehr_code_sets(): undefined {
-        throw new Error("Method openehr_code_sets not implemented.");
+        // TODO: Implement openehr_code_sets behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method openehr_code_sets not yet implemented.");
     }
 
     /**
@@ -2879,7 +4685,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
      * @returns Result value
      */
     code_set_identifiers(): openehr_base.String {
-        throw new Error("Method code_set_identifiers not implemented.");
+        // TODO: Implement code_set_identifiers behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method code_set_identifiers not yet implemented.");
     }
 
 }
@@ -2894,7 +4702,9 @@ export class MEASUREMENT_SERVICE {
      * @returns Result value
      */
     is_valid_units_string(units: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method is_valid_units_string not implemented.");
+        // TODO: Implement is_valid_units_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_valid_units_string not yet implemented.");
     }
 
     /**
@@ -2904,7 +4714,9 @@ export class MEASUREMENT_SERVICE {
      * @returns Result value
      */
     units_equivalent(units1: openehr_base.String, units2: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method units_equivalent not implemented.");
+        // TODO: Implement units_equivalent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method units_equivalent not yet implemented.");
     }
 
 }
@@ -2924,7 +4736,9 @@ export class CODE_SET_ACCESS {
      * @returns Result value
      */
     id(): openehr_base.String {
-        throw new Error("Method id not implemented.");
+        // TODO: Implement id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method id not yet implemented.");
     }
 
     /**
@@ -2932,7 +4746,9 @@ export class CODE_SET_ACCESS {
      * @returns Result value
      */
     all_codes(): CODE_PHRASE {
-        throw new Error("Method all_codes not implemented.");
+        // TODO: Implement all_codes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method all_codes not yet implemented.");
     }
 
     /**
@@ -2941,7 +4757,9 @@ export class CODE_SET_ACCESS {
      * @returns Result value
      */
     has_lang(a_lang: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_lang not implemented.");
+        // TODO: Implement has_lang behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_lang not yet implemented.");
     }
 
     /**
@@ -2950,7 +4768,9 @@ export class CODE_SET_ACCESS {
      * @returns Result value
      */
     has_code(a_code: openehr_base.String): openehr_base.Boolean {
-        throw new Error("Method has_code not implemented.");
+        // TODO: Implement has_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_code not yet implemented.");
     }
 
 }
@@ -2964,7 +4784,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     id(): openehr_base.String {
-        throw new Error("Method id not implemented.");
+        // TODO: Implement id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method id not yet implemented.");
     }
 
     /**
@@ -2972,7 +4794,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     all_codes(): CODE_PHRASE {
-        throw new Error("Method all_codes not implemented.");
+        // TODO: Implement all_codes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method all_codes not yet implemented.");
     }
 
     /**
@@ -2981,7 +4805,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     codes_for_group_id(a_group_id: openehr_base.String): CODE_PHRASE {
-        throw new Error("Method codes_for_group_id not implemented.");
+        // TODO: Implement codes_for_group_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method codes_for_group_id not yet implemented.");
     }
 
     /**
@@ -2991,7 +4817,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     codes_for_group_name(a_lang: openehr_base.String, a_name: openehr_base.String): CODE_PHRASE {
-        throw new Error("Method codes_for_group_name not implemented.");
+        // TODO: Implement codes_for_group_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method codes_for_group_name not yet implemented.");
     }
 
     /**
@@ -2999,7 +4827,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     has_code_for_group_id(): openehr_base.Boolean {
-        throw new Error("Method has_code_for_group_id not implemented.");
+        // TODO: Implement has_code_for_group_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_code_for_group_id not yet implemented.");
     }
 
     /**
@@ -3008,7 +4838,9 @@ export class TERMINOLOGY_ACCESS {
      * @returns Result value
      */
     rubric_for_code(a_code: openehr_base.String): openehr_base.String {
-        throw new Error("Method rubric_for_code not implemented.");
+        // TODO: Implement rubric_for_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method rubric_for_code not yet implemented.");
     }
 
 }
@@ -3083,7 +4915,9 @@ export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
      * @returns Result value
      */
     is_persistent(): openehr_base.Boolean {
-        throw new Error("Method is_persistent not implemented.");
+        // TODO: Implement is_persistent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_persistent not yet implemented.");
     }
 
 }
@@ -3104,7 +4938,9 @@ export class EHR_ACCESS extends LOCATABLE {
      * @returns Result value
      */
     scheme(): openehr_base.String {
-        throw new Error("Method scheme not implemented.");
+        // TODO: Implement scheme behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method scheme not yet implemented.");
     }
 
 }
@@ -3121,13 +4957,73 @@ export class EHR_STATUS extends LOCATABLE {
      */
     subject?: PARTY_SELF;
     /**
+     * Internal storage for is_queryable
+     * @private
+     */
+    private _is_queryable?: openehr_base.Boolean;
+
+    /**
      * True if this EHR should be included in population queries, i.e. if this EHR is considered active in the population.
      */
-    is_queryable?: openehr_base.Boolean;
+    get is_queryable(): boolean | undefined {
+        return this._is_queryable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_queryable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_queryable(): openehr_base.Boolean | undefined {
+        return this._is_queryable;
+    }
+
+    /**
+     * Sets is_queryable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_queryable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_queryable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_queryable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_queryable = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_modifiable
+     * @private
+     */
+    private _is_modifiable?: openehr_base.Boolean;
+
     /**
      * True if the EHR, other than the \`EHR_STATUS\` object, is allowed to be written to. The \`EHR_STATUS\` object itself can always be written to.
      */
-    is_modifiable?: openehr_base.Boolean;
+    get is_modifiable(): boolean | undefined {
+        return this._is_modifiable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_modifiable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_modifiable(): openehr_base.Boolean | undefined {
+        return this._is_modifiable;
+    }
+
+    /**
+     * Sets is_modifiable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_modifiable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_modifiable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_modifiable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_modifiable = val;
+        }
+    }
+
     /**
      * Any other details of the EHR summary object, in the form of an archetyped \`ITEM_STRUCTURE\`.
      */
@@ -3165,9 +5061,39 @@ export class EXTRACT extends LOCATABLE {
      */
     system_id?: openehr_base.HIER_OBJECT_ID;
     /**
+     * Internal storage for sequence_nr
+     * @private
+     */
+    private _sequence_nr?: openehr_base.Integer;
+
+    /**
      * Number of this Extract response in sequence of responses to Extract request identified by \`_request_id_\`. If this is the sole response, or there was no request, value is 1.
      */
-    sequence_nr?: openehr_base.Integer;
+    get sequence_nr(): number | undefined {
+        return this._sequence_nr?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for sequence_nr.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $sequence_nr(): openehr_base.Integer | undefined {
+        return this._sequence_nr;
+    }
+
+    /**
+     * Sets sequence_nr from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set sequence_nr(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._sequence_nr = undefined;
+        } else if (typeof val === 'number') {
+            this._sequence_nr = openehr_base.Integer.from(val);
+        } else {
+            this._sequence_nr = val;
+        }
+    }
+
     /**
      * Participations relevant to the creation of this Extract.
      */
@@ -3210,17 +5136,107 @@ export abstract class EXTRACT_ITEM extends LOCATABLE {
  */
 export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
     /**
+     * Internal storage for is_primary
+     * @private
+     */
+    private _is_primary?: openehr_base.Boolean;
+
+    /**
      * True if the content item carried in this container was part of the primary set for the Extract, i.e. not added due to link-following.
      */
-    is_primary?: openehr_base.Boolean;
+    get is_primary(): boolean | undefined {
+        return this._is_primary?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_primary.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_primary(): openehr_base.Boolean | undefined {
+        return this._is_primary;
+    }
+
+    /**
+     * Sets is_primary from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_primary(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_primary = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_primary = openehr_base.Boolean.from(val);
+        } else {
+            this._is_primary = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_changed
+     * @private
+     */
+    private _is_changed?: openehr_base.Boolean;
+
     /**
      * True if the content item carried in this container is any kind of change since last send, in repeat sending situations.
      */
-    is_changed?: openehr_base.Boolean;
+    get is_changed(): boolean | undefined {
+        return this._is_changed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_changed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_changed(): openehr_base.Boolean | undefined {
+        return this._is_changed;
+    }
+
+    /**
+     * Sets is_changed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_changed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_changed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_changed = openehr_base.Boolean.from(val);
+        } else {
+            this._is_changed = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_masked
+     * @private
+     */
+    private _is_masked?: openehr_base.Boolean;
+
     /**
      * True if the content of this item has not been included due to insufficient access rights of requestor.
      */
-    is_masked?: openehr_base.Boolean;
+    get is_masked(): boolean | undefined {
+        return this._is_masked?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_masked.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_masked(): openehr_base.Boolean | undefined {
+        return this._is_masked;
+    }
+
+    /**
+     * Sets is_masked from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_masked(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_masked = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_masked = openehr_base.Boolean.from(val);
+        } else {
+            this._is_masked = val;
+        }
+    }
+
     /**
      * Content object.
      */
@@ -3232,9 +5248,39 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
  */
 export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
     /**
+     * Internal storage for extract_id_key
+     * @private
+     */
+    private _extract_id_key?: openehr_base.String;
+
+    /**
      * Reference to entity, usually a demographic entity such as a patient that the content of this chapter relates to.
      */
-    extract_id_key?: openehr_base.String;
+    get extract_id_key(): string | undefined {
+        return this._extract_id_key?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for extract_id_key.
+     * Use this to access openehr_base.String methods.
+     */
+    get $extract_id_key(): openehr_base.String | undefined {
+        return this._extract_id_key;
+    }
+
+    /**
+     * Sets extract_id_key from either a primitive value or openehr_base.String wrapper.
+     */
+    set extract_id_key(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._extract_id_key = undefined;
+        } else if (typeof val === 'string') {
+            this._extract_id_key = openehr_base.String.from(val);
+        } else {
+            this._extract_id_key = val;
+        }
+    }
+
 }
 
 /**
@@ -3244,17 +5290,107 @@ export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
  */
 export class EXTRACT_ENTITY_MANIFEST {
     /**
+     * Internal storage for extract_id_key
+     * @private
+     */
+    private _extract_id_key?: openehr_base.String;
+
+    /**
      * Identifier by which this entity is known in the Extract. May be one of the other identifiers, e.g. ehr_id or subject_id, or it may be something else, including a simple integer.
      */
-    extract_id_key?: openehr_base.String;
+    get extract_id_key(): string | undefined {
+        return this._extract_id_key?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for extract_id_key.
+     * Use this to access openehr_base.String methods.
+     */
+    get $extract_id_key(): openehr_base.String | undefined {
+        return this._extract_id_key;
+    }
+
+    /**
+     * Sets extract_id_key from either a primitive value or openehr_base.String wrapper.
+     */
+    set extract_id_key(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._extract_id_key = undefined;
+        } else if (typeof val === 'string') {
+            this._extract_id_key = openehr_base.String.from(val);
+        } else {
+            this._extract_id_key = val;
+        }
+    }
+
+    /**
+     * Internal storage for ehr_id
+     * @private
+     */
+    private _ehr_id?: openehr_base.String;
+
     /**
      * EHR / EMR identifier for the entity at the target system.
      */
-    ehr_id?: openehr_base.String;
+    get ehr_id(): string | undefined {
+        return this._ehr_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for ehr_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $ehr_id(): openehr_base.String | undefined {
+        return this._ehr_id;
+    }
+
+    /**
+     * Sets ehr_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set ehr_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._ehr_id = undefined;
+        } else if (typeof val === 'string') {
+            this._ehr_id = openehr_base.String.from(val);
+        } else {
+            this._ehr_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for subject_id
+     * @private
+     */
+    private _subject_id?: openehr_base.String;
+
     /**
      * Subject (i.e. patient or similar) identifier for the entity at the target system.
      */
-    subject_id?: openehr_base.String;
+    get subject_id(): string | undefined {
+        return this._subject_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for subject_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $subject_id(): openehr_base.String | undefined {
+        return this._subject_id;
+    }
+
+    /**
+     * Sets subject_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set subject_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._subject_id = undefined;
+        } else if (typeof val === 'string') {
+            this._subject_id = openehr_base.String.from(val);
+        } else {
+            this._subject_id = val;
+        }
+    }
+
     /**
      * Other identifiers that may be used to find the entity at the target system, keyed by type. May include medicare numbers, drivers license number, tax number etc.
      */
@@ -3309,9 +5445,39 @@ export class EXTRACT_PARTICIPATION {
      */
     mode?: DV_CODED_TEXT;
     /**
+     * Internal storage for performer
+     * @private
+     */
+    private _performer?: openehr_base.String;
+
+    /**
      * Uid of demographic entity within Extract who performed this participation.
      */
-    performer?: openehr_base.String;
+    get performer(): string | undefined {
+        return this._performer?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for performer.
+     * Use this to access openehr_base.String methods.
+     */
+    get $performer(): openehr_base.String | undefined {
+        return this._performer;
+    }
+
+    /**
+     * Sets performer from either a primitive value or openehr_base.String wrapper.
+     */
+    set performer(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._performer = undefined;
+        } else if (typeof val === 'string') {
+            this._performer = openehr_base.String.from(val);
+        } else {
+            this._performer = val;
+        }
+    }
+
 }
 
 /**
@@ -3358,15 +5524,81 @@ export class EXTRACT_SPEC {
      */
     extract_type?: DV_CODED_TEXT;
     /**
+     * Internal storage for include_multimedia
+     * @private
+     */
+    private _include_multimedia?: openehr_base.Boolean;
+
+    /**
      * Indicates whether in-line instances of \`DV_MULTIMEDIA\` in the source data are included or not.
      */
-    include_multimedia?: openehr_base.Boolean;
+    get include_multimedia(): boolean | undefined {
+        return this._include_multimedia?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for include_multimedia.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $include_multimedia(): openehr_base.Boolean | undefined {
+        return this._include_multimedia;
+    }
+
+    /**
+     * Sets include_multimedia from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set include_multimedia(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._include_multimedia = undefined;
+        } else if (typeof val === 'boolean') {
+            this._include_multimedia = openehr_base.Boolean.from(val);
+        } else {
+            this._include_multimedia = val;
+        }
+    }
+
+    /**
+     * Internal storage for priority
+     * @private
+     */
+    private _priority?: openehr_base.Integer;
+
     /**
      * Requested priority of this request to be handled by server. Priority schemes are likely to be local, and use values agreed by both ends.
      * 
      * TBD: alternative is standard coded terms
      */
-    priority?: openehr_base.Integer;
+    get priority(): number | undefined {
+        return this._priority?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for priority.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $priority(): openehr_base.Integer | undefined {
+        return this._priority;
+    }
+
+    /**
+     * Sets priority from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set priority(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._priority = undefined;
+        } else if (typeof val === 'number') {
+            this._priority = openehr_base.Integer.from(val);
+        } else {
+            this._priority = val;
+        }
+    }
+
+    /**
+     * Internal storage for link_depth
+     * @private
+     */
+    private _link_depth?: openehr_base.Integer;
+
     /**
      * Degree of links to follow emanating from content items specified for inclusion. The kind of links to follow is dependent on the type of Extract.
      * 
@@ -3379,7 +5611,31 @@ export class EXTRACT_SPEC {
      * * n = follow nth degree links
      * 
      */
-    link_depth?: openehr_base.Integer;
+    get link_depth(): number | undefined {
+        return this._link_depth?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for link_depth.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $link_depth(): openehr_base.Integer | undefined {
+        return this._link_depth;
+    }
+
+    /**
+     * Sets link_depth from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set link_depth(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._link_depth = undefined;
+        } else if (typeof val === 'number') {
+            this._link_depth = openehr_base.Integer.from(val);
+        } else {
+            this._link_depth = val;
+        }
+    }
+
     /**
      * Queries specifying the contents of this Extract.
      */
@@ -3397,9 +5653,39 @@ export class EXTRACT_SPEC {
  */
 export class EXTRACT_UPDATE_SPEC {
     /**
+     * Internal storage for persist_in_server
+     * @private
+     */
+    private _persist_in_server?: openehr_base.Boolean;
+
+    /**
      * If True, this Request is persisted in the server until further notice.
      */
-    persist_in_server?: openehr_base.Boolean;
+    get persist_in_server(): boolean | undefined {
+        return this._persist_in_server?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for persist_in_server.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $persist_in_server(): openehr_base.Boolean | undefined {
+        return this._persist_in_server;
+    }
+
+    /**
+     * Sets persist_in_server from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set persist_in_server(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._persist_in_server = undefined;
+        } else if (typeof val === 'boolean') {
+            this._persist_in_server = openehr_base.Boolean.from(val);
+        } else {
+            this._persist_in_server = val;
+        }
+    }
+
     /**
      * Period for resending update Extracts in response to original Request.
      */
@@ -3425,21 +5711,111 @@ export class EXTRACT_UPDATE_SPEC {
  */
 export class EXTRACT_VERSION_SPEC {
     /**
+     * Internal storage for include_all_versions
+     * @private
+     */
+    private _include_all_versions?: openehr_base.Boolean;
+
+    /**
      * True if all versions of each item in the Extract are included.
      */
-    include_all_versions?: openehr_base.Boolean;
+    get include_all_versions(): boolean | undefined {
+        return this._include_all_versions?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for include_all_versions.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $include_all_versions(): openehr_base.Boolean | undefined {
+        return this._include_all_versions;
+    }
+
+    /**
+     * Sets include_all_versions from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set include_all_versions(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._include_all_versions = undefined;
+        } else if (typeof val === 'boolean') {
+            this._include_all_versions = openehr_base.Boolean.from(val);
+        } else {
+            this._include_all_versions = val;
+        }
+    }
+
     /**
      * Specifies commit time interval of items to source repository to include in Extract. By default, only latest versions whose commit times fall in the range are included. If include_all_versions is True, then the range includes all versions committed within the interval.
      */
     commit_time_interval?: undefined;
     /**
+     * Internal storage for include_revision_history
+     * @private
+     */
+    private _include_revision_history?: openehr_base.Boolean;
+
+    /**
      * True if revision histories of the items in the Extract are included. If included, it is always the full revision history.
      */
-    include_revision_history?: openehr_base.Boolean;
+    get include_revision_history(): boolean | undefined {
+        return this._include_revision_history?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for include_revision_history.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $include_revision_history(): openehr_base.Boolean | undefined {
+        return this._include_revision_history;
+    }
+
+    /**
+     * Sets include_revision_history from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set include_revision_history(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._include_revision_history = undefined;
+        } else if (typeof val === 'boolean') {
+            this._include_revision_history = openehr_base.Boolean.from(val);
+        } else {
+            this._include_revision_history = val;
+        }
+    }
+
+    /**
+     * Internal storage for include_data
+     * @private
+     */
+    private _include_data?: openehr_base.Boolean;
+
     /**
      * \`True\` if the data of items matched by the content spec should be included. This is the default. If \`False\`, only revision history is included in serialised versions. Turning this option on in openEHR systems causes \`X_VERSIONED_OBJECTs\` to have \`_revision_history_\` set, but versions Void. Useful for interrogating a server without having to look at any content data. In other systems it may or may not have a sensible meaning.
      */
-    include_data?: openehr_base.Boolean;
+    get include_data(): boolean | undefined {
+        return this._include_data?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for include_data.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $include_data(): openehr_base.Boolean | undefined {
+        return this._include_data;
+    }
+
+    /**
+     * Sets include_data from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set include_data(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._include_data = undefined;
+        } else if (typeof val === 'boolean') {
+            this._include_data = openehr_base.Boolean.from(val);
+        } else {
+            this._include_data = val;
+        }
+    }
+
 }
 
 /**
@@ -3469,13 +5845,73 @@ export class X_VERSIONED_OBJECT<T> {
      */
     time_created?: DV_DATE_TIME;
     /**
+     * Internal storage for total_version_count
+     * @private
+     */
+    private _total_version_count?: openehr_base.Integer;
+
+    /**
      * Total number of versions in original \`VERSIONED_OBJECT\` at time of creation of this \`X_VERSIONED_OBJECT\`.
      */
-    total_version_count?: openehr_base.Integer;
+    get total_version_count(): number | undefined {
+        return this._total_version_count?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for total_version_count.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $total_version_count(): openehr_base.Integer | undefined {
+        return this._total_version_count;
+    }
+
+    /**
+     * Sets total_version_count from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set total_version_count(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._total_version_count = undefined;
+        } else if (typeof val === 'number') {
+            this._total_version_count = openehr_base.Integer.from(val);
+        } else {
+            this._total_version_count = val;
+        }
+    }
+
+    /**
+     * Internal storage for extract_version_count
+     * @private
+     */
+    private _extract_version_count?: openehr_base.Integer;
+
     /**
      * The number of Versions in this extract for this Versioned object, i.e. the count of items in the versions attribute. May be 0 if only revision history is requested.
      */
-    extract_version_count?: openehr_base.Integer;
+    get extract_version_count(): number | undefined {
+        return this._extract_version_count?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for extract_version_count.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $extract_version_count(): openehr_base.Integer | undefined {
+        return this._extract_version_count;
+    }
+
+    /**
+     * Sets extract_version_count from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set extract_version_count(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._extract_version_count = undefined;
+        } else if (typeof val === 'number') {
+            this._extract_version_count = openehr_base.Integer.from(val);
+        } else {
+            this._extract_version_count = val;
+        }
+    }
+
     /**
      * Optional revision history of the original \`VERSIONED_OBJECT\`. If included, it is the complete revision history.
      */
@@ -3525,21 +5961,111 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
      */
     item_type?: DV_CODED_TEXT;
     /**
+     * Internal storage for item_type_version
+     * @private
+     */
+    private _item_type_version?: openehr_base.String;
+
+    /**
      * Version of model or schema used to create the content item.
      */
-    item_type_version?: openehr_base.String;
+    get item_type_version(): string | undefined {
+        return this._item_type_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for item_type_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $item_type_version(): openehr_base.String | undefined {
+        return this._item_type_version;
+    }
+
+    /**
+     * Sets item_type_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set item_type_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._item_type_version = undefined;
+        } else if (typeof val === 'string') {
+            this._item_type_version = openehr_base.String.from(val);
+        } else {
+            this._item_type_version = val;
+        }
+    }
+
+    /**
+     * Internal storage for author
+     * @private
+     */
+    private _author?: openehr_base.String;
+
     /**
      * Reference to a demographic entity elsewhere in this Extract representing the author of the item version. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
      */
-    author?: openehr_base.String;
+    get author(): string | undefined {
+        return this._author?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for author.
+     * Use this to access openehr_base.String methods.
+     */
+    get $author(): openehr_base.String | undefined {
+        return this._author;
+    }
+
+    /**
+     * Sets author from either a primitive value or openehr_base.String wrapper.
+     */
+    set author(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._author = undefined;
+        } else if (typeof val === 'string') {
+            this._author = openehr_base.String.from(val);
+        } else {
+            this._author = val;
+        }
+    }
+
     /**
      * Time of creation of this item version on the original system. This may be an earlier commit time, or it may be the time at which the item was created during the Extract generation process.
      */
     creation_time?: openehr_base.Iso8601_date_time;
     /**
+     * Internal storage for authoriser
+     * @private
+     */
+    private _authoriser?: openehr_base.String;
+
+    /**
      * Reference to a demographic entity elsewhere in this Extract representing an authoriser of the item version, if relevant. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
      */
-    authoriser?: openehr_base.String;
+    get authoriser(): string | undefined {
+        return this._authoriser?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for authoriser.
+     * Use this to access openehr_base.String methods.
+     */
+    get $authoriser(): openehr_base.String | undefined {
+        return this._authoriser;
+    }
+
+    /**
+     * Sets authoriser from either a primitive value or openehr_base.String wrapper.
+     */
+    set authoriser(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._authoriser = undefined;
+        } else if (typeof val === 'string') {
+            this._authoriser = openehr_base.String.from(val);
+        } else {
+            this._authoriser = val;
+        }
+    }
+
     /**
      * Time of authorisation of this item version on the original system where relevant.
      */
@@ -3549,17 +6075,107 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
      */
     item_status?: DV_CODED_TEXT;
     /**
+     * Internal storage for version_id
+     * @private
+     */
+    private _version_id?: openehr_base.String;
+
+    /**
      * Version id of this item in original system.
      */
-    version_id?: openehr_base.String;
+    get version_id(): string | undefined {
+        return this._version_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for version_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $version_id(): openehr_base.String | undefined {
+        return this._version_id;
+    }
+
+    /**
+     * Sets version_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set version_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._version_id = undefined;
+        } else if (typeof val === 'string') {
+            this._version_id = openehr_base.String.from(val);
+        } else {
+            this._version_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for version_set_id
+     * @private
+     */
+    private _version_set_id?: openehr_base.String;
+
     /**
      * Version set id of this item in original system, where applicable.
      */
-    version_set_id?: openehr_base.String;
+    get version_set_id(): string | undefined {
+        return this._version_set_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for version_set_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $version_set_id(): openehr_base.String | undefined {
+        return this._version_set_id;
+    }
+
+    /**
+     * Sets version_set_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set version_set_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._version_set_id = undefined;
+        } else if (typeof val === 'string') {
+            this._version_set_id = openehr_base.String.from(val);
+        } else {
+            this._version_set_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for system_id
+     * @private
+     */
+    private _system_id?: openehr_base.String;
+
     /**
      * Identifier of EMR or other system from which the item was created / extracted. Typically in the form of a domain name.
      */
-    system_id?: openehr_base.String;
+    get system_id(): string | undefined {
+        return this._system_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for system_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $system_id(): openehr_base.String | undefined {
+        return this._system_id;
+    }
+
+    /**
+     * Sets system_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set system_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._system_id = undefined;
+        } else if (typeof val === 'string') {
+            this._system_id = openehr_base.String.from(val);
+        } else {
+            this._system_id = val;
+        }
+    }
+
     /**
      * Other details about the content item.
      */
@@ -3620,9 +6236,39 @@ export class X_CONTRIBUTION {
  */
 export class SYNC_EXTRACT_SPEC {
     /**
+     * Internal storage for includes_versions
+     * @private
+     */
+    private _includes_versions?: openehr_base.Boolean;
+
+    /**
      * True if the Versions from the Contribution are included; False if just the Contribution and its Audit are included.
      */
-    includes_versions?: openehr_base.Boolean;
+    get includes_versions(): boolean | undefined {
+        return this._includes_versions?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for includes_versions.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $includes_versions(): openehr_base.Boolean | undefined {
+        return this._includes_versions;
+    }
+
+    /**
+     * Sets includes_versions from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set includes_versions(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._includes_versions = undefined;
+        } else if (typeof val === 'boolean') {
+            this._includes_versions = openehr_base.Boolean.from(val);
+        } else {
+            this._includes_versions = val;
+        }
+    }
+
     /**
      * List of Contributions to include / that are included in the Extract.
      */
@@ -3632,9 +6278,39 @@ export class SYNC_EXTRACT_SPEC {
      */
     contributions_since?: DV_DATE_TIME;
     /**
+     * Internal storage for all_contributions
+     * @private
+     */
+    private _all_contributions?: openehr_base.Boolean;
+
+    /**
      * True if all Contributions in the record are included.
      */
-    all_contributions?: openehr_base.Boolean;
+    get all_contributions(): boolean | undefined {
+        return this._all_contributions?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for all_contributions.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $all_contributions(): openehr_base.Boolean | undefined {
+        return this._all_contributions;
+    }
+
+    /**
+     * Sets all_contributions from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set all_contributions(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._all_contributions = undefined;
+        } else if (typeof val === 'boolean') {
+            this._all_contributions = openehr_base.Boolean.from(val);
+        } else {
+            this._all_contributions = val;
+        }
+    }
+
 }
 
 /**
@@ -3654,9 +6330,39 @@ export class MESSAGE {
      */
     content?: MESSAGE_CONTENT;
     /**
+     * Internal storage for signature
+     * @private
+     */
+    private _signature?: openehr_base.String;
+
+    /**
      * Optional signature by the author of message content in openPGP format. The signature is created as a Hash and optional signing of the serialisation of this message object with this signature field Void.
      */
-    signature?: openehr_base.String;
+    get signature(): string | undefined {
+        return this._signature?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for signature.
+     * Use this to access openehr_base.String methods.
+     */
+    get $signature(): openehr_base.String | undefined {
+        return this._signature;
+    }
+
+    /**
+     * Sets signature from either a primitive value or openehr_base.String wrapper.
+     */
+    set signature(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._signature = undefined;
+        } else if (typeof val === 'string') {
+            this._signature = openehr_base.String.from(val);
+        } else {
+            this._signature = val;
+        }
+    }
+
 }
 
 /**
@@ -3664,17 +6370,83 @@ export class MESSAGE {
  */
 export class ADDRESSED_MESSAGE {
     /**
+     * Internal storage for sender
+     * @private
+     */
+    private _sender?: openehr_base.String;
+
+    /**
      * Party sending the message.
      */
-    sender?: openehr_base.String;
+    get sender(): string | undefined {
+        return this._sender?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for sender.
+     * Use this to access openehr_base.String methods.
+     */
+    get $sender(): openehr_base.String | undefined {
+        return this._sender;
+    }
+
+    /**
+     * Sets sender from either a primitive value or openehr_base.String wrapper.
+     */
+    set sender(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._sender = undefined;
+        } else if (typeof val === 'string') {
+            this._sender = openehr_base.String.from(val);
+        } else {
+            this._sender = val;
+        }
+    }
+
+    /**
+     * Internal storage for sender_reference
+     * @private
+     */
+    private _sender_reference?: openehr_base.String;
+
     /**
      * Identification of message used by sender. This will be the same no matter how many times this message is sent to these recipients.
      */
-    sender_reference?: openehr_base.String;
+    get sender_reference(): string | undefined {
+        return this._sender_reference?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for sender_reference.
+     * Use this to access openehr_base.String methods.
+     */
+    get $sender_reference(): openehr_base.String | undefined {
+        return this._sender_reference;
+    }
+
+    /**
+     * Sets sender_reference from either a primitive value or openehr_base.String wrapper.
+     */
+    set sender_reference(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._sender_reference = undefined;
+        } else if (typeof val === 'string') {
+            this._sender_reference = openehr_base.String.from(val);
+        } else {
+            this._sender_reference = val;
+        }
+    }
+
     /**
      * Intended recipients, in the form of internet addresses.
      */
     addressees?: undefined;
+    /**
+     * Internal storage for urgency
+     * @private
+     */
+    private _urgency?: openehr_base.Integer;
+
     /**
      * Urgency with which destination should deal with message:
      * 
@@ -3682,7 +6454,31 @@ export class ADDRESSED_MESSAGE {
      * * 0 - normal
      * * 1 - high
      */
-    urgency?: openehr_base.Integer;
+    get urgency(): number | undefined {
+        return this._urgency?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for urgency.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $urgency(): openehr_base.Integer | undefined {
+        return this._urgency;
+    }
+
+    /**
+     * Sets urgency from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set urgency(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._urgency = undefined;
+        } else if (typeof val === 'number') {
+            this._urgency = openehr_base.Integer.from(val);
+        } else {
+            this._urgency = val;
+        }
+    }
+
     /**
      * The content of the message.
      */
@@ -3721,7 +6517,9 @@ export abstract class PARTY extends LOCATABLE {
      * @returns Result value
      */
     type(): DV_TEXT {
-        throw new Error("Method type not implemented.");
+        // TODO: Implement type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type not yet implemented.");
     }
 
 }
@@ -3743,7 +6541,9 @@ export class CONTACT extends LOCATABLE {
      * @returns Result value
      */
     purpose(): DV_TEXT {
-        throw new Error("Method purpose not implemented.");
+        // TODO: Implement purpose behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method purpose not yet implemented.");
     }
 
 }
@@ -3761,7 +6561,9 @@ export class ADDRESS extends LOCATABLE {
      * @returns Result value
      */
     type(): DV_TEXT {
-        throw new Error("Method type not implemented.");
+        // TODO: Implement type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type not yet implemented.");
     }
 
 }
@@ -3779,7 +6581,9 @@ export class PARTY_IDENTITY extends LOCATABLE {
      * @returns Result value
      */
     purpose(): DV_TEXT {
-        throw new Error("Method purpose not implemented.");
+        // TODO: Implement purpose behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method purpose not yet implemented.");
     }
 
 }
@@ -3879,7 +6683,9 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
      * @returns Result value
      */
     type(): DV_TEXT {
-        throw new Error("Method type not implemented.");
+        // TODO: Implement type behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type not yet implemented.");
     }
 
 }
@@ -3949,7 +6755,9 @@ export class COMPOSITION extends LOCATABLE {
      * @returns Result value
      */
     is_persistent(): openehr_base.Boolean {
-        throw new Error("Method is_persistent not implemented.");
+        // TODO: Implement is_persistent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_persistent not yet implemented.");
     }
 
 }
@@ -3968,9 +6776,39 @@ export class EVENT_CONTEXT extends PATHABLE {
      */
     end_time?: DV_DATE_TIME;
     /**
+     * Internal storage for location
+     * @private
+     */
+    private _location?: openehr_base.String;
+
+    /**
      * The actual location where the session occurred, e.g. 'microbiology lab 2', 'home', 'ward A3'  and so on.
      */
-    location?: openehr_base.String;
+    get location(): string | undefined {
+        return this._location?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for location.
+     * Use this to access openehr_base.String methods.
+     */
+    get $location(): openehr_base.String | undefined {
+        return this._location;
+    }
+
+    /**
+     * Sets location from either a primitive value or openehr_base.String wrapper.
+     */
+    set location(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._location = undefined;
+        } else if (typeof val === 'string') {
+            this._location = openehr_base.String.from(val);
+        } else {
+            this._location = val;
+        }
+    }
+
     /**
      * The setting in which the clinical session took place. Coded using the openEHR Terminology,  setting  group. 
      */
@@ -4051,7 +6889,9 @@ export abstract class ENTRY extends CONTENT_ITEM {
      * @returns Result value
      */
     subject_is_self(): openehr_base.Boolean {
-        throw new Error("Method subject_is_self not implemented.");
+        // TODO: Implement subject_is_self behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subject_is_self not yet implemented.");
     }
 
 }
@@ -4148,11 +6988,41 @@ export class ACTIVITY extends LOCATABLE {
      */
     timing?: DV_PARSABLE;
     /**
+     * Internal storage for action_archetype_id
+     * @private
+     */
+    private _action_archetype_id?: openehr_base.String;
+
+    /**
      * Perl-compliant regular expression pattern, enclosed in  '//' delimiters, indicating the valid identifiers of archetypes for Actions corresponding to this Activity specification. 
      * 
      * Defaults to  \`/.*\/\`, meaning any archetype.
      */
-    action_archetype_id?: openehr_base.String;
+    get action_archetype_id(): string | undefined {
+        return this._action_archetype_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for action_archetype_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $action_archetype_id(): openehr_base.String | undefined {
+        return this._action_archetype_id;
+    }
+
+    /**
+     * Sets action_archetype_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set action_archetype_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._action_archetype_id = undefined;
+        } else if (typeof val === 'string') {
+            this._action_archetype_id = openehr_base.String.from(val);
+        } else {
+            this._action_archetype_id = val;
+        }
+    }
+
     /**
      * Description of the activity, in the form of an archetyped structure.
      */
@@ -4191,9 +7061,39 @@ export class INSTRUCTION_DETAILS extends PATHABLE {
      */
     instruction_id?: openehr_base.LOCATABLE_REF;
     /**
+     * Internal storage for activity_id
+     * @private
+     */
+    private _activity_id?: openehr_base.String;
+
+    /**
      * Identifier of Activity within Instruction, in the form of its archetype path. 
      */
-    activity_id?: openehr_base.String;
+    get activity_id(): string | undefined {
+        return this._activity_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for activity_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $activity_id(): openehr_base.String | undefined {
+        return this._activity_id;
+    }
+
+    /**
+     * Sets activity_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set activity_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._activity_id = undefined;
+        } else if (typeof val === 'string') {
+            this._activity_id = openehr_base.String.from(val);
+        } else {
+            this._activity_id = val;
+        }
+    }
+
     /**
      * Various workflow engine state details, potentially including such things as:
      * 

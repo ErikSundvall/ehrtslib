@@ -168,6 +168,17 @@ function isPrimitiveWrapperType(bmmClass: BmmClass): boolean {
 }
 
 /**
+ * Checks if a type name is a primitive wrapper type.
+ * 
+ * @param typeName - The type name to check
+ * @returns true if this is a primitive wrapper type name
+ */
+function isWrapperTypeName(typeName: string): boolean {
+    const primitiveWrappers = ['String', 'Integer', 'Boolean', 'Integer64', 'Byte'];
+    return primitiveWrappers.includes(typeName);
+}
+
+/**
  * Gets the TypeScript primitive type that corresponds to a wrapper class.
  * 
  * @param wrapperClassName - The wrapper class name (e.g., 'String', 'Integer')
@@ -345,40 +356,92 @@ export function generateTypeScriptClass(
     if (bmmClass.properties) {
         for (const propName in bmmClass.properties) {
             const property = bmmClass.properties[propName];
-            if (property.documentation) {
-                const escapedDoc = escapeDocumentation(property.documentation);
-                tsClass += `    /**\n`;
-                tsClass += `     * ${escapedDoc.replace(/\n/g, '\n     * ')}\n`;
-                tsClass += `     */\n`;
-            }
-            
             const propertyType = resolveTypeReference(property.type, context);
             
             // Check if this property overrides an ancestor's property
-            // The 'override' keyword is required in TypeScript when a derived class
-            // redefines a property from a base class to maintain type safety
             const ancestorProperty = bmmModel 
                 ? findPropertyInAncestors(propName, bmmClass, bmmModel)
                 : undefined;
             
-            let propertyDecl = `    `;
+            // Check if the property type is a primitive wrapper (String, Integer, Boolean)
+            // If so, generate dual getter/setter pattern for developer convenience
+            const isWrapperProperty = isWrapperTypeName(property.type);
             
-            if (ancestorProperty) {
-                // Add 'override' keyword for properties that override ancestor properties
-                propertyDecl += `override `;
+            if (isWrapperProperty) {
+                // Generate dual getter/setter pattern for wrapper types
+                // This allows: person.name = "John" (primitive) while maintaining type safety
+                
+                const primitiveType = getPrimitiveTypeForWrapper(property.type);
+                const backingField = `_${property.name}`;
+                
+                // Private backing field that holds the wrapper instance
+                tsClass += `    /**\n`;
+                tsClass += `     * Internal storage for ${property.name}\n`;
+                tsClass += `     * @private\n`;
+                tsClass += `     */\n`;
+                tsClass += `    private ${backingField}?: ${propertyType};\n\n`;
+                
+                // Default getter returns primitive value (convenient for most use)
+                if (property.documentation) {
+                    const escapedDoc = escapeDocumentation(property.documentation);
+                    tsClass += `    /**\n`;
+                    tsClass += `     * ${escapedDoc.replace(/\n/g, '\n     * ')}\n`;
+                    tsClass += `     */\n`;
+                }
+                tsClass += `    get ${property.name}(): ${primitiveType} | undefined {\n`;
+                tsClass += `        return this.${backingField}?.value;\n`;
+                tsClass += `    }\n\n`;
+                
+                // Typed getter with $ prefix returns wrapper (for accessing methods)
+                tsClass += `    /**\n`;
+                tsClass += `     * Gets the ${propertyType} wrapper object for ${property.name}.\n`;
+                tsClass += `     * Use this to access ${propertyType} methods.\n`;
+                tsClass += `     */\n`;
+                tsClass += `    get $${property.name}(): ${propertyType} | undefined {\n`;
+                tsClass += `        return this.${backingField};\n`;
+                tsClass += `    }\n\n`;
+                
+                // Setter accepts both primitive and wrapper
+                tsClass += `    /**\n`;
+                tsClass += `     * Sets ${property.name} from either a primitive value or ${propertyType} wrapper.\n`;
+                tsClass += `     */\n`;
+                tsClass += `    set ${property.name}(val: ${primitiveType} | ${propertyType} | undefined) {\n`;
+                tsClass += `        if (val === undefined || val === null) {\n`;
+                tsClass += `            this.${backingField} = undefined;\n`;
+                tsClass += `        } else if (typeof val === '${primitiveType}') {\n`;
+                tsClass += `            this.${backingField} = ${propertyType}.from(val);\n`;
+                tsClass += `        } else {\n`;
+                tsClass += `            this.${backingField} = val;\n`;
+                tsClass += `        }\n`;
+                tsClass += `    }\n\n`;
+            } else {
+                // Standard property generation for non-wrapper types
+                if (property.documentation) {
+                    const escapedDoc = escapeDocumentation(property.documentation);
+                    tsClass += `    /**\n`;
+                    tsClass += `     * ${escapedDoc.replace(/\n/g, '\n     * ')}\n`;
+                    tsClass += `     */\n`;
+                }
+                
+                let propertyDecl = `    `;
+                
+                if (ancestorProperty) {
+                    // Add 'override' keyword for properties that override ancestor properties
+                    propertyDecl += `override `;
+                }
+                
+                propertyDecl += `${property.name}?: ${propertyType}`;
+                
+                // Add initializer for override properties that change the type
+                // TypeScript requires an initializer when narrowing types in overrides
+                // (e.g., LOCATABLE_REF.id narrows OBJECT_ID to UID_BASED_ID)
+                if (ancestorProperty && ancestorProperty.type !== property.type) {
+                    propertyDecl += ` = undefined`;
+                }
+                
+                propertyDecl += `;\n`;
+                tsClass += propertyDecl;
             }
-            
-            propertyDecl += `${property.name}?: ${propertyType}`;
-            
-            // Add initializer for override properties that change the type
-            // TypeScript requires an initializer when narrowing types in overrides
-            // (e.g., LOCATABLE_REF.id narrows OBJECT_ID to UID_BASED_ID)
-            if (ancestorProperty && ancestorProperty.type !== property.type) {
-                propertyDecl += ` = undefined`;
-            }
-            
-            propertyDecl += `;\n`;
-            tsClass += propertyDecl;
         }
     }
 
@@ -411,12 +474,15 @@ export function generateTypeScriptClass(
             }
             
             // Build parameter list
+            // Sanitize parameter names: replace hyphens with underscores for valid JavaScript identifiers
             let params = '';
             if (func.parameters) {
                 const paramList = Object.keys(func.parameters).map(paramName => {
                     const param = func.parameters![paramName];
                     const paramType = resolveTypeReference(param.type, context);
-                    return `${paramName}: ${paramType}`;
+                    // Replace hyphens and other invalid characters with underscores
+                    const sanitizedName = paramName.replace(/[^a-zA-Z0-9_$]/g, '_');
+                    return `${sanitizedName}: ${paramType}`;
                 });
                 params = paramList.join(', ');
             }
@@ -432,12 +498,14 @@ export function generateTypeScriptClass(
             tsClass += `    ${abstractPrefix}${funcName}(${params}): ${returnType}`;
             
             // For abstract methods, just add semicolon
-            // For concrete methods, add stub implementation
+            // For concrete methods, add stub implementation marked as TODO
             if (func.is_abstract) {
                 tsClass += `;\n\n`;
             } else {
                 tsClass += ` {\n`;
-                tsClass += `        throw new Error("Method ${funcName} not implemented.");\n`;
+                tsClass += `        // TODO: Implement ${funcName} behavior\n`;
+                tsClass += `        // This will be covered in Phase 3 (see ROADMAP.md)\n`;
+                tsClass += `        throw new Error("Method ${funcName} not yet implemented.");\n`;
                 tsClass += `    }\n\n`;
             }
         }

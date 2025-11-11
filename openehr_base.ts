@@ -3,7 +3,7 @@
 // Schema Revision: 1.3.0.2
 // Description: openEHR base types.
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json
-// Generated: 2025-11-11T08:25:30.520Z
+// Generated: 2025-11-11T08:30:07.019Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -30,7 +30,9 @@ export abstract class Any {
      * @returns Result value
      */
     equal(other: Any): Boolean {
-        throw new Error("Method equal not implemented.");
+        // TODO: Implement equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equal not yet implemented.");
     }
 
     /**
@@ -39,7 +41,9 @@ export abstract class Any {
      * @returns Result value
      */
     instance_of(a_type: String): Any {
-        throw new Error("Method instance_of not implemented.");
+        // TODO: Implement instance_of behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method instance_of not yet implemented.");
     }
 
     /**
@@ -48,7 +52,9 @@ export abstract class Any {
      * @returns Result value
      */
     type_of(an_object: Any): String {
-        throw new Error("Method type_of not implemented.");
+        // TODO: Implement type_of behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method type_of not yet implemented.");
     }
 
     /**
@@ -57,7 +63,9 @@ export abstract class Any {
      * @returns Result value
      */
     not_equal(other: Ordered): Boolean {
-        throw new Error("Method not_equal not implemented.");
+        // TODO: Implement not_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method not_equal not yet implemented.");
     }
 
 }
@@ -91,7 +99,9 @@ export abstract class Container<T extends Any> extends Any {
      * @returns Result value
      */
     there_exists(test: Operation): Boolean {
-        throw new Error("Method there_exists not implemented.");
+        // TODO: Implement there_exists behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method there_exists not yet implemented.");
     }
 
     /**
@@ -100,7 +110,9 @@ export abstract class Container<T extends Any> extends Any {
      * @returns Result value
      */
     for_all(test: Operation): Boolean {
-        throw new Error("Method for_all not implemented.");
+        // TODO: Implement for_all behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method for_all not yet implemented.");
     }
 
     /**
@@ -109,7 +121,9 @@ export abstract class Container<T extends Any> extends Any {
      * @returns Result value
      */
     matching(test: Operation): T {
-        throw new Error("Method matching not implemented.");
+        // TODO: Implement matching behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method matching not yet implemented.");
     }
 
     /**
@@ -118,7 +132,9 @@ export abstract class Container<T extends Any> extends Any {
      * @returns Result value
      */
     select(test: Operation): T {
-        throw new Error("Method select not implemented.");
+        // TODO: Implement select behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method select not yet implemented.");
     }
 
 }
@@ -133,7 +149,9 @@ export class Hash<K extends Ordered, V> extends Container<K> {
      * @returns Result value
      */
     has_key(a_key: K): Boolean {
-        throw new Error("Method has_key not implemented.");
+        // TODO: Implement has_key behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_key not yet implemented.");
     }
 
     /**
@@ -142,7 +160,9 @@ export class Hash<K extends Ordered, V> extends Container<K> {
      * @returns Result value
      */
     item(a_key: K): V {
-        throw new Error("Method item not implemented.");
+        // TODO: Implement item behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method item not yet implemented.");
     }
 
 }
@@ -156,7 +176,9 @@ export class List<T extends Any> extends Container<T> {
      * @returns Result value
      */
     first(): T {
-        throw new Error("Method first not implemented.");
+        // TODO: Implement first behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method first not yet implemented.");
     }
 
     /**
@@ -164,7 +186,9 @@ export class List<T extends Any> extends Container<T> {
      * @returns Result value
      */
     last(): T {
-        throw new Error("Method last not implemented.");
+        // TODO: Implement last behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method last not yet implemented.");
     }
 
 }
@@ -185,7 +209,9 @@ export class Array<T extends Any> extends Container<T> {
      * @returns Result value
      */
     item(a_key: Integer): T {
-        throw new Error("Method item not implemented.");
+        // TODO: Implement item behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method item not yet implemented.");
     }
 
 }
@@ -209,7 +235,9 @@ export abstract class Ordered extends Any {
      * @returns Result value
      */
     less_than_or_equal(other: Ordered): Boolean {
-        throw new Error("Method less_than_or_equal not implemented.");
+        // TODO: Implement less_than_or_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than_or_equal not yet implemented.");
     }
 
     /**
@@ -218,7 +246,9 @@ export abstract class Ordered extends Any {
      * @returns Result value
      */
     greater_than(other: Ordered): Boolean {
-        throw new Error("Method greater_than not implemented.");
+        // TODO: Implement greater_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method greater_than not yet implemented.");
     }
 
     /**
@@ -227,7 +257,9 @@ export abstract class Ordered extends Any {
      * @returns Result value
      */
     greater_than_or_equal(other: Ordered): Boolean {
-        throw new Error("Method greater_than_or_equal not implemented.");
+        // TODO: Implement greater_than_or_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method greater_than_or_equal not yet implemented.");
     }
 
 }
@@ -276,7 +308,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     is_empty(): Boolean {
-        throw new Error("Method is_empty not implemented.");
+        // TODO: Implement is_empty behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_empty not yet implemented.");
     }
 
     /**
@@ -284,7 +318,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     is_integer(): Boolean {
-        throw new Error("Method is_integer not implemented.");
+        // TODO: Implement is_integer behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_integer not yet implemented.");
     }
 
     /**
@@ -292,7 +328,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     as_integer(): Integer {
-        throw new Error("Method as_integer not implemented.");
+        // TODO: Implement as_integer behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_integer not yet implemented.");
     }
 
     /**
@@ -301,7 +339,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     append(other: String): String {
-        throw new Error("Method append not implemented.");
+        // TODO: Implement append behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method append not yet implemented.");
     }
 
     /**
@@ -310,7 +350,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     less_than(other: String): Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -319,7 +361,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     contains(other: String): Boolean {
-        throw new Error("Method contains not implemented.");
+        // TODO: Implement contains behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method contains not yet implemented.");
     }
 
 }
@@ -431,7 +475,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     add(other: Integer): Integer {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -440,7 +486,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     subtract(other: Integer): Integer {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -449,7 +497,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     multiply(other: Integer): Integer {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -458,7 +508,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     divide(other: Integer): number {
-        throw new Error("Method divide not implemented.");
+        // TODO: Implement divide behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method divide not yet implemented.");
     }
 
     /**
@@ -467,7 +519,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     exponent(other: number): number {
-        throw new Error("Method exponent not implemented.");
+        // TODO: Implement exponent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method exponent not yet implemented.");
     }
 
     /**
@@ -476,7 +530,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     modulo(mod: Integer): Integer {
-        throw new Error("Method modulo not implemented.");
+        // TODO: Implement modulo behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method modulo not yet implemented.");
     }
 
     /**
@@ -485,7 +541,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     less_than(other: Integer): Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -493,7 +551,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     negative(): Integer {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -502,7 +562,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     is_equal(other: Integer): Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -511,7 +573,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     equal(other: Integer): Boolean {
-        throw new Error("Method equal not implemented.");
+        // TODO: Implement equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equal not yet implemented.");
     }
 
 }
@@ -525,7 +589,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     floor(): Integer {
-        throw new Error("Method floor not implemented.");
+        // TODO: Implement floor behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method floor not yet implemented.");
     }
 
     /**
@@ -534,7 +600,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     add(other: number): number {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -543,7 +611,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     subtract(other: number): number {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -552,7 +622,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     multiply(other: number): number {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -561,7 +633,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     divide(other: number): number {
-        throw new Error("Method divide not implemented.");
+        // TODO: Implement divide behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method divide not yet implemented.");
     }
 
     /**
@@ -570,7 +644,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     exponent(other: number): number {
-        throw new Error("Method exponent not implemented.");
+        // TODO: Implement exponent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method exponent not yet implemented.");
     }
 
     /**
@@ -579,7 +655,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     less_than(other: number): Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -587,7 +665,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     negative(): number {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -596,7 +676,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     is_equal(other: number): Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -605,7 +687,9 @@ export class Double extends Ordered_Numeric {
      * @returns Result value
      */
     equal(other: number): Boolean {
-        throw new Error("Method equal not implemented.");
+        // TODO: Implement equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equal not yet implemented.");
     }
 
 }
@@ -667,7 +751,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     conjunction(other: Boolean): Boolean {
-        throw new Error("Method conjunction not implemented.");
+        // TODO: Implement conjunction behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method conjunction not yet implemented.");
     }
 
     /**
@@ -676,7 +762,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     semistrict_conjunction(other: Boolean): Boolean {
-        throw new Error("Method semistrict_conjunction not implemented.");
+        // TODO: Implement semistrict_conjunction behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method semistrict_conjunction not yet implemented.");
     }
 
     /**
@@ -685,7 +773,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     disjunction(other: Boolean): Boolean {
-        throw new Error("Method disjunction not implemented.");
+        // TODO: Implement disjunction behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method disjunction not yet implemented.");
     }
 
     /**
@@ -694,7 +784,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     semistrict_disjunction(other: Boolean): Boolean {
-        throw new Error("Method semistrict_disjunction not implemented.");
+        // TODO: Implement semistrict_disjunction behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method semistrict_disjunction not yet implemented.");
     }
 
     /**
@@ -703,7 +795,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     exclusive_disjunction(other: Boolean): Boolean {
-        throw new Error("Method exclusive_disjunction not implemented.");
+        // TODO: Implement exclusive_disjunction behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method exclusive_disjunction not yet implemented.");
     }
 
     /**
@@ -712,7 +806,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     implication(other: Boolean): Boolean {
-        throw new Error("Method implication not implemented.");
+        // TODO: Implement implication behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method implication not yet implemented.");
     }
 
     /**
@@ -720,7 +816,9 @@ export class Boolean extends Any {
      * @returns Result value
      */
     negation(): Boolean {
-        throw new Error("Method negation not implemented.");
+        // TODO: Implement negation behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negation not yet implemented.");
     }
 
 }
@@ -734,7 +832,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     floor(): Integer {
-        throw new Error("Method floor not implemented.");
+        // TODO: Implement floor behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method floor not yet implemented.");
     }
 
     /**
@@ -743,7 +843,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     add(other: number): number {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -752,7 +854,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     subtract(other: number): number {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -761,7 +865,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     multiply(other: number): number {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -770,7 +876,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     divide(other: number): number {
-        throw new Error("Method divide not implemented.");
+        // TODO: Implement divide behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method divide not yet implemented.");
     }
 
     /**
@@ -779,7 +887,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     exponent(other: number): number {
-        throw new Error("Method exponent not implemented.");
+        // TODO: Implement exponent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method exponent not yet implemented.");
     }
 
     /**
@@ -788,7 +898,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     less_than(other: number): Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -796,7 +908,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     negative(): number {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -805,7 +919,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     is_equal(other: number): Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -814,7 +930,9 @@ export class Real extends Ordered_Numeric {
      * @returns Result value
      */
     equal(other: number): Boolean {
-        throw new Error("Method equal not implemented.");
+        // TODO: Implement equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equal not yet implemented.");
     }
 
 }
@@ -867,7 +985,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     add(other: Integer): Integer64 {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -876,7 +996,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     subtract(other: Integer): Integer64 {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -885,7 +1007,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     multiply(other: Integer): Integer64 {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -894,7 +1018,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     divide(other: Integer): number {
-        throw new Error("Method divide not implemented.");
+        // TODO: Implement divide behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method divide not yet implemented.");
     }
 
     /**
@@ -903,7 +1029,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     exponent(other: number): number {
-        throw new Error("Method exponent not implemented.");
+        // TODO: Implement exponent behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method exponent not yet implemented.");
     }
 
     /**
@@ -912,7 +1040,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     modulo(mod: Integer): Integer64 {
-        throw new Error("Method modulo not implemented.");
+        // TODO: Implement modulo behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method modulo not yet implemented.");
     }
 
     /**
@@ -921,7 +1051,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     less_than(other: Integer64): Boolean {
-        throw new Error("Method less_than not implemented.");
+        // TODO: Implement less_than behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method less_than not yet implemented.");
     }
 
     /**
@@ -929,7 +1061,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     negative(): Integer64 {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
     /**
@@ -938,7 +1072,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     is_equal(other: Integer64): Boolean {
-        throw new Error("Method is_equal not implemented.");
+        // TODO: Implement is_equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_equal not yet implemented.");
     }
 
     /**
@@ -947,7 +1083,9 @@ export class Integer64 extends Ordered_Numeric {
      * @returns Result value
      */
     equal(other: Integer64): Boolean {
-        throw new Error("Method equal not implemented.");
+        // TODO: Implement equal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method equal not yet implemented.");
     }
 
 }
@@ -1009,7 +1147,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_year(y: Integer): Boolean {
-        throw new Error("Method valid_year not implemented.");
+        // TODO: Implement valid_year behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_year not yet implemented.");
     }
 
     /**
@@ -1018,7 +1158,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_month(m: Integer): Boolean {
-        throw new Error("Method valid_month not implemented.");
+        // TODO: Implement valid_month behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_month not yet implemented.");
     }
 
     /**
@@ -1029,7 +1171,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_day(y: Integer, m: Integer, d: Integer): Boolean {
-        throw new Error("Method valid_day not implemented.");
+        // TODO: Implement valid_day behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_day not yet implemented.");
     }
 
     /**
@@ -1040,7 +1184,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_hour(h: Integer, m: Integer, s: Integer): Boolean {
-        throw new Error("Method valid_hour not implemented.");
+        // TODO: Implement valid_hour behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_hour not yet implemented.");
     }
 
     /**
@@ -1049,7 +1195,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_minute(m: Integer): Boolean {
-        throw new Error("Method valid_minute not implemented.");
+        // TODO: Implement valid_minute behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_minute not yet implemented.");
     }
 
     /**
@@ -1058,7 +1206,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_second(s: Integer): Boolean {
-        throw new Error("Method valid_second not implemented.");
+        // TODO: Implement valid_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_second not yet implemented.");
     }
 
     /**
@@ -1067,7 +1217,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_fractional_second(fs: number): Boolean {
-        throw new Error("Method valid_fractional_second not implemented.");
+        // TODO: Implement valid_fractional_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_fractional_second not yet implemented.");
     }
 
     /**
@@ -1087,7 +1239,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_iso8601_date(s: String): Boolean {
-        throw new Error("Method valid_iso8601_date not implemented.");
+        // TODO: Implement valid_iso8601_date behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_date not yet implemented.");
     }
 
     /**
@@ -1115,7 +1269,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_iso8601_time(s: String): Boolean {
-        throw new Error("Method valid_iso8601_time not implemented.");
+        // TODO: Implement valid_iso8601_time behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_time not yet implemented.");
     }
 
     /**
@@ -1130,7 +1286,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_iso8601_date_time(s: String): Boolean {
-        throw new Error("Method valid_iso8601_date_time not implemented.");
+        // TODO: Implement valid_iso8601_date_time behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_date_time not yet implemented.");
     }
 
     /**
@@ -1145,7 +1303,9 @@ export class Time_Definitions {
      * @returns Result value
      */
     valid_iso8601_duration(s: String): Boolean {
-        throw new Error("Method valid_iso8601_duration not implemented.");
+        // TODO: Implement valid_iso8601_duration behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_duration not yet implemented.");
     }
 
 }
@@ -1155,9 +1315,39 @@ export class Time_Definitions {
  */
 export abstract class Iso8601_type extends Temporal {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: String;
+
+    /**
      * Representation of all descendants is a single String.
      */
-    value?: String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value.
+     * Use this to access String methods.
+     */
+    get $value(): String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or String wrapper.
+     */
+    set value(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * True if this date time is partial, i.e. if trailing end (right hand) value(s) is/are missing.
      * @returns Result value
@@ -1192,7 +1382,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     year(): Integer {
-        throw new Error("Method year not implemented.");
+        // TODO: Implement year behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method year not yet implemented.");
     }
 
     /**
@@ -1200,7 +1392,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     month(): Integer {
-        throw new Error("Method month not implemented.");
+        // TODO: Implement month behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method month not yet implemented.");
     }
 
     /**
@@ -1208,7 +1402,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     day(): Integer {
-        throw new Error("Method day not implemented.");
+        // TODO: Implement day behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method day not yet implemented.");
     }
 
     /**
@@ -1216,7 +1412,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     hour(): Integer {
-        throw new Error("Method hour not implemented.");
+        // TODO: Implement hour behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method hour not yet implemented.");
     }
 
     /**
@@ -1224,7 +1422,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     minute(): Integer {
-        throw new Error("Method minute not implemented.");
+        // TODO: Implement minute behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute not yet implemented.");
     }
 
     /**
@@ -1232,7 +1432,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     second(): Integer {
-        throw new Error("Method second not implemented.");
+        // TODO: Implement second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method second not yet implemented.");
     }
 
     /**
@@ -1240,7 +1442,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     fractional_second(): number {
-        throw new Error("Method fractional_second not implemented.");
+        // TODO: Implement fractional_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method fractional_second not yet implemented.");
     }
 
     /**
@@ -1248,7 +1452,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     timezone(): Iso8601_timezone {
-        throw new Error("Method timezone not implemented.");
+        // TODO: Implement timezone behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method timezone not yet implemented.");
     }
 
     /**
@@ -1256,7 +1462,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     month_unknown(): Boolean {
-        throw new Error("Method month_unknown not implemented.");
+        // TODO: Implement month_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method month_unknown not yet implemented.");
     }
 
     /**
@@ -1264,7 +1472,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     day_unknown(): Boolean {
-        throw new Error("Method day_unknown not implemented.");
+        // TODO: Implement day_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method day_unknown not yet implemented.");
     }
 
     /**
@@ -1272,7 +1482,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     minute_unknown(): Boolean {
-        throw new Error("Method minute_unknown not implemented.");
+        // TODO: Implement minute_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute_unknown not yet implemented.");
     }
 
     /**
@@ -1280,7 +1492,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     second_unknown(): Boolean {
-        throw new Error("Method second_unknown not implemented.");
+        // TODO: Implement second_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method second_unknown not yet implemented.");
     }
 
     /**
@@ -1288,7 +1502,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     is_decimal_sign_comma(): Boolean {
-        throw new Error("Method is_decimal_sign_comma not implemented.");
+        // TODO: Implement is_decimal_sign_comma behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_decimal_sign_comma not yet implemented.");
     }
 
     /**
@@ -1296,7 +1512,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     is_partial(): Boolean {
-        throw new Error("Method is_partial not implemented.");
+        // TODO: Implement is_partial behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_partial not yet implemented.");
     }
 
     /**
@@ -1304,7 +1522,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     is_extended(): Boolean {
-        throw new Error("Method is_extended not implemented.");
+        // TODO: Implement is_extended behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_extended not yet implemented.");
     }
 
     /**
@@ -1312,7 +1532,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     has_fractional_second(): Boolean {
-        throw new Error("Method has_fractional_second not implemented.");
+        // TODO: Implement has_fractional_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_fractional_second not yet implemented.");
     }
 
     /**
@@ -1320,7 +1542,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     as_string(): String {
-        throw new Error("Method as_string not implemented.");
+        // TODO: Implement as_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_string not yet implemented.");
     }
 
     /**
@@ -1329,7 +1553,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     add(a_diff: Iso8601_duration): Iso8601_date_time {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1338,7 +1564,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     subtract(a_diff: Iso8601_duration): Iso8601_date_time {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1347,7 +1575,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     diff(a_date_time: Iso8601_date_time): Iso8601_duration {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
     /**
@@ -1356,7 +1586,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     add_nominal(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method add_nominal not implemented.");
+        // TODO: Implement add_nominal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add_nominal not yet implemented.");
     }
 
     /**
@@ -1365,7 +1597,9 @@ export class Iso8601_date_time extends Iso8601_type {
      * @returns Result value
      */
     subtract_nominal(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method subtract_nominal not implemented.");
+        // TODO: Implement subtract_nominal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract_nominal not yet implemented.");
     }
 
 }
@@ -1383,7 +1617,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     is_extended(): Boolean {
-        throw new Error("Method is_extended not implemented.");
+        // TODO: Implement is_extended behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_extended not yet implemented.");
     }
 
     /**
@@ -1391,7 +1627,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     is_partial(): Boolean {
-        throw new Error("Method is_partial not implemented.");
+        // TODO: Implement is_partial behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_partial not yet implemented.");
     }
 
     /**
@@ -1399,7 +1637,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     years(): Integer {
-        throw new Error("Method years not implemented.");
+        // TODO: Implement years behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method years not yet implemented.");
     }
 
     /**
@@ -1407,7 +1647,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     months(): Integer {
-        throw new Error("Method months not implemented.");
+        // TODO: Implement months behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method months not yet implemented.");
     }
 
     /**
@@ -1415,7 +1657,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     days(): Integer {
-        throw new Error("Method days not implemented.");
+        // TODO: Implement days behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method days not yet implemented.");
     }
 
     /**
@@ -1423,7 +1667,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     hours(): Integer {
-        throw new Error("Method hours not implemented.");
+        // TODO: Implement hours behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method hours not yet implemented.");
     }
 
     /**
@@ -1431,7 +1677,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     minutes(): Integer {
-        throw new Error("Method minutes not implemented.");
+        // TODO: Implement minutes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minutes not yet implemented.");
     }
 
     /**
@@ -1439,7 +1687,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     seconds(): Integer {
-        throw new Error("Method seconds not implemented.");
+        // TODO: Implement seconds behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method seconds not yet implemented.");
     }
 
     /**
@@ -1447,7 +1697,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     fractional_seconds(): number {
-        throw new Error("Method fractional_seconds not implemented.");
+        // TODO: Implement fractional_seconds behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method fractional_seconds not yet implemented.");
     }
 
     /**
@@ -1455,7 +1707,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     weeks(): Integer {
-        throw new Error("Method weeks not implemented.");
+        // TODO: Implement weeks behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method weeks not yet implemented.");
     }
 
     /**
@@ -1463,7 +1717,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     is_decimal_sign_comma(): Boolean {
-        throw new Error("Method is_decimal_sign_comma not implemented.");
+        // TODO: Implement is_decimal_sign_comma behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_decimal_sign_comma not yet implemented.");
     }
 
     /**
@@ -1471,7 +1727,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     to_seconds(): number {
-        throw new Error("Method to_seconds not implemented.");
+        // TODO: Implement to_seconds behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method to_seconds not yet implemented.");
     }
 
     /**
@@ -1479,7 +1737,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     as_string(): String {
-        throw new Error("Method as_string not implemented.");
+        // TODO: Implement as_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_string not yet implemented.");
     }
 
     /**
@@ -1488,7 +1748,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     add(a_val: Iso8601_duration): Iso8601_duration {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1497,7 +1759,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     subtract(a_val: Iso8601_duration): Iso8601_duration {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1506,7 +1770,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     multiply(a_val: number): Iso8601_duration {
-        throw new Error("Method multiply not implemented.");
+        // TODO: Implement multiply behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method multiply not yet implemented.");
     }
 
     /**
@@ -1515,7 +1781,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     divide(a_val: number): Iso8601_duration {
-        throw new Error("Method divide not implemented.");
+        // TODO: Implement divide behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method divide not yet implemented.");
     }
 
     /**
@@ -1523,7 +1791,9 @@ export class Iso8601_duration extends Iso8601_type {
      * @returns Result value
      */
     negative(): Iso8601_duration {
-        throw new Error("Method negative not implemented.");
+        // TODO: Implement negative behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method negative not yet implemented.");
     }
 
 }
@@ -1545,7 +1815,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     hour(): Integer {
-        throw new Error("Method hour not implemented.");
+        // TODO: Implement hour behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method hour not yet implemented.");
     }
 
     /**
@@ -1553,7 +1825,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     minute(): Integer {
-        throw new Error("Method minute not implemented.");
+        // TODO: Implement minute behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute not yet implemented.");
     }
 
     /**
@@ -1561,7 +1835,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     second(): Integer {
-        throw new Error("Method second not implemented.");
+        // TODO: Implement second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method second not yet implemented.");
     }
 
     /**
@@ -1569,7 +1845,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     fractional_second(): number {
-        throw new Error("Method fractional_second not implemented.");
+        // TODO: Implement fractional_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method fractional_second not yet implemented.");
     }
 
     /**
@@ -1577,7 +1855,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     timezone(): Iso8601_timezone {
-        throw new Error("Method timezone not implemented.");
+        // TODO: Implement timezone behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method timezone not yet implemented.");
     }
 
     /**
@@ -1585,7 +1865,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     minute_unknown(): Boolean {
-        throw new Error("Method minute_unknown not implemented.");
+        // TODO: Implement minute_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute_unknown not yet implemented.");
     }
 
     /**
@@ -1593,7 +1875,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     second_unknown(): Boolean {
-        throw new Error("Method second_unknown not implemented.");
+        // TODO: Implement second_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method second_unknown not yet implemented.");
     }
 
     /**
@@ -1601,7 +1885,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     is_decimal_sign_comma(): Boolean {
-        throw new Error("Method is_decimal_sign_comma not implemented.");
+        // TODO: Implement is_decimal_sign_comma behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_decimal_sign_comma not yet implemented.");
     }
 
     /**
@@ -1609,7 +1895,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     is_partial(): Boolean {
-        throw new Error("Method is_partial not implemented.");
+        // TODO: Implement is_partial behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_partial not yet implemented.");
     }
 
     /**
@@ -1617,7 +1905,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     is_extended(): Boolean {
-        throw new Error("Method is_extended not implemented.");
+        // TODO: Implement is_extended behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_extended not yet implemented.");
     }
 
     /**
@@ -1625,7 +1915,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     has_fractional_second(): Boolean {
-        throw new Error("Method has_fractional_second not implemented.");
+        // TODO: Implement has_fractional_second behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_fractional_second not yet implemented.");
     }
 
     /**
@@ -1633,7 +1925,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     as_string(): String {
-        throw new Error("Method as_string not implemented.");
+        // TODO: Implement as_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_string not yet implemented.");
     }
 
     /**
@@ -1642,7 +1936,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     add(a_diff: Iso8601_duration): Iso8601_time {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1651,7 +1947,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     subtract(a_diff: Iso8601_duration): Iso8601_time {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1660,7 +1958,9 @@ export class Iso8601_time extends Iso8601_type {
      * @returns Result value
      */
     diff(a_time: Iso8601_time): Iso8601_duration {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
 }
@@ -1680,7 +1980,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     year(): Integer {
-        throw new Error("Method year not implemented.");
+        // TODO: Implement year behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method year not yet implemented.");
     }
 
     /**
@@ -1688,7 +1990,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     month(): Integer {
-        throw new Error("Method month not implemented.");
+        // TODO: Implement month behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method month not yet implemented.");
     }
 
     /**
@@ -1696,7 +2000,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     day(): Integer {
-        throw new Error("Method day not implemented.");
+        // TODO: Implement day behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method day not yet implemented.");
     }
 
     /**
@@ -1704,7 +2010,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     timezone(): Iso8601_timezone {
-        throw new Error("Method timezone not implemented.");
+        // TODO: Implement timezone behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method timezone not yet implemented.");
     }
 
     /**
@@ -1712,7 +2020,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     month_unknown(): Boolean {
-        throw new Error("Method month_unknown not implemented.");
+        // TODO: Implement month_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method month_unknown not yet implemented.");
     }
 
     /**
@@ -1720,7 +2030,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     day_unknown(): Boolean {
-        throw new Error("Method day_unknown not implemented.");
+        // TODO: Implement day_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method day_unknown not yet implemented.");
     }
 
     /**
@@ -1728,7 +2040,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     is_partial(): Boolean {
-        throw new Error("Method is_partial not implemented.");
+        // TODO: Implement is_partial behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_partial not yet implemented.");
     }
 
     /**
@@ -1736,7 +2050,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     is_extended(): Boolean {
-        throw new Error("Method is_extended not implemented.");
+        // TODO: Implement is_extended behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_extended not yet implemented.");
     }
 
     /**
@@ -1744,7 +2060,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     as_string(): String {
-        throw new Error("Method as_string not implemented.");
+        // TODO: Implement as_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_string not yet implemented.");
     }
 
     /**
@@ -1753,7 +2071,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     add(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method add not implemented.");
+        // TODO: Implement add behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add not yet implemented.");
     }
 
     /**
@@ -1762,7 +2082,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     subtract(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method subtract not implemented.");
+        // TODO: Implement subtract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract not yet implemented.");
     }
 
     /**
@@ -1771,7 +2093,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     diff(a_date: Iso8601_date): Iso8601_duration {
-        throw new Error("Method diff not implemented.");
+        // TODO: Implement diff behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method diff not yet implemented.");
     }
 
     /**
@@ -1784,7 +2108,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     add_nominal(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method add_nominal not implemented.");
+        // TODO: Implement add_nominal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method add_nominal not yet implemented.");
     }
 
     /**
@@ -1793,7 +2119,9 @@ export class Iso8601_date extends Iso8601_type {
      * @returns Result value
      */
     subtract_nominal(a_diff: Iso8601_duration): Iso8601_date {
-        throw new Error("Method subtract_nominal not implemented.");
+        // TODO: Implement subtract_nominal behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method subtract_nominal not yet implemented.");
     }
 
 }
@@ -1811,21 +2139,141 @@ export abstract class Interval<T extends Ordered> extends Any {
      */
     upper?: T;
     /**
+     * Internal storage for lower_unbounded
+     * @private
+     */
+    private _lower_unbounded?: Boolean;
+
+    /**
      * True if \`_lower_\` boundary open (i.e. = \`-infinity\`).
      */
-    lower_unbounded?: Boolean;
+    get lower_unbounded(): boolean | undefined {
+        return this._lower_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_unbounded.
+     * Use this to access Boolean methods.
+     */
+    get $lower_unbounded(): Boolean | undefined {
+        return this._lower_unbounded;
+    }
+
+    /**
+     * Sets lower_unbounded from either a primitive value or Boolean wrapper.
+     */
+    set lower_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_unbounded = Boolean.from(val);
+        } else {
+            this._lower_unbounded = val;
+        }
+    }
+
+    /**
+     * Internal storage for upper_unbounded
+     * @private
+     */
+    private _upper_unbounded?: Boolean;
+
     /**
      * True if \`_upper_\` boundary open (i.e. = \`+infinity\`).
      */
-    upper_unbounded?: Boolean;
+    get upper_unbounded(): boolean | undefined {
+        return this._upper_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_unbounded.
+     * Use this to access Boolean methods.
+     */
+    get $upper_unbounded(): Boolean | undefined {
+        return this._upper_unbounded;
+    }
+
+    /**
+     * Sets upper_unbounded from either a primitive value or Boolean wrapper.
+     */
+    set upper_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_unbounded = Boolean.from(val);
+        } else {
+            this._upper_unbounded = val;
+        }
+    }
+
+    /**
+     * Internal storage for lower_included
+     * @private
+     */
+    private _lower_included?: Boolean;
+
     /**
      * True if \`_lower_\` boundary value included in range, if \`not _lower_unbounded_\`.
      */
-    lower_included?: Boolean;
+    get lower_included(): boolean | undefined {
+        return this._lower_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_included.
+     * Use this to access Boolean methods.
+     */
+    get $lower_included(): Boolean | undefined {
+        return this._lower_included;
+    }
+
+    /**
+     * Sets lower_included from either a primitive value or Boolean wrapper.
+     */
+    set lower_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_included = Boolean.from(val);
+        } else {
+            this._lower_included = val;
+        }
+    }
+
+    /**
+     * Internal storage for upper_included
+     * @private
+     */
+    private _upper_included?: Boolean;
+
     /**
      * True if \`_upper_\` boundary value included in range if \`not _upper_unbounded_\`.
      */
-    upper_included?: Boolean;
+    get upper_included(): boolean | undefined {
+        return this._upper_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_included.
+     * Use this to access Boolean methods.
+     */
+    get $upper_included(): Boolean | undefined {
+        return this._upper_included;
+    }
+
+    /**
+     * Sets upper_included from either a primitive value or Boolean wrapper.
+     */
+    set upper_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_included = Boolean.from(val);
+        } else {
+            this._upper_included = val;
+        }
+    }
+
     /**
      * True if the value \`e\` is properly contained in this Interval.
      * @param e - Parameter
@@ -1871,7 +2319,9 @@ export class Multiplicity_interval extends Proper_interval<T> {
      * @returns Result value
      */
     is_open(): Boolean {
-        throw new Error("Method is_open not implemented.");
+        // TODO: Implement is_open behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_open not yet implemented.");
     }
 
     /**
@@ -1879,7 +2329,9 @@ export class Multiplicity_interval extends Proper_interval<T> {
      * @returns Result value
      */
     is_optional(): Boolean {
-        throw new Error("Method is_optional not implemented.");
+        // TODO: Implement is_optional behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_optional not yet implemented.");
     }
 
     /**
@@ -1887,7 +2339,9 @@ export class Multiplicity_interval extends Proper_interval<T> {
      * @returns Result value
      */
     is_mandatory(): Boolean {
-        throw new Error("Method is_mandatory not implemented.");
+        // TODO: Implement is_mandatory behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_mandatory not yet implemented.");
     }
 
     /**
@@ -1895,7 +2349,9 @@ export class Multiplicity_interval extends Proper_interval<T> {
      * @returns Result value
      */
     is_prohibited(): Boolean {
-        throw new Error("Method is_prohibited not implemented.");
+        // TODO: Implement is_prohibited behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_prohibited not yet implemented.");
     }
 
 }
@@ -1909,19 +2365,81 @@ export class Cardinality {
      */
     interval?: Multiplicity_interval;
     /**
+     * Internal storage for is_ordered
+     * @private
+     */
+    private _is_ordered?: Boolean;
+
+    /**
      * True if the members of the container attribute to which this cardinality refers are ordered. 
      */
-    is_ordered?: Boolean;
+    get is_ordered(): boolean | undefined {
+        return this._is_ordered?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_ordered.
+     * Use this to access Boolean methods.
+     */
+    get $is_ordered(): Boolean | undefined {
+        return this._is_ordered;
+    }
+
+    /**
+     * Sets is_ordered from either a primitive value or Boolean wrapper.
+     */
+    set is_ordered(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_ordered = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_ordered = Boolean.from(val);
+        } else {
+            this._is_ordered = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_unique
+     * @private
+     */
+    private _is_unique?: Boolean;
+
     /**
      * True if the members of the container attribute to which this cardinality refers are unique.
      */
-    is_unique?: Boolean;
+    get is_unique(): boolean | undefined {
+        return this._is_unique?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_unique.
+     * Use this to access Boolean methods.
+     */
+    get $is_unique(): Boolean | undefined {
+        return this._is_unique;
+    }
+
+    /**
+     * Sets is_unique from either a primitive value or Boolean wrapper.
+     */
+    set is_unique(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_unique = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_unique = Boolean.from(val);
+        } else {
+            this._is_unique = val;
+        }
+    }
+
     /**
      * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
      * @returns Result value
      */
     is_bag(): Boolean {
-        throw new Error("Method is_bag not implemented.");
+        // TODO: Implement is_bag behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_bag not yet implemented.");
     }
 
     /**
@@ -1929,7 +2447,9 @@ export class Cardinality {
      * @returns Result value
      */
     is_list(): Boolean {
-        throw new Error("Method is_list not implemented.");
+        // TODO: Implement is_list behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_list not yet implemented.");
     }
 
     /**
@@ -1937,7 +2457,9 @@ export class Cardinality {
      * @returns Result value
      */
     is_set(): Boolean {
-        throw new Error("Method is_set not implemented.");
+        // TODO: Implement is_set behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_set not yet implemented.");
     }
 
 }
@@ -1947,17 +2469,107 @@ export class Cardinality {
  */
 export class Terminology_code extends Any {
     /**
+     * Internal storage for terminology_id
+     * @private
+     */
+    private _terminology_id?: String;
+
+    /**
      * The archetype environment namespace identifier used to identify a terminology. Typically a value like \`"snomed_ct"\` that is mapped elsewhere to the full URI identifying the terminology.
      */
-    terminology_id?: String;
+    get terminology_id(): string | undefined {
+        return this._terminology_id?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for terminology_id.
+     * Use this to access String methods.
+     */
+    get $terminology_id(): String | undefined {
+        return this._terminology_id;
+    }
+
+    /**
+     * Sets terminology_id from either a primitive value or String wrapper.
+     */
+    set terminology_id(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._terminology_id = undefined;
+        } else if (typeof val === 'string') {
+            this._terminology_id = String.from(val);
+        } else {
+            this._terminology_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for terminology_version
+     * @private
+     */
+    private _terminology_version?: String;
+
     /**
      * Optional string value representing terminology version, typically a date or dotted numeric.
      */
-    terminology_version?: String;
+    get terminology_version(): string | undefined {
+        return this._terminology_version?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for terminology_version.
+     * Use this to access String methods.
+     */
+    get $terminology_version(): String | undefined {
+        return this._terminology_version;
+    }
+
+    /**
+     * Sets terminology_version from either a primitive value or String wrapper.
+     */
+    set terminology_version(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._terminology_version = undefined;
+        } else if (typeof val === 'string') {
+            this._terminology_version = String.from(val);
+        } else {
+            this._terminology_version = val;
+        }
+    }
+
+    /**
+     * Internal storage for code_string
+     * @private
+     */
+    private _code_string?: String;
+
     /**
      * A terminology code or post-coordinated code expression, if supported by the terminology. The code may refer to a single term, a value set consisting of multiple terms, or some other entity representable within the terminology.
      */
-    code_string?: String;
+    get code_string(): string | undefined {
+        return this._code_string?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for code_string.
+     * Use this to access String methods.
+     */
+    get $code_string(): String | undefined {
+        return this._code_string;
+    }
+
+    /**
+     * Sets code_string from either a primitive value or String wrapper.
+     */
+    set code_string(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._code_string = undefined;
+        } else if (typeof val === 'string') {
+            this._code_string = String.from(val);
+        } else {
+            this._code_string = val;
+        }
+    }
+
     /**
      * The URI reference that may be used as a concrete key into a notional terminology service for queries that can obtain the term text, definition, and other associated elements.
      */
@@ -1973,9 +2585,39 @@ export class Terminology_term extends Any {
      */
     concept?: Terminology_code;
     /**
+     * Internal storage for text
+     * @private
+     */
+    private _text?: String;
+
+    /**
      * Text of term.
      */
-    text?: String;
+    get text(): string | undefined {
+        return this._text?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for text.
+     * Use this to access String methods.
+     */
+    get $text(): String | undefined {
+        return this._text;
+    }
+
+    /**
+     * Sets text from either a primitive value or String wrapper.
+     */
+    set text(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._text = undefined;
+        } else if (typeof val === 'string') {
+            this._text = String.from(val);
+        } else {
+            this._text = val;
+        }
+    }
+
 }
 
 /**
@@ -1985,9 +2627,39 @@ export class Terminology_term extends Any {
  */
 export abstract class OBJECT_ID {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: String;
+
+    /**
      * The value of the id in the form defined below. 
      */
-    value?: String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value.
+     * Use this to access String methods.
+     */
+    get $value(): String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or String wrapper.
+     */
+    set value(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -2001,7 +2673,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     qualified_rm_entity(): String {
-        throw new Error("Method qualified_rm_entity not implemented.");
+        // TODO: Implement qualified_rm_entity behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method qualified_rm_entity not yet implemented.");
     }
 
     /**
@@ -2009,7 +2683,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     domain_concept(): String {
-        throw new Error("Method domain_concept not implemented.");
+        // TODO: Implement domain_concept behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method domain_concept not yet implemented.");
     }
 
     /**
@@ -2017,7 +2693,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_originator(): String {
-        throw new Error("Method rm_originator not implemented.");
+        // TODO: Implement rm_originator behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method rm_originator not yet implemented.");
     }
 
     /**
@@ -2025,7 +2703,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_name(): String {
-        throw new Error("Method rm_name not implemented.");
+        // TODO: Implement rm_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method rm_name not yet implemented.");
     }
 
     /**
@@ -2033,7 +2713,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_entity(): String {
-        throw new Error("Method rm_entity not implemented.");
+        // TODO: Implement rm_entity behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method rm_entity not yet implemented.");
     }
 
     /**
@@ -2041,7 +2723,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     specialisation(): String {
-        throw new Error("Method specialisation not implemented.");
+        // TODO: Implement specialisation behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method specialisation not yet implemented.");
     }
 
     /**
@@ -2050,7 +2734,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     version_id(): String {
-        throw new Error("Method version_id not implemented.");
+        // TODO: Implement version_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_id not yet implemented.");
     }
 
 }
@@ -2060,9 +2746,39 @@ export class ARCHETYPE_ID extends OBJECT_ID {
  */
 export class GENERIC_ID extends OBJECT_ID {
     /**
+     * Internal storage for scheme
+     * @private
+     */
+    private _scheme?: String;
+
+    /**
      * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way. 
      */
-    scheme?: String;
+    get scheme(): string | undefined {
+        return this._scheme?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for scheme.
+     * Use this to access String methods.
+     */
+    get $scheme(): String | undefined {
+        return this._scheme;
+    }
+
+    /**
+     * Sets scheme from either a primitive value or String wrapper.
+     */
+    set scheme(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._scheme = undefined;
+        } else if (typeof val === 'string') {
+            this._scheme = String.from(val);
+        } else {
+            this._scheme = val;
+        }
+    }
+
 }
 
 /**
@@ -2074,7 +2790,9 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     root(): UID {
-        throw new Error("Method root not implemented.");
+        // TODO: Implement root behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method root not yet implemented.");
     }
 
     /**
@@ -2082,7 +2800,9 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     extension(): String {
-        throw new Error("Method extension not implemented.");
+        // TODO: Implement extension behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method extension not yet implemented.");
     }
 
     /**
@@ -2090,7 +2810,9 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     has_extension(): Boolean {
-        throw new Error("Method has_extension not implemented.");
+        // TODO: Implement has_extension behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_extension not yet implemented.");
     }
 
 }
@@ -2106,6 +2828,12 @@ export class HIER_OBJECT_ID extends UID_BASED_ID {
  */
 export class OBJECT_REF {
     /**
+     * Internal storage for namespace
+     * @private
+     */
+    private _namespace?: String;
+
+    /**
      * Namespace to which this identifier belongs in the local system context (and possibly in any other openEHR compliant environment) e.g.  terminology ,  demographic . These names are not yet standardised. Legal values for \`_namespace_\` are:
      * 
      * * \`"local"\`
@@ -2114,11 +2842,65 @@ export class OBJECT_REF {
      * 
      * Note that the first two are just special values of the regex, and will be matched by it.
      */
-    namespace?: String;
+    get namespace(): string | undefined {
+        return this._namespace?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for namespace.
+     * Use this to access String methods.
+     */
+    get $namespace(): String | undefined {
+        return this._namespace;
+    }
+
+    /**
+     * Sets namespace from either a primitive value or String wrapper.
+     */
+    set namespace(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._namespace = undefined;
+        } else if (typeof val === 'string') {
+            this._namespace = String.from(val);
+        } else {
+            this._namespace = val;
+        }
+    }
+
+    /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: String;
+
     /**
      * Name of the  class (concrete or abstract) of object to which this identifier type refers, e.g. \`PARTY\`, \`PERSON\`,  \`GUIDELINE\`  etc. These class names are from the relevant reference model. The type name \`ANY\` can be used to indicate that any type is accepted (e.g. if the type is unknown). 
      */
-    type?: String;
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for type.
+     * Use this to access String methods.
+     */
+    get $type(): String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or String wrapper.
+     */
+    set type(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
     /**
      * Globally unique id of an object, regardless of where it is stored.
      */
@@ -2130,9 +2912,39 @@ export class OBJECT_REF {
  */
 export class LOCATABLE_REF extends OBJECT_REF {
     /**
+     * Internal storage for path
+     * @private
+     */
+    private _path?: String;
+
+    /**
      * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified. 
      */
-    path?: String;
+    get path(): string | undefined {
+        return this._path?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for path.
+     * Use this to access String methods.
+     */
+    get $path(): String | undefined {
+        return this._path;
+    }
+
+    /**
+     * Sets path from either a primitive value or String wrapper.
+     */
+    set path(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._path = undefined;
+        } else if (typeof val === 'string') {
+            this._path = String.from(val);
+        } else {
+            this._path = val;
+        }
+    }
+
     /**
      * Globally unique id of an object, regardless of where it is stored.
      */
@@ -2147,7 +2959,9 @@ export class LOCATABLE_REF extends OBJECT_REF {
      * @returns Result value
      */
     as_uri(): String {
-        throw new Error("Method as_uri not implemented.");
+        // TODO: Implement as_uri behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_uri not yet implemented.");
     }
 
 }
@@ -2161,7 +2975,9 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
      * @returns Result value
      */
     object_id(): UID {
-        throw new Error("Method object_id not implemented.");
+        // TODO: Implement object_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method object_id not yet implemented.");
     }
 
     /**
@@ -2169,7 +2985,9 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
      * @returns Result value
      */
     creating_system_id(): UID {
-        throw new Error("Method creating_system_id not implemented.");
+        // TODO: Implement creating_system_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method creating_system_id not yet implemented.");
     }
 
     /**
@@ -2177,7 +2995,9 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
      * @returns Result value
      */
     version_tree_id(): VERSION_TREE_ID {
-        throw new Error("Method version_tree_id not implemented.");
+        // TODO: Implement version_tree_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_tree_id not yet implemented.");
     }
 
     /**
@@ -2185,7 +3005,9 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
      * @returns Result value
      */
     is_branch(): Boolean {
-        throw new Error("Method is_branch not implemented.");
+        // TODO: Implement is_branch behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_branch not yet implemented.");
     }
 
 }
@@ -2208,7 +3030,9 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
      * @returns Result value
      */
     name(): String {
-        throw new Error("Method name not implemented.");
+        // TODO: Implement name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method name not yet implemented.");
     }
 
     /**
@@ -2216,7 +3040,9 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
      * @returns Result value
      */
     version_id(): String {
-        throw new Error("Method version_id not implemented.");
+        // TODO: Implement version_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_id not yet implemented.");
     }
 
 }
@@ -2228,15 +3054,47 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
  */
 export class VERSION_TREE_ID {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: String;
+
+    /**
      * String form of this identifier.
      */
-    value?: String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value.
+     * Use this to access String methods.
+     */
+    get $value(): String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or String wrapper.
+     */
+    set value(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
     /**
      * Trunk version number; numbering starts at 1. 
      * @returns Result value
      */
     trunk_version(): String {
-        throw new Error("Method trunk_version not implemented.");
+        // TODO: Implement trunk_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method trunk_version not yet implemented.");
     }
 
     /**
@@ -2244,7 +3102,9 @@ export class VERSION_TREE_ID {
      * @returns Result value
      */
     is_branch(): Boolean {
-        throw new Error("Method is_branch not implemented.");
+        // TODO: Implement is_branch behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_branch not yet implemented.");
     }
 
     /**
@@ -2252,7 +3112,9 @@ export class VERSION_TREE_ID {
      * @returns Result value
      */
     branch_number(): String {
-        throw new Error("Method branch_number not implemented.");
+        // TODO: Implement branch_number behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method branch_number not yet implemented.");
     }
 
     /**
@@ -2260,7 +3122,9 @@ export class VERSION_TREE_ID {
      * @returns Result value
      */
     branch_version(): String {
-        throw new Error("Method branch_version not implemented.");
+        // TODO: Implement branch_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method branch_version not yet implemented.");
     }
 
 }
@@ -2270,9 +3134,39 @@ export class VERSION_TREE_ID {
  */
 export abstract class UID {
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: String;
+
+    /**
      * The value of the id.
      */
-    value?: String;
+    get value(): string | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for value.
+     * Use this to access String methods.
+     */
+    get $value(): String | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or String wrapper.
+     */
+    set value(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'string') {
+            this._value = String.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -2353,7 +3247,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     hour(): Integer {
-        throw new Error("Method hour not implemented.");
+        // TODO: Implement hour behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method hour not yet implemented.");
     }
 
     /**
@@ -2361,7 +3257,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     minute(): Integer {
-        throw new Error("Method minute not implemented.");
+        // TODO: Implement minute behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute not yet implemented.");
     }
 
     /**
@@ -2369,7 +3267,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     sign(): Integer {
-        throw new Error("Method sign not implemented.");
+        // TODO: Implement sign behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method sign not yet implemented.");
     }
 
     /**
@@ -2377,7 +3277,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     minute_unknown(): Boolean {
-        throw new Error("Method minute_unknown not implemented.");
+        // TODO: Implement minute_unknown behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minute_unknown not yet implemented.");
     }
 
     /**
@@ -2385,7 +3287,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     is_partial(): Boolean {
-        throw new Error("Method is_partial not implemented.");
+        // TODO: Implement is_partial behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_partial not yet implemented.");
     }
 
     /**
@@ -2393,7 +3297,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     is_extended(): Boolean {
-        throw new Error("Method is_extended not implemented.");
+        // TODO: Implement is_extended behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_extended not yet implemented.");
     }
 
     /**
@@ -2401,7 +3307,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     is_gmt(): Boolean {
-        throw new Error("Method is_gmt not implemented.");
+        // TODO: Implement is_gmt behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_gmt not yet implemented.");
     }
 
     /**
@@ -2409,7 +3317,9 @@ export class Iso8601_timezone extends Iso8601_type {
      * @returns Result value
      */
     as_string(): String {
-        throw new Error("Method as_string not implemented.");
+        // TODO: Implement as_string behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method as_string not yet implemented.");
     }
 
 }
@@ -2419,21 +3329,141 @@ export class Iso8601_timezone extends Iso8601_type {
  */
 export class Point_interval<T extends Ordered> extends Interval<T> {
     /**
+     * Internal storage for lower_unbounded
+     * @private
+     */
+    private _lower_unbounded?: Boolean;
+
+    /**
      * Lower boundary open (i.e. = -infinity).
      */
-    override lower_unbounded?: Boolean;
+    get lower_unbounded(): boolean | undefined {
+        return this._lower_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_unbounded.
+     * Use this to access Boolean methods.
+     */
+    get $lower_unbounded(): Boolean | undefined {
+        return this._lower_unbounded;
+    }
+
+    /**
+     * Sets lower_unbounded from either a primitive value or Boolean wrapper.
+     */
+    set lower_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_unbounded = Boolean.from(val);
+        } else {
+            this._lower_unbounded = val;
+        }
+    }
+
+    /**
+     * Internal storage for upper_unbounded
+     * @private
+     */
+    private _upper_unbounded?: Boolean;
+
     /**
      * Upper boundary open (i.e. = +infinity).
      */
-    override upper_unbounded?: Boolean;
+    get upper_unbounded(): boolean | undefined {
+        return this._upper_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_unbounded.
+     * Use this to access Boolean methods.
+     */
+    get $upper_unbounded(): Boolean | undefined {
+        return this._upper_unbounded;
+    }
+
+    /**
+     * Sets upper_unbounded from either a primitive value or Boolean wrapper.
+     */
+    set upper_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_unbounded = Boolean.from(val);
+        } else {
+            this._upper_unbounded = val;
+        }
+    }
+
+    /**
+     * Internal storage for lower_included
+     * @private
+     */
+    private _lower_included?: Boolean;
+
     /**
      * Lower boundary value included in range if not \`_lower_unbounded_\`.
      */
-    override lower_included?: Boolean;
+    get lower_included(): boolean | undefined {
+        return this._lower_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_included.
+     * Use this to access Boolean methods.
+     */
+    get $lower_included(): Boolean | undefined {
+        return this._lower_included;
+    }
+
+    /**
+     * Sets lower_included from either a primitive value or Boolean wrapper.
+     */
+    set lower_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_included = Boolean.from(val);
+        } else {
+            this._lower_included = val;
+        }
+    }
+
+    /**
+     * Internal storage for upper_included
+     * @private
+     */
+    private _upper_included?: Boolean;
+
     /**
      * Upper boundary value included in range if not \`_upper_unbounded_\`.
      */
-    override upper_included?: Boolean;
+    get upper_included(): boolean | undefined {
+        return this._upper_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_included.
+     * Use this to access Boolean methods.
+     */
+    get $upper_included(): Boolean | undefined {
+        return this._upper_included;
+    }
+
+    /**
+     * Sets upper_included from either a primitive value or Boolean wrapper.
+     */
+    set upper_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_included = Boolean.from(val);
+        } else {
+            this._upper_included = val;
+        }
+    }
+
 }
 
 /**
@@ -2447,13 +3477,73 @@ export class CODE_PHRASE {
      */
     terminology_id?: TERMINOLOGY_ID;
     /**
+     * Internal storage for code_string
+     * @private
+     */
+    private _code_string?: String;
+
+    /**
      * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context. 
      */
-    code_string?: String;
+    get code_string(): string | undefined {
+        return this._code_string?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for code_string.
+     * Use this to access String methods.
+     */
+    get $code_string(): String | undefined {
+        return this._code_string;
+    }
+
+    /**
+     * Sets code_string from either a primitive value or String wrapper.
+     */
+    set code_string(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._code_string = undefined;
+        } else if (typeof val === 'string') {
+            this._code_string = String.from(val);
+        } else {
+            this._code_string = val;
+        }
+    }
+
+    /**
+     * Internal storage for preferred_term
+     * @private
+     */
+    private _preferred_term?: String;
+
     /**
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
      */
-    preferred_term?: String;
+    get preferred_term(): string | undefined {
+        return this._preferred_term?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for preferred_term.
+     * Use this to access String methods.
+     */
+    get $preferred_term(): String | undefined {
+        return this._preferred_term;
+    }
+
+    /**
+     * Sets preferred_term from either a primitive value or String wrapper.
+     */
+    set preferred_term(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._preferred_term = undefined;
+        } else if (typeof val === 'string') {
+            this._preferred_term = String.from(val);
+        } else {
+            this._preferred_term = val;
+        }
+    }
+
 }
 
 /**
@@ -2474,9 +3564,39 @@ export abstract class AUTHORED_RESOURCE {
      */
     description?: RESOURCE_DESCRIPTION;
     /**
+     * Internal storage for is_controlled
+     * @private
+     */
+    private _is_controlled?: Boolean;
+
+    /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
      */
-    is_controlled?: Boolean;
+    get is_controlled(): boolean | undefined {
+        return this._is_controlled?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for is_controlled.
+     * Use this to access Boolean methods.
+     */
+    get $is_controlled(): Boolean | undefined {
+        return this._is_controlled;
+    }
+
+    /**
+     * Sets is_controlled from either a primitive value or Boolean wrapper.
+     */
+    set is_controlled(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_controlled = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_controlled = Boolean.from(val);
+        } else {
+            this._is_controlled = val;
+        }
+    }
+
     /**
      * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
      */
@@ -2490,7 +3610,9 @@ export abstract class AUTHORED_RESOURCE {
      * @returns Result value
      */
     current_revision(): String {
-        throw new Error("Method current_revision not implemented.");
+        // TODO: Implement current_revision behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method current_revision not yet implemented.");
     }
 
     /**
@@ -2498,7 +3620,9 @@ export abstract class AUTHORED_RESOURCE {
      * @returns Result value
      */
     languages_available(): String {
-        throw new Error("Method languages_available not implemented.");
+        // TODO: Implement languages_available behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method languages_available not yet implemented.");
     }
 
 }
@@ -2512,13 +3636,73 @@ export class RESOURCE_DESCRIPTION {
      */
     original_author?: undefined;
     /**
+     * Internal storage for original_namespace
+     * @private
+     */
+    private _original_namespace?: String;
+
+    /**
      * Namespace of original author's organisation, in reverse internet form, if applicable.
      */
-    original_namespace?: String;
+    get original_namespace(): string | undefined {
+        return this._original_namespace?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for original_namespace.
+     * Use this to access String methods.
+     */
+    get $original_namespace(): String | undefined {
+        return this._original_namespace;
+    }
+
+    /**
+     * Sets original_namespace from either a primitive value or String wrapper.
+     */
+    set original_namespace(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._original_namespace = undefined;
+        } else if (typeof val === 'string') {
+            this._original_namespace = String.from(val);
+        } else {
+            this._original_namespace = val;
+        }
+    }
+
+    /**
+     * Internal storage for original_publisher
+     * @private
+     */
+    private _original_publisher?: String;
+
     /**
      * Plain text name of organisation that originally published this artefact, if any.
      */
-    original_publisher?: String;
+    get original_publisher(): string | undefined {
+        return this._original_publisher?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for original_publisher.
+     * Use this to access String methods.
+     */
+    get $original_publisher(): String | undefined {
+        return this._original_publisher;
+    }
+
+    /**
+     * Sets original_publisher from either a primitive value or String wrapper.
+     */
+    set original_publisher(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._original_publisher = undefined;
+        } else if (typeof val === 'string') {
+            this._original_publisher = String.from(val);
+        } else {
+            this._original_publisher = val;
+        }
+    }
+
     /**
      * Other contributors to the resource, each listed in "name <email>"  form. 
      */
@@ -2532,22 +3716,142 @@ export class RESOURCE_DESCRIPTION {
      */
     parent_resource?: AUTHORED_RESOURCE;
     /**
+     * Internal storage for custodian_namespace
+     * @private
+     */
+    private _custodian_namespace?: String;
+
+    /**
      * Namespace in reverse internet id form, of current custodian organisation.
      */
-    custodian_namespace?: String;
+    get custodian_namespace(): string | undefined {
+        return this._custodian_namespace?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for custodian_namespace.
+     * Use this to access String methods.
+     */
+    get $custodian_namespace(): String | undefined {
+        return this._custodian_namespace;
+    }
+
+    /**
+     * Sets custodian_namespace from either a primitive value or String wrapper.
+     */
+    set custodian_namespace(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._custodian_namespace = undefined;
+        } else if (typeof val === 'string') {
+            this._custodian_namespace = String.from(val);
+        } else {
+            this._custodian_namespace = val;
+        }
+    }
+
+    /**
+     * Internal storage for custodian_organisation
+     * @private
+     */
+    private _custodian_organisation?: String;
+
     /**
      * Plain text name of current custodian organisation.
      */
-    custodian_organisation?: String;
+    get custodian_organisation(): string | undefined {
+        return this._custodian_organisation?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for custodian_organisation.
+     * Use this to access String methods.
+     */
+    get $custodian_organisation(): String | undefined {
+        return this._custodian_organisation;
+    }
+
+    /**
+     * Sets custodian_organisation from either a primitive value or String wrapper.
+     */
+    set custodian_organisation(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._custodian_organisation = undefined;
+        } else if (typeof val === 'string') {
+            this._custodian_organisation = String.from(val);
+        } else {
+            this._custodian_organisation = val;
+        }
+    }
+
+    /**
+     * Internal storage for copyright
+     * @private
+     */
+    private _copyright?: String;
+
     /**
      * Optional copyright statement for the resource as a knowledge resource. 
      * 
      */
-    copyright?: String;
+    get copyright(): string | undefined {
+        return this._copyright?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for copyright.
+     * Use this to access String methods.
+     */
+    get $copyright(): String | undefined {
+        return this._copyright;
+    }
+
+    /**
+     * Sets copyright from either a primitive value or String wrapper.
+     */
+    set copyright(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._copyright = undefined;
+        } else if (typeof val === 'string') {
+            this._copyright = String.from(val);
+        } else {
+            this._copyright = val;
+        }
+    }
+
+    /**
+     * Internal storage for licence
+     * @private
+     */
+    private _licence?: String;
+
     /**
      * Licence of current artefact, in format "short licence name <URL of licence>", e.g. "Apache 2.0 License <http://www.apache.org/licenses/LICENSE-2.0.html>"
      */
-    licence?: String;
+    get licence(): string | undefined {
+        return this._licence?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for licence.
+     * Use this to access String methods.
+     */
+    get $licence(): String | undefined {
+        return this._licence;
+    }
+
+    /**
+     * Sets licence from either a primitive value or String wrapper.
+     */
+    set licence(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._licence = undefined;
+        } else if (typeof val === 'string') {
+            this._licence = String.from(val);
+        } else {
+            this._licence = val;
+        }
+    }
+
     /**
      * List of acknowledgements of other IP directly referenced in this archetype, typically terminology codes, ontology ids etc. Recommended keys are the widely known name or namespace for the IP source, as shown in the following example:
      * 
@@ -2564,9 +3868,39 @@ export class RESOURCE_DESCRIPTION {
      */
     references?: undefined;
     /**
+     * Internal storage for resource_package_uri
+     * @private
+     */
+    private _resource_package_uri?: String;
+
+    /**
      * URI of package to which this resource belongs.
      */
-    resource_package_uri?: String;
+    get resource_package_uri(): string | undefined {
+        return this._resource_package_uri?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for resource_package_uri.
+     * Use this to access String methods.
+     */
+    get $resource_package_uri(): String | undefined {
+        return this._resource_package_uri;
+    }
+
+    /**
+     * Sets resource_package_uri from either a primitive value or String wrapper.
+     */
+    set resource_package_uri(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._resource_package_uri = undefined;
+        } else if (typeof val === 'string') {
+            this._resource_package_uri = String.from(val);
+        } else {
+            this._resource_package_uri = val;
+        }
+    }
+
     /**
      * Details related to conversion process that generated this model from an original, if relevant, as a list of name/value pairs. Typical example with recommended tags:
      * 
@@ -2602,17 +3936,77 @@ export class TRANSLATION_DETAILS {
      */
     author?: undefined;
     /**
+     * Internal storage for accreditation
+     * @private
+     */
+    private _accreditation?: String;
+
+    /**
      * Accreditation of primary translator or group, usually a national translator's registration or association membership id.
      */
-    accreditation?: String;
+    get accreditation(): string | undefined {
+        return this._accreditation?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for accreditation.
+     * Use this to access String methods.
+     */
+    get $accreditation(): String | undefined {
+        return this._accreditation;
+    }
+
+    /**
+     * Sets accreditation from either a primitive value or String wrapper.
+     */
+    set accreditation(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._accreditation = undefined;
+        } else if (typeof val === 'string') {
+            this._accreditation = String.from(val);
+        } else {
+            this._accreditation = val;
+        }
+    }
+
     /**
      * Any other meta-data.
      */
     other_details?: undefined;
     /**
+     * Internal storage for version_last_translated
+     * @private
+     */
+    private _version_last_translated?: String;
+
+    /**
      * Version of this resource last time it was translated into the language represented by this \`TRANSLATION_DETAILS\` object.
      */
-    version_last_translated?: String;
+    get version_last_translated(): string | undefined {
+        return this._version_last_translated?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for version_last_translated.
+     * Use this to access String methods.
+     */
+    get $version_last_translated(): String | undefined {
+        return this._version_last_translated;
+    }
+
+    /**
+     * Sets version_last_translated from either a primitive value or String wrapper.
+     */
+    set version_last_translated(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._version_last_translated = undefined;
+        } else if (typeof val === 'string') {
+            this._version_last_translated = String.from(val);
+        } else {
+            this._version_last_translated = val;
+        }
+    }
+
     /**
      * Additional contributors to this translation, each listed in the preferred format of the relevant organisation for the artefacts in question. A typical default is \`"name <email>"\` if nothing else is specified. 
      */
@@ -2628,23 +4022,113 @@ export class RESOURCE_DESCRIPTION_ITEM {
      */
     language?: Terminology_code;
     /**
+     * Internal storage for purpose
+     * @private
+     */
+    private _purpose?: String;
+
+    /**
      * Purpose of the resource.
      */
-    purpose?: String;
+    get purpose(): string | undefined {
+        return this._purpose?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for purpose.
+     * Use this to access String methods.
+     */
+    get $purpose(): String | undefined {
+        return this._purpose;
+    }
+
+    /**
+     * Sets purpose from either a primitive value or String wrapper.
+     */
+    set purpose(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._purpose = undefined;
+        } else if (typeof val === 'string') {
+            this._purpose = String.from(val);
+        } else {
+            this._purpose = val;
+        }
+    }
+
     /**
      * Keywords which characterise this resource, used e.g. for indexing and searching. 
      * 
      */
     keywords?: undefined;
     /**
+     * Internal storage for use
+     * @private
+     */
+    private _use?: String;
+
+    /**
      * Description of the uses of the resource, i.e. contexts in which it could be used. 
      * 
      */
-    use?: String;
+    get use(): string | undefined {
+        return this._use?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for use.
+     * Use this to access String methods.
+     */
+    get $use(): String | undefined {
+        return this._use;
+    }
+
+    /**
+     * Sets use from either a primitive value or String wrapper.
+     */
+    set use(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._use = undefined;
+        } else if (typeof val === 'string') {
+            this._use = String.from(val);
+        } else {
+            this._use = val;
+        }
+    }
+
+    /**
+     * Internal storage for misuse
+     * @private
+     */
+    private _misuse?: String;
+
     /**
      * Description of any misuses of the resource, i.e. contexts in which it should not be used.
      */
-    misuse?: String;
+    get misuse(): string | undefined {
+        return this._misuse?.value;
+    }
+
+    /**
+     * Gets the String wrapper object for misuse.
+     * Use this to access String methods.
+     */
+    get $misuse(): String | undefined {
+        return this._misuse;
+    }
+
+    /**
+     * Sets misuse from either a primitive value or String wrapper.
+     */
+    set misuse(val: string | String | undefined) {
+        if (val === undefined || val === null) {
+            this._misuse = undefined;
+        } else if (typeof val === 'string') {
+            this._misuse = String.from(val);
+        } else {
+            this._misuse = val;
+        }
+    }
+
     /**
      * URIs of original clinical document(s) or description of which resource is a formalisation, in the language of this description item; keyed by meaning.
      */
