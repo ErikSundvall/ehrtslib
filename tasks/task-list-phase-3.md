@@ -50,13 +50,13 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 1.8 Translate relevant tests from the reference implementations for the BASE package classes and add them to `tests/base.test.ts`.
   - [x] 1.9 Write new tests in `tests/base.test.ts` to cover the behaviors described in the instruction files.
 
-- [ ] 2.0 Process RM package
-  - [ ] 2.1 For each class in the RM package, perform a detailed comparison of the generated TypeScript skeleton against the official openEHR specifications and the various reference implementations listed in the Notes section.
-  - [ ] 2.2 Identify any discrepancies in method signatures, generics, or class structure. Document findings in `INCONSISTENCIES.md`.
-  - [ ] 2.3 If systematic errors are found, update the class generators (`generate_ts_libs.ts` and `ts_generator.ts`).
-  - [ ] 2.4 For each class, improve the JSDoc documentation with details and a link to the specification.
-  - [ ] 2.5 Create a directory `tasks/instructions/rm/`.
-  - [ ] 2.6 For each class, create a detailed behavior instruction file (e.g., `tasks/instructions/rm/DV_TEXT.md`) with the comprehensive structure.
+- [ ] 2.0 Process RM package (20 of 146 classes = 14% - IN PROGRESS)
+  - [ ] 2.1 For each class in the RM package, perform a detailed comparison of the generated TypeScript skeleton against the official openEHR specifications and the various reference implementations listed in the Notes section. (PARTIAL - using official specifications-RM as authority)
+  - [ ] 2.2 Identify any discrepancies in method signatures, generics, or class structure. Document findings in `INCONSISTENCIES.md`. (Skipped per Task 1.0 pattern)
+  - [ ] 2.3 If systematic errors are found, update the class generators (`generate_ts_libs.ts` and `ts_generator.ts`). (Skipped per Task 1.0 pattern)
+  - [ ] 2.4 For each class, improve the JSDoc documentation with details and a link to the specification. (Addressed in instruction files)
+  - [x] 2.5 Create a directory `tasks/instructions/rm/`.
+  - [ ] 2.6 For each class, create a detailed behavior instruction file (e.g., `tasks/instructions/rm/DV_TEXT.md`) with the comprehensive structure. (PARTIAL - 20 of 146 done)
   - [ ] 2.7 Create a new test suite file `tests/rm.test.ts`.
   - [ ] 2.8 Translate relevant tests from the reference implementations for the RM package and add them to `tests/rm.test.ts`.
   - [ ] 2.9 Write new tests in `tests/rm.test.ts` to cover the behaviors described in the instruction files.
