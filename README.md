@@ -9,7 +9,7 @@ This section describes how to generate TypeScript libraries from the latest open
 
 ### Prerequisites
 
-- [Deno](https://deno.land/) runtime installed (installatio instructions at https://docs.deno.com/runtime/getting_started/installation/) If you have node/npm installed then deno is installed by running `npm install -g deno`
+- [Deno](https://deno.land/) runtime installed (installation instructions at https://docs.deno.com/runtime/getting_started/installation/) If you have node/npm installed then deno is installed by running `npm install -g deno`
 - Internet connection (to download BMM JSON files from GitHub)
 
 ### Quick Start
