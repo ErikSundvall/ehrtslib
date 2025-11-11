@@ -2,32 +2,14 @@
 # ehrtslib
 TypeScript library for (to begin with) openEHR. Intended for (partial) use both in clients like web browsers or and in servers based on e.g. Deno or Node.js 
 
-## Code Structure: Orchestrator vs Generator
-
-The TypeScript library generation process is split into two main scripts for clarity and maintainability:
-
-- **`tasks/generate_ts_libs.ts`** (Orchestrator):
-    - Handles the overall workflow: reads config, sorts packages by dependency, downloads BMM files, builds context, and writes output files.
-    - Adds traceability headers and ensures correct import order.
-    - Calls the generator logic in `ts_generator.ts` for each package.
-
-- **`tasks/ts_generator.ts`** (Generator Logic):
-    - Contains all reusable logic for mapping BMM JSON to TypeScript code.
-    - Handles type resolution, class/interface generation, documentation extraction, and type validation.
-    - Used as a library by the orchestrator script.
-
-This separation ensures that the orchestration logic (batch processing, dependency handling, file output) is kept distinct from the code generation logic (type mapping, documentation, class creation), making the codebase easier to maintain and extend.
-
-# Phase 2: TypeScript Library Generation
+## TypeScript EHR Library Generation
 
 This section describes how to generate TypeScript libraries from the latest openEHR BMM JSON specifications.
 
-## Prerequisites
+### Prerequisites
 
-- [Deno](https://deno.land/) runtime installed
+- [Deno](https://deno.land/) runtime installed (installatio instructions at https://docs.deno.com/runtime/getting_started/installation/) If you have node/npm installed then deno is installed by running `npm install -g deno`
 - Internet connection (to download BMM JSON files from GitHub)
-
-## Generating TypeScript Libraries
 
 ### Quick Start
 
@@ -93,18 +75,18 @@ import * as base from "./openehr_base.ts";
 // Use the classes...
 const id: base.UID_BASED_ID = ...;
 ```
+## Architecture / Code Structure: Orchestrator & Generator
 
+The TypeScript library generation process is split into two main scripts for clarity and maintainability:
 
------
+- **`tasks/generate_ts_libs.ts`** (Orchestrator):
+    - Handles the overall workflow: reads config, sorts packages by dependency, downloads BMM files, builds context, and writes output files.
+    - Adds traceability headers and ensures correct import order.
+    - Calls the generator logic in `ts_generator.ts` for each package.
 
-# Old refence perhaps covered above already:
+- **`tasks/ts_generator.ts`** (Generator Logic):
+    - Contains all reusable logic for mapping BMM JSON to TypeScript code.
+    - Handles type resolution, class/interface generation, documentation extraction, and type validation.
+    - Used as a library by the orchestrator script.
 
-## Regenerate TypeScript libraries
-deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
-
-## Update BMM versions and dependencies
-deno run --allow-net --allow-write tasks/extract_dependencies.ts
-
-## Run tests
-deno test --allow-read tests/generated_libs_test.ts
-
+This separation ensures that the orchestration logic (batch processing, dependency handling, file output) is kept distinct from the code generation logic (type mapping, documentation, class creation), making the codebase easier to maintain and extend.

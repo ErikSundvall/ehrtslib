@@ -3,7 +3,7 @@
 // Schema Revision: 1.2.0.2
 // Description: openEHR Reference Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json
-// Generated: 2025-11-11T08:30:07.207Z
+// Generated: 2025-11-11T19:34:14.541Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
