@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-10T12:36:29.635Z
+// Generated: 2025-11-11T05:27:02.862Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -18,7 +18,7 @@ type T = any;
 /**
  * Archetype equivalent to ARCHETYPED class in Common reference model. Defines semantics of identfication, lifecycle, versioning, composition and specialisation.
  */
-export class ARCHETYPE {
+export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     /**
      * Root node of the definition of this archetype.
      */
@@ -56,11 +56,11 @@ export class ARCHETYPE {
 /**
  * Root object of a standalone, authored archetype, including all meta-data, description, other identifiers and lifecycle.
  */
-export class AUTHORED_ARCHETYPE {
+export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    override adl_version?: string;
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
@@ -79,7 +79,7 @@ export class AUTHORED_ARCHETYPE {
 /**
  * Class representing source template, i.e. a kind of archetype that may include template overlays, and may be restricted by tools to only defining mandations, prohibitions, and restrictions on elements already defined in the flat parent.
  */
-export class TEMPLATE {
+export class TEMPLATE extends AUTHORED_ARCHETYPE {
     /**
      * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
      */
@@ -91,7 +91,7 @@ export class TEMPLATE {
  * 
  * An operational template is used for generating and validating RM-canonical instance data, and also as a source artefact for generating other downstream technical artefacts, including XML schemas, APIs and UI form definitions.
  */
-export class OPERATIONAL_TEMPLATE {
+export class OPERATIONAL_TEMPLATE extends AUTHORED_ARCHETYPE {
     /**
      * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
      */
@@ -105,7 +105,7 @@ export class OPERATIONAL_TEMPLATE {
 /**
  * A concrete form of the bare \`ARCHETYPE\` class, used to represent overlays in a source template. Overlays have no meta-data of their own, and are instead documented by their owning template.
  */
-export class TEMPLATE_OVERLAY {
+export class TEMPLATE_OVERLAY extends ARCHETYPE {
 }
 
 /**
@@ -154,13 +154,13 @@ export class ARCHETYPE_HRID {
 /**
  * Archetype equivalent to LOCATABLE class in openEHR Common reference model. Defines common constraints for any inheritor of LOCATABLE in any reference model. 
  */
-export class ARCHETYPE_CONSTRAINT {
+export abstract class ARCHETYPE_CONSTRAINT {
 }
 
 /**
  * Abstract model of constraint on any kind of object node. 
  */
-export class C_OBJECT {
+export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
     /**
      * Reference model type that this node corresponds to. 
      */
@@ -180,7 +180,7 @@ export class C_OBJECT {
 /**
  * Abstract model of constraint on any kind of attribute node.
  */
-export class C_ATTRIBUTE {
+export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
@@ -198,17 +198,17 @@ export class C_ATTRIBUTE {
 /**
  * Abstract parent type of C_OBJECT subtypes that are defined by value, i.e. whose definitions are actually in the archetype rather than being by reference. 
  */
-export class C_DEFINED_OBJECT {
+export abstract class C_DEFINED_OBJECT extends C_OBJECT {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: any;
+    assumed_value?: openehr_base.Any;
 }
 
 /**
  * A constraint defined by proxy, using a reference to an object constraint defined elsewhere in the same archetype. Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on a \`COMPLEX_OBJECT_PROXY\` should always be used; when setting this from a serialised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of \`{1..1}\`); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out. 
  */
-export class C_COMPLEX_OBJECT_PROXY {
+export class C_COMPLEX_OBJECT_PROXY extends C_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
@@ -216,9 +216,15 @@ export class C_COMPLEX_OBJECT_PROXY {
 }
 
 /**
+ * Abstract parent type of C_OBJECT subtypes that are defined by reference.
+ */
+export abstract class C_REFERENCE_OBJECT extends C_OBJECT {
+}
+
+/**
  * Constraint describing a  slot' where another archetype can occur. 
  */
-export class ARCHETYPE_SLOT {
+export class ARCHETYPE_SLOT extends C_REFERENCE_OBJECT {
     /**
      * List of constraints defining other archetypes that could be included at this point. 
      */
@@ -232,7 +238,7 @@ export class ARCHETYPE_SLOT {
 /**
  * Constraint on a primitive type.
  */
-export class C_PRIMITIVE_OBJECT {
+export class C_PRIMITIVE_OBJECT extends C_DEFINED_OBJECT {
     /**
      * Object actually defining the constraint.
      */
@@ -256,9 +262,19 @@ export class SIBLING_ORDER {
 }
 
 /**
+ * Abstract parent of classes defining second order constraints.
+ */
+export abstract class C_SECOND_ORDER {
+    /**
+     * Members of this second order constrainer. Normally redefined in descendants.
+     */
+    members?: undefined;
+}
+
+/**
  * Object representing a constraint on an attribute tuple, i.e. a group of attributes that are constrained together. Typically used for representing co-varying constraints like \`{units, range}\` constraints.
  */
-export class C_ATTRIBUTE_TUPLE {
+export class C_ATTRIBUTE_TUPLE extends C_SECOND_ORDER {
     /**
      * Tuple definitions.
      */
@@ -266,27 +282,27 @@ export class C_ATTRIBUTE_TUPLE {
     /**
      * List of \`C_ATTRIBUTEs\` forming the definition of the tuple.
      */
-    members?: undefined;
+    override members?: undefined;
 }
 
 /**
  * Class representing a single object tuple instance in a tuple constraint. Each such instance is a vector of object constraints, where each member (each \`C_PRIMITIVE_OBJECT\`) corresponds to one of the \`C_ATTRIBUTEs\` referred to by the owning \`C_ATTRIBUTE_TUPLE\`.
  */
-export class C_PRIMITIVE_TUPLE {
+export class C_PRIMITIVE_TUPLE extends C_SECOND_ORDER {
     /**
      * Object constraint members of this tuple group.
      */
-    members?: undefined;
+    override members?: undefined;
 }
 
 /**
- * Abstract parent of classes defining second order constraints.
+ * Constraint on complex objects, i.e. any object that consists of other object constraints.
  */
-export class C_SECOND_ORDER {
+export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
     /**
-     * Members of this second order constrainer. Normally redefined in descendants.
+     * List of constraints on attributes of the reference model type represented by this object.
      */
-    members?: undefined;
+    attributes?: undefined;
 }
 
 /**
@@ -303,21 +319,11 @@ export class C_SECOND_ORDER {
  * In an operational template, the \`_node_id_\` is converted to the \`_archetype_ref_\`, and the structure contains the result of flattening any template overlay structure and the underlying flat archetype.
  * 
  */
-export class C_ARCHETYPE_ROOT {
+export class C_ARCHETYPE_ROOT extends C_COMPLEX_OBJECT {
     /**
      * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
      */
     archetype_ref?: string;
-}
-
-/**
- * Constraint on complex objects, i.e. any object that consists of other object constraints.
- */
-export class C_COMPLEX_OBJECT {
-    /**
-     * List of constraints on attributes of the reference model type represented by this object.
-     */
-    attributes?: undefined;
 }
 
 /**
@@ -331,9 +337,19 @@ export class ARCHETYPE_ID_CONSTRAINT {
 }
 
 /**
+ * Parent of types representing constraints on primitive types.
+ */
+export abstract class C_PRIMITIVE {
+    /**
+     * Value to be assumed if none sent in data.
+     */
+    assumed_value?: openehr_base.Any;
+}
+
+/**
  * Constraint on instances of Boolean. Both attributes cannot be set to False, since this would mean that the Boolean value being constrained cannot be True or False.
  */
-export class C_BOOLEAN {
+export class C_BOOLEAN extends C_PRIMITIVE {
     /**
      * True if the value True is allowed.
      */
@@ -345,13 +361,13 @@ export class C_BOOLEAN {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: boolean;
+    override assumed_value?: boolean = undefined;
 }
 
 /**
  * Constraint on instances of STRING. 
  */
-export class C_STRING {
+export class C_STRING extends C_PRIMITIVE {
     /**
      * Regular expression pattern for proposed instances of String to match.
      */
@@ -367,13 +383,13 @@ export class C_STRING {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: string;
+    override assumed_value?: string = undefined;
 }
 
 /**
  * Constraint on instances of Integer.
  */
-export class C_INTEGER {
+export class C_INTEGER extends C_PRIMITIVE {
     /**
      * Set of Integers specifying constraint.
      */
@@ -385,13 +401,13 @@ export class C_INTEGER {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: number;
+    override assumed_value?: number = undefined;
 }
 
 /**
  * Constraint on instances of Real.
  */
-export class C_REAL {
+export class C_REAL extends C_PRIMITIVE {
     /**
      * Set of Reals specifying constraint.
      */
@@ -403,7 +419,7 @@ export class C_REAL {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: number;
+    override assumed_value?: number = undefined;
 }
 
 /**
@@ -413,7 +429,7 @@ export class C_REAL {
  * 
  * The next simplest form is a single proper \`Interval <T>\` (i.e. normal two-sided or half-open interval). The most complex form is a list of any combination of point and proper intervals.
  */
-export class C_ORDERED {
+export abstract class C_ORDERED<T extends openehr_base.Ordered> extends C_PRIMITIVE_OBJECT {
     /**
      * Constraint in the form of a List of Intervals of the parameter type T. Concrete types generated in descendants via template binding.
      */
@@ -425,7 +441,7 @@ export class C_ORDERED {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: T;
+    override assumed_value?: T = undefined;
 }
 
 /**
@@ -438,7 +454,7 @@ export class C_ORDERED {
  * 
  * The \`_constraint_status_\` attribute and \`_constraint_required_()\` function together define whether the \`_constraint_\` is considered formal ('required') or not. In the non-required cases, a data-item matched to this constraint may be any coded term.
  */
-export class C_TERMINOLOGY_CODE {
+export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
     /**
      * Type of individual constraint - a single string that can either be a local at-code, or a local ac-code signifying a locally defined value set. If an ac-code, assumed_value may contain an at-code from the value set of the ac-code.
      * 
@@ -448,7 +464,7 @@ export class C_TERMINOLOGY_CODE {
     /**
      * Assumed Terminology code value.
      */
-    assumed_value?: openehr_base.Terminology_code;
+    override assumed_value?: openehr_base.Terminology_code = undefined;
     default_value?: openehr_base.Terminology_code;
     /**
      * Constraint status of this terminology constraint. If Void, the meaning is as follows:
@@ -467,7 +483,7 @@ export class C_TERMINOLOGY_CODE {
 /**
  * Purpose Abstract parent of \`C_ORDERED\` types whose base type is an ISO date/time type.
  */
-export class C_TEMPORAL {
+export abstract class C_TEMPORAL<T extends openehr_base.Temporal> extends C_ORDERED<T> {
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
@@ -477,7 +493,7 @@ export class C_TEMPORAL {
 /**
  * ISO 8601-compatible constraint on instances of Time. There is no validity flag for ‘hour’, since it must always be by definition mandatory in order to have a sensible time at all. Syntax expressions of instances of this class include “HH:??:xx” (time with optional minutes and seconds not allowed).
  */
-export class C_TIME {
+export class C_TIME extends C_PRIMITIVE {
     /**
      * Validity of minute in constrained time.
      */
@@ -501,13 +517,13 @@ export class C_TIME {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_time;
+    override assumed_value?: openehr_base.Iso8601_time = undefined;
 }
 
 /**
  * ISO 8601-compatible constraint on instances of Date in the form either of a set of validity values, or an actual date range. There is no validity flag for ‘year’, since it must always be by definition mandatory in order to have a sensible date at all. Syntax expressions of instances of this class include “YYYY-??-??” (date with optional month and day).
  */
-export class C_DATE {
+export class C_DATE extends C_PRIMITIVE {
     /**
      * Validity of day in constrained date.
      */
@@ -527,13 +543,13 @@ export class C_DATE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_date;
+    override assumed_value?: openehr_base.Iso8601_date = undefined;
 }
 
 /**
  * ISO 8601-compatible constraint on instances of Date_Time. There is no validity flag for ‘year’, since it must always be by definition mandatory in order to have a sensible date/time at all. Syntax expressions of instances of this class include “YYYY-MM-DDT??:??:??” (date/time with optional time) and “YYYY-MMDDTHH:MM:xx” (date/time, seconds not allowed).
  */
-export class C_DATE_TIME {
+export class C_DATE_TIME extends C_PRIMITIVE {
     /**
      * Validity of month in constrained date.
      */
@@ -569,7 +585,7 @@ export class C_DATE_TIME {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_date_time;
+    override assumed_value?: openehr_base.Iso8601_date_time = undefined;
 }
 
 /**
@@ -583,7 +599,7 @@ export class C_DATE_TIME {
  * * the values used in an interval constraint may be negated, i.e. a leading minus (\`'-'\`) sign may be used.
  * 
  */
-export class C_DURATION {
+export class C_DURATION extends C_PRIMITIVE {
     years_allowed?: boolean;
     /**
      * True if months are allowed in the constrained Duration.
@@ -614,7 +630,7 @@ export class C_DURATION {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_duration;
+    override assumed_value?: openehr_base.Iso8601_duration = undefined;
 }
 
 /**
@@ -758,7 +774,7 @@ export class ARCHETYPE_TERM {
 /**
  * Class whose instances represent any kind of 1:N relationship between a source term and 1-N target terms.
  */
-export class TERMINOLOGY_RELATION {
+export abstract class TERMINOLOGY_RELATION {
     /**
      * Code of source term of this relation.
      */
@@ -772,7 +788,7 @@ export class TERMINOLOGY_RELATION {
 /**
  * Representation of a flat value set within the archetype terminology.
  */
-export class VALUE_SET {
+export class VALUE_SET extends TERMINOLOGY_RELATION {
 }
 
 /**
@@ -853,13 +869,13 @@ export class VISIBILITY_TYPE {
 /**
  * Archetype equivalent to LOCATABLE class in openEHR Common reference model. Defines common constraints for any inheritor of LOCATABLE in any reference model. 
  */
-export class P_ARCHETYPE_CONSTRAINT {
+export abstract class P_ARCHETYPE_CONSTRAINT {
 }
 
 /**
  * Abstract model of constraint on any kind of object node. 
  */
-export class P_C_OBJECT {
+export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Reference model type that this node corresponds to. 
      */
@@ -879,7 +895,7 @@ export class P_C_OBJECT {
 /**
  * Abstract model of constraint on any kind of attribute node.
  */
-export class P_C_ATTRIBUTE {
+export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
@@ -909,15 +925,15 @@ export class P_C_ATTRIBUTE {
 /**
  * Abstract parent type of C_OBJECT subtypes that are defined by value, i.e. whose definitions are actually in the archetype rather than being by reference. 
  */
-export class P_C_DEFINED_OBJECT {
+export abstract class P_C_DEFINED_OBJECT extends P_C_OBJECT {
     is_frozen?: boolean;
-    default_value?: any;
+    default_value?: openehr_base.Any;
 }
 
 /**
  * A constraint defined by proxy, using a reference to an object constraint defined elsewhere in the same archetype. Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on a COJMPLEX_OBJECT_PROXY should always be used; when setting this from a seri- alised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of {1..1}); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out. 
  */
-export class P_C_COMPLEX_OBJECT_PROXY {
+export class P_C_COMPLEX_OBJECT_PROXY extends P_C_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
@@ -927,7 +943,7 @@ export class P_C_COMPLEX_OBJECT_PROXY {
 /**
  * Constraint describing a  slot' where another archetype can occur. 
  */
-export class P_ARCHETYPE_SLOT {
+export class P_ARCHETYPE_SLOT extends P_C_OBJECT {
     /**
      * List of constraints defining other archetypes that could be included at this point. 
      */
@@ -942,11 +958,11 @@ export class P_ARCHETYPE_SLOT {
 /**
  * Parent of types representing constraints on primitive types.
  */
-export class P_C_PRIMITIVE_OBJECT {
+export abstract class P_C_PRIMITIVE_OBJECT extends P_C_DEFINED_OBJECT {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: any;
+    assumed_value?: openehr_base.Any;
     /**
      * True if this constraint is actually of an enumerated type that conforms to a primitive type, not a primitive.
      */
@@ -954,13 +970,13 @@ export class P_C_PRIMITIVE_OBJECT {
     /**
      * Constraint represented by this object; redefine in descendants.
      */
-    constraint?: any;
+    constraint?: openehr_base.Any;
 }
 
 /**
  * Constraint on complex objects, i.e. any object that consists of other object constraints.
  */
-export class P_C_COMPLEX_OBJECT {
+export class P_C_COMPLEX_OBJECT extends P_C_DEFINED_OBJECT {
     /**
      * List of constraints on attributes of the reference model type represented by this object.
      */
@@ -981,29 +997,29 @@ export class P_C_ATTRIBUTE_TUPLE {
     members?: undefined;
 }
 
-export class P_C_ARCHETYPE_ROOT {
+export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
     archetype_ref?: string;
 }
 
 /**
  * Constraint on instances of Boolean. Both attributes cannot be set to False, since this would mean that the Boolean value being constrained cannot be True or False.
  */
-export class P_C_BOOLEAN {
-    constraint?: undefined;
-    assumed_value?: boolean;
-    default_value?: boolean;
+export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
+    override constraint?: undefined = undefined;
+    override assumed_value?: boolean = undefined;
+    override default_value?: boolean = undefined;
 }
 
 /**
  * Constraint on instances of STRING. 
  */
-export class P_C_STRING {
+export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
     /**
      * String constraint - a list of literal strings and / or regular expression strings delimited by the ‘/’ character.
      */
-    constraint?: undefined;
-    default_value?: string;
-    assumed_value?: string;
+    override constraint?: undefined = undefined;
+    override default_value?: string = undefined;
+    override assumed_value?: string = undefined;
 }
 
 /**
@@ -1025,8 +1041,8 @@ export class P_C_REAL {
  * 
  * The next simplest form is a single proper Interval <T> (i.e. normal two-sided or half-open interval). The most complex form is a list of any combination of point and proper intervals.
  */
-export class P_C_ORDERED {
-    constraint?: undefined;
+export abstract class P_C_ORDERED<T extends openehr_base.Ordered> extends P_C_PRIMITIVE_OBJECT {
+    override constraint?: undefined = undefined;
 }
 
 /**
@@ -1036,16 +1052,16 @@ export class P_C_ORDERED {
  * * a list of at- and/or ac-codes, representing the possibilities of a tuple constraint
  * The last possibility above is enabled by the merge_tuple routine, which enables the constraint of another single-valued C_TERMINOLOGY_CODE to be merged with the current one.
  */
-export class P_C_TERMINOLOGY_CODE {
-    constraint?: string;
-    assumed_value?: openehr_base.Terminology_code;
-    default_value?: openehr_base.Terminology_code;
+export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
+    override constraint?: string = undefined;
+    override assumed_value?: openehr_base.Terminology_code = undefined;
+    override default_value?: openehr_base.Terminology_code = undefined;
 }
 
 /**
  * Purpose Abstract parent of C_ORDERED types whose base type is an ISO date/time type.
  */
-export class P_C_TEMPORAL {
+export abstract class P_C_TEMPORAL<T extends openehr_base.Temporal> extends P_C_ORDERED<T> {
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
@@ -1078,7 +1094,7 @@ export class P_C_DURATION {
  * 
  * An archetype is a modelled as a particular kind of AUTHORED_RESOURCE, and as such, includes descriptive meta-data, language information and revision history. The ARCHETYPE class adds identifying information, a definition - expressed in terms of constraints on instances of an object model, and an ontology.
  */
-export class P_ARCHETYPE {
+export abstract class P_ARCHETYPE {
     /**
      * Identifier of the specialisation parent of this archetype.
      */
@@ -1106,9 +1122,40 @@ export class P_ARCHETYPE {
 }
 
 /**
+ * Abstract idea of an online resource created by a human author. 
+ * 
+ */
+export abstract class P_AUTHORED_RESOURCE {
+    /**
+     * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
+     */
+    original_language?: string;
+    /**
+     * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
+     */
+    is_controlled?: boolean;
+    /**
+     * List of details for each natural translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The original_language does not appear in this list.
+     */
+    translations?: undefined;
+    /**
+     * Description and lifecycle information of the resource.
+     */
+    description?: openehr_base.RESOURCE_DESCRIPTION;
+    /**
+     * Unique identifier of the family of archetypes having the same interface identifier (same major version).
+     */
+    uid?: string;
+    /**
+     * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
+     */
+    annotations?: undefined;
+}
+
+/**
  * Root object of a standalone, authored archetype, including all meta-data, description, other identifiers and lifecycle.
  */
-export class P_AUTHORED_ARCHETYPE {
+export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
     /**
      * ADL version if archteype was read in from an ADL sharable archetype.
      */
@@ -1131,7 +1178,7 @@ export class P_AUTHORED_ARCHETYPE {
 /**
  * Class representing source template, i.e. a kind of archetype that may include template overlays, and may be restricted by tools to only defining mandations, prohibitions, and restrictions on elements already defined in the flat parent.
  */
-export class P_TEMPLATE {
+export class P_TEMPLATE extends P_AUTHORED_ARCHETYPE {
 }
 
 /**
@@ -1139,7 +1186,7 @@ export class P_TEMPLATE {
  * 
  * An operational template is used for generating and validating canonical openEHR data, and also as a source artefact for generating other downstream technical artefacts, including XML schemas, APIs and UI form definitions.
  */
-export class P_OPERATIONAL_TEMPLATE {
+export class P_OPERATIONAL_TEMPLATE extends P_AUTHORED_ARCHETYPE {
     /**
      * Compendium of flattened terminologies of archetypes externally referenced from this archetype, keyed by archetype identifier. This will almost always be present in a template.
      */
@@ -1186,37 +1233,6 @@ export class P_ARCHETYPE_HRID {
      * The build count since last increment of any version part.
      */
     build_count?: string;
-}
-
-/**
- * Abstract idea of an online resource created by a human author. 
- * 
- */
-export class P_AUTHORED_RESOURCE {
-    /**
-     * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
-     */
-    original_language?: string;
-    /**
-     * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
-     */
-    is_controlled?: boolean;
-    /**
-     * List of details for each natural translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The original_language does not appear in this list.
-     */
-    translations?: undefined;
-    /**
-     * Description and lifecycle information of the resource.
-     */
-    description?: openehr_base.RESOURCE_DESCRIPTION;
-    /**
-     * Unique identifier of the family of archetypes having the same interface identifier (same major version).
-     */
-    uid?: string;
-    /**
-     * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
-     */
-    annotations?: undefined;
 }
 
 /**
@@ -1320,13 +1336,53 @@ export class AOM_PROPERTY_MAPPING {
 }
 
 /**
+ * Abstract parent of all expression tree items.
+ */
+export abstract class EXPR_ITEM {
+    /**
+     * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
+     */
+    type?: string;
+}
+
+/**
+ * Expression tree leaf item representing one of:
+ * 
+ * * a manifest constant of any primitive type;
+ * * a path referring to a value in the archetype;
+ * * a constraint;
+ * * a variable reference.
+ * 
+ */
+export class EXPR_LEAF extends EXPR_ITEM {
+    /**
+     * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
+     */
+    reference_type?: string;
+    /**
+     * The value referred to; a manifest constant, an attribute path (in the form of a String), or for the right-hand side of a ‘matches’ node, a constraint, often a C_PRIMITIVE_OBJECT.
+     */
+    item?: openehr_base.Any;
+}
+
+/**
+ * Expression tree leaf item representing a constraint on a primitive type, expressed in the form of a concrete subtype of C_PRIMITIVE_OBJECT.
+ */
+export class EXPR_CONSTRAINT extends EXPR_LEAF {
+    /**
+     * The constraint.
+     */
+    override item?: C_PRIMITIVE_OBJECT = undefined;
+}
+
+/**
  * Expression tree leaf item representing a constraint on an archetype identifier.
  */
-export class EXPR_ARCHETYPE_ID_CONSTRAINT {
+export class EXPR_ARCHETYPE_ID_CONSTRAINT extends EXPR_CONSTRAINT {
     /**
      * A C_STRING representing a regular expression for matching Archetype identifiers.
      */
-    item?: C_STRING;
+    override item?: C_STRING = undefined;
 }
 
 /**
@@ -1336,7 +1392,7 @@ export class EXPR_ARCHETYPE_ID_CONSTRAINT {
  * * Paths with no leading ‘/’ are in the outer part of the archetype, e.g. “archetype_id/value” refers to the String value of the archetype_id attribute of the enclosing archetype.
  * 
  */
-export class EXPR_ARCHETYPE_REF {
+export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
     /**
      * The path to the archetype node.
      */
@@ -1345,19 +1401,15 @@ export class EXPR_ARCHETYPE_REF {
 }
 
 /**
- * Expression tree leaf item representing a constraint on a primitive type, expressed in the form of a concrete subtype of C_PRIMITIVE_OBJECT.
+ * Abstract parent type of domain-specific constrainer types, to be defined in external packages.
  */
-export class EXPR_CONSTRAINT {
-    /**
-     * The constraint.
-     */
-    item?: C_PRIMITIVE_OBJECT;
+export abstract class C_DOMAIN_TYPE extends C_DEFINED_OBJECT {
 }
 
 /**
  * Constrainer class for Ordinal data.
  */
-export class C_ORDINAL {
+export class C_ORDINAL extends C_DOMAIN_TYPE {
     /**
      * Value set of allowed Ordinals in the constraint.
      */
@@ -1367,7 +1419,7 @@ export class C_ORDINAL {
 /**
  * Constrainer class for Coded text data.
  */
-export class C_CODED_TEXT {
+export class C_CODED_TEXT extends C_DOMAIN_TYPE {
     /**
      * Terminology identifier.
      */
@@ -1382,7 +1434,7 @@ export class C_CODED_TEXT {
 /**
  * Constrainer class for Quantity data.
  */
-export class C_QUANTITY {
+export class C_QUANTITY extends C_DOMAIN_TYPE {
     /**
      * Name of physical property for Quantities being constrained.
      */
@@ -1458,39 +1510,9 @@ export class ASSERTION_VARIABLE {
 }
 
 /**
- * Abstract parent of all expression tree items.
- */
-export class EXPR_ITEM {
-    /**
-     * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
-     */
-    type?: string;
-}
-
-/**
- * Expression tree leaf item representing one of:
- * 
- * * a manifest constant of any primitive type;
- * * a path referring to a value in the archetype;
- * * a constraint;
- * * a variable reference.
- * 
- */
-export class EXPR_LEAF {
-    /**
-     * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
-     */
-    reference_type?: string;
-    /**
-     * The value referred to; a manifest constant, an attribute path (in the form of a String), or for the right-hand side of a ‘matches’ node, a constraint, often a C_PRIMITIVE_OBJECT.
-     */
-    item?: any;
-}
-
-/**
  * Abstract parent of operator types.
  */
-export class EXPR_OPERATOR {
+export abstract class EXPR_OPERATOR extends EXPR_ITEM {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
@@ -1504,7 +1526,7 @@ export class EXPR_OPERATOR {
 /**
  * Unary operator expression node.
  */
-export class EXPR_UNARY_OPERATOR {
+export class EXPR_UNARY_OPERATOR extends EXPR_OPERATOR {
     /**
      * Operand node.
      */
@@ -1514,7 +1536,7 @@ export class EXPR_UNARY_OPERATOR {
 /**
  * Binary operator expression node.
  */
-export class EXPR_BINARY_OPERATOR {
+export class EXPR_BINARY_OPERATOR extends EXPR_OPERATOR {
     /**
      * Left operand node.
      */
@@ -1555,7 +1577,7 @@ export class CARDINALITY {
  * 
  * Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on an ARCHETYPE_INTERNAL_REF should always be used; when setting this from a serialised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of {1..1}); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out.
  */
-export class ARCHETYPE_INTERNAL_REF {
+export class ARCHETYPE_INTERNAL_REF extends C_REFERENCE_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
@@ -1565,13 +1587,13 @@ export class ARCHETYPE_INTERNAL_REF {
 /**
  * Concrete model of constraint on a single-valued attribute node. The meaning of the inherited children attribute is that they are alternatives.
  */
-export class C_SINGLE_ATTRIBUTE {
+export class C_SINGLE_ATTRIBUTE extends C_ATTRIBUTE {
 }
 
 /**
  * Reference to a constraint described in the same archetype, but outside the main constraint structure. This is used to refer to constraints expressed in terms of external resources, such as constraints on terminology value sets.
  */
-export class CONSTRAINT_REF {
+export class CONSTRAINT_REF extends C_REFERENCE_OBJECT {
     /**
      * Reference to a constraint in the archetype local ontology.
      */
@@ -1581,23 +1603,11 @@ export class CONSTRAINT_REF {
 /**
  * Concrete model of constraint on multiply-valued (ie. container) attribute node.
  */
-export class C_MULTIPLE_ATTRIBUTE {
+export class C_MULTIPLE_ATTRIBUTE extends C_ATTRIBUTE {
     /**
      * Cardinality of this attribute constraint, if it constraints a container attribute.
      */
     cardinality?: CARDINALITY;
-}
-
-/**
- * Abstract parent type of domain-specific constrainer types, to be defined in external packages.
- */
-export class C_DOMAIN_TYPE {
-}
-
-/**
- * Abstract parent type of C_OBJECT subtypes that are defined by reference.
- */
-export class C_REFERENCE_OBJECT {
 }
 
 /**
@@ -1625,15 +1635,5 @@ export class ARCHETYPE_ONTOLOGY {
      */
     specialisation_depth?: number;
     term_attribute_names?: undefined;
-}
-
-/**
- * Parent of types representing constraints on primitive types.
- */
-export class C_PRIMITIVE {
-    /**
-     * Value to be assumed if none sent in data.
-     */
-    assumed_value?: any;
 }
 

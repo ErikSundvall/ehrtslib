@@ -3,7 +3,7 @@
 // Schema Revision: 3.1.0.2
 // Description: term
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json
-// Generated: 2025-11-10T12:36:29.706Z
+// Generated: 2025-11-11T05:27:03.039Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts

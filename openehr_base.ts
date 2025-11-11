@@ -3,7 +3,7 @@
 // Schema Revision: 1.3.0.2
 // Description: openEHR base types.
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json
-// Generated: 2025-11-10T12:36:29.607Z
+// Generated: 2025-11-11T05:27:02.807Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -15,59 +15,38 @@ type T = any;
 
 /**
  * Abstract ancestor class for all other classes. Usually maps to a type like \`Any\` or \`Object\` in an object-oriented technology. Defined here to provide value and reference equality semantics.
- * @see {@link https://specifications.openehr.org/releases/BASE/development/foundation_types.html#_any_class}
  */
 export abstract class Any {
-  /**
-   * Value equality: return True if this and other are attached to objects considered to be equal in value.
-   * To be implemented by concrete subclasses.
-   * @param other The object to compare with.
-   * @returns {boolean} True if the objects are equal in value.
-   */
-  abstract is_equal(other: Any): boolean;
-
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * In TypeScript, this is best represented by the strict equality operator.
-   * @param other The object to compare with.
-   * @returns {boolean} True if the objects are the same instance.
-   */
-  equal(other: Any): boolean {
-    return this === other;
-  }
-
-  /**
-   * True if current object not equal to other.
-   * @param other The object to compare with.
-   * @returns {boolean} True if the objects are not the same instance.
-   */
-  not_equal(other: Any): boolean {
-    return this !== other;
-  }
-
-  /**
-   * Create new instance of a type.
-   * NOTE: This is a feature of some modelling environments and not straightforwardly implemented in TypeScript.
-   * @param a_type The string name of the type to create.
-   */
-  instance_of(a_type: string): Any {
-    throw new Error(`'instance_of' not implemented for type ${a_type}`);
-  }
-
-  /**
-   * Type name of an object as a string. May include generic parameters.
-   * @param an_object The object whose type name is required.
-   * @returns {string} The type name.
-   */
-  type_of(an_object: Any): string {
-    return an_object.constructor.name;
-  }
 }
 
 /**
  * Abstract ancestor of container types whose items are addressable in some way.
  */
-export abstract class Container<T> extends Any {
+export abstract class Container<T extends Any> extends Any {
+}
+
+/**
+ * Type representing a keyed table of values. V is the value type, and K the type of the keys. 
+ */
+export class Hash<K extends Ordered, V> extends Container<K> {
+}
+
+/**
+ * Ordered container that may contain duplicates.
+ */
+export class List<T extends Any> extends Container<T> {
+}
+
+/**
+ * Unordered container that may not contain duplicates.
+ */
+export class Set<T extends Any> extends Container<T> {
+}
+
+/**
+ * Container whose storage is assumed to be contiguous.
+ */
+export class Array<T extends Any> extends Container<T> {
 }
 
 /**
@@ -80,132 +59,18 @@ export abstract class Ordered extends Any {
  * Type representing minimal interface of built-in String type, as used to represent textual data in any natural or formal language.
  */
 export class String extends Ordered {
-    value?: string;
-    is_equal(other: Any): boolean {
-        if(other instanceof String) {
-            return this.value === other.value;
-        }
-        return false;
-    }
-}
-
-/**
- * Type representing a keyed table of values. V is the value type, and K the type of the keys.
- * Corresponds to a `Map<K, V>` in TypeScript.
- * @see {@link https://specifications.openehr.org/releases/BASE/development/foundation_types.html#_hash_class}
- */
-export class Hash<K extends Ordered, V> extends Container<V> {
-  private readonly internal_map: Map<K, V>;
-
-  constructor(entries?: readonly (readonly [K, V])[] | null) {
-    super();
-    this.internal_map = new Map<K, V>(entries);
-  }
-
-  is_equal(other: Any): boolean {
-    if(other instanceof Hash) {
-        if(this.count() !== other.count()) {
-            return false;
-        }
-        for(const [key, value] of this.internal_map.entries()) {
-            const other_value = other.item(key);
-            if(other_value === undefined) {
-                return false;
-            }
-            if(value instanceof Any) {
-                if(!value.is_equal(other_value)) {
-                    return false;
-                }
-            } else if (value !== other_value) {
-                return false;
-            }
-        }
-        return true;
-    }
-    return false;
-  }
-
-  /**
-   * Test for presence of a key.
-   * @param a_key The key to test for.
-   * @returns {boolean} True if the key is present.
-   */
-  has_key(a_key: K): boolean {
-    return this.internal_map.has(a_key);
-  }
-
-  /**
-   * Return item for key `a_key`.
-   * @param a_key The key of the item to retrieve.
-   * @returns {V | undefined} The item, or undefined if the key is not present.
-   */
-  item(a_key: K): V | undefined {
-    return this.internal_map.get(a_key);
-  }
-
-  /**
-   * Test for membership of a value.
-   * @param v The value to test for.
-   * @returns {boolean} True if the value is present.
-   */
-  has(v: V): boolean {
-    for (const value of this.internal_map.values()) {
-      if (value === v) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Number of items in container.
-   * @returns {number} The number of items.
-   */
-  count(): number {
-    return this.internal_map.size;
-  }
-
-  /**
-   * True if container is empty.
-   * @returns {boolean} True if the container is empty.
-   */
-  is_empty(): boolean {
-    return this.internal_map.size === 0;
-  }
-}
-
-
-/**
- * Ordered container that may contain duplicates.
- */
-export class List<T> extends Container<T> {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
-
-/**
- * Unordered container that may not contain duplicates.
- */
-export class Set<T> extends Container<T> {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
-
-/**
- * Container whose storage is assumed to be contiguous.
- */
-export class Array<T> extends Container<T> {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * A kind of String constrained to obey the syntax of RFC 3986.
  */
-export class Uri extends String {
+export class Uri {
+}
+
+/**
+ * Abstract parent class of numeric types, which are types which have various arithmetic and comparison operators defined.
+ */
+export abstract class Numeric extends Any {
 }
 
 /**
@@ -218,81 +83,57 @@ export abstract class Ordered_Numeric extends Ordered {
  * Type representing minimal interface of built-in Integer type.
  */
 export class Integer extends Ordered_Numeric {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type used to represent double-precision decimal numbers. Corresponds to a double-precision floating point value in most languages.
  */
 export class Double extends Ordered_Numeric {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
-
-/**
- * Abstract parent class of numeric types, which are types which have various arithmetic and comparison operators defined.
- */
-export abstract class Numeric extends Any {
 }
 
 /**
  * Type representing minimal interface of built-in Octet type.
  */
 export class Octet extends Ordered {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type representing minimal interface of built-in Character type.
  */
 export class Character extends Ordered {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type representing minimal interface of built-in Boolean type.
  */
 export class Boolean extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type used to represent decimal numbers. Corresponds to a single-precision floating point value in most languages.
  */
 export class Real extends Ordered_Numeric {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type representing minimal interface of built-in Integer64 type.
  */
 export class Integer64 extends Ordered_Numeric {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
-export class Byte extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export class Byte extends Ordered {
 }
 
 /**
  * Abstract ancestor of time-related classes.
  */
 export abstract class Temporal extends Ordered {
+}
+
+/**
+ * Definitions for date/time classes. Note that the timezone limits are set by where the international dateline is. Thus, time in New Zealand is quoted using \`+12:00\`, not \`-12:00\`.
+ */
+export class Time_Definitions {
 }
 
 /**
@@ -304,7 +145,6 @@ export abstract class Iso8601_type extends Temporal {
      */
     value?: string;
 }
-
 
 /**
  * Represents an ISO 8601 date/time, including partial and extended forms. Value may be:
@@ -321,9 +161,6 @@ export abstract class Iso8601_type extends Temporal {
  * * the time \`24:00:00\` is not allowed, since it would mean the date was really on the next day.
  */
 export class Iso8601_date_time extends Iso8601_type {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
@@ -334,9 +171,6 @@ export class Iso8601_date_time extends Iso8601_type {
  * NOTE: two deviations from ISO 8601 are supported, the first, to allow a negative sign, and the second allowing the 'W' designator to be mixed with other designators.
  */
 export class Iso8601_duration extends Iso8601_type {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
@@ -351,11 +185,7 @@ export class Iso8601_duration extends Iso8601_type {
  * NOTE: A small deviation to the ISO 8601:2004 standard in this class is that the time \`24:00:00\` is not allowed, for consistency with \`Iso8601_date_time\`.
  */
 export class Iso8601_time extends Iso8601_type {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
-
 
 /**
  * Represents an ISO 8601 date, including partial and extended forms. Value may be:
@@ -367,16 +197,12 @@ export class Iso8601_time extends Iso8601_type {
  * See \`Time_definitions._valid_iso8601_date()_\` for validity.
  */
 export class Iso8601_date extends Iso8601_type {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
-
 
 /**
  * Interval abstraction, featuring upper and lower limits that may be open or closed, included or not included.
  */
-export class Interval<T> extends Any {
+export abstract class Interval<T extends Ordered> extends Any {
     /**
      * Lower bound.
      */
@@ -401,29 +227,24 @@ export class Interval<T> extends Any {
      * True if \`_upper_\` boundary value included in range if \`not _upper_unbounded_\`.
      */
     upper_included?: boolean;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Type representing a 'proper' Interval, i.e. any two-sided or one-sided interval.
  */
-export class Proper_interval<T> extends Interval<T> {
+export class Proper_interval<T extends Ordered> extends Interval<T> {
 }
-
 
 /**
- * An Interval of Integer, used to represent multiplicity, cardinality and optionality in models.
+ * An Interval of Integer, used to represent multiplicity, cardinality and optionality in models. 
  */
-export class Multiplicity_interval extends Proper_interval<Integer> {
+export class Multiplicity_interval extends Proper_interval<T> {
 }
-
 
 /**
  * Express constraints on the cardinality of container objects which are the values of multiply-valued attributes, including uniqueness and ordering, providing the means to state that a container acts like a logical list, set or bag.
  */
-export class Cardinality extends Any {
+export class Cardinality {
     /**
      * The interval of this cardinality. 
      */
@@ -436,9 +257,6 @@ export class Cardinality extends Any {
      * True if the members of the container attribute to which this cardinality refers are unique.
      */
     is_unique?: boolean;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
@@ -461,9 +279,6 @@ export class Terminology_code extends Any {
      * The URI reference that may be used as a concrete key into a notional terminology service for queries that can obtain the term text, definition, and other associated elements.
      */
     uri?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
@@ -478,53 +293,46 @@ export class Terminology_term extends Any {
      * Text of term.
      */
     text?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
- * Ancestor class of identifiers of informational objects. Ids may be completely meaningless, in which case their only job is to refer to something, or may carry some information to do with the identified object.
+ * Ancestor class of identifiers of informational objects. Ids may be completely meaningless, in which case their only job is to refer to something, or may carry some information to do with the identified object. 
  * 
- * Object ids are used inside an object to identify that object. To identify another object in another service, use an \`OBJECT_REF\`, or else use a UID for local objects identified by UID. If none of the subtypes is suitable, direct instances of this class may be used.
+ * Object ids are used inside an object to identify that object. To identify another object in another service, use an \`OBJECT_REF\`, or else use a UID for local objects identified by UID. If none of the subtypes is suitable, direct instances of this class may be used. 
  */
-export class OBJECT_ID extends Any {
+export abstract class OBJECT_ID {
     /**
-     * The value of the id in the form defined below.
+     * The value of the id in the form defined below. 
      */
     value?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
-
-/**
- * Abstract model of UID-based identifiers consisting of a root part and an optional extension; lexical form: \`root '::' extension\`.
- */
-export class UID_BASED_ID extends OBJECT_ID {
-}
-
 
 /**
  * Identifier for archetypes. Ideally these would identify globally unique archetypes.
- *
+ * 
  * Lexical form: \`rm_originator  '-' rm_name  '-' rm_entity  '.' concept_name {  '-' specialisation }*  '.v' number\`.
  */
 export class ARCHETYPE_ID extends OBJECT_ID {
 }
 
 /**
- * Generic identifier type for identifiers whose format is otherwise unknown to openEHR. Includes an attribute for naming the identification scheme (which may well be local).
+ * Generic identifier type for identifiers whose format is otherwise unknown to openEHR. Includes an attribute for naming the identification scheme (which may well be local). 
  */
 export class GENERIC_ID extends OBJECT_ID {
     /**
-     * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way.
+     * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way. 
      */
     scheme?: string;
 }
 
 /**
- * Concrete type corresponding to hierarchical identifiers of the form defined by \`UID_BASED_ID\`.
+ * Abstract model of UID-based identifiers consisting of a root part and an optional extension; lexical form: \`root '::' extension\`.
+ */
+export abstract class UID_BASED_ID extends OBJECT_ID {
+}
+
+/**
+ * Concrete type corresponding to hierarchical identifiers of the form defined by \`UID_BASED_ID\`. 
  */
 export class HIER_OBJECT_ID extends UID_BASED_ID {
 }
@@ -532,7 +340,7 @@ export class HIER_OBJECT_ID extends UID_BASED_ID {
 /**
  * Class describing a reference to another object, which may exist locally or be maintained outside the current namespace, e.g. in another service. Services are usually external, e.g. available in a LAN (including on the same host) or the internet via Corba, SOAP, or some other distributed protocol. However, in small systems they may be part of the same executable as the data containing the Id. 
  */
-export class OBJECT_REF extends Any {
+export class OBJECT_REF {
     /**
      * Namespace to which this identifier belongs in the local system context (and possibly in any other openEHR compliant environment) e.g.  terminology ,  demographic . These names are not yet standardised. Legal values for \`_namespace_\` are:
      * 
@@ -551,17 +359,14 @@ export class OBJECT_REF extends Any {
      * Globally unique id of an object, regardless of where it is stored.
      */
     id?: OBJECT_ID;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
- * Reference to a \`LOCATABLE\` instance inside the top-level content structure inside a \`VERSION<T>\` identified by the \`_id_\` attribute. The \`_path_\` attribute is applied to the object that \`VERSION._data_\` points to.
+ * Reference to a \`LOCATABLE\` instance inside the top-level content structure inside a \`VERSION<T>\` identified by the \`_id_\` attribute. The \`_path_\` attribute is applied to the object that \`VERSION._data_\` points to. 
  */
 export class LOCATABLE_REF extends OBJECT_REF {
     /**
-     * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified.
+     * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified. 
      */
     path?: string;
     /**
@@ -569,7 +374,6 @@ export class LOCATABLE_REF extends OBJECT_REF {
      */
     override id?: UID_BASED_ID = undefined;
 }
-
 
 /**
  * Globally unique identifier for one version of a versioned object; lexical form: \`object_id  '::' creating_system_id  '::' version_tree_id\`.
@@ -597,46 +401,39 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
  * 
  * \`trunk_version [  '.' branch_number  '.' branch_version ]\`
  */
-export class VERSION_TREE_ID extends Any {
+export class VERSION_TREE_ID {
     /**
      * String form of this identifier.
      */
     value?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
-
-
-/**
- * Model of the DCE Universal Unique Identifier or UUID which takes the form of hexadecimal integers separated by hyphens, following the pattern 8-4-4-4-12 as defined by the Open Group, CDE 1.1 Remote Procedure Call specification, Appendix A. Also known as a GUID.
- */
-export class UUID extends UID_BASED_ID {
-}
-
-/**
- * Model of a reverse internet domain, as used to uniquely identify an internet domain. In the form of a dot-separated string in the reverse order of a domain name, specified by https://www.rfc-editor.org/info/rfc1034[IETF RFC 1034^]. 
- */
-export class INTERNET_ID extends UID_BASED_ID {
 }
 
 /**
  * Abstract parent of classes representing unique identifiers which identify information entities in a durable way. UIDs only ever identify one IE in time or space and are never re-used.
  */
-export class UID extends Any {
+export abstract class UID {
     /**
      * The value of the id.
      */
     value?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+}
+
+/**
+ * Model of the DCE Universal Unique Identifier or UUID which takes the form of hexadecimal integers separated by hyphens, following the pattern 8-4-4-4-12 as defined by the Open Group, CDE 1.1 Remote Procedure Call specification, Appendix A. Also known as a GUID.
+ */
+export class UUID extends UID {
+}
+
+/**
+ * Model of a reverse internet domain, as used to uniquely identify an internet domain. In the form of a dot-separated string in the reverse order of a domain name, specified by https://www.rfc-editor.org/info/rfc1034[IETF RFC 1034^]. 
+ */
+export class INTERNET_ID extends UID {
 }
 
 /**
  * Model of ISO's Object Identifier (oid) as defined by the standard ISO/IEC 8824. Oids are formed from integers separated by dots. Each non-leaf node in an Oid starting from the left corresponds to an assigning authority, and identifies that authority's namespace, inside which the remaining part of the identifier is locally unique. 
  */
-export class ISO_OID extends UID_BASED_ID {
+export class ISO_OID extends UID {
 }
 
 /**
@@ -652,21 +449,15 @@ export class ACCESS_GROUP_REF extends OBJECT_REF {
 }
 
 /**
- * Inheritance class to provide access to constants defined in other packages.
+ * Defines globally used constant values.
  */
-export class OPENEHR_DEFINITIONS extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export class BASIC_DEFINITIONS {
 }
 
 /**
- * Defines globally used constant values.
+ * Inheritance class to provide access to constants defined in other packages.
  */
-export class BASIC_DEFINITIONS extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export class OPENEHR_DEFINITIONS extends BASIC_DEFINITIONS {
 }
 
 /**
@@ -675,25 +466,16 @@ export class BASIC_DEFINITIONS extends Any {
  * Use as the type of any attribute within this model, which expresses constraint on some attribute in a class in a reference model. For example to indicate validity
  * of Date/Time fields.
  */
-export class VALIDITY_KIND extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export class VALIDITY_KIND {
 }
 
 /**
  * Status of a versioned artefact, as one of a number of possible values: uncontrolled, prerelease, release, build.
  */
-export class VERSION_STATUS extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export class VERSION_STATUS {
 }
 
-export class Comparable extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
+export abstract class Comparable {
 }
 
 /**
@@ -709,41 +491,28 @@ export class Comparable extends Any {
  * 
  */
 export class Iso8601_timezone extends Iso8601_type {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
-
-/**
- * Definitions for date/time classes. Note that the timezone limits are set by where the international dateline is. Thus, time in New Zealand is quoted using \`+12:00\`, not \`-12:00\`.
- */
-export class Time_Definitions extends Any {
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
-}
-
 
 /**
  * Type representing an Interval that happens to be a point value. Provides an efficient representation that is substitutable for \`Interval<T>\` where needed.
  */
-export class Point_interval<T> extends Interval<T> {
+export class Point_interval<T extends Ordered> extends Interval<T> {
     /**
      * Lower boundary open (i.e. = -infinity).
      */
-    override lower_unbounded?: boolean = false;
+    override lower_unbounded?: boolean;
     /**
      * Upper boundary open (i.e. = +infinity).
      */
-    override upper_unbounded?: boolean = false;
+    override upper_unbounded?: boolean;
     /**
      * Lower boundary value included in range if not \`_lower_unbounded_\`.
      */
-    override lower_included?: boolean = true;
+    override lower_included?: boolean;
     /**
      * Upper boundary value included in range if not \`_upper_unbounded_\`.
      */
-    override upper_included?: boolean = true;
+    override upper_included?: boolean;
 }
 
 /**
@@ -751,7 +520,7 @@ export class Point_interval<T> extends Interval<T> {
  * 
  * Retain for LEGACY only, while ADL1.4 requires CODE_PHRASE.
  */
-export class CODE_PHRASE extends Any {
+export class CODE_PHRASE {
     /**
      * Identifier of the distinct terminology from which the code_string (or its elements) was extracted.
      */
@@ -764,16 +533,13 @@ export class CODE_PHRASE extends Any {
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
      */
     preferred_term?: string;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Abstract idea of an online resource created by a human author. 
  * 
  */
-export class AUTHORED_RESOURCE extends Any {
+export abstract class AUTHORED_RESOURCE {
     /**
      * Unique identifier of the family of archetypes having the same interface identifier (same major version).
      */
@@ -798,15 +564,12 @@ export class AUTHORED_RESOURCE extends Any {
      * List of details for each natural translation made of this resource, keyed by language code. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
      */
     translations?: undefined;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Defines the descriptive meta-data of a resource.
  */
-export class RESOURCE_DESCRIPTION extends Any {
+export class RESOURCE_DESCRIPTION {
     /**
      * Original author of this resource, with all relevant details, including organisation.
      */
@@ -887,15 +650,12 @@ export class RESOURCE_DESCRIPTION extends Any {
      * Details of all parts of resource description that are natural language-dependent, keyed by language code.
      */
     details?: undefined;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Class providing details of a natural language translation.
  */
-export class TRANSLATION_DETAILS extends Any {
+export class TRANSLATION_DETAILS {
     /**
      * Language of the translation, coded using ISO 639-1 (2 character) language codes.
      */
@@ -920,15 +680,12 @@ export class TRANSLATION_DETAILS extends Any {
      * Additional contributors to this translation, each listed in the preferred format of the relevant organisation for the artefacts in question. A typical default is \`"name <email>"\` if nothing else is specified. 
      */
     other_contributors?: undefined;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
  * Language-specific detail of resource description. When a resource is translated for use in another language environment, each \`RESOURCE_DESCRIPTION_ITEM\` needs to be copied and translated into the new language.
  */
-export class RESOURCE_DESCRIPTION_ITEM extends Any {
+export class RESOURCE_DESCRIPTION_ITEM {
     /**
      * The localised language in which the items in this description item are written. Coded using ISO 639-1 (2 character) language codes.
      */
@@ -959,9 +716,6 @@ export class RESOURCE_DESCRIPTION_ITEM extends Any {
      * Additional language-senstive resource metadata, as a list of name/value pairs. 
      */
     other_details?: undefined;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
 
 /**
@@ -985,12 +739,10 @@ export class RESOURCE_DESCRIPTION_ITEM extends Any {
  * Other sub-structures might have different keys, e.g.  based on programming languages, UI toolkits etc.
  * 
  */
-export class RESOURCE_ANNOTATIONS extends Any {
+export class RESOURCE_ANNOTATIONS {
     /**
      * Documentary annotations in a multi-level keyed structure.
      */
     documentation?: undefined;
-    is_equal(other: Any): boolean {
-        throw new Error("Method not implemented.");
-    }
 }
+

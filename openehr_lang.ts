@@ -3,7 +3,7 @@
 // Schema Revision: 1.1.0.2
 // Description: lang
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Generated: 2025-11-10T12:36:29.656Z
+// Generated: 2025-11-11T05:27:02.918Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -36,7 +36,7 @@ type Terminology_code = any;
 /**
  * Definitions used by all BMM packages.
  */
-export class BMM_DEFINITIONS {
+export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
 }
 
 /**
@@ -64,7 +64,7 @@ export class BMM_MODEL_ACCESS {
 /**
  * Descriptor for a BMM schema. Contains a meta-data table of attributes obtained from a mini-ODIN parse of the  schema file.
  */
-export class BMM_SCHEMA_DESCRIPTOR {
+export abstract class BMM_SCHEMA_DESCRIPTOR {
     /**
      * Persistent form of model.
      */
@@ -95,9 +95,23 @@ export class BMM_SCHEMA_DESCRIPTOR {
 }
 
 /**
+ * Core properties of \`BMM_MODEL\`, may be used in a serial representation as well, such as \`P_BMM_SCHEMA\`.
+ */
+export class BMM_MODEL_METADATA {
+    /**
+     * Publisher of model expressed in the schema.
+     */
+    rm_publisher?: string;
+    /**
+     * Release of model expressed in the schema as a 3-part numeric, e.g. "3.1.0" . 
+     */
+    rm_release?: string;
+}
+
+/**
  * Abstract parent of any persistable form of a BMM model, e.g. \`P_BMM_SCHEMA\`.
  */
-export class BMM_SCHEMA {
+export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     /**
      * Version of BMM model, enabling schema evolution reasoning. Persisted attribute.
      */
@@ -167,7 +181,7 @@ export class BMM_SCHEMA_STATE {
 /**
  * Abstract meta-type of BMM declared model elements. A _declaration_ is a an element of a model within a context, which defines the _scope_ of the element. Thus, a class definition and its property and routine definitions are model elements, but Types are not, since they are derived from model elements.
  */
-export class BMM_MODEL_ELEMENT {
+export abstract class BMM_MODEL_ELEMENT {
     /**
      * Name of this model element.
      */
@@ -199,7 +213,7 @@ export class BMM_MODEL_ELEMENT {
 /**
  * A formal element having a name, type and a type-based signature.
  */
-export class BMM_FORMAL_ELEMENT {
+export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
     /**
      * Declared or inferred static type of the entity.
      */
@@ -211,9 +225,43 @@ export class BMM_FORMAL_ELEMENT {
 }
 
 /**
+ * A module-scoped formal element.
+ */
+export abstract class BMM_FEATURE extends BMM_FORMAL_ELEMENT {
+    /**
+     * True if this feature was synthesised due to generic substitution in an inherited type, or further constraining of a formal generic parameter.
+     */
+    is_synthesised_generic?: boolean;
+    /**
+     * Extensions to feature-level meta-types.
+     */
+    feature_extensions?: undefined;
+    /**
+     * Group containing this feature.
+     */
+    group?: BMM_FEATURE_GROUP;
+    /**
+     * Model element within which an element is declared.
+     */
+    override scope?: BMM_CLASS = undefined;
+}
+
+/**
+ * Meta-type representing instantiable features, i.e. features that are created as value objects.
+ */
+export abstract class BMM_INSTANTIABLE_FEATURE extends BMM_FEATURE {
+}
+
+/**
+ * Meta-type for static (i.e. read-only) properties.
+ */
+export abstract class BMM_STATIC extends BMM_INSTANTIABLE_FEATURE {
+}
+
+/**
  * An immutable, static value-returning element scoped to a class. The \`_value_\` is the result of the evaluation of the \`_generator_\`, which may be as simple as a literal value, or may be any expression, including a function call.
  */
-export class BMM_CONSTANT {
+export class BMM_CONSTANT extends BMM_STATIC {
     /**
      * Literal value of the constant.
      */
@@ -221,61 +269,9 @@ export class BMM_CONSTANT {
 }
 
 /**
- * Meta-type of for properties of linear container type, such as List<T> etc.
- */
-export class BMM_CONTAINER_PROPERTY {
-    /**
-     * Cardinality of this container.
-     */
-    cardinality?: Multiplicity_interval;
-    /**
-     * Declared or inferred static type of the entity.
-     */
-    type?: BMM_CONTAINER_TYPE;
-}
-
-/**
- * A formal element with signature of the form: \`name ({arg:TArg}*):TResult\`. A function is a computed (rather than data) element, generally assumed to be non-state-changing.
- */
-export class BMM_FUNCTION {
-    /**
-     * Optional details enabling a function to be represented as an operator in a syntactic representation.
-     */
-    operator_definition?: BMM_OPERATOR;
-    /**
-     * Automatically created Result variable, usable in body and post-condition.
-     */
-    result?: BMM_RESULT;
-}
-
-/**
- * A routine local variable (writable).
- */
-export class BMM_LOCAL {
-}
-
-/**
- * Definition of a symbolic operator associated with a function.
- */
-export class BMM_OPERATOR {
-    /**
-     * Position of operator in syntactic representation.
-     */
-    position?: BMM_OPERATOR_POSITION;
-    /**
-     * Set of \`String\` symbols that may be used to represent this operator in a textual representation of a BMM model.
-     */
-    symbols?: undefined;
-    /**
-     * Formal name of the operator, e.g. 'minus' etc.
-     */
-    name?: string;
-}
-
-/**
  * Meta-type of a writable property definition within a class definition of an object model. The \`_is_composition_\` attribute indicates whether the property has sub-part or an association semantics with respect to the owning class.
  */
-export class BMM_PROPERTY {
+export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     /**
      * True if this property is marked with info model \`_im_runtime_\` property.
      */
@@ -291,9 +287,23 @@ export class BMM_PROPERTY {
 }
 
 /**
+ * Meta-type of for properties of linear container type, such as List<T> etc.
+ */
+export class BMM_CONTAINER_PROPERTY extends BMM_PROPERTY {
+    /**
+     * Cardinality of this container.
+     */
+    cardinality?: Multiplicity_interval;
+    /**
+     * Declared or inferred static type of the entity.
+     */
+    override type?: BMM_CONTAINER_TYPE = undefined;
+}
+
+/**
  * A feature defining a routine, scoped to a class.
  */
-export class BMM_ROUTINE {
+export abstract class BMM_ROUTINE extends BMM_FEATURE {
     /**
      * Formal parameters of the routine.
      */
@@ -317,9 +327,69 @@ export class BMM_ROUTINE {
 }
 
 /**
+ * A formal element with signature of the form: \`name ({arg:TArg}*):TResult\`. A function is a computed (rather than data) element, generally assumed to be non-state-changing.
+ */
+export class BMM_FUNCTION extends BMM_ROUTINE {
+    /**
+     * Optional details enabling a function to be represented as an operator in a syntactic representation.
+     */
+    operator_definition?: BMM_OPERATOR;
+    /**
+     * Automatically created Result variable, usable in body and post-condition.
+     */
+    result?: BMM_RESULT;
+}
+
+/**
+ * A routine-scoped formal element.
+ */
+export abstract class BMM_VARIABLE extends BMM_FORMAL_ELEMENT {
+    /**
+     * Routine within which variable is defined.
+     */
+    override scope?: BMM_ROUTINE = undefined;
+}
+
+/**
+ * Meta-type for writable variables, including the special variable \`Result\`.
+ */
+export abstract class BMM_WRITABLE_VARIABLE extends BMM_VARIABLE {
+}
+
+/**
+ * A routine local variable (writable).
+ */
+export class BMM_LOCAL extends BMM_WRITABLE_VARIABLE {
+}
+
+/**
+ * Definition of a symbolic operator associated with a function.
+ */
+export class BMM_OPERATOR {
+    /**
+     * Position of operator in syntactic representation.
+     */
+    position?: BMM_OPERATOR_POSITION;
+    /**
+     * Set of \`String\` symbols that may be used to represent this operator in a textual representation of a BMM model.
+     */
+    symbols?: undefined;
+    /**
+     * Formal name of the operator, e.g. 'minus' etc.
+     */
+    name?: string;
+}
+
+/**
+ * Meta-type for writable variables, including routine parameters and the special variable \`Self\`.
+ */
+export abstract class BMM_READONLY_VARIABLE extends BMM_VARIABLE {
+}
+
+/**
  * A routine parameter variable (read-only).
  */
-export class BMM_PARAMETER {
+export class BMM_PARAMETER extends BMM_READONLY_VARIABLE {
     /**
      * Optional read/write direction of the parameter. If none-supplied, the parameter is treated as \`in\`, i.e. readable.
      */
@@ -327,77 +397,61 @@ export class BMM_PARAMETER {
 }
 
 /**
- * A routine-scoped formal element.
- */
-export class BMM_VARIABLE {
-    /**
-     * Routine within which variable is defined.
-     */
-    scope?: BMM_ROUTINE;
-}
-
-/**
  * A formal element with signature of the form: \`name ({arg:TArg}*):TStatus\`, where \`TStatus\` is the built-in type \`BMM_STATUS_TYPE\`.. A procedure is a computed (rather than data) element, generally assumed to be state-changing, and is usually called in the form \`name ({arg:TArg}*)\`.
  */
-export class BMM_PROCEDURE {
+export class BMM_PROCEDURE extends BMM_ROUTINE {
     /**
      * Declared or inferred static type of the entity.
      */
-    type?: BMM_STATUS_TYPE;
+    override type?: BMM_STATUS_TYPE = undefined;
 }
 
 /**
  * Meta-type of for properties of unitary type.
  */
-export class BMM_UNITARY_PROPERTY {
+export class BMM_UNITARY_PROPERTY extends BMM_PROPERTY {
     /**
      * Declared or inferred static type of the entity.
      */
-    type?: BMM_UNITARY_TYPE;
+    override type?: BMM_UNITARY_TYPE = undefined;
 }
 
 /**
  * Meta-type of for properties of linear container type, such as \`Hash<Index_type, T>\` etc.
  */
-export class BMM_INDEXED_CONTAINER_PROPERTY {
+export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
     /**
      * Declared or inferred static type of the entity.
      */
-    type?: BMM_INDEXED_CONTAINER_TYPE;
-}
-
-/**
- * Meta-type representing instantiable features, i.e. features that are created as value objects.
- */
-export class BMM_INSTANTIABLE_FEATURE {
+    override type?: BMM_INDEXED_CONTAINER_TYPE = undefined;
 }
 
 /**
  * Automatically declared variable representing result of a Function call (writable).
  */
-export class BMM_RESULT {
+export class BMM_RESULT extends BMM_WRITABLE_VARIABLE {
     /**
      * Name of this model element.
      */
-    name?: string;
+    override name?: string;
 }
 
 /**
  * Abstract parent of feature extensions.
  */
-export class BMM_FEATURE_EXTENSION {
+export abstract class BMM_FEATURE_EXTENSION {
 }
 
 /**
  * Abstract ancestor of routine body meta-types.
  */
-export class BMM_ROUTINE_DEFINITION {
+export abstract class BMM_ROUTINE_DEFINITION {
 }
 
 /**
  * External routine meta-type, containing sufficient meta-data to enable a routine in an external library to be called.
  */
-export class BMM_EXTERNAL_ROUTINE {
+export class BMM_EXTERNAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
     /**
      * External call general meta-data, including target routine name, type mapping etc.
      */
@@ -435,57 +489,23 @@ export class BMM_FEATURE_GROUP {
  * 
  * TODO: define schemes; probably need to support C++/Java scheme as well as better type-based schemes.
  */
-export class BMM_VISIBILITY {
-}
-
-/**
- * A module-scoped formal element.
- */
-export class BMM_FEATURE {
-    /**
-     * True if this feature was synthesised due to generic substitution in an inherited type, or further constraining of a formal generic parameter.
-     */
-    is_synthesised_generic?: boolean;
-    /**
-     * Extensions to feature-level meta-types.
-     */
-    feature_extensions?: undefined;
-    /**
-     * Group containing this feature.
-     */
-    group?: BMM_FEATURE_GROUP;
-    /**
-     * Model element within which an element is declared.
-     */
-    scope?: BMM_CLASS;
+export abstract class BMM_VISIBILITY {
 }
 
 /**
  * Meta-type for an automatically created variable referencing the current instance. Typically called 'self' or 'this' in programming languages. Read-only.
  */
-export class BMM_SELF {
+export class BMM_SELF extends BMM_READONLY_VARIABLE {
     /**
      * Name of this model element.
      */
-    name?: string;
-}
-
-/**
- * Meta-type for writable variables, including the special variable \`Result\`.
- */
-export class BMM_WRITABLE_VARIABLE {
-}
-
-/**
- * Meta-type for writable variables, including routine parameters and the special variable \`Self\`.
- */
-export class BMM_READONLY_VARIABLE {
+    override name?: string;
 }
 
 /**
  * Meta-type for static value properties computed once by a function invocation.
  */
-export class BMM_SINGLETON {
+export class BMM_SINGLETON extends BMM_STATIC {
     /**
      * Generator of the value of this static property.
      */
@@ -493,15 +513,9 @@ export class BMM_SINGLETON {
 }
 
 /**
- * Meta-type for static (i.e. read-only) properties.
- */
-export class BMM_STATIC {
-}
-
-/**
  * Meta-type for locally declared routine body.
  */
-export class BMM_LOCAL_ROUTINE {
+export class BMM_LOCAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
     /**
      * Local variables of the routine, if there is a body defined.
      */
@@ -525,29 +539,9 @@ export class BMM_PARAMETER_DIRECTION {
 }
 
 /**
- * Meta-type for a literal Integer value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`Integer\` and \`_value_\` is of type \`Integer\`.
- */
-export class BMM_INTEGER_VALUE {
-    /**
-     * Native Integer value.
-     */
-    value?: number;
-}
-
-/**
- * Meta-type for a literal String value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`String\` and \`_value_\` is of type \`String\`.
- */
-export class BMM_STRING_VALUE {
-    /**
-     * Native String value.
-     */
-    value?: string;
-}
-
-/**
  * Meta-type for literal instance values declared in a model. Instance values may be inline values of primitive types in the usual fashion or complex objects in syntax form, e.g. JSON.
  */
-export class BMM_LITERAL_VALUE {
+export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
      * A serial representation of the value.
      */
@@ -555,7 +549,7 @@ export class BMM_LITERAL_VALUE {
     /**
      * A native representation of the value, possibly derived by deserialising \`_value_literal_\`.
      */
-    value?: any;
+    value?: Any;
     /**
      * Optional specification of formalism of the \`_value_literal_\` attribute for complex values. Value may be any of \`json | json5 | yawl | xml | odin | rdf\` or another value agreed by the user community. If not set, \`json\` is assumed.
      */
@@ -567,53 +561,87 @@ export class BMM_LITERAL_VALUE {
 }
 
 /**
- * Meta-type for a literal Boolean value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`Boolean\` and \`_value_\` is of type \`Boolean\`.
+ * Meta-type for literals whose concrete type is a unitary type in the BMM sense.
  */
-export class BMM_BOOLEAN_VALUE {
-    /**
-     * Native Boolean value.
-     */
-    value?: boolean;
+export abstract class BMM_UNITARY_VALUE<T extends BMM_UNITARY_TYPE> extends BMM_LITERAL_VALUE<T> {
 }
 
 /**
  * Meta-type for literals whose concrete type is a primitive type.
  */
-export class BMM_PRIMITIVE_VALUE {
+export class BMM_PRIMITIVE_VALUE extends BMM_UNITARY_VALUE<T> {
     /**
      * Concrete type of this literal.
      */
-    type?: BMM_SIMPLE_TYPE;
+    override type?: BMM_SIMPLE_TYPE = undefined;
+}
+
+/**
+ * Meta-type for a literal Integer value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`Integer\` and \`_value_\` is of type \`Integer\`.
+ */
+export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
+    /**
+     * Native Integer value.
+     */
+    override value?: number = undefined;
+}
+
+/**
+ * Meta-type for a literal String value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`String\` and \`_value_\` is of type \`String\`.
+ */
+export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
+    /**
+     * Native String value.
+     */
+    override value?: string = undefined;
+}
+
+/**
+ * Meta-type for a literal Boolean value, for which \`_type_\` is fixed to the \`BMM_TYPE\` representing \`Boolean\` and \`_value_\` is of type \`Boolean\`.
+ */
+export class BMM_BOOLEAN_VALUE extends BMM_PRIMITIVE_VALUE {
+    /**
+     * Native Boolean value.
+     */
+    override value?: boolean = undefined;
 }
 
 /**
  * Meta-type for literals whose concrete type is a linear container type, i.e. array, list or set.
  */
-export class BMM_CONTAINER_VALUE {
-}
-
-/**
- * Meta-type for literals whose concrete type is a unitary type in the BMM sense.
- */
-export class BMM_UNITARY_VALUE {
+export class BMM_CONTAINER_VALUE extends BMM_LITERAL_VALUE<T> {
 }
 
 /**
  * Meta-type for literals whose concrete type is an indexed container, i.e. Hash table, Map etc.
  */
-export class BMM_INDEXED_CONTAINER_VALUE {
+export class BMM_INDEXED_CONTAINER_VALUE extends BMM_LITERAL_VALUE<T> {
 }
 
 /**
  * Meta-type for literal intervals of type \`Interval<Ordered>\`.
  */
-export class BMM_INTERVAL_VALUE {
+export class BMM_INTERVAL_VALUE extends BMM_LITERAL_VALUE<T> {
+}
+
+/**
+ * A BMM model component that contains packages and classes.
+ */
+export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
+    /**
+     * Child packages; keys all in upper case for guaranteed matching.
+     */
+    packages?: undefined;
+    /**
+     * Model element within which a referenceable element is known.
+     */
+    override scope?: BMM_PACKAGE_CONTAINER = undefined;
 }
 
 /**
  * Definition of the root of a BMM model (along with what is inherited from \`BMM_SCHEMA_CORE\`).
  */
-export class BMM_MODEL {
+export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
     /**
      * All classes in this model, keyed by type name.
      */
@@ -629,25 +657,11 @@ export class BMM_MODEL {
 }
 
 /**
- * Core properties of \`BMM_MODEL\`, may be used in a serial representation as well, such as \`P_BMM_SCHEMA\`.
- */
-export class BMM_MODEL_METADATA {
-    /**
-     * Publisher of model expressed in the schema.
-     */
-    rm_publisher?: string;
-    /**
-     * Release of model expressed in the schema as a 3-part numeric, e.g. "3.1.0" . 
-     */
-    rm_release?: string;
-}
-
-/**
  * Abstraction of a package as a tree structure whose nodes can contain other packages and classes.
  * 
  * The \`_name_\` may be qualified if it is a top-level package.
  */
-export class BMM_PACKAGE {
+export class BMM_PACKAGE extends BMM_PACKAGE_CONTAINER {
     /**
      * Member modules in this package.
      */
@@ -655,53 +669,15 @@ export class BMM_PACKAGE {
 }
 
 /**
- * A BMM model component that contains packages and classes.
- */
-export class BMM_PACKAGE_CONTAINER {
-    /**
-     * Child packages; keys all in upper case for guaranteed matching.
-     */
-    packages?: undefined;
-    /**
-     * Model element within which a referenceable element is known.
-     */
-    scope?: BMM_PACKAGE_CONTAINER;
-}
-
-/**
- * Binary operator expression node.
- */
-export class EL_BINARY_OPERATOR {
-    /**
-     * Left operand node.
-     */
-    left_operand?: EL_EXPRESSION;
-    /**
-     * Right operand node.
-     */
-    right_operand?: EL_EXPRESSION;
-}
-
-/**
  * Abstract parent of all typed expression meta-types.
  */
-export class EL_EXPRESSION {
-}
-
-/**
- * Literal value of any type known in the model, including primitive types. Defined via a \`BMM_LITERAL_VALUE\`.
- */
-export class EL_LITERAL {
-    /**
-     * The reference item from which the value of this node can be computed.
-     */
-    value?: undefined;
+export abstract class EL_EXPRESSION {
 }
 
 /**
  * Abstract parent of operator types.
  */
-export class EL_OPERATOR {
+export abstract class EL_OPERATOR extends EL_EXPRESSION {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
@@ -717,9 +693,45 @@ export class EL_OPERATOR {
 }
 
 /**
+ * Binary operator expression node.
+ */
+export class EL_BINARY_OPERATOR extends EL_OPERATOR {
+    /**
+     * Left operand node.
+     */
+    left_operand?: EL_EXPRESSION;
+    /**
+     * Right operand node.
+     */
+    right_operand?: EL_EXPRESSION;
+}
+
+/**
+ * Expression entities that are terminals (i.e. leaves) within operator expressions or tuples.
+ */
+export abstract class EL_TERMINAL extends EL_EXPRESSION {
+}
+
+/**
+ * Simple terminal i.e. logically atomic expression element.
+ */
+export abstract class EL_SIMPLE extends EL_TERMINAL {
+}
+
+/**
+ * Literal value of any type known in the model, including primitive types. Defined via a \`BMM_LITERAL_VALUE\`.
+ */
+export class EL_LITERAL extends EL_SIMPLE {
+    /**
+     * The reference item from which the value of this node can be computed.
+     */
+    value?: undefined;
+}
+
+/**
  * Unary operator expression node.
  */
-export class EL_UNARY_OPERATOR {
+export class EL_UNARY_OPERATOR extends EL_OPERATOR {
     /**
      * Operand node.
      */
@@ -727,9 +739,30 @@ export class EL_UNARY_OPERATOR {
 }
 
 /**
+ * Meta-type representing a value-generating simple expression.
+ */
+export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
+    is_writable?: boolean;
+    /**
+     * Name used to represent the reference or other entity.
+     */
+    name?: string;
+}
+
+/**
+ * A reference that is scoped by a containing entity and requires a context qualifier if it is not the currently scoping entity.
+ */
+export abstract class EL_FEATURE_REF extends EL_VALUE_GENERATOR {
+    /**
+     * Scoping expression, which must be a \`EL_VALUE_GENERATOR\`.
+     */
+    scoper?: EL_VALUE_GENERATOR;
+}
+
+/**
  * Reference to a writable property.
  */
-export class EL_PROPERTY_REF {
+export class EL_PROPERTY_REF extends EL_FEATURE_REF {
     /**
      * Property definition (within class).
      */
@@ -737,13 +770,13 @@ export class EL_PROPERTY_REF {
     /**
      * Defined to return True.
      */
-    is_writable?: boolean;
+    override is_writable?: boolean;
 }
 
 /**
  * Parent type of predicate of any object reference.
  */
-export class EL_PREDICATE {
+export abstract class EL_PREDICATE extends EL_SIMPLE {
     /**
      * The target instance of this predicate.
      */
@@ -755,31 +788,31 @@ export class EL_PREDICATE {
  * 
  * NOTE: probably to be removed.
  */
-export class EL_DEFINED {
-}
-
-/**
- * A call made on a closed function agent, returning a result. Equivalent to an 'application' of a function in Lambda calculus.
- */
-export class EL_FUNCTION_CALL {
-    /**
-     * The function agent being called.
-     */
-    agent?: EL_FUNCTION_AGENT;
-    /**
-     * Defined to return False.
-     */
-    is_writable?: boolean;
+export class EL_DEFINED extends EL_PREDICATE {
 }
 
 /**
  * A call made to a 'closed' agent, i.e. one with no remaining open arguments.
  */
-export class EL_AGENT_CALL {
+export abstract class EL_AGENT_CALL {
     /**
      * The agent being called.
      */
     agent?: EL_AGENT;
+}
+
+/**
+ * A call made on a closed function agent, returning a result. Equivalent to an 'application' of a function in Lambda calculus.
+ */
+export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
+    /**
+     * The function agent being called.
+     */
+    override agent?: EL_FUNCTION_AGENT = undefined;
+    /**
+     * Defined to return False.
+     */
+    override is_writable?: boolean;
 }
 
 /**
@@ -789,11 +822,11 @@ export class EL_AGENT_CALL {
  * 
  * Evaluation type (i.e. type of runtime evaluated form) is \`BMM_SIGNATURE\`.
  */
-export class EL_AGENT {
+export abstract class EL_AGENT extends EL_FEATURE_REF {
     /**
      * Name of the routine being called.
      */
-    name?: string;
+    override name?: string;
     /**
      * Closed arguments of a routine call as a tuple of objects.
      */
@@ -806,7 +839,7 @@ export class EL_AGENT {
      * Reference to definition of a routine for which this is an agent, if one exists. 
      */
     definition?: BMM_ROUTINE;
-    is_writable?: boolean;
+    override is_writable?: boolean;
 }
 
 /**
@@ -826,17 +859,17 @@ export class EL_TUPLE_ITEM {
 /**
  * An agent whose signature is of a procedure, i.e. has no result type.
  */
-export class EL_PROCEDURE_AGENT {
+export class EL_PROCEDURE_AGENT extends EL_AGENT {
     /**
      * Reference to definition of routine for which this is a call instance.
      */
-    definition?: BMM_PROCEDURE;
+    override definition?: BMM_PROCEDURE = undefined;
 }
 
 /**
  * Defines an array of optionally named items each of any type.
  */
-export class EL_TUPLE {
+export class EL_TUPLE extends EL_EXPRESSION {
     /**
      * Items in the tuple, potentially with names. Typical use is to represent an argument list to routine call.
      */
@@ -850,34 +883,33 @@ export class EL_TUPLE {
 /**
  * An agent whose signature is of a function, i.e. has a result type.
  */
-export class EL_FUNCTION_AGENT {
+export class EL_FUNCTION_AGENT extends EL_AGENT {
     /**
      * Reference to definition of a routine for which this is a direct call instance, if one exists. 
      */
-    definition?: BMM_FUNCTION;
+    override definition?: BMM_FUNCTION = undefined;
 }
 
 /**
  * A predicate on any object reference (including function call) that returns True if the reference is attached, i.e. non-Void.
  */
-export class EL_ATTACHED {
+export class EL_ATTACHED extends EL_PREDICATE {
 }
 
 /**
- * Meta-type representing a value-generating simple expression.
+ * Abstract parent for second-order constrained forms of first-order expression meta-types.
  */
-export class EL_VALUE_GENERATOR {
-    is_writable?: boolean;
+export abstract class EL_CONSTRAINED extends EL_EXPRESSION {
     /**
-     * Name used to represent the reference or other entity.
+     * The base expression of this constrained form.
      */
-    name?: string;
+    base_expression?: EL_EXPRESSION;
 }
 
 /**
  * Boolean-returning expression.
  */
-export class EL_BOOLEAN_EXPRESSION {
+export class EL_BOOLEAN_EXPRESSION extends EL_CONSTRAINED {
 }
 
 /**
@@ -885,7 +917,7 @@ export class EL_BOOLEAN_EXPRESSION {
  * 
  * May be used as a value, or as the qualifier for a function or constant access.
  */
-export class EL_TYPE_REF {
+export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
     /**
      * Type, directly from the name of the reference, e.g. \`{SOME_TYPE}\`.
      */
@@ -894,19 +926,19 @@ export class EL_TYPE_REF {
 }
 
 /**
- * A reference that is scoped by a containing entity and requires a context qualifier if it is not the currently scoping entity.
+ * Abstract parent of meta-types representing a branch of some kind of decision structure. Defines \`result\` as being of the generic type \`T\`.
  */
-export class EL_FEATURE_REF {
+export abstract class EL_DECISION_BRANCH<T extends EL_TERMINAL> {
     /**
-     * Scoping expression, which must be a \`EL_VALUE_GENERATOR\`.
+     * Result expression of conditional, if its \`_condition_\` evaluates to True.
      */
-    scoper?: EL_VALUE_GENERATOR;
+    result?: T;
 }
 
 /**
  * Conditional structure used in condition chain expressions. Evaluated by evaluating its \`_condition_\`, which is a Boolean-returning expression, and if this returns True, the result is the evaluation result of \`_expression_\`.
  */
-export class EL_CONDITIONAL_EXPRESSION {
+export class EL_CONDITIONAL_EXPRESSION<T extends EL_TERMINAL> extends EL_DECISION_BRANCH<T> {
     /**
      * Boolean expression defining the condition of this decision branch.
      */
@@ -914,61 +946,9 @@ export class EL_CONDITIONAL_EXPRESSION {
 }
 
 /**
- * Compound expression consisting of a chain of condition-gated expressions, and an ungated \`_else_\` member that as a whole, represents an if/then/elseif/else chains.
- * 
- * Evaluated by iterating through \`_items_\` and for each one, evaluating its \`_condition_\`, which if True, causes the evaluation result of the chain to be that item's \`_result_\` evaluation result.
- * 
- * If no member of \`_items_\` has a True-returning \`_condition_\`, the evaluation result is the result of evaluating the \`_else_\` expression.
- */
-export class EL_CONDITION_CHAIN {
-    /**
-     * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
-     */
-    items?: undefined;
-}
-
-/**
- * Abstract parent for second-order constrained forms of first-order expression meta-types.
- */
-export class EL_CONSTRAINED {
-    /**
-     * The base expression of this constrained form.
-     */
-    base_expression?: EL_EXPRESSION;
-}
-
-/**
- * Compound expression consisting of a list of value-range / expression pairs, and an  \`_else_\` member that as a whole, represents a case statement flavour of decision table.
- * 
- * Evaluated by iterating through \`_items_\` and for each one, comparing \`_input_\` to the item \`_value_range_\`. If the \`_input_\` is in the range, the evaluation result of the table is that item's \`_result_\` evaluation result. 
- * 
- * If no member of \`_items_\` has a True-returning \`_condition_\`, the evaluation result is the result of evaluating the \`_else_\` expression.
- */
-export class EL_CASE_TABLE {
-    /**
-     * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
-     */
-    items?: undefined;
-    /**
-     * Expressing generating the input value for the case table.
-     */
-    test_value?: EL_VALUE_GENERATOR;
-}
-
-/**
- * One branch of a Case table, consisting of a value constraint (the match criterion) and a result, of the generic parameter type T.
- */
-export class EL_CASE {
-    /**
-     * Constraint on 
-     */
-    value_constraint?: C_OBJECT;
-}
-
-/**
  * Meta-type for decision tables. Generic on the meta-type of the \`_result_\` attribute of the branches, to allow specialised forms of if/else and case structures to be created.
  */
-export class EL_DECISION_TABLE {
+export abstract class EL_DECISION_TABLE<T extends EL_TERMINAL> extends EL_TERMINAL {
     /**
      * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
      */
@@ -980,37 +960,57 @@ export class EL_DECISION_TABLE {
 }
 
 /**
- * Abstract parent of meta-types representing a branch of some kind of decision structure. Defines \`result\` as being of the generic type \`T\`.
+ * Compound expression consisting of a chain of condition-gated expressions, and an ungated \`_else_\` member that as a whole, represents an if/then/elseif/else chains.
+ * 
+ * Evaluated by iterating through \`_items_\` and for each one, evaluating its \`_condition_\`, which if True, causes the evaluation result of the chain to be that item's \`_result_\` evaluation result.
+ * 
+ * If no member of \`_items_\` has a True-returning \`_condition_\`, the evaluation result is the result of evaluating the \`_else_\` expression.
  */
-export class EL_DECISION_BRANCH {
+export class EL_CONDITION_CHAIN<T extends EL_TERMINAL> extends EL_DECISION_TABLE<T> {
     /**
-     * Result expression of conditional, if its \`_condition_\` evaluates to True.
+     * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
      */
-    result?: T;
+    override items?: undefined;
+}
+
+/**
+ * Compound expression consisting of a list of value-range / expression pairs, and an  \`_else_\` member that as a whole, represents a case statement flavour of decision table.
+ * 
+ * Evaluated by iterating through \`_items_\` and for each one, comparing \`_input_\` to the item \`_value_range_\`. If the \`_input_\` is in the range, the evaluation result of the table is that item's \`_result_\` evaluation result. 
+ * 
+ * If no member of \`_items_\` has a True-returning \`_condition_\`, the evaluation result is the result of evaluating the \`_else_\` expression.
+ */
+export class EL_CASE_TABLE<T extends EL_TERMINAL> extends EL_DECISION_TABLE<T> {
+    /**
+     * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
+     */
+    override items?: undefined;
+    /**
+     * Expressing generating the input value for the case table.
+     */
+    test_value?: EL_VALUE_GENERATOR;
+}
+
+/**
+ * One branch of a Case table, consisting of a value constraint (the match criterion) and a result, of the generic parameter type T.
+ */
+export class EL_CASE<T extends EL_TERMINAL> extends EL_DECISION_BRANCH<T> {
+    /**
+     * Constraint on 
+     */
+    value_constraint?: C_OBJECT;
 }
 
 /**
  * Abstract meta-type of any kind of symbolic variable.
  */
-export class EL_VARIABLE {
-}
-
-/**
- * Expression entities that are terminals (i.e. leaves) within operator expressions or tuples.
- */
-export class EL_TERMINAL {
-}
-
-/**
- * Simple terminal i.e. logically atomic expression element.
- */
-export class EL_SIMPLE {
+export abstract class EL_VARIABLE extends EL_VALUE_GENERATOR {
 }
 
 /**
  * Reference to a writable property, either a constant or computed.
  */
-export class EL_STATIC_REF {
+export class EL_STATIC_REF extends EL_FEATURE_REF {
     /**
      * Constant definition (within class).
      */
@@ -1018,13 +1018,13 @@ export class EL_STATIC_REF {
     /**
      * Defined to return False.
      */
-    is_writable?: boolean;
+    override is_writable?: boolean;
 }
 
 /**
  * Meta-type of writable variables, including routine locals and the special variable 'Result'.
  */
-export class EL_WRITABLE_VARIABLE {
+export class EL_WRITABLE_VARIABLE extends EL_VARIABLE {
     /**
      * Variable definition to which this reference refers.
      */
@@ -1032,13 +1032,13 @@ export class EL_WRITABLE_VARIABLE {
     /**
      * Defined to return True in all cases.
      */
-    is_writable?: boolean;
+    override is_writable?: boolean;
 }
 
 /**
  * Meta-type of read-only variables, including routine parameter and the special variable 'Self'.
  */
-export class EL_READONLY_VARIABLE {
+export class EL_READONLY_VARIABLE extends EL_VARIABLE {
     /**
      * Variable definition to which this reference refers.
      */
@@ -1046,7 +1046,7 @@ export class EL_READONLY_VARIABLE {
     /**
      * Defined to return False in all cases.
      */
-    is_writable?: boolean;
+    override is_writable?: boolean;
 }
 
 /**
@@ -1056,9 +1056,21 @@ export class BMM_ACTION_DECISION_TABLE {
 }
 
 /**
+ * Abstract parent of statement types representing a locally defined routine body.
+ */
+export abstract class BMM_STATEMENT_ITEM {
+}
+
+/**
+ * Abstract parent of 'statement' types that may be defined to implement BMM Routines.
+ */
+export abstract class BMM_STATEMENT extends BMM_STATEMENT_ITEM {
+}
+
+/**
  * Multi-branch conditional statement structure
  */
-export class BMM_ACTION_TABLE {
+export class BMM_ACTION_TABLE extends BMM_STATEMENT {
     /**
      * A specialised decision table whose outputs can only be procedure agents. In execution, the matched agent will be invoked.
      */
@@ -1066,11 +1078,17 @@ export class BMM_ACTION_TABLE {
 }
 
 /**
+ * Simple statement, i.e. statement with one logical element - a single expression, procedure call etc.
+ */
+export abstract class BMM_SIMPLE_STATEMENT extends BMM_STATEMENT {
+}
+
+/**
  * Statement type representing an assignment from a value-generating source to a writable entity, i.e. a variable reference or property.
  * 
  * At the meta-model level, may be understood as an initialisation of an existing meta-model instance.
  */
-export class BMM_ASSIGNMENT {
+export class BMM_ASSIGNMENT extends BMM_SIMPLE_STATEMENT {
     /**
      * The target variable on the notional left-hand side of this assignment.
      */
@@ -1086,7 +1104,7 @@ export class BMM_ASSIGNMENT {
  * 
  * May be rendered in syntax as \`assert condition\` or similar.
  */
-export class BMM_ASSERTION {
+export class BMM_ASSERTION extends BMM_SIMPLE_STATEMENT {
     /**
      * Boolean-valued expression of the assertion.
      */
@@ -1100,29 +1118,17 @@ export class BMM_ASSERTION {
 /**
  * A call made on a closed procedure agent. The method in BMM via which external actions are achieved from within a program.
  */
-export class BMM_PROCEDURE_CALL {
+export class BMM_PROCEDURE_CALL extends EL_AGENT_CALL {
     /**
      * The procedure agent being called.
      */
-    agent?: EL_PROCEDURE_AGENT;
-}
-
-/**
- * Abstract parent of statement types representing a locally defined routine body.
- */
-export class BMM_STATEMENT_ITEM {
-}
-
-/**
- * Abstract parent of 'statement' types that may be defined to implement BMM Routines.
- */
-export class BMM_STATEMENT {
+    override agent?: EL_PROCEDURE_AGENT = undefined;
 }
 
 /**
  * A statement 'block' corresponding to the programming language concept of the same name. May be used to establish scope in specific languages.
  */
-export class BMM_STATEMENT_BLOCK {
+export class BMM_STATEMENT_BLOCK extends BMM_STATEMENT_ITEM {
     /**
      * Child blocks of the current block.
      */
@@ -1130,15 +1136,9 @@ export class BMM_STATEMENT_BLOCK {
 }
 
 /**
- * Simple statement, i.e. statement with one logical element - a single expression, procedure call etc.
- */
-export class BMM_SIMPLE_STATEMENT {
-}
-
-/**
  * Declaration of a writable variable, associating a name with a type.
  */
-export class BMM_DECLARATION {
+export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
     name?: string;
     result?: EL_WRITABLE_VARIABLE;
     /**
@@ -1148,9 +1148,19 @@ export class BMM_DECLARATION {
 }
 
 /**
+ * Persistent form of \`BMM_MODEL_ELEMENT\`.
+ */
+export abstract class P_BMM_MODEL_ELEMENT {
+    /**
+     * Optional documentation of this element.
+     */
+    documentation?: string;
+}
+
+/**
  * Definition of persistent form of \`BMM_CLASS\` for serialisation to ODIN, JSON, XML etc.
  */
-export class P_BMM_CLASS {
+export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of the class. Persisted attribute.
      */
@@ -1196,19 +1206,29 @@ export class P_BMM_CLASS {
 /**
  * Persistent form of \`BMM_ENUMERATION\` attributes.
  */
-export class P_BMM_ENUMERATION {
+export class P_BMM_ENUMERATION extends P_BMM_CLASS {
     item_names?: undefined;
     item_values?: undefined;
     /**
      * \`BMM_CLASS\` object build by \`_create_bmm_class_definition_\` and \`_populate_bmm_class_definition_\`.
      */
-    bmm_class?: BMM_ENUMERATION;
+    override bmm_class?: BMM_ENUMERATION = undefined;
+}
+
+/**
+ * Persisted form of a model component that contains packages.
+ */
+export class P_BMM_PACKAGE_CONTAINER {
+    /**
+     * Package structure as a hierarchy of packages each potentially containing names of classes in that package in the original model.
+     */
+    packages?: undefined;
 }
 
 /**
  * Persisted form of \`BMM_SCHEMA\`.
  */
-export class P_BMM_SCHEMA {
+export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
     /**
      * Primitive type definitions. Persisted attribute.
      */
@@ -1222,7 +1242,7 @@ export class P_BMM_SCHEMA {
 /**
  * Persistent form of \`BMM_PROPERTY\`.
  */
-export class P_BMM_PROPERTY {
+export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of this property within its class. Persisted attribute.
      */
@@ -1256,7 +1276,7 @@ export class P_BMM_PROPERTY {
 /**
  * Persistent form of \`BMM_GENERIC_PARAMETER\`.
  */
-export class P_BMM_GENERIC_PARAMETER {
+export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of the parameter, e.g. 'T' etc. Persisted attribute. Name is limited to 1 character, upper case.
      */
@@ -1274,7 +1294,7 @@ export class P_BMM_GENERIC_PARAMETER {
 /**
  * Persistent form of \`BMM_TYPE\`.
  */
-export class P_BMM_TYPE {
+export abstract class P_BMM_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -1284,7 +1304,7 @@ export class P_BMM_TYPE {
 /**
  * Persistent form of \`BMM_CONTAINER_TYPE\`.
  */
-export class P_BMM_CONTAINER_TYPE {
+export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     /**
      * The type of the container. This converts to the \`_root_type_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
      */
@@ -1300,13 +1320,20 @@ export class P_BMM_CONTAINER_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    bmm_type?: BMM_CONTAINER_TYPE;
+    override bmm_type?: BMM_CONTAINER_TYPE = undefined;
+}
+
+/**
+ * Persistent form of \`BMM_PROPER_TYPE\`.
+ */
+export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
+    value_constraint?: string;
 }
 
 /**
  * Persistent form of \`BMM_SIMPLE_TYPE\`.
  */
-export class P_BMM_SIMPLE_TYPE {
+export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Name of type - must be a simple class name.
      */
@@ -1314,13 +1341,13 @@ export class P_BMM_SIMPLE_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    bmm_type?: BMM_SIMPLE_TYPE;
+    override bmm_type?: BMM_SIMPLE_TYPE = undefined;
 }
 
 /**
  * Persistent form of \`BMM_PARAMETER_TYPE\`.
  */
-export class P_BMM_OPEN_TYPE {
+export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Simple type parameter as a single letter like 'T', 'G' etc.
      */
@@ -1328,13 +1355,13 @@ export class P_BMM_OPEN_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    bmm_type?: any;
+    override bmm_type?: Any = undefined;
 }
 
 /**
  * Persistent form of \`BMM_GENERIC_TYPE\`.
  */
-export class P_BMM_GENERIC_TYPE {
+export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Root type of this generic type, e.g. \`Interval\` in \`Interval<Integer>\`.
      */
@@ -1350,13 +1377,13 @@ export class P_BMM_GENERIC_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    bmm_type?: BMM_GENERIC_TYPE;
+    override bmm_type?: BMM_GENERIC_TYPE = undefined;
 }
 
 /**
  * Persisted form of a package as a tree structure whose nodes can contain more packages and/or classes.
  */
-export class P_BMM_PACKAGE {
+export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
     /**
      * Name of the package from schema; this name may be qualified if it is a top-level package within the schema, or unqualified. Persistent attribute.
      */
@@ -1372,19 +1399,9 @@ export class P_BMM_PACKAGE {
 }
 
 /**
- * Persisted form of a model component that contains packages.
- */
-export class P_BMM_PACKAGE_CONTAINER {
-    /**
-     * Package structure as a hierarchy of packages each potentially containing names of classes in that package in the original model.
-     */
-    packages?: undefined;
-}
-
-/**
  * Persistent form of \`BMM_CONTAINER_PROPERTY\`.
  */
-export class P_BMM_CONTAINER_PROPERTY {
+export class P_BMM_CONTAINER_PROPERTY extends P_BMM_PROPERTY {
     /**
      * Cardinality of this property in its class. Persistent attribute.
      */
@@ -1392,17 +1409,17 @@ export class P_BMM_CONTAINER_PROPERTY {
     /**
      * Type definition of this property, if not a simple String type reference. Persistent attribute.
      */
-    type_def?: P_BMM_CONTAINER_TYPE;
+    override type_def?: P_BMM_CONTAINER_TYPE = undefined;
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_\`.
      */
-    bmm_property?: BMM_CONTAINER_PROPERTY;
+    override bmm_property?: BMM_CONTAINER_PROPERTY = undefined;
 }
 
 /**
  * Persistent form of \`BMM_SINGLE_PROPERTY\`.
  */
-export class P_BMM_SINGLE_PROPERTY {
+export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
     /**
      * If the type is a simple type, then this attribute will hold the type name. If the type is a container or generic, then type_ref will hold the type definition. The resulting type is generated in type_def.
      */
@@ -1414,13 +1431,13 @@ export class P_BMM_SINGLE_PROPERTY {
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
-    bmm_property?: BMM_UNITARY_PROPERTY;
+    override bmm_property?: BMM_UNITARY_PROPERTY = undefined;
 }
 
 /**
  * Persistent form of a \`BMM_SINGLE_PROPERTY_OPEN\`.
  */
-export class P_BMM_SINGLE_PROPERTY_OPEN {
+export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
     /**
      * Type definition of this property computed from \`_type_\` for later use in \`_bmm_property_\`.
      */
@@ -1432,93 +1449,82 @@ export class P_BMM_SINGLE_PROPERTY_OPEN {
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
-    bmm_property?: BMM_UNITARY_PROPERTY;
+    override bmm_property?: BMM_UNITARY_PROPERTY = undefined;
 }
 
 /**
  * Persistent form of \`BMM_GENERIC_PROPERTY\`.
  */
-export class P_BMM_GENERIC_PROPERTY {
+export class P_BMM_GENERIC_PROPERTY extends P_BMM_PROPERTY {
     /**
      * Type definition of this property, if not a simple String type reference. Persistent attribute.
      */
-    type_def?: P_BMM_GENERIC_TYPE;
+    override type_def?: P_BMM_GENERIC_TYPE = undefined;
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
-    bmm_property?: BMM_UNITARY_PROPERTY;
+    override bmm_property?: BMM_UNITARY_PROPERTY = undefined;
 }
 
 /**
  * Persistent form of an instance of \`BMM_ENUMERATION_INTEGER\`.
  */
-export class P_BMM_ENUMERATION_INTEGER {
+export class P_BMM_ENUMERATION_INTEGER extends P_BMM_ENUMERATION {
     /**
      * \`BMM_CLASS\` object build by \`_create_bmm_class_definition_\` and \`_populate_bmm_class_definition_\`.
      */
-    bmm_class?: BMM_ENUMERATION_INTEGER;
+    override bmm_class?: BMM_ENUMERATION_INTEGER = undefined;
 }
 
 /**
  * Persistent form of \`BMM_ENUMERATION_STRING\`.
  */
-export class P_BMM_ENUMERATION_STRING {
+export class P_BMM_ENUMERATION_STRING extends P_BMM_ENUMERATION {
     /**
      * \`BMM_CLASS\` object build by \`_create_bmm_class_definition_\` and \`_populate_bmm_class_definition_\`.
      */
-    bmm_class?: BMM_ENUMERATION_STRING;
-}
-
-/**
- * Persistent form of \`BMM_MODEL_ELEMENT\`.
- */
-export class P_BMM_MODEL_ELEMENT {
-    /**
-     * Optional documentation of this element.
-     */
-    documentation?: string;
-}
-
-/**
- * Persistent form of \`BMM_PROPER_TYPE\`.
- */
-export class P_BMM_BASE_TYPE {
-    value_constraint?: string;
+    override bmm_class?: BMM_ENUMERATION_STRING = undefined;
 }
 
 /**
  * Concrete descendant of \`BMM_SCHEMA_DESCRIPTOR\` that provides a way to read an ODIN or other similarly encoded P_BMM schema file.
  */
-export class P_BMM_SCHEMA_DESCRIPTOR {
+export class P_BMM_SCHEMA_DESCRIPTOR extends BMM_SCHEMA_DESCRIPTOR {
     /**
      * Persistent form of model.
      */
-    bmm_schema?: P_BMM_SCHEMA;
+    override bmm_schema?: P_BMM_SCHEMA = undefined;
 }
 
-export class P_BMM_INDEXED_CONTAINER_PROPERTY {
+export class P_BMM_INDEXED_CONTAINER_PROPERTY extends P_BMM_CONTAINER_PROPERTY {
     /**
      * Type definition of this property, if not a simple String type reference. Persistent attribute.
      */
-    type_def?: P_BMM_INDEXED_CONTAINER_TYPE;
+    override type_def?: P_BMM_INDEXED_CONTAINER_TYPE = undefined;
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_\`.
      */
-    bmm_property?: BMM_INDEXED_CONTAINER_PROPERTY;
+    override bmm_property?: BMM_INDEXED_CONTAINER_PROPERTY = undefined;
 }
 
-export class P_BMM_INDEXED_CONTAINER_TYPE {
+export class P_BMM_INDEXED_CONTAINER_TYPE extends P_BMM_CONTAINER_TYPE {
     index_type?: string;
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    bmm_type?: BMM_INDEXED_CONTAINER_TYPE;
+    override bmm_type?: BMM_INDEXED_CONTAINER_TYPE = undefined;
+}
+
+/**
+ * Meta-type for the notion of statement, which is a non-value-returning entity.
+ */
+export abstract class STATEMENT {
 }
 
 /**
  * Meta-type for a first order predicate logic expression with a Boolean result. 
  */
-export class ASSERTION {
+export class ASSERTION extends STATEMENT {
     /**
      * Expression tag, used for differentiating multiple assertions.
      */
@@ -1536,7 +1542,7 @@ export class ASSERTION {
 /**
  * Meta-type representing the assignment statement, which associates a named variable with an expression, and produces no value.
  */
-export class ASSIGNMENT {
+export class ASSIGNMENT extends STATEMENT {
     /**
      * The target variable on the notional left-hand side of this assignment.
      */
@@ -1548,65 +1554,21 @@ export class ASSIGNMENT {
 }
 
 /**
- * Binary operator expression node.
+ * Any kind of statement element that can be evaluated. The type will either be supplied in descendant types or else will be inferred by an assignment statement linked to a typed variable.
  */
-export class EXPR_BINARY_OPERATOR {
-    /**
-     * Left operand node.
-     */
-    left_operand?: EXPRESSION;
-    /**
-     * Right operand node.
-     */
-    right_operand?: EXPRESSION;
-}
-
-/**
- * Node representing a function call with 0 or more arguments.
- */
-export class EXPR_FUNCTION_CALL {
-    /**
-     * Arguments of this function, which can be from 0 to any number. Functions with no arguments are typically used to represent real world varying values like 'current time' and so on.
-     */
-    arguments?: undefined;
+export abstract class EXPR_VALUE {
 }
 
 /**
  * Abstract parent of all expression meta-types.
  */
-export class EXPRESSION {
-}
-
-/**
- * Meta-type representing one of:
- * 
- * * a manifest constant of any primitive type;
- * * a path referring to a value in the archetype;
- * * a constraint;
- * * a variable reference.
- * 
- */
-export class EXPR_LEAF {
-    /**
-     * The reference item from which the value of this node can be computed.
-     */
-    item?: any;
-}
-
-/**
- * Literal value expression tree leaf item. This can represent a literal value of any primitive type included in the \`PRIMITIVE_TYPE\` enumeration.
- */
-export class EXPR_LITERAL {
-    /**
-     * A statically set constant value of a primitive type.
-     */
-    item?: any;
+export abstract class EXPRESSION extends EXPR_VALUE {
 }
 
 /**
  * Abstract parent of operator types.
  */
-export class EXPR_OPERATOR {
+export abstract class EXPR_OPERATOR extends EXPRESSION {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
@@ -1622,9 +1584,59 @@ export class EXPR_OPERATOR {
 }
 
 /**
+ * Binary operator expression node.
+ */
+export class EXPR_BINARY_OPERATOR extends EXPR_OPERATOR {
+    /**
+     * Left operand node.
+     */
+    left_operand?: EXPRESSION;
+    /**
+     * Right operand node.
+     */
+    right_operand?: EXPRESSION;
+}
+
+/**
+ * Meta-type representing one of:
+ * 
+ * * a manifest constant of any primitive type;
+ * * a path referring to a value in the archetype;
+ * * a constraint;
+ * * a variable reference.
+ * 
+ */
+export abstract class EXPR_LEAF extends EXPRESSION {
+    /**
+     * The reference item from which the value of this node can be computed.
+     */
+    item?: Any;
+}
+
+/**
+ * Node representing a function call with 0 or more arguments.
+ */
+export class EXPR_FUNCTION_CALL extends EXPR_LEAF {
+    /**
+     * Arguments of this function, which can be from 0 to any number. Functions with no arguments are typically used to represent real world varying values like 'current time' and so on.
+     */
+    arguments?: undefined;
+}
+
+/**
+ * Literal value expression tree leaf item. This can represent a literal value of any primitive type included in the \`PRIMITIVE_TYPE\` enumeration.
+ */
+export class EXPR_LITERAL extends EXPR_LEAF {
+    /**
+     * A statically set constant value of a primitive type.
+     */
+    override item?: Any;
+}
+
+/**
  * Unary operator expression node.
  */
-export class EXPR_UNARY_OPERATOR {
+export class EXPR_UNARY_OPERATOR extends EXPR_OPERATOR {
     /**
      * Operand node.
      */
@@ -1634,17 +1646,17 @@ export class EXPR_UNARY_OPERATOR {
 /**
  * Expression tree leaf item representing a reference to a declared variable.
  */
-export class EXPR_VARIABLE_REF {
+export class EXPR_VARIABLE_REF extends EXPR_LEAF {
     /**
      * The variable referred to.
      */
-    item?: VARIABLE_DECLARATION;
+    override item?: VARIABLE_DECLARATION = undefined;
 }
 
 /**
  * Definition of a variable whose value is derived from a query run on a data context in the operational environment. Typical uses of this kind of variable are to obtain values like the patient date of birth, sex, weight, and so on. It could also be used to obtain items from a knowledge context, such as a drug database.
  */
-export class EXTERNAL_QUERY {
+export class EXTERNAL_QUERY extends EXPR_VALUE {
     /**
      * Optional name of context. This allows a basic separation of query types to be done in more sophisticated environments. Possible values might be “patient”, “medications” and so on.
      * Not yet standardised.
@@ -1666,12 +1678,6 @@ export class EXTERNAL_QUERY {
 }
 
 /**
- * Any kind of statement element that can be evaluated. The type will either be supplied in descendant types or else will be inferred by an assignment statement linked to a typed variable.
- */
-export class EXPR_VALUE {
-}
-
-/**
  * A container for a specific set of statements intended to be used together.
  */
 export class STATEMENT_SET {
@@ -1686,15 +1692,9 @@ export class STATEMENT_SET {
 }
 
 /**
- * Meta-type for the notion of statement, which is a non-value-returning entity.
- */
-export class STATEMENT {
-}
-
-/**
  * Meta-type for the declaration of a named variable that can be used in an expression.
  */
-export class VARIABLE_DECLARATION {
+export class VARIABLE_DECLARATION extends STATEMENT {
     /**
      * Name of the variable.
      */
@@ -1708,13 +1708,13 @@ export class VARIABLE_DECLARATION {
 /**
  * Path-based reference to a value in a data structure.
  */
-export class EXPR_VALUE_REF {
+export class EXPR_VALUE_REF extends EXPR_LEAF {
 }
 
 /**
  * Universal quantification operator, usually known as \`for_all\`, whose operand is a collection of items referenced by an \`EXPR_VALUE_REF\`. The \`_condition_\` attribute represents an assertion that is applied to every member of the collection at runtime to determine the result.
  */
-export class EXPR_FOR_ALL {
+export class EXPR_FOR_ALL extends EXPR_OPERATOR {
     /**
      * Boolean condition that returns True or False when applied to a member of the operand of a \`for_all\` operator.
      */
@@ -1734,7 +1734,7 @@ export class OPERATOR_KIND {
 /**
  * Ancestor class for type definitions known in the openEHR Expression formalism.
  */
-export class EXPR_TYPE_DEF {
+export abstract class EXPR_TYPE_DEF {
     /**
      * Natural language type name of this type as used in abstract rules syntax variable declarations.
      */
@@ -1742,93 +1742,93 @@ export class EXPR_TYPE_DEF {
     /**
      * Attribute of the openEHR primitive type (or Any) corresponding to this type definition meta-type.
      */
-    type_anchor?: any;
+    type_anchor?: Any;
 }
 
 /**
  * Rules meta-type representing the primitive type Boolean.
  */
-export class TYPE_DEF_BOOLEAN {
-    type_name?: string;
-    type_anchor?: boolean;
+export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: boolean = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Date.
  */
-export class TYPE_DEF_DATE {
-    type_name?: string;
-    type_anchor?: Iso8601_date;
+export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: Iso8601_date = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Date_time.
  */
-export class TYPE_DEF_DATE_TIME {
-    type_name?: string;
-    type_anchor?: Iso8601_date_time;
+export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: Iso8601_date_time = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Duration.
  */
-export class TYPE_DEF_DURATION {
-    type_name?: string;
-    type_anchor?: Iso8601_duration;
+export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: Iso8601_duration = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Integer.
  */
-export class TYPE_DEF_INTEGER {
-    type_name?: string;
-    type_anchor?: number;
+export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: number = undefined;
 }
 
 /**
  * Rules meta-type representing the type Object_ref, which is assumed to by the type of any non-primitive reference target within a rule.
  */
-export class TYPE_DEF_OBJECT_REF {
-    type_name?: string;
+export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
+    override type_name?: string;
 }
 
 /**
  * Rules meta-type representing the primitive type Real.
  */
-export class TYPE_DEF_REAL {
-    type_name?: string;
-    type_anchor?: number;
+export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: number = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type String.
  */
-export class TYPE_DEF_STRING {
-    type_name?: string;
-    type_anchor?: string;
+export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: string = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Terminology_code.
  */
-export class TYPE_DEF_TERMINOLOGY_CODE {
-    type_name?: string;
-    type_anchor?: Terminology_code;
+export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: Terminology_code = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Time.
  */
-export class TYPE_DEF_TIME {
-    type_name?: string;
-    type_anchor?: Iso8601_time;
+export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: Iso8601_time = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Uri.
  */
-export class TYPE_DEF_URI {
-    type_name?: string;
-    type_anchor?: string;
+export class TYPE_DEF_URI extends EXPR_TYPE_DEF {
+    override type_name?: string;
+    override type_anchor?: string = undefined;
 }
 

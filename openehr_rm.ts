@@ -3,7 +3,7 @@
 // Schema Revision: 1.2.0.2
 // Description: openEHR Reference Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json
-// Generated: 2025-11-10T12:36:29.690Z
+// Generated: 2025-11-11T05:27:02.986Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -18,7 +18,7 @@ type T = any;
 /**
  * The \`PATHABLE\` class defines the pathing capabilities used by nearly all classes in the openEHR reference model, mostly via inheritance of \`LOCATABLE\`. The defining characteristics of \`PATHABLE\` objects are that they can locate child objects using paths, and they know their parent object in a compositional hierarchy. The parent feature is defined as abstract in the model, and may be implemented in any way convenient.
  */
-export class PATHABLE {
+export abstract class PATHABLE extends openehr_base.Any {
 }
 
 /**
@@ -47,7 +47,7 @@ export class LINK {
 /**
  * Root class of all information model classes that can be archetyped. Most classes in the openEHR reference model inherit from the \`LOCATABLE\` class, which defines the idea of  locatability in an archetyped structure. \`LOCATABLE\` defines a runtime name and an \`_archetype_node_id_\`. 
  */
-export class LOCATABLE {
+export abstract class LOCATABLE extends PATHABLE {
     /**
      * Runtime name of this fragment, used to build runtime paths. This is the term provided via a clinical application or batch process to name this EHR construct: its retention in the EHR faithfully preserves the original label by which this entry was known to end users. 
      * 
@@ -162,7 +162,7 @@ export class FEEDER_AUDIT_DETAILS {
 /**
  * Version control abstraction, defining semantics for versioning one complex object.
  */
-export class VERSIONED_OBJECT {
+export class VERSIONED_OBJECT<T> {
     /**
      * Unique identifier of this version container in the form of a UID with no extension. This id will be the same in all instances of the same container in a distributed environment, meaning that it can be understood as the uid of the  virtual version tree. 
      */
@@ -198,7 +198,7 @@ export class CONTRIBUTION {
 /**
  * Abstract model of one Version within a Version container, containing data, commit audit trail, and the identifier of its Contribution.
  */
-export class VERSION {
+export abstract class VERSION<T> {
     /**
      * Contribution in which this version was added. 
      */
@@ -216,7 +216,7 @@ export class VERSION {
 /**
  * Versions whose content is an \`ORIGINAL_VERSION\` copied from another location; this class inherits \`_commit_audit_\` and \`_contribution_\` from \`VERSION<T>\`, providing imported versions with their own audit trail and Contribution, distinct from those of the imported \`ORIGINAL_VERSION\`. 
  */
-export class IMPORTED_VERSION {
+export class IMPORTED_VERSION<T> extends VERSION<T> {
     /**
      * The \`ORIGINAL_VERSION\` object that was imported. 
      */
@@ -226,7 +226,7 @@ export class IMPORTED_VERSION {
 /**
  * A Version containing locally created content and optional attestations. 
  */
-export class ORIGINAL_VERSION {
+export class ORIGINAL_VERSION<T> extends VERSION<T> {
     /**
      * Stored version of inheritance precursor. 
      */
@@ -301,7 +301,7 @@ export class AUDIT_DETAILS {
  * * indicating acknowledgement of content by intended recipient, e.g. GP who ordered a test result. 
  * 
  */
-export class ATTESTATION {
+export class ATTESTATION extends AUDIT_DETAILS {
     /**
      * Optional visual representation of content attested e.g. screen image. 
      */
@@ -351,7 +351,7 @@ export class PARTICIPATION {
 /**
  * Abstract concept of a proxy description of a party, including an optional link to data for this party in a demographic or other identity management system. Sub- typed into \`PARTY_IDENTIFIED\` and \`PARTY_SELF\`. 
  */
-export class PARTY_PROXY {
+export abstract class PARTY_PROXY {
     /**
      * Optional reference to more detailed demographic or identification information for this party, in an external system. 
      */
@@ -365,7 +365,7 @@ export class PARTY_PROXY {
  * 
  * Should not be used to include patient identifying information. 
  */
-export class PARTY_IDENTIFIED {
+export class PARTY_IDENTIFIED extends PARTY_PROXY {
     /**
      * Optional human-readable name (in String form).
      */
@@ -380,13 +380,13 @@ export class PARTY_IDENTIFIED {
 /**
  * Party proxy representing the subject of the record. Used to indicate that the party is the owner of the record. May or may not have \`_external_ref_\` set. 
  */
-export class PARTY_SELF {
+export class PARTY_SELF extends PARTY_PROXY {
 }
 
 /**
  * Proxy type for identifying a party and its relationship to the subject of the record. Use where the relationship between the party and the subject of the record must be known. 
  */
-export class PARTY_RELATED {
+export class PARTY_RELATED extends PARTY_IDENTIFIED {
     /**
      * Relationship of subject of this ENTRY to the subject of the record. May be coded. If it is the patient, coded as  self. 
      */
@@ -406,7 +406,7 @@ export class REVISION_HISTORY {
 /**
  * A version-controlled hierarchy of \`FOLDERs\` giving the effect of a directory. 
  */
-export class VERSIONED_FOLDER {
+export class VERSIONED_FOLDER extends VERSIONED_OBJECT<T> {
 }
 
 /**
@@ -415,7 +415,7 @@ export class VERSIONED_FOLDER {
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in _top-level_ (i.e. tree-root) \`FOLDER\` objects, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\`  would be copied to the \`_uid_\` field of the top \`FOLDER\` object.
  */
-export class FOLDER {
+export class FOLDER extends LOCATABLE {
     /**
      * The list of references to other (usually) versioned objects logically in this folder. 
      */
@@ -434,7 +434,7 @@ export class FOLDER {
  * Abstract idea of an online resource created by a human author. 
  * 
  */
-export class AUTHORED_RESOURCE {
+export abstract class AUTHORED_RESOURCE {
     /**
      * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
      */
@@ -582,19 +582,19 @@ export class ITEM_TAG {
 /**
  * Abstract parent class of all data structure types. Includes the \`_as_hierarchy_\` function which can generate the equivalent CEN EN13606 single hierarchy for each subtype's physical representation. For example, the physical representation of an \`ITEM_LIST\` is \`List<ELEMENT>\`; its implementation of \`_as_hierarchy_\` will generate a \`CLUSTER\` containing the set of \`ELEMENT\` nodes from the list. 
  */
-export class DATA_STRUCTURE {
+export abstract class DATA_STRUCTURE extends LOCATABLE {
 }
 
 /**
  * Abstract parent class of all spatial data types. 
  */
-export class ITEM_STRUCTURE {
+export abstract class ITEM_STRUCTURE extends DATA_STRUCTURE {
 }
 
 /**
  * Logical tree data structure. The tree may be empty. Used for representing data which are logically a tree such as audiology results, microbiology results, biochemistry results.
  */
-export class ITEM_TREE {
+export class ITEM_TREE extends ITEM_STRUCTURE {
     /**
      * The items comprising the \`ITEM_TREE\`. Can include 0 or more \`CLUSTERs\` and/or 0 or more individual \`ELEMENTs\`.
      */
@@ -604,7 +604,7 @@ export class ITEM_TREE {
 /**
  * Logical single value data structure. Used to represent any data which is logically a single value, such as a person's height or weight.
  */
-export class ITEM_SINGLE {
+export class ITEM_SINGLE extends ITEM_STRUCTURE {
     item?: ELEMENT;
 }
 
@@ -617,7 +617,7 @@ export class ITEM_SINGLE {
  * 
  * Misuse: Not to be used for time-based data, which should be represented with the temporal class \`HISTORY\`. The table may be empty. 
  */
-export class ITEM_TABLE {
+export class ITEM_TABLE extends ITEM_STRUCTURE {
     /**
      * Physical representation of the table as a list of \`CLUSTERs\`, each containing the data of one row of the table. 
      */
@@ -631,7 +631,7 @@ export class ITEM_TABLE {
  * 
  * Not to be used for time-based lists, which should be represented with the proper temporal class, i.e. \`HISTORY\`.
  */
-export class ITEM_LIST {
+export class ITEM_LIST extends ITEM_STRUCTURE {
     /**
      * Physical representation of the list. 
      */
@@ -641,7 +641,7 @@ export class ITEM_LIST {
 /**
  * Defines the abstract notion of a single event in a series. This class is generic, allowing types to be generated which are locked to particular spatial types, such as \`EVENT<ITEM_LIST>\`. Subtypes express point or intveral data. 
  */
-export class EVENT {
+export abstract class EVENT<T extends ITEM_STRUCTURE> extends LOCATABLE {
     /**
      * Time of this event. If the width is non-zero, it is the time point of the trailing edge of the event. 
      */
@@ -659,13 +659,13 @@ export class EVENT {
 /**
  * Defines a single point event in a series.
  */
-export class POINT_EVENT {
+export class POINT_EVENT<T> extends EVENT<T> {
 }
 
 /**
  * Defines a single interval event in a series. 
  */
-export class INTERVAL_EVENT {
+export class INTERVAL_EVENT<T> extends EVENT<T> {
     /**
      * Duration of the time interval during which the values recorded under \`data\` are true and, if set, the values recorded under \`state\` are true. Void if an instantaneous event.
      */
@@ -685,7 +685,7 @@ export class INTERVAL_EVENT {
  * 
  * For a periodic series of events, period will be set, and the time of each Event in the History must correspond; i.e. the \`EVENT._offset_\` must be a multiple of period for each Event. Missing events in a period History are however allowed. 
  */
-export class HISTORY {
+export class HISTORY<T extends ITEM_STRUCTURE> extends DATA_STRUCTURE {
     /**
      * Time origin of this event history. The first event is not necessarily at the origin point. 
      */
@@ -711,13 +711,13 @@ export class HISTORY {
 /**
  * The abstract parent of \`CLUSTER\` and \`ELEMENT\` representation classes. 
  */
-export class ITEM {
+export abstract class ITEM extends LOCATABLE {
 }
 
 /**
  * The grouping variant of \`ITEM\`, which may contain further instances of \`ITEM\`, in an ordered list. 
  */
-export class CLUSTER {
+export class CLUSTER extends ITEM {
     /**
      * Ordered list of items - \`CLUSTER\` or \`ELEMENT\` objects - under this \`CLUSTER\`. 
      */
@@ -727,7 +727,7 @@ export class CLUSTER {
 /**
  * The leaf variant of \`ITEM\`, to which a \`DATA_VALUE\` instance is attached. 
  */
-export class ELEMENT {
+export class ELEMENT extends ITEM {
     /**
      * Flavour of null value, e.g. \`253|unknown|\`, \`271|no information|\`, \`272|masked|\`, and \`273|not applicable|\`.
      */
@@ -745,7 +745,7 @@ export class ELEMENT {
 /**
  * Abstract parent of all \`DV_\` data value types.
  */
-export class DATA_VALUE {
+export abstract class DATA_VALUE extends openehr_base.OPENEHR_DEFINITIONS {
 }
 
 /**
@@ -754,7 +754,7 @@ export class DATA_VALUE {
  * Misuse: The DV_BOOLEAN class should not be used as a replacement for naively modelled enumerated types such as male/female etc. Such values should be coded, and in any case the enumeration often has more than two values. 
  * 
  */
-export class DV_BOOLEAN {
+export class DV_BOOLEAN extends DATA_VALUE {
     /**
      * Boolean value of this item. Actual values may be language or implementation dependent.
      */
@@ -767,7 +767,7 @@ export class DV_BOOLEAN {
  * DV_STATE is expressed as a String but its values are driven by archetype-defined  state machines. This provides a powerful way of capturing stateful complex processes  in simple data. 
  * 
  */
-export class DV_STATE {
+export class DV_STATE extends DATA_VALUE {
     /**
      * The state name. State names are determined by a state/event table defined in archetypes, and coded using openEHR Terminology or local archetype terms, as specified by the archetype. 
      */
@@ -785,7 +785,7 @@ export class DV_STATE {
  * 
  * Misuse: DV_IDENTIFIER is not used to express identifiers generated by the infrastructure to refer to information items; the types OBJECT_ID and OBJECT_REF and subtypes are defined for this purpose.
  */
-export class DV_IDENTIFIER {
+export class DV_IDENTIFIER extends DATA_VALUE {
     /**
      * Optional authority which issues the kind of id used in the id field of this object. 
      */
@@ -807,7 +807,7 @@ export class DV_IDENTIFIER {
 /**
  * Abstract class defining the common meta-data of all types of encapsulated data.
  */
-export class DV_ENCAPSULATED {
+export abstract class DV_ENCAPSULATED extends DATA_VALUE {
     /**
      * Name of character encoding scheme in which this value is encoded. Coded from openEHR Code Set  character sets . Unicode is the default assumption in openEHR, with UTF-8 being the assumed encoding. This attribute allows for variations from these assumptions. 
      */
@@ -821,7 +821,7 @@ export class DV_ENCAPSULATED {
 /**
  * A specialisation of \`DV_ENCAPSULATED\` for audiovisual and bio-signal types. Includes further metadata relating to multimedia types which are not applicable to other subtypes of \`DV_ENCAPSULATED\`.
  */
-export class DV_MULTIMEDIA {
+export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     /**
      * Text to display in lieu of multimedia display/replay.
      */
@@ -865,7 +865,7 @@ export class DV_MULTIMEDIA {
 /**
  * Encapsulated data expressed as a parsable String. The internal model of the data item is not described in the openEHR model in common with other encapsulated types, but in this case, the form of the data is assumed to be plaintext, rather than compressed or other types of large binary data. 
  */
-export class DV_PARSABLE {
+export class DV_PARSABLE extends DV_ENCAPSULATED {
     /**
      * The string, which may validly be empty in some syntaxes.
      */
@@ -885,7 +885,7 @@ export class DV_PARSABLE {
  * 
  * \`DV_PARAGRAPH\` is the standard way for constructing longer text items in summaries, reports and so on. 
  */
-export class DV_PARAGRAPH {
+export class DV_PARAGRAPH extends DATA_VALUE {
     /**
      * Items making up the paragraph, each of which is a text item (which may have its own formatting, and/or have hyperlinks). 
      */
@@ -903,7 +903,7 @@ export class DV_PARAGRAPH {
  * 
  * A \`DV_TEXT\` can be coded by adding mappings to it.
  */
-export class DV_TEXT {
+export class DV_TEXT extends DATA_VALUE {
     /**
      * Displayable rendition of the item, regardless of its underlying structure. For \`DV_CODED_TEXT\`, this is the rubric of the complete term as provided by the terminology service.
      * 
@@ -948,7 +948,7 @@ export class DV_TEXT {
  * 
  * Misuse: If the intention is to represent a term code attached in some way to a fragment of plain text, \`DV_CODED_TEXT\` should not be used; instead use a \`DV_TEXT\` and a \`TERM_MAPPING\` to a \`CODE_PHRASE\`. 
  */
-export class DV_CODED_TEXT {
+export class DV_CODED_TEXT extends DV_TEXT {
     /**
      * The term of which the  \`_value_\` attribute is the textual rendition (i.e. rubric). 
      * 
@@ -1009,7 +1009,7 @@ export class CODE_PHRASE {
  * Data value types which are to be used as limits in the \`DV_INTERVAL<T>\` class must inherit from this class, and implement the function \`_is_strictly_comparable_to()_\` to ensure that instances compare meaningfully. For example, instances of \`DV_QUANTITY\` can only be compared if they measure the same kind of physical quantity. 
  * 
  */
-export class DV_ORDERED {
+export abstract class DV_ORDERED extends DATA_VALUE {
     /**
      * Optional normal status indicator of value with respect to normal range for this value. Often included by lab, even if the normal range itself is not included. Coded by ordinals in series HHH, HH, H, (nothing), L, LL, LLL; see openEHR terminology group  \`normal_status\`. 
      */
@@ -1031,13 +1031,13 @@ export class DV_ORDERED {
  * 
  * The basic semantics are derived from the class \`Interval<T>\`, described in the support RM. 
  */
-export class DV_INTERVAL {
+export class DV_INTERVAL<T extends DV_ORDERED> extends DATA_VALUE {
 }
 
 /**
  * Defines a named range to be associated with any \`DV_ORDERED\` datum. Each such range is particular to the patient and context, e.g. sex, age, and any other factor which affects ranges. May be used to represent normal, therapeutic, dangerous, critical etc ranges.
  */
-export class REFERENCE_RANGE {
+export class REFERENCE_RANGE<T extends DV_ORDERED> {
     /**
      * Term whose value indicates the meaning of this range, e.g.  normal,  critical,  therapeutic  etc.
      */
@@ -1051,7 +1051,7 @@ export class REFERENCE_RANGE {
 /**
  * Abstract class defining the concept of true quantified values, i.e. values which are not only ordered, but which have a precise magnitude.
  */
-export class DV_QUANTIFIED {
+export abstract class DV_QUANTIFIED extends DV_ORDERED {
     /**
      * Optional status of magnitude with values: 
      * 
@@ -1069,7 +1069,30 @@ export class DV_QUANTIFIED {
     /**
      * Accuracy of measurement. Exact form of expression determined in descendants.
      */
-    accuracy?: any;
+    accuracy?: openehr_base.Any;
+}
+
+/**
+ * Class of enumeration constants defining types of proportion for the \`DV_PROPORTION\` class. 
+ */
+export class PROPORTION_KIND {
+}
+
+/**
+ * Abstract class defining the concept of relative quantified  'amounts'. For relative quantities, the  \`+\` and  \`-\` operators are defined (unlike descendants of \`DV_ABSOLUTE_QUANTITY\`, such as the date/time types). 
+ * 
+ */
+export abstract class DV_AMOUNT extends DV_QUANTIFIED {
+    /**
+     * If \`True\`, indicates that when this object was created, \`_accuracy_\` was recorded as a percent value; if \`False\`, as an absolute quantity value.
+     */
+    accuracy_is_percent?: boolean;
+    /**
+     * Accuracy of measurement, expressed either as a half-range percent value (\`_accuracy_is_percent_\` = \`True\`) or a half-range quantity. A value of \`0\` means that accuracy is 100%, i.e. no error.
+     * 
+     * A value of \`_unknown_accuracy_value_\` means that accuracy was not recorded.
+     */
+    override accuracy?: number = undefined;
 }
 
 /**
@@ -1079,7 +1102,7 @@ export class DV_QUANTIFIED {
  *  
  * Misuse: Should not be used to represent things like blood pressure which are often written using a  '/' character, giving the misleading impression that the item is a ratio, when in fact it is a structured value. Similarly, visual acuity, often written as (e.g.) "6/24" in clinical notes is not a ratio but an ordinal (which includes non-numeric symbols like CF = count fingers etc). Should not be used for formulations. 
  */
-export class DV_PROPORTION {
+export class DV_PROPORTION extends PROPORTION_KIND {
     /**
      * Numerator of ratio
      */
@@ -1099,34 +1122,11 @@ export class DV_PROPORTION {
     /**
      * Optional normal range. 
      */
-    normal_range?: undefined;
+    override normal_range?: undefined = undefined;
     /**
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
-    other_reference_ranges?: undefined;
-}
-
-/**
- * Class of enumeration constants defining types of proportion for the \`DV_PROPORTION\` class. 
- */
-export class PROPORTION_KIND {
-}
-
-/**
- * Abstract class defining the concept of relative quantified  'amounts'. For relative quantities, the  \`+\` and  \`-\` operators are defined (unlike descendants of \`DV_ABSOLUTE_QUANTITY\`, such as the date/time types). 
- * 
- */
-export class DV_AMOUNT {
-    /**
-     * If \`True\`, indicates that when this object was created, \`_accuracy_\` was recorded as a percent value; if \`False\`, as an absolute quantity value.
-     */
-    accuracy_is_percent?: boolean;
-    /**
-     * Accuracy of measurement, expressed either as a half-range percent value (\`_accuracy_is_percent_\` = \`True\`) or a half-range quantity. A value of \`0\` means that accuracy is 100%, i.e. no error.
-     * 
-     * A value of \`_unknown_accuracy_value_\` means that accuracy was not recorded.
-     */
-    accuracy?: number;
+    override other_reference_ranges?: undefined;
 }
 
 /**
@@ -1134,7 +1134,7 @@ export class DV_AMOUNT {
  * 
  * Can also be used for time durations, where it is more convenient to treat these as simply a number of seconds rather than days, months, years (in the latter case, \`DV_DURATION\` may be used).
  */
-export class DV_QUANTITY {
+export class DV_QUANTITY extends DV_AMOUNT {
     /**
      * Numeric magnitude of the quantity.
      */
@@ -1157,11 +1157,11 @@ export class DV_QUANTITY {
     /**
      * Optional normal range. 
      */
-    normal_range?: undefined;
+    override normal_range?: undefined = undefined;
     /**
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
-    other_reference_ranges?: undefined;
+    override other_reference_ranges?: undefined;
     /**
      * Optional field used to specify a units system from which codes in \`_units_\` are defined. Value is a URI identifying a terminology containing units concepts from the  (https://www.hl7.org/fhir/terminologies-systems.html[HL7 FHIR terminologies list]).
      * 
@@ -1183,23 +1183,23 @@ export class DV_QUANTITY {
  * 
  * Misuse: Not to be used for amounts of physical entities (which all have units).
  */
-export class DV_COUNT {
+export class DV_COUNT extends DV_AMOUNT {
     magnitude?: openehr_base.Integer64;
     /**
      * Optional normal range. 
      */
-    normal_range?: undefined;
+    override normal_range?: undefined = undefined;
     /**
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
-    other_reference_ranges?: undefined;
+    override other_reference_ranges?: undefined;
 }
 
 /**
  * Abstract class defining the concept of quantified entities whose values are absolute with respect to an origin. Dates and Times are the main example.
  */
-export class DV_ABSOLUTE_QUANTITY {
-    accuracy?: DV_AMOUNT;
+export abstract class DV_ABSOLUTE_QUANTITY extends DV_QUANTIFIED {
+    override accuracy?: DV_AMOUNT = undefined;
 }
 
 /**
@@ -1219,7 +1219,7 @@ export class DV_ABSOLUTE_QUANTITY {
  * 
  * For scores or scales that include Real numbers (or might in the future, i.e. not fixed for all time, such as Apgar), use \`DV_SCALE\`. \`DV_SCALE\` may also be used in future for representing purely Integer-based scales, however, the \`DV_ORDINAL\` type should continue to be supported in software implementations in order to accommodate existing data that are instances of this type.
  */
-export class DV_ORDINAL {
+export class DV_ORDINAL extends DV_ORDERED {
     /**
      * Coded textual representation of this value in the enumeration, which may be strings made from  +  symbols, or other enumerations of terms such as  \`mild\`, \`moderate\`, \`severe\`, or even the same number series as the values, e.g. 1, 2, 3.
      */
@@ -1254,7 +1254,7 @@ export class DV_ORDINAL {
  * 
  * For scores that include only Integers, \`DV_SCALE\` may also be used, but \`DV_ORDINAL\` should be supported to accommodate existing data instances of that type.
  */
-export class DV_SCALE {
+export class DV_SCALE extends DV_ORDERED {
     /**
      * Coded textual representation of this value in the scale range, which may be strings made from symbols or other enumerations of terms such as  \`no breathlessness\`, \`very very slight\`, \`slight breathlessness\`. Codes come from archetypes.
      * 
@@ -1277,7 +1277,7 @@ export class DV_SCALE {
  * 
  * Misuse: Durations cannot be used to represent points in time, or intervals of time. 
  */
-export class DV_DURATION {
+export class DV_DURATION extends DV_AMOUNT {
     /**
      * ISO8601 duration string, including described deviations to support negative values and weeks.
      */
@@ -1287,18 +1287,18 @@ export class DV_DURATION {
 /**
  * Specialised temporal variant of \`DV_ABSOLUTE_QUANTITY\` whose diff type is \`DV_DURATION\`. 
  */
-export class DV_TEMPORAL {
+export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
     /**
      * Time accuracy, expressed as a duration.
      */
-    accuracy?: DV_DURATION;
+    override accuracy?: DV_DURATION = undefined;
 }
 
 /**
  * Represents an absolute point in time, as measured on the Gregorian calendar, and specified only to the day. Semantics defined by ISO 8601. Used for recording dates in real world time. The partial form is used for approximate birth dates, dates of death, etc.
  * 
  */
-export class DV_DATE {
+export class DV_DATE extends DV_TEMPORAL {
     /**
      * ISO8601 date string.
      */
@@ -1310,7 +1310,7 @@ export class DV_DATE {
  * 
  * Used for recording real world times, rather than scientifically measured fine amounts of time. The partial form is used for approximate times of events and substance administrations. 
  */
-export class DV_TIME {
+export class DV_TIME extends DV_TEMPORAL {
     /**
      * ISO8601 time string
      */
@@ -1323,7 +1323,7 @@ export class DV_TIME {
  * Used for recording a precise point in real world time, and for approximate time stamps, e.g. the origin of a \`HISTORY\` in an \`OBSERVATION\` which is only partially known. 
  * 
  */
-export class DV_DATE_TIME {
+export class DV_DATE_TIME extends DV_TEMPORAL {
     /**
      * ISO8601 date/time string.
      */
@@ -1333,7 +1333,7 @@ export class DV_DATE_TIME {
 /**
  * This is an abstract class of which all timing specifications are specialisations. Specifies points in time, possibly linked to the calendar, or a real world repeating event, such as  breakfast. 
  */
-export class DV_TIME_SPECIFICATION {
+export abstract class DV_TIME_SPECIFICATION extends DATA_VALUE {
     /**
      * The specification, in the HL7v3 syntax for \`PIVL\` or \`EIVL\` types.
      */
@@ -1345,19 +1345,19 @@ export class DV_TIME_SPECIFICATION {
  * 
  * Used in therapeutic prescriptions, expressed as \`INSTRUCTIONs\` in the openEHR model. 
  */
-export class DV_PERIODIC_TIME_SPECIFICATION {
+export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
 }
 
 /**
  * Specifies points in time in a general syntax. Based on the HL7v3 GTS data type.
  */
-export class DV_GENERAL_TIME_SPECIFICATION {
+export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
 }
 
 /**
  * A reference to an object which structurally conforms to the Universal Resource Identifier (URI) RFC-3986 standard. The reference is contained in the \`_value_\` attribute, which is a \`String\`. So-called 'plain-text URIs' that contain RFC-3986 forbidden characters such as spaces etc, are allowed on the basis that they need to be RFC-3986 encoded prior to use in e.g. REST APIs or other contexts relying on machine-level conformance.
  */
-export class DV_URI {
+export class DV_URI extends DATA_VALUE {
     /**
      * Value of URI as a String. 'Plain-text' URIs are allowed, enabling better readability, but must be RFC-3986 encoded in use.
      */
@@ -1369,19 +1369,7 @@ export class DV_URI {
  * 
  * Used to reference items in an EHR, which may be the same as the current EHR (containing this link), or another.
  */
-export class DV_EHR_URI {
-}
-
-/**
- * A mixin class providing access to services in the external environment.
- */
-export class EXTERNAL_ENVIRONMENT_ACCESS {
-}
-
-/**
- * Defines an object providing proxy access to a measurement information service.
- */
-export class MEASUREMENT_SERVICE {
+export class DV_EHR_URI extends DV_URI {
 }
 
 /**
@@ -1399,7 +1387,19 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
 /**
  * Defines an object providing proxy access to a terminology service. 
  */
-export class TERMINOLOGY_SERVICE {
+export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
+}
+
+/**
+ * Defines an object providing proxy access to a measurement information service.
+ */
+export class MEASUREMENT_SERVICE {
+}
+
+/**
+ * A mixin class providing access to services in the external environment.
+ */
+export abstract class EXTERNAL_ENVIRONMENT_ACCESS extends TERMINOLOGY_SERVICE {
 }
 
 /**
@@ -1466,19 +1466,19 @@ export class EHR {
 /**
  * Version container for \`EHR_ACCESS\` instance.
  */
-export class VERSIONED_EHR_ACCESS {
+export class VERSIONED_EHR_ACCESS extends VERSIONED_OBJECT<T> {
 }
 
 /**
  * Version container for \`EHR_STATUS\` instance.
  */
-export class VERSIONED_EHR_STATUS {
+export class VERSIONED_EHR_STATUS extends VERSIONED_OBJECT<T> {
 }
 
 /**
  * Version-controlled composition abstraction, defined by inheriting \`VERSIONED_OBJECT<COMPOSITION>\`. 
  */
-export class VERSIONED_COMPOSITION {
+export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
 }
 
 /**
@@ -1487,7 +1487,7 @@ export class VERSIONED_COMPOSITION {
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in \`EHR_ACCESS\` objects, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\` would be copied to the \`_uid_\` field of the \`EHR_ACCESS\` object.
  */
-export class EHR_ACCESS {
+export class EHR_ACCESS extends LOCATABLE {
     /**
      * Access control settings for the EHR. Instance is a subtype of the type \`ACCESS_CONTROL_SETTINGS\`, allowing for the use of different access control schemes. 
      */
@@ -1500,7 +1500,7 @@ export class EHR_ACCESS {
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in \`EHR_STATUS\` objects, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\`  would be copied to the \`_uid_\` field of the \`EHR_STATUS\` object.
  */
-export class EHR_STATUS {
+export class EHR_STATUS extends LOCATABLE {
     /**
      * The subject of this EHR. The \`_external_ref_\` attribute can be used to contain a direct reference to the subject in a demographic or identity service. Alternatively, the association between patients and their records may be done elsewhere for security reasons. 
      */
@@ -1522,13 +1522,13 @@ export class EHR_STATUS {
 /**
  * Access Control Settings for the EHR and components. Intended to support multiple access control schemes. Currently implementation dependent.
  */
-export class ACCESS_CONTROL_SETTINGS {
+export abstract class ACCESS_CONTROL_SETTINGS {
 }
 
 /**
  * Generic model of an Extract of some information from a repository.
  */
-export class EXTRACT {
+export class EXTRACT extends LOCATABLE {
     /**
      * The content extracted and serialised from the source repository for this Extract.
      */
@@ -1562,12 +1562,12 @@ export class EXTRACT {
 /**
  * Generic model of a Request for an Extract, containing an Extract specification.
  */
-export class EXTRACT_ACTION_REQUEST {
+export class EXTRACT_ACTION_REQUEST extends LOCATABLE {
     /**
      * Identifier of previous \`EXTRACT_REQUEST\`.
      */
     request_id?: openehr_base.OBJECT_REF;
-    uid?: openehr_base.HIER_OBJECT_ID;
+    override uid?: openehr_base.HIER_OBJECT_ID = undefined;
     /**
      * Requested action: \`cancel | resend | send new\`. Coded by openEHR Terminology group \`'extract action type'\`.
      */
@@ -1577,7 +1577,7 @@ export class EXTRACT_ACTION_REQUEST {
 /**
  * One content chapter of an Extract; contains information relating to only one entity.
  */
-export class EXTRACT_CHAPTER {
+export class EXTRACT_CHAPTER extends LOCATABLE {
     /**
      * The information content of this chapter.
      */
@@ -1585,9 +1585,15 @@ export class EXTRACT_CHAPTER {
 }
 
 /**
+ * Abstract parent of Extract Folder and Content types.
+ */
+export abstract class EXTRACT_ITEM extends LOCATABLE {
+}
+
+/**
  * Abstract model of a wrapper for one content item in an Extract, containing various meta-data. Indicates whether it was part of the primary set and what its original path was. Intended to be subtyped for wrappers of specific types of content.
  */
-export class EXTRACT_CONTENT_ITEM {
+export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
     /**
      * True if the content item carried in this container was part of the primary set for the Extract, i.e. not added due to link-following.
      */
@@ -1603,13 +1609,13 @@ export class EXTRACT_CONTENT_ITEM {
     /**
      * Content object.
      */
-    item?: any;
+    item?: openehr_base.Any;
 }
 
 /**
  * Type of chapter that contains information relating to a single demographic entity.
  */
-export class EXTRACT_ENTITY_CHAPTER {
+export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
     /**
      * Reference to entity, usually a demographic entity such as a patient that the content of this chapter relates to.
      */
@@ -1652,17 +1658,11 @@ export class EXTRACT_ERROR {
 /**
  * Folder in local Folder structure in an Extract. Empty Folders are allowed.
  */
-export class EXTRACT_FOLDER {
+export class EXTRACT_FOLDER extends EXTRACT_ITEM {
     /**
      * List of Folders and content items in this Folder.
      */
     items?: undefined;
-}
-
-/**
- * Abstract parent of Extract Folder and Content types.
- */
-export class EXTRACT_ITEM {
 }
 
 /**
@@ -1702,7 +1702,7 @@ export class EXTRACT_PARTICIPATION {
 /**
  * Generic model of a Request for an Extract, containing an Extract specification.
  */
-export class EXTRACT_REQUEST {
+export class EXTRACT_REQUEST extends LOCATABLE {
     /**
      * Specification details of the request.
      */
@@ -1714,7 +1714,7 @@ export class EXTRACT_REQUEST {
     /**
      * Identifier of this Request, generated by requestor.
      */
-    uid?: openehr_base.HIER_OBJECT_ID;
+    override uid?: openehr_base.HIER_OBJECT_ID = undefined;
 }
 
 /**
@@ -1830,17 +1830,17 @@ export class EXTRACT_VERSION_SPEC {
 /**
  * Form of \`EHR EXTRACT_ITEM\` containing openEHR serialised \`VERSIONED_OBJECTs\`.
  */
-export class OPENEHR_CONTENT_ITEM {
+export class OPENEHR_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     /**
      * Content object.
      */
-    item?: X_VERSIONED_OBJECT;
+    override item?: X_VERSIONED_OBJECT = undefined;
 }
 
 /**
  * Variety of Extract content that consists is a sharable data-oriented version of \`VERSIONED_OBJECT<T>\`.
  */
-export class X_VERSIONED_OBJECT {
+export class X_VERSIONED_OBJECT<T> {
     /**
      * Uid of original \`VERSIONED_OBJECT\`.
      */
@@ -1874,37 +1874,37 @@ export class X_VERSIONED_OBJECT {
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`EHR_ACCESS\` EHR object.
  */
-export class X_VERSIONED_EHR_ACCESS {
+export class X_VERSIONED_EHR_ACCESS extends X_VERSIONED_OBJECT<T> {
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`EHR_STATUS\` EHR object.
  */
-export class X_VERSIONED_EHR_STATUS {
+export class X_VERSIONED_EHR_STATUS extends X_VERSIONED_OBJECT<T> {
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`COMPOSITION\` EHR object.
  */
-export class X_VERSIONED_COMPOSITION {
+export class X_VERSIONED_COMPOSITION extends X_VERSIONED_OBJECT<T> {
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`FOLDER\` EHR object.
  */
-export class X_VERSIONED_FOLDER {
+export class X_VERSIONED_FOLDER extends X_VERSIONED_OBJECT<T> {
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`PARTY\` demographic object.
  */
-export class X_VERSIONED_PARTY {
+export class X_VERSIONED_PARTY extends X_VERSIONED_OBJECT<T> {
 }
 
 /**
  * Single item in generic extract, designed for 13606 and CDA data.
  */
-export class GENERIC_CONTENT_ITEM {
+export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     /**
      * Identifier of model or schema used to create the content.
      */
@@ -1952,20 +1952,26 @@ export class GENERIC_CONTENT_ITEM {
     /**
      * Content object.
      */
-    item?: LOCATABLE;
+    override item?: LOCATABLE = undefined;
+}
+
+/**
+ * Abstract parent of message payload types.
+ */
+export abstract class MESSAGE_CONTENT {
 }
 
 /**
  * Type of request designed for synchronisation of Contributions between openEHR servers.
  */
-export class SYNC_EXTRACT_REQUEST {
+export class SYNC_EXTRACT_REQUEST extends MESSAGE_CONTENT {
     /**
      * Details of specification of synchronisation request.
      */
     specification?: SYNC_EXTRACT_SPEC;
 }
 
-export class SYNC_EXTRACT {
+export class SYNC_EXTRACT extends MESSAGE_CONTENT {
     /**
      * Details of specification of this Extract.
      */
@@ -2069,18 +2075,12 @@ export class ADDRESSED_MESSAGE {
 }
 
 /**
- * Abstract parent of message payload types.
- */
-export class MESSAGE_CONTENT {
-}
-
-/**
  * Ancestor of all Party types, including real world entities and their roles. A Party is any entity which can participate in an activity. The \`_name_\` attribute inherited from \`LOCATABLE\` is used to indicate the actual type of party (note that the actual names, i.e. identities of parties are indicated in the \`_identities_\` attribute, not the \`_name_\` attribute).
  * 
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in \`PARTY\` objects, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\`  would be copied to the \`_uid_\` field of the \`PARTY\` object.
  */
-export class PARTY {
+export abstract class PARTY extends LOCATABLE {
     /**
      * Identities used by the party to identify itself, such as legal name, stage names, aliases, nicknames and so on.
      */
@@ -2106,7 +2106,7 @@ export class PARTY {
 /**
  * Description of a means of contact of a Party. Actual structure is archetyped.
  */
-export class CONTACT {
+export class CONTACT extends LOCATABLE {
     /**
      * A set of address alternatives for this contact purpose and time validity combination.
      */
@@ -2120,7 +2120,7 @@ export class CONTACT {
 /**
  * Address of contact, which may be electronic or geographic.
  */
-export class ADDRESS {
+export class ADDRESS extends LOCATABLE {
     /**
      * Archetypable structured address.
      */
@@ -2130,7 +2130,7 @@ export class ADDRESS {
 /**
  * An identity  owned  by a Party, such as a person name or company name, and which is used by the Party to identify itself. Actual structure is archetyped.
  */
-export class PARTY_IDENTITY {
+export class PARTY_IDENTITY extends LOCATABLE {
     /**
      * The value of the identity. This will often taken the form of a parseable string or a small structure of strings.
      */
@@ -2140,7 +2140,7 @@ export class PARTY_IDENTITY {
 /**
  * Generic description of a role performed by an Actor. The role corresponds to a competency of the Party. Roles are used to define the responsibilities undertaken by a Party for a purpose. Roles should have credentials qualifying the performer to perform the role.
  */
-export class ROLE {
+export class ROLE extends PARTY {
     /**
      * Valid time interval for this role.
      */
@@ -2158,7 +2158,7 @@ export class ROLE {
 /**
  * Ancestor of all real-world types, including people and organisations. An actor is any real-world entity capable of taking on a role.
  */
-export class ACTOR {
+export abstract class ACTOR extends PARTY {
     /**
      * Languages which can be used to communicate with this actor, in preferred order of use (if known, else order irrelevant).
      */
@@ -2172,7 +2172,7 @@ export class ACTOR {
 /**
  * Capability of a role, such as  ehr modifier,  health care provider. Capability should be backed up by credentials.
  */
-export class CAPABILITY {
+export class CAPABILITY extends LOCATABLE {
     /**
      * The qualifications of the performer of the role for this capability. This might include professional qualifications and official identifications such as provider numbers etc.
      */
@@ -2186,31 +2186,31 @@ export class CAPABILITY {
 /**
  * Generic concept of any kind of agent, including devices, software systems, but not humans or organisations.
  */
-export class AGENT {
+export class AGENT extends ACTOR {
 }
 
 /**
  * Generic description of organisations. An organisation is a legally constituted body whose existence (in general) outlives the existence of parties considered to be part of it.
  */
-export class ORGANISATION {
+export class ORGANISATION extends ACTOR {
 }
 
 /**
  * A group is a real world group of parties which is created by another party, usually an organisation, for some specific purpose. A typical clinical example is that of the specialist care team, e.g.  cardiology team . The members of the group usually work together.
  */
-export class GROUP {
+export class GROUP extends ACTOR {
 }
 
 /**
  * Generic description of persons. Provides a dedicated type to which Person archetypes can be targeted.
  */
-export class PERSON {
+export class PERSON extends ACTOR {
 }
 
 /**
  * Generic description of a relationship between parties.
  */
-export class PARTY_RELATIONSHIP {
+export class PARTY_RELATIONSHIP extends LOCATABLE {
     /**
      * The detailed description of the relationship.
      */
@@ -2232,13 +2232,19 @@ export class PARTY_RELATIONSHIP {
 /**
  * Static type formed by binding generic parameter of \`VERSIONED_OBJECT<T>\` to \`PARTY\`. 
  */
-export class VERSIONED_PARTY {
+export class VERSIONED_PARTY extends VERSIONED_OBJECT<T> {
+}
+
+/**
+ * Abstract ancestor of all concrete content types.
+ */
+export abstract class CONTENT_ITEM extends LOCATABLE {
 }
 
 /**
  * This class is used to create intermediate representations of data from sources not otherwise conforming to openEHR classes, such as HL7 messages, relational databases and so on.
  */
-export class GENERIC_ENTRY {
+export class GENERIC_ENTRY extends CONTENT_ITEM {
     /**
      * The data from the source message or record. May be recorded in any structural openEHR representation.
      */
@@ -2251,7 +2257,7 @@ export class GENERIC_ENTRY {
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in Compositions, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\` would be copied to the \`_uid_\` field of the Composition.
  */
-export class COMPOSITION {
+export class COMPOSITION extends LOCATABLE {
     /**
      * Mandatory indicator of the localised language in which this Composition is written. Coded from openEHR Code Set  \`languages\`. The language of an Entry if different from the Composition is indicated in \`ENTRY._language_\`. 
      */
@@ -2288,7 +2294,7 @@ export class COMPOSITION {
 /**
  * Documents the context information of a healthcare event involving the subject of care and the health system. The context information recorded here are independent of the attributes recorded in the version audit, which document the  system interaction  context, i.e. the context of a user interacting with the health record system. Healthcare events include patient contacts, and any other business activity, such as pathology investigations which take place on behalf of the patient. 
  */
-export class EVENT_CONTEXT {
+export class EVENT_CONTEXT extends PATHABLE {
     /**
      * Start time of the clinical session or other kind of event during which a provider performs a service of any kind for the patient. 
      */
@@ -2321,16 +2327,10 @@ export class EVENT_CONTEXT {
 }
 
 /**
- * Abstract ancestor of all concrete content types.
- */
-export class CONTENT_ITEM {
-}
-
-/**
  * Represents a heading in a heading structure, or  section tree.  Created according to archetyped structures for typical headings such as SOAP,  physical examination, but also pathology result heading structures.  Should not be used instead of \`ENTRY\` hierarchical structures. 
  * 
  */
-export class SECTION {
+export class SECTION extends CONTENT_ITEM {
     /**
      * Ordered list of content items under this section, which may include:
      * 
@@ -2341,162 +2341,11 @@ export class SECTION {
 }
 
 /**
- * Entry subtype for administrative information, i.e. information about setting up the clinical process, but not itself clinically relevant. Archetypes will define contained information.
- * 
- * Used for administrative details of admission, episode, ward location, discharge, appointment (if not stored in a practice management or appointments system). 
- * 
- * Not to be used for any clinically significant information.
- */
-export class ADMIN_ENTRY {
-    /**
-     * Content of the Admin Entry.
-     */
-    data?: ITEM_STRUCTURE;
-}
-
-/**
- * The abstract parent of all clinical \`ENTRY\` subtypes. A \`CARE_ENTRY\` defines protocol and guideline attributes for all clinical Entry subtypes. 
- */
-export class CARE_ENTRY {
-    /**
-     * Description of the method (i.e. how) the information in this entry was arrived at. For \`OBSERVATIONs\`, this is a description of the method or instrument used. For \`EVALUATIONs\`, how the evaluation was arrived at. For \`INSTRUCTIONs\`, how to execute the Instruction. This may take the form of references to guidelines, including manually followed and executable; knowledge references such as a paper in Medline; clinical reasons within a larger care process. 
-     */
-    protocol?: ITEM_STRUCTURE;
-    /**
-     * Optional external identifier of guideline creating this Entry if relevant.
-     */
-    guideline_id?: openehr_base.OBJECT_REF;
-}
-
-/**
- * Entry subtype for all clinical data in the past or present, i.e. which (by the time it is recorded) has already occurred. \`OBSERVATION\` data is expressed using the class \`HISTORY<T>\`, which guarantees that it is situated in time. \`OBSERVATION\` is used for all notionally objective (i.e. measured in some way) observations of phenomena, and patient-reported phenomena, e.g. pain. 
- * 
- * Not to be used for recording opinion or future statements of any kind, including instructions, intentions, plans etc.
- */
-export class OBSERVATION {
-    /**
-     * The data of this observation, in the form of a history of values which may be of any complexity.
-     */
-    data?: undefined;
-    /**
-     * Optional recording of the state of subject of this observation during the observation process, in the form of a separate history of values which may be of any complexity. State may also be recorded within the History of the data attribute. 
-     */
-    state?: undefined;
-}
-
-/**
- * Entry type for evaluation statements. Used for all kinds of statements which evaluate other information, such as interpretations of observations, diagnoses, differential diagnoses, hypotheses, risk assessments, goals and plans. 
- * 
- * Should not be used for actionable statements such as medication orders - these are represented using the \`INSTRUCTION\` type. 
- */
-export class EVALUATION {
-    /**
-     * The data of this evaluation, in the form of a spatial data structure.
-     */
-    data?: ITEM_STRUCTURE;
-}
-
-/**
- * Used to record a clinical action that has been performed, which may have been ad hoc, or due to the execution of an Activity in an Instruction workflow. Every Action corresponds to a careflow step of some kind or another. 
- */
-export class ACTION {
-    /**
-     * Point in time at which this action completed. To indicate an unknown time, use a \`DV_DATE_TIME\` instance with \`_value_\` set to the time of creation (or some other known time before which the Action is known to have occurred, e.g. data accession timestamp from integration engine), and \`_magnitude_status_\` set to \`<\`.
-     */
-    time?: DV_DATE_TIME;
-    /**
-     * Details of transition in the Instruction state machine caused by this Action.
-     */
-    ism_transition?: ISM_TRANSITION;
-    /**
-     * Details of the Instruction that caused this Action to be performed, if there was one.
-     */
-    instruction_details?: INSTRUCTION_DETAILS;
-    /**
-     * Description of the action that has been performed, in the form of an archetyped structure.
-     */
-    description?: ITEM_STRUCTURE;
-}
-
-/**
- * Defines a single activity within an Instruction, such as a medication administration. 
- */
-export class ACTIVITY {
-    /**
-     * Timing of the activity, in the form of a parsable string. If used, the preferred syntax is ISO8601 'R' format, but other formats may be used including HL7 GTS.
-     * 
-     * May be omitted if:
-     * 
-     * * timing is represented structurally in the \`_description_\` attribute (e.g. via archetyped elements), or
-     * * unavailable, e.g. imported legacy data; in such cases, the \`INSTRUCTION._narrative_\` should carry text that indicates the timing of its \`_activities_\`.
-     */
-    timing?: DV_PARSABLE;
-    /**
-     * Perl-compliant regular expression pattern, enclosed in  '//' delimiters, indicating the valid identifiers of archetypes for Actions corresponding to this Activity specification. 
-     * 
-     * Defaults to  \`/.*\/\`, meaning any archetype.
-     */
-    action_archetype_id?: string;
-    /**
-     * Description of the activity, in the form of an archetyped structure.
-     */
-    description?: ITEM_STRUCTURE;
-}
-
-/**
- * Model of a transition in the Instruction State Machine, caused by a careflow step. The attributes document the careflow step as well as the ISM transition. 
- */
-export class ISM_TRANSITION {
-    /**
-     * The ISM current state. Coded by openEHR terminology group Instruction states.
-     */
-    current_state?: DV_CODED_TEXT;
-    /**
-     * The ISM transition which occurred to arrive in the current_state. Coded by openEHR terminology group  Instruction transitions.
-     */
-    transition?: DV_CODED_TEXT;
-    /**
-     * The step in the careflow process which occurred as part of generating this action, e.g.  dispense ,  start_administration. This attribute represents the clinical  label for the activity, as  opposed to current_state which represents  the state machine (ISM)  computable form. Defined in archetype.
-     */
-    careflow_step?: DV_CODED_TEXT;
-    /**
-     * Optional possibility of adding one or more reasons for this careflow step having been taken. Multiple reasons may occur in medication management for example.
-     */
-    reason?: undefined;
-}
-
-/**
- * Used to record details of the Instruction causing an Action. 
- * 
- */
-export class INSTRUCTION_DETAILS {
-    /**
-     * Reference to causing Instruction.
-     */
-    instruction_id?: openehr_base.LOCATABLE_REF;
-    /**
-     * Identifier of Activity within Instruction, in the form of its archetype path. 
-     */
-    activity_id?: string;
-    /**
-     * Various workflow engine state details, potentially including such things as:
-     * 
-     * * condition that fired to cause this Action to be done (with actual variables substituted); 
-     * * list of notifications which actually occurred (with all variables substituted); 
-     * * other workflow engine state. 
-     * 
-     * This specification does not currently define the actual structure or semantics of this field. 
-     * 
-     */
-    wf_details?: ITEM_STRUCTURE;
-}
-
-/**
  * The abstract parent of all \`ENTRY\` subtypes. An \`ENTRY\` is the root of a logical item of  hard  clinical information created in the  clinical statement  context, within a clinical session. There can be numerous such contexts in a clinical session. Observations and other Entry types only ever document information captured/created in the event documented by the enclosing Composition.
  * 
  * An \`ENTRY\` is also the minimal unit of information any query should return, since a whole \`ENTRY\` (including subparts) records spatial structure, timing information, and contextual information, as well as the subject and generator of the information. 
  */
-export class ENTRY {
+export abstract class ENTRY extends CONTENT_ITEM {
     /**
      * Mandatory indicator of the localised language in which this Entry is written. Coded from openEHR Code Set  languages . 
      */
@@ -2537,11 +2386,162 @@ export class ENTRY {
 }
 
 /**
+ * Entry subtype for administrative information, i.e. information about setting up the clinical process, but not itself clinically relevant. Archetypes will define contained information.
+ * 
+ * Used for administrative details of admission, episode, ward location, discharge, appointment (if not stored in a practice management or appointments system). 
+ * 
+ * Not to be used for any clinically significant information.
+ */
+export class ADMIN_ENTRY extends ENTRY {
+    /**
+     * Content of the Admin Entry.
+     */
+    data?: ITEM_STRUCTURE;
+}
+
+/**
+ * The abstract parent of all clinical \`ENTRY\` subtypes. A \`CARE_ENTRY\` defines protocol and guideline attributes for all clinical Entry subtypes. 
+ */
+export abstract class CARE_ENTRY extends ENTRY {
+    /**
+     * Description of the method (i.e. how) the information in this entry was arrived at. For \`OBSERVATIONs\`, this is a description of the method or instrument used. For \`EVALUATIONs\`, how the evaluation was arrived at. For \`INSTRUCTIONs\`, how to execute the Instruction. This may take the form of references to guidelines, including manually followed and executable; knowledge references such as a paper in Medline; clinical reasons within a larger care process. 
+     */
+    protocol?: ITEM_STRUCTURE;
+    /**
+     * Optional external identifier of guideline creating this Entry if relevant.
+     */
+    guideline_id?: openehr_base.OBJECT_REF;
+}
+
+/**
+ * Entry subtype for all clinical data in the past or present, i.e. which (by the time it is recorded) has already occurred. \`OBSERVATION\` data is expressed using the class \`HISTORY<T>\`, which guarantees that it is situated in time. \`OBSERVATION\` is used for all notionally objective (i.e. measured in some way) observations of phenomena, and patient-reported phenomena, e.g. pain. 
+ * 
+ * Not to be used for recording opinion or future statements of any kind, including instructions, intentions, plans etc.
+ */
+export class OBSERVATION extends CARE_ENTRY {
+    /**
+     * The data of this observation, in the form of a history of values which may be of any complexity.
+     */
+    data?: undefined;
+    /**
+     * Optional recording of the state of subject of this observation during the observation process, in the form of a separate history of values which may be of any complexity. State may also be recorded within the History of the data attribute. 
+     */
+    state?: undefined;
+}
+
+/**
+ * Entry type for evaluation statements. Used for all kinds of statements which evaluate other information, such as interpretations of observations, diagnoses, differential diagnoses, hypotheses, risk assessments, goals and plans. 
+ * 
+ * Should not be used for actionable statements such as medication orders - these are represented using the \`INSTRUCTION\` type. 
+ */
+export class EVALUATION extends CARE_ENTRY {
+    /**
+     * The data of this evaluation, in the form of a spatial data structure.
+     */
+    data?: ITEM_STRUCTURE;
+}
+
+/**
+ * Used to record a clinical action that has been performed, which may have been ad hoc, or due to the execution of an Activity in an Instruction workflow. Every Action corresponds to a careflow step of some kind or another. 
+ */
+export class ACTION extends CARE_ENTRY {
+    /**
+     * Point in time at which this action completed. To indicate an unknown time, use a \`DV_DATE_TIME\` instance with \`_value_\` set to the time of creation (or some other known time before which the Action is known to have occurred, e.g. data accession timestamp from integration engine), and \`_magnitude_status_\` set to \`<\`.
+     */
+    time?: DV_DATE_TIME;
+    /**
+     * Details of transition in the Instruction state machine caused by this Action.
+     */
+    ism_transition?: ISM_TRANSITION;
+    /**
+     * Details of the Instruction that caused this Action to be performed, if there was one.
+     */
+    instruction_details?: INSTRUCTION_DETAILS;
+    /**
+     * Description of the action that has been performed, in the form of an archetyped structure.
+     */
+    description?: ITEM_STRUCTURE;
+}
+
+/**
+ * Defines a single activity within an Instruction, such as a medication administration. 
+ */
+export class ACTIVITY extends LOCATABLE {
+    /**
+     * Timing of the activity, in the form of a parsable string. If used, the preferred syntax is ISO8601 'R' format, but other formats may be used including HL7 GTS.
+     * 
+     * May be omitted if:
+     * 
+     * * timing is represented structurally in the \`_description_\` attribute (e.g. via archetyped elements), or
+     * * unavailable, e.g. imported legacy data; in such cases, the \`INSTRUCTION._narrative_\` should carry text that indicates the timing of its \`_activities_\`.
+     */
+    timing?: DV_PARSABLE;
+    /**
+     * Perl-compliant regular expression pattern, enclosed in  '//' delimiters, indicating the valid identifiers of archetypes for Actions corresponding to this Activity specification. 
+     * 
+     * Defaults to  \`/.*\/\`, meaning any archetype.
+     */
+    action_archetype_id?: string;
+    /**
+     * Description of the activity, in the form of an archetyped structure.
+     */
+    description?: ITEM_STRUCTURE;
+}
+
+/**
+ * Model of a transition in the Instruction State Machine, caused by a careflow step. The attributes document the careflow step as well as the ISM transition. 
+ */
+export class ISM_TRANSITION extends PATHABLE {
+    /**
+     * The ISM current state. Coded by openEHR terminology group Instruction states.
+     */
+    current_state?: DV_CODED_TEXT;
+    /**
+     * The ISM transition which occurred to arrive in the current_state. Coded by openEHR terminology group  Instruction transitions.
+     */
+    transition?: DV_CODED_TEXT;
+    /**
+     * The step in the careflow process which occurred as part of generating this action, e.g.  dispense ,  start_administration. This attribute represents the clinical  label for the activity, as  opposed to current_state which represents  the state machine (ISM)  computable form. Defined in archetype.
+     */
+    careflow_step?: DV_CODED_TEXT;
+    /**
+     * Optional possibility of adding one or more reasons for this careflow step having been taken. Multiple reasons may occur in medication management for example.
+     */
+    reason?: undefined;
+}
+
+/**
+ * Used to record details of the Instruction causing an Action. 
+ * 
+ */
+export class INSTRUCTION_DETAILS extends PATHABLE {
+    /**
+     * Reference to causing Instruction.
+     */
+    instruction_id?: openehr_base.LOCATABLE_REF;
+    /**
+     * Identifier of Activity within Instruction, in the form of its archetype path. 
+     */
+    activity_id?: string;
+    /**
+     * Various workflow engine state details, potentially including such things as:
+     * 
+     * * condition that fired to cause this Action to be done (with actual variables substituted); 
+     * * list of notifications which actually occurred (with all variables substituted); 
+     * * other workflow engine state. 
+     * 
+     * This specification does not currently define the actual structure or semantics of this field. 
+     * 
+     */
+    wf_details?: ITEM_STRUCTURE;
+}
+
+/**
  * Used to specify actions in the future. Enables simple and complex specifications to be expressed, including in a fully-computable workflow form. Used for any actionable statement such as medication and therapeutic orders, monitoring, recall and review. Enough details must be provided for the specification to be directly executed by an actor, either human or machine. 
  * 
  * Not to be used for plan items which are only specified in general terms. 
  */
-export class INSTRUCTION {
+export class INSTRUCTION extends CARE_ENTRY {
     /**
      * Mandatory human-readable version of what the Instruction is about. 
      */
