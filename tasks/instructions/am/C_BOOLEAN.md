@@ -8,8 +8,27 @@ C_BOOLEAN constrains Boolean values.
 
 ## 2. Behavior
 
+### 2.1. Properties
+
 - `true_valid: Boolean` - Whether true is allowed
 - `false_valid: Boolean` - Whether false is allowed
+
+### 2.2. Methods
+
+#### 2.2.1. `valid_value(value: Boolean): Boolean`
+
+Check if a boolean value satisfies this constraint.
+
+**Pseudo-code:**
+```typescript
+valid_value(value: Boolean): Boolean {
+  if (value === true) {
+    return Boolean.from(this.true_valid);
+  } else {
+    return Boolean.from(this.false_valid);
+  }
+}
+```
 
 ## 3. Example Usage
 

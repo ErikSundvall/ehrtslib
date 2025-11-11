@@ -8,8 +8,44 @@ C_INTEGER constrains Integer values.
 
 ## 2. Behavior
 
+### 2.1. Properties
+
 - `list: List<Integer>` - Allowed values
 - `range: Interval<Integer>` - Allowed range
+
+### 2.2. Methods
+
+#### 2.2.1. `valid_value(value: Integer): Boolean`
+
+Check if an integer value satisfies this constraint.
+
+**Pseudo-code:**
+```typescript
+valid_value(value: Integer): Boolean {
+  // If list is defined, value must be in list
+  if (this.list && this.list.length > 0) {
+    let found = false;
+    for (const allowed of this.list) {
+      if (value === allowed) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return Boolean.from(false);
+    }
+  }
+  
+  // If range is defined, value must be in range
+  if (this.range) {
+    if (!this.range.has(value)) {
+      return Boolean.from(false);
+    }
+  }
+  
+  return Boolean.from(true);
+}
+```
 
 ## 3. Example Usage
 
