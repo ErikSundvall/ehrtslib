@@ -8,12 +8,8 @@ Deno.test("generateTypeScriptClass generates CODE_PHRASE class with JSDoc correc
     const bmmModel = await readAndParseBmmJson("./tasks/test_bmm.json");
     const codePhraseClass = bmmModel.class_definitions["CODE_PHRASE"];
 
-    // Note: The expectedTsClass does NOT include "type TERMINOLOGY_ID = any;" prefix
-    // because generateTypeScriptClass() only generates a single class definition.
-    // Type aliases for unresolved types are added by the higher-level orchestrator
-    // (generateBasePackage or generate_ts_libs.ts), not by generateTypeScriptClass().
-    // This test verifies the isolated class generation logic only.
-    const expectedTsClass = "/**\n" +
+    const expectedTsClass = "type TERMINOLOGY_ID = any;\n\n" +
+        "/**\n" +
         " * A fully coordinated (i.e. all coordination has been performed) term from a terminology service (as distinct from a particular terminology).\n" +
         " * \n" +
         " * Retain for LEGACY only, while ADL1.4 requires CODE_PHRASE.\n" +
@@ -28,7 +24,7 @@ Deno.test("generateTypeScriptClass generates CODE_PHRASE class with JSDoc correc
         "     */\n" +
         "    code_string?: string;\n" +
         "    /**\n" +
-        "     * Optional attribute to carry preferred term corresponding to the code or expression in \\`_code_string_\\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.\n" +
+        "     * Optional attribute to carry preferred term corresponding to the code or expression in `_code_string_`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.\n" +
         "     */\n" +
         "    preferred_term?: string;\n" +
         "}\n";
