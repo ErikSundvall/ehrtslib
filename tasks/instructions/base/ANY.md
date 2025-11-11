@@ -73,7 +73,16 @@ The `Any` class must define the following abstract methods, which will be implem
 
 -   None specified for the `Any` class itself, but its methods form the basis for invariants in descendant classes.
 
-## 4. Example Usage
+## 4. Pre-conditions
+
+-   None for the abstract `Any` class. Concrete implementations must ensure proper construction.
+
+## 5. Post-conditions
+
+-   `equal(x)` returns true if and only if `this` and `x` are the same object reference.
+-   `not_equal(x)` always returns the opposite of `equal(x)`.
+
+## 6. Example Usage
 
 ```typescript
 class ConcreteType extends Any {
@@ -102,3 +111,21 @@ a.is_equal(c); // false
 a.equal(b); // false
 a.equal(d); // true
 ```
+
+## 7. Test Cases
+
+Key test cases to implement:
+1. Test `is_equal` returns true for objects with same values
+2. Test `is_equal` returns false for objects with different values
+3. Test `equal` returns true for same reference
+4. Test `equal` returns false for different references (even with same values)
+5. Test `not_equal` returns opposite of `equal`
+6. Test `type_of` returns correct class name
+7. Test abstract class cannot be instantiated directly
+8. Test concrete implementations properly override abstract methods
+
+## 8. References
+
+-   [openEHR BASE Specification - Any Class](https://specifications.openehr.org/releases/BASE/latest/foundation_types.html#_any_class)
+-   [Archie - Base types](https://github.com/openEHR/archie/tree/master/openehr-rm/src/main/java/com/nedap/archie)
+-   [Java-libs - Any equivalent](https://github.com/openEHR/java-libs/tree/master/openehr-rm-core)
