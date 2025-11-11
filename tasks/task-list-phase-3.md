@@ -5,25 +5,28 @@
 - `INCONSISTENCIES.md` - A new file that will be created to document any inconsistencies found.
 - `tasks/instructions/` - A new directory that will be created to store the instruction files for implementing class behavior.
 - `tests/` - The directory where the new test suites will be created.
+- `ROADMAP.md` - gives context for this task list for Phase 3
+- `README.md` - explains the generators (`generate_ts_libs.ts` and `ts_generator.ts`) that have already been implemented. We do not expect the generators to be changed any more during Phase 3 unless errors are detected and need to be fixed.
 
 ### Notes
 
 - Unit tests should be created in the `tests/` directory, with a file for each package (e.g., `tests/rm.test.ts`).
-- Use `deno test` to run the tests.
-- The following resources should be used for comparison and information gathering. Remember to use the Deepwiki MCP server to ask questions about these repositories.
-  - **Code Generation & BMM:**
-    - `/sebastian-iancu/code-generator`
-    - `openEHR/specifications-ITS-BMM`
-  - **Reference Implementations:**
+- Use `deno test` if you need to run any specific tests, but note that this task list is for Phase 3 of ROADMAP.md that only gathers info and genterates tests for classes, but does _not_ implement method behaviour etc, so many tests are expected to fail furing Phase 3. Later in an other session for Phase 4 we will add behaviour and try to get tests to run.
+- The following resources _must_ all be used for comparison and information gathering. Remember to use the Deepwiki MCP server to ask questions about these repositories and feel free to look att code in corresponding github repositories to inspire pseudo code in instruction files etc.
+
+  - **Reference Implementations:** 
     - `openEHR/archie` (Primary Java reference)
     - `openEHR/java-libs` (Older Java implementation)
     - `openEHR/adl-tools` (Older Eiffel implementation, check "invariant" sections)
   - **Official Specifications:**
-    - [Browsable HTML Specifications](https://specifications.openehr.org/development_baseline)
+    - [Browsable HTML Specifications](https://specifications.openehr.org/development_baseline) that are also available as source and in deepwiki as the following
     - `openEHR/specifications-BASE`
     - `openEHR/specifications-AM`
     - `openEHR/specifications-LANG`
     - `openEHR/specifications-RM`
+  - **Code Generation & BMM might possibly be of interst for comparison and lookup**
+    - `/sebastian-iancu/code-generator`
+    - `openEHR/specifications-ITS-BMM`
 
 ## Instructions for Completing Tasks
 
