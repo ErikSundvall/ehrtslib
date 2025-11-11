@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-10T12:36:29.635Z
+// Generated: 2025-11-11T08:30:07.079Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -18,7 +18,7 @@ type T = any;
 /**
  * Archetype equivalent to ARCHETYPED class in Common reference model. Defines semantics of identfication, lifecycle, versioning, composition and specialisation.
  */
-export class ARCHETYPE {
+export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     /**
      * Root node of the definition of this archetype.
      */
@@ -28,9 +28,39 @@ export class ARCHETYPE {
      */
     ontology?: ARCHETYPE_ONTOLOGY;
     /**
+     * Internal storage for adl_version
+     * @private
+     */
+    private _adl_version?: openehr_base.String;
+
+    /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    get adl_version(): string | undefined {
+        return this._adl_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for adl_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $adl_version(): openehr_base.String | undefined {
+        return this._adl_version;
+    }
+
+    /**
+     * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set adl_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._adl_version = undefined;
+        } else if (typeof val === 'string') {
+            this._adl_version = openehr_base.String.from(val);
+        } else {
+            this._adl_version = val;
+        }
+    }
+
     /**
      * Multi-axial identifier of this archetype in archetype space.
      */
@@ -40,9 +70,39 @@ export class ARCHETYPE {
      */
     uid?: openehr_base.HIER_OBJECT_ID;
     /**
+     * Internal storage for concept
+     * @private
+     */
+    private _concept?: openehr_base.String;
+
+    /**
      * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
      */
-    concept?: string;
+    get concept(): string | undefined {
+        return this._concept?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for concept.
+     * Use this to access openehr_base.String methods.
+     */
+    get $concept(): openehr_base.String | undefined {
+        return this._concept;
+    }
+
+    /**
+     * Sets concept from either a primitive value or openehr_base.String wrapper.
+     */
+    set concept(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._concept = undefined;
+        } else if (typeof val === 'string') {
+            this._concept = openehr_base.String.from(val);
+        } else {
+            this._concept = val;
+        }
+    }
+
     /**
      * Identifier of the specialisation parent of this archetype.
      */
@@ -51,35 +111,243 @@ export class ARCHETYPE {
      * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
      */
     invariants?: undefined;
+    /**
+     * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    concept_name(a_lang: openehr_base.String): openehr_base.String {
+        // TODO: Implement concept_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method concept_name not yet implemented.");
+    }
+
+    /**
+     * Set of language-independent paths extracted from archetype. Paths obey Xpath-like syntax and are formed from alternations of C_OBJECT.node_id and C_ATTRIBUTE.rm_attribute_name values. 
+     * @returns Result value
+     */
+    physical_paths(): openehr_base.String {
+        // TODO: Implement physical_paths behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method physical_paths not yet implemented.");
+    }
+
+    /**
+     * Set of language-dependent paths extracted from archetype. Paths obey the same syntax as physical_paths, but with node_ids replaced by their meanings from the ontology. 
+     * @param lang - Parameter
+     * @returns Result value
+     */
+    logical_paths(lang: openehr_base.String): openehr_base.String {
+        // TODO: Implement logical_paths behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method logical_paths not yet implemented.");
+    }
+
+    /**
+     * Specialisation depth of this archetype; larger than 0 if this archetype has a parent. Derived from terminology.specialisation_depth.
+     * @returns Result value
+     */
+    specialisation_depth(): openehr_base.Integer {
+        // TODO: Implement specialisation_depth behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method specialisation_depth not yet implemented.");
+    }
+
+    /**
+     * True if this archetype is a specialisation of another. 
+     * @returns Result value
+     */
+    is_specialised(): openehr_base.Boolean {
+        // TODO: Implement is_specialised behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_specialised not yet implemented.");
+    }
+
+    /**
+     * True if the archetype is valid overall; various tests should be used, including checks on node_ids, internal references, and constraint references.
+     * @returns Result value
+     */
+    is_valid(): openehr_base.Boolean {
+        // TODO: Implement is_valid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_valid not yet implemented.");
+    }
+
+    /**
+     * True if every node_id found on a C_OBJECT node is found in ontology.term_codes.
+     * @returns Result value
+     */
+    node_ids_valid(): openehr_base.Boolean {
+        // TODO: Implement node_ids_valid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method node_ids_valid not yet implemented.");
+    }
+
+    /**
+     * Version of predecessor archetype of this archetype, if any.
+     * @returns Result value
+     */
+    previous_version(): openehr_base.String {
+        // TODO: Implement previous_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method previous_version not yet implemented.");
+    }
+
+    /**
+     * True if every ARCHETYPE_INTERNAL_REF. target_path refers to a legitimate node in the archetype definition.
+     * @returns Result value
+     */
+    internal_references_valid(): openehr_base.Boolean {
+        // TODO: Implement internal_references_valid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method internal_references_valid not yet implemented.");
+    }
+
+    /**
+     * True if every CONSTRAINT_REF.reference found on a C_OBJECT node in the archetype definition is found in ontology.constraint_codes.
+     * @returns Result value
+     */
+    constraint_references_valid(): openehr_base.Boolean {
+        // TODO: Implement constraint_references_valid behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method constraint_references_valid not yet implemented.");
+    }
+
+    /**
+     * The short concept name of the archetype extracted from the archetype_id.
+     * @returns Result value
+     */
+    short_concept_name(): openehr_base.String {
+        // TODO: Implement short_concept_name behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method short_concept_name not yet implemented.");
+    }
+
+    version(): openehr_base.String {
+        // TODO: Implement version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version not yet implemented.");
+    }
+
 }
 
 /**
  * Root object of a standalone, authored archetype, including all meta-data, description, other identifiers and lifecycle.
  */
-export class AUTHORED_ARCHETYPE {
+export class AUTHORED_ARCHETYPE extends ARCHETYPE {
+    /**
+     * Internal storage for adl_version
+     * @private
+     */
+    private _adl_version?: openehr_base.String;
+
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    get adl_version(): string | undefined {
+        return this._adl_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for adl_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $adl_version(): openehr_base.String | undefined {
+        return this._adl_version;
+    }
+
+    /**
+     * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set adl_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._adl_version = undefined;
+        } else if (typeof val === 'string') {
+            this._adl_version = openehr_base.String.from(val);
+        } else {
+            this._adl_version = val;
+        }
+    }
+
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
-    build_uid?: string;
+    build_uid?: openehr_base.UUID;
+    /**
+     * Internal storage for rm_release
+     * @private
+     */
+    private _rm_release?: openehr_base.String;
+
     /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
      */
-    rm_release?: string;
+    get rm_release(): string | undefined {
+        return this._rm_release?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_release.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_release(): openehr_base.String | undefined {
+        return this._rm_release;
+    }
+
+    /**
+     * Sets rm_release from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_release(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_release = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_release = openehr_base.String.from(val);
+        } else {
+            this._rm_release = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_generated
+     * @private
+     */
+    private _is_generated?: openehr_base.Boolean;
+
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
      */
-    is_generated?: boolean;
+    get is_generated(): boolean | undefined {
+        return this._is_generated?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_generated.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_generated(): openehr_base.Boolean | undefined {
+        return this._is_generated;
+    }
+
+    /**
+     * Sets is_generated from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_generated(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_generated = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_generated = openehr_base.Boolean.from(val);
+        } else {
+            this._is_generated = val;
+        }
+    }
+
     other_meta_data?: undefined;
 }
 
 /**
  * Class representing source template, i.e. a kind of archetype that may include template overlays, and may be restricted by tools to only defining mandations, prohibitions, and restrictions on elements already defined in the flat parent.
  */
-export class TEMPLATE {
+export class TEMPLATE extends AUTHORED_ARCHETYPE {
     /**
      * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
      */
@@ -91,7 +359,7 @@ export class TEMPLATE {
  * 
  * An operational template is used for generating and validating RM-canonical instance data, and also as a source artefact for generating other downstream technical artefacts, including XML schemas, APIs and UI form definitions.
  */
-export class OPERATIONAL_TEMPLATE {
+export class OPERATIONAL_TEMPLATE extends AUTHORED_ARCHETYPE {
     /**
      * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
      */
@@ -100,12 +368,18 @@ export class OPERATIONAL_TEMPLATE {
      * Compendium of flattened terminology extracts (i.e. from external terminologies) from archetypes referenced from this template, keyed by archetype identifier.
      */
     terminology_extracts?: undefined;
+    component_terminology(an_id: openehr_base.String): ARCHETYPE_TERMINOLOGY {
+        // TODO: Implement component_terminology behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method component_terminology not yet implemented.");
+    }
+
 }
 
 /**
  * A concrete form of the bare \`ARCHETYPE\` class, used to represent overlays in a source template. Overlays have no meta-data of their own, and are instead documented by their owning template.
  */
-export class TEMPLATE_OVERLAY {
+export class TEMPLATE_OVERLAY extends ARCHETYPE {
 }
 
 /**
@@ -113,29 +387,209 @@ export class TEMPLATE_OVERLAY {
  */
 export class ARCHETYPE_HRID {
     /**
+     * Internal storage for namespace
+     * @private
+     */
+    private _namespace?: openehr_base.String;
+
+    /**
      * Reverse domain name namespace identifier.
      */
-    namespace?: string;
+    get namespace(): string | undefined {
+        return this._namespace?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for namespace.
+     * Use this to access openehr_base.String methods.
+     */
+    get $namespace(): openehr_base.String | undefined {
+        return this._namespace;
+    }
+
+    /**
+     * Sets namespace from either a primitive value or openehr_base.String wrapper.
+     */
+    set namespace(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._namespace = undefined;
+        } else if (typeof val === 'string') {
+            this._namespace = openehr_base.String.from(val);
+        } else {
+            this._namespace = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_publisher
+     * @private
+     */
+    private _rm_publisher?: openehr_base.String;
+
     /**
      * Name of the Reference Model publisher.
      */
-    rm_publisher?: string;
+    get rm_publisher(): string | undefined {
+        return this._rm_publisher?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_publisher.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_publisher(): openehr_base.String | undefined {
+        return this._rm_publisher;
+    }
+
+    /**
+     * Sets rm_publisher from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_publisher(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_publisher = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_publisher = openehr_base.String.from(val);
+        } else {
+            this._rm_publisher = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_package
+     * @private
+     */
+    private _rm_package?: openehr_base.String;
+
     /**
      * Name of the package in whose reachability graph the \`_rm_class_\` class is found (there can be more than one possibility in many reference models).
      */
-    rm_package?: string;
+    get rm_package(): string | undefined {
+        return this._rm_package?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_package.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_package(): openehr_base.String | undefined {
+        return this._rm_package;
+    }
+
+    /**
+     * Sets rm_package from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_package(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_package = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_package = openehr_base.String.from(val);
+        } else {
+            this._rm_package = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_class
+     * @private
+     */
+    private _rm_class?: openehr_base.String;
+
     /**
      * Name of the root class of this archetype.
      */
-    rm_class?: string;
+    get rm_class(): string | undefined {
+        return this._rm_class?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_class.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_class(): openehr_base.String | undefined {
+        return this._rm_class;
+    }
+
+    /**
+     * Sets rm_class from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_class(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_class = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_class = openehr_base.String.from(val);
+        } else {
+            this._rm_class = val;
+        }
+    }
+
+    /**
+     * Internal storage for concept_id
+     * @private
+     */
+    private _concept_id?: openehr_base.String;
+
     /**
      * The short concept name of the archetype as used in the multi-axial \`_archetype_hrid_\`.
      */
-    concept_id?: string;
+    get concept_id(): string | undefined {
+        return this._concept_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for concept_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $concept_id(): openehr_base.String | undefined {
+        return this._concept_id;
+    }
+
+    /**
+     * Sets concept_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set concept_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._concept_id = undefined;
+        } else if (typeof val === 'string') {
+            this._concept_id = openehr_base.String.from(val);
+        } else {
+            this._concept_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for release_version
+     * @private
+     */
+    private _release_version?: openehr_base.String;
+
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. \`"1.8.2"\`. The \`_archetype_hrid_\` feature includes only the major version.
      */
-    release_version?: string;
+    get release_version(): string | undefined {
+        return this._release_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for release_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $release_version(): openehr_base.String | undefined {
+        return this._release_version;
+    }
+
+    /**
+     * Sets release_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set release_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._release_version = undefined;
+        } else if (typeof val === 'string') {
+            this._release_version = openehr_base.String.from(val);
+        } else {
+            this._release_version = val;
+        }
+    }
+
     /**
      * The status of the version, i.e.:
      * 
@@ -146,45 +600,256 @@ export class ARCHETYPE_HRID {
      */
     version_status?: openehr_base.VERSION_STATUS;
     /**
+     * Internal storage for build_count
+     * @private
+     */
+    private _build_count?: openehr_base.String;
+
+    /**
      * The build count since last increment of any version part.
      */
-    build_count?: string;
+    get build_count(): string | undefined {
+        return this._build_count?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for build_count.
+     * Use this to access openehr_base.String methods.
+     */
+    get $build_count(): openehr_base.String | undefined {
+        return this._build_count;
+    }
+
+    /**
+     * Sets build_count from either a primitive value or openehr_base.String wrapper.
+     */
+    set build_count(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._build_count = undefined;
+        } else if (typeof val === 'string') {
+            this._build_count = openehr_base.String.from(val);
+        } else {
+            this._build_count = val;
+        }
+    }
+
+    /**
+     * The 'interface' form of the HRID, i.e. down to the major version.
+     * @returns Result value
+     */
+    semantic_id(): openehr_base.String {
+        // TODO: Implement semantic_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method semantic_id not yet implemented.");
+    }
+
+    /**
+     * The 'physical' form of the HRID, i.e. with complete version information specified by \`_version_id()_\`.
+     * @returns Result value
+     */
+    physical_id(): openehr_base.String {
+        // TODO: Implement physical_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method physical_id not yet implemented.");
+    }
+
+    /**
+     * Full version identifier string, based on \`_release_version_\`, \`_version_status_\`, and \`_build_count_\` e.g. \`"1.8.2-rc.4"\`.
+     * @returns Result value
+     */
+    version_id(): openehr_base.String {
+        // TODO: Implement version_id behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method version_id not yet implemented.");
+    }
+
+    /**
+     * Major version of this archetype, extracted from \`_release_version_\`.
+     * @returns Result value
+     */
+    major_version(): openehr_base.String {
+        // TODO: Implement major_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method major_version not yet implemented.");
+    }
+
+    /**
+     * Minor version of this archetype, extracted from \`_release_version_\`.
+     * @returns Result value
+     */
+    minor_version(): openehr_base.String {
+        // TODO: Implement minor_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method minor_version not yet implemented.");
+    }
+
+    /**
+     * Patch version of this archetype, extracted from \`_release_version_\`. Equivalent to patch version in patch version in \`semver.org\` sytem.
+     * @returns Result value
+     */
+    patch_version(): openehr_base.String {
+        // TODO: Implement patch_version behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method patch_version not yet implemented.");
+    }
+
 }
 
 /**
  * Archetype equivalent to LOCATABLE class in openEHR Common reference model. Defines common constraints for any inheritor of LOCATABLE in any reference model. 
  */
-export class ARCHETYPE_CONSTRAINT {
+export abstract class ARCHETYPE_CONSTRAINT {
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. 
+     * Typically used during validation of special-ised archetype nodes.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract is_subset_of(other: ARCHETYPE_CONSTRAINT): openehr_base.Boolean;
+
+    abstract is_valid(): openehr_base.Boolean;
+
+    /**
+     * Path of this node relative to root of archetype.
+     * @returns Result value
+     */
+    path(): openehr_base.String {
+        // TODO: Implement path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method path not yet implemented.");
+    }
+
+    /**
+     * True if the relative path a_path exists at this node.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    has_path(a_path: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_path behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_path not yet implemented.");
+    }
+
 }
 
 /**
  * Abstract model of constraint on any kind of object node. 
  */
-export class C_OBJECT {
+export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
+    /**
+     * Internal storage for rm_type_name
+     * @private
+     */
+    private _rm_type_name?: openehr_base.String;
+
     /**
      * Reference model type that this node corresponds to. 
      */
-    rm_type_name?: string;
+    get rm_type_name(): string | undefined {
+        return this._rm_type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_type_name(): openehr_base.String | undefined {
+        return this._rm_type_name;
+    }
+
+    /**
+     * Sets rm_type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_type_name = openehr_base.String.from(val);
+        } else {
+            this._rm_type_name = val;
+        }
+    }
+
     /**
      * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1).
      */
     occurrences?: undefined;
     /**
+     * Internal storage for node_id
+     * @private
+     */
+    private _node_id?: openehr_base.String;
+
+    /**
      * Semantic identifier of this node, used to dis-tinguish sibling nodes. All nodes must have a node_id; for nodes under a container C_ATTRIBUTE, the id must be an id-code must be defined in the archetype terminolo-gy. For valid structures, all node ids are id-codes.
      * For C_PRIMITIVE_OBJECTs, it will have the special value Primitive_node_id.
      * 
      */
-    node_id?: string;
+    get node_id(): string | undefined {
+        return this._node_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for node_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $node_id(): openehr_base.String | undefined {
+        return this._node_id;
+    }
+
+    /**
+     * Sets node_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set node_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._node_id = undefined;
+        } else if (typeof val === 'string') {
+            this._node_id = openehr_base.String.from(val);
+        } else {
+            this._node_id = val;
+        }
+    }
+
 }
 
 /**
  * Abstract model of constraint on any kind of attribute node.
  */
-export class C_ATTRIBUTE {
+export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
+    /**
+     * Internal storage for rm_attribute_name
+     * @private
+     */
+    private _rm_attribute_name?: openehr_base.String;
+
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
-    rm_attribute_name?: string;
+    get rm_attribute_name(): string | undefined {
+        return this._rm_attribute_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_attribute_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_attribute_name(): openehr_base.String | undefined {
+        return this._rm_attribute_name;
+    }
+
+    /**
+     * Sets rm_attribute_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_attribute_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_attribute_name = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_attribute_name = openehr_base.String.from(val);
+        } else {
+            this._rm_attribute_name = val;
+        }
+    }
+
     /**
      * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
      */
@@ -193,32 +858,138 @@ export class C_ATTRIBUTE {
      * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes. 
      */
     children?: undefined;
+    /**
+     * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
 }
 
 /**
  * Abstract parent type of C_OBJECT subtypes that are defined by value, i.e. whose definitions are actually in the archetype rather than being by reference. 
  */
-export class C_DEFINED_OBJECT {
+export abstract class C_DEFINED_OBJECT extends C_OBJECT {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: any;
+    assumed_value?: openehr_base.Any;
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+
+    /**
+     * Generate a prototype value from this constraint object.
+     * @returns Result value
+     */
+    abstract prototype_value(): openehr_base.Any;
+
+    /**
+     * True if there is an assumed value.
+     * 
+     * @returns Result value
+     */
+    has_assumed_value(): openehr_base.Boolean {
+        // TODO: Implement has_assumed_value behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_assumed_value not yet implemented.");
+    }
+
+    /**
+     * Generate a default value from this constraint object.
+     * @returns Result value
+     */
+    abstract default_value(): openehr_base.Any;
+
+    /**
+     * True if any value of the reference model type being constrained is allowed. Redefine in descendants.
+     * @returns Result value
+     */
+    abstract any_allowed(): openehr_base.Boolean;
+
 }
 
 /**
  * A constraint defined by proxy, using a reference to an object constraint defined elsewhere in the same archetype. Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on a \`COMPLEX_OBJECT_PROXY\` should always be used; when setting this from a serialised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of \`{1..1}\`); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out. 
  */
-export class C_COMPLEX_OBJECT_PROXY {
+export class C_COMPLEX_OBJECT_PROXY extends C_OBJECT {
+    /**
+     * Internal storage for target_path
+     * @private
+     */
+    private _target_path?: openehr_base.String;
+
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    get target_path(): string | undefined {
+        return this._target_path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_path(): openehr_base.String | undefined {
+        return this._target_path;
+    }
+
+    /**
+     * Sets target_path from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_path = undefined;
+        } else if (typeof val === 'string') {
+            this._target_path = openehr_base.String.from(val);
+        } else {
+            this._target_path = val;
+        }
+    }
+
+    /**
+     * True if target occurrences are to be used as the value of occurrences in this object; by the time of runtime use, the target occurrences value has to be set into this object.
+     * @returns Result value
+     */
+    use_target_occurrences(): openehr_base.Boolean {
+        // TODO: Implement use_target_occurrences behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method use_target_occurrences not yet implemented.");
+    }
+
+    /**
+     * True if this node occurrences conforms to \`_other.occurrences_\`; \`_other_\` is assumed to be in a flat archetype.
+     * 
+     * If \`_other_\` is a \`C_COMPLEX_OBJECT\`, then always \`True\`, since if occurrences defined on proxy node, it is an override of  the occurrences on the target, and it doesn't have to conform to anything except the containing attribute's cardinality. However, if \`_other_\` is also a \`C_COMPLEX_OBJECT\` then the override is of another use_node, and normal occurrences apply
+     * 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    occurrences_conforms_to(other: C_OBJECT): openehr_base.Boolean {
+        // TODO: Implement occurrences_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method occurrences_conforms_to not yet implemented.");
+    }
+
+}
+
+/**
+ * Abstract parent type of C_OBJECT subtypes that are defined by reference.
+ */
+export abstract class C_REFERENCE_OBJECT extends C_OBJECT {
 }
 
 /**
  * Constraint describing a  slot' where another archetype can occur. 
  */
-export class ARCHETYPE_SLOT {
+export class ARCHETYPE_SLOT extends C_REFERENCE_OBJECT {
     /**
      * List of constraints defining other archetypes that could be included at this point. 
      */
@@ -232,11 +1003,21 @@ export class ARCHETYPE_SLOT {
 /**
  * Constraint on a primitive type.
  */
-export class C_PRIMITIVE_OBJECT {
+export class C_PRIMITIVE_OBJECT extends C_DEFINED_OBJECT {
     /**
      * Object actually defining the constraint.
      */
     item?: C_PRIMITIVE;
+    /**
+     * True if any value of the type being constrained in item is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
 }
 
 /**
@@ -246,19 +1027,114 @@ export class C_PRIMITIVE_OBJECT {
  */
 export class SIBLING_ORDER {
     /**
+     * Internal storage for is_before
+     * @private
+     */
+    private _is_before?: openehr_base.Boolean;
+
+    /**
      * True if the order relationship is ‘before’, if False, it is ‘after’.
      */
-    is_before?: boolean;
+    get is_before(): boolean | undefined {
+        return this._is_before?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_before.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_before(): openehr_base.Boolean | undefined {
+        return this._is_before;
+    }
+
+    /**
+     * Sets is_before from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_before(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_before = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_before = openehr_base.Boolean.from(val);
+        } else {
+            this._is_before = val;
+        }
+    }
+
+    /**
+     * Internal storage for sibling_node_id
+     * @private
+     */
+    private _sibling_node_id?: openehr_base.String;
+
     /**
      * Node identifier of sibling before or after which this node should come.
      */
-    sibling_node_id?: string;
+    get sibling_node_id(): string | undefined {
+        return this._sibling_node_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for sibling_node_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $sibling_node_id(): openehr_base.String | undefined {
+        return this._sibling_node_id;
+    }
+
+    /**
+     * Sets sibling_node_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set sibling_node_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._sibling_node_id = undefined;
+        } else if (typeof val === 'string') {
+            this._sibling_node_id = openehr_base.String.from(val);
+        } else {
+            this._sibling_node_id = val;
+        }
+    }
+
+    /**
+     * True if the order relationship is \`_after_\`, computed as the negation of \`_is_before_\`.
+     * @returns Result value
+     */
+    is_after(): openehr_base.Boolean {
+        // TODO: Implement is_after behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_after not yet implemented.");
+    }
+
+}
+
+/**
+ * Abstract parent of classes defining second order constraints.
+ */
+export abstract class C_SECOND_ORDER {
+    /**
+     * Members of this second order constrainer. Normally redefined in descendants.
+     */
+    members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    abstract c_conforms_to(other: C_SECOND_ORDER, rmcc: undefined): openehr_base.Boolean;
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean;
+
 }
 
 /**
  * Object representing a constraint on an attribute tuple, i.e. a group of attributes that are constrained together. Typically used for representing co-varying constraints like \`{units, range}\` constraints.
  */
-export class C_ATTRIBUTE_TUPLE {
+export class C_ATTRIBUTE_TUPLE extends C_SECOND_ORDER {
     /**
      * Tuple definitions.
      */
@@ -266,27 +1142,83 @@ export class C_ATTRIBUTE_TUPLE {
     /**
      * List of \`C_ATTRIBUTEs\` forming the definition of the tuple.
      */
-    members?: undefined;
+    override members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    c_conforms_to(other: C_ATTRIBUTE_TUPLE, rmcc: undefined): openehr_base.Boolean {
+        // TODO: Implement c_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_conforms_to not yet implemented.");
+    }
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean {
+        // TODO: Implement c_congruent_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_congruent_to not yet implemented.");
+    }
+
 }
 
 /**
  * Class representing a single object tuple instance in a tuple constraint. Each such instance is a vector of object constraints, where each member (each \`C_PRIMITIVE_OBJECT\`) corresponds to one of the \`C_ATTRIBUTEs\` referred to by the owning \`C_ATTRIBUTE_TUPLE\`.
  */
-export class C_PRIMITIVE_TUPLE {
+export class C_PRIMITIVE_TUPLE extends C_SECOND_ORDER {
     /**
      * Object constraint members of this tuple group.
      */
-    members?: undefined;
+    override members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    c_conforms_to(other: C_PRIMITIVE_TUPLE, rmcc: undefined): openehr_base.Boolean {
+        // TODO: Implement c_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_conforms_to not yet implemented.");
+    }
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean {
+        // TODO: Implement c_congruent_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_congruent_to not yet implemented.");
+    }
+
 }
 
 /**
- * Abstract parent of classes defining second order constraints.
+ * Constraint on complex objects, i.e. any object that consists of other object constraints.
  */
-export class C_SECOND_ORDER {
+export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
     /**
-     * Members of this second order constrainer. Normally redefined in descendants.
+     * List of constraints on attributes of the reference model type represented by this object.
      */
-    members?: undefined;
+    attributes?: undefined;
+    /**
+     * True if any value of the reference model type being constrained is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
 }
 
 /**
@@ -303,21 +1235,41 @@ export class C_SECOND_ORDER {
  * In an operational template, the \`_node_id_\` is converted to the \`_archetype_ref_\`, and the structure contains the result of flattening any template overlay structure and the underlying flat archetype.
  * 
  */
-export class C_ARCHETYPE_ROOT {
+export class C_ARCHETYPE_ROOT extends C_COMPLEX_OBJECT {
+    /**
+     * Internal storage for archetype_ref
+     * @private
+     */
+    private _archetype_ref?: openehr_base.String;
+
     /**
      * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
      */
-    archetype_ref?: string;
-}
+    get archetype_ref(): string | undefined {
+        return this._archetype_ref?.value;
+    }
 
-/**
- * Constraint on complex objects, i.e. any object that consists of other object constraints.
- */
-export class C_COMPLEX_OBJECT {
     /**
-     * List of constraints on attributes of the reference model type represented by this object.
+     * Gets the openehr_base.String wrapper object for archetype_ref.
+     * Use this to access openehr_base.String methods.
      */
-    attributes?: undefined;
+    get $archetype_ref(): openehr_base.String | undefined {
+        return this._archetype_ref;
+    }
+
+    /**
+     * Sets archetype_ref from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_ref(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_ref = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_ref = openehr_base.String.from(val);
+        } else {
+            this._archetype_ref = val;
+        }
+    }
+
 }
 
 /**
@@ -331,49 +1283,269 @@ export class ARCHETYPE_ID_CONSTRAINT {
 }
 
 /**
+ * Parent of types representing constraints on primitive types.
+ */
+export abstract class C_PRIMITIVE {
+    /**
+     * Value to be assumed if none sent in data.
+     */
+    assumed_value?: openehr_base.Any;
+    /**
+     * Generate a default value from this constraint object.
+     * @returns Result value
+     */
+    abstract default_value(): openehr_base.Any;
+
+    /**
+     * True if there is an assumed value.
+     * @returns Result value
+     */
+    abstract has_assumed_value(): openehr_base.Boolean;
+
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+
+}
+
+/**
  * Constraint on instances of Boolean. Both attributes cannot be set to False, since this would mean that the Boolean value being constrained cannot be True or False.
  */
-export class C_BOOLEAN {
+export class C_BOOLEAN extends C_PRIMITIVE {
+    /**
+     * Internal storage for true_valid
+     * @private
+     */
+    private _true_valid?: openehr_base.Boolean;
+
     /**
      * True if the value True is allowed.
      */
-    true_valid?: boolean;
+    get true_valid(): boolean | undefined {
+        return this._true_valid?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for true_valid.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $true_valid(): openehr_base.Boolean | undefined {
+        return this._true_valid;
+    }
+
+    /**
+     * Sets true_valid from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set true_valid(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._true_valid = undefined;
+        } else if (typeof val === 'boolean') {
+            this._true_valid = openehr_base.Boolean.from(val);
+        } else {
+            this._true_valid = val;
+        }
+    }
+
+    /**
+     * Internal storage for false_valid
+     * @private
+     */
+    private _false_valid?: openehr_base.Boolean;
+
     /**
      * True if the value False is allowed.
      */
-    false_valid?: boolean;
+    get false_valid(): boolean | undefined {
+        return this._false_valid?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for false_valid.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $false_valid(): openehr_base.Boolean | undefined {
+        return this._false_valid;
+    }
+
+    /**
+     * Sets false_valid from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set false_valid(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._false_valid = undefined;
+        } else if (typeof val === 'boolean') {
+            this._false_valid = openehr_base.Boolean.from(val);
+        } else {
+            this._false_valid = val;
+        }
+    }
+
+    /**
+     * Internal storage for assumed_value
+     * @private
+     */
+    private _assumed_value?: openehr_base.Boolean;
+
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: boolean;
+    get assumed_value(): boolean | undefined {
+        return this._assumed_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for assumed_value.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $assumed_value(): openehr_base.Boolean | undefined {
+        return this._assumed_value;
+    }
+
+    /**
+     * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._assumed_value = undefined;
+        } else if (typeof val === 'boolean') {
+            this._assumed_value = openehr_base.Boolean.from(val);
+        } else {
+            this._assumed_value = val;
+        }
+    }
+
 }
 
 /**
  * Constraint on instances of STRING. 
  */
-export class C_STRING {
+export class C_STRING extends C_PRIMITIVE {
+    /**
+     * Internal storage for pattern
+     * @private
+     */
+    private _pattern?: openehr_base.String;
+
     /**
      * Regular expression pattern for proposed instances of String to match.
      */
-    pattern?: string;
+    get pattern(): string | undefined {
+        return this._pattern?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for pattern.
+     * Use this to access openehr_base.String methods.
+     */
+    get $pattern(): openehr_base.String | undefined {
+        return this._pattern;
+    }
+
+    /**
+     * Sets pattern from either a primitive value or openehr_base.String wrapper.
+     */
+    set pattern(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._pattern = undefined;
+        } else if (typeof val === 'string') {
+            this._pattern = openehr_base.String.from(val);
+        } else {
+            this._pattern = val;
+        }
+    }
+
     /**
      * Set of Strings specifying constraint.
      */
     list?: undefined;
     /**
+     * Internal storage for list_open
+     * @private
+     */
+    private _list_open?: openehr_base.Boolean;
+
+    /**
      * True if the list is being used to specify the constraint but is not considered exhaustive.
      */
-    list_open?: boolean;
+    get list_open(): boolean | undefined {
+        return this._list_open?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for list_open.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $list_open(): openehr_base.Boolean | undefined {
+        return this._list_open;
+    }
+
+    /**
+     * Sets list_open from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set list_open(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._list_open = undefined;
+        } else if (typeof val === 'boolean') {
+            this._list_open = openehr_base.Boolean.from(val);
+        } else {
+            this._list_open = val;
+        }
+    }
+
+    /**
+     * Internal storage for assumed_value
+     * @private
+     */
+    private _assumed_value?: openehr_base.String;
+
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: string;
+    get assumed_value(): string | undefined {
+        return this._assumed_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for assumed_value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $assumed_value(): openehr_base.String | undefined {
+        return this._assumed_value;
+    }
+
+    /**
+     * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
+     */
+    set assumed_value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._assumed_value = undefined;
+        } else if (typeof val === 'string') {
+            this._assumed_value = openehr_base.String.from(val);
+        } else {
+            this._assumed_value = val;
+        }
+    }
+
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type. 
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    valid_value(a_value: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_value behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_value not yet implemented.");
+    }
+
 }
 
 /**
  * Constraint on instances of Integer.
  */
-export class C_INTEGER {
+export class C_INTEGER extends C_PRIMITIVE {
     /**
      * Set of Integers specifying constraint.
      */
@@ -383,15 +1555,45 @@ export class C_INTEGER {
      */
     range?: undefined;
     /**
+     * Internal storage for assumed_value
+     * @private
+     */
+    private _assumed_value?: openehr_base.Integer;
+
+    /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: number;
+    get assumed_value(): number | undefined {
+        return this._assumed_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for assumed_value.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $assumed_value(): openehr_base.Integer | undefined {
+        return this._assumed_value;
+    }
+
+    /**
+     * Sets assumed_value from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set assumed_value(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._assumed_value = undefined;
+        } else if (typeof val === 'number') {
+            this._assumed_value = openehr_base.Integer.from(val);
+        } else {
+            this._assumed_value = val;
+        }
+    }
+
 }
 
 /**
  * Constraint on instances of Real.
  */
-export class C_REAL {
+export class C_REAL extends C_PRIMITIVE {
     /**
      * Set of Reals specifying constraint.
      */
@@ -403,7 +1605,7 @@ export class C_REAL {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: number;
+    override assumed_value?: number = undefined;
 }
 
 /**
@@ -413,7 +1615,7 @@ export class C_REAL {
  * 
  * The next simplest form is a single proper \`Interval <T>\` (i.e. normal two-sided or half-open interval). The most complex form is a list of any combination of point and proper intervals.
  */
-export class C_ORDERED {
+export abstract class C_ORDERED<T extends openehr_base.Ordered> extends C_PRIMITIVE_OBJECT {
     /**
      * Constraint in the form of a List of Intervals of the parameter type T. Concrete types generated in descendants via template binding.
      */
@@ -425,7 +1627,39 @@ export class C_ORDERED {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: T;
+    override assumed_value?: T = undefined;
+    /**
+     * True if any value (i.e. instance) of the reference model type would be allowed. Redefined in descendants.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
+    /**
+     * True if \`_other.any_allowed_\` or else for every constraint in the \`_constraint_\` list there is a constraint in \`_other.constraint_\` that contains it.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+        // TODO: Implement c_value_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_conforms_to not yet implemented.");
+    }
+
+    /**
+     * True if the items in \`_constraint_\` are equal in number and identical pair-wise with those in \`_other.constraint_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+        // TODO: Implement c_value_congruent_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_congruent_to not yet implemented.");
+    }
+
 }
 
 /**
@@ -438,17 +1672,47 @@ export class C_ORDERED {
  * 
  * The \`_constraint_status_\` attribute and \`_constraint_required_()\` function together define whether the \`_constraint_\` is considered formal ('required') or not. In the non-required cases, a data-item matched to this constraint may be any coded term.
  */
-export class C_TERMINOLOGY_CODE {
+export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
+    /**
+     * Internal storage for constraint
+     * @private
+     */
+    private _constraint?: openehr_base.String;
+
     /**
      * Type of individual constraint - a single string that can either be a local at-code, or a local ac-code signifying a locally defined value set. If an ac-code, assumed_value may contain an at-code from the value set of the ac-code.
      * 
      * Use an empty string for no constraint.
      */
-    constraint?: string;
+    get constraint(): string | undefined {
+        return this._constraint?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for constraint.
+     * Use this to access openehr_base.String methods.
+     */
+    get $constraint(): openehr_base.String | undefined {
+        return this._constraint;
+    }
+
+    /**
+     * Sets constraint from either a primitive value or openehr_base.String wrapper.
+     */
+    set constraint(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._constraint = undefined;
+        } else if (typeof val === 'string') {
+            this._constraint = openehr_base.String.from(val);
+        } else {
+            this._constraint = val;
+        }
+    }
+
     /**
      * Assumed Terminology code value.
      */
-    assumed_value?: openehr_base.Terminology_code;
+    override assumed_value?: openehr_base.Terminology_code = undefined;
     default_value?: openehr_base.Terminology_code;
     /**
      * Constraint status of this terminology constraint. If Void, the meaning is as follows:
@@ -462,22 +1726,204 @@ export class C_TERMINOLOGY_CODE {
      * * otherwise, it will carry the same value as in the parent.
      */
     constraint_status?: CONSTRAINT_STATUS;
+    /**
+     * True if \`_constraint_status_\` is defined and equals \`required\` OR if Void. I.e. in archetypes where \`C_TERMINOLOGY_CODE\` instances have no \`_constraint_status_\`, the \`required\` status is assumed, which applies to all legacy archetypes.
+     * @returns Result value
+     */
+    constraint_required(): openehr_base.Boolean {
+        // TODO: Implement constraint_required behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method constraint_required not yet implemented.");
+    }
+
+    /**
+     * Return the effective integer value of the \`_constraint_status_\` field if it exists. If it is null, return 0, i.e. \`required\`.
+     * 
+     * NOTE: the above logic applies to any \`C_TERMINOLOGY_NODE\` instance in a specialised archetype that redefines another such instance in the flat parent. I.e. no stated \`_constraint_status_\` means \`required\`.
+     * @returns Result value
+     */
+    effective_constraint_status(): openehr_base.Integer {
+        // TODO: Implement effective_constraint_status behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method effective_constraint_status not yet implemented.");
+    }
+
+    /**
+     * Effective set of at-code values corresponding to an ac-code for a locally defined value set. Not defined for ac-codes that have no local value set.
+     * @returns Result value
+     */
+    value_set_expanded(): openehr_base.String {
+        // TODO: Implement value_set_expanded behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method value_set_expanded not yet implemented.");
+    }
+
+    /**
+     * For locally defined value sets within individual code bindings: return the term URI(s) substituted from bindings for local at-codes in \`_value_set_expanded_\`.
+     * @returns Result value
+     */
+    value_set_substituted(): openehr_base.Uri {
+        // TODO: Implement value_set_substituted behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method value_set_substituted not yet implemented.");
+    }
+
+    /**
+     * For locally defined value sets within individual code bindings: final set of external codes to which value set is resolved.
+     * @returns Result value
+     */
+    value_set_resolved(): openehr_base.Terminology_code {
+        // TODO: Implement value_set_resolved behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method value_set_resolved not yet implemented.");
+    }
+
+    /**
+     * True if a \`_value_\` is valid with respect to constraint expressed in concrete instance of this type. 
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    valid_value(a_value: openehr_base.Terminology_code): openehr_base.Boolean {
+        // TODO: Implement valid_value behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_value not yet implemented.");
+    }
+
+    /**
+     * A generated prototype value from this constraint object.
+     * @returns Result value
+     */
+    prototype_value(): openehr_base.Terminology_code {
+        // TODO: Implement prototype_value behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method prototype_value not yet implemented.");
+    }
+
+    /**
+     * True if \`_constraint_\` is empty.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
+    /**
+     * True if \`_other.any_allowed_\` or else every constraint in the \`_constraint_\` list exists in the \`_other.constraint_\`, and \`_effective_constraint_status()_\` is <= \`_other.effective_constraint_status()_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_TERMINOLOGY_CODE): openehr_base.Boolean {
+        // TODO: Implement c_value_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_conforms_to not yet implemented.");
+    }
+
+    /**
+     * True if \`_constraint_\` and \`_other.constraint_\` are both value-set ids, and expand to identical value sets, or else are identical value codes; and \`_effective_constraint_status()_\` = \`_other.effective_constraint_status()_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_TERMINOLOGY_CODE): openehr_base.Boolean {
+        // TODO: Implement c_value_congruent_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_congruent_to not yet implemented.");
+    }
+
 }
 
 /**
  * Purpose Abstract parent of \`C_ORDERED\` types whose base type is an ISO date/time type.
  */
-export class C_TEMPORAL {
+export abstract class C_TEMPORAL<T extends openehr_base.Temporal> extends C_ORDERED<T> {
+    /**
+     * Internal storage for pattern_constraint
+     * @private
+     */
+    private _pattern_constraint?: openehr_base.String;
+
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
-    pattern_constraint?: string;
+    get pattern_constraint(): string | undefined {
+        return this._pattern_constraint?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for pattern_constraint.
+     * Use this to access openehr_base.String methods.
+     */
+    get $pattern_constraint(): openehr_base.String | undefined {
+        return this._pattern_constraint;
+    }
+
+    /**
+     * Sets pattern_constraint from either a primitive value or openehr_base.String wrapper.
+     */
+    set pattern_constraint(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._pattern_constraint = undefined;
+        } else if (typeof val === 'string') {
+            this._pattern_constraint = openehr_base.String.from(val);
+        } else {
+            this._pattern_constraint = val;
+        }
+    }
+
+    /**
+     * True if \`_a_pattern_\` is a valid constraint. Define in concrete descendants.
+     * @param a_pattern - Parameter
+     * @returns Result value
+     */
+    abstract valid_pattern_constraint(a_pattern: openehr_base.String): openehr_base.Boolean;
+
+    /**
+     * Return True if \`_a_pattern_\` can be replaced by \`_an_other_pattern_\` in a specialised constraint. Define in concrete subtypes.
+     * @param a_pattern - Parameter
+     * @param an_other_pattern - Parameter
+     * @returns Result value
+     */
+    abstract valid_pattern_constraint_replacement(a_pattern: openehr_base.String, an_other_pattern: openehr_base.String): openehr_base.Boolean;
+
+    /**
+     * True if any value (i.e. instance) of the reference model type would be allowed. Redefined in descendants.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        // TODO: Implement any_allowed behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method any_allowed not yet implemented.");
+    }
+
+    /**
+     * True if \`precursor()\` or else \`_other.pattern_constraint_\` is empty, or else \`_pattern_constraint_\` is a valid (narrower) replacement for \`_other.pattern_constraint_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+        // TODO: Implement c_value_conforms_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_conforms_to not yet implemented.");
+    }
+
+    /**
+     * True if \`precursor (other)\` and \`_pattern_constraint_ ~ _other.pattern_constraint_\`, i.e. either both \`Void\` or else both non-\`Void\` and identical.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+        // TODO: Implement c_value_congruent_to behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method c_value_congruent_to not yet implemented.");
+    }
+
 }
 
 /**
  * ISO 8601-compatible constraint on instances of Time. There is no validity flag for ‘hour’, since it must always be by definition mandatory in order to have a sensible time at all. Syntax expressions of instances of this class include “HH:??:xx” (time with optional minutes and seconds not allowed).
  */
-export class C_TIME {
+export class C_TIME extends C_PRIMITIVE {
     /**
      * Validity of minute in constrained time.
      */
@@ -501,13 +1947,23 @@ export class C_TIME {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_time;
+    override assumed_value?: openehr_base.Iso8601_time = undefined;
+    /**
+     * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+     * @returns Result value
+     */
+    validity_is_range(): openehr_base.Boolean {
+        // TODO: Implement validity_is_range behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validity_is_range not yet implemented.");
+    }
+
 }
 
 /**
  * ISO 8601-compatible constraint on instances of Date in the form either of a set of validity values, or an actual date range. There is no validity flag for ‘year’, since it must always be by definition mandatory in order to have a sensible date at all. Syntax expressions of instances of this class include “YYYY-??-??” (date with optional month and day).
  */
-export class C_DATE {
+export class C_DATE extends C_PRIMITIVE {
     /**
      * Validity of day in constrained date.
      */
@@ -527,13 +1983,13 @@ export class C_DATE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_date;
+    override assumed_value?: openehr_base.Iso8601_date = undefined;
 }
 
 /**
  * ISO 8601-compatible constraint on instances of Date_Time. There is no validity flag for ‘year’, since it must always be by definition mandatory in order to have a sensible date/time at all. Syntax expressions of instances of this class include “YYYY-MM-DDT??:??:??” (date/time with optional time) and “YYYY-MMDDTHH:MM:xx” (date/time, seconds not allowed).
  */
-export class C_DATE_TIME {
+export class C_DATE_TIME extends C_PRIMITIVE {
     /**
      * Validity of month in constrained date.
      */
@@ -569,7 +2025,17 @@ export class C_DATE_TIME {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_date_time;
+    override assumed_value?: openehr_base.Iso8601_date_time = undefined;
+    /**
+     * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+     * @returns Result value
+     */
+    validity_is_range(): openehr_base.Boolean {
+        // TODO: Implement validity_is_range behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method validity_is_range not yet implemented.");
+    }
+
 }
 
 /**
@@ -583,30 +2049,270 @@ export class C_DATE_TIME {
  * * the values used in an interval constraint may be negated, i.e. a leading minus (\`'-'\`) sign may be used.
  * 
  */
-export class C_DURATION {
-    years_allowed?: boolean;
+export class C_DURATION extends C_PRIMITIVE {
+    /**
+     * Internal storage for years_allowed
+     * @private
+     */
+    private _years_allowed?: openehr_base.Boolean;
+
+    get years_allowed(): boolean | undefined {
+        return this._years_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for years_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $years_allowed(): openehr_base.Boolean | undefined {
+        return this._years_allowed;
+    }
+
+    /**
+     * Sets years_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set years_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._years_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._years_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._years_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for months_allowed
+     * @private
+     */
+    private _months_allowed?: openehr_base.Boolean;
+
     /**
      * True if months are allowed in the constrained Duration.
      */
-    months_allowed?: boolean;
-    weeks_allowed?: boolean;
+    get months_allowed(): boolean | undefined {
+        return this._months_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for months_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $months_allowed(): openehr_base.Boolean | undefined {
+        return this._months_allowed;
+    }
+
+    /**
+     * Sets months_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set months_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._months_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._months_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._months_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for weeks_allowed
+     * @private
+     */
+    private _weeks_allowed?: openehr_base.Boolean;
+
+    get weeks_allowed(): boolean | undefined {
+        return this._weeks_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for weeks_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $weeks_allowed(): openehr_base.Boolean | undefined {
+        return this._weeks_allowed;
+    }
+
+    /**
+     * Sets weeks_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set weeks_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._weeks_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._weeks_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._weeks_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for days_allowed
+     * @private
+     */
+    private _days_allowed?: openehr_base.Boolean;
+
     /**
      * True if days are allowed in the constrained Duration.
      */
-    days_allowed?: boolean;
+    get days_allowed(): boolean | undefined {
+        return this._days_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for days_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $days_allowed(): openehr_base.Boolean | undefined {
+        return this._days_allowed;
+    }
+
+    /**
+     * Sets days_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set days_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._days_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._days_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._days_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for hours_allowed
+     * @private
+     */
+    private _hours_allowed?: openehr_base.Boolean;
+
     /**
      * True if hours are allowed in the constrained Duration.
      */
-    hours_allowed?: boolean;
+    get hours_allowed(): boolean | undefined {
+        return this._hours_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for hours_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $hours_allowed(): openehr_base.Boolean | undefined {
+        return this._hours_allowed;
+    }
+
+    /**
+     * Sets hours_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set hours_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._hours_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._hours_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._hours_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for minutes_allowed
+     * @private
+     */
+    private _minutes_allowed?: openehr_base.Boolean;
+
     /**
      * True if minutes are allowed in the constrained Duration.
      */
-    minutes_allowed?: boolean;
-    seconds_allowed?: boolean;
+    get minutes_allowed(): boolean | undefined {
+        return this._minutes_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for minutes_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $minutes_allowed(): openehr_base.Boolean | undefined {
+        return this._minutes_allowed;
+    }
+
+    /**
+     * Sets minutes_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set minutes_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._minutes_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._minutes_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._minutes_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for seconds_allowed
+     * @private
+     */
+    private _seconds_allowed?: openehr_base.Boolean;
+
+    get seconds_allowed(): boolean | undefined {
+        return this._seconds_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for seconds_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $seconds_allowed(): openehr_base.Boolean | undefined {
+        return this._seconds_allowed;
+    }
+
+    /**
+     * Sets seconds_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set seconds_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._seconds_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._seconds_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._seconds_allowed = val;
+        }
+    }
+
+    /**
+     * Internal storage for fractional_seconds_allowed
+     * @private
+     */
+    private _fractional_seconds_allowed?: openehr_base.Boolean;
+
     /**
      * True if fractional seconds are allowed in the constrained Duration.
      */
-    fractional_seconds_allowed?: boolean;
+    get fractional_seconds_allowed(): boolean | undefined {
+        return this._fractional_seconds_allowed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for fractional_seconds_allowed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $fractional_seconds_allowed(): openehr_base.Boolean | undefined {
+        return this._fractional_seconds_allowed;
+    }
+
+    /**
+     * Sets fractional_seconds_allowed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set fractional_seconds_allowed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._fractional_seconds_allowed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._fractional_seconds_allowed = openehr_base.Boolean.from(val);
+        } else {
+            this._fractional_seconds_allowed = val;
+        }
+    }
+
     /**
      * Range of Durations specifying constraint.
      */
@@ -614,7 +2320,7 @@ export class C_DURATION {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    assumed_value?: openehr_base.Iso8601_duration;
+    override assumed_value?: openehr_base.Iso8601_duration = undefined;
 }
 
 /**
@@ -733,12 +2439,68 @@ export class C_TEMPORAL_DEFINITIONS {
      * ----
      */
     valid_date_time_constraint_replacements?: undefined;
+    /**
+     * True if ISO8601 duration string \`_other_dur_\` contains every character element in \`_a_dur_\`. For example: 'PYD' (period with year and days only) conforms to 'PYMD', but doesn't conform to 'PY'.
+     * @param a_dur - Parameter
+     * @param other_dur - Parameter
+     * @returns Result value
+     */
+    valid_duration_constraint_replacement(a_dur: openehr_base.String, other_dur: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_duration_constraint_replacement behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_duration_constraint_replacement not yet implemented.");
+    }
+
+    /**
+     * True if string literal like \`"yyyy-MM-dd"\` containing \`"XX"\` or \`"??"\` in \`MM\` or \`dd\` slots in pattern constraint is in \`_valid_date_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_date_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_iso8601_date_constraint_pattern behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_date_constraint_pattern not yet implemented.");
+    }
+
+    /**
+     * True if string literal like \`"hh:mm:ss[.ssss]"\` containing \`"XX"\` or \`"??"\` in \`mm\` or \`ss\` slots in pattern constraint is in \`_valid_time_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_time_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_iso8601_time_constraint_pattern behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_time_constraint_pattern not yet implemented.");
+    }
+
+    /**
+     * True if string literal in form \`"yyyy-MM-dd hh:mm:ss[.ssss]"\` containing \`"XX"\` or \`"??"\` in variable slots in pattern constraint is in \`_valid_date_time_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_date_time_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_iso8601_date_time_constraint_pattern behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_date_time_constraint_pattern not yet implemented.");
+    }
+
+    /**
+     * True if string in form \`P[Y|y][M|m][W|w][D|d][T[H|h][M|m][S|s]]\` (note: allowing 'W' to be mixed in is an openEHR deviation of ISO 8601).
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_duration_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement valid_iso8601_duration_constraint_pattern behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method valid_iso8601_duration_constraint_pattern not yet implemented.");
+    }
+
 }
 
 /**
  * Status of \`_constraint_\`, with values allowing for 'soft' constraints, which are effectively different kinds of suggestions.
  */
-export class CONSTRAINT_STATUS {
+export class CONSTRAINT_STATUS extends openehr_base.Integer {
 }
 
 /**
@@ -746,23 +2508,93 @@ export class CONSTRAINT_STATUS {
  */
 export class ARCHETYPE_TERM {
     /**
+     * Internal storage for code
+     * @private
+     */
+    private _code?: openehr_base.String;
+
+    /**
      * Code of this term. 
      */
-    code?: string;
+    get code(): string | undefined {
+        return this._code?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for code.
+     * Use this to access openehr_base.String methods.
+     */
+    get $code(): openehr_base.String | undefined {
+        return this._code;
+    }
+
+    /**
+     * Sets code from either a primitive value or openehr_base.String wrapper.
+     */
+    set code(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._code = undefined;
+        } else if (typeof val === 'string') {
+            this._code = openehr_base.String.from(val);
+        } else {
+            this._code = val;
+        }
+    }
+
     /**
      * Hash of keys (“text”, “description” etc) and corresponding values.
      */
     items?: undefined;
+    /**
+     * List of all keys used in this term.
+     * @returns Result value
+     */
+    keys(): openehr_base.String {
+        // TODO: Implement keys behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method keys not yet implemented.");
+    }
+
 }
 
 /**
  * Class whose instances represent any kind of 1:N relationship between a source term and 1-N target terms.
  */
-export class TERMINOLOGY_RELATION {
+export abstract class TERMINOLOGY_RELATION {
+    /**
+     * Internal storage for id
+     * @private
+     */
+    private _id?: openehr_base.String;
+
     /**
      * Code of source term of this relation.
      */
-    id?: string;
+    get id(): string | undefined {
+        return this._id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $id(): openehr_base.String | undefined {
+        return this._id;
+    }
+
+    /**
+     * Sets id from either a primitive value or openehr_base.String wrapper.
+     */
+    set id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._id = undefined;
+        } else if (typeof val === 'string') {
+            this._id = openehr_base.String.from(val);
+        } else {
+            this._id = val;
+        }
+    }
+
     /**
      * List of target terms in this relation.
      */
@@ -772,7 +2604,7 @@ export class TERMINOLOGY_RELATION {
 /**
  * Representation of a flat value set within the archetype terminology.
  */
-export class VALUE_SET {
+export class VALUE_SET extends TERMINOLOGY_RELATION {
 }
 
 /**
@@ -780,18 +2612,108 @@ export class VALUE_SET {
  */
 export class ARCHETYPE_TERMINOLOGY {
     /**
+     * Internal storage for is_differential
+     * @private
+     */
+    private _is_differential?: openehr_base.Boolean;
+
+    /**
      * True if this terminology only contains terms relating to a differential specialisation of the owning artefact, rather than a complete set.
      */
-    is_differential?: boolean;
+    get is_differential(): boolean | undefined {
+        return this._is_differential?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_differential.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_differential(): openehr_base.Boolean | undefined {
+        return this._is_differential;
+    }
+
+    /**
+     * Sets is_differential from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_differential(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_differential = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_differential = openehr_base.Boolean.from(val);
+        } else {
+            this._is_differential = val;
+        }
+    }
+
+    /**
+     * Internal storage for original_language
+     * @private
+     */
+    private _original_language?: openehr_base.String;
+
     /**
      * Original language of the terminology, as set at artefact creation or parsing time; must be a code in the ISO 639-1 2 character language code-set.
      * 
      */
-    original_language?: string;
+    get original_language(): string | undefined {
+        return this._original_language?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for original_language.
+     * Use this to access openehr_base.String methods.
+     */
+    get $original_language(): openehr_base.String | undefined {
+        return this._original_language;
+    }
+
+    /**
+     * Sets original_language from either a primitive value or openehr_base.String wrapper.
+     */
+    set original_language(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._original_language = undefined;
+        } else if (typeof val === 'string') {
+            this._original_language = openehr_base.String.from(val);
+        } else {
+            this._original_language = val;
+        }
+    }
+
+    /**
+     * Internal storage for concept_code
+     * @private
+     */
+    private _concept_code?: openehr_base.String;
+
     /**
      * Term code defining the meaning of the artefact as a whole, and always used as the id-code on the root node of the artefact. Must be defined in the \`_term_definitions_\` property.
      */
-    concept_code?: string;
+    get concept_code(): string | undefined {
+        return this._concept_code?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for concept_code.
+     * Use this to access openehr_base.String methods.
+     */
+    get $concept_code(): openehr_base.String | undefined {
+        return this._concept_code;
+    }
+
+    /**
+     * Sets concept_code from either a primitive value or openehr_base.String wrapper.
+     */
+    set concept_code(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._concept_code = undefined;
+        } else if (typeof val === 'string') {
+            this._concept_code = openehr_base.String.from(val);
+        } else {
+            this._concept_code = val;
+        }
+    }
+
     /**
      * Directory of term definitions as a two-level table. The outer hash keys are language codes, e.g. \`"en"\`, \`"de"\`, while the inner hash keys are term codes, e.g. \`"id17"\`, \`"at4"\`.
      */
@@ -812,12 +2734,234 @@ export class ARCHETYPE_TERMINOLOGY {
      * Directory of extracts of external terminologies, as a two-level table. The outer hash keys are terminology ids, e.g. \`"SNOMED_CT"\`, while the inner hash keys are term codes or code-phrases from the relevant terminology, e.g. \`"10094842"\`.
      */
     terminology_extracts?: undefined;
+    /**
+     * Specialisation depth of this artefact. Unspecialised artefacts have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
+     * @returns Result value
+     */
+    specialisation_depth(): openehr_base.Integer {
+        // TODO: Implement specialisation_depth behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method specialisation_depth not yet implemented.");
+    }
+
+    /**
+     * List of all id codes in the terminology., i.e. the 'id' codes in an ADL archetype, which are the \`_node_id_\` values on \`C_OBJECT\` descendants.
+     * @returns Result value
+     */
+    id_codes(): openehr_base.String {
+        // TODO: Implement id_codes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method id_codes not yet implemented.");
+    }
+
+    /**
+     * List of all value term codes in the terminology, i.e. the 'at' codes in an ADL archetype, which are used as possible values on terminological constrainer nodes.
+     * @returns Result value
+     */
+    value_codes(): openehr_base.String {
+        // TODO: Implement value_codes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method value_codes not yet implemented.");
+    }
+
+    /**
+     * List of all value set codes in the terminology defining value sets. These correspond to the 'ac' codes in an ADL archetype.
+     * @returns Result value
+     */
+    value_set_codes(): openehr_base.String {
+        // TODO: Implement value_set_codes behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method value_set_codes not yet implemented.");
+    }
+
+    /**
+     * True if language \`_a_lang_\` is present in archetype terminology. 
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    has_language(a_lang: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_language behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_language not yet implemented.");
+    }
+
+    /**
+     * True if there are bindings to terminology \`_a_terminology_id_\` present.
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_terminology behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_terminology not yet implemented.");
+    }
+
+    /**
+     * True if code \`_a_code_\` defined in this terminology.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_term_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_term_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_term_code not yet implemented.");
+    }
+
+    /**
+     * Term definition for a code, in a specified language. 
+     * @param a_lang - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_definition(a_lang: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        // TODO: Implement term_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method term_definition not yet implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to \`_a_code_\` in target external terminology \`_a_terminology_id_\`, as a string, which is usually a formal query expression.
+     * @param a_terminology - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_binding(a_terminology: openehr_base.String, a_code: openehr_base.String): openehr_base.Uri {
+        // TODO: Implement term_binding behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method term_binding not yet implemented.");
+    }
+
+    /**
+     * List of terminologies to which term or constraint bindings exist in this terminology, computed from bindings.
+     * @returns Result value
+     */
+    terminologies_available(): openehr_base.String {
+        // TODO: Implement terminologies_available behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method terminologies_available not yet implemented.");
+    }
+
+    /**
+     * Return an \`ARCHETYPE_TERM\` from specified terminology extract, for specified term code.
+     * @param a_terminology_id - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    terminology_extract_term(a_terminology_id: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        // TODO: Implement terminology_extract_term behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method terminology_extract_term not yet implemented.");
+    }
+
+    /**
+     * True if there is a provided terminology extract present.
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology_extract(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_terminology_extract behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_terminology_extract not yet implemented.");
+    }
+
+    /**
+     * List of languages in which terms in this terminology are available.
+     * @returns Result value
+     */
+    languages_available(): openehr_base.String {
+        // TODO: Implement languages_available behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method languages_available not yet implemented.");
+    }
+
 }
 
 /**
  * Definitions relating to the internal code system of archetypes.
  */
 export class ADL_CODE_DEFINITIONS {
+    /**
+     * True if \`_a_child_code_\` conforms to \`_a_parent_code_\` in the sense of specialisation, i.e. is \`_a_child_code_\` the same as or more specialised than \`_a_parent_code_\`?
+     * @param a_child_code - Parameter
+     * @param a_parent_code - Parameter
+     * @returns Result value
+     */
+    codes_conformant(a_child_code: openehr_base.String, a_parent_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement codes_conformant behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method codes_conformant not yet implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is any kind of ADL archetype local code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_adl_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement is_adl_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_adl_code not yet implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'id' code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_id_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement is_id_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_id_code not yet implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'at' code, i.e. a code representing a single terminology item.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_value_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement is_value_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_value_code not yet implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'ac' code, i.e. a code referring to a terminology value set.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_value_set_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement is_value_set_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_value_set_code not yet implemented.");
+    }
+
+    /**
+     * A code has been specialised if there is a non-zero code index anywhere above the last index e.g. 
+     * 
+     * * \`at0.0.1\` -> False
+     * * \`at1.0.1\` -> True
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_redefined_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement is_redefined_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_redefined_code not yet implemented.");
+    }
+
+    /**
+     * Is \`_a_code_\` valid at level \`_a_level_\` or less, i.e. if we remove its trailing specialised part corresponding to specialisation below \`_a_level_\`, and then any trailing '.0' pieces, do we end up with a valid code? If so it means that the code corresponds to a real node from \`_a_level_\` or higher.
+     * @param a-code - Parameter
+     * @param a_level - Parameter
+     * @returns Result value
+     */
+    code_exists_at_level(a_code: openehr_base.String, a_level: openehr_base.Integer): openehr_base.Boolean {
+        // TODO: Implement code_exists_at_level behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method code_exists_at_level not yet implemented.");
+    }
+
 }
 
 /**
@@ -847,87 +2991,423 @@ export class RM_OVERLAY {
 /**
  * Enumeration of visibility settings for model elements.
  */
-export class VISIBILITY_TYPE {
+export class VISIBILITY_TYPE extends openehr_base.String {
 }
 
 /**
  * Archetype equivalent to LOCATABLE class in openEHR Common reference model. Defines common constraints for any inheritor of LOCATABLE in any reference model. 
  */
-export class P_ARCHETYPE_CONSTRAINT {
+export abstract class P_ARCHETYPE_CONSTRAINT {
 }
 
 /**
  * Abstract model of constraint on any kind of object node. 
  */
-export class P_C_OBJECT {
+export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
+    /**
+     * Internal storage for rm_type_name
+     * @private
+     */
+    private _rm_type_name?: openehr_base.String;
+
     /**
      * Reference model type that this node corresponds to. 
      */
-    rm_type_name?: string;
+    get rm_type_name(): string | undefined {
+        return this._rm_type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_type_name(): openehr_base.String | undefined {
+        return this._rm_type_name;
+    }
+
+    /**
+     * Sets rm_type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_type_name = openehr_base.String.from(val);
+        } else {
+            this._rm_type_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for occurrences
+     * @private
+     */
+    private _occurrences?: openehr_base.String;
+
     /**
      * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1.
      */
-    occurrences?: string;
+    get occurrences(): string | undefined {
+        return this._occurrences?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for occurrences.
+     * Use this to access openehr_base.String methods.
+     */
+    get $occurrences(): openehr_base.String | undefined {
+        return this._occurrences;
+    }
+
+    /**
+     * Sets occurrences from either a primitive value or openehr_base.String wrapper.
+     */
+    set occurrences(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._occurrences = undefined;
+        } else if (typeof val === 'string') {
+            this._occurrences = openehr_base.String.from(val);
+        } else {
+            this._occurrences = val;
+        }
+    }
+
+    /**
+     * Internal storage for node_id
+     * @private
+     */
+    private _node_id?: openehr_base.String;
+
     /**
      * Semantic id of this node, used to differentiate sibling nodes of the same type. Each node_id must be defined in the archetype ontology as a term code. 
      * 
      */
-    node_id?: string;
-    is_deprecated?: boolean;
+    get node_id(): string | undefined {
+        return this._node_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for node_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $node_id(): openehr_base.String | undefined {
+        return this._node_id;
+    }
+
+    /**
+     * Sets node_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set node_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._node_id = undefined;
+        } else if (typeof val === 'string') {
+            this._node_id = openehr_base.String.from(val);
+        } else {
+            this._node_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_deprecated
+     * @private
+     */
+    private _is_deprecated?: openehr_base.Boolean;
+
+    get is_deprecated(): boolean | undefined {
+        return this._is_deprecated?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_deprecated.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_deprecated(): openehr_base.Boolean | undefined {
+        return this._is_deprecated;
+    }
+
+    /**
+     * Sets is_deprecated from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_deprecated(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_deprecated = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_deprecated = openehr_base.Boolean.from(val);
+        } else {
+            this._is_deprecated = val;
+        }
+    }
+
+    specialisation_depth(): openehr_base.Integer {
+        // TODO: Implement specialisation_depth behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method specialisation_depth not yet implemented.");
+    }
+
 }
 
 /**
  * Abstract model of constraint on any kind of attribute node.
  */
-export class P_C_ATTRIBUTE {
+export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
+    /**
+     * Internal storage for rm_attribute_name
+     * @private
+     */
+    private _rm_attribute_name?: openehr_base.String;
+
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
-    rm_attribute_name?: string;
+    get rm_attribute_name(): string | undefined {
+        return this._rm_attribute_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_attribute_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_attribute_name(): openehr_base.String | undefined {
+        return this._rm_attribute_name;
+    }
+
+    /**
+     * Sets rm_attribute_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_attribute_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_attribute_name = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_attribute_name = openehr_base.String.from(val);
+        } else {
+            this._rm_attribute_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for existence
+     * @private
+     */
+    private _existence?: openehr_base.String;
+
     /**
      * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
      */
-    existence?: string;
+    get existence(): string | undefined {
+        return this._existence?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for existence.
+     * Use this to access openehr_base.String methods.
+     */
+    get $existence(): openehr_base.String | undefined {
+        return this._existence;
+    }
+
+    /**
+     * Sets existence from either a primitive value or openehr_base.String wrapper.
+     */
+    set existence(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._existence = undefined;
+        } else if (typeof val === 'string') {
+            this._existence = openehr_base.String.from(val);
+        } else {
+            this._existence = val;
+        }
+    }
+
     /**
      * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes. 
      */
     children?: undefined;
     /**
+     * Internal storage for differential_path
+     * @private
+     */
+    private _differential_path?: openehr_base.String;
+
+    /**
      * Within a differential specialised archetype, may be set to represent a deep path within the structure to which this constraint and its child constraints apply.
      */
-    differential_path?: string;
+    get differential_path(): string | undefined {
+        return this._differential_path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for differential_path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $differential_path(): openehr_base.String | undefined {
+        return this._differential_path;
+    }
+
+    /**
+     * Sets differential_path from either a primitive value or openehr_base.String wrapper.
+     */
+    set differential_path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._differential_path = undefined;
+        } else if (typeof val === 'string') {
+            this._differential_path = openehr_base.String.from(val);
+        } else {
+            this._differential_path = val;
+        }
+    }
+
+    /**
+     * Internal storage for cardinality
+     * @private
+     */
+    private _cardinality?: openehr_base.String;
+
     /**
      * Cardinality constraint of attribute, if a container attribute.
      */
-    cardinality?: string;
+    get cardinality(): string | undefined {
+        return this._cardinality?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for cardinality.
+     * Use this to access openehr_base.String methods.
+     */
+    get $cardinality(): openehr_base.String | undefined {
+        return this._cardinality;
+    }
+
+    /**
+     * Sets cardinality from either a primitive value or openehr_base.String wrapper.
+     */
+    set cardinality(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._cardinality = undefined;
+        } else if (typeof val === 'string') {
+            this._cardinality = openehr_base.String.from(val);
+        } else {
+            this._cardinality = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_multiple
+     * @private
+     */
+    private _is_multiple?: openehr_base.Boolean;
+
     /**
      * Flag indicating whether this attribute constraint is on a container (i.e. multiply-valued) attribute.
      */
-    is_multiple?: boolean;
+    get is_multiple(): boolean | undefined {
+        return this._is_multiple?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_multiple.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_multiple(): openehr_base.Boolean | undefined {
+        return this._is_multiple;
+    }
+
+    /**
+     * Sets is_multiple from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_multiple(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_multiple = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_multiple = openehr_base.Boolean.from(val);
+        } else {
+            this._is_multiple = val;
+        }
+    }
+
 }
 
 /**
  * Abstract parent type of C_OBJECT subtypes that are defined by value, i.e. whose definitions are actually in the archetype rather than being by reference. 
  */
-export class P_C_DEFINED_OBJECT {
-    is_frozen?: boolean;
-    default_value?: any;
+export abstract class P_C_DEFINED_OBJECT extends P_C_OBJECT {
+    /**
+     * Internal storage for is_frozen
+     * @private
+     */
+    private _is_frozen?: openehr_base.Boolean;
+
+    get is_frozen(): boolean | undefined {
+        return this._is_frozen?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_frozen.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_frozen(): openehr_base.Boolean | undefined {
+        return this._is_frozen;
+    }
+
+    /**
+     * Sets is_frozen from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_frozen(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_frozen = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_frozen = openehr_base.Boolean.from(val);
+        } else {
+            this._is_frozen = val;
+        }
+    }
+
+    default_value?: openehr_base.Any;
 }
 
 /**
  * A constraint defined by proxy, using a reference to an object constraint defined elsewhere in the same archetype. Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on a COJMPLEX_OBJECT_PROXY should always be used; when setting this from a seri- alised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of {1..1}); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out. 
  */
-export class P_C_COMPLEX_OBJECT_PROXY {
+export class P_C_COMPLEX_OBJECT_PROXY extends P_C_OBJECT {
+    /**
+     * Internal storage for target_path
+     * @private
+     */
+    private _target_path?: openehr_base.String;
+
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    get target_path(): string | undefined {
+        return this._target_path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_path(): openehr_base.String | undefined {
+        return this._target_path;
+    }
+
+    /**
+     * Sets target_path from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_path = undefined;
+        } else if (typeof val === 'string') {
+            this._target_path = openehr_base.String.from(val);
+        } else {
+            this._target_path = val;
+        }
+    }
+
 }
 
 /**
  * Constraint describing a  slot' where another archetype can occur. 
  */
-export class P_ARCHETYPE_SLOT {
+export class P_ARCHETYPE_SLOT extends P_C_OBJECT {
     /**
      * List of constraints defining other archetypes that could be included at this point. 
      */
@@ -936,31 +3416,91 @@ export class P_ARCHETYPE_SLOT {
      * List of constraints defining other archetypes that cannot be included at this point. 
      */
     excludes?: undefined;
-    is_closed?: boolean;
+    /**
+     * Internal storage for is_closed
+     * @private
+     */
+    private _is_closed?: openehr_base.Boolean;
+
+    get is_closed(): boolean | undefined {
+        return this._is_closed?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_closed.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_closed(): openehr_base.Boolean | undefined {
+        return this._is_closed;
+    }
+
+    /**
+     * Sets is_closed from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_closed(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_closed = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_closed = openehr_base.Boolean.from(val);
+        } else {
+            this._is_closed = val;
+        }
+    }
+
 }
 
 /**
  * Parent of types representing constraints on primitive types.
  */
-export class P_C_PRIMITIVE_OBJECT {
+export abstract class P_C_PRIMITIVE_OBJECT extends P_C_DEFINED_OBJECT {
     /**
      * Value to be assumed if none sent in data.
      */
-    assumed_value?: any;
+    assumed_value?: openehr_base.Any;
+    /**
+     * Internal storage for is_enumerated_type_constraint
+     * @private
+     */
+    private _is_enumerated_type_constraint?: openehr_base.Boolean;
+
     /**
      * True if this constraint is actually of an enumerated type that conforms to a primitive type, not a primitive.
      */
-    is_enumerated_type_constraint?: boolean;
+    get is_enumerated_type_constraint(): boolean | undefined {
+        return this._is_enumerated_type_constraint?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_enumerated_type_constraint.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_enumerated_type_constraint(): openehr_base.Boolean | undefined {
+        return this._is_enumerated_type_constraint;
+    }
+
+    /**
+     * Sets is_enumerated_type_constraint from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_enumerated_type_constraint(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_enumerated_type_constraint = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_enumerated_type_constraint = openehr_base.Boolean.from(val);
+        } else {
+            this._is_enumerated_type_constraint = val;
+        }
+    }
+
     /**
      * Constraint represented by this object; redefine in descendants.
      */
-    constraint?: any;
+    constraint?: openehr_base.Any;
 }
 
 /**
  * Constraint on complex objects, i.e. any object that consists of other object constraints.
  */
-export class P_C_COMPLEX_OBJECT {
+export class P_C_COMPLEX_OBJECT extends P_C_DEFINED_OBJECT {
     /**
      * List of constraints on attributes of the reference model type represented by this object.
      */
@@ -981,29 +3521,179 @@ export class P_C_ATTRIBUTE_TUPLE {
     members?: undefined;
 }
 
-export class P_C_ARCHETYPE_ROOT {
-    archetype_ref?: string;
+export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
+    /**
+     * Internal storage for archetype_ref
+     * @private
+     */
+    private _archetype_ref?: openehr_base.String;
+
+    get archetype_ref(): string | undefined {
+        return this._archetype_ref?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for archetype_ref.
+     * Use this to access openehr_base.String methods.
+     */
+    get $archetype_ref(): openehr_base.String | undefined {
+        return this._archetype_ref;
+    }
+
+    /**
+     * Sets archetype_ref from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_ref(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_ref = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_ref = openehr_base.String.from(val);
+        } else {
+            this._archetype_ref = val;
+        }
+    }
+
 }
 
 /**
  * Constraint on instances of Boolean. Both attributes cannot be set to False, since this would mean that the Boolean value being constrained cannot be True or False.
  */
-export class P_C_BOOLEAN {
-    constraint?: undefined;
-    assumed_value?: boolean;
-    default_value?: boolean;
+export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
+    override constraint?: undefined = undefined;
+    /**
+     * Internal storage for assumed_value
+     * @private
+     */
+    private _assumed_value?: openehr_base.Boolean;
+
+    get assumed_value(): boolean | undefined {
+        return this._assumed_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for assumed_value.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $assumed_value(): openehr_base.Boolean | undefined {
+        return this._assumed_value;
+    }
+
+    /**
+     * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._assumed_value = undefined;
+        } else if (typeof val === 'boolean') {
+            this._assumed_value = openehr_base.Boolean.from(val);
+        } else {
+            this._assumed_value = val;
+        }
+    }
+
+    /**
+     * Internal storage for default_value
+     * @private
+     */
+    private _default_value?: openehr_base.Boolean;
+
+    get default_value(): boolean | undefined {
+        return this._default_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for default_value.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $default_value(): openehr_base.Boolean | undefined {
+        return this._default_value;
+    }
+
+    /**
+     * Sets default_value from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set default_value(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._default_value = undefined;
+        } else if (typeof val === 'boolean') {
+            this._default_value = openehr_base.Boolean.from(val);
+        } else {
+            this._default_value = val;
+        }
+    }
+
 }
 
 /**
  * Constraint on instances of STRING. 
  */
-export class P_C_STRING {
+export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
     /**
      * String constraint - a list of literal strings and / or regular expression strings delimited by the ‘/’ character.
      */
-    constraint?: undefined;
-    default_value?: string;
-    assumed_value?: string;
+    override constraint?: undefined = undefined;
+    /**
+     * Internal storage for default_value
+     * @private
+     */
+    private _default_value?: openehr_base.String;
+
+    get default_value(): string | undefined {
+        return this._default_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for default_value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $default_value(): openehr_base.String | undefined {
+        return this._default_value;
+    }
+
+    /**
+     * Sets default_value from either a primitive value or openehr_base.String wrapper.
+     */
+    set default_value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._default_value = undefined;
+        } else if (typeof val === 'string') {
+            this._default_value = openehr_base.String.from(val);
+        } else {
+            this._default_value = val;
+        }
+    }
+
+    /**
+     * Internal storage for assumed_value
+     * @private
+     */
+    private _assumed_value?: openehr_base.String;
+
+    get assumed_value(): string | undefined {
+        return this._assumed_value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for assumed_value.
+     * Use this to access openehr_base.String methods.
+     */
+    get $assumed_value(): openehr_base.String | undefined {
+        return this._assumed_value;
+    }
+
+    /**
+     * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
+     */
+    set assumed_value(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._assumed_value = undefined;
+        } else if (typeof val === 'string') {
+            this._assumed_value = openehr_base.String.from(val);
+        } else {
+            this._assumed_value = val;
+        }
+    }
+
 }
 
 /**
@@ -1025,8 +3715,8 @@ export class P_C_REAL {
  * 
  * The next simplest form is a single proper Interval <T> (i.e. normal two-sided or half-open interval). The most complex form is a list of any combination of point and proper intervals.
  */
-export class P_C_ORDERED {
-    constraint?: undefined;
+export abstract class P_C_ORDERED<T extends openehr_base.Ordered> extends P_C_PRIMITIVE_OBJECT {
+    override constraint?: undefined = undefined;
 }
 
 /**
@@ -1036,20 +3726,80 @@ export class P_C_ORDERED {
  * * a list of at- and/or ac-codes, representing the possibilities of a tuple constraint
  * The last possibility above is enabled by the merge_tuple routine, which enables the constraint of another single-valued C_TERMINOLOGY_CODE to be merged with the current one.
  */
-export class P_C_TERMINOLOGY_CODE {
-    constraint?: string;
-    assumed_value?: openehr_base.Terminology_code;
-    default_value?: openehr_base.Terminology_code;
+export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
+    /**
+     * Internal storage for constraint
+     * @private
+     */
+    private _constraint?: openehr_base.String;
+
+    get constraint(): string | undefined {
+        return this._constraint?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for constraint.
+     * Use this to access openehr_base.String methods.
+     */
+    get $constraint(): openehr_base.String | undefined {
+        return this._constraint;
+    }
+
+    /**
+     * Sets constraint from either a primitive value or openehr_base.String wrapper.
+     */
+    set constraint(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._constraint = undefined;
+        } else if (typeof val === 'string') {
+            this._constraint = openehr_base.String.from(val);
+        } else {
+            this._constraint = val;
+        }
+    }
+
+    override assumed_value?: openehr_base.Terminology_code = undefined;
+    override default_value?: openehr_base.Terminology_code = undefined;
 }
 
 /**
  * Purpose Abstract parent of C_ORDERED types whose base type is an ISO date/time type.
  */
-export class P_C_TEMPORAL {
+export abstract class P_C_TEMPORAL<T extends openehr_base.Temporal> extends P_C_ORDERED<T> {
+    /**
+     * Internal storage for pattern_constraint
+     * @private
+     */
+    private _pattern_constraint?: openehr_base.String;
+
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
-    pattern_constraint?: string;
+    get pattern_constraint(): string | undefined {
+        return this._pattern_constraint?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for pattern_constraint.
+     * Use this to access openehr_base.String methods.
+     */
+    get $pattern_constraint(): openehr_base.String | undefined {
+        return this._pattern_constraint;
+    }
+
+    /**
+     * Sets pattern_constraint from either a primitive value or openehr_base.String wrapper.
+     */
+    set pattern_constraint(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._pattern_constraint = undefined;
+        } else if (typeof val === 'string') {
+            this._pattern_constraint = openehr_base.String.from(val);
+        } else {
+            this._pattern_constraint = val;
+        }
+    }
+
 }
 
 /**
@@ -1078,19 +3828,79 @@ export class P_C_DURATION {
  * 
  * An archetype is a modelled as a particular kind of AUTHORED_RESOURCE, and as such, includes descriptive meta-data, language information and revision history. The ARCHETYPE class adds identifying information, a definition - expressed in terms of constraints on instances of an object model, and an ontology.
  */
-export class P_ARCHETYPE {
+export abstract class P_ARCHETYPE {
+    /**
+     * Internal storage for parent_archetype_id
+     * @private
+     */
+    private _parent_archetype_id?: openehr_base.String;
+
     /**
      * Identifier of the specialisation parent of this archetype.
      */
-    parent_archetype_id?: string;
+    get parent_archetype_id(): string | undefined {
+        return this._parent_archetype_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for parent_archetype_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $parent_archetype_id(): openehr_base.String | undefined {
+        return this._parent_archetype_id;
+    }
+
+    /**
+     * Sets parent_archetype_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set parent_archetype_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._parent_archetype_id = undefined;
+        } else if (typeof val === 'string') {
+            this._parent_archetype_id = openehr_base.String.from(val);
+        } else {
+            this._parent_archetype_id = val;
+        }
+    }
+
     /**
      * Identifier of this archetype.
      */
     archetype_id?: P_ARCHETYPE_HRID;
     /**
+     * Internal storage for is_differential
+     * @private
+     */
+    private _is_differential?: openehr_base.Boolean;
+
+    /**
      * Flag indicating whether this archetype is differential or flat in its contents. Top-level source archetypes have this flag set to True.
      */
-    is_differential?: boolean;
+    get is_differential(): boolean | undefined {
+        return this._is_differential?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_differential.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_differential(): openehr_base.Boolean | undefined {
+        return this._is_differential;
+    }
+
+    /**
+     * Sets is_differential from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_differential(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_differential = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_differential = openehr_base.Boolean.from(val);
+        } else {
+            this._is_differential = val;
+        }
+    }
+
     /**
      * Root node of the definition of this archetype.
      */
@@ -1106,32 +3916,243 @@ export class P_ARCHETYPE {
 }
 
 /**
+ * Abstract idea of an online resource created by a human author. 
+ * 
+ */
+export abstract class P_AUTHORED_RESOURCE {
+    /**
+     * Internal storage for original_language
+     * @private
+     */
+    private _original_language?: openehr_base.String;
+
+    /**
+     * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
+     */
+    get original_language(): string | undefined {
+        return this._original_language?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for original_language.
+     * Use this to access openehr_base.String methods.
+     */
+    get $original_language(): openehr_base.String | undefined {
+        return this._original_language;
+    }
+
+    /**
+     * Sets original_language from either a primitive value or openehr_base.String wrapper.
+     */
+    set original_language(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._original_language = undefined;
+        } else if (typeof val === 'string') {
+            this._original_language = openehr_base.String.from(val);
+        } else {
+            this._original_language = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_controlled
+     * @private
+     */
+    private _is_controlled?: openehr_base.Boolean;
+
+    /**
+     * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
+     */
+    get is_controlled(): boolean | undefined {
+        return this._is_controlled?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_controlled.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_controlled(): openehr_base.Boolean | undefined {
+        return this._is_controlled;
+    }
+
+    /**
+     * Sets is_controlled from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_controlled(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_controlled = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_controlled = openehr_base.Boolean.from(val);
+        } else {
+            this._is_controlled = val;
+        }
+    }
+
+    /**
+     * List of details for each natural translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The original_language does not appear in this list.
+     */
+    translations?: undefined;
+    /**
+     * Description and lifecycle information of the resource.
+     */
+    description?: openehr_base.RESOURCE_DESCRIPTION;
+    /**
+     * Internal storage for uid
+     * @private
+     */
+    private _uid?: openehr_base.String;
+
+    /**
+     * Unique identifier of the family of archetypes having the same interface identifier (same major version).
+     */
+    get uid(): string | undefined {
+        return this._uid?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for uid.
+     * Use this to access openehr_base.String methods.
+     */
+    get $uid(): openehr_base.String | undefined {
+        return this._uid;
+    }
+
+    /**
+     * Sets uid from either a primitive value or openehr_base.String wrapper.
+     */
+    set uid(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._uid = undefined;
+        } else if (typeof val === 'string') {
+            this._uid = openehr_base.String.from(val);
+        } else {
+            this._uid = val;
+        }
+    }
+
+    /**
+     * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
+     */
+    annotations?: undefined;
+}
+
+/**
  * Root object of a standalone, authored archetype, including all meta-data, description, other identifiers and lifecycle.
  */
-export class P_AUTHORED_ARCHETYPE {
+export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
+    /**
+     * Internal storage for adl_version
+     * @private
+     */
+    private _adl_version?: openehr_base.String;
+
     /**
      * ADL version if archteype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    get adl_version(): string | undefined {
+        return this._adl_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for adl_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $adl_version(): openehr_base.String | undefined {
+        return this._adl_version;
+    }
+
+    /**
+     * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set adl_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._adl_version = undefined;
+        } else if (typeof val === 'string') {
+            this._adl_version = openehr_base.String.from(val);
+        } else {
+            this._adl_version = val;
+        }
+    }
+
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
     build_uid?: openehr_base.UID;
     /**
+     * Internal storage for rm_release
+     * @private
+     */
+    private _rm_release?: openehr_base.String;
+
+    /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
      */
-    rm_release?: string;
+    get rm_release(): string | undefined {
+        return this._rm_release?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_release.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_release(): openehr_base.String | undefined {
+        return this._rm_release;
+    }
+
+    /**
+     * Sets rm_release from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_release(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_release = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_release = openehr_base.String.from(val);
+        } else {
+            this._rm_release = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_generated
+     * @private
+     */
+    private _is_generated?: openehr_base.Boolean;
+
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
      */
-    is_generated?: boolean;
+    get is_generated(): boolean | undefined {
+        return this._is_generated?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_generated.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_generated(): openehr_base.Boolean | undefined {
+        return this._is_generated;
+    }
+
+    /**
+     * Sets is_generated from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_generated(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_generated = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_generated = openehr_base.Boolean.from(val);
+        } else {
+            this._is_generated = val;
+        }
+    }
+
     other_meta_data?: undefined;
 }
 
 /**
  * Class representing source template, i.e. a kind of archetype that may include template overlays, and may be restricted by tools to only defining mandations, prohibitions, and restrictions on elements already defined in the flat parent.
  */
-export class P_TEMPLATE {
+export class P_TEMPLATE extends P_AUTHORED_ARCHETYPE {
 }
 
 /**
@@ -1139,7 +4160,7 @@ export class P_TEMPLATE {
  * 
  * An operational template is used for generating and validating canonical openEHR data, and also as a source artefact for generating other downstream technical artefacts, including XML schemas, APIs and UI form definitions.
  */
-export class P_OPERATIONAL_TEMPLATE {
+export class P_OPERATIONAL_TEMPLATE extends P_AUTHORED_ARCHETYPE {
     /**
      * Compendium of flattened terminologies of archetypes externally referenced from this archetype, keyed by archetype identifier. This will almost always be present in a template.
      */
@@ -1155,76 +4176,315 @@ export class P_OPERATIONAL_TEMPLATE {
  */
 export class P_ARCHETYPE_HRID {
     /**
+     * Internal storage for namespace
+     * @private
+     */
+    private _namespace?: openehr_base.String;
+
+    /**
      * Reverse domain name namespace identifier.
      */
-    namespace?: string;
+    get namespace(): string | undefined {
+        return this._namespace?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for namespace.
+     * Use this to access openehr_base.String methods.
+     */
+    get $namespace(): openehr_base.String | undefined {
+        return this._namespace;
+    }
+
+    /**
+     * Sets namespace from either a primitive value or openehr_base.String wrapper.
+     */
+    set namespace(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._namespace = undefined;
+        } else if (typeof val === 'string') {
+            this._namespace = openehr_base.String.from(val);
+        } else {
+            this._namespace = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_publisher
+     * @private
+     */
+    private _rm_publisher?: openehr_base.String;
+
     /**
      * Name of the Reference Model publisher.
      */
-    rm_publisher?: string;
+    get rm_publisher(): string | undefined {
+        return this._rm_publisher?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_publisher.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_publisher(): openehr_base.String | undefined {
+        return this._rm_publisher;
+    }
+
+    /**
+     * Sets rm_publisher from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_publisher(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_publisher = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_publisher = openehr_base.String.from(val);
+        } else {
+            this._rm_publisher = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_package
+     * @private
+     */
+    private _rm_package?: openehr_base.String;
+
     /**
      * Name of the package in whose reachability graph the rm_class class is found (there can be more than one possibility in many reference models).
      */
-    rm_package?: string;
+    get rm_package(): string | undefined {
+        return this._rm_package?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_package.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_package(): openehr_base.String | undefined {
+        return this._rm_package;
+    }
+
+    /**
+     * Sets rm_package from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_package(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_package = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_package = openehr_base.String.from(val);
+        } else {
+            this._rm_package = val;
+        }
+    }
+
+    /**
+     * Internal storage for rm_class
+     * @private
+     */
+    private _rm_class?: openehr_base.String;
+
     /**
      * Name of the root class of this archetype.
      */
-    rm_class?: string;
+    get rm_class(): string | undefined {
+        return this._rm_class?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for rm_class.
+     * Use this to access openehr_base.String methods.
+     */
+    get $rm_class(): openehr_base.String | undefined {
+        return this._rm_class;
+    }
+
+    /**
+     * Sets rm_class from either a primitive value or openehr_base.String wrapper.
+     */
+    set rm_class(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._rm_class = undefined;
+        } else if (typeof val === 'string') {
+            this._rm_class = openehr_base.String.from(val);
+        } else {
+            this._rm_class = val;
+        }
+    }
+
+    /**
+     * Internal storage for concept_id
+     * @private
+     */
+    private _concept_id?: openehr_base.String;
+
     /**
      * The short concept name of the archetype as used in the multi-axial archetype_hrid.
      */
-    concept_id?: string;
+    get concept_id(): string | undefined {
+        return this._concept_id?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for concept_id.
+     * Use this to access openehr_base.String methods.
+     */
+    get $concept_id(): openehr_base.String | undefined {
+        return this._concept_id;
+    }
+
+    /**
+     * Sets concept_id from either a primitive value or openehr_base.String wrapper.
+     */
+    set concept_id(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._concept_id = undefined;
+        } else if (typeof val === 'string') {
+            this._concept_id = openehr_base.String.from(val);
+        } else {
+            this._concept_id = val;
+        }
+    }
+
+    /**
+     * Internal storage for release_version
+     * @private
+     */
+    private _release_version?: openehr_base.String;
+
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. 1.8.2. The archetype_hrid feature includes only the major version.
      */
-    release_version?: string;
+    get release_version(): string | undefined {
+        return this._release_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for release_version.
+     * Use this to access openehr_base.String methods.
+     */
+    get $release_version(): openehr_base.String | undefined {
+        return this._release_version;
+    }
+
+    /**
+     * Sets release_version from either a primitive value or openehr_base.String wrapper.
+     */
+    set release_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._release_version = undefined;
+        } else if (typeof val === 'string') {
+            this._release_version = openehr_base.String.from(val);
+        } else {
+            this._release_version = val;
+        }
+    }
+
     /**
      * The status of the version, i.e. released, release_candidate etc.
      */
     version_status?: openehr_base.VERSION_STATUS;
     /**
+     * Internal storage for build_count
+     * @private
+     */
+    private _build_count?: openehr_base.String;
+
+    /**
      * The build count since last increment of any version part.
      */
-    build_count?: string;
-}
+    get build_count(): string | undefined {
+        return this._build_count?.value;
+    }
 
-/**
- * Abstract idea of an online resource created by a human author. 
- * 
- */
-export class P_AUTHORED_RESOURCE {
     /**
-     * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
+     * Gets the openehr_base.String wrapper object for build_count.
+     * Use this to access openehr_base.String methods.
      */
-    original_language?: string;
+    get $build_count(): openehr_base.String | undefined {
+        return this._build_count;
+    }
+
     /**
-     * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
+     * Sets build_count from either a primitive value or openehr_base.String wrapper.
      */
-    is_controlled?: boolean;
-    /**
-     * List of details for each natural translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The original_language does not appear in this list.
-     */
-    translations?: undefined;
-    /**
-     * Description and lifecycle information of the resource.
-     */
-    description?: openehr_base.RESOURCE_DESCRIPTION;
-    /**
-     * Unique identifier of the family of archetypes having the same interface identifier (same major version).
-     */
-    uid?: string;
-    /**
-     * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
-     */
-    annotations?: undefined;
+    set build_count(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._build_count = undefined;
+        } else if (typeof val === 'string') {
+            this._build_count = openehr_base.String.from(val);
+        } else {
+            this._build_count = val;
+        }
+    }
+
 }
 
 /**
  * Local ontology of an archetype.
  */
 export class P_ARCHETYPE_TERMINOLOGY {
-    is_differential?: boolean;
-    original_language?: string;
+    /**
+     * Internal storage for is_differential
+     * @private
+     */
+    private _is_differential?: openehr_base.Boolean;
+
+    get is_differential(): boolean | undefined {
+        return this._is_differential?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_differential.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_differential(): openehr_base.Boolean | undefined {
+        return this._is_differential;
+    }
+
+    /**
+     * Sets is_differential from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_differential(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_differential = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_differential = openehr_base.Boolean.from(val);
+        } else {
+            this._is_differential = val;
+        }
+    }
+
+    /**
+     * Internal storage for original_language
+     * @private
+     */
+    private _original_language?: openehr_base.String;
+
+    get original_language(): string | undefined {
+        return this._original_language?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for original_language.
+     * Use this to access openehr_base.String methods.
+     */
+    get $original_language(): openehr_base.String | undefined {
+        return this._original_language;
+    }
+
+    /**
+     * Sets original_language from either a primitive value or openehr_base.String wrapper.
+     */
+    set original_language(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._original_language = undefined;
+        } else if (typeof val === 'string') {
+            this._original_language = openehr_base.String.from(val);
+        } else {
+            this._original_language = val;
+        }
+    }
+
     /**
      * Directory of term definitions as a two-level 
      * table. The outer hash keys are term codes, 
@@ -1247,25 +4507,145 @@ export class P_ARCHETYPE_TERMINOLOGY {
  */
 export class AOM_PROFILE {
     /**
+     * Internal storage for profile_name
+     * @private
+     */
+    private _profile_name?: openehr_base.String;
+
+    /**
      * Name of this profile, usually based on the publisher it pertains to e.g. "openEHR", "CDISC", etc.
      */
-    profile_name?: string;
+    get profile_name(): string | undefined {
+        return this._profile_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for profile_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $profile_name(): openehr_base.String | undefined {
+        return this._profile_name;
+    }
+
+    /**
+     * Sets profile_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set profile_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._profile_name = undefined;
+        } else if (typeof val === 'string') {
+            this._profile_name = openehr_base.String.from(val);
+        } else {
+            this._profile_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for archetype_parent_class
+     * @private
+     */
+    private _archetype_parent_class?: openehr_base.String;
+
     /**
      * States a class from the Reference Model that provides archetyping capability in RM data structures. This attribute is optional, and there need be no such class in the RM. Defining it here has the effect in tools that the class tree under which archetypes are arranged contains only RM classes inheriting from this class.
      */
-    archetype_parent_class?: string;
+    get archetype_parent_class(): string | undefined {
+        return this._archetype_parent_class?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for archetype_parent_class.
+     * Use this to access openehr_base.String methods.
+     */
+    get $archetype_parent_class(): openehr_base.String | undefined {
+        return this._archetype_parent_class;
+    }
+
+    /**
+     * Sets archetype_parent_class from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_parent_class(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_parent_class = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_parent_class = openehr_base.String.from(val);
+        } else {
+            this._archetype_parent_class = val;
+        }
+    }
+
+    /**
+     * Internal storage for archetype_data_value_parent_class
+     * @private
+     */
+    private _archetype_data_value_parent_class?: openehr_base.String;
+
     /**
      * This attribute defines a base class from the Reference Model whose descendants are considered to be 'logical data types', i.e. of some higher level than the built-in primitive types String, Integer etc. This attribute is optional, even if the RM does have such a class, and is only used to help tooling to provide more intelligent display.
      */
-    archetype_data_value_parent_class?: string;
+    get archetype_data_value_parent_class(): string | undefined {
+        return this._archetype_data_value_parent_class?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for archetype_data_value_parent_class.
+     * Use this to access openehr_base.String methods.
+     */
+    get $archetype_data_value_parent_class(): openehr_base.String | undefined {
+        return this._archetype_data_value_parent_class;
+    }
+
+    /**
+     * Sets archetype_data_value_parent_class from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_data_value_parent_class(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_data_value_parent_class = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_data_value_parent_class = openehr_base.String.from(val);
+        } else {
+            this._archetype_data_value_parent_class = val;
+        }
+    }
+
     /**
      * Mappings from AOM built-in types to actual types in RM: whenever the type name is encountered in an archetype, it is mapped to a specific RM type.
      */
     aom_rm_type_mappings?: undefined;
     /**
+     * Internal storage for archetype_visualise_descendants_of
+     * @private
+     */
+    private _archetype_visualise_descendants_of?: openehr_base.String;
+
+    /**
      * If \`_archetype_parent_class_\` is not set, designate a class whose descendants should be made visible in tree and grid renderings of the archetype definition.
      */
-    archetype_visualise_descendants_of?: string;
+    get archetype_visualise_descendants_of(): string | undefined {
+        return this._archetype_visualise_descendants_of?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for archetype_visualise_descendants_of.
+     * Use this to access openehr_base.String methods.
+     */
+    get $archetype_visualise_descendants_of(): openehr_base.String | undefined {
+        return this._archetype_visualise_descendants_of;
+    }
+
+    /**
+     * Sets archetype_visualise_descendants_of from either a primitive value or openehr_base.String wrapper.
+     */
+    set archetype_visualise_descendants_of(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._archetype_visualise_descendants_of = undefined;
+        } else if (typeof val === 'string') {
+            this._archetype_visualise_descendants_of = openehr_base.String.from(val);
+        } else {
+            this._archetype_visualise_descendants_of = val;
+        }
+    }
+
     /**
      * Allowed type substitutions: Actual RM type names keyed by AOM built-in types which can substitute for them in an archetype. E.g. \`<key = "ISO8601_DATE", value = "String">\` means that if RM property \`TYPE._some_property_\` is of type \`String\`, an \`ISO8601_DATE\` is allowed at that position in the archetype.
      */
@@ -1292,13 +4672,73 @@ export class AOM_PROFILE {
  */
 export class AOM_TYPE_MAPPING {
     /**
+     * Internal storage for source_class_name
+     * @private
+     */
+    private _source_class_name?: openehr_base.String;
+
+    /**
      * Name of the AOM type being mapped to an RM type.
      */
-    source_class_name?: string;
+    get source_class_name(): string | undefined {
+        return this._source_class_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for source_class_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $source_class_name(): openehr_base.String | undefined {
+        return this._source_class_name;
+    }
+
+    /**
+     * Sets source_class_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set source_class_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._source_class_name = undefined;
+        } else if (typeof val === 'string') {
+            this._source_class_name = openehr_base.String.from(val);
+        } else {
+            this._source_class_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for target_class_name
+     * @private
+     */
+    private _target_class_name?: openehr_base.String;
+
     /**
      * Name of the RM type in the mapping.
      */
-    target_class_name?: string;
+    get target_class_name(): string | undefined {
+        return this._target_class_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_class_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_class_name(): openehr_base.String | undefined {
+        return this._target_class_name;
+    }
+
+    /**
+     * Sets target_class_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_class_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_class_name = undefined;
+        } else if (typeof val === 'string') {
+            this._target_class_name = openehr_base.String.from(val);
+        } else {
+            this._target_class_name = val;
+        }
+    }
+
     /**
      * List of mappings of properties of this type to another type.
      */
@@ -1310,23 +4750,183 @@ export class AOM_TYPE_MAPPING {
  */
 export class AOM_PROPERTY_MAPPING {
     /**
+     * Internal storage for source_property_name
+     * @private
+     */
+    private _source_property_name?: openehr_base.String;
+
+    /**
      * Name of property in source class.
      */
-    source_property_name?: string;
+    get source_property_name(): string | undefined {
+        return this._source_property_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for source_property_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $source_property_name(): openehr_base.String | undefined {
+        return this._source_property_name;
+    }
+
+    /**
+     * Sets source_property_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set source_property_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._source_property_name = undefined;
+        } else if (typeof val === 'string') {
+            this._source_property_name = openehr_base.String.from(val);
+        } else {
+            this._source_property_name = val;
+        }
+    }
+
+    /**
+     * Internal storage for target_property_name
+     * @private
+     */
+    private _target_property_name?: openehr_base.String;
+
     /**
      * Name of property in target class.
      */
-    target_property_name?: string;
+    get target_property_name(): string | undefined {
+        return this._target_property_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_property_name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_property_name(): openehr_base.String | undefined {
+        return this._target_property_name;
+    }
+
+    /**
+     * Sets target_property_name from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_property_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_property_name = undefined;
+        } else if (typeof val === 'string') {
+            this._target_property_name = openehr_base.String.from(val);
+        } else {
+            this._target_property_name = val;
+        }
+    }
+
+}
+
+/**
+ * Abstract parent of all expression tree items.
+ */
+export abstract class EXPR_ITEM {
+    /**
+     * Internal storage for type
+     * @private
+     */
+    private _type?: openehr_base.String;
+
+    /**
+     * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
+     */
+    get type(): string | undefined {
+        return this._type?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
+     */
+    get $type(): openehr_base.String | undefined {
+        return this._type;
+    }
+
+    /**
+     * Sets type from either a primitive value or openehr_base.String wrapper.
+     */
+    set type(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type = undefined;
+        } else if (typeof val === 'string') {
+            this._type = openehr_base.String.from(val);
+        } else {
+            this._type = val;
+        }
+    }
+
+}
+
+/**
+ * Expression tree leaf item representing one of:
+ * 
+ * * a manifest constant of any primitive type;
+ * * a path referring to a value in the archetype;
+ * * a constraint;
+ * * a variable reference.
+ * 
+ */
+export class EXPR_LEAF extends EXPR_ITEM {
+    /**
+     * Internal storage for reference_type
+     * @private
+     */
+    private _reference_type?: openehr_base.String;
+
+    /**
+     * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
+     */
+    get reference_type(): string | undefined {
+        return this._reference_type?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for reference_type.
+     * Use this to access openehr_base.String methods.
+     */
+    get $reference_type(): openehr_base.String | undefined {
+        return this._reference_type;
+    }
+
+    /**
+     * Sets reference_type from either a primitive value or openehr_base.String wrapper.
+     */
+    set reference_type(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._reference_type = undefined;
+        } else if (typeof val === 'string') {
+            this._reference_type = openehr_base.String.from(val);
+        } else {
+            this._reference_type = val;
+        }
+    }
+
+    /**
+     * The value referred to; a manifest constant, an attribute path (in the form of a String), or for the right-hand side of a ‘matches’ node, a constraint, often a C_PRIMITIVE_OBJECT.
+     */
+    item?: openehr_base.Any;
+}
+
+/**
+ * Expression tree leaf item representing a constraint on a primitive type, expressed in the form of a concrete subtype of C_PRIMITIVE_OBJECT.
+ */
+export class EXPR_CONSTRAINT extends EXPR_LEAF {
+    /**
+     * The constraint.
+     */
+    override item?: C_PRIMITIVE_OBJECT = undefined;
 }
 
 /**
  * Expression tree leaf item representing a constraint on an archetype identifier.
  */
-export class EXPR_ARCHETYPE_ID_CONSTRAINT {
+export class EXPR_ARCHETYPE_ID_CONSTRAINT extends EXPR_CONSTRAINT {
     /**
      * A C_STRING representing a regular expression for matching Archetype identifiers.
      */
-    item?: C_STRING;
+    override item?: C_STRING = undefined;
 }
 
 /**
@@ -1336,28 +4936,60 @@ export class EXPR_ARCHETYPE_ID_CONSTRAINT {
  * * Paths with no leading ‘/’ are in the outer part of the archetype, e.g. “archetype_id/value” refers to the String value of the archetype_id attribute of the enclosing archetype.
  * 
  */
-export class EXPR_ARCHETYPE_REF {
+export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
+    /**
+     * Internal storage for path
+     * @private
+     */
+    private _path?: openehr_base.String;
+
     /**
      * The path to the archetype node.
      */
-    path?: string;
+    get path(): string | undefined {
+        return this._path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $path(): openehr_base.String | undefined {
+        return this._path;
+    }
+
+    /**
+     * Sets path from either a primitive value or openehr_base.String wrapper.
+     */
+    set path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._path = undefined;
+        } else if (typeof val === 'string') {
+            this._path = openehr_base.String.from(val);
+        } else {
+            this._path = val;
+        }
+    }
+
     item?: ARCHETYPE_CONSTRAINT;
 }
 
 /**
- * Expression tree leaf item representing a constraint on a primitive type, expressed in the form of a concrete subtype of C_PRIMITIVE_OBJECT.
+ * Abstract parent type of domain-specific constrainer types, to be defined in external packages.
  */
-export class EXPR_CONSTRAINT {
+export abstract class C_DOMAIN_TYPE extends C_DEFINED_OBJECT {
     /**
-     * The constraint.
+     * Standard (i.e. C_OBJECT) form of constraint.
+     * @returns Result value
      */
-    item?: C_PRIMITIVE_OBJECT;
+    abstract standard_equivalent(): C_COMPLEX_OBJECT;
+
 }
 
 /**
  * Constrainer class for Ordinal data.
  */
-export class C_ORDINAL {
+export class C_ORDINAL extends C_DOMAIN_TYPE {
     /**
      * Value set of allowed Ordinals in the constraint.
      */
@@ -1367,26 +4999,116 @@ export class C_ORDINAL {
 /**
  * Constrainer class for Coded text data.
  */
-export class C_CODED_TEXT {
+export class C_CODED_TEXT extends C_DOMAIN_TYPE {
+    /**
+     * Internal storage for terminology
+     * @private
+     */
+    private _terminology?: openehr_base.String;
+
     /**
      * Terminology identifier.
      */
-    terminology?: string;
+    get terminology(): string | undefined {
+        return this._terminology?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for terminology.
+     * Use this to access openehr_base.String methods.
+     */
+    get $terminology(): openehr_base.String | undefined {
+        return this._terminology;
+    }
+
+    /**
+     * Sets terminology from either a primitive value or openehr_base.String wrapper.
+     */
+    set terminology(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._terminology = undefined;
+        } else if (typeof val === 'string') {
+            this._terminology = openehr_base.String.from(val);
+        } else {
+            this._terminology = val;
+        }
+    }
+
     /**
      * Optional list of codes from the terminology. No list means any code from the terminology is allowed.
      */
     code_list?: undefined;
-    reference?: string;
+    /**
+     * Internal storage for reference
+     * @private
+     */
+    private _reference?: openehr_base.String;
+
+    get reference(): string | undefined {
+        return this._reference?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for reference.
+     * Use this to access openehr_base.String methods.
+     */
+    get $reference(): openehr_base.String | undefined {
+        return this._reference;
+    }
+
+    /**
+     * Sets reference from either a primitive value or openehr_base.String wrapper.
+     */
+    set reference(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._reference = undefined;
+        } else if (typeof val === 'string') {
+            this._reference = openehr_base.String.from(val);
+        } else {
+            this._reference = val;
+        }
+    }
+
 }
 
 /**
  * Constrainer class for Quantity data.
  */
-export class C_QUANTITY {
+export class C_QUANTITY extends C_DOMAIN_TYPE {
+    /**
+     * Internal storage for property
+     * @private
+     */
+    private _property?: openehr_base.String;
+
     /**
      * Name of physical property for Quantities being constrained.
      */
-    property?: string;
+    get property(): string | undefined {
+        return this._property?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for property.
+     * Use this to access openehr_base.String methods.
+     */
+    get $property(): openehr_base.String | undefined {
+        return this._property;
+    }
+
+    /**
+     * Sets property from either a primitive value or openehr_base.String wrapper.
+     */
+    set property(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._property = undefined;
+        } else if (typeof val === 'string') {
+            this._property = openehr_base.String.from(val);
+        } else {
+            this._property = val;
+        }
+    }
+
     /**
      * Value set of allowed individual Quantity item constraints in this Quantity constraint.
      */
@@ -1402,9 +5124,39 @@ export class C_QUANTITY_ITEM {
      */
     magnitude?: undefined;
     /**
+     * Internal storage for units
+     * @private
+     */
+    private _units?: openehr_base.String;
+
+    /**
      * Optional units constraint.
      */
-    units?: string;
+    get units(): string | undefined {
+        return this._units?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for units.
+     * Use this to access openehr_base.String methods.
+     */
+    get $units(): openehr_base.String | undefined {
+        return this._units;
+    }
+
+    /**
+     * Sets units from either a primitive value or openehr_base.String wrapper.
+     */
+    set units(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._units = undefined;
+        } else if (typeof val === 'string') {
+            this._units = openehr_base.String.from(val);
+        } else {
+            this._units = val;
+        }
+    }
+
 }
 
 /**
@@ -1416,9 +5168,39 @@ export class ORDINAL {
      */
     symbol?: openehr_base.CODE_PHRASE;
     /**
+     * Internal storage for value
+     * @private
+     */
+    private _value?: openehr_base.Integer;
+
+    /**
      * Ordinal value.
      */
-    value?: number;
+    get value(): number | undefined {
+        return this._value?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Integer wrapper object for value.
+     * Use this to access openehr_base.Integer methods.
+     */
+    get $value(): openehr_base.Integer | undefined {
+        return this._value;
+    }
+
+    /**
+     * Sets value from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set value(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._value = undefined;
+        } else if (typeof val === 'number') {
+            this._value = openehr_base.Integer.from(val);
+        } else {
+            this._value = val;
+        }
+    }
+
 }
 
 /**
@@ -1426,13 +5208,73 @@ export class ORDINAL {
  */
 export class ASSERTION {
     /**
+     * Internal storage for tag
+     * @private
+     */
+    private _tag?: openehr_base.String;
+
+    /**
      * Expression tag, used for differentiating multiple assertions.
      */
-    tag?: string;
+    get tag(): string | undefined {
+        return this._tag?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for tag.
+     * Use this to access openehr_base.String methods.
+     */
+    get $tag(): openehr_base.String | undefined {
+        return this._tag;
+    }
+
+    /**
+     * Sets tag from either a primitive value or openehr_base.String wrapper.
+     */
+    set tag(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._tag = undefined;
+        } else if (typeof val === 'string') {
+            this._tag = openehr_base.String.from(val);
+        } else {
+            this._tag = val;
+        }
+    }
+
+    /**
+     * Internal storage for string_expression
+     * @private
+     */
+    private _string_expression?: openehr_base.String;
+
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
      */
-    string_expression?: string;
+    get string_expression(): string | undefined {
+        return this._string_expression?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for string_expression.
+     * Use this to access openehr_base.String methods.
+     */
+    get $string_expression(): openehr_base.String | undefined {
+        return this._string_expression;
+    }
+
+    /**
+     * Sets string_expression from either a primitive value or openehr_base.String wrapper.
+     */
+    set string_expression(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._string_expression = undefined;
+        } else if (typeof val === 'string') {
+            this._string_expression = openehr_base.String.from(val);
+        } else {
+            this._string_expression = val;
+        }
+    }
+
     /**
      * Root of expression tree.
      */
@@ -1448,53 +5290,113 @@ export class ASSERTION {
  */
 export class ASSERTION_VARIABLE {
     /**
+     * Internal storage for name
+     * @private
+     */
+    private _name?: openehr_base.String;
+
+    /**
      * Name of variable.
      */
-    name?: string;
+    get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
+     */
+    get $name(): openehr_base.String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or openehr_base.String wrapper.
+     */
+    set name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = openehr_base.String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
+    /**
+     * Internal storage for definition
+     * @private
+     */
+    private _definition?: openehr_base.String;
+
     /**
      * Formal definition of the variable.
      */
-    definition?: string;
-}
+    get definition(): string | undefined {
+        return this._definition?.value;
+    }
 
-/**
- * Abstract parent of all expression tree items.
- */
-export class EXPR_ITEM {
     /**
-     * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
+     * Gets the openehr_base.String wrapper object for definition.
+     * Use this to access openehr_base.String methods.
      */
-    type?: string;
-}
+    get $definition(): openehr_base.String | undefined {
+        return this._definition;
+    }
 
-/**
- * Expression tree leaf item representing one of:
- * 
- * * a manifest constant of any primitive type;
- * * a path referring to a value in the archetype;
- * * a constraint;
- * * a variable reference.
- * 
- */
-export class EXPR_LEAF {
     /**
-     * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
+     * Sets definition from either a primitive value or openehr_base.String wrapper.
      */
-    reference_type?: string;
-    /**
-     * The value referred to; a manifest constant, an attribute path (in the form of a String), or for the right-hand side of a ‘matches’ node, a constraint, often a C_PRIMITIVE_OBJECT.
-     */
-    item?: any;
+    set definition(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._definition = undefined;
+        } else if (typeof val === 'string') {
+            this._definition = openehr_base.String.from(val);
+        } else {
+            this._definition = val;
+        }
+    }
+
 }
 
 /**
  * Abstract parent of operator types.
  */
-export class EXPR_OPERATOR {
+export abstract class EXPR_OPERATOR extends EXPR_ITEM {
+    /**
+     * Internal storage for precedence_overridden
+     * @private
+     */
+    private _precedence_overridden?: openehr_base.Boolean;
+
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: boolean;
+    get precedence_overridden(): boolean | undefined {
+        return this._precedence_overridden?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for precedence_overridden.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $precedence_overridden(): openehr_base.Boolean | undefined {
+        return this._precedence_overridden;
+    }
+
+    /**
+     * Sets precedence_overridden from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set precedence_overridden(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._precedence_overridden = undefined;
+        } else if (typeof val === 'boolean') {
+            this._precedence_overridden = openehr_base.Boolean.from(val);
+        } else {
+            this._precedence_overridden = val;
+        }
+    }
+
     /**
      * Code of operator.
      */
@@ -1504,7 +5406,7 @@ export class EXPR_OPERATOR {
 /**
  * Unary operator expression node.
  */
-export class EXPR_UNARY_OPERATOR {
+export class EXPR_UNARY_OPERATOR extends EXPR_OPERATOR {
     /**
      * Operand node.
      */
@@ -1514,7 +5416,7 @@ export class EXPR_UNARY_OPERATOR {
 /**
  * Binary operator expression node.
  */
-export class EXPR_BINARY_OPERATOR {
+export class EXPR_BINARY_OPERATOR extends EXPR_OPERATOR {
     /**
      * Left operand node.
      */
@@ -1528,7 +5430,7 @@ export class EXPR_BINARY_OPERATOR {
 /**
  * Enumeration type for operator types in assertion expressions.
  */
-export class OPERATOR_KIND {
+export class OPERATOR_KIND extends openehr_base.String {
 }
 
 /**
@@ -1540,13 +5442,103 @@ export class CARDINALITY {
      */
     interval?: undefined;
     /**
+     * Internal storage for is_ordered
+     * @private
+     */
+    private _is_ordered?: openehr_base.Boolean;
+
+    /**
      * True if the members of the container attribute to which this cardinality refers are ordered. 
      */
-    is_ordered?: boolean;
+    get is_ordered(): boolean | undefined {
+        return this._is_ordered?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_ordered.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_ordered(): openehr_base.Boolean | undefined {
+        return this._is_ordered;
+    }
+
+    /**
+     * Sets is_ordered from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_ordered(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_ordered = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_ordered = openehr_base.Boolean.from(val);
+        } else {
+            this._is_ordered = val;
+        }
+    }
+
+    /**
+     * Internal storage for is_unique
+     * @private
+     */
+    private _is_unique?: openehr_base.Boolean;
+
     /**
      * True if the members of the container attribute to which this cardinality refers are unique.
      */
-    is_unique?: boolean;
+    get is_unique(): boolean | undefined {
+        return this._is_unique?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_unique.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    get $is_unique(): openehr_base.Boolean | undefined {
+        return this._is_unique;
+    }
+
+    /**
+     * Sets is_unique from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    set is_unique(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_unique = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_unique = openehr_base.Boolean.from(val);
+        } else {
+            this._is_unique = val;
+        }
+    }
+
+    /**
+     * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+     * @returns Result value
+     */
+    is_bag(): openehr_base.Boolean {
+        // TODO: Implement is_bag behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_bag not yet implemented.");
+    }
+
+    /**
+     * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
+     * @returns Result value
+     */
+    is_list(): openehr_base.Boolean {
+        // TODO: Implement is_list behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_list not yet implemented.");
+    }
+
+    /**
+     * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+     * @returns Result value
+     */
+    is_set(): openehr_base.Boolean {
+        // TODO: Implement is_set behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method is_set not yet implemented.");
+    }
+
 }
 
 /**
@@ -1555,49 +5547,117 @@ export class CARDINALITY {
  * 
  * Note that since this object refers to another node, there are two objects with available occurrences values. The local occurrences value on an ARCHETYPE_INTERNAL_REF should always be used; when setting this from a serialised form, if no occurrences is mentioned, the target occurrences should be used (not the standard default of {1..1}); otherwise the locally specified occurrences should be used as normal. When serialising out, if the occurrences is the same as that of the target, it can be left out.
  */
-export class ARCHETYPE_INTERNAL_REF {
+export class ARCHETYPE_INTERNAL_REF extends C_REFERENCE_OBJECT {
+    /**
+     * Internal storage for target_path
+     * @private
+     */
+    private _target_path?: openehr_base.String;
+
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    get target_path(): string | undefined {
+        return this._target_path?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for target_path.
+     * Use this to access openehr_base.String methods.
+     */
+    get $target_path(): openehr_base.String | undefined {
+        return this._target_path;
+    }
+
+    /**
+     * Sets target_path from either a primitive value or openehr_base.String wrapper.
+     */
+    set target_path(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._target_path = undefined;
+        } else if (typeof val === 'string') {
+            this._target_path = openehr_base.String.from(val);
+        } else {
+            this._target_path = val;
+        }
+    }
+
 }
 
 /**
  * Concrete model of constraint on a single-valued attribute node. The meaning of the inherited children attribute is that they are alternatives.
  */
-export class C_SINGLE_ATTRIBUTE {
+export class C_SINGLE_ATTRIBUTE extends C_ATTRIBUTE {
+    /**
+     * List of alternative constraints for the single child of this attribute within the data.
+     * @returns Result value
+     */
+    alternatives(): C_OBJECT {
+        // TODO: Implement alternatives behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method alternatives not yet implemented.");
+    }
+
 }
 
 /**
  * Reference to a constraint described in the same archetype, but outside the main constraint structure. This is used to refer to constraints expressed in terms of external resources, such as constraints on terminology value sets.
  */
-export class CONSTRAINT_REF {
+export class CONSTRAINT_REF extends C_REFERENCE_OBJECT {
+    /**
+     * Internal storage for reference
+     * @private
+     */
+    private _reference?: openehr_base.String;
+
     /**
      * Reference to a constraint in the archetype local ontology.
      */
-    reference?: string;
+    get reference(): string | undefined {
+        return this._reference?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for reference.
+     * Use this to access openehr_base.String methods.
+     */
+    get $reference(): openehr_base.String | undefined {
+        return this._reference;
+    }
+
+    /**
+     * Sets reference from either a primitive value or openehr_base.String wrapper.
+     */
+    set reference(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._reference = undefined;
+        } else if (typeof val === 'string') {
+            this._reference = openehr_base.String.from(val);
+        } else {
+            this._reference = val;
+        }
+    }
+
 }
 
 /**
  * Concrete model of constraint on multiply-valued (ie. container) attribute node.
  */
-export class C_MULTIPLE_ATTRIBUTE {
+export class C_MULTIPLE_ATTRIBUTE extends C_ATTRIBUTE {
     /**
      * Cardinality of this attribute constraint, if it constraints a container attribute.
      */
     cardinality?: CARDINALITY;
-}
+    /**
+     * List of constraints representing members of the container value of this attribute within the data. Semantics of the uniqueness and ordering of items in the container are given by the cardinality.
+     * @returns Result value
+     */
+    members(): C_OBJECT {
+        // TODO: Implement members behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method members not yet implemented.");
+    }
 
-/**
- * Abstract parent type of domain-specific constrainer types, to be defined in external packages.
- */
-export class C_DOMAIN_TYPE {
-}
-
-/**
- * Abstract parent type of C_OBJECT subtypes that are defined by reference.
- */
-export class C_REFERENCE_OBJECT {
 }
 
 /**
@@ -1621,19 +5681,131 @@ export class ARCHETYPE_ONTOLOGY {
      */
     terminologies_available?: undefined;
     /**
+     * Internal storage for specialisation_depth
+     * @private
+     */
+    private _specialisation_depth?: openehr_base.Integer;
+
+    /**
      * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
      */
-    specialisation_depth?: number;
-    term_attribute_names?: undefined;
-}
+    get specialisation_depth(): number | undefined {
+        return this._specialisation_depth?.value;
+    }
 
-/**
- * Parent of types representing constraints on primitive types.
- */
-export class C_PRIMITIVE {
     /**
-     * Value to be assumed if none sent in data.
+     * Gets the openehr_base.Integer wrapper object for specialisation_depth.
+     * Use this to access openehr_base.Integer methods.
      */
-    assumed_value?: any;
+    get $specialisation_depth(): openehr_base.Integer | undefined {
+        return this._specialisation_depth;
+    }
+
+    /**
+     * Sets specialisation_depth from either a primitive value or openehr_base.Integer wrapper.
+     */
+    set specialisation_depth(val: number | openehr_base.Integer | undefined) {
+        if (val === undefined || val === null) {
+            this._specialisation_depth = undefined;
+        } else if (typeof val === 'number') {
+            this._specialisation_depth = openehr_base.Integer.from(val);
+        } else {
+            this._specialisation_depth = val;
+        }
+    }
+
+    term_attribute_names?: undefined;
+    /**
+     * True if terminology ‘a_terminology’ is present in archetype ontology.
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    has_language(a_lang: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_language behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_language not yet implemented.");
+    }
+
+    /**
+     * True if terminology \`a_terminology' is present in archetype ontology. 
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_terminology behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_terminology not yet implemented.");
+    }
+
+    /**
+     * True if term_codes has a_code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_term_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_term_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_term_code not yet implemented.");
+    }
+
+    /**
+     * True if constraint_codes has a_code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_constraint_code(a_code: openehr_base.String): openehr_base.Boolean {
+        // TODO: Implement has_constraint_code behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method has_constraint_code not yet implemented.");
+    }
+
+    /**
+     * Term definition for a code, in a specified language. 
+     * @param a_lang - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_definition(a_lang: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        // TODO: Implement term_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method term_definition not yet implemented.");
+    }
+
+    /**
+     * Constraint definition for a code, in a specified language.
+     * @param a_code - Parameter
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    constraint_definition(a_code: openehr_base.String, a_lang: openehr_base.String): ARCHETYPE_TERM {
+        // TODO: Implement constraint_definition behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method constraint_definition not yet implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+     * @param a_terminology - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_binding(a_terminology: openehr_base.String, a_code: openehr_base.String): openehr_base.CODE_PHRASE {
+        // TODO: Implement term_binding behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method term_binding not yet implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+     * @param a_terminology_id - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    constraint_binding(a_terminology_id: openehr_base.String, a_code: openehr_base.String): openehr_base.String {
+        // TODO: Implement constraint_binding behavior
+        // This will be covered in Phase 3 (see ROADMAP.md)
+        throw new Error("Method constraint_binding not yet implemented.");
+    }
+
 }
 

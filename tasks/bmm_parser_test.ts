@@ -25,7 +25,10 @@ Deno.test("readAndParseBmmJson reads and parses BMM JSON correctly", async () =>
     const archetypeIdClass = bmmModel.class_definitions["ARCHETYPE_ID"];
     assertEquals(archetypeIdClass.name, "ARCHETYPE_ID");
     assertEquals(archetypeIdClass.ancestors!.includes("OBJECT_ID"), true);
-    assertEquals(archetypeIdClass.properties!["value"].name, "value");
-    assertEquals(archetypeIdClass.properties!["value"].type, "String");
-    assertEquals(archetypeIdClass.properties!["value"].is_mandatory, true);
+    
+    // Check OBJECT_ID's properties instead (ARCHETYPE_ID inherits from it)
+    const objectIdClass = bmmModel.class_definitions["OBJECT_ID"];
+    assertEquals(objectIdClass.properties!["value"].name, "value");
+    assertEquals(objectIdClass.properties!["value"].type, "String");
+    assertEquals(objectIdClass.properties!["value"].is_mandatory, true);
 });
