@@ -46,9 +46,9 @@ Update the file after completing each sub-task, not just after completing an ent
   - [ ] 1.4 For each class, improve the JSDoc documentation, ensuring it is comprehensive and includes a link to the relevant section of the openEHR specification website.
   - [x] 1.5 Create a directory `tasks/instructions/base/`.
   - [x] 1.6 For each class, create a detailed behavior instruction file (e.g., `tasks/instructions/base/HIERARCHY_ID.md`). The file should include: Description, Invariants, Pre-conditions, Post-conditions, Behavior, Pseudo-code, Example Usage, and References.
-  - [ ] 1.7 Create a new test suite file `tests/base.test.ts`.
-  - [ ] 1.8 Translate relevant tests from the reference implementations for the BASE package classes and add them to `tests/base.test.ts`.
-  - [ ] 1.9 Write new tests in `tests/base.test.ts` to cover the behaviors described in the instruction files.
+  - [x] 1.7 Create a new test suite file `tests/base.test.ts`.
+  - [x] 1.8 Translate relevant tests from the reference implementations for the BASE package classes and add them to `tests/base.test.ts`.
+  - [x] 1.9 Write new tests in `tests/base.test.ts` to cover the behaviors described in the instruction files.
 
 - [ ] 2.0 Process RM package
   - [ ] 2.1 For each class in the RM package, perform a detailed comparison of the generated TypeScript skeleton against the official openEHR specifications and the various reference implementations listed in the Notes section.
