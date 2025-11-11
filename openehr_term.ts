@@ -3,7 +3,7 @@
 // Schema Revision: 3.1.0.2
 // Description: term
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json
-// Generated: 2025-11-11T05:27:03.039Z
+// Generated: 2025-11-11T08:25:31.047Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -12,6 +12,7 @@
 
 // Unknown types - defined as 'any' for now
 type Iso8601_date = any;
+type String = any;
 
 /**
  * A code set.
@@ -20,7 +21,7 @@ export class CODE_SET {
     /**
      * Name of this code set.
      */
-    name?: string;
+    name?: String;
     /**
      * Identifier used for code set in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
      * 
@@ -31,11 +32,11 @@ export class CODE_SET {
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
      */
-    openehr_id?: string;
+    openehr_id?: String;
     /**
      * Name of the issuing organisation.
      */
-    issuer?: string;
+    issuer?: String;
     /**
      * Codes in this code set.
      */
@@ -50,7 +51,7 @@ export class CODE_SET {
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
      */
-    external_id?: string;
+    external_id?: String;
     /**
      * Status of this code set.
      */
@@ -64,7 +65,7 @@ export class TERMINOLOGY_GROUP {
     /**
      * Name of this vocabulary.
      */
-    name?: string;
+    name?: String;
     /**
      * List of concepts (i.e. coded terms) in this vocabulary.
      */
@@ -79,7 +80,7 @@ export class TERMINOLOGY_GROUP {
      * 
      * An NCName cannot begin with a number, dot or minus character although these can appear later in the value.
      */
-    openehr_id?: string;
+    openehr_id?: String;
     /**
      * Status of this vocabulary.
      */
@@ -93,13 +94,13 @@ export class CODE {
     /**
      * The code string for this code entity, e.g. \`"AF"\`.
      */
-    value?: string;
+    value?: String;
     /**
      * Optional description of this code, e.g. \`"AFGHANISTAN"\`.
      * 
      * This field may be used to hold translations of the description in a language-specific copy of the English language original code set.
      */
-    description?: string;
+    description?: String;
     /**
      * Status of this code within the code set.
      */
@@ -113,11 +114,11 @@ export class TERMINOLOGY_CONCEPT {
     /**
      * The code of this concept.
      */
-    id?: string;
+    id?: String;
     /**
      * The rubric, i.e. linguistic expression, of this concept, in the language of this terminology instance.
      */
-    rubric?: string;
+    rubric?: String;
     /**
      * Status of this concept within the vocabulary.
      */
@@ -131,11 +132,11 @@ export class TERMINOLOGY {
     /**
      * Name of this terminology.
      */
-    name?: string;
+    name?: String;
     /**
      * Language of this terminology, as an ISO:639 2-letter code.
      */
-    language?: string;
+    language?: String;
     /**
      * Code sets in this Terminology.
      */
@@ -147,7 +148,7 @@ export class TERMINOLOGY {
     /**
      * Version of this instance of the terminology.
      */
-    version?: string;
+    version?: String;
     /**
      * Date of issue of this version of the terminology.
      */
@@ -157,6 +158,6 @@ export class TERMINOLOGY {
 /**
  * Enumeration of possible lifecycle states of any part of the terminomlogy.
  */
-export class TERMINOLOGY_STATUS {
+export class TERMINOLOGY_STATUS extends String {
 }
 

@@ -3,7 +3,7 @@
 // Schema Revision: 1.1.0.2
 // Description: lang
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Generated: 2025-11-11T05:27:02.918Z
+// Generated: 2025-11-11T08:25:30.770Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -24,19 +24,54 @@ type BMM_STATUS_TYPE = any;
 type BMM_TUPLE_TYPE = any;
 type BMM_TYPE = any;
 type BMM_UNITARY_TYPE = any;
+type Boolean = any;
 type C_OBJECT = any;
+type Integer = any;
 type Iso8601_date = any;
 type Iso8601_date_time = any;
 type Iso8601_duration = any;
 type Iso8601_time = any;
 type Multiplicity_interval = any;
+type String = any;
 type T = any;
 type Terminology_code = any;
+type Uri = any;
 
 /**
  * Definitions used by all BMM packages.
  */
 export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
+    /**
+     * built-in class definition corresponding to the top \`Any' class.
+     * @returns Result value
+     */
+    Any_class(): BMM_SIMPLE_CLASS {
+        throw new Error("Method Any_class not implemented.");
+    }
+
+    /**
+     * Built-in type definition corresponding to the top \`Any' type.
+     * @returns Result value
+     */
+    Any_type(): BMM_SIMPLE_TYPE {
+        throw new Error("Method Any_type not implemented.");
+    }
+
+    /**
+     * Create schema id, formed from:
+     * 
+     * \`a_model_publisher '-' a_schema_name '-' a_model_release\`
+     * 
+     * e.g. \`openehr_rm_1.0.3\`, \`openehr_test_1.0.1\`, \`iso_13606_1_2008_2.1.2\`.
+     * @param a_model_publisher - Parameter
+     * @param a_schema_name - Parameter
+     * @param a_model_release - Parameter
+     * @returns Result value
+     */
+    create_schema_id(a_model_publisher: Any, a_schema_name: Any, a_model_release: String): String {
+        throw new Error("Method create_schema_id not implemented.");
+    }
+
 }
 
 /**
@@ -59,6 +94,51 @@ export class BMM_MODEL_ACCESS {
      * Validated models, keyed by \`_model_id()_\` and any shorter forms of id, with some or no versioning information. For example, the keys \`"openEHR_EHR_1.0.4"\`, \`"openEHR_EHR_1.0"\`, \`"openEHR_EHR_1"\`, and \`"openEHR_EHR"\` will all match the \`"openEHR_EHR_1.0.4"\` model, assuming it is the most recent version available.
      */
     matching_bmm_models?: undefined;
+    /**
+     * Initialise with a specific schema load list, usually a sub-set of schemas that will be found in a specified directories \`_a_schema_dirs_\`.
+     * @param a_schema_dirs - Parameter
+     * @param a_schema_load_list - Parameter
+     * @returns Result value
+     */
+    initialise_with_load_list(a_schema_dirs: undefined, a_schema_load_list: undefined): void {
+        throw new Error("Method initialise_with_load_list not implemented.");
+    }
+
+    /**
+     * Load all schemas found in a specified directories \`_a_schema_dirs_\`.
+     * @param a_schema_dirs - Parameter
+     * @returns Result value
+     */
+    initialise_all(a_schema_dirs: undefined): void {
+        throw new Error("Method initialise_all not implemented.");
+    }
+
+    /**
+     * Reload BMM schemas.
+     * @returns Result value
+     */
+    reload_schemas(): void {
+        throw new Error("Method reload_schemas not implemented.");
+    }
+
+    /**
+     * Return model containing the model key which is a \`_model_id_\` or any shorter form e.g. model id minus the version. If a shorter key is used, the \`BMM_MODEL\` with the most recent version will be selected. Uses \`_matching_bmm_models_\` table to find matches if partial version information is supplied in key.
+     * @param a_model_key - Parameter
+     * @returns Result value
+     */
+    bmm_model(a_model_key: String): BMM_MODEL {
+        throw new Error("Method bmm_model not implemented.");
+    }
+
+    /**
+     * True if a model for a \`_model_key_\` is available. A model key is a \`_model_id_\` or any shorter form e.g. model id minus the version. If a shorter key is used, the Result s True if a \`BMM_MODEL\` with any version exists.
+     * @param a_model_key - Parameter
+     * @returns Result value
+     */
+    has_bmm_model(a_model_key: String): Boolean {
+        throw new Error("Method has_bmm_model not implemented.");
+    }
+
 }
 
 /**
@@ -83,7 +163,7 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * 
      * e.g. \`openehr_rm_1.0.3\`, \`openehr_test_1.0.1\`, \`iso_13606_1_2008_2.1.2\`.
      */
-    schema_id?: string;
+    schema_id?: String;
     /**
      * Table of \`{key, value}\` of schema meta-data, keys are string values defined by \`{BMM_DEFINITIONS}.Metadata_*\` constants.
      */
@@ -92,6 +172,55 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * Identifiers of schemas included by this schema.
      */
     includes?: undefined;
+    /**
+     * True if this is a top-level schema, i.e. is the root schema of a 'model'. True if \`_bmm_schema_ /= Void and then _bmm_schema.model_name_ /= Void\`.
+     * @returns Result value
+     */
+    is_top_level(): Boolean {
+        throw new Error("Method is_top_level not implemented.");
+    }
+
+    /**
+     * True if the BMM version found in the schema (or assumed, if none) is compatible with that in this software.
+     * @returns Result value
+     */
+    is_bmm_compatible(): Boolean {
+        throw new Error("Method is_bmm_compatible not implemented.");
+    }
+
+    /**
+     * Load schema into in-memory form, i.e. a \`P_BMM_SCHEMA\` instance, if structurally valid. If successful, \`_p_schema_\` will be set.
+     * @returns Result value
+     */
+    load(): void {
+        throw new Error("Method load not implemented.");
+    }
+
+    /**
+     * Validate loaded schema and report errors.
+     * @returns Result value
+     */
+    validate_merged(): void {
+        throw new Error("Method validate_merged not implemented.");
+    }
+
+    /**
+     * Validate includes list for this schema, to see if each mentioned schema exists in \`_all_schemas_\` list.
+     * @param all_schemas_list - Parameter
+     * @returns Result value
+     */
+    validate_includes(all_schemas_list: undefined): void {
+        throw new Error("Method validate_includes not implemented.");
+    }
+
+    /**
+     * Create \`schema\`, i.e. the \`BMM_MODEL\` from one \`P_BMM_SCHEMA\` schema.
+     * @returns Result value
+     */
+    create_model(): void {
+        throw new Error("Method create_model not implemented.");
+    }
+
 }
 
 /**
@@ -101,11 +230,11 @@ export class BMM_MODEL_METADATA {
     /**
      * Publisher of model expressed in the schema.
      */
-    rm_publisher?: string;
+    rm_publisher?: String;
     /**
      * Release of model expressed in the schema as a 3-part numeric, e.g. "3.1.0" . 
      */
-    rm_release?: string;
+    rm_release?: String;
 }
 
 /**
@@ -115,7 +244,7 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     /**
      * Version of BMM model, enabling schema evolution reasoning. Persisted attribute.
      */
-    bmm_version?: string;
+    bmm_version?: String;
     /**
      * Inclusion list of any form of BMM model, in the form of a hash of individual include specifications, each of which at least specifies the id of another schema, and may specify a namespace via which types from the included schemas are known in this schema.
      * Persisted attribute.
@@ -132,31 +261,91 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     /**
      * Name of this model, if this schema is a model root point. Not set for sub-schemas that are not considered models on their own.
      */
-    model_name?: string;
+    model_name?: String;
     /**
      * Name of model expressed in schema; a 'schema' usually contains all of the packages of one 'model' of a publisher. A publisher with more than one model can have multiple schemas. 
      */
-    schema_name?: string;
+    schema_name?: String;
     /**
      * Revision of schema.
      */
-    schema_revision?: string;
+    schema_revision?: String;
     /**
      * Schema development lifecycle state. 
      */
-    schema_lifecycle_state?: string;
+    schema_lifecycle_state?: String;
     /**
      * Primary author of schema. 
      */
-    schema_author?: string;
+    schema_author?: String;
     /**
      * Description of schema. 
      */
-    schema_description?: string;
+    schema_description?: String;
     /**
      * Contributing authors of schema. 
      */
     schema_contributors?: undefined;
+    /**
+     * Do some basic validation post initial creation
+     * 
+     * * check that package structure is regular:
+     * ** only top-level packages can have qualified names
+     * ** no top-level package name can be a direct parent or child of another (child package must be declared under the parent)
+     * * check that all classes are mentioned in the package structure
+     * * check that all models refer to valid packages
+     * @returns Result value
+     */
+    abstract validate_created(): void;
+
+    /**
+     * Finalisation work:
+     * 
+     * * convert packages to canonical form, i.e. full hierarchy with no packages with names like aa.bb.cc
+     * * set up include processing list
+     * @returns Result value
+     */
+    abstract load_finalise(): void;
+
+    /**
+     * Merge in class and package definitions from \`_other_\`, except where the current schema already has a definition for the given type or package.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract merge(other: BMM_SCHEMA): void;
+
+    /**
+     * Main validation prior to generation of \`_bmm_model_\`.
+     * @returns Result value
+     */
+    abstract validate(): void;
+
+    /**
+     * Populate \`_bmm_model_\` from schema.
+     * @returns Result value
+     */
+    abstract create_bmm_model(): void;
+
+    /**
+     * True when validation may be commenced.
+     * @returns Result value
+     */
+    read_to_validate(): Boolean {
+        throw new Error("Method read_to_validate not implemented.");
+    }
+
+    /**
+     * Identifier of this schema, used for stating inclusions and identifying files. Formed as:
+     * 
+     * \`{BMM_DEFINITIONS}.create_schema_id ( _rm_publisher_,  _schema_name_,   _rm_release_)\`
+     * 
+     * E.g. \`"openehr_rm_ehr_1.0.4"\`.
+     * @returns Result value
+     */
+    schema_id(): String {
+        throw new Error("Method schema_id not implemented.");
+    }
+
 }
 
 /**
@@ -166,16 +355,16 @@ export class BMM_INCLUDE_SPEC {
     /**
      * Full identifier of the included schema, e.g. \`"openehr_primitive_types_1.0.2"\`.
      */
-    id?: string;
+    id?: String;
 }
 
-export class BMM_SCHEMA_METADATA_KEY {
+export class BMM_SCHEMA_METADATA_KEY extends String {
 }
 
 /**
  * Enumeration of processing states of a \`BMM_SCHEMA\` used by creation and validation routines in \`BMM_SCHEMA\`.
  */
-export class BMM_SCHEMA_STATE {
+export class BMM_SCHEMA_STATE extends String {
 }
 
 /**
@@ -185,7 +374,7 @@ export abstract class BMM_MODEL_ELEMENT {
     /**
      * Name of this model element.
      */
-    name?: string;
+    name?: String;
     /**
      * Optional documentation of this element, as a keyed list.
      * 
@@ -208,6 +397,14 @@ export abstract class BMM_MODEL_ELEMENT {
      * Optional meta-data of this element, as a keyed list. May be used to extend the meta-model.
      */
     extensions?: undefined;
+    /**
+     * True if this model element is the root of a model structure hierarchy.
+     * @returns Result value
+     */
+    is_root_scope(): Boolean {
+        throw new Error("Method is_root_scope not implemented.");
+    }
+
 }
 
 /**
@@ -221,7 +418,25 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
     /**
      * True if this element can be null (Void) at execution time. May be interpreted as optionality in subtypes..
      */
-    is_nullable?: boolean;
+    is_nullable?: Boolean;
+    /**
+     * Formal signature of this element, in the form:
+     * 
+     * \`name [arg1_name: T_arg1, ...][:T_value]\`
+     * 
+     * Specific implementations in descendants.
+     * @returns Result value
+     */
+    abstract signature(): BMM_SIGNATURE;
+
+    /**
+     * True if \`_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`'Boolean'\`).
+     * @returns Result value
+     */
+    is_boolean(): Boolean {
+        throw new Error("Method is_boolean not implemented.");
+    }
+
 }
 
 /**
@@ -231,7 +446,7 @@ export abstract class BMM_FEATURE extends BMM_FORMAL_ELEMENT {
     /**
      * True if this feature was synthesised due to generic substitution in an inherited type, or further constraining of a formal generic parameter.
      */
-    is_synthesised_generic?: boolean;
+    is_synthesised_generic?: Boolean;
     /**
      * Extensions to feature-level meta-types.
      */
@@ -275,15 +490,31 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     /**
      * True if this property is marked with info model \`_im_runtime_\` property.
      */
-    is_im_runtime?: boolean;
+    is_im_runtime?: Boolean;
     /**
      * True if this property was marked with info model \`_im_infrastructure_\` flag.
      */
-    is_im_infrastructure?: boolean;
+    is_im_infrastructure?: Boolean;
     /**
      * True if this property instance is a compositional sub-part of the owning class instance. Equivalent to 'composition' in UML associations (but missing from UML properties without associations) and also 'cascade-delete' semantics in ER schemas.
      */
-    is_composition?: boolean;
+    is_composition?: Boolean;
+    /**
+     * Interval form of \`0..1\`, \`1..1\` etc, derived from \`_is_nullable_\`.
+     * @returns Result value
+     */
+    existence(): Multiplicity_interval {
+        throw new Error("Method existence not implemented.");
+    }
+
+    /**
+     * Name of this property to display in UI.
+     * @returns Result value
+     */
+    display_name(): String {
+        throw new Error("Method display_name not implemented.");
+    }
+
 }
 
 /**
@@ -298,6 +529,14 @@ export class BMM_CONTAINER_PROPERTY extends BMM_PROPERTY {
      * Declared or inferred static type of the entity.
      */
     override type?: BMM_CONTAINER_TYPE = undefined;
+    /**
+     * Name of this property in form \`name: ContainerTypeName<>\`.
+     * @returns Result value
+     */
+    display_name(): String {
+        throw new Error("Method display_name not implemented.");
+    }
+
 }
 
 /**
@@ -324,6 +563,14 @@ export abstract class BMM_ROUTINE extends BMM_FEATURE {
      * Body of a routine, i.e. executable program.
      */
     definition?: BMM_ROUTINE_DEFINITION;
+    /**
+     * Return number of arguments of this routine.
+     * @returns Result value
+     */
+    arity(): Integer {
+        throw new Error("Method arity not implemented.");
+    }
+
 }
 
 /**
@@ -377,7 +624,7 @@ export class BMM_OPERATOR {
     /**
      * Formal name of the operator, e.g. 'minus' etc.
      */
-    name?: string;
+    name?: String;
 }
 
 /**
@@ -404,6 +651,18 @@ export class BMM_PROCEDURE extends BMM_ROUTINE {
      * Declared or inferred static type of the entity.
      */
     override type?: BMM_STATUS_TYPE = undefined;
+    /**
+     * Formal signature of this element, in the form:
+     * 
+     * \`name [arg1_name: T_arg1, ...][:T_value]\`
+     * 
+     * Specific implementations in descendants.
+     * @returns Result value
+     */
+    signature(): BMM_PROCEDURE_TYPE {
+        throw new Error("Method signature not implemented.");
+    }
+
 }
 
 /**
@@ -424,6 +683,14 @@ export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
      * Declared or inferred static type of the entity.
      */
     override type?: BMM_INDEXED_CONTAINER_TYPE = undefined;
+    /**
+     * Name of this property in form \`name: ContainerTypeName<IndexTypeName, ...>\`.
+     * @returns Result value
+     */
+    display_name(): String {
+        throw new Error("Method display_name not implemented.");
+    }
+
 }
 
 /**
@@ -433,7 +700,7 @@ export class BMM_RESULT extends BMM_WRITABLE_VARIABLE {
     /**
      * Name of this model element.
      */
-    override name?: string;
+    override name?: String;
 }
 
 /**
@@ -469,7 +736,7 @@ export class BMM_FEATURE_GROUP {
     /**
      * Name of this feature group; defaults to 'feature'.
      */
-    name?: string;
+    name?: String;
     /**
      * Set of properties of this group, represented as name/value pairs. These are understood to apply logically to all of the features contained within the group.
      */
@@ -499,7 +766,7 @@ export class BMM_SELF extends BMM_READONLY_VARIABLE {
     /**
      * Name of this model element.
      */
-    override name?: string;
+    override name?: String;
 }
 
 /**
@@ -529,13 +796,13 @@ export class BMM_LOCAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
 /**
  * Enumeration of possible position of operator in a syntactic representation for operators associated with 1- and 2- degree functions.
  */
-export class BMM_OPERATOR_POSITION {
+export class BMM_OPERATOR_POSITION extends String {
 }
 
 /**
  * Enumeration of parameter read/write direction values.
  */
-export class BMM_PARAMETER_DIRECTION {
+export class BMM_PARAMETER_DIRECTION extends String {
 }
 
 /**
@@ -545,7 +812,7 @@ export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
      * A serial representation of the value.
      */
-    value_literal?: string;
+    value_literal?: String;
     /**
      * A native representation of the value, possibly derived by deserialising \`_value_literal_\`.
      */
@@ -553,7 +820,7 @@ export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
      * Optional specification of formalism of the \`_value_literal_\` attribute for complex values. Value may be any of \`json | json5 | yawl | xml | odin | rdf\` or another value agreed by the user community. If not set, \`json\` is assumed.
      */
-    syntax?: string;
+    syntax?: String;
     /**
      * Concrete type of this literal.
      */
@@ -583,7 +850,7 @@ export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
      * Native Integer value.
      */
-    override value?: number = undefined;
+    override value?: Integer = undefined;
 }
 
 /**
@@ -593,7 +860,7 @@ export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
      * Native String value.
      */
-    override value?: string = undefined;
+    override value?: String = undefined;
 }
 
 /**
@@ -603,7 +870,7 @@ export class BMM_BOOLEAN_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
      * Native Boolean value.
      */
-    override value?: boolean = undefined;
+    override value?: Boolean = undefined;
 }
 
 /**
@@ -636,6 +903,33 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * Model element within which a referenceable element is known.
      */
     override scope?: BMM_PACKAGE_CONTAINER = undefined;
+    /**
+     * Package at the path \`_a_path_\`.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    package_at_path(a_path: String): BMM_PACKAGE {
+        throw new Error("Method package_at_path not implemented.");
+    }
+
+    /**
+     * Recursively execute \`_action_\`, which is a procedure taking a \`BMM_PACKAGE\` argument, on all members of packages.
+     * @param action - Parameter
+     * @returns Result value
+     */
+    do_recursive_packages(action: EL_PROCEDURE_AGENT): void {
+        throw new Error("Method do_recursive_packages not implemented.");
+    }
+
+    /**
+     * True if there is a package at the path \`_a_path_\`; paths are delimited with delimiter \`{BMM_DEFINITIONS} _Package_name_delimiter_\`.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    has_package_path(a_path: String): Boolean {
+        throw new Error("Method has_package_path not implemented.");
+    }
+
 }
 
 /**
@@ -654,6 +948,183 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * All classes in this model, keyed by type name.
      */
     modules?: undefined;
+    /**
+     * Identifier of this model, lower-case, formed from:
+     * 
+     * \`<rm_publisher>_<model_name>_<rm_release>\`
+     * 
+     * E.g. \`"openehr_ehr_1.0.4"\`.
+     * @returns Result value
+     */
+    model_id(): String {
+        throw new Error("Method model_id not implemented.");
+    }
+
+    /**
+     * Retrieve the class definition corresponding to \`_a_type_name_\` (which may contain a generic part).
+     * @param a_name - Parameter
+     * @returns Result value
+     */
+    class_definition(a_name: String): BMM_CLASS {
+        throw new Error("Method class_definition not implemented.");
+    }
+
+    /**
+     * Retrieve the class definition corresponding to \`_a_type_name_\`. If it contains a generic part, this will be removed if it is a fully open generic name, otherwise it will remain intact, i.e. if it is an effective generic name that identifies a \`BMM_GENERIC_CLASS_EFFECTIVE\`.
+     * @returns Result value
+     */
+    type_definition(): BMM_CLASS {
+        throw new Error("Method type_definition not implemented.");
+    }
+
+    /**
+     * True if \`_a_class_name_\` has a class definition in the model.
+     * @param a_class_name - Parameter
+     * @returns Result value
+     */
+    has_class_definition(a_class_name: String): Boolean {
+        throw new Error("Method has_class_definition not implemented.");
+    }
+
+    /**
+     * True if \`_a_type_name_\` is already concretely known in the system, including if it is generic, which may be open, partially open or closed.
+     * @param a_type_name - Parameter
+     * @returns Result value
+     */
+    has_type_definition(a_type_name: String): Boolean {
+        throw new Error("Method has_type_definition not implemented.");
+    }
+
+    /**
+     * Retrieve the enumeration definition corresponding to \`_a_type_name_\`.
+     * @param a_name - Parameter
+     * @returns Result value
+     */
+    enumeration_definition(a_name: String): BMM_ENUMERATION {
+        throw new Error("Method enumeration_definition not implemented.");
+    }
+
+    /**
+     * List of keys in \`_class_definitions_\` of items marked as primitive types.
+     * @returns Result value
+     */
+    primitive_types(): String {
+        throw new Error("Method primitive_types not implemented.");
+    }
+
+    /**
+     * List of keys in \`_class_definitions_\` of items that are enumeration types.
+     * @returns Result value
+     */
+    enumeration_types(): String {
+        throw new Error("Method enumeration_types not implemented.");
+    }
+
+    /**
+     * Retrieve the property definition for \`_a_prop_name_\` in flattened class corresponding to \`_a_type_name_\`.
+     * @returns Result value
+     */
+    property_definition(): BMM_PROPERTY {
+        throw new Error("Method property_definition not implemented.");
+    }
+
+    /**
+     * True if \`_a_ms_property_type_\` is a valid 'MS' dynamic type for \`_a_property_\` in BMM type \`_a_bmm_type_name_\`. 'MS' conformance means 'model-semantic' conformance, which abstracts away container types like \`List<>\`, \`Set<>\` etc and compares the dynamic type with the relation target type in the UML sense, i.e. regardless of whether there is single or multiple containment.
+     * @param a_bmm_type_name - Parameter
+     * @param a_bmm_property_name - Parameter
+     * @param a_ms_property_name - Parameter
+     * @returns Result value
+     */
+    ms_conformant_property_type(a_bmm_type_name: String, a_bmm_property_name: String, a_ms_property_name: String): Boolean {
+        throw new Error("Method ms_conformant_property_type not implemented.");
+    }
+
+    /**
+     * Retrieve the property definition for \`_a_property_path_\` in flattened class corresponding to \`_a_type_name_\`.
+     * @returns Result value
+     */
+    property_definition_at_path(): BMM_PROPERTY {
+        throw new Error("Method property_definition_at_path not implemented.");
+    }
+
+    /**
+     * Retrieve the class definition for the class that owns the terminal attribute in \`a_prop_path\` in flattened class corresponding to \`a_type_name\`.
+     * @param a_type_name - Parameter
+     * @param a_prop_path - Parameter
+     * @returns Result value
+     */
+    class_definition_at_path(a_type_name: String, a_prop_path: String): BMM_CLASS {
+        throw new Error("Method class_definition_at_path not implemented.");
+    }
+
+    /**
+     * Return all ancestor types of \`_a_class_name_\` up to root class (usually \`Any\`, \`Object\` or something similar). Does  not include current class. Returns empty list if none.
+     * @param a_class - Parameter
+     * @returns Result value
+     */
+    all_ancestor_classes(a_class: String): String {
+        throw new Error("Method all_ancestor_classes not implemented.");
+    }
+
+    /**
+     * True if \`_a_class_name_\` is a descendant in the model of \`_a_parent_class_name_\`.
+     * @param a_class_name - Parameter
+     * @param a_parent_class_name - Parameter
+     * @returns Result value
+     */
+    is_descendant_of(a_class_name: String, a_parent_class_name: String): Boolean {
+        throw new Error("Method is_descendant_of not implemented.");
+    }
+
+    /**
+     * Check conformance of \`_a_desc_type_\` to \`_an_anc_type_\`; the types may be generic, and may contain open generic parameters like 'T' etc. These are replaced with their appropriate constrainer types, or Any during the conformance testing process.
+     * 
+     * Conformance is found if:
+     * 
+     * * [base class test] types are non-generic, and either type names are identical, or else \`_a_desc_type_\` has \`_an_anc_type_\` in its ancestors;
+     * * both types are generic and pass base class test; number of generic params matches, and each generic parameter type, after 'open parameter' substitution, recursively passes; \`_type_name_conforms_to_\` test
+     * * descendant type is generic and ancestor type is not, and they pass base classes test.
+     * @param a_desc_type - Parameter
+     * @param an_anc_type - Parameter
+     * @returns Result value
+     */
+    type_conforms_to(a_desc_type: String, an_anc_type: String): Boolean {
+        throw new Error("Method type_conforms_to not implemented.");
+    }
+
+    /**
+     * Generate type substitutions for the supplied type, which may be simple, generic (closed, open or partially open), or a container type. In the generic and container cases, the result is the permutation of the base class type and type substitutions of all generic parameters.
+     * @param a_type - Parameter
+     * @returns Result value
+     */
+    subtypes(a_type: String): String {
+        throw new Error("Method subtypes not implemented.");
+    }
+
+    /**
+     * \`BMM_SIMPLE_CLASS\` instance for the \`Any\` class. This may be defined in the BMM schema, but if not, use \`BMM_DEFINITIONS._any_class_\`.
+     * @returns Result value
+     */
+    any_class_definition(): BMM_SIMPLE_CLASS {
+        throw new Error("Method any_class_definition not implemented.");
+    }
+
+    /**
+     * \`BMM_SIMPLE_TYPE\` instance for the \`Any\` type.
+     * @returns Result value
+     */
+    any_type_definition(): BMM_SIMPLE_TYPE {
+        throw new Error("Method any_type_definition not implemented.");
+    }
+
+    /**
+     * \`BMM_SIMPLE_TYPE\` instance for the \`Boolean\` type.
+     * @returns Result value
+     */
+    boolean_type_definition(): BMM_SIMPLE_TYPE {
+        throw new Error("Method boolean_type_definition not implemented.");
+    }
+
 }
 
 /**
@@ -666,12 +1137,44 @@ export class BMM_PACKAGE extends BMM_PACKAGE_CONTAINER {
      * Member modules in this package.
      */
     members?: undefined;
+    /**
+     * Obtain the set of top-level classes in this package, either from this package itself or by recursing into the structure until classes are obtained from child packages. Recurse into each child only far enough to find the first level of classes.
+     * @returns Result value
+     */
+    root_classes(): BMM_CLASS {
+        throw new Error("Method root_classes not implemented.");
+    }
+
+    /**
+     * Full path of this package back to root package.
+     * @returns Result value
+     */
+    path(): String {
+        throw new Error("Method path not implemented.");
+    }
+
 }
 
 /**
  * Abstract parent of all typed expression meta-types.
  */
 export abstract class EL_EXPRESSION {
+    /**
+     * Meta-type of expression entity used in type-checking and evaluation. 
+     * 
+     * Effected in descendants.
+     * @returns Result value
+     */
+    abstract eval_type(): BMM_TYPE;
+
+    /**
+     * True if \`_eval_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`Boolean\`).
+     * @returns Result value
+     */
+    is_boolean(): Boolean {
+        throw new Error("Method is_boolean not implemented.");
+    }
+
 }
 
 /**
@@ -681,15 +1184,31 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: boolean;
+    precedence_overridden?: Boolean;
     /**
      * The symbol actually used in the expression, or intended to be used for serialisation. Must be a member of \`OPERATOR_DEF._symbols_\`.
      */
-    symbol?: string;
+    symbol?: String;
     /**
      * Function call equivalent to this operator expression, inferred by matching operator against functions defined in interface of principal operand.
      */
     call?: EL_FUNCTION_CALL;
+    /**
+     * Operator definition derived from \`_definition.operator_definition()_\`.
+     * @returns Result value
+     */
+    operator_definition(): BMM_OPERATOR {
+        throw new Error("Method operator_definition not implemented.");
+    }
+
+    /**
+     * Function call equivalent to this operator.
+     * @returns Result value
+     */
+    equivalent_call(): EL_FUNCTION_CALL {
+        throw new Error("Method equivalent_call not implemented.");
+    }
+
 }
 
 /**
@@ -726,6 +1245,14 @@ export class EL_LITERAL extends EL_SIMPLE {
      * The reference item from which the value of this node can be computed.
      */
     value?: undefined;
+    /**
+     * Return \`_value.type_\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -742,11 +1269,19 @@ export class EL_UNARY_OPERATOR extends EL_OPERATOR {
  * Meta-type representing a value-generating simple expression.
  */
 export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
-    is_writable?: boolean;
+    is_writable?: Boolean;
     /**
      * Name used to represent the reference or other entity.
      */
-    name?: string;
+    name?: String;
+    /**
+     * Generated full reference name, based on constituent parts of the entity. Default version outputs \`_name_\` field.
+     * @returns Result value
+     */
+    reference(): String {
+        throw new Error("Method reference not implemented.");
+    }
+
 }
 
 /**
@@ -757,6 +1292,14 @@ export abstract class EL_FEATURE_REF extends EL_VALUE_GENERATOR {
      * Scoping expression, which must be a \`EL_VALUE_GENERATOR\`.
      */
     scoper?: EL_VALUE_GENERATOR;
+    /**
+     * Generated full reference name, consisting of scoping elements and \`_name_\` concatenated using dot notation.
+     * @returns Result value
+     */
+    reference(): String {
+        throw new Error("Method reference not implemented.");
+    }
+
 }
 
 /**
@@ -770,7 +1313,15 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
     /**
      * Defined to return True.
      */
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
+    /**
+     * Type definition (i.e. BMM meta-type definition object) of the constant, property or variable, inferred by inspection of the current scoping instance. Return \`_definition.type_\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -781,6 +1332,14 @@ export abstract class EL_PREDICATE extends EL_SIMPLE {
      * The target instance of this predicate.
      */
     operand?: EL_VALUE_GENERATOR;
+    /**
+     * Return \`{BMM_MODEL}._boolean_type_definition_()\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_SIMPLE_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -812,7 +1371,23 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
     /**
      * Defined to return False.
      */
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
+    /**
+     * Return \`_agent.definition.type_\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
+    /**
+     * Generated full reference name, consisting of any scoping elements, function name and routine parameters enclosed in parentheses.
+     * @returns Result value
+     */
+    reference(): String {
+        throw new Error("Method reference not implemented.");
+    }
+
 }
 
 /**
@@ -826,7 +1401,7 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
     /**
      * Name of the routine being called.
      */
-    override name?: string;
+    override name?: String;
     /**
      * Closed arguments of a routine call as a tuple of objects.
      */
@@ -839,7 +1414,31 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * Reference to definition of a routine for which this is an agent, if one exists. 
      */
     definition?: BMM_ROUTINE;
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
+    /**
+     * Eval type is the signature corresponding to the (remaining) open arguments and return type, if any.
+     * @returns Result value
+     */
+    eval_type(): BMM_ROUTINE_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
+    /**
+     * True if there are no open arguments.
+     * @returns Result value
+     */
+    is_callable(): Boolean {
+        throw new Error("Method is_callable not implemented.");
+    }
+
+    /**
+     * Generated full reference name, including scoping elements.
+     * @returns Result value
+     */
+    reference(): String {
+        throw new Error("Method reference not implemented.");
+    }
+
 }
 
 /**
@@ -853,7 +1452,7 @@ export class EL_TUPLE_ITEM {
     /**
      * Optional name of tuple item.
      */
-    name?: string;
+    name?: String;
 }
 
 /**
@@ -864,6 +1463,14 @@ export class EL_PROCEDURE_AGENT extends EL_AGENT {
      * Reference to definition of routine for which this is a call instance.
      */
     override definition?: BMM_PROCEDURE = undefined;
+    /**
+     * Eval type is the signature corresponding to the (remaining) open arguments and return type, if any.
+     * @returns Result value
+     */
+    eval_type(): BMM_PROCEDURE_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -878,6 +1485,14 @@ export class EL_TUPLE extends EL_EXPRESSION {
      * Static type inferred from literal value.
      */
     type?: BMM_TUPLE_TYPE;
+    /**
+     * Return \`_type_\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -888,6 +1503,14 @@ export class EL_FUNCTION_AGENT extends EL_AGENT {
      * Reference to definition of a routine for which this is a direct call instance, if one exists. 
      */
     override definition?: BMM_FUNCTION = undefined;
+    /**
+     * Eval type is the signature corresponding to the (remaining) open arguments and return type, if any.
+     * @returns Result value
+     */
+    eval_type(): BMM_FUNCTION_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -922,7 +1545,15 @@ export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
      * Type, directly from the name of the reference, e.g. \`{SOME_TYPE}\`.
      */
     type?: BMM_TYPE;
-    is_mutable?: boolean;
+    is_mutable?: Boolean;
+    /**
+     * Return \`_type_\`.
+     * @returns Result value
+     */
+    eval_type(): BMM_TYPE {
+        throw new Error("Method eval_type not implemented.");
+    }
+
 }
 
 /**
@@ -1018,7 +1649,7 @@ export class EL_STATIC_REF extends EL_FEATURE_REF {
     /**
      * Defined to return False.
      */
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
 }
 
 /**
@@ -1032,7 +1663,7 @@ export class EL_WRITABLE_VARIABLE extends EL_VARIABLE {
     /**
      * Defined to return True in all cases.
      */
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
 }
 
 /**
@@ -1046,7 +1677,7 @@ export class EL_READONLY_VARIABLE extends EL_VARIABLE {
     /**
      * Defined to return False in all cases.
      */
-    override is_writable?: boolean;
+    override is_writable?: Boolean;
 }
 
 /**
@@ -1112,7 +1743,7 @@ export class BMM_ASSERTION extends BMM_SIMPLE_STATEMENT {
     /**
      * Optional tag, typically used to designate design intention of the assertion, e.g. \`"Inv_all_members_valid"\`.
      */
-    tag?: string;
+    tag?: String;
 }
 
 /**
@@ -1139,7 +1770,7 @@ export class BMM_STATEMENT_BLOCK extends BMM_STATEMENT_ITEM {
  * Declaration of a writable variable, associating a name with a type.
  */
 export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
-    name?: string;
+    name?: String;
     result?: EL_WRITABLE_VARIABLE;
     /**
      * The declared type of the variable.
@@ -1154,7 +1785,7 @@ export abstract class P_BMM_MODEL_ELEMENT {
     /**
      * Optional documentation of this element.
      */
-    documentation?: string;
+    documentation?: String;
 }
 
 /**
@@ -1164,7 +1795,7 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of the class. Persisted attribute.
      */
-    name?: string;
+    name?: String;
     /**
      * List of immediate inheritance parents. If there are generic ancestors, use \`_ancestor_defs_\` instead. Persisted attribute.
      */
@@ -1176,11 +1807,11 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * True if this is an abstract type. Persisted attribute.
      */
-    is_abstract?: boolean;
+    is_abstract?: Boolean;
     /**
      * True if this class definition overrides one found in an included schema.
      */
-    is_override?: boolean;
+    is_override?: Boolean;
     /**
      * List of generic parameter definitions. Persisted attribute.
      */
@@ -1188,7 +1819,7 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * Reference to original source schema defining this class. Set during \`BMM_SCHEMA\` materialise. Useful for GUI tools to enable user to edit the schema file containing a given class (i.e. taking into account that a class may be in any of the schemas in a schema inclusion hierarchy).
      */
-    source_schema_id?: string;
+    source_schema_id?: String;
     /**
      * \`BMM_CLASS\` object built by \`_create_bmm_class_definition_\` and \`_populate_bmm_class_definition_\`.
      */
@@ -1196,11 +1827,36 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * Unique id generated for later comparison during merging, in order to detect if two classes are the same. Assigned in post-load processing.
      */
-    uid?: number;
+    uid?: Integer;
     /**
      * List of structured inheritance ancestors, used only in the case of generic inheritance. Persisted attribute.
      */
     ancestor_defs?: undefined;
+    /**
+     * True if this class is a generic class.
+     * @returns Result value
+     */
+    is_generic(): Boolean {
+        throw new Error("Method is_generic not implemented.");
+    }
+
+    /**
+     * Create \`_bmm_class_definition_\`.
+     * @returns Result value
+     */
+    create_bmm_class(): void {
+        throw new Error("Method create_bmm_class not implemented.");
+    }
+
+    /**
+     * Add remaining model elements from Current to \`_bmm_class_definition_\`.
+     * @param a_bmm_schema - Parameter
+     * @returns Result value
+     */
+    populate_bmm_class(a_bmm_schema: BMM_MODEL): void {
+        throw new Error("Method populate_bmm_class not implemented.");
+    }
+
 }
 
 /**
@@ -1237,6 +1893,55 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
      * Class definitions. Persisted attribute.
      */
     class_definitions?: undefined;
+    /**
+     * Implementation of \`_validate_created()_\`
+     * @returns Result value
+     */
+    validate_created(): void {
+        throw new Error("Method validate_created not implemented.");
+    }
+
+    /**
+     * Implementation of \`_load_finalise()_\`
+     * @returns Result value
+     */
+    load_finalise(): void {
+        throw new Error("Method load_finalise not implemented.");
+    }
+
+    /**
+     * Implementation of \`_merge()_\`
+     * @param other - Parameter
+     * @returns Result value
+     */
+    merge(other: P_BMM_SCHEMA): void {
+        throw new Error("Method merge not implemented.");
+    }
+
+    /**
+     * Implementation of \`_validate()_\`
+     * @returns Result value
+     */
+    validate(): void {
+        throw new Error("Method validate not implemented.");
+    }
+
+    /**
+     * Implementation of \`_create_bmm_model()_\`
+     * @returns Result value
+     */
+    create_bmm_model(): void {
+        throw new Error("Method create_bmm_model not implemented.");
+    }
+
+    /**
+     * Package structure in which all top-level qualified package names like \`xx.yy.zz\` have been expanded out to a hierarchy of \`BMM_PACKAGE\` objects.
+     * @returns Result value
+     */
+    canonical_packages(): P_BMM_PACKAGE {
+        throw new Error("Method canonical_packages not implemented.");
+    }
+
 }
 
 /**
@@ -1246,23 +1951,23 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of this property within its class. Persisted attribute.
      */
-    name?: string;
+    name?: String;
     /**
      * True if this property is mandatory in its class. Persisted attribute.
      */
-    is_mandatory?: boolean;
+    is_mandatory?: Boolean;
     /**
      * True if this property is computed rather than stored in objects of this class. Persisted Attribute.
      */
-    is_computed?: boolean;
+    is_computed?: Boolean;
     /**
      * True if this property is info model 'infrastructure' rather than 'data'. Persisted attribute.
      */
-    is_im_infrastructure?: boolean;
+    is_im_infrastructure?: Boolean;
     /**
      * True if this property is info model 'runtime' settable property. Persisted attribute.
      */
-    is_im_runtime?: boolean;
+    is_im_runtime?: Boolean;
     /**
      * Type definition of this property, if not a simple String type reference. Persisted attribute.
      */
@@ -1271,6 +1976,16 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
      * BMM_PROPERTY created by create_bmm_property_definition.
      */
     bmm_property?: BMM_PROPERTY;
+    /**
+     * Create \`_bmm_property_definition_\` from \`P_BMM_XX\` parts.
+     * @param a_bmm_schema - Parameter
+     * @param a_class_def - Parameter
+     * @returns Result value
+     */
+    create_bmm_property(a_bmm_schema: BMM_MODEL, a_class_def: BMM_CLASS): void {
+        throw new Error("Method create_bmm_property not implemented.");
+    }
+
 }
 
 /**
@@ -1280,15 +1995,24 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     /**
      * Name of the parameter, e.g. 'T' etc. Persisted attribute. Name is limited to 1 character, upper case.
      */
-    name?: string;
+    name?: String;
     /**
      * Optional conformance constraint - the name of a type to which a concrete substitution of this generic parameter must conform. Persisted attribute.
      */
-    conforms_to_type?: string;
+    conforms_to_type?: String;
     /**
      * \`BMM_GENERIC_PARAMETER\` created by \`_create_bmm_generic_parameter_\`.
      */
     bmm_generic_parameter?: BMM_PARAMETER_TYPE;
+    /**
+     * Create \`_bmm_generic_parameter_\`.
+     * @param a_bmm_schema - Parameter
+     * @returns Result value
+     */
+    create_bmm_generic_parameter(a_bmm_schema: BMM_MODEL): void {
+        throw new Error("Method create_bmm_generic_parameter not implemented.");
+    }
+
 }
 
 /**
@@ -1299,6 +2023,20 @@ export abstract class P_BMM_TYPE {
      * Result of \`_create_bmm_type()_\` call.
      */
     bmm_type?: BMM_TYPE;
+    /**
+     * Create appropriate \`BMM_XXX\` object; effected in descendants.
+     * @param a_schema - Parameter
+     * @param a_class_def - Parameter
+     * @returns Result value
+     */
+    abstract create_bmm_type(a_schema: BMM_MODEL, a_class_def: BMM_CLASS): void;
+
+    /**
+     * Formal name of the type for display.
+     * @returns Result value
+     */
+    abstract as_type_string(): String;
+
 }
 
 /**
@@ -1308,7 +2046,7 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     /**
      * The type of the container. This converts to the \`_root_type_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
      */
-    container_type?: string;
+    container_type?: String;
     /**
      * Type definition of \`_type_\`, if not a simple String type reference. Persisted attribute.
      */
@@ -1316,18 +2054,26 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     /**
      * The target type; this converts to the first parameter in \`_generic_parameters_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
      */
-    type?: string;
+    type?: String;
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
     override bmm_type?: BMM_CONTAINER_TYPE = undefined;
+    /**
+     * The target type; this converts to the first parameter in \`_generic_parameters_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
+     * @returns Result value
+     */
+    type_ref(): P_BMM_BASE_TYPE {
+        throw new Error("Method type_ref not implemented.");
+    }
+
 }
 
 /**
  * Persistent form of \`BMM_PROPER_TYPE\`.
  */
 export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
-    value_constraint?: string;
+    value_constraint?: String;
 }
 
 /**
@@ -1337,7 +2083,7 @@ export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Name of type - must be a simple class name.
      */
-    type?: string;
+    type?: String;
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -1351,7 +2097,7 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Simple type parameter as a single letter like 'T', 'G' etc.
      */
-    type?: string;
+    type?: String;
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -1365,7 +2111,7 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Root type of this generic type, e.g. \`Interval\` in \`Interval<Integer>\`.
      */
-    root_type?: string;
+    root_type?: String;
     /**
      * Generic parameters of the root_type in this type specifier if non-simple types. The order must match the order of the owning class's formal generic parameter declarations. Persistent attribute.
      */
@@ -1378,6 +2124,14 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
      * Result of \`_create_bmm_type()_\` call.
      */
     override bmm_type?: BMM_GENERIC_TYPE = undefined;
+    /**
+     * Generic parameters of the root_type in this type specifier. The order must match the order of the owning class's formal generic parameter declarations
+     * @returns Result value
+     */
+    generic_parameter_refs(): P_BMM_TYPE {
+        throw new Error("Method generic_parameter_refs not implemented.");
+    }
+
 }
 
 /**
@@ -1387,7 +2141,7 @@ export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
     /**
      * Name of the package from schema; this name may be qualified if it is a top-level package within the schema, or unqualified. Persistent attribute.
      */
-    name?: string;
+    name?: String;
     /**
      * List of classes in this package. Persistent attribute.
      */
@@ -1396,6 +2150,23 @@ export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
      * \`BMM_PACKAGE\` created by \`_create_bmm_package_definition_\`.
      */
     bmm_package_definition?: BMM_PACKAGE;
+    /**
+     * Merge packages and classes from other (from an included \`P_BMM_SCHEMA\`) into this package.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    merge(other: P_BMM_PACKAGE): void {
+        throw new Error("Method merge not implemented.");
+    }
+
+    /**
+     * Generate a \`BMM_PACKAGE_DEFINITION\` object and write it to \`_bmm_package_definition_\`.
+     * @returns Result value
+     */
+    create_bmm_package_definition(): void {
+        throw new Error("Method create_bmm_package_definition not implemented.");
+    }
+
 }
 
 /**
@@ -1414,6 +2185,16 @@ export class P_BMM_CONTAINER_PROPERTY extends P_BMM_PROPERTY {
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_\`.
      */
     override bmm_property?: BMM_CONTAINER_PROPERTY = undefined;
+    /**
+     * Create \`_bmm_property_definition_\`.
+     * @param a_bmm_schema - Parameter
+     * @param a_class_def - Parameter
+     * @returns Result value
+     */
+    create_bmm_property(a_bmm_schema: BMM_MODEL, a_class_def: BMM_CLASS): void {
+        throw new Error("Method create_bmm_property not implemented.");
+    }
+
 }
 
 /**
@@ -1423,7 +2204,7 @@ export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
     /**
      * If the type is a simple type, then this attribute will hold the type name. If the type is a container or generic, then type_ref will hold the type definition. The resulting type is generated in type_def.
      */
-    type?: string;
+    type?: String;
     /**
      * Type definition of this property computed from \`_type_\` for later use in \`_bmm_property_\`.
      */
@@ -1432,6 +2213,14 @@ export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
     override bmm_property?: BMM_UNITARY_PROPERTY = undefined;
+    /**
+     * Generate \`_type_ref_\` from \`_type_\` and save.
+     * @returns Result value
+     */
+    type_def(): P_BMM_SIMPLE_TYPE {
+        throw new Error("Method type_def not implemented.");
+    }
+
 }
 
 /**
@@ -1445,11 +2234,19 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
     /**
      * Type definition of this property, if a simple String type reference. Really we should use \`_type_def_\` to be regular in the schema, but that makes the schema more wordy and less clear. So we use this persisted String value, and compute the \`_type_def_\` on the fly. Persisted attribute.
      */
-    type?: string;
+    type?: String;
     /**
      * \`BMM_PROPERTY\` created by \`_create_bmm_property_definition_\`.
      */
     override bmm_property?: BMM_UNITARY_PROPERTY = undefined;
+    /**
+     * Generate \`_type_ref_\` from \`_type_\` and save.
+     * @returns Result value
+     */
+    type_def(): P_BMM_OPEN_TYPE {
+        throw new Error("Method type_def not implemented.");
+    }
+
 }
 
 /**
@@ -1508,7 +2305,7 @@ export class P_BMM_INDEXED_CONTAINER_PROPERTY extends P_BMM_CONTAINER_PROPERTY {
 }
 
 export class P_BMM_INDEXED_CONTAINER_TYPE extends P_BMM_CONTAINER_TYPE {
-    index_type?: string;
+    index_type?: String;
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
@@ -1528,11 +2325,11 @@ export class ASSERTION extends STATEMENT {
     /**
      * Expression tag, used for differentiating multiple assertions.
      */
-    tag?: string;
+    tag?: String;
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
      */
-    string_expression?: string;
+    string_expression?: String;
     /**
      * Root of expression tree.
      */
@@ -1557,12 +2354,24 @@ export class ASSIGNMENT extends STATEMENT {
  * Any kind of statement element that can be evaluated. The type will either be supplied in descendant types or else will be inferred by an assignment statement linked to a typed variable.
  */
 export abstract class EXPR_VALUE {
+    /**
+     * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
+     * @returns Result value
+     */
+    abstract value(): Any;
+
 }
 
 /**
  * Abstract parent of all expression meta-types.
  */
 export abstract class EXPRESSION extends EXPR_VALUE {
+    /**
+     * The primitive type of this node, which must be determined by redefinitions in concrete classes.
+     * @returns Result value
+     */
+    abstract type(): EXPR_TYPE_DEF;
+
 }
 
 /**
@@ -1572,7 +2381,7 @@ export abstract class EXPR_OPERATOR extends EXPRESSION {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: boolean;
+    precedence_overridden?: Boolean;
     /**
      * Operator definition.
      */
@@ -1580,7 +2389,7 @@ export abstract class EXPR_OPERATOR extends EXPRESSION {
     /**
      * The symbol actually used in the rule, or intended to be used for serialisation. Must be a member of \`operator_def.symbols\`.
      */
-    symbol?: string;
+    symbol?: String;
 }
 
 /**
@@ -1662,13 +2471,13 @@ export class EXTERNAL_QUERY extends EXPR_VALUE {
      * Not yet standardised.
      * 
      */
-    context?: string;
+    context?: String;
     /**
      * Identifier of query in the external context, e.g. “date_of_birth”.
      * Not yet standardised.
      * 
      */
-    query_id?: string;
+    query_id?: String;
     /**
      * Optional arguments to query.
      * Not yet standardised.
@@ -1688,7 +2497,15 @@ export class STATEMENT_SET {
     /**
      * Optional name of this rule set.
      */
-    name?: string;
+    name?: String;
+    /**
+     * Execution result of the whole rule set. Determined by the and-ing of result values of Assertions in the rule set.
+     * @returns Result value
+     */
+    execution_result(): Boolean {
+        throw new Error("Method execution_result not implemented.");
+    }
+
 }
 
 /**
@@ -1698,7 +2515,7 @@ export class VARIABLE_DECLARATION extends STATEMENT {
     /**
      * Name of the variable.
      */
-    name?: string;
+    name?: String;
     /**
      * Primitive type of the variable, enabling its use to be type-checked in expressions.
      */
@@ -1728,7 +2545,7 @@ export class EXPR_FOR_ALL extends EXPR_OPERATOR {
 /**
  * Enumeration representing operators.
  */
-export class OPERATOR_KIND {
+export class OPERATOR_KIND extends String {
 }
 
 /**
@@ -1738,7 +2555,7 @@ export abstract class EXPR_TYPE_DEF {
     /**
      * Natural language type name of this type as used in abstract rules syntax variable declarations.
      */
-    type_name?: string;
+    type_name?: String;
     /**
      * Attribute of the openEHR primitive type (or Any) corresponding to this type definition meta-type.
      */
@@ -1749,15 +2566,15 @@ export abstract class EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Boolean.
  */
 export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
-    override type_name?: string;
-    override type_anchor?: boolean = undefined;
+    override type_name?: String;
+    override type_anchor?: Boolean = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Date.
  */
 export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: Iso8601_date = undefined;
 }
 
@@ -1765,7 +2582,7 @@ export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Date_time.
  */
 export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: Iso8601_date_time = undefined;
 }
 
@@ -1773,7 +2590,7 @@ export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Duration.
  */
 export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: Iso8601_duration = undefined;
 }
 
@@ -1781,22 +2598,22 @@ export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Integer.
  */
 export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
-    override type_name?: string;
-    override type_anchor?: number = undefined;
+    override type_name?: String;
+    override type_anchor?: Integer = undefined;
 }
 
 /**
  * Rules meta-type representing the type Object_ref, which is assumed to by the type of any non-primitive reference target within a rule.
  */
 export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
 }
 
 /**
  * Rules meta-type representing the primitive type Real.
  */
 export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: number = undefined;
 }
 
@@ -1804,15 +2621,15 @@ export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type String.
  */
 export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
-    override type_name?: string;
-    override type_anchor?: string = undefined;
+    override type_name?: String;
+    override type_anchor?: String = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Terminology_code.
  */
 export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: Terminology_code = undefined;
 }
 
@@ -1820,7 +2637,7 @@ export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Time.
  */
 export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
-    override type_name?: string;
+    override type_name?: String;
     override type_anchor?: Iso8601_time = undefined;
 }
 
@@ -1828,7 +2645,7 @@ export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Uri.
  */
 export class TYPE_DEF_URI extends EXPR_TYPE_DEF {
-    override type_name?: string;
-    override type_anchor?: string = undefined;
+    override type_name?: String;
+    override type_anchor?: Uri = undefined;
 }
 

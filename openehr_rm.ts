@@ -3,7 +3,7 @@
 // Schema Revision: 1.2.0.2
 // Description: openEHR Reference Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json
-// Generated: 2025-11-11T05:27:02.986Z
+// Generated: 2025-11-11T08:25:30.898Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -19,6 +19,60 @@ type T = any;
  * The \`PATHABLE\` class defines the pathing capabilities used by nearly all classes in the openEHR reference model, mostly via inheritance of \`LOCATABLE\`. The defining characteristics of \`PATHABLE\` objects are that they can locate child objects using paths, and they know their parent object in a compositional hierarchy. The parent feature is defined as abstract in the model, and may be implemented in any way convenient.
  */
 export abstract class PATHABLE extends openehr_base.Any {
+    /**
+     * Parent of this node in a compositional hierarchy. 
+     * 
+     * @returns Result value
+     */
+    parent(): PATHABLE {
+        throw new Error("Method parent not implemented.");
+    }
+
+    /**
+     * The item at a path (relative to this item); only valid for unique paths, i.e. paths that resolve to a single item. 
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    item_at_path(a_path: openehr_base.String): openehr_base.Any {
+        throw new Error("Method item_at_path not implemented.");
+    }
+
+    /**
+     * List of items corresponding to a non-unique path.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    items_at_path(a_path: openehr_base.String): openehr_base.Any {
+        throw new Error("Method items_at_path not implemented.");
+    }
+
+    /**
+     * True if the path exists in the data with respect to the current item. 
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    path_exists(a_path: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method path_exists not implemented.");
+    }
+
+    /**
+     * True if the path corresponds to a single item in the data. 
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    path_unique(a_path: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method path_unique not implemented.");
+    }
+
+    /**
+     * The path to an item relative to the root of this archetyped structure.
+     * @param a_loc - Parameter
+     * @returns Result value
+     */
+    path_of_item(a_loc: PATHABLE): openehr_base.String {
+        throw new Error("Method path_of_item not implemented.");
+    }
+
 }
 
 /**
@@ -59,7 +113,7 @@ export abstract class LOCATABLE extends PATHABLE {
      * At an archetype root point, the value of this attribute is always the stringified form of the \`_archetype_id_\` found in the \`_archetype_details_\` object. 
      * 
      */
-    archetype_node_id?: string;
+    archetype_node_id?: openehr_base.String;
     /**
      * Optional globally unique object identifier for root points of archetyped structures. 
      */
@@ -76,6 +130,22 @@ export abstract class LOCATABLE extends PATHABLE {
      * Audit trail from non-openEHR system of original commit of information forming the content of this node, or from a conversion gateway which has synthesised this node. 
      */
     feeder_audit?: FEEDER_AUDIT;
+    /**
+     * Clinical concept of the archetype as a whole (= derived from the archetype_node_id' of the root node) 
+     * @returns Result value
+     */
+    concept(): DV_TEXT {
+        throw new Error("Method concept not implemented.");
+    }
+
+    /**
+     * True if this node is the root of an archetyped structure.
+     * @returns Result value
+     */
+    is_archetype_root(): openehr_base.Boolean {
+        throw new Error("Method is_archetype_root not implemented.");
+    }
+
 }
 
 /**
@@ -95,7 +165,7 @@ export class ARCHETYPED {
     /**
      * Version of the openEHR reference model used to create this object. Expressed in terms of the release version string, e.g.  1.0 ,  1.2.4 .
      */
-    rm_version?: string;
+    rm_version?: openehr_base.String;
 }
 
 /**
@@ -132,7 +202,7 @@ export class FEEDER_AUDIT_DETAILS {
      * Identifier of the system which handled the information item. This is the IT system owned by the organisation legally responsible for handling the data, and at which the data were previously created or passed by an earlier system.
      * 
      */
-    system_id?: string;
+    system_id?: openehr_base.String;
     /**
      * Identifier of the particular site/facility within an organisation which handled the item. For computability, this identifier needs to be e.g. a PKI identifier which can be included in the identifier list of the \`PARTY_IDENTIFIED\` object. 
      */
@@ -152,7 +222,7 @@ export class FEEDER_AUDIT_DETAILS {
     /**
      * Any identifier used in the system such as  "interim" ,  "final" , or numeric versions if available. 
      */
-    version_id?: string;
+    version_id?: openehr_base.String;
     /**
      * Optional attribute to carry any custom meta-data. May be archetyped.
      */
@@ -175,6 +245,161 @@ export class VERSIONED_OBJECT<T> {
      * Time of initial creation of this versioned object. 
      */
     time_created?: DV_DATE_TIME;
+    /**
+     * Return the total number of versions in this object.
+     * @returns Result value
+     */
+    version_count(): openehr_base.Integer {
+        throw new Error("Method version_count not implemented.");
+    }
+
+    /**
+     * Return a list of ids of all versions in this object. 
+     * @returns Result value
+     */
+    all_version_ids(): openehr_base.OBJECT_VERSION_ID {
+        throw new Error("Method all_version_ids not implemented.");
+    }
+
+    /**
+     * Return a list of all versions in this object. 
+     * @returns Result value
+     */
+    all_versions(): undefined {
+        throw new Error("Method all_versions not implemented.");
+    }
+
+    /**
+     * True if a version for time  \`_a_time_\` exists. 
+     * @param a_time - Parameter
+     * @returns Result value
+     */
+    has_version_at_time(a_time: DV_DATE_TIME): openehr_base.Boolean {
+        throw new Error("Method has_version_at_time not implemented.");
+    }
+
+    /**
+     * True if a version with \`_a_version_uid_\` exists. 
+     * @param a_version_uid - Parameter
+     * @returns Result value
+     */
+    has_version_id(a_version_uid: openehr_base.OBJECT_VERSION_ID): openehr_base.Boolean {
+        throw new Error("Method has_version_id not implemented.");
+    }
+
+    /**
+     * Return the version with \`_uid_\` =  \`_a_version_uid_\`. 
+     * 
+     * @param a_version_uid - Parameter
+     * @returns Result value
+     */
+    version_with_id(a_version_uid: openehr_base.OBJECT_VERSION_ID): VERSION {
+        throw new Error("Method version_with_id not implemented.");
+    }
+
+    /**
+     * True if version with \`_a_version_uid_\` is an \`ORIGINAL_VERSION\`. 
+     * @param a_version_uid - Parameter
+     * @returns Result value
+     */
+    is_original_version(a_version_uid: openehr_base.OBJECT_VERSION_ID): openehr_base.Boolean {
+        throw new Error("Method is_original_version not implemented.");
+    }
+
+    /**
+     * Return the version for time  \`_a_time_\`. 
+     * @param a_time - Parameter
+     * @returns Result value
+     */
+    version_at_time(a_time: DV_DATE_TIME): VERSION {
+        throw new Error("Method version_at_time not implemented.");
+    }
+
+    /**
+     * History of all audits and attestations in this versioned repository.
+     * @returns Result value
+     */
+    revision_history(): REVISION_HISTORY {
+        throw new Error("Method revision_history not implemented.");
+    }
+
+    /**
+     * Return the most recently added version (i.e. on trunk or any branch). 
+     * @returns Result value
+     */
+    latest_version(): VERSION {
+        throw new Error("Method latest_version not implemented.");
+    }
+
+    /**
+     * Return the most recently added trunk version. 
+     * @returns Result value
+     */
+    latest_trunk_version(): VERSION {
+        throw new Error("Method latest_trunk_version not implemented.");
+    }
+
+    /**
+     * Return the lifecycle state from the latest trunk version. Useful for determining if the version container is logically deleted. 
+     * @returns Result value
+     */
+    trunk_lifecycle_state(): DV_CODED_TEXT {
+        throw new Error("Method trunk_lifecycle_state not implemented.");
+    }
+
+    /**
+     * Add a new original version. 
+     * @param a_contribution - Parameter
+     * @param a_new_version_uid - Parameter
+     * @param a_preceding_version_id - Parameter
+     * @param an_audit - Parameter
+     * @param a_lifecycle_state - Parameter
+     * @param a_data - Parameter
+     * @param signing_key - Parameter
+     * @returns Result value
+     */
+    commit_original_version(a_contribution: openehr_base.OBJECT_REF, a_new_version_uid: openehr_base.OBJECT_VERSION_ID, a_preceding_version_id: openehr_base.OBJECT_VERSION_ID, an_audit: AUDIT_DETAILS, a_lifecycle_state: DV_CODED_TEXT, a_data: T, signing_key: openehr_base.String): void {
+        throw new Error("Method commit_original_version not implemented.");
+    }
+
+    /**
+     * Add a new original merged version. This commit function adds a parameter containing the ids of other versions merged into the current one. 
+     * @param a_contribution - Parameter
+     * @param a_new_version_uid - Parameter
+     * @param a_preceding_version_id - Parameter
+     * @param an_audit - Parameter
+     * @param a_lifecycle_state - Parameter
+     * @param a_data - Parameter
+     * @param an_other_input_uids - Parameter
+     * @param signing_key - Parameter
+     * @returns Result value
+     */
+    commit_original_merged_version(a_contribution: openehr_base.OBJECT_REF, a_new_version_uid: openehr_base.OBJECT_VERSION_ID, a_preceding_version_id: openehr_base.OBJECT_VERSION_ID, an_audit: AUDIT_DETAILS, a_lifecycle_state: DV_CODED_TEXT, a_data: T, an_other_input_uids: undefined, signing_key: openehr_base.String): void {
+        throw new Error("Method commit_original_merged_version not implemented.");
+    }
+
+    /**
+     * Add a new imported version. Details of version id etc come from the \`ORIGINAL_VERSION\` being committed. 
+     * @param a_contribution - Parameter
+     * @param an_audit - Parameter
+     * @param a_version - Parameter
+     * @returns Result value
+     */
+    commit_imported_version(a_contribution: openehr_base.OBJECT_REF, an_audit: AUDIT_DETAILS, a_version: ORIGINAL_VERSION): void {
+        throw new Error("Method commit_imported_version not implemented.");
+    }
+
+    /**
+     * Add a new attestation to a specified original version. Attestations can only be added to Original versions. 
+     * @param an_attestation - Parameter
+     * @param a_ver_id - Parameter
+     * @param signing_key - Parameter
+     * @returns Result value
+     */
+    commit_attestation(an_attestation: ATTESTATION, a_ver_id: openehr_base.OBJECT_VERSION_ID, signing_key: openehr_base.String): void {
+        throw new Error("Method commit_attestation not implemented.");
+    }
+
 }
 
 /**
@@ -206,11 +431,59 @@ export abstract class VERSION<T> {
     /**
      * OpenPGP digital signature or digest of content committed in this Version. 
      */
-    signature?: string;
+    signature?: openehr_base.String;
     /**
      * Audit trail corresponding to the committal of this version to the \`VERSIONED_OBJECT\`.
      */
     commit_audit?: AUDIT_DETAILS;
+    /**
+     * Unique identifier of this \`VERSION\`, in the form of an \`{object_id, a version_tree_id, creating_system_id}\` triple, where the \`_object_id_\` has the same value as the containing \`VERSIONED_OBJECT _uid_\`.
+     * @returns Result value
+     */
+    abstract uid(): openehr_base.OBJECT_VERSION_ID;
+
+    /**
+     * Unique identifier of the version of which this version is a modification; Void if this is the first version.
+     * @returns Result value
+     */
+    abstract preceding_version_uid(): openehr_base.OBJECT_VERSION_ID;
+
+    /**
+     * The data of this Version.
+     * @returns Result value
+     */
+    abstract data(): T;
+
+    /**
+     * Lifecycle state of this version; coded by openEHR vocabulary \`version lifecycle state\`.
+     * @returns Result value
+     */
+    abstract lifecycle_state(): DV_CODED_TEXT;
+
+    /**
+     * A canonical serial form of this Version, suitable for generating reliable hashes and signatures.
+     * @returns Result value
+     */
+    canonical_form(): openehr_base.String {
+        throw new Error("Method canonical_form not implemented.");
+    }
+
+    /**
+     * Copy of the owning \`VERSIONED_OBJECT._uid_\` value; extracted from the local \`_uid_\` property's \`_object_id_\`.
+     * @returns Result value
+     */
+    owner_id(): openehr_base.HIER_OBJECT_ID {
+        throw new Error("Method owner_id not implemented.");
+    }
+
+    /**
+     * True if this Version represents a branch. Derived from \`_uid_\` attribute. 
+     * @returns Result value
+     */
+    is_branch(): openehr_base.Boolean {
+        throw new Error("Method is_branch not implemented.");
+    }
+
 }
 
 /**
@@ -221,6 +494,39 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
      * The \`ORIGINAL_VERSION\` object that was imported. 
      */
     item?: ORIGINAL_VERSION;
+    /**
+     * Computed version of inheritance precursor, derived as \`_item.uid_\`. 
+     * @returns Result value
+     */
+    uid(): openehr_base.OBJECT_VERSION_ID {
+        throw new Error("Method uid not implemented.");
+    }
+
+    /**
+     * Computed version of inheritance precursor, derived as \`_item.preceding_version_uid_\`. 
+     * @returns Result value
+     */
+    preceding_version_uid(): openehr_base.OBJECT_VERSION_ID {
+        throw new Error("Method preceding_version_uid not implemented.");
+    }
+
+    /**
+     * Lifecycle state of the content item in wrapped \`ORIGINAL_VERSION\`, derived as \`_item.lifecycle_state_\`; coded by openEHR vocabulary \`version lifecycle state\`.
+     * @returns Result value
+     */
+    lifecycle_state(): DV_CODED_TEXT {
+        throw new Error("Method lifecycle_state not implemented.");
+    }
+
+    /**
+     * Original content of this Version. 
+     * 
+     * @returns Result value
+     */
+    data(): T {
+        throw new Error("Method data not implemented.");
+    }
+
 }
 
 /**
@@ -251,6 +557,14 @@ export class ORIGINAL_VERSION<T> extends VERSION<T> {
      * Data content of this Version.
      */
     data?: T;
+    /**
+     * True if this Version was created from more than just the preceding (checked out) version.
+     * @returns Result value
+     */
+    is_merged(): openehr_base.Boolean {
+        throw new Error("Method is_merged not implemented.");
+    }
+
 }
 
 /**
@@ -274,7 +588,7 @@ export class AUDIT_DETAILS {
     /**
      * Identifier of the logical EHR system where the change was committed. This is almost always owned by the organisation legally responsible for the EHR, and is distinct from any application, or any hosting infrastructure.
      */
-    system_id?: string;
+    system_id?: openehr_base.String;
     /**
      * Time of committal of the item. 
      */
@@ -309,7 +623,7 @@ export class ATTESTATION extends AUDIT_DETAILS {
     /**
      * Proof of attestation. 
      */
-    proof?: string;
+    proof?: openehr_base.String;
     /**
      * Items attested, expressed as fully qualified runtime paths to the items in question. Although not recommended, these may include fine-grained items which have been attested in some other system. Otherwise it is assumed to be for the entire VERSION with which it is associated. 
      */
@@ -321,7 +635,7 @@ export class ATTESTATION extends AUDIT_DETAILS {
     /**
      * True if this attestation is outstanding; False means it has been completed.
      */
-    is_pending?: boolean;
+    is_pending?: openehr_base.Boolean;
 }
 
 /**
@@ -369,7 +683,7 @@ export class PARTY_IDENTIFIED extends PARTY_PROXY {
     /**
      * Optional human-readable name (in String form).
      */
-    name?: string;
+    name?: openehr_base.String;
     /**
      * One or more formal identifiers (possibly computable). 
      * 
@@ -401,6 +715,22 @@ export class REVISION_HISTORY {
      * The items in this history in most-recent-last order. 
      */
     items?: undefined;
+    /**
+     * The version id of the most recent item, as a String.
+     * @returns Result value
+     */
+    most_recent_version(): openehr_base.String {
+        throw new Error("Method most_recent_version not implemented.");
+    }
+
+    /**
+     * The commit date/time of the most recent item, as a String. 
+     * @returns Result value
+     */
+    most_recent_version_time_committed(): openehr_base.String {
+        throw new Error("Method most_recent_version_time_committed not implemented.");
+    }
+
 }
 
 /**
@@ -442,7 +772,7 @@ export abstract class AUTHORED_RESOURCE {
     /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
      */
-    is_controlled?: boolean;
+    is_controlled?: openehr_base.Boolean;
     /**
      * List of details for each natural-language translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
      */
@@ -455,6 +785,23 @@ export abstract class AUTHORED_RESOURCE {
      * The revision history of the resource. Only required if \`_is_controlled_ = True\` (avoids large revision histories for informal or private editing situations). 
      */
     revision_history?: REVISION_HISTORY;
+    /**
+     * Most recent revision in \`_revision_history_\` if \`_is_controlled_\` else  (uncontrolled) . 
+     * @returns Result value
+     */
+    current_revision(): openehr_base.String {
+        throw new Error("Method current_revision not implemented.");
+    }
+
+    /**
+     * Total list of languages available in this resource, derived from \`_original_language_\` and \`_translations_\`.
+     * 
+     * @returns Result value
+     */
+    languages_available(): openehr_base.String {
+        throw new Error("Method languages_available not implemented.");
+    }
+
 }
 
 /**
@@ -472,11 +819,11 @@ export class RESOURCE_DESCRIPTION {
     /**
      * Lifecycle state of the resource, typically including states such as: \`initial | submitted | experimental | awaiting_approval | approved | superseded | obsolete\`.
      */
-    lifecycle_state?: string;
+    lifecycle_state?: openehr_base.String;
     /**
      * URI of package to which this resource belongs.
      */
-    resource_package_uri?: string;
+    resource_package_uri?: openehr_base.String;
     /**
      * Additional non language-senstive resource meta-data, as a list of name/value pairs. 
      */
@@ -506,7 +853,7 @@ export class TRANSLATION_DETAILS {
     /**
      * Accreditation of translator, usually a national translator's registration or association membership id.
      */
-    accreditaton?: string;
+    accreditaton?: openehr_base.String;
     /**
      * Any other meta-data.
      */
@@ -524,7 +871,7 @@ export class RESOURCE_DESCRIPTION_ITEM {
     /**
      * Purpose of the resource.
      */
-    purpose?: string;
+    purpose?: openehr_base.String;
     /**
      * Keywords which characterise this resource, used e.g. for indexing and searching. 
      */
@@ -533,16 +880,16 @@ export class RESOURCE_DESCRIPTION_ITEM {
      * Description of the uses of the resource, i.e. contexts in which it could be used. 
      * 
      */
-    use?: string;
+    use?: openehr_base.String;
     /**
      * Description of any misuses of the resource, i.e. contexts in which it should not be used.
      */
-    misuse?: string;
+    misuse?: openehr_base.String;
     /**
      * Optional copyright statement for the resource as a knowledge resource. 
      * 
      */
-    copyright?: string;
+    copyright?: openehr_base.String;
     /**
      * URIs of original clinical document(s) or description of which resource is a formalisation, in the language of this description item; keyed by meaning. 
      */
@@ -560,11 +907,11 @@ export class ITEM_TAG {
     /**
      * The tag key. May not be empty or contain leading or trailing whitespace.
      */
-    key?: string;
+    key?: openehr_base.String;
     /**
      * The value. If set, may not be empty.
      */
-    value?: string;
+    value?: openehr_base.String;
     /**
      * Identifier of target, which may be a \`VERSIONED_OBJECT<T>\` or a \`VERSION<T>\`.
      */
@@ -572,7 +919,7 @@ export class ITEM_TAG {
     /**
      * Optional archetype (i.e. AQL) or RM path within \`_target_\`, used to tag a fine-grained element.
      */
-    target_path?: string;
+    target_path?: openehr_base.String;
     /**
      * Identifier of owner object, such as EHR.
      */
@@ -583,6 +930,14 @@ export class ITEM_TAG {
  * Abstract parent class of all data structure types. Includes the \`_as_hierarchy_\` function which can generate the equivalent CEN EN13606 single hierarchy for each subtype's physical representation. For example, the physical representation of an \`ITEM_LIST\` is \`List<ELEMENT>\`; its implementation of \`_as_hierarchy_\` will generate a \`CLUSTER\` containing the set of \`ELEMENT\` nodes from the list. 
  */
 export abstract class DATA_STRUCTURE extends LOCATABLE {
+    /**
+     * Hierarchical equivalent of the physical representation of each subtype, compatible with CEN EN 13606 structures. 
+     * @returns Result value
+     */
+    as_hierarchy(): ITEM {
+        throw new Error("Method as_hierarchy not implemented.");
+    }
+
 }
 
 /**
@@ -599,6 +954,33 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
      * The items comprising the \`ITEM_TREE\`. Can include 0 or more \`CLUSTERs\` and/or 0 or more individual \`ELEMENTs\`.
      */
     items?: undefined;
+    /**
+     * True if path  a_path' is a valid leaf path.
+     * 
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    has_element_path(a_path: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_element_path not implemented.");
+    }
+
+    /**
+     * Return the leaf element at the path  a_path'.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    element_at_path(a_path: openehr_base.String): ELEMENT {
+        throw new Error("Method element_at_path not implemented.");
+    }
+
+    /**
+     * Generate a CEN EN13606-compatible hierarchy, which is the same as the tree's physical representation.
+     * @returns Result value
+     */
+    as_hierarchy(): CLUSTER {
+        throw new Error("Method as_hierarchy not implemented.");
+    }
+
 }
 
 /**
@@ -606,6 +988,14 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
  */
 export class ITEM_SINGLE extends ITEM_STRUCTURE {
     item?: ELEMENT;
+    /**
+     * Generate a CEN EN13606-compatible hierarchy consisting of a single \`ELEMENT\`.
+     * @returns Result value
+     */
+    as_hierarchy(): ELEMENT {
+        throw new Error("Method as_hierarchy not implemented.");
+    }
+
 }
 
 /**
@@ -622,6 +1012,110 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
      * Physical representation of the table as a list of \`CLUSTERs\`, each containing the data of one row of the table. 
      */
     rows?: undefined;
+    /**
+     * Number of rows in the table.
+     * @returns Result value
+     */
+    row_count(): openehr_base.Integer {
+        throw new Error("Method row_count not implemented.");
+    }
+
+    /**
+     * Return number of columns in the table.
+     * @returns Result value
+     */
+    column_count(): openehr_base.Integer {
+        throw new Error("Method column_count not implemented.");
+    }
+
+    /**
+     * Return set of row names.
+     * @returns Result value
+     */
+    row_names(): DV_TEXT {
+        throw new Error("Method row_names not implemented.");
+    }
+
+    /**
+     * Return set of column names.
+     * @returns Result value
+     */
+    column_names(): DV_TEXT {
+        throw new Error("Method column_names not implemented.");
+    }
+
+    /**
+     * Return i-th row.
+     * @param i - Parameter
+     * @returns Result value
+     */
+    ith_row(i: openehr_base.Integer): CLUSTER {
+        throw new Error("Method ith_row not implemented.");
+    }
+
+    /**
+     * Return \`True\` if there is a column with name = \`_a_key_\`.
+     * @param a_key - Parameter
+     * @returns Result value
+     */
+    has_row_with_name(a_key: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_row_with_name not implemented.");
+    }
+
+    /**
+     * Return \`True\` if there is a column with name = \`_a_key_\`.
+     * @param a_key - Parameter
+     * @returns Result value
+     */
+    has_column_with_name(a_key: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_column_with_name not implemented.");
+    }
+
+    /**
+     * Return row with name = \`_a_key_\`.
+     * @param a_key - Parameter
+     * @returns Result value
+     */
+    named_row(a_key: openehr_base.String): CLUSTER {
+        throw new Error("Method named_row not implemented.");
+    }
+
+    /**
+     * Return \`True\` if there is a row with key \`_keys_\`.
+     * @param keys - Parameter
+     * @returns Result value
+     */
+    has_row_with_key(keys: undefined): openehr_base.Boolean {
+        throw new Error("Method has_row_with_key not implemented.");
+    }
+
+    /**
+     * Return rows with particular keys.
+     * @param keys - Parameter
+     * @returns Result value
+     */
+    row_with_key(keys: undefined): CLUSTER {
+        throw new Error("Method row_with_key not implemented.");
+    }
+
+    /**
+     * Return cell at a particular location.
+     * @param i - Parameter
+     * @param j - Parameter
+     * @returns Result value
+     */
+    element_at_cell_ij(i: openehr_base.Integer, j: openehr_base.Integer): ELEMENT {
+        throw new Error("Method element_at_cell_ij not implemented.");
+    }
+
+    /**
+     * Generate a CEN EN13606-compatible hierarchy consisting of a single \`CLUSTER\` containing the \`CLUSTERs\` representing the columns of this table. 
+     * @returns Result value
+     */
+    as_hierarchy(): CLUSTER {
+        throw new Error("Method as_hierarchy not implemented.");
+    }
+
 }
 
 /**
@@ -636,6 +1130,48 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
      * Physical representation of the list. 
      */
     items?: undefined;
+    /**
+     * Count of all items.
+     * @returns Result value
+     */
+    item_count(): openehr_base.Integer {
+        throw new Error("Method item_count not implemented.");
+    }
+
+    /**
+     * Retrieve the names of all items.
+     * @returns Result value
+     */
+    names(): DV_TEXT {
+        throw new Error("Method names not implemented.");
+    }
+
+    /**
+     * Retrieve the item with name ‘a_name’.
+     * @param a_name - Parameter
+     * @returns Result value
+     */
+    named_item(a_name: openehr_base.String): ELEMENT {
+        throw new Error("Method named_item not implemented.");
+    }
+
+    /**
+     * Retrieve the i-th item with name.
+     * @param i - Parameter
+     * @returns Result value
+     */
+    ith_item(i: openehr_base.Integer): ELEMENT {
+        throw new Error("Method ith_item not implemented.");
+    }
+
+    /**
+     * Generate a CEN EN13606-compatible hierarchy consisting of a single \`CLUSTER\` containing the \`ELEMENTs\` of this list.
+     * @returns Result value
+     */
+    as_hierarchy(): CLUSTER {
+        throw new Error("Method as_hierarchy not implemented.");
+    }
+
 }
 
 /**
@@ -654,6 +1190,14 @@ export abstract class EVENT<T extends ITEM_STRUCTURE> extends LOCATABLE {
      * The data of this event.
      */
     data?: T;
+    /**
+     * Offset of this event from origin, computed as time.diff(parent.origin).
+     * @returns Result value
+     */
+    offset(): DV_DURATION {
+        throw new Error("Method offset not implemented.");
+    }
+
 }
 
 /**
@@ -673,11 +1217,19 @@ export class INTERVAL_EVENT<T> extends EVENT<T> {
     /**
      * Optional count of original samples to which this event corresponds.
      */
-    sample_count?: number;
+    sample_count?: openehr_base.Integer;
     /**
      * Mathematical function of the data of this event, e.g.  maximum, mean etc. Coded using https://github.com/openEHR/terminology/blob/master/openEHR_RM/en/openehr_terminology.xml[openEHR vocabulary \`event math function\`]. Default value \`640|actual|\`, meaning 'actual value'.
      */
     math_function?: DV_CODED_TEXT;
+    /**
+     * Start time of the interval of this event.
+     * @returns Result value
+     */
+    interval_start_time(): DV_DATE_TIME {
+        throw new Error("Method interval_start_time not implemented.");
+    }
+
 }
 
 /**
@@ -706,6 +1258,15 @@ export class HISTORY<T extends ITEM_STRUCTURE> extends DATA_STRUCTURE {
      * The events in the series. This attribute is of a generic type whose parameter must be a descendant of \`ITEM_SUTRUCTURE\`.
      */
     events?: undefined;
+    /**
+     * Indicates whether history is periodic. 
+     * 
+     * @returns Result value
+     */
+    is_periodic(): openehr_base.Boolean {
+        throw new Error("Method is_periodic not implemented.");
+    }
+
 }
 
 /**
@@ -740,6 +1301,14 @@ export class ELEMENT extends ITEM {
      * Optional specific reason for null value; if set, \`_null_flavour_\` must be set. Null reason may apply only to a minority of clinical data, commonly needed in reporting contexts.
      */
     null_reason?: DV_TEXT;
+    /**
+     * True if value logically not known, e.g. if indeterminate, not asked etc. 
+     * @returns Result value
+     */
+    is_null(): openehr_base.Boolean {
+        throw new Error("Method is_null not implemented.");
+    }
+
 }
 
 /**
@@ -758,7 +1327,7 @@ export class DV_BOOLEAN extends DATA_VALUE {
     /**
      * Boolean value of this item. Actual values may be language or implementation dependent.
      */
-    value?: boolean;
+    value?: openehr_base.Boolean;
 }
 
 /**
@@ -775,7 +1344,7 @@ export class DV_STATE extends DATA_VALUE {
     /**
      * Indicates whether this state is a terminal state, such as  "aborted",  "completed" etc. from which no further transitions are possible.
      */
-    is_terminal?: boolean;
+    is_terminal?: openehr_base.Boolean;
 }
 
 /**
@@ -789,19 +1358,19 @@ export class DV_IDENTIFIER extends DATA_VALUE {
     /**
      * Optional authority which issues the kind of id used in the id field of this object. 
      */
-    issuer?: string;
+    issuer?: openehr_base.String;
     /**
      * Optional organisation that assigned the id to the item being identified.
      */
-    assigner?: string;
+    assigner?: openehr_base.String;
     /**
      * The identifier value. Often structured, according to the definition of the issuing authority's rules. 
      */
-    id?: string;
+    id?: openehr_base.String;
     /**
      * Optional identifier type, such as  prescription , or  Social Security Number . One day a controlled vocabulary might be possible for this.
      */
-    type?: string;
+    type?: openehr_base.String;
 }
 
 /**
@@ -825,7 +1394,7 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     /**
      * Text to display in lieu of multimedia display/replay.
      */
-    alternate_text?: string;
+    alternate_text?: openehr_base.String;
     /**
      * URI reference to electronic information stored outside the record as a file, database entry etc, if supplied as a reference. 
      * 
@@ -859,7 +1428,39 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     /**
      * Original size in bytes of unencoded encapsulated data. I.e. encodings such as base64, hexadecimal etc do not change the value of this attribute.
      */
-    size?: number;
+    size?: openehr_base.Integer;
+    /**
+     * Computed from the value of the \`_uri_\` attribute: True if  the data is stored externally to the record, as indicated by \`_uri_\`. A copy may also be stored internally, in which case \`_is_expanded_\` is also true.
+     * @returns Result value
+     */
+    is_external(): openehr_base.Boolean {
+        throw new Error("Method is_external not implemented.");
+    }
+
+    /**
+     * Computed from the value of the data attribute. True if  the  data is stored  in  expanded  form, ie within the EHR itself. 
+     * @returns Result value
+     */
+    is_inline(): openehr_base.Boolean {
+        throw new Error("Method is_inline not implemented.");
+    }
+
+    /**
+     * Computed from the value of the \`_compression_algorithm_\` attribute: True if  the  data is stored in compressed form. 
+     * @returns Result value
+     */
+    is_compressed(): openehr_base.Boolean {
+        throw new Error("Method is_compressed not implemented.");
+    }
+
+    /**
+     * Computed from the value of the \`_integrity_check_algorithm_\` attribute: True if an integrity check has been computed. 
+     * @returns Result value
+     */
+    has_integrity_check(): openehr_base.Boolean {
+        throw new Error("Method has_integrity_check not implemented.");
+    }
+
 }
 
 /**
@@ -869,11 +1470,19 @@ export class DV_PARSABLE extends DV_ENCAPSULATED {
     /**
      * The string, which may validly be empty in some syntaxes.
      */
-    value?: string;
+    value?: openehr_base.String;
     /**
      * Name of the formalism, e.g.  GLIF 1.0 ,  Proforma  etc.
      */
-    formalism?: string;
+    formalism?: openehr_base.String;
+    /**
+     * Size in bytes of value.
+     * @returns Result value
+     */
+    size(): openehr_base.Integer {
+        throw new Error("Method size not implemented.");
+    }
+
 }
 
 /**
@@ -908,7 +1517,7 @@ export class DV_TEXT extends DATA_VALUE {
      * Displayable rendition of the item, regardless of its underlying structure. For \`DV_CODED_TEXT\`, this is the rubric of the complete term as provided by the terminology service.
      * 
      */
-    value?: string;
+    value?: openehr_base.String;
     /**
      * DEPRECATED: this field is deprecated; use markdown link/text in the \`_value_\` attribute, and \`"markdown"\` as the value of the \`_formatting_\` field.
      * 
@@ -924,7 +1533,7 @@ export class DV_TEXT extends DATA_VALUE {
      * 
      * DEPRECATED usage: contains a string of the form \`"name:value; name:value..."\` , e.g. \`"font-weight : bold; font-family : Arial; font-size : 12pt;"\`. Values taken from W3C CSS2 properties lists for background and font . 
      */
-    formatting?: string;
+    formatting?: openehr_base.String;
     /**
      * Terms from other terminologies most closely matching this term, typically used where the originator (e.g. pathology lab) of information uses a local terminology but also supplies one or more equivalents from well known terminologies (e.g. LOINC). 
      * 
@@ -983,6 +1592,47 @@ export class TERM_MAPPING {
      * The target term of the mapping. 
      */
     target?: CODE_PHRASE;
+    /**
+     * The mapping is to a narrower term.
+     * @returns Result value
+     */
+    narrower(): openehr_base.Boolean {
+        throw new Error("Method narrower not implemented.");
+    }
+
+    /**
+     * The mapping is to a broader term.
+     * @returns Result value
+     */
+    broader(): openehr_base.Boolean {
+        throw new Error("Method broader not implemented.");
+    }
+
+    /**
+     * The mapping is to an equivalent term.
+     * @returns Result value
+     */
+    equivalent(): openehr_base.Boolean {
+        throw new Error("Method equivalent not implemented.");
+    }
+
+    /**
+     * The kind of mapping is unknown.
+     * @returns Result value
+     */
+    unknown(): openehr_base.Boolean {
+        throw new Error("Method unknown not implemented.");
+    }
+
+    /**
+     * True if match valid.
+     * @param c - Parameter
+     * @returns Result value
+     */
+    is_valid_match_code(c: string): openehr_base.Boolean {
+        throw new Error("Method is_valid_match_code not implemented.");
+    }
+
 }
 
 /**
@@ -996,11 +1646,11 @@ export class CODE_PHRASE {
     /**
      * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context. 
      */
-    code_string?: string;
+    code_string?: openehr_base.String;
     /**
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
      */
-    preferred_term?: string;
+    preferred_term?: openehr_base.String;
 }
 
 /**
@@ -1022,6 +1672,37 @@ export abstract class DV_ORDERED extends DATA_VALUE {
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
     other_reference_ranges?: undefined;
+    /**
+     * Test if two instances are strictly comparable. Effected in descendants.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean;
+
+    /**
+     * True if this quantity has no reference ranges.
+     * @returns Result value
+     */
+    is_simple(): openehr_base.Boolean {
+        throw new Error("Method is_simple not implemented.");
+    }
+
+    /**
+     * Value is in the normal range, determined by comparison of the value to \`_normal_range_\` if present, or by the \`_normal_status_\` marker if present. 
+     * 
+     * @returns Result value
+     */
+    is_normal(): openehr_base.Boolean {
+        throw new Error("Method is_normal not implemented.");
+    }
+
+    /**
+     * True if this Ordered object is less than \`_other_\`. Redefined in descendants.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract less_than(other: DV_ORDERED): openehr_base.Boolean;
+
 }
 
 /**
@@ -1046,6 +1727,16 @@ export class REFERENCE_RANGE<T extends DV_ORDERED> {
      * The data range for this meaning, e.g. critical  etc.
      */
     range?: DV_INTERVAL;
+    /**
+     * Indicates if the value  \`_v_\` is inside the range.
+     * 
+     * @param v - Parameter
+     * @returns Result value
+     */
+    is_in_range(v: DV_ORDERED): openehr_base.Boolean {
+        throw new Error("Method is_in_range not implemented.");
+    }
+
 }
 
 /**
@@ -1065,17 +1756,51 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
      * If not present, assumed meaning is  \`"="\` . 
      * 
      */
-    magnitude_status?: string;
+    magnitude_status?: openehr_base.String;
     /**
      * Accuracy of measurement. Exact form of expression determined in descendants.
      */
     accuracy?: openehr_base.Any;
+    /**
+     * Test whether a string value is one of the valid values for the magnitude_status attribute. 
+     * @returns Result value
+     */
+    valid_magnitude_status(): openehr_base.Boolean {
+        throw new Error("Method valid_magnitude_status not implemented.");
+    }
+
+    abstract magnitude(): openehr_base.Ordered_Numeric;
+
+    /**
+     * True if accuracy is not known, e.g. due to not being recorded or discernable.
+     * @returns Result value
+     */
+    accuracy_unknown(): openehr_base.Boolean {
+        throw new Error("Method accuracy_unknown not implemented.");
+    }
+
+    /**
+     * Return True if this \`DV_QUANTIFIED\` is considered equal to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract is_equal(other: DV_QUANTIFIED): openehr_base.Boolean;
+
+    /**
+     * True if this Quantified object is less than \`_other_\`, based on comparison of \`_magnitude_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
 }
 
 /**
  * Class of enumeration constants defining types of proportion for the \`DV_PROPORTION\` class. 
  */
-export class PROPORTION_KIND {
+export class PROPORTION_KIND extends openehr_base.Integer {
 }
 
 /**
@@ -1086,13 +1811,83 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
     /**
      * If \`True\`, indicates that when this object was created, \`_accuracy_\` was recorded as a percent value; if \`False\`, as an absolute quantity value.
      */
-    accuracy_is_percent?: boolean;
+    accuracy_is_percent?: openehr_base.Boolean;
     /**
      * Accuracy of measurement, expressed either as a half-range percent value (\`_accuracy_is_percent_\` = \`True\`) or a half-range quantity. A value of \`0\` means that accuracy is 100%, i.e. no error.
      * 
      * A value of \`_unknown_accuracy_value_\` means that accuracy was not recorded.
      */
     override accuracy?: number = undefined;
+    /**
+     * Test whether a number is a valid percentage, i.e. between 0 and 100. 
+     * @param number - Parameter
+     * @returns Result value
+     */
+    valid_percentage(number: openehr_base.Ordered_Numeric): openehr_base.Boolean {
+        throw new Error("Method valid_percentage not implemented.");
+    }
+
+    /**
+     * Sum of this amount and another. The value of accuracy in the result is either:
+     * 
+     * * the sum of the accuracies of the operands, if both present, or;
+     * * both operand accuracies are unknown_accuracy_value.
+     * 
+     * If the accuracy value is a percentage in one operand and not in the other, the form in the result is that of the larger operand.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    add(other: DV_AMOUNT): DV_AMOUNT {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Difference of this amount and another. The value of \`_accuracy_\` in the result is either:
+     * 
+     * * the sum of the accuracies of the operands, if both present, or;
+     * * unknown, if either or both operand accuracies are unknown.
+     * 
+     * If the \`_accuracy_\` value is a percentage in one operand and not in the other, the form in the result is that of the larger operand.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    subtract(other: DV_AMOUNT): DV_AMOUNT {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Return True if this \`DV_AMOUNT\` is considered equal to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract is_equal(other: DV_AMOUNT): openehr_base.Boolean;
+
+    /**
+     * Product of this Amount and \`_factor_\`.
+     * @param factor - Parameter
+     * @returns Result value
+     */
+    multiply(factor: number): DV_AMOUNT {
+        throw new Error("Method multiply not implemented.");
+    }
+
+    /**
+     * Negated version of current object, such as used for representing a difference, e.g. a weight loss.
+     * @returns Result value
+     */
+    negative(): DV_AMOUNT {
+        throw new Error("Method negative not implemented.");
+    }
+
+    /**
+     * True if this object is less than \`_other_\`. Based on comparison of \`_magnitude_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_AMOUNT): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
 }
 
 /**
@@ -1114,11 +1909,11 @@ export class DV_PROPORTION extends PROPORTION_KIND {
     /**
      * Indicates semantic type of proportion, including percent, unitary etc.
      */
-    type?: number;
+    type?: openehr_base.Integer;
     /**
      * Precision  to  which  the  \`_numerator_\` and \`_denominator_\` values of  the  proportion are expressed, in terms of number  of decimal places. The value 0 implies an integral quantity. The value -1 implies no limit, i.e. any number of decimal places. 
      */
-    precision?: number;
+    precision?: openehr_base.Integer;
     /**
      * Optional normal range. 
      */
@@ -1127,6 +1922,76 @@ export class DV_PROPORTION extends PROPORTION_KIND {
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
     override other_reference_ranges?: undefined;
+    /**
+     * Effective magnitude represented by ratio.
+     * @returns Result value
+     */
+    magnitude(): number {
+        throw new Error("Method magnitude not implemented.");
+    }
+
+    /**
+     * True if the \`_numerator_\` and \`_denominator_\` values are integers, i.e. if \`_precision_\` is 0.
+     * @returns Result value
+     */
+    is_integral(): openehr_base.Boolean {
+        throw new Error("Method is_integral not implemented.");
+    }
+
+    /**
+     * Sum of two strictly comparable proportions.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    add(other: DV_PROPORTION): DV_PROPORTION {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Difference between two strictly comparable proportions.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    subtract(other: DV_PROPORTION): DV_PROPORTION {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Return True if this \`DV_AMOUNT\` is considered equal to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_equal(other: DV_PROPORTION): openehr_base.Boolean {
+        throw new Error("Method is_equal not implemented.");
+    }
+
+    /**
+     * Product of this Proportion and \`_factor_\`.
+     * @param factor - Parameter
+     * @returns Result value
+     */
+    multiply(factor: number): DV_PROPORTION {
+        throw new Error("Method multiply not implemented.");
+    }
+
+    /**
+     * True if this Proportion is less than  \`_other_\`. Only valid if \`_is_strictly_comparable_to()_\` is True.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_PROPORTION): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * Return True if the \`_type_\` of this proportion is the same as the \`_type_\` of \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1143,7 +2008,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * Precision to which the value of the quantity is expressed, in terms of number of decimal places. The value 0 implies an integral quantity.
      * The value -1 implies no limit, i.e. any number of decimal places.
      */
-    precision?: number;
+    precision?: openehr_base.Integer;
     /**
      * Quantity units, expressed as a code or syntax string from either UCUM (the default) or the units system specified in \`_units_system_\`, when set.
      * 
@@ -1153,7 +2018,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * 
      * Example values from UCUM: "kg/m^2", “mm[Hg]", "ms-1", "km/h".
      */
-    units?: string;
+    units?: openehr_base.String;
     /**
      * Optional normal range. 
      */
@@ -1167,7 +2032,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * 
      * If not set, the UCUM standard (case-sensitive codes) is assumed as the units system.
      */
-    units_system?: string;
+    units_system?: openehr_base.String;
     /**
      * Optional field containing the displayable form of the \`_units_\` field, e.g. \`'°C'\`.
      * 
@@ -1175,7 +2040,60 @@ export class DV_QUANTITY extends DV_AMOUNT {
      * 
      * NOTE: The display name may be language-dependent for various older and non-systematic units. For this reason, it is not recommended to add unit display names to archetypes, only to templates (for localisation purposes).
      */
-    units_display_name?: string;
+    units_display_name?: openehr_base.String;
+    /**
+     * Sum of this \`DV_QUANTITY\` and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    add(other: DV_QUANTITY): DV_QUANTITY {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Difference of this \`DV_QUANTITY\` and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    subtract(other: DV_QUANTITY): DV_QUANTITY {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Product of this \`DV_QUANTITY\` and \`_factor_\`.
+     * @param factor - Parameter
+     * @returns Result value
+     */
+    multiply(factor: number): DV_QUANTITY {
+        throw new Error("Method multiply not implemented.");
+    }
+
+    /**
+     * True if this Quantity object is less than \`_other_\`, based on comparison of \`_magnitude_\`. Only valid if \`_is_strictly_comparable_to()_\` is True.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_QUANTITY): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * True if \`_precision_\` = 0, meaning that the \`_magnitude_\` is a whole number.
+     * @returns Result value
+     */
+    is_integral(): openehr_base.Boolean {
+        throw new Error("Method is_integral not implemented.");
+    }
+
+    /**
+     * True if this quantity and \`_other_\` have the same \`_units_\` and also \`_units_system_\` if it exists.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1193,6 +2111,51 @@ export class DV_COUNT extends DV_AMOUNT {
      * Optional tagged other reference ranges for this value in its particular measurement context.
      */
     override other_reference_ranges?: undefined;
+    /**
+     * Sum of this \`DV_COUNT\` and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    add(other: DV_COUNT): DV_COUNT {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Difference of this \`DV_COUNT\` and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    subtract(other: DV_COUNT): DV_COUNT {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Product of this \`DV_COUNT\` and \`_factor_\`.
+     * @param factor - Parameter
+     * @returns Result value
+     */
+    multiply(factor: number): DV_COUNT {
+        throw new Error("Method multiply not implemented.");
+    }
+
+    /**
+     * True if this Quantified object is less than \`_other_\`, based on comparison of \`_magnitude_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_COUNT): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * Return True.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1200,6 +2163,42 @@ export class DV_COUNT extends DV_AMOUNT {
  */
 export abstract class DV_ABSOLUTE_QUANTITY extends DV_QUANTIFIED {
     override accuracy?: DV_AMOUNT = undefined;
+    /**
+     * Addition of a differential amount to this quantity. 
+     * 
+     * The value of accuracy in the result is either:
+     * 
+     * * the sum of the accuracies of the operands, if both present, or;
+     * * unknown, if either or both operand accuracies are unknown.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    abstract add(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY;
+
+    /**
+     * Result of subtracting a differential amount from this quantity.
+     * 
+     * The value of \`_accuracy_\` in the result is either:
+     * 
+     * * the sum of the accuracies of the operands, if both present, or;
+     * * unknown, if either or both operand accuracies are unknown.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    abstract subtract(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY;
+
+    /**
+     * Difference of two quantities.
+     * 
+     * The value of accuracy in the result is either:
+     * 
+     * * the sum of the accuracies of the operands, if both present, or;
+     * * unknown, if either or both operand accuracies are unknown.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract diff(other: DV_ABSOLUTE_QUANTITY): DV_AMOUNT;
+
 }
 
 /**
@@ -1228,7 +2227,25 @@ export class DV_ORDINAL extends DV_ORDERED {
      * Value in ordered enumeration of values. Any integer value can be used. 
      * 
      */
-    value?: number;
+    value?: openehr_base.Integer;
+    /**
+     * True if this Ordinal value is less than \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_ORDINAL): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * Test if this Ordinal is strictly comparable to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_ORDINAL): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1266,6 +2283,24 @@ export class DV_SCALE extends DV_ORDERED {
      * 
      */
     value?: number;
+    /**
+     * Test if this Scale value is strictly comparable to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_SCALE): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
+    /**
+     * True if this Scale value is less than \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_SCALE): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
 }
 
 /**
@@ -1281,7 +2316,70 @@ export class DV_DURATION extends DV_AMOUNT {
     /**
      * ISO8601 duration string, including described deviations to support negative values and weeks.
      */
-    value?: string;
+    value?: openehr_base.String;
+    /**
+     * Sum of this Duration and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    add(other: DV_DURATION): DV_DURATION {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Difference of this Duration and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    subtract(other: DV_DURATION): DV_DURATION {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Product of this Duration and \`_factor_\`.
+     * @param factor - Parameter
+     * @returns Result value
+     */
+    multiply(factor: number): DV_DURATION {
+        throw new Error("Method multiply not implemented.");
+    }
+
+    /**
+     * True if this duration object is less than \`_other_\`, based on comparison of \`_magnitude()_\`. 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_DURATION): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * True, for any two Durations.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_DURATION): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
+    /**
+     * Negated version of current duration.
+     * 
+     * Assuming the current duration is positive, the negated version represents a time prior to some origin point, or a negative age (e.g. so-called 'adjusted age' of premature infant).
+     * @returns Result value
+     */
+    negative(): DV_DURATION {
+        throw new Error("Method negative not implemented.");
+    }
+
+    /**
+     * Numeric value of the duration as a number of seconds. Computed using the method \`_to_seconds()_\` inherited from \`Iso8601_duration\`.
+     * @returns Result value
+     */
+    magnitude(): number {
+        throw new Error("Method magnitude not implemented.");
+    }
+
 }
 
 /**
@@ -1292,6 +2390,27 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
      * Time accuracy, expressed as a duration.
      */
     override accuracy?: DV_DURATION = undefined;
+    /**
+     * Addition of a Duration to this temporal entity.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    abstract add(a_diff: DV_DURATION): DV_TEMPORAL;
+
+    /**
+     * Subtract a Duration from this temporal entity.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    abstract subtract(a_diff: DV_DURATION): DV_TEMPORAL;
+
+    /**
+     * Difference between this temporal entity and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract diff(other: DV_TEMPORAL): DV_DURATION;
+
 }
 
 /**
@@ -1302,7 +2421,69 @@ export class DV_DATE extends DV_TEMPORAL {
     /**
      * ISO8601 date string.
      */
-    value?: string;
+    value?: openehr_base.String;
+    /**
+     * Numeric value of the date as days since the calendar origin date \`0001-01-01\`.
+     * @returns Result value
+     */
+    magnitude(): openehr_base.Integer {
+        throw new Error("Method magnitude not implemented.");
+    }
+
+    /**
+     * Return True if this \`DV_QUANTIFIED\` is considered equal to \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+        throw new Error("Method is_equal not implemented.");
+    }
+
+    /**
+     * Addition of a Duration to this Date.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    add(a_diff: DV_DURATION): DV_DATE {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Subtract a Duration from this Date.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    subtract(a_diff: DV_DURATION): DV_DATE {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Difference between this Date and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    diff(other: DV_DATE): DV_DURATION {
+        throw new Error("Method diff not implemented.");
+    }
+
+    /**
+     * True if this date object is less than \`_other_\`, based on comparison of \`_magnitude()_\`. 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_DATE): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * True, for any two Dates.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_DATE): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1314,7 +2495,60 @@ export class DV_TIME extends DV_TEMPORAL {
     /**
      * ISO8601 time string
      */
-    value?: string;
+    value?: openehr_base.String;
+    /**
+     * Numeric value of the time as seconds since the start of day, i.e. \`00:00:00\`. 
+     * @returns Result value
+     */
+    magnitude(): number {
+        throw new Error("Method magnitude not implemented.");
+    }
+
+    /**
+     * Addition of a Duration to this Time.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    add(a_diff: DV_DURATION): DV_TIME {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Subtract a Duration from this Time.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    subtract(a_diff: DV_DURATION): DV_TIME {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Difference between this Time and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    diff(other: DV_TIME): DV_DURATION {
+        throw new Error("Method diff not implemented.");
+    }
+
+    /**
+     * True if this time object is less than \`_other_\`, based on comparison of \`_magnitude()_\`. 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_TIME): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * True, for any two Times.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_TIME): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1327,7 +2561,61 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
     /**
      * ISO8601 date/time string.
      */
-    value?: string;
+    value?: openehr_base.String;
+    /**
+     * Numeric value of the date/time as seconds since the calendar origin date/time \`0001-01-01T00:00:00Z\`. 
+     * 
+     * @returns Result value
+     */
+    magnitude(): number {
+        throw new Error("Method magnitude not implemented.");
+    }
+
+    /**
+     * Addition of a Duration to this Date/time.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    add(a_diff: DV_DURATION): DV_DATE_TIME {
+        throw new Error("Method add not implemented.");
+    }
+
+    /**
+     * Subtract a Duration from this Date/time.
+     * @param a_diff - Parameter
+     * @returns Result value
+     */
+    subtract(a_diff: DV_DURATION): DV_DATE_TIME {
+        throw new Error("Method subtract not implemented.");
+    }
+
+    /**
+     * Difference between this Date/time and \`_other_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    diff(other: DV_DATE_TIME): DV_DURATION {
+        throw new Error("Method diff not implemented.");
+    }
+
+    /**
+     * True if this date-time object is less than \`_other_\`, based on comparison of \`_magnitude()_\`. 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: DV_DATE_TIME): openehr_base.Boolean {
+        throw new Error("Method less_than not implemented.");
+    }
+
+    /**
+     * True, for any two Date/times.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    is_strictly_comparable_to(other: DV_DATE_TIME): openehr_base.Boolean {
+        throw new Error("Method is_strictly_comparable_to not implemented.");
+    }
+
 }
 
 /**
@@ -1338,6 +2626,24 @@ export abstract class DV_TIME_SPECIFICATION extends DATA_VALUE {
      * The specification, in the HL7v3 syntax for \`PIVL\` or \`EIVL\` types.
      */
     value?: DV_PARSABLE;
+    /**
+     * Indicates what prototypical point in the calendar the specification is aligned to, e.g.  5th of the month . Empty if not aligned. Extracted from the  value' attribute.
+     * @returns Result value
+     */
+    abstract calendar_alignment(): openehr_base.String;
+
+    /**
+     * Indicates what real-world event the specification is aligned to if any. Extracted from the  value' attribute. 
+     * @returns Result value
+     */
+    abstract event_alignment(): openehr_base.String;
+
+    /**
+     * Indicates if the specification is aligned with institution schedules, e.g. a hospital nursing changeover or meal serving times. Extracted from the  value' attribute.
+     * @returns Result value
+     */
+    abstract institution_specified(): openehr_base.Boolean;
+
 }
 
 /**
@@ -1346,12 +2652,68 @@ export abstract class DV_TIME_SPECIFICATION extends DATA_VALUE {
  * Used in therapeutic prescriptions, expressed as \`INSTRUCTIONs\` in the openEHR model. 
  */
 export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
+    /**
+     * The period of the repetition, computationally derived from the syntax representation. Extracted from the  value' attribute.
+     * @returns Result value
+     */
+    period(): DV_DURATION {
+        throw new Error("Method period not implemented.");
+    }
+
+    /**
+     * Calendar alignment extracted from value. 
+     * @returns Result value
+     */
+    calendar_alignment(): openehr_base.String {
+        throw new Error("Method calendar_alignment not implemented.");
+    }
+
+    /**
+     * Event alignment extracted from value. 
+     * @returns Result value
+     */
+    event_alignment(): openehr_base.String {
+        throw new Error("Method event_alignment not implemented.");
+    }
+
+    /**
+     * Extracted from value.
+     * @returns Result value
+     */
+    institution_specified(): openehr_base.Boolean {
+        throw new Error("Method institution_specified not implemented.");
+    }
+
 }
 
 /**
  * Specifies points in time in a general syntax. Based on the HL7v3 GTS data type.
  */
 export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
+    /**
+     * Calendar alignment extracted from value.
+     * @returns Result value
+     */
+    calendar_alignment(): openehr_base.String {
+        throw new Error("Method calendar_alignment not implemented.");
+    }
+
+    /**
+     * Event alignment extracted from value. 
+     * @returns Result value
+     */
+    event_alignment(): openehr_base.String {
+        throw new Error("Method event_alignment not implemented.");
+    }
+
+    /**
+     * Extracted from value.
+     * @returns Result value
+     */
+    institution_specified(): openehr_base.Boolean {
+        throw new Error("Method institution_specified not implemented.");
+    }
+
 }
 
 /**
@@ -1361,7 +2723,42 @@ export class DV_URI extends DATA_VALUE {
     /**
      * Value of URI as a String. 'Plain-text' URIs are allowed, enabling better readability, but must be RFC-3986 encoded in use.
      */
-    value?: string;
+    value?: openehr_base.String;
+    /**
+     * A distributed information 'space' in which  information objects  exist. The scheme simultaneously specifies an information space and a mechanism for accessing objects in  that  space.  For  example  if  scheme  = "ftp", it identifies the information space in which  all  ftp-able objects  exist,  and also the application - ftp - which can be used to access them. Values may include: "ftp", "telnet", "mailto", etc. Refer to RFC-3986 for a full list. 
+     * 
+     * @returns Result value
+     */
+    scheme(): openehr_base.String {
+        throw new Error("Method scheme not implemented.");
+    }
+
+    /**
+     * A string whose format is  a  function  of  the  scheme. Identifies   the   location  in  <scheme>-space  of  an information entity. Typical values include hierarchical directory  paths  for  any  machine.  For example, with scheme = "ftp", path might be \`"/pub/images/image_01"\`. The strings "." and ".." are reserved for use in the path. Paths may include internet/intranet location identifiers of the form: \`sub_domain...domain\`, e.g. \`"info.cern.ch"\`. 
+     * @returns Result value
+     */
+    path(): openehr_base.String {
+        throw new Error("Method path not implemented.");
+    }
+
+    /**
+     * A part of, a  fragment  or  a  sub-function  within  an object. Allows references to sub-parts of objects, such as a certain line and character  position  in  a  text object. The  syntax  and semantics are defined by the application responsible for the object. 
+     * 
+     * @returns Result value
+     */
+    fragment_id(): openehr_base.String {
+        throw new Error("Method fragment_id not implemented.");
+    }
+
+    /**
+     * Query string to send to application implied  by  scheme and  path.  Enables  queries  to applications, including databases  to  be  included in  the  URI. Supports any query meaningful to the server, including SQL. 
+     * 
+     * @returns Result value
+     */
+    query(): openehr_base.String {
+        throw new Error("Method query not implemented.");
+    }
+
 }
 
 /**
@@ -1376,24 +2773,140 @@ export class DV_EHR_URI extends DV_URI {
  * List of identifiers for groups in the openEHR terminology. 
  */
 export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
+    /**
+     * Validity function to test if an identifier is in the set defined by this class. 
+     * @param an_id - Parameter
+     * @returns Result value
+     */
+    valid_terminology_group_id(an_id: openehr_base.Boolean): openehr_base.Boolean {
+        throw new Error("Method valid_terminology_group_id not implemented.");
+    }
+
 }
 
 /**
  * List of identifiers for code sets in the openEHR terminology. 
  */
 export class OPENEHR_CODE_SET_IDENTIFIERS {
+    /**
+     * Validity function to test if an identifier is in the set defined by this class.
+     * @param an_id - Parameter
+     * @returns Result value
+     */
+    valid_code_set_id(an_id: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_code_set_id not implemented.");
+    }
+
 }
 
 /**
  * Defines an object providing proxy access to a terminology service. 
  */
 export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
+    /**
+     * Return an interface to the terminology named name. Allowable names include:-
+     * 
+     * * openehr, 
+     * * centc251,
+     * * any name from are taken from the US NLM UMLS meta-data list at http://www.nlm.nih.gov/research/umls/metaa1.html 
+     * @param name - Parameter
+     * @returns Result value
+     */
+    terminology(name: openehr_base.String): TERMINOLOGY_ACCESS {
+        throw new Error("Method terminology not implemented.");
+    }
+
+    /**
+     * Return an interface to the code_set identified by the external identifier name (e.g.  ISO_639-1). 
+     * @param name - Parameter
+     * @returns Result value
+     */
+    code_set(name: openehr_base.String): CODE_SET_ACCESS {
+        throw new Error("Method code_set not implemented.");
+    }
+
+    /**
+     * Return an interface to the code_set identified internally in openEHR by id. 
+     * 
+     * @param id - Parameter
+     * @returns Result value
+     */
+    code_set_for_id(id: openehr_base.String): CODE_SET_ACCESS {
+        throw new Error("Method code_set_for_id not implemented.");
+    }
+
+    /**
+     * True if terminology named name known by this service. Allowable names include:-
+     * 
+     * *  openehr  
+     * * centc251  
+     * * any name from are taken from the US NLM UMLS meta-data list at       http://www.nlm.nih.gov/research/umls/metaa1.html
+     * @param name - Parameter
+     * @returns Result value
+     */
+    has_terminology(name: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_terminology not implemented.");
+    }
+
+    /**
+     * True if code_set linked to internal name (e.g. languages ) is available. 
+     * @param name - Parameter
+     * @returns Result value
+     */
+    has_code_set(name: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_code_set not implemented.");
+    }
+
+    /**
+     * Set of all terminology identifiers known in the terminology service. Values from the US NLM UMLS meta-data list at:- http://www.nlm.nih.gov/research/umls/metaa1.html 
+     * @returns Result value
+     */
+    terminology_identifiers(): openehr_base.String {
+        throw new Error("Method terminology_identifiers not implemented.");
+    }
+
+    /**
+     * Set of all code set identifiers known in the terminology service. 
+     * 
+     * @returns Result value
+     */
+    openehr_code_sets(): undefined {
+        throw new Error("Method openehr_code_sets not implemented.");
+    }
+
+    /**
+     * Set of all code sets identifiers for which there is an internal openEHR name; returned as a Map of ids keyed by internal name. 
+     * @returns Result value
+     */
+    code_set_identifiers(): openehr_base.String {
+        throw new Error("Method code_set_identifiers not implemented.");
+    }
+
 }
 
 /**
  * Defines an object providing proxy access to a measurement information service.
  */
 export class MEASUREMENT_SERVICE {
+    /**
+     * True if the units string  units' is a valid string according to the HL7 UCUM specification.
+     * @param units - Parameter
+     * @returns Result value
+     */
+    is_valid_units_string(units: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_valid_units_string not implemented.");
+    }
+
+    /**
+     * True if two units strings correspond to the same measured property.
+     * @param units1 - Parameter
+     * @param units2 - Parameter
+     * @returns Result value
+     */
+    units_equivalent(units1: openehr_base.String, units2: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method units_equivalent not implemented.");
+    }
+
 }
 
 /**
@@ -1406,12 +2919,98 @@ export abstract class EXTERNAL_ENVIRONMENT_ACCESS extends TERMINOLOGY_SERVICE {
  * Defines an object providing proxy access to a code_set.
  */
 export class CODE_SET_ACCESS {
+    /**
+     * External identifier of this code set.
+     * @returns Result value
+     */
+    id(): openehr_base.String {
+        throw new Error("Method id not implemented.");
+    }
+
+    /**
+     * Return all codes known in this code set.
+     * @returns Result value
+     */
+    all_codes(): CODE_PHRASE {
+        throw new Error("Method all_codes not implemented.");
+    }
+
+    /**
+     * True if code set knows about 'a_lang' .
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    has_lang(a_lang: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_lang not implemented.");
+    }
+
+    /**
+     * True if code set knows about  'a_code'.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_code not implemented.");
+    }
+
 }
 
 /**
  * Defines an object providing proxy access to a terminology. 
  */
 export class TERMINOLOGY_ACCESS {
+    /**
+     * Identification of this Terminology.
+     * @returns Result value
+     */
+    id(): openehr_base.String {
+        throw new Error("Method id not implemented.");
+    }
+
+    /**
+     * Return all codes known in this terminology.
+     * @returns Result value
+     */
+    all_codes(): CODE_PHRASE {
+        throw new Error("Method all_codes not implemented.");
+    }
+
+    /**
+     * Return all codes under grouper 'a_group_id' from this terminology.
+     * @param a_group_id - Parameter
+     * @returns Result value
+     */
+    codes_for_group_id(a_group_id: openehr_base.String): CODE_PHRASE {
+        throw new Error("Method codes_for_group_id not implemented.");
+    }
+
+    /**
+     * Return all codes under grouper whose name in 'a_lang' is 'a_name' from this terminology.
+     * @param a_lang - Parameter
+     * @param a_name - Parameter
+     * @returns Result value
+     */
+    codes_for_group_name(a_lang: openehr_base.String, a_name: openehr_base.String): CODE_PHRASE {
+        throw new Error("Method codes_for_group_name not implemented.");
+    }
+
+    /**
+     * True if  a_code' is known in group  group_id' in the openEHR terminology.
+     * @returns Result value
+     */
+    has_code_for_group_id(): openehr_base.Boolean {
+        throw new Error("Method has_code_for_group_id not implemented.");
+    }
+
+    /**
+     * Return all rubric of code  code' in language  lang'.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    rubric_for_code(a_code: openehr_base.String): openehr_base.String {
+        throw new Error("Method rubric_for_code not implemented.");
+    }
+
 }
 
 /**
@@ -1479,6 +3078,14 @@ export class VERSIONED_EHR_STATUS extends VERSIONED_OBJECT<T> {
  * Version-controlled composition abstraction, defined by inheriting \`VERSIONED_OBJECT<COMPOSITION>\`. 
  */
 export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
+    /**
+     * Indicates whether this composition set is persistent; derived from first version.
+     * @returns Result value
+     */
+    is_persistent(): openehr_base.Boolean {
+        throw new Error("Method is_persistent not implemented.");
+    }
+
 }
 
 /**
@@ -1492,6 +3099,14 @@ export class EHR_ACCESS extends LOCATABLE {
      * Access control settings for the EHR. Instance is a subtype of the type \`ACCESS_CONTROL_SETTINGS\`, allowing for the use of different access control schemes. 
      */
     settings?: ACCESS_CONTROL_SETTINGS;
+    /**
+     * The name of the access control scheme in use; corresponds to the concrete instance of the settings attribute. 
+     * @returns Result value
+     */
+    scheme(): openehr_base.String {
+        throw new Error("Method scheme not implemented.");
+    }
+
 }
 
 /**
@@ -1508,11 +3123,11 @@ export class EHR_STATUS extends LOCATABLE {
     /**
      * True if this EHR should be included in population queries, i.e. if this EHR is considered active in the population.
      */
-    is_queryable?: boolean;
+    is_queryable?: openehr_base.Boolean;
     /**
      * True if the EHR, other than the \`EHR_STATUS\` object, is allowed to be written to. The \`EHR_STATUS\` object itself can always be written to.
      */
-    is_modifiable?: boolean;
+    is_modifiable?: openehr_base.Boolean;
     /**
      * Any other details of the EHR summary object, in the form of an archetyped \`ITEM_STRUCTURE\`.
      */
@@ -1552,7 +3167,7 @@ export class EXTRACT extends LOCATABLE {
     /**
      * Number of this Extract response in sequence of responses to Extract request identified by \`_request_id_\`. If this is the sole response, or there was no request, value is 1.
      */
-    sequence_nr?: number;
+    sequence_nr?: openehr_base.Integer;
     /**
      * Participations relevant to the creation of this Extract.
      */
@@ -1597,15 +3212,15 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
     /**
      * True if the content item carried in this container was part of the primary set for the Extract, i.e. not added due to link-following.
      */
-    is_primary?: boolean;
+    is_primary?: openehr_base.Boolean;
     /**
      * True if the content item carried in this container is any kind of change since last send, in repeat sending situations.
      */
-    is_changed?: boolean;
+    is_changed?: openehr_base.Boolean;
     /**
      * True if the content of this item has not been included due to insufficient access rights of requestor.
      */
-    is_masked?: boolean;
+    is_masked?: openehr_base.Boolean;
     /**
      * Content object.
      */
@@ -1619,7 +3234,7 @@ export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
     /**
      * Reference to entity, usually a demographic entity such as a patient that the content of this chapter relates to.
      */
-    extract_id_key?: string;
+    extract_id_key?: openehr_base.String;
 }
 
 /**
@@ -1631,15 +3246,15 @@ export class EXTRACT_ENTITY_MANIFEST {
     /**
      * Identifier by which this entity is known in the Extract. May be one of the other identifiers, e.g. ehr_id or subject_id, or it may be something else, including a simple integer.
      */
-    extract_id_key?: string;
+    extract_id_key?: openehr_base.String;
     /**
      * EHR / EMR identifier for the entity at the target system.
      */
-    ehr_id?: string;
+    ehr_id?: openehr_base.String;
     /**
      * Subject (i.e. patient or similar) identifier for the entity at the target system.
      */
-    subject_id?: string;
+    subject_id?: openehr_base.String;
     /**
      * Other identifiers that may be used to find the entity at the target system, keyed by type. May include medicare numbers, drivers license number, tax number etc.
      */
@@ -1696,7 +3311,7 @@ export class EXTRACT_PARTICIPATION {
     /**
      * Uid of demographic entity within Extract who performed this participation.
      */
-    performer?: string;
+    performer?: openehr_base.String;
 }
 
 /**
@@ -1745,13 +3360,13 @@ export class EXTRACT_SPEC {
     /**
      * Indicates whether in-line instances of \`DV_MULTIMEDIA\` in the source data are included or not.
      */
-    include_multimedia?: boolean;
+    include_multimedia?: openehr_base.Boolean;
     /**
      * Requested priority of this request to be handled by server. Priority schemes are likely to be local, and use values agreed by both ends.
      * 
      * TBD: alternative is standard coded terms
      */
-    priority?: number;
+    priority?: openehr_base.Integer;
     /**
      * Degree of links to follow emanating from content items specified for inclusion. The kind of links to follow is dependent on the type of Extract.
      * 
@@ -1764,7 +3379,7 @@ export class EXTRACT_SPEC {
      * * n = follow nth degree links
      * 
      */
-    link_depth?: number;
+    link_depth?: openehr_base.Integer;
     /**
      * Queries specifying the contents of this Extract.
      */
@@ -1784,7 +3399,7 @@ export class EXTRACT_UPDATE_SPEC {
     /**
      * If True, this Request is persisted in the server until further notice.
      */
-    persist_in_server?: boolean;
+    persist_in_server?: openehr_base.Boolean;
     /**
      * Period for resending update Extracts in response to original Request.
      */
@@ -1812,7 +3427,7 @@ export class EXTRACT_VERSION_SPEC {
     /**
      * True if all versions of each item in the Extract are included.
      */
-    include_all_versions?: boolean;
+    include_all_versions?: openehr_base.Boolean;
     /**
      * Specifies commit time interval of items to source repository to include in Extract. By default, only latest versions whose commit times fall in the range are included. If include_all_versions is True, then the range includes all versions committed within the interval.
      */
@@ -1820,11 +3435,11 @@ export class EXTRACT_VERSION_SPEC {
     /**
      * True if revision histories of the items in the Extract are included. If included, it is always the full revision history.
      */
-    include_revision_history?: boolean;
+    include_revision_history?: openehr_base.Boolean;
     /**
      * \`True\` if the data of items matched by the content spec should be included. This is the default. If \`False\`, only revision history is included in serialised versions. Turning this option on in openEHR systems causes \`X_VERSIONED_OBJECTs\` to have \`_revision_history_\` set, but versions Void. Useful for interrogating a server without having to look at any content data. In other systems it may or may not have a sensible meaning.
      */
-    include_data?: boolean;
+    include_data?: openehr_base.Boolean;
 }
 
 /**
@@ -1856,11 +3471,11 @@ export class X_VERSIONED_OBJECT<T> {
     /**
      * Total number of versions in original \`VERSIONED_OBJECT\` at time of creation of this \`X_VERSIONED_OBJECT\`.
      */
-    total_version_count?: number;
+    total_version_count?: openehr_base.Integer;
     /**
      * The number of Versions in this extract for this Versioned object, i.e. the count of items in the versions attribute. May be 0 if only revision history is requested.
      */
-    extract_version_count?: number;
+    extract_version_count?: openehr_base.Integer;
     /**
      * Optional revision history of the original \`VERSIONED_OBJECT\`. If included, it is the complete revision history.
      */
@@ -1912,11 +3527,11 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     /**
      * Version of model or schema used to create the content item.
      */
-    item_type_version?: string;
+    item_type_version?: openehr_base.String;
     /**
      * Reference to a demographic entity elsewhere in this Extract representing the author of the item version. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
      */
-    author?: string;
+    author?: openehr_base.String;
     /**
      * Time of creation of this item version on the original system. This may be an earlier commit time, or it may be the time at which the item was created during the Extract generation process.
      */
@@ -1924,7 +3539,7 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     /**
      * Reference to a demographic entity elsewhere in this Extract representing an authoriser of the item version, if relevant. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
      */
-    authoriser?: string;
+    authoriser?: openehr_base.String;
     /**
      * Time of authorisation of this item version on the original system where relevant.
      */
@@ -1936,15 +3551,15 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     /**
      * Version id of this item in original system.
      */
-    version_id?: string;
+    version_id?: openehr_base.String;
     /**
      * Version set id of this item in original system, where applicable.
      */
-    version_set_id?: string;
+    version_set_id?: openehr_base.String;
     /**
      * Identifier of EMR or other system from which the item was created / extracted. Typically in the form of a domain name.
      */
-    system_id?: string;
+    system_id?: openehr_base.String;
     /**
      * Other details about the content item.
      */
@@ -2007,7 +3622,7 @@ export class SYNC_EXTRACT_SPEC {
     /**
      * True if the Versions from the Contribution are included; False if just the Contribution and its Audit are included.
      */
-    includes_versions?: boolean;
+    includes_versions?: openehr_base.Boolean;
     /**
      * List of Contributions to include / that are included in the Extract.
      */
@@ -2019,7 +3634,7 @@ export class SYNC_EXTRACT_SPEC {
     /**
      * True if all Contributions in the record are included.
      */
-    all_contributions?: boolean;
+    all_contributions?: openehr_base.Boolean;
 }
 
 /**
@@ -2041,7 +3656,7 @@ export class MESSAGE {
     /**
      * Optional signature by the author of message content in openPGP format. The signature is created as a Hash and optional signing of the serialisation of this message object with this signature field Void.
      */
-    signature?: string;
+    signature?: openehr_base.String;
 }
 
 /**
@@ -2051,11 +3666,11 @@ export class ADDRESSED_MESSAGE {
     /**
      * Party sending the message.
      */
-    sender?: string;
+    sender?: openehr_base.String;
     /**
      * Identification of message used by sender. This will be the same no matter how many times this message is sent to these recipients.
      */
-    sender_reference?: string;
+    sender_reference?: openehr_base.String;
     /**
      * Intended recipients, in the form of internet addresses.
      */
@@ -2067,7 +3682,7 @@ export class ADDRESSED_MESSAGE {
      * * 0 - normal
      * * 1 - high
      */
-    urgency?: number;
+    urgency?: openehr_base.Integer;
     /**
      * The content of the message.
      */
@@ -2101,6 +3716,14 @@ export abstract class PARTY extends LOCATABLE {
      * Relationships in which this Party takes part as source.
      */
     relationships?: undefined;
+    /**
+     * Type of party, such as  \`PERSON\`,  \`ORGANISATION\`, etc. Role name, e.g.  general practitioner ,  nurse ,  private citizen . Taken from inherited \`_name_\` attribute.
+     * @returns Result value
+     */
+    type(): DV_TEXT {
+        throw new Error("Method type not implemented.");
+    }
+
 }
 
 /**
@@ -2115,6 +3738,14 @@ export class CONTACT extends LOCATABLE {
      * Valid time interval for this contact descriptor.
      */
     time_validity?: undefined;
+    /**
+     * Purpose for which this contact is used, e.g. mail,  daytime phone, etc. Taken from value of inherited \`_name_\` attribute.
+     * @returns Result value
+     */
+    purpose(): DV_TEXT {
+        throw new Error("Method purpose not implemented.");
+    }
+
 }
 
 /**
@@ -2125,6 +3756,14 @@ export class ADDRESS extends LOCATABLE {
      * Archetypable structured address.
      */
     details?: ITEM_STRUCTURE;
+    /**
+     * Type of address, e.g. electronic,  locality. Taken from value of inherited \`_name_\` attribute.
+     * @returns Result value
+     */
+    type(): DV_TEXT {
+        throw new Error("Method type not implemented.");
+    }
+
 }
 
 /**
@@ -2135,6 +3774,14 @@ export class PARTY_IDENTITY extends LOCATABLE {
      * The value of the identity. This will often taken the form of a parseable string or a small structure of strings.
      */
     details?: ITEM_STRUCTURE;
+    /**
+     * Purpose of identity, e.g. legal ,  stagename,  nickname,  tribal name,  trading name. Taken from value of inherited \`_name_\` attribute.
+     * @returns Result value
+     */
+    purpose(): DV_TEXT {
+        throw new Error("Method purpose not implemented.");
+    }
+
 }
 
 /**
@@ -2227,6 +3874,14 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
      * Source of relationship.
      */
     source?: openehr_base.PARTY_REF;
+    /**
+     * Type of relationship, such as  employment,  authority,  health provision 
+     * @returns Result value
+     */
+    type(): DV_TEXT {
+        throw new Error("Method type not implemented.");
+    }
+
 }
 
 /**
@@ -2289,6 +3944,14 @@ export class COMPOSITION extends LOCATABLE {
      * The content of this Composition. 
      */
     content?: undefined;
+    /**
+     * True if category is \`431|persistent|\`, False otherwise. Useful for finding Compositions in an EHR which are guaranteed to be of interest to most users. 
+     * @returns Result value
+     */
+    is_persistent(): openehr_base.Boolean {
+        throw new Error("Method is_persistent not implemented.");
+    }
+
 }
 
 /**
@@ -2307,7 +3970,7 @@ export class EVENT_CONTEXT extends PATHABLE {
     /**
      * The actual location where the session occurred, e.g. 'microbiology lab 2', 'home', 'ward A3'  and so on.
      */
-    location?: string;
+    location?: openehr_base.String;
     /**
      * The setting in which the clinical session took place. Coded using the openEHR Terminology,  setting  group. 
      */
@@ -2383,6 +4046,14 @@ export abstract class ENTRY extends CONTENT_ITEM {
      * 
      */
     provider?: PARTY_PROXY;
+    /**
+     * Returns True if this Entry is about the subject of the EHR, in which case the subject attribute is of type PARTY_SELF.
+     * @returns Result value
+     */
+    subject_is_self(): openehr_base.Boolean {
+        throw new Error("Method subject_is_self not implemented.");
+    }
+
 }
 
 /**
@@ -2481,7 +4152,7 @@ export class ACTIVITY extends LOCATABLE {
      * 
      * Defaults to  \`/.*\/\`, meaning any archetype.
      */
-    action_archetype_id?: string;
+    action_archetype_id?: openehr_base.String;
     /**
      * Description of the activity, in the form of an archetyped structure.
      */
@@ -2522,7 +4193,7 @@ export class INSTRUCTION_DETAILS extends PATHABLE {
     /**
      * Identifier of Activity within Instruction, in the form of its archetype path. 
      */
-    activity_id?: string;
+    activity_id?: openehr_base.String;
     /**
      * Various workflow engine state details, potentially including such things as:
      * 

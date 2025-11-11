@@ -12,29 +12,44 @@ function escapeDocumentation(doc: string): string {
         .replace(/`/g, '\\`');     // Escape backticks that could break JSDoc
 }
 
+/**
+ * Maps BMM type names to TypeScript types.
+ * 
+ * IMPORTANT: We do NOT map String/Integer/Boolean/Uri/UUID to TypeScript primitives.
+ * These are wrapper classes in openEHR that:
+ * - Have a `value` property holding the primitive
+ * - Include validation logic (e.g., Integer checks Number.isInteger())
+ * - Implement BMM-defined methods (e.g., String.is_empty(), Integer.add())
+ * - Maintain the openEHR type hierarchy (e.g., Uri extends String)
+ * 
+ * Only truly numeric types without additional semantics (Double, Real, Character, Octet)
+ * are mapped to TypeScript primitives for simplicity.
+ * 
+ * @param bmmType - The BMM type name
+ * @returns The corresponding TypeScript type
+ */
 function mapBmmTypeToTypeScript(bmmType: string): string {
     switch (bmmType) {
-        case "String":
-            return "string";
-        case "Integer":
-            return "number";
-        case "Boolean":
-            return "boolean";
+        // Numeric types that are simple wrappers without validation - map to primitives
         case "Double":
-            return "number";
         case "Real":
             return "number";
         case "Character":
             return "string";
         case "Octet":
-            return "number"; // Or Uint8Array, depending on desired representation
-        case "UUID":
-            return "string";
-        case "Uri":
-            return "string";
+            return "number";
+        
+        // String, Integer, Boolean, Uri, UUID are kept as wrapper classes
+        // They have validation, methods, and maintain type hierarchy
+        // case "String": return "string";  // REMOVED - keep as wrapper class
+        // case "Integer": return "number"; // REMOVED - keep as wrapper class  
+        // case "Boolean": return "boolean"; // REMOVED - keep as wrapper class
+        // case "UUID": return "string";    // REMOVED - extends String
+        // case "Uri": return "string";     // REMOVED - extends String
+        
         // Note: "Any" is NOT mapped to "any" - it's a proper class in openEHR
         // that provides reference equality semantics, not the TypeScript any type
-        // Add more mappings as needed
+        
         default:
             return bmmType; // Use BMM type name directly for custom types
     }
@@ -140,6 +155,63 @@ function findPropertyInAncestors(
     return undefined;
 }
 
+/**
+ * Checks if a BMM class is a primitive wrapper type that needs special handling.
+ * These types wrap TypeScript primitives and provide validation and methods.
+ * 
+ * @param bmmClass - The BMM class to check
+ * @returns true if this is a primitive wrapper type
+ */
+function isPrimitiveWrapperType(bmmClass: BmmClass): boolean {
+    const primitiveWrappers = ['String', 'Integer', 'Boolean', 'Integer64', 'Byte'];
+    return primitiveWrappers.includes(bmmClass.name);
+}
+
+/**
+ * Gets the TypeScript primitive type that corresponds to a wrapper class.
+ * 
+ * @param wrapperClassName - The wrapper class name (e.g., 'String', 'Integer')
+ * @returns The corresponding TypeScript primitive type
+ */
+function getPrimitiveTypeForWrapper(wrapperClassName: string): string {
+    switch (wrapperClassName) {
+        case 'String':
+            return 'string';
+        case 'Integer':
+        case 'Integer64':
+        case 'Byte':
+            return 'number';
+        case 'Boolean':
+            return 'boolean';
+        default:
+            return 'any';
+    }
+}
+
+/**
+ * Generates validation code for a primitive wrapper type.
+ * This ensures type safety (e.g., Integer validates it's actually an integer).
+ * 
+ * @param wrapperClassName - The wrapper class name
+ * @param valueParam - The parameter name to validate
+ * @returns TypeScript code for validation
+ */
+function generateValidationCode(wrapperClassName: string, valueParam: string): string {
+    switch (wrapperClassName) {
+        case 'Integer':
+        case 'Integer64':
+            return `if (${valueParam} !== undefined && ${valueParam} !== null && !Number.isInteger(${valueParam})) {
+            throw new Error(\`${wrapperClassName} value must be an integer, got: \${${valueParam}}\`);
+        }`;
+        case 'Byte':
+            return `if (${valueParam} !== undefined && ${valueParam} !== null && (!Number.isInteger(${valueParam}) || ${valueParam} < 0 || ${valueParam} > 255)) {
+            throw new Error(\`Byte value must be an integer between 0 and 255, got: \${${valueParam}}\`);
+        }`;
+        default:
+            return ''; // No validation needed for String and Boolean
+    }
+}
+
 export function generateTypeScriptClass(
     bmmClass: BmmClass, 
     context?: TypeResolutionContext,
@@ -219,6 +291,57 @@ export function generateTypeScriptClass(
     
     tsClass += ` {\n`;
 
+    // Special handling for primitive wrapper types (String, Integer, Boolean, etc.)
+    // These classes wrap TypeScript primitives and provide validation and openEHR semantics
+    if (isPrimitiveWrapperType(bmmClass)) {
+        const primitiveType = getPrimitiveTypeForWrapper(bmmClass.name);
+        const validationCode = generateValidationCode(bmmClass.name, 'val');
+        
+        // Add the 'value' property that holds the actual primitive value
+        tsClass += `    /**\n`;
+        tsClass += `     * The underlying primitive value.\n`;
+        tsClass += `     */\n`;
+        tsClass += `    value?: ${primitiveType};\n\n`;
+        
+        // Add constructor that accepts a primitive value
+        tsClass += `    /**\n`;
+        tsClass += `     * Creates a new ${bmmClass.name} instance.\n`;
+        tsClass += `     * @param val - The primitive value to wrap\n`;
+        tsClass += `     */\n`;
+        tsClass += `    constructor(val?: ${primitiveType}) {\n`;
+        if (bmmClass.ancestors && bmmClass.ancestors.length > 0) {
+            tsClass += `        super();\n`;
+        }
+        if (validationCode) {
+            tsClass += `        ${validationCode}\n`;
+        }
+        tsClass += `        this.value = val;\n`;
+        tsClass += `    }\n\n`;
+        
+        // Add static factory method for convenient creation
+        tsClass += `    /**\n`;
+        tsClass += `     * Creates a ${bmmClass.name} instance from a primitive value.\n`;
+        tsClass += `     * @param val - The primitive value to wrap\n`;
+        tsClass += `     * @returns A new ${bmmClass.name} instance\n`;
+        tsClass += `     */\n`;
+        tsClass += `    static from(val?: ${primitiveType}): ${bmmClass.name} {\n`;
+        tsClass += `        return new ${bmmClass.name}(val);\n`;
+        tsClass += `    }\n\n`;
+        
+        // Add is_equal method implementation for value equality
+        tsClass += `    /**\n`;
+        tsClass += `     * Compares this ${bmmClass.name} with another for value equality.\n`;
+        tsClass += `     * @param other - The object to compare with\n`;
+        tsClass += `     * @returns true if the values are equal\n`;
+        tsClass += `     */\n`;
+        tsClass += `    is_equal(other: any): boolean {\n`;
+        tsClass += `        if (other instanceof ${bmmClass.name}) {\n`;
+        tsClass += `            return this.value === other.value;\n`;
+        tsClass += `        }\n`;
+        tsClass += `        return false;\n`;
+        tsClass += `    }\n\n`;
+    }
+
     if (bmmClass.properties) {
         for (const propName in bmmClass.properties) {
             const property = bmmClass.properties[propName];
@@ -256,6 +379,67 @@ export function generateTypeScriptClass(
             
             propertyDecl += `;\n`;
             tsClass += propertyDecl;
+        }
+    }
+
+    // Generate BMM-defined methods from the functions section
+    // These are methods like String.is_empty(), Integer.add(), etc.
+    if (bmmClass.functions) {
+        for (const funcName in bmmClass.functions) {
+            const func = bmmClass.functions[funcName];
+            
+            // Add documentation if available
+            if (func.documentation) {
+                const escapedDoc = escapeDocumentation(func.documentation);
+                tsClass += `    /**\n`;
+                tsClass += `     * ${escapedDoc.replace(/\n/g, '\n     * ')}\n`;
+                
+                // Add parameter documentation
+                if (func.parameters) {
+                    for (const paramName in func.parameters) {
+                        const param = func.parameters[paramName];
+                        tsClass += `     * @param ${paramName} - ${param.documentation || 'Parameter'}\n`;
+                    }
+                }
+                
+                // Add return documentation
+                if (func.result) {
+                    tsClass += `     * @returns Result value\n`;
+                }
+                
+                tsClass += `     */\n`;
+            }
+            
+            // Build parameter list
+            let params = '';
+            if (func.parameters) {
+                const paramList = Object.keys(func.parameters).map(paramName => {
+                    const param = func.parameters![paramName];
+                    const paramType = resolveTypeReference(param.type, context);
+                    return `${paramName}: ${paramType}`;
+                });
+                params = paramList.join(', ');
+            }
+            
+            // Determine return type
+            let returnType = 'void';
+            if (func.result) {
+                returnType = resolveTypeReference(func.result.type, context);
+            }
+            
+            // Generate method signature - mark as abstract if specified
+            const abstractPrefix = func.is_abstract ? 'abstract ' : '';
+            tsClass += `    ${abstractPrefix}${funcName}(${params}): ${returnType}`;
+            
+            // For abstract methods, just add semicolon
+            // For concrete methods, add stub implementation
+            if (func.is_abstract) {
+                tsClass += `;\n\n`;
+            } else {
+                tsClass += ` {\n`;
+                tsClass += `        throw new Error("Method ${funcName} not implemented.");\n`;
+                tsClass += `    }\n\n`;
+            }
         }
     }
 

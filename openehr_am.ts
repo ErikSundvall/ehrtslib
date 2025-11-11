@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-11T05:27:02.862Z
+// Generated: 2025-11-11T08:25:30.649Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -30,7 +30,7 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    adl_version?: openehr_base.String;
     /**
      * Multi-axial identifier of this archetype in archetype space.
      */
@@ -42,7 +42,7 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     /**
      * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
      */
-    concept?: string;
+    concept?: openehr_base.String;
     /**
      * Identifier of the specialisation parent of this archetype.
      */
@@ -51,6 +51,100 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
      * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
      */
     invariants?: undefined;
+    /**
+     * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    concept_name(a_lang: openehr_base.String): openehr_base.String {
+        throw new Error("Method concept_name not implemented.");
+    }
+
+    /**
+     * Set of language-independent paths extracted from archetype. Paths obey Xpath-like syntax and are formed from alternations of C_OBJECT.node_id and C_ATTRIBUTE.rm_attribute_name values. 
+     * @returns Result value
+     */
+    physical_paths(): openehr_base.String {
+        throw new Error("Method physical_paths not implemented.");
+    }
+
+    /**
+     * Set of language-dependent paths extracted from archetype. Paths obey the same syntax as physical_paths, but with node_ids replaced by their meanings from the ontology. 
+     * @param lang - Parameter
+     * @returns Result value
+     */
+    logical_paths(lang: openehr_base.String): openehr_base.String {
+        throw new Error("Method logical_paths not implemented.");
+    }
+
+    /**
+     * Specialisation depth of this archetype; larger than 0 if this archetype has a parent. Derived from terminology.specialisation_depth.
+     * @returns Result value
+     */
+    specialisation_depth(): openehr_base.Integer {
+        throw new Error("Method specialisation_depth not implemented.");
+    }
+
+    /**
+     * True if this archetype is a specialisation of another. 
+     * @returns Result value
+     */
+    is_specialised(): openehr_base.Boolean {
+        throw new Error("Method is_specialised not implemented.");
+    }
+
+    /**
+     * True if the archetype is valid overall; various tests should be used, including checks on node_ids, internal references, and constraint references.
+     * @returns Result value
+     */
+    is_valid(): openehr_base.Boolean {
+        throw new Error("Method is_valid not implemented.");
+    }
+
+    /**
+     * True if every node_id found on a C_OBJECT node is found in ontology.term_codes.
+     * @returns Result value
+     */
+    node_ids_valid(): openehr_base.Boolean {
+        throw new Error("Method node_ids_valid not implemented.");
+    }
+
+    /**
+     * Version of predecessor archetype of this archetype, if any.
+     * @returns Result value
+     */
+    previous_version(): openehr_base.String {
+        throw new Error("Method previous_version not implemented.");
+    }
+
+    /**
+     * True if every ARCHETYPE_INTERNAL_REF. target_path refers to a legitimate node in the archetype definition.
+     * @returns Result value
+     */
+    internal_references_valid(): openehr_base.Boolean {
+        throw new Error("Method internal_references_valid not implemented.");
+    }
+
+    /**
+     * True if every CONSTRAINT_REF.reference found on a C_OBJECT node in the archetype definition is found in ontology.constraint_codes.
+     * @returns Result value
+     */
+    constraint_references_valid(): openehr_base.Boolean {
+        throw new Error("Method constraint_references_valid not implemented.");
+    }
+
+    /**
+     * The short concept name of the archetype extracted from the archetype_id.
+     * @returns Result value
+     */
+    short_concept_name(): openehr_base.String {
+        throw new Error("Method short_concept_name not implemented.");
+    }
+
+    version(): openehr_base.String {
+        throw new Error("Method version not implemented.");
+    }
+
 }
 
 /**
@@ -60,19 +154,19 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    override adl_version?: string;
+    override adl_version?: openehr_base.String;
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
-    build_uid?: string;
+    build_uid?: openehr_base.UUID;
     /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
      */
-    rm_release?: string;
+    rm_release?: openehr_base.String;
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
      */
-    is_generated?: boolean;
+    is_generated?: openehr_base.Boolean;
     other_meta_data?: undefined;
 }
 
@@ -100,6 +194,10 @@ export class OPERATIONAL_TEMPLATE extends AUTHORED_ARCHETYPE {
      * Compendium of flattened terminology extracts (i.e. from external terminologies) from archetypes referenced from this template, keyed by archetype identifier.
      */
     terminology_extracts?: undefined;
+    component_terminology(an_id: openehr_base.String): ARCHETYPE_TERMINOLOGY {
+        throw new Error("Method component_terminology not implemented.");
+    }
+
 }
 
 /**
@@ -115,27 +213,27 @@ export class ARCHETYPE_HRID {
     /**
      * Reverse domain name namespace identifier.
      */
-    namespace?: string;
+    namespace?: openehr_base.String;
     /**
      * Name of the Reference Model publisher.
      */
-    rm_publisher?: string;
+    rm_publisher?: openehr_base.String;
     /**
      * Name of the package in whose reachability graph the \`_rm_class_\` class is found (there can be more than one possibility in many reference models).
      */
-    rm_package?: string;
+    rm_package?: openehr_base.String;
     /**
      * Name of the root class of this archetype.
      */
-    rm_class?: string;
+    rm_class?: openehr_base.String;
     /**
      * The short concept name of the archetype as used in the multi-axial \`_archetype_hrid_\`.
      */
-    concept_id?: string;
+    concept_id?: openehr_base.String;
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. \`"1.8.2"\`. The \`_archetype_hrid_\` feature includes only the major version.
      */
-    release_version?: string;
+    release_version?: openehr_base.String;
     /**
      * The status of the version, i.e.:
      * 
@@ -148,13 +246,88 @@ export class ARCHETYPE_HRID {
     /**
      * The build count since last increment of any version part.
      */
-    build_count?: string;
+    build_count?: openehr_base.String;
+    /**
+     * The 'interface' form of the HRID, i.e. down to the major version.
+     * @returns Result value
+     */
+    semantic_id(): openehr_base.String {
+        throw new Error("Method semantic_id not implemented.");
+    }
+
+    /**
+     * The 'physical' form of the HRID, i.e. with complete version information specified by \`_version_id()_\`.
+     * @returns Result value
+     */
+    physical_id(): openehr_base.String {
+        throw new Error("Method physical_id not implemented.");
+    }
+
+    /**
+     * Full version identifier string, based on \`_release_version_\`, \`_version_status_\`, and \`_build_count_\` e.g. \`"1.8.2-rc.4"\`.
+     * @returns Result value
+     */
+    version_id(): openehr_base.String {
+        throw new Error("Method version_id not implemented.");
+    }
+
+    /**
+     * Major version of this archetype, extracted from \`_release_version_\`.
+     * @returns Result value
+     */
+    major_version(): openehr_base.String {
+        throw new Error("Method major_version not implemented.");
+    }
+
+    /**
+     * Minor version of this archetype, extracted from \`_release_version_\`.
+     * @returns Result value
+     */
+    minor_version(): openehr_base.String {
+        throw new Error("Method minor_version not implemented.");
+    }
+
+    /**
+     * Patch version of this archetype, extracted from \`_release_version_\`. Equivalent to patch version in patch version in \`semver.org\` sytem.
+     * @returns Result value
+     */
+    patch_version(): openehr_base.String {
+        throw new Error("Method patch_version not implemented.");
+    }
+
 }
 
 /**
  * Archetype equivalent to LOCATABLE class in openEHR Common reference model. Defines common constraints for any inheritor of LOCATABLE in any reference model. 
  */
 export abstract class ARCHETYPE_CONSTRAINT {
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. 
+     * Typically used during validation of special-ised archetype nodes.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract is_subset_of(other: ARCHETYPE_CONSTRAINT): openehr_base.Boolean;
+
+    abstract is_valid(): openehr_base.Boolean;
+
+    /**
+     * Path of this node relative to root of archetype.
+     * @returns Result value
+     */
+    path(): openehr_base.String {
+        throw new Error("Method path not implemented.");
+    }
+
+    /**
+     * True if the relative path a_path exists at this node.
+     * @param a_path - Parameter
+     * @returns Result value
+     */
+    has_path(a_path: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_path not implemented.");
+    }
+
 }
 
 /**
@@ -164,7 +337,7 @@ export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
     /**
      * Reference model type that this node corresponds to. 
      */
-    rm_type_name?: string;
+    rm_type_name?: openehr_base.String;
     /**
      * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1).
      */
@@ -174,7 +347,7 @@ export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
      * For C_PRIMITIVE_OBJECTs, it will have the special value Primitive_node_id.
      * 
      */
-    node_id?: string;
+    node_id?: openehr_base.String;
 }
 
 /**
@@ -184,7 +357,7 @@ export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
-    rm_attribute_name?: string;
+    rm_attribute_name?: openehr_base.String;
     /**
      * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
      */
@@ -193,6 +366,14 @@ export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
      * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes. 
      */
     children?: undefined;
+    /**
+     * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
 }
 
 /**
@@ -203,6 +384,40 @@ export abstract class C_DEFINED_OBJECT extends C_OBJECT {
      * Value to be assumed if none sent in data.
      */
     assumed_value?: openehr_base.Any;
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+
+    /**
+     * Generate a prototype value from this constraint object.
+     * @returns Result value
+     */
+    abstract prototype_value(): openehr_base.Any;
+
+    /**
+     * True if there is an assumed value.
+     * 
+     * @returns Result value
+     */
+    has_assumed_value(): openehr_base.Boolean {
+        throw new Error("Method has_assumed_value not implemented.");
+    }
+
+    /**
+     * Generate a default value from this constraint object.
+     * @returns Result value
+     */
+    abstract default_value(): openehr_base.Any;
+
+    /**
+     * True if any value of the reference model type being constrained is allowed. Redefine in descendants.
+     * @returns Result value
+     */
+    abstract any_allowed(): openehr_base.Boolean;
+
 }
 
 /**
@@ -212,7 +427,27 @@ export class C_COMPLEX_OBJECT_PROXY extends C_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    target_path?: openehr_base.String;
+    /**
+     * True if target occurrences are to be used as the value of occurrences in this object; by the time of runtime use, the target occurrences value has to be set into this object.
+     * @returns Result value
+     */
+    use_target_occurrences(): openehr_base.Boolean {
+        throw new Error("Method use_target_occurrences not implemented.");
+    }
+
+    /**
+     * True if this node occurrences conforms to \`_other.occurrences_\`; \`_other_\` is assumed to be in a flat archetype.
+     * 
+     * If \`_other_\` is a \`C_COMPLEX_OBJECT\`, then always \`True\`, since if occurrences defined on proxy node, it is an override of  the occurrences on the target, and it doesn't have to conform to anything except the containing attribute's cardinality. However, if \`_other_\` is also a \`C_COMPLEX_OBJECT\` then the override is of another use_node, and normal occurrences apply
+     * 
+     * @param other - Parameter
+     * @returns Result value
+     */
+    occurrences_conforms_to(other: C_OBJECT): openehr_base.Boolean {
+        throw new Error("Method occurrences_conforms_to not implemented.");
+    }
+
 }
 
 /**
@@ -243,6 +478,14 @@ export class C_PRIMITIVE_OBJECT extends C_DEFINED_OBJECT {
      * Object actually defining the constraint.
      */
     item?: C_PRIMITIVE;
+    /**
+     * True if any value of the type being constrained in item is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
 }
 
 /**
@@ -254,11 +497,19 @@ export class SIBLING_ORDER {
     /**
      * True if the order relationship is ‘before’, if False, it is ‘after’.
      */
-    is_before?: boolean;
+    is_before?: openehr_base.Boolean;
     /**
      * Node identifier of sibling before or after which this node should come.
      */
-    sibling_node_id?: string;
+    sibling_node_id?: openehr_base.String;
+    /**
+     * True if the order relationship is \`_after_\`, computed as the negation of \`_is_before_\`.
+     * @returns Result value
+     */
+    is_after(): openehr_base.Boolean {
+        throw new Error("Method is_after not implemented.");
+    }
+
 }
 
 /**
@@ -269,6 +520,21 @@ export abstract class C_SECOND_ORDER {
      * Members of this second order constrainer. Normally redefined in descendants.
      */
     members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    abstract c_conforms_to(other: C_SECOND_ORDER, rmcc: undefined): openehr_base.Boolean;
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    abstract c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean;
+
 }
 
 /**
@@ -283,6 +549,25 @@ export class C_ATTRIBUTE_TUPLE extends C_SECOND_ORDER {
      * List of \`C_ATTRIBUTEs\` forming the definition of the tuple.
      */
     override members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    c_conforms_to(other: C_ATTRIBUTE_TUPLE, rmcc: undefined): openehr_base.Boolean {
+        throw new Error("Method c_conforms_to not implemented.");
+    }
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean {
+        throw new Error("Method c_congruent_to not implemented.");
+    }
+
 }
 
 /**
@@ -293,6 +578,25 @@ export class C_PRIMITIVE_TUPLE extends C_SECOND_ORDER {
      * Object constraint members of this tuple group.
      */
     override members?: undefined;
+    /**
+     * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
+     * @param other - Parameter
+     * @param rmcc - Parameter
+     * @returns Result value
+     */
+    c_conforms_to(other: C_PRIMITIVE_TUPLE, rmcc: undefined): openehr_base.Boolean {
+        throw new Error("Method c_conforms_to not implemented.");
+    }
+
+    /**
+     * True if constraints represented by this node contain no further redefinitions with respect to the node other. Typically used to test if an inherited node locally contains any constraints.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_congruent_to(other: C_SECOND_ORDER): openehr_base.Boolean {
+        throw new Error("Method c_congruent_to not implemented.");
+    }
+
 }
 
 /**
@@ -303,6 +607,14 @@ export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
      * List of constraints on attributes of the reference model type represented by this object.
      */
     attributes?: undefined;
+    /**
+     * True if any value of the reference model type being constrained is allowed.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
 }
 
 /**
@@ -323,7 +635,7 @@ export class C_ARCHETYPE_ROOT extends C_COMPLEX_OBJECT {
     /**
      * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
      */
-    archetype_ref?: string;
+    archetype_ref?: openehr_base.String;
 }
 
 /**
@@ -344,6 +656,25 @@ export abstract class C_PRIMITIVE {
      * Value to be assumed if none sent in data.
      */
     assumed_value?: openehr_base.Any;
+    /**
+     * Generate a default value from this constraint object.
+     * @returns Result value
+     */
+    abstract default_value(): openehr_base.Any;
+
+    /**
+     * True if there is an assumed value.
+     * @returns Result value
+     */
+    abstract has_assumed_value(): openehr_base.Boolean;
+
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+
 }
 
 /**
@@ -353,15 +684,15 @@ export class C_BOOLEAN extends C_PRIMITIVE {
     /**
      * True if the value True is allowed.
      */
-    true_valid?: boolean;
+    true_valid?: openehr_base.Boolean;
     /**
      * True if the value False is allowed.
      */
-    false_valid?: boolean;
+    false_valid?: openehr_base.Boolean;
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override assumed_value?: boolean = undefined;
+    override assumed_value?: openehr_base.Boolean = undefined;
 }
 
 /**
@@ -371,7 +702,7 @@ export class C_STRING extends C_PRIMITIVE {
     /**
      * Regular expression pattern for proposed instances of String to match.
      */
-    pattern?: string;
+    pattern?: openehr_base.String;
     /**
      * Set of Strings specifying constraint.
      */
@@ -379,11 +710,20 @@ export class C_STRING extends C_PRIMITIVE {
     /**
      * True if the list is being used to specify the constraint but is not considered exhaustive.
      */
-    list_open?: boolean;
+    list_open?: openehr_base.Boolean;
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override assumed_value?: string = undefined;
+    override assumed_value?: openehr_base.String = undefined;
+    /**
+     * True if a_value is valid with respect to constraint expressed in concrete instance of this type. 
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    valid_value(a_value: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_value not implemented.");
+    }
+
 }
 
 /**
@@ -401,7 +741,7 @@ export class C_INTEGER extends C_PRIMITIVE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override assumed_value?: number = undefined;
+    override assumed_value?: openehr_base.Integer = undefined;
 }
 
 /**
@@ -442,6 +782,32 @@ export abstract class C_ORDERED<T extends openehr_base.Ordered> extends C_PRIMIT
      * Value to be assumed if none sent in data.
      */
     override assumed_value?: T = undefined;
+    /**
+     * True if any value (i.e. instance) of the reference model type would be allowed. Redefined in descendants.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
+    /**
+     * True if \`_other.any_allowed_\` or else for every constraint in the \`_constraint_\` list there is a constraint in \`_other.constraint_\` that contains it.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+        throw new Error("Method c_value_conforms_to not implemented.");
+    }
+
+    /**
+     * True if the items in \`_constraint_\` are equal in number and identical pair-wise with those in \`_other.constraint_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+        throw new Error("Method c_value_congruent_to not implemented.");
+    }
+
 }
 
 /**
@@ -460,7 +826,7 @@ export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
      * 
      * Use an empty string for no constraint.
      */
-    constraint?: string;
+    constraint?: openehr_base.String;
     /**
      * Assumed Terminology code value.
      */
@@ -478,6 +844,91 @@ export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
      * * otherwise, it will carry the same value as in the parent.
      */
     constraint_status?: CONSTRAINT_STATUS;
+    /**
+     * True if \`_constraint_status_\` is defined and equals \`required\` OR if Void. I.e. in archetypes where \`C_TERMINOLOGY_CODE\` instances have no \`_constraint_status_\`, the \`required\` status is assumed, which applies to all legacy archetypes.
+     * @returns Result value
+     */
+    constraint_required(): openehr_base.Boolean {
+        throw new Error("Method constraint_required not implemented.");
+    }
+
+    /**
+     * Return the effective integer value of the \`_constraint_status_\` field if it exists. If it is null, return 0, i.e. \`required\`.
+     * 
+     * NOTE: the above logic applies to any \`C_TERMINOLOGY_NODE\` instance in a specialised archetype that redefines another such instance in the flat parent. I.e. no stated \`_constraint_status_\` means \`required\`.
+     * @returns Result value
+     */
+    effective_constraint_status(): openehr_base.Integer {
+        throw new Error("Method effective_constraint_status not implemented.");
+    }
+
+    /**
+     * Effective set of at-code values corresponding to an ac-code for a locally defined value set. Not defined for ac-codes that have no local value set.
+     * @returns Result value
+     */
+    value_set_expanded(): openehr_base.String {
+        throw new Error("Method value_set_expanded not implemented.");
+    }
+
+    /**
+     * For locally defined value sets within individual code bindings: return the term URI(s) substituted from bindings for local at-codes in \`_value_set_expanded_\`.
+     * @returns Result value
+     */
+    value_set_substituted(): openehr_base.Uri {
+        throw new Error("Method value_set_substituted not implemented.");
+    }
+
+    /**
+     * For locally defined value sets within individual code bindings: final set of external codes to which value set is resolved.
+     * @returns Result value
+     */
+    value_set_resolved(): openehr_base.Terminology_code {
+        throw new Error("Method value_set_resolved not implemented.");
+    }
+
+    /**
+     * True if a \`_value_\` is valid with respect to constraint expressed in concrete instance of this type. 
+     * @param a_value - Parameter
+     * @returns Result value
+     */
+    valid_value(a_value: openehr_base.Terminology_code): openehr_base.Boolean {
+        throw new Error("Method valid_value not implemented.");
+    }
+
+    /**
+     * A generated prototype value from this constraint object.
+     * @returns Result value
+     */
+    prototype_value(): openehr_base.Terminology_code {
+        throw new Error("Method prototype_value not implemented.");
+    }
+
+    /**
+     * True if \`_constraint_\` is empty.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
+    /**
+     * True if \`_other.any_allowed_\` or else every constraint in the \`_constraint_\` list exists in the \`_other.constraint_\`, and \`_effective_constraint_status()_\` is <= \`_other.effective_constraint_status()_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_TERMINOLOGY_CODE): openehr_base.Boolean {
+        throw new Error("Method c_value_conforms_to not implemented.");
+    }
+
+    /**
+     * True if \`_constraint_\` and \`_other.constraint_\` are both value-set ids, and expand to identical value sets, or else are identical value codes; and \`_effective_constraint_status()_\` = \`_other.effective_constraint_status()_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_TERMINOLOGY_CODE): openehr_base.Boolean {
+        throw new Error("Method c_value_congruent_to not implemented.");
+    }
+
 }
 
 /**
@@ -487,7 +938,48 @@ export abstract class C_TEMPORAL<T extends openehr_base.Temporal> extends C_ORDE
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
-    pattern_constraint?: string;
+    pattern_constraint?: openehr_base.String;
+    /**
+     * True if \`_a_pattern_\` is a valid constraint. Define in concrete descendants.
+     * @param a_pattern - Parameter
+     * @returns Result value
+     */
+    abstract valid_pattern_constraint(a_pattern: openehr_base.String): openehr_base.Boolean;
+
+    /**
+     * Return True if \`_a_pattern_\` can be replaced by \`_an_other_pattern_\` in a specialised constraint. Define in concrete subtypes.
+     * @param a_pattern - Parameter
+     * @param an_other_pattern - Parameter
+     * @returns Result value
+     */
+    abstract valid_pattern_constraint_replacement(a_pattern: openehr_base.String, an_other_pattern: openehr_base.String): openehr_base.Boolean;
+
+    /**
+     * True if any value (i.e. instance) of the reference model type would be allowed. Redefined in descendants.
+     * @returns Result value
+     */
+    any_allowed(): openehr_base.Boolean {
+        throw new Error("Method any_allowed not implemented.");
+    }
+
+    /**
+     * True if \`precursor()\` or else \`_other.pattern_constraint_\` is empty, or else \`_pattern_constraint_\` is a valid (narrower) replacement for \`_other.pattern_constraint_\`.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+        throw new Error("Method c_value_conforms_to not implemented.");
+    }
+
+    /**
+     * True if \`precursor (other)\` and \`_pattern_constraint_ ~ _other.pattern_constraint_\`, i.e. either both \`Void\` or else both non-\`Void\` and identical.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+        throw new Error("Method c_value_congruent_to not implemented.");
+    }
+
 }
 
 /**
@@ -518,6 +1010,14 @@ export class C_TIME extends C_PRIMITIVE {
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
     override assumed_value?: openehr_base.Iso8601_time = undefined;
+    /**
+     * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+     * @returns Result value
+     */
+    validity_is_range(): openehr_base.Boolean {
+        throw new Error("Method validity_is_range not implemented.");
+    }
+
 }
 
 /**
@@ -586,6 +1086,14 @@ export class C_DATE_TIME extends C_PRIMITIVE {
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
     override assumed_value?: openehr_base.Iso8601_date_time = undefined;
+    /**
+     * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+     * @returns Result value
+     */
+    validity_is_range(): openehr_base.Boolean {
+        throw new Error("Method validity_is_range not implemented.");
+    }
+
 }
 
 /**
@@ -600,29 +1108,29 @@ export class C_DATE_TIME extends C_PRIMITIVE {
  * 
  */
 export class C_DURATION extends C_PRIMITIVE {
-    years_allowed?: boolean;
+    years_allowed?: openehr_base.Boolean;
     /**
      * True if months are allowed in the constrained Duration.
      */
-    months_allowed?: boolean;
-    weeks_allowed?: boolean;
+    months_allowed?: openehr_base.Boolean;
+    weeks_allowed?: openehr_base.Boolean;
     /**
      * True if days are allowed in the constrained Duration.
      */
-    days_allowed?: boolean;
+    days_allowed?: openehr_base.Boolean;
     /**
      * True if hours are allowed in the constrained Duration.
      */
-    hours_allowed?: boolean;
+    hours_allowed?: openehr_base.Boolean;
     /**
      * True if minutes are allowed in the constrained Duration.
      */
-    minutes_allowed?: boolean;
-    seconds_allowed?: boolean;
+    minutes_allowed?: openehr_base.Boolean;
+    seconds_allowed?: openehr_base.Boolean;
     /**
      * True if fractional seconds are allowed in the constrained Duration.
      */
-    fractional_seconds_allowed?: boolean;
+    fractional_seconds_allowed?: openehr_base.Boolean;
     /**
      * Range of Durations specifying constraint.
      */
@@ -749,12 +1257,58 @@ export class C_TEMPORAL_DEFINITIONS {
      * ----
      */
     valid_date_time_constraint_replacements?: undefined;
+    /**
+     * True if ISO8601 duration string \`_other_dur_\` contains every character element in \`_a_dur_\`. For example: 'PYD' (period with year and days only) conforms to 'PYMD', but doesn't conform to 'PY'.
+     * @param a_dur - Parameter
+     * @param other_dur - Parameter
+     * @returns Result value
+     */
+    valid_duration_constraint_replacement(a_dur: openehr_base.String, other_dur: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_duration_constraint_replacement not implemented.");
+    }
+
+    /**
+     * True if string literal like \`"yyyy-MM-dd"\` containing \`"XX"\` or \`"??"\` in \`MM\` or \`dd\` slots in pattern constraint is in \`_valid_date_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_date_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_iso8601_date_constraint_pattern not implemented.");
+    }
+
+    /**
+     * True if string literal like \`"hh:mm:ss[.ssss]"\` containing \`"XX"\` or \`"??"\` in \`mm\` or \`ss\` slots in pattern constraint is in \`_valid_time_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_time_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_iso8601_time_constraint_pattern not implemented.");
+    }
+
+    /**
+     * True if string literal in form \`"yyyy-MM-dd hh:mm:ss[.ssss]"\` containing \`"XX"\` or \`"??"\` in variable slots in pattern constraint is in \`_valid_date_time_constraint_patterns_\`.
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_date_time_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_iso8601_date_time_constraint_pattern not implemented.");
+    }
+
+    /**
+     * True if string in form \`P[Y|y][M|m][W|w][D|d][T[H|h][M|m][S|s]]\` (note: allowing 'W' to be mixed in is an openEHR deviation of ISO 8601).
+     * @param s - Parameter
+     * @returns Result value
+     */
+    valid_iso8601_duration_constraint_pattern(s: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method valid_iso8601_duration_constraint_pattern not implemented.");
+    }
+
 }
 
 /**
  * Status of \`_constraint_\`, with values allowing for 'soft' constraints, which are effectively different kinds of suggestions.
  */
-export class CONSTRAINT_STATUS {
+export class CONSTRAINT_STATUS extends openehr_base.Integer {
 }
 
 /**
@@ -764,11 +1318,19 @@ export class ARCHETYPE_TERM {
     /**
      * Code of this term. 
      */
-    code?: string;
+    code?: openehr_base.String;
     /**
      * Hash of keys (“text”, “description” etc) and corresponding values.
      */
     items?: undefined;
+    /**
+     * List of all keys used in this term.
+     * @returns Result value
+     */
+    keys(): openehr_base.String {
+        throw new Error("Method keys not implemented.");
+    }
+
 }
 
 /**
@@ -778,7 +1340,7 @@ export abstract class TERMINOLOGY_RELATION {
     /**
      * Code of source term of this relation.
      */
-    id?: string;
+    id?: openehr_base.String;
     /**
      * List of target terms in this relation.
      */
@@ -798,16 +1360,16 @@ export class ARCHETYPE_TERMINOLOGY {
     /**
      * True if this terminology only contains terms relating to a differential specialisation of the owning artefact, rather than a complete set.
      */
-    is_differential?: boolean;
+    is_differential?: openehr_base.Boolean;
     /**
      * Original language of the terminology, as set at artefact creation or parsing time; must be a code in the ISO 639-1 2 character language code-set.
      * 
      */
-    original_language?: string;
+    original_language?: openehr_base.String;
     /**
      * Term code defining the meaning of the artefact as a whole, and always used as the id-code on the root node of the artefact. Must be defined in the \`_term_definitions_\` property.
      */
-    concept_code?: string;
+    concept_code?: openehr_base.String;
     /**
      * Directory of term definitions as a two-level table. The outer hash keys are language codes, e.g. \`"en"\`, \`"de"\`, while the inner hash keys are term codes, e.g. \`"id17"\`, \`"at4"\`.
      */
@@ -828,12 +1390,194 @@ export class ARCHETYPE_TERMINOLOGY {
      * Directory of extracts of external terminologies, as a two-level table. The outer hash keys are terminology ids, e.g. \`"SNOMED_CT"\`, while the inner hash keys are term codes or code-phrases from the relevant terminology, e.g. \`"10094842"\`.
      */
     terminology_extracts?: undefined;
+    /**
+     * Specialisation depth of this artefact. Unspecialised artefacts have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
+     * @returns Result value
+     */
+    specialisation_depth(): openehr_base.Integer {
+        throw new Error("Method specialisation_depth not implemented.");
+    }
+
+    /**
+     * List of all id codes in the terminology., i.e. the 'id' codes in an ADL archetype, which are the \`_node_id_\` values on \`C_OBJECT\` descendants.
+     * @returns Result value
+     */
+    id_codes(): openehr_base.String {
+        throw new Error("Method id_codes not implemented.");
+    }
+
+    /**
+     * List of all value term codes in the terminology, i.e. the 'at' codes in an ADL archetype, which are used as possible values on terminological constrainer nodes.
+     * @returns Result value
+     */
+    value_codes(): openehr_base.String {
+        throw new Error("Method value_codes not implemented.");
+    }
+
+    /**
+     * List of all value set codes in the terminology defining value sets. These correspond to the 'ac' codes in an ADL archetype.
+     * @returns Result value
+     */
+    value_set_codes(): openehr_base.String {
+        throw new Error("Method value_set_codes not implemented.");
+    }
+
+    /**
+     * True if language \`_a_lang_\` is present in archetype terminology. 
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    has_language(a_lang: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_language not implemented.");
+    }
+
+    /**
+     * True if there are bindings to terminology \`_a_terminology_id_\` present.
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_terminology not implemented.");
+    }
+
+    /**
+     * True if code \`_a_code_\` defined in this terminology.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_term_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_term_code not implemented.");
+    }
+
+    /**
+     * Term definition for a code, in a specified language. 
+     * @param a_lang - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_definition(a_lang: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        throw new Error("Method term_definition not implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to \`_a_code_\` in target external terminology \`_a_terminology_id_\`, as a string, which is usually a formal query expression.
+     * @param a_terminology - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_binding(a_terminology: openehr_base.String, a_code: openehr_base.String): openehr_base.Uri {
+        throw new Error("Method term_binding not implemented.");
+    }
+
+    /**
+     * List of terminologies to which term or constraint bindings exist in this terminology, computed from bindings.
+     * @returns Result value
+     */
+    terminologies_available(): openehr_base.String {
+        throw new Error("Method terminologies_available not implemented.");
+    }
+
+    /**
+     * Return an \`ARCHETYPE_TERM\` from specified terminology extract, for specified term code.
+     * @param a_terminology_id - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    terminology_extract_term(a_terminology_id: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        throw new Error("Method terminology_extract_term not implemented.");
+    }
+
+    /**
+     * True if there is a provided terminology extract present.
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology_extract(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_terminology_extract not implemented.");
+    }
+
+    /**
+     * List of languages in which terms in this terminology are available.
+     * @returns Result value
+     */
+    languages_available(): openehr_base.String {
+        throw new Error("Method languages_available not implemented.");
+    }
+
 }
 
 /**
  * Definitions relating to the internal code system of archetypes.
  */
 export class ADL_CODE_DEFINITIONS {
+    /**
+     * True if \`_a_child_code_\` conforms to \`_a_parent_code_\` in the sense of specialisation, i.e. is \`_a_child_code_\` the same as or more specialised than \`_a_parent_code_\`?
+     * @param a_child_code - Parameter
+     * @param a_parent_code - Parameter
+     * @returns Result value
+     */
+    codes_conformant(a_child_code: openehr_base.String, a_parent_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method codes_conformant not implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is any kind of ADL archetype local code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_adl_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_adl_code not implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'id' code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_id_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_id_code not implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'at' code, i.e. a code representing a single terminology item.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_value_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_value_code not implemented.");
+    }
+
+    /**
+     * True if \`_a_code_\` is an 'ac' code, i.e. a code referring to a terminology value set.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_value_set_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_value_set_code not implemented.");
+    }
+
+    /**
+     * A code has been specialised if there is a non-zero code index anywhere above the last index e.g. 
+     * 
+     * * \`at0.0.1\` -> False
+     * * \`at1.0.1\` -> True
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    is_redefined_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method is_redefined_code not implemented.");
+    }
+
+    /**
+     * Is \`_a_code_\` valid at level \`_a_level_\` or less, i.e. if we remove its trailing specialised part corresponding to specialisation below \`_a_level_\`, and then any trailing '.0' pieces, do we end up with a valid code? If so it means that the code corresponds to a real node from \`_a_level_\` or higher.
+     * @param a-code - Parameter
+     * @param a_level - Parameter
+     * @returns Result value
+     */
+    code_exists_at_level(a-code: openehr_base.String, a_level: openehr_base.Integer): openehr_base.Boolean {
+        throw new Error("Method code_exists_at_level not implemented.");
+    }
+
 }
 
 /**
@@ -863,7 +1607,7 @@ export class RM_OVERLAY {
 /**
  * Enumeration of visibility settings for model elements.
  */
-export class VISIBILITY_TYPE {
+export class VISIBILITY_TYPE extends openehr_base.String {
 }
 
 /**
@@ -879,17 +1623,21 @@ export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Reference model type that this node corresponds to. 
      */
-    rm_type_name?: string;
+    rm_type_name?: openehr_base.String;
     /**
      * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1.
      */
-    occurrences?: string;
+    occurrences?: openehr_base.String;
     /**
      * Semantic id of this node, used to differentiate sibling nodes of the same type. Each node_id must be defined in the archetype ontology as a term code. 
      * 
      */
-    node_id?: string;
-    is_deprecated?: boolean;
+    node_id?: openehr_base.String;
+    is_deprecated?: openehr_base.Boolean;
+    specialisation_depth(): openehr_base.Integer {
+        throw new Error("Method specialisation_depth not implemented.");
+    }
+
 }
 
 /**
@@ -899,11 +1647,11 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
      */
-    rm_attribute_name?: string;
+    rm_attribute_name?: openehr_base.String;
     /**
      * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
      */
-    existence?: string;
+    existence?: openehr_base.String;
     /**
      * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes. 
      */
@@ -911,22 +1659,22 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Within a differential specialised archetype, may be set to represent a deep path within the structure to which this constraint and its child constraints apply.
      */
-    differential_path?: string;
+    differential_path?: openehr_base.String;
     /**
      * Cardinality constraint of attribute, if a container attribute.
      */
-    cardinality?: string;
+    cardinality?: openehr_base.String;
     /**
      * Flag indicating whether this attribute constraint is on a container (i.e. multiply-valued) attribute.
      */
-    is_multiple?: boolean;
+    is_multiple?: openehr_base.Boolean;
 }
 
 /**
  * Abstract parent type of C_OBJECT subtypes that are defined by value, i.e. whose definitions are actually in the archetype rather than being by reference. 
  */
 export abstract class P_C_DEFINED_OBJECT extends P_C_OBJECT {
-    is_frozen?: boolean;
+    is_frozen?: openehr_base.Boolean;
     default_value?: openehr_base.Any;
 }
 
@@ -937,7 +1685,7 @@ export class P_C_COMPLEX_OBJECT_PROXY extends P_C_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    target_path?: openehr_base.String;
 }
 
 /**
@@ -952,7 +1700,7 @@ export class P_ARCHETYPE_SLOT extends P_C_OBJECT {
      * List of constraints defining other archetypes that cannot be included at this point. 
      */
     excludes?: undefined;
-    is_closed?: boolean;
+    is_closed?: openehr_base.Boolean;
 }
 
 /**
@@ -966,7 +1714,7 @@ export abstract class P_C_PRIMITIVE_OBJECT extends P_C_DEFINED_OBJECT {
     /**
      * True if this constraint is actually of an enumerated type that conforms to a primitive type, not a primitive.
      */
-    is_enumerated_type_constraint?: boolean;
+    is_enumerated_type_constraint?: openehr_base.Boolean;
     /**
      * Constraint represented by this object; redefine in descendants.
      */
@@ -998,7 +1746,7 @@ export class P_C_ATTRIBUTE_TUPLE {
 }
 
 export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
-    archetype_ref?: string;
+    archetype_ref?: openehr_base.String;
 }
 
 /**
@@ -1006,8 +1754,8 @@ export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
  */
 export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
     override constraint?: undefined = undefined;
-    override assumed_value?: boolean = undefined;
-    override default_value?: boolean = undefined;
+    override assumed_value?: openehr_base.Boolean = undefined;
+    override default_value?: openehr_base.Boolean = undefined;
 }
 
 /**
@@ -1018,8 +1766,8 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
      * String constraint - a list of literal strings and / or regular expression strings delimited by the ‘/’ character.
      */
     override constraint?: undefined = undefined;
-    override default_value?: string = undefined;
-    override assumed_value?: string = undefined;
+    override default_value?: openehr_base.String = undefined;
+    override assumed_value?: openehr_base.String = undefined;
 }
 
 /**
@@ -1053,7 +1801,7 @@ export abstract class P_C_ORDERED<T extends openehr_base.Ordered> extends P_C_PR
  * The last possibility above is enabled by the merge_tuple routine, which enables the constraint of another single-valued C_TERMINOLOGY_CODE to be merged with the current one.
  */
 export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
-    override constraint?: string = undefined;
+    override constraint?: openehr_base.String = undefined;
     override assumed_value?: openehr_base.Terminology_code = undefined;
     override default_value?: openehr_base.Terminology_code = undefined;
 }
@@ -1065,7 +1813,7 @@ export abstract class P_C_TEMPORAL<T extends openehr_base.Temporal> extends P_C_
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
      */
-    pattern_constraint?: string;
+    pattern_constraint?: openehr_base.String;
 }
 
 /**
@@ -1098,7 +1846,7 @@ export abstract class P_ARCHETYPE {
     /**
      * Identifier of the specialisation parent of this archetype.
      */
-    parent_archetype_id?: string;
+    parent_archetype_id?: openehr_base.String;
     /**
      * Identifier of this archetype.
      */
@@ -1106,7 +1854,7 @@ export abstract class P_ARCHETYPE {
     /**
      * Flag indicating whether this archetype is differential or flat in its contents. Top-level source archetypes have this flag set to True.
      */
-    is_differential?: boolean;
+    is_differential?: openehr_base.Boolean;
     /**
      * Root node of the definition of this archetype.
      */
@@ -1129,11 +1877,11 @@ export abstract class P_AUTHORED_RESOURCE {
     /**
      * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
      */
-    original_language?: string;
+    original_language?: openehr_base.String;
     /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
      */
-    is_controlled?: boolean;
+    is_controlled?: openehr_base.Boolean;
     /**
      * List of details for each natural translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The original_language does not appear in this list.
      */
@@ -1145,7 +1893,7 @@ export abstract class P_AUTHORED_RESOURCE {
     /**
      * Unique identifier of the family of archetypes having the same interface identifier (same major version).
      */
-    uid?: string;
+    uid?: openehr_base.String;
     /**
      * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
      */
@@ -1159,7 +1907,7 @@ export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
     /**
      * ADL version if archteype was read in from an ADL sharable archetype.
      */
-    adl_version?: string;
+    adl_version?: openehr_base.String;
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
@@ -1167,11 +1915,11 @@ export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
     /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
      */
-    rm_release?: string;
+    rm_release?: openehr_base.String;
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
      */
-    is_generated?: boolean;
+    is_generated?: openehr_base.Boolean;
     other_meta_data?: undefined;
 }
 
@@ -1204,27 +1952,27 @@ export class P_ARCHETYPE_HRID {
     /**
      * Reverse domain name namespace identifier.
      */
-    namespace?: string;
+    namespace?: openehr_base.String;
     /**
      * Name of the Reference Model publisher.
      */
-    rm_publisher?: string;
+    rm_publisher?: openehr_base.String;
     /**
      * Name of the package in whose reachability graph the rm_class class is found (there can be more than one possibility in many reference models).
      */
-    rm_package?: string;
+    rm_package?: openehr_base.String;
     /**
      * Name of the root class of this archetype.
      */
-    rm_class?: string;
+    rm_class?: openehr_base.String;
     /**
      * The short concept name of the archetype as used in the multi-axial archetype_hrid.
      */
-    concept_id?: string;
+    concept_id?: openehr_base.String;
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. 1.8.2. The archetype_hrid feature includes only the major version.
      */
-    release_version?: string;
+    release_version?: openehr_base.String;
     /**
      * The status of the version, i.e. released, release_candidate etc.
      */
@@ -1232,15 +1980,15 @@ export class P_ARCHETYPE_HRID {
     /**
      * The build count since last increment of any version part.
      */
-    build_count?: string;
+    build_count?: openehr_base.String;
 }
 
 /**
  * Local ontology of an archetype.
  */
 export class P_ARCHETYPE_TERMINOLOGY {
-    is_differential?: boolean;
-    original_language?: string;
+    is_differential?: openehr_base.Boolean;
+    original_language?: openehr_base.String;
     /**
      * Directory of term definitions as a two-level 
      * table. The outer hash keys are term codes, 
@@ -1265,15 +2013,15 @@ export class AOM_PROFILE {
     /**
      * Name of this profile, usually based on the publisher it pertains to e.g. "openEHR", "CDISC", etc.
      */
-    profile_name?: string;
+    profile_name?: openehr_base.String;
     /**
      * States a class from the Reference Model that provides archetyping capability in RM data structures. This attribute is optional, and there need be no such class in the RM. Defining it here has the effect in tools that the class tree under which archetypes are arranged contains only RM classes inheriting from this class.
      */
-    archetype_parent_class?: string;
+    archetype_parent_class?: openehr_base.String;
     /**
      * This attribute defines a base class from the Reference Model whose descendants are considered to be 'logical data types', i.e. of some higher level than the built-in primitive types String, Integer etc. This attribute is optional, even if the RM does have such a class, and is only used to help tooling to provide more intelligent display.
      */
-    archetype_data_value_parent_class?: string;
+    archetype_data_value_parent_class?: openehr_base.String;
     /**
      * Mappings from AOM built-in types to actual types in RM: whenever the type name is encountered in an archetype, it is mapped to a specific RM type.
      */
@@ -1281,7 +2029,7 @@ export class AOM_PROFILE {
     /**
      * If \`_archetype_parent_class_\` is not set, designate a class whose descendants should be made visible in tree and grid renderings of the archetype definition.
      */
-    archetype_visualise_descendants_of?: string;
+    archetype_visualise_descendants_of?: openehr_base.String;
     /**
      * Allowed type substitutions: Actual RM type names keyed by AOM built-in types which can substitute for them in an archetype. E.g. \`<key = "ISO8601_DATE", value = "String">\` means that if RM property \`TYPE._some_property_\` is of type \`String\`, an \`ISO8601_DATE\` is allowed at that position in the archetype.
      */
@@ -1310,11 +2058,11 @@ export class AOM_TYPE_MAPPING {
     /**
      * Name of the AOM type being mapped to an RM type.
      */
-    source_class_name?: string;
+    source_class_name?: openehr_base.String;
     /**
      * Name of the RM type in the mapping.
      */
-    target_class_name?: string;
+    target_class_name?: openehr_base.String;
     /**
      * List of mappings of properties of this type to another type.
      */
@@ -1328,11 +2076,11 @@ export class AOM_PROPERTY_MAPPING {
     /**
      * Name of property in source class.
      */
-    source_property_name?: string;
+    source_property_name?: openehr_base.String;
     /**
      * Name of property in target class.
      */
-    target_property_name?: string;
+    target_property_name?: openehr_base.String;
 }
 
 /**
@@ -1342,7 +2090,7 @@ export abstract class EXPR_ITEM {
     /**
      * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
      */
-    type?: string;
+    type?: openehr_base.String;
 }
 
 /**
@@ -1358,7 +2106,7 @@ export class EXPR_LEAF extends EXPR_ITEM {
     /**
      * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
      */
-    reference_type?: string;
+    reference_type?: openehr_base.String;
     /**
      * The value referred to; a manifest constant, an attribute path (in the form of a String), or for the right-hand side of a ‘matches’ node, a constraint, often a C_PRIMITIVE_OBJECT.
      */
@@ -1396,7 +2144,7 @@ export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
     /**
      * The path to the archetype node.
      */
-    path?: string;
+    path?: openehr_base.String;
     item?: ARCHETYPE_CONSTRAINT;
 }
 
@@ -1404,6 +2152,12 @@ export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
  * Abstract parent type of domain-specific constrainer types, to be defined in external packages.
  */
 export abstract class C_DOMAIN_TYPE extends C_DEFINED_OBJECT {
+    /**
+     * Standard (i.e. C_OBJECT) form of constraint.
+     * @returns Result value
+     */
+    abstract standard_equivalent(): C_COMPLEX_OBJECT;
+
 }
 
 /**
@@ -1423,12 +2177,12 @@ export class C_CODED_TEXT extends C_DOMAIN_TYPE {
     /**
      * Terminology identifier.
      */
-    terminology?: string;
+    terminology?: openehr_base.String;
     /**
      * Optional list of codes from the terminology. No list means any code from the terminology is allowed.
      */
     code_list?: undefined;
-    reference?: string;
+    reference?: openehr_base.String;
 }
 
 /**
@@ -1438,7 +2192,7 @@ export class C_QUANTITY extends C_DOMAIN_TYPE {
     /**
      * Name of physical property for Quantities being constrained.
      */
-    property?: string;
+    property?: openehr_base.String;
     /**
      * Value set of allowed individual Quantity item constraints in this Quantity constraint.
      */
@@ -1456,7 +2210,7 @@ export class C_QUANTITY_ITEM {
     /**
      * Optional units constraint.
      */
-    units?: string;
+    units?: openehr_base.String;
 }
 
 /**
@@ -1470,7 +2224,7 @@ export class ORDINAL {
     /**
      * Ordinal value.
      */
-    value?: number;
+    value?: openehr_base.Integer;
 }
 
 /**
@@ -1480,11 +2234,11 @@ export class ASSERTION {
     /**
      * Expression tag, used for differentiating multiple assertions.
      */
-    tag?: string;
+    tag?: openehr_base.String;
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
      */
-    string_expression?: string;
+    string_expression?: openehr_base.String;
     /**
      * Root of expression tree.
      */
@@ -1502,11 +2256,11 @@ export class ASSERTION_VARIABLE {
     /**
      * Name of variable.
      */
-    name?: string;
+    name?: openehr_base.String;
     /**
      * Formal definition of the variable.
      */
-    definition?: string;
+    definition?: openehr_base.String;
 }
 
 /**
@@ -1516,7 +2270,7 @@ export abstract class EXPR_OPERATOR extends EXPR_ITEM {
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
      */
-    precedence_overridden?: boolean;
+    precedence_overridden?: openehr_base.Boolean;
     /**
      * Code of operator.
      */
@@ -1550,7 +2304,7 @@ export class EXPR_BINARY_OPERATOR extends EXPR_OPERATOR {
 /**
  * Enumeration type for operator types in assertion expressions.
  */
-export class OPERATOR_KIND {
+export class OPERATOR_KIND extends openehr_base.String {
 }
 
 /**
@@ -1564,11 +2318,35 @@ export class CARDINALITY {
     /**
      * True if the members of the container attribute to which this cardinality refers are ordered. 
      */
-    is_ordered?: boolean;
+    is_ordered?: openehr_base.Boolean;
     /**
      * True if the members of the container attribute to which this cardinality refers are unique.
      */
-    is_unique?: boolean;
+    is_unique?: openehr_base.Boolean;
+    /**
+     * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+     * @returns Result value
+     */
+    is_bag(): openehr_base.Boolean {
+        throw new Error("Method is_bag not implemented.");
+    }
+
+    /**
+     * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
+     * @returns Result value
+     */
+    is_list(): openehr_base.Boolean {
+        throw new Error("Method is_list not implemented.");
+    }
+
+    /**
+     * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+     * @returns Result value
+     */
+    is_set(): openehr_base.Boolean {
+        throw new Error("Method is_set not implemented.");
+    }
+
 }
 
 /**
@@ -1581,13 +2359,21 @@ export class ARCHETYPE_INTERNAL_REF extends C_REFERENCE_OBJECT {
     /**
      * Reference to an object node using archetype path notation.
      */
-    target_path?: string;
+    target_path?: openehr_base.String;
 }
 
 /**
  * Concrete model of constraint on a single-valued attribute node. The meaning of the inherited children attribute is that they are alternatives.
  */
 export class C_SINGLE_ATTRIBUTE extends C_ATTRIBUTE {
+    /**
+     * List of alternative constraints for the single child of this attribute within the data.
+     * @returns Result value
+     */
+    alternatives(): C_OBJECT {
+        throw new Error("Method alternatives not implemented.");
+    }
+
 }
 
 /**
@@ -1597,7 +2383,7 @@ export class CONSTRAINT_REF extends C_REFERENCE_OBJECT {
     /**
      * Reference to a constraint in the archetype local ontology.
      */
-    reference?: string;
+    reference?: openehr_base.String;
 }
 
 /**
@@ -1608,6 +2394,14 @@ export class C_MULTIPLE_ATTRIBUTE extends C_ATTRIBUTE {
      * Cardinality of this attribute constraint, if it constraints a container attribute.
      */
     cardinality?: CARDINALITY;
+    /**
+     * List of constraints representing members of the container value of this attribute within the data. Semantics of the uniqueness and ordering of items in the container are given by the cardinality.
+     * @returns Result value
+     */
+    members(): C_OBJECT {
+        throw new Error("Method members not implemented.");
+    }
+
 }
 
 /**
@@ -1633,7 +2427,83 @@ export class ARCHETYPE_ONTOLOGY {
     /**
      * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
      */
-    specialisation_depth?: number;
+    specialisation_depth?: openehr_base.Integer;
     term_attribute_names?: undefined;
+    /**
+     * True if terminology ‘a_terminology’ is present in archetype ontology.
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    has_language(a_lang: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_language not implemented.");
+    }
+
+    /**
+     * True if terminology \`a_terminology' is present in archetype ontology. 
+     * @param a_terminology_id - Parameter
+     * @returns Result value
+     */
+    has_terminology(a_terminology_id: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_terminology not implemented.");
+    }
+
+    /**
+     * True if term_codes has a_code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_term_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_term_code not implemented.");
+    }
+
+    /**
+     * True if constraint_codes has a_code.
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    has_constraint_code(a_code: openehr_base.String): openehr_base.Boolean {
+        throw new Error("Method has_constraint_code not implemented.");
+    }
+
+    /**
+     * Term definition for a code, in a specified language. 
+     * @param a_lang - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_definition(a_lang: openehr_base.String, a_code: openehr_base.String): ARCHETYPE_TERM {
+        throw new Error("Method term_definition not implemented.");
+    }
+
+    /**
+     * Constraint definition for a code, in a specified language.
+     * @param a_code - Parameter
+     * @param a_lang - Parameter
+     * @returns Result value
+     */
+    constraint_definition(a_code: openehr_base.String, a_lang: openehr_base.String): ARCHETYPE_TERM {
+        throw new Error("Method constraint_definition not implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+     * @param a_terminology - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    term_binding(a_terminology: openehr_base.String, a_code: openehr_base.String): openehr_base.CODE_PHRASE {
+        throw new Error("Method term_binding not implemented.");
+    }
+
+    /**
+     * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+     * @param a_terminology_id - Parameter
+     * @param a_code - Parameter
+     * @returns Result value
+     */
+    constraint_binding(a_terminology_id: openehr_base.String, a_code: openehr_base.String): openehr_base.String {
+        throw new Error("Method constraint_binding not implemented.");
+    }
+
 }
 
