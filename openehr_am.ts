@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-12T00:42:55.626Z
+// Generated: 2025-11-12T00:45:55.541Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -238,7 +238,31 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    override adl_version?: openehr_base.String;
+    override get adl_version(): string | undefined {
+        return this._adl_version?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for adl_version.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $adl_version(): openehr_base.String | undefined {
+        return this._adl_version;
+    }
+
+    /**
+     * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+     */
+    override set adl_version(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._adl_version = undefined;
+        } else if (typeof val === 'string') {
+            this._adl_version = openehr_base.String.from(val);
+        } else {
+            this._adl_version = val;
+        }
+    }
+
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */

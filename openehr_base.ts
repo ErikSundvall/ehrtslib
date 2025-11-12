@@ -3,7 +3,7 @@
 // Schema Revision: 1.3.0.2
 // Description: openEHR base types.
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json
-// Generated: 2025-11-12T00:42:55.543Z
+// Generated: 2025-11-12T00:45:55.478Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -3331,19 +3331,115 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
     /**
      * Lower boundary open (i.e. = -infinity).
      */
-    override lower_unbounded?: Boolean;
+    override get lower_unbounded(): boolean | undefined {
+        return this._lower_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_unbounded.
+     * Use this to access Boolean methods.
+     */
+    override get $lower_unbounded(): Boolean | undefined {
+        return this._lower_unbounded;
+    }
+
+    /**
+     * Sets lower_unbounded from either a primitive value or Boolean wrapper.
+     */
+    override set lower_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_unbounded = Boolean.from(val);
+        } else {
+            this._lower_unbounded = val;
+        }
+    }
+
     /**
      * Upper boundary open (i.e. = +infinity).
      */
-    override upper_unbounded?: Boolean;
+    override get upper_unbounded(): boolean | undefined {
+        return this._upper_unbounded?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_unbounded.
+     * Use this to access Boolean methods.
+     */
+    override get $upper_unbounded(): Boolean | undefined {
+        return this._upper_unbounded;
+    }
+
+    /**
+     * Sets upper_unbounded from either a primitive value or Boolean wrapper.
+     */
+    override set upper_unbounded(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_unbounded = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_unbounded = Boolean.from(val);
+        } else {
+            this._upper_unbounded = val;
+        }
+    }
+
     /**
      * Lower boundary value included in range if not \`_lower_unbounded_\`.
      */
-    override lower_included?: Boolean;
+    override get lower_included(): boolean | undefined {
+        return this._lower_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for lower_included.
+     * Use this to access Boolean methods.
+     */
+    override get $lower_included(): Boolean | undefined {
+        return this._lower_included;
+    }
+
+    /**
+     * Sets lower_included from either a primitive value or Boolean wrapper.
+     */
+    override set lower_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._lower_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._lower_included = Boolean.from(val);
+        } else {
+            this._lower_included = val;
+        }
+    }
+
     /**
      * Upper boundary value included in range if not \`_upper_unbounded_\`.
      */
-    override upper_included?: Boolean;
+    override get upper_included(): boolean | undefined {
+        return this._upper_included?.value;
+    }
+
+    /**
+     * Gets the Boolean wrapper object for upper_included.
+     * Use this to access Boolean methods.
+     */
+    override get $upper_included(): Boolean | undefined {
+        return this._upper_included;
+    }
+
+    /**
+     * Sets upper_included from either a primitive value or Boolean wrapper.
+     */
+    override set upper_included(val: boolean | Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._upper_included = undefined;
+        } else if (typeof val === 'boolean') {
+            this._upper_included = Boolean.from(val);
+        } else {
+            this._upper_included = val;
+        }
+    }
+
 }
 
 /**

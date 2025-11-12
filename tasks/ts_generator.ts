@@ -364,9 +364,11 @@ export function generateTypeScriptClass(
                 : undefined;
             
             // Check if the property type is a primitive wrapper (String, Integer, Boolean)
-            // Only apply dual getter/setter pattern if NOT overriding (to avoid conflicts with base class)
-            // When overriding, use standard property syntax even for wrapper types
-            const isWrapperProperty = isWrapperTypeName(property.type) && !ancestorProperty;
+            // Apply dual getter/setter pattern if:
+            // 1. Property type is a wrapper type AND
+            // 2. Either NOT overriding OR ancestor also had a wrapper type
+            const isWrapperProperty = isWrapperTypeName(property.type) && 
+                (!ancestorProperty || (ancestorProperty && isWrapperTypeName(ancestorProperty.type)));
             
             if (isWrapperProperty) {
                 // Generate dual getter/setter pattern for wrapper types

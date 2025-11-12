@@ -3,7 +3,7 @@
 // Schema Revision: 1.1.0.2
 // Description: lang
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Generated: 2025-11-12T00:42:55.684Z
+// Generated: 2025-11-12T00:45:55.626Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -1280,7 +1280,31 @@ export class BMM_RESULT extends BMM_WRITABLE_VARIABLE {
     /**
      * Name of this model element.
      */
-    override name?: openehr_base.String;
+    override get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $name(): openehr_base.String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = openehr_base.String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -1376,7 +1400,31 @@ export class BMM_SELF extends BMM_READONLY_VARIABLE {
     /**
      * Name of this model element.
      */
-    override name?: openehr_base.String;
+    override get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $name(): openehr_base.String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = openehr_base.String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
 }
 
 /**
@@ -2163,7 +2211,31 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
     /**
      * Defined to return True.
      */
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Type definition (i.e. BMM meta-type definition object) of the constant, property or variable, inferred by inspection of the current scoping instance. Return \`_definition.type_\`.
      * @returns Result value
@@ -2225,7 +2297,31 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
     /**
      * Defined to return False.
      */
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Return \`_agent.definition.type_\`.
      * @returns Result value
@@ -2259,7 +2355,31 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
     /**
      * Name of the routine being called.
      */
-    override name?: openehr_base.String;
+    override get name(): string | undefined {
+        return this._name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $name(): openehr_base.String | undefined {
+        return this._name;
+    }
+
+    /**
+     * Sets name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._name = undefined;
+        } else if (typeof val === 'string') {
+            this._name = openehr_base.String.from(val);
+        } else {
+            this._name = val;
+        }
+    }
+
     /**
      * Closed arguments of a routine call as a tuple of objects.
      */
@@ -2272,7 +2392,31 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * Reference to definition of a routine for which this is an agent, if one exists. 
      */
     definition?: BMM_ROUTINE;
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
     /**
      * Eval type is the signature corresponding to the (remaining) open arguments and return type, if any.
      * @returns Result value
@@ -2581,7 +2725,31 @@ export class EL_STATIC_REF extends EL_FEATURE_REF {
     /**
      * Defined to return False.
      */
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -2595,7 +2763,31 @@ export class EL_WRITABLE_VARIABLE extends EL_VARIABLE {
     /**
      * Defined to return True in all cases.
      */
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -2609,7 +2801,31 @@ export class EL_READONLY_VARIABLE extends EL_VARIABLE {
     /**
      * Defined to return False in all cases.
      */
-    override is_writable?: openehr_base.Boolean;
+    override get is_writable(): boolean | undefined {
+        return this._is_writable?.value;
+    }
+
+    /**
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
+     */
+    override get $is_writable(): openehr_base.Boolean | undefined {
+        return this._is_writable;
+    }
+
+    /**
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
+     */
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
+        if (val === undefined || val === null) {
+            this._is_writable = undefined;
+        } else if (typeof val === 'boolean') {
+            this._is_writable = openehr_base.Boolean.from(val);
+        } else {
+            this._is_writable = val;
+        }
+    }
+
 }
 
 /**
@@ -4556,7 +4772,31 @@ export abstract class EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Boolean.
  */
 export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Boolean = undefined;
 }
 
@@ -4564,7 +4804,31 @@ export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Date.
  */
 export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Iso8601_date = undefined;
 }
 
@@ -4572,7 +4836,31 @@ export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Date_time.
  */
 export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Iso8601_date_time = undefined;
 }
 
@@ -4580,7 +4868,31 @@ export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Duration.
  */
 export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Iso8601_duration = undefined;
 }
 
@@ -4588,7 +4900,31 @@ export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Integer.
  */
 export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Integer = undefined;
 }
 
@@ -4596,14 +4932,62 @@ export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
  * Rules meta-type representing the type Object_ref, which is assumed to by the type of any non-primitive reference target within a rule.
  */
 export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
 }
 
 /**
  * Rules meta-type representing the primitive type Real.
  */
 export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: number = undefined;
 }
 
@@ -4611,7 +4995,31 @@ export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type String.
  */
 export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.String = undefined;
 }
 
@@ -4619,7 +5027,31 @@ export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Terminology_code.
  */
 export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Terminology_code = undefined;
 }
 
@@ -4627,7 +5059,31 @@ export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Time.
  */
 export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Iso8601_time = undefined;
 }
 
@@ -4635,7 +5091,31 @@ export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Uri.
  */
 export class TYPE_DEF_URI extends EXPR_TYPE_DEF {
-    override type_name?: openehr_base.String;
+    override get type_name(): string | undefined {
+        return this._type_name?.value;
+    }
+
+    /**
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
+     */
+    override get $type_name(): openehr_base.String | undefined {
+        return this._type_name;
+    }
+
+    /**
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
+     */
+    override set type_name(val: string | openehr_base.String | undefined) {
+        if (val === undefined || val === null) {
+            this._type_name = undefined;
+        } else if (typeof val === 'string') {
+            this._type_name = openehr_base.String.from(val);
+        } else {
+            this._type_name = val;
+        }
+    }
+
     override type_anchor?: openehr_base.Uri = undefined;
 }
 
