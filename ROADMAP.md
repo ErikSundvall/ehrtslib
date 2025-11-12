@@ -50,9 +50,14 @@ Github repositories on the form [organization/repository -- Hints] note that all
 
  
 ## Phase 4
-Implementation our functions and behavior based on the instruction files produced in phase 3
+First check what happened to the dual setter/getter approach and helpers for primitive classes described in Chapter 6 of https://github.com/ErikSundvall/ehrtslib/blob/main/STORY-PR6-AI-DEVELOPER-DIALOGUE.md is that pattern intact or did it disapperar along the way?
+If it is gone we need to re-intrduce it by to rewriting the class generators before going on.
 
-Serialisation and deserialisation of RM object instance trees to and from openEHRs canonical JSON and XML formats
+Then implement functional behaviour class by class based on the instruction files (one per class) produced in phase 3, also try to get tests for that class to pass before going on to next class. Note that there may be dependencies so try to implement in depencency order, also accept that some tests may not pass until dependencies are implemented.
+Note: the project already has a list defining dependenices between packages /tasks/bmm_dependencies.json and  has code for topological class sorting in generator files.
+
+Note that Archie can be used for inspiration if pseudocode is not enough 
+
 
 ## Phase 5
 
