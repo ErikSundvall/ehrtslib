@@ -1,8 +1,8 @@
 // Deno test suite for the BASE package
 
-import { assert } from "https://deno.land/std@0.177.0/testing/asserts.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
-import { Any } from "../openehr_base.ts";
+import { Any, Boolean as OpenEHRBoolean } from "../openehr_base.ts";
 
 // Concrete implementation for testing purposes
 class ConcreteAny extends Any {
@@ -13,11 +13,11 @@ class ConcreteAny extends Any {
     this.value = value;
   }
 
-  is_equal(other: Any): boolean {
+  is_equal(other: Any): OpenEHRBoolean {
     if (other instanceof ConcreteAny) {
-      return this.value === other.value;
+      return new OpenEHRBoolean(this.value === other.value);
     }
-    return false;
+    return new OpenEHRBoolean(false);
   }
 }
 
