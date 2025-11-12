@@ -23,43 +23,43 @@ class ConcreteAny extends Any {
 
 Deno.test("Any.equal should return true for the same instance", () => {
   const a = new ConcreteAny(1);
-  assert(a.equal(a));
+  assert(a.equal(a).value);
 });
 
 Deno.test("Any.equal should return false for different instances", () => {
   const a = new ConcreteAny(1);
   const b = new ConcreteAny(1);
-  assert(!a.equal(b));
+  assert(!a.equal(b).value);
 });
 
 Deno.test("Any.not_equal should return false for the same instance", () => {
   const a = new ConcreteAny(1);
-  assert(!a.not_equal(a));
+  assert(!a.not_equal(a).value);
 });
 
 Deno.test("Any.not_equal should return true for different instances", () => {
   const a = new ConcreteAny(1);
   const b = new ConcreteAny(1);
-  assert(a.not_equal(b));
+  assert(a.not_equal(b).value);
 });
 
 Deno.test("Any.is_equal should return true for different instances with the same value", () => {
   const a = new ConcreteAny(1);
   const b = new ConcreteAny(1);
-  assert(a.is_equal(b));
+  assert(a.is_equal(b).value);
 });
 
 Deno.test("Any.is_equal should return false for different instances with different values", () => {
   const a = new ConcreteAny(1);
   const c = new ConcreteAny(2);
-  assert(!a.is_equal(c));
+  assert(!a.is_equal(c).value);
 });
 
 import { Hash, String as OpenEHRString } from "../openehr_base.ts";
 
 Deno.test("Any.type_of should return the correct class name", () => {
   const a = new ConcreteAny(1);
-  assert(a.type_of(a) === "ConcreteAny");
+  assert(a.type_of(a).value === "ConcreteAny");
 });
 
 Deno.test("Hash constructor initializes with entries", () => {
@@ -68,15 +68,15 @@ Deno.test("Hash constructor initializes with entries", () => {
   const key2 = new OpenEHRString();
   key2.value = "two";
   const hash = new Hash<OpenEHRString, number>([[key1, 1], [key2, 2]]);
-  assert(hash.count() === 2);
-  assert(hash.item(key1) === 1);
+  assertEquals(hash.count().value, 2);
+  assertEquals(hash.item(key1), 1);
 });
 
 Deno.test("Hash.has_key returns true for existing keys", () => {
   const key1 = new OpenEHRString();
   key1.value = "one";
   const hash = new Hash<OpenEHRString, number>([[key1, 1]]);
-  assert(hash.has_key(key1));
+  assert(hash.has_key(key1).value);
 });
 
 Deno.test("Hash.has_key returns false for non-existing keys", () => {
@@ -85,7 +85,7 @@ Deno.test("Hash.has_key returns false for non-existing keys", () => {
     const key2 = new OpenEHRString();
     key2.value = "two";
     const hash = new Hash<OpenEHRString, number>([[key1, 1]]);
-    assert(!hash.has_key(key2));
+    assert(!hash.has_key(key2).value);
 });
 
 Deno.test("Hash.has returns true for existing keys", () => {
@@ -232,14 +232,14 @@ Deno.test("HIER_OBJECT_ID.has_extension returns false when no extension", () => 
   const id = new HIER_OBJECT_ID();
   id.value = "550e8400-e29b-41d4-a716-446655440000";
   
-  assert(!id.has_extension());
+  assert(!id.has_extension().value);
 });
 
 Deno.test("HIER_OBJECT_ID.has_extension returns true when extension present", () => {
   const id = new HIER_OBJECT_ID();
   id.value = "550e8400-e29b-41d4-a716-446655440000::local";
   
-  assert(id.has_extension());
+  assert(id.has_extension().value);
 });
 
 // ===== Integer Tests =====
@@ -281,8 +281,8 @@ Deno.test("Integer.less_than compares correctly", () => {
   const b = new Integer();
   b.value = 10;
   
-  assert(a.less_than(b));
-  assert(!b.less_than(a));
+  assert(a.less_than(b).value);
+  assert(!b.less_than(a).value);
 });
 
 Deno.test("Integer.is_equal compares values correctly", () => {
@@ -293,8 +293,8 @@ Deno.test("Integer.is_equal compares values correctly", () => {
   const c = new Integer();
   c.value = 5;
   
-  assert(a.is_equal(b));
-  assert(!a.is_equal(c));
+  assert(a.is_equal(b).value);
+  assert(!a.is_equal(c).value);
 });
 
 // ===== CODE_PHRASE Tests =====

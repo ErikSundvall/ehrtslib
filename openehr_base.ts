@@ -139,6 +139,19 @@ export class Hash<K extends Ordered, V> extends Container<K> {
     private _map: Map<string, { key: K, value: V }> = new Map();
 
     /**
+     * Constructor that optionally accepts initial entries.
+     * @param entries - Optional array of [key, value] pairs
+     */
+    constructor(entries?: [K, V][]) {
+        super();
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.put(key, value);
+            }
+        }
+    }
+
+    /**
      * Test for presence of \`_a_key_\`.
      * @param a_key - Parameter
      * @returns Result value
