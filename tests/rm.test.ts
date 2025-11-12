@@ -16,13 +16,20 @@ import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.t
 import * as openehr_rm from "../openehr_rm.ts";
 import * as openehr_base from "../openehr_base.ts";
 
+// Helper function to create DV_TEXT
+function createDvText(value: string): openehr_rm.DV_TEXT {
+  const dvText = new openehr_rm.DV_TEXT();
+  dvText.value = value;
+  return dvText;
+}
+
 // ===== Foundation Classes =====
 
 Deno.test("LOCATABLE - has required properties", () => {
   const element = new openehr_rm.ELEMENT();
   
   element.archetype_node_id = "at0001";
-  element.name = openehr_base.String.from("Test Element");
+  element.name = createDvText("Test Element");
   
   assertEquals(element.archetype_node_id, "at0001");
   assert(element.name !== undefined);
@@ -112,7 +119,7 @@ Deno.test("DV_ORDINAL - creates with value and symbol", () => {
 Deno.test("ELEMENT - creates with value", () => {
   const element = new openehr_rm.ELEMENT();
   element.archetype_node_id = "at0004";
-  element.name = openehr_base.String.from("Systolic pressure");
+  element.name = createDvText("Systolic pressure");
   
   // element.value = new openehr_rm.DV_QUANTITY();
   // element.value.magnitude = 120;
@@ -173,7 +180,7 @@ Deno.test("HISTORY - creates with origin and events", () => {
 Deno.test("OBSERVATION - creates with data", () => {
   const obs = new openehr_rm.OBSERVATION();
   obs.archetype_node_id = "openEHR-EHR-OBSERVATION.blood_pressure.v1";
-  obs.name = openehr_base.String.from("Blood pressure");
+  obs.name = createDvText("Blood pressure");
   
   // obs.data = new openehr_rm.HISTORY();
   // obs.data.origin = new openehr_rm.DV_DATE_TIME();
@@ -182,17 +189,17 @@ Deno.test("OBSERVATION - creates with data", () => {
 });
 
 Deno.test("EVALUATION - creates with data", () => {
-  const eval = new openehr_rm.EVALUATION();
-  eval.archetype_node_id = "openEHR-EHR-EVALUATION.problem_diagnosis.v1";
-  eval.name = openehr_base.String.from("Problem/Diagnosis");
+  const evaluation = new openehr_rm.EVALUATION();  // Renamed from 'eval' to avoid reserved word
+  evaluation.archetype_node_id = "openEHR-EHR-EVALUATION.problem_diagnosis.v1";
+  evaluation.name = createDvText("Problem/Diagnosis");
   
-  assert(eval.name !== undefined);
+  assert(evaluation.name !== undefined);
 });
 
 Deno.test("INSTRUCTION - creates with narrative", () => {
   const instruction = new openehr_rm.INSTRUCTION();
   instruction.archetype_node_id = "openEHR-EHR-INSTRUCTION.medication_order.v1";
-  instruction.name = openehr_base.String.from("Medication order");
+  instruction.name = createDvText("Medication order");
   
   // instruction.narrative = new openehr_rm.DV_TEXT();
   // instruction.narrative.value = "Aspirin 100mg daily";
@@ -203,7 +210,7 @@ Deno.test("INSTRUCTION - creates with narrative", () => {
 Deno.test("ACTION - creates with time and description", () => {
   const action = new openehr_rm.ACTION();
   action.archetype_node_id = "openEHR-EHR-ACTION.medication.v1";
-  action.name = openehr_base.String.from("Medication action");
+  action.name = createDvText("Medication action");
   
   // action.time = new openehr_rm.DV_DATE_TIME();
   // action.time.value = "2024-03-15T14:30:00";
@@ -214,7 +221,7 @@ Deno.test("ACTION - creates with time and description", () => {
 Deno.test("COMPOSITION - creates with required properties", () => {
   const comp = new openehr_rm.COMPOSITION();
   comp.archetype_node_id = "openEHR-EHR-COMPOSITION.encounter.v1";
-  comp.name = openehr_base.String.from("Encounter");
+  comp.name = createDvText("Encounter");
   
   // comp.language = new openehr_base.CODE_PHRASE();
   // comp.language.code_string = "en";
@@ -228,7 +235,7 @@ Deno.test("COMPOSITION - creates with required properties", () => {
 Deno.test("SECTION - organizes content", () => {
   const section = new openehr_rm.SECTION();
   section.archetype_node_id = "openEHR-EHR-SECTION.adhoc.v1";
-  section.name = openehr_base.String.from("History");
+  section.name = createDvText("History");
   
   assert(section.name !== undefined);
 });
@@ -285,7 +292,7 @@ Deno.test("Complete OBSERVATION structure", () => {
   // Create a complete blood pressure observation
   const obs = new openehr_rm.OBSERVATION();
   obs.archetype_node_id = "openEHR-EHR-OBSERVATION.blood_pressure.v1";
-  obs.name = openehr_base.String.from("Blood pressure");
+  obs.name = createDvText("Blood pressure");
   
   // Full structure will be tested when implementations are complete
   assert(obs.name !== undefined);

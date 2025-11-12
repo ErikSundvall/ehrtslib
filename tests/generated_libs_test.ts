@@ -33,21 +33,24 @@ Deno.test("openehr_rm module exports classes", () => {
 });
 
 Deno.test("openehr_rm classes can be instantiated", () => {
-    const locatable = new openehr_rm.LOCATABLE();
-    assertExists(locatable);
-    
+    // LOCATABLE is abstract, use concrete class COMPOSITION
     const composition = new openehr_rm.COMPOSITION();
     assertExists(composition);
+    
+    const observation = new openehr_rm.OBSERVATION();
+    assertExists(observation);
 });
 
 Deno.test("openehr_rm can reference openehr_base types", () => {
-    const locatable = new openehr_rm.LOCATABLE();
+    // Use concrete class COMPOSITION instead of abstract LOCATABLE
+    const composition = new openehr_rm.COMPOSITION();
     
-    // The uid property should accept openehr_base.UID_BASED_ID type
-    const uid = new openehr_base.UID_BASED_ID();
-    locatable.uid = uid;
+    // The uid property should accept openehr_base.UID_BASED_ID subtype
+    // UID_BASED_ID is abstract, use concrete subclass HIER_OBJECT_ID
+    const uid = new openehr_base.HIER_OBJECT_ID();
+    composition.uid = uid;
     
-    assertEquals(locatable.uid, uid);
+    assertEquals(composition.uid, uid);
 });
 
 Deno.test("openehr_am module exports classes", () => {
@@ -87,9 +90,10 @@ Deno.test("Cross-package type references work correctly", () => {
 
 Deno.test("All exported classes have proper structure", () => {
     // Test that classes are proper TypeScript classes with constructors
+    // Use only concrete classes (not abstract ones)
     const testClasses = [
         openehr_base.OBJECT_REF,
-        openehr_rm.LOCATABLE,
+        openehr_rm.COMPOSITION,  // Changed from abstract LOCATABLE to concrete COMPOSITION
         openehr_am.ARCHETYPE
     ];
     

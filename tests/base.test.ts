@@ -347,12 +347,12 @@ Deno.test("OBJECT_REF can be created with all properties", () => {
   
   const ref = new OBJECT_REF();
   ref.id = id;
-  ref.namespace = OpenEHRString.from("local");
-  ref.type = OpenEHRString.from("COMPOSITION");
+  ref.namespace = "local";  // Can assign primitive string directly
+  ref.type = "COMPOSITION";  // Can assign primitive string directly
   
   assert(ref.id.value === "550e8400-e29b-41d4-a716-446655440000");
-  assert(ref.namespace.value === "local");
-  assert(ref.type.value === "COMPOSITION");
+  assert(ref.namespace === "local");
+  assert(ref.type === "COMPOSITION");
 });
 
 Deno.test("OBJECT_REF.is_equal compares correctly", () => {
@@ -361,16 +361,16 @@ Deno.test("OBJECT_REF.is_equal compares correctly", () => {
   
   const ref1 = new OBJECT_REF();
   ref1.id = id1;
-  ref1.namespace = OpenEHRString.from("local");
-  ref1.type = OpenEHRString.from("COMPOSITION");
+  ref1.namespace = "local";
+  ref1.type = "COMPOSITION";
   
   const id2 = new HIER_OBJECT_ID();
   id2.value = "550e8400-e29b-41d4-a716-446655440000";
   
   const ref2 = new OBJECT_REF();
   ref2.id = id2;
-  ref2.namespace = OpenEHRString.from("local");
-  ref2.type = OpenEHRString.from("COMPOSITION");
+  ref2.namespace = "local";
+  ref2.type = "COMPOSITION";
   
   assert(ref1.is_equal(ref2));
 });

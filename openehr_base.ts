@@ -3427,6 +3427,40 @@ export class OBJECT_REF {
      * Globally unique id of an object, regardless of where it is stored.
      */
     id?: OBJECT_ID;
+
+    /**
+     * Compare two OBJECT_REF instances for equality.
+     * @param other - The other OBJECT_REF to compare with
+     * @returns Boolean indicating if they are equal
+     */
+    is_equal(other: any): Boolean {
+        if (!(other instanceof OBJECT_REF)) {
+            return new Boolean(false);
+        }
+        
+        // Compare namespace
+        if (this.namespace !== other.namespace) {
+            return new Boolean(false);
+        }
+        
+        // Compare type
+        if (this.type !== other.type) {
+            return new Boolean(false);
+        }
+        
+        // Compare id
+        if (this.id && other.id) {
+            if (this.id instanceof Any && other.id instanceof Any) {
+                return this.id.is_equal(other.id);
+            }
+        } else if (!this.id && !other.id) {
+            return new Boolean(true);
+        } else {
+            return new Boolean(false);
+        }
+        
+        return new Boolean(true);
+    }
 }
 
 /**
