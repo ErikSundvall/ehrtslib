@@ -1,4 +1,5 @@
-# DONE:
+# Roadmap
+Partly done - completed steps are marked `✅ (done)`
 
 ## Phase 1 - test the approach  ✅ (done)
 Use deepwiki MCP connection for info about openEHR's BMM files. Following the dependency graph of openEHR packages/libraries (starting with BASE package and its dependencies and then move upwards), build typescript libraries for all of openEHR (RM first, then TERM and AM). Keep classes of the same package in same typescript file (ine fil per package). Keep the exact snake_case class and method names and capitalization as in the BMM specification.  Start jules on this task in this github repository (ehrtslib). Take your time Jules and do a thorough job, no hurry i will turn off my computer and check in tomorrow. 
@@ -13,8 +14,6 @@ openehr_base_1.2.0.bmm.json
 openehr_base_1.3.0.bmm.json
 ```
 * There will be new versions of these bmm files published later so we want to create a deterministic way to convert from *.bmm.json files to Typescript libraries that can be run later using a Deno task without involving AI.
-
-# TODO:
 
 ## Phase 3 - deep comparison to specification documentation and other implementations  ✅ (done)
 Note: This step requires 
