@@ -1,9 +1,9 @@
 # DONE:
 
-## Phase 1 - test the approach
+## Phase 1 - test the approach  ✅ (done)
 Use deepwiki MCP connection for info about openEHR's BMM files. Following the dependency graph of openEHR packages/libraries (starting with BASE package and its dependencies and then move upwards), build typescript libraries for all of openEHR (RM first, then TERM and AM). Keep classes of the same package in same typescript file (ine fil per package). Keep the exact snake_case class and method names and capitalization as in the BMM specification.  Start jules on this task in this github repository (ehrtslib). Take your time Jules and do a thorough job, no hurry i will turn off my computer and check in tomorrow. 
 
-## Phase 2 - Make deterministic nconverter from JSON based BMM to Typescript library
+## Phase 2 - Make deterministic nconverter from JSON based BMM to Typescript library  ✅ (done)
 * Previous phase was a good experient based on a not so information rich BMM variant. Keep it in a subdirectory (called from_old_bmm) for comparison and add a readme in that directory explaining how it was generated.
 * The latest versions of openEHR BMM are in JSON format and contain updated (and more) information about each class and can be found in https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON (raw files are of course in https://raw.githubusercontent.com/sebastian-iancu/code-generator/refs/heads/master/code/BMM-JSON/ ). That repository is also available in Deepwiki. 
 * Make a brand new set of TS libraries from these. Use JsDoc to include _all_ extra documentation for the classes etc found in the BMMs. There are many version of BMMs in the sebastian-iancu/code-generator only use the latest Semver version of each library, example, only use openehr_base_1.3.0.bmm.json among these:
@@ -16,7 +16,7 @@ openehr_base_1.3.0.bmm.json
 
 # TODO:
 
-## Phase 3 - deep comparison to specification documentation and other implementations 
+## Phase 3 - deep comparison to specification documentation and other implementations  ✅ (done)
 Note: This step requires 
 * MCP/Deepwiki access
 * Ability to find and read web pages
@@ -49,23 +49,21 @@ Github repositories on the form [organization/repository -- Hints] note that all
     * openEHR/specifications-RM
 
  
-## Phase 4
+## Phase 4a ✅ (done)
 First check what happened to the dual setter/getter approach and helpers for primitive classes described in Chapter 6 of https://github.com/ErikSundvall/ehrtslib/blob/main/STORY-PR6-AI-DEVELOPER-DIALOGUE.md is that pattern intact or did it disapperar along the way?
 If it is gone we need to re-intrduce it by to rewriting the class generators before going on.
 
-Then implement functional behaviour class by class based on the instruction files (one per class) produced in phase 3, also try to get tests for that class to pass before going on to next class. Note that there may be dependencies so try to implement in depencency order, also accept that some tests may not pass until dependencies are implemented.
+## Phase 4b
+Try to fix some _unexpected_ test errors and erratic non updated test code before going on. Ignore test failiures that are expexted due to not yet implementetd functinality. 
+Then implement functional behaviour class by class based on the instruction files in /tasks/instructions (one per class) produced in phase 3, also try to get tests for that class to pass before going on to next class. Note that there may be dependencies so try to implement in depencency order, also accept that some tests may not pass until dependencies are implemented.
 Note: the project already has a list defining dependenices between packages /tasks/bmm_dependencies.json and  has code for topological class sorting in generator files.
-
-Note that Archie can be used for inspiration if pseudocode is not enough 
-
+Note: The three (Archie, java-libs and adl-tools) openEHR implementations can be used for inspiration in adiition to pseudocode in /instruction files.
 
 ## Phase 5
-
-Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validation source). 
+Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validatiadl-toolson source). 
 * One version of this code needs to be small so that it can fit and be run eficiently inside form engines etc. 
 * Also make a (less lightweight) version that can be synchronously multiuser updated using Y.js or 
 * Create build step to genenrate minivfed and web component versions
 
 ## Phase 6
-
 Serialisation and deserialisation of RM object instance trees to and from openEHRs simplified JSON formats (likely using other already existing library if it can be made fairly dependency free)
