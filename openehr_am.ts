@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-12T00:39:39.398Z
+// Generated: 2025-11-12T00:42:55.626Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -238,31 +238,7 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    override get adl_version(): string | undefined {
-        return this._adl_version?.value;
-    }
-
-    /**
-     * Gets the openehr_base.String wrapper object for adl_version.
-     * Use this to access openehr_base.String methods.
-     */
-    override get $adl_version(): openehr_base.String | undefined {
-        return this._adl_version;
-    }
-
-    /**
-     * Sets adl_version from either a primitive value or openehr_base.String wrapper.
-     */
-    override set adl_version(val: string | openehr_base.String | undefined) {
-        if (val === undefined || val === null) {
-            this._adl_version = undefined;
-        } else if (typeof val === 'string') {
-            this._adl_version = openehr_base.String.from(val);
-        } else {
-            this._adl_version = val;
-        }
-    }
-
+    override adl_version?: openehr_base.String;
     /**
      * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
      */
@@ -1380,31 +1356,7 @@ export class C_BOOLEAN extends C_PRIMITIVE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override get assumed_value(): boolean | undefined {
-        return this._assumed_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.Boolean wrapper object for assumed_value.
-     * Use this to access openehr_base.Boolean methods.
-     */
-    override get $assumed_value(): openehr_base.Boolean | undefined {
-        return this._assumed_value;
-    }
-
-    /**
-     * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
-     */
-    override set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
-        if (val === undefined || val === null) {
-            this._assumed_value = undefined;
-        } else if (typeof val === 'boolean') {
-            this._assumed_value = openehr_base.Boolean.from(val);
-        } else {
-            this._assumed_value = val;
-        }
-    }
-
+    override assumed_value?: openehr_base.Boolean = undefined;
 }
 
 /**
@@ -1486,31 +1438,7 @@ export class C_STRING extends C_PRIMITIVE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override get assumed_value(): string | undefined {
-        return this._assumed_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.String wrapper object for assumed_value.
-     * Use this to access openehr_base.String methods.
-     */
-    override get $assumed_value(): openehr_base.String | undefined {
-        return this._assumed_value;
-    }
-
-    /**
-     * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
-     */
-    override set assumed_value(val: string | openehr_base.String | undefined) {
-        if (val === undefined || val === null) {
-            this._assumed_value = undefined;
-        } else if (typeof val === 'string') {
-            this._assumed_value = openehr_base.String.from(val);
-        } else {
-            this._assumed_value = val;
-        }
-    }
-
+    override assumed_value?: openehr_base.String = undefined;
     /**
      * True if a_value is valid with respect to constraint expressed in concrete instance of this type. 
      * @param a_value - Parameter
@@ -1539,31 +1467,7 @@ export class C_INTEGER extends C_PRIMITIVE {
     /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    override get assumed_value(): number | undefined {
-        return this._assumed_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.Integer wrapper object for assumed_value.
-     * Use this to access openehr_base.Integer methods.
-     */
-    override get $assumed_value(): openehr_base.Integer | undefined {
-        return this._assumed_value;
-    }
-
-    /**
-     * Sets assumed_value from either a primitive value or openehr_base.Integer wrapper.
-     */
-    override set assumed_value(val: number | openehr_base.Integer | undefined) {
-        if (val === undefined || val === null) {
-            this._assumed_value = undefined;
-        } else if (typeof val === 'number') {
-            this._assumed_value = openehr_base.Integer.from(val);
-        } else {
-            this._assumed_value = val;
-        }
-    }
-
+    override assumed_value?: openehr_base.Integer = undefined;
 }
 
 /**
@@ -3536,56 +3440,8 @@ export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
  */
 export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
     override constraint?: undefined = undefined;
-    override get assumed_value(): boolean | undefined {
-        return this._assumed_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.Boolean wrapper object for assumed_value.
-     * Use this to access openehr_base.Boolean methods.
-     */
-    override get $assumed_value(): openehr_base.Boolean | undefined {
-        return this._assumed_value;
-    }
-
-    /**
-     * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
-     */
-    override set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
-        if (val === undefined || val === null) {
-            this._assumed_value = undefined;
-        } else if (typeof val === 'boolean') {
-            this._assumed_value = openehr_base.Boolean.from(val);
-        } else {
-            this._assumed_value = val;
-        }
-    }
-
-    override get default_value(): boolean | undefined {
-        return this._default_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.Boolean wrapper object for default_value.
-     * Use this to access openehr_base.Boolean methods.
-     */
-    override get $default_value(): openehr_base.Boolean | undefined {
-        return this._default_value;
-    }
-
-    /**
-     * Sets default_value from either a primitive value or openehr_base.Boolean wrapper.
-     */
-    override set default_value(val: boolean | openehr_base.Boolean | undefined) {
-        if (val === undefined || val === null) {
-            this._default_value = undefined;
-        } else if (typeof val === 'boolean') {
-            this._default_value = openehr_base.Boolean.from(val);
-        } else {
-            this._default_value = val;
-        }
-    }
-
+    override assumed_value?: openehr_base.Boolean = undefined;
+    override default_value?: openehr_base.Boolean = undefined;
 }
 
 /**
@@ -3596,56 +3452,8 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
      * String constraint - a list of literal strings and / or regular expression strings delimited by the ‘/’ character.
      */
     override constraint?: undefined = undefined;
-    override get default_value(): string | undefined {
-        return this._default_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.String wrapper object for default_value.
-     * Use this to access openehr_base.String methods.
-     */
-    override get $default_value(): openehr_base.String | undefined {
-        return this._default_value;
-    }
-
-    /**
-     * Sets default_value from either a primitive value or openehr_base.String wrapper.
-     */
-    override set default_value(val: string | openehr_base.String | undefined) {
-        if (val === undefined || val === null) {
-            this._default_value = undefined;
-        } else if (typeof val === 'string') {
-            this._default_value = openehr_base.String.from(val);
-        } else {
-            this._default_value = val;
-        }
-    }
-
-    override get assumed_value(): string | undefined {
-        return this._assumed_value?.value;
-    }
-
-    /**
-     * Gets the openehr_base.String wrapper object for assumed_value.
-     * Use this to access openehr_base.String methods.
-     */
-    override get $assumed_value(): openehr_base.String | undefined {
-        return this._assumed_value;
-    }
-
-    /**
-     * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
-     */
-    override set assumed_value(val: string | openehr_base.String | undefined) {
-        if (val === undefined || val === null) {
-            this._assumed_value = undefined;
-        } else if (typeof val === 'string') {
-            this._assumed_value = openehr_base.String.from(val);
-        } else {
-            this._assumed_value = val;
-        }
-    }
-
+    override default_value?: openehr_base.String = undefined;
+    override assumed_value?: openehr_base.String = undefined;
 }
 
 /**
@@ -3679,31 +3487,7 @@ export abstract class P_C_ORDERED<T extends openehr_base.Ordered> extends P_C_PR
  * The last possibility above is enabled by the merge_tuple routine, which enables the constraint of another single-valued C_TERMINOLOGY_CODE to be merged with the current one.
  */
 export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
-    override get constraint(): string | undefined {
-        return this._constraint?.value;
-    }
-
-    /**
-     * Gets the openehr_base.String wrapper object for constraint.
-     * Use this to access openehr_base.String methods.
-     */
-    override get $constraint(): openehr_base.String | undefined {
-        return this._constraint;
-    }
-
-    /**
-     * Sets constraint from either a primitive value or openehr_base.String wrapper.
-     */
-    override set constraint(val: string | openehr_base.String | undefined) {
-        if (val === undefined || val === null) {
-            this._constraint = undefined;
-        } else if (typeof val === 'string') {
-            this._constraint = openehr_base.String.from(val);
-        } else {
-            this._constraint = val;
-        }
-    }
-
+    override constraint?: openehr_base.String = undefined;
     override assumed_value?: openehr_base.Terminology_code = undefined;
     override default_value?: openehr_base.Terminology_code = undefined;
 }
