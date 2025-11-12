@@ -88,18 +88,22 @@ Deno.test("Hash.has_key returns false for non-existing keys", () => {
     assert(!hash.has_key(key2));
 });
 
-Deno.test("Hash.has returns true for existing values", () => {
+Deno.test("Hash.has returns true for existing keys", () => {
     const key1 = new OpenEHRString();
     key1.value = "one";
-    const hash = new Hash<OpenEHRString, number>([[key1, 1]]);
-    assert(hash.has(1));
+    const hash = new Hash<OpenEHRString, number>();
+    hash.put(key1, 1);
+    assert(hash.has(key1).value);
 });
 
-Deno.test("Hash.has returns false for non-existing values", () => {
+Deno.test("Hash.has returns false for non-existing keys", () => {
     const key1 = new OpenEHRString();
     key1.value = "one";
-    const hash = new Hash<OpenEHRString, number>([[key1, 1]]);
-    assert(!hash.has(2));
+    const key2 = new OpenEHRString();
+    key2.value = "two";
+    const hash = new Hash<OpenEHRString, number>();
+    hash.put(key1, 1);
+    assert(!hash.has(key2).value);
 });
 
 Deno.test("Hash.count returns the correct number of items", () => {
@@ -107,20 +111,23 @@ Deno.test("Hash.count returns the correct number of items", () => {
     key1.value = "one";
     const key2 = new OpenEHRString();
     key2.value = "two";
-    const hash = new Hash<OpenEHRString, number>([[key1, 1], [key2, 2]]);
-    assert(hash.count() === 2);
+    const hash = new Hash<OpenEHRString, number>();
+    hash.put(key1, 1);
+    hash.put(key2, 2);
+    assertEquals(hash.count().value, 2);
 });
 
 Deno.test("Hash.is_empty returns true for an empty hash", () => {
     const hash = new Hash();
-    assert(hash.is_empty());
+    assert(hash.is_empty().value);
 });
 
 Deno.test("Hash.is_empty returns false for a non-empty hash", () => {
     const key1 = new OpenEHRString();
     key1.value = "one";
-    const hash = new Hash<OpenEHRString, number>([[key1, 1]]);
-    assert(!hash.is_empty());
+    const hash = new Hash<OpenEHRString, number>();
+    hash.put(key1, 1);
+    assert(!hash.is_empty().value);
 });
 
 // ===== ARCHETYPE_ID Tests =====
@@ -294,48 +301,24 @@ Deno.test("Integer.is_equal compares values correctly", () => {
 import { CODE_PHRASE, TERMINOLOGY_ID } from "../openehr_base.ts";
 
 Deno.test("CODE_PHRASE can be created with terminology and code", () => {
-  const codePhrase = new CODE_PHRASE();
+  const codePhrase = CODE_PHRASE.from("SNOMED-CT", "38341003");
   
-  const termId = new TERMINOLOGY_ID();
-  termId.value = "SNOMED-CT";
-  codePhrase.terminology_id = termId;
-  
-  codePhrase.code_string = OpenEHRString.from("38341003");
-  
-  assert(codePhrase.terminology_id.value === "SNOMED-CT");
-  assert(codePhrase.code_string.value === "38341003");
+  assert(codePhrase.terminology_id?.value === "SNOMED-CT");
+  assert(codePhrase.code_string === "38341003");
 });
 
 Deno.test("CODE_PHRASE.is_equal compares correctly", () => {
-  const code1 = new CODE_PHRASE();
-  const termId1 = new TERMINOLOGY_ID();
-  termId1.value = "SNOMED-CT";
-  code1.terminology_id = termId1;
-  code1.code_string = OpenEHRString.from("38341003");
+  const code1 = CODE_PHRASE.from("SNOMED-CT", "38341003");
+  const code2 = CODE_PHRASE.from("SNOMED-CT", "38341003");
   
-  const code2 = new CODE_PHRASE();
-  const termId2 = new TERMINOLOGY_ID();
-  termId2.value = "SNOMED-CT";
-  code2.terminology_id = termId2;
-  code2.code_string = OpenEHRString.from("38341003");
-  
-  assert(code1.is_equal(code2));
+  assert(code1.is_equal(code2).value);
 });
 
 Deno.test("CODE_PHRASE.is_equal returns false for different codes", () => {
-  const code1 = new CODE_PHRASE();
-  const termId1 = new TERMINOLOGY_ID();
-  termId1.value = "SNOMED-CT";
-  code1.terminology_id = termId1;
-  code1.code_string = OpenEHRString.from("38341003");
+  const code1 = CODE_PHRASE.from("SNOMED-CT", "38341003");
+  const code2 = CODE_PHRASE.from("SNOMED-CT", "73211009");
   
-  const code2 = new CODE_PHRASE();
-  const termId2 = new TERMINOLOGY_ID();
-  termId2.value = "SNOMED-CT";
-  code2.terminology_id = termId2;
-  code2.code_string = OpenEHRString.from("73211009");
-  
-  assert(!code1.is_equal(code2));
+  assert(!code1.is_equal(code2).value);
 });
 
 // ===== OBJECT_REF Tests =====

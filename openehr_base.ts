@@ -4096,6 +4096,50 @@ export class CODE_PHRASE {
         }
     }
 
+    /**
+     * Factory method to create a CODE_PHRASE.
+     * @param terminologyId - The terminology identifier
+     * @param codeString - The code string
+     * @returns A new CODE_PHRASE instance
+     */
+    static from(terminologyId: string, codeString: string): CODE_PHRASE {
+        const codePhrase = new CODE_PHRASE();
+        
+        const termId = new TERMINOLOGY_ID();
+        termId.value = terminologyId;
+        codePhrase.terminology_id = termId;
+        
+        codePhrase.code_string = codeString;
+        
+        return codePhrase;
+    }
+
+    /**
+     * Compare two CODE_PHRASE objects for equality.
+     * @param other - The other object to compare with
+     * @returns Boolean indicating if they are equal
+     */
+    is_equal(other: any): Boolean {
+        if (!(other instanceof CODE_PHRASE)) {
+            return new Boolean(false);
+        }
+        
+        // Compare terminology IDs
+        if (!this.terminology_id || !other.terminology_id) {
+            return new Boolean(this.terminology_id === other.terminology_id);
+        }
+        if (this.terminology_id.value !== other.terminology_id.value) {
+            return new Boolean(false);
+        }
+        
+        // Compare code strings
+        if (this.code_string !== other.code_string) {
+            return new Boolean(false);
+        }
+        
+        return new Boolean(true);
+    }
+
 }
 
 /**
