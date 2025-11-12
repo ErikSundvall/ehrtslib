@@ -33,9 +33,8 @@ export abstract class Any {
      * @returns Result value
      */
     equal(other: Any): Boolean {
-        // TODO: Implement equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method equal not yet implemented.");
+        // Reference equality - same object
+        return new Boolean(this === other);
     }
 
     /**
@@ -44,8 +43,8 @@ export abstract class Any {
      * @returns Result value
      */
     instance_of(a_type: String): Any {
-        // TODO: Implement instance_of behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
+        // This is a factory method that would need runtime type information
+        // For now, just throw an error
         throw new Error("Method instance_of not yet implemented.");
     }
 
@@ -55,9 +54,9 @@ export abstract class Any {
      * @returns Result value
      */
     type_of(an_object: Any): String {
-        // TODO: Implement type_of behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method type_of not yet implemented.");
+        // Get constructor name
+        const typeName = an_object.constructor.name;
+        return String.from(typeName);
     }
 
     /**
@@ -65,10 +64,9 @@ export abstract class Any {
      * @param other - Parameter
      * @returns Result value
      */
-    not_equal(other: Ordered): Boolean {
-        // TODO: Implement not_equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method not_equal not yet implemented.");
+    not_equal(other: Any): Boolean {
+        // Use reference equality (not is_equal)
+        return new Boolean(!this.equal(other).value);
     }
 
 }
@@ -1048,48 +1046,7 @@ export class Integer extends Ordered_Numeric {
         throw new Error("Method exponent not yet implemented.");
     }
 
-    /**
-     * Return self modulo other.
-     * @param mod - Parameter
-     * @returns Result value
-     */
-    modulo(mod: Integer): Integer {
-        // TODO: Implement modulo behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method modulo not yet implemented.");
-    }
-
-    /**
-     * Returns True if current Integer is less than \`_other_\`.
-     * @param other - Parameter
-     * @returns Result value
-     */
-    less_than(other: Integer): Boolean {
-        // TODO: Implement less_than behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method less_than not yet implemented.");
-    }
-
-    /**
-     * Generate negative of current Integer value.
-     * @returns Result value
-     */
-    negative(): Integer {
-        // TODO: Implement negative behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method negative not yet implemented.");
-    }
-
-    /**
-     * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-     * @param other - Parameter
-     * @returns Result value
-     */
-    is_equal(other: Integer): Boolean {
-        // TODO: Implement is_equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method is_equal not yet implemented.");
-    }
+    // modulo, less_than, negative, and is_equal are implemented above
 
     /**
      * Reference equality for reference types, value equality for value types.
@@ -3195,9 +3152,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     qualified_rm_entity(): String {
-        // TODO: Implement qualified_rm_entity behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method qualified_rm_entity not yet implemented.");
+        const val = this.value || "";
+        const dotIndex = val.indexOf('.');
+        if (dotIndex === -1) {
+            throw new Error("Invalid ARCHETYPE_ID format: no '.' found");
+        }
+        return String.from(val.substring(0, dotIndex));
     }
 
     /**
@@ -3205,9 +3165,15 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     domain_concept(): String {
-        // TODO: Implement domain_concept behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method domain_concept not yet implemented.");
+        const val = this.value || "";
+        const dotIndex = val.indexOf('.');
+        const vIndex = val.lastIndexOf('.v');
+        
+        if (dotIndex === -1 || vIndex === -1 || vIndex <= dotIndex) {
+            throw new Error("Invalid ARCHETYPE_ID format");
+        }
+        
+        return String.from(val.substring(dotIndex + 1, vIndex));
     }
 
     /**
@@ -3215,9 +3181,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_originator(): String {
-        // TODO: Implement rm_originator behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_originator not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[0]);
     }
 
     /**
@@ -3225,9 +3194,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_name(): String {
-        // TODO: Implement rm_name behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_name not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[1]);
     }
 
     /**
@@ -3235,9 +3207,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_entity(): String {
-        // TODO: Implement rm_entity behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_entity not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[2]);
     }
 
     /**
@@ -3245,9 +3220,14 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     specialisation(): String {
-        // TODO: Implement specialisation behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method specialisation not yet implemented.");
+        const concept = this.domain_concept().value || "";
+        const hyphenIndex = concept.indexOf('-');
+        
+        if (hyphenIndex === -1) {
+            return String.from("");
+        }
+        
+        return String.from(concept.substring(hyphenIndex + 1));
     }
 
     /**
@@ -3256,9 +3236,15 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     version_id(): String {
-        // TODO: Implement version_id behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method version_id not yet implemented.");
+        const val = this.value || "";
+        const vIndex = val.lastIndexOf('.v');
+        
+        if (vIndex === -1) {
+            throw new Error("Invalid ARCHETYPE_ID format: no '.v' found");
+        }
+        
+        // Return everything after '.v'
+        return String.from(val.substring(vIndex + 2));
     }
 
 }
