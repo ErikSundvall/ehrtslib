@@ -75,12 +75,31 @@ The `Hash` class inherits from `Container` and should implement its abstract met
     }
     ```
 
-## 3. Implementation Notes
+## 3. Invariants
+
+-   **Count_valid:** `count() >= 0`
+-   **Empty_valid:** `is_empty() = (count() = 0)`
+-   **Has_key_valid:** `has_key(k) implies item(k) /= Void`
+
+## 4. Pre-conditions
+
+-   **item_pre:** Key must exist in hash (for item method without undefined return)
+-   Keys must be of type K (Ordered)
+-   Values must be of type V
+
+## 5. Post-conditions
+
+-   After insertion: `has_key(k) = true` and `item(k) = v`
+-   After removal: `has_key(k) = false`
+-   `count()` accurately reflects number of key-value pairs
+
+## 6. Implementation Notes
 
 -   The `Hash` class can be implemented in TypeScript using the built-in `Map<K, V>` object to store the key-value pairs.
 -   The class should be generic, accepting types `K` and `V`.
+-   Key comparison should use the `is_equal` method for Ordered types.
 
-## 4. Example Usage
+## 7. Example Usage
 
 ```typescript
 // Assuming a concrete implementation using Map
@@ -99,3 +118,24 @@ myHash.item("two"); // 2
 myHash.count(); // 2
 myHash.is_empty(); // false
 ```
+
+## 8. Test Cases
+
+Key test cases to implement:
+1. Test creation of empty hash
+2. Test insertion and retrieval of key-value pairs
+3. Test `has_key` with existing and non-existing keys
+4. Test `has` with existing and non-existing values
+5. Test `count` returns correct number of entries
+6. Test `is_empty` on empty and non-empty hashes
+7. Test `item` with existing key returns correct value
+8. Test `item` with non-existing key returns undefined
+9. Test hash with different key types (String, Integer, etc.)
+10. Test hash allows duplicate values but not duplicate keys
+11. Test key comparison using `is_equal` method
+
+## 9. References
+
+-   [openEHR BASE Specification - Hash Class](https://specifications.openehr.org/releases/BASE/latest/foundation_types.html#_hash_class)
+-   [openEHR BASE Specification - Container Class](https://specifications.openehr.org/releases/BASE/latest/foundation_types.html#_container_class)
+-   [Archie - Container implementations](https://github.com/openEHR/archie/tree/master/openehr-rm/src/main/java/com/nedap/archie)
