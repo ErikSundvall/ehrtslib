@@ -3,16 +3,14 @@
 // Schema Revision: 3.1.0.2
 // Description: term
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json
-// Generated: 2025-11-11T19:34:14.706Z
+// Generated: 2025-11-12T00:35:10.086Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
-// Unknown types - defined as 'any' for now
-type Iso8601_date = any;
-type String = any;
+import * as openehr_base from "./openehr_base.ts";
 
 /**
  * A code set.
@@ -22,7 +20,7 @@ export class CODE_SET {
      * Internal storage for name
      * @private
      */
-    private _name?: String;
+    private _name?: openehr_base.String;
 
     /**
      * Name of this code set.
@@ -32,21 +30,21 @@ export class CODE_SET {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -56,7 +54,7 @@ export class CODE_SET {
      * Internal storage for openehr_id
      * @private
      */
-    private _openehr_id?: String;
+    private _openehr_id?: openehr_base.String;
 
     /**
      * Identifier used for code set in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
@@ -73,21 +71,21 @@ export class CODE_SET {
     }
 
     /**
-     * Gets the String wrapper object for openehr_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for openehr_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $openehr_id(): String | undefined {
+    get $openehr_id(): openehr_base.String | undefined {
         return this._openehr_id;
     }
 
     /**
-     * Sets openehr_id from either a primitive value or String wrapper.
+     * Sets openehr_id from either a primitive value or openehr_base.String wrapper.
      */
-    set openehr_id(val: string | String | undefined) {
+    set openehr_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._openehr_id = undefined;
         } else if (typeof val === 'string') {
-            this._openehr_id = String.from(val);
+            this._openehr_id = openehr_base.String.from(val);
         } else {
             this._openehr_id = val;
         }
@@ -97,7 +95,7 @@ export class CODE_SET {
      * Internal storage for issuer
      * @private
      */
-    private _issuer?: String;
+    private _issuer?: openehr_base.String;
 
     /**
      * Name of the issuing organisation.
@@ -107,21 +105,21 @@ export class CODE_SET {
     }
 
     /**
-     * Gets the String wrapper object for issuer.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for issuer.
+     * Use this to access openehr_base.String methods.
      */
-    get $issuer(): String | undefined {
+    get $issuer(): openehr_base.String | undefined {
         return this._issuer;
     }
 
     /**
-     * Sets issuer from either a primitive value or String wrapper.
+     * Sets issuer from either a primitive value or openehr_base.String wrapper.
      */
-    set issuer(val: string | String | undefined) {
+    set issuer(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._issuer = undefined;
         } else if (typeof val === 'string') {
-            this._issuer = String.from(val);
+            this._issuer = openehr_base.String.from(val);
         } else {
             this._issuer = val;
         }
@@ -135,7 +133,7 @@ export class CODE_SET {
      * Internal storage for external_id
      * @private
      */
-    private _external_id?: String;
+    private _external_id?: openehr_base.String;
 
     /**
      * An optional identifier assumed by openEHR to be the identifier of this code set, based on its published name, with spaces replaced by underscores.
@@ -152,21 +150,21 @@ export class CODE_SET {
     }
 
     /**
-     * Gets the String wrapper object for external_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for external_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $external_id(): String | undefined {
+    get $external_id(): openehr_base.String | undefined {
         return this._external_id;
     }
 
     /**
-     * Sets external_id from either a primitive value or String wrapper.
+     * Sets external_id from either a primitive value or openehr_base.String wrapper.
      */
-    set external_id(val: string | String | undefined) {
+    set external_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._external_id = undefined;
         } else if (typeof val === 'string') {
-            this._external_id = String.from(val);
+            this._external_id = openehr_base.String.from(val);
         } else {
             this._external_id = val;
         }
@@ -186,7 +184,7 @@ export class TERMINOLOGY_GROUP {
      * Internal storage for name
      * @private
      */
-    private _name?: String;
+    private _name?: openehr_base.String;
 
     /**
      * Name of this vocabulary.
@@ -196,21 +194,21 @@ export class TERMINOLOGY_GROUP {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -224,7 +222,7 @@ export class TERMINOLOGY_GROUP {
      * Internal storage for openehr_id
      * @private
      */
-    private _openehr_id?: String;
+    private _openehr_id?: openehr_base.String;
 
     /**
      * Identifier used for terminology group in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
@@ -241,21 +239,21 @@ export class TERMINOLOGY_GROUP {
     }
 
     /**
-     * Gets the String wrapper object for openehr_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for openehr_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $openehr_id(): String | undefined {
+    get $openehr_id(): openehr_base.String | undefined {
         return this._openehr_id;
     }
 
     /**
-     * Sets openehr_id from either a primitive value or String wrapper.
+     * Sets openehr_id from either a primitive value or openehr_base.String wrapper.
      */
-    set openehr_id(val: string | String | undefined) {
+    set openehr_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._openehr_id = undefined;
         } else if (typeof val === 'string') {
-            this._openehr_id = String.from(val);
+            this._openehr_id = openehr_base.String.from(val);
         } else {
             this._openehr_id = val;
         }
@@ -275,7 +273,7 @@ export class CODE {
      * Internal storage for value
      * @private
      */
-    private _value?: String;
+    private _value?: openehr_base.String;
 
     /**
      * The code string for this code entity, e.g. \`"AF"\`.
@@ -285,21 +283,21 @@ export class CODE {
     }
 
     /**
-     * Gets the String wrapper object for value.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for value.
+     * Use this to access openehr_base.String methods.
      */
-    get $value(): String | undefined {
+    get $value(): openehr_base.String | undefined {
         return this._value;
     }
 
     /**
-     * Sets value from either a primitive value or String wrapper.
+     * Sets value from either a primitive value or openehr_base.String wrapper.
      */
-    set value(val: string | String | undefined) {
+    set value(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._value = undefined;
         } else if (typeof val === 'string') {
-            this._value = String.from(val);
+            this._value = openehr_base.String.from(val);
         } else {
             this._value = val;
         }
@@ -309,7 +307,7 @@ export class CODE {
      * Internal storage for description
      * @private
      */
-    private _description?: String;
+    private _description?: openehr_base.String;
 
     /**
      * Optional description of this code, e.g. \`"AFGHANISTAN"\`.
@@ -321,21 +319,21 @@ export class CODE {
     }
 
     /**
-     * Gets the String wrapper object for description.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for description.
+     * Use this to access openehr_base.String methods.
      */
-    get $description(): String | undefined {
+    get $description(): openehr_base.String | undefined {
         return this._description;
     }
 
     /**
-     * Sets description from either a primitive value or String wrapper.
+     * Sets description from either a primitive value or openehr_base.String wrapper.
      */
-    set description(val: string | String | undefined) {
+    set description(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._description = undefined;
         } else if (typeof val === 'string') {
-            this._description = String.from(val);
+            this._description = openehr_base.String.from(val);
         } else {
             this._description = val;
         }
@@ -355,7 +353,7 @@ export class TERMINOLOGY_CONCEPT {
      * Internal storage for id
      * @private
      */
-    private _id?: String;
+    private _id?: openehr_base.String;
 
     /**
      * The code of this concept.
@@ -365,21 +363,21 @@ export class TERMINOLOGY_CONCEPT {
     }
 
     /**
-     * Gets the String wrapper object for id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for id.
+     * Use this to access openehr_base.String methods.
      */
-    get $id(): String | undefined {
+    get $id(): openehr_base.String | undefined {
         return this._id;
     }
 
     /**
-     * Sets id from either a primitive value or String wrapper.
+     * Sets id from either a primitive value or openehr_base.String wrapper.
      */
-    set id(val: string | String | undefined) {
+    set id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._id = undefined;
         } else if (typeof val === 'string') {
-            this._id = String.from(val);
+            this._id = openehr_base.String.from(val);
         } else {
             this._id = val;
         }
@@ -389,7 +387,7 @@ export class TERMINOLOGY_CONCEPT {
      * Internal storage for rubric
      * @private
      */
-    private _rubric?: String;
+    private _rubric?: openehr_base.String;
 
     /**
      * The rubric, i.e. linguistic expression, of this concept, in the language of this terminology instance.
@@ -399,21 +397,21 @@ export class TERMINOLOGY_CONCEPT {
     }
 
     /**
-     * Gets the String wrapper object for rubric.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for rubric.
+     * Use this to access openehr_base.String methods.
      */
-    get $rubric(): String | undefined {
+    get $rubric(): openehr_base.String | undefined {
         return this._rubric;
     }
 
     /**
-     * Sets rubric from either a primitive value or String wrapper.
+     * Sets rubric from either a primitive value or openehr_base.String wrapper.
      */
-    set rubric(val: string | String | undefined) {
+    set rubric(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._rubric = undefined;
         } else if (typeof val === 'string') {
-            this._rubric = String.from(val);
+            this._rubric = openehr_base.String.from(val);
         } else {
             this._rubric = val;
         }
@@ -433,7 +431,7 @@ export class TERMINOLOGY {
      * Internal storage for name
      * @private
      */
-    private _name?: String;
+    private _name?: openehr_base.String;
 
     /**
      * Name of this terminology.
@@ -443,21 +441,21 @@ export class TERMINOLOGY {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -467,7 +465,7 @@ export class TERMINOLOGY {
      * Internal storage for language
      * @private
      */
-    private _language?: String;
+    private _language?: openehr_base.String;
 
     /**
      * Language of this terminology, as an ISO:639 2-letter code.
@@ -477,21 +475,21 @@ export class TERMINOLOGY {
     }
 
     /**
-     * Gets the String wrapper object for language.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for language.
+     * Use this to access openehr_base.String methods.
      */
-    get $language(): String | undefined {
+    get $language(): openehr_base.String | undefined {
         return this._language;
     }
 
     /**
-     * Sets language from either a primitive value or String wrapper.
+     * Sets language from either a primitive value or openehr_base.String wrapper.
      */
-    set language(val: string | String | undefined) {
+    set language(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._language = undefined;
         } else if (typeof val === 'string') {
-            this._language = String.from(val);
+            this._language = openehr_base.String.from(val);
         } else {
             this._language = val;
         }
@@ -509,7 +507,7 @@ export class TERMINOLOGY {
      * Internal storage for version
      * @private
      */
-    private _version?: String;
+    private _version?: openehr_base.String;
 
     /**
      * Version of this instance of the terminology.
@@ -519,21 +517,21 @@ export class TERMINOLOGY {
     }
 
     /**
-     * Gets the String wrapper object for version.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for version.
+     * Use this to access openehr_base.String methods.
      */
-    get $version(): String | undefined {
+    get $version(): openehr_base.String | undefined {
         return this._version;
     }
 
     /**
-     * Sets version from either a primitive value or String wrapper.
+     * Sets version from either a primitive value or openehr_base.String wrapper.
      */
-    set version(val: string | String | undefined) {
+    set version(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._version = undefined;
         } else if (typeof val === 'string') {
-            this._version = String.from(val);
+            this._version = openehr_base.String.from(val);
         } else {
             this._version = val;
         }
@@ -542,12 +540,12 @@ export class TERMINOLOGY {
     /**
      * Date of issue of this version of the terminology.
      */
-    date?: Iso8601_date;
+    date?: openehr_base.Iso8601_date;
 }
 
 /**
  * Enumeration of possible lifecycle states of any part of the terminomlogy.
  */
-export class TERMINOLOGY_STATUS extends String {
+export class TERMINOLOGY_STATUS extends openehr_base.String {
 }
 

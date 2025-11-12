@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-11T19:34:14.172Z
+// Generated: 2025-11-12T00:35:09.773Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
