@@ -3312,9 +3312,28 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     root(): UID {
-        // TODO: Implement root behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method root not yet implemented.");
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        const rootValue = separatorIndex === -1 ? val : val.substring(0, separatorIndex);
+        
+        // Try to determine UID type and create appropriate instance
+        // For now, create a generic UUID or ISO_OID based on format
+        if (rootValue.includes("-")) {
+            // Looks like UUID
+            const uuid = new UUID();
+            uuid.value = rootValue;
+            return uuid;
+        } else if (rootValue.match(/^\d+(\.\d+)*$/)) {
+            // Looks like ISO OID
+            const oid = new ISO_OID();
+            oid.value = rootValue;
+            return oid;
+        } else {
+            // Default to INTERNET_ID
+            const internetId = new INTERNET_ID();
+            internetId.value = rootValue;
+            return internetId;
+        }
     }
 
     /**
@@ -3322,9 +3341,12 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     extension(): String {
-        // TODO: Implement extension behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method extension not yet implemented.");
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        if (separatorIndex === -1) {
+            return String.from("");
+        }
+        return String.from(val.substring(separatorIndex + 2));
     }
 
     /**
@@ -3332,9 +3354,7 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     has_extension(): Boolean {
-        // TODO: Implement has_extension behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method has_extension not yet implemented.");
+        return new Boolean(!this.extension().is_empty().value);
     }
 
 }
