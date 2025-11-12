@@ -11,6 +11,7 @@
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
 import * as openehr_base from "./openehr_base.ts";
+import * as openehr_lang from "./openehr_lang.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -4690,7 +4691,7 @@ export class EXPR_ARCHETYPE_ID_CONSTRAINT extends EXPR_CONSTRAINT {
  * * Paths with no leading ‘/’ are in the outer part of the archetype, e.g. “archetype_id/value” refers to the String value of the archetype_id attribute of the enclosing archetype.
  * 
  */
-export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
+export class EXPR_ARCHETYPE_REF extends openehr_lang.EXPR_VALUE_REF {
     /**
      * Internal storage for path
      * @protected

@@ -13,6 +13,9 @@
 // Unknown types - defined as 'any' for now
 type T = any;
 
+// Type alias for function predicates used in container operations
+type Operation<T = any> = (v: T) => Boolean;
+
 /**
  * Abstract ancestor class for all other classes. Usually maps to a type like \`Any\` or \`Object\` in an object-oriented technology. Defined here to provide value and reference equality semantics.
  */
@@ -30,9 +33,8 @@ export abstract class Any {
      * @returns Result value
      */
     equal(other: Any): Boolean {
-        // TODO: Implement equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method equal not yet implemented.");
+        // Reference equality - same object
+        return new Boolean(this === other);
     }
 
     /**
@@ -41,8 +43,8 @@ export abstract class Any {
      * @returns Result value
      */
     instance_of(a_type: String): Any {
-        // TODO: Implement instance_of behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
+        // This is a factory method that would need runtime type information
+        // For now, just throw an error
         throw new Error("Method instance_of not yet implemented.");
     }
 
@@ -52,9 +54,9 @@ export abstract class Any {
      * @returns Result value
      */
     type_of(an_object: Any): String {
-        // TODO: Implement type_of behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method type_of not yet implemented.");
+        // Get constructor name
+        const typeName = an_object.constructor.name;
+        return String.from(typeName);
     }
 
     /**
@@ -62,10 +64,9 @@ export abstract class Any {
      * @param other - Parameter
      * @returns Result value
      */
-    not_equal(other: Ordered): Boolean {
-        // TODO: Implement not_equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method not_equal not yet implemented.");
+    not_equal(other: Any): Boolean {
+        // Use reference equality (not is_equal)
+        return new Boolean(!this.equal(other).value);
     }
 
 }
@@ -98,29 +99,21 @@ export abstract class Container<T extends Any> extends Any {
      * @param test - Parameter
      * @returns Result value
      */
-    there_exists(test: Operation): Boolean {
-        // TODO: Implement there_exists behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method there_exists not yet implemented.");
-    }
+    abstract there_exists(test: Operation<T>): Boolean;
 
     /**
      * Universal quantifier applied to container, taking one agent argument \`_test_\` whose signature is \`(v:T): Boolean\`.
      * @param test - Parameter
      * @returns Result value
      */
-    for_all(test: Operation): Boolean {
-        // TODO: Implement for_all behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method for_all not yet implemented.");
-    }
+    abstract for_all(test: Operation<T>): Boolean;
 
     /**
      * Return a List all items matching the predicate function \`_test_\` which has signature \`(v:T): Boolean\`. If no matches, an empty List is returned.
      * @param test - Parameter
      * @returns Result value
      */
-    matching(test: Operation): T {
+    matching(test: Operation<T>): T {
         // TODO: Implement matching behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method matching not yet implemented.");
@@ -131,7 +124,7 @@ export abstract class Container<T extends Any> extends Any {
      * @param test - Parameter
      * @returns Result value
      */
-    select(test: Operation): T {
+    select(test: Operation<T>): T {
         // TODO: Implement select behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method select not yet implemented.");
@@ -143,15 +136,29 @@ export abstract class Container<T extends Any> extends Any {
  * Type representing a keyed table of values. V is the value type, and K the type of the keys. 
  */
 export class Hash<K extends Ordered, V> extends Container<K> {
+    private _map: Map<string, { key: K, value: V }> = new Map();
+
+    /**
+     * Constructor that optionally accepts initial entries.
+     * @param entries - Optional array of [key, value] pairs
+     */
+    constructor(entries?: [K, V][]) {
+        super();
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.put(key, value);
+            }
+        }
+    }
+
     /**
      * Test for presence of \`_a_key_\`.
      * @param a_key - Parameter
      * @returns Result value
      */
     has_key(a_key: K): Boolean {
-        // TODO: Implement has_key behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method has_key not yet implemented.");
+        const keyStr = this._keyToString(a_key);
+        return new Boolean(this._map.has(keyStr));
     }
 
     /**
@@ -160,9 +167,108 @@ export class Hash<K extends Ordered, V> extends Container<K> {
      * @returns Result value
      */
     item(a_key: K): V {
-        // TODO: Implement item behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method item not yet implemented.");
+        const keyStr = this._keyToString(a_key);
+        const entry = this._map.get(keyStr);
+        if (!entry) {
+            throw new Error(`Key not found: ${keyStr}`);
+        }
+        return entry.value;
+    }
+
+    /**
+     * Test for membership of a value (key in this case).
+     */
+    has(v: K): Boolean {
+        return this.has_key(v);
+    }
+
+    /**
+     * Return the number of items in the hash.
+     */
+    count(): Integer {
+        const int = new Integer();
+        int.value = this._map.size;
+        return int;
+    }
+
+    /**
+     * Check if the hash is empty.
+     */
+    is_empty(): Boolean {
+        return new Boolean(this._map.size === 0);
+    }
+
+    /**
+     * Test if all items satisfy a condition.
+     */
+    for_all(test: Operation<K>): Boolean {
+        for (const entry of this._map.values()) {
+            if (!test(entry.key).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Test if any item satisfies a condition.
+     */
+    there_exists(test: Operation<K>): Boolean {
+        for (const entry of this._map.values()) {
+            if (test(entry.key).value) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Check value equality with another object.
+     */
+    is_equal(other: Any): Boolean {
+        if (!(other instanceof Hash)) {
+            return new Boolean(false);
+        }
+        if (this._map.size !== other._map.size) {
+            return new Boolean(false);
+        }
+        for (const [keyStr, entry] of this._map.entries()) {
+            const otherEntry = other._map.get(keyStr);
+            if (!otherEntry) {
+                return new Boolean(false);
+            }
+            if (!entry.key.is_equal(otherEntry.key).value) {
+                return new Boolean(false);
+            }
+            // Value comparison depends on type
+            if (entry.value instanceof Any) {
+                if (!entry.value.is_equal(otherEntry.value as Any).value) {
+                    return new Boolean(false);
+                }
+            } else if (entry.value !== otherEntry.value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Put a key-value pair into the hash.
+     */
+    put(key: K, value: V): void {
+        const keyStr = this._keyToString(key);
+        this._map.set(keyStr, { key, value });
+    }
+
+    /**
+     * Helper to convert key to string for Map storage.
+     */
+    private _keyToString(key: K): string {
+        if (key instanceof String) {
+            return key.value || "";
+        }
+        // For other Ordered types, use a generic string representation
+        return JSON.stringify(key);
     }
 
 }
@@ -171,14 +277,80 @@ export class Hash<K extends Ordered, V> extends Container<K> {
  * Ordered container that may contain duplicates.
  */
 export class List<T extends Any> extends Container<T> {
+    private _items: T[] = [];
+
+    /**
+     * Test for membership of a value.
+     */
+    has(v: T): Boolean {
+        for (const item of this._items) {
+            if (item.is_equal(v).value === true) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Return the number of items in the list.
+     */
+    count(): Integer {
+        const int = new Integer();
+        int.value = this._items.length;
+        return int;
+    }
+
+    /**
+     * Check if the list is empty.
+     */
+    is_empty(): Boolean {
+        return new Boolean(this._items.length === 0);
+    }
+
+    /**
+     * Test if all items satisfy a condition.
+     */
+    for_all(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (!test(item).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Test if any item satisfies a condition.
+     */
+    there_exists(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (test(item).value) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Get the item at index i (0-based).
+     */
+    item(i: Integer): T {
+        const idx = i.value;
+        if (idx === undefined || idx < 0 || idx >= this._items.length) {
+            throw new Error(`Index out of bounds: ${idx}`);
+        }
+        return this._items[idx];
+    }
+
     /**
      * Return first element.
      * @returns Result value
      */
     first(): T {
-        // TODO: Implement first behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method first not yet implemented.");
+        if (this._items.length === 0) {
+            throw new Error("Cannot get first item of empty list");
+        }
+        return this._items[0];
     }
 
     /**
@@ -186,9 +358,84 @@ export class List<T extends Any> extends Container<T> {
      * @returns Result value
      */
     last(): T {
-        // TODO: Implement last behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method last not yet implemented.");
+        if (this._items.length === 0) {
+            throw new Error("Cannot get last item of empty list");
+        }
+        return this._items[this._items.length - 1];
+    }
+
+    /**
+     * Add an item to the end of the list.
+     */
+    append(v: T): void {
+        this._items.push(v);
+    }
+
+    /**
+     * Add an item to the beginning of the list.
+     */
+    prepend(v: T): void {
+        this._items.unshift(v);
+    }
+
+    /**
+     * Append all items from another list.
+     */
+    extend(other: List<T>): void {
+        const otherCount = other.count().value;
+        if (otherCount !== undefined) {
+            for (let i = 0; i < otherCount; i++) {
+                const idx = new Integer();
+                idx.value = i;
+                this._items.push(other.item(idx));
+            }
+        }
+    }
+
+    /**
+     * Remove the item at index i.
+     */
+    remove(i: Integer): void {
+        const idx = i.value;
+        if (idx === undefined || idx < 0 || idx >= this._items.length) {
+            throw new Error(`Index out of bounds: ${idx}`);
+        }
+        this._items.splice(idx, 1);
+    }
+
+    /**
+     * Find the index of the first occurrence of a value.
+     * Returns -1 if not found.
+     */
+    index_of(v: T): Integer {
+        for (let i = 0; i < this._items.length; i++) {
+            if (this._items[i].is_equal(v).value === true) {
+                const idx = new Integer();
+                idx.value = i;
+                return idx;
+            }
+        }
+        const idx = new Integer();
+        idx.value = -1;
+        return idx;
+    }
+
+    /**
+     * Check value equality with another object.
+     */
+    is_equal(other: Any): Boolean {
+        if (!(other instanceof List)) {
+            return new Boolean(false);
+        }
+        if (this._items.length !== other._items.length) {
+            return new Boolean(false);
+        }
+        for (let i = 0; i < this._items.length; i++) {
+            if (!this._items[i].is_equal(other._items[i]).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
     }
 
 }
@@ -197,21 +444,207 @@ export class List<T extends Any> extends Container<T> {
  * Unordered container that may not contain duplicates.
  */
 export class Set<T extends Any> extends Container<T> {
+    private _items: T[] = [];
+
+    /**
+     * Test for membership of a value.
+     */
+    has(v: T): Boolean {
+        for (const item of this._items) {
+            if (item.is_equal(v).value === true) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Return the number of items in the set.
+     */
+    count(): Integer {
+        const int = new Integer();
+        int.value = this._items.length;
+        return int;
+    }
+
+    /**
+     * Check if the set is empty.
+     */
+    is_empty(): Boolean {
+        return new Boolean(this._items.length === 0);
+    }
+
+    /**
+     * Test if all items satisfy a condition.
+     */
+    for_all(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (!test(item).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Test if any item satisfies a condition.
+     */
+    there_exists(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (test(item).value) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Add an item to the set if it doesn't already exist.
+     */
+    add(v: T): void {
+        if (!this.has(v).value) {
+            this._items.push(v);
+        }
+    }
+
+    /**
+     * Remove an item from the set.
+     */
+    remove(v: T): void {
+        for (let i = 0; i < this._items.length; i++) {
+            if (this._items[i].is_equal(v).value === true) {
+                this._items.splice(i, 1);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Check value equality with another object.
+     */
+    is_equal(other: Any): Boolean {
+        if (!(other instanceof Set)) {
+            return new Boolean(false);
+        }
+        if (this._items.length !== other._items.length) {
+            return new Boolean(false);
+        }
+        // Check if all items in this set are in the other set
+        for (const item of this._items) {
+            if (!other.has(item).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
 }
 
 /**
  * Container whose storage is assumed to be contiguous.
  */
 export class Array<T extends Any> extends Container<T> {
+    private _items: T[] = [];
+
+    /**
+     * Test for membership of a value.
+     */
+    has(v: T): Boolean {
+        for (const item of this._items) {
+            if (item.is_equal(v).value === true) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
+    /**
+     * Return the number of items in the array.
+     */
+    count(): Integer {
+        const int = new Integer();
+        int.value = this._items.length;
+        return int;
+    }
+
+    /**
+     * Check if the array is empty.
+     */
+    is_empty(): Boolean {
+        return new Boolean(this._items.length === 0);
+    }
+
+    /**
+     * Test if all items satisfy a condition.
+     */
+    for_all(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (!test(item).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Test if any item satisfies a condition.
+     */
+    there_exists(test: Operation<T>): Boolean {
+        for (const item of this._items) {
+            if (test(item).value) {
+                return new Boolean(true);
+            }
+        }
+        return new Boolean(false);
+    }
+
     /**
      * Return item for key  \`_a_key_\`.
      * @param a_key - Parameter
      * @returns Result value
      */
     item(a_key: Integer): T {
-        // TODO: Implement item behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method item not yet implemented.");
+        const idx = a_key.value;
+        if (idx === undefined || idx < 0 || idx >= this._items.length) {
+            throw new Error(`Index out of bounds: ${idx}`);
+        }
+        return this._items[idx];
+    }
+
+    /**
+     * Check value equality with another object.
+     */
+    is_equal(other: Any): Boolean {
+        if (!(other instanceof Array)) {
+            return new Boolean(false);
+        }
+        if (this._items.length !== other._items.length) {
+            return new Boolean(false);
+        }
+        for (let i = 0; i < this._items.length; i++) {
+            if (!this._items[i].is_equal(other._items[i]).value) {
+                return new Boolean(false);
+            }
+        }
+        return new Boolean(true);
+    }
+
+    /**
+     * Set the item at index i.
+     */
+    put(i: Integer, v: T): void {
+        const idx = i.value;
+        if (idx === undefined || idx < 0 || idx >= this._items.length) {
+            throw new Error(`Index out of bounds: ${idx}`);
+        }
+        this._items[idx] = v;
+    }
+
+    /**
+     * Append an item to the array.
+     */
+    append(v: T): void {
+        this._items.push(v);
     }
 
 }
@@ -296,11 +729,11 @@ export class String extends Ordered {
      * @param other - The object to compare with
      * @returns true if the values are equal
      */
-    is_equal(other: any): boolean {
+    is_equal(other: any): Boolean {
         if (other instanceof String) {
-            return this.value === other.value;
+            return new Boolean(this.value === other.value);
         }
-        return false;
+        return new Boolean(false);
     }
 
     /**
@@ -308,9 +741,17 @@ export class String extends Ordered {
      * @returns Result value
      */
     is_empty(): Boolean {
-        // TODO: Implement is_empty behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method is_empty not yet implemented.");
+        return new Boolean((this.value || "").length === 0);
+    }
+
+    /**
+     * Number of characters in string.
+     * @returns Result value
+     */
+    count(): Integer {
+        const int = new Integer();
+        int.value = (this.value || "").length;
+        return int;
     }
 
     /**
@@ -318,9 +759,9 @@ export class String extends Ordered {
      * @returns Result value
      */
     is_integer(): Boolean {
-        // TODO: Implement is_integer behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method is_integer not yet implemented.");
+        const val = this.value || "";
+        const num = Number(val);
+        return new Boolean(!isNaN(num) && Number.isInteger(num) && val.trim() !== "");
     }
 
     /**
@@ -328,9 +769,11 @@ export class String extends Ordered {
      * @returns Result value
      */
     as_integer(): Integer {
-        // TODO: Implement as_integer behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method as_integer not yet implemented.");
+        const num = parseInt(this.value || "", 10);
+        if (isNaN(num)) {
+            throw new Error(`Cannot parse "${this.value}" as integer`);
+        }
+        return Integer.from(num);
     }
 
     /**
@@ -339,9 +782,23 @@ export class String extends Ordered {
      * @returns Result value
      */
     append(other: String): String {
-        // TODO: Implement append behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method append not yet implemented.");
+        return String.from((this.value || "") + (other.value || ""));
+    }
+
+    /**
+     * Convert string to lowercase.
+     * @returns Result value
+     */
+    as_lower(): String {
+        return String.from((this.value || "").toLowerCase());
+    }
+
+    /**
+     * Convert string to uppercase.
+     * @returns Result value
+     */
+    as_upper(): String {
+        return String.from((this.value || "").toUpperCase());
     }
 
     /**
@@ -349,10 +806,11 @@ export class String extends Ordered {
      * @param other - Parameter
      * @returns Result value
      */
-    less_than(other: String): Boolean {
-        // TODO: Implement less_than behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method less_than not yet implemented.");
+    less_than(other: Ordered): Boolean {
+        if (!(other instanceof String)) {
+            throw new Error("Cannot compare String with non-String");
+        }
+        return new Boolean((this.value || "") < (other.value || ""));
     }
 
     /**
@@ -361,9 +819,47 @@ export class String extends Ordered {
      * @returns Result value
      */
     contains(other: String): Boolean {
-        // TODO: Implement contains behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method contains not yet implemented.");
+        return new Boolean((this.value || "").includes(other.value || ""));
+    }
+
+    /**
+     * Extract a substring (1-based indexing in openEHR).
+     * @param start - Start index (1-based)
+     * @param end - End index (1-based)
+     * @returns Result value
+     */
+    substring(start: Integer, end: Integer): String {
+        const startIdx = (start.value || 1) - 1; // Convert to 0-based
+        const endIdx = end.value || (this.value || "").length;
+        return String.from((this.value || "").substring(startIdx, endIdx));
+    }
+
+    /**
+     * Find the index of a substring (1-based indexing in openEHR).
+     * @param pattern - Pattern to find
+     * @param from - Start index (1-based)
+     * @returns Result value (1-based index or -1 if not found)
+     */
+    index_of(pattern: String, from: Integer): Integer {
+        const startIdx = (from.value || 1) - 1; // Convert to 0-based
+        const foundIdx = (this.value || "").indexOf(pattern.value || "", startIdx);
+        const result = new Integer();
+        result.value = foundIdx === -1 ? -1 : foundIdx + 1; // Convert back to 1-based
+        return result;
+    }
+
+    /**
+     * Split string by delimiter.
+     * @param delimiter - Delimiter to split by
+     * @returns Result value
+     */
+    split(delimiter: String): List<String> {
+        const parts = (this.value || "").split(delimiter.value || "");
+        const list = new List<String>();
+        for (const part of parts) {
+            list.append(String.from(part));
+        }
+        return list;
     }
 
 }
@@ -462,11 +958,25 @@ export class Integer extends Ordered_Numeric {
      * @param other - The object to compare with
      * @returns true if the values are equal
      */
-    is_equal(other: any): boolean {
+    is_equal(other: any): Boolean {
         if (other instanceof Integer) {
-            return this.value === other.value;
+            return new Boolean(this.value === other.value);
         }
-        return false;
+        return new Boolean(false);
+    }
+
+    /**
+     * Lexical comparison for integers.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    less_than(other: Ordered): Boolean {
+        if (!(other instanceof Integer)) {
+            throw new Error("Cannot compare Integer with non-Integer");
+        }
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return new Boolean(thisVal < otherVal);
     }
 
     /**
@@ -475,9 +985,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     add(other: Integer): Integer {
-        // TODO: Implement add behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method add not yet implemented.");
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return Integer.from(thisVal + otherVal);
     }
 
     /**
@@ -486,9 +996,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     subtract(other: Integer): Integer {
-        // TODO: Implement subtract behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method subtract not yet implemented.");
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return Integer.from(thisVal - otherVal);
     }
 
     /**
@@ -497,9 +1007,9 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     multiply(other: Integer): Integer {
-        // TODO: Implement multiply behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method multiply not yet implemented.");
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return Integer.from(thisVal * otherVal);
     }
 
     /**
@@ -508,9 +1018,34 @@ export class Integer extends Ordered_Numeric {
      * @returns Result value
      */
     divide(other: Integer): number {
-        // TODO: Implement divide behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method divide not yet implemented.");
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 1;
+        if (otherVal === 0) {
+            throw new Error("Division by zero");
+        }
+        return thisVal / otherVal;
+    }
+
+    /**
+     * Integer modulo.
+     * @param other - Parameter
+     * @returns Result value
+     */
+    modulo(other: Integer): Integer {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 1;
+        if (otherVal === 0) {
+            throw new Error("Modulo by zero");
+        }
+        return Integer.from(thisVal % otherVal);
+    }
+
+    /**
+     * Generate negative of current value.
+     * @returns Result value
+     */
+    negative(): Integer {
+        return Integer.from(-(this.value || 0));
     }
 
     /**
@@ -524,48 +1059,7 @@ export class Integer extends Ordered_Numeric {
         throw new Error("Method exponent not yet implemented.");
     }
 
-    /**
-     * Return self modulo other.
-     * @param mod - Parameter
-     * @returns Result value
-     */
-    modulo(mod: Integer): Integer {
-        // TODO: Implement modulo behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method modulo not yet implemented.");
-    }
-
-    /**
-     * Returns True if current Integer is less than \`_other_\`.
-     * @param other - Parameter
-     * @returns Result value
-     */
-    less_than(other: Integer): Boolean {
-        // TODO: Implement less_than behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method less_than not yet implemented.");
-    }
-
-    /**
-     * Generate negative of current Integer value.
-     * @returns Result value
-     */
-    negative(): Integer {
-        // TODO: Implement negative behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method negative not yet implemented.");
-    }
-
-    /**
-     * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-     * @param other - Parameter
-     * @returns Result value
-     */
-    is_equal(other: Integer): Boolean {
-        // TODO: Implement is_equal behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method is_equal not yet implemented.");
-    }
+    // modulo, less_than, negative, and is_equal are implemented above
 
     /**
      * Reference equality for reference types, value equality for value types.
@@ -738,11 +1232,11 @@ export class Boolean extends Any {
      * @param other - The object to compare with
      * @returns true if the values are equal
      */
-    is_equal(other: any): boolean {
+    is_equal(other: any): Boolean {
         if (other instanceof Boolean) {
-            return this.value === other.value;
+            return new Boolean(this.value === other.value);
         }
-        return false;
+        return new Boolean(false);
     }
 
     /**
@@ -751,9 +1245,7 @@ export class Boolean extends Any {
      * @returns Result value
      */
     conjunction(other: Boolean): Boolean {
-        // TODO: Implement conjunction behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method conjunction not yet implemented.");
+        return new Boolean((this.value === true) && (other.value === true));
     }
 
     /**
@@ -762,9 +1254,11 @@ export class Boolean extends Any {
      * @returns Result value
      */
     semistrict_conjunction(other: Boolean): Boolean {
-        // TODO: Implement semistrict_conjunction behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method semistrict_conjunction not yet implemented.");
+        // Semi-strict: only evaluate other if this is true
+        if (this.value !== true) {
+            return new Boolean(false);
+        }
+        return new Boolean(other.value === true);
     }
 
     /**
@@ -773,9 +1267,7 @@ export class Boolean extends Any {
      * @returns Result value
      */
     disjunction(other: Boolean): Boolean {
-        // TODO: Implement disjunction behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method disjunction not yet implemented.");
+        return new Boolean((this.value === true) || (other.value === true));
     }
 
     /**
@@ -784,9 +1276,11 @@ export class Boolean extends Any {
      * @returns Result value
      */
     semistrict_disjunction(other: Boolean): Boolean {
-        // TODO: Implement semistrict_disjunction behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method semistrict_disjunction not yet implemented.");
+        // Semi-strict: only evaluate other if this is false
+        if (this.value === true) {
+            return new Boolean(true);
+        }
+        return new Boolean(other.value === true);
     }
 
     /**
@@ -795,9 +1289,7 @@ export class Boolean extends Any {
      * @returns Result value
      */
     exclusive_disjunction(other: Boolean): Boolean {
-        // TODO: Implement exclusive_disjunction behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method exclusive_disjunction not yet implemented.");
+        return new Boolean((this.value === true) !== (other.value === true));
     }
 
     /**
@@ -806,9 +1298,11 @@ export class Boolean extends Any {
      * @returns Result value
      */
     implication(other: Boolean): Boolean {
-        // TODO: Implement implication behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method implication not yet implemented.");
+        // A implies B is equivalent to (not A) or B
+        if (this.value !== true) {
+            return new Boolean(true);
+        }
+        return new Boolean(other.value === true);
     }
 
     /**
@@ -816,9 +1310,7 @@ export class Boolean extends Any {
      * @returns Result value
      */
     negation(): Boolean {
-        // TODO: Implement negation behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method negation not yet implemented.");
+        return new Boolean(this.value !== true);
     }
 
 }
@@ -2673,9 +3165,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     qualified_rm_entity(): String {
-        // TODO: Implement qualified_rm_entity behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method qualified_rm_entity not yet implemented.");
+        const val = this.value || "";
+        const dotIndex = val.indexOf('.');
+        if (dotIndex === -1) {
+            throw new Error("Invalid ARCHETYPE_ID format: no '.' found");
+        }
+        return String.from(val.substring(0, dotIndex));
     }
 
     /**
@@ -2683,9 +3178,15 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     domain_concept(): String {
-        // TODO: Implement domain_concept behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method domain_concept not yet implemented.");
+        const val = this.value || "";
+        const dotIndex = val.indexOf('.');
+        const vIndex = val.lastIndexOf('.v');
+        
+        if (dotIndex === -1 || vIndex === -1 || vIndex <= dotIndex) {
+            throw new Error("Invalid ARCHETYPE_ID format");
+        }
+        
+        return String.from(val.substring(dotIndex + 1, vIndex));
     }
 
     /**
@@ -2693,9 +3194,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_originator(): String {
-        // TODO: Implement rm_originator behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_originator not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[0]);
     }
 
     /**
@@ -2703,9 +3207,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_name(): String {
-        // TODO: Implement rm_name behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_name not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[1]);
     }
 
     /**
@@ -2713,9 +3220,12 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     rm_entity(): String {
-        // TODO: Implement rm_entity behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method rm_entity not yet implemented.");
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split('-');
+        if (parts.length < 3) {
+            throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String.from(parts[2]);
     }
 
     /**
@@ -2723,9 +3233,14 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     specialisation(): String {
-        // TODO: Implement specialisation behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method specialisation not yet implemented.");
+        const concept = this.domain_concept().value || "";
+        const hyphenIndex = concept.indexOf('-');
+        
+        if (hyphenIndex === -1) {
+            return String.from("");
+        }
+        
+        return String.from(concept.substring(hyphenIndex + 1));
     }
 
     /**
@@ -2734,9 +3249,15 @@ export class ARCHETYPE_ID extends OBJECT_ID {
      * @returns Result value
      */
     version_id(): String {
-        // TODO: Implement version_id behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method version_id not yet implemented.");
+        const val = this.value || "";
+        const vIndex = val.lastIndexOf('.v');
+        
+        if (vIndex === -1) {
+            throw new Error("Invalid ARCHETYPE_ID format: no '.v' found");
+        }
+        
+        // Return everything after '.v'
+        return String.from(val.substring(vIndex + 2));
     }
 
 }
@@ -2790,9 +3311,28 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     root(): UID {
-        // TODO: Implement root behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method root not yet implemented.");
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        const rootValue = separatorIndex === -1 ? val : val.substring(0, separatorIndex);
+        
+        // Try to determine UID type and create appropriate instance
+        // For now, create a generic UUID or ISO_OID based on format
+        if (rootValue.includes("-")) {
+            // Looks like UUID
+            const uuid = new UUID();
+            uuid.value = rootValue;
+            return uuid;
+        } else if (rootValue.match(/^\d+(\.\d+)*$/)) {
+            // Looks like ISO OID
+            const oid = new ISO_OID();
+            oid.value = rootValue;
+            return oid;
+        } else {
+            // Default to INTERNET_ID
+            const internetId = new INTERNET_ID();
+            internetId.value = rootValue;
+            return internetId;
+        }
     }
 
     /**
@@ -2800,9 +3340,12 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     extension(): String {
-        // TODO: Implement extension behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method extension not yet implemented.");
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        if (separatorIndex === -1) {
+            return String.from("");
+        }
+        return String.from(val.substring(separatorIndex + 2));
     }
 
     /**
@@ -2810,9 +3353,7 @@ export abstract class UID_BASED_ID extends OBJECT_ID {
      * @returns Result value
      */
     has_extension(): Boolean {
-        // TODO: Implement has_extension behavior
-        // This will be covered in Phase 3 (see ROADMAP.md)
-        throw new Error("Method has_extension not yet implemented.");
+        return new Boolean(!this.extension().is_empty().value);
     }
 
 }
@@ -2905,6 +3446,40 @@ export class OBJECT_REF {
      * Globally unique id of an object, regardless of where it is stored.
      */
     id?: OBJECT_ID;
+
+    /**
+     * Compare two OBJECT_REF instances for equality.
+     * @param other - The other OBJECT_REF to compare with
+     * @returns Boolean indicating if they are equal
+     */
+    is_equal(other: any): Boolean {
+        if (!(other instanceof OBJECT_REF)) {
+            return new Boolean(false);
+        }
+        
+        // Compare namespace
+        if (this.namespace !== other.namespace) {
+            return new Boolean(false);
+        }
+        
+        // Compare type
+        if (this.type !== other.type) {
+            return new Boolean(false);
+        }
+        
+        // Compare id
+        if (this.id && other.id) {
+            if (this.id instanceof Any && other.id instanceof Any) {
+                return this.id.is_equal(other.id);
+            }
+        } else if (!this.id && !other.id) {
+            return new Boolean(true);
+        } else {
+            return new Boolean(false);
+        }
+        
+        return new Boolean(true);
+    }
 }
 
 /**
@@ -3518,6 +4093,50 @@ export class CODE_PHRASE {
         } else {
             this._preferred_term = val;
         }
+    }
+
+    /**
+     * Factory method to create a CODE_PHRASE.
+     * @param terminologyId - The terminology identifier
+     * @param codeString - The code string
+     * @returns A new CODE_PHRASE instance
+     */
+    static from(terminologyId: string, codeString: string): CODE_PHRASE {
+        const codePhrase = new CODE_PHRASE();
+        
+        const termId = new TERMINOLOGY_ID();
+        termId.value = terminologyId;
+        codePhrase.terminology_id = termId;
+        
+        codePhrase.code_string = codeString;
+        
+        return codePhrase;
+    }
+
+    /**
+     * Compare two CODE_PHRASE objects for equality.
+     * @param other - The other object to compare with
+     * @returns Boolean indicating if they are equal
+     */
+    is_equal(other: any): Boolean {
+        if (!(other instanceof CODE_PHRASE)) {
+            return new Boolean(false);
+        }
+        
+        // Compare terminology IDs
+        if (!this.terminology_id || !other.terminology_id) {
+            return new Boolean(this.terminology_id === other.terminology_id);
+        }
+        if (this.terminology_id.value !== other.terminology_id.value) {
+            return new Boolean(false);
+        }
+        
+        // Compare code strings
+        if (this.code_string !== other.code_string) {
+            return new Boolean(false);
+        }
+        
+        return new Boolean(true);
     }
 
 }
