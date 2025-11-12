@@ -3,7 +3,7 @@
 // Schema Revision: 3.1.0.2
 // Description: term
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json
-// Generated: 2025-11-12T00:35:10.086Z
+// Generated: 2025-11-12T00:39:39.595Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -18,9 +18,9 @@ import * as openehr_base from "./openehr_base.ts";
 export class CODE_SET {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: openehr_base.String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this code set.
@@ -52,9 +52,9 @@ export class CODE_SET {
 
     /**
      * Internal storage for openehr_id
-     * @private
+     * @protected
      */
-    private _openehr_id?: openehr_base.String;
+    protected _openehr_id?: openehr_base.String;
 
     /**
      * Identifier used for code set in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
@@ -93,9 +93,9 @@ export class CODE_SET {
 
     /**
      * Internal storage for issuer
-     * @private
+     * @protected
      */
-    private _issuer?: openehr_base.String;
+    protected _issuer?: openehr_base.String;
 
     /**
      * Name of the issuing organisation.
@@ -131,9 +131,9 @@ export class CODE_SET {
     codes?: undefined;
     /**
      * Internal storage for external_id
-     * @private
+     * @protected
      */
-    private _external_id?: openehr_base.String;
+    protected _external_id?: openehr_base.String;
 
     /**
      * An optional identifier assumed by openEHR to be the identifier of this code set, based on its published name, with spaces replaced by underscores.
@@ -182,9 +182,9 @@ export class CODE_SET {
 export class TERMINOLOGY_GROUP {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: openehr_base.String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this vocabulary.
@@ -220,9 +220,9 @@ export class TERMINOLOGY_GROUP {
     concepts?: undefined;
     /**
      * Internal storage for openehr_id
-     * @private
+     * @protected
      */
-    private _openehr_id?: openehr_base.String;
+    protected _openehr_id?: openehr_base.String;
 
     /**
      * Identifier used for terminology group in the openEHR Reference Model. The value is inferred from the \`_name_\` attribute.
@@ -271,9 +271,9 @@ export class TERMINOLOGY_GROUP {
 export class CODE {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * The code string for this code entity, e.g. \`"AF"\`.
@@ -305,9 +305,9 @@ export class CODE {
 
     /**
      * Internal storage for description
-     * @private
+     * @protected
      */
-    private _description?: openehr_base.String;
+    protected _description?: openehr_base.String;
 
     /**
      * Optional description of this code, e.g. \`"AFGHANISTAN"\`.
@@ -351,9 +351,9 @@ export class CODE {
 export class TERMINOLOGY_CONCEPT {
     /**
      * Internal storage for id
-     * @private
+     * @protected
      */
-    private _id?: openehr_base.String;
+    protected _id?: openehr_base.String;
 
     /**
      * The code of this concept.
@@ -385,9 +385,9 @@ export class TERMINOLOGY_CONCEPT {
 
     /**
      * Internal storage for rubric
-     * @private
+     * @protected
      */
-    private _rubric?: openehr_base.String;
+    protected _rubric?: openehr_base.String;
 
     /**
      * The rubric, i.e. linguistic expression, of this concept, in the language of this terminology instance.
@@ -429,9 +429,9 @@ export class TERMINOLOGY_CONCEPT {
 export class TERMINOLOGY {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: openehr_base.String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this terminology.
@@ -463,9 +463,9 @@ export class TERMINOLOGY {
 
     /**
      * Internal storage for language
-     * @private
+     * @protected
      */
-    private _language?: openehr_base.String;
+    protected _language?: openehr_base.String;
 
     /**
      * Language of this terminology, as an ISO:639 2-letter code.
@@ -505,9 +505,9 @@ export class TERMINOLOGY {
     vocabularies?: undefined;
     /**
      * Internal storage for version
-     * @private
+     * @protected
      */
-    private _version?: openehr_base.String;
+    protected _version?: openehr_base.String;
 
     /**
      * Version of this instance of the terminology.

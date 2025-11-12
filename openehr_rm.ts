@@ -3,7 +3,7 @@
 // Schema Revision: 1.2.0.2
 // Description: openEHR Reference Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json
-// Generated: 2025-11-12T00:35:09.966Z
+// Generated: 2025-11-12T00:39:39.536Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -121,9 +121,9 @@ export abstract class LOCATABLE extends PATHABLE {
     name?: DV_TEXT;
     /**
      * Internal storage for archetype_node_id
-     * @private
+     * @protected
      */
-    private _archetype_node_id?: openehr_base.String;
+    protected _archetype_node_id?: openehr_base.String;
 
     /**
      * Design-time archetype identifier of this node taken from its generating archetype; used to build archetype paths. Always in the form of an at-code, e.g.  \`at0005\`. This value enables a 'standardised' name for this node to be generated, by referring to the generating archetype local terminology. 
@@ -210,9 +210,9 @@ export class ARCHETYPED {
     template_id?: openehr_base.TEMPLATE_ID;
     /**
      * Internal storage for rm_version
-     * @private
+     * @protected
      */
-    private _rm_version?: openehr_base.String;
+    protected _rm_version?: openehr_base.String;
 
     /**
      * Version of the openEHR reference model used to create this object. Expressed in terms of the release version string, e.g.  1.0 ,  1.2.4 .
@@ -276,9 +276,9 @@ export class FEEDER_AUDIT {
 export class FEEDER_AUDIT_DETAILS {
     /**
      * Internal storage for system_id
-     * @private
+     * @protected
      */
-    private _system_id?: openehr_base.String;
+    protected _system_id?: openehr_base.String;
 
     /**
      * Identifier of the system which handled the information item. This is the IT system owned by the organisation legally responsible for handling the data, and at which the data were previously created or passed by an earlier system.
@@ -327,9 +327,9 @@ export class FEEDER_AUDIT_DETAILS {
     time?: DV_DATE_TIME;
     /**
      * Internal storage for version_id
-     * @private
+     * @protected
      */
-    private _version_id?: openehr_base.String;
+    protected _version_id?: openehr_base.String;
 
     /**
      * Any identifier used in the system such as  "interim" ,  "final" , or numeric versions if available. 
@@ -598,9 +598,9 @@ export abstract class VERSION<T> {
     contribution?: openehr_base.OBJECT_REF;
     /**
      * Internal storage for signature
-     * @private
+     * @protected
      */
-    private _signature?: openehr_base.String;
+    protected _signature?: openehr_base.String;
 
     /**
      * OpenPGP digital signature or digest of content committed in this Version. 
@@ -801,9 +801,9 @@ export class REVISION_HISTORY_ITEM {
 export class AUDIT_DETAILS {
     /**
      * Internal storage for system_id
-     * @private
+     * @protected
      */
-    private _system_id?: openehr_base.String;
+    protected _system_id?: openehr_base.String;
 
     /**
      * Identifier of the logical EHR system where the change was committed. This is almost always owned by the organisation legally responsible for the EHR, and is distinct from any application, or any hosting infrastructure.
@@ -866,9 +866,9 @@ export class ATTESTATION extends AUDIT_DETAILS {
     attested_view?: DV_MULTIMEDIA;
     /**
      * Internal storage for proof
-     * @private
+     * @protected
      */
-    private _proof?: openehr_base.String;
+    protected _proof?: openehr_base.String;
 
     /**
      * Proof of attestation. 
@@ -908,9 +908,9 @@ export class ATTESTATION extends AUDIT_DETAILS {
     reason?: DV_TEXT;
     /**
      * Internal storage for is_pending
-     * @private
+     * @protected
      */
-    private _is_pending?: openehr_base.Boolean;
+    protected _is_pending?: openehr_base.Boolean;
 
     /**
      * True if this attestation is outstanding; False means it has been completed.
@@ -986,9 +986,9 @@ export abstract class PARTY_PROXY {
 export class PARTY_IDENTIFIED extends PARTY_PROXY {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: openehr_base.String;
+    protected _name?: openehr_base.String;
 
     /**
      * Optional human-readable name (in String form).
@@ -1109,9 +1109,9 @@ export abstract class AUTHORED_RESOURCE {
     original_language?: CODE_PHRASE;
     /**
      * Internal storage for is_controlled
-     * @private
+     * @protected
      */
-    private _is_controlled?: openehr_base.Boolean;
+    protected _is_controlled?: openehr_base.Boolean;
 
     /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
@@ -1190,9 +1190,9 @@ export class RESOURCE_DESCRIPTION {
     other_contributors?: undefined;
     /**
      * Internal storage for lifecycle_state
-     * @private
+     * @protected
      */
-    private _lifecycle_state?: openehr_base.String;
+    protected _lifecycle_state?: openehr_base.String;
 
     /**
      * Lifecycle state of the resource, typically including states such as: \`initial | submitted | experimental | awaiting_approval | approved | superseded | obsolete\`.
@@ -1224,9 +1224,9 @@ export class RESOURCE_DESCRIPTION {
 
     /**
      * Internal storage for resource_package_uri
-     * @private
+     * @protected
      */
-    private _resource_package_uri?: openehr_base.String;
+    protected _resource_package_uri?: openehr_base.String;
 
     /**
      * URI of package to which this resource belongs.
@@ -1284,9 +1284,9 @@ export class TRANSLATION_DETAILS {
     author?: undefined;
     /**
      * Internal storage for accreditaton
-     * @private
+     * @protected
      */
-    private _accreditaton?: openehr_base.String;
+    protected _accreditaton?: openehr_base.String;
 
     /**
      * Accreditation of translator, usually a national translator's registration or association membership id.
@@ -1332,9 +1332,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
     language?: CODE_PHRASE;
     /**
      * Internal storage for purpose
-     * @private
+     * @protected
      */
-    private _purpose?: openehr_base.String;
+    protected _purpose?: openehr_base.String;
 
     /**
      * Purpose of the resource.
@@ -1370,9 +1370,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
     keywords?: undefined;
     /**
      * Internal storage for use
-     * @private
+     * @protected
      */
-    private _use?: openehr_base.String;
+    protected _use?: openehr_base.String;
 
     /**
      * Description of the uses of the resource, i.e. contexts in which it could be used. 
@@ -1405,9 +1405,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
 
     /**
      * Internal storage for misuse
-     * @private
+     * @protected
      */
-    private _misuse?: openehr_base.String;
+    protected _misuse?: openehr_base.String;
 
     /**
      * Description of any misuses of the resource, i.e. contexts in which it should not be used.
@@ -1439,9 +1439,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
 
     /**
      * Internal storage for copyright
-     * @private
+     * @protected
      */
-    private _copyright?: openehr_base.String;
+    protected _copyright?: openehr_base.String;
 
     /**
      * Optional copyright statement for the resource as a knowledge resource. 
@@ -1488,9 +1488,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
 export class ITEM_TAG {
     /**
      * Internal storage for key
-     * @private
+     * @protected
      */
-    private _key?: openehr_base.String;
+    protected _key?: openehr_base.String;
 
     /**
      * The tag key. May not be empty or contain leading or trailing whitespace.
@@ -1522,9 +1522,9 @@ export class ITEM_TAG {
 
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * The value. If set, may not be empty.
@@ -1560,9 +1560,9 @@ export class ITEM_TAG {
     target?: openehr_base.UID_BASED_ID;
     /**
      * Internal storage for target_path
-     * @private
+     * @protected
      */
-    private _target_path?: openehr_base.String;
+    protected _target_path?: openehr_base.String;
 
     /**
      * Optional archetype (i.e. AQL) or RM path within \`_target_\`, used to tag a fine-grained element.
@@ -1934,9 +1934,9 @@ export class INTERVAL_EVENT<T> extends EVENT<T> {
     width?: DV_DURATION;
     /**
      * Internal storage for sample_count
-     * @private
+     * @protected
      */
-    private _sample_count?: openehr_base.Integer;
+    protected _sample_count?: openehr_base.Integer;
 
     /**
      * Optional count of original samples to which this event corresponds.
@@ -2080,9 +2080,9 @@ export abstract class DATA_VALUE extends openehr_base.OPENEHR_DEFINITIONS {
 export class DV_BOOLEAN extends DATA_VALUE {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.Boolean;
+    protected _value?: openehr_base.Boolean;
 
     /**
      * Boolean value of this item. Actual values may be language or implementation dependent.
@@ -2127,9 +2127,9 @@ export class DV_STATE extends DATA_VALUE {
     value?: DV_CODED_TEXT;
     /**
      * Internal storage for is_terminal
-     * @private
+     * @protected
      */
-    private _is_terminal?: openehr_base.Boolean;
+    protected _is_terminal?: openehr_base.Boolean;
 
     /**
      * Indicates whether this state is a terminal state, such as  "aborted",  "completed" etc. from which no further transitions are possible.
@@ -2171,9 +2171,9 @@ export class DV_STATE extends DATA_VALUE {
 export class DV_IDENTIFIER extends DATA_VALUE {
     /**
      * Internal storage for issuer
-     * @private
+     * @protected
      */
-    private _issuer?: openehr_base.String;
+    protected _issuer?: openehr_base.String;
 
     /**
      * Optional authority which issues the kind of id used in the id field of this object. 
@@ -2205,9 +2205,9 @@ export class DV_IDENTIFIER extends DATA_VALUE {
 
     /**
      * Internal storage for assigner
-     * @private
+     * @protected
      */
-    private _assigner?: openehr_base.String;
+    protected _assigner?: openehr_base.String;
 
     /**
      * Optional organisation that assigned the id to the item being identified.
@@ -2239,9 +2239,9 @@ export class DV_IDENTIFIER extends DATA_VALUE {
 
     /**
      * Internal storage for id
-     * @private
+     * @protected
      */
-    private _id?: openehr_base.String;
+    protected _id?: openehr_base.String;
 
     /**
      * The identifier value. Often structured, according to the definition of the issuing authority's rules. 
@@ -2273,9 +2273,9 @@ export class DV_IDENTIFIER extends DATA_VALUE {
 
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: openehr_base.String;
+    protected _type?: openehr_base.String;
 
     /**
      * Optional identifier type, such as  prescription , or  Social Security Number . One day a controlled vocabulary might be possible for this.
@@ -2327,9 +2327,9 @@ export abstract class DV_ENCAPSULATED extends DATA_VALUE {
 export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     /**
      * Internal storage for alternate_text
-     * @private
+     * @protected
      */
-    private _alternate_text?: openehr_base.String;
+    protected _alternate_text?: openehr_base.String;
 
     /**
      * Text to display in lieu of multimedia display/replay.
@@ -2391,9 +2391,9 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
     thumbnail?: DV_MULTIMEDIA;
     /**
      * Internal storage for size
-     * @private
+     * @protected
      */
-    private _size?: openehr_base.Integer;
+    protected _size?: openehr_base.Integer;
 
     /**
      * Original size in bytes of unencoded encapsulated data. I.e. encodings such as base64, hexadecimal etc do not change the value of this attribute.
@@ -2471,9 +2471,9 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
 export class DV_PARSABLE extends DV_ENCAPSULATED {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * The string, which may validly be empty in some syntaxes.
@@ -2505,9 +2505,9 @@ export class DV_PARSABLE extends DV_ENCAPSULATED {
 
     /**
      * Internal storage for formalism
-     * @private
+     * @protected
      */
-    private _formalism?: openehr_base.String;
+    protected _formalism?: openehr_base.String;
 
     /**
      * Name of the formalism, e.g.  GLIF 1.0 ,  Proforma  etc.
@@ -2579,9 +2579,9 @@ export class DV_PARAGRAPH extends DATA_VALUE {
 export class DV_TEXT extends DATA_VALUE {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * Displayable rendition of the item, regardless of its underlying structure. For \`DV_CODED_TEXT\`, this is the rubric of the complete term as provided by the terminology service.
@@ -2620,9 +2620,9 @@ export class DV_TEXT extends DATA_VALUE {
     hyperlink?: DV_URI;
     /**
      * Internal storage for formatting
-     * @private
+     * @protected
      */
-    private _formatting?: openehr_base.String;
+    protected _formatting?: openehr_base.String;
 
     /**
      * If set, contains one of the following values:
@@ -2779,9 +2779,9 @@ export class CODE_PHRASE {
     terminology_id?: openehr_base.TERMINOLOGY_ID;
     /**
      * Internal storage for code_string
-     * @private
+     * @protected
      */
-    private _code_string?: openehr_base.String;
+    protected _code_string?: openehr_base.String;
 
     /**
      * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context. 
@@ -2813,9 +2813,9 @@ export class CODE_PHRASE {
 
     /**
      * Internal storage for preferred_term
-     * @private
+     * @protected
      */
-    private _preferred_term?: openehr_base.String;
+    protected _preferred_term?: openehr_base.String;
 
     /**
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
@@ -2945,9 +2945,9 @@ export class REFERENCE_RANGE<T extends DV_ORDERED> {
 export abstract class DV_QUANTIFIED extends DV_ORDERED {
     /**
      * Internal storage for magnitude_status
-     * @private
+     * @protected
      */
-    private _magnitude_status?: openehr_base.String;
+    protected _magnitude_status?: openehr_base.String;
 
     /**
      * Optional status of magnitude with values: 
@@ -3046,9 +3046,9 @@ export class PROPORTION_KIND extends openehr_base.Integer {
 export abstract class DV_AMOUNT extends DV_QUANTIFIED {
     /**
      * Internal storage for accuracy_is_percent
-     * @private
+     * @protected
      */
-    private _accuracy_is_percent?: openehr_base.Boolean;
+    protected _accuracy_is_percent?: openehr_base.Boolean;
 
     /**
      * If \`True\`, indicates that when this object was created, \`_accuracy_\` was recorded as a percent value; if \`False\`, as an absolute quantity value.
@@ -3186,9 +3186,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
     denominator?: number;
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: openehr_base.Integer;
+    protected _type?: openehr_base.Integer;
 
     /**
      * Indicates semantic type of proportion, including percent, unitary etc.
@@ -3220,9 +3220,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
 
     /**
      * Internal storage for precision
-     * @private
+     * @protected
      */
-    private _precision?: openehr_base.Integer;
+    protected _precision?: openehr_base.Integer;
 
     /**
      * Precision  to  which  the  \`_numerator_\` and \`_denominator_\` values of  the  proportion are expressed, in terms of number  of decimal places. The value 0 implies an integral quantity. The value -1 implies no limit, i.e. any number of decimal places. 
@@ -3360,9 +3360,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
     magnitude?: number;
     /**
      * Internal storage for precision
-     * @private
+     * @protected
      */
-    private _precision?: openehr_base.Integer;
+    protected _precision?: openehr_base.Integer;
 
     /**
      * Precision to which the value of the quantity is expressed, in terms of number of decimal places. The value 0 implies an integral quantity.
@@ -3395,9 +3395,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
 
     /**
      * Internal storage for units
-     * @private
+     * @protected
      */
-    private _units?: openehr_base.String;
+    protected _units?: openehr_base.String;
 
     /**
      * Quantity units, expressed as a code or syntax string from either UCUM (the default) or the units system specified in \`_units_system_\`, when set.
@@ -3443,9 +3443,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
     override other_reference_ranges?: undefined;
     /**
      * Internal storage for units_system
-     * @private
+     * @protected
      */
-    private _units_system?: openehr_base.String;
+    protected _units_system?: openehr_base.String;
 
     /**
      * Optional field used to specify a units system from which codes in \`_units_\` are defined. Value is a URI identifying a terminology containing units concepts from the  (https://www.hl7.org/fhir/terminologies-systems.html[HL7 FHIR terminologies list]).
@@ -3479,9 +3479,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
 
     /**
      * Internal storage for units_display_name
-     * @private
+     * @protected
      */
-    private _units_display_name?: openehr_base.String;
+    protected _units_display_name?: openehr_base.String;
 
     /**
      * Optional field containing the displayable form of the \`_units_\` field, e.g. \`'°C'\`.
@@ -3590,9 +3590,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
 export class DV_COUNT extends DV_AMOUNT {
     /**
      * Internal storage for magnitude
-     * @private
+     * @protected
      */
-    private _magnitude?: openehr_base.Integer64;
+    protected _magnitude?: openehr_base.Integer64;
 
     get magnitude(): number | undefined {
         return this._magnitude?.value;
@@ -3751,9 +3751,9 @@ export class DV_ORDINAL extends DV_ORDERED {
     symbol?: DV_CODED_TEXT;
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.Integer;
+    protected _value?: openehr_base.Integer;
 
     /**
      * Value in ordered enumeration of values. Any integer value can be used. 
@@ -3879,9 +3879,9 @@ export class DV_SCALE extends DV_ORDERED {
 export class DV_DURATION extends DV_AMOUNT {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * ISO8601 duration string, including described deviations to support negative values and weeks.
@@ -4028,9 +4028,9 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
 export class DV_DATE extends DV_TEMPORAL {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * ISO8601 date string.
@@ -4146,9 +4146,9 @@ export class DV_DATE extends DV_TEMPORAL {
 export class DV_TIME extends DV_TEMPORAL {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * ISO8601 time string
@@ -4254,9 +4254,9 @@ export class DV_TIME extends DV_TEMPORAL {
 export class DV_DATE_TIME extends DV_TEMPORAL {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * ISO8601 date/time string.
@@ -4472,9 +4472,9 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
 export class DV_URI extends DATA_VALUE {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.String;
+    protected _value?: openehr_base.String;
 
     /**
      * Value of URI as a String. 'Plain-text' URIs are allowed, enabling better readability, but must be RFC-3986 encoded in use.
@@ -4958,9 +4958,9 @@ export class EHR_STATUS extends LOCATABLE {
     subject?: PARTY_SELF;
     /**
      * Internal storage for is_queryable
-     * @private
+     * @protected
      */
-    private _is_queryable?: openehr_base.Boolean;
+    protected _is_queryable?: openehr_base.Boolean;
 
     /**
      * True if this EHR should be included in population queries, i.e. if this EHR is considered active in the population.
@@ -4992,9 +4992,9 @@ export class EHR_STATUS extends LOCATABLE {
 
     /**
      * Internal storage for is_modifiable
-     * @private
+     * @protected
      */
-    private _is_modifiable?: openehr_base.Boolean;
+    protected _is_modifiable?: openehr_base.Boolean;
 
     /**
      * True if the EHR, other than the \`EHR_STATUS\` object, is allowed to be written to. The \`EHR_STATUS\` object itself can always be written to.
@@ -5062,9 +5062,9 @@ export class EXTRACT extends LOCATABLE {
     system_id?: openehr_base.HIER_OBJECT_ID;
     /**
      * Internal storage for sequence_nr
-     * @private
+     * @protected
      */
-    private _sequence_nr?: openehr_base.Integer;
+    protected _sequence_nr?: openehr_base.Integer;
 
     /**
      * Number of this Extract response in sequence of responses to Extract request identified by \`_request_id_\`. If this is the sole response, or there was no request, value is 1.
@@ -5137,9 +5137,9 @@ export abstract class EXTRACT_ITEM extends LOCATABLE {
 export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
     /**
      * Internal storage for is_primary
-     * @private
+     * @protected
      */
-    private _is_primary?: openehr_base.Boolean;
+    protected _is_primary?: openehr_base.Boolean;
 
     /**
      * True if the content item carried in this container was part of the primary set for the Extract, i.e. not added due to link-following.
@@ -5171,9 +5171,9 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
 
     /**
      * Internal storage for is_changed
-     * @private
+     * @protected
      */
-    private _is_changed?: openehr_base.Boolean;
+    protected _is_changed?: openehr_base.Boolean;
 
     /**
      * True if the content item carried in this container is any kind of change since last send, in repeat sending situations.
@@ -5205,9 +5205,9 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
 
     /**
      * Internal storage for is_masked
-     * @private
+     * @protected
      */
-    private _is_masked?: openehr_base.Boolean;
+    protected _is_masked?: openehr_base.Boolean;
 
     /**
      * True if the content of this item has not been included due to insufficient access rights of requestor.
@@ -5249,9 +5249,9 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
 export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
     /**
      * Internal storage for extract_id_key
-     * @private
+     * @protected
      */
-    private _extract_id_key?: openehr_base.String;
+    protected _extract_id_key?: openehr_base.String;
 
     /**
      * Reference to entity, usually a demographic entity such as a patient that the content of this chapter relates to.
@@ -5291,9 +5291,9 @@ export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
 export class EXTRACT_ENTITY_MANIFEST {
     /**
      * Internal storage for extract_id_key
-     * @private
+     * @protected
      */
-    private _extract_id_key?: openehr_base.String;
+    protected _extract_id_key?: openehr_base.String;
 
     /**
      * Identifier by which this entity is known in the Extract. May be one of the other identifiers, e.g. ehr_id or subject_id, or it may be something else, including a simple integer.
@@ -5325,9 +5325,9 @@ export class EXTRACT_ENTITY_MANIFEST {
 
     /**
      * Internal storage for ehr_id
-     * @private
+     * @protected
      */
-    private _ehr_id?: openehr_base.String;
+    protected _ehr_id?: openehr_base.String;
 
     /**
      * EHR / EMR identifier for the entity at the target system.
@@ -5359,9 +5359,9 @@ export class EXTRACT_ENTITY_MANIFEST {
 
     /**
      * Internal storage for subject_id
-     * @private
+     * @protected
      */
-    private _subject_id?: openehr_base.String;
+    protected _subject_id?: openehr_base.String;
 
     /**
      * Subject (i.e. patient or similar) identifier for the entity at the target system.
@@ -5446,9 +5446,9 @@ export class EXTRACT_PARTICIPATION {
     mode?: DV_CODED_TEXT;
     /**
      * Internal storage for performer
-     * @private
+     * @protected
      */
-    private _performer?: openehr_base.String;
+    protected _performer?: openehr_base.String;
 
     /**
      * Uid of demographic entity within Extract who performed this participation.
@@ -5525,9 +5525,9 @@ export class EXTRACT_SPEC {
     extract_type?: DV_CODED_TEXT;
     /**
      * Internal storage for include_multimedia
-     * @private
+     * @protected
      */
-    private _include_multimedia?: openehr_base.Boolean;
+    protected _include_multimedia?: openehr_base.Boolean;
 
     /**
      * Indicates whether in-line instances of \`DV_MULTIMEDIA\` in the source data are included or not.
@@ -5559,9 +5559,9 @@ export class EXTRACT_SPEC {
 
     /**
      * Internal storage for priority
-     * @private
+     * @protected
      */
-    private _priority?: openehr_base.Integer;
+    protected _priority?: openehr_base.Integer;
 
     /**
      * Requested priority of this request to be handled by server. Priority schemes are likely to be local, and use values agreed by both ends.
@@ -5595,9 +5595,9 @@ export class EXTRACT_SPEC {
 
     /**
      * Internal storage for link_depth
-     * @private
+     * @protected
      */
-    private _link_depth?: openehr_base.Integer;
+    protected _link_depth?: openehr_base.Integer;
 
     /**
      * Degree of links to follow emanating from content items specified for inclusion. The kind of links to follow is dependent on the type of Extract.
@@ -5654,9 +5654,9 @@ export class EXTRACT_SPEC {
 export class EXTRACT_UPDATE_SPEC {
     /**
      * Internal storage for persist_in_server
-     * @private
+     * @protected
      */
-    private _persist_in_server?: openehr_base.Boolean;
+    protected _persist_in_server?: openehr_base.Boolean;
 
     /**
      * If True, this Request is persisted in the server until further notice.
@@ -5712,9 +5712,9 @@ export class EXTRACT_UPDATE_SPEC {
 export class EXTRACT_VERSION_SPEC {
     /**
      * Internal storage for include_all_versions
-     * @private
+     * @protected
      */
-    private _include_all_versions?: openehr_base.Boolean;
+    protected _include_all_versions?: openehr_base.Boolean;
 
     /**
      * True if all versions of each item in the Extract are included.
@@ -5750,9 +5750,9 @@ export class EXTRACT_VERSION_SPEC {
     commit_time_interval?: undefined;
     /**
      * Internal storage for include_revision_history
-     * @private
+     * @protected
      */
-    private _include_revision_history?: openehr_base.Boolean;
+    protected _include_revision_history?: openehr_base.Boolean;
 
     /**
      * True if revision histories of the items in the Extract are included. If included, it is always the full revision history.
@@ -5784,9 +5784,9 @@ export class EXTRACT_VERSION_SPEC {
 
     /**
      * Internal storage for include_data
-     * @private
+     * @protected
      */
-    private _include_data?: openehr_base.Boolean;
+    protected _include_data?: openehr_base.Boolean;
 
     /**
      * \`True\` if the data of items matched by the content spec should be included. This is the default. If \`False\`, only revision history is included in serialised versions. Turning this option on in openEHR systems causes \`X_VERSIONED_OBJECTs\` to have \`_revision_history_\` set, but versions Void. Useful for interrogating a server without having to look at any content data. In other systems it may or may not have a sensible meaning.
@@ -5846,9 +5846,9 @@ export class X_VERSIONED_OBJECT<T> {
     time_created?: DV_DATE_TIME;
     /**
      * Internal storage for total_version_count
-     * @private
+     * @protected
      */
-    private _total_version_count?: openehr_base.Integer;
+    protected _total_version_count?: openehr_base.Integer;
 
     /**
      * Total number of versions in original \`VERSIONED_OBJECT\` at time of creation of this \`X_VERSIONED_OBJECT\`.
@@ -5880,9 +5880,9 @@ export class X_VERSIONED_OBJECT<T> {
 
     /**
      * Internal storage for extract_version_count
-     * @private
+     * @protected
      */
-    private _extract_version_count?: openehr_base.Integer;
+    protected _extract_version_count?: openehr_base.Integer;
 
     /**
      * The number of Versions in this extract for this Versioned object, i.e. the count of items in the versions attribute. May be 0 if only revision history is requested.
@@ -5962,9 +5962,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     item_type?: DV_CODED_TEXT;
     /**
      * Internal storage for item_type_version
-     * @private
+     * @protected
      */
-    private _item_type_version?: openehr_base.String;
+    protected _item_type_version?: openehr_base.String;
 
     /**
      * Version of model or schema used to create the content item.
@@ -5996,9 +5996,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
 
     /**
      * Internal storage for author
-     * @private
+     * @protected
      */
-    private _author?: openehr_base.String;
+    protected _author?: openehr_base.String;
 
     /**
      * Reference to a demographic entity elsewhere in this Extract representing the author of the item version. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
@@ -6034,9 +6034,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     creation_time?: openehr_base.Iso8601_date_time;
     /**
      * Internal storage for authoriser
-     * @private
+     * @protected
      */
-    private _authoriser?: openehr_base.String;
+    protected _authoriser?: openehr_base.String;
 
     /**
      * Reference to a demographic entity elsewhere in this Extract representing an authoriser of the item version, if relevant. The reference should be a UID corresponding to the UID of a \`GENERIC_CONTENT_ITEM\` containing the demographic information.
@@ -6076,9 +6076,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
     item_status?: DV_CODED_TEXT;
     /**
      * Internal storage for version_id
-     * @private
+     * @protected
      */
-    private _version_id?: openehr_base.String;
+    protected _version_id?: openehr_base.String;
 
     /**
      * Version id of this item in original system.
@@ -6110,9 +6110,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
 
     /**
      * Internal storage for version_set_id
-     * @private
+     * @protected
      */
-    private _version_set_id?: openehr_base.String;
+    protected _version_set_id?: openehr_base.String;
 
     /**
      * Version set id of this item in original system, where applicable.
@@ -6144,9 +6144,9 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
 
     /**
      * Internal storage for system_id
-     * @private
+     * @protected
      */
-    private _system_id?: openehr_base.String;
+    protected _system_id?: openehr_base.String;
 
     /**
      * Identifier of EMR or other system from which the item was created / extracted. Typically in the form of a domain name.
@@ -6237,9 +6237,9 @@ export class X_CONTRIBUTION {
 export class SYNC_EXTRACT_SPEC {
     /**
      * Internal storage for includes_versions
-     * @private
+     * @protected
      */
-    private _includes_versions?: openehr_base.Boolean;
+    protected _includes_versions?: openehr_base.Boolean;
 
     /**
      * True if the Versions from the Contribution are included; False if just the Contribution and its Audit are included.
@@ -6279,9 +6279,9 @@ export class SYNC_EXTRACT_SPEC {
     contributions_since?: DV_DATE_TIME;
     /**
      * Internal storage for all_contributions
-     * @private
+     * @protected
      */
-    private _all_contributions?: openehr_base.Boolean;
+    protected _all_contributions?: openehr_base.Boolean;
 
     /**
      * True if all Contributions in the record are included.
@@ -6331,9 +6331,9 @@ export class MESSAGE {
     content?: MESSAGE_CONTENT;
     /**
      * Internal storage for signature
-     * @private
+     * @protected
      */
-    private _signature?: openehr_base.String;
+    protected _signature?: openehr_base.String;
 
     /**
      * Optional signature by the author of message content in openPGP format. The signature is created as a Hash and optional signing of the serialisation of this message object with this signature field Void.
@@ -6371,9 +6371,9 @@ export class MESSAGE {
 export class ADDRESSED_MESSAGE {
     /**
      * Internal storage for sender
-     * @private
+     * @protected
      */
-    private _sender?: openehr_base.String;
+    protected _sender?: openehr_base.String;
 
     /**
      * Party sending the message.
@@ -6405,9 +6405,9 @@ export class ADDRESSED_MESSAGE {
 
     /**
      * Internal storage for sender_reference
-     * @private
+     * @protected
      */
-    private _sender_reference?: openehr_base.String;
+    protected _sender_reference?: openehr_base.String;
 
     /**
      * Identification of message used by sender. This will be the same no matter how many times this message is sent to these recipients.
@@ -6443,9 +6443,9 @@ export class ADDRESSED_MESSAGE {
     addressees?: undefined;
     /**
      * Internal storage for urgency
-     * @private
+     * @protected
      */
-    private _urgency?: openehr_base.Integer;
+    protected _urgency?: openehr_base.Integer;
 
     /**
      * Urgency with which destination should deal with message:
@@ -6777,9 +6777,9 @@ export class EVENT_CONTEXT extends PATHABLE {
     end_time?: DV_DATE_TIME;
     /**
      * Internal storage for location
-     * @private
+     * @protected
      */
-    private _location?: openehr_base.String;
+    protected _location?: openehr_base.String;
 
     /**
      * The actual location where the session occurred, e.g. 'microbiology lab 2', 'home', 'ward A3'  and so on.
@@ -6989,9 +6989,9 @@ export class ACTIVITY extends LOCATABLE {
     timing?: DV_PARSABLE;
     /**
      * Internal storage for action_archetype_id
-     * @private
+     * @protected
      */
-    private _action_archetype_id?: openehr_base.String;
+    protected _action_archetype_id?: openehr_base.String;
 
     /**
      * Perl-compliant regular expression pattern, enclosed in  '//' delimiters, indicating the valid identifiers of archetypes for Actions corresponding to this Activity specification. 
@@ -7062,9 +7062,9 @@ export class INSTRUCTION_DETAILS extends PATHABLE {
     instruction_id?: openehr_base.LOCATABLE_REF;
     /**
      * Internal storage for activity_id
-     * @private
+     * @protected
      */
-    private _activity_id?: openehr_base.String;
+    protected _activity_id?: openehr_base.String;
 
     /**
      * Identifier of Activity within Instruction, in the form of its archetype path. 

@@ -3,7 +3,7 @@
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Generated: 2025-11-12T00:35:09.773Z
+// Generated: 2025-11-12T00:39:39.398Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -29,9 +29,9 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     ontology?: ARCHETYPE_ONTOLOGY;
     /**
      * Internal storage for adl_version
-     * @private
+     * @protected
      */
-    private _adl_version?: openehr_base.String;
+    protected _adl_version?: openehr_base.String;
 
     /**
      * ADL version if archetype was read in from an ADL sharable archetype.
@@ -71,9 +71,9 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
     uid?: openehr_base.HIER_OBJECT_ID;
     /**
      * Internal storage for concept
-     * @private
+     * @protected
      */
-    private _concept?: openehr_base.String;
+    protected _concept?: openehr_base.String;
 
     /**
      * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
@@ -236,15 +236,9 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
  */
 export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     /**
-     * Internal storage for adl_version
-     * @private
-     */
-    private _adl_version?: openehr_base.String;
-
-    /**
      * ADL version if archetype was read in from an ADL sharable archetype.
      */
-    get adl_version(): string | undefined {
+    override get adl_version(): string | undefined {
         return this._adl_version?.value;
     }
 
@@ -252,14 +246,14 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
      * Gets the openehr_base.String wrapper object for adl_version.
      * Use this to access openehr_base.String methods.
      */
-    get $adl_version(): openehr_base.String | undefined {
+    override get $adl_version(): openehr_base.String | undefined {
         return this._adl_version;
     }
 
     /**
      * Sets adl_version from either a primitive value or openehr_base.String wrapper.
      */
-    set adl_version(val: string | openehr_base.String | undefined) {
+    override set adl_version(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._adl_version = undefined;
         } else if (typeof val === 'string') {
@@ -275,9 +269,9 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
     build_uid?: openehr_base.UUID;
     /**
      * Internal storage for rm_release
-     * @private
+     * @protected
      */
-    private _rm_release?: openehr_base.String;
+    protected _rm_release?: openehr_base.String;
 
     /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
@@ -309,9 +303,9 @@ export class AUTHORED_ARCHETYPE extends ARCHETYPE {
 
     /**
      * Internal storage for is_generated
-     * @private
+     * @protected
      */
-    private _is_generated?: openehr_base.Boolean;
+    protected _is_generated?: openehr_base.Boolean;
 
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
@@ -388,9 +382,9 @@ export class TEMPLATE_OVERLAY extends ARCHETYPE {
 export class ARCHETYPE_HRID {
     /**
      * Internal storage for namespace
-     * @private
+     * @protected
      */
-    private _namespace?: openehr_base.String;
+    protected _namespace?: openehr_base.String;
 
     /**
      * Reverse domain name namespace identifier.
@@ -422,9 +416,9 @@ export class ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_publisher
-     * @private
+     * @protected
      */
-    private _rm_publisher?: openehr_base.String;
+    protected _rm_publisher?: openehr_base.String;
 
     /**
      * Name of the Reference Model publisher.
@@ -456,9 +450,9 @@ export class ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_package
-     * @private
+     * @protected
      */
-    private _rm_package?: openehr_base.String;
+    protected _rm_package?: openehr_base.String;
 
     /**
      * Name of the package in whose reachability graph the \`_rm_class_\` class is found (there can be more than one possibility in many reference models).
@@ -490,9 +484,9 @@ export class ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_class
-     * @private
+     * @protected
      */
-    private _rm_class?: openehr_base.String;
+    protected _rm_class?: openehr_base.String;
 
     /**
      * Name of the root class of this archetype.
@@ -524,9 +518,9 @@ export class ARCHETYPE_HRID {
 
     /**
      * Internal storage for concept_id
-     * @private
+     * @protected
      */
-    private _concept_id?: openehr_base.String;
+    protected _concept_id?: openehr_base.String;
 
     /**
      * The short concept name of the archetype as used in the multi-axial \`_archetype_hrid_\`.
@@ -558,9 +552,9 @@ export class ARCHETYPE_HRID {
 
     /**
      * Internal storage for release_version
-     * @private
+     * @protected
      */
-    private _release_version?: openehr_base.String;
+    protected _release_version?: openehr_base.String;
 
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. \`"1.8.2"\`. The \`_archetype_hrid_\` feature includes only the major version.
@@ -601,9 +595,9 @@ export class ARCHETYPE_HRID {
     version_status?: openehr_base.VERSION_STATUS;
     /**
      * Internal storage for build_count
-     * @private
+     * @protected
      */
-    private _build_count?: openehr_base.String;
+    protected _build_count?: openehr_base.String;
 
     /**
      * The build count since last increment of any version part.
@@ -738,9 +732,9 @@ export abstract class ARCHETYPE_CONSTRAINT {
 export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
     /**
      * Internal storage for rm_type_name
-     * @private
+     * @protected
      */
-    private _rm_type_name?: openehr_base.String;
+    protected _rm_type_name?: openehr_base.String;
 
     /**
      * Reference model type that this node corresponds to. 
@@ -776,9 +770,9 @@ export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
     occurrences?: undefined;
     /**
      * Internal storage for node_id
-     * @private
+     * @protected
      */
-    private _node_id?: openehr_base.String;
+    protected _node_id?: openehr_base.String;
 
     /**
      * Semantic identifier of this node, used to dis-tinguish sibling nodes. All nodes must have a node_id; for nodes under a container C_ATTRIBUTE, the id must be an id-code must be defined in the archetype terminolo-gy. For valid structures, all node ids are id-codes.
@@ -818,9 +812,9 @@ export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
 export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
     /**
      * Internal storage for rm_attribute_name
-     * @private
+     * @protected
      */
-    private _rm_attribute_name?: openehr_base.String;
+    protected _rm_attribute_name?: openehr_base.String;
 
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
@@ -922,9 +916,9 @@ export abstract class C_DEFINED_OBJECT extends C_OBJECT {
 export class C_COMPLEX_OBJECT_PROXY extends C_OBJECT {
     /**
      * Internal storage for target_path
-     * @private
+     * @protected
      */
-    private _target_path?: openehr_base.String;
+    protected _target_path?: openehr_base.String;
 
     /**
      * Reference to an object node using archetype path notation.
@@ -1028,9 +1022,9 @@ export class C_PRIMITIVE_OBJECT extends C_DEFINED_OBJECT {
 export class SIBLING_ORDER {
     /**
      * Internal storage for is_before
-     * @private
+     * @protected
      */
-    private _is_before?: openehr_base.Boolean;
+    protected _is_before?: openehr_base.Boolean;
 
     /**
      * True if the order relationship is ‘before’, if False, it is ‘after’.
@@ -1062,9 +1056,9 @@ export class SIBLING_ORDER {
 
     /**
      * Internal storage for sibling_node_id
-     * @private
+     * @protected
      */
-    private _sibling_node_id?: openehr_base.String;
+    protected _sibling_node_id?: openehr_base.String;
 
     /**
      * Node identifier of sibling before or after which this node should come.
@@ -1238,9 +1232,9 @@ export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
 export class C_ARCHETYPE_ROOT extends C_COMPLEX_OBJECT {
     /**
      * Internal storage for archetype_ref
-     * @private
+     * @protected
      */
-    private _archetype_ref?: openehr_base.String;
+    protected _archetype_ref?: openehr_base.String;
 
     /**
      * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
@@ -1317,9 +1311,9 @@ export abstract class C_PRIMITIVE {
 export class C_BOOLEAN extends C_PRIMITIVE {
     /**
      * Internal storage for true_valid
-     * @private
+     * @protected
      */
-    private _true_valid?: openehr_base.Boolean;
+    protected _true_valid?: openehr_base.Boolean;
 
     /**
      * True if the value True is allowed.
@@ -1351,9 +1345,9 @@ export class C_BOOLEAN extends C_PRIMITIVE {
 
     /**
      * Internal storage for false_valid
-     * @private
+     * @protected
      */
-    private _false_valid?: openehr_base.Boolean;
+    protected _false_valid?: openehr_base.Boolean;
 
     /**
      * True if the value False is allowed.
@@ -1384,15 +1378,9 @@ export class C_BOOLEAN extends C_PRIMITIVE {
     }
 
     /**
-     * Internal storage for assumed_value
-     * @private
-     */
-    private _assumed_value?: openehr_base.Boolean;
-
-    /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    get assumed_value(): boolean | undefined {
+    override get assumed_value(): boolean | undefined {
         return this._assumed_value?.value;
     }
 
@@ -1400,14 +1388,14 @@ export class C_BOOLEAN extends C_PRIMITIVE {
      * Gets the openehr_base.Boolean wrapper object for assumed_value.
      * Use this to access openehr_base.Boolean methods.
      */
-    get $assumed_value(): openehr_base.Boolean | undefined {
+    override get $assumed_value(): openehr_base.Boolean | undefined {
         return this._assumed_value;
     }
 
     /**
      * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
+    override set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._assumed_value = undefined;
         } else if (typeof val === 'boolean') {
@@ -1425,9 +1413,9 @@ export class C_BOOLEAN extends C_PRIMITIVE {
 export class C_STRING extends C_PRIMITIVE {
     /**
      * Internal storage for pattern
-     * @private
+     * @protected
      */
-    private _pattern?: openehr_base.String;
+    protected _pattern?: openehr_base.String;
 
     /**
      * Regular expression pattern for proposed instances of String to match.
@@ -1463,9 +1451,9 @@ export class C_STRING extends C_PRIMITIVE {
     list?: undefined;
     /**
      * Internal storage for list_open
-     * @private
+     * @protected
      */
-    private _list_open?: openehr_base.Boolean;
+    protected _list_open?: openehr_base.Boolean;
 
     /**
      * True if the list is being used to specify the constraint but is not considered exhaustive.
@@ -1496,15 +1484,9 @@ export class C_STRING extends C_PRIMITIVE {
     }
 
     /**
-     * Internal storage for assumed_value
-     * @private
-     */
-    private _assumed_value?: openehr_base.String;
-
-    /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    get assumed_value(): string | undefined {
+    override get assumed_value(): string | undefined {
         return this._assumed_value?.value;
     }
 
@@ -1512,14 +1494,14 @@ export class C_STRING extends C_PRIMITIVE {
      * Gets the openehr_base.String wrapper object for assumed_value.
      * Use this to access openehr_base.String methods.
      */
-    get $assumed_value(): openehr_base.String | undefined {
+    override get $assumed_value(): openehr_base.String | undefined {
         return this._assumed_value;
     }
 
     /**
      * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
      */
-    set assumed_value(val: string | openehr_base.String | undefined) {
+    override set assumed_value(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._assumed_value = undefined;
         } else if (typeof val === 'string') {
@@ -1555,15 +1537,9 @@ export class C_INTEGER extends C_PRIMITIVE {
      */
     range?: undefined;
     /**
-     * Internal storage for assumed_value
-     * @private
-     */
-    private _assumed_value?: openehr_base.Integer;
-
-    /**
      * The value to assume if this item is not included in data, due to being part of an optional structure.
      */
-    get assumed_value(): number | undefined {
+    override get assumed_value(): number | undefined {
         return this._assumed_value?.value;
     }
 
@@ -1571,14 +1547,14 @@ export class C_INTEGER extends C_PRIMITIVE {
      * Gets the openehr_base.Integer wrapper object for assumed_value.
      * Use this to access openehr_base.Integer methods.
      */
-    get $assumed_value(): openehr_base.Integer | undefined {
+    override get $assumed_value(): openehr_base.Integer | undefined {
         return this._assumed_value;
     }
 
     /**
      * Sets assumed_value from either a primitive value or openehr_base.Integer wrapper.
      */
-    set assumed_value(val: number | openehr_base.Integer | undefined) {
+    override set assumed_value(val: number | openehr_base.Integer | undefined) {
         if (val === undefined || val === null) {
             this._assumed_value = undefined;
         } else if (typeof val === 'number') {
@@ -1675,9 +1651,9 @@ export abstract class C_ORDERED<T extends openehr_base.Ordered> extends C_PRIMIT
 export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
     /**
      * Internal storage for constraint
-     * @private
+     * @protected
      */
-    private _constraint?: openehr_base.String;
+    protected _constraint?: openehr_base.String;
 
     /**
      * Type of individual constraint - a single string that can either be a local at-code, or a local ac-code signifying a locally defined value set. If an ac-code, assumed_value may contain an at-code from the value set of the ac-code.
@@ -1839,9 +1815,9 @@ export class C_TERMINOLOGY_CODE extends C_PRIMITIVE_OBJECT {
 export abstract class C_TEMPORAL<T extends openehr_base.Temporal> extends C_ORDERED<T> {
     /**
      * Internal storage for pattern_constraint
-     * @private
+     * @protected
      */
-    private _pattern_constraint?: openehr_base.String;
+    protected _pattern_constraint?: openehr_base.String;
 
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
@@ -2052,9 +2028,9 @@ export class C_DATE_TIME extends C_PRIMITIVE {
 export class C_DURATION extends C_PRIMITIVE {
     /**
      * Internal storage for years_allowed
-     * @private
+     * @protected
      */
-    private _years_allowed?: openehr_base.Boolean;
+    protected _years_allowed?: openehr_base.Boolean;
 
     get years_allowed(): boolean | undefined {
         return this._years_allowed?.value;
@@ -2083,9 +2059,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for months_allowed
-     * @private
+     * @protected
      */
-    private _months_allowed?: openehr_base.Boolean;
+    protected _months_allowed?: openehr_base.Boolean;
 
     /**
      * True if months are allowed in the constrained Duration.
@@ -2117,9 +2093,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for weeks_allowed
-     * @private
+     * @protected
      */
-    private _weeks_allowed?: openehr_base.Boolean;
+    protected _weeks_allowed?: openehr_base.Boolean;
 
     get weeks_allowed(): boolean | undefined {
         return this._weeks_allowed?.value;
@@ -2148,9 +2124,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for days_allowed
-     * @private
+     * @protected
      */
-    private _days_allowed?: openehr_base.Boolean;
+    protected _days_allowed?: openehr_base.Boolean;
 
     /**
      * True if days are allowed in the constrained Duration.
@@ -2182,9 +2158,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for hours_allowed
-     * @private
+     * @protected
      */
-    private _hours_allowed?: openehr_base.Boolean;
+    protected _hours_allowed?: openehr_base.Boolean;
 
     /**
      * True if hours are allowed in the constrained Duration.
@@ -2216,9 +2192,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for minutes_allowed
-     * @private
+     * @protected
      */
-    private _minutes_allowed?: openehr_base.Boolean;
+    protected _minutes_allowed?: openehr_base.Boolean;
 
     /**
      * True if minutes are allowed in the constrained Duration.
@@ -2250,9 +2226,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for seconds_allowed
-     * @private
+     * @protected
      */
-    private _seconds_allowed?: openehr_base.Boolean;
+    protected _seconds_allowed?: openehr_base.Boolean;
 
     get seconds_allowed(): boolean | undefined {
         return this._seconds_allowed?.value;
@@ -2281,9 +2257,9 @@ export class C_DURATION extends C_PRIMITIVE {
 
     /**
      * Internal storage for fractional_seconds_allowed
-     * @private
+     * @protected
      */
-    private _fractional_seconds_allowed?: openehr_base.Boolean;
+    protected _fractional_seconds_allowed?: openehr_base.Boolean;
 
     /**
      * True if fractional seconds are allowed in the constrained Duration.
@@ -2509,9 +2485,9 @@ export class CONSTRAINT_STATUS extends openehr_base.Integer {
 export class ARCHETYPE_TERM {
     /**
      * Internal storage for code
-     * @private
+     * @protected
      */
-    private _code?: openehr_base.String;
+    protected _code?: openehr_base.String;
 
     /**
      * Code of this term. 
@@ -2563,9 +2539,9 @@ export class ARCHETYPE_TERM {
 export abstract class TERMINOLOGY_RELATION {
     /**
      * Internal storage for id
-     * @private
+     * @protected
      */
-    private _id?: openehr_base.String;
+    protected _id?: openehr_base.String;
 
     /**
      * Code of source term of this relation.
@@ -2613,9 +2589,9 @@ export class VALUE_SET extends TERMINOLOGY_RELATION {
 export class ARCHETYPE_TERMINOLOGY {
     /**
      * Internal storage for is_differential
-     * @private
+     * @protected
      */
-    private _is_differential?: openehr_base.Boolean;
+    protected _is_differential?: openehr_base.Boolean;
 
     /**
      * True if this terminology only contains terms relating to a differential specialisation of the owning artefact, rather than a complete set.
@@ -2647,9 +2623,9 @@ export class ARCHETYPE_TERMINOLOGY {
 
     /**
      * Internal storage for original_language
-     * @private
+     * @protected
      */
-    private _original_language?: openehr_base.String;
+    protected _original_language?: openehr_base.String;
 
     /**
      * Original language of the terminology, as set at artefact creation or parsing time; must be a code in the ISO 639-1 2 character language code-set.
@@ -2682,9 +2658,9 @@ export class ARCHETYPE_TERMINOLOGY {
 
     /**
      * Internal storage for concept_code
-     * @private
+     * @protected
      */
-    private _concept_code?: openehr_base.String;
+    protected _concept_code?: openehr_base.String;
 
     /**
      * Term code defining the meaning of the artefact as a whole, and always used as the id-code on the root node of the artefact. Must be defined in the \`_term_definitions_\` property.
@@ -3006,9 +2982,9 @@ export abstract class P_ARCHETYPE_CONSTRAINT {
 export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Internal storage for rm_type_name
-     * @private
+     * @protected
      */
-    private _rm_type_name?: openehr_base.String;
+    protected _rm_type_name?: openehr_base.String;
 
     /**
      * Reference model type that this node corresponds to. 
@@ -3040,9 +3016,9 @@ export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for occurrences
-     * @private
+     * @protected
      */
-    private _occurrences?: openehr_base.String;
+    protected _occurrences?: openehr_base.String;
 
     /**
      * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1.
@@ -3074,9 +3050,9 @@ export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for node_id
-     * @private
+     * @protected
      */
-    private _node_id?: openehr_base.String;
+    protected _node_id?: openehr_base.String;
 
     /**
      * Semantic id of this node, used to differentiate sibling nodes of the same type. Each node_id must be defined in the archetype ontology as a term code. 
@@ -3109,9 +3085,9 @@ export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for is_deprecated
-     * @private
+     * @protected
      */
-    private _is_deprecated?: openehr_base.Boolean;
+    protected _is_deprecated?: openehr_base.Boolean;
 
     get is_deprecated(): boolean | undefined {
         return this._is_deprecated?.value;
@@ -3152,9 +3128,9 @@ export abstract class P_C_OBJECT extends P_ARCHETYPE_CONSTRAINT {
 export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
     /**
      * Internal storage for rm_attribute_name
-     * @private
+     * @protected
      */
-    private _rm_attribute_name?: openehr_base.String;
+    protected _rm_attribute_name?: openehr_base.String;
 
     /**
      * Reference model attribute within the enclosing type represented by a C_OBJECT.
@@ -3186,9 +3162,9 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for existence
-     * @private
+     * @protected
      */
-    private _existence?: openehr_base.String;
+    protected _existence?: openehr_base.String;
 
     /**
      * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
@@ -3224,9 +3200,9 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
     children?: undefined;
     /**
      * Internal storage for differential_path
-     * @private
+     * @protected
      */
-    private _differential_path?: openehr_base.String;
+    protected _differential_path?: openehr_base.String;
 
     /**
      * Within a differential specialised archetype, may be set to represent a deep path within the structure to which this constraint and its child constraints apply.
@@ -3258,9 +3234,9 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for cardinality
-     * @private
+     * @protected
      */
-    private _cardinality?: openehr_base.String;
+    protected _cardinality?: openehr_base.String;
 
     /**
      * Cardinality constraint of attribute, if a container attribute.
@@ -3292,9 +3268,9 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
 
     /**
      * Internal storage for is_multiple
-     * @private
+     * @protected
      */
-    private _is_multiple?: openehr_base.Boolean;
+    protected _is_multiple?: openehr_base.Boolean;
 
     /**
      * Flag indicating whether this attribute constraint is on a container (i.e. multiply-valued) attribute.
@@ -3332,9 +3308,9 @@ export class P_C_ATTRIBUTE extends P_ARCHETYPE_CONSTRAINT {
 export abstract class P_C_DEFINED_OBJECT extends P_C_OBJECT {
     /**
      * Internal storage for is_frozen
-     * @private
+     * @protected
      */
-    private _is_frozen?: openehr_base.Boolean;
+    protected _is_frozen?: openehr_base.Boolean;
 
     get is_frozen(): boolean | undefined {
         return this._is_frozen?.value;
@@ -3370,9 +3346,9 @@ export abstract class P_C_DEFINED_OBJECT extends P_C_OBJECT {
 export class P_C_COMPLEX_OBJECT_PROXY extends P_C_OBJECT {
     /**
      * Internal storage for target_path
-     * @private
+     * @protected
      */
-    private _target_path?: openehr_base.String;
+    protected _target_path?: openehr_base.String;
 
     /**
      * Reference to an object node using archetype path notation.
@@ -3418,9 +3394,9 @@ export class P_ARCHETYPE_SLOT extends P_C_OBJECT {
     excludes?: undefined;
     /**
      * Internal storage for is_closed
-     * @private
+     * @protected
      */
-    private _is_closed?: openehr_base.Boolean;
+    protected _is_closed?: openehr_base.Boolean;
 
     get is_closed(): boolean | undefined {
         return this._is_closed?.value;
@@ -3459,9 +3435,9 @@ export abstract class P_C_PRIMITIVE_OBJECT extends P_C_DEFINED_OBJECT {
     assumed_value?: openehr_base.Any;
     /**
      * Internal storage for is_enumerated_type_constraint
-     * @private
+     * @protected
      */
-    private _is_enumerated_type_constraint?: openehr_base.Boolean;
+    protected _is_enumerated_type_constraint?: openehr_base.Boolean;
 
     /**
      * True if this constraint is actually of an enumerated type that conforms to a primitive type, not a primitive.
@@ -3524,9 +3500,9 @@ export class P_C_ATTRIBUTE_TUPLE {
 export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
     /**
      * Internal storage for archetype_ref
-     * @private
+     * @protected
      */
-    private _archetype_ref?: openehr_base.String;
+    protected _archetype_ref?: openehr_base.String;
 
     get archetype_ref(): string | undefined {
         return this._archetype_ref?.value;
@@ -3560,13 +3536,7 @@ export class P_C_ARCHETYPE_ROOT extends P_C_COMPLEX_OBJECT {
  */
 export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
     override constraint?: undefined = undefined;
-    /**
-     * Internal storage for assumed_value
-     * @private
-     */
-    private _assumed_value?: openehr_base.Boolean;
-
-    get assumed_value(): boolean | undefined {
+    override get assumed_value(): boolean | undefined {
         return this._assumed_value?.value;
     }
 
@@ -3574,14 +3544,14 @@ export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
      * Gets the openehr_base.Boolean wrapper object for assumed_value.
      * Use this to access openehr_base.Boolean methods.
      */
-    get $assumed_value(): openehr_base.Boolean | undefined {
+    override get $assumed_value(): openehr_base.Boolean | undefined {
         return this._assumed_value;
     }
 
     /**
      * Sets assumed_value from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
+    override set assumed_value(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._assumed_value = undefined;
         } else if (typeof val === 'boolean') {
@@ -3591,13 +3561,7 @@ export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
         }
     }
 
-    /**
-     * Internal storage for default_value
-     * @private
-     */
-    private _default_value?: openehr_base.Boolean;
-
-    get default_value(): boolean | undefined {
+    override get default_value(): boolean | undefined {
         return this._default_value?.value;
     }
 
@@ -3605,14 +3569,14 @@ export class P_C_BOOLEAN extends P_C_PRIMITIVE_OBJECT {
      * Gets the openehr_base.Boolean wrapper object for default_value.
      * Use this to access openehr_base.Boolean methods.
      */
-    get $default_value(): openehr_base.Boolean | undefined {
+    override get $default_value(): openehr_base.Boolean | undefined {
         return this._default_value;
     }
 
     /**
      * Sets default_value from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set default_value(val: boolean | openehr_base.Boolean | undefined) {
+    override set default_value(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._default_value = undefined;
         } else if (typeof val === 'boolean') {
@@ -3632,13 +3596,7 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
      * String constraint - a list of literal strings and / or regular expression strings delimited by the ‘/’ character.
      */
     override constraint?: undefined = undefined;
-    /**
-     * Internal storage for default_value
-     * @private
-     */
-    private _default_value?: openehr_base.String;
-
-    get default_value(): string | undefined {
+    override get default_value(): string | undefined {
         return this._default_value?.value;
     }
 
@@ -3646,14 +3604,14 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
      * Gets the openehr_base.String wrapper object for default_value.
      * Use this to access openehr_base.String methods.
      */
-    get $default_value(): openehr_base.String | undefined {
+    override get $default_value(): openehr_base.String | undefined {
         return this._default_value;
     }
 
     /**
      * Sets default_value from either a primitive value or openehr_base.String wrapper.
      */
-    set default_value(val: string | openehr_base.String | undefined) {
+    override set default_value(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._default_value = undefined;
         } else if (typeof val === 'string') {
@@ -3663,13 +3621,7 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
         }
     }
 
-    /**
-     * Internal storage for assumed_value
-     * @private
-     */
-    private _assumed_value?: openehr_base.String;
-
-    get assumed_value(): string | undefined {
+    override get assumed_value(): string | undefined {
         return this._assumed_value?.value;
     }
 
@@ -3677,14 +3629,14 @@ export class P_C_STRING extends P_C_PRIMITIVE_OBJECT {
      * Gets the openehr_base.String wrapper object for assumed_value.
      * Use this to access openehr_base.String methods.
      */
-    get $assumed_value(): openehr_base.String | undefined {
+    override get $assumed_value(): openehr_base.String | undefined {
         return this._assumed_value;
     }
 
     /**
      * Sets assumed_value from either a primitive value or openehr_base.String wrapper.
      */
-    set assumed_value(val: string | openehr_base.String | undefined) {
+    override set assumed_value(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._assumed_value = undefined;
         } else if (typeof val === 'string') {
@@ -3727,13 +3679,7 @@ export abstract class P_C_ORDERED<T extends openehr_base.Ordered> extends P_C_PR
  * The last possibility above is enabled by the merge_tuple routine, which enables the constraint of another single-valued C_TERMINOLOGY_CODE to be merged with the current one.
  */
 export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
-    /**
-     * Internal storage for constraint
-     * @private
-     */
-    private _constraint?: openehr_base.String;
-
-    get constraint(): string | undefined {
+    override get constraint(): string | undefined {
         return this._constraint?.value;
     }
 
@@ -3741,14 +3687,14 @@ export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
      * Gets the openehr_base.String wrapper object for constraint.
      * Use this to access openehr_base.String methods.
      */
-    get $constraint(): openehr_base.String | undefined {
+    override get $constraint(): openehr_base.String | undefined {
         return this._constraint;
     }
 
     /**
      * Sets constraint from either a primitive value or openehr_base.String wrapper.
      */
-    set constraint(val: string | openehr_base.String | undefined) {
+    override set constraint(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._constraint = undefined;
         } else if (typeof val === 'string') {
@@ -3768,9 +3714,9 @@ export class P_C_TERMINOLOGY_CODE extends P_C_PRIMITIVE_OBJECT {
 export abstract class P_C_TEMPORAL<T extends openehr_base.Temporal> extends P_C_ORDERED<T> {
     /**
      * Internal storage for pattern_constraint
-     * @private
+     * @protected
      */
-    private _pattern_constraint?: openehr_base.String;
+    protected _pattern_constraint?: openehr_base.String;
 
     /**
      * Optional alternative constraint in the form of a pattern based on ISO8601. See descendants for details.
@@ -3831,9 +3777,9 @@ export class P_C_DURATION {
 export abstract class P_ARCHETYPE {
     /**
      * Internal storage for parent_archetype_id
-     * @private
+     * @protected
      */
-    private _parent_archetype_id?: openehr_base.String;
+    protected _parent_archetype_id?: openehr_base.String;
 
     /**
      * Identifier of the specialisation parent of this archetype.
@@ -3869,9 +3815,9 @@ export abstract class P_ARCHETYPE {
     archetype_id?: P_ARCHETYPE_HRID;
     /**
      * Internal storage for is_differential
-     * @private
+     * @protected
      */
-    private _is_differential?: openehr_base.Boolean;
+    protected _is_differential?: openehr_base.Boolean;
 
     /**
      * Flag indicating whether this archetype is differential or flat in its contents. Top-level source archetypes have this flag set to True.
@@ -3922,9 +3868,9 @@ export abstract class P_ARCHETYPE {
 export abstract class P_AUTHORED_RESOURCE {
     /**
      * Internal storage for original_language
-     * @private
+     * @protected
      */
-    private _original_language?: openehr_base.String;
+    protected _original_language?: openehr_base.String;
 
     /**
      * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections. 
@@ -3956,9 +3902,9 @@ export abstract class P_AUTHORED_RESOURCE {
 
     /**
      * Internal storage for is_controlled
-     * @private
+     * @protected
      */
-    private _is_controlled?: openehr_base.Boolean;
+    protected _is_controlled?: openehr_base.Boolean;
 
     /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
@@ -3998,9 +3944,9 @@ export abstract class P_AUTHORED_RESOURCE {
     description?: openehr_base.RESOURCE_DESCRIPTION;
     /**
      * Internal storage for uid
-     * @private
+     * @protected
      */
-    private _uid?: openehr_base.String;
+    protected _uid?: openehr_base.String;
 
     /**
      * Unique identifier of the family of archetypes having the same interface identifier (same major version).
@@ -4042,9 +3988,9 @@ export abstract class P_AUTHORED_RESOURCE {
 export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
     /**
      * Internal storage for adl_version
-     * @private
+     * @protected
      */
-    private _adl_version?: openehr_base.String;
+    protected _adl_version?: openehr_base.String;
 
     /**
      * ADL version if archteype was read in from an ADL sharable archetype.
@@ -4080,9 +4026,9 @@ export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
     build_uid?: openehr_base.UID;
     /**
      * Internal storage for rm_release
-     * @private
+     * @protected
      */
-    private _rm_release?: openehr_base.String;
+    protected _rm_release?: openehr_base.String;
 
     /**
      * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
@@ -4114,9 +4060,9 @@ export class P_AUTHORED_ARCHETYPE extends P_ARCHETYPE {
 
     /**
      * Internal storage for is_generated
-     * @private
+     * @protected
      */
-    private _is_generated?: openehr_base.Boolean;
+    protected _is_generated?: openehr_base.Boolean;
 
     /**
      * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
@@ -4177,9 +4123,9 @@ export class P_OPERATIONAL_TEMPLATE extends P_AUTHORED_ARCHETYPE {
 export class P_ARCHETYPE_HRID {
     /**
      * Internal storage for namespace
-     * @private
+     * @protected
      */
-    private _namespace?: openehr_base.String;
+    protected _namespace?: openehr_base.String;
 
     /**
      * Reverse domain name namespace identifier.
@@ -4211,9 +4157,9 @@ export class P_ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_publisher
-     * @private
+     * @protected
      */
-    private _rm_publisher?: openehr_base.String;
+    protected _rm_publisher?: openehr_base.String;
 
     /**
      * Name of the Reference Model publisher.
@@ -4245,9 +4191,9 @@ export class P_ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_package
-     * @private
+     * @protected
      */
-    private _rm_package?: openehr_base.String;
+    protected _rm_package?: openehr_base.String;
 
     /**
      * Name of the package in whose reachability graph the rm_class class is found (there can be more than one possibility in many reference models).
@@ -4279,9 +4225,9 @@ export class P_ARCHETYPE_HRID {
 
     /**
      * Internal storage for rm_class
-     * @private
+     * @protected
      */
-    private _rm_class?: openehr_base.String;
+    protected _rm_class?: openehr_base.String;
 
     /**
      * Name of the root class of this archetype.
@@ -4313,9 +4259,9 @@ export class P_ARCHETYPE_HRID {
 
     /**
      * Internal storage for concept_id
-     * @private
+     * @protected
      */
-    private _concept_id?: openehr_base.String;
+    protected _concept_id?: openehr_base.String;
 
     /**
      * The short concept name of the archetype as used in the multi-axial archetype_hrid.
@@ -4347,9 +4293,9 @@ export class P_ARCHETYPE_HRID {
 
     /**
      * Internal storage for release_version
-     * @private
+     * @protected
      */
-    private _release_version?: openehr_base.String;
+    protected _release_version?: openehr_base.String;
 
     /**
      * The full numeric version of this archetype consisting of 3 parts, e.g. 1.8.2. The archetype_hrid feature includes only the major version.
@@ -4385,9 +4331,9 @@ export class P_ARCHETYPE_HRID {
     version_status?: openehr_base.VERSION_STATUS;
     /**
      * Internal storage for build_count
-     * @private
+     * @protected
      */
-    private _build_count?: openehr_base.String;
+    protected _build_count?: openehr_base.String;
 
     /**
      * The build count since last increment of any version part.
@@ -4425,9 +4371,9 @@ export class P_ARCHETYPE_HRID {
 export class P_ARCHETYPE_TERMINOLOGY {
     /**
      * Internal storage for is_differential
-     * @private
+     * @protected
      */
-    private _is_differential?: openehr_base.Boolean;
+    protected _is_differential?: openehr_base.Boolean;
 
     get is_differential(): boolean | undefined {
         return this._is_differential?.value;
@@ -4456,9 +4402,9 @@ export class P_ARCHETYPE_TERMINOLOGY {
 
     /**
      * Internal storage for original_language
-     * @private
+     * @protected
      */
-    private _original_language?: openehr_base.String;
+    protected _original_language?: openehr_base.String;
 
     get original_language(): string | undefined {
         return this._original_language?.value;
@@ -4508,9 +4454,9 @@ export class P_ARCHETYPE_TERMINOLOGY {
 export class AOM_PROFILE {
     /**
      * Internal storage for profile_name
-     * @private
+     * @protected
      */
-    private _profile_name?: openehr_base.String;
+    protected _profile_name?: openehr_base.String;
 
     /**
      * Name of this profile, usually based on the publisher it pertains to e.g. "openEHR", "CDISC", etc.
@@ -4542,9 +4488,9 @@ export class AOM_PROFILE {
 
     /**
      * Internal storage for archetype_parent_class
-     * @private
+     * @protected
      */
-    private _archetype_parent_class?: openehr_base.String;
+    protected _archetype_parent_class?: openehr_base.String;
 
     /**
      * States a class from the Reference Model that provides archetyping capability in RM data structures. This attribute is optional, and there need be no such class in the RM. Defining it here has the effect in tools that the class tree under which archetypes are arranged contains only RM classes inheriting from this class.
@@ -4576,9 +4522,9 @@ export class AOM_PROFILE {
 
     /**
      * Internal storage for archetype_data_value_parent_class
-     * @private
+     * @protected
      */
-    private _archetype_data_value_parent_class?: openehr_base.String;
+    protected _archetype_data_value_parent_class?: openehr_base.String;
 
     /**
      * This attribute defines a base class from the Reference Model whose descendants are considered to be 'logical data types', i.e. of some higher level than the built-in primitive types String, Integer etc. This attribute is optional, even if the RM does have such a class, and is only used to help tooling to provide more intelligent display.
@@ -4614,9 +4560,9 @@ export class AOM_PROFILE {
     aom_rm_type_mappings?: undefined;
     /**
      * Internal storage for archetype_visualise_descendants_of
-     * @private
+     * @protected
      */
-    private _archetype_visualise_descendants_of?: openehr_base.String;
+    protected _archetype_visualise_descendants_of?: openehr_base.String;
 
     /**
      * If \`_archetype_parent_class_\` is not set, designate a class whose descendants should be made visible in tree and grid renderings of the archetype definition.
@@ -4673,9 +4619,9 @@ export class AOM_PROFILE {
 export class AOM_TYPE_MAPPING {
     /**
      * Internal storage for source_class_name
-     * @private
+     * @protected
      */
-    private _source_class_name?: openehr_base.String;
+    protected _source_class_name?: openehr_base.String;
 
     /**
      * Name of the AOM type being mapped to an RM type.
@@ -4707,9 +4653,9 @@ export class AOM_TYPE_MAPPING {
 
     /**
      * Internal storage for target_class_name
-     * @private
+     * @protected
      */
-    private _target_class_name?: openehr_base.String;
+    protected _target_class_name?: openehr_base.String;
 
     /**
      * Name of the RM type in the mapping.
@@ -4751,9 +4697,9 @@ export class AOM_TYPE_MAPPING {
 export class AOM_PROPERTY_MAPPING {
     /**
      * Internal storage for source_property_name
-     * @private
+     * @protected
      */
-    private _source_property_name?: openehr_base.String;
+    protected _source_property_name?: openehr_base.String;
 
     /**
      * Name of property in source class.
@@ -4785,9 +4731,9 @@ export class AOM_PROPERTY_MAPPING {
 
     /**
      * Internal storage for target_property_name
-     * @private
+     * @protected
      */
-    private _target_property_name?: openehr_base.String;
+    protected _target_property_name?: openehr_base.String;
 
     /**
      * Name of property in target class.
@@ -4825,9 +4771,9 @@ export class AOM_PROPERTY_MAPPING {
 export abstract class EXPR_ITEM {
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: openehr_base.String;
+    protected _type?: openehr_base.String;
 
     /**
      * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
@@ -4871,9 +4817,9 @@ export abstract class EXPR_ITEM {
 export class EXPR_LEAF extends EXPR_ITEM {
     /**
      * Internal storage for reference_type
-     * @private
+     * @protected
      */
-    private _reference_type?: openehr_base.String;
+    protected _reference_type?: openehr_base.String;
 
     /**
      * Type of reference: “constant”, “attribute”, “function”, “constraint”. The first three are used to indicate the referencing mechanism for an operand. The last is used to indicate a constraint operand, as happens in the case of the right-hand operand of the ‘matches’ operator.
@@ -4939,9 +4885,9 @@ export class EXPR_ARCHETYPE_ID_CONSTRAINT extends EXPR_CONSTRAINT {
 export class EXPR_ARCHETYPE_REF extends EXPR_VALUE_REF {
     /**
      * Internal storage for path
-     * @private
+     * @protected
      */
-    private _path?: openehr_base.String;
+    protected _path?: openehr_base.String;
 
     /**
      * The path to the archetype node.
@@ -5002,9 +4948,9 @@ export class C_ORDINAL extends C_DOMAIN_TYPE {
 export class C_CODED_TEXT extends C_DOMAIN_TYPE {
     /**
      * Internal storage for terminology
-     * @private
+     * @protected
      */
-    private _terminology?: openehr_base.String;
+    protected _terminology?: openehr_base.String;
 
     /**
      * Terminology identifier.
@@ -5040,9 +4986,9 @@ export class C_CODED_TEXT extends C_DOMAIN_TYPE {
     code_list?: undefined;
     /**
      * Internal storage for reference
-     * @private
+     * @protected
      */
-    private _reference?: openehr_base.String;
+    protected _reference?: openehr_base.String;
 
     get reference(): string | undefined {
         return this._reference?.value;
@@ -5077,9 +5023,9 @@ export class C_CODED_TEXT extends C_DOMAIN_TYPE {
 export class C_QUANTITY extends C_DOMAIN_TYPE {
     /**
      * Internal storage for property
-     * @private
+     * @protected
      */
-    private _property?: openehr_base.String;
+    protected _property?: openehr_base.String;
 
     /**
      * Name of physical property for Quantities being constrained.
@@ -5125,9 +5071,9 @@ export class C_QUANTITY_ITEM {
     magnitude?: undefined;
     /**
      * Internal storage for units
-     * @private
+     * @protected
      */
-    private _units?: openehr_base.String;
+    protected _units?: openehr_base.String;
 
     /**
      * Optional units constraint.
@@ -5169,9 +5115,9 @@ export class ORDINAL {
     symbol?: openehr_base.CODE_PHRASE;
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: openehr_base.Integer;
+    protected _value?: openehr_base.Integer;
 
     /**
      * Ordinal value.
@@ -5209,9 +5155,9 @@ export class ORDINAL {
 export class ASSERTION {
     /**
      * Internal storage for tag
-     * @private
+     * @protected
      */
-    private _tag?: openehr_base.String;
+    protected _tag?: openehr_base.String;
 
     /**
      * Expression tag, used for differentiating multiple assertions.
@@ -5243,9 +5189,9 @@ export class ASSERTION {
 
     /**
      * Internal storage for string_expression
-     * @private
+     * @protected
      */
-    private _string_expression?: openehr_base.String;
+    protected _string_expression?: openehr_base.String;
 
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
@@ -5291,9 +5237,9 @@ export class ASSERTION {
 export class ASSERTION_VARIABLE {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: openehr_base.String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of variable.
@@ -5325,9 +5271,9 @@ export class ASSERTION_VARIABLE {
 
     /**
      * Internal storage for definition
-     * @private
+     * @protected
      */
-    private _definition?: openehr_base.String;
+    protected _definition?: openehr_base.String;
 
     /**
      * Formal definition of the variable.
@@ -5365,9 +5311,9 @@ export class ASSERTION_VARIABLE {
 export abstract class EXPR_OPERATOR extends EXPR_ITEM {
     /**
      * Internal storage for precedence_overridden
-     * @private
+     * @protected
      */
-    private _precedence_overridden?: openehr_base.Boolean;
+    protected _precedence_overridden?: openehr_base.Boolean;
 
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
@@ -5443,9 +5389,9 @@ export class CARDINALITY {
     interval?: undefined;
     /**
      * Internal storage for is_ordered
-     * @private
+     * @protected
      */
-    private _is_ordered?: openehr_base.Boolean;
+    protected _is_ordered?: openehr_base.Boolean;
 
     /**
      * True if the members of the container attribute to which this cardinality refers are ordered. 
@@ -5477,9 +5423,9 @@ export class CARDINALITY {
 
     /**
      * Internal storage for is_unique
-     * @private
+     * @protected
      */
-    private _is_unique?: openehr_base.Boolean;
+    protected _is_unique?: openehr_base.Boolean;
 
     /**
      * True if the members of the container attribute to which this cardinality refers are unique.
@@ -5550,9 +5496,9 @@ export class CARDINALITY {
 export class ARCHETYPE_INTERNAL_REF extends C_REFERENCE_OBJECT {
     /**
      * Internal storage for target_path
-     * @private
+     * @protected
      */
-    private _target_path?: openehr_base.String;
+    protected _target_path?: openehr_base.String;
 
     /**
      * Reference to an object node using archetype path notation.
@@ -5606,9 +5552,9 @@ export class C_SINGLE_ATTRIBUTE extends C_ATTRIBUTE {
 export class CONSTRAINT_REF extends C_REFERENCE_OBJECT {
     /**
      * Internal storage for reference
-     * @private
+     * @protected
      */
-    private _reference?: openehr_base.String;
+    protected _reference?: openehr_base.String;
 
     /**
      * Reference to a constraint in the archetype local ontology.
@@ -5682,9 +5628,9 @@ export class ARCHETYPE_ONTOLOGY {
     terminologies_available?: undefined;
     /**
      * Internal storage for specialisation_depth
-     * @private
+     * @protected
      */
-    private _specialisation_depth?: openehr_base.Integer;
+    protected _specialisation_depth?: openehr_base.Integer;
 
     /**
      * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
