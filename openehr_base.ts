@@ -3,7 +3,7 @@
 // Schema Revision: 1.3.0.2
 // Description: openEHR base types.
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json
-// Generated: 2025-11-11T19:34:13.974Z
+// Generated: 2025-11-12T00:45:55.478Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
@@ -1316,9 +1316,9 @@ export class Time_Definitions {
 export abstract class Iso8601_type extends Temporal {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: String;
+    protected _value?: String;
 
     /**
      * Representation of all descendants is a single String.
@@ -2140,9 +2140,9 @@ export abstract class Interval<T extends Ordered> extends Any {
     upper?: T;
     /**
      * Internal storage for lower_unbounded
-     * @private
+     * @protected
      */
-    private _lower_unbounded?: Boolean;
+    protected _lower_unbounded?: Boolean;
 
     /**
      * True if \`_lower_\` boundary open (i.e. = \`-infinity\`).
@@ -2174,9 +2174,9 @@ export abstract class Interval<T extends Ordered> extends Any {
 
     /**
      * Internal storage for upper_unbounded
-     * @private
+     * @protected
      */
-    private _upper_unbounded?: Boolean;
+    protected _upper_unbounded?: Boolean;
 
     /**
      * True if \`_upper_\` boundary open (i.e. = \`+infinity\`).
@@ -2208,9 +2208,9 @@ export abstract class Interval<T extends Ordered> extends Any {
 
     /**
      * Internal storage for lower_included
-     * @private
+     * @protected
      */
-    private _lower_included?: Boolean;
+    protected _lower_included?: Boolean;
 
     /**
      * True if \`_lower_\` boundary value included in range, if \`not _lower_unbounded_\`.
@@ -2242,9 +2242,9 @@ export abstract class Interval<T extends Ordered> extends Any {
 
     /**
      * Internal storage for upper_included
-     * @private
+     * @protected
      */
-    private _upper_included?: Boolean;
+    protected _upper_included?: Boolean;
 
     /**
      * True if \`_upper_\` boundary value included in range if \`not _upper_unbounded_\`.
@@ -2366,9 +2366,9 @@ export class Cardinality {
     interval?: Multiplicity_interval;
     /**
      * Internal storage for is_ordered
-     * @private
+     * @protected
      */
-    private _is_ordered?: Boolean;
+    protected _is_ordered?: Boolean;
 
     /**
      * True if the members of the container attribute to which this cardinality refers are ordered. 
@@ -2400,9 +2400,9 @@ export class Cardinality {
 
     /**
      * Internal storage for is_unique
-     * @private
+     * @protected
      */
-    private _is_unique?: Boolean;
+    protected _is_unique?: Boolean;
 
     /**
      * True if the members of the container attribute to which this cardinality refers are unique.
@@ -2470,9 +2470,9 @@ export class Cardinality {
 export class Terminology_code extends Any {
     /**
      * Internal storage for terminology_id
-     * @private
+     * @protected
      */
-    private _terminology_id?: String;
+    protected _terminology_id?: String;
 
     /**
      * The archetype environment namespace identifier used to identify a terminology. Typically a value like \`"snomed_ct"\` that is mapped elsewhere to the full URI identifying the terminology.
@@ -2504,9 +2504,9 @@ export class Terminology_code extends Any {
 
     /**
      * Internal storage for terminology_version
-     * @private
+     * @protected
      */
-    private _terminology_version?: String;
+    protected _terminology_version?: String;
 
     /**
      * Optional string value representing terminology version, typically a date or dotted numeric.
@@ -2538,9 +2538,9 @@ export class Terminology_code extends Any {
 
     /**
      * Internal storage for code_string
-     * @private
+     * @protected
      */
-    private _code_string?: String;
+    protected _code_string?: String;
 
     /**
      * A terminology code or post-coordinated code expression, if supported by the terminology. The code may refer to a single term, a value set consisting of multiple terms, or some other entity representable within the terminology.
@@ -2586,9 +2586,9 @@ export class Terminology_term extends Any {
     concept?: Terminology_code;
     /**
      * Internal storage for text
-     * @private
+     * @protected
      */
-    private _text?: String;
+    protected _text?: String;
 
     /**
      * Text of term.
@@ -2628,9 +2628,9 @@ export class Terminology_term extends Any {
 export abstract class OBJECT_ID {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: String;
+    protected _value?: String;
 
     /**
      * The value of the id in the form defined below. 
@@ -2747,9 +2747,9 @@ export class ARCHETYPE_ID extends OBJECT_ID {
 export class GENERIC_ID extends OBJECT_ID {
     /**
      * Internal storage for scheme
-     * @private
+     * @protected
      */
-    private _scheme?: String;
+    protected _scheme?: String;
 
     /**
      * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way. 
@@ -2829,9 +2829,9 @@ export class HIER_OBJECT_ID extends UID_BASED_ID {
 export class OBJECT_REF {
     /**
      * Internal storage for namespace
-     * @private
+     * @protected
      */
-    private _namespace?: String;
+    protected _namespace?: String;
 
     /**
      * Namespace to which this identifier belongs in the local system context (and possibly in any other openEHR compliant environment) e.g.  terminology ,  demographic . These names are not yet standardised. Legal values for \`_namespace_\` are:
@@ -2869,9 +2869,9 @@ export class OBJECT_REF {
 
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: String;
 
     /**
      * Name of the  class (concrete or abstract) of object to which this identifier type refers, e.g. \`PARTY\`, \`PERSON\`,  \`GUIDELINE\`  etc. These class names are from the relevant reference model. The type name \`ANY\` can be used to indicate that any type is accepted (e.g. if the type is unknown). 
@@ -2913,9 +2913,9 @@ export class OBJECT_REF {
 export class LOCATABLE_REF extends OBJECT_REF {
     /**
      * Internal storage for path
-     * @private
+     * @protected
      */
-    private _path?: String;
+    protected _path?: String;
 
     /**
      * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified. 
@@ -3055,9 +3055,9 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
 export class VERSION_TREE_ID {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: String;
+    protected _value?: String;
 
     /**
      * String form of this identifier.
@@ -3135,9 +3135,9 @@ export class VERSION_TREE_ID {
 export abstract class UID {
     /**
      * Internal storage for value
-     * @private
+     * @protected
      */
-    private _value?: String;
+    protected _value?: String;
 
     /**
      * The value of the id.
@@ -3329,15 +3329,9 @@ export class Iso8601_timezone extends Iso8601_type {
  */
 export class Point_interval<T extends Ordered> extends Interval<T> {
     /**
-     * Internal storage for lower_unbounded
-     * @private
-     */
-    private _lower_unbounded?: Boolean;
-
-    /**
      * Lower boundary open (i.e. = -infinity).
      */
-    get lower_unbounded(): boolean | undefined {
+    override get lower_unbounded(): boolean | undefined {
         return this._lower_unbounded?.value;
     }
 
@@ -3345,14 +3339,14 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
      * Gets the Boolean wrapper object for lower_unbounded.
      * Use this to access Boolean methods.
      */
-    get $lower_unbounded(): Boolean | undefined {
+    override get $lower_unbounded(): Boolean | undefined {
         return this._lower_unbounded;
     }
 
     /**
      * Sets lower_unbounded from either a primitive value or Boolean wrapper.
      */
-    set lower_unbounded(val: boolean | Boolean | undefined) {
+    override set lower_unbounded(val: boolean | Boolean | undefined) {
         if (val === undefined || val === null) {
             this._lower_unbounded = undefined;
         } else if (typeof val === 'boolean') {
@@ -3363,15 +3357,9 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
     }
 
     /**
-     * Internal storage for upper_unbounded
-     * @private
-     */
-    private _upper_unbounded?: Boolean;
-
-    /**
      * Upper boundary open (i.e. = +infinity).
      */
-    get upper_unbounded(): boolean | undefined {
+    override get upper_unbounded(): boolean | undefined {
         return this._upper_unbounded?.value;
     }
 
@@ -3379,14 +3367,14 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
      * Gets the Boolean wrapper object for upper_unbounded.
      * Use this to access Boolean methods.
      */
-    get $upper_unbounded(): Boolean | undefined {
+    override get $upper_unbounded(): Boolean | undefined {
         return this._upper_unbounded;
     }
 
     /**
      * Sets upper_unbounded from either a primitive value or Boolean wrapper.
      */
-    set upper_unbounded(val: boolean | Boolean | undefined) {
+    override set upper_unbounded(val: boolean | Boolean | undefined) {
         if (val === undefined || val === null) {
             this._upper_unbounded = undefined;
         } else if (typeof val === 'boolean') {
@@ -3397,15 +3385,9 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
     }
 
     /**
-     * Internal storage for lower_included
-     * @private
-     */
-    private _lower_included?: Boolean;
-
-    /**
      * Lower boundary value included in range if not \`_lower_unbounded_\`.
      */
-    get lower_included(): boolean | undefined {
+    override get lower_included(): boolean | undefined {
         return this._lower_included?.value;
     }
 
@@ -3413,14 +3395,14 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
      * Gets the Boolean wrapper object for lower_included.
      * Use this to access Boolean methods.
      */
-    get $lower_included(): Boolean | undefined {
+    override get $lower_included(): Boolean | undefined {
         return this._lower_included;
     }
 
     /**
      * Sets lower_included from either a primitive value or Boolean wrapper.
      */
-    set lower_included(val: boolean | Boolean | undefined) {
+    override set lower_included(val: boolean | Boolean | undefined) {
         if (val === undefined || val === null) {
             this._lower_included = undefined;
         } else if (typeof val === 'boolean') {
@@ -3431,15 +3413,9 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
     }
 
     /**
-     * Internal storage for upper_included
-     * @private
-     */
-    private _upper_included?: Boolean;
-
-    /**
      * Upper boundary value included in range if not \`_upper_unbounded_\`.
      */
-    get upper_included(): boolean | undefined {
+    override get upper_included(): boolean | undefined {
         return this._upper_included?.value;
     }
 
@@ -3447,14 +3423,14 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
      * Gets the Boolean wrapper object for upper_included.
      * Use this to access Boolean methods.
      */
-    get $upper_included(): Boolean | undefined {
+    override get $upper_included(): Boolean | undefined {
         return this._upper_included;
     }
 
     /**
      * Sets upper_included from either a primitive value or Boolean wrapper.
      */
-    set upper_included(val: boolean | Boolean | undefined) {
+    override set upper_included(val: boolean | Boolean | undefined) {
         if (val === undefined || val === null) {
             this._upper_included = undefined;
         } else if (typeof val === 'boolean') {
@@ -3478,9 +3454,9 @@ export class CODE_PHRASE {
     terminology_id?: TERMINOLOGY_ID;
     /**
      * Internal storage for code_string
-     * @private
+     * @protected
      */
-    private _code_string?: String;
+    protected _code_string?: String;
 
     /**
      * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context. 
@@ -3512,9 +3488,9 @@ export class CODE_PHRASE {
 
     /**
      * Internal storage for preferred_term
-     * @private
+     * @protected
      */
-    private _preferred_term?: String;
+    protected _preferred_term?: String;
 
     /**
      * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
@@ -3565,9 +3541,9 @@ export abstract class AUTHORED_RESOURCE {
     description?: RESOURCE_DESCRIPTION;
     /**
      * Internal storage for is_controlled
-     * @private
+     * @protected
      */
-    private _is_controlled?: Boolean;
+    protected _is_controlled?: Boolean;
 
     /**
      * True if this resource is under any kind of change control (even file copying), in which case revision history is created. 
@@ -3637,9 +3613,9 @@ export class RESOURCE_DESCRIPTION {
     original_author?: undefined;
     /**
      * Internal storage for original_namespace
-     * @private
+     * @protected
      */
-    private _original_namespace?: String;
+    protected _original_namespace?: String;
 
     /**
      * Namespace of original author's organisation, in reverse internet form, if applicable.
@@ -3671,9 +3647,9 @@ export class RESOURCE_DESCRIPTION {
 
     /**
      * Internal storage for original_publisher
-     * @private
+     * @protected
      */
-    private _original_publisher?: String;
+    protected _original_publisher?: String;
 
     /**
      * Plain text name of organisation that originally published this artefact, if any.
@@ -3717,9 +3693,9 @@ export class RESOURCE_DESCRIPTION {
     parent_resource?: AUTHORED_RESOURCE;
     /**
      * Internal storage for custodian_namespace
-     * @private
+     * @protected
      */
-    private _custodian_namespace?: String;
+    protected _custodian_namespace?: String;
 
     /**
      * Namespace in reverse internet id form, of current custodian organisation.
@@ -3751,9 +3727,9 @@ export class RESOURCE_DESCRIPTION {
 
     /**
      * Internal storage for custodian_organisation
-     * @private
+     * @protected
      */
-    private _custodian_organisation?: String;
+    protected _custodian_organisation?: String;
 
     /**
      * Plain text name of current custodian organisation.
@@ -3785,9 +3761,9 @@ export class RESOURCE_DESCRIPTION {
 
     /**
      * Internal storage for copyright
-     * @private
+     * @protected
      */
-    private _copyright?: String;
+    protected _copyright?: String;
 
     /**
      * Optional copyright statement for the resource as a knowledge resource. 
@@ -3820,9 +3796,9 @@ export class RESOURCE_DESCRIPTION {
 
     /**
      * Internal storage for licence
-     * @private
+     * @protected
      */
-    private _licence?: String;
+    protected _licence?: String;
 
     /**
      * Licence of current artefact, in format "short licence name <URL of licence>", e.g. "Apache 2.0 License <http://www.apache.org/licenses/LICENSE-2.0.html>"
@@ -3869,9 +3845,9 @@ export class RESOURCE_DESCRIPTION {
     references?: undefined;
     /**
      * Internal storage for resource_package_uri
-     * @private
+     * @protected
      */
-    private _resource_package_uri?: String;
+    protected _resource_package_uri?: String;
 
     /**
      * URI of package to which this resource belongs.
@@ -3937,9 +3913,9 @@ export class TRANSLATION_DETAILS {
     author?: undefined;
     /**
      * Internal storage for accreditation
-     * @private
+     * @protected
      */
-    private _accreditation?: String;
+    protected _accreditation?: String;
 
     /**
      * Accreditation of primary translator or group, usually a national translator's registration or association membership id.
@@ -3975,9 +3951,9 @@ export class TRANSLATION_DETAILS {
     other_details?: undefined;
     /**
      * Internal storage for version_last_translated
-     * @private
+     * @protected
      */
-    private _version_last_translated?: String;
+    protected _version_last_translated?: String;
 
     /**
      * Version of this resource last time it was translated into the language represented by this \`TRANSLATION_DETAILS\` object.
@@ -4023,9 +3999,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
     language?: Terminology_code;
     /**
      * Internal storage for purpose
-     * @private
+     * @protected
      */
-    private _purpose?: String;
+    protected _purpose?: String;
 
     /**
      * Purpose of the resource.
@@ -4062,9 +4038,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
     keywords?: undefined;
     /**
      * Internal storage for use
-     * @private
+     * @protected
      */
-    private _use?: String;
+    protected _use?: String;
 
     /**
      * Description of the uses of the resource, i.e. contexts in which it could be used. 
@@ -4097,9 +4073,9 @@ export class RESOURCE_DESCRIPTION_ITEM {
 
     /**
      * Internal storage for misuse
-     * @private
+     * @protected
      */
-    private _misuse?: String;
+    protected _misuse?: String;
 
     /**
      * Description of any misuses of the resource, i.e. contexts in which it should not be used.

@@ -3,12 +3,14 @@
 // Schema Revision: 1.1.0.2
 // Description: lang
 // Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Generated: 2025-11-11T19:34:14.349Z
+// Generated: 2025-11-12T00:45:55.626Z
 // 
 // This file was automatically generated from openEHR BMM (Basic Meta-Model) specifications.
 // Do not edit manually - regenerate using: deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
+
+import * as openehr_base from "./openehr_base.ts";
 
 // Unknown types - defined as 'any' for now
 type BMM_CLASS = any;
@@ -24,23 +26,13 @@ type BMM_STATUS_TYPE = any;
 type BMM_TUPLE_TYPE = any;
 type BMM_TYPE = any;
 type BMM_UNITARY_TYPE = any;
-type Boolean = any;
 type C_OBJECT = any;
-type Integer = any;
-type Iso8601_date = any;
-type Iso8601_date_time = any;
-type Iso8601_duration = any;
-type Iso8601_time = any;
-type Multiplicity_interval = any;
-type String = any;
 type T = any;
-type Terminology_code = any;
-type Uri = any;
 
 /**
  * Definitions used by all BMM packages.
  */
-export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
+export class BMM_DEFINITIONS extends openehr_base.BASIC_DEFINITIONS {
     /**
      * built-in class definition corresponding to the top \`Any' class.
      * @returns Result value
@@ -72,7 +64,7 @@ export class BMM_DEFINITIONS extends BASIC_DEFINITIONS {
      * @param a_model_release - Parameter
      * @returns Result value
      */
-    create_schema_id(a_model_publisher: Any, a_schema_name: Any, a_model_release: String): String {
+    create_schema_id(a_model_publisher: openehr_base.Any, a_schema_name: openehr_base.Any, a_model_release: openehr_base.String): openehr_base.String {
         // TODO: Implement create_schema_id behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method create_schema_id not yet implemented.");
@@ -138,7 +130,7 @@ export class BMM_MODEL_ACCESS {
      * @param a_model_key - Parameter
      * @returns Result value
      */
-    bmm_model(a_model_key: String): BMM_MODEL {
+    bmm_model(a_model_key: openehr_base.String): BMM_MODEL {
         // TODO: Implement bmm_model behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method bmm_model not yet implemented.");
@@ -149,7 +141,7 @@ export class BMM_MODEL_ACCESS {
      * @param a_model_key - Parameter
      * @returns Result value
      */
-    has_bmm_model(a_model_key: String): Boolean {
+    has_bmm_model(a_model_key: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement has_bmm_model behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method has_bmm_model not yet implemented.");
@@ -171,9 +163,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
     bmm_model?: BMM_MODEL;
     /**
      * Internal storage for schema_id
-     * @private
+     * @protected
      */
-    private _schema_id?: String;
+    protected _schema_id?: openehr_base.String;
 
     /**
      * Schema id, formed by 
@@ -190,21 +182,21 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
     }
 
     /**
-     * Gets the String wrapper object for schema_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_id(): String | undefined {
+    get $schema_id(): openehr_base.String | undefined {
         return this._schema_id;
     }
 
     /**
-     * Sets schema_id from either a primitive value or String wrapper.
+     * Sets schema_id from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_id(val: string | String | undefined) {
+    set schema_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_id = undefined;
         } else if (typeof val === 'string') {
-            this._schema_id = String.from(val);
+            this._schema_id = openehr_base.String.from(val);
         } else {
             this._schema_id = val;
         }
@@ -222,7 +214,7 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * True if this is a top-level schema, i.e. is the root schema of a 'model'. True if \`_bmm_schema_ /= Void and then _bmm_schema.model_name_ /= Void\`.
      * @returns Result value
      */
-    is_top_level(): Boolean {
+    is_top_level(): openehr_base.Boolean {
         // TODO: Implement is_top_level behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_top_level not yet implemented.");
@@ -232,7 +224,7 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
      * True if the BMM version found in the schema (or assumed, if none) is compatible with that in this software.
      * @returns Result value
      */
-    is_bmm_compatible(): Boolean {
+    is_bmm_compatible(): openehr_base.Boolean {
         // TODO: Implement is_bmm_compatible behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_bmm_compatible not yet implemented.");
@@ -287,9 +279,9 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
 export class BMM_MODEL_METADATA {
     /**
      * Internal storage for rm_publisher
-     * @private
+     * @protected
      */
-    private _rm_publisher?: String;
+    protected _rm_publisher?: openehr_base.String;
 
     /**
      * Publisher of model expressed in the schema.
@@ -299,21 +291,21 @@ export class BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for rm_publisher.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for rm_publisher.
+     * Use this to access openehr_base.String methods.
      */
-    get $rm_publisher(): String | undefined {
+    get $rm_publisher(): openehr_base.String | undefined {
         return this._rm_publisher;
     }
 
     /**
-     * Sets rm_publisher from either a primitive value or String wrapper.
+     * Sets rm_publisher from either a primitive value or openehr_base.String wrapper.
      */
-    set rm_publisher(val: string | String | undefined) {
+    set rm_publisher(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._rm_publisher = undefined;
         } else if (typeof val === 'string') {
-            this._rm_publisher = String.from(val);
+            this._rm_publisher = openehr_base.String.from(val);
         } else {
             this._rm_publisher = val;
         }
@@ -321,9 +313,9 @@ export class BMM_MODEL_METADATA {
 
     /**
      * Internal storage for rm_release
-     * @private
+     * @protected
      */
-    private _rm_release?: String;
+    protected _rm_release?: openehr_base.String;
 
     /**
      * Release of model expressed in the schema as a 3-part numeric, e.g. "3.1.0" . 
@@ -333,21 +325,21 @@ export class BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for rm_release.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for rm_release.
+     * Use this to access openehr_base.String methods.
      */
-    get $rm_release(): String | undefined {
+    get $rm_release(): openehr_base.String | undefined {
         return this._rm_release;
     }
 
     /**
-     * Sets rm_release from either a primitive value or String wrapper.
+     * Sets rm_release from either a primitive value or openehr_base.String wrapper.
      */
-    set rm_release(val: string | String | undefined) {
+    set rm_release(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._rm_release = undefined;
         } else if (typeof val === 'string') {
-            this._rm_release = String.from(val);
+            this._rm_release = openehr_base.String.from(val);
         } else {
             this._rm_release = val;
         }
@@ -361,9 +353,9 @@ export class BMM_MODEL_METADATA {
 export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     /**
      * Internal storage for bmm_version
-     * @private
+     * @protected
      */
-    private _bmm_version?: String;
+    protected _bmm_version?: openehr_base.String;
 
     /**
      * Version of BMM model, enabling schema evolution reasoning. Persisted attribute.
@@ -373,21 +365,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for bmm_version.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for bmm_version.
+     * Use this to access openehr_base.String methods.
      */
-    get $bmm_version(): String | undefined {
+    get $bmm_version(): openehr_base.String | undefined {
         return this._bmm_version;
     }
 
     /**
-     * Sets bmm_version from either a primitive value or String wrapper.
+     * Sets bmm_version from either a primitive value or openehr_base.String wrapper.
      */
-    set bmm_version(val: string | String | undefined) {
+    set bmm_version(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._bmm_version = undefined;
         } else if (typeof val === 'string') {
-            this._bmm_version = String.from(val);
+            this._bmm_version = openehr_base.String.from(val);
         } else {
             this._bmm_version = val;
         }
@@ -408,9 +400,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     state?: BMM_SCHEMA_STATE;
     /**
      * Internal storage for model_name
-     * @private
+     * @protected
      */
-    private _model_name?: String;
+    protected _model_name?: openehr_base.String;
 
     /**
      * Name of this model, if this schema is a model root point. Not set for sub-schemas that are not considered models on their own.
@@ -420,21 +412,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for model_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for model_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $model_name(): String | undefined {
+    get $model_name(): openehr_base.String | undefined {
         return this._model_name;
     }
 
     /**
-     * Sets model_name from either a primitive value or String wrapper.
+     * Sets model_name from either a primitive value or openehr_base.String wrapper.
      */
-    set model_name(val: string | String | undefined) {
+    set model_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._model_name = undefined;
         } else if (typeof val === 'string') {
-            this._model_name = String.from(val);
+            this._model_name = openehr_base.String.from(val);
         } else {
             this._model_name = val;
         }
@@ -442,9 +434,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 
     /**
      * Internal storage for schema_name
-     * @private
+     * @protected
      */
-    private _schema_name?: String;
+    protected _schema_name?: openehr_base.String;
 
     /**
      * Name of model expressed in schema; a 'schema' usually contains all of the packages of one 'model' of a publisher. A publisher with more than one model can have multiple schemas. 
@@ -454,21 +446,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for schema_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_name(): String | undefined {
+    get $schema_name(): openehr_base.String | undefined {
         return this._schema_name;
     }
 
     /**
-     * Sets schema_name from either a primitive value or String wrapper.
+     * Sets schema_name from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_name(val: string | String | undefined) {
+    set schema_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_name = undefined;
         } else if (typeof val === 'string') {
-            this._schema_name = String.from(val);
+            this._schema_name = openehr_base.String.from(val);
         } else {
             this._schema_name = val;
         }
@@ -476,9 +468,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 
     /**
      * Internal storage for schema_revision
-     * @private
+     * @protected
      */
-    private _schema_revision?: String;
+    protected _schema_revision?: openehr_base.String;
 
     /**
      * Revision of schema.
@@ -488,21 +480,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for schema_revision.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_revision.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_revision(): String | undefined {
+    get $schema_revision(): openehr_base.String | undefined {
         return this._schema_revision;
     }
 
     /**
-     * Sets schema_revision from either a primitive value or String wrapper.
+     * Sets schema_revision from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_revision(val: string | String | undefined) {
+    set schema_revision(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_revision = undefined;
         } else if (typeof val === 'string') {
-            this._schema_revision = String.from(val);
+            this._schema_revision = openehr_base.String.from(val);
         } else {
             this._schema_revision = val;
         }
@@ -510,9 +502,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 
     /**
      * Internal storage for schema_lifecycle_state
-     * @private
+     * @protected
      */
-    private _schema_lifecycle_state?: String;
+    protected _schema_lifecycle_state?: openehr_base.String;
 
     /**
      * Schema development lifecycle state. 
@@ -522,21 +514,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for schema_lifecycle_state.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_lifecycle_state.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_lifecycle_state(): String | undefined {
+    get $schema_lifecycle_state(): openehr_base.String | undefined {
         return this._schema_lifecycle_state;
     }
 
     /**
-     * Sets schema_lifecycle_state from either a primitive value or String wrapper.
+     * Sets schema_lifecycle_state from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_lifecycle_state(val: string | String | undefined) {
+    set schema_lifecycle_state(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_lifecycle_state = undefined;
         } else if (typeof val === 'string') {
-            this._schema_lifecycle_state = String.from(val);
+            this._schema_lifecycle_state = openehr_base.String.from(val);
         } else {
             this._schema_lifecycle_state = val;
         }
@@ -544,9 +536,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 
     /**
      * Internal storage for schema_author
-     * @private
+     * @protected
      */
-    private _schema_author?: String;
+    protected _schema_author?: openehr_base.String;
 
     /**
      * Primary author of schema. 
@@ -556,21 +548,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for schema_author.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_author.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_author(): String | undefined {
+    get $schema_author(): openehr_base.String | undefined {
         return this._schema_author;
     }
 
     /**
-     * Sets schema_author from either a primitive value or String wrapper.
+     * Sets schema_author from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_author(val: string | String | undefined) {
+    set schema_author(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_author = undefined;
         } else if (typeof val === 'string') {
-            this._schema_author = String.from(val);
+            this._schema_author = openehr_base.String.from(val);
         } else {
             this._schema_author = val;
         }
@@ -578,9 +570,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 
     /**
      * Internal storage for schema_description
-     * @private
+     * @protected
      */
-    private _schema_description?: String;
+    protected _schema_description?: openehr_base.String;
 
     /**
      * Description of schema. 
@@ -590,21 +582,21 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
     }
 
     /**
-     * Gets the String wrapper object for schema_description.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for schema_description.
+     * Use this to access openehr_base.String methods.
      */
-    get $schema_description(): String | undefined {
+    get $schema_description(): openehr_base.String | undefined {
         return this._schema_description;
     }
 
     /**
-     * Sets schema_description from either a primitive value or String wrapper.
+     * Sets schema_description from either a primitive value or openehr_base.String wrapper.
      */
-    set schema_description(val: string | String | undefined) {
+    set schema_description(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._schema_description = undefined;
         } else if (typeof val === 'string') {
-            this._schema_description = String.from(val);
+            this._schema_description = openehr_base.String.from(val);
         } else {
             this._schema_description = val;
         }
@@ -658,7 +650,7 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
      * True when validation may be commenced.
      * @returns Result value
      */
-    read_to_validate(): Boolean {
+    read_to_validate(): openehr_base.Boolean {
         // TODO: Implement read_to_validate behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method read_to_validate not yet implemented.");
@@ -672,7 +664,7 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
      * E.g. \`"openehr_rm_ehr_1.0.4"\`.
      * @returns Result value
      */
-    schema_id(): String {
+    schema_id(): openehr_base.String {
         // TODO: Implement schema_id behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method schema_id not yet implemented.");
@@ -686,9 +678,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
 export class BMM_INCLUDE_SPEC {
     /**
      * Internal storage for id
-     * @private
+     * @protected
      */
-    private _id?: String;
+    protected _id?: openehr_base.String;
 
     /**
      * Full identifier of the included schema, e.g. \`"openehr_primitive_types_1.0.2"\`.
@@ -698,21 +690,21 @@ export class BMM_INCLUDE_SPEC {
     }
 
     /**
-     * Gets the String wrapper object for id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for id.
+     * Use this to access openehr_base.String methods.
      */
-    get $id(): String | undefined {
+    get $id(): openehr_base.String | undefined {
         return this._id;
     }
 
     /**
-     * Sets id from either a primitive value or String wrapper.
+     * Sets id from either a primitive value or openehr_base.String wrapper.
      */
-    set id(val: string | String | undefined) {
+    set id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._id = undefined;
         } else if (typeof val === 'string') {
-            this._id = String.from(val);
+            this._id = openehr_base.String.from(val);
         } else {
             this._id = val;
         }
@@ -720,13 +712,13 @@ export class BMM_INCLUDE_SPEC {
 
 }
 
-export class BMM_SCHEMA_METADATA_KEY extends String {
+export class BMM_SCHEMA_METADATA_KEY extends openehr_base.String {
 }
 
 /**
  * Enumeration of processing states of a \`BMM_SCHEMA\` used by creation and validation routines in \`BMM_SCHEMA\`.
  */
-export class BMM_SCHEMA_STATE extends String {
+export class BMM_SCHEMA_STATE extends openehr_base.String {
 }
 
 /**
@@ -735,9 +727,9 @@ export class BMM_SCHEMA_STATE extends String {
 export abstract class BMM_MODEL_ELEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this model element.
@@ -747,21 +739,21 @@ export abstract class BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -793,7 +785,7 @@ export abstract class BMM_MODEL_ELEMENT {
      * True if this model element is the root of a model structure hierarchy.
      * @returns Result value
      */
-    is_root_scope(): Boolean {
+    is_root_scope(): openehr_base.Boolean {
         // TODO: Implement is_root_scope behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_root_scope not yet implemented.");
@@ -811,9 +803,9 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
     type?: BMM_TYPE;
     /**
      * Internal storage for is_nullable
-     * @private
+     * @protected
      */
-    private _is_nullable?: Boolean;
+    protected _is_nullable?: openehr_base.Boolean;
 
     /**
      * True if this element can be null (Void) at execution time. May be interpreted as optionality in subtypes..
@@ -823,21 +815,21 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_nullable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_nullable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_nullable(): Boolean | undefined {
+    get $is_nullable(): openehr_base.Boolean | undefined {
         return this._is_nullable;
     }
 
     /**
-     * Sets is_nullable from either a primitive value or Boolean wrapper.
+     * Sets is_nullable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_nullable(val: boolean | Boolean | undefined) {
+    set is_nullable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_nullable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_nullable = Boolean.from(val);
+            this._is_nullable = openehr_base.Boolean.from(val);
         } else {
             this._is_nullable = val;
         }
@@ -857,7 +849,7 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
      * True if \`_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`'Boolean'\`).
      * @returns Result value
      */
-    is_boolean(): Boolean {
+    is_boolean(): openehr_base.Boolean {
         // TODO: Implement is_boolean behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_boolean not yet implemented.");
@@ -871,9 +863,9 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
 export abstract class BMM_FEATURE extends BMM_FORMAL_ELEMENT {
     /**
      * Internal storage for is_synthesised_generic
-     * @private
+     * @protected
      */
-    private _is_synthesised_generic?: Boolean;
+    protected _is_synthesised_generic?: openehr_base.Boolean;
 
     /**
      * True if this feature was synthesised due to generic substitution in an inherited type, or further constraining of a formal generic parameter.
@@ -883,21 +875,21 @@ export abstract class BMM_FEATURE extends BMM_FORMAL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_synthesised_generic.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_synthesised_generic.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_synthesised_generic(): Boolean | undefined {
+    get $is_synthesised_generic(): openehr_base.Boolean | undefined {
         return this._is_synthesised_generic;
     }
 
     /**
-     * Sets is_synthesised_generic from either a primitive value or Boolean wrapper.
+     * Sets is_synthesised_generic from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_synthesised_generic(val: boolean | Boolean | undefined) {
+    set is_synthesised_generic(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_synthesised_generic = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_synthesised_generic = Boolean.from(val);
+            this._is_synthesised_generic = openehr_base.Boolean.from(val);
         } else {
             this._is_synthesised_generic = val;
         }
@@ -945,9 +937,9 @@ export class BMM_CONSTANT extends BMM_STATIC {
 export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     /**
      * Internal storage for is_im_runtime
-     * @private
+     * @protected
      */
-    private _is_im_runtime?: Boolean;
+    protected _is_im_runtime?: openehr_base.Boolean;
 
     /**
      * True if this property is marked with info model \`_im_runtime_\` property.
@@ -957,21 +949,21 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_im_runtime.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_im_runtime.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_im_runtime(): Boolean | undefined {
+    get $is_im_runtime(): openehr_base.Boolean | undefined {
         return this._is_im_runtime;
     }
 
     /**
-     * Sets is_im_runtime from either a primitive value or Boolean wrapper.
+     * Sets is_im_runtime from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_im_runtime(val: boolean | Boolean | undefined) {
+    set is_im_runtime(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_im_runtime = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_im_runtime = Boolean.from(val);
+            this._is_im_runtime = openehr_base.Boolean.from(val);
         } else {
             this._is_im_runtime = val;
         }
@@ -979,9 +971,9 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
 
     /**
      * Internal storage for is_im_infrastructure
-     * @private
+     * @protected
      */
-    private _is_im_infrastructure?: Boolean;
+    protected _is_im_infrastructure?: openehr_base.Boolean;
 
     /**
      * True if this property was marked with info model \`_im_infrastructure_\` flag.
@@ -991,21 +983,21 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_im_infrastructure.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_im_infrastructure.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_im_infrastructure(): Boolean | undefined {
+    get $is_im_infrastructure(): openehr_base.Boolean | undefined {
         return this._is_im_infrastructure;
     }
 
     /**
-     * Sets is_im_infrastructure from either a primitive value or Boolean wrapper.
+     * Sets is_im_infrastructure from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_im_infrastructure(val: boolean | Boolean | undefined) {
+    set is_im_infrastructure(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_im_infrastructure = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_im_infrastructure = Boolean.from(val);
+            this._is_im_infrastructure = openehr_base.Boolean.from(val);
         } else {
             this._is_im_infrastructure = val;
         }
@@ -1013,9 +1005,9 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
 
     /**
      * Internal storage for is_composition
-     * @private
+     * @protected
      */
-    private _is_composition?: Boolean;
+    protected _is_composition?: openehr_base.Boolean;
 
     /**
      * True if this property instance is a compositional sub-part of the owning class instance. Equivalent to 'composition' in UML associations (but missing from UML properties without associations) and also 'cascade-delete' semantics in ER schemas.
@@ -1025,21 +1017,21 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_composition.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_composition.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_composition(): Boolean | undefined {
+    get $is_composition(): openehr_base.Boolean | undefined {
         return this._is_composition;
     }
 
     /**
-     * Sets is_composition from either a primitive value or Boolean wrapper.
+     * Sets is_composition from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_composition(val: boolean | Boolean | undefined) {
+    set is_composition(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_composition = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_composition = Boolean.from(val);
+            this._is_composition = openehr_base.Boolean.from(val);
         } else {
             this._is_composition = val;
         }
@@ -1049,7 +1041,7 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
      * Interval form of \`0..1\`, \`1..1\` etc, derived from \`_is_nullable_\`.
      * @returns Result value
      */
-    existence(): Multiplicity_interval {
+    existence(): openehr_base.Multiplicity_interval {
         // TODO: Implement existence behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method existence not yet implemented.");
@@ -1059,7 +1051,7 @@ export abstract class BMM_PROPERTY extends BMM_INSTANTIABLE_FEATURE {
      * Name of this property to display in UI.
      * @returns Result value
      */
-    display_name(): String {
+    display_name(): openehr_base.String {
         // TODO: Implement display_name behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method display_name not yet implemented.");
@@ -1074,7 +1066,7 @@ export class BMM_CONTAINER_PROPERTY extends BMM_PROPERTY {
     /**
      * Cardinality of this container.
      */
-    cardinality?: Multiplicity_interval;
+    cardinality?: openehr_base.Multiplicity_interval;
     /**
      * Declared or inferred static type of the entity.
      */
@@ -1083,7 +1075,7 @@ export class BMM_CONTAINER_PROPERTY extends BMM_PROPERTY {
      * Name of this property in form \`name: ContainerTypeName<>\`.
      * @returns Result value
      */
-    display_name(): String {
+    display_name(): openehr_base.String {
         // TODO: Implement display_name behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method display_name not yet implemented.");
@@ -1119,7 +1111,7 @@ export abstract class BMM_ROUTINE extends BMM_FEATURE {
      * Return number of arguments of this routine.
      * @returns Result value
      */
-    arity(): Integer {
+    arity(): openehr_base.Integer {
         // TODO: Implement arity behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method arity not yet implemented.");
@@ -1177,9 +1169,9 @@ export class BMM_OPERATOR {
     symbols?: undefined;
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Formal name of the operator, e.g. 'minus' etc.
@@ -1189,21 +1181,21 @@ export class BMM_OPERATOR {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -1273,7 +1265,7 @@ export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
      * Name of this property in form \`name: ContainerTypeName<IndexTypeName, ...>\`.
      * @returns Result value
      */
-    display_name(): String {
+    display_name(): openehr_base.String {
         // TODO: Implement display_name behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method display_name not yet implemented.");
@@ -1286,34 +1278,28 @@ export class BMM_INDEXED_CONTAINER_PROPERTY extends BMM_CONTAINER_PROPERTY {
  */
 export class BMM_RESULT extends BMM_WRITABLE_VARIABLE {
     /**
-     * Internal storage for name
-     * @private
-     */
-    private _name?: String;
-
-    /**
      * Name of this model element.
      */
-    get name(): string | undefined {
+    override get name(): string | undefined {
         return this._name?.value;
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    override get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    override set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -1353,9 +1339,9 @@ export class BMM_EXTERNAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
 export class BMM_FEATURE_GROUP {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this feature group; defaults to 'feature'.
@@ -1365,21 +1351,21 @@ export class BMM_FEATURE_GROUP {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -1412,34 +1398,28 @@ export abstract class BMM_VISIBILITY {
  */
 export class BMM_SELF extends BMM_READONLY_VARIABLE {
     /**
-     * Internal storage for name
-     * @private
-     */
-    private _name?: String;
-
-    /**
      * Name of this model element.
      */
-    get name(): string | undefined {
+    override get name(): string | undefined {
         return this._name?.value;
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    override get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    override set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -1474,13 +1454,13 @@ export class BMM_LOCAL_ROUTINE extends BMM_ROUTINE_DEFINITION {
 /**
  * Enumeration of possible position of operator in a syntactic representation for operators associated with 1- and 2- degree functions.
  */
-export class BMM_OPERATOR_POSITION extends String {
+export class BMM_OPERATOR_POSITION extends openehr_base.String {
 }
 
 /**
  * Enumeration of parameter read/write direction values.
  */
-export class BMM_PARAMETER_DIRECTION extends String {
+export class BMM_PARAMETER_DIRECTION extends openehr_base.String {
 }
 
 /**
@@ -1489,9 +1469,9 @@ export class BMM_PARAMETER_DIRECTION extends String {
 export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
      * Internal storage for value_literal
-     * @private
+     * @protected
      */
-    private _value_literal?: String;
+    protected _value_literal?: openehr_base.String;
 
     /**
      * A serial representation of the value.
@@ -1501,21 +1481,21 @@ export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     }
 
     /**
-     * Gets the String wrapper object for value_literal.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for value_literal.
+     * Use this to access openehr_base.String methods.
      */
-    get $value_literal(): String | undefined {
+    get $value_literal(): openehr_base.String | undefined {
         return this._value_literal;
     }
 
     /**
-     * Sets value_literal from either a primitive value or String wrapper.
+     * Sets value_literal from either a primitive value or openehr_base.String wrapper.
      */
-    set value_literal(val: string | String | undefined) {
+    set value_literal(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._value_literal = undefined;
         } else if (typeof val === 'string') {
-            this._value_literal = String.from(val);
+            this._value_literal = openehr_base.String.from(val);
         } else {
             this._value_literal = val;
         }
@@ -1524,12 +1504,12 @@ export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     /**
      * A native representation of the value, possibly derived by deserialising \`_value_literal_\`.
      */
-    value?: Any;
+    value?: openehr_base.Any;
     /**
      * Internal storage for syntax
-     * @private
+     * @protected
      */
-    private _syntax?: String;
+    protected _syntax?: openehr_base.String;
 
     /**
      * Optional specification of formalism of the \`_value_literal_\` attribute for complex values. Value may be any of \`json | json5 | yawl | xml | odin | rdf\` or another value agreed by the user community. If not set, \`json\` is assumed.
@@ -1539,21 +1519,21 @@ export abstract class BMM_LITERAL_VALUE<T extends BMM_TYPE> {
     }
 
     /**
-     * Gets the String wrapper object for syntax.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for syntax.
+     * Use this to access openehr_base.String methods.
      */
-    get $syntax(): String | undefined {
+    get $syntax(): openehr_base.String | undefined {
         return this._syntax;
     }
 
     /**
-     * Sets syntax from either a primitive value or String wrapper.
+     * Sets syntax from either a primitive value or openehr_base.String wrapper.
      */
-    set syntax(val: string | String | undefined) {
+    set syntax(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._syntax = undefined;
         } else if (typeof val === 'string') {
-            this._syntax = String.from(val);
+            this._syntax = openehr_base.String.from(val);
         } else {
             this._syntax = val;
         }
@@ -1586,39 +1566,9 @@ export class BMM_PRIMITIVE_VALUE extends BMM_UNITARY_VALUE<T> {
  */
 export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
-     * Internal storage for value
-     * @private
-     */
-    private _value?: Integer;
-
-    /**
      * Native Integer value.
      */
-    get value(): number | undefined {
-        return this._value?.value;
-    }
-
-    /**
-     * Gets the Integer wrapper object for value.
-     * Use this to access Integer methods.
-     */
-    get $value(): Integer | undefined {
-        return this._value;
-    }
-
-    /**
-     * Sets value from either a primitive value or Integer wrapper.
-     */
-    set value(val: number | Integer | undefined) {
-        if (val === undefined || val === null) {
-            this._value = undefined;
-        } else if (typeof val === 'number') {
-            this._value = Integer.from(val);
-        } else {
-            this._value = val;
-        }
-    }
-
+    override value?: openehr_base.Integer = undefined;
 }
 
 /**
@@ -1626,39 +1576,9 @@ export class BMM_INTEGER_VALUE extends BMM_PRIMITIVE_VALUE {
  */
 export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
-     * Internal storage for value
-     * @private
-     */
-    private _value?: String;
-
-    /**
      * Native String value.
      */
-    get value(): string | undefined {
-        return this._value?.value;
-    }
-
-    /**
-     * Gets the String wrapper object for value.
-     * Use this to access String methods.
-     */
-    get $value(): String | undefined {
-        return this._value;
-    }
-
-    /**
-     * Sets value from either a primitive value or String wrapper.
-     */
-    set value(val: string | String | undefined) {
-        if (val === undefined || val === null) {
-            this._value = undefined;
-        } else if (typeof val === 'string') {
-            this._value = String.from(val);
-        } else {
-            this._value = val;
-        }
-    }
-
+    override value?: openehr_base.String = undefined;
 }
 
 /**
@@ -1666,39 +1586,9 @@ export class BMM_STRING_VALUE extends BMM_PRIMITIVE_VALUE {
  */
 export class BMM_BOOLEAN_VALUE extends BMM_PRIMITIVE_VALUE {
     /**
-     * Internal storage for value
-     * @private
-     */
-    private _value?: Boolean;
-
-    /**
      * Native Boolean value.
      */
-    get value(): boolean | undefined {
-        return this._value?.value;
-    }
-
-    /**
-     * Gets the Boolean wrapper object for value.
-     * Use this to access Boolean methods.
-     */
-    get $value(): Boolean | undefined {
-        return this._value;
-    }
-
-    /**
-     * Sets value from either a primitive value or Boolean wrapper.
-     */
-    set value(val: boolean | Boolean | undefined) {
-        if (val === undefined || val === null) {
-            this._value = undefined;
-        } else if (typeof val === 'boolean') {
-            this._value = Boolean.from(val);
-        } else {
-            this._value = val;
-        }
-    }
-
+    override value?: openehr_base.Boolean = undefined;
 }
 
 /**
@@ -1736,7 +1626,7 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * @param a_path - Parameter
      * @returns Result value
      */
-    package_at_path(a_path: String): BMM_PACKAGE {
+    package_at_path(a_path: openehr_base.String): BMM_PACKAGE {
         // TODO: Implement package_at_path behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method package_at_path not yet implemented.");
@@ -1758,7 +1648,7 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
      * @param a_path - Parameter
      * @returns Result value
      */
-    has_package_path(a_path: String): Boolean {
+    has_package_path(a_path: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement has_package_path behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method has_package_path not yet implemented.");
@@ -1790,7 +1680,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * E.g. \`"openehr_ehr_1.0.4"\`.
      * @returns Result value
      */
-    model_id(): String {
+    model_id(): openehr_base.String {
         // TODO: Implement model_id behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method model_id not yet implemented.");
@@ -1801,7 +1691,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_name - Parameter
      * @returns Result value
      */
-    class_definition(a_name: String): BMM_CLASS {
+    class_definition(a_name: openehr_base.String): BMM_CLASS {
         // TODO: Implement class_definition behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method class_definition not yet implemented.");
@@ -1822,7 +1712,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_class_name - Parameter
      * @returns Result value
      */
-    has_class_definition(a_class_name: String): Boolean {
+    has_class_definition(a_class_name: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement has_class_definition behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method has_class_definition not yet implemented.");
@@ -1833,7 +1723,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_type_name - Parameter
      * @returns Result value
      */
-    has_type_definition(a_type_name: String): Boolean {
+    has_type_definition(a_type_name: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement has_type_definition behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method has_type_definition not yet implemented.");
@@ -1844,7 +1734,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_name - Parameter
      * @returns Result value
      */
-    enumeration_definition(a_name: String): BMM_ENUMERATION {
+    enumeration_definition(a_name: openehr_base.String): BMM_ENUMERATION {
         // TODO: Implement enumeration_definition behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method enumeration_definition not yet implemented.");
@@ -1854,7 +1744,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * List of keys in \`_class_definitions_\` of items marked as primitive types.
      * @returns Result value
      */
-    primitive_types(): String {
+    primitive_types(): openehr_base.String {
         // TODO: Implement primitive_types behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method primitive_types not yet implemented.");
@@ -1864,7 +1754,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * List of keys in \`_class_definitions_\` of items that are enumeration types.
      * @returns Result value
      */
-    enumeration_types(): String {
+    enumeration_types(): openehr_base.String {
         // TODO: Implement enumeration_types behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method enumeration_types not yet implemented.");
@@ -1887,7 +1777,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_ms_property_name - Parameter
      * @returns Result value
      */
-    ms_conformant_property_type(a_bmm_type_name: String, a_bmm_property_name: String, a_ms_property_name: String): Boolean {
+    ms_conformant_property_type(a_bmm_type_name: openehr_base.String, a_bmm_property_name: openehr_base.String, a_ms_property_name: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement ms_conformant_property_type behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method ms_conformant_property_type not yet implemented.");
@@ -1909,7 +1799,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_prop_path - Parameter
      * @returns Result value
      */
-    class_definition_at_path(a_type_name: String, a_prop_path: String): BMM_CLASS {
+    class_definition_at_path(a_type_name: openehr_base.String, a_prop_path: openehr_base.String): BMM_CLASS {
         // TODO: Implement class_definition_at_path behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method class_definition_at_path not yet implemented.");
@@ -1920,7 +1810,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_class - Parameter
      * @returns Result value
      */
-    all_ancestor_classes(a_class: String): String {
+    all_ancestor_classes(a_class: openehr_base.String): openehr_base.String {
         // TODO: Implement all_ancestor_classes behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method all_ancestor_classes not yet implemented.");
@@ -1932,7 +1822,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_parent_class_name - Parameter
      * @returns Result value
      */
-    is_descendant_of(a_class_name: String, a_parent_class_name: String): Boolean {
+    is_descendant_of(a_class_name: openehr_base.String, a_parent_class_name: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement is_descendant_of behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_descendant_of not yet implemented.");
@@ -1950,7 +1840,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param an_anc_type - Parameter
      * @returns Result value
      */
-    type_conforms_to(a_desc_type: String, an_anc_type: String): Boolean {
+    type_conforms_to(a_desc_type: openehr_base.String, an_anc_type: openehr_base.String): openehr_base.Boolean {
         // TODO: Implement type_conforms_to behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method type_conforms_to not yet implemented.");
@@ -1961,7 +1851,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
      * @param a_type - Parameter
      * @returns Result value
      */
-    subtypes(a_type: String): String {
+    subtypes(a_type: openehr_base.String): openehr_base.String {
         // TODO: Implement subtypes behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method subtypes not yet implemented.");
@@ -2023,7 +1913,7 @@ export class BMM_PACKAGE extends BMM_PACKAGE_CONTAINER {
      * Full path of this package back to root package.
      * @returns Result value
      */
-    path(): String {
+    path(): openehr_base.String {
         // TODO: Implement path behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method path not yet implemented.");
@@ -2047,7 +1937,7 @@ export abstract class EL_EXPRESSION {
      * True if \`_eval_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`Boolean\`).
      * @returns Result value
      */
-    is_boolean(): Boolean {
+    is_boolean(): openehr_base.Boolean {
         // TODO: Implement is_boolean behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_boolean not yet implemented.");
@@ -2061,9 +1951,9 @@ export abstract class EL_EXPRESSION {
 export abstract class EL_OPERATOR extends EL_EXPRESSION {
     /**
      * Internal storage for precedence_overridden
-     * @private
+     * @protected
      */
-    private _precedence_overridden?: Boolean;
+    protected _precedence_overridden?: openehr_base.Boolean;
 
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
@@ -2073,21 +1963,21 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
     }
 
     /**
-     * Gets the Boolean wrapper object for precedence_overridden.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for precedence_overridden.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $precedence_overridden(): Boolean | undefined {
+    get $precedence_overridden(): openehr_base.Boolean | undefined {
         return this._precedence_overridden;
     }
 
     /**
-     * Sets precedence_overridden from either a primitive value or Boolean wrapper.
+     * Sets precedence_overridden from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set precedence_overridden(val: boolean | Boolean | undefined) {
+    set precedence_overridden(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._precedence_overridden = undefined;
         } else if (typeof val === 'boolean') {
-            this._precedence_overridden = Boolean.from(val);
+            this._precedence_overridden = openehr_base.Boolean.from(val);
         } else {
             this._precedence_overridden = val;
         }
@@ -2095,9 +1985,9 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
 
     /**
      * Internal storage for symbol
-     * @private
+     * @protected
      */
-    private _symbol?: String;
+    protected _symbol?: openehr_base.String;
 
     /**
      * The symbol actually used in the expression, or intended to be used for serialisation. Must be a member of \`OPERATOR_DEF._symbols_\`.
@@ -2107,21 +1997,21 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
     }
 
     /**
-     * Gets the String wrapper object for symbol.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for symbol.
+     * Use this to access openehr_base.String methods.
      */
-    get $symbol(): String | undefined {
+    get $symbol(): openehr_base.String | undefined {
         return this._symbol;
     }
 
     /**
-     * Sets symbol from either a primitive value or String wrapper.
+     * Sets symbol from either a primitive value or openehr_base.String wrapper.
      */
-    set symbol(val: string | String | undefined) {
+    set symbol(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._symbol = undefined;
         } else if (typeof val === 'string') {
-            this._symbol = String.from(val);
+            this._symbol = openehr_base.String.from(val);
         } else {
             this._symbol = val;
         }
@@ -2215,30 +2105,30 @@ export class EL_UNARY_OPERATOR extends EL_OPERATOR {
 export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
     /**
      * Internal storage for is_writable
-     * @private
+     * @protected
      */
-    private _is_writable?: Boolean;
+    protected _is_writable?: openehr_base.Boolean;
 
     get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2246,9 +2136,9 @@ export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
 
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name used to represent the reference or other entity.
@@ -2258,21 +2148,21 @@ export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -2282,7 +2172,7 @@ export abstract class EL_VALUE_GENERATOR extends EL_SIMPLE {
      * Generated full reference name, based on constituent parts of the entity. Default version outputs \`_name_\` field.
      * @returns Result value
      */
-    reference(): String {
+    reference(): openehr_base.String {
         // TODO: Implement reference behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method reference not yet implemented.");
@@ -2302,7 +2192,7 @@ export abstract class EL_FEATURE_REF extends EL_VALUE_GENERATOR {
      * Generated full reference name, consisting of scoping elements and \`_name_\` concatenated using dot notation.
      * @returns Result value
      */
-    reference(): String {
+    reference(): openehr_base.String {
         // TODO: Implement reference behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method reference not yet implemented.");
@@ -2319,34 +2209,28 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
      */
     definition?: BMM_PROPERTY;
     /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    /**
      * Defined to return True.
      */
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2411,34 +2295,28 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
      */
     override agent?: EL_FUNCTION_AGENT = undefined;
     /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    /**
      * Defined to return False.
      */
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2458,7 +2336,7 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
      * Generated full reference name, consisting of any scoping elements, function name and routine parameters enclosed in parentheses.
      * @returns Result value
      */
-    reference(): String {
+    reference(): openehr_base.String {
         // TODO: Implement reference behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method reference not yet implemented.");
@@ -2475,34 +2353,28 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
  */
 export abstract class EL_AGENT extends EL_FEATURE_REF {
     /**
-     * Internal storage for name
-     * @private
-     */
-    private _name?: String;
-
-    /**
      * Name of the routine being called.
      */
-    get name(): string | undefined {
+    override get name(): string | undefined {
         return this._name?.value;
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    override get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    override set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -2520,32 +2392,26 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * Reference to definition of a routine for which this is an agent, if one exists. 
      */
     definition?: BMM_ROUTINE;
-    /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2565,7 +2431,7 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * True if there are no open arguments.
      * @returns Result value
      */
-    is_callable(): Boolean {
+    is_callable(): openehr_base.Boolean {
         // TODO: Implement is_callable behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_callable not yet implemented.");
@@ -2575,7 +2441,7 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
      * Generated full reference name, including scoping elements.
      * @returns Result value
      */
-    reference(): String {
+    reference(): openehr_base.String {
         // TODO: Implement reference behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method reference not yet implemented.");
@@ -2593,9 +2459,9 @@ export class EL_TUPLE_ITEM {
     item?: EL_EXPRESSION;
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Optional name of tuple item.
@@ -2605,21 +2471,21 @@ export class EL_TUPLE_ITEM {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -2725,30 +2591,30 @@ export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
     type?: BMM_TYPE;
     /**
      * Internal storage for is_mutable
-     * @private
+     * @protected
      */
-    private _is_mutable?: Boolean;
+    protected _is_mutable?: openehr_base.Boolean;
 
     get is_mutable(): boolean | undefined {
         return this._is_mutable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_mutable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_mutable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_mutable(): Boolean | undefined {
+    get $is_mutable(): openehr_base.Boolean | undefined {
         return this._is_mutable;
     }
 
     /**
-     * Sets is_mutable from either a primitive value or Boolean wrapper.
+     * Sets is_mutable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_mutable(val: boolean | Boolean | undefined) {
+    set is_mutable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_mutable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_mutable = Boolean.from(val);
+            this._is_mutable = openehr_base.Boolean.from(val);
         } else {
             this._is_mutable = val;
         }
@@ -2857,34 +2723,28 @@ export class EL_STATIC_REF extends EL_FEATURE_REF {
      */
     definition?: BMM_STATIC;
     /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    /**
      * Defined to return False.
      */
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2901,34 +2761,28 @@ export class EL_WRITABLE_VARIABLE extends EL_VARIABLE {
      */
     definition?: BMM_WRITABLE_VARIABLE;
     /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    /**
      * Defined to return True in all cases.
      */
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -2945,34 +2799,28 @@ export class EL_READONLY_VARIABLE extends EL_VARIABLE {
      */
     definition?: BMM_READONLY_VARIABLE;
     /**
-     * Internal storage for is_writable
-     * @private
-     */
-    private _is_writable?: Boolean;
-
-    /**
      * Defined to return False in all cases.
      */
-    get is_writable(): boolean | undefined {
+    override get is_writable(): boolean | undefined {
         return this._is_writable?.value;
     }
 
     /**
-     * Gets the Boolean wrapper object for is_writable.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_writable.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_writable(): Boolean | undefined {
+    override get $is_writable(): openehr_base.Boolean | undefined {
         return this._is_writable;
     }
 
     /**
-     * Sets is_writable from either a primitive value or Boolean wrapper.
+     * Sets is_writable from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_writable(val: boolean | Boolean | undefined) {
+    override set is_writable(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_writable = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_writable = Boolean.from(val);
+            this._is_writable = openehr_base.Boolean.from(val);
         } else {
             this._is_writable = val;
         }
@@ -3042,9 +2890,9 @@ export class BMM_ASSERTION extends BMM_SIMPLE_STATEMENT {
     expression?: EL_BOOLEAN_EXPRESSION;
     /**
      * Internal storage for tag
-     * @private
+     * @protected
      */
-    private _tag?: String;
+    protected _tag?: openehr_base.String;
 
     /**
      * Optional tag, typically used to designate design intention of the assertion, e.g. \`"Inv_all_members_valid"\`.
@@ -3054,21 +2902,21 @@ export class BMM_ASSERTION extends BMM_SIMPLE_STATEMENT {
     }
 
     /**
-     * Gets the String wrapper object for tag.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for tag.
+     * Use this to access openehr_base.String methods.
      */
-    get $tag(): String | undefined {
+    get $tag(): openehr_base.String | undefined {
         return this._tag;
     }
 
     /**
-     * Sets tag from either a primitive value or String wrapper.
+     * Sets tag from either a primitive value or openehr_base.String wrapper.
      */
-    set tag(val: string | String | undefined) {
+    set tag(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._tag = undefined;
         } else if (typeof val === 'string') {
-            this._tag = String.from(val);
+            this._tag = openehr_base.String.from(val);
         } else {
             this._tag = val;
         }
@@ -3102,30 +2950,30 @@ export class BMM_STATEMENT_BLOCK extends BMM_STATEMENT_ITEM {
 export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     get name(): string | undefined {
         return this._name?.value;
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -3144,9 +2992,9 @@ export class BMM_DECLARATION extends BMM_SIMPLE_STATEMENT {
 export abstract class P_BMM_MODEL_ELEMENT {
     /**
      * Internal storage for documentation
-     * @private
+     * @protected
      */
-    private _documentation?: String;
+    protected _documentation?: openehr_base.String;
 
     /**
      * Optional documentation of this element.
@@ -3156,21 +3004,21 @@ export abstract class P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for documentation.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for documentation.
+     * Use this to access openehr_base.String methods.
      */
-    get $documentation(): String | undefined {
+    get $documentation(): openehr_base.String | undefined {
         return this._documentation;
     }
 
     /**
-     * Sets documentation from either a primitive value or String wrapper.
+     * Sets documentation from either a primitive value or openehr_base.String wrapper.
      */
-    set documentation(val: string | String | undefined) {
+    set documentation(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._documentation = undefined;
         } else if (typeof val === 'string') {
-            this._documentation = String.from(val);
+            this._documentation = openehr_base.String.from(val);
         } else {
             this._documentation = val;
         }
@@ -3184,9 +3032,9 @@ export abstract class P_BMM_MODEL_ELEMENT {
 export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of the class. Persisted attribute.
@@ -3196,21 +3044,21 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -3226,9 +3074,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     properties?: undefined;
     /**
      * Internal storage for is_abstract
-     * @private
+     * @protected
      */
-    private _is_abstract?: Boolean;
+    protected _is_abstract?: openehr_base.Boolean;
 
     /**
      * True if this is an abstract type. Persisted attribute.
@@ -3238,21 +3086,21 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_abstract.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_abstract.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_abstract(): Boolean | undefined {
+    get $is_abstract(): openehr_base.Boolean | undefined {
         return this._is_abstract;
     }
 
     /**
-     * Sets is_abstract from either a primitive value or Boolean wrapper.
+     * Sets is_abstract from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_abstract(val: boolean | Boolean | undefined) {
+    set is_abstract(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_abstract = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_abstract = Boolean.from(val);
+            this._is_abstract = openehr_base.Boolean.from(val);
         } else {
             this._is_abstract = val;
         }
@@ -3260,9 +3108,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for is_override
-     * @private
+     * @protected
      */
-    private _is_override?: Boolean;
+    protected _is_override?: openehr_base.Boolean;
 
     /**
      * True if this class definition overrides one found in an included schema.
@@ -3272,21 +3120,21 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_override.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_override.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_override(): Boolean | undefined {
+    get $is_override(): openehr_base.Boolean | undefined {
         return this._is_override;
     }
 
     /**
-     * Sets is_override from either a primitive value or Boolean wrapper.
+     * Sets is_override from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_override(val: boolean | Boolean | undefined) {
+    set is_override(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_override = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_override = Boolean.from(val);
+            this._is_override = openehr_base.Boolean.from(val);
         } else {
             this._is_override = val;
         }
@@ -3298,9 +3146,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     generic_parameter_defs?: undefined;
     /**
      * Internal storage for source_schema_id
-     * @private
+     * @protected
      */
-    private _source_schema_id?: String;
+    protected _source_schema_id?: openehr_base.String;
 
     /**
      * Reference to original source schema defining this class. Set during \`BMM_SCHEMA\` materialise. Useful for GUI tools to enable user to edit the schema file containing a given class (i.e. taking into account that a class may be in any of the schemas in a schema inclusion hierarchy).
@@ -3310,21 +3158,21 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for source_schema_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for source_schema_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $source_schema_id(): String | undefined {
+    get $source_schema_id(): openehr_base.String | undefined {
         return this._source_schema_id;
     }
 
     /**
-     * Sets source_schema_id from either a primitive value or String wrapper.
+     * Sets source_schema_id from either a primitive value or openehr_base.String wrapper.
      */
-    set source_schema_id(val: string | String | undefined) {
+    set source_schema_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._source_schema_id = undefined;
         } else if (typeof val === 'string') {
-            this._source_schema_id = String.from(val);
+            this._source_schema_id = openehr_base.String.from(val);
         } else {
             this._source_schema_id = val;
         }
@@ -3336,9 +3184,9 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     bmm_class?: BMM_CLASS;
     /**
      * Internal storage for uid
-     * @private
+     * @protected
      */
-    private _uid?: Integer;
+    protected _uid?: openehr_base.Integer;
 
     /**
      * Unique id generated for later comparison during merging, in order to detect if two classes are the same. Assigned in post-load processing.
@@ -3348,21 +3196,21 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Integer wrapper object for uid.
-     * Use this to access Integer methods.
+     * Gets the openehr_base.Integer wrapper object for uid.
+     * Use this to access openehr_base.Integer methods.
      */
-    get $uid(): Integer | undefined {
+    get $uid(): openehr_base.Integer | undefined {
         return this._uid;
     }
 
     /**
-     * Sets uid from either a primitive value or Integer wrapper.
+     * Sets uid from either a primitive value or openehr_base.Integer wrapper.
      */
-    set uid(val: number | Integer | undefined) {
+    set uid(val: number | openehr_base.Integer | undefined) {
         if (val === undefined || val === null) {
             this._uid = undefined;
         } else if (typeof val === 'number') {
-            this._uid = Integer.from(val);
+            this._uid = openehr_base.Integer.from(val);
         } else {
             this._uid = val;
         }
@@ -3376,7 +3224,7 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
      * True if this class is a generic class.
      * @returns Result value
      */
-    is_generic(): Boolean {
+    is_generic(): openehr_base.Boolean {
         // TODO: Implement is_generic behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method is_generic not yet implemented.");
@@ -3508,9 +3356,9 @@ export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
 export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of this property within its class. Persisted attribute.
@@ -3520,21 +3368,21 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -3542,9 +3390,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for is_mandatory
-     * @private
+     * @protected
      */
-    private _is_mandatory?: Boolean;
+    protected _is_mandatory?: openehr_base.Boolean;
 
     /**
      * True if this property is mandatory in its class. Persisted attribute.
@@ -3554,21 +3402,21 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_mandatory.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_mandatory.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_mandatory(): Boolean | undefined {
+    get $is_mandatory(): openehr_base.Boolean | undefined {
         return this._is_mandatory;
     }
 
     /**
-     * Sets is_mandatory from either a primitive value or Boolean wrapper.
+     * Sets is_mandatory from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_mandatory(val: boolean | Boolean | undefined) {
+    set is_mandatory(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_mandatory = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_mandatory = Boolean.from(val);
+            this._is_mandatory = openehr_base.Boolean.from(val);
         } else {
             this._is_mandatory = val;
         }
@@ -3576,9 +3424,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for is_computed
-     * @private
+     * @protected
      */
-    private _is_computed?: Boolean;
+    protected _is_computed?: openehr_base.Boolean;
 
     /**
      * True if this property is computed rather than stored in objects of this class. Persisted Attribute.
@@ -3588,21 +3436,21 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_computed.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_computed.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_computed(): Boolean | undefined {
+    get $is_computed(): openehr_base.Boolean | undefined {
         return this._is_computed;
     }
 
     /**
-     * Sets is_computed from either a primitive value or Boolean wrapper.
+     * Sets is_computed from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_computed(val: boolean | Boolean | undefined) {
+    set is_computed(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_computed = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_computed = Boolean.from(val);
+            this._is_computed = openehr_base.Boolean.from(val);
         } else {
             this._is_computed = val;
         }
@@ -3610,9 +3458,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for is_im_infrastructure
-     * @private
+     * @protected
      */
-    private _is_im_infrastructure?: Boolean;
+    protected _is_im_infrastructure?: openehr_base.Boolean;
 
     /**
      * True if this property is info model 'infrastructure' rather than 'data'. Persisted attribute.
@@ -3622,21 +3470,21 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_im_infrastructure.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_im_infrastructure.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_im_infrastructure(): Boolean | undefined {
+    get $is_im_infrastructure(): openehr_base.Boolean | undefined {
         return this._is_im_infrastructure;
     }
 
     /**
-     * Sets is_im_infrastructure from either a primitive value or Boolean wrapper.
+     * Sets is_im_infrastructure from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_im_infrastructure(val: boolean | Boolean | undefined) {
+    set is_im_infrastructure(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_im_infrastructure = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_im_infrastructure = Boolean.from(val);
+            this._is_im_infrastructure = openehr_base.Boolean.from(val);
         } else {
             this._is_im_infrastructure = val;
         }
@@ -3644,9 +3492,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for is_im_runtime
-     * @private
+     * @protected
      */
-    private _is_im_runtime?: Boolean;
+    protected _is_im_runtime?: openehr_base.Boolean;
 
     /**
      * True if this property is info model 'runtime' settable property. Persisted attribute.
@@ -3656,21 +3504,21 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the Boolean wrapper object for is_im_runtime.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for is_im_runtime.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $is_im_runtime(): Boolean | undefined {
+    get $is_im_runtime(): openehr_base.Boolean | undefined {
         return this._is_im_runtime;
     }
 
     /**
-     * Sets is_im_runtime from either a primitive value or Boolean wrapper.
+     * Sets is_im_runtime from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set is_im_runtime(val: boolean | Boolean | undefined) {
+    set is_im_runtime(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._is_im_runtime = undefined;
         } else if (typeof val === 'boolean') {
-            this._is_im_runtime = Boolean.from(val);
+            this._is_im_runtime = openehr_base.Boolean.from(val);
         } else {
             this._is_im_runtime = val;
         }
@@ -3704,9 +3552,9 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of the parameter, e.g. 'T' etc. Persisted attribute. Name is limited to 1 character, upper case.
@@ -3716,21 +3564,21 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -3738,9 +3586,9 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
 
     /**
      * Internal storage for conforms_to_type
-     * @private
+     * @protected
      */
-    private _conforms_to_type?: String;
+    protected _conforms_to_type?: openehr_base.String;
 
     /**
      * Optional conformance constraint - the name of a type to which a concrete substitution of this generic parameter must conform. Persisted attribute.
@@ -3750,21 +3598,21 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     }
 
     /**
-     * Gets the String wrapper object for conforms_to_type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for conforms_to_type.
+     * Use this to access openehr_base.String methods.
      */
-    get $conforms_to_type(): String | undefined {
+    get $conforms_to_type(): openehr_base.String | undefined {
         return this._conforms_to_type;
     }
 
     /**
-     * Sets conforms_to_type from either a primitive value or String wrapper.
+     * Sets conforms_to_type from either a primitive value or openehr_base.String wrapper.
      */
-    set conforms_to_type(val: string | String | undefined) {
+    set conforms_to_type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._conforms_to_type = undefined;
         } else if (typeof val === 'string') {
-            this._conforms_to_type = String.from(val);
+            this._conforms_to_type = openehr_base.String.from(val);
         } else {
             this._conforms_to_type = val;
         }
@@ -3807,7 +3655,7 @@ export abstract class P_BMM_TYPE {
      * Formal name of the type for display.
      * @returns Result value
      */
-    abstract as_type_string(): String;
+    abstract as_type_string(): openehr_base.String;
 
 }
 
@@ -3817,9 +3665,9 @@ export abstract class P_BMM_TYPE {
 export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     /**
      * Internal storage for container_type
-     * @private
+     * @protected
      */
-    private _container_type?: String;
+    protected _container_type?: openehr_base.String;
 
     /**
      * The type of the container. This converts to the \`_root_type_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
@@ -3829,21 +3677,21 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     }
 
     /**
-     * Gets the String wrapper object for container_type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for container_type.
+     * Use this to access openehr_base.String methods.
      */
-    get $container_type(): String | undefined {
+    get $container_type(): openehr_base.String | undefined {
         return this._container_type;
     }
 
     /**
-     * Sets container_type from either a primitive value or String wrapper.
+     * Sets container_type from either a primitive value or openehr_base.String wrapper.
      */
-    set container_type(val: string | String | undefined) {
+    set container_type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._container_type = undefined;
         } else if (typeof val === 'string') {
-            this._container_type = String.from(val);
+            this._container_type = openehr_base.String.from(val);
         } else {
             this._container_type = val;
         }
@@ -3855,9 +3703,9 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     type_def?: P_BMM_BASE_TYPE;
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: openehr_base.String;
 
     /**
      * The target type; this converts to the first parameter in \`_generic_parameters_\` in \`BMM_GENERIC_TYPE\`. Persisted attribute.
@@ -3867,21 +3715,21 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
     }
 
     /**
-     * Gets the String wrapper object for type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
      */
-    get $type(): String | undefined {
+    get $type(): openehr_base.String | undefined {
         return this._type;
     }
 
     /**
-     * Sets type from either a primitive value or String wrapper.
+     * Sets type from either a primitive value or openehr_base.String wrapper.
      */
-    set type(val: string | String | undefined) {
+    set type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type = undefined;
         } else if (typeof val === 'string') {
-            this._type = String.from(val);
+            this._type = openehr_base.String.from(val);
         } else {
             this._type = val;
         }
@@ -3909,30 +3757,30 @@ export class P_BMM_CONTAINER_TYPE extends P_BMM_TYPE {
 export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
     /**
      * Internal storage for value_constraint
-     * @private
+     * @protected
      */
-    private _value_constraint?: String;
+    protected _value_constraint?: openehr_base.String;
 
     get value_constraint(): string | undefined {
         return this._value_constraint?.value;
     }
 
     /**
-     * Gets the String wrapper object for value_constraint.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for value_constraint.
+     * Use this to access openehr_base.String methods.
      */
-    get $value_constraint(): String | undefined {
+    get $value_constraint(): openehr_base.String | undefined {
         return this._value_constraint;
     }
 
     /**
-     * Sets value_constraint from either a primitive value or String wrapper.
+     * Sets value_constraint from either a primitive value or openehr_base.String wrapper.
      */
-    set value_constraint(val: string | String | undefined) {
+    set value_constraint(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._value_constraint = undefined;
         } else if (typeof val === 'string') {
-            this._value_constraint = String.from(val);
+            this._value_constraint = openehr_base.String.from(val);
         } else {
             this._value_constraint = val;
         }
@@ -3946,9 +3794,9 @@ export abstract class P_BMM_BASE_TYPE extends P_BMM_TYPE {
 export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: openehr_base.String;
 
     /**
      * Name of type - must be a simple class name.
@@ -3958,21 +3806,21 @@ export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
     }
 
     /**
-     * Gets the String wrapper object for type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
      */
-    get $type(): String | undefined {
+    get $type(): openehr_base.String | undefined {
         return this._type;
     }
 
     /**
-     * Sets type from either a primitive value or String wrapper.
+     * Sets type from either a primitive value or openehr_base.String wrapper.
      */
-    set type(val: string | String | undefined) {
+    set type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type = undefined;
         } else if (typeof val === 'string') {
-            this._type = String.from(val);
+            this._type = openehr_base.String.from(val);
         } else {
             this._type = val;
         }
@@ -3990,9 +3838,9 @@ export class P_BMM_SIMPLE_TYPE extends P_BMM_BASE_TYPE {
 export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: openehr_base.String;
 
     /**
      * Simple type parameter as a single letter like 'T', 'G' etc.
@@ -4002,21 +3850,21 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     }
 
     /**
-     * Gets the String wrapper object for type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
      */
-    get $type(): String | undefined {
+    get $type(): openehr_base.String | undefined {
         return this._type;
     }
 
     /**
-     * Sets type from either a primitive value or String wrapper.
+     * Sets type from either a primitive value or openehr_base.String wrapper.
      */
-    set type(val: string | String | undefined) {
+    set type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type = undefined;
         } else if (typeof val === 'string') {
-            this._type = String.from(val);
+            this._type = openehr_base.String.from(val);
         } else {
             this._type = val;
         }
@@ -4025,7 +3873,7 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Result of \`_create_bmm_type()_\` call.
      */
-    override bmm_type?: Any = undefined;
+    override bmm_type?: openehr_base.Any = undefined;
 }
 
 /**
@@ -4034,9 +3882,9 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
 export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
     /**
      * Internal storage for root_type
-     * @private
+     * @protected
      */
-    private _root_type?: String;
+    protected _root_type?: openehr_base.String;
 
     /**
      * Root type of this generic type, e.g. \`Interval\` in \`Interval<Integer>\`.
@@ -4046,21 +3894,21 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
     }
 
     /**
-     * Gets the String wrapper object for root_type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for root_type.
+     * Use this to access openehr_base.String methods.
      */
-    get $root_type(): String | undefined {
+    get $root_type(): openehr_base.String | undefined {
         return this._root_type;
     }
 
     /**
-     * Sets root_type from either a primitive value or String wrapper.
+     * Sets root_type from either a primitive value or openehr_base.String wrapper.
      */
-    set root_type(val: string | String | undefined) {
+    set root_type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._root_type = undefined;
         } else if (typeof val === 'string') {
-            this._root_type = String.from(val);
+            this._root_type = openehr_base.String.from(val);
         } else {
             this._root_type = val;
         }
@@ -4096,9 +3944,9 @@ export class P_BMM_GENERIC_TYPE extends P_BMM_BASE_TYPE {
 export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of the package from schema; this name may be qualified if it is a top-level package within the schema, or unqualified. Persistent attribute.
@@ -4108,21 +3956,21 @@ export class P_BMM_PACKAGE extends P_BMM_PACKAGE_CONTAINER {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -4195,9 +4043,9 @@ export class P_BMM_CONTAINER_PROPERTY extends P_BMM_PROPERTY {
 export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: openehr_base.String;
 
     /**
      * If the type is a simple type, then this attribute will hold the type name. If the type is a container or generic, then type_ref will hold the type definition. The resulting type is generated in type_def.
@@ -4207,21 +4055,21 @@ export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
     }
 
     /**
-     * Gets the String wrapper object for type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
      */
-    get $type(): String | undefined {
+    get $type(): openehr_base.String | undefined {
         return this._type;
     }
 
     /**
-     * Sets type from either a primitive value or String wrapper.
+     * Sets type from either a primitive value or openehr_base.String wrapper.
      */
-    set type(val: string | String | undefined) {
+    set type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type = undefined;
         } else if (typeof val === 'string') {
-            this._type = String.from(val);
+            this._type = openehr_base.String.from(val);
         } else {
             this._type = val;
         }
@@ -4257,9 +4105,9 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
     type_ref?: P_BMM_OPEN_TYPE;
     /**
      * Internal storage for type
-     * @private
+     * @protected
      */
-    private _type?: String;
+    protected _type?: openehr_base.String;
 
     /**
      * Type definition of this property, if a simple String type reference. Really we should use \`_type_def_\` to be regular in the schema, but that makes the schema more wordy and less clear. So we use this persisted String value, and compute the \`_type_def_\` on the fly. Persisted attribute.
@@ -4269,21 +4117,21 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
     }
 
     /**
-     * Gets the String wrapper object for type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type.
+     * Use this to access openehr_base.String methods.
      */
-    get $type(): String | undefined {
+    get $type(): openehr_base.String | undefined {
         return this._type;
     }
 
     /**
-     * Sets type from either a primitive value or String wrapper.
+     * Sets type from either a primitive value or openehr_base.String wrapper.
      */
-    set type(val: string | String | undefined) {
+    set type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type = undefined;
         } else if (typeof val === 'string') {
-            this._type = String.from(val);
+            this._type = openehr_base.String.from(val);
         } else {
             this._type = val;
         }
@@ -4363,30 +4211,30 @@ export class P_BMM_INDEXED_CONTAINER_PROPERTY extends P_BMM_CONTAINER_PROPERTY {
 export class P_BMM_INDEXED_CONTAINER_TYPE extends P_BMM_CONTAINER_TYPE {
     /**
      * Internal storage for index_type
-     * @private
+     * @protected
      */
-    private _index_type?: String;
+    protected _index_type?: openehr_base.String;
 
     get index_type(): string | undefined {
         return this._index_type?.value;
     }
 
     /**
-     * Gets the String wrapper object for index_type.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for index_type.
+     * Use this to access openehr_base.String methods.
      */
-    get $index_type(): String | undefined {
+    get $index_type(): openehr_base.String | undefined {
         return this._index_type;
     }
 
     /**
-     * Sets index_type from either a primitive value or String wrapper.
+     * Sets index_type from either a primitive value or openehr_base.String wrapper.
      */
-    set index_type(val: string | String | undefined) {
+    set index_type(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._index_type = undefined;
         } else if (typeof val === 'string') {
-            this._index_type = String.from(val);
+            this._index_type = openehr_base.String.from(val);
         } else {
             this._index_type = val;
         }
@@ -4410,9 +4258,9 @@ export abstract class STATEMENT {
 export class ASSERTION extends STATEMENT {
     /**
      * Internal storage for tag
-     * @private
+     * @protected
      */
-    private _tag?: String;
+    protected _tag?: openehr_base.String;
 
     /**
      * Expression tag, used for differentiating multiple assertions.
@@ -4422,21 +4270,21 @@ export class ASSERTION extends STATEMENT {
     }
 
     /**
-     * Gets the String wrapper object for tag.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for tag.
+     * Use this to access openehr_base.String methods.
      */
-    get $tag(): String | undefined {
+    get $tag(): openehr_base.String | undefined {
         return this._tag;
     }
 
     /**
-     * Sets tag from either a primitive value or String wrapper.
+     * Sets tag from either a primitive value or openehr_base.String wrapper.
      */
-    set tag(val: string | String | undefined) {
+    set tag(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._tag = undefined;
         } else if (typeof val === 'string') {
-            this._tag = String.from(val);
+            this._tag = openehr_base.String.from(val);
         } else {
             this._tag = val;
         }
@@ -4444,9 +4292,9 @@ export class ASSERTION extends STATEMENT {
 
     /**
      * Internal storage for string_expression
-     * @private
+     * @protected
      */
-    private _string_expression?: String;
+    protected _string_expression?: openehr_base.String;
 
     /**
      * String form of expression, in case an expression evaluator taking String expressions is used for evaluation. 
@@ -4456,21 +4304,21 @@ export class ASSERTION extends STATEMENT {
     }
 
     /**
-     * Gets the String wrapper object for string_expression.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for string_expression.
+     * Use this to access openehr_base.String methods.
      */
-    get $string_expression(): String | undefined {
+    get $string_expression(): openehr_base.String | undefined {
         return this._string_expression;
     }
 
     /**
-     * Sets string_expression from either a primitive value or String wrapper.
+     * Sets string_expression from either a primitive value or openehr_base.String wrapper.
      */
-    set string_expression(val: string | String | undefined) {
+    set string_expression(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._string_expression = undefined;
         } else if (typeof val === 'string') {
-            this._string_expression = String.from(val);
+            this._string_expression = openehr_base.String.from(val);
         } else {
             this._string_expression = val;
         }
@@ -4504,7 +4352,7 @@ export abstract class EXPR_VALUE {
      * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
      * @returns Result value
      */
-    abstract value(): Any;
+    abstract value(): openehr_base.Any;
 
 }
 
@@ -4526,9 +4374,9 @@ export abstract class EXPRESSION extends EXPR_VALUE {
 export abstract class EXPR_OPERATOR extends EXPRESSION {
     /**
      * Internal storage for precedence_overridden
-     * @private
+     * @protected
      */
-    private _precedence_overridden?: Boolean;
+    protected _precedence_overridden?: openehr_base.Boolean;
 
     /**
      * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
@@ -4538,21 +4386,21 @@ export abstract class EXPR_OPERATOR extends EXPRESSION {
     }
 
     /**
-     * Gets the Boolean wrapper object for precedence_overridden.
-     * Use this to access Boolean methods.
+     * Gets the openehr_base.Boolean wrapper object for precedence_overridden.
+     * Use this to access openehr_base.Boolean methods.
      */
-    get $precedence_overridden(): Boolean | undefined {
+    get $precedence_overridden(): openehr_base.Boolean | undefined {
         return this._precedence_overridden;
     }
 
     /**
-     * Sets precedence_overridden from either a primitive value or Boolean wrapper.
+     * Sets precedence_overridden from either a primitive value or openehr_base.Boolean wrapper.
      */
-    set precedence_overridden(val: boolean | Boolean | undefined) {
+    set precedence_overridden(val: boolean | openehr_base.Boolean | undefined) {
         if (val === undefined || val === null) {
             this._precedence_overridden = undefined;
         } else if (typeof val === 'boolean') {
-            this._precedence_overridden = Boolean.from(val);
+            this._precedence_overridden = openehr_base.Boolean.from(val);
         } else {
             this._precedence_overridden = val;
         }
@@ -4564,9 +4412,9 @@ export abstract class EXPR_OPERATOR extends EXPRESSION {
     operator?: OPERATOR_KIND;
     /**
      * Internal storage for symbol
-     * @private
+     * @protected
      */
-    private _symbol?: String;
+    protected _symbol?: openehr_base.String;
 
     /**
      * The symbol actually used in the rule, or intended to be used for serialisation. Must be a member of \`operator_def.symbols\`.
@@ -4576,21 +4424,21 @@ export abstract class EXPR_OPERATOR extends EXPRESSION {
     }
 
     /**
-     * Gets the String wrapper object for symbol.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for symbol.
+     * Use this to access openehr_base.String methods.
      */
-    get $symbol(): String | undefined {
+    get $symbol(): openehr_base.String | undefined {
         return this._symbol;
     }
 
     /**
-     * Sets symbol from either a primitive value or String wrapper.
+     * Sets symbol from either a primitive value or openehr_base.String wrapper.
      */
-    set symbol(val: string | String | undefined) {
+    set symbol(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._symbol = undefined;
         } else if (typeof val === 'string') {
-            this._symbol = String.from(val);
+            this._symbol = openehr_base.String.from(val);
         } else {
             this._symbol = val;
         }
@@ -4625,7 +4473,7 @@ export abstract class EXPR_LEAF extends EXPRESSION {
     /**
      * The reference item from which the value of this node can be computed.
      */
-    item?: Any;
+    item?: openehr_base.Any;
 }
 
 /**
@@ -4645,7 +4493,7 @@ export class EXPR_LITERAL extends EXPR_LEAF {
     /**
      * A statically set constant value of a primitive type.
      */
-    override item?: Any;
+    override item?: openehr_base.Any;
 }
 
 /**
@@ -4674,9 +4522,9 @@ export class EXPR_VARIABLE_REF extends EXPR_LEAF {
 export class EXTERNAL_QUERY extends EXPR_VALUE {
     /**
      * Internal storage for context
-     * @private
+     * @protected
      */
-    private _context?: String;
+    protected _context?: openehr_base.String;
 
     /**
      * Optional name of context. This allows a basic separation of query types to be done in more sophisticated environments. Possible values might be “patient”, “medications” and so on.
@@ -4688,21 +4536,21 @@ export class EXTERNAL_QUERY extends EXPR_VALUE {
     }
 
     /**
-     * Gets the String wrapper object for context.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for context.
+     * Use this to access openehr_base.String methods.
      */
-    get $context(): String | undefined {
+    get $context(): openehr_base.String | undefined {
         return this._context;
     }
 
     /**
-     * Sets context from either a primitive value or String wrapper.
+     * Sets context from either a primitive value or openehr_base.String wrapper.
      */
-    set context(val: string | String | undefined) {
+    set context(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._context = undefined;
         } else if (typeof val === 'string') {
-            this._context = String.from(val);
+            this._context = openehr_base.String.from(val);
         } else {
             this._context = val;
         }
@@ -4710,9 +4558,9 @@ export class EXTERNAL_QUERY extends EXPR_VALUE {
 
     /**
      * Internal storage for query_id
-     * @private
+     * @protected
      */
-    private _query_id?: String;
+    protected _query_id?: openehr_base.String;
 
     /**
      * Identifier of query in the external context, e.g. “date_of_birth”.
@@ -4724,21 +4572,21 @@ export class EXTERNAL_QUERY extends EXPR_VALUE {
     }
 
     /**
-     * Gets the String wrapper object for query_id.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for query_id.
+     * Use this to access openehr_base.String methods.
      */
-    get $query_id(): String | undefined {
+    get $query_id(): openehr_base.String | undefined {
         return this._query_id;
     }
 
     /**
-     * Sets query_id from either a primitive value or String wrapper.
+     * Sets query_id from either a primitive value or openehr_base.String wrapper.
      */
-    set query_id(val: string | String | undefined) {
+    set query_id(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._query_id = undefined;
         } else if (typeof val === 'string') {
-            this._query_id = String.from(val);
+            this._query_id = openehr_base.String.from(val);
         } else {
             this._query_id = val;
         }
@@ -4762,9 +4610,9 @@ export class STATEMENT_SET {
     statement?: undefined;
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Optional name of this rule set.
@@ -4774,21 +4622,21 @@ export class STATEMENT_SET {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -4798,7 +4646,7 @@ export class STATEMENT_SET {
      * Execution result of the whole rule set. Determined by the and-ing of result values of Assertions in the rule set.
      * @returns Result value
      */
-    execution_result(): Boolean {
+    execution_result(): openehr_base.Boolean {
         // TODO: Implement execution_result behavior
         // This will be covered in Phase 3 (see ROADMAP.md)
         throw new Error("Method execution_result not yet implemented.");
@@ -4812,9 +4660,9 @@ export class STATEMENT_SET {
 export class VARIABLE_DECLARATION extends STATEMENT {
     /**
      * Internal storage for name
-     * @private
+     * @protected
      */
-    private _name?: String;
+    protected _name?: openehr_base.String;
 
     /**
      * Name of the variable.
@@ -4824,21 +4672,21 @@ export class VARIABLE_DECLARATION extends STATEMENT {
     }
 
     /**
-     * Gets the String wrapper object for name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for name.
+     * Use this to access openehr_base.String methods.
      */
-    get $name(): String | undefined {
+    get $name(): openehr_base.String | undefined {
         return this._name;
     }
 
     /**
-     * Sets name from either a primitive value or String wrapper.
+     * Sets name from either a primitive value or openehr_base.String wrapper.
      */
-    set name(val: string | String | undefined) {
+    set name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._name = undefined;
         } else if (typeof val === 'string') {
-            this._name = String.from(val);
+            this._name = openehr_base.String.from(val);
         } else {
             this._name = val;
         }
@@ -4873,7 +4721,7 @@ export class EXPR_FOR_ALL extends EXPR_OPERATOR {
 /**
  * Enumeration representing operators.
  */
-export class OPERATOR_KIND extends String {
+export class OPERATOR_KIND extends openehr_base.String {
 }
 
 /**
@@ -4882,9 +4730,9 @@ export class OPERATOR_KIND extends String {
 export abstract class EXPR_TYPE_DEF {
     /**
      * Internal storage for type_name
-     * @private
+     * @protected
      */
-    private _type_name?: String;
+    protected _type_name?: openehr_base.String;
 
     /**
      * Natural language type name of this type as used in abstract rules syntax variable declarations.
@@ -4894,21 +4742,21 @@ export abstract class EXPR_TYPE_DEF {
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
@@ -4917,289 +4765,193 @@ export abstract class EXPR_TYPE_DEF {
     /**
      * Attribute of the openEHR primitive type (or Any) corresponding to this type definition meta-type.
      */
-    type_anchor?: Any;
+    type_anchor?: openehr_base.Any;
 }
 
 /**
  * Rules meta-type representing the primitive type Boolean.
  */
 export class TYPE_DEF_BOOLEAN extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    /**
-     * Internal storage for type_anchor
-     * @private
-     */
-    private _type_anchor?: Boolean;
-
-    get type_anchor(): boolean | undefined {
-        return this._type_anchor?.value;
-    }
-
-    /**
-     * Gets the Boolean wrapper object for type_anchor.
-     * Use this to access Boolean methods.
-     */
-    get $type_anchor(): Boolean | undefined {
-        return this._type_anchor;
-    }
-
-    /**
-     * Sets type_anchor from either a primitive value or Boolean wrapper.
-     */
-    set type_anchor(val: boolean | Boolean | undefined) {
-        if (val === undefined || val === null) {
-            this._type_anchor = undefined;
-        } else if (typeof val === 'boolean') {
-            this._type_anchor = Boolean.from(val);
-        } else {
-            this._type_anchor = val;
-        }
-    }
-
+    override type_anchor?: openehr_base.Boolean = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Date.
  */
 export class TYPE_DEF_DATE extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Iso8601_date = undefined;
+    override type_anchor?: openehr_base.Iso8601_date = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Date_time.
  */
 export class TYPE_DEF_DATE_TIME extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Iso8601_date_time = undefined;
+    override type_anchor?: openehr_base.Iso8601_date_time = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Duration.
  */
 export class TYPE_DEF_DURATION extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Iso8601_duration = undefined;
+    override type_anchor?: openehr_base.Iso8601_duration = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Integer.
  */
 export class TYPE_DEF_INTEGER extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    /**
-     * Internal storage for type_anchor
-     * @private
-     */
-    private _type_anchor?: Integer;
-
-    get type_anchor(): number | undefined {
-        return this._type_anchor?.value;
-    }
-
-    /**
-     * Gets the Integer wrapper object for type_anchor.
-     * Use this to access Integer methods.
-     */
-    get $type_anchor(): Integer | undefined {
-        return this._type_anchor;
-    }
-
-    /**
-     * Sets type_anchor from either a primitive value or Integer wrapper.
-     */
-    set type_anchor(val: number | Integer | undefined) {
-        if (val === undefined || val === null) {
-            this._type_anchor = undefined;
-        } else if (typeof val === 'number') {
-            this._type_anchor = Integer.from(val);
-        } else {
-            this._type_anchor = val;
-        }
-    }
-
+    override type_anchor?: openehr_base.Integer = undefined;
 }
 
 /**
  * Rules meta-type representing the type Object_ref, which is assumed to by the type of any non-primitive reference target within a rule.
  */
 export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
@@ -5211,32 +4963,26 @@ export class TYPE_DEF_OBJECT_REF extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type Real.
  */
 export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
@@ -5249,181 +4995,127 @@ export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
  * Rules meta-type representing the primitive type String.
  */
 export class TYPE_DEF_STRING extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    /**
-     * Internal storage for type_anchor
-     * @private
-     */
-    private _type_anchor?: String;
-
-    get type_anchor(): string | undefined {
-        return this._type_anchor?.value;
-    }
-
-    /**
-     * Gets the String wrapper object for type_anchor.
-     * Use this to access String methods.
-     */
-    get $type_anchor(): String | undefined {
-        return this._type_anchor;
-    }
-
-    /**
-     * Sets type_anchor from either a primitive value or String wrapper.
-     */
-    set type_anchor(val: string | String | undefined) {
-        if (val === undefined || val === null) {
-            this._type_anchor = undefined;
-        } else if (typeof val === 'string') {
-            this._type_anchor = String.from(val);
-        } else {
-            this._type_anchor = val;
-        }
-    }
-
+    override type_anchor?: openehr_base.String = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Terminology_code.
  */
 export class TYPE_DEF_TERMINOLOGY_CODE extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Terminology_code = undefined;
+    override type_anchor?: openehr_base.Terminology_code = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Time.
  */
 export class TYPE_DEF_TIME extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Iso8601_time = undefined;
+    override type_anchor?: openehr_base.Iso8601_time = undefined;
 }
 
 /**
  * Rules meta-type representing the primitive type Uri.
  */
 export class TYPE_DEF_URI extends EXPR_TYPE_DEF {
-    /**
-     * Internal storage for type_name
-     * @private
-     */
-    private _type_name?: String;
-
-    get type_name(): string | undefined {
+    override get type_name(): string | undefined {
         return this._type_name?.value;
     }
 
     /**
-     * Gets the String wrapper object for type_name.
-     * Use this to access String methods.
+     * Gets the openehr_base.String wrapper object for type_name.
+     * Use this to access openehr_base.String methods.
      */
-    get $type_name(): String | undefined {
+    override get $type_name(): openehr_base.String | undefined {
         return this._type_name;
     }
 
     /**
-     * Sets type_name from either a primitive value or String wrapper.
+     * Sets type_name from either a primitive value or openehr_base.String wrapper.
      */
-    set type_name(val: string | String | undefined) {
+    override set type_name(val: string | openehr_base.String | undefined) {
         if (val === undefined || val === null) {
             this._type_name = undefined;
         } else if (typeof val === 'string') {
-            this._type_name = String.from(val);
+            this._type_name = openehr_base.String.from(val);
         } else {
             this._type_name = val;
         }
     }
 
-    override type_anchor?: Uri = undefined;
+    override type_anchor?: openehr_base.Uri = undefined;
 }
 

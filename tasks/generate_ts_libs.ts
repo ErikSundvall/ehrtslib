@@ -98,6 +98,14 @@ for (const packageName of sortedPackages) {
     // Generate import statements based on dependencies
     let imports = "";
     const deps = bmmDependencies[packageName] || [];
+    
+    // Always import openehr_base for non-base packages to access primitive wrappers
+    // (String, Integer, Boolean, etc.) even if not explicitly listed in BMM includes
+    if (packageName !== "openehr_base") {
+        imports += `import * as openehr_base from "./openehr_base.ts";\n`;
+        importedPackages["openehr_base"] = packageTypes["openehr_base"] || new Set();
+    }
+    
     for (const dep of deps) {
         // Find which package this dependency refers to
         const depPackage = packageNames.find(p => {
@@ -108,7 +116,8 @@ for (const packageName of sortedPackages) {
             return false;
         });
         
-        if (depPackage) {
+        // Skip if already added (e.g., openehr_base was added above)
+        if (depPackage && depPackage !== "openehr_base") {
             imports += `import * as ${depPackage} from "./${depPackage}.ts";\n`;
             // Add imported types to context
             importedPackages[depPackage] = packageTypes[depPackage] || new Set();

@@ -364,8 +364,11 @@ export function generateTypeScriptClass(
                 : undefined;
             
             // Check if the property type is a primitive wrapper (String, Integer, Boolean)
-            // If so, generate dual getter/setter pattern for developer convenience
-            const isWrapperProperty = isWrapperTypeName(property.type);
+            // Apply dual getter/setter pattern if:
+            // 1. Property type is a wrapper type AND
+            // 2. Either NOT overriding OR ancestor also had a wrapper type
+            const isWrapperProperty = isWrapperTypeName(property.type) && 
+                (!ancestorProperty || (ancestorProperty && isWrapperTypeName(ancestorProperty.type)));
             
             if (isWrapperProperty) {
                 // Generate dual getter/setter pattern for wrapper types
@@ -373,13 +376,18 @@ export function generateTypeScriptClass(
                 
                 const primitiveType = getPrimitiveTypeForWrapper(property.type);
                 const backingField = `_${property.name}`;
+                const overrideModifier = ancestorProperty ? 'override ' : '';
                 
-                // Private backing field that holds the wrapper instance
-                tsClass += `    /**\n`;
-                tsClass += `     * Internal storage for ${property.name}\n`;
-                tsClass += `     * @private\n`;
-                tsClass += `     */\n`;
-                tsClass += `    private ${backingField}?: ${propertyType};\n\n`;
+                // Only generate the backing field if this is NOT an override
+                // Use 'protected' instead of 'private' so derived classes can access it
+                if (!ancestorProperty) {
+                    // Protected backing field that holds the wrapper instance
+                    tsClass += `    /**\n`;
+                    tsClass += `     * Internal storage for ${property.name}\n`;
+                    tsClass += `     * @protected\n`;
+                    tsClass += `     */\n`;
+                    tsClass += `    protected ${backingField}?: ${propertyType};\n\n`;
+                }
                 
                 // Default getter returns primitive value (convenient for most use)
                 if (property.documentation) {
@@ -388,7 +396,7 @@ export function generateTypeScriptClass(
                     tsClass += `     * ${escapedDoc.replace(/\n/g, '\n     * ')}\n`;
                     tsClass += `     */\n`;
                 }
-                tsClass += `    get ${property.name}(): ${primitiveType} | undefined {\n`;
+                tsClass += `    ${overrideModifier}get ${property.name}(): ${primitiveType} | undefined {\n`;
                 tsClass += `        return this.${backingField}?.value;\n`;
                 tsClass += `    }\n\n`;
                 
@@ -397,7 +405,7 @@ export function generateTypeScriptClass(
                 tsClass += `     * Gets the ${propertyType} wrapper object for ${property.name}.\n`;
                 tsClass += `     * Use this to access ${propertyType} methods.\n`;
                 tsClass += `     */\n`;
-                tsClass += `    get $${property.name}(): ${propertyType} | undefined {\n`;
+                tsClass += `    ${overrideModifier}get $${property.name}(): ${propertyType} | undefined {\n`;
                 tsClass += `        return this.${backingField};\n`;
                 tsClass += `    }\n\n`;
                 
@@ -405,7 +413,7 @@ export function generateTypeScriptClass(
                 tsClass += `    /**\n`;
                 tsClass += `     * Sets ${property.name} from either a primitive value or ${propertyType} wrapper.\n`;
                 tsClass += `     */\n`;
-                tsClass += `    set ${property.name}(val: ${primitiveType} | ${propertyType} | undefined) {\n`;
+                tsClass += `    ${overrideModifier}set ${property.name}(val: ${primitiveType} | ${propertyType} | undefined) {\n`;
                 tsClass += `        if (val === undefined || val === null) {\n`;
                 tsClass += `            this.${backingField} = undefined;\n`;
                 tsClass += `        } else if (typeof val === '${primitiveType}') {\n`;
