@@ -47,17 +47,26 @@ Github repositories on the form [organization/repository -- Hints] note that all
     * openEHR/specifications-AM
     * openEHR/specifications-LANG
     * openEHR/specifications-RM
-
+i
  
 ## Phase 4a ✅ (done)
 First check what happened to the dual setter/getter approach and helpers for primitive classes described in Chapter 6 of https://github.com/ErikSundvall/ehrtslib/blob/main/STORY-PR6-AI-DEVELOPER-DIALOGUE.md is that pattern intact or did it disapperar along the way?
 If it is gone we need to re-intrduce it by to rewriting the class generators before going on.
 
-## Phase 4b
+## Phase 4b ✅ (done)
 Try to fix some _unexpected_ test errors and erratic non updated test code before going on. Ignore test failiures that are expexted due to not yet implementetd functinality. 
 Then implement functional behaviour class by class based on the instruction files in /tasks/instructions (one per class) produced in phase 3, also try to get tests for that class to pass before going on to next class. Note that there may be dependencies so try to implement in depencency order, also accept that some tests may not pass until dependencies are implemented.
 Note: the project already has a list defining dependenices between packages /tasks/bmm_dependencies.json and  has code for topological class sorting in generator files.
-Note: The three (Archie, java-libs and adl-tools) openEHR implementations can be used for inspiration in adiition to pseudocode in /instruction files.
+Note: The three (Archie, java-libs and adl-tools) openEHR implementations can be used for inspiration in addition to pseudocode in /instruction files.
+
+## Phase 4c
+The way the project is set up now is a (on rerun) potenitally destructive mix of dererminsitic generation and then extensive LLM-based manipulation of generated files. 
+* We first, in Phase 1+2 above, created an algorithm that 100% deterministicly from BMM JSON files generate Typescritp library files filled with class stubs that have properties and method headers
+* We then in Phase 3 use LLMs to create a knowledge bank of descriptive background information files in /tasks/instructions
+* We then in Phase 4 use LLMs to make considerable changes (based on the knowledge bank) to to the files that were generated in Phase 2
+
+The project needs to be better future proofed so that another run with new bmm-versions (that may contain additions and changes to the BMMs) will not destroy unchanged parts of the models, but rahter reuse existing libraries and tests and only modify+add the delta between last versoin and the new version.
+Now we have a situation where running the generators will overwrite e.g. the method implementations done in Phase 3
 
 ## Phase 5
 Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validatiadl-toolson source). 
