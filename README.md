@@ -14,11 +14,12 @@ This section describes how to generate TypeScript libraries from the latest open
 
 ### Quick Start
 
-To generate the TypeScript libraries for all openEHR BMM packages, run:
+To generate the TypeScript library stubs for all openEHR BMM packages, run:
 
 ```bash
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
+BUT BE WARNED! This currently overwrites any existing possibly more fully implemented library files (that might have been generated in Phase 4 of ROADMAP.md)
 
 ### What the Generator Does
 
