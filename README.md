@@ -213,13 +213,15 @@ The Phase 4c work described in ROADMAP.md will improve this process by:
 
 If you want to add a new openEHR BMM package that wasn't previously included in this library (e.g., adding support for a new openEHR specification component), follow these steps.
 
+**Note:** This section uses `openehr_proc` as a hypothetical example package name throughout. This package does not currently exist in the library and is used purely for illustration purposes.
+
 ### Prerequisites
 
 Before adding a new BMM file, ensure:
 
 1. **The BMM file exists** in the source repository:
    - Check https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
-   - Identify the exact filename (e.g., `openehr_proc_1.0.0.bmm.json`)
+   - Identify the exact filename (e.g., `openehr_proc_1.0.0.bmm.json` - used as example only)
 
 2. **Understand dependencies**:
    - Review the BMM file to see which other packages it imports
@@ -234,7 +236,7 @@ Before adding a new BMM file, ensure:
 
 #### Add to `tasks/bmm_versions.json`
 
-Add an entry for the new package with its BMM file URL:
+Add an entry for the new package with its BMM file URL (example using hypothetical `openehr_proc` package):
 
 ```json
 {
@@ -246,7 +248,7 @@ Add an entry for the new package with its BMM file URL:
 
 #### Add to `tasks/bmm_dependencies.json`
 
-Specify the package's dependencies (packages it imports from):
+Specify the package's dependencies (packages it imports from, example using hypothetical `openehr_proc` package):
 
 ```json
 {
@@ -271,7 +273,7 @@ The generator will:
 - Parse its contents
 - Generate TypeScript classes, interfaces, and types
 - Add proper import statements for dependencies
-- Create `openehr_proc.ts` (or whatever your package name is)
+- Create `openehr_proc.ts` (or whatever your package name is - `openehr_proc` is used as example throughout this section)
 
 ### Step 3: Verify the Generated Code
 
@@ -337,7 +339,7 @@ If the new package is significant, update documentation:
    - Add the new package to the list of supported packages
    - Mention any special considerations
 
-2. **Add usage examples**:
+2. **Add usage examples** (using `openehr_proc` as hypothetical example):
    ```typescript
    import { SomeClass } from "./openehr_proc.ts";
    import { LOCATABLE } from "./openehr_rm.ts";
