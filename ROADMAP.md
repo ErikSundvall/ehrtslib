@@ -67,7 +67,19 @@ The way the project is set up now is a (on rerun) potenitally destructive mix of
 The project needs to be better future proofed so that another run with new bmm-versions (that may contain additions and changes to the BMMs) will not destroy unchanged parts of the models, but rahter reuse existing libraries and tests and only modify+add the delta between last versoin and the new version.
 Now we have a situation where running the generators will overwrite e.g. the method implementations done in Phase 3
 
-## Phase 5
+## Phase 4d
+Add function behaviour for not yet implemented functions in BASE, RM & LANG (if any) and create and run associated tests. (Hint: many of the unimplemented pars throw errors saying that they are not yet implemented)
+
+## Phase 5a
+Serialisation and deserialisation of RM object instance trees to and from openEHRs canonical JSON and XML formats (in separate classes so that you only import the ones you need, since often a project using the library will need either XML or JSON). If JS/TS built in support for JSON and XML is not enough and/or if it helps keeping the implementation cleaner and more understandable feel free to import and use libraries like teh following or others that you find:
+* https://github.com/typestack/class-transformer or https://github.com/GillianPerard/typescript-json-serializer for going between Typescript object instances and JSON
+* https://github.com/Leonidas-from-XIV/node-xml2js or https://github.com/GillianPerard/typescript-json-serializer for going between Typescript object instances and XML
+
+## Phase 4e 
+Create documentation and runnable example code That shows how to build an RM object tree for an openEHR COMPOSITION from scratch based on manually lookling at the very simple/minimal flattened template (...provide filename here...). Do point out that at this stage we do not yet have support from the AM and helper code to validate that the tree structure is actually valid and following a template. Template supported object creation will be implemented in later phases, but it could be pedagogical to show that the RM is usable (albeit in a cumbersome way) on its own.
+
+
+## Pase 5b
 Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validatiadl-toolson source). 
 * One version of this code needs to be small so that it can fit and be run eficiently inside form engines etc. 
 * Also make a (less lightweight) version that can be synchronously multiuser updated using Y.js or 
@@ -75,3 +87,6 @@ Simplified openEHR template specific forms of instance tree creation and validat
 
 ## Phase 6
 Serialisation and deserialisation of RM object instance trees to and from openEHRs simplified JSON formats (likely using other already existing library if it can be made fairly dependency free)
+
+## Phase X
+Create /dist directory and subdirectories with different distributions for targeted purposes
