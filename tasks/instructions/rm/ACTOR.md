@@ -2,9 +2,11 @@
 
 ## Description
 
-Abstract class representing an actor in the system - an entity that performs actions. Part of the demographic model.
+Abstract class representing an actor in the system - an entity that performs
+actions. Part of the demographic model.
 
-**Specification Reference:** [openEHR RM Demographic](https://specifications.openehr.org/releases/RM/latest/demographic.html)
+**Specification Reference:**
+[openEHR RM Demographic](https://specifications.openehr.org/releases/RM/latest/demographic.html)
 
 ## Behavior
 
@@ -26,12 +28,9 @@ True if actor has a legally recognized identity.
 
 ## Example Usage
 
-\`\`\`typescript
-// Abstract - see concrete implementations
-const person = new PERSON(); // Person is an ACTOR
-person.roles = [healthcareProfessionalRole];
-person.languages = [new DV_TEXT().value = "en"];
-\`\`\`
+\`\`\`typescript // Abstract - see concrete implementations const person = new
+PERSON(); // Person is an ACTOR person.roles = [healthcareProfessionalRole];
+person.languages = [new DV_TEXT().value = "en"]; \`\`\`
 
 ## Test Cases
 

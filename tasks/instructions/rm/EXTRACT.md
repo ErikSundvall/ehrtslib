@@ -4,7 +4,8 @@
 
 EXTRACT is the root of an Extract structure for EHR data exchange.
 
--   **Reference:** [openEHR RM - EXTRACT](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_class)
+- **Reference:**
+  [openEHR RM - EXTRACT](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_class)
 
 ## 2. Behavior
 
@@ -27,4 +28,5 @@ extract.system_id = new HIER_OBJECT_ID("system456");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_class)

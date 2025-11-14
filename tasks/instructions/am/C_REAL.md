@@ -4,7 +4,8 @@
 
 C_REAL constrains Real (floating-point) values.
 
--   **Reference:** [openEHR AM - C_REAL](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_real_class)
+- **Reference:**
+  [openEHR AM - C_REAL](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_real_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ C_REAL constrains Real (floating-point) values.
 Check if a real value satisfies this constraint.
 
 **Pseudo-code:**
+
 ```typescript
 valid_value(value: Real): Boolean {
   // If list is defined, value must be in list (with tolerance for floating point)
@@ -63,4 +65,5 @@ cRange.range.upper = 100.0;
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_REAL](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_real_class)
+- **Official Specification:**
+  [openEHR AM - C_REAL](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_real_class)

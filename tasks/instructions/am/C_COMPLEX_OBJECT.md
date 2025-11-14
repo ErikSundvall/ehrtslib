@@ -4,7 +4,8 @@
 
 C_COMPLEX_OBJECT represents a constraint on a non-primitive RM type.
 
--   **Reference:** [openEHR AM - C_COMPLEX_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_complex_object_class)
+- **Reference:**
+  [openEHR AM - C_COMPLEX_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_complex_object_class)
 
 ## 2. Behavior
 
@@ -19,6 +20,7 @@ C_COMPLEX_OBJECT represents a constraint on a non-primitive RM type.
 Check if complex object constraint is valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Call parent validation
@@ -44,6 +46,7 @@ is_valid(): Boolean {
 Get attribute constraint at specified path.
 
 **Pseudo-code:**
+
 ```typescript
 attribute_at_path(path: String): C_ATTRIBUTE {
   if (!path || path === "") {
@@ -83,4 +86,5 @@ cComplex.attributes = [dataAttr];
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_COMPLEX_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_complex_object_class)
+- **Official Specification:**
+  [openEHR AM - C_COMPLEX_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_complex_object_class)

@@ -1,10 +1,12 @@
 # Enhanced Implementation Directory
 
-This directory contains **fully implemented** TypeScript classes with working behavior, extending the stubs generated from openEHR BMM specifications.
+This directory contains **fully implemented** TypeScript classes with working
+behavior, extending the stubs generated from openEHR BMM specifications.
 
 ## Purpose
 
 The enhanced files contain:
+
 1. **Complete method implementations** (not just stubs)
 2. **Additional helper methods** beyond the BMM specification
 3. **LLM-assisted enhancements** and optimizations
@@ -14,6 +16,7 @@ The enhanced files contain:
 ## ✅ Safe to Edit
 
 Files in this directory are:
+
 - **Safe to edit manually** or with LLM assistance
 - **NOT overwritten** by the generator
 - **The source of truth** for the library's actual behavior
@@ -22,6 +25,7 @@ Files in this directory are:
 ## Structure
 
 This directory mirrors the structure of `/generated`:
+
 - `openehr_base.ts` - Enhanced base types with full implementations
 - `openehr_rm.ts` - Enhanced Reference Model with complete behavior
 - `openehr_am.ts` - Enhanced Archetype Model with full functionality
@@ -31,11 +35,13 @@ This directory mirrors the structure of `/generated`:
 ## Import Guidelines
 
 When editing enhanced files:
+
 - Import from other enhanced files using relative paths: `./openehr_base.ts`
 - Do NOT import from root-level re-export wrappers
 - Do NOT import from `/generated` (use enhanced versions)
 
 Example:
+
 ```typescript
 // ✅ Good
 import * as openehr_base from "./openehr_base.ts";
@@ -57,16 +63,19 @@ When a new BMM version is released:
    - Changed signatures (update existing methods)
 5. Run tests to verify everything still works
 
-**Do not** simply copy from `/generated` to `/enhanced` - you'll lose all your enhancements!
+**Do not** simply copy from `/generated` to `/enhanced` - you'll lose all your
+enhancements!
 
 ## Version Tracking
 
 Each file should have a header comment indicating:
+
 - Last BMM version it was synced with
 - Date of last update
 - Any known differences from the BMM specification
 
 Example:
+
 ```typescript
 // Enhanced implementation based on BMM: base v1.3.0
 // Last synced: 2025-11-14

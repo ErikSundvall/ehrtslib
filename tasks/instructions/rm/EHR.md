@@ -4,7 +4,8 @@
 
 EHR represents an Electronic Health Record for a single subject.
 
--   **Reference:** [openEHR RM - EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_class)
+- **Reference:**
+  [openEHR RM - EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_class)
 
 ## 2. Behavior
 
@@ -18,4 +19,5 @@ EHR represents an Electronic Health Record for a single subject.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_class)
+- **Official Specification:**
+  [openEHR RM - EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_class)

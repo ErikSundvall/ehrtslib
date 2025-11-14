@@ -4,7 +4,8 @@
 
 CAPABILITY represents a capability or qualification associated with a role.
 
--   **Reference:** [openEHR RM - CAPABILITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_capability_class)
+- **Reference:**
+  [openEHR RM - CAPABILITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_capability_class)
 
 ## 2. Behavior
 
@@ -32,4 +33,5 @@ capability.time_validity = validity;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - CAPABILITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_capability_class)
+- **Official Specification:**
+  [openEHR RM - CAPABILITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_capability_class)

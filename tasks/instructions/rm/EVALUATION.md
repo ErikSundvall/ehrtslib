@@ -2,9 +2,12 @@
 
 ## 1. Description
 
-The `EVALUATION` class records clinical assessments, opinions, and interpretations. Unlike OBSERVATION, it represents evaluated knowledge rather than raw observations.
+The `EVALUATION` class records clinical assessments, opinions, and
+interpretations. Unlike OBSERVATION, it represents evaluated knowledge rather
+than raw observations.
 
--   **Reference:** [openEHR RM - EVALUATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_evaluation_class)
+- **Reference:**
+  [openEHR RM - EVALUATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_evaluation_class)
 
 ## 2. Behavior
 
@@ -12,12 +15,13 @@ The `EVALUATION` class records clinical assessments, opinions, and interpretatio
 
 #### `data: ITEM_STRUCTURE`
 
--   **Purpose:** The assessment or evaluation data.
--   **Optional:** Yes (per specification)
+- **Purpose:** The assessment or evaluation data.
+- **Optional:** Yes (per specification)
 
 ### 2.2. Common Uses
 
 EVALUATION is used for:
+
 - Problem/diagnosis lists
 - Risk assessments
 - Adverse reaction lists
@@ -50,5 +54,7 @@ diagnosis.data = data;
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - EVALUATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_evaluation_class)
--   **Implementation:** [Archie EVALUATION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Evaluation.java)
+- **Official Specification:**
+  [openEHR RM - EVALUATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_evaluation_class)
+- **Implementation:**
+  [Archie EVALUATION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Evaluation.java)

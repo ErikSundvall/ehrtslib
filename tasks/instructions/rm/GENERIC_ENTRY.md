@@ -4,13 +4,15 @@
 
 GENERIC_ENTRY represents a generic entry for non-clinical content.
 
--   **Reference:** [openEHR RM - GENERIC_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_generic_entry_class)
+- **Reference:**
+  [openEHR RM - GENERIC_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_generic_entry_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from CONTENT_ITEM:
+
 - `data: ITEM_STRUCTURE` - Entry data
 
 ## 3. Example Usage
@@ -23,4 +25,5 @@ entry.data.add_element("note", "General information");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - GENERIC_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_generic_entry_class)
+- **Official Specification:**
+  [openEHR RM - GENERIC_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_generic_entry_class)

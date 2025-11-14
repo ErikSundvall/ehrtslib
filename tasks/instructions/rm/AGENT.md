@@ -4,17 +4,20 @@
 
 AGENT represents a person or organization acting in a specific role.
 
--   **Reference:** [openEHR RM - AGENT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_agent_class)
+- **Reference:**
+  [openEHR RM - AGENT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_agent_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from PARTY:
+
 - `uid: HIER_OBJECT_ID` - Unique identifier
 - `identities: List<PARTY_IDENTITY>` - Agent identities
 - `contacts: List<CONTACT>` - Contact information
-- `relationships: List<PARTY_RELATIONSHIP>` - Relationships (includes link to actual person/org)
+- `relationships: List<PARTY_RELATIONSHIP>` - Relationships (includes link to
+  actual person/org)
 - `details: ITEM_STRUCTURE` - Role-specific details
 
 ## 3. Example Usage
@@ -34,4 +37,5 @@ agent.identities = [identity];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - AGENT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_agent_class)
+- **Official Specification:**
+  [openEHR RM - AGENT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_agent_class)

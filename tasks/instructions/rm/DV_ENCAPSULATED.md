@@ -4,7 +4,8 @@
 
 DV_ENCAPSULATED is abstract parent for encapsulated data (MULTIMEDIA, PARSABLE).
 
--   **Reference:** [openEHR RM - DV_ENCAPSULATED](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_encapsulated_class)
+- **Reference:**
+  [openEHR RM - DV_ENCAPSULATED](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_encapsulated_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ DV_ENCAPSULATED is abstract parent for encapsulated data (MULTIMEDIA, PARSABLE).
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - DV_ENCAPSULATED](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_encapsulated_class)
+- **Official Specification:**
+  [openEHR RM - DV_ENCAPSULATED](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_encapsulated_class)

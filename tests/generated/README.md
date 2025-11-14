@@ -5,6 +5,7 @@ This directory contains tests for the **generated** code stubs in `/generated`.
 ## Purpose
 
 These tests verify:
+
 - ✅ Classes can be instantiated
 - ✅ Properties exist with correct types
 - ✅ Method signatures are correct
@@ -13,6 +14,7 @@ These tests verify:
 ## Important
 
 Tests in this directory should:
+
 - **NOT** expect full behavioral correctness
 - **Focus on** structural correctness (types, signatures)
 - **Accept** that many methods are just stubs
@@ -26,5 +28,6 @@ deno test tests/generated/
 
 ## Comparison
 
-Tests in `/tests/enhanced` expect full implementations and behavioral correctness.
-Tests here only verify the structural aspects from BMM specifications.
+Tests in `/tests/enhanced` expect full implementations and behavioral
+correctness. Tests here only verify the structural aspects from BMM
+specifications.

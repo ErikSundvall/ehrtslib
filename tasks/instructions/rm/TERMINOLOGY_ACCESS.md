@@ -4,7 +4,8 @@
 
 TERMINOLOGY_ACCESS provides access to a specific terminology.
 
--   **Reference:** [openEHR RM - TERMINOLOGY_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_access_class)
+- **Reference:**
+  [openEHR RM - TERMINOLOGY_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_access_class)
 
 ## 2. Behavior
 
@@ -19,6 +20,7 @@ Get terminology identifier.
 Check if code belongs to a specific group.
 
 **Pseudo-code:**
+
 ```typescript
 has_code_for_group_id(group_id: String, code: String): Boolean {
   const group = this.get_group(group_id);
@@ -42,9 +44,10 @@ Get all codes in a group.
 
 ```typescript
 const snomed = termService.terminology("SNOMED-CT");
-const term = snomed.rubric_for_code("38341003", "en");  // "Hypertension"
+const term = snomed.rubric_for_code("38341003", "en"); // "Hypertension"
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - TERMINOLOGY_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_access_class)
+- **Official Specification:**
+  [openEHR RM - TERMINOLOGY_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_access_class)

@@ -4,7 +4,8 @@
 
 ORIGINAL_VERSION represents a version created in this system.
 
--   **Reference:** [openEHR RM - ORIGINAL_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_original_version_class)
+- **Reference:**
+  [openEHR RM - ORIGINAL_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_original_version_class)
 
 ## 2. Behavior
 
@@ -22,9 +23,13 @@ ORIGINAL_VERSION represents a version created in this system.
 ```typescript
 const version = new ORIGINAL_VERSION<COMPOSITION>();
 version.data = myComposition;
-version.lifecycle_state = DV_CODED_TEXT.from("complete", CODE_PHRASE.from("532", "openehr"));
+version.lifecycle_state = DV_CODED_TEXT.from(
+  "complete",
+  CODE_PHRASE.from("532", "openehr"),
+);
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ORIGINAL_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_original_version_class)
+- **Official Specification:**
+  [openEHR RM - ORIGINAL_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_original_version_class)

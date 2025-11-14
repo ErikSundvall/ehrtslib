@@ -4,7 +4,8 @@
 
 TERM_MAPPING represents a mapping of a term to an external terminology.
 
--   **Reference:** [openEHR RM - TERM_MAPPING](https://specifications.openehr.org/releases/RM/latest/data_types.html#_term_mapping_class)
+- **Reference:**
+  [openEHR RM - TERM_MAPPING](https://specifications.openehr.org/releases/RM/latest/data_types.html#_term_mapping_class)
 
 ## 2. Behavior
 
@@ -25,7 +26,7 @@ TERM_MAPPING represents a mapping of a term to an external terminology.
 
 ```typescript
 const mapping = new TERM_MAPPING();
-mapping.match = Character.from('=');
+mapping.match = Character.from("=");
 mapping.purpose = new DV_CODED_TEXT("primary", "openehr::mapping_purpose");
 
 const target = new CODE_PHRASE();
@@ -36,4 +37,5 @@ mapping.target = target;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - TERM_MAPPING](https://specifications.openehr.org/releases/RM/latest/data_types.html#_term_mapping_class)
+- **Official Specification:**
+  [openEHR RM - TERM_MAPPING](https://specifications.openehr.org/releases/RM/latest/data_types.html#_term_mapping_class)

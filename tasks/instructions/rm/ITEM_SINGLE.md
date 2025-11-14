@@ -4,7 +4,8 @@
 
 The `ITEM_SINGLE` class represents a single ELEMENT - simplest ITEM_STRUCTURE.
 
--   **Reference:** [openEHR RM - ITEM_SINGLE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_single_class)
+- **Reference:**
+  [openEHR RM - ITEM_SINGLE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_single_class)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ single.item = elem;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ITEM_SINGLE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_single_class)
+- **Official Specification:**
+  [openEHR RM - ITEM_SINGLE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_single_class)

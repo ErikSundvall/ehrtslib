@@ -4,7 +4,8 @@
 
 Manifest describing entities included in an extract.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -21,12 +22,9 @@ Manifest describing entities included in an extract.
 
 ## Example Usage
 
-\`\`\`typescript
-const manifest = new EXTRACT_ENTITY_MANIFEST();
-manifest.entity_identifier = patientId;
-manifest.item_count = 25;
-manifest.version_count = 32;
-\`\`\`
+\`\`\`typescript const manifest = new EXTRACT_ENTITY_MANIFEST();
+manifest.entity_identifier = patientId; manifest.item_count = 25;
+manifest.version_count = 32; \`\`\`
 
 ## Test Cases
 

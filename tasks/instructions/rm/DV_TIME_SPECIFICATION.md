@@ -2,9 +2,11 @@
 
 ## Description
 
-Abstract parent for time specifications (recurring times, schedules). Used for timing of observations, medications, etc.
+Abstract parent for time specifications (recurring times, schedules). Used for
+timing of observations, medications, etc.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_specification_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_specification_class)
 
 ## Behavior
 

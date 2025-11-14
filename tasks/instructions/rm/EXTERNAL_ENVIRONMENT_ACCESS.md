@@ -4,14 +4,16 @@
 
 Specifies access control settings for external environments accessing the EHR.
 
-**Specification Reference:** [openEHR RM EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html)
+**Specification Reference:**
+[openEHR RM EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html)
 
 ## Behavior
 
 ### Properties
 
 - `url`: DV_URI - URL of external environment
-- `settings`: List<ACCESS_CONTROL_SETTINGS> - Access settings for this environment
+- `settings`: List<ACCESS_CONTROL_SETTINGS> - Access settings for this
+  environment
 
 ## Invariants
 
@@ -20,12 +22,10 @@ Specifies access control settings for external environments accessing the EHR.
 
 ## Example Usage
 
-\`\`\`typescript
-const extAccess = new EXTERNAL_ENVIRONMENT_ACCESS();
-extAccess.url = new DV_URI();
-extAccess.url.value = "https://external-system.example.com";
-extAccess.settings = [accessControlSettings];
-\`\`\`
+\`\`\`typescript const extAccess = new EXTERNAL_ENVIRONMENT_ACCESS();
+extAccess.url = new DV_URI(); extAccess.url.value =
+"https://external-system.example.com"; extAccess.settings =
+[accessControlSettings]; \`\`\`
 
 ## Test Cases
 

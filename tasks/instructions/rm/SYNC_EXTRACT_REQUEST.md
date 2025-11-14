@@ -4,7 +4,8 @@
 
 Request for a synchronization extract.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -15,10 +16,8 @@ Request for a synchronization extract.
 
 ## Example Usage
 
-\`\`\`typescript
-const syncRequest = new SYNC_EXTRACT_REQUEST();
-syncRequest.sync_from = lastSyncTime;
-syncRequest.update_spec = updateSpec;
+\`\`\`typescript const syncRequest = new SYNC_EXTRACT_REQUEST();
+syncRequest.sync_from = lastSyncTime; syncRequest.update_spec = updateSpec;
 \`\`\`
 
 ## Test Cases

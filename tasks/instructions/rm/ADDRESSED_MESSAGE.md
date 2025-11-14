@@ -4,13 +4,15 @@
 
 ADDRESSED_MESSAGE is a message with sender and recipient information.
 
--   **Reference:** [openEHR RM - ADDRESSED_MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_addressed_message_class)
+- **Reference:**
+  [openEHR RM - ADDRESSED_MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_addressed_message_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from MESSAGE:
+
 - `sender: PARTY_IDENTIFIED` - Message sender
 - `receiver: PARTY_IDENTIFIED` - Message recipient
 - `urgency: Integer` - Message urgency (0-9)
@@ -28,4 +30,5 @@ message.urgency = Integer.from(5);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ADDRESSED_MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_addressed_message_class)
+- **Official Specification:**
+  [openEHR RM - ADDRESSED_MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_addressed_message_class)

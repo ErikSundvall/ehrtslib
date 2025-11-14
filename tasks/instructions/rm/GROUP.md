@@ -4,13 +4,15 @@
 
 GROUP represents a group of parties (persons or organizations).
 
--   **Reference:** [openEHR RM - GROUP](https://specifications.openehr.org/releases/RM/latest/demographic.html#_group_class)
+- **Reference:**
+  [openEHR RM - GROUP](https://specifications.openehr.org/releases/RM/latest/demographic.html#_group_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from PARTY:
+
 - `uid: HIER_OBJECT_ID` - Unique identifier
 - `identities: List<PARTY_IDENTITY>` - Group names
 - `contacts: List<CONTACT>` - Contact information
@@ -34,4 +36,5 @@ group.identities = [identity];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - GROUP](https://specifications.openehr.org/releases/RM/latest/demographic.html#_group_class)
+- **Official Specification:**
+  [openEHR RM - GROUP](https://specifications.openehr.org/releases/RM/latest/demographic.html#_group_class)

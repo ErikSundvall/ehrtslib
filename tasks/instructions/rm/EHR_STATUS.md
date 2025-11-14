@@ -4,7 +4,8 @@
 
 EHR_STATUS represents the status and control information for an EHR.
 
--   **Reference:** [openEHR RM - EHR_STATUS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_status_class)
+- **Reference:**
+  [openEHR RM - EHR_STATUS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_status_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ status.is_modifiable = true;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EHR_STATUS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_status_class)
+- **Official Specification:**
+  [openEHR RM - EHR_STATUS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_status_class)

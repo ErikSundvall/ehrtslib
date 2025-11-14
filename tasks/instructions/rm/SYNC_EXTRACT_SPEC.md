@@ -4,7 +4,8 @@
 
 Specification for synchronization extracts.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -15,10 +16,8 @@ Specification for synchronization extracts.
 
 ## Example Usage
 
-\`\`\`typescript
-const syncSpec = new SYNC_EXTRACT_SPEC();
-syncSpec.include_change_history = true;
-syncSpec.include_directory = true;
+\`\`\`typescript const syncSpec = new SYNC_EXTRACT_SPEC();
+syncSpec.include_change_history = true; syncSpec.include_directory = true;
 \`\`\`
 
 ## Test Cases

@@ -4,7 +4,8 @@
 
 Class containing access control settings for EHR information.
 
-**Specification Reference:** [openEHR RM EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html)
+**Specification Reference:**
+[openEHR RM EHR](https://specifications.openehr.org/releases/RM/latest/ehr.html)
 
 ## Behavior
 
@@ -20,13 +21,9 @@ Class containing access control settings for EHR information.
 
 ## Example Usage
 
-\`\`\`typescript
-const setting = new ACCESS_CONTROL_SETTINGS();
-setting.property = new DV_CODED_TEXT();
-setting.property.value = "read_access";
-setting.value = new DV_TEXT();
-setting.value.value = "restricted";
-\`\`\`
+\`\`\`typescript const setting = new ACCESS_CONTROL_SETTINGS(); setting.property
+= new DV_CODED_TEXT(); setting.property.value = "read_access"; setting.value =
+new DV_TEXT(); setting.value.value = "restricted"; \`\`\`
 
 ## Test Cases
 

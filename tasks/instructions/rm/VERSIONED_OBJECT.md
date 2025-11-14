@@ -4,7 +4,8 @@
 
 VERSIONED_OBJECT manages versioned content.
 
--   **Reference:** [openEHR RM - VERSIONED_OBJECT](https://specifications.openehr.org/releases/RM/latest/common.html#_versioned_object_class)
+- **Reference:**
+  [openEHR RM - VERSIONED_OBJECT](https://specifications.openehr.org/releases/RM/latest/common.html#_versioned_object_class)
 
 ## 2. Behavior
 
@@ -22,4 +23,5 @@ VERSIONED_OBJECT manages versioned content.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - VERSIONED_OBJECT](https://specifications.openehr.org/releases/RM/latest/common.html#_versioned_object_class)
+- **Official Specification:**
+  [openEHR RM - VERSIONED_OBJECT](https://specifications.openehr.org/releases/RM/latest/common.html#_versioned_object_class)

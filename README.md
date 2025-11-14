@@ -1,15 +1,21 @@
-
 # ehrtslib (Electronic Health Record TypeScript Library)
-TypeScript library for (to begin with) openEHR. Intended for (partial) use both in clients like web browsers or and in servers based on e.g. Deno or Node.js
-The library is big an detailed, so developers using it are assumed to be importing just needed parts and to have build tools/processes that use e.g. "tree shaking" to reduce the amount of code shipped to end users.
+
+TypeScript library for (to begin with) openEHR. Intended for (partial) use both
+in clients like web browsers or and in servers based on e.g. Deno or Node.js The
+library is big an detailed, so developers using it are assumed to be importing
+just needed parts and to have build tools/processes that use e.g. "tree shaking"
+to reduce the amount of code shipped to end users.
 
 ## TypeScript EHR Library Generation
 
-This section describes how to generate TypeScript libraries from the latest openEHR BMM JSON specifications.
+This section describes how to generate TypeScript libraries from the latest
+openEHR BMM JSON specifications.
 
 ### Prerequisites
 
-- [Deno](https://deno.land/) runtime installed (installation instructions at https://docs.deno.com/runtime/getting_started/installation/) If you have node/npm installed then deno is installed by running `npm install -g deno`
+- [Deno](https://deno.land/) runtime installed (installation instructions at
+  https://docs.deno.com/runtime/getting_started/installation/) If you have
+  node/npm installed then deno is installed by running `npm install -g deno`
 - Internet connection (to download BMM JSON files from GitHub)
 
 ### Quick Start
@@ -20,24 +26,34 @@ To generate the TypeScript library stubs for all openEHR BMM packages, run:
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
-This generates stub files in the `/generated` directory. These stubs are safe to regenerate at any time - they won't overwrite your enhanced implementations in `/enhanced`.
+This generates stub files in the `/generated` directory. These stubs are safe to
+regenerate at any time - they won't overwrite your enhanced implementations in
+`/enhanced`.
 
-**Note:** The root-level `openehr_*.ts` files are thin re-export wrappers that provide backward compatibility by re-exporting from `/enhanced`.
+**Note:** The root-level `openehr_*.ts` files are thin re-export wrappers that
+provide backward compatibility by re-exporting from `/enhanced`.
 
 ### What the Generator Does
 
 The generator script performs the following steps:
 
-1.  **Reads package versions**: Loads `tasks/bmm_versions.json` to identify the latest SemVer version of each BMM package
-2.  **Reads dependencies**: Loads `tasks/bmm_dependencies.json` to understand inter-package dependencies
-3.  **Topological sorting**: Orders packages so dependencies are generated before packages that depend on them (e.g., `openehr_base` before `openehr_rm`)
-4.  **Downloads BMM files**: Fetches the corresponding BMM JSON files from the `sebastian-iancu/code-generator` GitHub repository
-5.  **Generates TypeScript code**: 
-    - Creates TypeScript classes and interfaces for each BMM package
-    - Includes comprehensive JSDoc comments extracted from BMM documentation
-    - Adds proper `import` statements for inter-package dependencies
-    - Resolves type references across packages (e.g., `openehr_base.UID_BASED_ID`)
-6.  **Saves output**: Writes generated TypeScript files to the `/generated` directory (e.g., `generated/openehr_am.ts`, `generated/openehr_base.ts`, etc.)
+1. **Reads package versions**: Loads `tasks/bmm_versions.json` to identify the
+   latest SemVer version of each BMM package
+2. **Reads dependencies**: Loads `tasks/bmm_dependencies.json` to understand
+   inter-package dependencies
+3. **Topological sorting**: Orders packages so dependencies are generated before
+   packages that depend on them (e.g., `openehr_base` before `openehr_rm`)
+4. **Downloads BMM files**: Fetches the corresponding BMM JSON files from the
+   `sebastian-iancu/code-generator` GitHub repository
+5. **Generates TypeScript code**:
+   - Creates TypeScript classes and interfaces for each BMM package
+   - Includes comprehensive JSDoc comments extracted from BMM documentation
+   - Adds proper `import` statements for inter-package dependencies
+   - Resolves type references across packages (e.g.,
+     `openehr_base.UID_BASED_ID`)
+6. **Saves output**: Writes generated TypeScript files to the `/generated`
+   directory (e.g., `generated/openehr_am.ts`, `generated/openehr_base.ts`,
+   etc.)
 
 ### Discovering Latest BMM Versions
 
@@ -48,6 +64,7 @@ deno run --allow-net --allow-write tasks/extract_dependencies.ts
 ```
 
 This will:
+
 - Discover the latest versions of all BMM packages
 - Update `tasks/bmm_versions.json`
 - Extract and update inter-package dependencies in `tasks/bmm_dependencies.json`
@@ -56,16 +73,20 @@ Then regenerate the TypeScript libraries using the generation command above.
 
 ### Manual Configuration
 
-The generation process is controlled by two JSON configuration files in the `tasks/` directory:
+The generation process is controlled by two JSON configuration files in the
+`tasks/` directory:
 
 - **`tasks/bmm_versions.json`**: Maps package names to their BMM JSON file URLs
-- **`tasks/bmm_dependencies.json`**: Maps package names to arrays of their dependencies
+- **`tasks/bmm_dependencies.json`**: Maps package names to arrays of their
+  dependencies
 
-You can manually edit these files if needed, though the automated discovery scripts should handle most cases.
+You can manually edit these files if needed, though the automated discovery
+scripts should handle most cases.
 
 ### Output Structure
 
-The library uses a three-tier structure to separate generated stubs from enhanced implementations:
+The library uses a three-tier structure to separate generated stubs from
+enhanced implementations:
 
 ```
 /ehrtslib
@@ -85,13 +106,19 @@ The library uses a three-tier structure to separate generated stubs from enhance
 ```
 
 **Key Points:**
+
 - `/generated` - Contains pure BMM-derived stubs. Safe to regenerate anytime.
-- `/enhanced` - Contains fully implemented classes with your enhancements. Never overwritten by generator.
-- Root level - Thin re-export wrappers for backward compatibility. External code imports from here.
+- `/enhanced` - Contains fully implemented classes with your enhancements. Never
+  overwritten by generator.
+- Root level - Thin re-export wrappers for backward compatibility. External code
+  imports from here.
 
 ## Updating to a New Version of a Previously Used BMM
 
-When a new version of an openEHR BMM specification is released (e.g., `openehr_base` 1.4.0 after you've been using 1.3.0), you need to update the library carefully to incorporate the changes without losing any custom implementations or enhancements you've made.
+When a new version of an openEHR BMM specification is released (e.g.,
+`openehr_base` 1.4.0 after you've been using 1.3.0), you need to update the
+library carefully to incorporate the changes without losing any custom
+implementations or enhancements you've made.
 
 ### Step 1: Check for New BMM Versions
 
@@ -102,6 +129,7 @@ deno run --allow-net --allow-write tasks/extract_dependencies.ts
 ```
 
 This command will:
+
 - Query the BMM repository for the latest versions
 - Update `tasks/bmm_versions.json` with any new version numbers
 - Update `tasks/bmm_dependencies.json` if dependencies have changed
@@ -114,7 +142,8 @@ git diff tasks/bmm_versions.json
 
 ### Step 2: Review What Changed
 
-Before updating your enhanced implementations, understand what changed in the new BMM version using the comparison utility:
+Before updating your enhanced implementations, understand what changed in the
+new BMM version using the comparison utility:
 
 ```bash
 # Compare two specific versions
@@ -124,24 +153,28 @@ deno run --allow-read --allow-net --allow-write tasks/compare_bmm_versions.ts op
 ```
 
 This generates a detailed comparison report showing:
+
 - **New classes** added to the specification
 - **Removed classes** (rare, but possible)
 - **New properties or methods** in existing classes
 - **Changed signatures** for existing methods
 - **Unchanged classes** (safe to ignore)
 
-The report is saved as a markdown file (e.g., `bmm_comparison_openehr_base_1.3.0_to_1.4.0.md`) for easy reference.
+The report is saved as a markdown file (e.g.,
+`bmm_comparison_openehr_base_1.3.0_to_1.4.0.md`) for easy reference.
 
 ### Step 3: Regenerate Stubs to `/generated`
 
-Generate new stubs from the updated BMM files. This is now safe - it won't overwrite your enhanced implementations:
+Generate new stubs from the updated BMM files. This is now safe - it won't
+overwrite your enhanced implementations:
 
 ```bash
 # Regenerate all libraries from updated BMM files
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
-This updates files in `/generated` with the new BMM structure. Your `/enhanced` implementations remain untouched.
+This updates files in `/generated` with the new BMM structure. Your `/enhanced`
+implementations remain untouched.
 
 ### Step 4: Get Merge Assistance
 
@@ -154,13 +187,15 @@ deno run --allow-read --allow-write tasks/merge_bmm_updates.ts \
   enhanced/openehr_base.ts
 ```
 
-This creates a backup and inserts TODO comments at the top of the enhanced file, listing all changes that need to be made.
+This creates a backup and inserts TODO comments at the top of the enhanced file,
+listing all changes that need to be made.
 
 ### Step 5: Manually Update Enhanced Files
 
 Work through the TODO comments in your enhanced file:
 
-1. **For new classes**: Copy the class stub from `/generated` to `/enhanced` and implement methods
+1. **For new classes**: Copy the class stub from `/generated` to `/enhanced` and
+   implement methods
 
 2. **For new methods**: Add the method to the appropriate class in `/enhanced`
    - Copy the signature from `/generated`
@@ -231,21 +266,28 @@ cp enhanced/openehr_base.ts.backup.1234567890 enhanced/openehr_base.ts
 git checkout -- enhanced/openehr_base.ts
 ```
 
-**Note**: Since `/generated` can always be regenerated, you only need to protect `/enhanced` files.
+**Note**: Since `/generated` can always be regenerated, you only need to protect
+`/enhanced` files.
 
 ## Adding a New BMM File
 
-If you want to add a new openEHR BMM package that wasn't previously included in this library (e.g., adding support for a new openEHR specification component), follow these steps.
+If you want to add a new openEHR BMM package that wasn't previously included in
+this library (e.g., adding support for a new openEHR specification component),
+follow these steps.
 
-**Note:** This section uses `openehr_proc` as a hypothetical example package name throughout. This package does not currently exist in the library and is used purely for illustration purposes.
+**Note:** This section uses `openehr_proc` as a hypothetical example package
+name throughout. This package does not currently exist in the library and is
+used purely for illustration purposes.
 
 ### Prerequisites
 
 Before adding a new BMM file, ensure:
 
 1. **The BMM file exists** in the source repository:
-   - Check https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
-   - Identify the exact filename (e.g., `openehr_proc_1.0.0.bmm.json` - used as example only)
+   - Check
+     https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
+   - Identify the exact filename (e.g., `openehr_proc_1.0.0.bmm.json` - used as
+     example only)
 
 2. **Understand dependencies**:
    - Review the BMM file to see which other packages it imports
@@ -253,14 +295,16 @@ Before adding a new BMM file, ensure:
    - Check the `includes` section in the BMM JSON
 
 3. **No naming conflicts**:
-   - Verify that the new package doesn't define classes with the same names as existing packages
+   - Verify that the new package doesn't define classes with the same names as
+     existing packages
    - If conflicts exist, you may need to use namespacing strategies
 
 ### Step 1: Update Configuration Files
 
 #### Add to `tasks/bmm_versions.json`
 
-Add an entry for the new package with its BMM file URL (example using hypothetical `openehr_proc` package):
+Add an entry for the new package with its BMM file URL (example using
+hypothetical `openehr_proc` package):
 
 ```json
 {
@@ -272,7 +316,8 @@ Add an entry for the new package with its BMM file URL (example using hypothetic
 
 #### Add to `tasks/bmm_dependencies.json`
 
-Specify the package's dependencies (packages it imports from, example using hypothetical `openehr_proc` package):
+Specify the package's dependencies (packages it imports from, example using
+hypothetical `openehr_proc` package):
 
 ```json
 {
@@ -286,13 +331,15 @@ If the new package has no dependencies, use an empty array `[]`.
 
 ### Step 2: Generate the TypeScript Stubs
 
-Run the generator to create TypeScript stubs in `/generated` for all packages (including the new one):
+Run the generator to create TypeScript stubs in `/generated` for all packages
+(including the new one):
 
 ```bash
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
 The generator will:
+
 - Download the new BMM file
 - Parse its contents
 - Generate TypeScript classes, interfaces, and types
@@ -314,7 +361,8 @@ After generation, create the enhanced version:
    - Update warnings to indicate this is safe to edit
 
 3. **Implement the methods**:
-   - Replace `throw new Error("not yet implemented")` with actual implementations
+   - Replace `throw new Error("not yet implemented")` with actual
+     implementations
    - Add helper methods as needed
    - Ensure all behavior is correct
 
@@ -363,14 +411,14 @@ Create tests for the new package in both test directories:
    ```bash
    touch tests/generated/openehr_proc_test.ts
    ```
-   
+
    Write tests that verify structure but accept "not implemented" errors.
 
 2. **Create behavioral test** in `tests/enhanced/`:
    ```bash
    touch tests/enhanced/openehr_proc_test.ts
    ```
-   
+
    Write tests that verify full behavior:
    ```typescript
    import { assertEquals } from "https://deno.land/std/testing/asserts.ts";
@@ -436,13 +484,15 @@ Final verification steps:
 
 5. **Verify no circular dependencies**:
    - Deno will error if circular imports exist
-   - Adjust imports if needed (enhanced files should only import other enhanced files)
+   - Adjust imports if needed (enhanced files should only import other enhanced
+     files)
 
 ### Common Issues and Solutions
 
 #### Issue: TypeScript Cannot Find Imported Types
 
-**Solution**: 
+**Solution**:
+
 - Verify the imported package is listed in dependencies
 - Check that import paths are correct
 - Ensure dependent packages were generated before this one
@@ -450,6 +500,7 @@ Final verification steps:
 #### Issue: Class Name Conflicts
 
 **Solution**:
+
 - Use qualified imports: `import * as proc from "./openehr_proc.ts"`
 - Reference with namespace: `proc.ClassName`
 - Consider renaming during import: `import { ClassName as ProcClassName }`
@@ -457,6 +508,7 @@ Final verification steps:
 #### Issue: Generator Doesn't Process New Package
 
 **Solution**:
+
 - Verify the BMM file URL is correct and accessible
 - Check JSON syntax in configuration files
 - Ensure package name matches BMM file naming convention
@@ -464,27 +516,34 @@ Final verification steps:
 #### Issue: Dependencies Not Resolved
 
 **Solution**:
+
 - Review the `includes` section in the BMM JSON
 - Add all included packages to `bmm_dependencies.json`
 - Regenerate in dependency order (generator handles this automatically)
 
 ### Referencing vs Importing BMM Packages
 
-**Referencing**: One BMM package mentions classes from another but doesn't formally import it.
+**Referencing**: One BMM package mentions classes from another but doesn't
+formally import it.
+
 - The generator will use qualified type names (e.g., `openehr_base.UID`)
 - You may need to add import statements manually if you reference them directly
 
-**Importing**: One BMM package formally includes another in its `includes` section.
+**Importing**: One BMM package formally includes another in its `includes`
+section.
+
 - The generator automatically adds import statements
 - Types are available without qualification within that package
 
 If your new package references but doesn't import another package:
+
 1. Check if it should formally import (update the BMM if you control it)
 2. Or manually manage the TypeScript imports as needed
 
 ### File Conventions
 
 The library follows these conventions:
+
 - One TypeScript file per BMM package in each directory
 - All classes from the same BMM package are in the same file
 - Snake_case naming is preserved from BMM specifications
@@ -504,18 +563,25 @@ import * as base from "./enhanced/openehr_base.ts";
 // Use the classes
 const id: base.UID_BASED_ID = ...;
 ```
+
 ## Architecture / Code Structure: Orchestrator & Generator
 
-The TypeScript library generation process is split into two main scripts for clarity and maintainability:
+The TypeScript library generation process is split into two main scripts for
+clarity and maintainability:
 
 - **`tasks/generate_ts_libs.ts`** (Orchestrator):
-    - Handles the overall workflow: reads config, sorts packages by dependency, downloads BMM files, builds context, and writes output files.
-    - Adds traceability headers and ensures correct import order.
-    - Calls the generator logic in `ts_generator.ts` for each package.
+  - Handles the overall workflow: reads config, sorts packages by dependency,
+    downloads BMM files, builds context, and writes output files.
+  - Adds traceability headers and ensures correct import order.
+  - Calls the generator logic in `ts_generator.ts` for each package.
 
 - **`tasks/ts_generator.ts`** (Generator Logic):
-    - Contains all reusable logic for mapping BMM JSON to TypeScript code.
-    - Handles type resolution, class/interface generation, documentation extraction, and type validation.
-    - Used as a library by the orchestrator script.
+  - Contains all reusable logic for mapping BMM JSON to TypeScript code.
+  - Handles type resolution, class/interface generation, documentation
+    extraction, and type validation.
+  - Used as a library by the orchestrator script.
 
-This separation ensures that the orchestration logic (batch processing, dependency handling, file output) is kept distinct from the code generation logic (type mapping, documentation, class creation), making the codebase easier to maintain and extend.
+This separation ensures that the orchestration logic (batch processing,
+dependency handling, file output) is kept distinct from the code generation
+logic (type mapping, documentation, class creation), making the codebase easier
+to maintain and extend.

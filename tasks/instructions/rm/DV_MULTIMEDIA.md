@@ -4,7 +4,8 @@
 
 DV_MULTIMEDIA represents multimedia data like images, audio, video.
 
--   **Reference:** [openEHR RM - DV_MULTIMEDIA](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_multimedia_class)
+- **Reference:**
+  [openEHR RM - DV_MULTIMEDIA](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_multimedia_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ image.uri.value = "http://example.com/xray.jpg";
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_MULTIMEDIA](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_multimedia_class)
+- **Official Specification:**
+  [openEHR RM - DV_MULTIMEDIA](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_multimedia_class)

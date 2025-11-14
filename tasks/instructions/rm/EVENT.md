@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `EVENT` class is an abstract parent for point and interval events within a HISTORY. It represents a single temporal event with associated data.
+The `EVENT` class is an abstract parent for point and interval events within a
+HISTORY. It represents a single temporal event with associated data.
 
--   **Reference:** [openEHR RM - EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_event_class)
+- **Reference:**
+  [openEHR RM - EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_event_class)
 
 ## 2. Behavior
 
@@ -12,23 +14,23 @@ The `EVENT` class is an abstract parent for point and interval events within a H
 
 #### `time: DV_DATE_TIME`
 
--   **Purpose:** Time of the event.
--   **Mandatory:** Yes
+- **Purpose:** Time of the event.
+- **Mandatory:** Yes
 
 #### `data: T` (generic ITEM_STRUCTURE)
 
--   **Purpose:** The actual data for this event.
--   **Mandatory:** Yes
+- **Purpose:** The actual data for this event.
+- **Mandatory:** Yes
 
 #### `state: ITEM_STRUCTURE`
 
--   **Purpose:** State information at time of event.
--   **Optional:** Yes
+- **Purpose:** State information at time of event.
+- **Optional:** Yes
 
 ### 2.2. Subclasses
 
--   **POINT_EVENT**: Single point in time
--   **INTERVAL_EVENT**: Event over a time period
+- **POINT_EVENT**: Single point in time
+- **INTERVAL_EVENT**: Event over a time period
 
 ## 3. Example Usage
 
@@ -44,4 +46,5 @@ event.data = data;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_event_class)
+- **Official Specification:**
+  [openEHR RM - EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_event_class)

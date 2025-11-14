@@ -4,7 +4,8 @@
 
 The `DV_DURATION` class represents time durations in ISO 8601 format.
 
--   **Reference:** [openEHR RM - DV_DURATION](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_duration_class)
+- **Reference:**
+  [openEHR RM - DV_DURATION](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_duration_class)
 
 ## 2. Behavior
 
@@ -32,4 +33,5 @@ const complex = DV_DURATION.from("P1Y2M3DT4H30M15S");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_DURATION](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_duration_class)
+- **Official Specification:**
+  [openEHR RM - DV_DURATION](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_duration_class)

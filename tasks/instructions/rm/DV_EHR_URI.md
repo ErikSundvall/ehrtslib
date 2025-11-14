@@ -4,7 +4,8 @@
 
 DV_EHR_URI represents URIs for referencing EHR content.
 
--   **Reference:** [openEHR RM - DV_EHR_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class)
+- **Reference:**
+  [openEHR RM - DV_EHR_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ ehrUri.value = "ehr://hospital.org/12345/composition/67890";
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_EHR_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class)
+- **Official Specification:**
+  [openEHR RM - DV_EHR_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class)

@@ -2,9 +2,11 @@
 
 ## Description
 
-Abstract class for absolute quantified amounts - amounts with specific units. Parent of DV_QUANTITY.
+Abstract class for absolute quantified amounts - amounts with specific units.
+Parent of DV_QUANTITY.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_absolute_quantity_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_absolute_quantity_class)
 
 ## Behavior
 
@@ -16,7 +18,8 @@ Abstract class for absolute quantified amounts - amounts with specific units. Pa
 
 ### Methods
 
-All methods inherited from parent classes. This class adds constraints ensuring absolute (rather than relative) quantification.
+All methods inherited from parent classes. This class adds constraints ensuring
+absolute (rather than relative) quantification.
 
 ## Invariants
 

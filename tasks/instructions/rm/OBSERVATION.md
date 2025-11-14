@@ -2,9 +2,12 @@
 
 ## 1. Description
 
-The `OBSERVATION` class represents clinical observations - data that is observed or measured like vital signs, symptoms, or examination findings. It extends `CARE_ENTRY` and is one of the most commonly used entry types.
+The `OBSERVATION` class represents clinical observations - data that is observed
+or measured like vital signs, symptoms, or examination findings. It extends
+`CARE_ENTRY` and is one of the most commonly used entry types.
 
--   **Reference:** [openEHR RM - OBSERVATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class)
+- **Reference:**
+  [openEHR RM - OBSERVATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class)
 
 ## 2. Behavior
 
@@ -12,21 +15,21 @@ The `OBSERVATION` class represents clinical observations - data that is observed
 
 #### `data: HISTORY<ITEM_STRUCTURE>`
 
--   **Purpose:** Core observation data with temporal series.
--   **Optional:** Yes (per specification, though typically present)
--   **Contains:** Events (POINT_EVENT, INTERVAL_EVENT) with measurements
+- **Purpose:** Core observation data with temporal series.
+- **Optional:** Yes (per specification, though typically present)
+- **Contains:** Events (POINT_EVENT, INTERVAL_EVENT) with measurements
 
 #### `state: HISTORY<ITEM_STRUCTURE>`
 
--   **Purpose:** State of subject during observation (e.g., patient position).
--   **Optional:** Yes
--   **Important for:** Safe clinical interpretation
+- **Purpose:** State of subject during observation (e.g., patient position).
+- **Optional:** Yes
+- **Important for:** Safe clinical interpretation
 
 #### `protocol: ITEM_STRUCTURE`
 
--   **Purpose:** Information about how observation was gathered.
--   **Optional:** Yes (inherited from CARE_ENTRY)
--   **Examples:** Device used, method, conditions
+- **Purpose:** Information about how observation was gathered.
+- **Optional:** Yes (inherited from CARE_ENTRY)
+- **Examples:** Device used, method, conditions
 
 ### 2.2. Usage Pattern
 
@@ -69,15 +72,15 @@ observation.state = state;
 
 ## 3. Invariants
 
--   Inherits invariants from CARE_ENTRY and ENTRY
+- Inherits invariants from CARE_ENTRY and ENTRY
 
 ## 4. Pre-conditions
 
--   If data is present, should have at least one EVENT in data.events
+- If data is present, should have at least one EVENT in data.events
 
 ## 5. Post-conditions
 
--   All events have valid temporal information
+- All events have valid temporal information
 
 ## 6. Common OBSERVATION Archetypes
 
@@ -104,7 +107,10 @@ observation.state = state;
 
 ## 8. References
 
--   **Official Specification:** [openEHR RM - OBSERVATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class)
--   **Official Specification:** [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)
--   **Implementation Reference:** [Archie OBSERVATION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Observation.java)
--   [OBSERVATION Archetypes](https://ckm.openehr.org/ckm/archetypes/1013.1.150)
+- **Official Specification:**
+  [openEHR RM - OBSERVATION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class)
+- **Official Specification:**
+  [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)
+- **Implementation Reference:**
+  [Archie OBSERVATION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Observation.java)
+- [OBSERVATION Archetypes](https://ckm.openehr.org/ckm/archetypes/1013.1.150)

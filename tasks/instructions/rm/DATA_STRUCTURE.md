@@ -4,7 +4,8 @@
 
 DATA_STRUCTURE is abstract parent for all data structures.
 
--   **Reference:** [openEHR RM - DATA_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_data_structure_class)
+- **Reference:**
+  [openEHR RM - DATA_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_data_structure_class)
 
 ## 2. Behavior
 
@@ -17,4 +18,5 @@ Abstract class, extends LOCATABLE.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - DATA_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_data_structure_class)
+- **Official Specification:**
+  [openEHR RM - DATA_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_data_structure_class)

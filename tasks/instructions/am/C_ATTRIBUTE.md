@@ -4,7 +4,8 @@
 
 C_ATTRIBUTE represents a constraint on a reference model attribute.
 
--   **Reference:** [openEHR AM - C_ATTRIBUTE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_attribute_class)
+- **Reference:**
+  [openEHR AM - C_ATTRIBUTE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_attribute_class)
 
 ## 2. Behavior
 
@@ -21,6 +22,7 @@ C_ATTRIBUTE represents a constraint on a reference model attribute.
 Check if attribute constraint is valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Must have an attribute name
@@ -51,6 +53,7 @@ is_valid(): Boolean {
 Returns true if this is a multiple-valued attribute.
 
 **Pseudo-code:**
+
 ```typescript
 is_multiple(): Boolean {
   // Check if attribute allows multiple values based on cardinality
@@ -75,4 +78,5 @@ cAttr.children = [new C_COMPLEX_OBJECT()];
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_ATTRIBUTE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_attribute_class)
+- **Official Specification:**
+  [openEHR AM - C_ATTRIBUTE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_attribute_class)

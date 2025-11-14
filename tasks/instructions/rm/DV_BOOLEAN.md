@@ -4,7 +4,8 @@
 
 The `DV_BOOLEAN` class represents boolean (true/false) clinical data values.
 
--   **Reference:** [openEHR RM - DV_BOOLEAN](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class)
+- **Reference:**
+  [openEHR RM - DV_BOOLEAN](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class)
 
 ## 2. Behavior
 
@@ -12,8 +13,8 @@ The `DV_BOOLEAN` class represents boolean (true/false) clinical data values.
 
 #### `value: Boolean`
 
--   **Purpose:** The boolean value.
--   **Mandatory:** Yes
+- **Purpose:** The boolean value.
+- **Mandatory:** Yes
 
 ### 2.2. Factory Method
 
@@ -31,7 +32,7 @@ static from(value: boolean): DV_BOOLEAN {
 const isPregnant = DV_BOOLEAN.from(true);
 const isSmoker = DV_BOOLEAN.from(false);
 
-console.log(isPregnant.value);  // true
+console.log(isPregnant.value); // true
 ```
 
 ## 4. Test Cases
@@ -43,4 +44,5 @@ console.log(isPregnant.value);  // true
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - DV_BOOLEAN](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class)
+- **Official Specification:**
+  [openEHR RM - DV_BOOLEAN](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class)

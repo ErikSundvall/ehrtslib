@@ -2,9 +2,11 @@
 
 ## Description
 
-Abstract parent for temporal data values (dates and times). Provides comparison operations for temporal values.
+Abstract parent for temporal data values (dates and times). Provides comparison
+operations for temporal values.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_temporal_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_temporal_class)
 
 ## Behavior
 
@@ -20,15 +22,16 @@ Abstract parent for temporal data values (dates and times). Provides comparison 
 Difference between two temporal values as a duration.
 
 **Pseudocode:**
+
 ```typescript
 function diff(other: DV_TEMPORAL): DV_DURATION {
   // Parse both ISO 8601 values
   const thisTime = parseISO8601(this.value);
   const otherTime = parseISO8601(other.value);
-  
+
   // Calculate difference
   const diffMillis = Math.abs(thisTime - otherTime);
-  
+
   // Create duration
   const duration = new DV_DURATION();
   duration.value = formatISODuration(diffMillis);

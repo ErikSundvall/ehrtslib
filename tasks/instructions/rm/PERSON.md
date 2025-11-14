@@ -4,13 +4,15 @@
 
 PERSON represents a natural person in the demographic model.
 
--   **Reference:** [openEHR RM - PERSON](https://specifications.openehr.org/releases/RM/latest/demographic.html#_person_class)
+- **Reference:**
+  [openEHR RM - PERSON](https://specifications.openehr.org/releases/RM/latest/demographic.html#_person_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from PARTY:
+
 - `uid: HIER_OBJECT_ID` - Unique identifier
 - `identities: List<PARTY_IDENTITY>` - Names and identities
 - `contacts: List<CONTACT>` - Contact information
@@ -35,4 +37,5 @@ person.identities = [identity];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PERSON](https://specifications.openehr.org/releases/RM/latest/demographic.html#_person_class)
+- **Official Specification:**
+  [openEHR RM - PERSON](https://specifications.openehr.org/releases/RM/latest/demographic.html#_person_class)

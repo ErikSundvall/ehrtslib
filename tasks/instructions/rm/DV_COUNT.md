@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_COUNT` class represents countable or integer quantities, like number of pregnancies or episodes.
+The `DV_COUNT` class represents countable or integer quantities, like number of
+pregnancies or episodes.
 
--   **Reference:** [openEHR RM - DV_COUNT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class)
+- **Reference:**
+  [openEHR RM - DV_COUNT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class)
 
 ## 2. Behavior
 
@@ -12,8 +14,8 @@ The `DV_COUNT` class represents countable or integer quantities, like number of 
 
 #### `magnitude: Integer`
 
--   **Purpose:** The integer count value.
--   **Mandatory:** Yes
+- **Purpose:** The integer count value.
+- **Mandatory:** Yes
 
 ### 2.2. Factory Method
 
@@ -29,7 +31,7 @@ static from(count: number): DV_COUNT {
 
 ```typescript
 const pregnancies = DV_COUNT.from(3);
-console.log(pregnancies.magnitude);  // 3
+console.log(pregnancies.magnitude); // 3
 
 const episodes = DV_COUNT.from(1);
 ```
@@ -43,4 +45,5 @@ const episodes = DV_COUNT.from(1);
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - DV_COUNT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class)
+- **Official Specification:**
+  [openEHR RM - DV_COUNT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class)

@@ -2,24 +2,29 @@
 
 ## 1. Description
 
-The `DV_CODED_TEXT` class extends `DV_TEXT` to add terminology coding. It is used for coded clinical terms from terminologies like SNOMED CT, LOINC, ICD-10, etc.
+The `DV_CODED_TEXT` class extends `DV_TEXT` to add terminology coding. It is
+used for coded clinical terms from terminologies like SNOMED CT, LOINC, ICD-10,
+etc.
 
--   **Reference:** [openEHR RM - DV_CODED_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class)
+- **Reference:**
+  [openEHR RM - DV_CODED_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from DV_TEXT:
+
 - `value: String` - The text representation
 - `language`, `encoding`, `mappings`, etc.
 
 Additional property:
+
 #### `defining_code: CODE_PHRASE`
 
--   **Purpose:** The coded term from a terminology.
--   **Mandatory:** Yes
--   **Contains:** terminology_id and code_string
+- **Purpose:** The coded term from a terminology.
+- **Mandatory:** Yes
+- **Contains:** terminology_id and code_string
 
 ### 2.2. Factory Methods
 
@@ -50,12 +55,12 @@ is_equal(other: Any): Boolean {
 
 ## 3. Invariants
 
--   **Defining_code_exists:** `defining_code /= Void`
--   Inherits all invariants from DV_TEXT
+- **Defining_code_exists:** `defining_code /= Void`
+- Inherits all invariants from DV_TEXT
 
 ## 4. Pre-conditions
 
--   Both `value` and `defining_code` must be set
+- Both `value` and `defining_code` must be set
 
 ## 5. Example Usage
 
@@ -63,7 +68,7 @@ is_equal(other: Any): Boolean {
 // Gender coded text
 const gender = DV_CODED_TEXT.from(
   "Male",
-  CODE_PHRASE.from("at0005", "local")
+  CODE_PHRASE.from("at0005", "local"),
 );
 
 // SNOMED CT coded text
@@ -71,23 +76,24 @@ const diagnosis = new DV_CODED_TEXT();
 diagnosis.value = "Hypertension";
 diagnosis.defining_code = CODE_PHRASE.from(
   "38341003",
-  "SNOMED-CT"
+  "SNOMED-CT",
 );
 
 // LOINC coded text
 const labTest = DV_CODED_TEXT.from(
   "Glucose [Mass/volume] in Blood",
-  CODE_PHRASE.from("2339-0", "LOINC")
+  CODE_PHRASE.from("2339-0", "LOINC"),
 );
 
 // Comparison
 const gender2 = DV_CODED_TEXT.from("Male", CODE_PHRASE.from("at0005", "local"));
-console.log(gender.is_equal(gender2));  // true
+console.log(gender.is_equal(gender2)); // true
 ```
 
 ## 6. Use Cases
 
 DV_CODED_TEXT is extensively used for:
+
 - Coded clinical terms
 - Archetype internal codes (at0001, at0002, etc.)
 - Standard terminology codes (SNOMED CT, LOINC, ICD-10)
@@ -110,7 +116,7 @@ DV_CODED_TEXT is extensively used for:
 
 ## 8. References
 
--   [openEHR RM - DV_CODED_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class)
--   [Archie DV_CODED_TEXT](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/DvCodedText.java)
--   [SNOMED CT](https://www.snomed.org/)
--   [LOINC](https://loinc.org/)
+- [openEHR RM - DV_CODED_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class)
+- [Archie DV_CODED_TEXT](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/DvCodedText.java)
+- [SNOMED CT](https://www.snomed.org/)
+- [LOINC](https://loinc.org/)

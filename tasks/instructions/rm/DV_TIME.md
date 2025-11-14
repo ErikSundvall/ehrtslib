@@ -4,7 +4,8 @@
 
 The `DV_TIME` class represents time values in ISO 8601 format.
 
--   **Reference:** [openEHR RM - DV_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_class)
+- **Reference:**
+  [openEHR RM - DV_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_class)
 
 ## 2. Behavior
 
@@ -37,4 +38,5 @@ const currentTime = DV_TIME.now();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_class)
+- **Official Specification:**
+  [openEHR RM - DV_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_time_class)

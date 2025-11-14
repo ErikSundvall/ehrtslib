@@ -4,7 +4,8 @@
 
 C_PRIMITIVE_OBJECT represents a constraint on a primitive type.
 
--   **Reference:** [openEHR AM - C_PRIMITIVE_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_object_class)
+- **Reference:**
+  [openEHR AM - C_PRIMITIVE_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_object_class)
 
 ## 2. Behavior
 
@@ -12,4 +13,5 @@ C_PRIMITIVE_OBJECT represents a constraint on a primitive type.
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - C_PRIMITIVE_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_object_class)
+- **Official Specification:**
+  [openEHR AM - C_PRIMITIVE_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_object_class)

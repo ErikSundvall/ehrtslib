@@ -4,7 +4,8 @@
 
 CODE_SET_ACCESS provides access to a specific code set.
 
--   **Reference:** [openEHR RM - CODE_SET_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_code_set_access_class)
+- **Reference:**
+  [openEHR RM - CODE_SET_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_code_set_access_class)
 
 ## 2. Behavior
 
@@ -19,6 +20,7 @@ Get code set identifier.
 Check if code exists in this code set.
 
 **Pseudo-code:**
+
 ```typescript
 has_code(code: String): Boolean {
   return Boolean.from(this.all_codes().includes(code));
@@ -33,9 +35,10 @@ Get all codes in the code set.
 
 ```typescript
 const codeSetService = termService.code_set("countries");
-const hasSweden = codeSetService.has_code("SE");  // true for ISO 3166-1
+const hasSweden = codeSetService.has_code("SE"); // true for ISO 3166-1
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - CODE_SET_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_code_set_access_class)
+- **Official Specification:**
+  [openEHR RM - CODE_SET_ACCESS](https://specifications.openehr.org/releases/RM/latest/support.html#_code_set_access_class)
