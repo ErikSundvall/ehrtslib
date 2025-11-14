@@ -100,40 +100,40 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
   - [x] 5.5 Verify test coverage and results remains the same as baseline established in 0.1
   - [x] 5.6 Split test directory structure under `/tests` with subdirectories for `/tests/generated` (for tests expecting correct signatures but possibly missing behavior) and `/tests/enhanced` (for tests expecting full correct behavior)
 
-- [ ] 6.0 Create version comparison utility
-  - [ ] 6.1 Create `tasks/compare_bmm_versions.ts` script
-  - [ ] 6.2 Implement logic to load old and new BMM JSON files
-  - [ ] 6.3 Implement comparison logic for classes (added, removed, unchanged)
-  - [ ] 6.4 Implement comparison logic for properties (added, removed, changed types)
-  - [ ] 6.5 Implement comparison logic for methods (added, removed, changed signatures)
-  - [ ] 6.6 Generate human-readable and computer parsable comparison report (perhaps YAML would cover both needs in same file)
-  - [ ] 6.7 Test comparison utility with two versions of a BMM file
-  - [ ] 6.8 Document usage in script comments and README.md
+- [x] 6.0 Create version comparison utility
+  - [x] 6.1 Create `tasks/compare_bmm_versions.ts` script
+  - [x] 6.2 Implement logic to load old and new BMM JSON files
+  - [x] 6.3 Implement comparison logic for classes (added, removed, unchanged)
+  - [x] 6.4 Implement comparison logic for properties (added, removed, changed types)
+  - [x] 6.5 Implement comparison logic for methods (added, removed, changed signatures)
+  - [x] 6.6 Generate human-readable and computer parsable comparison report (perhaps YAML would cover both needs in same file)
+  - [x] 6.7 Test comparison utility with two versions of a BMM file
+  - [x] 6.8 Document usage in script comments and README.md
 
-- [ ] 7.0 Create merge assistance utility
-  - [ ] 7.1 Create `tasks/merge_bmm_updates.ts` script
-  - [ ] 7.2 Implement logic to read comparison report (se 6.6. above)
-  - [ ] 7.3 Implement logic to generate TODO comments for manual merging
-  - [ ] 7.4 Create helper to insert new class/method stubs and TIDI-comments into enhanced files
-  - [ ] 7.5 Test merge utility with sample changes
-  - [ ] 7.6 Document usage in script comments
+- [x] 7.0 Create merge assistance utility
+  - [x] 7.1 Create `tasks/merge_bmm_updates.ts` script
+  - [x] 7.2 Implement logic to read comparison report (se 6.6. above)
+  - [x] 7.3 Implement logic to generate TODO comments for manual merging
+  - [x] 7.4 Create helper to insert new class/method stubs and TODO-comments into enhanced files
+  - [x] 7.5 Test merge utility with sample changes
+  - [x] 7.6 Document usage in script comments
 
-- [ ] 8.0 Update README.md with BMM version management instructions (note: README already has detailed sections that may need updating to reflect new directory structure)
-  - [ ] 8.1 Add or modify any existing related chapter "Updating to a New BMM Version" with sections:
-    - [ ] 8.1.1 "Checking for New BMM Versions" - how to identify updates (verify/update existing content)
-    - [ ] 8.1.2 "Running the Update Process" - step-by-step commands (verify/update existing content)
-    - [ ] 8.1.3 "Reviewing Changes" - how to use compare_bmm_versions.ts (add reference to new utility)
-    - [ ] 8.1.4 "Merging Updates" - how to integrate changes into enhanced files (update for new /enhanced directory)
-    - [ ] 8.1.5 "Verification" - running tests and validating changes (verify/update existing content)
-    - [ ] 8.1.6 "Rollback" - what to do if something goes wrong (verify/update existing content)
-  - [ ] 8.2 Add or modify any existing related section "Adding a New BMM File" with subsections:
-    - [ ] 8.2.1 "Prerequisites" - understanding dependencies (verify/update existing content)
-    - [ ] 8.2.2 "Configuration" - updating bmm_versions.json and bmm_dependencies.json (verify/update existing content)
-    - [ ] 8.2.3 "Generation" - running generator for new package (update for /generated directory)
-    - [ ] 8.2.4 "Integration" - handling imports and references (verify/update existing content)
-    - [ ] 8.2.5 "Testing" - verifying the new package works correctly (verify/update existing content)
-  - [ ] 8.3 Update existing "Quick Start" section to reference new directory structure
-  - [ ] 8.4 Update "Output Structure" section to explain /generated vs /enhanced
+- [x] 8.0 Update README.md with BMM version management instructions (note: README already has detailed sections that may need updating to reflect new directory structure)
+  - [x] 8.1 Add or modify any existing related chapter "Updating to a New BMM Version" with sections:
+    - [x] 8.1.1 "Checking for New BMM Versions" - how to identify updates (verify/update existing content)
+    - [x] 8.1.2 "Running the Update Process" - step-by-step commands (verify/update existing content)
+    - [x] 8.1.3 "Reviewing Changes" - how to use compare_bmm_versions.ts (add reference to new utility)
+    - [x] 8.1.4 "Merging Updates" - how to integrate changes into enhanced files (update for new /enhanced directory)
+    - [x] 8.1.5 "Verification" - running tests and validating changes (verify/update existing content)
+    - [x] 8.1.6 "Rollback" - what to do if something goes wrong (verify/update existing content)
+  - [x] 8.2 Add or modify any existing related section "Adding a New BMM File" with subsections:
+    - [x] 8.2.1 "Prerequisites" - understanding dependencies (verify/update existing content)
+    - [x] 8.2.2 "Configuration" - updating bmm_versions.json and bmm_dependencies.json (verify/update existing content)
+    - [x] 8.2.3 "Generation" - running generator for new package (update for /generated directory)
+    - [x] 8.2.4 "Integration" - handling imports and references (verify/update existing content)
+    - [x] 8.2.5 "Testing" - verifying the new package works correctly (verify/update existing content)
+  - [x] 8.3 Update existing "Quick Start" section to reference new directory structure
+  - [x] 8.4 Update "Output Structure" section to explain /generated vs /enhanced
 
 - [ ] 9.0 Update documentation files
   - [ ] 9.1 Review all .md documentation files for references to old structure
