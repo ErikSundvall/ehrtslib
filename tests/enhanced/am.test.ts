@@ -13,7 +13,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_am from "../openehr_am.ts";
+import * as openehr_am from "../../openehr_am.ts";
 
 // ===== Core Archetype Classes =====
 

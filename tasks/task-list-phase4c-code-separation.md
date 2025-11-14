@@ -92,13 +92,13 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
   - [x] 4.5 Create `openehr_lang.ts` at root that re-exports all from `./enhanced/openehr_lang.ts`
   - [x] 4.6 Add comments explaining these are re-export wrappers for backward compatibility including a note about that this may later be changed to using a /dist directory with various targeted exports
 
-- [ ] 5.0 Update test files
-  - [ ] 5.1 Identify all test files that import from library files
-  - [ ] 5.2 Update import paths in test files to use root-level exports (should not need changes if using root imports)
-  - [ ] 5.3 Run tests to verify all pass with new structure (`deno test`)
-  - [ ] 5.4 Fix any broken tests due to import issues
-  - [ ] 5.5 Verify test coverage and results remains the same as baseline established in 0.1
-  - [ ] 5.6 Split test directory structure under `/tests` with subdirectories for `/tests/generated` (for tests expecting correct signatures but possibly missing behavior) and `/tests/enhanced` (for tests expecting full correct behavior)
+- [x] 5.0 Update test files
+  - [x] 5.1 Identify all test files that import from library files
+  - [x] 5.2 Update import paths in test files to use root-level exports (should not need changes if using root imports)
+  - [x] 5.3 Run tests to verify all pass with new structure (`deno test`)
+  - [x] 5.4 Fix any broken tests due to import issues
+  - [x] 5.5 Verify test coverage and results remains the same as baseline established in 0.1
+  - [x] 5.6 Split test directory structure under `/tests` with subdirectories for `/tests/generated` (for tests expecting correct signatures but possibly missing behavior) and `/tests/enhanced` (for tests expecting full correct behavior)
 
 - [ ] 6.0 Create version comparison utility
   - [ ] 6.1 Create `tasks/compare_bmm_versions.ts` script

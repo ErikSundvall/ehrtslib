@@ -14,7 +14,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_term from "../openehr_term.ts";
+import * as openehr_term from "../../openehr_term.ts";
 
 // ===== TERMINOLOGY Class =====
 

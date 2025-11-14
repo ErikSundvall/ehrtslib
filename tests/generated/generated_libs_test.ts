@@ -2,11 +2,11 @@
 // Unit tests for generated TypeScript libraries
 
 import { assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import * as openehr_base from "../openehr_base.ts";
-import * as openehr_rm from "../openehr_rm.ts";
-import * as openehr_am from "../openehr_am.ts";
-import * as openehr_term from "../openehr_term.ts";
-import * as openehr_lang from "../openehr_lang.ts";
+import * as openehr_base from "../../openehr_base.ts";
+import * as openehr_rm from "../../openehr_rm.ts";
+import * as openehr_am from "../../openehr_am.ts";
+import * as openehr_term from "../../openehr_term.ts";
+import * as openehr_lang from "../../openehr_lang.ts";
 
 Deno.test("openehr_base module exports classes", () => {
     // Check that key base classes exist

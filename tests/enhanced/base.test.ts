@@ -2,7 +2,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
-import { Any, Boolean as OpenEHRBoolean } from "../openehr_base.ts";
+import { Any, Boolean as OpenEHRBoolean } from "../../openehr_base.ts";
 
 // Concrete implementation for testing purposes
 class ConcreteAny extends Any {
@@ -55,7 +55,7 @@ Deno.test("Any.is_equal should return false for different instances with differe
   assert(!a.is_equal(c).value);
 });
 
-import { Hash, String as OpenEHRString } from "../openehr_base.ts";
+import { Hash, String as OpenEHRString } from "../../openehr_base.ts";
 
 Deno.test("Any.type_of should return the correct class name", () => {
   const a = new ConcreteAny(1);
@@ -131,7 +131,7 @@ Deno.test("Hash.is_empty returns false for a non-empty hash", () => {
 });
 
 // ===== ARCHETYPE_ID Tests =====
-import { ARCHETYPE_ID } from "../openehr_base.ts";
+import { ARCHETYPE_ID } from "../../openehr_base.ts";
 
 Deno.test("ARCHETYPE_ID.qualified_rm_entity extracts correct value", () => {
   const archetypeId = new ARCHETYPE_ID();
@@ -201,7 +201,7 @@ Deno.test("ARCHETYPE_ID without specialization", () => {
 });
 
 // ===== HIER_OBJECT_ID Tests =====
-import { HIER_OBJECT_ID, UUID } from "../openehr_base.ts";
+import { HIER_OBJECT_ID, UUID } from "../../openehr_base.ts";
 
 Deno.test("HIER_OBJECT_ID.root returns UUID for UUID-based ID", () => {
   const id = new HIER_OBJECT_ID();
@@ -243,7 +243,7 @@ Deno.test("HIER_OBJECT_ID.has_extension returns true when extension present", ()
 });
 
 // ===== Integer Tests =====
-import { Integer } from "../openehr_base.ts";
+import { Integer } from "../../openehr_base.ts";
 
 Deno.test("Integer.add performs addition", () => {
   const a = new Integer();
@@ -298,7 +298,7 @@ Deno.test("Integer.is_equal compares values correctly", () => {
 });
 
 // ===== CODE_PHRASE Tests =====
-import { CODE_PHRASE, TERMINOLOGY_ID } from "../openehr_base.ts";
+import { CODE_PHRASE, TERMINOLOGY_ID } from "../../openehr_base.ts";
 
 Deno.test("CODE_PHRASE can be created with terminology and code", () => {
   const codePhrase = CODE_PHRASE.from("SNOMED-CT", "38341003");
@@ -322,7 +322,7 @@ Deno.test("CODE_PHRASE.is_equal returns false for different codes", () => {
 });
 
 // ===== OBJECT_REF Tests =====
-import { OBJECT_REF } from "../openehr_base.ts";
+import { OBJECT_REF } from "../../openehr_base.ts";
 
 Deno.test("OBJECT_REF can be created with all properties", () => {
   const id = new HIER_OBJECT_ID();

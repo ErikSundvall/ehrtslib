@@ -13,8 +13,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_rm from "../openehr_rm.ts";
-import * as openehr_base from "../openehr_base.ts";
+import * as openehr_rm from "../../openehr_rm.ts";
+import * as openehr_base from "../../openehr_base.ts";
 
 // Helper function to create DV_TEXT
 function createDvText(value: string): openehr_rm.DV_TEXT {
