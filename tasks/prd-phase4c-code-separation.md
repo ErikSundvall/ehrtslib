@@ -85,29 +85,32 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 
 4.4. Maintain backward compatibility for external consumers through root-level exports
 
+4.5. Split tests files to a separate subdirectory structures (under `/tests`) so that 
+* one test suite is intended for files in /generated (that are expected to have corect signatures but expected to be missing a lot of behaviour in functions)
+* one test suite is intended for files in /enhanced (that are expected to oass the tests in /generated but also have correct behaviour in functions
+
 ### 5. Documentation Updates
 
-5.1. Add a chapter to README.md titled "Updating to a New BMM Version" that explains:
+5.1. Add a (or modify anay existing related) chapter in README.md titled "Updating to a New BMM Version" that explains:
    - How to identify when a new BMM version is available
    - Steps to run the update process
    - How to review and merge changes
    - How to verify nothing was broken
 
-5.2. Add a section to README.md titled "Adding a New BMM File" that explains:
+5.2. Add (or modify anay existing related) a section to README.md titled "Adding a New BMM File" that explains:
    - How to add a BMM file for a package not previously included
    - How to handle dependencies and imports
    - How to verify the new package integrates correctly
 
-5.3. Update AGENTS.md if necessary to guide AI agents on the new structure
+5.3. Update .md documentation files if necessary to guide on the new structure
 
-5.4. Add comments in generator scripts explaining the separation strategy
+5.4. Add comments in generator scripts etc. explaining the separation strategy
 
 ## Non-Goals (Out of Scope)
 
 - Automatically resolving conflicts in enhanced code when BMM signatures change (this will require manual review)
 - Supporting multiple versions of the same BMM package simultaneously
 - Creating a visual diff tool for comparing BMM versions (command-line reporting is sufficient)
-- Migrating test files to a separate directory structure (tests can remain in `/tests`)
 - Refactoring the internal implementation of existing classes (only organizational changes)
 
 ## Design Considerations
@@ -128,7 +131,7 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 │   ├── bmm_versions.json
 │   ├── bmm_dependencies.json
 │   └── ...
-├── /tests              # Test files
+├── /tests              # Test files (with subdirectoried as explained in 4.5 above)
 ├── openehr_base.ts     # Root export (re-exports from /enhanced)
 ├── openehr_rm.ts       # Root export
 └── ...
@@ -153,7 +156,7 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 ### Generator Script Modifications
 - `tasks/generate_ts_libs.ts` needs output path parameter
 - Need to preserve generation metadata (BMM version, timestamp) in headers
-- Should generate to `/generated` by default
+- Should generate to `/generated` by default boilerplat in generated files should refer to documentation of the multistep procces rather than possibly tricking the user into re-runnig destructive stub generation
 
 ### Import Path Updates
 - Many files currently import from root (e.g., `import { X } from "./openehr_base.ts"`)
@@ -161,7 +164,7 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 - Root-level files become simple re-exporters
 
 ### Testing Strategy
-- All existing tests should pass without modification to test logic
+- All existing tests should pass without unnecessary modification to test logic
 - Only import paths in tests may need updating
 - Add new tests for version comparison and migration utilities
 
@@ -174,7 +177,7 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 
 1. **Zero Data Loss**: All existing implemented functionality is preserved after restructuring
 2. **Successful Update**: Ability to update to a new BMM version and correctly identify all changes
-3. **Test Pass Rate**: 100% of existing tests pass after restructuring
+3. **Test Pass Rate**: All existing tests that Passed before the restructuring Should still pass after restructuring
 4. **Build Success**: All existing build tasks complete successfully
 5. **Documentation Completeness**: README.md contains clear, actionable instructions for both update scenarios
 6. **Generator Accuracy**: Generated stubs in `/generated` are identical to current generation output
@@ -182,17 +185,18 @@ The goal is to make the project "future-proof" so that BMM updates only modify t
 ## Open Questions
 
 1. Should enhanced files in `/enhanced` include the full class implementation or just the enhancements?
-   - Recommendation: Full implementation for simplicity
+   - Response: Full implementation for simplicity
 2. How should we handle the transition period? Should we:
    - A. Do a "big bang" restructuring all at once
    - B. Gradually migrate package by package
-   - Recommendation: Big bang for consistency
+   - Response: Big bang for consistency
 3. Should we create automated tests that verify generator output hasn't unexpectedly changed?
-   - Recommendation: Yes, snapshot testing for generators
+   - Response: Yes, snapshot testing for generators
 4. How should version metadata be stored in enhanced files?
-   - Recommendation: JSDoc comment at file top with BMM version info
+   - Response: Yes JSDoc comment at file top with BMM version info
 5. Should the root-level export files be generated or manually maintained?
-   - Recommendation: Generated for consistency
+   - Response: Generated for consistency - might be changed to /dist struvture in later Phase
+
 
 ## References
 
