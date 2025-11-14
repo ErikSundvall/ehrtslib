@@ -55,42 +55,42 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
 
 ## Tasks
 
-- [ ] 0.0 Prepare and analyze current state
-  - [ ] 0.1 Run existing tests to establish baseline (`deno test`)
-  - [ ] 0.2 Document current test results and any known issues
-  - [ ] 0.3 Review all current library files (openehr_*.ts) to understand implementation status
-  - [ ] 0.4 Create backup of current enhanced files (copy to /enhanced-backup/ temporarily since they will get overwritten in next step)
-  - [ ] 0.5 Run existing generator to verify current output (`deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts`)
+- [x] 0.0 Prepare and analyze current state
+  - [x] 0.1 Run existing tests to establish baseline (`deno test`)
+  - [x] 0.2 Document current test results and any known issues
+  - [x] 0.3 Review all current library files (openehr_*.ts) to understand implementation status
+  - [x] 0.4 Create backup of current enhanced files (copy to /enhanced-backup/ temporarily since they will get overwritten in next step)
+  - [x] 0.5 Run existing generator to verify current output (`deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts`)
 
-- [ ] 1.0 Create new directory structure
-  - [ ] 1.1 Create `/generated` directory in repository root
-  - [ ] 1.2 Create `/enhanced` directory in repository root
-  - [ ] 1.3 Add README.md files in both directories explaining their purpose
+- [x] 1.0 Create new directory structure
+  - [x] 1.1 Create `/generated` directory in repository root
+  - [x] 1.2 Create `/enhanced` directory in repository root
+  - [x] 1.3 Add README.md files in both directories explaining their purpose
 
-- [ ] 2.0 Modify generator to output to `/generated` directory
-  - [ ] 2.1 Update `tasks/generate_ts_libs.ts` to accept output directory parameter
-  - [ ] 2.2 Modify default output path to `./generated/`
-  - [ ] 2.3 Enhance file headers with BMM version and generation timestamp metadata
-  - [ ] 2.4 Test generator outputs correctly to new location
-  - [ ] 2.5 Verify generated files are identical to previous output in root dir (except for path references)
-  - [ ] 2.6 Update boilerplate/comments in generated files to refer to documentation about the multistep process rather than suggesting re-running destructive generation
+- [x] 2.0 Modify generator to output to `/generated` directory
+  - [x] 2.1 Update `tasks/generate_ts_libs.ts` to accept output directory parameter
+  - [x] 2.2 Modify default output path to `./generated/`
+  - [x] 2.3 Enhance file headers with BMM version and generation timestamp metadata
+  - [x] 2.4 Test generator outputs correctly to new location
+  - [x] 2.5 Verify generated files are identical to previous output in root dir (except for path references)
+  - [x] 2.6 Update boilerplate/comments in generated files to refer to documentation about the multistep process rather than suggesting re-running destructive generation
 
-- [ ] 3.0 Move enhanced implementations to `/enhanced` directory from /enhanced-backup/
-  - [ ] 3.1 Move `openehr_base.ts` to `enhanced/openehr_base.ts`
-  - [ ] 3.2 Move `openehr_rm.ts` to `enhanced/openehr_rm.ts`
-  - [ ] 3.3 Move `openehr_am.ts` to `enhanced/openehr_am.ts`
-  - [ ] 3.4 Move `openehr_term.ts` to `enhanced/openehr_term.ts`
-  - [ ] 3.5 Move `openehr_lang.ts` to `enhanced/openehr_lang.ts`
-  - [ ] 3.6 Update internal import statements in enhanced files to reference `../enhanced/` or `./` as appropriate
-  - [ ] 3.7 Add BMM version metadata comments to each enhanced file if missing
+- [x] 3.0 Move enhanced implementations to `/enhanced` directory from /enhanced-backup/
+  - [x] 3.1 Move `openehr_base.ts` to `enhanced/openehr_base.ts`
+  - [x] 3.2 Move `openehr_rm.ts` to `enhanced/openehr_rm.ts`
+  - [x] 3.3 Move `openehr_am.ts` to `enhanced/openehr_am.ts`
+  - [x] 3.4 Move `openehr_term.ts` to `enhanced/openehr_term.ts`
+  - [x] 3.5 Move `openehr_lang.ts` to `enhanced/openehr_lang.ts`
+  - [x] 3.6 Update internal import statements in enhanced files to reference `../enhanced/` or `./` as appropriate
+  - [x] 3.7 Add BMM version metadata comments to each enhanced file if missing
 
-- [ ] 4.0 Create root-level re-export files
-  - [ ] 4.1 Create `openehr_base.ts` at root that re-exports all from `./enhanced/openehr_base.ts`
-  - [ ] 4.2 Create `openehr_rm.ts` at root that re-exports all from `./enhanced/openehr_rm.ts`
-  - [ ] 4.3 Create `openehr_am.ts` at root that re-exports all from `./enhanced/openehr_am.ts`
-  - [ ] 4.4 Create `openehr_term.ts` at root that re-exports all from `./enhanced/openehr_term.ts`
-  - [ ] 4.5 Create `openehr_lang.ts` at root that re-exports all from `./enhanced/openehr_lang.ts`
-  - [ ] 4.6 Add comments explaining these are re-export wrappers for backward compatibility including a note about that this may later be changed to using a /dist directory with various targeted exports
+- [x] 4.0 Create root-level re-export files
+  - [x] 4.1 Create `openehr_base.ts` at root that re-exports all from `./enhanced/openehr_base.ts`
+  - [x] 4.2 Create `openehr_rm.ts` at root that re-exports all from `./enhanced/openehr_rm.ts`
+  - [x] 4.3 Create `openehr_am.ts` at root that re-exports all from `./enhanced/openehr_am.ts`
+  - [x] 4.4 Create `openehr_term.ts` at root that re-exports all from `./enhanced/openehr_term.ts`
+  - [x] 4.5 Create `openehr_lang.ts` at root that re-exports all from `./enhanced/openehr_lang.ts`
+  - [x] 4.6 Add comments explaining these are re-export wrappers for backward compatibility including a note about that this may later be changed to using a /dist directory with various targeted exports
 
 - [ ] 5.0 Update test files
   - [ ] 5.1 Identify all test files that import from library files
