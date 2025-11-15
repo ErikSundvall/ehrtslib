@@ -4,7 +4,8 @@
 
 ARCHETYPED holds archetype identification details at archetype roots.
 
--   **Reference:** [openEHR RM - ARCHETYPED](https://specifications.openehr.org/releases/RM/latest/common.html#_archetyped_class)
+- **Reference:**
+  [openEHR RM - ARCHETYPED](https://specifications.openehr.org/releases/RM/latest/common.html#_archetyped_class)
 
 ## 2. Behavior
 
@@ -16,10 +17,13 @@ ARCHETYPED holds archetype identification details at archetype roots.
 
 ```typescript
 const archetyped = new ARCHETYPED();
-archetyped.archetype_id = ARCHETYPE_ID.from("openEHR-EHR-OBSERVATION.blood_pressure.v1");
+archetyped.archetype_id = ARCHETYPE_ID.from(
+  "openEHR-EHR-OBSERVATION.blood_pressure.v1",
+);
 archetyped.rm_version = "1.0.4";
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ARCHETYPED](https://specifications.openehr.org/releases/RM/latest/common.html#_archetyped_class)
+- **Official Specification:**
+  [openEHR RM - ARCHETYPED](https://specifications.openehr.org/releases/RM/latest/common.html#_archetyped_class)

@@ -4,11 +4,13 @@
 
 VERSIONED_COMPOSITION manages all versions of a COMPOSITION.
 
--   **Reference:** [openEHR RM - VERSIONED_COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_versioned_composition_class)
+- **Reference:**
+  [openEHR RM - VERSIONED_COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_versioned_composition_class)
 
 ## 2. Behavior
 
 Inherits from VERSIONED_OBJECT<COMPOSITION>:
+
 - `uid: HIER_OBJECT_ID` - Unique identifier for all versions
 - `owner_id: OBJECT_REF` - EHR owning this versioned composition
 - `time_created: DV_DATE_TIME` - Time first version was created
@@ -30,4 +32,5 @@ versioned.owner_id = new OBJECT_REF("ehr_uid_here");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - VERSIONED_COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_versioned_composition_class)
+- **Official Specification:**
+  [openEHR RM - VERSIONED_COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_versioned_composition_class)

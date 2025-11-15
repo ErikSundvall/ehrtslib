@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS provides constants for standard openEHR terminology group identifiers.
+OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS provides constants for standard openEHR
+terminology group identifiers.
 
--   **Reference:** [openEHR RM - Terminology Groups](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_groups)
+- **Reference:**
+  [openEHR RM - Terminology Groups](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_groups)
 
 ## 2. Behavior
 
@@ -26,11 +28,13 @@ OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS provides constants for standard openEHR te
 ## 3. Example Usage
 
 ```typescript
-const groupId = OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS.GROUP_ID_COMPOSITION_CATEGORY;
+const groupId =
+  OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS.GROUP_ID_COMPOSITION_CATEGORY;
 const openehr = termService.terminology("openehr");
 const categories = openehr.codes_for_group_id(groupId);
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - Terminology Groups](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_groups)
+- **Official Specification:**
+  [openEHR RM - Terminology Groups](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_groups)

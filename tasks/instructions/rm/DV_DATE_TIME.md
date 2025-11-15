@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_DATE_TIME` class represents date and time values. It extends `DV_TEMPORAL` and uses ISO 8601 format.
+The `DV_DATE_TIME` class represents date and time values. It extends
+`DV_TEMPORAL` and uses ISO 8601 format.
 
--   **Reference:** [openEHR RM - DV_DATE_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_time_class)
+- **Reference:**
+  [openEHR RM - DV_DATE_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_time_class)
 
 ## 2. Behavior
 
@@ -12,9 +14,10 @@ The `DV_DATE_TIME` class represents date and time values. It extends `DV_TEMPORA
 
 #### `value: String`
 
--   **Purpose:** ISO 8601 date-time string.
--   **Format:** `YYYY-MM-DDThh:mm:ss[.sss][Z|±hh:mm]`
--   **Examples:** "2024-03-15T14:30:00", "2024-03-15T14:30:00.123Z", "2024-03-15T14:30:00+01:00"
+- **Purpose:** ISO 8601 date-time string.
+- **Format:** `YYYY-MM-DDThh:mm:ss[.sss][Z|±hh:mm]`
+- **Examples:** "2024-03-15T14:30:00", "2024-03-15T14:30:00.123Z",
+  "2024-03-15T14:30:00+01:00"
 
 ### 2.2. Factory Methods
 
@@ -56,7 +59,7 @@ less_than(other: DV_DATE_TIME): Boolean {
 
 ## 3. Invariants
 
--   **Value_valid:** `value /= Void and then valid_iso8601_date_time(value)`
+- **Value_valid:** `value /= Void and then valid_iso8601_date_time(value)`
 
 ## 4. Example Usage
 
@@ -76,10 +79,10 @@ if (appointment.less_than(now)) {
 }
 
 // Extract components
-console.log(appointment.year().value);   // 2024
-console.log(appointment.month().value);  // 6
-console.log(appointment.day().value);    // 15
-console.log(appointment.hour().value);   // 10
+console.log(appointment.year().value); // 2024
+console.log(appointment.month().value); // 6
+console.log(appointment.day().value); // 15
+console.log(appointment.hour().value); // 10
 ```
 
 ## 5. Test Cases
@@ -95,6 +98,6 @@ console.log(appointment.hour().value);   // 10
 
 ## 6. References
 
--   [openEHR RM - DV_DATE_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_time_class)
--   [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
--   [Archie DV_DATE_TIME](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/quantity/datetime/DvDateTime.java)
+- [openEHR RM - DV_DATE_TIME](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_time_class)
+- [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
+- [Archie DV_DATE_TIME](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/quantity/datetime/DvDateTime.java)

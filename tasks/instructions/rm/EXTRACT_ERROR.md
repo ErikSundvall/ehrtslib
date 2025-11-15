@@ -4,7 +4,8 @@
 
 EXTRACT_ERROR represents an error that occurred during extraction.
 
--   **Reference:** [openEHR RM - EXTRACT_ERROR](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_error_class)
+- **Reference:**
+  [openEHR RM - EXTRACT_ERROR](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_error_class)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ error.message = new DV_TEXT("Access denied to requested EHR");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT_ERROR](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_error_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT_ERROR](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_error_class)

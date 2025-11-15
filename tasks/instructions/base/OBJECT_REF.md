@@ -2,106 +2,115 @@
 
 ## 1. Description
 
-The `OBJECT_REF` class represents a reference to another object, which may exist locally or be maintained outside the current namespace (e.g., in another service). It's a fundamental type used throughout openEHR for creating relationships between objects.
+The `OBJECT_REF` class represents a reference to another object, which may exist
+locally or be maintained outside the current namespace (e.g., in another
+service). It's a fundamental type used throughout openEHR for creating
+relationships between objects.
 
--   **Reference:** [openEHR BASE - Object Reference - OBJECT_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_object_ref_class)
+- **Reference:**
+  [openEHR BASE - Object Reference - OBJECT_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_object_ref_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
--   **`id: OBJECT_ID`**: Globally unique identifier of the object being referenced.
--   **`namespace: String`**: Namespace to which the referenced object belongs (optional).
--   **`type: String`**: Type name of the referenced object (e.g., "COMPOSITION", "PARTY").
+- **`id: OBJECT_ID`**: Globally unique identifier of the object being
+  referenced.
+- **`namespace: String`**: Namespace to which the referenced object belongs
+  (optional).
+- **`type: String`**: Type name of the referenced object (e.g., "COMPOSITION",
+  "PARTY").
 
 ### 2.2. Constructor
 
--   **Purpose:** Create an OBJECT_REF with required properties.
--   **Pseudo-code:**
-    ```typescript
-    constructor() {
-      super();
-    }
-    
-    static from(id: OBJECT_ID, namespace: string, type: string): OBJECT_REF {
-      const ref = new OBJECT_REF();
-      ref.id = id;
-      ref.namespace = String.from(namespace);
-      ref.type = String.from(type);
-      return ref;
-    }
-    ```
+- **Purpose:** Create an OBJECT_REF with required properties.
+- **Pseudo-code:**
+  ```typescript
+  constructor() {
+    super();
+  }
+
+  static from(id: OBJECT_ID, namespace: string, type: string): OBJECT_REF {
+    const ref = new OBJECT_REF();
+    ref.id = id;
+    ref.namespace = String.from(namespace);
+    ref.type = String.from(type);
+    return ref;
+  }
+  ```
 
 ### 2.3. `is_equal(other: Any): Boolean`
 
--   **Purpose:** Compare two OBJECT_REF objects for equality.
--   **Pseudo-code:**
-    ```typescript
-    is_equal(other: Any): Boolean {
-      if (!(other instanceof OBJECT_REF)) {
-        return new Boolean(false);
-      }
-      
-      // Compare IDs
-      if (!this.id || !other.id) {
-        return new Boolean(false);
-      }
-      if (!this.id.is_equal(other.id).value) {
-        return new Boolean(false);
-      }
-      
-      // Compare namespaces
-      if (this.namespace && other.namespace) {
-        if (!this.namespace.is_equal(other.namespace).value) {
-          return new Boolean(false);
-        }
-      } else if (this.namespace || other.namespace) {
-        // One has namespace, other doesn't
-        return new Boolean(false);
-      }
-      
-      // Compare types
-      if (this.type && other.type) {
-        if (!this.type.is_equal(other.type).value) {
-          return new Boolean(false);
-        }
-      } else if (this.type || other.type) {
-        // One has type, other doesn't
-        return new Boolean(false);
-      }
-      
-      return new Boolean(true);
+- **Purpose:** Compare two OBJECT_REF objects for equality.
+- **Pseudo-code:**
+  ```typescript
+  is_equal(other: Any): Boolean {
+    if (!(other instanceof OBJECT_REF)) {
+      return new Boolean(false);
     }
-    ```
+    
+    // Compare IDs
+    if (!this.id || !other.id) {
+      return new Boolean(false);
+    }
+    if (!this.id.is_equal(other.id).value) {
+      return new Boolean(false);
+    }
+    
+    // Compare namespaces
+    if (this.namespace && other.namespace) {
+      if (!this.namespace.is_equal(other.namespace).value) {
+        return new Boolean(false);
+      }
+    } else if (this.namespace || other.namespace) {
+      // One has namespace, other doesn't
+      return new Boolean(false);
+    }
+    
+    // Compare types
+    if (this.type && other.type) {
+      if (!this.type.is_equal(other.type).value) {
+        return new Boolean(false);
+      }
+    } else if (this.type || other.type) {
+      // One has type, other doesn't
+      return new Boolean(false);
+    }
+    
+    return new Boolean(true);
+  }
+  ```
 
 ## 3. Invariants
 
--   **Id_exists:** `id /= Void`
--   **Type_valid:** `type /= Void and then not type.is_empty()`
+- **Id_exists:** `id /= Void`
+- **Type_valid:** `type /= Void and then not type.is_empty()`
 
 ## 4. Pre-conditions
 
--   The id property must be set.
--   The type property should be set for a valid reference.
+- The id property must be set.
+- The type property should be set for a valid reference.
 
 ## 5. Post-conditions
 
--   OBJECT_REF objects are typically immutable once created.
+- OBJECT_REF objects are typically immutable once created.
 
 ## 6. Example Usage
 
 ```typescript
 // Reference to a COMPOSITION
-const compositionId = HIER_OBJECT_ID.from("550e8400-e29b-41d4-a716-446655440000::1");
+const compositionId = HIER_OBJECT_ID.from(
+  "550e8400-e29b-41d4-a716-446655440000::1",
+);
 const compositionRef = OBJECT_REF.from(
   compositionId,
   "local",
-  "COMPOSITION"
+  "COMPOSITION",
 );
 
-console.log(compositionRef.id.value);        // "550e8400-e29b-41d4-a716-446655440000::1"
+console.log(compositionRef.id.value); // "550e8400-e29b-41d4-a716-446655440000::1"
 console.log(compositionRef.namespace.value); // "local"
-console.log(compositionRef.type.value);      // "COMPOSITION"
+console.log(compositionRef.type.value); // "COMPOSITION"
 
 // Reference to a PARTY
 const partyId = new HIER_OBJECT_ID();
@@ -109,13 +118,13 @@ partyId.value = "8a8a8a8a-8a8a-8a8a-8a8a-8a8a8a8a8a8a";
 const partyRef = OBJECT_REF.from(
   partyId,
   "demographic",
-  "PARTY"
+  "PARTY",
 );
 
 // Comparison
 const ref1 = OBJECT_REF.from(compositionId, "local", "COMPOSITION");
 const ref2 = OBJECT_REF.from(compositionId, "local", "COMPOSITION");
-console.log(ref1.is_equal(ref2));  // true
+console.log(ref1.is_equal(ref2)); // true
 ```
 
 ## 7. Common Use Cases in openEHR
@@ -145,7 +154,7 @@ observation.subject = patientRef; // Reference to the patient
 const performer = OBJECT_REF.from(
   HIER_OBJECT_ID.from("practitioner-789"),
   "demographics",
-  "PARTY"
+  "PARTY",
 );
 ```
 
@@ -168,6 +177,7 @@ OBJECT_REF has specialized subclasses for specific purposes:
 ## 9. Test Cases
 
 Key test cases to implement:
+
 1. Test creation with all properties
 2. Test creation with optional namespace
 3. Test is_equal with identical references
@@ -183,7 +193,7 @@ Key test cases to implement:
 
 ## 10. References
 
--   [openEHR BASE Specification - OBJECT_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_object_ref_class)
--   [openEHR BASE Specification - PARTY_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_party_ref_class)
--   [openEHR BASE Specification - LOCATABLE_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_locatable_ref_class)
--   [Archie ObjectRef Implementation](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/support/identification/ObjectRef.java)
+- [openEHR BASE Specification - OBJECT_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_object_ref_class)
+- [openEHR BASE Specification - PARTY_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_party_ref_class)
+- [openEHR BASE Specification - LOCATABLE_REF](https://specifications.openehr.org/releases/BASE/latest/base_types.html#_locatable_ref_class)
+- [Archie ObjectRef Implementation](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/support/identification/ObjectRef.java)

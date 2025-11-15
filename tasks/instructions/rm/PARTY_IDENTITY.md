@@ -4,13 +4,15 @@
 
 PARTY_IDENTITY represents an identity or name of a party.
 
--   **Reference:** [openEHR RM - PARTY_IDENTITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_identity_class)
+- **Reference:**
+  [openEHR RM - PARTY_IDENTITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_identity_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
-- `purpose: DV_TEXT` - Purpose of identity (legal name, alias, professional name, etc.)
+- `purpose: DV_TEXT` - Purpose of identity (legal name, alias, professional
+  name, etc.)
 - `details: ITEM_STRUCTURE` - Identity details (name components, etc.)
 
 ## 3. Example Usage
@@ -28,4 +30,5 @@ identity.details = details;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PARTY_IDENTITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_identity_class)
+- **Official Specification:**
+  [openEHR RM - PARTY_IDENTITY](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_identity_class)

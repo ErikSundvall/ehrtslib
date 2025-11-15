@@ -2,9 +2,12 @@
 
 ## 1. Description
 
-The `CLUSTER` class represents a group of related data items within a data structure. It extends `ITEM` and can contain other items including nested clusters.
+The `CLUSTER` class represents a group of related data items within a data
+structure. It extends `ITEM` and can contain other items including nested
+clusters.
 
--   **Reference:** [openEHR RM - CLUSTER](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_cluster_class)
+- **Reference:**
+  [openEHR RM - CLUSTER](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_cluster_class)
 
 ## 2. Behavior
 
@@ -12,16 +15,16 @@ The `CLUSTER` class represents a group of related data items within a data struc
 
 #### `items: List<ITEM>`
 
--   **Purpose:** The items in the cluster.
--   **Mandatory:** Yes (must have at least one item)
--   **Contains:** ELEMENT or nested CLUSTER objects
+- **Purpose:** The items in the cluster.
+- **Mandatory:** Yes (must have at least one item)
+- **Contains:** ELEMENT or nested CLUSTER objects
 
 ### 2.2. Methods
 
 #### `is_simple(): Boolean`
 
--   **Purpose:** CLUSTER is not simple (is composite).
--   **Returns:** False
+- **Purpose:** CLUSTER is not simple (is composite).
+- **Returns:** False
 
 ```typescript
 is_simple(): Boolean {
@@ -31,7 +34,7 @@ is_simple(): Boolean {
 
 ## 3. Invariants
 
--   **Items_exists:** `items /= Void and then not items.is_empty()`
+- **Items_exists:** `items /= Void and then not items.is_empty()`
 
 ## 4. Example Usage
 
@@ -65,12 +68,13 @@ bpCluster.items = new List<ITEM>();
 bpCluster.items.append(systolic);
 bpCluster.items.append(diastolic);
 
-console.log(bpCluster.is_simple());  // false
+console.log(bpCluster.is_simple()); // false
 ```
 
 ## 5. Use Cases
 
 CLUSTER is used to group related data:
+
 - Blood pressure (systolic + diastolic)
 - Name (given name + family name)
 - Address (street + city + postal code)
@@ -88,5 +92,5 @@ CLUSTER is used to group related data:
 
 ## 7. References
 
--   [openEHR RM - CLUSTER](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_cluster_class)
--   [Archie CLUSTER](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datastructures/Cluster.java)
+- [openEHR RM - CLUSTER](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_cluster_class)
+- [Archie CLUSTER](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datastructures/Cluster.java)

@@ -4,7 +4,8 @@
 
 ITEM_TAG represents a tag applied to a data item for categorization or workflow.
 
--   **Reference:** [openEHR RM - ITEM_TAG](https://specifications.openehr.org/releases/RM/latest/ehr.html#_item_tag_class)
+- **Reference:**
+  [openEHR RM - ITEM_TAG](https://specifications.openehr.org/releases/RM/latest/ehr.html#_item_tag_class)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ tag.value = new DV_TEXT("urgent");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ITEM_TAG](https://specifications.openehr.org/releases/RM/latest/ehr.html#_item_tag_class)
+- **Official Specification:**
+  [openEHR RM - ITEM_TAG](https://specifications.openehr.org/releases/RM/latest/ehr.html#_item_tag_class)

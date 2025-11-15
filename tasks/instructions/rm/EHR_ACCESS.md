@@ -4,7 +4,8 @@
 
 EHR_ACCESS controls access to an EHR.
 
--   **Reference:** [openEHR RM - EHR_ACCESS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_access_class)
+- **Reference:**
+  [openEHR RM - EHR_ACCESS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_access_class)
 
 ## 2. Behavior
 
@@ -12,4 +13,5 @@ EHR_ACCESS controls access to an EHR.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - EHR_ACCESS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_access_class)
+- **Official Specification:**
+  [openEHR RM - EHR_ACCESS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_ehr_access_class)

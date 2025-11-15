@@ -4,7 +4,8 @@
 
 FEEDER_AUDIT_DETAILS provides details about a feeder system.
 
--   **Reference:** [openEHR RM - FEEDER_AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_details_class)
+- **Reference:**
+  [openEHR RM - FEEDER_AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_details_class)
 
 ## 2. Behavior
 
@@ -16,4 +17,5 @@ FEEDER_AUDIT_DETAILS provides details about a feeder system.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - FEEDER_AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_details_class)
+- **Official Specification:**
+  [openEHR RM - FEEDER_AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_details_class)

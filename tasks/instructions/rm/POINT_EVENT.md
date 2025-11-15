@@ -4,7 +4,8 @@
 
 The `POINT_EVENT` class represents an event at a single point in time.
 
--   **Reference:** [openEHR RM - POINT_EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_point_event_class)
+- **Reference:**
+  [openEHR RM - POINT_EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_point_event_class)
 
 ## 2. Behavior
 
@@ -21,4 +22,5 @@ event.data = new ITEM_TREE();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - POINT_EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_point_event_class)
+- **Official Specification:**
+  [openEHR RM - POINT_EVENT](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_point_event_class)

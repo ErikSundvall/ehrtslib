@@ -4,7 +4,8 @@
 
 ACTIVITY defines a single activity within an INSTRUCTION.
 
--   **Reference:** [openEHR RM - ACTIVITY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_activity_class)
+- **Reference:**
+  [openEHR RM - ACTIVITY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_activity_class)
 
 ## 2. Behavior
 
@@ -14,4 +15,5 @@ ACTIVITY defines a single activity within an INSTRUCTION.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - ACTIVITY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_activity_class)
+- **Official Specification:**
+  [openEHR RM - ACTIVITY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_activity_class)

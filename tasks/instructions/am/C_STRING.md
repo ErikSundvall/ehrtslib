@@ -4,7 +4,8 @@
 
 C_STRING constrains String values.
 
--   **Reference:** [openEHR AM - C_STRING](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_string_class)
+- **Reference:**
+  [openEHR AM - C_STRING](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_string_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ C_STRING constrains String values.
 Check if string constraint is valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Must have either list or pattern (or both)
@@ -45,6 +47,7 @@ is_valid(): Boolean {
 Check if a string value satisfies this constraint.
 
 **Pseudo-code:**
+
 ```typescript
 valid_value(value: String): Boolean {
   // If list is defined, value must be in list
@@ -81,9 +84,10 @@ cString.list = ["male", "female", "other"];
 
 // Or with pattern
 const cPattern = new C_STRING();
-cPattern.pattern = "[A-Z]{2}";  // Two uppercase letters
+cPattern.pattern = "[A-Z]{2}"; // Two uppercase letters
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_STRING](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_string_class)
+- **Official Specification:**
+  [openEHR AM - C_STRING](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_string_class)

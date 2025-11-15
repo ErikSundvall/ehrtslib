@@ -4,7 +4,8 @@
 
 LINK represents relationships between LOCATABLE objects.
 
--   **Reference:** [openEHR RM - LINK](https://specifications.openehr.org/releases/RM/latest/common.html#_link_class)
+- **Reference:**
+  [openEHR RM - LINK](https://specifications.openehr.org/releases/RM/latest/common.html#_link_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ link.target.value = "ehr://system/ehr_id/composition_id";
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - LINK](https://specifications.openehr.org/releases/RM/latest/common.html#_link_class)
+- **Official Specification:**
+  [openEHR RM - LINK](https://specifications.openehr.org/releases/RM/latest/common.html#_link_class)

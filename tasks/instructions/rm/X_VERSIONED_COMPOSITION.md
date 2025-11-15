@@ -4,7 +4,8 @@
 
 XML-specific versioned COMPOSITION for XML messaging and extract scenarios.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -15,11 +16,8 @@ XML-specific versioned COMPOSITION for XML messaging and extract scenarios.
 
 ## Example Usage
 
-\`\`\`typescript
-const xVersioned = new X_VERSIONED_COMPOSITION();
-xVersioned.uid = versionedObjectId;
-xVersioned.owner_id = ehrId;
-\`\`\`
+\`\`\`typescript const xVersioned = new X_VERSIONED_COMPOSITION();
+xVersioned.uid = versionedObjectId; xVersioned.owner_id = ehrId; \`\`\`
 
 ## Test Cases
 

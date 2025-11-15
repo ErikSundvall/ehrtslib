@@ -4,18 +4,21 @@
 
 ORGANISATION represents an organization in the demographic model.
 
--   **Reference:** [openEHR RM - ORGANISATION](https://specifications.openehr.org/releases/RM/latest/demographic.html#_organisation_class)
+- **Reference:**
+  [openEHR RM - ORGANISATION](https://specifications.openehr.org/releases/RM/latest/demographic.html#_organisation_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 Inherits from PARTY:
+
 - `uid: HIER_OBJECT_ID` - Unique identifier
 - `identities: List<PARTY_IDENTITY>` - Organization names
 - `contacts: List<CONTACT>` - Contact information
 - `relationships: List<PARTY_RELATIONSHIP>` - Relationships to other parties
-- `details: ITEM_STRUCTURE` - Additional details (registration number, type, etc.)
+- `details: ITEM_STRUCTURE` - Additional details (registration number, type,
+  etc.)
 
 ## 3. Example Usage
 
@@ -34,4 +37,5 @@ org.identities = [identity];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ORGANISATION](https://specifications.openehr.org/releases/RM/latest/demographic.html#_organisation_class)
+- **Official Specification:**
+  [openEHR RM - ORGANISATION](https://specifications.openehr.org/releases/RM/latest/demographic.html#_organisation_class)

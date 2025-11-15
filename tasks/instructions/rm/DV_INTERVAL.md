@@ -4,7 +4,8 @@
 
 DV_INTERVAL represents an interval of ordered data values.
 
--   **Reference:** [openEHR RM - DV_INTERVAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_interval_class)
+- **Reference:**
+  [openEHR RM - DV_INTERVAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_interval_class)
 
 ## 2. Behavior
 
@@ -24,6 +25,7 @@ DV_INTERVAL represents an interval of ordered data values.
 Check if value is in interval.
 
 **Pseudo-code:**
+
 ```typescript
 has(value: T): Boolean {
   // Check lower bound
@@ -60,4 +62,5 @@ interval.upper_included = Boolean.from(true);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_INTERVAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_interval_class)
+- **Official Specification:**
+  [openEHR RM - DV_INTERVAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_interval_class)

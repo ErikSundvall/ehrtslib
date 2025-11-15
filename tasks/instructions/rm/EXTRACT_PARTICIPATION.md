@@ -4,7 +4,8 @@
 
 Participation information within an extract context.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -17,12 +18,9 @@ Participation information within an extract context.
 
 ## Example Usage
 
-\`\`\`typescript
-const participation = new EXTRACT_PARTICIPATION();
-participation.performer = partyProxy;
-participation.function = new DV_TEXT();
-participation.function.value = "author";
-\`\`\`
+\`\`\`typescript const participation = new EXTRACT_PARTICIPATION();
+participation.performer = partyProxy; participation.function = new DV_TEXT();
+participation.function.value = "author"; \`\`\`
 
 ## Test Cases
 

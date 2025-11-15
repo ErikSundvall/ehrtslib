@@ -4,7 +4,8 @@
 
 REVISION_HISTORY_ITEM represents a single revision in the history.
 
--   **Reference:** [openEHR RM - REVISION_HISTORY_ITEM](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_item_class)
+- **Reference:**
+  [openEHR RM - REVISION_HISTORY_ITEM](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_item_class)
 
 ## 2. Behavior
 
@@ -13,4 +14,5 @@ REVISION_HISTORY_ITEM represents a single revision in the history.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - REVISION_HISTORY_ITEM](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_item_class)
+- **Official Specification:**
+  [openEHR RM - REVISION_HISTORY_ITEM](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_item_class)

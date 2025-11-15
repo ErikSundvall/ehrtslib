@@ -4,7 +4,8 @@
 
 ARCHETYPE_TERM represents a term definition for an archetype node.
 
--   **Reference:** [openEHR AM - ARCHETYPE_TERM](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_term_class)
+- **Reference:**
+  [openEHR AM - ARCHETYPE_TERM](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_term_class)
 
 ## 2. Behavior
 
@@ -18,10 +19,11 @@ const term = new ARCHETYPE_TERM();
 term.code = "at0000";
 term.items = {
   "text": "Blood pressure",
-  "description": "Blood pressure measurement archetype"
+  "description": "Blood pressure measurement archetype",
 };
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - ARCHETYPE_TERM](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_term_class)
+- **Official Specification:**
+  [openEHR AM - ARCHETYPE_TERM](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_term_class)

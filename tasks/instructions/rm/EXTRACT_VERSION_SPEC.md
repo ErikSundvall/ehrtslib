@@ -4,7 +4,8 @@
 
 Specification for versioning in extracts.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -16,11 +17,9 @@ Specification for versioning in extracts.
 
 ## Example Usage
 
-\`\`\`typescript
-const versionSpec = new EXTRACT_VERSION_SPEC();
+\`\`\`typescript const versionSpec = new EXTRACT_VERSION_SPEC();
 versionSpec.include_all_versions = false; // Just latest
-versionSpec.include_revision_history = true;
-versionSpec.include_data = true;
+versionSpec.include_revision_history = true; versionSpec.include_data = true;
 \`\`\`
 
 ## Test Cases

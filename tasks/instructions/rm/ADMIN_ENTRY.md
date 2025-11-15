@@ -4,7 +4,8 @@
 
 ADMIN_ENTRY records administrative information.
 
--   **Reference:** [openEHR RM - ADMIN_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_admin_entry_class)
+- **Reference:**
+  [openEHR RM - ADMIN_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_admin_entry_class)
 
 ## 2. Behavior
 
@@ -12,8 +13,10 @@ ADMIN_ENTRY records administrative information.
 
 ## 3. Example Usage
 
-Used for non-clinical information like appointment bookings, bed management, etc.
+Used for non-clinical information like appointment bookings, bed management,
+etc.
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ADMIN_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_admin_entry_class)
+- **Official Specification:**
+  [openEHR RM - ADMIN_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_admin_entry_class)

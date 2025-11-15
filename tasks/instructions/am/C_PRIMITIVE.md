@@ -4,7 +4,8 @@
 
 C_PRIMITIVE is abstract parent for primitive type constraints.
 
--   **Reference:** [openEHR AM - C_PRIMITIVE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_class)
+- **Reference:**
+  [openEHR AM - C_PRIMITIVE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_class)
 
 ## 2. Subclasses
 
@@ -17,4 +18,5 @@ C_PRIMITIVE is abstract parent for primitive type constraints.
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - C_PRIMITIVE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_class)
+- **Official Specification:**
+  [openEHR AM - C_PRIMITIVE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_primitive_class)

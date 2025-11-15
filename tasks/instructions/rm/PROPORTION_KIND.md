@@ -4,7 +4,8 @@
 
 PROPORTION_KIND is an enumeration of types of proportion relationships.
 
--   **Reference:** [openEHR RM - PROPORTION_KIND](https://specifications.openehr.org/releases/RM/latest/data_types.html#_proportion_kind_enumeration)
+- **Reference:**
+  [openEHR RM - PROPORTION_KIND](https://specifications.openehr.org/releases/RM/latest/data_types.html#_proportion_kind_enumeration)
 
 ## 2. Behavior
 
@@ -27,4 +28,5 @@ proportion.type = PROPORTION_KIND.PERCENT;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PROPORTION_KIND](https://specifications.openehr.org/releases/RM/latest/data_types.html#_proportion_kind_enumeration)
+- **Official Specification:**
+  [openEHR RM - PROPORTION_KIND](https://specifications.openehr.org/releases/RM/latest/data_types.html#_proportion_kind_enumeration)

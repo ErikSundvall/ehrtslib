@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `TERMINOLOGY` class is the top-level container for all terminology content in openEHR, including both code sets and vocabularies.
+The `TERMINOLOGY` class is the top-level container for all terminology content
+in openEHR, including both code sets and vocabularies.
 
--   **Reference:** [openEHR TERM - TERMINOLOGY](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Reference:**
+  [openEHR TERM - TERMINOLOGY](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
 
 ## 2. Behavior
 
@@ -38,4 +40,5 @@ if (terminology.has_terminology_group("composition_category")) {
 
 ## 4. References
 
--   **Official Specification:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Official Specification:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)

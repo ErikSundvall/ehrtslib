@@ -4,7 +4,8 @@
 
 ITEM_STRUCTURE is abstract parent for all item structures.
 
--   **Reference:** [openEHR RM - ITEM_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_structure_class)
+- **Reference:**
+  [openEHR RM - ITEM_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_structure_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ Abstract class, no additional properties.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - ITEM_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_structure_class)
+- **Official Specification:**
+  [openEHR RM - ITEM_STRUCTURE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_structure_class)

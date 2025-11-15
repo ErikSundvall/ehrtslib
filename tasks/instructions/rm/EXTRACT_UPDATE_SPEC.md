@@ -4,7 +4,8 @@
 
 Specification for updating content via extract.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -16,10 +17,8 @@ Specification for updating content via extract.
 
 ## Example Usage
 
-\`\`\`typescript
-const updateSpec = new EXTRACT_UPDATE_SPEC();
-updateSpec.persist_in_server = true;
-updateSpec.commit_change_sets = true;
+\`\`\`typescript const updateSpec = new EXTRACT_UPDATE_SPEC();
+updateSpec.persist_in_server = true; updateSpec.commit_change_sets = true;
 \`\`\`
 
 ## Test Cases

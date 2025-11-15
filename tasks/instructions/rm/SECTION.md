@@ -4,7 +4,8 @@
 
 The `SECTION` class organizes content within a COMPOSITION into logical groups.
 
--   **Reference:** [openEHR RM - SECTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_section_class)
+- **Reference:**
+  [openEHR RM - SECTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_section_class)
 
 ## 2. Behavior
 
@@ -12,8 +13,8 @@ The `SECTION` class organizes content within a COMPOSITION into logical groups.
 
 #### `items: List<CONTENT_ITEM>`
 
--   **Purpose:** Content items (SECTION or ENTRY).
--   **Optional:** Yes
+- **Purpose:** Content items (SECTION or ENTRY).
+- **Optional:** Yes
 
 ### 2.2. Structure
 
@@ -45,4 +46,5 @@ section.items.append(subsection);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - SECTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_section_class)
+- **Official Specification:**
+  [openEHR RM - SECTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_section_class)

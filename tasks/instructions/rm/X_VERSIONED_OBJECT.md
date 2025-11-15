@@ -2,11 +2,14 @@
 
 ## Description
 
-Generic/parameterized version of X_VERSIONED_OBJECT. See X_VERSIONED_OBJECT.md for detailed documentation.
+Generic/parameterized version of X_VERSIONED_OBJECT. See X_VERSIONED_OBJECT.md
+for detailed documentation.
 
-This is the generic type definition allowing type-safe implementations with specific content types.
+This is the generic type definition allowing type-safe implementations with
+specific content types.
 
-**Specification Reference:** [openEHR RM Specification](https://specifications.openehr.org/releases/RM/latest/)
+**Specification Reference:**
+[openEHR RM Specification](https://specifications.openehr.org/releases/RM/latest/)
 
 ## Behavior
 

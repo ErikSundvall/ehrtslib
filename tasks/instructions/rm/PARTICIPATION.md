@@ -4,7 +4,8 @@
 
 PARTICIPATION records participation of a party in an activity.
 
--   **Reference:** [openEHR RM - PARTICIPATION](https://specifications.openehr.org/releases/RM/latest/common.html#_participation_class)
+- **Reference:**
+  [openEHR RM - PARTICIPATION](https://specifications.openehr.org/releases/RM/latest/common.html#_participation_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ participation.function = DV_TEXT.from("Assistant");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PARTICIPATION](https://specifications.openehr.org/releases/RM/latest/common.html#_participation_class)
+- **Official Specification:**
+  [openEHR RM - PARTICIPATION](https://specifications.openehr.org/releases/RM/latest/common.html#_participation_class)

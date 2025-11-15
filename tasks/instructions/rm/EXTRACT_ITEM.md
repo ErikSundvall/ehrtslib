@@ -4,7 +4,8 @@
 
 Generic item within an extract. Used for versioned content extracts.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -15,11 +16,8 @@ Generic item within an extract. Used for versioned content extracts.
 
 ## Example Usage
 
-\`\`\`typescript
-const extractItem = new EXTRACT_ITEM();
-extractItem.uid = hierObjectId;
-extractItem.item = versionedContent;
-\`\`\`
+\`\`\`typescript const extractItem = new EXTRACT_ITEM(); extractItem.uid =
+hierObjectId; extractItem.item = versionedContent; \`\`\`
 
 ## Test Cases
 

@@ -4,7 +4,8 @@
 
 The `TERMINOLOGY_STATUS` class indicates the status of a terminology entity.
 
--   **Reference:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Reference:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ status.value = "active";
 
 ## 4. References
 
--   **Official Specification:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Official Specification:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)

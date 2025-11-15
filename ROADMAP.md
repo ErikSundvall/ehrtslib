@@ -1,92 +1,223 @@
 # Roadmap
+
 Partly done - completed steps are marked `✅ (done)`
 
-## Phase 1 - test the approach  ✅ (done)
-Use deepwiki MCP connection for info about openEHR's BMM files. Following the dependency graph of openEHR packages/libraries (starting with BASE package and its dependencies and then move upwards), build typescript libraries for all of openEHR (RM first, then TERM and AM). Keep classes of the same package in same typescript file (ine fil per package). Keep the exact snake_case class and method names and capitalization as in the BMM specification.  Start jules on this task in this github repository (ehrtslib). Take your time Jules and do a thorough job, no hurry i will turn off my computer and check in tomorrow. 
+## Phase 1 - test the approach ✅ (done)
 
-## Phase 2 - Make deterministic converter/generator from JSON based BMM to Typescript libraries  ✅ (done)
-* Previous phase was a good experient based on a not so information rich BMM variant. Keep it in a subdirectory (called from_old_bmm) for comparison and add a readme in that directory explaining how it was generated.
-* The latest versions of openEHR BMM are in JSON format and contain updated (and more) information about each class and can be found in https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON (raw files are of course in https://raw.githubusercontent.com/sebastian-iancu/code-generator/refs/heads/master/code/BMM-JSON/ ). That repository is also available in Deepwiki. 
-* Make a brand new set of TS libraries from these. Use JsDoc to include _all_ extra documentation for the classes etc found in the BMMs. There are many version of BMMs in the sebastian-iancu/code-generator only use the latest Semver version of each library, example, only use openehr_base_1.3.0.bmm.json among these:
+Use deepwiki MCP connection for info about openEHR's BMM files. Following the
+dependency graph of openEHR packages/libraries (starting with BASE package and
+its dependencies and then move upwards), build typescript libraries for all of
+openEHR (RM first, then TERM and AM). Keep classes of the same package in same
+typescript file (ine fil per package). Keep the exact snake_case class and
+method names and capitalization as in the BMM specification. Start jules on this
+task in this github repository (ehrtslib). Take your time Jules and do a
+thorough job, no hurry i will turn off my computer and check in tomorrow.
+
+## Phase 2 - Make deterministic converter/generator from JSON based BMM to Typescript libraries ✅ (done)
+
+- Previous phase was a good experient based on a not so information rich BMM
+  variant. Keep it in a subdirectory (called from_old_bmm) for comparison and
+  add a readme in that directory explaining how it was generated.
+- The latest versions of openEHR BMM are in JSON format and contain updated (and
+  more) information about each class and can be found in
+  https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
+  (raw files are of course in
+  https://raw.githubusercontent.com/sebastian-iancu/code-generator/refs/heads/master/code/BMM-JSON/
+  ). That repository is also available in Deepwiki.
+- Make a brand new set of TS libraries from these. Use JsDoc to include _all_
+  extra documentation for the classes etc found in the BMMs. There are many
+  version of BMMs in the sebastian-iancu/code-generator only use the latest
+  Semver version of each library, example, only use openehr_base_1.3.0.bmm.json
+  among these:
+
 ```openehr_base_1.0.4.bmm.json
 openehr_base_1.1.0.bmm.json
 openehr_base_1.2.0.bmm.json
 openehr_base_1.3.0.bmm.json
 ```
-* There will be new versions of these bmm files published later so we want to create a deterministic way to convert from *.bmm.json files to Typescript libraries that can be run later using a Deno task without involving AI.
 
-## Phase 3 - deep comparison to specification documentation and other implementations  ✅ (done)
-Note: This step requires 
-* MCP/Deepwiki access
-* Ability to find and read web pages
-* Ability to browse and read Github repositories
+- There will be new versions of these bmm files published later so we want to
+  create a deterministic way to convert from *.bmm.json files to Typescript
+  libraries that can be run later using a Deno task without involving AI.
+
+## Phase 3 - deep comparison to specification documentation and other implementations ✅ (done)
+
+Note: This step requires
+
+- MCP/Deepwiki access
+- Ability to find and read web pages
+- Ability to browse and read Github repositories
 
 ### Phase 3 Goals
-Previous phase created a skeleton of classes based on BMM files. Now we need to collect information about how to:
-1. Verify that the skeleton is correct by double checking with other implementations and with specification documents. This includes method signatures and handling of Generics. In case any of this is missing or incomplete then improve the deterministic class generators in this repo (mainly generate_ts_libs.ts and ts_generator.ts) 
-2. Figure out if and where (correct) behaviour inside the classes is missing and create tests of that behaviour.
-   * Design a way to systematically record this information in instruction files. One instruction file per class, named after the class (for example DV_TEXT.md) but organized in one directory per package, so that a very junior developer (or AI with limited context window) could read that file and class by class implement the missing code into the class skeletons that were already generated by the deterministic class generators from prevous phases. 
-   * These instructions should then be possible for less advanced AI agents to reuse and have as guidance so that we can rerun teh process for changed classes whenever the specification BMM files are updated. 
-   * At the same time as part of this process generate a corresponding test suite file per package that Deno later can execute to see if the junior developer or AI implemented the missing behaviour correctly. 
-   * Use markdown format for the instruction files and feel free to include code snippets from varoius sources or create and include pseudo code. Include references (web links) to the sources used for each instruction file. 
-3. improve JSdoc documentation of each class so that users can look up more info from the corresponding section in specification documents at https://specifications.openehr.org/
-4. In addition to the tests generated in step 2, translate the tests from other openEHR implementations to tests that can be run by Deno as an extra validation step.
 
-In all the above steps note that there might be implementaitons of the openEHR specifications that are inconsistent with each other or with the specifications, if that is found, then report the inconsistency in a file named INCONSISTENCIES.md (under a major heading per class and possibly with subheadings) and there also briefly note what interpretation you chose for your own implementation, and why. 
+Previous phase created a skeleton of classes based on BMM files. Now we need to
+collect information about how to:
+
+1. Verify that the skeleton is correct by double checking with other
+   implementations and with specification documents. This includes method
+   signatures and handling of Generics. In case any of this is missing or
+   incomplete then improve the deterministic class generators in this repo
+   (mainly generate_ts_libs.ts and ts_generator.ts)
+2. Figure out if and where (correct) behaviour inside the classes is missing and
+   create tests of that behaviour.
+   - Design a way to systematically record this information in instruction
+     files. One instruction file per class, named after the class (for example
+     DV_TEXT.md) but organized in one directory per package, so that a very
+     junior developer (or AI with limited context window) could read that file
+     and class by class implement the missing code into the class skeletons that
+     were already generated by the deterministic class generators from prevous
+     phases.
+   - These instructions should then be possible for less advanced AI agents to
+     reuse and have as guidance so that we can rerun teh process for changed
+     classes whenever the specification BMM files are updated.
+   - At the same time as part of this process generate a corresponding test
+     suite file per package that Deno later can execute to see if the junior
+     developer or AI implemented the missing behaviour correctly.
+   - Use markdown format for the instruction files and feel free to include code
+     snippets from varoius sources or create and include pseudo code. Include
+     references (web links) to the sources used for each instruction file.
+3. improve JSdoc documentation of each class so that users can look up more info
+   from the corresponding section in specification documents at
+   https://specifications.openehr.org/
+4. In addition to the tests generated in step 2, translate the tests from other
+   openEHR implementations to tests that can be run by Deno as an extra
+   validation step.
+
+In all the above steps note that there might be implementaitons of the openEHR
+specifications that are inconsistent with each other or with the specifications,
+if that is found, then report the inconsistency in a file named
+INCONSISTENCIES.md (under a major heading per class and possibly with
+subheadings) and there also briefly note what interpretation you chose for your
+own implementation, and why.
 
 ### Phase 3 background information and implementions to analyze and use ideas from
-Github repositories on the form [organization/repository -- Hints] note that all these have been indexed by deepwiki, so use the deepwiki mcp to ask questionsl like "explain the details of this class in" (or better questions you may have).
-* /sebastian-iancu/code-generator -- Code (mostly PHP) that generates class skeletons in different formats form BMM files. It can be useful to compare our approach to
-* openEHR/archie -- a full implementation of open EHRs RM and AM etc. in Java. This is  considered a very good reference implementation of openEHR and is used by many other projects, It also has extensive tests and test data that can be reused after translation translated
-* openEHR/specifications-ITS-BMM -- a compact representation of openEHR, a more modern version of this was used in phase 2 of this project, but using deepwiki mcp to ask is useful here anyway
-* openEHR/java-libs -- an older Java based openEHR implementation 
-* openEHR/adl-tools -- an older Eiffel based openEHR implementation (AM and RM found in https://github.com/openEHR/adl-tools/tree/master/libraries/openehr/src) th "invariant" sections can be of special interest
-* The latest openEHR specifications are browsable (and google serachable) as HTML under https://specifications.openehr.org/development_baseline but also deeper in the directory structures as doucument .adoc-source files in for example the following github repos (that are also indexed by deepwiki):
-    * openEHR/specifications-BASE
-    * openEHR/specifications-AM
-    * openEHR/specifications-LANG
-    * openEHR/specifications-RM
-i
- 
+
+Github repositories on the form [organization/repository -- Hints] note that all
+these have been indexed by deepwiki, so use the deepwiki mcp to ask questionsl
+like "explain the details of this class in" (or better questions you may have).
+
+- /sebastian-iancu/code-generator -- Code (mostly PHP) that generates class
+  skeletons in different formats form BMM files. It can be useful to compare our
+  approach to
+- openEHR/archie -- a full implementation of open EHRs RM and AM etc. in Java.
+  This is considered a very good reference implementation of openEHR and is used
+  by many other projects, It also has extensive tests and test data that can be
+  reused after translation translated
+- openEHR/specifications-ITS-BMM -- a compact representation of openEHR, a more
+  modern version of this was used in phase 2 of this project, but using deepwiki
+  mcp to ask is useful here anyway
+- openEHR/java-libs -- an older Java based openEHR implementation
+- openEHR/adl-tools -- an older Eiffel based openEHR implementation (AM and RM
+  found in
+  https://github.com/openEHR/adl-tools/tree/master/libraries/openehr/src) th
+  "invariant" sections can be of special interest
+- The latest openEHR specifications are browsable (and google serachable) as
+  HTML under https://specifications.openehr.org/development_baseline but also
+  deeper in the directory structures as doucument .adoc-source files in for
+  example the following github repos (that are also indexed by deepwiki):
+  - openEHR/specifications-BASE
+  - openEHR/specifications-AM
+  - openEHR/specifications-LANG
+  - openEHR/specifications-RM i
+
 ## Phase 4a ✅ (done)
-First check what happened to the dual setter/getter approach and helpers for primitive classes described in Chapter 6 of https://github.com/ErikSundvall/ehrtslib/blob/main/STORY-PR6-AI-DEVELOPER-DIALOGUE.md is that pattern intact or did it disapperar along the way?
-If it is gone we need to re-intrduce it by to rewriting the class generators before going on.
+
+First check what happened to the dual setter/getter approach and helpers for
+primitive classes described in Chapter 6 of
+https://github.com/ErikSundvall/ehrtslib/blob/main/STORY-PR6-AI-DEVELOPER-DIALOGUE.md
+is that pattern intact or did it disapperar along the way? If it is gone we need
+to re-intrduce it by to rewriting the class generators before going on.
 
 ## Phase 4b ✅ (done)
-Try to fix some _unexpected_ test errors and erratic non updated test code before going on. Ignore test failiures that are expexted due to not yet implementetd functinality. 
-Then implement functional behaviour class by class based on the instruction files in /tasks/instructions (one per class) produced in phase 3, also try to get tests for that class to pass before going on to next class. Note that there may be dependencies so try to implement in depencency order, also accept that some tests may not pass until dependencies are implemented.
-Note: the project already has a list defining dependenices between packages /tasks/bmm_dependencies.json and  has code for topological class sorting in generator files.
-Note: The three (Archie, java-libs and adl-tools) openEHR implementations can be used for inspiration in addition to pseudocode in /instruction files.
+
+Try to fix some _unexpected_ test errors and erratic non updated test code
+before going on. Ignore test failiures that are expexted due to not yet
+implementetd functinality. Then implement functional behaviour class by class
+based on the instruction files in /tasks/instructions (one per class) produced
+in phase 3, also try to get tests for that class to pass before going on to next
+class. Note that there may be dependencies so try to implement in depencency
+order, also accept that some tests may not pass until dependencies are
+implemented. Note: the project already has a list defining dependenices between
+packages /tasks/bmm_dependencies.json and has code for topological class sorting
+in generator files. Note: The three (Archie, java-libs and adl-tools) openEHR
+implementations can be used for inspiration in addition to pseudocode in
+/instruction files.
 
 ## Phase 4c
-The way the project is set up now is a (on rerun) potenitally destructive mix of dererminsitic generation and then extensive LLM-based manipulation of generated files. 
-* We first, in Phase 1+2 above, created an algorithm that 100% deterministicly from BMM JSON files generate Typescritp library files filled with class stubs that have properties and method headers
-* We then in Phase 3 use LLMs to create a knowledge bank of descriptive background information files in /tasks/instructions
-* We then in Phase 4 use LLMs to make considerable changes (based on the knowledge bank) to to the files that were generated in Phase 2
 
-The project needs to be better future proofed so that another run with new bmm-versions (that may contain additions and changes to the BMMs) will not destroy unchanged parts of the models, but rahter reuse existing libraries and tests and only modify+add the delta between last versoin and the new version.
-Now we have a situation where running the generators will overwrite e.g. the method implementations done in Phase 3
+The way the project is set up now is a (on rerun) potenitally destructive mix of
+dererminsitic generation and then extensive LLM-based manipulation of generated
+files.
+
+- We first, in Phase 1+2 above, created an algorithm that 100% deterministicly
+  from BMM JSON files generate Typescritp library files filled with class stubs
+  that have properties and method headers
+- We then in Phase 3 use LLMs to create a knowledge bank of descriptive
+  background information files in /tasks/instructions
+- We then in Phase 4 use LLMs to make considerable changes (based on the
+  knowledge bank) to to the files that were generated in Phase 2
+
+The project needs to be better future proofed so that another run with new
+bmm-versions (that may contain additions and changes to the BMMs) will not
+destroy unchanged parts of the models, but rahter reuse existing libraries and
+tests and only modify+add the delta between last versoin and the new version.
+Now we have a situation where running the generators will overwrite e.g. the
+method implementations done in Phase 3
 
 ## Phase 4d
-Add function behaviour for not yet implemented functions in BASE, RM & LANG (if any) and create and run associated tests. (Hint: many of the unimplemented pars throw errors saying that they are not yet implemented)
+
+Add function behaviour for not yet implemented functions in BASE, RM & LANG (if
+any) and create and run associated tests. (Hint: many of the unimplemented pars
+throw errors saying that they are not yet implemented)
 
 ## Phase 5a
-Serialisation and deserialisation of RM object instance trees to and from openEHRs canonical JSON and XML formats (in separate classes so that you only import the ones you need, since often a project using the library will need either XML or JSON). If JS/TS built in support for JSON and XML is not enough and/or if it helps keeping the implementation cleaner and more understandable feel free to import and use libraries like teh following or others that you find:
-* https://github.com/typestack/class-transformer or https://github.com/GillianPerard/typescript-json-serializer for going between Typescript object instances and JSON
-* https://github.com/Leonidas-from-XIV/node-xml2js or https://github.com/GillianPerard/typescript-json-serializer for going between Typescript object instances and XML
 
-## Phase 4e 
-Create documentation and runnable example code That shows how to build an RM object tree for an openEHR COMPOSITION from scratch based on manually lookling at the very simple/minimal flattened template (...provide filename here...). Do point out that at this stage we do not yet have support from the AM and helper code to validate that the tree structure is actually valid and following a template. Template supported object creation will be implemented in later phases, but it could be pedagogical to show that the RM is usable (albeit in a cumbersome way) on its own.
+Serialisation and deserialisation of RM object instance trees to and from
+openEHRs canonical JSON and XML formats (in separate classes so that you only
+import the ones you need, since often a project using the library will need
+either XML or JSON). If JS/TS built in support for JSON and XML is not enough
+and/or if it helps keeping the implementation cleaner and more understandable
+feel free to import and use libraries like teh following or others that you
+find:
 
+- https://github.com/typestack/class-transformer or
+  https://github.com/GillianPerard/typescript-json-serializer for going between
+  Typescript object instances and JSON
+- https://github.com/Leonidas-from-XIV/node-xml2js or
+  https://github.com/GillianPerard/typescript-json-serializer for going between
+  Typescript object instances and XML
+
+## Phase 4e
+
+Create documentation and runnable example code That shows how to build an RM
+object tree for an openEHR COMPOSITION from scratch based on manually lookling
+at the very simple/minimal flattened template (...provide filename here...). Do
+point out that at this stage we do not yet have support from the AM and helper
+code to validate that the tree structure is actually valid and following a
+template. Template supported object creation will be implemented in later
+phases, but it could be pedagogical to show that the RM is usable (albeit in a
+cumbersome way) on its own.
 
 ## Pase 5b
-Simplified openEHR template specific forms of instance tree creation and validation. (Take inspiration from Archie and openEHR's simplified formats and "web template" but also allow ADL2 flattened templates as validatiadl-toolson source). 
-* One version of this code needs to be small so that it can fit and be run eficiently inside form engines etc. 
-* Also make a (less lightweight) version that can be synchronously multiuser updated using Y.js or 
-* Create build step to genenrate minivfed and web component versions
+
+Simplified openEHR template specific forms of instance tree creation and
+validation. (Take inspiration from Archie and openEHR's simplified formats and
+"web template" but also allow ADL2 flattened templates as validatiadl-toolson
+source).
+
+- One version of this code needs to be small so that it can fit and be run
+  eficiently inside form engines etc.
+- Also make a (less lightweight) version that can be synchronously multiuser
+  updated using Y.js or
+- Create build step to genenrate minivfed and web component versions
 
 ## Phase 6
-Serialisation and deserialisation of RM object instance trees to and from openEHRs simplified JSON formats (likely using other already existing library if it can be made fairly dependency free)
+
+Serialisation and deserialisation of RM object instance trees to and from
+openEHRs simplified JSON formats (likely using other already existing library if
+it can be made fairly dependency free)
 
 ## Phase X
-Create /dist directory and subdirectories with different distributions for targeted purposes
+
+Create /dist directory and subdirectories with different distributions for
+targeted purposes

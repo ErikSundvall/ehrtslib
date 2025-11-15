@@ -4,7 +4,8 @@
 
 PARTY_PROXY is abstract parent for party references in the EHR.
 
--   **Reference:** [openEHR RM - PARTY_PROXY](https://specifications.openehr.org/releases/RM/latest/common.html#_party_proxy_class)
+- **Reference:**
+  [openEHR RM - PARTY_PROXY](https://specifications.openehr.org/releases/RM/latest/common.html#_party_proxy_class)
 
 ## 2. Behavior
 
@@ -18,4 +19,5 @@ PARTY_PROXY is abstract parent for party references in the EHR.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - PARTY_PROXY](https://specifications.openehr.org/releases/RM/latest/common.html#_party_proxy_class)
+- **Official Specification:**
+  [openEHR RM - PARTY_PROXY](https://specifications.openehr.org/releases/RM/latest/common.html#_party_proxy_class)

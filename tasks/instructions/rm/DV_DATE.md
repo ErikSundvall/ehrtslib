@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_DATE` class represents date values in ISO 8601 format, supporting partial dates.
+The `DV_DATE` class represents date values in ISO 8601 format, supporting
+partial dates.
 
--   **Reference:** [openEHR RM - DV_DATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_class)
+- **Reference:**
+  [openEHR RM - DV_DATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_class)
 
 ## 2. Behavior
 
@@ -43,4 +45,5 @@ const today = DV_DATE.today();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_DATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_class)
+- **Official Specification:**
+  [openEHR RM - DV_DATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_date_class)

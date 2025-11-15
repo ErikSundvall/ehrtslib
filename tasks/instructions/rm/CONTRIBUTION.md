@@ -4,7 +4,8 @@
 
 CONTRIBUTION represents a set of versions committed together.
 
--   **Reference:** [openEHR RM - CONTRIBUTION](https://specifications.openehr.org/releases/RM/latest/common.html#_contribution_class)
+- **Reference:**
+  [openEHR RM - CONTRIBUTION](https://specifications.openehr.org/releases/RM/latest/common.html#_contribution_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ contribution.audit.committer = new PARTY_SELF();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - CONTRIBUTION](https://specifications.openehr.org/releases/RM/latest/common.html#_contribution_class)
+- **Official Specification:**
+  [openEHR RM - CONTRIBUTION](https://specifications.openehr.org/releases/RM/latest/common.html#_contribution_class)

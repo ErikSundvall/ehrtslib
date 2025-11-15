@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `ARCHETYPE` class is the abstract root for all archetypes and templates. It defines formal constraints on reference model data structures.
+The `ARCHETYPE` class is the abstract root for all archetypes and templates. It
+defines formal constraints on reference model data structures.
 
--   **Reference:** [openEHR AM - ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_class)
+- **Reference:**
+  [openEHR AM - ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_class)
 
 ## 2. Behavior
 
@@ -24,6 +26,7 @@ The `ARCHETYPE` class is the abstract root for all archetypes and templates. It 
 Check if archetype is structurally valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Check required fields exist
@@ -53,6 +56,7 @@ is_valid(): Boolean {
 Check if this archetype specializes another archetype.
 
 **Pseudo-code:**
+
 ```typescript
 is_specialized(): Boolean {
   return Boolean.from(this.parent_archetype_id !== null && 
@@ -65,6 +69,7 @@ is_specialized(): Boolean {
 Returns depth in specialization hierarchy (0 for top-level archetypes).
 
 **Pseudo-code:**
+
 ```typescript
 specialization_depth(): Integer {
   if (!this.archetype_id) {
@@ -83,11 +88,14 @@ specialization_depth(): Integer {
 
 ```typescript
 const archetype = new ARCHETYPE();
-archetype.archetype_id = ARCHETYPE_HRID.from("openEHR-EHR-OBSERVATION.blood_pressure.v1");
+archetype.archetype_id = ARCHETYPE_HRID.from(
+  "openEHR-EHR-OBSERVATION.blood_pressure.v1",
+);
 archetype.rm_release = "1.0.4";
 archetype.definition = new C_COMPLEX_OBJECT();
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_class)
+- **Official Specification:**
+  [openEHR AM - ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_class)

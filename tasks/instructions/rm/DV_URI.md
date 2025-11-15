@@ -4,7 +4,8 @@
 
 DV_URI represents Uniform Resource Identifiers for external resources.
 
--   **Reference:** [openEHR RM - DV_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class)
+- **Reference:**
+  [openEHR RM - DV_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ uri.value = "https://example.com/resource";
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class)
+- **Official Specification:**
+  [openEHR RM - DV_URI](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class)

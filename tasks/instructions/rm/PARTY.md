@@ -2,9 +2,11 @@
 
 ## Description
 
-Abstract parent for demographic entities (persons, organizations, groups, etc.). Root of the demographic model.
+Abstract parent for demographic entities (persons, organizations, groups, etc.).
+Root of the demographic model.
 
-**Specification Reference:** [openEHR RM Demographic](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_class)
+**Specification Reference:**
+[openEHR RM Demographic](https://specifications.openehr.org/releases/RM/latest/demographic.html#_party_class)
 
 ## Behavior
 
@@ -13,7 +15,8 @@ Abstract parent for demographic entities (persons, organizations, groups, etc.).
 - `identities`: List<PARTY_IDENTITY> - Identity information
 - `contacts`: List<CONTACT> - Contact information
 - `relationships`: List<PARTY_RELATIONSHIP> - Relationships to other parties
-- `reverse_relationships`: List<PARTY_RELATIONSHIP> - Relationships from other parties
+- `reverse_relationships`: List<PARTY_RELATIONSHIP> - Relationships from other
+  parties
 - `details`: ITEM_STRUCTURE (optional) - Additional demographic details
 - `uid`: HIER_OBJECT_ID - Unique identifier
 - Inherits from LOCATABLE: archetype_node_id, name, archetype_details
@@ -28,8 +31,10 @@ Type of party (abstract - implemented by subclasses).
 
 - `Identities_valid`: identities /= Void and then not identities.is_empty
 - `Contacts_valid`: contacts /= Void implies not contacts.is_empty
-- `Relationships_validity`: relationships /= Void implies not relationships.is_empty
-- `Reverse_relationships_validity`: reverse_relationships /= Void implies not reverse_relationships.is_empty
+- `Relationships_validity`: relationships /= Void implies not
+  relationships.is_empty
+- `Reverse_relationships_validity`: reverse_relationships /= Void implies not
+  reverse_relationships.is_empty
 - `Is_archetype_root`: is_archetype_root
 
 ## Pre-conditions

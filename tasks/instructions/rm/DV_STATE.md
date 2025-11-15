@@ -4,7 +4,8 @@
 
 DV_STATE represents a state value from a state machine.
 
--   **Reference:** [openEHR RM - DV_STATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_state_class)
+- **Reference:**
+  [openEHR RM - DV_STATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_state_class)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ state.is_terminal = Boolean.from(true);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_STATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_state_class)
+- **Official Specification:**
+  [openEHR RM - DV_STATE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_state_class)

@@ -4,7 +4,8 @@
 
 XML-specific versioned EHR_STATUS.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -14,10 +15,8 @@ XML-specific versioned EHR_STATUS.
 
 ## Example Usage
 
-\`\`\`typescript
-const xVersioned = new X_VERSIONED_EHR_STATUS();
-xVersioned.uid = versionedObjectId;
-\`\`\`
+\`\`\`typescript const xVersioned = new X_VERSIONED_EHR_STATUS(); xVersioned.uid
+= versionedObjectId; \`\`\`
 
 ## References
 

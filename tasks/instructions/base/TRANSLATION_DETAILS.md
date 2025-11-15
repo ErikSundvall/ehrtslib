@@ -2,19 +2,21 @@
 
 ## 1. Description
 
-The `TRANSLATION_DETAILS` class contains metadata about a translation of a resource.
+The `TRANSLATION_DETAILS` class contains metadata about a translation of a
+resource.
 
--   **Reference:** [openEHR BASE - TRANSLATION_DETAILS](https://specifications.openehr.org/releases/BASE/latest/resource.html#_translation_details_class)
+- **Reference:**
+  [openEHR BASE - TRANSLATION_DETAILS](https://specifications.openehr.org/releases/BASE/latest/resource.html#_translation_details_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
--   **`language: Terminology_code`** - Target language
--   **`author: Hash<String, String>`** - Translator details
--   **`accreditation: String`** - Accreditation of translator
--   **`other_details: Hash<String, String>`** - Additional info
--   **`version_last_translated: String`** - Version that was translated
+- **`language: Terminology_code`** - Target language
+- **`author: Hash<String, String>`** - Translator details
+- **`accreditation: String`** - Accreditation of translator
+- **`other_details: Hash<String, String>`** - Additional info
+- **`version_last_translated: String`** - Version that was translated
 
 ## 3. Example Usage
 
@@ -33,4 +35,4 @@ translation.version_last_translated = String.from("1.0.0");
 
 ## 4. References
 
--   [openEHR BASE - TRANSLATION_DETAILS](https://specifications.openehr.org/releases/BASE/latest/resource.html#_translation_details_class)
+- [openEHR BASE - TRANSLATION_DETAILS](https://specifications.openehr.org/releases/BASE/latest/resource.html#_translation_details_class)

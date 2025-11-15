@@ -4,7 +4,8 @@
 
 DV_PARAGRAPH represents a paragraph of text composed of multiple DV_TEXT items.
 
--   **Reference:** [openEHR RM - DV_PARAGRAPH](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_paragraph_class)
+- **Reference:**
+  [openEHR RM - DV_PARAGRAPH](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_paragraph_class)
 
 ## 2. Behavior
 
@@ -19,6 +20,7 @@ DV_PARAGRAPH represents a paragraph of text composed of multiple DV_TEXT items.
 Convert paragraph to single string.
 
 **Pseudo-code:**
+
 ```typescript
 to_string(): String {
   if (!this.items || this.items.length === 0) {
@@ -44,10 +46,11 @@ const paragraph = new DV_PARAGRAPH();
 paragraph.items = [
   new DV_TEXT("First sentence."),
   new DV_TEXT("Second sentence."),
-  new DV_TEXT("Third sentence.")
+  new DV_TEXT("Third sentence."),
 ];
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_PARAGRAPH](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_paragraph_class)
+- **Official Specification:**
+  [openEHR RM - DV_PARAGRAPH](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_paragraph_class)

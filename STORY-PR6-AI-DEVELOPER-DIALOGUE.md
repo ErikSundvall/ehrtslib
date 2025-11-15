@@ -1,63 +1,101 @@
 # The Quest for Type Safety: An AI-Developer Partnership Story
 
-*A magazine-style narrative of how human expertise and AI capability combined to create a sophisticated TypeScript library generator for openEHR*
+_A magazine-style narrative of how human expertise and AI capability combined to
+create a sophisticated TypeScript library generator for openEHR_
 
 ---
 
 ## Chapter 1: The Challenge Awakens
 
-In the early hours of November 11, 2025, in a GitHub repository named `ehrtslib`, a deceptively simple request was made:
+In the early hours of November 11, 2025, in a GitHub repository named
+`ehrtslib`, a deceptively simple request was made:
 
-> "try to get the deno tests to run by fixing code or rewriting tests if they are not sensible."
+> "try to get the deno tests to run by fixing code or rewriting tests if they
+> are not sensible."
 
-Behind this modest prompt lay a monumental task: generating a complete TypeScript library from the openEHR Basic Meta Model (BMM) specifications—a comprehensive healthcare data standard that defines how electronic health records should be structured.
+Behind this modest prompt lay a monumental task: generating a complete
+TypeScript library from the openEHR Basic Meta Model (BMM) specifications—a
+comprehensive healthcare data standard that defines how electronic health
+records should be structured.
 
-The project, as described in the README, was ambitious: create a TypeScript library for openEHR that could work seamlessly in both browsers and servers (Deno and Node.js). But the library is massive and detailed, requiring sophisticated build tools and tree-shaking to keep the shipped code manageable.
+The project, as described in the README, was ambitious: create a TypeScript
+library for openEHR that could work seamlessly in both browsers and servers
+(Deno and Node.js). But the library is massive and detailed, requiring
+sophisticated build tools and tree-shaking to keep the shipped code manageable.
 
 ### The Bigger Picture
 
 The ROADMAP revealed this was Phase 2 of a multi-phase journey:
 
-**Phase 1** had been an experimental approach using an information-sparse BMM variant. It worked, but had limitations.
+**Phase 1** had been an experimental approach using an information-sparse BMM
+variant. It worked, but had limitations.
 
-**Phase 2** (the current phase) aimed to create a deterministic converter from the latest JSON-based BMM files to TypeScript libraries. These BMM files, hosted at `sebastian-iancu/code-generator` on GitHub, contained rich documentation and detailed class specifications. The goal: create a fully automated pipeline that could regenerate the entire library whenever the openEHR specifications were updated.
+**Phase 2** (the current phase) aimed to create a deterministic converter from
+the latest JSON-based BMM files to TypeScript libraries. These BMM files, hosted
+at `sebastian-iancu/code-generator` on GitHub, contained rich documentation and
+detailed class specifications. The goal: create a fully automated pipeline that
+could regenerate the entire library whenever the openEHR specifications were
+updated.
 
-**Phase 3** would involve deep comparison with specification documents and other implementations, creating comprehensive tests, and validating against the Java reference implementation (Archie).
+**Phase 3** would involve deep comparison with specification documents and other
+implementations, creating comprehensive tests, and validating against the Java
+reference implementation (Archie).
 
-**Future phases** would tackle serialization, deserialization, template validation, and eventually create lightweight versions suitable for form engines and web components.
+**Future phases** would tackle serialization, deserialization, template
+validation, and eventually create lightweight versions suitable for form engines
+and web components.
 
 ---
 
 ## Chapter 2: The First Encounter—Override Keywords
 
-The Copilot agent began its investigation. Running the tests revealed compilation errors—TypeScript's strict type checking was complaining about missing `override` keywords in the generated code.
+The Copilot agent began its investigation. Running the tests revealed
+compilation errors—TypeScript's strict type checking was complaining about
+missing `override` keywords in the generated code.
 
-The issue was clear: when `LOCATABLE_REF` extended `OBJECT_REF`, it needed to mark overridden properties explicitly. But there was a crucial architectural constraint:
+The issue was clear: when `LOCATABLE_REF` extended `OBJECT_REF`, it needed to
+mark overridden properties explicitly. But there was a crucial architectural
+constraint:
 
-**The generated TypeScript files were not meant to be edited directly.** They were outputs of a generator script. To fix the issue permanently, the generator itself needed to be enhanced.
+**The generated TypeScript files were not meant to be edited directly.** They
+were outputs of a generator script. To fix the issue permanently, the generator
+itself needed to be enhanced.
 
 Erik Sundvall, the repository owner, provided critical guidance:
 
-> "@copilot This class was autogenerated by running the converter from bmm to ts (see readme.md for details) so your fix will get overwritten later. You should thus not modify this file directly itself, but instead fix the generators and rerun them."
+> "@copilot This class was autogenerated by running the converter from bmm to ts
+> (see readme.md for details) so your fix will get overwritten later. You should
+> thus not modify this file directly itself, but instead fix the generators and
+> rerun them."
 
-This was a test of the AI's ability to think systematically—not just patch symptoms, but address root causes.
+This was a test of the AI's ability to think systematically—not just patch
+symptoms, but address root causes.
 
 ---
 
 ## Chapter 3: The Generator Enhancement
 
-Copilot dove into `tasks/ts_generator.ts` and `tasks/generate_ts_libs.ts`, the heart of the code generation pipeline. The solution required:
+Copilot dove into `tasks/ts_generator.ts` and `tasks/generate_ts_libs.ts`, the
+heart of the code generation pipeline. The solution required:
 
-1. **Property inheritance detection**: A new `findPropertyInAncestors()` function that recursively traverses the class hierarchy
-2. **Override keyword injection**: Automatically adding `override` when a property shadows an ancestor's property
-3. **Type narrowing handling**: Adding `= undefined` initializers when overrides narrow types
-4. **Generic parameter support**: Properly generating `<T extends ConstraintType>` from BMM definitions
+1. **Property inheritance detection**: A new `findPropertyInAncestors()`
+   function that recursively traverses the class hierarchy
+2. **Override keyword injection**: Automatically adding `override` when a
+   property shadows an ancestor's property
+3. **Type narrowing handling**: Adding `= undefined` initializers when overrides
+   narrow types
+4. **Generic parameter support**: Properly generating
+   `<T extends ConstraintType>` from BMM definitions
 5. **Abstract class support**: Detecting and adding `abstract` modifiers
-6. **Topological sorting**: Ordering classes by dependency so base classes are generated before derived classes
+6. **Topological sorting**: Ordering classes by dependency so base classes are
+   generated before derived classes
 
-Each enhancement was meticulously documented with comments explaining the "why" and "how" for future developers.
+Each enhancement was meticulously documented with comments explaining the "why"
+and "how" for future developers.
 
-The generator ran, producing thousands of lines of properly structured TypeScript code. Tests were updated to match the new expectations. The override keywords appeared exactly where they should.
+The generator ran, producing thousands of lines of properly structured
+TypeScript code. Tests were updated to match the new expectations. The override
+keywords appeared exactly where they should.
 
 Progress reported. First milestone achieved.
 
@@ -65,15 +103,21 @@ Progress reported. First milestone achieved.
 
 ## Chapter 4: The Primitive Type Conundrum
 
-But then came a deeper question—one that would transform the entire architecture.
+But then came a deeper question—one that would transform the entire
+architecture.
 
 Erik requested a verification:
 
-> "@copilot Wonderful work! Thanks! To double check: Read the openEHR specification for BASE to verify your understanding of how primitive types of target language (in this case Typescript) could be used."
+> "@copilot Wonderful work! Thanks! To double check: Read the openEHR
+> specification for BASE to verify your understanding of how primitive types of
+> target language (in this case Typescript) could be used."
 
-Copilot attempted to access `specifications.openehr.org` but was blocked by firewall rules. Yet through examining the BMM files and original hand-crafted code, a discrepancy emerged:
+Copilot attempted to access `specifications.openehr.org` but was blocked by
+firewall rules. Yet through examining the BMM files and original hand-crafted
+code, a discrepancy emerged:
 
 **The generator was mapping BMM primitive types to TypeScript primitives:**
+
 - `String` → `string`
 - `Integer` → `number`
 - `Boolean` → `boolean`
@@ -81,11 +125,16 @@ Copilot attempted to access `specifications.openehr.org` but was blocked by fire
 
 This seemed logical. But it was **wrong**.
 
-The BMM specification defined these as **wrapper classes**, not primitives. They maintained object semantics with methods like `String.is_empty()` and validation logic. More importantly, the openEHR type hierarchy needed to be preserved: `Uri extends String`, not `Uri extends primitive string`.
+The BMM specification defined these as **wrapper classes**, not primitives. They
+maintained object semantics with methods like `String.is_empty()` and validation
+logic. More importantly, the openEHR type hierarchy needed to be preserved:
+`Uri extends String`, not `Uri extends primitive string`.
 
 Copilot flagged the issue:
 
-> "The BMM 'primitive_types' are still **classes** in the type system, not TypeScript primitives. They represent the 'minimal interface of built-in types' but maintain object semantics."
+> "The BMM 'primitive_types' are still **classes** in the type system, not
+> TypeScript primitives. They represent the 'minimal interface of built-in
+> types' but maintain object semantics."
 
 A design decision loomed.
 
@@ -95,47 +144,57 @@ A design decision loomed.
 
 Erik's response revealed a core tension in API design:
 
-> "I am a bit unsure myself about best approach and currently researching... I think it is important that it is very easy for developers to use the classes, so no matter how we internally represent things we will need to provide (alternative) constructors and some (alternative) setters/getters that accept primitive Typescript types."
+> "I am a bit unsure myself about best approach and currently researching... I
+> think it is important that it is very easy for developers to use the classes,
+> so no matter how we internally represent things we will need to provide
+> (alternative) constructors and some (alternative) setters/getters that accept
+> primitive Typescript types."
 
-Here was the heart of good library design: **type safety must not come at the cost of developer ergonomics**.
+Here was the heart of good library design: **type safety must not come at the
+cost of developer ergonomics**.
 
 Nobody wants to write:
+
 ```typescript
 person.name = new String("John");
 ```
 
 When they could write:
+
 ```typescript
 person.name = "John";
 ```
 
-But type safety matters too. An `Integer` should validate that the value is actually an integer, not 3.14.
+But type safety matters too. An `Integer` should validate that the value is
+actually an integer, not 3.14.
 
 Copilot proposed a solution:
 
 ### The Wrapper Class Design
 
 **Wrapper classes with convenience:**
+
 ```typescript
 export class Integer extends Ordered_Numeric {
-    value?: number;
-    
-    constructor(val?: number) {
-        super();
-        // Validation ensures type safety
-        if (val !== undefined && val !== null && !Number.isInteger(val)) {
-            throw new Error(`Integer value must be an integer, got: ${val}`);
-        }
-        this.value = val;
+  value?: number;
+
+  constructor(val?: number) {
+    super();
+    // Validation ensures type safety
+    if (val !== undefined && val !== null && !Number.isInteger(val)) {
+      throw new Error(`Integer value must be an integer, got: ${val}`);
     }
-    
-    static from(val?: number): Integer {
-        return new Integer(val);
-    }
+    this.value = val;
+  }
+
+  static from(val?: number): Integer {
+    return new Integer(val);
+  }
 }
 ```
 
 **Benefits:**
+
 - Type safety with runtime validation
 - Maintains openEHR type hierarchy
 - Provides static factory methods
@@ -143,7 +202,11 @@ export class Integer extends Ordered_Numeric {
 
 But this still required wrapping. Erik pushed further:
 
-> "Just clarify if what you say by `Developers can use: myObj.name = new String(\"John\") OR myObj.name = String.from(\"John\")` means that we also provide developers simplified ways like `myObj.name = \"John\"`. If not then please include that (otherwise developers will go mad about the cumbersome wrapping...)."
+> "Just clarify if what you say by
+> `Developers can use: myObj.name = new String(\"John\") OR myObj.name = String.from(\"John\")`
+> means that we also provide developers simplified ways like
+> `myObj.name = \"John\"`. If not then please include that (otherwise developers
+> will go mad about the cumbersome wrapping...)."
 
 ---
 
@@ -153,83 +216,90 @@ Copilot returned with an elegant solution: **the dual getter/setter pattern**.
 
 ```typescript
 class Person {
-    private _name?: String;  // Internal backing field
-    
-    // Default getter returns primitive (convenient for most use)
-    get name(): string | undefined {
-        return this._name?.value;
+  private _name?: String; // Internal backing field
+
+  // Default getter returns primitive (convenient for most use)
+  get name(): string | undefined {
+    return this._name?.value;
+  }
+
+  // Setter accepts both primitive and wrapper with auto-wrapping
+  set name(val: string | String | undefined) {
+    if (typeof val === "string") {
+      this._name = String.from(val); // Auto-wrap with validation
+    } else {
+      this._name = val;
     }
-    
-    // Setter accepts both primitive and wrapper with auto-wrapping
-    set name(val: string | String | undefined) {
-        if (typeof val === 'string') {
-            this._name = String.from(val);  // Auto-wrap with validation
-        } else {
-            this._name = val;
-        }
-    }
+  }
 }
 ```
 
 Now developers could write natural code:
+
 ```typescript
-person.name = "John";           // Accepts string primitive
-const name = person.name;        // Returns string primitive
+person.name = "John"; // Accepts string primitive
+const name = person.name; // Returns string primitive
 ```
 
-Type safety was maintained—the setter would automatically wrap the primitive in a `String` object with validation. Perfect!
+Type safety was maintained—the setter would automatically wrap the primitive in
+a `String` object with validation. Perfect!
 
 But Erik had one more insight:
 
-> "Could we add a second getter (or some way to modify the call to it) that can be used to return the typed content (String class in this example) if the developer wants that?"
+> "Could we add a second getter (or some way to modify the call to it) that can
+> be used to return the typed content (String class in this example) if the
+> developer wants that?"
 
 Sometimes you need access to the wrapper methods. Copilot added the final touch:
 
 ```typescript
 class Person {
-    private _name?: String;
-    
-    // Default getter returns primitive (convenient for most use)
-    get name(): string | undefined {
-        return this._name?.value;
+  private _name?: String;
+
+  // Default getter returns primitive (convenient for most use)
+  get name(): string | undefined {
+    return this._name?.value;
+  }
+
+  // Typed getter with $ prefix returns wrapper (for accessing methods)
+  get $name(): String | undefined {
+    return this._name;
+  }
+
+  // Setter accepts both
+  set name(val: string | String | undefined) {
+    if (val === undefined || val === null) {
+      this._name = undefined;
+    } else if (typeof val === "string") {
+      this._name = String.from(val); // Auto-wrap with validation
+    } else {
+      this._name = val;
     }
-    
-    // Typed getter with $ prefix returns wrapper (for accessing methods)
-    get $name(): String | undefined {
-        return this._name;
-    }
-    
-    // Setter accepts both
-    set name(val: string | String | undefined) {
-        if (val === undefined || val === null) {
-            this._name = undefined;
-        } else if (typeof val === 'string') {
-            this._name = String.from(val);  // Auto-wrap with validation
-        } else {
-            this._name = val;
-        }
-    }
+  }
 }
 ```
 
 **Usage became beautifully intuitive:**
+
 ```typescript
 // Simple primitive usage (most common case)
-person.name = "John";              // Accepts string primitive
-const name: string = person.name;   // Returns string primitive
+person.name = "John"; // Accepts string primitive
+const name: string = person.name; // Returns string primitive
 
 // Access wrapper methods when needed
-const typed = person.$name;         // Get String wrapper
-if (typed?.is_empty()) {           // Use String methods
-    console.log("Empty!");
+const typed = person.$name; // Get String wrapper
+if (typed?.is_empty()) { // Use String methods
+  console.log("Empty!");
 }
 
 // Type safety with validation
-const num = new Integer(42);       // OK
-const num2 = new Integer(3.14);    // Throws error - not an integer!
+const num = new Integer(42); // OK
+const num2 = new Integer(3.14); // Throws error - not an integer!
 ```
 
-The `$` prefix was chosen carefully—it's visually distinct, follows naming conventions, and most importantly, doesn't clash with Svelte 5's reactive syntax (which uses `$:` for statements, not property names).
+The `$` prefix was chosen carefully—it's visually distinct, follows naming
+conventions, and most importantly, doesn't clash with Svelte 5's reactive syntax
+(which uses `$:` for statements, not property names).
 
 ---
 
@@ -237,23 +307,31 @@ The `$` prefix was chosen carefully—it's visually distinct, follows naming con
 
 Erik gave the green light:
 
-> "@copilot Pick A (continue here in this PR), because the interaction in this chat will be interesting for people wanting to understand how to use AI to generate openEHR libraries (perhaps they want to do it in other programming languages than Typescript). Now go on with the massive change, take your time and comment the code well, work independently and change tests when needed."
+> "@copilot Pick A (continue here in this PR), because the interaction in this
+> chat will be interesting for people wanting to understand how to use AI to
+> generate openEHR libraries (perhaps they want to do it in other programming
+> languages than Typescript). Now go on with the massive change, take your time
+> and comment the code well, work independently and change tests when needed."
 
 And "massive" it was. Copilot embarked on a comprehensive refactoring:
 
 ### What Changed
 
 **1. Type Mapping Overhaul**
+
 - Removed String, Integer, Boolean, Uri, UUID from primitive mappings
 - Added `isPrimitiveWrapperType()` detection function
 
 **2. Wrapper Class Generation**
+
 - Added `value` properties to primitive wrapper classes
 - Generated constructors with type-specific validation
 - Created static `from()` factory methods
-- Implemented `is_equal()` and other BMM-defined methods (marked as TODO for Phase 3)
+- Implemented `is_equal()` and other BMM-defined methods (marked as TODO for
+  Phase 3)
 
 **3. Property Generation Revolution**
+
 - Detected properties using wrapper types
 - Generated private backing fields (e.g., `_value`)
 - Created dual getter/setter pattern:
@@ -262,16 +340,19 @@ And "massive" it was. Copilot embarked on a comprehensive refactoring:
   - Setter accepts both with auto-wrapping
 
 **4. Validation Logic**
+
 - `Integer`: Validates `Number.isInteger()`
 - `Integer64`: Validates integer and safe range
 - `Byte`: Validates integer and 0-255 range
 - All wrappers: Null/undefined handling
 
 **5. Parameter Sanitization**
+
 - Fixed parameter names: hyphens → underscores
 - Ensured valid JavaScript identifiers
 
 **6. Function Generation**
+
 - Generated all BMM-defined methods from `functions` section
 - Marked implementations as TODO for Phase 3
 - Preserved method signatures with proper types
@@ -279,12 +360,14 @@ And "massive" it was. Copilot embarked on a comprehensive refactoring:
 ### The Results
 
 **6 files changed**
+
 - **11,912 insertions**
 - **990 deletions**
 
 Generated libraries now included:
+
 - ✅ Override keywords working correctly
-- ✅ Generics and inheritance properly generated  
+- ✅ Generics and inheritance properly generated
 - ✅ Primitive wrappers with validation
 - ✅ Developer-friendly dual access pattern
 - ✅ BMM-defined methods generated (TODO for Phase 3)
@@ -298,18 +381,21 @@ Generated libraries now included:
 The final design achieved multiple goals simultaneously:
 
 ### For Developers
+
 - **Backward Compatible**: Can use primitives directly
 - **Intuitive**: Natural JavaScript/TypeScript syntax
 - **Discoverable**: `$` prefix makes typed access explicit
 - **Type Safe**: Validation at construction time
 
-### For Maintainers  
+### For Maintainers
+
 - **Extensible**: Wrapper methods available when needed
 - **Clear Intent**: Code documents itself
 - **Maintainable**: Generated code with clear TODO markers
 - **Standards Compliant**: Follows openEHR BASE specification
 
 ### For the openEHR Ecosystem
+
 - **Preserves Type Hierarchy**: Uri extends String as specified
 - **Method Support**: BMM-defined functions generated
 - **Validation**: openEHR semantics enforced at runtime
@@ -319,33 +405,48 @@ The final design achieved multiple goals simultaneously:
 
 ## Chapter 9: Lessons from the Collaboration
 
-This interaction between Erik and Copilot demonstrates several principles of successful AI-human collaboration:
+This interaction between Erik and Copilot demonstrates several principles of
+successful AI-human collaboration:
 
 ### 1. **Iterative Refinement**
-The solution evolved through dialogue. Each response built on the previous, refining the design based on feedback.
+
+The solution evolved through dialogue. Each response built on the previous,
+refining the design based on feedback.
 
 ### 2. **Domain Expertise Matters**
-Erik knew the openEHR specifications deeply. He caught issues the AI might have missed and provided crucial context about developer experience.
+
+Erik knew the openEHR specifications deeply. He caught issues the AI might have
+missed and provided crucial context about developer experience.
 
 ### 3. **Architectural Thinking**
-Both parties focused on root causes, not symptoms. When tests failed, the generator was fixed, not the generated code.
+
+Both parties focused on root causes, not symptoms. When tests failed, the
+generator was fixed, not the generated code.
 
 ### 4. **User Experience First**
-The dual getter/setter pattern emerged from insisting on good developer ergonomics. Type safety without usability is a pyrrhic victory.
+
+The dual getter/setter pattern emerged from insisting on good developer
+ergonomics. Type safety without usability is a pyrrhic victory.
 
 ### 5. **Documentation as Communication**
-The requirement to "comment the code well" and explain changes ensured knowledge transfer—both to future maintainers and to readers of this dialogue.
+
+The requirement to "comment the code well" and explain changes ensured knowledge
+transfer—both to future maintainers and to readers of this dialogue.
 
 ### 6. **Trust but Verify**
-Erik asked for verification of assumptions ("double check" the openEHR specification) rather than accepting the initial approach blindly.
+
+Erik asked for verification of assumptions ("double check" the openEHR
+specification) rather than accepting the initial approach blindly.
 
 ---
 
 ## Chapter 10: The Road Ahead
 
-With PR #6 merged, the foundation is solid. The ROADMAP outlines what comes next:
+With PR #6 merged, the foundation is solid. The ROADMAP outlines what comes
+next:
 
 **Phase 3** will add deep validation by:
+
 - Comparing against Java reference implementation (Archie)
 - Creating instruction files for implementing missing behavior
 - Generating comprehensive test suites
@@ -353,10 +454,12 @@ With PR #6 merged, the foundation is solid. The ROADMAP outlines what comes next
 - Documenting inconsistencies across implementations
 
 **Phase 4** will implement:
+
 - Serialization/deserialization to openEHR canonical JSON and XML
 - Instance tree manipulation
 
 **Phase 5** will create:
+
 - Template-specific forms
 - Validation against ADL2 templates
 - Lightweight versions for form engines
@@ -364,21 +467,32 @@ With PR #6 merged, the foundation is solid. The ROADMAP outlines what comes next
 - Web components and minified builds
 
 **Phase 6** will add:
+
 - Simplified JSON format support
 
 ---
 
 ## Epilogue: Why This Matters
 
-Electronic health records are not just data—they're the foundation of patient care, medical research, and healthcare interoperability. The openEHR standard provides a rigorous, vendor-neutral way to represent health information.
+Electronic health records are not just data—they're the foundation of patient
+care, medical research, and healthcare interoperability. The openEHR standard
+provides a rigorous, vendor-neutral way to represent health information.
 
-But standards are only as good as their implementations. This TypeScript library, generated from authoritative BMM specifications, brings openEHR to the JavaScript ecosystem—the language of the web.
+But standards are only as good as their implementations. This TypeScript
+library, generated from authoritative BMM specifications, brings openEHR to the
+JavaScript ecosystem—the language of the web.
 
-The primitive wrapper pattern developed in PR #6 solves a fundamental challenge: how to maintain type safety and semantic correctness while providing the ergonomic, natural-feeling API that JavaScript developers expect.
+The primitive wrapper pattern developed in PR #6 solves a fundamental challenge:
+how to maintain type safety and semantic correctness while providing the
+ergonomic, natural-feeling API that JavaScript developers expect.
 
-It's a bridge between the rigor of healthcare standards and the practicality of modern web development.
+It's a bridge between the rigor of healthcare standards and the practicality of
+modern web development.
 
-And it was built through a conversation—a human with deep domain expertise and vision, and an AI with the ability to analyze, generate, and iterate on complex code. Together, they created something neither could have achieved as quickly or elegantly alone.
+And it was built through a conversation—a human with deep domain expertise and
+vision, and an AI with the ability to analyze, generate, and iterate on complex
+code. Together, they created something neither could have achieved as quickly or
+elegantly alone.
 
 ---
 
@@ -390,26 +504,26 @@ For developers wanting to apply these patterns in other languages:
 
 ```typescript
 export class Integer extends Ordered_Numeric {
-    value?: number;
-    
-    constructor(val?: number) {
-        super();
-        if (val !== undefined && val !== null && !Number.isInteger(val)) {
-            throw new Error(`Integer value must be an integer, got: ${val}`);
-        }
-        this.value = val;
+  value?: number;
+
+  constructor(val?: number) {
+    super();
+    if (val !== undefined && val !== null && !Number.isInteger(val)) {
+      throw new Error(`Integer value must be an integer, got: ${val}`);
     }
-    
-    static from(val?: number): Integer {
-        return new Integer(val);
+    this.value = val;
+  }
+
+  static from(val?: number): Integer {
+    return new Integer(val);
+  }
+
+  is_equal(other: any): boolean {
+    if (other instanceof Integer) {
+      return this.value === other.value;
     }
-    
-    is_equal(other: any): boolean {
-        if (other instanceof Integer) {
-            return this.value === other.value;
-        }
-        return false;
-    }
+    return false;
+  }
 }
 ```
 
@@ -417,28 +531,28 @@ export class Integer extends Ordered_Numeric {
 
 ```typescript
 export abstract class OBJECT_ID {
-    private _value?: String;
-    
-    // Default: returns primitive for convenience
-    get value(): string | undefined {
-        return this._value?.value;
+  private _value?: String;
+
+  // Default: returns primitive for convenience
+  get value(): string | undefined {
+    return this._value?.value;
+  }
+
+  // Typed: returns wrapper for method access
+  get $value(): String | undefined {
+    return this._value;
+  }
+
+  // Auto-wraps primitives with validation
+  set value(val: string | String | undefined) {
+    if (val === undefined || val === null) {
+      this._value = undefined;
+    } else if (typeof val === "string") {
+      this._value = String.from(val);
+    } else {
+      this._value = val;
     }
-    
-    // Typed: returns wrapper for method access
-    get $value(): String | undefined {
-        return this._value;
-    }
-    
-    // Auto-wraps primitives with validation
-    set value(val: string | String | undefined) {
-        if (val === undefined || val === null) {
-            this._value = undefined;
-        } else if (typeof val === 'string') {
-            this._value = String.from(val);
-        } else {
-            this._value = val;
-        }
-    }
+  }
 }
 ```
 
@@ -446,29 +560,29 @@ export abstract class OBJECT_ID {
 
 ```typescript
 function findPropertyInAncestors(
-    className: string, 
-    propertyName: string, 
-    allClasses: Map<string, any>
+  className: string,
+  propertyName: string,
+  allClasses: Map<string, any>,
 ): boolean {
-    const classData = allClasses.get(className);
-    if (!classData) return false;
-    
-    const ancestors = classData.ancestors || [];
-    for (const ancestor of ancestors) {
-        const ancestorClass = allClasses.get(ancestor);
-        if (!ancestorClass) continue;
-        
-        // Check if ancestor has the property
-        if (ancestorClass.properties?.[propertyName]) {
-            return true;
-        }
-        
-        // Recursively check ancestor's ancestors
-        if (findPropertyInAncestors(ancestor, propertyName, allClasses)) {
-            return true;
-        }
+  const classData = allClasses.get(className);
+  if (!classData) return false;
+
+  const ancestors = classData.ancestors || [];
+  for (const ancestor of ancestors) {
+    const ancestorClass = allClasses.get(ancestor);
+    if (!ancestorClass) continue;
+
+    // Check if ancestor has the property
+    if (ancestorClass.properties?.[propertyName]) {
+      return true;
     }
-    return false;
+
+    // Recursively check ancestor's ancestors
+    if (findPropertyInAncestors(ancestor, propertyName, allClasses)) {
+      return true;
+    }
+  }
+  return false;
 }
 ```
 
@@ -479,20 +593,29 @@ function findPropertyInAncestors(
 - **Repository**: https://github.com/ErikSundvall/ehrtslib
 - **Pull Request #6**: https://github.com/ErikSundvall/ehrtslib/pull/6
 - **openEHR Specifications**: https://specifications.openehr.org/
-- **BMM Files**: https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
+- **BMM Files**:
+  https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
 - **openEHR Archie (Java Reference)**: https://github.com/openEHR/archie
 
 ---
 
-*This story chronicles the development work leading to PR #6 in the ehrtslib repository. It represents a snapshot of AI-assisted software development in November 2025, where human expertise in healthcare informatics and AI capabilities in code generation combined to create production-quality library code.*
+_This story chronicles the development work leading to PR #6 in the ehrtslib
+repository. It represents a snapshot of AI-assisted software development in
+November 2025, where human expertise in healthcare informatics and AI
+capabilities in code generation combined to create production-quality library
+code._
 
-*The dialogue patterns demonstrated here—iterative refinement, architectural thinking, user experience focus, and comprehensive documentation—serve as a model for others developing openEHR implementations in other programming languages.*
+_The dialogue patterns demonstrated here—iterative refinement, architectural
+thinking, user experience focus, and comprehensive documentation—serve as a
+model for others developing openEHR implementations in other programming
+languages._
 
 ---
 
-**Status**: PR #6 merged November 11, 2025  
-**Impact**: 18,073 insertions, 1,732 deletions, 8 files changed  
-**Security**: No vulnerabilities detected (CodeQL verified)  
-**Tests**: Updated to reflect new architecture  
+**Status**: PR #6 merged November 11, 2025\
+**Impact**: 18,073 insertions, 1,732 deletions, 8 files changed\
+**Security**: No vulnerabilities detected (CodeQL verified)\
+**Tests**: Updated to reflect new architecture
 
-**Next Steps**: Phase 3 implementation validation and comprehensive test suite creation
+**Next Steps**: Phase 3 implementation validation and comprehensive test suite
+creation

@@ -4,7 +4,8 @@
 
 MESSAGE is the root class for messaging structures.
 
--   **Reference:** [openEHR RM - MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_message_class)
+- **Reference:**
+  [openEHR RM - MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_message_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ message.content = new COMPOSITION();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_message_class)
+- **Official Specification:**
+  [openEHR RM - MESSAGE](https://specifications.openehr.org/releases/RM/latest/integration.html#_message_class)

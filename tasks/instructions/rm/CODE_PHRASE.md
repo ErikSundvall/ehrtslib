@@ -4,7 +4,8 @@
 
 CODE_PHRASE represents a coded term from a terminology or code set.
 
--   **Reference:** [openEHR RM - CODE_PHRASE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_code_phrase_class)
+- **Reference:**
+  [openEHR RM - CODE_PHRASE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_code_phrase_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ CODE_PHRASE represents a coded term from a terminology or code set.
 Check equality with another CODE_PHRASE.
 
 **Pseudo-code:**
+
 ```typescript
 equals(other: CODE_PHRASE): Boolean {
   if (!other) {
@@ -38,9 +40,10 @@ equals(other: CODE_PHRASE): Boolean {
 ```typescript
 const code = new CODE_PHRASE();
 code.terminology_id = new TERMINOLOGY_ID("SNOMED-CT");
-code.code_string = "38341003";  // Hypertension
+code.code_string = "38341003"; // Hypertension
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - CODE_PHRASE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_code_phrase_class)
+- **Official Specification:**
+  [openEHR RM - CODE_PHRASE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_code_phrase_class)

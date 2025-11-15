@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-CONTACT represents contact information for a party, including addresses and time validity.
+CONTACT represents contact information for a party, including addresses and time
+validity.
 
--   **Reference:** [openEHR RM - CONTACT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_contact_class)
+- **Reference:**
+  [openEHR RM - CONTACT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_contact_class)
 
 ## 2. Behavior
 
@@ -31,4 +33,5 @@ contact.addresses = [address];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - CONTACT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_contact_class)
+- **Official Specification:**
+  [openEHR RM - CONTACT](https://specifications.openehr.org/releases/RM/latest/demographic.html#_contact_class)

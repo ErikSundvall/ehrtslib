@@ -4,7 +4,8 @@
 
 IMPORTED_VERSION represents a version imported from another system.
 
--   **Reference:** [openEHR RM - IMPORTED_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_imported_version_class)
+- **Reference:**
+  [openEHR RM - IMPORTED_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_imported_version_class)
 
 ## 2. Behavior
 
@@ -12,4 +13,5 @@ IMPORTED_VERSION represents a version imported from another system.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - IMPORTED_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_imported_version_class)
+- **Official Specification:**
+  [openEHR RM - IMPORTED_VERSION](https://specifications.openehr.org/releases/RM/latest/common.html#_imported_version_class)

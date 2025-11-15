@@ -4,7 +4,8 @@
 
 The `CODE` class represents an individual code within a CODE_SET.
 
--   **Reference:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Reference:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
 
 ## 2. Behavior
 
@@ -23,4 +24,5 @@ code.description = "United States";
 
 ## 4. References
 
--   **Official Specification:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Official Specification:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)

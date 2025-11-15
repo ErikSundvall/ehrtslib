@@ -4,7 +4,8 @@
 
 FOLDER organizes compositions into hierarchical structures.
 
--   **Reference:** [openEHR RM - FOLDER](https://specifications.openehr.org/releases/RM/latest/ehr.html#_folder_class)
+- **Reference:**
+  [openEHR RM - FOLDER](https://specifications.openehr.org/releases/RM/latest/ehr.html#_folder_class)
 
 ## 2. Behavior
 
@@ -25,4 +26,5 @@ folder.folders.append(subfolder);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - FOLDER](https://specifications.openehr.org/releases/RM/latest/ehr.html#_folder_class)
+- **Official Specification:**
+  [openEHR RM - FOLDER](https://specifications.openehr.org/releases/RM/latest/ehr.html#_folder_class)

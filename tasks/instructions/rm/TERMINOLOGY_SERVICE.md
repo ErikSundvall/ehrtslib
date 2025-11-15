@@ -4,7 +4,8 @@
 
 TERMINOLOGY_SERVICE provides access to terminology and code set services.
 
--   **Reference:** [openEHR RM - TERMINOLOGY_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_service_class)
+- **Reference:**
+  [openEHR RM - TERMINOLOGY_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_service_class)
 
 ## 2. Behavior
 
@@ -15,6 +16,7 @@ TERMINOLOGY_SERVICE provides access to terminology and code set services.
 Get access to a specific terminology.
 
 **Pseudo-code:**
+
 ```typescript
 terminology(name: String): TERMINOLOGY_ACCESS {
   // Lookup and return terminology by name
@@ -28,6 +30,7 @@ terminology(name: String): TERMINOLOGY_ACCESS {
 Get access to a specific code set.
 
 **Pseudo-code:**
+
 ```typescript
 code_set(name: String): CODE_SET_ACCESS {
   // Lookup and return code set by name
@@ -54,4 +57,5 @@ const countries = termService.code_set("countries");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - TERMINOLOGY_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_service_class)
+- **Official Specification:**
+  [openEHR RM - TERMINOLOGY_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_terminology_service_class)

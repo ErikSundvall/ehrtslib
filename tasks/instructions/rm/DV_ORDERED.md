@@ -2,17 +2,22 @@
 
 ## Description
 
-Abstract parent class for ordered data values. Provides comparison operations for any data value type that has a natural ordering.
+Abstract parent class for ordered data values. Provides comparison operations
+for any data value type that has a natural ordering.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class)
 
 ## Behavior
 
 ### Properties
 
-- `normal_range`: REFERENCE_RANGE<DV_ORDERED> (optional) - The normal range for this value
-- `other_reference_ranges`: List<REFERENCE_RANGE<DV_ORDERED>> (optional) - Other reference ranges
-- `normal_status`: CODE_PHRASE (optional) - Status of value relative to normal range
+- `normal_range`: REFERENCE_RANGE<DV_ORDERED> (optional) - The normal range for
+  this value
+- `other_reference_ranges`: List<REFERENCE_RANGE<DV_ORDERED>> (optional) - Other
+  reference ranges
+- `normal_status`: CODE_PHRASE (optional) - Status of value relative to normal
+  range
 
 ### Methods
 
@@ -21,11 +26,12 @@ Abstract parent class for ordered data values. Provides comparison operations fo
 Returns true if the value is within the normal range.
 
 **Pseudocode:**
+
 ```typescript
 function is_normal(): boolean {
   if (!this.normal_range) return true;
   if (!this.normal_status) return true;
-  
+
   // Check if normal_status code indicates normal
   return this.normal_status.code_string === "N"; // N = Normal
 }
@@ -37,10 +43,15 @@ True if this value can be compared to other using '<', '>', etc.
 
 ## Invariants
 
-- `Other_reference_ranges_validity`: other_reference_ranges /= Void implies not other_reference_ranges.is_empty
-- `Is_simple_validity`: (normal_range = Void and other_reference_ranges = Void) implies normal_status = Void
-- `Normal_status_validity`: normal_status /= Void implies code_set(Code_set_id_normal_statuses).has_code(normal_status)
-- `Normal_range_and_status_consistency`: (normal_range /= Void and normal_status /= Void) implies (normal_status.code_string.is_equal("N") xor not normal_range.is_in_range(self))
+- `Other_reference_ranges_validity`: other_reference_ranges /= Void implies not
+  other_reference_ranges.is_empty
+- `Is_simple_validity`: (normal_range = Void and other_reference_ranges = Void)
+  implies normal_status = Void
+- `Normal_status_validity`: normal_status /= Void implies
+  code_set(Code_set_id_normal_statuses).has_code(normal_status)
+- `Normal_range_and_status_consistency`: (normal_range /= Void and normal_status
+  /= Void) implies (normal_status.code_string.is_equal("N") xor not
+  normal_range.is_in_range(self))
 
 ## Pre-conditions
 

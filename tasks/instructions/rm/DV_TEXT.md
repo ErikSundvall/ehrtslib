@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_TEXT` class represents plain text values. It is one of the most commonly used data value types in openEHR for representing textual clinical data.
+The `DV_TEXT` class represents plain text values. It is one of the most commonly
+used data value types in openEHR for representing textual clinical data.
 
--   **Reference:** [openEHR RM - DV_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class)
+- **Reference:**
+  [openEHR RM - DV_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class)
 
 ## 2. Behavior
 
@@ -12,52 +14,52 @@ The `DV_TEXT` class represents plain text values. It is one of the most commonly
 
 #### `value: String`
 
--   **Purpose:** The text value.
--   **Mandatory:** Yes
+- **Purpose:** The text value.
+- **Mandatory:** Yes
 
 #### `hyperlink: DV_URI`
 
--   **Purpose:** Optional link to external resource.
--   **Optional:** Yes
+- **Purpose:** Optional link to external resource.
+- **Optional:** Yes
 
 #### `formatting: String`
 
--   **Purpose:** Format markup (HTML, RTF, etc.).
--   **Optional:** Yes
+- **Purpose:** Format markup (HTML, RTF, etc.).
+- **Optional:** Yes
 
 #### `mappings: List<TERM_MAPPING>`
 
--   **Purpose:** Terminology mappings.
--   **Optional:** Yes
+- **Purpose:** Terminology mappings.
+- **Optional:** Yes
 
 #### `language: CODE_PHRASE`
 
--   **Purpose:** Language of the text.
--   **Optional:** Yes (but recommended)
+- **Purpose:** Language of the text.
+- **Optional:** Yes (but recommended)
 
 #### `encoding: CODE_PHRASE`
 
--   **Purpose:** Character encoding.
--   **Optional:** Yes (but recommended)
+- **Purpose:** Character encoding.
+- **Optional:** Yes (but recommended)
 
 ### 2.2. Factory Methods
 
--   **Pseudo-code:**
-    ```typescript
-    static from(value: string): DV_TEXT {
-      const dv = new DV_TEXT();
-      dv.value = value;
-      return dv;
-    }
-    ```
+- **Pseudo-code:**
+  ```typescript
+  static from(value: string): DV_TEXT {
+    const dv = new DV_TEXT();
+    dv.value = value;
+    return dv;
+  }
+  ```
 
 ### 2.3. Comparison
 
--   **`is_equal(other: Any): Boolean`** - Compare text values
+- **`is_equal(other: Any): Boolean`** - Compare text values
 
 ## 3. Invariants
 
--   **Value_exists:** `value /= Void and then not value.is_empty()`
+- **Value_exists:** `value /= Void and then not value.is_empty()`
 
 ## 4. Example Usage
 
@@ -82,5 +84,5 @@ textWithLang.encoding = CODE_PHRASE.from("UTF-8", "IANA_character-sets");
 
 ## 6. References
 
--   [openEHR RM - DV_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class)
--   [Archie DV_TEXT](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/quantity/DvText.java)
+- [openEHR RM - DV_TEXT](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class)
+- [Archie DV_TEXT](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datavalues/quantity/DvText.java)

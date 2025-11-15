@@ -2,9 +2,12 @@
 
 ## 1. Description
 
-The `COMPOSITION` class is the root container for clinical content in an EHR. It represents a clinical document like a consultation note, discharge summary, or lab report.
+The `COMPOSITION` class is the root container for clinical content in an EHR. It
+represents a clinical document like a consultation note, discharge summary, or
+lab report.
 
--   **Reference:** [openEHR RM - COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class)
+- **Reference:**
+  [openEHR RM - COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class)
 
 ## 2. Behavior
 
@@ -12,33 +15,33 @@ The `COMPOSITION` class is the root container for clinical content in an EHR. It
 
 #### `language: CODE_PHRASE`
 
--   **Purpose:** Language of the composition.
--   **Mandatory:** Yes
+- **Purpose:** Language of the composition.
+- **Mandatory:** Yes
 
 #### `territory: CODE_PHRASE`
 
--   **Purpose:** Territory (country) where composed.
--   **Mandatory:** Yes
+- **Purpose:** Territory (country) where composed.
+- **Mandatory:** Yes
 
 #### `category: DV_CODED_TEXT`
 
--   **Purpose:** Category (event, persistent, episode).
--   **Mandatory:** Yes
+- **Purpose:** Category (event, persistent, episode).
+- **Mandatory:** Yes
 
 #### `composer: PARTY_PROXY`
 
--   **Purpose:** Person who authored the composition.
--   **Mandatory:** Yes
+- **Purpose:** Person who authored the composition.
+- **Mandatory:** Yes
 
 #### `context: EVENT_CONTEXT`
 
--   **Purpose:** Clinical session context.
--   **Optional:** Yes (mandatory for event category)
+- **Purpose:** Clinical session context.
+- **Optional:** Yes (mandatory for event category)
 
 #### `content: List<CONTENT_ITEM>`
 
--   **Purpose:** Clinical content (SECTION, ENTRY).
--   **Optional:** Yes
+- **Purpose:** Clinical content (SECTION, ENTRY).
+- **Optional:** Yes
 
 ### 2.2. Methods
 
@@ -54,11 +57,11 @@ is_persistent(): Boolean {
 
 ## 3. Invariants
 
--   **Language_valid:** `language /= Void`
--   **Territory_valid:** `territory /= Void`
--   **Category_valid:** `category /= Void and then valid_category(category)`
--   **Composer_valid:** `composer /= Void`
--   **Context_valid:** `category.value = 'event' implies context /= Void`
+- **Language_valid:** `language /= Void`
+- **Territory_valid:** `territory /= Void`
+- **Category_valid:** `category /= Void and then valid_category(category)`
+- **Composer_valid:** `composer /= Void`
+- **Context_valid:** `category.value = 'event' implies context /= Void`
 
 ## 4. Example Usage
 
@@ -86,5 +89,5 @@ composition.content.append(section);
 
 ## 5. References
 
--   [openEHR RM - COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class)
--   [Archie COMPOSITION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Composition.java)
+- [openEHR RM - COMPOSITION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class)
+- [Archie COMPOSITION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Composition.java)

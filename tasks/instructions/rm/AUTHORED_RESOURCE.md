@@ -4,13 +4,16 @@
 
 This class is defined in the BASE package but used extensively in RM context.
 
-**See:** `tasks/instructions/base/AUTHORED_RESOURCE.md` for detailed documentation.
+**See:** `tasks/instructions/base/AUTHORED_RESOURCE.md` for detailed
+documentation.
 
-**Specification Reference:** [openEHR BASE Foundation Types](https://specifications.openehr.org/releases/BASE/latest/foundation_types.html)
+**Specification Reference:**
+[openEHR BASE Foundation Types](https://specifications.openehr.org/releases/BASE/latest/foundation_types.html)
 
 ## Usage in RM
 
 This BASE package class is used in RM for:
+
 - Resource annotation and metadata
 - Authoring information
 - Translation details

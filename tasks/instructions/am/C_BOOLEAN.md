@@ -4,7 +4,8 @@
 
 C_BOOLEAN constrains Boolean values.
 
--   **Reference:** [openEHR AM - C_BOOLEAN](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_boolean_class)
+- **Reference:**
+  [openEHR AM - C_BOOLEAN](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_boolean_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ C_BOOLEAN constrains Boolean values.
 Check if a boolean value satisfies this constraint.
 
 **Pseudo-code:**
+
 ```typescript
 valid_value(value: Boolean): Boolean {
   if (value === true) {
@@ -35,9 +37,10 @@ valid_value(value: Boolean): Boolean {
 ```typescript
 const cBool = new C_BOOLEAN();
 cBool.true_valid = true;
-cBool.false_valid = false;  // Only true allowed
+cBool.false_valid = false; // Only true allowed
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_BOOLEAN](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_boolean_class)
+- **Official Specification:**
+  [openEHR AM - C_BOOLEAN](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_boolean_class)

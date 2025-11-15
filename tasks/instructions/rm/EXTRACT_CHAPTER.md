@@ -4,7 +4,8 @@
 
 EXTRACT_CHAPTER represents a chapter in an Extract containing data.
 
--   **Reference:** [openEHR RM - EXTRACT_CHAPTER](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_chapter_class)
+- **Reference:**
+  [openEHR RM - EXTRACT_CHAPTER](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_chapter_class)
 
 ## 2. Behavior
 
@@ -22,4 +23,5 @@ chapter.content = new COMPOSITION();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT_CHAPTER](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_chapter_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT_CHAPTER](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_chapter_class)

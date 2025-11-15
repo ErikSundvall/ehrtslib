@@ -4,7 +4,8 @@
 
 ASSERTION represents an invariant rule in an archetype.
 
--   **Reference:** [openEHR AM - ASSERTION](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_assertion_class)
+- **Reference:**
+  [openEHR AM - ASSERTION](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_assertion_class)
 
 ## 2. Behavior
 
@@ -13,4 +14,5 @@ ASSERTION represents an invariant rule in an archetype.
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - ASSERTION](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_assertion_class)
+- **Official Specification:**
+  [openEHR AM - ASSERTION](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_assertion_class)

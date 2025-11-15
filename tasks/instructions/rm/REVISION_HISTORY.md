@@ -4,7 +4,8 @@
 
 REVISION_HISTORY tracks the revision history of a versioned object.
 
--   **Reference:** [openEHR RM - REVISION_HISTORY](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_class)
+- **Reference:**
+  [openEHR RM - REVISION_HISTORY](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_class)
 
 ## 2. Behavior
 
@@ -12,4 +13,5 @@ REVISION_HISTORY tracks the revision history of a versioned object.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - REVISION_HISTORY](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_class)
+- **Official Specification:**
+  [openEHR RM - REVISION_HISTORY](https://specifications.openehr.org/releases/RM/latest/common.html#_revision_history_class)
