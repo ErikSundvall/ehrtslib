@@ -1,4 +1,4 @@
-Old instructions that we used to modify the AGENTS.md file
+Old instructions that we used to modify the AGENTS.md file - Should be deleted later
 
 Jules can't (yet) run MCP (Model Context Protocol) clients by itself to connect
 to external MCP servers like Deepwiki MCP. So, first test locally if the
