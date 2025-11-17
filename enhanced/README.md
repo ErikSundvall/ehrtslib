@@ -1,7 +1,10 @@
 # Enhanced Implementation Directory
 
-This directory contains **fully implemented** TypeScript classes with working
-behavior, extending the stubs generated from openEHR BMM specifications.
+This directory contains TypeScript classes with enhanced implementations and
+working behavior, extending the stubs generated from openEHR BMM
+specifications. Classes here may be **fully implemented** or **partially
+implemented** (especially after BMM updates when new features are being
+integrated).
 
 ## Purpose
 
@@ -52,16 +55,10 @@ import * as openehr_base from "../openehr_base.ts";
 
 ## Updating to New BMM Versions
 
-When a new BMM version is released:
-
-1. Generate new stubs in `/generated`
-2. Run comparison tool: `deno run --allow-read tasks/compare_bmm_versions.ts`
-3. Review the changes report
-4. Manually update files in this directory to incorporate:
-   - New classes (copy stubs, then implement)
-   - New methods (add to existing classes)
-   - Changed signatures (update existing methods)
-5. Run tests to verify everything still works
+When a new BMM version is released, follow the detailed workflow in the main
+[README.md](../README.md) under "Updating to a New BMM Version". The process
+ensures your enhanced implementations are preserved while incorporating new BMM
+changes.
 
 **Do not** simply copy from `/generated` to `/enhanced` - you'll lose all your
 enhancements!

@@ -146,7 +146,7 @@ Before updating your enhanced implementations, understand what changed in the
 new BMM version using the comparison utility:
 
 ```bash
-# Compare two specific versions
+# Compare two specific versions (openehr_base used as an example)
 deno run --allow-read --allow-net --allow-write tasks/compare_bmm_versions.ts openehr_base \
   https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json \
   https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.4.0.bmm.json
@@ -165,8 +165,7 @@ The report is saved as a markdown file (e.g.,
 
 ### Step 3: Regenerate Stubs to `/generated`
 
-Generate new stubs from the updated BMM files. This is now safe - it won't
-overwrite your enhanced implementations:
+Generate new stubs from the updated BMM files:
 
 ```bash
 # Regenerate all libraries from updated BMM files
@@ -181,7 +180,7 @@ implementations remain untouched.
 Use the merge utility to insert TODO comments into your enhanced files:
 
 ```bash
-# Generate TODO comments based on the comparison report
+# Generate TODO comments based on the comparison report (openehr_base used as an example)
 deno run --allow-read --allow-write tasks/merge_bmm_updates.ts \
   bmm_comparison_openehr_base_1.3.0_to_1.4.0.md \
   enhanced/openehr_base.ts
@@ -190,7 +189,7 @@ deno run --allow-read --allow-write tasks/merge_bmm_updates.ts \
 This creates a backup and inserts TODO comments at the top of the enhanced file,
 listing all changes that need to be made.
 
-### Step 5: Manually Update Enhanced Files
+### Step 5: Update Enhanced Files (Manually or AI assisted)
 
 Work through the TODO comments in your enhanced file:
 
@@ -212,6 +211,41 @@ Work through the TODO comments in your enhanced file:
    - Update documentation to warn users
 
 5. **Remove TODO comments** once each change is complete
+
+### Step 5b (Optional): Create/Update Instruction Files with AI Assistance
+
+For complex new features or significantly changed classes, you may want to
+create or update instruction files (as described in Phase 3 of
+[ROADMAP.md](ROADMAP.md)). These files help guide implementation of missing
+behaviors:
+
+1. **Analyze specifications**: Use the openEHR specifications at
+   https://specifications.openehr.org/ and other implementations (Archie,
+   java-libs) to understand the expected behavior
+
+2. **Create instruction files**: Generate markdown files in `/tasks/instructions`
+   (one per class) that describe:
+   - Expected behavior and algorithms
+   - Edge cases and invariants
+   - Test cases
+   - References to specifications
+
+3. **Use AI to create/update instructions**: Prompt an AI assistant with:
+   ```
+   Analyze the [ClassName] in the openEHR specifications and create a detailed
+   instruction file following Phase 3 guidelines in ROADMAP.md. Include
+   behavior descriptions, pseudocode, test cases, and specification references.
+   ```
+
+4. **Use instructions when coding**: When implementing in `/enhanced`, refer to
+   the instruction files to ensure correct behavior:
+   ```
+   Implement the [ClassName] class in enhanced/[package].ts following the
+   instructions in tasks/instructions/[ClassName].md
+   ```
+
+This approach is especially useful for complex classes with intricate behavior
+or when multiple developers/AI agents need consistent implementation guidance.
 
 ### Step 6: Update Tests
 
@@ -259,7 +293,7 @@ Before committing your changes:
 If something goes wrong during the update:
 
 ```bash
-# The merge utility creates automatic backups
+# The merge utility creates automatic backups that can be restored (openehr_base used as an example)
 cp enhanced/openehr_base.ts.backup.1234567890 enhanced/openehr_base.ts
 
 # Or use git to reset

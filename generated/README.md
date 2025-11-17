@@ -3,6 +3,9 @@
 This directory contains TypeScript library stubs that are **deterministically
 generated** from openEHR BMM (Basic Meta-Model) JSON specifications.
 
+For detailed information about the generation process and workflow, see the main
+[README.md](../README.md).
+
 ## ⚠️ Important
 
 - **DO NOT EDIT** files in this directory manually
