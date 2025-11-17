@@ -1636,9 +1636,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_year(y: Integer): Boolean {
-    // TODO: Implement valid_year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_year not yet implemented.");
+    const val = y.value || 0;
+    return new Boolean(val >= 0);
   }
 
   /**
@@ -1647,9 +1646,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_month(m: Integer): Boolean {
-    // TODO: Implement valid_month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_month not yet implemented.");
+    const val = m.value || 0;
+    return new Boolean(val >= 1 && val <= 12);
   }
 
   /**
@@ -1660,9 +1658,23 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_day(y: Integer, m: Integer, d: Integer): Boolean {
-    // TODO: Implement valid_day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_day not yet implemented.");
+    const dVal = d.value || 0;
+    const mVal = m.value || 1;
+    const yVal = y.value || 0;
+
+    if (dVal < 1) return new Boolean(false);
+
+    // Days in each month
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    // Check for leap year
+    const isLeapYear = (yVal % 4 === 0 && yVal % 100 !== 0) ||
+      (yVal % 400 === 0);
+    if (isLeapYear && mVal === 2) {
+      return new Boolean(dVal <= 29);
+    }
+
+    return new Boolean(dVal <= (daysInMonth[mVal - 1] || 31));
   }
 
   /**
@@ -1673,9 +1685,17 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_hour(h: Integer, m: Integer, s: Integer): Boolean {
-    // TODO: Implement valid_hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_hour not yet implemented.");
+    const hVal = h.value || 0;
+    const mVal = m.value || 0;
+    const sVal = s.value || 0;
+
+    // Normal hours: 0-23
+    if (hVal >= 0 && hVal < 24) return new Boolean(true);
+
+    // Special case: 24:00:00 is valid
+    if (hVal === 24 && mVal === 0 && sVal === 0) return new Boolean(true);
+
+    return new Boolean(false);
   }
 
   /**
@@ -1684,9 +1704,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_minute(m: Integer): Boolean {
-    // TODO: Implement valid_minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_minute not yet implemented.");
+    const val = m.value || 0;
+    return new Boolean(val >= 0 && val < 60);
   }
 
   /**
@@ -1695,9 +1714,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_second(s: Integer): Boolean {
-    // TODO: Implement valid_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_second not yet implemented.");
+    const val = s.value || 0;
+    return new Boolean(val >= 0 && val < 60);
   }
 
   /**
@@ -1706,9 +1724,7 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_fractional_second(fs: number): Boolean {
-    // TODO: Implement valid_fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_fractional_second not yet implemented.");
+    return new Boolean(fs >= 0.0 && fs < 1.0);
   }
 
   /**
@@ -1728,9 +1744,18 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_date(s: String): Boolean {
-    // TODO: Implement valid_iso8601_date behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_date not yet implemented.");
+    const val = s.value || "";
+
+    // Extended format: YYYY-MM-DD, YYYY-MM, or YYYY
+    const extendedPattern =
+      /^(\d{4})(-((0[1-9]|1[0-2])(-([0-2]\d|3[01]))?)?)?$/;
+
+    // Compact format: YYYYMMDD, YYYYMM, or YYYY
+    const compactPattern = /^(\d{4})((0[1-9]|1[0-2])([0-2]\d|3[01])?)?$/;
+
+    return new Boolean(
+      extendedPattern.test(val) || compactPattern.test(val),
+    );
   }
 
   /**
@@ -1758,9 +1783,13 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_time(s: String): Boolean {
-    // TODO: Implement valid_iso8601_time behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_time not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 time with optional fractional seconds and timezone
+    const timePattern =
+      /^([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+
+    return new Boolean(timePattern.test(val));
   }
 
   /**
@@ -1775,9 +1804,13 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_date_time(s: String): Boolean {
-    // TODO: Implement valid_iso8601_date_time behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_date_time not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 date-time
+    const dateTimePattern =
+      /^(\d{4})-?(0[1-9]|1[0-2])-?([0-2]\d|3[01])T([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+
+    return new Boolean(dateTimePattern.test(val));
   }
 
   /**
@@ -1792,9 +1825,14 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_duration(s: String): Boolean {
-    // TODO: Implement valid_iso8601_duration behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_duration not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 duration: P[nY][nM][nW][nD][T[nH][nM][nS]]
+    const durationPattern =
+      /^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
+
+    // Must start with P and have at least one component
+    return new Boolean(durationPattern.test(val) && val.length > 1);
   }
 }
 
