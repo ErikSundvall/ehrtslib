@@ -668,9 +668,9 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   less_than_or_equal(other: Ordered): Boolean {
-    // TODO: Implement less_than_or_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than_or_equal not yet implemented.");
+    return new Boolean(
+      this.less_than(other).value || this.is_equal(other).value,
+    );
   }
 
   /**
@@ -679,9 +679,9 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   greater_than(other: Ordered): Boolean {
-    // TODO: Implement greater_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method greater_than not yet implemented.");
+    return new Boolean(
+      !this.less_than(other).value && !this.is_equal(other).value,
+    );
   }
 
   /**
@@ -690,9 +690,7 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   greater_than_or_equal(other: Ordered): Boolean {
-    // TODO: Implement greater_than_or_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method greater_than_or_equal not yet implemented.");
+    return new Boolean(!this.less_than(other).value);
   }
 }
 
@@ -1053,9 +1051,8 @@ export class Integer extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   // modulo, less_than, negative, and is_equal are implemented above
@@ -1066,9 +1063,8 @@ export class Integer extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: Integer): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // Reference equality - same object
+    return new Boolean(this === other);
   }
 }
 
@@ -1081,9 +1077,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   floor(): Integer {
-    // TODO: Implement floor behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method floor not yet implemented.");
+    const thisVal = this.value || 0;
+    return Integer.from(Math.floor(thisVal));
   }
 
   /**
@@ -1092,9 +1087,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: number): number {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal + other;
   }
 
   /**
@@ -1103,9 +1097,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: number): number {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal - other;
   }
 
   /**
@@ -1114,9 +1107,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: number): number {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal * other;
   }
 
   /**
@@ -1125,9 +1117,11 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: number): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    if (other === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / other;
   }
 
   /**
@@ -1136,9 +1130,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1147,9 +1140,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   less_than(other: number): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal < other);
   }
 
   /**
@@ -1157,9 +1149,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): number {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    const thisVal = this.value || 0;
+    return -thisVal;
   }
 
   /**
@@ -1168,9 +1159,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   is_equal(other: number): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal === other);
   }
 
   /**
@@ -1179,9 +1169,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: number): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // For primitives, reference and value equality are the same
+    return this.is_equal(other);
   }
 }
 
@@ -1316,13 +1305,35 @@ export class Boolean extends Any {
  */
 export class Real extends Ordered_Numeric {
   /**
+   * The underlying primitive value.
+   */
+  value?: number;
+
+  /**
+   * Creates a new Real instance.
+   * @param val - The primitive value to wrap
+   */
+  constructor(val?: number) {
+    super();
+    this.value = val;
+  }
+
+  /**
+   * Creates a Real instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Real instance
+   */
+  static from(val?: number): Real {
+    return new Real(val);
+  }
+
+  /**
    * Return the greatest integer no greater than the value of this object.
    * @returns Result value
    */
   floor(): Integer {
-    // TODO: Implement floor behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method floor not yet implemented.");
+    const thisVal = this.value || 0;
+    return Integer.from(Math.floor(thisVal));
   }
 
   /**
@@ -1331,9 +1342,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: number): number {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal + other;
   }
 
   /**
@@ -1342,9 +1352,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: number): number {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal - other;
   }
 
   /**
@@ -1353,9 +1362,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: number): number {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal * other;
   }
 
   /**
@@ -1364,9 +1372,11 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: number): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    if (other === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / other;
   }
 
   /**
@@ -1375,9 +1385,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1386,9 +1395,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   less_than(other: number): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal < other);
   }
 
   /**
@@ -1396,9 +1404,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): number {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    const thisVal = this.value || 0;
+    return -thisVal;
   }
 
   /**
@@ -1407,9 +1414,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   is_equal(other: number): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal === other);
   }
 
   /**
@@ -1418,9 +1424,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: number): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // For primitives, reference and value equality are the same
+    return this.is_equal(other);
   }
 }
 
@@ -1459,11 +1464,25 @@ export class Integer64 extends Ordered_Numeric {
    * @param other - The object to compare with
    * @returns true if the values are equal
    */
-  is_equal(other: any): boolean {
+  is_equal(other: any): Boolean {
     if (other instanceof Integer64) {
-      return this.value === other.value;
+      return new Boolean(this.value === other.value);
     }
-    return false;
+    return new Boolean(false);
+  }
+
+  /**
+   * Lexical comparison for large integers.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  less_than(other: Ordered): Boolean {
+    if (!(other instanceof Integer64)) {
+      throw new Error("Cannot compare Integer64 with non-Integer64");
+    }
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return new Boolean(thisVal < otherVal);
   }
 
   /**
@@ -1472,9 +1491,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: Integer): Integer64 {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal + otherVal);
   }
 
   /**
@@ -1483,9 +1502,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: Integer): Integer64 {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal - otherVal);
   }
 
   /**
@@ -1494,9 +1513,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: Integer): Integer64 {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal * otherVal);
   }
 
   /**
@@ -1505,9 +1524,12 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: Integer): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 1;
+    if (otherVal === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / otherVal;
   }
 
   /**
@@ -1516,9 +1538,8 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1527,20 +1548,12 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   modulo(mod: Integer): Integer64 {
-    // TODO: Implement modulo behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method modulo not yet implemented.");
-  }
-
-  /**
-   * Returns True if current Integer is less than \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other: Integer64): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    const modVal = mod.value || 1;
+    if (modVal === 0) {
+      throw new Error("Modulo by zero");
+    }
+    return Integer64.from(thisVal % modVal);
   }
 
   /**
@@ -1548,20 +1561,7 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): Integer64 {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
-  }
-
-  /**
-   * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other: Integer64): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    return Integer64.from(-(this.value || 0));
   }
 
   /**
@@ -1570,9 +1570,8 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: Integer64): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // Reference equality - same object
+    return new Boolean(this === other);
   }
 }
 
