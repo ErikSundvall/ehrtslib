@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_IDENTIFIER` class represents identifiers like medical record numbers, social security numbers, etc.
+The `DV_IDENTIFIER` class represents identifiers like medical record numbers,
+social security numbers, etc.
 
--   **Reference:** [openEHR RM - DV_IDENTIFIER](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_identifier_class)
+- **Reference:**
+  [openEHR RM - DV_IDENTIFIER](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_identifier_class)
 
 ## 2. Behavior
 
@@ -31,4 +33,5 @@ ssn.type = "SSN";
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - DV_IDENTIFIER](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_identifier_class)
+- **Official Specification:**
+  [openEHR RM - DV_IDENTIFIER](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_identifier_class)

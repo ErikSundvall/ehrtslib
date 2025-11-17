@@ -2,16 +2,19 @@
 
 ## Description
 
-Abstract parent for quantified types (i.e. types with a magnitude). Provides magnitude attribute and magnitude comparison operations.
+Abstract parent for quantified types (i.e. types with a magnitude). Provides
+magnitude attribute and magnitude comparison operations.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantified_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantified_class)
 
 ## Behavior
 
 ### Properties
 
 - `magnitude`: Ordered_Numeric (abstract) - The quantified value
-- `magnitude_status`: String (optional) - Status of magnitude (e.g., "=", "<", ">", "<=", ">=", "~")
+- `magnitude_status`: String (optional) - Status of magnitude (e.g., "=", "<",
+  ">", "<=", ">=", "~")
 - Inherits from DV_ORDERED: normal_range, other_reference_ranges, normal_status
 
 ### Methods
@@ -21,6 +24,7 @@ Abstract parent for quantified types (i.e. types with a magnitude). Provides mag
 True if magnitude_status is one of the valid values.
 
 **Pseudocode:**
+
 ```typescript
 function valid_magnitude_status(): boolean {
   if (!this.magnitude_status) return true;
@@ -31,7 +35,8 @@ function valid_magnitude_status(): boolean {
 
 ## Invariants
 
-- `Magnitude_status_valid`: magnitude_status /= Void implies valid_magnitude_status()
+- `Magnitude_status_valid`: magnitude_status /= Void implies
+  valid_magnitude_status()
 
 ## Pre-conditions
 

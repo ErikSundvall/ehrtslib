@@ -2,35 +2,44 @@
 
 ## 1. Description
 
-The `RESOURCE_DESCRIPTION` class contains descriptive metadata about an authored resource including authorship, purpose, lifecycle state, and details for different languages.
+The `RESOURCE_DESCRIPTION` class contains descriptive metadata about an authored
+resource including authorship, purpose, lifecycle state, and details for
+different languages.
 
--   **Reference:** [openEHR BASE - RESOURCE_DESCRIPTION](https://specifications.openehr.org/releases/BASE/latest/resource.html#_resource_description_class)
+- **Reference:**
+  [openEHR BASE - RESOURCE_DESCRIPTION](https://specifications.openehr.org/releases/BASE/latest/resource.html#_resource_description_class)
 
 ## 2. Behavior
 
 ### 2.1. Properties
 
 #### Authorship
--   **`original_author: Hash<String, String>`** - Author details (name, email, organization, date)
--   **`other_contributors: List<String>`** - Other contributors
+
+- **`original_author: Hash<String, String>`** - Author details (name, email,
+  organization, date)
+- **`other_contributors: List<String>`** - Other contributors
 
 #### Purpose and Use
--   **`lifecycle_state: String`** - Current state (draft, published, deprecated, etc.)
--   **`resource_package_uri: String`** - URI of resource package
+
+- **`lifecycle_state: String`** - Current state (draft, published, deprecated,
+  etc.)
+- **`resource_package_uri: String`** - URI of resource package
 
 #### Language-specific Details
--   **`details: Hash<String, RESOURCE_DESCRIPTION_ITEM>`** - Details per language
+
+- **`details: Hash<String, RESOURCE_DESCRIPTION_ITEM>`** - Details per language
 
 #### Rights
--   **`original_namespace: String`** - Namespace of original author
--   **`original_publisher: String`** - Publishing organization
--   **`other_details: Hash<String, String>`** - Additional metadata
--   **`parent_resource: AUTHORED_RESOURCE`** - Reference to parent resource
--   **`custodian_namespace: String`** - Namespace of custodian organization
--   **`custodian_organisation: String`** - Custodian organization name
--   **`copyright: String`** - Copyright statement
--   **`licence: String`** - License information
--   **`ip_acknowledgements: Hash<String, String>`** - IP acknowledgements
+
+- **`original_namespace: String`** - Namespace of original author
+- **`original_publisher: String`** - Publishing organization
+- **`other_details: Hash<String, String>`** - Additional metadata
+- **`parent_resource: AUTHORED_RESOURCE`** - Reference to parent resource
+- **`custodian_namespace: String`** - Namespace of custodian organization
+- **`custodian_organisation: String`** - Custodian organization name
+- **`copyright: String`** - Copyright statement
+- **`licence: String`** - License information
+- **`ip_acknowledgements: Hash<String, String>`** - IP acknowledgements
 
 ## 3. Example Usage
 
@@ -73,4 +82,4 @@ desc.licence = String.from("Apache 2.0");
 
 ## 5. References
 
--   [openEHR BASE - RESOURCE_DESCRIPTION](https://specifications.openehr.org/releases/BASE/latest/resource.html#_resource_description_class)
+- [openEHR BASE - RESOURCE_DESCRIPTION](https://specifications.openehr.org/releases/BASE/latest/resource.html#_resource_description_class)

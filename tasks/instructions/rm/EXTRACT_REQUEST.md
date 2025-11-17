@@ -4,7 +4,8 @@
 
 EXTRACT_REQUEST specifies a request for EHR data extraction.
 
--   **Reference:** [openEHR RM - EXTRACT_REQUEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_request_class)
+- **Reference:**
+  [openEHR RM - EXTRACT_REQUEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_request_class)
 
 ## 2. Behavior
 
@@ -25,4 +26,5 @@ request.spec.ehr_id = new HIER_OBJECT_ID("ehr123");
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT_REQUEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_request_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT_REQUEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_request_class)

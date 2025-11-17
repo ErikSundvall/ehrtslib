@@ -4,7 +4,8 @@
 
 C_INTEGER constrains Integer values.
 
--   **Reference:** [openEHR AM - C_INTEGER](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_integer_class)
+- **Reference:**
+  [openEHR AM - C_INTEGER](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_integer_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ C_INTEGER constrains Integer values.
 Check if an integer value satisfies this constraint.
 
 **Pseudo-code:**
+
 ```typescript
 valid_value(value: Integer): Boolean {
   // If list is defined, value must be in list
@@ -62,4 +64,5 @@ cRange.range.upper = 200;
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_INTEGER](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_integer_class)
+- **Official Specification:**
+  [openEHR AM - C_INTEGER](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_integer_class)

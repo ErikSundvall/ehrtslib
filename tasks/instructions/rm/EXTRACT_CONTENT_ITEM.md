@@ -2,9 +2,11 @@
 
 ## Description
 
-Item of content within an extract chapter. Base class for specific extract content types.
+Item of content within an extract chapter. Base class for specific extract
+content types.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -21,13 +23,9 @@ Item of content within an extract chapter. Base class for specific extract conte
 
 ## Example Usage
 
-\`\`\`typescript
-const contentItem = new EXTRACT_CONTENT_ITEM();
-contentItem.item = composition;
-contentItem.is_primary = true;
-contentItem.is_changed = true;
-contentItem.is_masked = false;
-\`\`\`
+\`\`\`typescript const contentItem = new EXTRACT_CONTENT_ITEM();
+contentItem.item = composition; contentItem.is_primary = true;
+contentItem.is_changed = true; contentItem.is_masked = false; \`\`\`
 
 ## Test Cases
 

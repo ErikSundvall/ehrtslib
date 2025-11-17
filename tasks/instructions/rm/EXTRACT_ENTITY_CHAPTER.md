@@ -4,7 +4,8 @@
 
 Chapter within an extract organized by entity (e.g., per patient).
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -19,11 +20,9 @@ Chapter within an extract organized by entity (e.g., per patient).
 
 ## Example Usage
 
-\`\`\`typescript
-const entityChapter = new EXTRACT_ENTITY_CHAPTER();
-entityChapter.entity_identifier = patientId;
-entityChapter.items = extractContentItems;
-\`\`\`
+\`\`\`typescript const entityChapter = new EXTRACT_ENTITY_CHAPTER();
+entityChapter.entity_identifier = patientId; entityChapter.items =
+extractContentItems; \`\`\`
 
 ## Test Cases
 

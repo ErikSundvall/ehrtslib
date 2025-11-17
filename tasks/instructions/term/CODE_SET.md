@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `CODE_SET` class represents a collection of self-defining codes from external standards (ISO, IANA) or openEHR-specific domains.
+The `CODE_SET` class represents a collection of self-defining codes from
+external standards (ISO, IANA) or openEHR-specific domains.
 
--   **Reference:** [openEHR TERM - CODE_SET](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_code_sets)
+- **Reference:**
+  [openEHR TERM - CODE_SET](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_code_sets)
 
 ## 2. Behavior
 
@@ -25,6 +27,7 @@ The `CODE_SET` class represents a collection of self-defining codes from externa
 ## 3. Examples
 
 Common code sets:
+
 - `countries` (ISO 3166-1) - "US", "GB", "SE"
 - `character_sets` (IANA) - "UTF-8", "ISO-8859-1"
 - `languages` (ISO 639-1) - "en", "es", "zh"
@@ -46,4 +49,5 @@ if (countries.has_code("US")) {
 
 ## 5. References
 
--   **Official Specification:** [openEHR TERM - Code Sets](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_code_sets)
+- **Official Specification:**
+  [openEHR TERM - Code Sets](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_code_sets)

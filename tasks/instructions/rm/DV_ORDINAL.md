@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `DV_ORDINAL` class represents ordinal values - ordered categories with both a numeric value and textual meaning, like pain scales or Apgar scores.
+The `DV_ORDINAL` class represents ordinal values - ordered categories with both
+a numeric value and textual meaning, like pain scales or Apgar scores.
 
--   **Reference:** [openEHR RM - DV_ORDINAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordinal_class)
+- **Reference:**
+  [openEHR RM - DV_ORDINAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordinal_class)
 
 ## 2. Behavior
 
@@ -12,13 +14,13 @@ The `DV_ORDINAL` class represents ordinal values - ordered categories with both 
 
 #### `value: Integer`
 
--   **Purpose:** The numeric ordinal value.
--   **Mandatory:** Yes
+- **Purpose:** The numeric ordinal value.
+- **Mandatory:** Yes
 
 #### `symbol: DV_CODED_TEXT`
 
--   **Purpose:** The coded textual meaning.
--   **Mandatory:** Yes
+- **Purpose:** The coded textual meaning.
+- **Mandatory:** Yes
 
 ## 3. Example Usage
 
@@ -26,7 +28,10 @@ The `DV_ORDINAL` class represents ordinal values - ordered categories with both 
 // Pain scale: 0=None, 1=Mild, 2=Moderate, 3=Severe
 const pain = new DV_ORDINAL();
 pain.value = 2;
-pain.symbol = DV_CODED_TEXT.from("Moderate pain", CODE_PHRASE.from("at0002", "local"));
+pain.symbol = DV_CODED_TEXT.from(
+  "Moderate pain",
+  CODE_PHRASE.from("at0002", "local"),
+);
 
 // Apgar score component
 const apgar = new DV_ORDINAL();
@@ -44,4 +49,5 @@ apgar.symbol = DV_CODED_TEXT.from("Good", CODE_PHRASE.from("at0005", "local"));
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - DV_ORDINAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordinal_class)
+- **Official Specification:**
+  [openEHR RM - DV_ORDINAL](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordinal_class)

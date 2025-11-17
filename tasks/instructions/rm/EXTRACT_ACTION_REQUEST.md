@@ -4,7 +4,8 @@
 
 Request for action related to an extract (e.g., update, delete).
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -20,12 +21,9 @@ Request for action related to an extract (e.g., update, delete).
 
 ## Example Usage
 
-\`\`\`typescript
-const actionRequest = new EXTRACT_ACTION_REQUEST();
-actionRequest.action = new DV_CODED_TEXT();
-actionRequest.action.value = "update";
-actionRequest.target = objectRef;
-\`\`\`
+\`\`\`typescript const actionRequest = new EXTRACT_ACTION_REQUEST();
+actionRequest.action = new DV_CODED_TEXT(); actionRequest.action.value =
+"update"; actionRequest.target = objectRef; \`\`\`
 
 ## Test Cases
 

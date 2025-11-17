@@ -4,7 +4,8 @@
 
 C_OBJECT is the abstract parent for all object constraints in archetypes.
 
--   **Reference:** [openEHR AM - C_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_object_class)
+- **Reference:**
+  [openEHR AM - C_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_object_class)
 
 ## 2. Behavior
 
@@ -21,6 +22,7 @@ C_OBJECT is the abstract parent for all object constraints in archetypes.
 Check if constraint is structurally valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Must have an RM type
@@ -42,6 +44,7 @@ is_valid(): Boolean {
 Check if this constraint conforms to (is compatible with) another.
 
 **Pseudo-code:**
+
 ```typescript
 conforms_to(other: C_OBJECT): Boolean {
   // Must be same or subtype of other's RM type
@@ -78,4 +81,5 @@ cObject.node_id = "at0000";
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - C_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_object_class)
+- **Official Specification:**
+  [openEHR AM - C_OBJECT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_object_class)

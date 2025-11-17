@@ -4,7 +4,8 @@
 
 XML-specific CONTRIBUTION for XML messaging scenarios.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -17,12 +18,9 @@ XML-specific CONTRIBUTION for XML messaging scenarios.
 
 ## Example Usage
 
-\`\`\`typescript
-const xContribution = new X_CONTRIBUTION();
-xContribution.uid = contributionId;
-xContribution.audit = auditDetails;
-xContribution.versions = [versionRefs];
-\`\`\`
+\`\`\`typescript const xContribution = new X_CONTRIBUTION(); xContribution.uid =
+contributionId; xContribution.audit = auditDetails; xContribution.versions =
+[versionRefs]; \`\`\`
 
 ## Test Cases
 

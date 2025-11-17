@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `TERMINOLOGY_CONCEPT` class represents a coded term with human-readable rubric and description.
+The `TERMINOLOGY_CONCEPT` class represents a coded term with human-readable
+rubric and description.
 
--   **Reference:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Reference:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
 
 ## 2. Behavior
 
@@ -27,4 +29,5 @@ concept.language = "en";
 
 ## 4. References
 
--   **Official Specification:** [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)
+- **Official Specification:**
+  [openEHR TERM](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html)

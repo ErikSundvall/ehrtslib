@@ -4,7 +4,8 @@
 
 EVENT_CONTEXT provides clinical session context for event COMPOSITIONS.
 
--   **Reference:** [openEHR RM - EVENT_CONTEXT](https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class)
+- **Reference:**
+  [openEHR RM - EVENT_CONTEXT](https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class)
 
 ## 2. Behavior
 
@@ -21,10 +22,14 @@ EVENT_CONTEXT provides clinical session context for event COMPOSITIONS.
 ```typescript
 const context = new EVENT_CONTEXT();
 context.start_time = DV_DATE_TIME.from("2024-03-15T09:00:00");
-context.setting = DV_CODED_TEXT.from("emergency care", CODE_PHRASE.from("227", "openehr"));
+context.setting = DV_CODED_TEXT.from(
+  "emergency care",
+  CODE_PHRASE.from("227", "openehr"),
+);
 context.location = "Emergency Department";
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EVENT_CONTEXT](https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class)
+- **Official Specification:**
+  [openEHR RM - EVENT_CONTEXT](https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class)

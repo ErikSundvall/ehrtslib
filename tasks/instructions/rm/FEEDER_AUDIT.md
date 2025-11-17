@@ -4,7 +4,8 @@
 
 FEEDER_AUDIT records provenance from feeder systems.
 
--   **Reference:** [openEHR RM - FEEDER_AUDIT](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_class)
+- **Reference:**
+  [openEHR RM - FEEDER_AUDIT](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_class)
 
 ## 2. Behavior
 
@@ -14,4 +15,5 @@ FEEDER_AUDIT records provenance from feeder systems.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - FEEDER_AUDIT](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_class)
+- **Official Specification:**
+  [openEHR RM - FEEDER_AUDIT](https://specifications.openehr.org/releases/RM/latest/common.html#_feeder_audit_class)

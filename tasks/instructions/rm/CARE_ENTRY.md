@@ -4,7 +4,8 @@
 
 CARE_ENTRY extends ENTRY for clinical care entries.
 
--   **Reference:** [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)
+- **Reference:**
+  [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)
 
 ## 2. Behavior
 
@@ -20,4 +21,5 @@ CARE_ENTRY extends ENTRY for clinical care entries.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)
+- **Official Specification:**
+  [openEHR RM - CARE_ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_care_entry_class)

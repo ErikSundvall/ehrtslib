@@ -4,7 +4,8 @@
 
 INSTRUCTION_DETAILS links an ACTION to its originating INSTRUCTION.
 
--   **Reference:** [openEHR RM - INSTRUCTION_DETAILS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_details_class)
+- **Reference:**
+  [openEHR RM - INSTRUCTION_DETAILS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_details_class)
 
 ## 2. Behavior
 
@@ -14,4 +15,5 @@ INSTRUCTION_DETAILS links an ACTION to its originating INSTRUCTION.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - INSTRUCTION_DETAILS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_details_class)
+- **Official Specification:**
+  [openEHR RM - INSTRUCTION_DETAILS](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_details_class)

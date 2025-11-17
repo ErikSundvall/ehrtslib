@@ -4,7 +4,8 @@
 
 AUDIT_DETAILS records audit trail information for commits.
 
--   **Reference:** [openEHR RM - AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class)
+- **Reference:**
+  [openEHR RM - AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class)
 
 ## 2. Behavior
 
@@ -16,4 +17,5 @@ AUDIT_DETAILS records audit trail information for commits.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class)
+- **Official Specification:**
+  [openEHR RM - AUDIT_DETAILS](https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class)

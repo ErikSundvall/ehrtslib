@@ -4,7 +4,8 @@
 
 AUTHORED_ARCHETYPE extends ARCHETYPE with authoring metadata.
 
--   **Reference:** [openEHR AM - AUTHORED_ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_authored_archetype_class)
+- **Reference:**
+  [openEHR AM - AUTHORED_ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_authored_archetype_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ AUTHORED_ARCHETYPE extends ARCHETYPE with authoring metadata.
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - AUTHORED_ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_authored_archetype_class)
+- **Official Specification:**
+  [openEHR AM - AUTHORED_ARCHETYPE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_authored_archetype_class)

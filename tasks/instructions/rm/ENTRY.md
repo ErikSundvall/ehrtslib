@@ -4,7 +4,8 @@
 
 ENTRY is the abstract parent for all clinical entry types.
 
--   **Reference:** [openEHR RM - ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class)
+- **Reference:**
+  [openEHR RM - ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class)
 
 ## 2. Behavior
 
@@ -24,4 +25,5 @@ ENTRY is the abstract parent for all clinical entry types.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class)
+- **Official Specification:**
+  [openEHR RM - ENTRY](https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class)

@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-C_ARCHETYPE_ROOT represents an archetype used as a constraint root (filled slot or template overlay).
+C_ARCHETYPE_ROOT represents an archetype used as a constraint root (filled slot
+or template overlay).
 
--   **Reference:** [openEHR AM - C_ARCHETYPE_ROOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_archetype_root_class)
+- **Reference:**
+  [openEHR AM - C_ARCHETYPE_ROOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_archetype_root_class)
 
 ## 2. Behavior
 
@@ -12,4 +14,5 @@ C_ARCHETYPE_ROOT represents an archetype used as a constraint root (filled slot 
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - C_ARCHETYPE_ROOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_archetype_root_class)
+- **Official Specification:**
+  [openEHR AM - C_ARCHETYPE_ROOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_c_archetype_root_class)

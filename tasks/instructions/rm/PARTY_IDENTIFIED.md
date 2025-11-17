@@ -4,7 +4,8 @@
 
 PARTY_IDENTIFIED represents an identified party (person/organization).
 
--   **Reference:** [openEHR RM - PARTY_IDENTIFIED](https://specifications.openehr.org/releases/RM/latest/common.html#_party_identified_class)
+- **Reference:**
+  [openEHR RM - PARTY_IDENTIFIED](https://specifications.openehr.org/releases/RM/latest/common.html#_party_identified_class)
 
 ## 2. Behavior
 
@@ -28,4 +29,5 @@ clinician.identifiers.append(id);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PARTY_IDENTIFIED](https://specifications.openehr.org/releases/RM/latest/common.html#_party_identified_class)
+- **Official Specification:**
+  [openEHR RM - PARTY_IDENTIFIED](https://specifications.openehr.org/releases/RM/latest/common.html#_party_identified_class)

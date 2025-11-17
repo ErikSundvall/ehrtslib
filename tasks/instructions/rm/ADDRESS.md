@@ -4,7 +4,8 @@
 
 ADDRESS represents a postal or electronic address for a party.
 
--   **Reference:** [openEHR RM - ADDRESS](https://specifications.openehr.org/releases/RM/latest/demographic.html#_address_class)
+- **Reference:**
+  [openEHR RM - ADDRESS](https://specifications.openehr.org/releases/RM/latest/demographic.html#_address_class)
 
 ## 2. Behavior
 
@@ -12,7 +13,8 @@ ADDRESS represents a postal or electronic address for a party.
 
 - `type: DV_TEXT` - Type of address (home, work, postal, electronic)
 - `use: List<DV_CODED_TEXT>` - Purpose (business, personal, billing, etc.)
-- `details: ITEM_STRUCTURE` - Address details (street, city, country, email, etc.)
+- `details: ITEM_STRUCTURE` - Address details (street, city, country, email,
+  etc.)
 
 ### 2.2. Methods
 
@@ -21,6 +23,7 @@ ADDRESS represents a postal or electronic address for a party.
 Check if address is valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Must have type and details
@@ -47,4 +50,5 @@ address.details = details;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - ADDRESS](https://specifications.openehr.org/releases/RM/latest/demographic.html#_address_class)
+- **Official Specification:**
+  [openEHR RM - ADDRESS](https://specifications.openehr.org/releases/RM/latest/demographic.html#_address_class)

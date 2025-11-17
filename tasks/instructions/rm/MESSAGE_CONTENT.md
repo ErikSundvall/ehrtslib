@@ -4,7 +4,8 @@
 
 Content of a message in the messaging framework.
 
-**Specification Reference:** [openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
+**Specification Reference:**
+[openEHR RM Extract](https://specifications.openehr.org/releases/RM/latest/integration.html)
 
 ## Behavior
 
@@ -14,10 +15,8 @@ Content of a message in the messaging framework.
 
 ## Example Usage
 
-\`\`\`typescript
-const messageContent = new MESSAGE_CONTENT();
-messageContent.content = composition; // or extract, etc.
-\`\`\`
+\`\`\`typescript const messageContent = new MESSAGE_CONTENT();
+messageContent.content = composition; // or extract, etc. \`\`\`
 
 ## Test Cases
 

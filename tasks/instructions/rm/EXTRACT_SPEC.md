@@ -4,7 +4,8 @@
 
 EXTRACT_SPEC specifies the content to be extracted.
 
--   **Reference:** [openEHR RM - EXTRACT_SPEC](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_spec_class)
+- **Reference:**
+  [openEHR RM - EXTRACT_SPEC](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_spec_class)
 
 ## 2. Behavior
 
@@ -25,4 +26,5 @@ spec.directory = Boolean.from(true);
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT_SPEC](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_spec_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT_SPEC](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_spec_class)

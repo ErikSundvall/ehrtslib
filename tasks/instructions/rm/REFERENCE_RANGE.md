@@ -4,7 +4,8 @@
 
 REFERENCE_RANGE represents a normal or reference range for an ordered value.
 
--   **Reference:** [openEHR RM - REFERENCE_RANGE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_reference_range_class)
+- **Reference:**
+  [openEHR RM - REFERENCE_RANGE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_reference_range_class)
 
 ## 2. Behavior
 
@@ -20,6 +21,7 @@ REFERENCE_RANGE represents a normal or reference range for an ordered value.
 Check if value is within this reference range.
 
 **Pseudo-code:**
+
 ```typescript
 is_in_range(value: T): Boolean {
   if (!this.range) {
@@ -46,4 +48,5 @@ refRange.range = interval;
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - REFERENCE_RANGE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_reference_range_class)
+- **Official Specification:**
+  [openEHR RM - REFERENCE_RANGE](https://specifications.openehr.org/releases/RM/latest/data_types.html#_reference_range_class)

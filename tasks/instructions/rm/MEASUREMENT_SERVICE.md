@@ -4,7 +4,8 @@
 
 MEASUREMENT_SERVICE provides measurement and unit conversion services.
 
--   **Reference:** [openEHR RM - MEASUREMENT_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_measurement_service_class)
+- **Reference:**
+  [openEHR RM - MEASUREMENT_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_measurement_service_class)
 
 ## 2. Behavior
 
@@ -15,6 +16,7 @@ MEASUREMENT_SERVICE provides measurement and unit conversion services.
 Check if units string is valid UCUM format.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid_units_string(units: String): Boolean {
   // Validate against UCUM specification
@@ -28,6 +30,7 @@ is_valid_units_string(units: String): Boolean {
 Check if two unit strings are equivalent.
 
 **Pseudo-code:**
+
 ```typescript
 units_equivalent(units1: String, units2: String): Boolean {
   // Check if units represent same dimension
@@ -40,10 +43,11 @@ units_equivalent(units1: String, units2: String): Boolean {
 
 ```typescript
 const measService = MEASUREMENT_SERVICE.instance();
-const valid = measService.is_valid_units_string("mm[Hg]");  // true
-const equiv = measService.units_equivalent("m", "cm");  // true
+const valid = measService.is_valid_units_string("mm[Hg]"); // true
+const equiv = measService.units_equivalent("m", "cm"); // true
 ```
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - MEASUREMENT_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_measurement_service_class)
+- **Official Specification:**
+  [openEHR RM - MEASUREMENT_SERVICE](https://specifications.openehr.org/releases/RM/latest/support.html#_measurement_service_class)

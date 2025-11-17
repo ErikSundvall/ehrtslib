@@ -4,7 +4,8 @@
 
 PARTY_SELF represents the EHR subject (the patient).
 
--   **Reference:** [openEHR RM - PARTY_SELF](https://specifications.openehr.org/releases/RM/latest/common.html#_party_self_class)
+- **Reference:**
+  [openEHR RM - PARTY_SELF](https://specifications.openehr.org/releases/RM/latest/common.html#_party_self_class)
 
 ## 2. Behavior
 
@@ -19,4 +20,5 @@ const subject = new PARTY_SELF();
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - PARTY_SELF](https://specifications.openehr.org/releases/RM/latest/common.html#_party_self_class)
+- **Official Specification:**
+  [openEHR RM - PARTY_SELF](https://specifications.openehr.org/releases/RM/latest/common.html#_party_self_class)

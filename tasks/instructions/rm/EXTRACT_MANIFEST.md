@@ -4,7 +4,8 @@
 
 EXTRACT_MANIFEST lists what entities are included in an Extract.
 
--   **Reference:** [openEHR RM - EXTRACT_MANIFEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_manifest_class)
+- **Reference:**
+  [openEHR RM - EXTRACT_MANIFEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_manifest_class)
 
 ## 2. Behavior
 
@@ -22,4 +23,5 @@ manifest.entities = [];
 
 ## 4. References
 
--   **Official Specification:** [openEHR RM - EXTRACT_MANIFEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_manifest_class)
+- **Official Specification:**
+  [openEHR RM - EXTRACT_MANIFEST](https://specifications.openehr.org/releases/RM/latest/integration.html#_extract_manifest_class)

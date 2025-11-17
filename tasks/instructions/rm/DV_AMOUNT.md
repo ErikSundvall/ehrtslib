@@ -2,15 +2,18 @@
 
 ## Description
 
-Abstract class for amounts - quantified values with an accuracy indicator. Parent of DV_QUANTITY and DV_COUNT.
+Abstract class for amounts - quantified values with an accuracy indicator.
+Parent of DV_QUANTITY and DV_COUNT.
 
-**Specification Reference:** [openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_amount_class)
+**Specification Reference:**
+[openEHR RM Data Types](https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_amount_class)
 
 ## Behavior
 
 ### Properties
 
-- `accuracy`: Real (optional) - Accuracy of measurement as a percentage (0-100 or -1 for unknown)
+- `accuracy`: Real (optional) - Accuracy of measurement as a percentage (0-100
+  or -1 for unknown)
 - `accuracy_is_percent`: Boolean (optional) - True if accuracy is a percentage
 - Inherits from DV_QUANTIFIED: magnitude, magnitude_status
 - Inherits from DV_ORDERED: normal_range, other_reference_ranges, normal_status
@@ -22,6 +25,7 @@ Abstract class for amounts - quantified values with an accuracy indicator. Paren
 True if accuracy is in valid range.
 
 **Pseudocode:**
+
 ```typescript
 function valid_accuracy(): boolean {
   if (this.accuracy === undefined || this.accuracy === null) return true;

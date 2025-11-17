@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `ITEM_TREE` class represents a tree-structured collection of items. It is the most commonly used `ITEM_STRUCTURE` type in openEHR archetypes.
+The `ITEM_TREE` class represents a tree-structured collection of items. It is
+the most commonly used `ITEM_STRUCTURE` type in openEHR archetypes.
 
--   **Reference:** [openEHR RM - ITEM_TREE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_tree_class)
+- **Reference:**
+  [openEHR RM - ITEM_TREE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_tree_class)
 
 ## 2. Behavior
 
@@ -12,13 +14,14 @@ The `ITEM_TREE` class represents a tree-structured collection of items. It is th
 
 #### `items: List<ITEM>`
 
--   **Purpose:** Top-level items in the tree.
--   **Optional:** Yes (can be empty)
--   **Contains:** ELEMENT or CLUSTER objects
+- **Purpose:** Top-level items in the tree.
+- **Optional:** Yes (can be empty)
+- **Contains:** ELEMENT or CLUSTER objects
 
 ### 2.2. Structure
 
 ITEM_TREE provides hierarchical organization:
+
 ```
 ITEM_TREE
 ├── ELEMENT (leaf node)
@@ -66,5 +69,7 @@ tree.items.append(element2);
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - ITEM_TREE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_tree_class)
--   **Implementation:** [Archie ITEM_TREE](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datastructures/ItemTree.java)
+- **Official Specification:**
+  [openEHR RM - ITEM_TREE](https://specifications.openehr.org/releases/RM/latest/data_structures.html#_item_tree_class)
+- **Implementation:**
+  [Archie ITEM_TREE](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/datastructures/ItemTree.java)

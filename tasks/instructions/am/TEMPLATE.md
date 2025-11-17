@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-TEMPLATE is an archetype designed for direct use in systems, typically constraining multiple archetypes.
+TEMPLATE is an archetype designed for direct use in systems, typically
+constraining multiple archetypes.
 
--   **Reference:** [openEHR AM - TEMPLATE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_template_class)
+- **Reference:**
+  [openEHR AM - TEMPLATE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_template_class)
 
 ## 2. Behavior
 
@@ -12,4 +14,5 @@ TEMPLATE is an archetype designed for direct use in systems, typically constrain
 
 ## 3. References
 
--   **Official Specification:** [openEHR AM - TEMPLATE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_template_class)
+- **Official Specification:**
+  [openEHR AM - TEMPLATE](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_template_class)

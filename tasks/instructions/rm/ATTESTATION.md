@@ -4,7 +4,8 @@
 
 ATTESTATION extends AUDIT_DETAILS for legal attestation.
 
--   **Reference:** [openEHR RM - ATTESTATION](https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class)
+- **Reference:**
+  [openEHR RM - ATTESTATION](https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class)
 
 ## 2. Behavior
 
@@ -16,4 +17,5 @@ ATTESTATION extends AUDIT_DETAILS for legal attestation.
 
 ## 3. References
 
--   **Official Specification:** [openEHR RM - ATTESTATION](https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class)
+- **Official Specification:**
+  [openEHR RM - ATTESTATION](https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class)

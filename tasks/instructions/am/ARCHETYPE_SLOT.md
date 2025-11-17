@@ -4,7 +4,8 @@
 
 ARCHETYPE_SLOT defines a point where other archetypes can be included.
 
--   **Reference:** [openEHR AM - ARCHETYPE_SLOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_slot_class)
+- **Reference:**
+  [openEHR AM - ARCHETYPE_SLOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_slot_class)
 
 ## 2. Behavior
 
@@ -21,6 +22,7 @@ ARCHETYPE_SLOT defines a point where other archetypes can be included.
 Check if slot is structurally valid.
 
 **Pseudo-code:**
+
 ```typescript
 is_valid(): Boolean {
   // Call parent validation
@@ -60,6 +62,7 @@ is_valid(): Boolean {
 Check if a specific archetype ID is allowed in this slot.
 
 **Pseudo-code:**
+
 ```typescript
 allows_archetype(archetype_id: String): Boolean {
   // Closed slots don't allow anything
@@ -106,4 +109,5 @@ slot.includes = [includes];
 
 ## 4. References
 
--   **Official Specification:** [openEHR AM - ARCHETYPE_SLOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_slot_class)
+- **Official Specification:**
+  [openEHR AM - ARCHETYPE_SLOT](https://specifications.openehr.org/releases/AM/latest/AOM2.html#_archetype_slot_class)

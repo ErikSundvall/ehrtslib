@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `TERMINOLOGY_GROUP` class represents a vocabulary - a collection of coded concepts with human-readable rubrics that can be translated.
+The `TERMINOLOGY_GROUP` class represents a vocabulary - a collection of coded
+concepts with human-readable rubrics that can be translated.
 
--   **Reference:** [openEHR TERM - Vocabularies](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_vocabularies)
+- **Reference:**
+  [openEHR TERM - Vocabularies](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_vocabularies)
 
 ## 2. Behavior
 
@@ -24,6 +26,7 @@ The `TERMINOLOGY_GROUP` class represents a vocabulary - a collection of coded co
 ## 3. Examples
 
 Common vocabularies:
+
 - `composition_category` - "event", "persistent", "episode"
 - `attestation_reason` - "witnessed", "signed"
 - `audit_change_type` - "creation", "amendment", "deletion"
@@ -37,12 +40,13 @@ categories.name = "composition_category";
 categories.openehr_id = "composition category";
 
 // Check if concept exists
-if (categories.has_concept("433")) {  // event
+if (categories.has_concept("433")) { // event
   const eventConcept = categories.concept("433");
-  console.log(eventConcept.rubric);  // "event"
+  console.log(eventConcept.rubric); // "event"
 }
 ```
 
 ## 5. References
 
--   **Official Specification:** [openEHR TERM - Vocabularies](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_vocabularies)
+- **Official Specification:**
+  [openEHR TERM - Vocabularies](https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html#_vocabularies)

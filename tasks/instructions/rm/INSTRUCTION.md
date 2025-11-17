@@ -2,9 +2,11 @@
 
 ## 1. Description
 
-The `INSTRUCTION` class records instructions for healthcare activities, such as medication orders, procedure requests, or care plans.
+The `INSTRUCTION` class records instructions for healthcare activities, such as
+medication orders, procedure requests, or care plans.
 
--   **Reference:** [openEHR RM - INSTRUCTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class)
+- **Reference:**
+  [openEHR RM - INSTRUCTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class)
 
 ## 2. Behavior
 
@@ -12,27 +14,28 @@ The `INSTRUCTION` class records instructions for healthcare activities, such as 
 
 #### `narrative: DV_TEXT`
 
--   **Purpose:** Human-readable instruction narrative.
--   **Mandatory:** Yes
+- **Purpose:** Human-readable instruction narrative.
+- **Mandatory:** Yes
 
 #### `activities: List<ACTIVITY>`
 
--   **Purpose:** Structured activity definitions.
--   **Optional:** Yes
+- **Purpose:** Structured activity definitions.
+- **Optional:** Yes
 
 #### `expiry_time: DV_DATE_TIME`
 
--   **Purpose:** When instruction expires.
--   **Optional:** Yes
+- **Purpose:** When instruction expires.
+- **Optional:** Yes
 
 #### `wf_definition: DV_PARSABLE`
 
--   **Purpose:** Workflow engine definition.
--   **Optional:** Yes
+- **Purpose:** Workflow engine definition.
+- **Optional:** Yes
 
 ## 3. Common Uses
 
 INSTRUCTION is used for:
+
 - Medication orders
 - Procedure requests
 - Referrals
@@ -55,5 +58,7 @@ medication.expiry_time = expiry;
 
 ## 5. References
 
--   **Official Specification:** [openEHR RM - INSTRUCTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class)
--   **Implementation:** [Archie INSTRUCTION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Instruction.java)
+- **Official Specification:**
+  [openEHR RM - INSTRUCTION](https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class)
+- **Implementation:**
+  [Archie INSTRUCTION](https://github.com/openEHR/archie/blob/master/openehr-rm/src/main/java/com/nedap/archie/rm/composition/Instruction.java)
