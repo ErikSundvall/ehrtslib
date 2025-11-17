@@ -3534,9 +3534,15 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   object_id(): UID {
-    // TODO: Implement object_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method object_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    // Create a UUID from the first part
+    const uid = new UUID();
+    uid.value = parts[0];
+    return uid;
   }
 
   /**
@@ -3544,9 +3550,15 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   creating_system_id(): UID {
-    // TODO: Implement creating_system_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method creating_system_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    // Create an INTERNET_ID from the second part
+    const uid = new INTERNET_ID();
+    uid.value = parts[1];
+    return uid;
   }
 
   /**
@@ -3554,9 +3566,14 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   version_tree_id(): VERSION_TREE_ID {
-    // TODO: Implement version_tree_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method version_tree_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    const versionTreeId = new VERSION_TREE_ID();
+    versionTreeId.value = parts[2];
+    return versionTreeId;
   }
 
   /**
@@ -3564,9 +3581,7 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   is_branch(): Boolean {
-    // TODO: Implement is_branch behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_branch not yet implemented.");
+    return this.version_tree_id().is_branch();
   }
 }
 
@@ -3587,9 +3602,13 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
    * @returns Result value
    */
   name(): String {
-    // TODO: Implement name behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method name not yet implemented.");
+    const val = this.value || "";
+    // Format: name[(version)]
+    const parenIndex = val.indexOf("(");
+    if (parenIndex > 0) {
+      return String.from(val.substring(0, parenIndex));
+    }
+    return String.from(val);
   }
 
   /**
@@ -3597,9 +3616,16 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
    * @returns Result value
    */
   version_id(): String {
-    // TODO: Implement version_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method version_id not yet implemented.");
+    const val = this.value || "";
+    // Format: name[(version)]
+    const parenIndex = val.indexOf("(");
+    if (parenIndex > 0) {
+      const closeParenIndex = val.indexOf(")");
+      if (closeParenIndex > parenIndex) {
+        return String.from(val.substring(parenIndex + 1, closeParenIndex));
+      }
+    }
+    return String.from("");
   }
 }
 
@@ -3648,9 +3674,9 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   trunk_version(): String {
-    // TODO: Implement trunk_version behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method trunk_version not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    return String.from(parts[0]);
   }
 
   /**
@@ -3658,9 +3684,9 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   is_branch(): Boolean {
-    // TODO: Implement is_branch behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_branch not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    return new Boolean(parts.length === 3);
   }
 
   /**
@@ -3668,9 +3694,12 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   branch_number(): String {
-    // TODO: Implement branch_number behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method branch_number not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    if (parts.length === 3) {
+      return String.from(parts[1]);
+    }
+    throw new Error("Not a branch version");
   }
 
   /**
@@ -3678,9 +3707,12 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   branch_version(): String {
-    // TODO: Implement branch_version behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method branch_version not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    if (parts.length === 3) {
+      return String.from(parts[2]);
+    }
+    throw new Error("Not a branch version");
   }
 }
 
