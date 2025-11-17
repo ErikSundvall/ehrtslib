@@ -2839,9 +2839,11 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_open(): Boolean {
-    // TODO: Implement is_open behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_open not yet implemented.");
+    // Check if lower = 0 and upper is unbounded
+    const lowerVal = this.lower?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && this.upper_unbounded === true,
+    );
   }
 
   /**
@@ -2849,9 +2851,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_optional(): Boolean {
-    // TODO: Implement is_optional behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_optional not yet implemented.");
+    // Check if lower = 0 and upper = 1
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && upperVal === 1,
+    );
   }
 
   /**
@@ -2859,9 +2864,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_mandatory(): Boolean {
-    // TODO: Implement is_mandatory behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_mandatory not yet implemented.");
+    // Check if lower = 1 and upper = 1
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 1 && upperVal === 1,
+    );
   }
 
   /**
@@ -2869,9 +2877,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_prohibited(): Boolean {
-    // TODO: Implement is_prohibited behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_prohibited not yet implemented.");
+    // Check if lower = 0 and upper = 0
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && upperVal === 0,
+    );
   }
 }
 
@@ -2956,9 +2967,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_bag(): Boolean {
-    // TODO: Implement is_bag behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_bag not yet implemented.");
+    // Bag: unordered and non-unique
+    return new Boolean(
+      this.is_ordered !== true && this.is_unique !== true,
+    );
   }
 
   /**
@@ -2966,9 +2978,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_list(): Boolean {
-    // TODO: Implement is_list behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_list not yet implemented.");
+    // List: ordered and non-unique
+    return new Boolean(
+      this.is_ordered === true && this.is_unique !== true,
+    );
   }
 
   /**
@@ -2976,9 +2989,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_set(): Boolean {
-    // TODO: Implement is_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_set not yet implemented.");
+    // Set: unordered and unique
+    return new Boolean(
+      this.is_ordered !== true && this.is_unique === true,
+    );
   }
 }
 
