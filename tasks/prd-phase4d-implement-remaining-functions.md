@@ -78,20 +78,20 @@ Analysis shows the following unimplemented functions:
 
 2.1. For each function:
 - Review the instruction file in tasks/instructions/[package]/[ClassName].md
-- Review openEHR specifications at https://specifications.openehr.org/
-- Check other implementations (Archie, java-libs, adl-tools) for reference
-- Implement following existing code patterns in the codebase
+   - tasks/instructions/base/ - for BASE package classes
+   - tasks/instructions/rm/ - for RM package classes
+   - tasks/instructions/lang/ - for LANG package classes (if exists)
+- Review openEHR specifications at https://specifications.openehr.org/ (e.g. by using your MCP client for deepwiki)
+- Check other implementations (Archie, java-libs, adl-tools) for reference  (e.g. by using your MCP client for deepwiki)
+- update corresponding tasks/instructions/[package]/[ClassName].md file if it lacks detail for the function
+- Implement teh function behavious in the typescript file following existing code patterns in the codebase
 
 2.2. Follow implementation patterns:
 - Use existing TypeScript/Deno idioms
 - Handle edge cases and null/undefined appropriately
-- Include JSDoc comments where helpful
+- Include JSDoc comments where helpful,at least heading each function
 - Throw meaningful errors for truly unsupported operations
 
-2.3. Use instruction files:
-- tasks/instructions/base/ - for BASE package classes
-- tasks/instructions/rm/ - for RM package classes
-- tasks/instructions/lang/ - for LANG package classes (if exists)
 
 ### 3. Test Coverage
 
@@ -121,7 +121,7 @@ Analysis shows the following unimplemented functions:
 4.2. Documentation:
 - Update JSDoc comments where needed
 - Document any deviations from specifications in INCONSISTENCIES.md
-- Update instruction files if behavior differs from initial understanding
+- Update /instructions files if behavior differs from initial understanding
 
 4.3. Validation:
 - Compare behavior with Archie implementation where possible
