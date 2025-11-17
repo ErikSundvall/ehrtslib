@@ -16,6 +16,10 @@
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
+// Import Temporal API polyfill for date/time operations
+// See: https://tc39.es/proposal-temporal/ and https://docs.deno.com/api/web/temporal
+import { Temporal } from "./temporal_polyfill.ts";
+
 // Unknown types - defined as 'any' for now
 type T = any;
 
@@ -1912,82 +1916,165 @@ export abstract class Iso8601_type extends Temporal {
 export class Iso8601_date_time extends Iso8601_type {
   /**
    * Extract the year part of the date as an Integer.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   year(): Integer {
-    // TODO: Implement year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method year not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Try full date-time first
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.year);
+    } catch {
+      try {
+        // Try just date part if full parse fails
+        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+        if (match && match[1]) {
+          return Integer.from(parseInt(match[1], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the month part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   month(): Integer {
-    // TODO: Implement month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.month);
+    } catch {
+      try {
+        const match = val.match(/^(\d{4})-?(\d{2})?/);
+        if (match && match[2]) {
+          return Integer.from(parseInt(match[2], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the day part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   day(): Integer {
-    // TODO: Implement day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.day);
+    } catch {
+      try {
+        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+        if (match && match[3]) {
+          return Integer.from(parseInt(match[3], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the hour part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   hour(): Integer {
-    // TODO: Implement hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hour not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.hour);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the minute part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   minute(): Integer {
-    // TODO: Implement minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.minute);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the integral seconds part of the date/time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   second(): Integer {
-    // TODO: Implement second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.second);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the fractional seconds part of the date/time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   fractional_second(): number {
-    // TODO: Implement fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method fractional_second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
+      // Convert to fractional seconds: milliseconds / 1000
+      return dt.millisecond / 1000 + dt.microsecond / 1000000 +
+        dt.nanosecond / 1000000000;
+    } catch {
+      // Return 0.0 if parsing fails
+    }
+    return 0.0;
   }
 
   /**
    * Timezone; may be Void.
+   *
+   * Uses Temporal API to extract timezone information.
    * @returns Result value
    */
   timezone(): Iso8601_timezone {
-    // TODO: Implement timezone behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method timezone not yet implemented.");
+    const val = this.value || "";
+    // Match timezone: Z or ±hh:mm or ±hhmm
+    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+    if (match) {
+      const tz = new Iso8601_timezone();
+      tz.value = match[1];
+      return tz;
+    }
+    throw new Error("No timezone present in date-time");
   }
 
   /**
@@ -1995,9 +2082,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   month_unknown(): Boolean {
-    // TODO: Implement month_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month_unknown not yet implemented.");
+    return new Boolean(this.month().value === 0);
   }
 
   /**
@@ -2005,9 +2090,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   day_unknown(): Boolean {
-    // TODO: Implement day_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day_unknown not yet implemented.");
+    return new Boolean(this.day().value === 0);
   }
 
   /**
@@ -2015,9 +2098,9 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   minute_unknown(): Boolean {
-    // TODO: Implement minute_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute_unknown not yet implemented.");
+    const val = this.value || "";
+    // Check if time part exists with minutes
+    return new Boolean(!val.includes("T") || this.minute().value === 0);
   }
 
   /**
@@ -2025,9 +2108,10 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   second_unknown(): Boolean {
-    // TODO: Implement second_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second_unknown not yet implemented.");
+    const val = this.value || "";
+    // Check if seconds are present in the string
+    const hasSeconds = /T\d{2}:?\d{2}:?\d{2}/.test(val);
+    return new Boolean(!hasSeconds);
   }
 
   /**
@@ -2035,9 +2119,8 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_decimal_sign_comma(): Boolean {
-    // TODO: Implement is_decimal_sign_comma behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_decimal_sign_comma not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(","));
   }
 
   /**
@@ -2045,9 +2128,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.second_unknown();
   }
 
   /**
@@ -2055,9 +2136,9 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    // Extended format uses '-' in date part and ':' in time part
+    return new Boolean(val.includes("-") || val.includes(":"));
   }
 
   /**
@@ -2065,19 +2146,27 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   has_fractional_second(): Boolean {
-    // TODO: Implement has_fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_fractional_second not yet implemented.");
+    const val = this.value || "";
+    // Check for comma or period after seconds
+    return new Boolean(/T\d{2}:?\d{2}:?\d{2}[,.]/.test(val));
   }
 
   /**
    * Return the string value in extended format.
+   *
+   * Uses Temporal API to parse and format in extended ISO 8601 format.
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Parse with Temporal and convert to extended format string
+      const dt = Temporal.PlainDateTime.from(val);
+      return String.from(dt.toString());
+    } catch {
+      // If parsing fails, return original value
+      return String.from(val);
+    }
   }
 
   /**

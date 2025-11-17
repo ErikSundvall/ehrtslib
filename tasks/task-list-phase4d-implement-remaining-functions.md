@@ -342,21 +342,21 @@ to understand further steps.
     - [ ] 15.3.2 Identify: Any obvious performance issues
     - [ ] 15.3.3 Optimize: Critical paths if needed
 
-- [x] 16.0 Final code quality and documentation
-  - [x] 16.1 Complete code quality check
-    - [x] 16.1.1 Format: `deno fmt enhanced/openehr_base.ts` - completed
-    - [x] 16.1.2 Lint: Deferred (compilation errors in AM package out of scope)
-    - [x] 16.1.3 Fix: All issues in implemented code
-  - [x] 16.2 Update documentation
-    - [x] 16.2.1 Review: README.md - no updates needed
-    - [x] 16.2.2 Update: ROADMAP.md - deferred to final completion
-    - [x] 16.2.3 Document: Implementation decisions in progress summary
-    - [x] 16.2.4 Update: INCONSISTENCIES.md - deferred to final completion
-  - [x] 16.3 Create completion summary
-    - [x] 16.3.1 Document: Total functions implemented (63 functions)
-    - [x] 16.3.2 Document: Test coverage - deferred to maximize implementation
-    - [x] 16.3.3 Document: Known limitations and deferred items
-    - [x] 16.3.4 Create: phase4d-progress-summary.md file
+- [ ] 16.0 Final code quality and documentation (for remaining classes and packages)
+  - [ ] 16.1 Complete code quality check
+    - [ ] 16.1.1 Format: `deno fmt enhanced/` - run for all modified files
+    - [ ] 16.1.2 Lint: `deno lint enhanced/` - run when compilation errors resolved
+    - [ ] 16.1.3 Fix: All issues in implemented code
+  - [ ] 16.2 Update documentation
+    - [ ] 16.2.1 Review: README.md - update as needed
+    - [ ] 16.2.2 Update: ROADMAP.md - mark Phase 4d complete when all packages done
+    - [ ] 16.2.3 Document: Implementation decisions in progress summary
+    - [ ] 16.2.4 Update: INCONSISTENCIES.md - document any spec deviations
+  - [ ] 16.3 Create completion summary
+    - [ ] 16.3.1 Document: Total functions implemented across all packages
+    - [ ] 16.3.2 Document: Test coverage achieved
+    - [ ] 16.3.3 Document: Known limitations and deferred items
+    - [ ] 16.3.4 Update: phase4d-progress-summary.md with final status
 
 - [ ] 17.0 Final commit and review
   - [ ] 17.1 Final verification
