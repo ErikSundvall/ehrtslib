@@ -2596,42 +2596,81 @@ export class Iso8601_time extends Iso8601_type {
 export class Iso8601_date extends Iso8601_type {
   /**
    * Extract the year part of the date as an Integer.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   year(): Integer {
-    // TODO: Implement year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method year not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.year);
+    } catch {
+      // Try to parse just year from partial date (YYYY)
+      const match = val.match(/^(\d{4})/);
+      if (match) {
+        return Integer.from(parseInt(match[1], 10));
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the month part of the date as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   month(): Integer {
-    // TODO: Implement month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.month);
+    } catch {
+      // Try PlainYearMonth for partial dates
+      try {
+        const ym = Temporal.PlainYearMonth.from(val);
+        return Integer.from(ym.month);
+      } catch {
+        // Return 0 if no month present
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the day part of the date as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   day(): Integer {
-    // TODO: Implement day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.day);
+    } catch {
+      // Return 0 if parsing fails or no day component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Timezone; may be Void.
+   *
+   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
    * @returns Result value
    */
   timezone(): Iso8601_timezone {
-    // TODO: Implement timezone behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method timezone not yet implemented.");
+    const val = this.value || "";
+    // Match timezone: Z or ±hh:mm or ±hhmm (rare for pure dates)
+    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+    if (match) {
+      const tz = new Iso8601_timezone();
+      tz.value = match[1];
+      return tz;
+    }
+    throw new Error("No timezone present in date");
   }
 
   /**
@@ -2639,9 +2678,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   month_unknown(): Boolean {
-    // TODO: Implement month_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month_unknown not yet implemented.");
+    return new Boolean(this.month().value === 0);
   }
 
   /**
@@ -2649,9 +2686,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   day_unknown(): Boolean {
-    // TODO: Implement day_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day_unknown not yet implemented.");
+    return new Boolean(this.day().value === 0);
   }
 
   /**
@@ -2659,9 +2694,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.day_unknown();
   }
 
   /**
@@ -2669,19 +2702,32 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes("-"));
   }
 
   /**
    * Return string value in extended format.
+   *
+   * Uses Temporal API to parse and format in extended ISO 8601 format.
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Try full date first
+      const date = Temporal.PlainDate.from(val);
+      return String.from(date.toString());
+    } catch {
+      try {
+        // Try year-month
+        const ym = Temporal.PlainYearMonth.from(val);
+        return String.from(ym.toString());
+      } catch {
+        // Return original if parsing fails
+        return String.from(val);
+      }
+    }
   }
 
   /**

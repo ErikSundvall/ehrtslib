@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "test": "deno test --allow-read",
+    "check": "deno check enhanced/*.ts"
+  }
+}
