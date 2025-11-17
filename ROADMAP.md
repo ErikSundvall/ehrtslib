@@ -143,7 +143,7 @@ in generator files. Note: The three (Archie, java-libs and adl-tools) openEHR
 implementations can be used for inspiration in addition to pseudocode in
 /instruction files.
 
-## Phase 4c
+## Phase 4c ✅ (done)
 
 The way the project is set up now is a (on rerun) potenitally destructive mix of
 dererminsitic generation and then extensive LLM-based manipulation of generated
@@ -168,7 +168,13 @@ method implementations done in Phase 3
 
 Add function behaviour for not yet implemented functions in BASE, RM & LANG (if
 any) and create and run associated tests. (Hint: many of the unimplemented pars
-throw errors saying that they are not yet implemented)
+throw errors saying that they are not yet implemented). First, using the 
+method explained in Phase 3 above, check if there is any information missing in
+the /instructions files regarding the unimplemented methods. Then implement the
+not yet implemented functions, using the /instruction files as knowledge and 
+ask deepwiki if you need more help reading the specificatins or analyzing how 
+Archie has implemented something. (Update the instruction files when gaps are
+detected during implemetnatio or testing, since they may be used by others later.
 
 ## Phase 5a
 
