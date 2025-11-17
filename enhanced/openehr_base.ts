@@ -1632,6 +1632,14 @@ export abstract class Temporal extends Ordered {
 export class Time_Definitions {
   /**
    * True if \`y >= 0\`.
+   *
+   * TODO: Verify if this validation is sufficient. The openEHR specification
+   * states y >= 0 is correct (no negative years, only 4-digit years assumed),
+   * but this may need additional validation for:
+   * - Maximum year value (e.g., 9999 for 4-digit constraint)
+   * - Whether year 0 is historically/calendrically valid
+   * See corresponding TODO in tasks/instructions/base/Time_Definitions.md
+   *
    * @param y - Parameter
    * @returns Result value
    */
