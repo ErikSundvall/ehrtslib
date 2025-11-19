@@ -6,10 +6,13 @@ library is big an detailed, so developers using it are assumed to be importing
 just needed parts and to have build tools/processes that use e.g. "tree shaking"
 to reduce the amount of code shipped to end users.
 
-## TypeScript EHR Library Generation
+## For library users: Using the library in your own projects
+...add text here...
+
+## For library maintainers: TypeScript EHR Library Generation
 
 This section describes how to generate TypeScript libraries from the latest
-openEHR BMM JSON specifications.
+openEHR BMM JSON specifications. Most developers do not need to bother about this part.
 
 ### Prerequisites
 
