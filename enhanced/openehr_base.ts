@@ -2435,9 +2435,18 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   hour(): Integer {
-    // TODO: Implement hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hour not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.hour);
+    } catch {
+      // Try to parse just hour from partial time
+      const match = val.match(/^(\d{2})/);
+      if (match) {
+        return Integer.from(parseInt(match[1], 10));
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2445,9 +2454,14 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   minute(): Integer {
-    // TODO: Implement minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.minute);
+    } catch {
+      // Return 0 if parsing fails or no minute component
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2455,9 +2469,14 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   second(): Integer {
-    // TODO: Implement second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.second);
+    } catch {
+      // Return 0 if parsing fails or no second component
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2465,9 +2484,16 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   fractional_second(): number {
-    // TODO: Implement fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method fractional_second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
+      return time.millisecond / 1000 + time.microsecond / 1000000 +
+        time.nanosecond / 1000000000;
+    } catch {
+      // Return 0.0 if parsing fails
+    }
+    return 0.0;
   }
 
   /**
