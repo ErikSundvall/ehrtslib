@@ -1066,7 +1066,7 @@ export class Integer extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  equal(other: Integer): Boolean {
+  override equal(other: Integer): Boolean {
     // Reference equality - same object
     return new Boolean(this === other);
   }
@@ -1076,6 +1076,29 @@ export class Integer extends Ordered_Numeric {
  * Type used to represent double-precision decimal numbers. Corresponds to a double-precision floating point value in most languages.
  */
 export class Double extends Ordered_Numeric {
+  /**
+   * The underlying primitive value.
+   */
+  value?: number;
+
+  /**
+   * Creates a new Double instance.
+   * @param val - The primitive value to wrap
+   */
+  constructor(val?: number) {
+    super();
+    this.value = val;
+  }
+
+  /**
+   * Creates a Double instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Double instance
+   */
+  static from(val?: number): Double {
+    return new Double(val);
+  }
+
   /**
    * Return the greatest integer no greater than the value of this object.
    * @returns Result value
