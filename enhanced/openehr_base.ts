@@ -1526,9 +1526,13 @@ export class Real extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: number): Boolean {
-    const thisVal = this.value || 0;
-    return new Boolean(thisVal < other);
+  override less_than(other: Ordered): Boolean {
+    if (other instanceof Real) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal < otherVal);
+    }
+    return new Boolean(false);
   }
 
   /**
@@ -1545,19 +1549,13 @@ export class Real extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  is_equal(other: number): Boolean {
-    const thisVal = this.value || 0;
-    return new Boolean(thisVal === other);
-  }
-
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  equal(other: number): Boolean {
-    // For primitives, reference and value equality are the same
-    return this.is_equal(other);
+  override is_equal(other: Any): Boolean {
+    if (other instanceof Real) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal === otherVal);
+    }
+    return new Boolean(false);
   }
 }
 
@@ -1701,7 +1699,7 @@ export class Integer64 extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  equal(other: Integer64): Boolean {
+  override equal(other: Any): Boolean {
     // Reference equality - same object
     return new Boolean(this === other);
   }
@@ -1740,15 +1738,31 @@ export class Byte extends Ordered {
   }
 
   /**
+   * Returns True if current Byte is less than other.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override less_than(other: Ordered): Boolean {
+    if (other instanceof Byte) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal < otherVal);
+    }
+    return new Boolean(false);
+  }
+
+  /**
    * Compares this Byte with another for value equality.
    * @param other - The object to compare with
    * @returns true if the values are equal
    */
-  is_equal(other: any): boolean {
+  override is_equal(other: Any): Boolean {
     if (other instanceof Byte) {
-      return this.value === other.value;
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal === otherVal);
     }
-    return false;
+    return new Boolean(false);
   }
 }
 
@@ -2404,6 +2418,52 @@ export class Iso8601_date_time extends Iso8601_type {
       throw new Error(`Failed to subtract nominal duration: ${e}`);
     }
   }
+
+  /**
+   * Compares this date-time with another for ordering.
+   * @param other - The object to compare with
+   * @returns true if this date-time is less than the other
+   */
+  override less_than(other: Ordered): Boolean {
+    if (!(other instanceof Iso8601_date_time)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
+      return new Boolean(TemporalAPI.PlainDateTime.compare(dt1, dt2) < 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val < otherVal);
+    }
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Iso8601_date_time)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
+      return new Boolean(TemporalAPI.PlainDateTime.compare(dt1, dt2) === 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val === otherVal);
+    }
+  }
 }
 
 /**
@@ -2769,6 +2829,58 @@ export class Iso8601_duration extends Iso8601_type {
       throw new Error(`Failed to negate duration: ${e}`);
     }
   }
+
+  /**
+   * Compares this duration with another for ordering.
+   * @param other - The object to compare with
+   * @returns true if this duration is less than the other
+   */
+  override less_than(other: Ordered): Boolean {
+    if (!(other instanceof Iso8601_duration)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const dur1 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(val));
+      const dur2 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(otherVal));
+      // Compare total seconds as a simple approximation
+      const total1 = dur1.total({ unit: "seconds" });
+      const total2 = dur2.total({ unit: "seconds" });
+      return new Boolean(total1 < total2);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val < otherVal);
+    }
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Iso8601_duration)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const dur1 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(val));
+      const dur2 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(otherVal));
+      // Compare total seconds
+      const total1 = dur1.total({ unit: "seconds" });
+      const total2 = dur2.total({ unit: "seconds" });
+      return new Boolean(total1 === total2);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val === otherVal);
+    }
+  }
 }
 
 /**
@@ -2994,6 +3106,52 @@ export class Iso8601_time extends Iso8601_type {
       return duration;
     } catch (e) {
       throw new Error(`Failed to calculate time difference: ${e}`);
+    }
+  }
+
+  /**
+   * Compares this time with another for ordering.
+   * @param other - The object to compare with
+   * @returns true if this time is less than the other
+   */
+  override less_than(other: Ordered): Boolean {
+    if (!(other instanceof Iso8601_time)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
+      return new Boolean(TemporalAPI.PlainTime.compare(time1, time2) < 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val < otherVal);
+    }
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Iso8601_time)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
+      return new Boolean(TemporalAPI.PlainTime.compare(time1, time2) === 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val === otherVal);
     }
   }
 }
@@ -4867,9 +5025,16 @@ export class Iso8601_timezone extends Iso8601_type {
     }
     
     // Calculate total offset in minutes for this timezone
-    const thisOffset = this.sign().value * (this.hour().value * 60 + this.minute().value);
+    const thisSign = this.sign().value || 1;
+    const thisHour = this.hour().value || 0;
+    const thisMinute = this.minute().value || 0;
+    const thisOffset = thisSign * (thisHour * 60 + thisMinute);
+    
     // Calculate total offset in minutes for other timezone
-    const otherOffset = other.sign().value * (other.hour().value * 60 + other.minute().value);
+    const otherSign = other.sign().value || 1;
+    const otherHour = other.hour().value || 0;
+    const otherMinute = other.minute().value || 0;
+    const otherOffset = otherSign * (otherHour * 60 + otherMinute);
     
     return new Boolean(thisOffset < otherOffset);
   }
@@ -4885,8 +5050,15 @@ export class Iso8601_timezone extends Iso8601_type {
     }
     
     // Compare by offset in minutes
-    const thisOffset = this.sign().value * (this.hour().value * 60 + this.minute().value);
-    const otherOffset = other.sign().value * (other.hour().value * 60 + other.minute().value);
+    const thisSign = this.sign().value || 1;
+    const thisHour = this.hour().value || 0;
+    const thisMinute = this.minute().value || 0;
+    const thisOffset = thisSign * (thisHour * 60 + thisMinute);
+    
+    const otherSign = other.sign().value || 1;
+    const otherHour = other.hour().value || 0;
+    const otherMinute = other.minute().value || 0;
+    const otherOffset = otherSign * (otherHour * 60 + otherMinute);
     
     return new Boolean(thisOffset === otherOffset);
   }
