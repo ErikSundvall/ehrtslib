@@ -16,6 +16,10 @@
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
+// Import Temporal API polyfill for date/time operations
+// See: https://tc39.es/proposal-temporal/ and https://docs.deno.com/api/web/temporal
+import { Temporal } from "./temporal_polyfill.ts";
+
 // Unknown types - defined as 'any' for now
 type T = any;
 
@@ -668,9 +672,9 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   less_than_or_equal(other: Ordered): Boolean {
-    // TODO: Implement less_than_or_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than_or_equal not yet implemented.");
+    return new Boolean(
+      this.less_than(other).value || this.is_equal(other).value,
+    );
   }
 
   /**
@@ -679,9 +683,9 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   greater_than(other: Ordered): Boolean {
-    // TODO: Implement greater_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method greater_than not yet implemented.");
+    return new Boolean(
+      !this.less_than(other).value && !this.is_equal(other).value,
+    );
   }
 
   /**
@@ -690,9 +694,7 @@ export abstract class Ordered extends Any {
    * @returns Result value
    */
   greater_than_or_equal(other: Ordered): Boolean {
-    // TODO: Implement greater_than_or_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method greater_than_or_equal not yet implemented.");
+    return new Boolean(!this.less_than(other).value);
   }
 }
 
@@ -1053,9 +1055,8 @@ export class Integer extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   // modulo, less_than, negative, and is_equal are implemented above
@@ -1066,9 +1067,8 @@ export class Integer extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: Integer): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // Reference equality - same object
+    return new Boolean(this === other);
   }
 }
 
@@ -1081,9 +1081,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   floor(): Integer {
-    // TODO: Implement floor behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method floor not yet implemented.");
+    const thisVal = this.value || 0;
+    return Integer.from(Math.floor(thisVal));
   }
 
   /**
@@ -1092,9 +1091,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: number): number {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal + other;
   }
 
   /**
@@ -1103,9 +1101,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: number): number {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal - other;
   }
 
   /**
@@ -1114,9 +1111,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: number): number {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal * other;
   }
 
   /**
@@ -1125,9 +1121,11 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: number): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    if (other === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / other;
   }
 
   /**
@@ -1136,9 +1134,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1147,9 +1144,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   less_than(other: number): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal < other);
   }
 
   /**
@@ -1157,9 +1153,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): number {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    const thisVal = this.value || 0;
+    return -thisVal;
   }
 
   /**
@@ -1168,9 +1163,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   is_equal(other: number): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal === other);
   }
 
   /**
@@ -1179,9 +1173,8 @@ export class Double extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: number): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // For primitives, reference and value equality are the same
+    return this.is_equal(other);
   }
 }
 
@@ -1316,13 +1309,35 @@ export class Boolean extends Any {
  */
 export class Real extends Ordered_Numeric {
   /**
+   * The underlying primitive value.
+   */
+  value?: number;
+
+  /**
+   * Creates a new Real instance.
+   * @param val - The primitive value to wrap
+   */
+  constructor(val?: number) {
+    super();
+    this.value = val;
+  }
+
+  /**
+   * Creates a Real instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Real instance
+   */
+  static from(val?: number): Real {
+    return new Real(val);
+  }
+
+  /**
    * Return the greatest integer no greater than the value of this object.
    * @returns Result value
    */
   floor(): Integer {
-    // TODO: Implement floor behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method floor not yet implemented.");
+    const thisVal = this.value || 0;
+    return Integer.from(Math.floor(thisVal));
   }
 
   /**
@@ -1331,9 +1346,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: number): number {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal + other;
   }
 
   /**
@@ -1342,9 +1356,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: number): number {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal - other;
   }
 
   /**
@@ -1353,9 +1366,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: number): number {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    return thisVal * other;
   }
 
   /**
@@ -1364,9 +1376,11 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: number): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    if (other === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / other;
   }
 
   /**
@@ -1375,9 +1389,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1386,9 +1399,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   less_than(other: number): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal < other);
   }
 
   /**
@@ -1396,9 +1408,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): number {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    const thisVal = this.value || 0;
+    return -thisVal;
   }
 
   /**
@@ -1407,9 +1418,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   is_equal(other: number): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    const thisVal = this.value || 0;
+    return new Boolean(thisVal === other);
   }
 
   /**
@@ -1418,9 +1428,8 @@ export class Real extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: number): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // For primitives, reference and value equality are the same
+    return this.is_equal(other);
   }
 }
 
@@ -1459,11 +1468,25 @@ export class Integer64 extends Ordered_Numeric {
    * @param other - The object to compare with
    * @returns true if the values are equal
    */
-  is_equal(other: any): boolean {
+  is_equal(other: any): Boolean {
     if (other instanceof Integer64) {
-      return this.value === other.value;
+      return new Boolean(this.value === other.value);
     }
-    return false;
+    return new Boolean(false);
+  }
+
+  /**
+   * Lexical comparison for large integers.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  less_than(other: Ordered): Boolean {
+    if (!(other instanceof Integer64)) {
+      throw new Error("Cannot compare Integer64 with non-Integer64");
+    }
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return new Boolean(thisVal < otherVal);
   }
 
   /**
@@ -1472,9 +1495,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   add(other: Integer): Integer64 {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal + otherVal);
   }
 
   /**
@@ -1483,9 +1506,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   subtract(other: Integer): Integer64 {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal - otherVal);
   }
 
   /**
@@ -1494,9 +1517,9 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   multiply(other: Integer): Integer64 {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 0;
+    return Integer64.from(thisVal * otherVal);
   }
 
   /**
@@ -1505,9 +1528,12 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   divide(other: Integer): number {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    const thisVal = this.value || 0;
+    const otherVal = other.value || 1;
+    if (otherVal === 0) {
+      throw new Error("Division by zero");
+    }
+    return thisVal / otherVal;
   }
 
   /**
@@ -1516,9 +1542,8 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   exponent(other: number): number {
-    // TODO: Implement exponent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method exponent not yet implemented.");
+    const thisVal = this.value || 0;
+    return Math.pow(thisVal, other);
   }
 
   /**
@@ -1527,20 +1552,12 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   modulo(mod: Integer): Integer64 {
-    // TODO: Implement modulo behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method modulo not yet implemented.");
-  }
-
-  /**
-   * Returns True if current Integer is less than \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other: Integer64): Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    const thisVal = this.value || 0;
+    const modVal = mod.value || 1;
+    if (modVal === 0) {
+      throw new Error("Modulo by zero");
+    }
+    return Integer64.from(thisVal % modVal);
   }
 
   /**
@@ -1548,20 +1565,7 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   negative(): Integer64 {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
-  }
-
-  /**
-   * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other: Integer64): Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    return Integer64.from(-(this.value || 0));
   }
 
   /**
@@ -1570,9 +1574,8 @@ export class Integer64 extends Ordered_Numeric {
    * @returns Result value
    */
   equal(other: Integer64): Boolean {
-    // TODO: Implement equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method equal not yet implemented.");
+    // Reference equality - same object
+    return new Boolean(this === other);
   }
 }
 
@@ -1633,13 +1636,20 @@ export abstract class Temporal extends Ordered {
 export class Time_Definitions {
   /**
    * True if \`y >= 0\`.
+   *
+   * TODO: Verify if this validation is sufficient. The openEHR specification
+   * states y >= 0 is correct (no negative years, only 4-digit years assumed),
+   * but this may need additional validation for:
+   * - Maximum year value (e.g., 9999 for 4-digit constraint)
+   * - Whether year 0 is historically/calendrically valid
+   * See corresponding TODO in tasks/instructions/base/Time_Definitions.md
+   *
    * @param y - Parameter
    * @returns Result value
    */
   valid_year(y: Integer): Boolean {
-    // TODO: Implement valid_year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_year not yet implemented.");
+    const val = y.value || 0;
+    return new Boolean(val >= 0);
   }
 
   /**
@@ -1648,9 +1658,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_month(m: Integer): Boolean {
-    // TODO: Implement valid_month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_month not yet implemented.");
+    const val = m.value || 0;
+    return new Boolean(val >= 1 && val <= 12);
   }
 
   /**
@@ -1661,9 +1670,23 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_day(y: Integer, m: Integer, d: Integer): Boolean {
-    // TODO: Implement valid_day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_day not yet implemented.");
+    const dVal = d.value || 0;
+    const mVal = m.value || 1;
+    const yVal = y.value || 0;
+
+    if (dVal < 1) return new Boolean(false);
+
+    // Days in each month
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    // Check for leap year
+    const isLeapYear = (yVal % 4 === 0 && yVal % 100 !== 0) ||
+      (yVal % 400 === 0);
+    if (isLeapYear && mVal === 2) {
+      return new Boolean(dVal <= 29);
+    }
+
+    return new Boolean(dVal <= (daysInMonth[mVal - 1] || 31));
   }
 
   /**
@@ -1674,9 +1697,17 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_hour(h: Integer, m: Integer, s: Integer): Boolean {
-    // TODO: Implement valid_hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_hour not yet implemented.");
+    const hVal = h.value || 0;
+    const mVal = m.value || 0;
+    const sVal = s.value || 0;
+
+    // Normal hours: 0-23
+    if (hVal >= 0 && hVal < 24) return new Boolean(true);
+
+    // Special case: 24:00:00 is valid
+    if (hVal === 24 && mVal === 0 && sVal === 0) return new Boolean(true);
+
+    return new Boolean(false);
   }
 
   /**
@@ -1685,9 +1716,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_minute(m: Integer): Boolean {
-    // TODO: Implement valid_minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_minute not yet implemented.");
+    const val = m.value || 0;
+    return new Boolean(val >= 0 && val < 60);
   }
 
   /**
@@ -1696,9 +1726,8 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_second(s: Integer): Boolean {
-    // TODO: Implement valid_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_second not yet implemented.");
+    const val = s.value || 0;
+    return new Boolean(val >= 0 && val < 60);
   }
 
   /**
@@ -1707,9 +1736,7 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_fractional_second(fs: number): Boolean {
-    // TODO: Implement valid_fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_fractional_second not yet implemented.");
+    return new Boolean(fs >= 0.0 && fs < 1.0);
   }
 
   /**
@@ -1729,9 +1756,18 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_date(s: String): Boolean {
-    // TODO: Implement valid_iso8601_date behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_date not yet implemented.");
+    const val = s.value || "";
+
+    // Extended format: YYYY-MM-DD, YYYY-MM, or YYYY
+    const extendedPattern =
+      /^(\d{4})(-((0[1-9]|1[0-2])(-([0-2]\d|3[01]))?)?)?$/;
+
+    // Compact format: YYYYMMDD, YYYYMM, or YYYY
+    const compactPattern = /^(\d{4})((0[1-9]|1[0-2])([0-2]\d|3[01])?)?$/;
+
+    return new Boolean(
+      extendedPattern.test(val) || compactPattern.test(val),
+    );
   }
 
   /**
@@ -1759,9 +1795,13 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_time(s: String): Boolean {
-    // TODO: Implement valid_iso8601_time behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_time not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 time with optional fractional seconds and timezone
+    const timePattern =
+      /^([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+
+    return new Boolean(timePattern.test(val));
   }
 
   /**
@@ -1776,9 +1816,13 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_date_time(s: String): Boolean {
-    // TODO: Implement valid_iso8601_date_time behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_date_time not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 date-time
+    const dateTimePattern =
+      /^(\d{4})-?(0[1-9]|1[0-2])-?([0-2]\d|3[01])T([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+
+    return new Boolean(dateTimePattern.test(val));
   }
 
   /**
@@ -1793,9 +1837,14 @@ export class Time_Definitions {
    * @returns Result value
    */
   valid_iso8601_duration(s: String): Boolean {
-    // TODO: Implement valid_iso8601_duration behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_iso8601_duration not yet implemented.");
+    const val = s.value || "";
+
+    // Pattern for ISO 8601 duration: P[nY][nM][nW][nD][T[nH][nM][nS]]
+    const durationPattern =
+      /^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
+
+    // Must start with P and have at least one component
+    return new Boolean(durationPattern.test(val) && val.length > 1);
   }
 }
 
@@ -1867,82 +1916,165 @@ export abstract class Iso8601_type extends Temporal {
 export class Iso8601_date_time extends Iso8601_type {
   /**
    * Extract the year part of the date as an Integer.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   year(): Integer {
-    // TODO: Implement year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method year not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Try full date-time first
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.year);
+    } catch {
+      try {
+        // Try just date part if full parse fails
+        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+        if (match && match[1]) {
+          return Integer.from(parseInt(match[1], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the month part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   month(): Integer {
-    // TODO: Implement month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.month);
+    } catch {
+      try {
+        const match = val.match(/^(\d{4})-?(\d{2})?/);
+        if (match && match[2]) {
+          return Integer.from(parseInt(match[2], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the day part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   day(): Integer {
-    // TODO: Implement day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.day);
+    } catch {
+      try {
+        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+        if (match && match[3]) {
+          return Integer.from(parseInt(match[3], 10));
+        }
+      } catch {
+        // Fall through
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the hour part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   hour(): Integer {
-    // TODO: Implement hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hour not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.hour);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the minute part of the date/time as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   minute(): Integer {
-    // TODO: Implement minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.minute);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the integral seconds part of the date/time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   second(): Integer {
-    // TODO: Implement second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      return Integer.from(dt.second);
+    } catch {
+      // Return 0 if parsing fails or no time component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the fractional seconds part of the date/time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 parsing.
    * @returns Result value
    */
   fractional_second(): number {
-    // TODO: Implement fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method fractional_second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
+      // Convert to fractional seconds: milliseconds / 1000
+      return dt.millisecond / 1000 + dt.microsecond / 1000000 +
+        dt.nanosecond / 1000000000;
+    } catch {
+      // Return 0.0 if parsing fails
+    }
+    return 0.0;
   }
 
   /**
    * Timezone; may be Void.
+   *
+   * Uses Temporal API to extract timezone information.
    * @returns Result value
    */
   timezone(): Iso8601_timezone {
-    // TODO: Implement timezone behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method timezone not yet implemented.");
+    const val = this.value || "";
+    // Match timezone: Z or ±hh:mm or ±hhmm
+    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+    if (match) {
+      const tz = new Iso8601_timezone();
+      tz.value = match[1];
+      return tz;
+    }
+    throw new Error("No timezone present in date-time");
   }
 
   /**
@@ -1950,9 +2082,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   month_unknown(): Boolean {
-    // TODO: Implement month_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month_unknown not yet implemented.");
+    return new Boolean(this.month().value === 0);
   }
 
   /**
@@ -1960,9 +2090,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   day_unknown(): Boolean {
-    // TODO: Implement day_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day_unknown not yet implemented.");
+    return new Boolean(this.day().value === 0);
   }
 
   /**
@@ -1970,9 +2098,9 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   minute_unknown(): Boolean {
-    // TODO: Implement minute_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute_unknown not yet implemented.");
+    const val = this.value || "";
+    // Check if time part exists with minutes
+    return new Boolean(!val.includes("T") || this.minute().value === 0);
   }
 
   /**
@@ -1980,9 +2108,10 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   second_unknown(): Boolean {
-    // TODO: Implement second_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second_unknown not yet implemented.");
+    const val = this.value || "";
+    // Check if seconds are present in the string
+    const hasSeconds = /T\d{2}:?\d{2}:?\d{2}/.test(val);
+    return new Boolean(!hasSeconds);
   }
 
   /**
@@ -1990,9 +2119,8 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_decimal_sign_comma(): Boolean {
-    // TODO: Implement is_decimal_sign_comma behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_decimal_sign_comma not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(","));
   }
 
   /**
@@ -2000,9 +2128,7 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.second_unknown();
   }
 
   /**
@@ -2010,9 +2136,9 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    // Extended format uses '-' in date part and ':' in time part
+    return new Boolean(val.includes("-") || val.includes(":"));
   }
 
   /**
@@ -2020,19 +2146,27 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   has_fractional_second(): Boolean {
-    // TODO: Implement has_fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_fractional_second not yet implemented.");
+    const val = this.value || "";
+    // Check for comma or period after seconds
+    return new Boolean(/T\d{2}:?\d{2}:?\d{2}[,.]/.test(val));
   }
 
   /**
    * Return the string value in extended format.
+   *
+   * Uses Temporal API to parse and format in extended ISO 8601 format.
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Parse with Temporal and convert to extended format string
+      const dt = Temporal.PlainDateTime.from(val);
+      return String.from(dt.toString());
+    } catch {
+      // If parsing fails, return original value
+      return String.from(val);
+    }
   }
 
   /**
@@ -2052,9 +2186,20 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   subtract(a_diff: Iso8601_duration): Iso8601_date_time {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = dt.subtract(dur);
+      const newDateTime = new Iso8601_date_time();
+      newDateTime.value = result.toString();
+      return newDateTime;
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from date_time: ${e}`);
+    }
   }
 
   /**
@@ -2063,9 +2208,18 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   diff(a_date_time: Iso8601_date_time): Iso8601_duration {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    const val = this.value || "";
+    const otherVal = a_date_time.value || "";
+    try {
+      const dt1 = Temporal.PlainDateTime.from(val);
+      const dt2 = Temporal.PlainDateTime.from(otherVal);
+      const diff = dt1.since(dt2);
+      const duration = new Iso8601_duration();
+      duration.value = diff.toString();
+      return duration;
+    } catch (e) {
+      throw new Error(`Failed to calculate difference: ${e}`);
+    }
   }
 
   /**
@@ -2074,9 +2228,20 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   add_nominal(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement add_nominal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add_nominal not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = dt.add(dur);
+      const newDateTime = new Iso8601_date();
+      newDateTime.value = result.toPlainDate().toString();
+      return newDateTime;
+    } catch (e) {
+      throw new Error(`Failed to add nominal duration: ${e}`);
+    }
   }
 
   /**
@@ -2085,9 +2250,20 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   subtract_nominal(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement subtract_nominal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract_nominal not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = dt.subtract(dur);
+      const newDateTime = new Iso8601_date();
+      newDateTime.value = result.toPlainDate().toString();
+      return newDateTime;
+    } catch (e) {
+      throw new Error(`Failed to subtract nominal duration: ${e}`);
+    }
   }
 }
 
@@ -2100,13 +2276,48 @@ export class Iso8601_date_time extends Iso8601_type {
  */
 export class Iso8601_duration extends Iso8601_type {
   /**
+   * Helper method to convert openEHR duration with weeks to standard ISO 8601.
+   * OpenEHR allows weeks to be mixed with other designators, but Temporal API doesn't.
+   * This converts weeks to days (1W = 7D).
+   * @param value - Duration string that may contain weeks
+   * @returns Duration string with weeks converted to days
+   */
+  private static normalizeWeeks(value: string): string {
+    // Match weeks designator: nW or nnnW
+    const weeksMatch = value.match(/(\d+(?:\.\d+)?)W/);
+    if (!weeksMatch) return value;
+
+    const weeks = parseFloat(weeksMatch[1]);
+    const days = weeks * 7;
+
+    // Remove the weeks component
+    let normalized = value.replace(/\d+(?:\.\d+)?W/, "");
+
+    // Add days to existing days or insert days
+    const daysMatch = normalized.match(/(\d+(?:\.\d+)?)D/);
+    if (daysMatch) {
+      const existingDays = parseFloat(daysMatch[1]);
+      const totalDays = existingDays + days;
+      normalized = normalized.replace(/\d+(?:\.\d+)?D/, `${totalDays}D`);
+    } else {
+      // Insert days before T (time) or at end if no time component
+      if (normalized.includes("T")) {
+        normalized = normalized.replace("T", `${days}DT`);
+      } else {
+        // Add days before the end
+        normalized = normalized.replace(/P(.*)$/, `P$1${days}D`);
+      }
+    }
+
+    return normalized;
+  }
+
+  /**
    * Returns True.
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    return new Boolean(true);
   }
 
   /**
@@ -2114,9 +2325,7 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return new Boolean(false);
   }
 
   /**
@@ -2124,9 +2333,13 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   years(): Integer {
-    // TODO: Implement years behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method years not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return Integer.from(dur.years || 0);
+    } catch {
+      return Integer.from(0);
+    }
   }
 
   /**
@@ -2134,19 +2347,35 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   months(): Integer {
-    // TODO: Implement months behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method months not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return Integer.from(dur.months || 0);
+    } catch {
+      return Integer.from(0);
+    }
   }
 
   /**
    * Number of days in the \`_value_\`, i.e. the number preceding the \`'D'\` in the \`'YMD'\` part, if one exists.
+   * Note: This returns only the D component, not converted weeks.
    * @returns Result value
    */
   days(): Integer {
-    // TODO: Implement days behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method days not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Normalize weeks to days for parsing, then extract days
+      const normalized = Iso8601_duration.normalizeWeeks(val);
+      const dur = Temporal.Duration.from(normalized);
+      return Integer.from(dur.days || 0);
+    } catch {
+      // Fallback: try to extract days directly
+      const daysMatch = val.match(/(\d+(?:\.\d+)?)D/);
+      if (daysMatch) {
+        return Integer.from(Math.floor(parseFloat(daysMatch[1])));
+      }
+      return Integer.from(0);
+    }
   }
 
   /**
@@ -2154,9 +2383,13 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   hours(): Integer {
-    // TODO: Implement hours behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hours not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return Integer.from(dur.hours || 0);
+    } catch {
+      return Integer.from(0);
+    }
   }
 
   /**
@@ -2164,9 +2397,13 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   minutes(): Integer {
-    // TODO: Implement minutes behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minutes not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return Integer.from(dur.minutes || 0);
+    } catch {
+      return Integer.from(0);
+    }
   }
 
   /**
@@ -2174,9 +2411,13 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   seconds(): Integer {
-    // TODO: Implement seconds behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method seconds not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return Integer.from(dur.seconds || 0);
+    } catch {
+      return Integer.from(0);
+    }
   }
 
   /**
@@ -2184,9 +2425,14 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   fractional_seconds(): number {
-    // TODO: Implement fractional_seconds behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method fractional_seconds not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      return (dur.milliseconds || 0) / 1000 +
+        (dur.microseconds || 0) / 1000000 + (dur.nanoseconds || 0) / 1000000000;
+    } catch {
+      return 0.0;
+    }
   }
 
   /**
@@ -2194,9 +2440,13 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   weeks(): Integer {
-    // TODO: Implement weeks behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method weeks not yet implemented.");
+    const val = this.value || "";
+    // Extract weeks directly from the string since openEHR allows mixed W with other designators
+    const weeksMatch = val.match(/(\d+(?:\.\d+)?)W/);
+    if (weeksMatch) {
+      return Integer.from(Math.floor(parseFloat(weeksMatch[1])));
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2204,9 +2454,8 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   is_decimal_sign_comma(): Boolean {
-    // TODO: Implement is_decimal_sign_comma behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_decimal_sign_comma not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(","));
   }
 
   /**
@@ -2214,9 +2463,20 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   to_seconds(): number {
-    // TODO: Implement to_seconds behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method to_seconds not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(val);
+      // Note: For year/month, we use approximate values (not calendar-aware)
+      const totalSeconds = (dur.years || 0) * 31536000 +
+        (dur.months || 0) * 2592000 +
+        (dur.weeks || 0) * 604800 + (dur.days || 0) * 86400 +
+        (dur.hours || 0) * 3600 + (dur.minutes || 0) * 60 + (dur.seconds || 0) +
+        (dur.milliseconds || 0) / 1000 + (dur.microseconds || 0) / 1000000 +
+        (dur.nanoseconds || 0) / 1000000000;
+      return totalSeconds;
+    } catch {
+      return 0.0;
+    }
   }
 
   /**
@@ -2301,9 +2561,18 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   hour(): Integer {
-    // TODO: Implement hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hour not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.hour);
+    } catch {
+      // Try to parse just hour from partial time
+      const match = val.match(/^(\d{2})/);
+      if (match) {
+        return Integer.from(parseInt(match[1], 10));
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2311,9 +2580,14 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   minute(): Integer {
-    // TODO: Implement minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.minute);
+    } catch {
+      // Return 0 if parsing fails or no minute component
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2321,9 +2595,14 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   second(): Integer {
-    // TODO: Implement second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return Integer.from(time.second);
+    } catch {
+      // Return 0 if parsing fails or no second component
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -2331,9 +2610,16 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   fractional_second(): number {
-    // TODO: Implement fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method fractional_second not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
+      return time.millisecond / 1000 + time.microsecond / 1000000 +
+        time.nanosecond / 1000000000;
+    } catch {
+      // Return 0.0 if parsing fails
+    }
+    return 0.0;
   }
 
   /**
@@ -2341,9 +2627,14 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   timezone(): Iso8601_timezone {
-    // TODO: Implement timezone behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method timezone not yet implemented.");
+    const val = this.value || "";
+    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+    if (match) {
+      const tz = new Iso8601_timezone();
+      tz.value = match[1];
+      return tz;
+    }
+    throw new Error("No timezone present in time");
   }
 
   /**
@@ -2351,9 +2642,9 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   minute_unknown(): Boolean {
-    // TODO: Implement minute_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute_unknown not yet implemented.");
+    const val = this.value || "";
+    const hasMinutes = /^\d{2}:?\d{2}/.test(val);
+    return new Boolean(!hasMinutes);
   }
 
   /**
@@ -2361,9 +2652,9 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   second_unknown(): Boolean {
-    // TODO: Implement second_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method second_unknown not yet implemented.");
+    const val = this.value || "";
+    const hasSeconds = /^\d{2}:?\d{2}:?\d{2}/.test(val);
+    return new Boolean(!hasSeconds);
   }
 
   /**
@@ -2371,9 +2662,8 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   is_decimal_sign_comma(): Boolean {
-    // TODO: Implement is_decimal_sign_comma behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_decimal_sign_comma not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(","));
   }
 
   /**
@@ -2381,9 +2671,7 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.second_unknown();
   }
 
   /**
@@ -2391,9 +2679,8 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(":"));
   }
 
   /**
@@ -2401,9 +2688,8 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   has_fractional_second(): Boolean {
-    // TODO: Implement has_fractional_second behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_fractional_second not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(/\d{2}[,.]/.test(val));
   }
 
   /**
@@ -2411,9 +2697,13 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      return String.from(time.toString());
+    } catch {
+      return String.from(val);
+    }
   }
 
   /**
@@ -2433,9 +2723,20 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   subtract(a_diff: Iso8601_duration): Iso8601_time {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = time.subtract(dur);
+      const newTime = new Iso8601_time();
+      newTime.value = result.toString();
+      return newTime;
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from time: ${e}`);
+    }
   }
 
   /**
@@ -2444,9 +2745,18 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   diff(a_time: Iso8601_time): Iso8601_duration {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    const val = this.value || "";
+    const otherVal = a_time.value || "";
+    try {
+      const time1 = Temporal.PlainTime.from(val);
+      const time2 = Temporal.PlainTime.from(otherVal);
+      const diff = time1.since(time2);
+      const duration = new Iso8601_duration();
+      duration.value = diff.toString();
+      return duration;
+    } catch (e) {
+      throw new Error(`Failed to calculate time difference: ${e}`);
+    }
   }
 }
 
@@ -2462,42 +2772,81 @@ export class Iso8601_time extends Iso8601_type {
 export class Iso8601_date extends Iso8601_type {
   /**
    * Extract the year part of the date as an Integer.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   year(): Integer {
-    // TODO: Implement year behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method year not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.year);
+    } catch {
+      // Try to parse just year from partial date (YYYY)
+      const match = val.match(/^(\d{4})/);
+      if (match) {
+        return Integer.from(parseInt(match[1], 10));
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the month part of the date as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   month(): Integer {
-    // TODO: Implement month behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.month);
+    } catch {
+      // Try PlainYearMonth for partial dates
+      try {
+        const ym = Temporal.PlainYearMonth.from(val);
+        return Integer.from(ym.month);
+      } catch {
+        // Return 0 if no month present
+      }
+    }
+    return Integer.from(0);
   }
 
   /**
    * Extract the day part of the date as an Integer, or return 0 if not present.
+   *
+   * Uses Temporal API for robust ISO 8601 date parsing.
    * @returns Result value
    */
   day(): Integer {
-    // TODO: Implement day behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day not yet implemented.");
+    const val = this.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      return Integer.from(date.day);
+    } catch {
+      // Return 0 if parsing fails or no day component
+    }
+    return Integer.from(0);
   }
 
   /**
    * Timezone; may be Void.
+   *
+   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
    * @returns Result value
    */
   timezone(): Iso8601_timezone {
-    // TODO: Implement timezone behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method timezone not yet implemented.");
+    const val = this.value || "";
+    // Match timezone: Z or ±hh:mm or ±hhmm (rare for pure dates)
+    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+    if (match) {
+      const tz = new Iso8601_timezone();
+      tz.value = match[1];
+      return tz;
+    }
+    throw new Error("No timezone present in date");
   }
 
   /**
@@ -2505,9 +2854,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   month_unknown(): Boolean {
-    // TODO: Implement month_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method month_unknown not yet implemented.");
+    return new Boolean(this.month().value === 0);
   }
 
   /**
@@ -2515,9 +2862,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   day_unknown(): Boolean {
-    // TODO: Implement day_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method day_unknown not yet implemented.");
+    return new Boolean(this.day().value === 0);
   }
 
   /**
@@ -2525,9 +2870,7 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.day_unknown();
   }
 
   /**
@@ -2535,19 +2878,32 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes("-"));
   }
 
   /**
    * Return string value in extended format.
+   *
+   * Uses Temporal API to parse and format in extended ISO 8601 format.
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Try full date first
+      const date = Temporal.PlainDate.from(val);
+      return String.from(date.toString());
+    } catch {
+      try {
+        // Try year-month
+        const ym = Temporal.PlainYearMonth.from(val);
+        return String.from(ym.toString());
+      } catch {
+        // Return original if parsing fails
+        return String.from(val);
+      }
+    }
   }
 
   /**
@@ -2567,9 +2923,20 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   subtract(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = date.subtract(dur);
+      const newDate = new Iso8601_date();
+      newDate.value = result.toString();
+      return newDate;
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from date: ${e}`);
+    }
   }
 
   /**
@@ -2578,9 +2945,18 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   diff(a_date: Iso8601_date): Iso8601_duration {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    const val = this.value || "";
+    const otherVal = a_date.value || "";
+    try {
+      const date1 = Temporal.PlainDate.from(val);
+      const date2 = Temporal.PlainDate.from(otherVal);
+      const diff = date1.since(date2);
+      const duration = new Iso8601_duration();
+      duration.value = diff.toString();
+      return duration;
+    } catch (e) {
+      throw new Error(`Failed to calculate date difference: ${e}`);
+    }
   }
 
   /**
@@ -2802,9 +3178,11 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_open(): Boolean {
-    // TODO: Implement is_open behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_open not yet implemented.");
+    // Check if lower = 0 and upper is unbounded
+    const lowerVal = this.lower?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && this.upper_unbounded === true,
+    );
   }
 
   /**
@@ -2812,9 +3190,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_optional(): Boolean {
-    // TODO: Implement is_optional behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_optional not yet implemented.");
+    // Check if lower = 0 and upper = 1
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && upperVal === 1,
+    );
   }
 
   /**
@@ -2822,9 +3203,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_mandatory(): Boolean {
-    // TODO: Implement is_mandatory behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_mandatory not yet implemented.");
+    // Check if lower = 1 and upper = 1
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 1 && upperVal === 1,
+    );
   }
 
   /**
@@ -2832,9 +3216,12 @@ export class Multiplicity_interval extends Proper_interval<T> {
    * @returns Result value
    */
   is_prohibited(): Boolean {
-    // TODO: Implement is_prohibited behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_prohibited not yet implemented.");
+    // Check if lower = 0 and upper = 0
+    const lowerVal = this.lower?.value || 0;
+    const upperVal = this.upper?.value || 0;
+    return new Boolean(
+      lowerVal === 0 && upperVal === 0,
+    );
   }
 }
 
@@ -2919,9 +3306,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_bag(): Boolean {
-    // TODO: Implement is_bag behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_bag not yet implemented.");
+    // Bag: unordered and non-unique
+    return new Boolean(
+      this.is_ordered !== true && this.is_unique !== true,
+    );
   }
 
   /**
@@ -2929,9 +3317,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_list(): Boolean {
-    // TODO: Implement is_list behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_list not yet implemented.");
+    // List: ordered and non-unique
+    return new Boolean(
+      this.is_ordered === true && this.is_unique !== true,
+    );
   }
 
   /**
@@ -2939,9 +3328,10 @@ export class Cardinality {
    * @returns Result value
    */
   is_set(): Boolean {
-    // TODO: Implement is_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_set not yet implemented.");
+    // Set: unordered and unique
+    return new Boolean(
+      this.is_ordered !== true && this.is_unique === true,
+    );
   }
 }
 
@@ -3535,9 +3925,15 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   object_id(): UID {
-    // TODO: Implement object_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method object_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    // Create a UUID from the first part
+    const uid = new UUID();
+    uid.value = parts[0];
+    return uid;
   }
 
   /**
@@ -3545,9 +3941,15 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   creating_system_id(): UID {
-    // TODO: Implement creating_system_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method creating_system_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    // Create an INTERNET_ID from the second part
+    const uid = new INTERNET_ID();
+    uid.value = parts[1];
+    return uid;
   }
 
   /**
@@ -3555,9 +3957,14 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   version_tree_id(): VERSION_TREE_ID {
-    // TODO: Implement version_tree_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method version_tree_id not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split("::");
+    if (parts.length !== 3) {
+      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+    }
+    const versionTreeId = new VERSION_TREE_ID();
+    versionTreeId.value = parts[2];
+    return versionTreeId;
   }
 
   /**
@@ -3565,9 +3972,7 @@ export class OBJECT_VERSION_ID extends UID_BASED_ID {
    * @returns Result value
    */
   is_branch(): Boolean {
-    // TODO: Implement is_branch behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_branch not yet implemented.");
+    return this.version_tree_id().is_branch();
   }
 }
 
@@ -3588,9 +3993,13 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
    * @returns Result value
    */
   name(): String {
-    // TODO: Implement name behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method name not yet implemented.");
+    const val = this.value || "";
+    // Format: name[(version)]
+    const parenIndex = val.indexOf("(");
+    if (parenIndex > 0) {
+      return String.from(val.substring(0, parenIndex));
+    }
+    return String.from(val);
   }
 
   /**
@@ -3598,9 +4007,16 @@ export class TERMINOLOGY_ID extends OBJECT_ID {
    * @returns Result value
    */
   version_id(): String {
-    // TODO: Implement version_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method version_id not yet implemented.");
+    const val = this.value || "";
+    // Format: name[(version)]
+    const parenIndex = val.indexOf("(");
+    if (parenIndex > 0) {
+      const closeParenIndex = val.indexOf(")");
+      if (closeParenIndex > parenIndex) {
+        return String.from(val.substring(parenIndex + 1, closeParenIndex));
+      }
+    }
+    return String.from("");
   }
 }
 
@@ -3649,9 +4065,9 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   trunk_version(): String {
-    // TODO: Implement trunk_version behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method trunk_version not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    return String.from(parts[0]);
   }
 
   /**
@@ -3659,9 +4075,9 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   is_branch(): Boolean {
-    // TODO: Implement is_branch behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_branch not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    return new Boolean(parts.length === 3);
   }
 
   /**
@@ -3669,9 +4085,12 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   branch_number(): String {
-    // TODO: Implement branch_number behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method branch_number not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    if (parts.length === 3) {
+      return String.from(parts[1]);
+    }
+    throw new Error("Not a branch version");
   }
 
   /**
@@ -3679,9 +4098,12 @@ export class VERSION_TREE_ID {
    * @returns Result value
    */
   branch_version(): String {
-    // TODO: Implement branch_version behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method branch_version not yet implemented.");
+    const val = this.value || "";
+    const parts = val.split(".");
+    if (parts.length === 3) {
+      return String.from(parts[2]);
+    }
+    throw new Error("Not a branch version");
   }
 }
 
@@ -3801,9 +4223,13 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   hour(): Integer {
-    // TODO: Implement hour behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method hour not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return Integer.from(0);
+    const match = val.match(/([+-])(\d{2}):?(\d{2})/);
+    if (match) {
+      return Integer.from(parseInt(match[2], 10));
+    }
+    return Integer.from(0);
   }
 
   /**

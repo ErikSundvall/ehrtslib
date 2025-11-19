@@ -3,3 +3,6 @@ node_modules/
 # npm lockfile — not needed for this Deno/TypeScript library
 package-lock.json
 enhanced-backup/
+
+# Deno lock file — not needed in version control
+deno.lock
