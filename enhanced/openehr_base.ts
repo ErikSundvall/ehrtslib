@@ -18,7 +18,7 @@
 
 // Import Temporal API polyfill for date/time operations
 // See: https://tc39.es/proposal-temporal/ and https://docs.deno.com/api/web/temporal
-import { Temporal } from "./temporal_polyfill.ts";
+import { Temporal as TemporalAPI } from "./temporal_polyfill.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -1166,9 +1166,13 @@ export class Double extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: number): Boolean {
-    const thisVal = this.value || 0;
-    return new Boolean(thisVal < other);
+  override less_than(other: Ordered): Boolean {
+    if (other instanceof Double) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal < otherVal);
+    }
+    return new Boolean(false);
   }
 
   /**
@@ -1185,19 +1189,13 @@ export class Double extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  is_equal(other: number): Boolean {
-    const thisVal = this.value || 0;
-    return new Boolean(thisVal === other);
-  }
-
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  equal(other: number): Boolean {
-    // For primitives, reference and value equality are the same
-    return this.is_equal(other);
+  override is_equal(other: Any): Boolean {
+    if (other instanceof Double) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal === otherVal);
+    }
+    return new Boolean(false);
   }
 }
 
@@ -1205,12 +1203,119 @@ export class Double extends Ordered_Numeric {
  * Type representing minimal interface of built-in Octet type.
  */
 export class Octet extends Ordered {
+  /**
+   * The underlying primitive value.
+   */
+  value?: number;
+
+  /**
+   * Creates a new Octet instance.
+   * @param val - The primitive value to wrap (0-255)
+   */
+  constructor(val?: number) {
+    super();
+    if (val !== undefined && val !== null && 
+        (!Number.isInteger(val) || val < 0 || val > 255)) {
+      throw new Error(`Octet value must be an integer between 0 and 255, got: ${val}`);
+    }
+    this.value = val;
+  }
+
+  /**
+   * Creates an Octet instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Octet instance
+   */
+  static from(val?: number): Octet {
+    return new Octet(val);
+  }
+
+  /**
+   * Returns True if current Octet is less than other.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override less_than(other: Ordered): Boolean {
+    if (other instanceof Octet) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal < otherVal);
+    }
+    return new Boolean(false);
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (other instanceof Octet) {
+      const thisVal = this.value || 0;
+      const otherVal = other.value || 0;
+      return new Boolean(thisVal === otherVal);
+    }
+    return new Boolean(false);
+  }
 }
 
 /**
  * Type representing minimal interface of built-in Character type.
  */
 export class Character extends Ordered {
+  /**
+   * The underlying primitive value.
+   */
+  value?: string;
+
+  /**
+   * Creates a new Character instance.
+   * @param val - The primitive value to wrap (single character)
+   */
+  constructor(val?: string) {
+    super();
+    if (val !== undefined && val !== null && val.length !== 1) {
+      throw new Error(`Character value must be a single character, got: ${val}`);
+    }
+    this.value = val;
+  }
+
+  /**
+   * Creates a Character instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Character instance
+   */
+  static from(val?: string): Character {
+    return new Character(val);
+  }
+
+  /**
+   * Returns True if current Character is less than other.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override less_than(other: Ordered): Boolean {
+    if (other instanceof Character) {
+      const thisVal = this.value || "";
+      const otherVal = other.value || "";
+      return new Boolean(thisVal < otherVal);
+    }
+    return new Boolean(false);
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (other instanceof Character) {
+      const thisVal = this.value || "";
+      const otherVal = other.value || "";
+      return new Boolean(thisVal === otherVal);
+    }
+    return new Boolean(false);
+  }
 }
 
 /**
@@ -1947,7 +2052,7 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     try {
       // Try full date-time first
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.year);
     } catch {
       try {
@@ -1972,7 +2077,7 @@ export class Iso8601_date_time extends Iso8601_type {
   month(): Integer {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.month);
     } catch {
       try {
@@ -1996,7 +2101,7 @@ export class Iso8601_date_time extends Iso8601_type {
   day(): Integer {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.day);
     } catch {
       try {
@@ -2020,7 +2125,7 @@ export class Iso8601_date_time extends Iso8601_type {
   hour(): Integer {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.hour);
     } catch {
       // Return 0 if parsing fails or no time component
@@ -2037,7 +2142,7 @@ export class Iso8601_date_time extends Iso8601_type {
   minute(): Integer {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.minute);
     } catch {
       // Return 0 if parsing fails or no time component
@@ -2054,7 +2159,7 @@ export class Iso8601_date_time extends Iso8601_type {
   second(): Integer {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return Integer.from(dt.second);
     } catch {
       // Return 0 if parsing fails or no time component
@@ -2071,7 +2176,7 @@ export class Iso8601_date_time extends Iso8601_type {
   fractional_second(): number {
     const val = this.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
       // Convert to fractional seconds: milliseconds / 1000
       return dt.millisecond / 1000 + dt.microsecond / 1000000 +
@@ -2184,7 +2289,7 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     try {
       // Parse with Temporal and convert to extended format string
-      const dt = Temporal.PlainDateTime.from(val);
+      const dt = TemporalAPI.PlainDateTime.from(val);
       return String.from(dt.toString());
     } catch {
       // If parsing fails, return original value
@@ -2201,8 +2306,8 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
-      const dur = Temporal.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = dt.add(dur);
@@ -2223,8 +2328,8 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
-      const dur = Temporal.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = dt.subtract(dur);
@@ -2245,8 +2350,8 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_date_time.value || "";
     try {
-      const dt1 = Temporal.PlainDateTime.from(val);
-      const dt2 = Temporal.PlainDateTime.from(otherVal);
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
       const diff = dt1.since(dt2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
@@ -2265,8 +2370,8 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
-      const dur = Temporal.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = dt.add(dur);
@@ -2287,8 +2392,8 @@ export class Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt = Temporal.PlainDateTime.from(val);
-      const dur = Temporal.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = dt.subtract(dur);
@@ -2316,7 +2421,7 @@ export class Iso8601_duration extends Iso8601_type {
    * @param value - Duration string that may contain weeks
    * @returns Duration string with weeks converted to days
    */
-  private static normalizeWeeks(value: string): string {
+  static normalizeWeeks(value: string): string {
     // Match weeks designator: nW or nnnW
     const weeksMatch = value.match(/(\d+(?:\.\d+)?)W/);
     if (!weeksMatch) return value;
@@ -2369,7 +2474,7 @@ export class Iso8601_duration extends Iso8601_type {
   years(): Integer {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.years || 0);
     } catch {
       return Integer.from(0);
@@ -2383,7 +2488,7 @@ export class Iso8601_duration extends Iso8601_type {
   months(): Integer {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.months || 0);
     } catch {
       return Integer.from(0);
@@ -2400,7 +2505,7 @@ export class Iso8601_duration extends Iso8601_type {
     try {
       // Normalize weeks to days for parsing, then extract days
       const normalized = Iso8601_duration.normalizeWeeks(val);
-      const dur = Temporal.Duration.from(normalized);
+      const dur = TemporalAPI.Duration.from(normalized);
       return Integer.from(dur.days || 0);
     } catch {
       // Fallback: try to extract days directly
@@ -2419,7 +2524,7 @@ export class Iso8601_duration extends Iso8601_type {
   hours(): Integer {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.hours || 0);
     } catch {
       return Integer.from(0);
@@ -2433,7 +2538,7 @@ export class Iso8601_duration extends Iso8601_type {
   minutes(): Integer {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.minutes || 0);
     } catch {
       return Integer.from(0);
@@ -2447,7 +2552,7 @@ export class Iso8601_duration extends Iso8601_type {
   seconds(): Integer {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.seconds || 0);
     } catch {
       return Integer.from(0);
@@ -2461,7 +2566,7 @@ export class Iso8601_duration extends Iso8601_type {
   fractional_seconds(): number {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return (dur.milliseconds || 0) / 1000 +
         (dur.microseconds || 0) / 1000000 + (dur.nanoseconds || 0) / 1000000000;
     } catch {
@@ -2499,7 +2604,7 @@ export class Iso8601_duration extends Iso8601_type {
   to_seconds(): number {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       // Note: For year/month, we use approximate values (not calendar-aware)
       const totalSeconds = (dur.years || 0) * 31536000 +
         (dur.months || 0) * 2592000 +
@@ -2521,7 +2626,7 @@ export class Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     try {
       // Parse and normalize the duration string
-      const dur = Temporal.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
       return String.from(dur.toString());
@@ -2540,10 +2645,10 @@ export class Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_val.value || "";
     try {
-      const dur1 = Temporal.Duration.from(
+      const dur1 = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
-      const dur2 = Temporal.Duration.from(
+      const dur2 = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(otherVal),
       );
       const result = dur1.add(dur2);
@@ -2564,10 +2669,10 @@ export class Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_val.value || "";
     try {
-      const dur1 = Temporal.Duration.from(
+      const dur1 = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
-      const dur2 = Temporal.Duration.from(
+      const dur2 = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(otherVal),
       );
       const result = dur1.subtract(dur2);
@@ -2587,7 +2692,7 @@ export class Iso8601_duration extends Iso8601_type {
   multiply(a_val: number): Iso8601_duration {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
       // Multiply each component of the duration
@@ -2622,7 +2727,7 @@ export class Iso8601_duration extends Iso8601_type {
     }
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
       // Divide each component of the duration
@@ -2653,7 +2758,7 @@ export class Iso8601_duration extends Iso8601_type {
   negative(): Iso8601_duration {
     const val = this.value || "";
     try {
-      const dur = Temporal.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(val),
       );
       const result = dur.negated();
@@ -2685,7 +2790,7 @@ export class Iso8601_time extends Iso8601_type {
   hour(): Integer {
     const val = this.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.hour);
     } catch {
       // Try to parse just hour from partial time
@@ -2704,7 +2809,7 @@ export class Iso8601_time extends Iso8601_type {
   minute(): Integer {
     const val = this.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.minute);
     } catch {
       // Return 0 if parsing fails or no minute component
@@ -2719,7 +2824,7 @@ export class Iso8601_time extends Iso8601_type {
   second(): Integer {
     const val = this.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.second);
     } catch {
       // Return 0 if parsing fails or no second component
@@ -2734,7 +2839,7 @@ export class Iso8601_time extends Iso8601_type {
   fractional_second(): number {
     const val = this.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       // Temporal stores subsecond precision in millisecond, microsecond, and nanosecond fields
       return time.millisecond / 1000 + time.microsecond / 1000000 +
         time.nanosecond / 1000000000;
@@ -2821,7 +2926,7 @@ export class Iso8601_time extends Iso8601_type {
   as_string(): String {
     const val = this.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return String.from(time.toString());
     } catch {
       return String.from(val);
@@ -2837,8 +2942,8 @@ export class Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
-      const dur = Temporal.Duration.from(
+      const time = TemporalAPI.PlainTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = time.add(dur);
@@ -2859,8 +2964,8 @@ export class Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const time = Temporal.PlainTime.from(val);
-      const dur = Temporal.Duration.from(
+      const time = TemporalAPI.PlainTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = time.subtract(dur);
@@ -2881,8 +2986,8 @@ export class Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_time.value || "";
     try {
-      const time1 = Temporal.PlainTime.from(val);
-      const time2 = Temporal.PlainTime.from(otherVal);
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
       const diff = time1.since(time2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
@@ -2912,7 +3017,7 @@ export class Iso8601_date extends Iso8601_type {
   year(): Integer {
     const val = this.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.year);
     } catch {
       // Try to parse just year from partial date (YYYY)
@@ -2933,12 +3038,12 @@ export class Iso8601_date extends Iso8601_type {
   month(): Integer {
     const val = this.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.month);
     } catch {
       // Try PlainYearMonth for partial dates
       try {
-        const ym = Temporal.PlainYearMonth.from(val);
+        const ym = TemporalAPI.PlainYearMonth.from(val);
         return Integer.from(ym.month);
       } catch {
         // Return 0 if no month present
@@ -2956,7 +3061,7 @@ export class Iso8601_date extends Iso8601_type {
   day(): Integer {
     const val = this.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.day);
     } catch {
       // Return 0 if parsing fails or no day component
@@ -3025,12 +3130,12 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     try {
       // Try full date first
-      const date = Temporal.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return String.from(date.toString());
     } catch {
       try {
         // Try year-month
-        const ym = Temporal.PlainYearMonth.from(val);
+        const ym = TemporalAPI.PlainYearMonth.from(val);
         return String.from(ym.toString());
       } catch {
         // Return original if parsing fails
@@ -3048,8 +3153,8 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
-      const dur = Temporal.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = date.add(dur);
@@ -3070,8 +3175,8 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
-      const dur = Temporal.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       const result = date.subtract(dur);
@@ -3092,8 +3197,8 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_date.value || "";
     try {
-      const date1 = Temporal.PlainDate.from(val);
-      const date2 = Temporal.PlainDate.from(otherVal);
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
       const diff = date1.since(date2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
@@ -3116,8 +3221,8 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
-      const dur = Temporal.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       // Use Temporal's constrain overflow to get calendar semantics
@@ -3139,8 +3244,8 @@ export class Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Temporal.PlainDate.from(val);
-      const dur = Temporal.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal),
       );
       // Use Temporal's constrain overflow to get calendar semantics
@@ -3150,6 +3255,52 @@ export class Iso8601_date extends Iso8601_type {
       return newDate;
     } catch (e) {
       throw new Error(`Failed to subtract nominal duration from date: ${e}`);
+    }
+  }
+
+  /**
+   * Compares this date with another for ordering.
+   * @param other - The object to compare with
+   * @returns true if this date is less than the other
+   */
+  override less_than(other: Ordered): Boolean {
+    if (!(other instanceof Iso8601_date)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
+      return new Boolean(TemporalAPI.PlainDate.compare(date1, date2) < 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val < otherVal);
+    }
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Iso8601_date)) {
+      return new Boolean(false);
+    }
+    
+    const val = this.value || "";
+    const otherVal = other.value || "";
+    
+    try {
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
+      return new Boolean(TemporalAPI.PlainDate.compare(date1, date2) === 0);
+    } catch {
+      // Fallback to string comparison if parsing fails
+      return new Boolean(val === otherVal);
     }
   }
 }
@@ -3314,33 +3465,186 @@ export abstract class Interval<T extends Ordered> extends Any {
    * @param other - Parameter
    * @returns Result value
    */
-  abstract intersects(other: Interval): Boolean;
+  abstract intersects(other: Interval<T>): Boolean;
 
   /**
    * True if current interval properly contains \`_other_\`? True if all points of \`_other_\` are inside the current interval.
    * @param other - Parameter
    * @returns Result value
    */
-  abstract contains(other: Interval): Boolean;
+  abstract contains(other: Interval<T>): Boolean;
 
   /**
    * True if current object's interval is semantically same as \`_other_\`.
    * @param other - Parameter
    * @returns Result value
    */
-  abstract is_equal(other: Any): Boolean;
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Interval)) {
+      return new Boolean(false);
+    }
+    
+    const otherInterval = other as Interval<T>;
+    
+    // Compare lower bounds
+    if (this.lower_unbounded !== otherInterval.lower_unbounded) {
+      return new Boolean(false);
+    }
+    if (!this.lower_unbounded) {
+      if (this.lower === undefined || otherInterval.lower === undefined) {
+        return new Boolean(false);
+      }
+      if (!this.lower.is_equal(otherInterval.lower).value) {
+        return new Boolean(false);
+      }
+      if (this.lower_included !== otherInterval.lower_included) {
+        return new Boolean(false);
+      }
+    }
+    
+    // Compare upper bounds
+    if (this.upper_unbounded !== otherInterval.upper_unbounded) {
+      return new Boolean(false);
+    }
+    if (!this.upper_unbounded) {
+      if (this.upper === undefined || otherInterval.upper === undefined) {
+        return new Boolean(false);
+      }
+      if (!this.upper.is_equal(otherInterval.upper).value) {
+        return new Boolean(false);
+      }
+      if (this.upper_included !== otherInterval.upper_included) {
+        return new Boolean(false);
+      }
+    }
+    
+    return new Boolean(true);
+  }
 }
 
 /**
  * Type representing a 'proper' Interval, i.e. any two-sided or one-sided interval.
  */
 export class Proper_interval<T extends Ordered> extends Interval<T> {
+  /**
+   * True if the value \`e\` is properly contained in this Interval.
+   * @param e - Parameter
+   * @returns Result value
+   */
+  override has(e: T): Boolean {
+    // Check lower bound
+    if (!this.lower_unbounded && this.lower !== undefined) {
+      const cmp = e.less_than(this.lower);
+      if (cmp.value === true) return new Boolean(false);
+      
+      if (!this.lower_included) {
+        const eq = e.is_equal(this.lower);
+        if (eq.value === true) return new Boolean(false);
+      }
+    }
+    
+    // Check upper bound
+    if (!this.upper_unbounded && this.upper !== undefined) {
+      const cmp = this.upper.less_than(e);
+      if (cmp.value === true) return new Boolean(false);
+      
+      if (!this.upper_included) {
+        const eq = e.is_equal(this.upper);
+        if (eq.value === true) return new Boolean(false);
+      }
+    }
+    
+    return new Boolean(true);
+  }
+
+  /**
+   * True if there is any overlap between intervals represented by Current and \`_other_\`.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override intersects(other: Interval<T>): Boolean {
+    // Check if one interval is completely before the other
+    if (!this.upper_unbounded && this.upper !== undefined &&
+        !other.lower_unbounded && other.lower !== undefined) {
+      if (this.upper.less_than(other.lower).value) {
+        return new Boolean(false);
+      }
+      // Check boundary conditions
+      if (this.upper.is_equal(other.lower).value &&
+          (!this.upper_included || !other.lower_included)) {
+        return new Boolean(false);
+      }
+    }
+    
+    if (!other.upper_unbounded && other.upper !== undefined &&
+        !this.lower_unbounded && this.lower !== undefined) {
+      if (other.upper.less_than(this.lower).value) {
+        return new Boolean(false);
+      }
+      // Check boundary conditions
+      if (other.upper.is_equal(this.lower).value &&
+          (!other.upper_included || !this.lower_included)) {
+        return new Boolean(false);
+      }
+    }
+    
+    return new Boolean(true);
+  }
+
+  /**
+   * True if current interval properly contains \`_other_\`.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override contains(other: Interval<T>): Boolean {
+    // Check lower bound containment
+    if (!other.lower_unbounded && other.lower !== undefined) {
+      if (this.lower_unbounded) {
+        // This is unbounded below, so it contains other's lower
+      } else if (this.lower === undefined) {
+        return new Boolean(false);
+      } else {
+        if (this.lower.less_than(other.lower).value) {
+          // OK
+        } else if (this.lower.is_equal(other.lower).value) {
+          // Equal bounds - check inclusion
+          if (!this.lower_included && other.lower_included) {
+            return new Boolean(false);
+          }
+        } else {
+          return new Boolean(false);
+        }
+      }
+    }
+    
+    // Check upper bound containment
+    if (!other.upper_unbounded && other.upper !== undefined) {
+      if (this.upper_unbounded) {
+        // This is unbounded above, so it contains other's upper
+      } else if (this.upper === undefined) {
+        return new Boolean(false);
+      } else {
+        if (other.upper.less_than(this.upper).value) {
+          // OK
+        } else if (this.upper.is_equal(other.upper).value) {
+          // Equal bounds - check inclusion
+          if (!this.upper_included && other.upper_included) {
+            return new Boolean(false);
+          }
+        } else {
+          return new Boolean(false);
+        }
+      }
+    }
+    
+    return new Boolean(true);
+  }
 }
 
 /**
  * An Interval of Integer, used to represent multiplicity, cardinality and optionality in models.
  */
-export class Multiplicity_interval extends Proper_interval<T> {
+export class Multiplicity_interval extends Proper_interval<Integer> {
   /**
    * True if this interval imposes no constraints, i.e. is set to \`0..*\`.
    * @returns Result value
@@ -3613,6 +3917,35 @@ export class Terminology_code extends Any {
    * The URI reference that may be used as a concrete key into a notional terminology service for queries that can obtain the term text, definition, and other associated elements.
    */
   uri?: Uri;
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Terminology_code)) {
+      return new Boolean(false);
+    }
+    
+    // Compare terminology_id
+    const termIdMatch = (this.terminology_id === other.terminology_id) ||
+      (this._terminology_id !== undefined && other._terminology_id !== undefined &&
+       this._terminology_id.is_equal(other._terminology_id).value);
+    
+    // Compare code_string
+    const codeMatch = (this.code_string === other.code_string) ||
+      (this._code_string !== undefined && other._code_string !== undefined &&
+       this._code_string.is_equal(other._code_string).value);
+    
+    // Compare terminology_version (optional)
+    const versionMatch = (this.terminology_version === other.terminology_version) ||
+      (this._terminology_version === undefined && other._terminology_version === undefined) ||
+      (this._terminology_version !== undefined && other._terminology_version !== undefined &&
+       this._terminology_version.is_equal(other._terminology_version).value);
+    
+    return new Boolean(termIdMatch && codeMatch && versionMatch);
+  }
 }
 
 /**
@@ -3655,6 +3988,29 @@ export class Terminology_term extends Any {
     } else {
       this._text = val;
     }
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Terminology_term)) {
+      return new Boolean(false);
+    }
+    
+    // Compare text
+    const textMatch = (this.text === other.text) ||
+      (this._text !== undefined && other._text !== undefined &&
+       this._text.is_equal(other._text).value);
+    
+    // Compare concept
+    const conceptMatch = (this.concept === undefined && other.concept === undefined) ||
+      (this.concept !== undefined && other.concept !== undefined &&
+       this.concept.is_equal(other.concept).value);
+    
+    return new Boolean(textMatch && conceptMatch);
   }
 }
 
@@ -4498,6 +4854,42 @@ export class Iso8601_timezone extends Iso8601_type {
     }
     return String.from(val);
   }
+
+  /**
+   * Compares this timezone with another for ordering.
+   * Timezones are ordered by their offset from UTC in minutes.
+   * @param other - The object to compare with
+   * @returns true if this timezone is less than the other
+   */
+  override less_than(other: Ordered): Boolean {
+    if (!(other instanceof Iso8601_timezone)) {
+      return new Boolean(false);
+    }
+    
+    // Calculate total offset in minutes for this timezone
+    const thisOffset = this.sign().value * (this.hour().value * 60 + this.minute().value);
+    // Calculate total offset in minutes for other timezone
+    const otherOffset = other.sign().value * (other.hour().value * 60 + other.minute().value);
+    
+    return new Boolean(thisOffset < otherOffset);
+  }
+
+  /**
+   * Value equality: return True if this and other are equal in value.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override is_equal(other: Any): Boolean {
+    if (!(other instanceof Iso8601_timezone)) {
+      return new Boolean(false);
+    }
+    
+    // Compare by offset in minutes
+    const thisOffset = this.sign().value * (this.hour().value * 60 + this.minute().value);
+    const otherOffset = other.sign().value * (other.hour().value * 60 + other.minute().value);
+    
+    return new Boolean(thisOffset === otherOffset);
+  }
 }
 
 /**
@@ -4614,6 +5006,48 @@ export class Point_interval<T extends Ordered> extends Interval<T> {
     } else {
       this._upper_included = val;
     }
+  }
+
+  /**
+   * True if the value \`v\` equals this point value.
+   * @param v - Parameter
+   * @returns Result value
+   */
+  override has(v: T): Boolean {
+    if (this.lower === undefined) {
+      return new Boolean(false);
+    }
+    return this.lower.is_equal(v);
+  }
+
+  /**
+   * A point interval never intersects with any other interval (it's a single point).
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override intersects(other: Interval<T>): Boolean {
+    if (this.lower === undefined) {
+      return new Boolean(false);
+    }
+    // A point intersects if the other interval contains this point
+    return other.has(this.lower);
+  }
+
+  /**
+   * A point interval can only contain another interval if that interval is also the same point.
+   * @param other - Parameter
+   * @returns Result value
+   */
+  override contains(other: Interval<T>): Boolean {
+    if (this.lower === undefined) {
+      return new Boolean(false);
+    }
+    // Only contains if other is a point at the same location
+    if (other instanceof Point_interval) {
+      return this.is_equal(other);
+    }
+    // Cannot contain a proper interval
+    return new Boolean(false);
   }
 }
 
