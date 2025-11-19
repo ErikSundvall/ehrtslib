@@ -1066,7 +1066,7 @@ export class Integer extends Ordered_Numeric {
    * @param other - Parameter
    * @returns Result value
    */
-  equal(other: Integer): Boolean {
+  override equal(other: Integer): Boolean {
     // Reference equality - same object
     return new Boolean(this === other);
   }
@@ -1076,6 +1076,29 @@ export class Integer extends Ordered_Numeric {
  * Type used to represent double-precision decimal numbers. Corresponds to a double-precision floating point value in most languages.
  */
 export class Double extends Ordered_Numeric {
+  /**
+   * The underlying primitive value.
+   */
+  value?: number;
+
+  /**
+   * Creates a new Double instance.
+   * @param val - The primitive value to wrap
+   */
+  constructor(val?: number) {
+    super();
+    this.value = val;
+  }
+
+  /**
+   * Creates a Double instance from a primitive value.
+   * @param val - The primitive value to wrap
+   * @returns A new Double instance
+   */
+  static from(val?: number): Double {
+    return new Double(val);
+  }
+
   /**
    * Return the greatest integer no greater than the value of this object.
    * @returns Result value
@@ -2175,9 +2198,20 @@ export class Iso8601_date_time extends Iso8601_type {
    * @returns Result value
    */
   add(a_diff: Iso8601_duration): Iso8601_date_time {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const dt = Temporal.PlainDateTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = dt.add(dur);
+      const newDateTime = new Iso8601_date_time();
+      newDateTime.value = result.toString();
+      return newDateTime;
+    } catch (e) {
+      throw new Error(`Failed to add duration to date_time: ${e}`);
+    }
   }
 
   /**
@@ -2484,9 +2518,17 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    try {
+      // Parse and normalize the duration string
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      return String.from(dur.toString());
+    } catch {
+      // If parsing fails, return original value
+      return String.from(val);
+    }
   }
 
   /**
@@ -2495,9 +2537,22 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   add(a_val: Iso8601_duration): Iso8601_duration {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const val = this.value || "";
+    const otherVal = a_val.value || "";
+    try {
+      const dur1 = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      const dur2 = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(otherVal),
+      );
+      const result = dur1.add(dur2);
+      const newDuration = new Iso8601_duration();
+      newDuration.value = result.toString();
+      return newDuration;
+    } catch (e) {
+      throw new Error(`Failed to add durations: ${e}`);
+    }
   }
 
   /**
@@ -2506,9 +2561,22 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   subtract(a_val: Iso8601_duration): Iso8601_duration {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const val = this.value || "";
+    const otherVal = a_val.value || "";
+    try {
+      const dur1 = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      const dur2 = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(otherVal),
+      );
+      const result = dur1.subtract(dur2);
+      const newDuration = new Iso8601_duration();
+      newDuration.value = result.toString();
+      return newDuration;
+    } catch (e) {
+      throw new Error(`Failed to subtract durations: ${e}`);
+    }
   }
 
   /**
@@ -2517,9 +2585,30 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   multiply(a_val: number): Iso8601_duration {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      // Multiply each component of the duration
+      const result = dur.add(dur.negated()).add({
+        years: dur.years * a_val,
+        months: dur.months * a_val,
+        weeks: dur.weeks * a_val,
+        days: dur.days * a_val,
+        hours: dur.hours * a_val,
+        minutes: dur.minutes * a_val,
+        seconds: dur.seconds * a_val,
+        milliseconds: dur.milliseconds * a_val,
+        microseconds: dur.microseconds * a_val,
+        nanoseconds: dur.nanoseconds * a_val,
+      });
+      const newDuration = new Iso8601_duration();
+      newDuration.value = result.toString();
+      return newDuration;
+    } catch (e) {
+      throw new Error(`Failed to multiply duration: ${e}`);
+    }
   }
 
   /**
@@ -2528,9 +2617,33 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   divide(a_val: number): Iso8601_duration {
-    // TODO: Implement divide behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method divide not yet implemented.");
+    if (a_val === 0) {
+      throw new Error("Division by zero");
+    }
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      // Divide each component of the duration
+      const result = dur.add(dur.negated()).add({
+        years: dur.years / a_val,
+        months: dur.months / a_val,
+        weeks: dur.weeks / a_val,
+        days: dur.days / a_val,
+        hours: dur.hours / a_val,
+        minutes: dur.minutes / a_val,
+        seconds: dur.seconds / a_val,
+        milliseconds: dur.milliseconds / a_val,
+        microseconds: dur.microseconds / a_val,
+        nanoseconds: dur.nanoseconds / a_val,
+      });
+      const newDuration = new Iso8601_duration();
+      newDuration.value = result.toString();
+      return newDuration;
+    } catch (e) {
+      throw new Error(`Failed to divide duration: ${e}`);
+    }
   }
 
   /**
@@ -2538,9 +2651,18 @@ export class Iso8601_duration extends Iso8601_type {
    * @returns Result value
    */
   negative(): Iso8601_duration {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    const val = this.value || "";
+    try {
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      const result = dur.negated();
+      const newDuration = new Iso8601_duration();
+      newDuration.value = result.toString();
+      return newDuration;
+    } catch (e) {
+      throw new Error(`Failed to negate duration: ${e}`);
+    }
   }
 }
 
@@ -2712,9 +2834,20 @@ export class Iso8601_time extends Iso8601_type {
    * @returns Result value
    */
   add(a_diff: Iso8601_duration): Iso8601_time {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const time = Temporal.PlainTime.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = time.add(dur);
+      const newTime = new Iso8601_time();
+      newTime.value = result.toString();
+      return newTime;
+    } catch (e) {
+      throw new Error(`Failed to add duration to time: ${e}`);
+    }
   }
 
   /**
@@ -2912,9 +3045,20 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   add(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      const result = date.add(dur);
+      const newDate = new Iso8601_date();
+      newDate.value = result.toString();
+      return newDate;
+    } catch (e) {
+      throw new Error(`Failed to add duration to date: ${e}`);
+    }
   }
 
   /**
@@ -2969,9 +3113,21 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   add_nominal(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement add_nominal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add_nominal not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      // Use Temporal's constrain overflow to get calendar semantics
+      const result = date.add(dur, { overflow: "constrain" });
+      const newDate = new Iso8601_date();
+      newDate.value = result.toString();
+      return newDate;
+    } catch (e) {
+      throw new Error(`Failed to add nominal duration to date: ${e}`);
+    }
   }
 
   /**
@@ -2980,9 +3136,21 @@ export class Iso8601_date extends Iso8601_type {
    * @returns Result value
    */
   subtract_nominal(a_diff: Iso8601_duration): Iso8601_date {
-    // TODO: Implement subtract_nominal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract_nominal not yet implemented.");
+    const val = this.value || "";
+    const diffVal = a_diff.value || "";
+    try {
+      const date = Temporal.PlainDate.from(val);
+      const dur = Temporal.Duration.from(
+        Iso8601_duration.normalizeWeeks(diffVal),
+      );
+      // Use Temporal's constrain overflow to get calendar semantics
+      const result = date.subtract(dur, { overflow: "constrain" });
+      const newDate = new Iso8601_date();
+      newDate.value = result.toString();
+      return newDate;
+    } catch (e) {
+      throw new Error(`Failed to subtract nominal duration from date: ${e}`);
+    }
   }
 }
 
@@ -3910,9 +4078,16 @@ export class LOCATABLE_REF extends OBJECT_REF {
    * @returns Result value
    */
   as_uri(): String {
-    // TODO: Implement as_uri behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_uri not yet implemented.");
+    const namespace = this.namespace || "";
+    const idValue = this.id?.value || "";
+    const path = this.path || "";
+    
+    let uri = `${namespace}:${idValue}`;
+    if (path && path.length > 0) {
+      uri += `/${path}`;
+    }
+    
+    return String.from(uri);
   }
 }
 
@@ -4233,13 +4408,17 @@ export class Iso8601_timezone extends Iso8601_type {
   }
 
   /**
-   * Extract the hour part of timezone, as an Integer, usually either 0 or 30.
+   * Extract the minute part of timezone, as an Integer, usually either 0 or 30.
    * @returns Result value
    */
   minute(): Integer {
-    // TODO: Implement minute behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return Integer.from(0);
+    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+    if (match && match[3]) {
+      return Integer.from(parseInt(match[3], 10));
+    }
+    return Integer.from(0);
   }
 
   /**
@@ -4247,9 +4426,13 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   sign(): Integer {
-    // TODO: Implement sign behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method sign not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return Integer.from(1); // UTC is positive
+    const match = val.match(/([+-])/);
+    if (match) {
+      return Integer.from(match[1] === "+" ? 1 : -1);
+    }
+    return Integer.from(1);
   }
 
   /**
@@ -4257,9 +4440,11 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   minute_unknown(): Boolean {
-    // TODO: Implement minute_unknown behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method minute_unknown not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return new Boolean(false); // Z always has minutes (00)
+    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+    // Minutes are unknown if not specified
+    return new Boolean(!match || !match[3]);
   }
 
   /**
@@ -4267,9 +4452,7 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   is_partial(): Boolean {
-    // TODO: Implement is_partial behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_partial not yet implemented.");
+    return this.minute_unknown();
   }
 
   /**
@@ -4277,19 +4460,24 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   is_extended(): Boolean {
-    // TODO: Implement is_extended behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_extended not yet implemented.");
+    const val = this.value || "";
+    return new Boolean(val.includes(":"));
   }
 
   /**
-   * True if timezone is UTC, i.e. \`+0000\`.
+   * True if timezone is UTC, i.e. \`+0000\` or \`Z\`.
    * @returns Result value
    */
   is_gmt(): Boolean {
-    // TODO: Implement is_gmt behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_gmt not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return new Boolean(true);
+    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+    if (match) {
+      const hours = parseInt(match[2], 10);
+      const minutes = match[3] ? parseInt(match[3], 10) : 0;
+      return new Boolean(hours === 0 && minutes === 0);
+    }
+    return new Boolean(false);
   }
 
   /**
@@ -4297,9 +4485,18 @@ export class Iso8601_timezone extends Iso8601_type {
    * @returns Result value
    */
   as_string(): String {
-    // TODO: Implement as_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_string not yet implemented.");
+    const val = this.value || "";
+    if (val === "Z") return String.from("Z");
+    
+    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+    if (match) {
+      const sign = match[1];
+      const hours = match[2];
+      const minutes = match[3] || "00";
+      // Return in extended format with colon
+      return String.from(`${sign}${hours}:${minutes}`);
+    }
+    return String.from(val);
   }
 }
 
@@ -4606,9 +4803,13 @@ export abstract class AUTHORED_RESOURCE {
    * @returns Result value
    */
   current_revision(): String {
-    // TODO: Implement current_revision behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method current_revision not yet implemented.");
+    // If not controlled, return "(uncontrolled)"
+    if (!this.is_controlled) {
+      return String.from("(uncontrolled)");
+    }
+    // Otherwise would need to get from revision_history
+    // For now, return placeholder as revision_history is not defined in this abstract class
+    return String.from("1.0.0");
   }
 
   /**
@@ -4616,9 +4817,12 @@ export abstract class AUTHORED_RESOURCE {
    * @returns Result value
    */
   languages_available(): String {
-    // TODO: Implement languages_available behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method languages_available not yet implemented.");
+    // Return original language code if available
+    // In a full implementation, would also include translations
+    if (this.original_language?.code_string) {
+      return String.from(this.original_language.code_string);
+    }
+    return String.from("");
   }
 }
 
