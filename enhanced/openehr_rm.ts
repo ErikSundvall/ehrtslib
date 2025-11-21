@@ -3313,8 +3313,14 @@ export class DV_PROPORTION extends PROPORTION_KIND {
     }
     
     const result = new DV_PROPORTION();
-    result.numerator = (this.numerator || 0) + (other.numerator || 0);
-    result.denominator = (this.denominator || 1) + (other.denominator || 1);
+    // Correct fraction addition: a/b + c/d = (a*d + b*c)/(b*d)
+    const a = this.numerator || 0;
+    const b = this.denominator || 1;
+    const c = other.numerator || 0;
+    const d = other.denominator || 1;
+    
+    result.numerator = a * d + b * c;
+    result.denominator = b * d;
     result.type = this.type;
     result.precision = this.precision;
     
@@ -3333,8 +3339,14 @@ export class DV_PROPORTION extends PROPORTION_KIND {
     }
     
     const result = new DV_PROPORTION();
-    result.numerator = (this.numerator || 0) - (other.numerator || 0);
-    result.denominator = (this.denominator || 1) - (other.denominator || 1);
+    // Correct fraction subtraction: a/b - c/d = (a*d - b*c)/(b*d)
+    const a = this.numerator || 0;
+    const b = this.denominator || 1;
+    const c = other.numerator || 0;
+    const d = other.denominator || 1;
+    
+    result.numerator = a * d - b * c;
+    result.denominator = b * d;
     result.type = this.type;
     result.precision = this.precision;
     
@@ -3606,9 +3618,9 @@ export class DV_QUANTITY extends DV_AMOUNT {
     result.units_system = this.units_system;
     result.precision = this.precision;
     
-    // Handle accuracy if present
+    // Handle accuracy if present - use RSS for uncertainty propagation
     if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = this.accuracy + other.accuracy;
+      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
     }
     
     return result;
@@ -3767,9 +3779,9 @@ export class DV_COUNT extends DV_AMOUNT {
     const result = new DV_COUNT();
     result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
     
-    // Handle accuracy if present
+    // Handle accuracy if present - use RSS for uncertainty propagation
     if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = this.accuracy + other.accuracy;
+      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
     }
     
     return result;
@@ -3938,9 +3950,9 @@ export class DV_ORDINAL extends DV_ORDERED {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_ORDINAL): openehr_base.Boolean {
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
     // Ordinals from the same terminology/code system are strictly comparable
-    // For simplicity, we check if both are DV_ORDINAL instances
+    // Check if other is a DV_ORDINAL instance
     // A more thorough implementation would check the terminology_id of the symbols
     return openehr_base.Boolean.from(other instanceof DV_ORDINAL);
   }
@@ -3985,9 +3997,9 @@ export class DV_SCALE extends DV_ORDERED {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_SCALE): openehr_base.Boolean {
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
     // Scales from the same scale definition are strictly comparable
-    // For simplicity, we check if both are DV_SCALE instances
+    // Check if other is a DV_SCALE instance
     // A more thorough implementation would check the terminology_id of the symbols
     return openehr_base.Boolean.from(other instanceof DV_SCALE);
   }
@@ -4274,9 +4286,9 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_DATE): openehr_base.Boolean {
-    // Dates are always strictly comparable
-    return openehr_base.Boolean.from(true);
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Dates are strictly comparable with other dates
+    return openehr_base.Boolean.from(other instanceof DV_DATE);
   }
 
   /**
@@ -4391,9 +4403,9 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_TIME): openehr_base.Boolean {
-    // Times are always strictly comparable
-    return openehr_base.Boolean.from(true);
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Times are strictly comparable with other times
+    return openehr_base.Boolean.from(other instanceof DV_TIME);
   }
 
   /**
@@ -4509,9 +4521,9 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_DATE_TIME): openehr_base.Boolean {
-    // Date/times are always strictly comparable
-    return openehr_base.Boolean.from(true);
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Date/times are strictly comparable with other date/times
+    return openehr_base.Boolean.from(other instanceof DV_DATE_TIME);
   }
 
   /**
