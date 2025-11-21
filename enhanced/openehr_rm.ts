@@ -196,6 +196,10 @@ export abstract class LOCATABLE extends PATHABLE {
    */
   concept(): DV_TEXT {
     // Return the name property as the concept
+    // Per openEHR specs, name is mandatory for LOCATABLE, but TypeScript allows undefined
+    if (!this.name) {
+      throw new Error("LOCATABLE name is required but not set");
+    }
     return this.name;
   }
 
@@ -3137,7 +3141,7 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @param other - Parameter
    * @returns Result value
    */
-  abstract is_equal(other: DV_AMOUNT): openehr_base.Boolean;
+  abstract is_equal(other: DV_QUANTIFIED): openehr_base.Boolean;
 
   /**
    * Product of this Amount and \`_factor_\`.
@@ -3582,6 +3586,21 @@ export class DV_QUANTITY extends DV_AMOUNT {
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_strictly_comparable_to not yet implemented.");
   }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_QUANTITY)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare magnitude and units
+    return openehr_base.Boolean.from(
+      this.magnitude === other.magnitude && this.units === other.units
+    );
+  }
 }
 
 /**
@@ -3682,6 +3701,19 @@ export class DV_COUNT extends DV_AMOUNT {
     // TODO: Implement is_strictly_comparable_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_COUNT)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare magnitude
+    return openehr_base.Boolean.from(this.magnitude === other.magnitude);
   }
 }
 
@@ -3983,6 +4015,19 @@ export class DV_DURATION extends DV_AMOUNT {
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method magnitude not yet implemented.");
   }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DURATION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare value strings
+    return openehr_base.Boolean.from(this.value === other.value);
+  }
 }
 
 /**
@@ -4013,13 +4058,6 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
    * @returns Result value
    */
   abstract diff(other: DV_TEMPORAL): DV_DURATION;
-
-  /**
-   * Default value equality comparison for DV_TEMPORAL subclasses.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  abstract is_equal(other: DV_TEMPORAL): openehr_base.Boolean;
 }
 
 /**
@@ -4141,7 +4179,7 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param other - The other object to compare with
    * @returns Boolean wrapper indicating equality
    */
-  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
     if (!(other instanceof DV_DATE)) {
       return openehr_base.Boolean.from(false);
     }
@@ -4260,7 +4298,7 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param other - The other object to compare with
    * @returns Boolean wrapper indicating equality
    */
-  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
     if (!(other instanceof DV_TIME)) {
       return openehr_base.Boolean.from(false);
     }
@@ -4380,7 +4418,7 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param other - The other object to compare with
    * @returns Boolean wrapper indicating equality
    */
-  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
     if (!(other instanceof DV_DATE_TIME)) {
       return openehr_base.Boolean.from(false);
     }
