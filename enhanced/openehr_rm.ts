@@ -3007,9 +3007,12 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    * @returns Result value
    */
   valid_magnitude_status(): openehr_base.Boolean {
-    // TODO: Implement valid_magnitude_status behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_magnitude_status not yet implemented.");
+    // Valid values are: "=", "<", ">", "<=", ">=", "~"
+    const validStatuses = ["=", "<", ">", "<=", ">=", "~"];
+    if (!this.magnitude_status) {
+      return openehr_base.Boolean.from(true); // undefined is valid (defaults to "=")
+    }
+    return openehr_base.Boolean.from(validStatuses.includes(this.magnitude_status));
   }
 
   abstract magnitude(): openehr_base.Ordered_Numeric;
@@ -3112,9 +3115,9 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @returns Result value
    */
   valid_percentage(number: openehr_base.Ordered_Numeric): openehr_base.Boolean {
-    // TODO: Implement valid_percentage behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_percentage not yet implemented.");
+    // Convert to number if needed
+    const value = typeof number === 'number' ? number : Number(number);
+    return openehr_base.Boolean.from(value >= 0 && value <= 100);
   }
 
   /**
@@ -4693,9 +4696,15 @@ export class DV_URI extends DATA_VALUE {
    * @returns Result value
    */
   scheme(): openehr_base.String {
-    // TODO: Implement scheme behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method scheme not yet implemented.");
+    // Extract the scheme from the URI value (everything before the first ':')
+    if (!this.value) {
+      return openehr_base.String.from("");
+    }
+    const colonIndex = this.value.indexOf(':');
+    if (colonIndex === -1) {
+      return openehr_base.String.from("");
+    }
+    return openehr_base.String.from(this.value.substring(0, colonIndex));
   }
 
   /**
@@ -5120,9 +5129,11 @@ export class EHR_ACCESS extends LOCATABLE {
    * @returns Result value
    */
   scheme(): openehr_base.String {
-    // TODO: Implement scheme behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method scheme not yet implemented.");
+    // Return the class name of the settings instance
+    if (!this.settings) {
+      return openehr_base.String.from("unknown");
+    }
+    return openehr_base.String.from(this.settings.constructor.name);
   }
 }
 
@@ -6694,9 +6705,11 @@ export abstract class PARTY extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the type/role
+    if (!this.name) {
+      throw new Error("PARTY name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6717,9 +6730,11 @@ export class CONTACT extends LOCATABLE {
    * @returns Result value
    */
   purpose(): DV_TEXT {
-    // TODO: Implement purpose behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method purpose not yet implemented.");
+    // Return the name attribute which contains the purpose
+    if (!this.name) {
+      throw new Error("CONTACT name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6736,9 +6751,11 @@ export class ADDRESS extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the type
+    if (!this.name) {
+      throw new Error("ADDRESS name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6755,9 +6772,11 @@ export class PARTY_IDENTITY extends LOCATABLE {
    * @returns Result value
    */
   purpose(): DV_TEXT {
-    // TODO: Implement purpose behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method purpose not yet implemented.");
+    // Return the name attribute which contains the purpose
+    if (!this.name) {
+      throw new Error("PARTY_IDENTITY name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6856,9 +6875,11 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the relationship type
+    if (!this.name) {
+      throw new Error("PARTY_RELATIONSHIP name is required but not set");
+    }
+    return this.name;
   }
 }
 
