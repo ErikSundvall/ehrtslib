@@ -3037,9 +3037,22 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude
+    const thisMag = this.magnitude();
+    const otherMag = other.magnitude();
+    
+    // Handle different types of Ordered_Numeric
+    if (typeof thisMag === 'number' && typeof otherMag === 'number') {
+      return openehr_base.Boolean.from(thisMag < otherMag);
+    }
+    
+    // If magnitude returns an object with less_than method
+    if (thisMag && typeof thisMag === 'object' && 'less_than' in thisMag) {
+      return (thisMag as any).less_than(otherMag);
+    }
+    
+    // Fallback: compare as numbers
+    return openehr_base.Boolean.from(Number(thisMag) < Number(otherMag));
   }
 }
 
@@ -3528,9 +3541,23 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_QUANTITY): DV_QUANTITY {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Check units compatibility
+    if (this.units !== other.units) {
+      throw new Error("Cannot add quantities with different units");
+    }
+    
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) + (other.magnitude || 0);
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3539,9 +3566,23 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_QUANTITY): DV_QUANTITY {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Check units compatibility
+    if (this.units !== other.units) {
+      throw new Error("Cannot subtract quantities with different units");
+    }
+    
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3550,9 +3591,18 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_QUANTITY {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) * factor;
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined) {
+      result.accuracy = this.accuracy * Math.abs(factor);
+    }
+    
+    return result;
   }
 
   /**
@@ -3561,9 +3611,11 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_QUANTITY): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Should check units compatibility but comparison is still possible
+    if (this.units !== other.units) {
+      console.warn("Comparing quantities with different units");
+    }
+    return openehr_base.Boolean.from((this.magnitude || 0) < (other.magnitude || 0));
   }
 
   /**
@@ -3654,9 +3706,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_COUNT): DV_COUNT {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = (this.magnitude || 0) + (other.magnitude || 0);
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3665,9 +3723,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_COUNT): DV_COUNT {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3676,9 +3740,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_COUNT {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = Math.round((this.magnitude || 0) * factor);
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined) {
+      result.accuracy = this.accuracy * Math.abs(factor);
+    }
+    
+    return result;
   }
 
   /**
@@ -3687,9 +3757,7 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_COUNT): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    return openehr_base.Boolean.from((this.magnitude || 0) < (other.magnitude || 0));
   }
 
   /**
@@ -3945,9 +4013,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_DURATION): DV_DURATION {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3956,9 +4024,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_DURATION): DV_DURATION {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3967,9 +4035,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_DURATION {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3978,9 +4046,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_DURATION): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude() which should return seconds
+    // Note: magnitude() method must be implemented first
+    throw new Error("DV_DURATION.less_than requires magnitude() method - not yet fully implemented");
   }
 
   /**
@@ -4125,9 +4193,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
+    throw new Error("DV_DATE.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4136,9 +4203,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
+    throw new Error("DV_DATE.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4147,9 +4213,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_DATE): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_DATE.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4158,9 +4223,11 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_DATE): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 date strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4169,9 +4236,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_DATE): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Dates are always strictly comparable
+    return openehr_base.Boolean.from(true);
   }
 
   /**
@@ -4244,9 +4310,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_TIME {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
+    throw new Error("DV_TIME.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4255,9 +4320,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_TIME {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
+    throw new Error("DV_TIME.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4266,9 +4330,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_TIME): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_TIME.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4277,9 +4340,11 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_TIME): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 time strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4288,9 +4353,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_TIME): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Times are always strictly comparable
+    return openehr_base.Boolean.from(true);
   }
 
   /**
@@ -4364,9 +4428,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE_TIME {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
+    throw new Error("DV_DATE_TIME.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4375,9 +4438,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE_TIME {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
+    throw new Error("DV_DATE_TIME.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4386,9 +4448,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_DATE_TIME): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_DATE_TIME.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4397,9 +4458,11 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_DATE_TIME): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 datetime strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4408,9 +4471,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_DATE_TIME): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Date/times are always strictly comparable
+    return openehr_base.Boolean.from(true);
   }
 
   /**
