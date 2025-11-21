@@ -195,9 +195,8 @@ export abstract class LOCATABLE extends PATHABLE {
    * @returns Result value
    */
   concept(): DV_TEXT {
-    // TODO: Implement concept behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method concept not yet implemented.");
+    // Return the name property as the concept
+    return this.name;
   }
 
   /**
@@ -205,9 +204,8 @@ export abstract class LOCATABLE extends PATHABLE {
    * @returns Result value
    */
   is_archetype_root(): openehr_base.Boolean {
-    // TODO: Implement is_archetype_root behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_archetype_root not yet implemented.");
+    // A LOCATABLE is an archetype root if it has archetype_details
+    return openehr_base.Boolean.from(this.archetype_details !== undefined);
   }
 }
 
