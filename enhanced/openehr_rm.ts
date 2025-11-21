@@ -750,8 +750,11 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
    */
   uid(): openehr_base.OBJECT_VERSION_ID {
     // Return the uid from the imported item
-    if (!this.item || !this.item.uid) {
-      throw new Error("IMPORTED_VERSION item or item.uid is not set");
+    if (!this.item) {
+      throw new Error("IMPORTED_VERSION item is not set");
+    }
+    if (!this.item.uid) {
+      throw new Error("IMPORTED_VERSION item.uid is not set");
     }
     return this.item.uid;
   }
@@ -3119,6 +3122,10 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
   valid_percentage(number: openehr_base.Ordered_Numeric): openehr_base.Boolean {
     // Convert to number if needed
     const value = typeof number === 'number' ? number : Number(number);
+    // Check for NaN and valid range
+    if (isNaN(value)) {
+      return openehr_base.Boolean.from(false);
+    }
     return openehr_base.Boolean.from(value >= 0 && value <= 100);
   }
 
@@ -4700,11 +4707,11 @@ export class DV_URI extends DATA_VALUE {
   scheme(): openehr_base.String {
     // Extract the scheme from the URI value (everything before the first ':')
     if (!this.value) {
-      return openehr_base.String.from("");
+      throw new Error("DV_URI value is required to extract scheme");
     }
     const colonIndex = this.value.indexOf(':');
     if (colonIndex === -1) {
-      return openehr_base.String.from("");
+      throw new Error("DV_URI value does not contain a valid scheme (no ':' separator found)");
     }
     return openehr_base.String.from(this.value.substring(0, colonIndex));
   }
@@ -5133,7 +5140,7 @@ export class EHR_ACCESS extends LOCATABLE {
   scheme(): openehr_base.String {
     // Return the class name of the settings instance
     if (!this.settings) {
-      return openehr_base.String.from("unknown");
+      throw new Error("EHR_ACCESS settings is required to determine scheme");
     }
     return openehr_base.String.from(this.settings.constructor.name);
   }
