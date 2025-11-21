@@ -17,6 +17,7 @@
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
 import * as openehr_base from "./openehr_base.ts";
+import { OpenEHRTerminologyService } from "./terminology_service.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -89,6 +90,22 @@ export abstract class PATHABLE extends openehr_base.Any {
     // TODO: Implement path_of_item behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method path_of_item not yet implemented.");
+  }
+
+  /**
+   * Default value equality comparison for PATHABLE subclasses.
+   * Compares constructor names as a basic implementation.
+   * Subclasses should override this for more specific comparisons.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: any): openehr_base.Boolean {
+    if (!(other instanceof PATHABLE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare constructor names
+    // Subclasses should override for property-level comparison
+    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
 }
 
@@ -179,9 +196,12 @@ export abstract class LOCATABLE extends PATHABLE {
    * @returns Result value
    */
   concept(): DV_TEXT {
-    // TODO: Implement concept behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method concept not yet implemented.");
+    // Return the name property as the concept
+    // Per openEHR specs, name is mandatory for LOCATABLE, but TypeScript allows undefined
+    if (!this.name) {
+      throw new Error("LOCATABLE name is required but not set");
+    }
+    return this.name;
   }
 
   /**
@@ -189,9 +209,8 @@ export abstract class LOCATABLE extends PATHABLE {
    * @returns Result value
    */
   is_archetype_root(): openehr_base.Boolean {
-    // TODO: Implement is_archetype_root behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_archetype_root not yet implemented.");
+    // A LOCATABLE is an archetype root if it has archetype_details
+    return openehr_base.Boolean.from(this.archetype_details !== undefined);
   }
 }
 
@@ -731,9 +750,14 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
    * @returns Result value
    */
   uid(): openehr_base.OBJECT_VERSION_ID {
-    // TODO: Implement uid behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method uid not yet implemented.");
+    // Return the uid from the imported item
+    if (!this.item) {
+      throw new Error("IMPORTED_VERSION item is not set");
+    }
+    if (!this.item.uid) {
+      throw new Error("IMPORTED_VERSION item.uid is not set");
+    }
+    return this.item.uid;
   }
 
   /**
@@ -1675,9 +1699,9 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_TREE, the hierarchy is represented as a CLUSTER containing the items
+    // Note: Full implementation requires proper tree traversal and CLUSTER construction
+    throw new Error("ITEM_TREE.as_hierarchy requires proper tree structure handling - not yet fully implemented");
   }
 }
 
@@ -1691,9 +1715,9 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): ELEMENT {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_SINGLE, the hierarchy is just the single element itself
+    // Note: Full implementation requires accessing the element item
+    throw new Error("ITEM_SINGLE.as_hierarchy requires item access - not yet fully implemented");
   }
 }
 
@@ -1837,9 +1861,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_TABLE, the hierarchy is a CLUSTER containing CLUSTERs for columns
+    // Note: Full implementation requires proper table structure handling
+    throw new Error("ITEM_TABLE.as_hierarchy requires table structure handling - not yet fully implemented");
   }
 }
 
@@ -1902,9 +1926,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_LIST, the hierarchy is a CLUSTER containing the list items
+    // Note: Full implementation requires proper list structure handling
+    throw new Error("ITEM_LIST.as_hierarchy requires list structure handling - not yet fully implemented");
   }
 }
 
@@ -2989,9 +3013,12 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    * @returns Result value
    */
   valid_magnitude_status(): openehr_base.Boolean {
-    // TODO: Implement valid_magnitude_status behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_magnitude_status not yet implemented.");
+    // Valid values are: "=", "<", ">", "<=", ">=", "~"
+    const validStatuses = ["=", "<", ">", "<=", ">=", "~"];
+    if (!this.magnitude_status) {
+      return openehr_base.Boolean.from(true); // undefined is valid (defaults to "=")
+    }
+    return openehr_base.Boolean.from(validStatuses.includes(this.magnitude_status));
   }
 
   abstract magnitude(): openehr_base.Ordered_Numeric;
@@ -3019,9 +3046,22 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude
+    const thisMag = this.magnitude();
+    const otherMag = other.magnitude();
+    
+    // Handle different types of Ordered_Numeric
+    if (typeof thisMag === 'number' && typeof otherMag === 'number') {
+      return openehr_base.Boolean.from(thisMag < otherMag);
+    }
+    
+    // If magnitude returns an object with less_than method
+    if (thisMag && typeof thisMag === 'object' && 'less_than' in thisMag) {
+      return (thisMag as any).less_than(otherMag);
+    }
+    
+    // Fallback: compare as numbers
+    return openehr_base.Boolean.from(Number(thisMag) < Number(otherMag));
   }
 }
 
@@ -3081,9 +3121,13 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @returns Result value
    */
   valid_percentage(number: openehr_base.Ordered_Numeric): openehr_base.Boolean {
-    // TODO: Implement valid_percentage behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_percentage not yet implemented.");
+    // Convert to number if needed
+    const value = typeof number === 'number' ? number : Number(number);
+    // Check for NaN and valid range
+    if (isNaN(value)) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(value >= 0 && value <= 100);
   }
 
   /**
@@ -3123,7 +3167,7 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @param other - Parameter
    * @returns Result value
    */
-  abstract is_equal(other: DV_AMOUNT): openehr_base.Boolean;
+  abstract is_equal(other: DV_QUANTIFIED): openehr_base.Boolean;
 
   /**
    * Product of this Amount and \`_factor_\`.
@@ -3255,9 +3299,11 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   magnitude(): number {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Magnitude is numerator divided by denominator
+    if (!this.denominator || this.denominator === 0) {
+      throw new Error("Cannot compute magnitude with zero or undefined denominator");
+    }
+    return (this.numerator || 0) / this.denominator;
   }
 
   /**
@@ -3265,9 +3311,7 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_integral(): openehr_base.Boolean {
-    // TODO: Implement is_integral behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_integral not yet implemented.");
+    return openehr_base.Boolean.from(this.precision === 0);
   }
 
   /**
@@ -3276,9 +3320,24 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   add(other: DV_PROPORTION): DV_PROPORTION {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Check type compatibility
+    if (this.type !== other.type) {
+      throw new Error("Cannot add proportions with different types");
+    }
+    
+    const result = new DV_PROPORTION();
+    // Correct fraction addition: a/b + c/d = (a*d + b*c)/(b*d)
+    const a = this.numerator || 0;
+    const b = this.denominator || 1;
+    const c = other.numerator || 0;
+    const d = other.denominator || 1;
+    
+    result.numerator = a * d + b * c;
+    result.denominator = b * d;
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3287,9 +3346,24 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   subtract(other: DV_PROPORTION): DV_PROPORTION {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Check type compatibility
+    if (this.type !== other.type) {
+      throw new Error("Cannot subtract proportions with different types");
+    }
+    
+    const result = new DV_PROPORTION();
+    // Correct fraction subtraction: a/b - c/d = (a*d - b*c)/(b*d)
+    const a = this.numerator || 0;
+    const b = this.denominator || 1;
+    const c = other.numerator || 0;
+    const d = other.denominator || 1;
+    
+    result.numerator = a * d - b * c;
+    result.denominator = b * d;
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3298,9 +3372,15 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_equal(other: DV_PROPORTION): openehr_base.Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    if (!(other instanceof DV_PROPORTION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare type, numerator, and denominator
+    return openehr_base.Boolean.from(
+      this.type === other.type &&
+      this.numerator === other.numerator &&
+      this.denominator === other.denominator
+    );
   }
 
   /**
@@ -3309,9 +3389,13 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   multiply(factor: number): DV_PROPORTION {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_PROPORTION();
+    result.numerator = (this.numerator || 0) * factor;
+    result.denominator = this.denominator;
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3320,9 +3404,8 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   less_than(other: DV_PROPORTION): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude (numerator/denominator)
+    return openehr_base.Boolean.from(this.magnitude() < other.magnitude());
   }
 
   /**
@@ -3331,9 +3414,11 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    if (!(other instanceof DV_PROPORTION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Proportions are strictly comparable if they have the same type
+    return openehr_base.Boolean.from(this.type === other.type);
   }
 }
 
@@ -3510,9 +3595,23 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_QUANTITY): DV_QUANTITY {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Check units compatibility
+    if (this.units !== other.units) {
+      throw new Error("Cannot add quantities with different units");
+    }
+    
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) + (other.magnitude || 0);
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3521,9 +3620,23 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_QUANTITY): DV_QUANTITY {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Check units compatibility
+    if (this.units !== other.units) {
+      throw new Error("Cannot subtract quantities with different units");
+    }
+    
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present - use RSS for uncertainty propagation
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
+    }
+    
+    return result;
   }
 
   /**
@@ -3532,9 +3645,18 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_QUANTITY {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_QUANTITY();
+    result.magnitude = (this.magnitude || 0) * factor;
+    result.units = this.units;
+    result.units_system = this.units_system;
+    result.precision = this.precision;
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined) {
+      result.accuracy = this.accuracy * Math.abs(factor);
+    }
+    
+    return result;
   }
 
   /**
@@ -3543,9 +3665,11 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_QUANTITY): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Should check units compatibility but comparison is still possible
+    if (this.units !== other.units) {
+      console.warn("Comparing quantities with different units");
+    }
+    return openehr_base.Boolean.from((this.magnitude || 0) < (other.magnitude || 0));
   }
 
   /**
@@ -3553,9 +3677,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   is_integral(): openehr_base.Boolean {
-    // TODO: Implement is_integral behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_integral not yet implemented.");
+    return openehr_base.Boolean.from(this.precision === 0);
   }
 
   /**
@@ -3564,9 +3686,38 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    if (!(other instanceof DV_QUANTITY)) {
+      return openehr_base.Boolean.from(false);
+    }
+    
+    // Check units match
+    if (this.units !== other.units) {
+      return openehr_base.Boolean.from(false);
+    }
+    
+    // If units_system is present, it must match too
+    if (this.units_system !== undefined || other.units_system !== undefined) {
+      if (this.units_system !== other.units_system) {
+        return openehr_base.Boolean.from(false);
+      }
+    }
+    
+    return openehr_base.Boolean.from(true);
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_QUANTITY)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare magnitude and units
+    return openehr_base.Boolean.from(
+      this.magnitude === other.magnitude && this.units === other.units
+    );
   }
 }
 
@@ -3621,9 +3772,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_COUNT): DV_COUNT {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = (this.magnitude || 0) + (other.magnitude || 0);
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = this.accuracy + other.accuracy;
+    }
+    
+    return result;
   }
 
   /**
@@ -3632,9 +3789,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_COUNT): DV_COUNT {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
+    
+    // Handle accuracy if present - use RSS for uncertainty propagation
+    if (this.accuracy !== undefined && other.accuracy !== undefined) {
+      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
+    }
+    
+    return result;
   }
 
   /**
@@ -3643,9 +3806,15 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_COUNT {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_COUNT();
+    result.magnitude = Math.round((this.magnitude || 0) * factor);
+    
+    // Handle accuracy if present
+    if (this.accuracy !== undefined) {
+      result.accuracy = this.accuracy * Math.abs(factor);
+    }
+    
+    return result;
   }
 
   /**
@@ -3654,9 +3823,7 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_COUNT): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    return openehr_base.Boolean.from((this.magnitude || 0) < (other.magnitude || 0));
   }
 
   /**
@@ -3665,9 +3832,21 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Counts are always strictly comparable to other counts
+    return openehr_base.Boolean.from(other instanceof DV_COUNT);
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_COUNT)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare magnitude
+    return openehr_base.Boolean.from(this.magnitude === other.magnitude);
   }
 }
 
@@ -3775,9 +3954,8 @@ export class DV_ORDINAL extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_ORDINAL): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on integer values
+    return openehr_base.Boolean.from((this.value || 0) < (other.value || 0));
   }
 
   /**
@@ -3785,10 +3963,11 @@ export class DV_ORDINAL extends DV_ORDERED {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_ORDINAL): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Ordinals from the same terminology/code system are strictly comparable
+    // Check if other is a DV_ORDINAL instance
+    // A more thorough implementation would check the terminology_id of the symbols
+    return openehr_base.Boolean.from(other instanceof DV_ORDINAL);
   }
 }
 
@@ -3831,10 +4010,11 @@ export class DV_SCALE extends DV_ORDERED {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_SCALE): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Scales from the same scale definition are strictly comparable
+    // Check if other is a DV_SCALE instance
+    // A more thorough implementation would check the terminology_id of the symbols
+    return openehr_base.Boolean.from(other instanceof DV_SCALE);
   }
 
   /**
@@ -3843,9 +4023,8 @@ export class DV_SCALE extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_SCALE): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on numeric values
+    return openehr_base.Boolean.from((this.value || 0) < (other.value || 0));
   }
 }
 
@@ -3899,9 +4078,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   add(other: DV_DURATION): DV_DURATION {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3910,9 +4089,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   subtract(other: DV_DURATION): DV_DURATION {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3921,9 +4100,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   multiply(factor: number): DV_DURATION {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    // Note: Full ISO8601 duration arithmetic requires proper parsing
+    // This is a simplified implementation
+    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
   }
 
   /**
@@ -3932,9 +4111,9 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_DURATION): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude() which should return seconds
+    // Note: magnitude() method must be implemented first
+    throw new Error("DV_DURATION.less_than requires magnitude() method - not yet fully implemented");
   }
 
   /**
@@ -3955,9 +4134,8 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   negative(): DV_DURATION {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    // Note: Requires ISO8601 duration parsing and negation
+    throw new Error("DV_DURATION.negative requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -3968,6 +4146,19 @@ export class DV_DURATION extends DV_AMOUNT {
     // TODO: Implement magnitude behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method magnitude not yet implemented.");
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DURATION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare value strings
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -4066,9 +4257,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
+    throw new Error("DV_DATE.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4077,9 +4267,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
+    throw new Error("DV_DATE.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4088,9 +4277,8 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_DATE): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_DATE.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4099,9 +4287,11 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_DATE): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 date strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4109,10 +4299,22 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_DATE): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Dates are strictly comparable with other dates
+    return openehr_base.Boolean.from(other instanceof DV_DATE);
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -4172,9 +4374,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_TIME {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
+    throw new Error("DV_TIME.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4183,9 +4384,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_TIME {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
+    throw new Error("DV_TIME.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4194,9 +4394,8 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_TIME): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_TIME.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4205,9 +4404,11 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_TIME): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 time strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4215,10 +4416,22 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_TIME): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Times are strictly comparable with other times
+    return openehr_base.Boolean.from(other instanceof DV_TIME);
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -4279,9 +4492,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE_TIME {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
+    throw new Error("DV_DATE_TIME.add requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4290,9 +4502,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE_TIME {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
+    throw new Error("DV_DATE_TIME.subtract requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4301,9 +4512,8 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   diff(other: DV_DATE_TIME): DV_DURATION {
-    // TODO: Implement diff behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method diff not yet implemented.");
+    // Note: Full implementation requires ISO8601 duration generation
+    throw new Error("DV_DATE_TIME.diff requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -4312,9 +4522,11 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   less_than(other: DV_DATE_TIME): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare ISO8601 datetime strings lexicographically (works for standard format)
+    if (!this.value || !other.value) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value < other.value);
   }
 
   /**
@@ -4322,10 +4534,22 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  is_strictly_comparable_to(other: DV_DATE_TIME): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
+    // Date/times are strictly comparable with other date/times
+    return openehr_base.Boolean.from(other instanceof DV_DATE_TIME);
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -4482,9 +4706,15 @@ export class DV_URI extends DATA_VALUE {
    * @returns Result value
    */
   scheme(): openehr_base.String {
-    // TODO: Implement scheme behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method scheme not yet implemented.");
+    // Extract the scheme from the URI value (everything before the first ':')
+    if (!this.value) {
+      throw new Error("DV_URI value is required to extract scheme");
+    }
+    const colonIndex = this.value.indexOf(':');
+    if (colonIndex === -1) {
+      throw new Error("DV_URI value does not contain a valid scheme (no ':' separator found)");
+    }
+    return openehr_base.String.from(this.value.substring(0, colonIndex));
   }
 
   /**
@@ -4540,9 +4770,10 @@ export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
   valid_terminology_group_id(
     an_id: openehr_base.Boolean,
   ): openehr_base.Boolean {
-    // TODO: Implement valid_terminology_group_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_terminology_group_id not yet implemented.");
+    // Get terminology service and check if group exists
+    const service = OpenEHRTerminologyService.getInstance();
+    const idStr = typeof an_id === 'string' ? an_id : String(an_id);
+    return openehr_base.Boolean.from(service.hasGroup(idStr));
   }
 }
 
@@ -4556,9 +4787,10 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
    * @returns Result value
    */
   valid_code_set_id(an_id: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement valid_code_set_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_code_set_id not yet implemented.");
+    // Get terminology service and check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    const idStr = typeof an_id === 'string' ? an_id : an_id.value;
+    return openehr_base.Boolean.from(service.hasCodeSet(idStr));
   }
 }
 
@@ -4576,9 +4808,14 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   terminology(name: openehr_base.String): TERMINOLOGY_ACCESS {
-    // TODO: Implement terminology behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method terminology not yet implemented.");
+    const nameStr = typeof name === 'string' ? name : name.value;
+    
+    // Only "openehr" is currently supported
+    if (nameStr.toLowerCase() !== "openehr") {
+      throw new Error(`Terminology "${nameStr}" is not supported. Only "openehr" is currently available.`);
+    }
+    
+    return new TERMINOLOGY_ACCESS(nameStr);
   }
 
   /**
@@ -4587,9 +4824,15 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set(name: openehr_base.String): CODE_SET_ACCESS {
-    // TODO: Implement code_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set not yet implemented.");
+    const nameStr = typeof name === 'string' ? name : name.value;
+    
+    // Check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    if (!service.hasCodeSet(nameStr)) {
+      throw new Error(`Code set "${nameStr}" not found`);
+    }
+    
+    return new CODE_SET_ACCESS(nameStr);
   }
 
   /**
@@ -4599,9 +4842,15 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set_for_id(id: openehr_base.String): CODE_SET_ACCESS {
-    // TODO: Implement code_set_for_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set_for_id not yet implemented.");
+    const idStr = typeof id === 'string' ? id : id.value;
+    
+    // Check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    if (!service.hasCodeSet(idStr)) {
+      throw new Error(`Code set with id "${idStr}" not found`);
+    }
+    
+    return new CODE_SET_ACCESS(idStr);
   }
 
   /**
@@ -4614,9 +4863,10 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_terminology(name: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_terminology behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_terminology not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const nameStr = typeof name === 'string' ? name : name.value;
+    return openehr_base.Boolean.from(service.hasTerminology(nameStr));
   }
 
   /**
@@ -4625,9 +4875,10 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_code_set(name: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_code_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_code_set not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const nameStr = typeof name === 'string' ? name : name.value;
+    return openehr_base.Boolean.from(service.hasCodeSet(nameStr));
   }
 
   /**
@@ -4635,9 +4886,8 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   terminology_identifiers(): openehr_base.String {
-    // TODO: Implement terminology_identifiers behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method terminology_identifiers not yet implemented.");
+    // Currently only "openehr" is supported
+    return openehr_base.String.from("openehr");
   }
 
   /**
@@ -4646,9 +4896,11 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   openehr_code_sets(): undefined {
-    // TODO: Implement openehr_code_sets behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method openehr_code_sets not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const identifiers = service.getCodeSetIdentifiers();
+    // Return as undefined per signature (should be a Set but type is undefined)
+    return identifiers as any;
   }
 
   /**
@@ -4656,9 +4908,11 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set_identifiers(): openehr_base.String {
-    // TODO: Implement code_set_identifiers behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set_identifiers not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const identifiers = service.getCodeSetIdentifiers();
+    // Return as comma-separated string
+    return openehr_base.String.from(identifiers.join(", "));
   }
 }
 
@@ -4703,14 +4957,20 @@ export abstract class EXTERNAL_ENVIRONMENT_ACCESS extends TERMINOLOGY_SERVICE {
  * Defines an object providing proxy access to a code_set.
  */
 export class CODE_SET_ACCESS {
+  private codeSetId: string;
+  private language: string;
+  
+  constructor(codeSetId: string, language: string = "en") {
+    this.codeSetId = codeSetId;
+    this.language = language;
+  }
+  
   /**
    * External identifier of this code set.
    * @returns Result value
    */
   id(): openehr_base.String {
-    // TODO: Implement id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method id not yet implemented.");
+    return openehr_base.String.from(this.codeSetId);
   }
 
   /**
@@ -4718,9 +4978,16 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   all_codes(): CODE_PHRASE {
-    // TODO: Implement all_codes behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method all_codes not yet implemented.");
+    // Get codes from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const codes = service.getAllCodes(this.codeSetId, this.language);
+    
+    // Return first code as CODE_PHRASE (API design issue - should return array)
+    const result = new CODE_PHRASE();
+    if (codes.length > 0) {
+      result.code_string = codes[0];
+    }
+    return result;
   }
 
   /**
@@ -4729,9 +4996,10 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   has_lang(a_lang: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_lang behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_lang not yet implemented.");
+    // Check if the language is supported (en, es, pt currently)
+    const lang = typeof a_lang === 'string' ? a_lang : a_lang.value;
+    const supportedLangs = ['en', 'es', 'pt'];
+    return openehr_base.Boolean.from(supportedLangs.includes(lang));
   }
 
   /**
@@ -4740,9 +5008,11 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   has_code(a_code: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_code behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_code not yet implemented.");
+    // Get codes from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const codes = service.getAllCodes(this.codeSetId, this.language);
+    const codeStr = typeof a_code === 'string' ? a_code : a_code.value;
+    return openehr_base.Boolean.from(codes.includes(codeStr));
   }
 }
 
@@ -4750,14 +5020,20 @@ export class CODE_SET_ACCESS {
  * Defines an object providing proxy access to a terminology.
  */
 export class TERMINOLOGY_ACCESS {
+  private terminologyId: string;
+  private language: string;
+  
+  constructor(terminologyId: string, language: string = "en") {
+    this.terminologyId = terminologyId;
+    this.language = language;
+  }
+  
   /**
    * Identification of this Terminology.
    * @returns Result value
    */
   id(): openehr_base.String {
-    // TODO: Implement id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method id not yet implemented.");
+    return openehr_base.String.from(this.terminologyId);
   }
 
   /**
@@ -4765,9 +5041,16 @@ export class TERMINOLOGY_ACCESS {
    * @returns Result value
    */
   all_codes(): CODE_PHRASE {
-    // TODO: Implement all_codes behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method all_codes not yet implemented.");
+    // Get all group identifiers from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const groups = service.getGroupIdentifiers();
+    
+    // Return first group as CODE_PHRASE (API design issue - should return array)
+    const result = new CODE_PHRASE();
+    if (groups.length > 0) {
+      result.code_string = groups[0];
+    }
+    return result;
   }
 
   /**
@@ -4887,9 +5170,9 @@ export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
    * @returns Result value
    */
   is_persistent(): openehr_base.Boolean {
-    // TODO: Implement is_persistent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_persistent not yet implemented.");
+    // Note: Should check the first version's composition.is_persistent()
+    // This requires version management infrastructure
+    throw new Error("VERSIONED_COMPOSITION.is_persistent requires version retrieval - not yet fully implemented");
   }
 }
 
@@ -4909,9 +5192,11 @@ export class EHR_ACCESS extends LOCATABLE {
    * @returns Result value
    */
   scheme(): openehr_base.String {
-    // TODO: Implement scheme behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method scheme not yet implemented.");
+    // Return the class name of the settings instance
+    if (!this.settings) {
+      throw new Error("EHR_ACCESS settings is required to determine scheme");
+    }
+    return openehr_base.String.from(this.settings.constructor.name);
   }
 }
 
@@ -6483,9 +6768,11 @@ export abstract class PARTY extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the type/role
+    if (!this.name) {
+      throw new Error("PARTY name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6506,9 +6793,11 @@ export class CONTACT extends LOCATABLE {
    * @returns Result value
    */
   purpose(): DV_TEXT {
-    // TODO: Implement purpose behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method purpose not yet implemented.");
+    // Return the name attribute which contains the purpose
+    if (!this.name) {
+      throw new Error("CONTACT name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6525,9 +6814,11 @@ export class ADDRESS extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the type
+    if (!this.name) {
+      throw new Error("ADDRESS name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6544,9 +6835,11 @@ export class PARTY_IDENTITY extends LOCATABLE {
    * @returns Result value
    */
   purpose(): DV_TEXT {
-    // TODO: Implement purpose behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method purpose not yet implemented.");
+    // Return the name attribute which contains the purpose
+    if (!this.name) {
+      throw new Error("PARTY_IDENTITY name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6645,9 +6938,11 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
    * @returns Result value
    */
   type(): DV_TEXT {
-    // TODO: Implement type behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method type not yet implemented.");
+    // Return the name attribute which contains the relationship type
+    if (!this.name) {
+      throw new Error("PARTY_RELATIONSHIP name is required but not set");
+    }
+    return this.name;
   }
 }
 
@@ -6715,9 +7010,11 @@ export class COMPOSITION extends LOCATABLE {
    * @returns Result value
    */
   is_persistent(): openehr_base.Boolean {
-    // TODO: Implement is_persistent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_persistent not yet implemented.");
+    // Check if category code is "431" (persistent)
+    if (!this.category || !this.category.defining_code) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.category.defining_code.code_string === "431");
   }
 }
 
@@ -6845,9 +7142,8 @@ export abstract class ENTRY extends CONTENT_ITEM {
    * @returns Result value
    */
   subject_is_self(): openehr_base.Boolean {
-    // TODO: Implement subject_is_self behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subject_is_self not yet implemented.");
+    // Check if subject is an instance of PARTY_SELF
+    return openehr_base.Boolean.from(this.subject instanceof PARTY_SELF);
   }
 }
 
