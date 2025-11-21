@@ -167,14 +167,15 @@ method implementations done in Phase 3
 ## Phase 4d
 
 Add function behaviour for not yet implemented functions in BASE, RM & LANG (if
-any) and create and run associated tests. (Hint: many of the unimplemented pars
+any) and create and run associated tests. (Hint: many of the unimplemented parts
 throw errors saying that they are not yet implemented). First, using the 
 method explained in Phase 3 above, check if there is any information missing in
 the /instructions files regarding the unimplemented methods. Then implement the
 not yet implemented functions, using the /instruction files as knowledge and 
 ask deepwiki if you need more help reading the specificatins or analyzing how 
-Archie has implemented something. (Update the instruction files when gaps are
-detected during implemetnatio or testing, since they may be used by others later.
+Archie or other openEHR libraries have implemented something. 
+During this research, continuosly update the instruction files when gaps are
+detected during implementation or testing, since they may be used by others later.
 
 ## Phase 5a
 
