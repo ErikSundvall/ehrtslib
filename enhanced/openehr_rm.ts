@@ -1693,9 +1693,9 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_TREE, the hierarchy is represented as a CLUSTER containing the items
+    // Note: Full implementation requires proper tree traversal and CLUSTER construction
+    throw new Error("ITEM_TREE.as_hierarchy requires proper tree structure handling - not yet fully implemented");
   }
 }
 
@@ -1709,9 +1709,9 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): ELEMENT {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_SINGLE, the hierarchy is just the single element itself
+    // Note: Full implementation requires accessing the element item
+    throw new Error("ITEM_SINGLE.as_hierarchy requires item access - not yet fully implemented");
   }
 }
 
@@ -1855,9 +1855,9 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_TABLE, the hierarchy is a CLUSTER containing CLUSTERs for columns
+    // Note: Full implementation requires proper table structure handling
+    throw new Error("ITEM_TABLE.as_hierarchy requires table structure handling - not yet fully implemented");
   }
 }
 
@@ -1920,9 +1920,9 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
    * @returns Result value
    */
   as_hierarchy(): CLUSTER {
-    // TODO: Implement as_hierarchy behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method as_hierarchy not yet implemented.");
+    // For ITEM_LIST, the hierarchy is a CLUSTER containing the list items
+    // Note: Full implementation requires proper list structure handling
+    throw new Error("ITEM_LIST.as_hierarchy requires list structure handling - not yet fully implemented");
   }
 }
 
@@ -3298,9 +3298,7 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_integral(): openehr_base.Boolean {
-    // TODO: Implement is_integral behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_integral not yet implemented.");
+    return openehr_base.Boolean.from(this.precision === 0);
   }
 
   /**
@@ -3627,9 +3625,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   is_integral(): openehr_base.Boolean {
-    // TODO: Implement is_integral behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_integral not yet implemented.");
+    return openehr_base.Boolean.from(this.precision === 0);
   }
 
   /**
@@ -4086,9 +4082,8 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   negative(): DV_DURATION {
-    // TODO: Implement negative behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method negative not yet implemented.");
+    // Note: Requires ISO8601 duration parsing and negation
+    throw new Error("DV_DURATION.negative requires ISO8601 parser - not yet fully implemented");
   }
 
   /**
@@ -5064,9 +5059,9 @@ export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
    * @returns Result value
    */
   is_persistent(): openehr_base.Boolean {
-    // TODO: Implement is_persistent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_persistent not yet implemented.");
+    // Note: Should check the first version's composition.is_persistent()
+    // This requires version management infrastructure
+    throw new Error("VERSIONED_COMPOSITION.is_persistent requires version retrieval - not yet fully implemented");
   }
 }
 
@@ -6892,9 +6887,11 @@ export class COMPOSITION extends LOCATABLE {
    * @returns Result value
    */
   is_persistent(): openehr_base.Boolean {
-    // TODO: Implement is_persistent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_persistent not yet implemented.");
+    // Check if category code is "431" (persistent)
+    if (!this.category || !this.category.defining_code) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.category.defining_code.code_string === "431");
   }
 }
 
