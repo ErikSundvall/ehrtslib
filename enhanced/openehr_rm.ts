@@ -90,6 +90,22 @@ export abstract class PATHABLE extends openehr_base.Any {
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method path_of_item not yet implemented.");
   }
+
+  /**
+   * Default value equality comparison for PATHABLE subclasses.
+   * Compares constructor names as a basic implementation.
+   * Subclasses should override this for more specific comparisons.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: any): openehr_base.Boolean {
+    if (!(other instanceof PATHABLE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare constructor names
+    // Subclasses should override for property-level comparison
+    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
+  }
 }
 
 /**
@@ -1120,20 +1136,6 @@ export class FOLDER extends LOCATABLE {
    * Archetypable meta-data for \`FOLDER\`.
    */
   details?: ITEM_STRUCTURE;
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof FOLDER)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
 }
 
 /**
@@ -1209,21 +1211,8 @@ export abstract class AUTHORED_RESOURCE {
     // TODO: Implement languages_available behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method languages_available not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof FOLDER)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Defines the descriptive meta-data of a resource.
@@ -1683,21 +1672,8 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
   has_element_path(a_path: openehr_base.String): openehr_base.Boolean {
     // TODO: Implement has_element_path behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ITEM_TREE)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method has_element_path not yet implemented.");
+  }
 
   /**
    * Return the leaf element at the path  a_path'.
@@ -1733,21 +1709,8 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
   as_hierarchy(): ELEMENT {
     // TODO: Implement as_hierarchy behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ITEM_SINGLE)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method as_hierarchy not yet implemented.");
+  }
 }
 
 /**
@@ -1771,21 +1734,8 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
   row_count(): openehr_base.Integer {
     // TODO: Implement row_count behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ITEM_TABLE)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method row_count not yet implemented.");
+  }
 
   /**
    * Return number of columns in the table.
@@ -1928,21 +1878,8 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
   item_count(): openehr_base.Integer {
     // TODO: Implement item_count behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ITEM_LIST)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method item_count not yet implemented.");
+  }
 
   /**
    * Retrieve the names of all items.
@@ -2074,21 +2011,8 @@ export class INTERVAL_EVENT<T> extends EVENT<T> {
     // TODO: Implement interval_start_time behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method interval_start_time not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof POINT_EVENT)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Root object of a linear history, i.e. time series structure. This is a generic class whose type parameter must be a descendant of \`ITEM_STRUCTURE\`, ensuring that each Event in the \`_events_\` of a given instance is of the same structural type, i.e. \`ITEM_TREE\`, \`ITEM_LIST\` etc.
@@ -2124,21 +2048,8 @@ export class HISTORY<T extends ITEM_STRUCTURE> extends DATA_STRUCTURE {
   is_periodic(): openehr_base.Boolean {
     // TODO: Implement is_periodic behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof HISTORY)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method is_periodic not yet implemented.");
+  }
 }
 
 /**
@@ -2181,21 +2092,8 @@ export class ELEMENT extends ITEM {
     // TODO: Implement is_null behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_null not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof CLUSTER)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Abstract parent of all \`DV_\` data value types.
@@ -4117,6 +4015,13 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
    * @returns Result value
    */
   abstract diff(other: DV_TEMPORAL): DV_DURATION;
+
+  /**
+   * Default value equality comparison for DV_TEMPORAL subclasses.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  abstract is_equal(other: DV_TEMPORAL): openehr_base.Boolean;
 }
 
 /**
@@ -4232,6 +4137,19 @@ export class DV_DATE extends DV_TEMPORAL {
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_strictly_comparable_to not yet implemented.");
   }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
+  }
 }
 
 /**
@@ -4337,6 +4255,19 @@ export class DV_TIME extends DV_TEMPORAL {
     // TODO: Implement is_strictly_comparable_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+    if (!(other instanceof DV_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -4444,6 +4375,19 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
     // TODO: Implement is_strictly_comparable_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_strictly_comparable_to not yet implemented.");
+  }
+
+  /**
+   * Value equality comparison.
+   * @param other - The other object to compare with
+   * @returns Boolean wrapper indicating equality
+   */
+  is_equal(other: DV_TEMPORAL): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Basic implementation: compare values
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 }
 
@@ -5029,21 +4973,8 @@ export class EHR_ACCESS extends LOCATABLE {
   scheme(): openehr_base.String {
     // TODO: Implement scheme behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EHR_ACCESS)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method scheme not yet implemented.");
+  }
 }
 
 /**
@@ -5067,21 +4998,8 @@ export class EHR_STATUS extends LOCATABLE {
    * True if this EHR should be included in population queries, i.e. if this EHR is considered active in the population.
    */
   get is_queryable(): boolean | undefined {
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EHR_STATUS)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     return this._is_queryable?.value;
+  }
 
   /**
    * Gets the openehr_base.Boolean wrapper object for is_queryable.
@@ -5184,21 +5102,8 @@ export class EXTRACT extends LOCATABLE {
    * Number of this Extract response in sequence of responses to Extract request identified by \`_request_id_\`. If this is the sole response, or there was no request, value is 1.
    */
   get sequence_nr(): number | undefined {
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EXTRACT)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     return this._sequence_nr?.value;
+  }
 
   /**
    * Gets the openehr_base.Integer wrapper object for sequence_nr.
@@ -5249,21 +5154,8 @@ export class EXTRACT_CHAPTER extends LOCATABLE {
   /**
    * The information content of this chapter.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EXTRACT_ACTION_REQUEST)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   items?: undefined;
+}
 
 /**
  * Abstract parent of Extract Folder and Content types.
@@ -5397,21 +5289,8 @@ export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
    * Reference to entity, usually a demographic entity such as a patient that the content of this chapter relates to.
    */
   get extract_id_key(): string | undefined {
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EXTRACT_ENTITY_CHAPTER)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     return this._extract_id_key?.value;
+  }
 
   /**
    * Gets the openehr_base.String wrapper object for extract_id_key.
@@ -5575,21 +5454,8 @@ export class EXTRACT_MANIFEST {
   /**
    * List of entity manifests uids of items included in the Extract; for openEHR data, these are uids identifying the version containers.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EXTRACT_FOLDER)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   entities?: undefined;
+}
 
 /**
  * Model of a participation of a Party (any Actor or Role) in an activity.  Used to represent any participation of a Party in some activity, which is not  explicitly in the model, e.g. assisting nurse. Can be used to record past or  future participations.
@@ -5806,21 +5672,8 @@ export class EXTRACT_SPEC {
   /**
    * Other specification items. Archetypable.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EXTRACT_REQUEST)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   other_details?: ITEM_STRUCTURE;
+}
 
 /**
  * Specification of the how the request should be processed by server. The request can be persisted in the server, meaning that a) it can be re-activated by the requesting system simply by indicating Request id, and b) that a changes-only pattern of Extract updates can be set up. To achieve this, the server has to remember what was sent in the previous response.
@@ -6096,21 +5949,8 @@ export class X_VERSIONED_OBJECT<T> {
   /**
    * 0 or more Versions from the original \`VERSIONED_OBJECT\`, according to the Extract specification.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof OPENEHR_CONTENT_ITEM)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   versions?: undefined;
+}
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`EHR_ACCESS\` EHR object.
@@ -6160,21 +6000,8 @@ export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
    * Version of model or schema used to create the content item.
    */
   get item_type_version(): string | undefined {
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof GENERIC_CONTENT_ITEM)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     return this._item_type_version?.value;
+  }
 
   /**
    * Gets the openehr_base.String wrapper object for item_type_version.
@@ -6743,21 +6570,8 @@ export class CONTACT extends LOCATABLE {
   purpose(): DV_TEXT {
     // TODO: Implement purpose behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof CONTACT)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method purpose not yet implemented.");
+  }
 }
 
 /**
@@ -6775,21 +6589,8 @@ export class ADDRESS extends LOCATABLE {
   type(): DV_TEXT {
     // TODO: Implement type behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ADDRESS)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method type not yet implemented.");
+  }
 }
 
 /**
@@ -6807,21 +6608,8 @@ export class PARTY_IDENTITY extends LOCATABLE {
   purpose(): DV_TEXT {
     // TODO: Implement purpose behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof PARTY_IDENTITY)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     throw new Error("Method purpose not yet implemented.");
+  }
 }
 
 /**
@@ -6853,21 +6641,8 @@ export abstract class ACTOR extends PARTY {
   /**
    * Identifiers of the Version container for each Role played by this Party.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ROLE)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   roles?: undefined;
+}
 
 /**
  * Capability of a role, such as  ehr modifier,  health care provider. Capability should be backed up by credentials.
@@ -6886,21 +6661,8 @@ export class CAPABILITY extends LOCATABLE {
 /**
  * Generic concept of any kind of agent, including devices, software systems, but not humans or organisations.
  */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof CAPABILITY)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
 export class AGENT extends ACTOR {
+}
 
 /**
  * Generic description of organisations. An organisation is a legally constituted body whose existence (in general) outlives the existence of parties considered to be part of it.
@@ -6911,21 +6673,8 @@ export class ORGANISATION extends ACTOR {
 /**
  * A group is a real world group of parties which is created by another party, usually an organisation, for some specific purpose. A typical clinical example is that of the specialist care team, e.g.  cardiology team . The members of the group usually work together.
  */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ORGANISATION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
 export class GROUP extends ACTOR {
+}
 
 /**
  * Generic description of persons. Provides a dedicated type to which Person archetypes can be targeted.
@@ -6961,21 +6710,8 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
     // TODO: Implement type behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method type not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof PERSON)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Static type formed by binding generic parameter of \`VERSIONED_OBJECT<T>\` to \`PARTY\`.
@@ -7044,21 +6780,8 @@ export class COMPOSITION extends LOCATABLE {
     // TODO: Implement is_persistent behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method is_persistent not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof GENERIC_ENTRY)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Documents the context information of a healthcare event involving the subject of care and the health system. The context information recorded here are independent of the attributes recorded in the version audit, which document the  system interaction  context, i.e. the context of a user interacting with the health record system. Healthcare events include patient contacts, and any other business activity, such as pathology investigations which take place on behalf of the patient.
@@ -7082,21 +6805,8 @@ export class EVENT_CONTEXT extends PATHABLE {
    * The actual location where the session occurred, e.g. 'microbiology lab 2', 'home', 'ward A3'  and so on.
    */
   get location(): string | undefined {
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof EVENT_CONTEXT)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
     return this._location?.value;
+  }
 
   /**
    * Gets the openehr_base.String wrapper object for location.
@@ -7200,21 +6910,8 @@ export abstract class ENTRY extends CONTENT_ITEM {
     // TODO: Implement subject_is_self behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method subject_is_self not yet implemented.");
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof SECTION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
   }
-  }
+}
 
 /**
  * Entry subtype for administrative information, i.e. information about setting up the clinical process, but not itself clinically relevant. Archetypes will define contained information.
@@ -7241,21 +6938,8 @@ export abstract class CARE_ENTRY extends ENTRY {
   /**
    * Optional external identifier of guideline creating this Entry if relevant.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ADMIN_ENTRY)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   guideline_id?: openehr_base.OBJECT_REF;
+}
 
 /**
  * Entry subtype for all clinical data in the past or present, i.e. which (by the time it is recorded) has already occurred. \`OBSERVATION\` data is expressed using the class \`HISTORY<T>\`, which guarantees that it is situated in time. \`OBSERVATION\` is used for all notionally objective (i.e. measured in some way) observations of phenomena, and patient-reported phenomena, e.g. pain.
@@ -7282,21 +6966,8 @@ export class EVALUATION extends CARE_ENTRY {
   /**
    * The data of this evaluation, in the form of a spatial data structure.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof OBSERVATION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   data?: ITEM_STRUCTURE;
+}
 
 /**
  * Used to record a clinical action that has been performed, which may have been ad hoc, or due to the execution of an Activity in an Instruction workflow. Every Action corresponds to a careflow step of some kind or another.
@@ -7372,21 +7043,8 @@ export class ACTIVITY extends LOCATABLE {
   /**
    * Description of the activity, in the form of an archetyped structure.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ACTION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   description?: ITEM_STRUCTURE;
+}
 
 /**
  * Model of a transition in the Instruction State Machine, caused by a careflow step. The attributes document the careflow step as well as the ISM transition.
@@ -7461,21 +7119,8 @@ export class INSTRUCTION_DETAILS extends PATHABLE {
    *
    * This specification does not currently define the actual structure or semantics of this field.
    */
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof ISM_TRANSITION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
   wf_details?: ITEM_STRUCTURE;
+}
 
 /**
  * Used to specify actions in the future. Enables simple and complex specifications to be expressed, including in a fully-computable workflow form. Used for any actionable statement such as medication and therapeutic orders, monitoring, recall and review. Enough details must be provided for the specification to be directly executed by an actor, either human or machine.
@@ -7500,17 +7145,3 @@ export class INSTRUCTION extends CARE_ENTRY {
    */
   activities?: undefined;
 }
-
-  /**
-   * Value equality comparison.
-   * @param other - The other object to compare with
-   * @returns Boolean wrapper indicating equality
-   */
-  is_equal(other: any): openehr_base.Boolean {
-    if (!(other instanceof INSTRUCTION)) {
-      return openehr_base.Boolean.from(false);
-    }
-    // Basic implementation: type check passed
-    // For a complete implementation, compare all relevant properties
-    return openehr_base.Boolean.from(this.constructor.name === other.constructor.name);
-  }
