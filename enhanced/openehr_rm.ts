@@ -3286,9 +3286,11 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   magnitude(): number {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Magnitude is numerator divided by denominator
+    if (!this.denominator || this.denominator === 0) {
+      throw new Error("Cannot compute magnitude with zero or undefined denominator");
+    }
+    return (this.numerator || 0) / this.denominator;
   }
 
   /**
@@ -3362,9 +3364,11 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    if (!(other instanceof DV_PROPORTION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Proportions are strictly comparable if they have the same type
+    return openehr_base.Boolean.from(this.type === other.type);
   }
 }
 
@@ -3634,9 +3638,23 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    if (!(other instanceof DV_QUANTITY)) {
+      return openehr_base.Boolean.from(false);
+    }
+    
+    // Check units match
+    if (this.units !== other.units) {
+      return openehr_base.Boolean.from(false);
+    }
+    
+    // If units_system is present, it must match too
+    if (this.units_system !== undefined || other.units_system !== undefined) {
+      if (this.units_system !== other.units_system) {
+        return openehr_base.Boolean.from(false);
+      }
+    }
+    
+    return openehr_base.Boolean.from(true);
   }
 
   /**
@@ -3766,9 +3784,8 @@ export class DV_COUNT extends DV_AMOUNT {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDERED): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Counts are always strictly comparable to other counts
+    return openehr_base.Boolean.from(other instanceof DV_COUNT);
   }
 
   /**
@@ -3889,9 +3906,8 @@ export class DV_ORDINAL extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_ORDINAL): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on integer values
+    return openehr_base.Boolean.from((this.value || 0) < (other.value || 0));
   }
 
   /**
@@ -3900,9 +3916,10 @@ export class DV_ORDINAL extends DV_ORDERED {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_ORDINAL): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Ordinals from the same terminology/code system are strictly comparable
+    // For simplicity, we check if both are DV_ORDINAL instances
+    // A more thorough implementation would check the terminology_id of the symbols
+    return openehr_base.Boolean.from(other instanceof DV_ORDINAL);
   }
 }
 
@@ -3946,9 +3963,10 @@ export class DV_SCALE extends DV_ORDERED {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_SCALE): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Scales from the same scale definition are strictly comparable
+    // For simplicity, we check if both are DV_SCALE instances
+    // A more thorough implementation would check the terminology_id of the symbols
+    return openehr_base.Boolean.from(other instanceof DV_SCALE);
   }
 
   /**
@@ -3957,9 +3975,8 @@ export class DV_SCALE extends DV_ORDERED {
    * @returns Result value
    */
   less_than(other: DV_SCALE): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on numeric values
+    return openehr_base.Boolean.from((this.value || 0) < (other.value || 0));
   }
 }
 
