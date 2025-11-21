@@ -17,6 +17,7 @@
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
 import * as openehr_base from "./openehr_base.ts";
+import { OpenEHRTerminologyService } from "./terminology_service.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -4769,9 +4770,10 @@ export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
   valid_terminology_group_id(
     an_id: openehr_base.Boolean,
   ): openehr_base.Boolean {
-    // TODO: Implement valid_terminology_group_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_terminology_group_id not yet implemented.");
+    // Get terminology service and check if group exists
+    const service = OpenEHRTerminologyService.getInstance();
+    const idStr = typeof an_id === 'string' ? an_id : String(an_id);
+    return openehr_base.Boolean.from(service.hasGroup(idStr));
   }
 }
 
@@ -4785,9 +4787,10 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
    * @returns Result value
    */
   valid_code_set_id(an_id: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement valid_code_set_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method valid_code_set_id not yet implemented.");
+    // Get terminology service and check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    const idStr = typeof an_id === 'string' ? an_id : an_id.value;
+    return openehr_base.Boolean.from(service.hasCodeSet(idStr));
   }
 }
 
@@ -4805,9 +4808,14 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   terminology(name: openehr_base.String): TERMINOLOGY_ACCESS {
-    // TODO: Implement terminology behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method terminology not yet implemented.");
+    const nameStr = typeof name === 'string' ? name : name.value;
+    
+    // Only "openehr" is currently supported
+    if (nameStr.toLowerCase() !== "openehr") {
+      throw new Error(`Terminology "${nameStr}" is not supported. Only "openehr" is currently available.`);
+    }
+    
+    return new TERMINOLOGY_ACCESS(nameStr);
   }
 
   /**
@@ -4816,9 +4824,15 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set(name: openehr_base.String): CODE_SET_ACCESS {
-    // TODO: Implement code_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set not yet implemented.");
+    const nameStr = typeof name === 'string' ? name : name.value;
+    
+    // Check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    if (!service.hasCodeSet(nameStr)) {
+      throw new Error(`Code set "${nameStr}" not found`);
+    }
+    
+    return new CODE_SET_ACCESS(nameStr);
   }
 
   /**
@@ -4828,9 +4842,15 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set_for_id(id: openehr_base.String): CODE_SET_ACCESS {
-    // TODO: Implement code_set_for_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set_for_id not yet implemented.");
+    const idStr = typeof id === 'string' ? id : id.value;
+    
+    // Check if code set exists
+    const service = OpenEHRTerminologyService.getInstance();
+    if (!service.hasCodeSet(idStr)) {
+      throw new Error(`Code set with id "${idStr}" not found`);
+    }
+    
+    return new CODE_SET_ACCESS(idStr);
   }
 
   /**
@@ -4843,9 +4863,10 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_terminology(name: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_terminology behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_terminology not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const nameStr = typeof name === 'string' ? name : name.value;
+    return openehr_base.Boolean.from(service.hasTerminology(nameStr));
   }
 
   /**
@@ -4854,9 +4875,10 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_code_set(name: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_code_set behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_code_set not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const nameStr = typeof name === 'string' ? name : name.value;
+    return openehr_base.Boolean.from(service.hasCodeSet(nameStr));
   }
 
   /**
@@ -4864,9 +4886,8 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   terminology_identifiers(): openehr_base.String {
-    // TODO: Implement terminology_identifiers behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method terminology_identifiers not yet implemented.");
+    // Currently only "openehr" is supported
+    return openehr_base.String.from("openehr");
   }
 
   /**
@@ -4875,9 +4896,11 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   openehr_code_sets(): undefined {
-    // TODO: Implement openehr_code_sets behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method openehr_code_sets not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const identifiers = service.getCodeSetIdentifiers();
+    // Return as undefined per signature (should be a Set but type is undefined)
+    return identifiers as any;
   }
 
   /**
@@ -4885,9 +4908,11 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set_identifiers(): openehr_base.String {
-    // TODO: Implement code_set_identifiers behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method code_set_identifiers not yet implemented.");
+    // Get terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const identifiers = service.getCodeSetIdentifiers();
+    // Return as comma-separated string
+    return openehr_base.String.from(identifiers.join(", "));
   }
 }
 
@@ -4932,14 +4957,20 @@ export abstract class EXTERNAL_ENVIRONMENT_ACCESS extends TERMINOLOGY_SERVICE {
  * Defines an object providing proxy access to a code_set.
  */
 export class CODE_SET_ACCESS {
+  private codeSetId: string;
+  private language: string;
+  
+  constructor(codeSetId: string, language: string = "en") {
+    this.codeSetId = codeSetId;
+    this.language = language;
+  }
+  
   /**
    * External identifier of this code set.
    * @returns Result value
    */
   id(): openehr_base.String {
-    // TODO: Implement id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method id not yet implemented.");
+    return openehr_base.String.from(this.codeSetId);
   }
 
   /**
@@ -4947,9 +4978,16 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   all_codes(): CODE_PHRASE {
-    // TODO: Implement all_codes behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method all_codes not yet implemented.");
+    // Get codes from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const codes = service.getAllCodes(this.codeSetId, this.language);
+    
+    // Return first code as CODE_PHRASE (API design issue - should return array)
+    const result = new CODE_PHRASE();
+    if (codes.length > 0) {
+      result.code_string = codes[0];
+    }
+    return result;
   }
 
   /**
@@ -4958,9 +4996,10 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   has_lang(a_lang: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_lang behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_lang not yet implemented.");
+    // Check if the language is supported (en, es, pt currently)
+    const lang = typeof a_lang === 'string' ? a_lang : a_lang.value;
+    const supportedLangs = ['en', 'es', 'pt'];
+    return openehr_base.Boolean.from(supportedLangs.includes(lang));
   }
 
   /**
@@ -4969,9 +5008,11 @@ export class CODE_SET_ACCESS {
    * @returns Result value
    */
   has_code(a_code: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement has_code behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_code not yet implemented.");
+    // Get codes from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const codes = service.getAllCodes(this.codeSetId, this.language);
+    const codeStr = typeof a_code === 'string' ? a_code : a_code.value;
+    return openehr_base.Boolean.from(codes.includes(codeStr));
   }
 }
 
@@ -4979,14 +5020,20 @@ export class CODE_SET_ACCESS {
  * Defines an object providing proxy access to a terminology.
  */
 export class TERMINOLOGY_ACCESS {
+  private terminologyId: string;
+  private language: string;
+  
+  constructor(terminologyId: string, language: string = "en") {
+    this.terminologyId = terminologyId;
+    this.language = language;
+  }
+  
   /**
    * Identification of this Terminology.
    * @returns Result value
    */
   id(): openehr_base.String {
-    // TODO: Implement id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method id not yet implemented.");
+    return openehr_base.String.from(this.terminologyId);
   }
 
   /**
@@ -4994,9 +5041,16 @@ export class TERMINOLOGY_ACCESS {
    * @returns Result value
    */
   all_codes(): CODE_PHRASE {
-    // TODO: Implement all_codes behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method all_codes not yet implemented.");
+    // Get all group identifiers from terminology service
+    const service = OpenEHRTerminologyService.getInstance();
+    const groups = service.getGroupIdentifiers();
+    
+    // Return first group as CODE_PHRASE (API design issue - should return array)
+    const result = new CODE_PHRASE();
+    if (groups.length > 0) {
+      result.code_string = groups[0];
+    }
+    return result;
   }
 
   /**
