@@ -3307,9 +3307,18 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   add(other: DV_PROPORTION): DV_PROPORTION {
-    // TODO: Implement add behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method add not yet implemented.");
+    // Check type compatibility
+    if (this.type !== other.type) {
+      throw new Error("Cannot add proportions with different types");
+    }
+    
+    const result = new DV_PROPORTION();
+    result.numerator = (this.numerator || 0) + (other.numerator || 0);
+    result.denominator = (this.denominator || 1) + (other.denominator || 1);
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3318,9 +3327,18 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   subtract(other: DV_PROPORTION): DV_PROPORTION {
-    // TODO: Implement subtract behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subtract not yet implemented.");
+    // Check type compatibility
+    if (this.type !== other.type) {
+      throw new Error("Cannot subtract proportions with different types");
+    }
+    
+    const result = new DV_PROPORTION();
+    result.numerator = (this.numerator || 0) - (other.numerator || 0);
+    result.denominator = (this.denominator || 1) - (other.denominator || 1);
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3329,9 +3347,15 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   is_equal(other: DV_PROPORTION): openehr_base.Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    if (!(other instanceof DV_PROPORTION)) {
+      return openehr_base.Boolean.from(false);
+    }
+    // Compare type, numerator, and denominator
+    return openehr_base.Boolean.from(
+      this.type === other.type &&
+      this.numerator === other.numerator &&
+      this.denominator === other.denominator
+    );
   }
 
   /**
@@ -3340,9 +3364,13 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   multiply(factor: number): DV_PROPORTION {
-    // TODO: Implement multiply behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method multiply not yet implemented.");
+    const result = new DV_PROPORTION();
+    result.numerator = (this.numerator || 0) * factor;
+    result.denominator = this.denominator;
+    result.type = this.type;
+    result.precision = this.precision;
+    
+    return result;
   }
 
   /**
@@ -3351,9 +3379,8 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @returns Result value
    */
   less_than(other: DV_PROPORTION): openehr_base.Boolean {
-    // TODO: Implement less_than behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method less_than not yet implemented.");
+    // Compare based on magnitude (numerator/denominator)
+    return openehr_base.Boolean.from(this.magnitude() < other.magnitude());
   }
 
   /**
