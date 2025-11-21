@@ -749,9 +749,11 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
    * @returns Result value
    */
   uid(): openehr_base.OBJECT_VERSION_ID {
-    // TODO: Implement uid behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method uid not yet implemented.");
+    // Return the uid from the imported item
+    if (!this.item || !this.item.uid) {
+      throw new Error("IMPORTED_VERSION item or item.uid is not set");
+    }
+    return this.item.uid;
   }
 
   /**
@@ -7079,9 +7081,8 @@ export abstract class ENTRY extends CONTENT_ITEM {
    * @returns Result value
    */
   subject_is_self(): openehr_base.Boolean {
-    // TODO: Implement subject_is_self behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method subject_is_self not yet implemented.");
+    // Check if subject is an instance of PARTY_SELF
+    return openehr_base.Boolean.from(this.subject instanceof PARTY_SELF);
   }
 }
 
