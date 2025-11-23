@@ -46,7 +46,7 @@ openEHR BMM JSON specifications. Most developers do not need to bother about thi
 - [Deno](https://deno.land/) runtime installed (installation instructions at
   https://docs.deno.com/runtime/getting_started/installation/) If you have
   node/npm installed then deno is installed by running `npm install -g deno`
-- Internet connection (to download BMM JSON files from GitHub)
+- Internet connection (to download e.g. BMM JSON and terminology files from GitHub)
 
 ### Quick Start
 
