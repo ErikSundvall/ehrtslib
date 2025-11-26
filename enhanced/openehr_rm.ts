@@ -4074,35 +4074,66 @@ export class DV_DURATION extends DV_AMOUNT {
 
   /**
    * Sum of this Duration and \`_other_\`.
+   * Uses the Iso8601_duration.add() method from BASE package.
    * @param other - Parameter
    * @returns Result value
    */
   add(other: DV_DURATION): DV_DURATION {
-    // Note: Full ISO8601 duration arithmetic requires proper parsing
-    // This is a simplified implementation
-    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
+    // Create Iso8601_duration instances from the values
+    const dur1 = new openehr_base.Iso8601_duration();
+    dur1.value = this.value || "";
+    const dur2 = new openehr_base.Iso8601_duration();
+    dur2.value = other.value || "";
+    
+    // Use BASE package add method
+    const resultDur = dur1.add(dur2);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
    * Difference of this Duration and \`_other_\`.
+   * Uses the Iso8601_duration.subtract() method from BASE package.
    * @param other - Parameter
    * @returns Result value
    */
   subtract(other: DV_DURATION): DV_DURATION {
-    // Note: Full ISO8601 duration arithmetic requires proper parsing
-    // This is a simplified implementation
-    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
+    // Create Iso8601_duration instances from the values
+    const dur1 = new openehr_base.Iso8601_duration();
+    dur1.value = this.value || "";
+    const dur2 = new openehr_base.Iso8601_duration();
+    dur2.value = other.value || "";
+    
+    // Use BASE package subtract method
+    const resultDur = dur1.subtract(dur2);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
    * Product of this Duration and \`_factor_\`.
+   * Uses the Iso8601_duration.multiply() method from BASE package.
    * @param factor - Parameter
    * @returns Result value
    */
   multiply(factor: number): DV_DURATION {
-    // Note: Full ISO8601 duration arithmetic requires proper parsing
-    // This is a simplified implementation
-    throw new Error("DV_DURATION arithmetic operations require ISO8601 duration parser - not yet fully implemented");
+    // Create Iso8601_duration instance from the value
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = this.value || "";
+    
+    // Use BASE package multiply method
+    const resultDur = dur.multiply(factor);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
@@ -4111,9 +4142,8 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   less_than(other: DV_DURATION): openehr_base.Boolean {
-    // Compare based on magnitude() which should return seconds
-    // Note: magnitude() method must be implemented first
-    throw new Error("DV_DURATION.less_than requires magnitude() method - not yet fully implemented");
+    // Compare based on magnitude (seconds)
+    return openehr_base.Boolean.from(this.magnitude() < other.magnitude());
   }
 
   /**
@@ -4122,9 +4152,8 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_DURATION): openehr_base.Boolean {
-    // TODO: Implement is_strictly_comparable_to behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_strictly_comparable_to not yet implemented.");
+    // Any two durations are strictly comparable
+    return openehr_base.Boolean.from(other instanceof DV_DURATION);
   }
 
   /**
@@ -4134,8 +4163,18 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   negative(): DV_DURATION {
-    // Note: Requires ISO8601 duration parsing and negation
-    throw new Error("DV_DURATION.negative requires ISO8601 parser - not yet fully implemented");
+    // Negate the duration by prepending/removing negative sign
+    const val = this.value || "";
+    const result = new DV_DURATION();
+    
+    if (val.startsWith("-")) {
+      // Remove negative sign to make positive
+      result.value = val.substring(1);
+    } else {
+      // Add negative sign
+      result.value = "-" + val;
+    }
+    return result;
   }
 
   /**
@@ -4143,9 +4182,10 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   magnitude(): number {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Use the Iso8601_duration.to_seconds() method from BASE package
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = this.value || "";
+    return dur.to_seconds();
   }
 
   /**
@@ -4235,9 +4275,38 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   magnitude(): openehr_base.Integer {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Calculate days since 0001-01-01
+    const val = this.value || "";
+    if (!val) {
+      return openehr_base.Integer.from(0);
+    }
+    try {
+      // Parse the date using Iso8601_date from BASE
+      const date = new openehr_base.Iso8601_date();
+      date.value = val;
+      
+      // Get year, month, day components
+      const year = date.year().value;
+      const month = date.month().value || 1;
+      const day = date.day().value || 1;
+      
+      // Calculate days since 0001-01-01 using Julian day calculation
+      // This is an approximation using the Gregorian calendar formula
+      const a = Math.floor((14 - month) / 12);
+      const y = year + 4800 - a;
+      const m = month + 12 * a - 3;
+      
+      // Julian Day Number formula for Gregorian calendar
+      const jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y +
+                  Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+      
+      // Origin 0001-01-01 has JDN = 1721426
+      const daysSinceOrigin = jdn - 1721426;
+      
+      return openehr_base.Integer.from(daysSinceOrigin);
+    } catch {
+      return openehr_base.Integer.from(0);
+    }
   }
 
   /**
@@ -4246,39 +4315,76 @@ export class DV_DATE extends DV_TEMPORAL {
    * @returns Result value
    */
   is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
-    // TODO: Implement is_equal behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_equal not yet implemented.");
+    if (!(other instanceof DV_DATE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    return openehr_base.Boolean.from(this.value === other.value);
   }
 
   /**
    * Addition of a Duration to this Date.
+   * Uses the Iso8601_date.add() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE {
-    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
-    throw new Error("DV_DATE.add requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date and Iso8601_duration from values
+    const date = new openehr_base.Iso8601_date();
+    date.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package add method
+    const resultDate = date.add(dur);
+    
+    // Create and return new DV_DATE with result
+    const result = new DV_DATE();
+    result.value = resultDate.value;
+    return result;
   }
 
   /**
    * Subtract a Duration from this Date.
+   * Uses the Iso8601_date.subtract() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE {
-    // Note: Full implementation requires ISO8601 duration parsing and date arithmetic
-    throw new Error("DV_DATE.subtract requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date and Iso8601_duration from values
+    const date = new openehr_base.Iso8601_date();
+    date.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package subtract method
+    const resultDate = date.subtract(dur);
+    
+    // Create and return new DV_DATE with result
+    const result = new DV_DATE();
+    result.value = resultDate.value;
+    return result;
   }
 
   /**
    * Difference between this Date and \`_other_\`.
+   * Uses the Iso8601_date.diff() method from BASE package.
    * @param other - Parameter
    * @returns Result value
    */
   diff(other: DV_DATE): DV_DURATION {
-    // Note: Full implementation requires ISO8601 duration generation
-    throw new Error("DV_DATE.diff requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date instances from values
+    const date1 = new openehr_base.Iso8601_date();
+    date1.value = this.value || "";
+    const date2 = new openehr_base.Iso8601_date();
+    date2.value = other.value || "";
+    
+    // Use BASE package diff method
+    const resultDur = date1.diff(date2);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
@@ -4363,39 +4469,93 @@ export class DV_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   magnitude(): number {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Calculate seconds since 00:00:00
+    const val = this.value || "";
+    if (!val) {
+      return 0;
+    }
+    try {
+      // Parse using Iso8601_time from BASE
+      const time = new openehr_base.Iso8601_time();
+      time.value = val;
+      
+      // Get components
+      const hours = time.hour().value;
+      const minutes = time.minute().value;
+      const seconds = time.second().value;
+      const fractional = time.fractional_second().value;
+      
+      // Calculate total seconds
+      return hours * 3600 + minutes * 60 + seconds + fractional;
+    } catch {
+      return 0;
+    }
   }
 
   /**
    * Addition of a Duration to this Time.
+   * Uses the Iso8601_time.add() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_TIME {
-    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
-    throw new Error("DV_TIME.add requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_time and Iso8601_duration from values
+    const time = new openehr_base.Iso8601_time();
+    time.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package add method
+    const resultTime = time.add(dur);
+    
+    // Create and return new DV_TIME with result
+    const result = new DV_TIME();
+    result.value = resultTime.value;
+    return result;
   }
 
   /**
    * Subtract a Duration from this Time.
+   * Uses the Iso8601_time.subtract() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_TIME {
-    // Note: Full implementation requires ISO8601 duration parsing and time arithmetic
-    throw new Error("DV_TIME.subtract requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_time and Iso8601_duration from values
+    const time = new openehr_base.Iso8601_time();
+    time.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package subtract method
+    const resultTime = time.subtract(dur);
+    
+    // Create and return new DV_TIME with result
+    const result = new DV_TIME();
+    result.value = resultTime.value;
+    return result;
   }
 
   /**
    * Difference between this Time and \`_other_\`.
+   * Uses the Iso8601_time.diff() method from BASE package.
    * @param other - Parameter
    * @returns Result value
    */
   diff(other: DV_TIME): DV_DURATION {
-    // Note: Full implementation requires ISO8601 duration generation
-    throw new Error("DV_TIME.diff requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_time instances from values
+    const time1 = new openehr_base.Iso8601_time();
+    time1.value = this.value || "";
+    const time2 = new openehr_base.Iso8601_time();
+    time2.value = other.value || "";
+    
+    // Use BASE package diff method
+    const resultDur = time1.diff(time2);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
@@ -4481,39 +4641,109 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @returns Result value
    */
   magnitude(): number {
-    // TODO: Implement magnitude behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method magnitude not yet implemented.");
+    // Calculate seconds since 0001-01-01T00:00:00Z
+    const val = this.value || "";
+    if (!val) {
+      return 0;
+    }
+    try {
+      // Parse using Iso8601_date_time from BASE
+      const dt = new openehr_base.Iso8601_date_time();
+      dt.value = val;
+      
+      // Get components
+      const year = dt.year().value;
+      const month = dt.month().value || 1;
+      const day = dt.day().value || 1;
+      const hour = dt.hour().value;
+      const minute = dt.minute().value;
+      const second = dt.second().value;
+      const fractional = dt.fractional_second().value;
+      
+      // Calculate Julian Day Number for the date part
+      const a = Math.floor((14 - month) / 12);
+      const y = year + 4800 - a;
+      const m = month + 12 * a - 3;
+      
+      const jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y +
+                  Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+      
+      // Origin 0001-01-01 has JDN = 1721426
+      const daysSinceOrigin = jdn - 1721426;
+      
+      // Calculate total seconds
+      const secondsInDay = hour * 3600 + minute * 60 + second + fractional;
+      
+      return daysSinceOrigin * 86400 + secondsInDay;
+    } catch {
+      return 0;
+    }
   }
 
   /**
    * Addition of a Duration to this Date/time.
+   * Uses the Iso8601_date_time.add() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   add(a_diff: DV_DURATION): DV_DATE_TIME {
-    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
-    throw new Error("DV_DATE_TIME.add requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date_time and Iso8601_duration from values
+    const dt = new openehr_base.Iso8601_date_time();
+    dt.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package add method
+    const resultDt = dt.add(dur);
+    
+    // Create and return new DV_DATE_TIME with result
+    const result = new DV_DATE_TIME();
+    result.value = resultDt.value;
+    return result;
   }
 
   /**
    * Subtract a Duration from this Date/time.
+   * Uses the Iso8601_date_time.subtract() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
   subtract(a_diff: DV_DURATION): DV_DATE_TIME {
-    // Note: Full implementation requires ISO8601 duration parsing and datetime arithmetic
-    throw new Error("DV_DATE_TIME.subtract requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date_time and Iso8601_duration from values
+    const dt = new openehr_base.Iso8601_date_time();
+    dt.value = this.value || "";
+    const dur = new openehr_base.Iso8601_duration();
+    dur.value = a_diff.value || "";
+    
+    // Use BASE package subtract method
+    const resultDt = dt.subtract(dur);
+    
+    // Create and return new DV_DATE_TIME with result
+    const result = new DV_DATE_TIME();
+    result.value = resultDt.value;
+    return result;
   }
 
   /**
    * Difference between this Date/time and \`_other_\`.
+   * Uses the Iso8601_date_time.diff() method from BASE package.
    * @param other - Parameter
    * @returns Result value
    */
   diff(other: DV_DATE_TIME): DV_DURATION {
-    // Note: Full implementation requires ISO8601 duration generation
-    throw new Error("DV_DATE_TIME.diff requires ISO8601 parser - not yet fully implemented");
+    // Create Iso8601_date_time instances from values
+    const dt1 = new openehr_base.Iso8601_date_time();
+    dt1.value = this.value || "";
+    const dt2 = new openehr_base.Iso8601_date_time();
+    dt2.value = other.value || "";
+    
+    // Use BASE package diff method
+    const resultDur = dt1.diff(dt2);
+    
+    // Create and return new DV_DURATION with result
+    const result = new DV_DURATION();
+    result.value = resultDur.value;
+    return result;
   }
 
   /**
