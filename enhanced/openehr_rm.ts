@@ -4148,11 +4148,14 @@ export class DV_DURATION extends DV_AMOUNT {
 
   /**
    * True, for any two Durations.
+   * Per openEHR specification, any two DV_DURATION instances are strictly comparable
+   * because they can both be converted to a common unit (seconds) for comparison.
    * @param other - Parameter
    * @returns Result value
    */
   is_strictly_comparable_to(other: DV_DURATION): openehr_base.Boolean {
-    // Any two durations are strictly comparable
+    // Per openEHR specification: "True, for any two Durations"
+    // All durations can be compared via magnitude (seconds)
     return openehr_base.Boolean.from(other instanceof DV_DURATION);
   }
 
@@ -4163,16 +4166,24 @@ export class DV_DURATION extends DV_AMOUNT {
    * @returns Result value
    */
   negative(): DV_DURATION {
-    // Negate the duration by prepending/removing negative sign
+    // Negate the duration according to ISO8601 format
+    // ISO8601 durations: P[n]Y[n]M[n]DT[n]H[n]M[n]S
+    // Negative durations: -P[n]Y[n]M[n]DT[n]H[n]M[n]S
     const val = this.value || "";
     const result = new DV_DURATION();
     
-    if (val.startsWith("-")) {
-      // Remove negative sign to make positive
+    if (val.startsWith("-P")) {
+      // Already negative, remove the "-" to make positive
+      result.value = val.substring(1);
+    } else if (val.startsWith("P")) {
+      // Positive, prepend "-" to make negative
+      result.value = "-" + val;
+    } else if (val.startsWith("-")) {
+      // Non-standard negative format, remove the "-"
       result.value = val.substring(1);
     } else {
-      // Add negative sign
-      result.value = "-" + val;
+      // Handle edge case: add P if missing
+      result.value = "-P" + val;
     }
     return result;
   }
