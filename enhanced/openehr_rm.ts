@@ -5216,6 +5216,14 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
   ];
 
   /**
+   * Pre-compiled regex patterns for efficient parsing.
+   * These are compiled once as static properties to avoid repeated compilation.
+   */
+  private static readonly PERIOD_REGEX = /\/\(([^)]+)\)/;
+  private static readonly ALIGNMENT_REGEX = /@([A-Z]{2})/;
+  private static readonly DURATION_REGEX = /^(\d+)([a-zA-Z]+)$/;
+
+  /**
    * The period of the repetition, computationally derived from the syntax representation. Extracted from the  value' attribute.
    * @returns Result value
    */
@@ -5224,7 +5232,7 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
     
     // Extract period from PIVL format: [interval]/(period)@alignment
     // The period is the ISO 8601 duration between /( and )
-    const periodMatch = valueStr.match(/\/\(([^)]+)\)/);
+    const periodMatch = valueStr.match(DV_PERIODIC_TIME_SPECIFICATION.PERIOD_REGEX);
     if (periodMatch) {
       const periodStr = periodMatch[1];
       // Convert shorthand notation to ISO 8601 if needed
@@ -5250,7 +5258,7 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
     }
     
     // Match number and unit
-    const match = duration.match(/^(\d+)([a-zA-Z]+)$/);
+    const match = duration.match(DV_PERIODIC_TIME_SPECIFICATION.DURATION_REGEX);
     if (!match) {
       // Return as-is if format not recognized
       return `P${duration.toUpperCase()}`;
@@ -5277,6 +5285,11 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
   }
 
   /**
+   * Valid calendar alignment codes from HL7::CalendarCycle domain.
+   */
+  private static readonly VALID_ALIGNMENTS = ["DW", "DM", "DY", "WY", "MY", "HD"];
+
+  /**
    * Calendar alignment extracted from value.
    * Returns alignment code from HL7::CalendarCycle domain (DW, DM, DY, WY, MY, HD).
    * @returns Result value
@@ -5285,13 +5298,12 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
     const valueStr = this.value?.value ?? "";
     
     // Extract alignment from PIVL format: ...@alignment[IST]
-    // Match @ followed by 2-letter alignment code
-    const alignMatch = valueStr.match(/@([A-Z]{2})/);
+    // Using pre-compiled static regex for efficiency
+    const alignMatch = valueStr.match(DV_PERIODIC_TIME_SPECIFICATION.ALIGNMENT_REGEX);
     if (alignMatch) {
       const alignment = alignMatch[1];
       // Validate it's a known calendar alignment code
-      const validAlignments = ["DW", "DM", "DY", "WY", "MY", "HD"];
-      if (validAlignments.includes(alignment)) {
+      if (DV_PERIODIC_TIME_SPECIFICATION.VALID_ALIGNMENTS.includes(alignment)) {
         return openehr_base.String.from(alignment);
       }
     }
@@ -5350,6 +5362,20 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
   ];
 
   /**
+   * Pre-compiled regex patterns for efficient parsing.
+   */
+  private static readonly ALIGNMENT_REGEX = /@([A-Z]{2})/;
+  private static readonly VALID_ALIGNMENTS = ["DW", "DM", "DY", "WY", "MY", "HD"];
+  
+  /**
+   * Pre-compiled regex patterns for event code matching in GTS expressions.
+   * Each pattern matches the event code at start or after GTS operators.
+   */
+  private static readonly EVENT_REGEXES = DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES.map(
+    code => new RegExp(`(^|[;\\\\(])${code}([^A-Z]|$)`)
+  );
+
+  /**
    * Calendar alignment extracted from value.
    * For GTS format, returns the alignment from the first PIVL component if present.
    * @returns Result value
@@ -5358,13 +5384,12 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
     const valueStr = this.value?.value ?? "";
     
     // GTS may contain PIVL components - look for @alignment pattern
-    // Valid alignment codes: DW, DM, DY, WY, MY, HD
-    const alignMatch = valueStr.match(/@([A-Z]{2})/);
+    // Using pre-compiled static regex for efficiency
+    const alignMatch = valueStr.match(DV_GENERAL_TIME_SPECIFICATION.ALIGNMENT_REGEX);
     if (alignMatch) {
       const alignment = alignMatch[1];
       // Validate it's a known calendar alignment code
-      const validAlignments = ["DW", "DM", "DY", "WY", "MY", "HD"];
-      if (validAlignments.includes(alignment)) {
+      if (DV_GENERAL_TIME_SPECIFICATION.VALID_ALIGNMENTS.includes(alignment)) {
         return openehr_base.String.from(alignment);
       }
     }
@@ -5381,11 +5406,10 @@ export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
     const valueStr = this.value?.value ?? "";
     
     // Look for event codes at word boundaries in the GTS expression
-    for (const code of DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES) {
-      // Match at start or after certain GTS operators (;, \, (, etc.)
-      const regex = new RegExp(`(^|[;\\\\(])${code}([^A-Z]|$)`);
-      if (regex.test(valueStr)) {
-        return openehr_base.String.from(code);
+    // Using pre-compiled regex patterns for efficiency
+    for (let i = 0; i < DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES.length; i++) {
+      if (DV_GENERAL_TIME_SPECIFICATION.EVENT_REGEXES[i].test(valueStr)) {
+        return openehr_base.String.from(DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES[i]);
       }
     }
     
@@ -5702,15 +5726,19 @@ export class MEASUREMENT_SERVICE {
   /**
    * Common valid UCUM unit strings for clinical measurements.
    * This is a subset of the full UCUM specification covering common clinical use cases.
+   * 
+   * NOTE: Both ASCII ('u') and Unicode ('μ') micro prefix variants are included
+   * for compatibility. UCUM officially uses ASCII 'u' for micro, but many systems
+   * use the Unicode 'μ' character. Both are accepted as valid.
    */
   private static readonly VALID_UNITS = new Set([
-    // Mass
+    // Mass (includes both ASCII 'ug' and Unicode 'μg' for micro prefix)
     "kg", "g", "mg", "ug", "μg", "ng", "pg",
     "[lb_av]", "[oz_av]",
-    // Length
+    // Length (includes both ASCII 'um' and Unicode 'μm' for micro prefix)
     "m", "cm", "mm", "um", "μm", "nm", "km",
     "[in_i]", "[ft_i]", "[mi_i]",
-    // Volume
+    // Volume (includes both ASCII 'uL' and Unicode 'μL' for micro prefix)
     "L", "l", "dL", "dl", "mL", "ml", "uL", "μL",
     "[gal_us]", "[pt_us]", "[cup_us]", "[tsp_us]", "[tbs_us]",
     // Time
@@ -5719,10 +5747,10 @@ export class MEASUREMENT_SERVICE {
     "Cel", "K", "[degF]",
     // Pressure
     "Pa", "kPa", "bar", "mm[Hg]", "[psi]",
-    // Concentration (mass)
+    // Concentration (mass) - includes both ASCII and Unicode micro variants
     "mg/dL", "g/dL", "g/L", "mg/L", "ug/L", "μg/L", "ng/L",
     "mg/mL", "ug/mL", "μg/mL",
-    // Concentration (substance)
+    // Concentration (substance) - includes both ASCII and Unicode micro variants
     "mol/L", "mmol/L", "umol/L", "μmol/L", "nmol/L",
     "mol/mL", "mmol/mL",
     "mEq/L", "uEq/L",
@@ -5752,9 +5780,13 @@ export class MEASUREMENT_SERVICE {
 
   /**
    * UCUM-like patterns for validation when not in known units set.
+   * 
+   * NOTE: The metric prefix character class includes both ASCII 'u' and Unicode 'μ'
+   * for micro prefix compatibility. UCUM officially uses ASCII 'u', but many systems
+   * use Unicode 'μ'. Both are matched for maximum compatibility.
    */
   private static readonly UCUM_PATTERNS = [
-    // Basic unit with optional metric prefix
+    // Basic unit with optional metric prefix (includes both 'u' and 'μ' for micro)
     /^[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+(\d+)?$/,
     // Compound unit with division
     /^[a-zA-Z]+(\d*)\/[a-zA-Z]+(\d*)$/,
@@ -5764,7 +5796,7 @@ export class MEASUREMENT_SERVICE {
     /^[a-zA-Z]+\{[^}]+\}$/,
     // Scientific notation units like 10*9/L
     /^10\*\d+\/[a-zA-Z]+$/,
-    // Simple ratios with metric prefixes
+    // Simple ratios with metric prefixes (includes both 'u' and 'μ' for micro)
     /^[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+\/[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+$/,
   ];
 
@@ -5964,8 +5996,14 @@ export class TERMINOLOGY_ACCESS {
 
   /**
    * Return all codes under grouper 'a_group_id' from this terminology.
+   * 
+   * NOTE: Per openEHR specification, this method should return a Set<CODE_PHRASE>.
+   * Due to TypeScript API design limitations, only the first code is returned.
+   * This is a known limitation that should be addressed in a future API revision.
+   * For complete code retrieval, use the OpenEHRTerminologyService directly.
+   * 
    * @param a_group_id - The group identifier (e.g., "audit_change_type", "attestation_reason")
-   * @returns Result value
+   * @returns CODE_PHRASE containing the first code in the group
    */
   codes_for_group_id(a_group_id: openehr_base.String): CODE_PHRASE {
     const groupId = typeof a_group_id === 'string' ? a_group_id : (a_group_id?.value ?? "");
@@ -5987,9 +6025,15 @@ export class TERMINOLOGY_ACCESS {
 
   /**
    * Return all codes under grouper whose name in 'a_lang' is 'a_name' from this terminology.
+   * 
+   * NOTE: This method returns CODE_PHRASE per the openEHR specification, but conceptually
+   * should return a collection of codes. Due to API limitations, only the first code is
+   * returned. If the group is not found, an empty CODE_PHRASE is returned (no code_string).
+   * Callers should check if code_string is set to determine if the group was found and has codes.
+   * 
    * @param a_lang - Language code (e.g., "en", "es")
    * @param a_name - Group name in the specified language
-   * @returns Result value
+   * @returns CODE_PHRASE with first code, or empty CODE_PHRASE if group not found
    */
   codes_for_group_name(
     a_lang: openehr_base.String,
@@ -6003,7 +6047,8 @@ export class TERMINOLOGY_ACCESS {
     const groupId = service.getGroupIdByName(name, lang);
     
     if (!groupId) {
-      // Return empty CODE_PHRASE if group not found
+      // Group not found - return empty CODE_PHRASE
+      // Callers can detect this by checking if code_string is undefined/empty
       const result = new CODE_PHRASE();
       result.terminology_id = new openehr_base.TERMINOLOGY_ID();
       result.terminology_id.value = this.terminologyId;
