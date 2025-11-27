@@ -734,9 +734,17 @@ export class VERSIONED_OBJECT<T> {
       const item = new REVISION_HISTORY_ITEM();
       if (version instanceof ORIGINAL_VERSION) {
         item.version_id = version.uid;
+        // Populate audits from commit_audit
+        if (version.commit_audit) {
+          item.audits = [version.commit_audit];
+        }
       } else if (version instanceof IMPORTED_VERSION) {
         try {
           item.version_id = version.uid();
+          // Populate audits from commit_audit
+          if (version.commit_audit) {
+            item.audits = [version.commit_audit];
+          }
         } catch {
           // Skip if uid not available
         }
@@ -846,7 +854,7 @@ export class VERSIONED_OBJECT<T> {
     version.data = a_data;
     version.contribution = a_contribution;
     version.commit_audit = an_audit;
-    version.other_input_version_uids = an_other_input_uids as any;
+    version.other_input_version_uids = an_other_input_uids;
     
     this._versions.push(version);
   }
@@ -863,7 +871,7 @@ export class VERSIONED_OBJECT<T> {
     a_version: ORIGINAL_VERSION<T>,
   ): void {
     const imported = new IMPORTED_VERSION<T>();
-    imported.item = a_version as any;
+    imported.item = a_version;
     imported.contribution = a_contribution;
     imported.commit_audit = an_audit;
     
@@ -884,9 +892,9 @@ export class VERSIONED_OBJECT<T> {
     const version = this.version_with_id(a_ver_id);
     if (version instanceof ORIGINAL_VERSION) {
       if (!version.attestations) {
-        version.attestations = [] as any;
+        version.attestations = [];
       }
-      (version.attestations as any).push(an_attestation);
+      version.attestations.push(an_attestation);
     } else {
       throw new Error("Attestations can only be added to ORIGINAL_VERSION instances");
     }
@@ -1048,7 +1056,7 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
   /**
    * The \`ORIGINAL_VERSION\` object that was imported.
    */
-  item?: ORIGINAL_VERSION;
+  item?: ORIGINAL_VERSION<T>;
   /**
    * Computed version of inheritance precursor, derived as \`_item.uid_\`.
    * @returns Result value
@@ -1151,7 +1159,7 @@ export class REVISION_HISTORY_ITEM {
   /**
    * The audits for this revision; there will always be at least one commit audit (which may itself be an \`ATTESTATION\`), there may also be further attestations.
    */
-  audits?: undefined;
+  audits?: AUDIT_DETAILS[];
 }
 
 /**
@@ -1428,11 +1436,10 @@ export class REVISION_HISTORY {
     }
     // Get the last audit from the most recent item
     const lastItem = this.items[this.items.length - 1];
-    const audits = lastItem.audits as AUDIT_DETAILS[] | undefined;
-    if (!audits || audits.length === 0) {
+    if (!lastItem.audits || lastItem.audits.length === 0) {
       return openehr_base.String.from("");
     }
-    return openehr_base.String.from(audits[0].time_committed?.value || "");
+    return openehr_base.String.from(lastItem.audits[0].time_committed?.value || "");
   }
 }
 
