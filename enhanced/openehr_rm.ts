@@ -5721,12 +5721,21 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
 /**
  * Defines an object providing proxy access to a measurement information service.
  * Provides validation of units according to UCUM (Unified Code for Units of Measure) specification.
+ *
+ * This implementation uses a hybrid approach recommended by the openEHR community:
+ * - @lhncbc/ucum-lhc library for UCUM validation and conversion (when available)
+ * - PropertyUnitData.xml for openEHR property/unit groupings (excluding erroneous conversion factors)
+ * - Fallback pattern-based validation when ucum-lhc is not available
+ *
+ * References:
+ * - openEHR Discourse: https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968
+ * - ucum-lhc: https://github.com/lhncbc/ucum-lhc
  */
 export class MEASUREMENT_SERVICE {
   /**
    * Common valid UCUM unit strings for clinical measurements.
    * This is a subset of the full UCUM specification covering common clinical use cases.
-   * 
+   *
    * NOTE: Both ASCII ('u') and Unicode ('μ') micro prefix variants are included
    * for compatibility. UCUM officially uses ASCII 'u' for micro, but many systems
    * use the Unicode 'μ' character. Both are accepted as valid.
@@ -5780,7 +5789,7 @@ export class MEASUREMENT_SERVICE {
 
   /**
    * UCUM-like patterns for validation when not in known units set.
-   * 
+   *
    * NOTE: The metric prefix character class includes both ASCII 'u' and Unicode 'μ'
    * for micro prefix compatibility. UCUM officially uses ASCII 'u', but many systems
    * use Unicode 'μ'. Both are matched for maximum compatibility.
@@ -5822,29 +5831,34 @@ export class MEASUREMENT_SERVICE {
 
   /**
    * True if the units string 'units' is a valid string according to the HL7 UCUM specification.
+   *
+   * This method uses pattern-based validation for common UCUM units. For full UCUM
+   * validation, use the UcumService from ucum_service.ts which integrates with
+   * the @lhncbc/ucum-lhc library.
+   *
    * @param units - The units string to validate
    * @returns Result value
    */
   is_valid_units_string(units: openehr_base.String): openehr_base.Boolean {
     const unitsStr = typeof units === 'string' ? units : (units?.value ?? "");
-    
+
     // Empty string is valid (dimensionless)
     if (unitsStr === "" || unitsStr === "1") {
       return openehr_base.Boolean.from(true);
     }
-    
+
     // Check against known valid units
     if (MEASUREMENT_SERVICE.VALID_UNITS.has(unitsStr)) {
       return openehr_base.Boolean.from(true);
     }
-    
+
     // Check against UCUM patterns
     for (const pattern of MEASUREMENT_SERVICE.UCUM_PATTERNS) {
       if (pattern.test(unitsStr)) {
         return openehr_base.Boolean.from(true);
       }
     }
-    
+
     return openehr_base.Boolean.from(false);
   }
 
@@ -5852,6 +5866,11 @@ export class MEASUREMENT_SERVICE {
    * True if two units strings correspond to the same measured property.
    * For example, "m" and "cm" are equivalent (both measure length),
    * but "kg" and "m" are not equivalent (different dimensions).
+   *
+   * This method uses dimension-based comparison. For more accurate equivalence
+   * checking including complex units, use the UcumService from ucum_service.ts
+   * which uses actual unit conversion to verify compatibility.
+   *
    * @param units1 - First units string
    * @param units2 - Second units string
    * @returns Result value
@@ -5862,12 +5881,12 @@ export class MEASUREMENT_SERVICE {
   ): openehr_base.Boolean {
     const u1 = typeof units1 === 'string' ? units1 : (units1?.value ?? "");
     const u2 = typeof units2 === 'string' ? units2 : (units2?.value ?? "");
-    
+
     // Same units are equivalent
     if (u1 === u2) {
       return openehr_base.Boolean.from(true);
     }
-    
+
     // Find dimension for each unit
     const getDimension = (unit: string): string | null => {
       for (const [dim, units] of Object.entries(MEASUREMENT_SERVICE.DIMENSION_GROUPS)) {
@@ -5875,15 +5894,15 @@ export class MEASUREMENT_SERVICE {
       }
       return null;
     };
-    
+
     const dim1 = getDimension(u1);
     const dim2 = getDimension(u2);
-    
+
     // If both have known dimensions and they match, units are equivalent
     if (dim1 && dim2 && dim1 === dim2) {
       return openehr_base.Boolean.from(true);
     }
-    
+
     return openehr_base.Boolean.from(false);
   }
 }

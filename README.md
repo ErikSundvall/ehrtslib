@@ -649,3 +649,134 @@ This separation ensures that the orchestration logic (batch processing,
 dependency handling, file output) is kept distinct from the code generation
 logic (type mapping, documentation, class creation), making the codebase easier
 to maintain and extend.
+
+## Maintaining External Dependencies
+
+This library depends on external data sources that are updated periodically. This
+section describes how to keep these dependencies up to date.
+
+### Overview of External Dependencies
+
+| Dependency | Source | Purpose | Update Frequency |
+|------------|--------|---------|------------------|
+| `@lhncbc/ucum-lhc` | npm | UCUM validation/conversion | Quarterly/As needed |
+| `PropertyUnitData.xml` | openEHR GitHub | Property/unit groupings | As needed |
+| `ucum-essence.xml` | Bundled in ucum-lhc | Base unit definitions | With ucum-lhc updates |
+
+### Updating @lhncbc/ucum-lhc
+
+The ucum-lhc library provides UCUM validation and unit conversion functionality.
+
+**Check for updates:**
+
+```bash
+# Check current version
+npm list @lhncbc/ucum-lhc
+
+# Check for available updates
+npm outdated @lhncbc/ucum-lhc
+
+# Or check GitHub releases
+# https://github.com/lhncbc/ucum-lhc/releases
+```
+
+**Update process:**
+
+1. Check the [ucum-lhc changelog](https://github.com/lhncbc/ucum-lhc/blob/master/CHANGELOG.md) for breaking changes
+2. Update the dependency:
+   ```bash
+   npm update @lhncbc/ucum-lhc
+   # or for major version update
+   npm install @lhncbc/ucum-lhc@latest
+   ```
+3. Run tests to verify compatibility:
+   ```bash
+   deno test tests/enhanced/measurement_service_test.ts
+   ```
+4. Update `package.json` version if needed
+5. Document the update in commit message
+
+**Important Notes:**
+- The ucum-lhc library bundles `ucum-essence.xml` internally
+- Updates may include new units or fix conversion issues
+- The library handles special conversions (e.g., Celsius↔Fahrenheit) correctly
+
+### Updating PropertyUnitData.xml
+
+The PropertyUnitData.xml file provides openEHR property and unit grouping data.
+We only use property names, IDs, and unit groupings from this file - NOT the
+conversion factors (which are known to be erroneous).
+
+**Check for updates:**
+
+Visit the source file:
+https://github.com/openEHR/specifications-TERM/blob/master/computable/XML/PropertyUnitData.xml
+
+**Update process:**
+
+1. Download the latest version:
+   ```bash
+   # Using the built-in download function
+   deno run --allow-net --allow-write tasks/update_property_unit_data.ts
+   
+   # Or manually
+   curl -o terminology_data/PropertyUnitData.xml \
+     https://raw.githubusercontent.com/openEHR/specifications-TERM/master/computable/XML/PropertyUnitData.xml
+   ```
+
+2. Review changes:
+   ```bash
+   git diff terminology_data/PropertyUnitData.xml
+   ```
+
+3. Run tests:
+   ```bash
+   deno test tests/enhanced/property_unit_service_test.ts
+   ```
+
+4. Commit with a clear message noting what changed
+
+**Important Notes:**
+- Do NOT use conversion factors from PropertyUnitData.xml - they are erroneous
+- Only use: property names, openEHR IDs, unit groupings, UCUM codes
+- Use ucum-lhc for all actual unit conversions
+
+### Why We Use This Approach
+
+Based on the openEHR community discussion
+([Discourse Thread](https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968)):
+
+1. **PropertyUnitData.xml conversion factors are problematic:**
+   - Contains "erroneous and/or imprecise" conversion factors (Silje Ljosland Bakke)
+   - Some conversions like °F↔°C require special handling that simple factors cannot provide (Sebastian Garde)
+   - Was created before good UCUM libraries existed
+
+2. **ucum-lhc is the recommended solution:**
+   - Actively maintained by the Lister Hill National Center for Biomedical Communications
+   - Handles all UCUM operations correctly, including special cases
+   - Uses the official ucum-essence.xml for definitions
+   - Provides validation, conversion, and dimension checking
+
+3. **What we keep from PropertyUnitData.xml:**
+   - Property names (e.g., "Mass", "Length")
+   - openEHR property IDs (e.g., 124 for Mass)
+   - Unit groupings (which units belong to which properties)
+   - NOT: conversion factors, coefficients
+
+### Quarterly Maintenance Checklist
+
+Perform these checks quarterly or when major updates are available:
+
+- [ ] Check for ucum-lhc updates on npm/GitHub
+- [ ] Check for PropertyUnitData.xml changes in specifications-TERM repo
+- [ ] Review any openEHR Discourse discussions about units/measurements
+- [ ] Run full test suite after updates
+- [ ] Update this documentation if processes change
+
+### References
+
+- [ucum-lhc GitHub](https://github.com/lhncbc/ucum-lhc)
+- [ucum-lhc Documentation](https://lhncbc.github.io/ucum-lhc/)
+- [PropertyUnitData.xml](https://github.com/openEHR/specifications-TERM/blob/master/computable/XML/PropertyUnitData.xml)
+- [openEHR Discourse Discussion](https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968)
+- [UCUM Specification](https://ucum.org/ucum.html)
