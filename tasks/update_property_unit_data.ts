@@ -1,4 +1,5 @@
-#!/usr/bin/env -S deno run --allow-net --allow-write --allow-read
+#!/usr/bin/env deno
+// Run with: deno run --allow-net --allow-write --allow-read tasks/update_property_unit_data.ts
 /**
  * Update PropertyUnitData.xml from openEHR specifications-TERM repository
  *

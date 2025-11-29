@@ -13,8 +13,6 @@
  * - PropertyUnitData.xml: https://github.com/openEHR/specifications-TERM/blob/master/computable/XML/PropertyUnitData.xml
  */
 
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
-
 /**
  * Represents an openEHR property (e.g., Mass, Length, Temperature)
  */
@@ -90,24 +88,33 @@ export class PropertyUnitDataService {
   }
 
   /**
-   * Initialize the service by loading PropertyUnitData.xml
+   * Default file path for PropertyUnitData.xml
    */
-  public async initialize(): Promise<void> {
+  private static readonly DEFAULT_FILE_PATH = "terminology_data/PropertyUnitData.xml";
+
+  /**
+   * GitHub URL for PropertyUnitData.xml
+   */
+  private static readonly GITHUB_URL =
+    "https://raw.githubusercontent.com/openEHR/specifications-TERM/master/computable/XML/PropertyUnitData.xml";
+
+  /**
+   * Initialize the service by loading PropertyUnitData.xml
+   * @param filePath Optional custom file path for PropertyUnitData.xml
+   */
+  public async initialize(filePath?: string): Promise<void> {
     if (this.initialized) return;
 
+    const path = filePath ?? PropertyUnitDataService.DEFAULT_FILE_PATH;
     try {
       // Try to load from local file first
-      const xmlContent = await Deno.readTextFile(
-        "terminology_data/PropertyUnitData.xml"
-      );
+      const xmlContent = await Deno.readTextFile(path);
       this.parseXml(xmlContent);
       this.initialized = true;
     } catch (_localError) {
       // If local file not found, try to fetch from GitHub
       try {
-        const response = await fetch(
-          "https://raw.githubusercontent.com/openEHR/specifications-TERM/master/computable/XML/PropertyUnitData.xml"
-        );
+        const response = await fetch(PropertyUnitDataService.GITHUB_URL);
         if (!response.ok) {
           throw new Error(`Failed to fetch PropertyUnitData.xml: ${response.status}`);
         }
@@ -129,17 +136,15 @@ export class PropertyUnitDataService {
   }
 
   /**
-   * Parse PropertyUnitData.xml content
+   * Parse PropertyUnitData.xml content using regex-based parsing
    * Note: Deliberately ignores conversion and coefficient attributes
+   *
+   * Implementation Note: This uses regex-based parsing instead of DOM parsing
+   * because deno_dom does not support "text/xml" parsing. The PropertyUnitData.xml
+   * format is simple and well-structured, making regex parsing reliable for this
+   * specific use case. For more complex XML, a full XML parser should be used.
    */
   private parseXml(xmlContent: string): void {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlContent, "text/xml");
-
-    if (!doc) {
-      throw new Error("Failed to parse PropertyUnitData.xml");
-    }
-
     // Clear existing data
     this.properties.clear();
     this.propertiesByOpenEHRId.clear();
@@ -147,14 +152,14 @@ export class PropertyUnitDataService {
     this.unitsByProperty.clear();
     this.unitsByUcum.clear();
 
-    // Parse properties
-    const propertyElements = Array.from(
-      doc.querySelectorAll("Property")
-    ) as any[];
-    for (const propEl of propertyElements) {
-      const id = parseInt(propEl.getAttribute("id") || "0", 10);
-      const text = propEl.getAttribute("Text") || "";
-      const openEHRId = parseInt(propEl.getAttribute("openEHR") || "0", 10);
+    // Parse properties using regex
+    // Format: <Property id="1" Text="Mass" openEHR="124" />
+    const propertyRegex = /<Property\s+id="(\d+)"\s+Text="([^"]+)"\s+openEHR="(\d+)"/g;
+    let match;
+    while ((match = propertyRegex.exec(xmlContent)) !== null) {
+      const id = parseInt(match[1], 10);
+      const text = match[2];
+      const openEHRId = parseInt(match[3], 10);
 
       const property: PropertyData = { id, text, openEHRId };
       this.properties.set(id, property);
@@ -164,19 +169,29 @@ export class PropertyUnitDataService {
       this.unitsByProperty.set(id, []);
     }
 
-    // Parse units (excluding conversion factors)
-    const unitElements = Array.from(doc.querySelectorAll("Unit")) as any[];
-    for (const unitEl of unitElements) {
-      const propertyId = parseInt(unitEl.getAttribute("property_id") || "0", 10);
-      const text = unitEl.getAttribute("Text") || "";
-      const name = unitEl.getAttribute("name") || "";
-      const ucum = unitEl.getAttribute("UCUM") || text;
-      const isPrimary = unitEl.getAttribute("primary") === "true";
+    // Parse units using regex
+    // <Unit property_id="1" Text="kg" name="kilogram" ... UCUM="kg" primary="true"/>
+    // Note: We deliberately skip conversion and coefficient attributes
+    const unitRegex = /<Unit\s+property_id="(\d+)"\s+Text="([^"]+)"(?:\s+name="([^"]*)")?[^>]*?(?:\s+primary="([^"]*)")?[^>]*?(?:\s+UCUM="([^"]*)")?[^>]*?\/>/g;
+    while ((match = unitRegex.exec(xmlContent)) !== null) {
+      const propertyId = parseInt(match[1], 10);
+      const text = match[2];
+      // Name might be missing or after other attributes
+      let name = match[3] || "";
+      let isPrimary = match[4] === "true";
+      let ucum = match[5] || text;
 
-      // NOTE: We deliberately skip conversion and coefficient attributes
-      // as they are known to be erroneous/imprecise
+      // Re-extract attributes more carefully with individual matches
+      const unitMatch = xmlContent.substring(match.index, match.index + match[0].length);
+      const nameMatch = unitMatch.match(/name="([^"]*)"/);
+      const primaryMatch = unitMatch.match(/primary="([^"]*)"/);
+      const ucumMatch = unitMatch.match(/UCUM="([^"]*)"/);
 
-      const unit: UnitData = { propertyId, text, name, ucum, isPrimary };
+      if (nameMatch) name = nameMatch[1];
+      if (primaryMatch) isPrimary = primaryMatch[1] === "true";
+      if (ucumMatch) ucum = ucumMatch[1];
+
+      const unit: UnitData = { propertyId, text, name, ucum: ucum || text, isPrimary };
       this.units.push(unit);
 
       // Index by property
@@ -185,8 +200,8 @@ export class PropertyUnitDataService {
       this.unitsByProperty.set(propertyId, propertyUnits);
 
       // Index by UCUM code
-      if (ucum) {
-        this.unitsByUcum.set(ucum, unit);
+      if (unit.ucum) {
+        this.unitsByUcum.set(unit.ucum, unit);
       }
     }
   }

@@ -199,19 +199,26 @@ export class UcumService {
   }
 
   /**
+   * Unicode micro symbol (\u03BC) - used in UCUM patterns
+   * Note: UCUM officially uses ASCII 'u' for micro, but many systems use Unicode 'μ'
+   */
+  private static readonly MICRO_SYMBOL = "\u03BC"; // μ
+
+  /**
    * Fallback validation when ucum-lhc is not available
    */
   private fallbackValidate(unitStr: string): UcumValidationResult {
     // Common valid UCUM units
+    // Note: Includes both ASCII 'u' and Unicode 'μ' (\u03BC) for micro prefix compatibility
     const validUnits = new Set([
-      // Mass
-      "kg", "g", "mg", "ug", "μg", "ng", "pg",
+      // Mass (includes both 'ug' and 'μg' for micro prefix)
+      "kg", "g", "mg", "ug", `${UcumService.MICRO_SYMBOL}g`, "ng", "pg",
       "[lb_av]", "[oz_av]",
-      // Length
-      "m", "cm", "mm", "um", "μm", "nm", "km",
+      // Length (includes both 'um' and 'μm' for micro prefix)
+      "m", "cm", "mm", "um", `${UcumService.MICRO_SYMBOL}m`, "nm", "km",
       "[in_i]", "[ft_i]", "[mi_i]",
-      // Volume
-      "L", "l", "dL", "dl", "mL", "ml", "uL", "μL",
+      // Volume (includes both 'uL' and 'μL' for micro prefix)
+      "L", "l", "dL", "dl", "mL", "ml", "uL", `${UcumService.MICRO_SYMBOL}L`,
       // Time
       "s", "min", "h", "d", "wk", "mo", "a",
       // Temperature
@@ -233,8 +240,10 @@ export class UcumService {
     }
 
     // Basic pattern matching for UCUM-like strings
+    // Note: The character class includes both 'u' and 'μ' (\u03BC) for micro prefix
+    const microChar = UcumService.MICRO_SYMBOL;
     const ucumPatterns = [
-      /^[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+(\d+)?$/,
+      new RegExp(`^[yzafpnu${microChar}mcdhkMGTPEZY]?[a-zA-Z]+(\\d+)?$`),
       /^[a-zA-Z]+(\d*)\/[a-zA-Z]+(\d*)$/,
       /^[a-zA-Z]*\[[^\]]+\]$/,
       /^[a-zA-Z]+\{[^}]+\}$/,
@@ -253,10 +262,12 @@ export class UcumService {
    * Fallback compatibility check using dimension groups
    */
   private fallbackCompatibilityCheck(unit1: string, unit2: string): boolean {
+    // Note: Includes both 'u' (ASCII) and 'μ' (\u03BC Unicode) for micro prefix
+    const micro = UcumService.MICRO_SYMBOL;
     const dimensionGroups: Record<string, string[]> = {
-      length: ["m", "cm", "mm", "um", "μm", "nm", "km", "[in_i]", "[ft_i]", "[mi_i]"],
-      mass: ["kg", "g", "mg", "ug", "μg", "ng", "pg", "[lb_av]", "[oz_av]"],
-      volume: ["L", "l", "dL", "dl", "mL", "ml", "uL", "μL", "[gal_us]", "[pt_us]"],
+      length: ["m", "cm", "mm", "um", `${micro}m`, "nm", "km", "[in_i]", "[ft_i]", "[mi_i]"],
+      mass: ["kg", "g", "mg", "ug", `${micro}g`, "ng", "pg", "[lb_av]", "[oz_av]"],
+      volume: ["L", "l", "dL", "dl", "mL", "ml", "uL", `${micro}L`, "[gal_us]", "[pt_us]"],
       time: ["s", "min", "h", "d", "wk", "mo", "a"],
       temperature: ["Cel", "K", "[degF]"],
       pressure: ["Pa", "kPa", "bar", "mm[Hg]", "[psi]"],
