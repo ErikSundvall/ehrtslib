@@ -867,6 +867,11 @@ export abstract class Ordered extends Any {
  * Type representing minimal interface of built-in String type, as used to represent textual data in any natural or formal language.
  */
 export class String extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("STRING", String);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1093,6 +1098,11 @@ export abstract class Ordered_Numeric extends Ordered {
  * Type representing minimal interface of built-in Integer type.
  */
 export class Integer extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("INTEGER", Integer);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1241,6 +1251,11 @@ export class Integer extends Ordered_Numeric {
  * Type used to represent double-precision decimal numbers. Corresponds to a double-precision floating point value in most languages.
  */
 export class Double extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("DOUBLE", Double);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1368,6 +1383,11 @@ export class Double extends Ordered_Numeric {
  * Type representing minimal interface of built-in Octet type.
  */
 export class Octet extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("OCTET", Octet);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1428,6 +1448,11 @@ export class Octet extends Ordered {
  * Type representing minimal interface of built-in Character type.
  */
 export class Character extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("CHARACTER", Character);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1487,6 +1512,11 @@ export class Character extends Ordered {
  * Type representing minimal interface of built-in Boolean type.
  */
 export class Boolean extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("BOOLEAN", Boolean);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1601,6 +1631,11 @@ export class Boolean extends Any {
  * Type used to represent decimal numbers. Corresponds to a single-precision floating point value in most languages.
  */
 export class Real extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("REAL", Real);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1728,6 +1763,11 @@ export class Real extends Ordered_Numeric {
  * Type representing minimal interface of built-in Integer64 type.
  */
 export class Integer64 extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("INTEGER64", Integer64);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1871,6 +1911,11 @@ export class Integer64 extends Ordered_Numeric {
 }
 
 export class Byte extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("BYTE", Byte);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -2221,6 +2266,11 @@ export abstract class Iso8601_type extends Temporal {
  * * the time \`24:00:00\` is not allowed, since it would mean the date was really on the next day.
  */
 export class Iso8601_date_time extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DATE_TIME", Iso8601_date_time);
+  }
+
   /**
    * Extract the year part of the date as an Integer.
    *
@@ -2639,6 +2689,11 @@ export class Iso8601_date_time extends Iso8601_type {
  * NOTE: two deviations from ISO 8601 are supported, the first, to allow a negative sign, and the second allowing the 'W' designator to be mixed with other designators.
  */
 export class Iso8601_duration extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DURATION", Iso8601_duration);
+  }
+
   /**
    * Helper method to convert openEHR duration with weeks to standard ISO 8601.
    * OpenEHR allows weeks to be mixed with other designators, but Temporal API doesn't.
@@ -3060,6 +3115,11 @@ export class Iso8601_duration extends Iso8601_type {
  * NOTE: A small deviation to the ISO 8601:2004 standard in this class is that the time \`24:00:00\` is not allowed, for consistency with \`Iso8601_date_time\`.
  */
 export class Iso8601_time extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_TIME", Iso8601_time);
+  }
+
   /**
    * Extract the hour part of the date/time as an Integer.
    * @returns Result value
@@ -3331,6 +3391,11 @@ export class Iso8601_time extends Iso8601_type {
  * See \`Time_definitions._valid_iso8601_date()_\` for validity.
  */
 export class Iso8601_date extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DATE", Iso8601_date);
+  }
+
   /**
    * Extract the year part of the date as an Integer.
    *
@@ -3968,8 +4033,13 @@ export class Proper_interval<T extends Ordered> extends Interval<T> {
  * An Interval of Integer, used to represent multiplicity, cardinality and optionality in models.
  */
 export class Multiplicity_interval extends Proper_interval<Integer> {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("MULTIPLICITY_INTERVAL", Multiplicity_interval);
+  }
+
   /**
-   * True if this interval imposes no constraints, i.e. is set to \`0..*\`.
+   * True if this interval imposes no constraints, i.e. is set to `0..*`.
    * @returns Result value
    */
   is_open(): Boolean {
@@ -4134,6 +4204,11 @@ export class Cardinality {
  * Primitive type representing a standalone reference to a terminology concept, in the form of a terminology identifier, optional version, and a code or code string from the terminology.
  */
 export class Terminology_code extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("TERMINOLOGY_CODE", Terminology_code);
+  }
+
   /**
    * Internal storage for terminology_id
    * @protected
@@ -4275,6 +4350,11 @@ export class Terminology_code extends Any {
  * Leaf type representing a standalone term from a terminology, which consists of the term text and the code, i.e. a concept reference.
  */
 export class Terminology_term extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("TERMINOLOGY_TERM", Terminology_term);
+  }
+
   /**
    * Reference to the terminology concept formally representing this term.
    */
@@ -5072,8 +5152,13 @@ export abstract class Comparable {
  * * \`Z\` is a literal meaning UTC (modern replacement for GMT), i.e. timezone \`+0000\`
  */
 export class Iso8601_timezone extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_TIMEZONE", Iso8601_timezone);
+  }
+
   /**
-   * Extract the hour part of timezone, as an Integer in the range \`00 - 14\`.
+   * Extract the hour part of timezone, as an Integer in the range `00 - 14`.
    * @returns Result value
    */
   hour(): Integer {
@@ -6134,35 +6219,14 @@ export class RESOURCE_ANNOTATIONS {
 }
 
 // ============================================================================
-// Type Registry Initialization
+// Type Registry Note
 // ============================================================================
-// Register all concrete types from openehr_base for dynamic instantiation.
-// This enables instance_of() to create instances by type name.
-// Note: Only non-abstract classes with no-arg constructors can be registered.
-// Additional types from openehr_rm, openehr_am, etc. should be registered
-// in their respective modules.
-
-// Primitive types (these properly extend Any via Ordered hierarchy)
-registerType("String", String);
-registerType("Integer", Integer);
-registerType("Double", Double);
-registerType("Boolean", Boolean);
-registerType("Real", Real);
-registerType("Integer64", Integer64);
-registerType("Octet", Octet);
-registerType("Character", Character);
-registerType("Byte", Byte);
-
-// Terminology types (properly extends Any)
-registerType("Terminology_code", Terminology_code);
-registerType("Terminology_term", Terminology_term);
-
-// Multiplicity types (Multiplicity_interval extends Proper_interval which extends Interval<T> which extends Any)
-registerType("Multiplicity_interval", Multiplicity_interval);
-
-// ISO 8601 date/time types
-registerType("Iso8601_date", Iso8601_date);
-registerType("Iso8601_time", Iso8601_time);
-registerType("Iso8601_date_time", Iso8601_date_time);
-registerType("Iso8601_duration", Iso8601_duration);
-registerType("Iso8601_timezone", Iso8601_timezone);
+// Type registrations are now lazy - they use static initialization blocks
+// within each class definition (e.g., `static { TYPE_REGISTRY.set(...) }`).
+// This approach provides several benefits:
+// 1. Tree-shaking: Unused types won't add their registration code to bundles
+// 2. Efficient runtime: Registration only happens when the class is actually loaded
+// 3. No module-level side effects: Better for ES module optimization
+//
+// See the Optimization Strategy section in tasks/design-alternatives-remaining-base-methods.md
+// for more details on this approach.

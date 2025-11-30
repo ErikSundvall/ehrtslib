@@ -437,7 +437,7 @@ Modern bundlers (esbuild, Rollup, Webpack with terser) perform tree-shaking to e
 
 **Best for Tree-Shaking: Alternative A** - With careful design, registrations can be co-located with type definitions, so unused types won't register themselves.
 
-**Optimization Strategy for Alternative A:**
+**Optimization Strategy for Alternative A (✅ IMPLEMENTED):**
 ```typescript
 // Instead of central registration:
 // registerType("DV_TEXT", DV_TEXT);  // Side effect at module load
@@ -451,7 +451,14 @@ export class DV_TEXT extends DV_ENCAPSULATED {
 }
 ```
 
-Or use a decorator pattern that bundles can optimize:
+This approach is now implemented in `enhanced/openehr_base.ts` for all registered types.
+The static initialization block approach was chosen over decorators because:
+1. **Zero runtime overhead** - No decorator function calls
+2. **Native JavaScript** - Uses ES2022 static blocks, widely supported
+3. **Simpler** - No need for decorator infrastructure
+4. **Direct** - Registration happens in the class definition itself
+
+Or use a decorator pattern that bundles can optimize (not implemented):
 ```typescript
 @registeredType("DV_TEXT")
 export class DV_TEXT extends DV_ENCAPSULATED { ... }
