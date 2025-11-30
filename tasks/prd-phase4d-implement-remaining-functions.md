@@ -14,16 +14,21 @@ to provide full functionality for these core packages.
 > any) and create and run associated tests. (Hint: many of the unimplemented pars
 > throw errors saying that they are not yet implemented)
 
-## Current State
+## Current State (Updated 2025-11-30)
 
 Analysis shows the following unimplemented functions:
-- **openehr_base.ts**: ~146 unimplemented functions
-- **openehr_rm.ts**: ~175 unimplemented functions  
-- **openehr_lang.ts**: ~84 unimplemented functions
+- **openehr_base.ts**: 3 unimplemented functions (instance_of, matching, select - intentionally deferred as they require runtime type factories or are abstract)
+- **openehr_rm.ts**: 0 unimplemented functions ✅ COMPLETE
+- **openehr_lang.ts**: 84 unimplemented functions (primarily BMM schema operations)
 - **openehr_am.ts**: ~91 unimplemented functions (not in scope for Phase 4d)
-- **openehr_term.ts**: 0 unimplemented functions (already complete)
+- **openehr_term.ts**: 0 unimplemented functions ✅ COMPLETE
 
-**Total for Phase 4d (BASE, RM, LANG only): ~405 functions**
+**Remaining for Phase 4d: ~84 functions in LANG package**
+
+### Progress Summary
+- BASE package: ✅ Substantially complete (143 of 146 implemented, 98%)
+- RM package: ✅ Complete (all functions implemented)
+- LANG package: 🔄 In progress (0 of 84 implemented, 0%)
 
 ## Goals
 

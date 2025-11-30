@@ -302,8 +302,295 @@ Deno.test("Complete OBSERVATION structure", () => {
   assert(obs.archetype_node_id === "openEHR-EHR-OBSERVATION.blood_pressure.v1");
 });
 
+// ===== Dual Approach Pattern Tests =====
+// Tests for the dual getter/setter pattern that allows both primitive and wrapper access
+
+Deno.test("Dual Approach - DV_TEXT accepts primitive string and returns primitive", () => {
+  const text = new openehr_rm.DV_TEXT();
+  
+  // Set with primitive string
+  text.value = "Patient is well";
+  
+  // Get returns primitive
+  assertEquals(typeof text.value, "string");
+  assertEquals(text.value, "Patient is well");
+});
+
+Deno.test("Dual Approach - DV_TEXT accepts wrapper and returns primitive", () => {
+  const text = new openehr_rm.DV_TEXT();
+  
+  // Set with wrapper
+  text.value = openehr_base.String.from("Wrapped value");
+  
+  // Get still returns primitive
+  assertEquals(typeof text.value, "string");
+  assertEquals(text.value, "Wrapped value");
+});
+
+Deno.test("Dual Approach - DV_TEXT $value returns wrapper with methods", () => {
+  const text = new openehr_rm.DV_TEXT();
+  text.value = "Test value";
+  
+  // $value returns wrapper
+  const wrapper = text.$value;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+  assertEquals(wrapper.value, "Test value");
+  
+  // Can call wrapper methods
+  const isEmpty = wrapper.is_empty();
+  assertEquals(isEmpty.value, false);
+});
+
+Deno.test("Dual Approach - DV_QUANTITY precision with primitive number", () => {
+  const quantity = new openehr_rm.DV_QUANTITY();
+  
+  // Set with primitive number
+  quantity.precision = 2;
+  
+  // Get returns primitive
+  assertEquals(typeof quantity.precision, "number");
+  assertEquals(quantity.precision, 2);
+});
+
+Deno.test("Dual Approach - DV_QUANTITY precision with Integer wrapper", () => {
+  const quantity = new openehr_rm.DV_QUANTITY();
+  
+  // Set with wrapper
+  quantity.precision = openehr_base.Integer.from(3);
+  
+  // Get returns primitive
+  assertEquals(typeof quantity.precision, "number");
+  assertEquals(quantity.precision, 3);
+});
+
+Deno.test("Dual Approach - DV_QUANTITY $precision returns Integer wrapper", () => {
+  const quantity = new openehr_rm.DV_QUANTITY();
+  quantity.precision = 2;
+  
+  // $precision returns wrapper
+  const wrapper = quantity.$precision;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.Integer);
+  assertEquals(wrapper.value, 2);
+});
+
+Deno.test("Dual Approach - DV_QUANTITY units with primitive string", () => {
+  const quantity = new openehr_rm.DV_QUANTITY();
+  
+  // Set with primitive string
+  quantity.units = "mm[Hg]";
+  
+  // Get returns primitive
+  assertEquals(typeof quantity.units, "string");
+  assertEquals(quantity.units, "mm[Hg]");
+});
+
+Deno.test("Dual Approach - DV_QUANTITY $units returns String wrapper", () => {
+  const quantity = new openehr_rm.DV_QUANTITY();
+  quantity.units = "mm[Hg]";
+  
+  // $units returns wrapper
+  const wrapper = quantity.$units;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+  assertEquals(wrapper.value, "mm[Hg]");
+});
+
+Deno.test("Dual Approach - DV_BOOLEAN value with primitive boolean", () => {
+  const bool = new openehr_rm.DV_BOOLEAN();
+  
+  // Set with primitive boolean
+  bool.value = true;
+  
+  // Get returns primitive
+  assertEquals(typeof bool.value, "boolean");
+  assertEquals(bool.value, true);
+});
+
+Deno.test("Dual Approach - DV_BOOLEAN value with Boolean wrapper", () => {
+  const bool = new openehr_rm.DV_BOOLEAN();
+  
+  // Set with wrapper
+  bool.value = openehr_base.Boolean.from(false);
+  
+  // Get returns primitive
+  assertEquals(typeof bool.value, "boolean");
+  assertEquals(bool.value, false);
+});
+
+Deno.test("Dual Approach - DV_BOOLEAN $value returns Boolean wrapper", () => {
+  const bool = new openehr_rm.DV_BOOLEAN();
+  bool.value = true;
+  
+  // $value returns wrapper
+  const wrapper = bool.$value;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.Boolean);
+  assertEquals(wrapper.value, true);
+});
+
+Deno.test("Dual Approach - LOCATABLE archetype_node_id with primitive", () => {
+  const element = new openehr_rm.ELEMENT();
+  
+  // Set with primitive string
+  element.archetype_node_id = "at0001";
+  
+  // Get returns primitive
+  assertEquals(typeof element.archetype_node_id, "string");
+  assertEquals(element.archetype_node_id, "at0001");
+});
+
+Deno.test("Dual Approach - LOCATABLE $archetype_node_id returns wrapper", () => {
+  const element = new openehr_rm.ELEMENT();
+  element.archetype_node_id = "at0001";
+  
+  // $archetype_node_id returns wrapper
+  const wrapper = element.$archetype_node_id;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+  assertEquals(wrapper.value, "at0001");
+});
+
+Deno.test("Dual Approach - CODE_PHRASE code_string with primitive", () => {
+  const codePhrase = new openehr_rm.CODE_PHRASE();
+  
+  // Set with primitive string
+  codePhrase.code_string = "at0005";
+  
+  // Get returns primitive
+  assertEquals(typeof codePhrase.code_string, "string");
+  assertEquals(codePhrase.code_string, "at0005");
+});
+
+Deno.test("Dual Approach - CODE_PHRASE $code_string returns wrapper", () => {
+  const codePhrase = new openehr_rm.CODE_PHRASE();
+  codePhrase.code_string = "at0005";
+  
+  // $code_string returns wrapper
+  const wrapper = codePhrase.$code_string;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+  assertEquals(wrapper.value, "at0005");
+});
+
+Deno.test("Dual Approach - handles undefined values correctly", () => {
+  const text = new openehr_rm.DV_TEXT();
+  
+  // Initially undefined
+  assertEquals(text.value, undefined);
+  assertEquals(text.$value, undefined);
+  
+  // Set a value
+  text.value = "test";
+  assertEquals(text.value, "test");
+  assert(text.$value !== undefined);
+  
+  // Set back to undefined
+  text.value = undefined;
+  assertEquals(text.value, undefined);
+  assertEquals(text.$value, undefined);
+});
+
+Deno.test("Dual Approach - handles null values correctly", () => {
+  const text = new openehr_rm.DV_TEXT();
+  
+  // Set a value first
+  text.value = "test";
+  assertEquals(text.value, "test");
+  
+  // Setting null should clear the value
+  text.value = null as unknown as string;
+  assertEquals(text.value, undefined);
+  assertEquals(text.$value, undefined);
+});
+
+Deno.test("Dual Approach - DV_DATE_TIME value with ISO string", () => {
+  const dt = new openehr_rm.DV_DATE_TIME();
+  
+  // Set with primitive string
+  dt.value = "2024-03-15T14:30:00";
+  
+  // Get returns primitive
+  assertEquals(typeof dt.value, "string");
+  assertEquals(dt.value, "2024-03-15T14:30:00");
+});
+
+Deno.test("Dual Approach - DV_DATE_TIME $value returns wrapper", () => {
+  const dt = new openehr_rm.DV_DATE_TIME();
+  dt.value = "2024-03-15T14:30:00";
+  
+  // $value returns wrapper
+  const wrapper = dt.$value;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+  assertEquals(wrapper.value, "2024-03-15T14:30:00");
+});
+
+Deno.test("Dual Approach - DV_IDENTIFIER id with primitive", () => {
+  const identifier = new openehr_rm.DV_IDENTIFIER();
+  
+  // Set with primitive string
+  identifier.id = "12345";
+  
+  // Get returns primitive
+  assertEquals(typeof identifier.id, "string");
+  assertEquals(identifier.id, "12345");
+});
+
+Deno.test("Dual Approach - DV_IDENTIFIER issuer with primitive", () => {
+  const identifier = new openehr_rm.DV_IDENTIFIER();
+  
+  // Set issuer
+  identifier.issuer = "Hospital A";
+  
+  // Get returns primitive
+  assertEquals(typeof identifier.issuer, "string");
+  assertEquals(identifier.issuer, "Hospital A");
+  
+  // $issuer returns wrapper
+  const wrapper = identifier.$issuer;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+});
+
+Deno.test("Dual Approach - DV_PARSABLE formalism with primitive", () => {
+  const parsable = new openehr_rm.DV_PARSABLE();
+  
+  // Set formalism
+  parsable.formalism = "application/json";
+  
+  // Get returns primitive
+  assertEquals(typeof parsable.formalism, "string");
+  assertEquals(parsable.formalism, "application/json");
+  
+  // $formalism returns wrapper
+  const wrapper = parsable.$formalism;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof openehr_base.String);
+});
+
+Deno.test("Dual Approach - wrapper methods are accessible via $ getter", () => {
+  const text = new openehr_rm.DV_TEXT();
+  text.value = "";
+  
+  // Access wrapper method via $ getter
+  const wrapper = text.$value;
+  assert(wrapper !== undefined);
+  
+  // Test is_empty() method
+  const isEmpty = wrapper.is_empty();
+  assertEquals(isEmpty.value, true);
+  
+  // Change value
+  text.value = "not empty";
+  const notEmptyWrapper = text.$value;
+  assert(notEmptyWrapper !== undefined);
+  
+  const isNowEmpty = notEmptyWrapper.is_empty();
+  assertEquals(isNowEmpty.value, false);
+});
+
 console.log("\n✅ RM test suite structure created");
-console.log(
-  "Note: Most tests are commented out pending Phase 4 implementation",
-);
-console.log("Tests will be activated as class behaviors are implemented\n");
+console.log("Includes comprehensive dual approach pattern tests");
+console.log("Tests verify both primitive and wrapper access patterns\n");
