@@ -411,3 +411,88 @@ These approaches align with:
 4. **Add type registry** - for instance_of
 5. **Add tests** - verify all implementations
 6. **Update LANG package** - use newly implemented methods
+
+---
+
+## Tree-Shaking Analysis
+
+Modern bundlers (esbuild, Rollup, Webpack with terser) perform tree-shaking to eliminate unused code from production bundles. This section analyzes how each design alternative affects tree-shaking.
+
+### General Principles for Tree-Shaking
+
+1. **ES Module exports are tree-shakeable** - Named exports that aren't imported are eliminated
+2. **Side effects prevent tree-shaking** - Code that executes at module load time cannot be removed
+3. **Dynamic code prevents tree-shaking** - Runtime type lookups, eval, etc. cannot be analyzed statically
+4. **Class methods are NOT individually tree-shaken** - If a class is used, all its methods are included
+
+### Analysis by Method
+
+#### `instance_of` Alternatives
+
+| Alternative | Tree-Shakeable? | Notes |
+|-------------|-----------------|-------|
+| A: Registry-Based Factory | ✅ Partially | Registration calls at module load are side effects, but unused types won't be registered if their modules aren't imported |
+| B: Module Reflection | ❌ No | Spreads all modules together, pulling in everything |
+| C: Abstract Factory Pattern | ✅ Partially | Factory classes can be tree-shaken if not imported |
+
+**Best for Tree-Shaking: Alternative A** - With careful design, registrations can be co-located with type definitions, so unused types won't register themselves.
+
+**Optimization Strategy for Alternative A (✅ IMPLEMENTED):**
+```typescript
+// Instead of central registration:
+// registerType("DV_TEXT", DV_TEXT);  // Side effect at module load
+
+// Use lazy registration in type modules:
+export class DV_TEXT extends DV_ENCAPSULATED {
+  static {
+    // Static initialization block - only runs if class is used
+    TYPE_REGISTRY.set("DV_TEXT", DV_TEXT);
+  }
+}
+```
+
+This approach is now implemented in `enhanced/openehr_base.ts` for all registered types.
+The static initialization block approach was chosen over decorators because:
+1. **Zero runtime overhead** - No decorator function calls
+2. **Native JavaScript** - Uses ES2022 static blocks, widely supported
+3. **Simpler** - No need for decorator infrastructure
+4. **Direct** - Registration happens in the class definition itself
+
+Or use a decorator pattern that bundles can optimize (not implemented):
+```typescript
+@registeredType("DV_TEXT")
+export class DV_TEXT extends DV_ENCAPSULATED { ... }
+```
+
+#### `matching` and `select` Alternatives
+
+| Alternative | Tree-Shakeable? | Notes |
+|-------------|-----------------|-------|
+| A: Implement in Subclasses | ✅ Yes | Methods are part of class, tree-shaken with class |
+| B: Default Implementation + Iterator | ✅ Yes | Same behavior as A |
+| C: Use Array.filter()/find() | ✅ Yes | Same behavior as A |
+
+**All alternatives are equivalent for tree-shaking** since they're instance methods on classes. The choice should be based on:
+- Code maintainability (A has duplication, B/C are DRY)
+- Performance (A can be optimized per data structure)
+- Type correctness (A provides best typing)
+
+### Recommendations for Tree-Shaking Optimization
+
+1. **Avoid module-level side effects** - Don't execute code at import time
+2. **Use ES modules exclusively** - CommonJS is harder to tree-shake
+3. **Mark package.json with `"sideEffects": false`** or list only files with side effects
+4. **Lazy type registration** - Only register types when they're actually instantiated
+5. **Consider dynamic imports** - For large optional features
+
+### Impact on Bundle Size
+
+With **Alternative A (Registry-Based Factory)** and proper lazy registration:
+- Applications using only `openehr_base` won't include RM or LANG types
+- Type registrations only occur for imported modules
+- Estimated reduction: 60-80% for basic-only usage vs importing everything
+
+With **Alternative B (Module Reflection)**:
+- All types are always included regardless of usage
+- No bundle size optimization possible
+- Not recommended for library consumers

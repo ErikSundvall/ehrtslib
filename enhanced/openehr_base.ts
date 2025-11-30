@@ -26,6 +26,37 @@ type T = any;
 // Type alias for function predicates used in container operations
 type Operation<T = any> = (v: T) => Boolean;
 
+// Type registry for dynamic type instantiation via instance_of()
+// Maps uppercase type names to their constructors
+const TYPE_REGISTRY: Map<string, new () => Any> = new Map();
+
+/**
+ * Register a type for dynamic instantiation via instance_of().
+ * Types must be registered before they can be created dynamically.
+ * @param name - The type name (case-insensitive)
+ * @param constructor - The constructor function for the type
+ */
+export function registerType(name: string, constructor: new () => Any): void {
+  TYPE_REGISTRY.set(name.toUpperCase(), constructor);
+}
+
+/**
+ * Check if a type is registered for dynamic instantiation.
+ * @param name - The type name (case-insensitive)
+ * @returns True if the type is registered
+ */
+export function isTypeRegistered(name: string): boolean {
+  return TYPE_REGISTRY.has(name.toUpperCase());
+}
+
+/**
+ * Get all registered type names.
+ * @returns Array of registered type names (uppercase)
+ */
+export function getRegisteredTypes(): string[] {
+  return [...TYPE_REGISTRY.keys()];
+}
+
 /**
  * Abstract ancestor class for all other classes. Usually maps to a type like \`Any\` or \`Object\` in an object-oriented technology. Defined here to provide value and reference equality semantics.
  */
@@ -49,13 +80,24 @@ export abstract class Any {
 
   /**
    * Create new instance of a type.
-   * @param a_type - Parameter
-   * @returns Result value
+   * Uses the type registry to look up constructors by name.
+   * Types must be registered using registerType() before they can be instantiated.
+   * 
+   * **Security Note:** This method creates instances dynamically based on type name.
+   * Do not use with untrusted input as it could instantiate arbitrary registered types.
+   * Only use with type names from trusted sources (e.g., parsed from validated openEHR data).
+   * 
+   * @param a_type - The type name as a String
+   * @returns A new instance of the specified type
+   * @throws Error if the type is not registered
    */
   instance_of(a_type: String): Any {
-    // This is a factory method that would need runtime type information
-    // For now, just throw an error
-    throw new Error("Method instance_of not yet implemented.");
+    const typeName = a_type?.value?.toUpperCase() || "";
+    const constructor = TYPE_REGISTRY.get(typeName);
+    if (!constructor) {
+      throw new Error(`Unknown type: ${a_type?.value}. Type must be registered using registerType() first.`);
+    }
+    return new constructor();
   }
 
   /**
@@ -104,40 +146,35 @@ export abstract class Container<T extends Any> extends Any {
   abstract is_empty(): Boolean;
 
   /**
-   * Existential quantifier applied to container, taking one agent argument \`_test_\` whose signature is \`(v:T): Boolean\`.
+   * Existential quantifier applied to container, taking one agent argument `_test_` whose signature is `(v:T): Boolean`.
    * @param test - Parameter
    * @returns Result value
    */
   abstract there_exists(test: Operation<T>): Boolean;
 
   /**
-   * Universal quantifier applied to container, taking one agent argument \`_test_\` whose signature is \`(v:T): Boolean\`.
+   * Universal quantifier applied to container, taking one agent argument `_test_` whose signature is `(v:T): Boolean`.
    * @param test - Parameter
    * @returns Result value
    */
   abstract for_all(test: Operation<T>): Boolean;
 
   /**
-   * Return a List all items matching the predicate function \`_test_\` which has signature \`(v:T): Boolean\`. If no matches, an empty List is returned.
-   * @param test - Parameter
-   * @returns Result value
+   * Return a List of all items matching the predicate function `_test_` which has signature `(v:T): Boolean`. 
+   * If no matches, an empty List is returned.
+   * Note: Return type corrected from BMM specification's `T` to `List<T>` to match specification intent.
+   * @param test - Predicate function to test each item
+   * @returns List of matching items
    */
-  matching(test: Operation<T>): T {
-    // TODO: Implement matching behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method matching not yet implemented.");
-  }
+  abstract matching(test: Operation<T>): List<T>;
 
   /**
-   * Return first item matching the predicate function \`_test_\` which has signature \`(v:T): Boolean\`, or Void if no match.
-   * @param test - Parameter
-   * @returns Result value
+   * Return first item matching the predicate function `_test_` which has signature `(v:T): Boolean`, or undefined if no match.
+   * Note: Return type corrected to include `undefined` for TypeScript compatibility.
+   * @param test - Predicate function to test each item
+   * @returns First matching item or undefined
    */
-  select(test: Operation<T>): T {
-    // TODO: Implement select behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method select not yet implemented.");
-  }
+  abstract select(test: Operation<T>): T | undefined;
 }
 
 /**
@@ -266,6 +303,41 @@ export class Hash<K extends Ordered, V> extends Container<K> {
   put(key: K, value: V): void {
     const keyStr = this._keyToString(key);
     this._map.set(keyStr, { key, value });
+  }
+
+  /**
+   * Return a List of all keys matching the predicate function.
+   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so matching operates on keys.
+   * To search values, use item() to retrieve values for matched keys.
+   * @param test - Predicate function with signature (v: K) => Boolean
+   * @returns List of matching keys, empty list if no matches
+   */
+  override matching(test: Operation<K>): List<K> {
+    const results = new List<K>();
+    for (const entry of this._map.values()) {
+      const testResult = test(entry.key);
+      if (testResult?.value === true) {
+        results.append(entry.key);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first key matching the predicate function, or undefined if no match.
+   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so select operates on keys.
+   * To retrieve the value, call item() with the returned key.
+   * @param test - Predicate function with signature (v: K) => Boolean
+   * @returns First matching key or undefined
+   */
+  override select(test: Operation<K>): K | undefined {
+    for (const entry of this._map.values()) {
+      const testResult = test(entry.key);
+      if (testResult?.value === true) {
+        return entry.key;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -444,6 +516,37 @@ export class List<T extends Any> extends Container<T> {
     }
     return new Boolean(true);
   }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
+  }
 }
 
 /**
@@ -542,6 +645,37 @@ export class Set<T extends Any> extends Container<T> {
       }
     }
     return new Boolean(true);
+  }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
   }
 }
 
@@ -651,6 +785,37 @@ export class Array<T extends Any> extends Container<T> {
   append(v: T): void {
     this._items.push(v);
   }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
+  }
 }
 
 /**
@@ -702,6 +867,11 @@ export abstract class Ordered extends Any {
  * Type representing minimal interface of built-in String type, as used to represent textual data in any natural or formal language.
  */
 export class String extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("STRING", String);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -928,6 +1098,11 @@ export abstract class Ordered_Numeric extends Ordered {
  * Type representing minimal interface of built-in Integer type.
  */
 export class Integer extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("INTEGER", Integer);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1076,6 +1251,11 @@ export class Integer extends Ordered_Numeric {
  * Type used to represent double-precision decimal numbers. Corresponds to a double-precision floating point value in most languages.
  */
 export class Double extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("DOUBLE", Double);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1203,6 +1383,11 @@ export class Double extends Ordered_Numeric {
  * Type representing minimal interface of built-in Octet type.
  */
 export class Octet extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("OCTET", Octet);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1263,6 +1448,11 @@ export class Octet extends Ordered {
  * Type representing minimal interface of built-in Character type.
  */
 export class Character extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("CHARACTER", Character);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1322,6 +1512,11 @@ export class Character extends Ordered {
  * Type representing minimal interface of built-in Boolean type.
  */
 export class Boolean extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("BOOLEAN", Boolean);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1436,6 +1631,11 @@ export class Boolean extends Any {
  * Type used to represent decimal numbers. Corresponds to a single-precision floating point value in most languages.
  */
 export class Real extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("REAL", Real);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1563,6 +1763,11 @@ export class Real extends Ordered_Numeric {
  * Type representing minimal interface of built-in Integer64 type.
  */
 export class Integer64 extends Ordered_Numeric {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("INTEGER64", Integer64);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -1706,6 +1911,11 @@ export class Integer64 extends Ordered_Numeric {
 }
 
 export class Byte extends Ordered {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("BYTE", Byte);
+  }
+
   /**
    * The underlying primitive value.
    */
@@ -2056,6 +2266,11 @@ export abstract class Iso8601_type extends Temporal {
  * * the time \`24:00:00\` is not allowed, since it would mean the date was really on the next day.
  */
 export class Iso8601_date_time extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DATE_TIME", Iso8601_date_time);
+  }
+
   /**
    * Extract the year part of the date as an Integer.
    *
@@ -2474,6 +2689,11 @@ export class Iso8601_date_time extends Iso8601_type {
  * NOTE: two deviations from ISO 8601 are supported, the first, to allow a negative sign, and the second allowing the 'W' designator to be mixed with other designators.
  */
 export class Iso8601_duration extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DURATION", Iso8601_duration);
+  }
+
   /**
    * Helper method to convert openEHR duration with weeks to standard ISO 8601.
    * OpenEHR allows weeks to be mixed with other designators, but Temporal API doesn't.
@@ -2895,6 +3115,11 @@ export class Iso8601_duration extends Iso8601_type {
  * NOTE: A small deviation to the ISO 8601:2004 standard in this class is that the time \`24:00:00\` is not allowed, for consistency with \`Iso8601_date_time\`.
  */
 export class Iso8601_time extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_TIME", Iso8601_time);
+  }
+
   /**
    * Extract the hour part of the date/time as an Integer.
    * @returns Result value
@@ -3166,6 +3391,11 @@ export class Iso8601_time extends Iso8601_type {
  * See \`Time_definitions._valid_iso8601_date()_\` for validity.
  */
 export class Iso8601_date extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_DATE", Iso8601_date);
+  }
+
   /**
    * Extract the year part of the date as an Integer.
    *
@@ -3803,8 +4033,13 @@ export class Proper_interval<T extends Ordered> extends Interval<T> {
  * An Interval of Integer, used to represent multiplicity, cardinality and optionality in models.
  */
 export class Multiplicity_interval extends Proper_interval<Integer> {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("MULTIPLICITY_INTERVAL", Multiplicity_interval);
+  }
+
   /**
-   * True if this interval imposes no constraints, i.e. is set to \`0..*\`.
+   * True if this interval imposes no constraints, i.e. is set to `0..*`.
    * @returns Result value
    */
   is_open(): Boolean {
@@ -3969,6 +4204,11 @@ export class Cardinality {
  * Primitive type representing a standalone reference to a terminology concept, in the form of a terminology identifier, optional version, and a code or code string from the terminology.
  */
 export class Terminology_code extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("TERMINOLOGY_CODE", Terminology_code);
+  }
+
   /**
    * Internal storage for terminology_id
    * @protected
@@ -4110,6 +4350,11 @@ export class Terminology_code extends Any {
  * Leaf type representing a standalone term from a terminology, which consists of the term text and the code, i.e. a concept reference.
  */
 export class Terminology_term extends Any {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("TERMINOLOGY_TERM", Terminology_term);
+  }
+
   /**
    * Reference to the terminology concept formally representing this term.
    */
@@ -4907,8 +5152,13 @@ export abstract class Comparable {
  * * \`Z\` is a literal meaning UTC (modern replacement for GMT), i.e. timezone \`+0000\`
  */
 export class Iso8601_timezone extends Iso8601_type {
+  // Lazy type registration - only runs when class is actually used
+  static {
+    TYPE_REGISTRY.set("ISO8601_TIMEZONE", Iso8601_timezone);
+  }
+
   /**
-   * Extract the hour part of timezone, as an Integer in the range \`00 - 14\`.
+   * Extract the hour part of timezone, as an Integer in the range `00 - 14`.
    * @returns Result value
    */
   hour(): Integer {
@@ -5967,3 +6217,16 @@ export class RESOURCE_ANNOTATIONS {
    */
   documentation?: undefined;
 }
+
+// ============================================================================
+// Type Registry Note
+// ============================================================================
+// Type registrations are now lazy - they use static initialization blocks
+// within each class definition (e.g., `static { TYPE_REGISTRY.set(...) }`).
+// This approach provides several benefits:
+// 1. Tree-shaking: Unused types won't add their registration code to bundles
+// 2. Efficient runtime: Registration only happens when the class is actually loaded
+// 3. No module-level side effects: Better for ES module optimization
+//
+// See the Optimization Strategy section in tasks/design-alternatives-remaining-base-methods.md
+// for more details on this approach.

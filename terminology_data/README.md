@@ -8,6 +8,7 @@ This directory contains the official openEHR terminology and code set definition
 - `openehr_terminology_es.xml` - Spanish terminology
 - `openehr_terminology_pt.xml` - Portuguese terminology
 - `openehr_external_terminologies.xml` - External code sets (ISO countries, languages, etc.)
+- `PropertyUnitData.xml` - Property and unit data for UCUM (Unified Code for Units of Measure)
 
 ## Source
 
