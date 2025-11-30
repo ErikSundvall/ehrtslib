@@ -131,7 +131,8 @@ export class UcumService {
     }
 
     try {
-      const result = this.ucumUtils.convertUnitTo(fromUnit, toUnit, value);
+      // Note: ucum-lhc API order is convertUnitTo(fromUnit, value, toUnit)
+      const result = this.ucumUtils.convertUnitTo(fromUnit, value, toUnit);
       return {
         status: result.status === "succeeded" ? "succeeded" : "failed",
         toVal: result.toVal,
@@ -162,7 +163,8 @@ export class UcumService {
     }
 
     try {
-      const result = this.ucumUtils.convertUnitTo(unit1, unit2, 1);
+      // Note: ucum-lhc API order is convertUnitTo(fromUnit, value, toUnit)
+      const result = this.ucumUtils.convertUnitTo(unit1, 1, unit2);
       return result.status === "succeeded";
     } catch {
       return false;
@@ -187,9 +189,33 @@ export class UcumService {
     try {
       const result = this.ucumUtils.convertToBaseUnits(unitStr, value);
       if (result.status === "succeeded") {
+        // The ucum-lhc library returns magnitude and unitToExp
+        // unitToExp is an object like {"m": 1, "s": -2} representing m/s^2
+        const unitToExp = result.unitToExp || {};
+        const baseUnitParts: string[] = [];
+
+        // Build UCUM-style unit string from exponents
+        for (const [unit, exp] of Object.entries(unitToExp)) {
+          const exponent = exp as number;
+          if (exponent === 1) {
+            baseUnitParts.push(unit);
+          } else if (exponent === -1) {
+            baseUnitParts.push(`/${unit}`);
+          } else if (exponent > 0) {
+            baseUnitParts.push(`${unit}${exponent}`);
+          } else {
+            baseUnitParts.push(`/${unit}${Math.abs(exponent)}`);
+          }
+        }
+
+        // Sort so positive exponents come before negative ones
+        const positives = baseUnitParts.filter((p) => !p.startsWith("/"));
+        const negatives = baseUnitParts.filter((p) => p.startsWith("/"));
+        const baseUnit = positives.join(".") + negatives.join("");
+
         return {
-          value: result.toVal,
-          unit: result.toUnits,
+          value: result.magnitude,
+          unit: baseUnit,
         };
       }
       return null;
