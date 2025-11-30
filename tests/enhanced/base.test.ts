@@ -360,3 +360,175 @@ Deno.test("OBJECT_REF.is_equal compares correctly", () => {
 
   assert(ref1.is_equal(ref2));
 });
+
+// ===== Dual Approach Pattern Tests for BASE =====
+// Tests for the dual getter/setter pattern in BASE package
+
+Deno.test("Dual Approach - String accepts primitive and returns primitive", () => {
+  const str = new OpenEHRString();
+  
+  // Set with primitive
+  str.value = "Hello World";
+  
+  // Get returns primitive
+  assertEquals(typeof str.value, "string");
+  assertEquals(str.value, "Hello World");
+});
+
+Deno.test("Dual Approach - String.from() creates wrapper from primitive", () => {
+  const str = OpenEHRString.from("Test Value");
+  
+  assertEquals(str.value, "Test Value");
+  assert(str instanceof OpenEHRString);
+});
+
+Deno.test("Dual Approach - Integer accepts primitive and returns primitive", () => {
+  const int = new Integer();
+  
+  // Set with primitive
+  int.value = 42;
+  
+  // Get returns primitive
+  assertEquals(typeof int.value, "number");
+  assertEquals(int.value, 42);
+});
+
+Deno.test("Dual Approach - Integer.from() creates wrapper from primitive", () => {
+  const int = Integer.from(100);
+  
+  assertEquals(int.value, 100);
+  assert(int instanceof Integer);
+});
+
+Deno.test("Dual Approach - Boolean accepts primitive and returns primitive", () => {
+  const bool = new OpenEHRBoolean();
+  
+  // Set with primitive
+  bool.value = true;
+  
+  // Get returns primitive
+  assertEquals(typeof bool.value, "boolean");
+  assertEquals(bool.value, true);
+});
+
+Deno.test("Dual Approach - Boolean.from() creates wrapper from primitive", () => {
+  const bool = OpenEHRBoolean.from(false);
+  
+  assertEquals(bool.value, false);
+  assert(bool instanceof OpenEHRBoolean);
+});
+
+Deno.test("Dual Approach - CODE_PHRASE code_string with primitive", () => {
+  const codePhrase = new CODE_PHRASE();
+  
+  // Set with primitive
+  codePhrase.code_string = "at0001";
+  
+  // Get returns primitive
+  assertEquals(typeof codePhrase.code_string, "string");
+  assertEquals(codePhrase.code_string, "at0001");
+});
+
+Deno.test("Dual Approach - CODE_PHRASE $code_string returns wrapper", () => {
+  const codePhrase = new CODE_PHRASE();
+  codePhrase.code_string = "at0001";
+  
+  // $code_string returns wrapper
+  const wrapper = codePhrase.$code_string;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof OpenEHRString);
+  assertEquals(wrapper.value, "at0001");
+});
+
+Deno.test("Dual Approach - OBJECT_REF namespace with primitive", () => {
+  const ref = new OBJECT_REF();
+  
+  // Set with primitive
+  ref.namespace = "local";
+  
+  // Get returns primitive
+  assertEquals(typeof ref.namespace, "string");
+  assertEquals(ref.namespace, "local");
+});
+
+Deno.test("Dual Approach - OBJECT_REF $namespace returns wrapper", () => {
+  const ref = new OBJECT_REF();
+  ref.namespace = "local";
+  
+  // $namespace returns wrapper
+  const wrapper = ref.$namespace;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof OpenEHRString);
+  assertEquals(wrapper.value, "local");
+});
+
+Deno.test("Dual Approach - ARCHETYPE_ID value with primitive", () => {
+  const archetypeId = new ARCHETYPE_ID();
+  
+  // Set with primitive
+  archetypeId.value = "openEHR-EHR-OBSERVATION.test.v1";
+  
+  // Get returns primitive
+  assertEquals(typeof archetypeId.value, "string");
+  assertEquals(archetypeId.value, "openEHR-EHR-OBSERVATION.test.v1");
+});
+
+Deno.test("Dual Approach - ARCHETYPE_ID $value returns wrapper", () => {
+  const archetypeId = new ARCHETYPE_ID();
+  archetypeId.value = "openEHR-EHR-OBSERVATION.test.v1";
+  
+  // $value returns wrapper
+  const wrapper = archetypeId.$value;
+  assert(wrapper !== undefined);
+  assert(wrapper instanceof OpenEHRString);
+  assertEquals(wrapper.value, "openEHR-EHR-OBSERVATION.test.v1");
+});
+
+Deno.test("Dual Approach - TERMINOLOGY_ID value with primitive", () => {
+  const termId = new TERMINOLOGY_ID();
+  
+  // Set with primitive
+  termId.value = "SNOMED-CT";
+  
+  // Get returns primitive
+  assertEquals(typeof termId.value, "string");
+  assertEquals(termId.value, "SNOMED-CT");
+});
+
+Deno.test("Dual Approach - HIER_OBJECT_ID value with primitive", () => {
+  const id = new HIER_OBJECT_ID();
+  
+  // Set with primitive
+  id.value = "550e8400-e29b-41d4-a716-446655440000";
+  
+  // Get returns primitive
+  assertEquals(typeof id.value, "string");
+  assertEquals(id.value, "550e8400-e29b-41d4-a716-446655440000");
+});
+
+Deno.test("Dual Approach - wrapper methods accessible on base types", () => {
+  const str = OpenEHRString.from("");
+  
+  // Test wrapper methods
+  const isEmpty = str.is_empty();
+  assertEquals(isEmpty.value, true);
+  
+  str.value = "not empty";
+  const isNowEmpty = str.is_empty();
+  assertEquals(isNowEmpty.value, false);
+});
+
+Deno.test("Dual Approach - handles undefined values in base types", () => {
+  const str = new OpenEHRString();
+  
+  // Initially undefined
+  assertEquals(str.value, undefined);
+  
+  // Set a value
+  str.value = "test";
+  assertEquals(str.value, "test");
+  
+  // Set back to undefined
+  str.value = undefined;
+  assertEquals(str.value, undefined);
+});
