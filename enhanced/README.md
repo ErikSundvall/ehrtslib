@@ -35,6 +35,13 @@ This directory mirrors the structure of `/generated`:
 - `openehr_term.ts` - Enhanced terminology service with working methods
 - `openehr_lang.ts` - Enhanced language support with complete implementations
 
+Additional service files not in `/generated`:
+
+- `terminology_service.ts` - Terminology service that loads and queries openEHR terminology XML files
+- `property_unit_service.ts` - Property and unit service for UCUM-based unit handling
+- `ucum_service.ts` - UCUM (Unified Code for Units of Measure) validation and conversion service
+- `temporal_polyfill.ts` - Temporal API polyfill for date/time operations
+
 ## Import Guidelines
 
 When editing enhanced files:

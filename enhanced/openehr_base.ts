@@ -26,6 +26,37 @@ type T = any;
 // Type alias for function predicates used in container operations
 type Operation<T = any> = (v: T) => Boolean;
 
+// Type registry for dynamic type instantiation via instance_of()
+// Maps uppercase type names to their constructors
+const TYPE_REGISTRY: Map<string, new () => Any> = new Map();
+
+/**
+ * Register a type for dynamic instantiation via instance_of().
+ * Types must be registered before they can be created dynamically.
+ * @param name - The type name (case-insensitive)
+ * @param constructor - The constructor function for the type
+ */
+export function registerType(name: string, constructor: new () => Any): void {
+  TYPE_REGISTRY.set(name.toUpperCase(), constructor);
+}
+
+/**
+ * Check if a type is registered for dynamic instantiation.
+ * @param name - The type name (case-insensitive)
+ * @returns True if the type is registered
+ */
+export function isTypeRegistered(name: string): boolean {
+  return TYPE_REGISTRY.has(name.toUpperCase());
+}
+
+/**
+ * Get all registered type names.
+ * @returns Array of registered type names (uppercase)
+ */
+export function getRegisteredTypes(): string[] {
+  return [...TYPE_REGISTRY.keys()];
+}
+
 /**
  * Abstract ancestor class for all other classes. Usually maps to a type like \`Any\` or \`Object\` in an object-oriented technology. Defined here to provide value and reference equality semantics.
  */
@@ -49,13 +80,19 @@ export abstract class Any {
 
   /**
    * Create new instance of a type.
-   * @param a_type - Parameter
-   * @returns Result value
+   * Uses the type registry to look up constructors by name.
+   * Types must be registered using registerType() before they can be instantiated.
+   * @param a_type - The type name as a String
+   * @returns A new instance of the specified type
+   * @throws Error if the type is not registered
    */
   instance_of(a_type: String): Any {
-    // This is a factory method that would need runtime type information
-    // For now, just throw an error
-    throw new Error("Method instance_of not yet implemented.");
+    const typeName = a_type?.value?.toUpperCase() || "";
+    const constructor = TYPE_REGISTRY.get(typeName);
+    if (!constructor) {
+      throw new Error(`Unknown type: ${a_type?.value}. Type must be registered using registerType() first.`);
+    }
+    return new constructor();
   }
 
   /**
@@ -104,40 +141,35 @@ export abstract class Container<T extends Any> extends Any {
   abstract is_empty(): Boolean;
 
   /**
-   * Existential quantifier applied to container, taking one agent argument \`_test_\` whose signature is \`(v:T): Boolean\`.
+   * Existential quantifier applied to container, taking one agent argument `_test_` whose signature is `(v:T): Boolean`.
    * @param test - Parameter
    * @returns Result value
    */
   abstract there_exists(test: Operation<T>): Boolean;
 
   /**
-   * Universal quantifier applied to container, taking one agent argument \`_test_\` whose signature is \`(v:T): Boolean\`.
+   * Universal quantifier applied to container, taking one agent argument `_test_` whose signature is `(v:T): Boolean`.
    * @param test - Parameter
    * @returns Result value
    */
   abstract for_all(test: Operation<T>): Boolean;
 
   /**
-   * Return a List all items matching the predicate function \`_test_\` which has signature \`(v:T): Boolean\`. If no matches, an empty List is returned.
-   * @param test - Parameter
-   * @returns Result value
+   * Return a List of all items matching the predicate function `_test_` which has signature `(v:T): Boolean`. 
+   * If no matches, an empty List is returned.
+   * Note: Return type corrected from BMM specification's `T` to `List<T>` to match specification intent.
+   * @param test - Predicate function to test each item
+   * @returns List of matching items
    */
-  matching(test: Operation<T>): T {
-    // TODO: Implement matching behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method matching not yet implemented.");
-  }
+  abstract matching(test: Operation<T>): List<T>;
 
   /**
-   * Return first item matching the predicate function \`_test_\` which has signature \`(v:T): Boolean\`, or Void if no match.
-   * @param test - Parameter
-   * @returns Result value
+   * Return first item matching the predicate function `_test_` which has signature `(v:T): Boolean`, or undefined if no match.
+   * Note: Return type corrected to include `undefined` for TypeScript compatibility.
+   * @param test - Predicate function to test each item
+   * @returns First matching item or undefined
    */
-  select(test: Operation<T>): T {
-    // TODO: Implement select behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method select not yet implemented.");
-  }
+  abstract select(test: Operation<T>): T | undefined;
 }
 
 /**
@@ -266,6 +298,37 @@ export class Hash<K extends Ordered, V> extends Container<K> {
   put(key: K, value: V): void {
     const keyStr = this._keyToString(key);
     this._map.set(keyStr, { key, value });
+  }
+
+  /**
+   * Return a List of all keys matching the predicate function.
+   * @param test - Predicate function with signature (v: K) => Boolean
+   * @returns List of matching keys, empty list if no matches
+   */
+  override matching(test: Operation<K>): List<K> {
+    const results = new List<K>();
+    for (const entry of this._map.values()) {
+      const testResult = test(entry.key);
+      if (testResult?.value === true) {
+        results.append(entry.key);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first key matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: K) => Boolean
+   * @returns First matching key or undefined
+   */
+  override select(test: Operation<K>): K | undefined {
+    for (const entry of this._map.values()) {
+      const testResult = test(entry.key);
+      if (testResult?.value === true) {
+        return entry.key;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -444,6 +507,37 @@ export class List<T extends Any> extends Container<T> {
     }
     return new Boolean(true);
   }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
+  }
 }
 
 /**
@@ -542,6 +636,37 @@ export class Set<T extends Any> extends Container<T> {
       }
     }
     return new Boolean(true);
+  }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
   }
 }
 
@@ -650,6 +775,37 @@ export class Array<T extends Any> extends Container<T> {
    */
   append(v: T): void {
     this._items.push(v);
+  }
+
+  /**
+   * Return a List of all items matching the predicate function.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns List of matching items, empty list if no matches
+   */
+  override matching(test: Operation<T>): List<T> {
+    const results = new List<T>();
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        results.append(item);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Return first item matching the predicate function, or undefined if no match.
+   * @param test - Predicate function with signature (v: T) => Boolean
+   * @returns First matching item or undefined
+   */
+  override select(test: Operation<T>): T | undefined {
+    for (const item of this._items) {
+      const testResult = test(item);
+      if (testResult?.value === true) {
+        return item;
+      }
+    }
+    return undefined;
   }
 }
 
@@ -5967,3 +6123,37 @@ export class RESOURCE_ANNOTATIONS {
    */
   documentation?: undefined;
 }
+
+// ============================================================================
+// Type Registry Initialization
+// ============================================================================
+// Register all concrete types from openehr_base for dynamic instantiation.
+// This enables instance_of() to create instances by type name.
+// Note: Only non-abstract classes with no-arg constructors can be registered.
+// Additional types from openehr_rm, openehr_am, etc. should be registered
+// in their respective modules.
+
+// Primitive types (these properly extend Any via Ordered hierarchy)
+registerType("String", String);
+registerType("Integer", Integer);
+registerType("Double", Double);
+registerType("Boolean", Boolean);
+registerType("Real", Real);
+registerType("Integer64", Integer64);
+registerType("Octet", Octet);
+registerType("Character", Character);
+registerType("Byte", Byte);
+
+// Terminology types (properly extends Any)
+registerType("Terminology_code", Terminology_code);
+registerType("Terminology_term", Terminology_term);
+
+// Multiplicity types (Multiplicity_interval extends Proper_interval which extends Interval<T> which extends Any)
+registerType("Multiplicity_interval", Multiplicity_interval);
+
+// ISO 8601 date/time types
+registerType("Iso8601_date", Iso8601_date);
+registerType("Iso8601_time", Iso8601_time);
+registerType("Iso8601_date_time", Iso8601_date_time);
+registerType("Iso8601_duration", Iso8601_duration);
+registerType("Iso8601_timezone", Iso8601_timezone);
