@@ -82,6 +82,11 @@ export abstract class Any {
    * Create new instance of a type.
    * Uses the type registry to look up constructors by name.
    * Types must be registered using registerType() before they can be instantiated.
+   * 
+   * **Security Note:** This method creates instances dynamically based on type name.
+   * Do not use with untrusted input as it could instantiate arbitrary registered types.
+   * Only use with type names from trusted sources (e.g., parsed from validated openEHR data).
+   * 
    * @param a_type - The type name as a String
    * @returns A new instance of the specified type
    * @throws Error if the type is not registered
@@ -302,6 +307,8 @@ export class Hash<K extends Ordered, V> extends Container<K> {
 
   /**
    * Return a List of all keys matching the predicate function.
+   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so matching operates on keys.
+   * To search values, use item() to retrieve values for matched keys.
    * @param test - Predicate function with signature (v: K) => Boolean
    * @returns List of matching keys, empty list if no matches
    */
@@ -318,6 +325,8 @@ export class Hash<K extends Ordered, V> extends Container<K> {
 
   /**
    * Return first key matching the predicate function, or undefined if no match.
+   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so select operates on keys.
+   * To retrieve the value, call item() with the returned key.
    * @param test - Predicate function with signature (v: K) => Boolean
    * @returns First matching key or undefined
    */
