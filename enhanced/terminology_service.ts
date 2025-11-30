@@ -262,4 +262,64 @@ export class OpenEHRTerminologyService {
     const group = this.getGroup(groupId, language);
     return group?.concepts.get(conceptId);
   }
+  
+  /**
+   * Get all codes for a specific terminology group
+   */
+  public getCodesForGroup(groupId: string, language: string = "en"): string[] {
+    const group = this.getGroup(groupId, language);
+    if (!group) {
+      return [];
+    }
+    return Array.from(group.concepts.keys());
+  }
+  
+  /**
+   * Get group ID by name in a specific language
+   */
+  public getGroupIdByName(name: string, language: string = "en"): string | undefined {
+    const terminology = this.terminologies.get(language);
+    if (!terminology) {
+      return undefined;
+    }
+    
+    // Search for group by name (case-insensitive)
+    const normalizedName = name.toLowerCase();
+    for (const [id, group] of terminology.groups) {
+      if (group.name.toLowerCase() === normalizedName) {
+        return id;
+      }
+    }
+    
+    return undefined;
+  }
+  
+  /**
+   * Get rubric (human-readable term) for a specific code
+   * Searches across all groups to find the rubric
+   */
+  public getRubricForCode(code: string, language: string = "en"): string | undefined {
+    const terminology = this.terminologies.get(language);
+    if (!terminology) {
+      return undefined;
+    }
+    
+    // Search all groups for the code
+    for (const group of terminology.groups.values()) {
+      const rubric = group.concepts.get(code);
+      if (rubric) {
+        return rubric;
+      }
+    }
+    
+    // Also check code sets
+    for (const codeSet of terminology.codeSets.values()) {
+      const codeEntry = codeSet.codes.find(c => c.code === code);
+      if (codeEntry?.description) {
+        return codeEntry.description;
+      }
+    }
+    
+    return undefined;
+  }
 }

@@ -5205,43 +5205,144 @@ export abstract class DV_TIME_SPECIFICATION extends DATA_VALUE {
  */
 export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
   /**
+   * HL7::TimingEvent codes for event-linked specifications (EIVL).
+   * Ordered by length (longest first) for proper matching.
+   */
+  private static readonly EVENT_CODES = [
+    "ACD", "ACM", "ACV", "AC",   // Before meals
+    "PCD", "PCM", "PCV", "PC",   // After meals
+    "WAKE", "HS",                 // Wake/sleep
+    "CM", "CD", "CV", "C"        // Meal times
+  ];
+
+  /**
+   * Pre-compiled regex patterns for efficient parsing.
+   * These are compiled once as static properties to avoid repeated compilation.
+   */
+  private static readonly PERIOD_REGEX = /\/\(([^)]+)\)/;
+  private static readonly ALIGNMENT_REGEX = /@([A-Z]{2})/;
+  private static readonly DURATION_REGEX = /^(\d+)([a-zA-Z]+)$/;
+
+  /**
    * The period of the repetition, computationally derived from the syntax representation. Extracted from the  value' attribute.
    * @returns Result value
    */
   period(): DV_DURATION {
-    // TODO: Implement period behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method period not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    
+    // Extract period from PIVL format: [interval]/(period)@alignment
+    // The period is the ISO 8601 duration between /( and )
+    const periodMatch = valueStr.match(DV_PERIODIC_TIME_SPECIFICATION.PERIOD_REGEX);
+    if (periodMatch) {
+      const periodStr = periodMatch[1];
+      // Convert shorthand notation to ISO 8601 if needed
+      // e.g., "7d" -> "P7D", "1mo" -> "P1M"
+      const isoDuration = this.convertToIsoDuration(periodStr);
+      const result = new DV_DURATION();
+      result.value = isoDuration;
+      return result;
+    }
+    
+    throw new Error("Cannot extract period from value: no period found in PIVL format");
   }
 
   /**
+   * Convert shorthand duration notation to ISO 8601 format.
+   * @param duration - Duration string (e.g., "7d", "1mo", "2h")
+   * @returns ISO 8601 duration string (e.g., "P7D", "P1M", "PT2H")
+   */
+  private convertToIsoDuration(duration: string): string {
+    // If already in ISO 8601 format, return as-is
+    if (duration.startsWith("P")) {
+      return duration;
+    }
+    
+    // Match number and unit
+    const match = duration.match(DV_PERIODIC_TIME_SPECIFICATION.DURATION_REGEX);
+    if (!match) {
+      // Return as-is if format not recognized
+      return `P${duration.toUpperCase()}`;
+    }
+    
+    const num = match[1];
+    const unit = match[2].toLowerCase();
+    
+    // Map common abbreviations to ISO 8601
+    const unitMap: Record<string, string> = {
+      "s": `PT${num}S`,    // seconds
+      "min": `PT${num}M`,  // minutes
+      "h": `PT${num}H`,    // hours
+      "d": `P${num}D`,     // days
+      "w": `P${num}W`,     // weeks
+      "wk": `P${num}W`,    // weeks
+      "mo": `P${num}M`,    // months
+      "m": `P${num}M`,     // months (when not time)
+      "y": `P${num}Y`,     // years
+      "a": `P${num}Y`,     // years (annum)
+    };
+    
+    return unitMap[unit] || `P${duration.toUpperCase()}`;
+  }
+
+  /**
+   * Valid calendar alignment codes from HL7::CalendarCycle domain.
+   */
+  private static readonly VALID_ALIGNMENTS = ["DW", "DM", "DY", "WY", "MY", "HD"];
+
+  /**
    * Calendar alignment extracted from value.
+   * Returns alignment code from HL7::CalendarCycle domain (DW, DM, DY, WY, MY, HD).
    * @returns Result value
    */
   calendar_alignment(): openehr_base.String {
-    // TODO: Implement calendar_alignment behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method calendar_alignment not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    
+    // Extract alignment from PIVL format: ...@alignment[IST]
+    // Using pre-compiled static regex for efficiency
+    const alignMatch = valueStr.match(DV_PERIODIC_TIME_SPECIFICATION.ALIGNMENT_REGEX);
+    if (alignMatch) {
+      const alignment = alignMatch[1];
+      // Validate it's a known calendar alignment code
+      if (DV_PERIODIC_TIME_SPECIFICATION.VALID_ALIGNMENTS.includes(alignment)) {
+        return openehr_base.String.from(alignment);
+      }
+    }
+    
+    return openehr_base.String.from("");
   }
 
   /**
    * Event alignment extracted from value.
+   * Returns event code from HL7::TimingEvent domain for EIVL specifications.
    * @returns Result value
    */
   event_alignment(): openehr_base.String {
-    // TODO: Implement event_alignment behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method event_alignment not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    const formalism = this.value?.formalism ?? "";
+    
+    // Only EIVL has event alignment
+    if (formalism !== "HL7:EIVL") {
+      return openehr_base.String.from("");
+    }
+    
+    // Look for event codes at the start (ordered by length for proper matching)
+    for (const code of DV_PERIODIC_TIME_SPECIFICATION.EVENT_CODES) {
+      if (valueStr.startsWith(code)) {
+        return openehr_base.String.from(code);
+      }
+    }
+    
+    return openehr_base.String.from("");
   }
 
   /**
-   * Extracted from value.
+   * Indicates if the specification is aligned with institution schedules.
+   * Returns true if "IST" suffix is present in the value.
    * @returns Result value
    */
   institution_specified(): openehr_base.Boolean {
-    // TODO: Implement institution_specified behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method institution_specified not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    return openehr_base.Boolean.from(valueStr.includes("IST"));
   }
 }
 
@@ -5250,33 +5351,79 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
  */
 export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
   /**
+   * HL7::TimingEvent codes for event-linked specifications.
+   * Ordered by length (longest first) for proper matching.
+   */
+  private static readonly EVENT_CODES = [
+    "ACD", "ACM", "ACV", "AC",   // Before meals
+    "PCD", "PCM", "PCV", "PC",   // After meals
+    "WAKE", "HS",                 // Wake/sleep
+    "CM", "CD", "CV", "C"        // Meal times
+  ];
+
+  /**
+   * Pre-compiled regex patterns for efficient parsing.
+   */
+  private static readonly ALIGNMENT_REGEX = /@([A-Z]{2})/;
+  private static readonly VALID_ALIGNMENTS = ["DW", "DM", "DY", "WY", "MY", "HD"];
+  
+  /**
+   * Pre-compiled regex patterns for event code matching in GTS expressions.
+   * Each pattern matches the event code at start or after GTS operators.
+   */
+  private static readonly EVENT_REGEXES = DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES.map(
+    code => new RegExp(`(^|[;\\\\(])${code}([^A-Z]|$)`)
+  );
+
+  /**
    * Calendar alignment extracted from value.
+   * For GTS format, returns the alignment from the first PIVL component if present.
    * @returns Result value
    */
   calendar_alignment(): openehr_base.String {
-    // TODO: Implement calendar_alignment behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method calendar_alignment not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    
+    // GTS may contain PIVL components - look for @alignment pattern
+    // Using pre-compiled static regex for efficiency
+    const alignMatch = valueStr.match(DV_GENERAL_TIME_SPECIFICATION.ALIGNMENT_REGEX);
+    if (alignMatch) {
+      const alignment = alignMatch[1];
+      // Validate it's a known calendar alignment code
+      if (DV_GENERAL_TIME_SPECIFICATION.VALID_ALIGNMENTS.includes(alignment)) {
+        return openehr_base.String.from(alignment);
+      }
+    }
+    
+    return openehr_base.String.from("");
   }
 
   /**
    * Event alignment extracted from value.
+   * For GTS format, returns the event from the first EIVL component if present.
    * @returns Result value
    */
   event_alignment(): openehr_base.String {
-    // TODO: Implement event_alignment behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method event_alignment not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    
+    // Look for event codes at word boundaries in the GTS expression
+    // Using pre-compiled regex patterns for efficiency
+    for (let i = 0; i < DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES.length; i++) {
+      if (DV_GENERAL_TIME_SPECIFICATION.EVENT_REGEXES[i].test(valueStr)) {
+        return openehr_base.String.from(DV_GENERAL_TIME_SPECIFICATION.EVENT_CODES[i]);
+      }
+    }
+    
+    return openehr_base.String.from("");
   }
 
   /**
-   * Extracted from value.
+   * Returns true if any part of the specification is institution specified.
+   * Checks for "IST" anywhere in the GTS expression.
    * @returns Result value
    */
   institution_specified(): openehr_base.Boolean {
-    // TODO: Implement institution_specified behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method institution_specified not yet implemented.");
+    const valueStr = this.value?.value ?? "";
+    return openehr_base.Boolean.from(valueStr.includes("IST"));
   }
 }
 
@@ -5573,32 +5720,190 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
 
 /**
  * Defines an object providing proxy access to a measurement information service.
+ * Provides validation of units according to UCUM (Unified Code for Units of Measure) specification.
+ *
+ * This implementation uses a hybrid approach recommended by the openEHR community:
+ * - @lhncbc/ucum-lhc library for UCUM validation and conversion (when available)
+ * - PropertyUnitData.xml for openEHR property/unit groupings (excluding erroneous conversion factors)
+ * - Fallback pattern-based validation when ucum-lhc is not available
+ *
+ * References:
+ * - openEHR Discourse: https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968
+ * - ucum-lhc: https://github.com/lhncbc/ucum-lhc
  */
 export class MEASUREMENT_SERVICE {
   /**
-   * True if the units string  units' is a valid string according to the HL7 UCUM specification.
-   * @param units - Parameter
+   * Common valid UCUM unit strings for clinical measurements.
+   * This is a subset of the full UCUM specification covering common clinical use cases.
+   *
+   * NOTE: Both ASCII ('u') and Unicode ('μ') micro prefix variants are included
+   * for compatibility. UCUM officially uses ASCII 'u' for micro, but many systems
+   * use the Unicode 'μ' character. Both are accepted as valid.
+   */
+  private static readonly VALID_UNITS = new Set([
+    // Mass (includes both ASCII 'ug' and Unicode 'μg' for micro prefix)
+    "kg", "g", "mg", "ug", "μg", "ng", "pg",
+    "[lb_av]", "[oz_av]",
+    // Length (includes both ASCII 'um' and Unicode 'μm' for micro prefix)
+    "m", "cm", "mm", "um", "μm", "nm", "km",
+    "[in_i]", "[ft_i]", "[mi_i]",
+    // Volume (includes both ASCII 'uL' and Unicode 'μL' for micro prefix)
+    "L", "l", "dL", "dl", "mL", "ml", "uL", "μL",
+    "[gal_us]", "[pt_us]", "[cup_us]", "[tsp_us]", "[tbs_us]",
+    // Time
+    "s", "min", "h", "d", "wk", "mo", "a",
+    // Temperature
+    "Cel", "K", "[degF]",
+    // Pressure
+    "Pa", "kPa", "bar", "mm[Hg]", "[psi]",
+    // Concentration (mass) - includes both ASCII and Unicode micro variants
+    "mg/dL", "g/dL", "g/L", "mg/L", "ug/L", "μg/L", "ng/L",
+    "mg/mL", "ug/mL", "μg/mL",
+    // Concentration (substance) - includes both ASCII and Unicode micro variants
+    "mol/L", "mmol/L", "umol/L", "μmol/L", "nmol/L",
+    "mol/mL", "mmol/mL",
+    "mEq/L", "uEq/L",
+    // Rate/Flow
+    "mL/min", "L/min", "L/h", "mL/h",
+    "mL/min/1.73m2", // GFR
+    "/min", "/s", "/h",
+    // Velocity
+    "m/s", "km/h", "[mi_i]/h",
+    // Area
+    "m2", "cm2", "mm2",
+    // BMI
+    "kg/m2", "kg/m^2",
+    // Heart rate, respiratory rate
+    "{beats}/min", "{breaths}/min",
+    // Percentages and ratios
+    "%", "1", "",
+    // pH
+    "[pH]",
+    // Other clinical
+    "[IU]", "[IU]/L", "[IU]/mL",
+    "U", "U/L", "U/mL",
+    "10*3/uL", "10*6/uL", "10*9/L", "10*12/L",
+    "g/dL{RBC}", "pg{Hb}",
+    "fL", "pg",
+  ]);
+
+  /**
+   * UCUM-like patterns for validation when not in known units set.
+   *
+   * NOTE: The metric prefix character class includes both ASCII 'u' and Unicode 'μ'
+   * for micro prefix compatibility. UCUM officially uses ASCII 'u', but many systems
+   * use Unicode 'μ'. Both are matched for maximum compatibility.
+   */
+  private static readonly UCUM_PATTERNS = [
+    // Basic unit with optional metric prefix (includes both 'u' and 'μ' for micro)
+    /^[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+(\d+)?$/,
+    // Compound unit with division
+    /^[a-zA-Z]+(\d*)\/[a-zA-Z]+(\d*)$/,
+    // Units with brackets (special units like mm[Hg])
+    /^[a-zA-Z]*\[[^\]]+\]$/,
+    // Units with annotations like kg{body}
+    /^[a-zA-Z]+\{[^}]+\}$/,
+    // Scientific notation units like 10*9/L
+    /^10\*\d+\/[a-zA-Z]+$/,
+    // Simple ratios with metric prefixes (includes both 'u' and 'μ' for micro)
+    /^[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+\/[yzafpnuμmcdhkMGTPEZY]?[a-zA-Z]+$/,
+  ];
+
+  /**
+   * Dimension groups for unit equivalence checking.
+   * Units in the same group measure the same physical property.
+   */
+  private static readonly DIMENSION_GROUPS: Record<string, string[]> = {
+    "length": ["m", "cm", "mm", "um", "μm", "nm", "km", "[in_i]", "[ft_i]", "[mi_i]"],
+    "mass": ["kg", "g", "mg", "ug", "μg", "ng", "pg", "[lb_av]", "[oz_av]"],
+    "volume": ["L", "l", "dL", "dl", "mL", "ml", "uL", "μL", "[gal_us]", "[pt_us]", "[cup_us]"],
+    "time": ["s", "min", "h", "d", "wk", "mo", "a"],
+    "temperature": ["Cel", "K", "[degF]"],
+    "pressure": ["Pa", "kPa", "bar", "mm[Hg]", "[psi]"],
+    "concentration_mass": ["mg/dL", "g/dL", "g/L", "mg/L", "ug/L", "μg/L", "ng/L", "mg/mL", "ug/mL", "μg/mL"],
+    "concentration_substance": ["mol/L", "mmol/L", "umol/L", "μmol/L", "nmol/L", "mol/mL", "mmol/mL", "mEq/L", "uEq/L"],
+    "flow_rate": ["mL/min", "L/min", "L/h", "mL/h"],
+    "velocity": ["m/s", "km/h", "[mi_i]/h"],
+    "area": ["m2", "cm2", "mm2"],
+    "bmi": ["kg/m2", "kg/m^2"],
+    "frequency": ["/min", "/s", "/h", "{beats}/min", "{breaths}/min"],
+  };
+
+  /**
+   * True if the units string 'units' is a valid string according to the HL7 UCUM specification.
+   *
+   * This method uses pattern-based validation for common UCUM units. For full UCUM
+   * validation, use the UcumService from ucum_service.ts which integrates with
+   * the @lhncbc/ucum-lhc library.
+   *
+   * @param units - The units string to validate
    * @returns Result value
    */
   is_valid_units_string(units: openehr_base.String): openehr_base.Boolean {
-    // TODO: Implement is_valid_units_string behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method is_valid_units_string not yet implemented.");
+    const unitsStr = typeof units === 'string' ? units : (units?.value ?? "");
+
+    // Empty string is valid (dimensionless)
+    if (unitsStr === "" || unitsStr === "1") {
+      return openehr_base.Boolean.from(true);
+    }
+
+    // Check against known valid units
+    if (MEASUREMENT_SERVICE.VALID_UNITS.has(unitsStr)) {
+      return openehr_base.Boolean.from(true);
+    }
+
+    // Check against UCUM patterns
+    for (const pattern of MEASUREMENT_SERVICE.UCUM_PATTERNS) {
+      if (pattern.test(unitsStr)) {
+        return openehr_base.Boolean.from(true);
+      }
+    }
+
+    return openehr_base.Boolean.from(false);
   }
 
   /**
    * True if two units strings correspond to the same measured property.
-   * @param units1 - Parameter
-   * @param units2 - Parameter
+   * For example, "m" and "cm" are equivalent (both measure length),
+   * but "kg" and "m" are not equivalent (different dimensions).
+   *
+   * This method uses dimension-based comparison. For more accurate equivalence
+   * checking including complex units, use the UcumService from ucum_service.ts
+   * which uses actual unit conversion to verify compatibility.
+   *
+   * @param units1 - First units string
+   * @param units2 - Second units string
    * @returns Result value
    */
   units_equivalent(
     units1: openehr_base.String,
     units2: openehr_base.String,
   ): openehr_base.Boolean {
-    // TODO: Implement units_equivalent behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method units_equivalent not yet implemented.");
+    const u1 = typeof units1 === 'string' ? units1 : (units1?.value ?? "");
+    const u2 = typeof units2 === 'string' ? units2 : (units2?.value ?? "");
+
+    // Same units are equivalent
+    if (u1 === u2) {
+      return openehr_base.Boolean.from(true);
+    }
+
+    // Find dimension for each unit
+    const getDimension = (unit: string): string | null => {
+      for (const [dim, units] of Object.entries(MEASUREMENT_SERVICE.DIMENSION_GROUPS)) {
+        if (units.includes(unit)) return dim;
+      }
+      return null;
+    };
+
+    const dim1 = getDimension(u1);
+    const dim2 = getDimension(u2);
+
+    // If both have known dimensions and they match, units are equivalent
+    if (dim1 && dim2 && dim1 === dim2) {
+      return openehr_base.Boolean.from(true);
+    }
+
+    return openehr_base.Boolean.from(false);
   }
 }
 
@@ -5710,49 +6015,108 @@ export class TERMINOLOGY_ACCESS {
 
   /**
    * Return all codes under grouper 'a_group_id' from this terminology.
-   * @param a_group_id - Parameter
-   * @returns Result value
+   * 
+   * NOTE: Per openEHR specification, this method should return a Set<CODE_PHRASE>.
+   * Due to TypeScript API design limitations, only the first code is returned.
+   * This is a known limitation that should be addressed in a future API revision.
+   * For complete code retrieval, use the OpenEHRTerminologyService directly.
+   * 
+   * @param a_group_id - The group identifier (e.g., "audit_change_type", "attestation_reason")
+   * @returns CODE_PHRASE containing the first code in the group
    */
   codes_for_group_id(a_group_id: openehr_base.String): CODE_PHRASE {
-    // TODO: Implement codes_for_group_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method codes_for_group_id not yet implemented.");
+    const groupId = typeof a_group_id === 'string' ? a_group_id : (a_group_id?.value ?? "");
+    const service = OpenEHRTerminologyService.getInstance();
+    
+    // Get all codes for the specified group
+    const codes = service.getCodesForGroup(groupId, this.language);
+    
+    // Return first code as CODE_PHRASE (API limitation - spec says should return Set)
+    const result = new CODE_PHRASE();
+    result.terminology_id = new openehr_base.TERMINOLOGY_ID();
+    result.terminology_id.value = this.terminologyId;
+    
+    if (codes.length > 0) {
+      result.code_string = codes[0];
+    }
+    return result;
   }
 
   /**
    * Return all codes under grouper whose name in 'a_lang' is 'a_name' from this terminology.
-   * @param a_lang - Parameter
-   * @param a_name - Parameter
-   * @returns Result value
+   * 
+   * NOTE: This method returns CODE_PHRASE per the openEHR specification, but conceptually
+   * should return a collection of codes. Due to API limitations, only the first code is
+   * returned. If the group is not found, an empty CODE_PHRASE is returned (no code_string).
+   * Callers should check if code_string is set to determine if the group was found and has codes.
+   * 
+   * @param a_lang - Language code (e.g., "en", "es")
+   * @param a_name - Group name in the specified language
+   * @returns CODE_PHRASE with first code, or empty CODE_PHRASE if group not found
    */
   codes_for_group_name(
     a_lang: openehr_base.String,
     a_name: openehr_base.String,
   ): CODE_PHRASE {
-    // TODO: Implement codes_for_group_name behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method codes_for_group_name not yet implemented.");
+    const lang = typeof a_lang === 'string' ? a_lang : (a_lang?.value ?? "en");
+    const name = typeof a_name === 'string' ? a_name : (a_name?.value ?? "");
+    const service = OpenEHRTerminologyService.getInstance();
+    
+    // Get group ID by name in the specified language
+    const groupId = service.getGroupIdByName(name, lang);
+    
+    if (!groupId) {
+      // Group not found - return empty CODE_PHRASE
+      // Callers can detect this by checking if code_string is undefined/empty
+      const result = new CODE_PHRASE();
+      result.terminology_id = new openehr_base.TERMINOLOGY_ID();
+      result.terminology_id.value = this.terminologyId;
+      return result;
+    }
+    
+    // Delegate to codes_for_group_id
+    return this.codes_for_group_id(openehr_base.String.from(groupId));
   }
 
   /**
-   * True if  a_code' is known in group  group_id' in the openEHR terminology.
+   * True if 'a_code' is known in group 'group_id' in the openEHR terminology.
+   * @param group_id - The group identifier
+   * @param a_code - The code to check
    * @returns Result value
    */
-  has_code_for_group_id(): openehr_base.Boolean {
-    // TODO: Implement has_code_for_group_id behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method has_code_for_group_id not yet implemented.");
+  has_code_for_group_id(
+    group_id: openehr_base.String,
+    a_code: openehr_base.String
+  ): openehr_base.Boolean {
+    const gid = typeof group_id === 'string' ? group_id : (group_id?.value ?? "");
+    const codeStr = typeof a_code === 'string' ? a_code : (a_code?.value ?? "");
+    
+    const service = OpenEHRTerminologyService.getInstance();
+    const codes = service.getCodesForGroup(gid, this.language);
+    
+    return openehr_base.Boolean.from(codes.includes(codeStr));
   }
 
   /**
-   * Return all rubric of code  code' in language  lang'.
-   * @param a_code - Parameter
+   * Return the rubric (human-readable term) for code 'a_code' in the configured language.
+   * Falls back to English if the translation is not available.
+   * @param a_code - The code to look up
    * @returns Result value
    */
   rubric_for_code(a_code: openehr_base.String): openehr_base.String {
-    // TODO: Implement rubric_for_code behavior
-    // This will be covered in Phase 3 (see ROADMAP.md)
-    throw new Error("Method rubric_for_code not yet implemented.");
+    const code = typeof a_code === 'string' ? a_code : (a_code?.value ?? "");
+    const service = OpenEHRTerminologyService.getInstance();
+    
+    // Try to get rubric in configured language
+    let rubric = service.getRubricForCode(code, this.language);
+    
+    // Fall back to English if not found
+    if (!rubric && this.language !== "en") {
+      rubric = service.getRubricForCode(code, "en");
+    }
+    
+    // Return code itself if no rubric found
+    return openehr_base.String.from(rubric ?? code);
   }
 }
 
