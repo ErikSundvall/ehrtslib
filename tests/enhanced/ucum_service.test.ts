@@ -339,5 +339,3 @@ Deno.test("UcumService - areCompatible with library checks dimensions", async ()
   assert(!service.areCompatible("kg", "m"));
   assert(!service.areCompatible("s", "L"));
 });
-
-console.log("\n✅ UcumService test suite created");

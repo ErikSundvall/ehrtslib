@@ -277,6 +277,3 @@ Deno.test("OpenEHRTerminologyService - getCodesForGroup returns codes when data 
     console.log("Note: XML parsing unavailable - skipping getCodesForGroup verification");
   }
 });
-
-console.log("\n✅ OpenEHRTerminologyService test suite created");
-console.log("Note: Some tests are conditional based on XML parsing availability");

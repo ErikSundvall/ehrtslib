@@ -262,5 +262,3 @@ Deno.test("PropertyUnitDataService - loadFromXml can load real file content", as
   const meterUnit = service.getUnitByUcum("m");
   assert(meterUnit !== null, "Meter unit should exist");
 });
-
-console.log("\n✅ PropertyUnitDataService test suite created");
