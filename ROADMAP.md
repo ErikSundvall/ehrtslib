@@ -177,14 +177,25 @@ Archie or other openEHR libraries have implemented something.
 During this research, continuosly update the instruction files when gaps are
 detected during implementation or testing, since they may be used by others later.
 
-## Phase 5a
+## Phase 4f
+
+Create documentation and runnable example code That shows how to build an RM
+object tree for an openEHR COMPOSITION from scratch based on manually looking
+at a very simple/minimal flattened template (...provide filename here...). Do
+point out that at this stage we do not yet have support from the AM and helper
+code to validate that the tree structure is actually valid and following a
+specific template. Template supported object creation will be implemented in later
+phases, but it could be pedagogical to show that the RM is usable (albeit in a
+cumbersome way) on its own.
+
+## Phase 4g
 
 Serialisation and deserialisation of RM object instance trees to and from
 openEHRs canonical JSON and XML formats (in separate classes so that you only
 import the ones you need, since often a project using the library will need
 either XML or JSON). If JS/TS built in support for JSON and XML is not enough
 and/or if it helps keeping the implementation cleaner and more understandable
-feel free to import and use libraries like teh following or others that you
+feel free to import and use libraries like the following or others that you
 find:
 
 - https://github.com/typestack/class-transformer or
@@ -194,16 +205,12 @@ find:
   https://github.com/GillianPerard/typescript-json-serializer for going between
   Typescript object instances and XML
 
-## Phase 4e
+## Phase 5a
+Implement the AM package, use deepwiki and the files in /instructions to understand
+AM and the task at hand. Note that there is an official grammar for the ADL language
+available form openEHR if needed.
 
-Create documentation and runnable example code That shows how to build an RM
-object tree for an openEHR COMPOSITION from scratch based on manually lookling
-at the very simple/minimal flattened template (...provide filename here...). Do
-point out that at this stage we do not yet have support from the AM and helper
-code to validate that the tree structure is actually valid and following a
-template. Template supported object creation will be implemented in later
-phases, but it could be pedagogical to show that the RM is usable (albeit in a
-cumbersome way) on its own.
+
 
 ## Pase 5b
 
