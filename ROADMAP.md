@@ -164,7 +164,7 @@ tests and only modify+add the delta between last versoin and the new version.
 Now we have a situation where running the generators will overwrite e.g. the
 method implementations done in Phase 3
 
-## Phase 4d
+## Phase 4d ✅ (done)
 
 Add function behaviour for not yet implemented functions in BASE, RM & LANG (if
 any) and create and run associated tests. (Hint: many of the unimplemented parts
