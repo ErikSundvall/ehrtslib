@@ -63,12 +63,9 @@ This PRD addresses the need to create focused documentation and runnable example
 ### 1. Template Selection
 
 1.1. **Choose a Simple Template**
-- Select an existing, minimal openEHR template (flattened format)
+- Select an existing, minimal openEHR template
 - Template should be simple enough to understand but realistic enough to be useful
-- Suggested options:
-  - Basic vital signs template (blood pressure, pulse)
-  - Simple questionnaire/form
-  - Minimal medication order
+- Preferred example: Basic vital signs template (blood pressure, pulse)
 - Template should be included in the repository under `examples/templates/`
 
 1.2. **Template Documentation**
@@ -104,8 +101,6 @@ Create `docs/getting-started.md` covering:
 - Installation and setup (importing from enhanced/)
 - "Hello World" - simplest possible COMPOSITION
 - Link to example code
-- Common patterns and idioms
-- Troubleshooting section
 
 3.2. **Example-Based Tutorial**
 
@@ -234,13 +229,12 @@ The following are explicitly OUT OF SCOPE for Phase 4e:
 ## Success Criteria
 
 1. ✅ **Runnable Examples**
-   - At least 2 complete example files that execute without errors
+   - At least 2 complete example files that execute without errors (can use same template with different choices)
    - Examples demonstrate creating a COMPOSITION from a real template
    - Output shows a properly constructed RM object tree
 
-2. ✅ **Comprehensive Documentation**
+2. ✅ **Documentation**
    - Getting started guide completed
-   - Tutorial walkthrough completed
 
 3. ✅ **Template Selection**
    - Simple, realistic template selected and included
@@ -277,10 +271,9 @@ The following are explicitly OUT OF SCOPE for Phase 4e:
 4. Test execution
 5. Refine based on testing
 
-### Phase 3: Core Documentation (Estimated: 3-4 hours)
+### Phase 3: Core Documentation (Estimated: 2-3 hours)
 1. Write `docs/getting-started.md`
-2. Write `docs/tutorial-building-composition.md`
-3. Review and edit for clarity
+2. Review and edit for clarity
 
 ### Phase 4: Testing and Polish (Estimated: 2-3 hours)
 1. Create `examples/examples.test.ts`
@@ -305,8 +298,7 @@ The following are explicitly OUT OF SCOPE for Phase 4e:
 
 ### Documentation
 1. `docs/getting-started.md` - Introduction and quickstart
-2. `docs/tutorial-building-composition.md` - Walkthrough tutorial
-3. `examples/templates/README.md` - Template documentation
+2. `examples/templates/README.md` - Template documentation
 
 ### Supporting Files
 1. `examples/templates/[template-name].json` - Template file (operational or web template format)
