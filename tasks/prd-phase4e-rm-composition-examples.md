@@ -4,7 +4,7 @@
 
 With Phase 4d complete (all BASE, RM, and LANG functions implemented), the ehrtslib project now has a fully functional Reference Model (RM) implementation. However, potential users need concrete examples and documentation showing how to use the RM to build openEHR COMPOSITION object trees from scratch.
 
-This PRD addresses the need to create comprehensive documentation and runnable example code that demonstrates building an openEHR COMPOSITION from the ground up, based on a simple template. This is pedagogical in nature - showing that the RM is usable on its own, even though template-supported object creation and validation will come in later phases (Phase 5).
+This PRD addresses the need to create focused documentation and runnable example code that demonstrates building an openEHR COMPOSITION from the ground up, based on a simple template. This is pedagogical in nature - showing that the RM is usable on its own, even though template-supported object creation and validation will come in later phases (Phase 5).
 
 ## Context from ROADMAP.md
 
@@ -152,7 +152,7 @@ Options:
 - Create a minimal custom template for demonstration
 
 Recommended template characteristics:
-- Simple template format (operational template or web template format acceptable)
+- Simple template format (operational template format preferred, web template format as alternative)
 - Uses common archetypes (observation, evaluation)
 - Includes common data types (DV_TEXT, DV_QUANTITY, DV_CODED_TEXT)
 - Contains 1-2 levels of SECTION nesting
@@ -265,7 +265,7 @@ The following are explicitly OUT OF SCOPE for Phase 4e:
 ## Implementation Approach
 
 ### Phase 1: Template Selection (Estimated: 1-2 hours)
-1. Research available simple templates (check Archie and other implementations' test code for reusable examples)
+1. Research available simple templates (check Archie and other implementations' test code for simple template examples that can be reused or adapted)
 2. Select appropriate template
 3. Document template structure
 4. Add template files to `examples/templates/`
