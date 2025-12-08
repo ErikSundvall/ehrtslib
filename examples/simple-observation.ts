@@ -172,7 +172,7 @@ function createTemperatureObservation(): openehr_rm.OBSERVATION {
   
   const temperatureValue = new openehr_rm.DV_QUANTITY();
   temperatureValue.magnitude = 37.2;
-  temperatureValue.units = "°C";
+  temperatureValue.units = "Cel";  // UCUM syntax for Celsius
   temperatureElement.value = temperatureValue;
   
   // Assemble the tree
@@ -210,7 +210,7 @@ function printCompositionSummary(composition: openehr_rm.COMPOSITION): void {
                   if (element instanceof openehr_rm.ELEMENT) {
                     const value = element.value;
                     if (value instanceof openehr_rm.DV_QUANTITY) {
-                      console.log(`  ${element.name?.value}: ${value.magnitude}${value.units}`);
+                      console.log(`  ${element.name?.value}: ${value.magnitude} ${value.units}`);
                     }
                   }
                 });

@@ -96,11 +96,11 @@ quantity.magnitude = 120.0;
 quantity.units = "mm[Hg]";  // Use UCUM syntax
 ```
 
-Common units:
+Common units (UCUM syntax):
 - Blood pressure: `mm[Hg]`
-- Temperature: `°C`, `°F`, `K`
-- Weight: `kg`, `lb`
-- Height: `cm`, `m`, `in`
+- Temperature: `Cel` (Celsius), `[degF]` (Fahrenheit), `K` (Kelvin)
+- Weight: `kg`, `[lb_av]` (pounds)
+- Height: `cm`, `m`, `[in_i]` (inches)
 
 ### DV_TEXT
 Plain text without coding:
