@@ -177,7 +177,7 @@ Archie or other openEHR libraries have implemented something.
 During this research, continuosly update the instruction files when gaps are
 detected during implementation or testing, since they may be used by others later.
 
-## Phase 4f
+## Phase 4e
 
 Create documentation and runnable example code That shows how to build an RM
 object tree for an openEHR COMPOSITION from scratch based on manually looking
@@ -187,6 +187,36 @@ code to validate that the tree structure is actually valid and following a
 specific template. Template supported object creation will be implemented in later
 phases, but it could be pedagogical to show that the RM is usable (albeit in a
 cumbersome way) on its own.
+
+## Phase 4f
+Explore if javacript chaining (as described in e.g
+https://dev.to/sundarbadagala081/javascript-chaining-3h6g and also often used
+in frameworks like D3.js) and other tricks could be used to make creating openEHR
+RM instancetrees easier and more compact in code. Perhaps the constructors or 
+some other method would be suitable for this if slightly enhanced. 
+Let's imagine something like the following (likely needs modification):
+
+new COMPOSITION()
+  .name("ChemoForm-MBA.v7")
+  .uid("573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1")
+  .archetype_details(
+    ARCHETYPE_ID("openEHR-EHR-COMPOSITION.self_reported_data.v1"),
+    TEMPLATE_ID("ChemoForm-MBA.v7")
+    // Add some way of represent "rm_version": "1.1.0"
+    )
+
+Or something like this with a map and type inference
+new COMPOSTION(
+  "name": "ChemoForm-MBA.v7",
+  "uid": "573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1",
+  "archetype_details": {
+    "archetype_id": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+    "template_id": "ChemoForm-MBA.v7"
+    },
+    "rm_version": "1.1.0"
+  }, ...
+
+  ...or some combination
 
 ## Phase 4g
 
