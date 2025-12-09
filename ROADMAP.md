@@ -387,7 +387,7 @@ Please also consider and describe other alternatives to reach the above stated g
 describe or some combination
 
 ## Phase 4f.2
-Implement the PRD/design from Phase 4f.1: - ADD FILENAME HERE
+Implement the PRD/design from Phase 4f.1: `/tasks/prd-phase4f1-simplified-object-creation.md`
 
 ## Phase 4f.3
 Rework the example documentation created in Phase 4e to only show the longwinded version 
