@@ -164,7 +164,7 @@ tests and only modify+add the delta between last versoin and the new version.
 Now we have a situation where running the generators will overwrite e.g. the
 method implementations done in Phase 3
 
-## Phase 4d
+## Phase 4d ✅ (done)
 
 Add function behaviour for not yet implemented functions in BASE, RM & LANG (if
 any) and create and run associated tests. (Hint: many of the unimplemented parts
@@ -189,10 +189,13 @@ phases, but it could be pedagogical to show that the RM is usable (albeit in a
 cumbersome way) on its own.
 
 ## Phase 4f.1
-Goal: Add easier and more compact ways to create the deeply nested openEHR objects, to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be used when it is obvious from the openEHR RM what types to use, so that it will be enough to just provide the meaningful values when creating an object.
+Goal: Add easier and more compact ways to create the deeply nested openEHR objects, 
+to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be 
+used when it is obvious from the openEHR RM what types to use, so that it will be 
+enough to just provide the meaningful values when creating an object.
 
-Task: in Phase 4f.1 just create a detailed PRD or som other design document as a 
-guide that will then be inspected manually and then later used as instruction for 
+Task: in Phase 4f.1 just create a detailed PRD or some other kind of design document
+as a guide that will then be inspected manually and then later used as instruction for 
 implementation in Phase 4f.2 Make it a markdown file.
 
 Possible alternatives for this is 
@@ -267,13 +270,13 @@ composition.archetype_details = archetypeDetails;
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
 
-## Javascript "spread" and it's named key+value variables in function calls
+### Javascript "spread" and it's named key+value variables in function calls
 This approach explores the approach described in https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 
 Note: In documentation add warning about overrides as described under the heading "Overriding properties" in
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#:~:text=Overriding%20properties
 
-### "canonical"-inspired
+#### "canonical"-inspired
 It should be possible to use what we can call "canonical"-inspired form (very close to openEHRs canonical JSON serialisation format)
 that visibly fully represents the RM structure as it can be seen in UML diagrams etc;
 
@@ -297,7 +300,7 @@ console.log("Created COMPOSITION:", composition.name?.value);
 ```
 
 We also want to have a convenience constructor to be able to skip the "value" hierarchy step for e.g. many of openEHR's
-classes that are decendents of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
+classes that are descendants of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
 
 ```typescript
 import * as openehr_rm from "./openehr_rm.ts";
@@ -368,22 +371,27 @@ const composition = new openehr_rm.COMPOSITION()
   .language("[ISO_639-1::en]")
   .territory("[ISO_3166-1::GB]")
   .category("[openehr::433|event|]")
-  .composer({name: {value: "Dr. Example"}})
-  .archetype_details({archetype_id: {value: "openEHR-EHR-COMPOSITION.encounter.v1"}, rm_version: "1.1.0"})
+  .composer({name: "Dr. Example"})
+  .archetypeDetails({archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1", rm_version: "1.1.0"});
 
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
 Note that there may be errors in the above example, the openEHR specification is the 
 authority on defintions, not these examples. 
 
-## Other/combined alternatives
+### Other/combined alternatives
 
 Please also consider and describe other alternatives to reach the above stated goal, and
 describe or some combination
 
 ## Phase 4f.2
-Rework the example documentation created in Phase 4e to only show the longwinded version once and then descrive and for the examplers use this mor compaxt way of creating objects
+IMplement the PRD/design from Phase 4f.1
 
+
+## Phase 4f.3
+Rework the example documentation created in Phase 4e to only show the longwinded version 
+(that represents all parts of the RM) once and then describe and for the examples use, 
+the more compact way of creating objects introduced by Phase 4f.1
 
 ## Phase 4g
 
