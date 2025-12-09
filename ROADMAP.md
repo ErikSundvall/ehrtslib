@@ -189,10 +189,13 @@ phases, but it could be pedagogical to show that the RM is usable (albeit in a
 cumbersome way) on its own.
 
 ## Phase 4f.1
-Goal: Add easier and more compact ways to create the deeply nested openEHR objects, to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be used when it is obvious from the openEHR RM what types to use, so that it will be enough to just provide the meaningful values when creating an object.
+Goal: Add easier and more compact ways to create the deeply nested openEHR objects, 
+to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be 
+used when it is obvious from the openEHR RM what types to use, so that it will be 
+enough to just provide the meaningful values when creating an object.
 
-Task: in Phase 4f.1 just create a detailed PRD or some other design document as a 
-guide that will then be inspected manually and then later used as instruction for 
+Task: in Phase 4f.1 just create a detailed PRD or some other kind of design document
+as a guide that will then be inspected manually and then later used as instruction for 
 implementation in Phase 4f.2 Make it a markdown file.
 
 Possible alternatives for this is 
@@ -382,7 +385,13 @@ Please also consider and describe other alternatives to reach the above stated g
 describe or some combination
 
 ## Phase 4f.2
-Rework the example documentation created in Phase 4e to only show the longwinded version once and then descrive and for the examplers use this mor compaxt way of creating objects
+IMplement the PRD/design from Phase 4f.1
+
+
+## Phase 4f.3
+Rework the example documentation created in Phase 4e to only show the longwinded version 
+(that represents all parts of the RM) once and then describe and for the examples use, 
+the more compact way of creating objects introduced by Phase 4f.1
 
 ## Phase 4g
 
