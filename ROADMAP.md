@@ -298,7 +298,7 @@ const composition = new openehr_rm.COMPOSITION({
 
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
-
+#### Infer value hierarchy
 We also want to have a convenience constructor to be able to skip the "value" hierarchy step for e.g. many of openEHR's
 classes that are descendants of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
 
@@ -320,6 +320,8 @@ const composition = new openehr_rm.COMPOSITION({
 
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
+
+#### Terse stringified forms of CODE_PHRASE and DV_CODED_TEXT
 
 For CODE_PHRASE and DV_CODED_TEXT we also want convenience constructors that parse the compact "terse"
 string form as discussed in https://discourse.openehr.org/t/simplified-data-template-sdt-data-types/546 
@@ -347,7 +349,7 @@ console.log("Created COMPOSITION:", composition.name?.value);
 Note that there may be errors in all the above examples, the openEHR specification is the 
 authority on defintions, not these examples. 
   
-## Javascript method chaining  
+### Javascript method chaining  
 
 Also explore if javacript chaining (as described in e.g
 https://dev.to/sundarbadagala081/javascript-chaining-3h6g and also often used
@@ -385,8 +387,7 @@ Please also consider and describe other alternatives to reach the above stated g
 describe or some combination
 
 ## Phase 4f.2
-IMplement the PRD/design from Phase 4f.1
-
+Implement the PRD/design from Phase 4f.1: - ADD FILENAME HERE
 
 ## Phase 4f.3
 Rework the example documentation created in Phase 4e to only show the longwinded version 
