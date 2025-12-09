@@ -191,7 +191,7 @@ cumbersome way) on its own.
 ## Phase 4f.1
 Goal: Add easier and more compact ways to create the deeply nested openEHR objects, to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be used when it is obvious from the openEHR RM what types to use, so that it will be enough to just provide the meaningful values when creating an object.
 
-Task: in Phase 4f.1 just create a detailed PRD or som other design document as a 
+Task: in Phase 4f.1 just create a detailed PRD or some other design document as a 
 guide that will then be inspected manually and then later used as instruction for 
 implementation in Phase 4f.2 Make it a markdown file.
 
@@ -341,18 +341,28 @@ const composition = new openehr_rm.COMPOSITION({
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
 
-### Javascript method chaining
-This approach explores the approach described in https://dev.to/sundarbadagala081/javascript-chaining-3h6g
+Note that there may be errors in all the above examples, the openEHR specification is the 
+authority on defintions, not these examples. 
+  
+## Javascript method chaining  
 
-It should be possible to use a fluent "chainable" interface to build objects. This could be nice but may hide some
-of the hierarchies and structure.
+Also explore if javacript chaining (as described in e.g
+https://dev.to/sundarbadagala081/javascript-chaining-3h6g and also often used
+in frameworks like D3.js) and other tricks could be used to make creating openEHR
+RM instancetrees easier and more compact in code. Perhaps the constructors or 
+some other method would be suitable for this if slightly enhanced. 
+
+Let's imagine something like the following (likely needs modification), note
+thet this example uses the same the compact "terse" string form for at least 
+CODE_PHRASE and DV_CODED_TEXT
 
 ```typescript
 import * as openehr_rm from "./openehr_rm.ts";
 import * as openehr_base from "./openehr_base.ts";
 
+// Create a COMPOSITION
 const composition = new openehr_rm.COMPOSITION()
-  .archetypeNodeId("openEHR-EHR-COMPOSITION.encounter.v1")
+  .archetype_node_id("openEHR-EHR-COMPOSITION.encounter.v1")
   .name("My First Composition")
   .uid("12345678-1234-1234-1234-123456789012::org.example.hospital::1")
   .language("[ISO_639-1::en]")
