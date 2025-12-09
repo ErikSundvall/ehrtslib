@@ -552,37 +552,334 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
 
 ---
 
+### Alternative 4: Direct Property Assignment (JavaScript/TypeScript Advantage)
+
+#### Overview
+
+Unlike Java which requires getter/setter methods, JavaScript/TypeScript allows direct property access. This means developers can create objects with minimal required properties via constructor, then add optional properties incrementally using simple property assignment. This approach leverages the existing dual getter/setter pattern and requires **no additional implementation** - it already works in the current codebase.
+
+This makes the `.with()` method and full method chaining potentially unnecessary for many use cases, especially when dealing with non-mandatory attributes.
+
+#### Basic Pattern: Constructor + Direct Assignment
+
+```typescript
+// Create with required properties only
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "My First Composition",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "{[openehr::433|event|]}"
+});
+
+// Add optional properties as needed using direct assignment
+composition.context = new openehr_rm.EVENT_CONTEXT({
+  start_time: "2024-12-09T14:00:00Z",
+  setting: "{[openehr::238|other care|]}"
+});
+
+// Or add properties conditionally
+if (needsFeederAudit) {
+  composition.feeder_audit = new openehr_rm.FEEDER_AUDIT({
+    originating_system_audit: systemAudit
+  });
+}
+```
+
+#### Advanced Pattern: Mixing All Approaches
+
+The real power comes from mixing constructor initialization, terse format, and direct property assignment:
+
+```typescript
+// Start with constructor for core required properties (compact with terse format)
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Blood Pressure Reading",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "{[openehr::433|event|]}"
+});
+
+// Add composer using direct assignment with nested object
+composition.composer = new openehr_rm.PARTY_IDENTIFIED({
+  name: "Dr. Jane Smith",
+  identifiers: [{
+    id: "12345",
+    issuer: "NHS",
+    type: "Medical License"
+  }]
+});
+
+// Add archetype_details using dual setter (accepts string directly)
+composition.archetype_details = new openehr_rm.ARCHETYPED({
+  archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  rm_version: "1.1.0"
+});
+
+// Add UID conditionally
+if (existingUid) {
+  composition.uid = existingUid;  // Dual setter accepts string
+} else {
+  composition.uid = generateNewUid();
+}
+
+// Build content array using map/filter patterns
+composition.content = observations
+  .filter(obs => obs.isValid())
+  .map(obs => createObservationEntry(obs));
+```
+
+#### Comparison with Method Chaining
+
+This approach provides similar incremental building capabilities as method chaining, but with several advantages:
+
+**Direct Property Assignment:**
+```typescript
+const comp = new COMPOSITION({ name: "Test" });
+comp.language = "[ISO_639-1::en]";
+comp.territory = "[ISO_3166-1::GB]";
+comp.composer = { name: "Dr. Smith" };
+```
+
+**Method Chaining (for comparison):**
+```typescript
+const comp = new COMPOSITION()
+  .with({ name: "Test" })
+  .with({ language: "[ISO_639-1::en]" })
+  .with({ territory: "[ISO_3166-1::GB]" })
+  .with({ composer: { name: "Dr. Smith" } });
+```
+
+Direct property assignment is:
+- ✅ More natural JavaScript/TypeScript idiom
+- ✅ Better for conditional property setting
+- ✅ Works seamlessly with existing code patterns
+- ✅ No additional methods needed (zero implementation cost)
+- ✅ Better for IDE autocomplete (shows actual properties, not generic methods)
+- ✅ Clear assignment semantics (no method return type ambiguity)
+
+#### Working with Arrays and Complex Nested Structures
+
+Direct property assignment excels when building complex nested structures incrementally:
+
+```typescript
+// Create base composition
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Clinical Encounter",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "{[openehr::433|event|]}"
+});
+
+// Build content array incrementally
+const content: CONTENT_ITEM[] = [];
+
+// Add observation if available
+if (bloodPressureData) {
+  content.push(new OBSERVATION({
+    archetype_node_id: "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+    name: "Blood Pressure",
+    data: createHistoryFromData(bloodPressureData)
+  }));
+}
+
+// Add evaluation if needed
+if (assessmentData) {
+  content.push(new EVALUATION({
+    archetype_node_id: "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+    name: "Problem/Diagnosis",
+    data: createItemTreeFromData(assessmentData)
+  }));
+}
+
+// Assign the built array
+composition.content = content;
+
+// Add context after content is complete
+composition.context = new EVENT_CONTEXT({
+  start_time: bloodPressureData.timestamp,
+  setting: "{[openehr::238|other care|]}"
+});
+```
+
+#### Real-World Example: Form-Based Data Entry
+
+This pattern is especially useful when building RM objects from form data or external sources:
+
+```typescript
+// Form data from UI
+const formData = {
+  patientName: "John Doe",
+  bloodPressure: { systolic: 120, diastolic: 80 },
+  heartRate: 72,
+  temperature: 36.6,
+  notes: "Patient feeling well"
+};
+
+// Create composition with required fields
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Vital Signs Recording",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "{[openehr::433|event|]}"
+});
+
+// Add composer from user session
+composition.composer = new PARTY_IDENTIFIED({
+  name: getCurrentUser().fullName
+});
+
+// Build observations based on form data
+const observations: OBSERVATION[] = [];
+
+// Blood pressure (always present)
+observations.push(createBloodPressureObservation(
+  formData.bloodPressure.systolic,
+  formData.bloodPressure.diastolic
+));
+
+// Heart rate (conditionally add if present)
+if (formData.heartRate) {
+  observations.push(createHeartRateObservation(formData.heartRate));
+}
+
+// Temperature (conditionally add if present)
+if (formData.temperature) {
+  observations.push(createTemperatureObservation(formData.temperature));
+}
+
+// Assign all observations at once
+composition.content = observations;
+
+// Add notes as a separate SECTION if provided
+if (formData.notes) {
+  const notesSection = new SECTION({
+    archetype_node_id: "openEHR-EHR-SECTION.adhoc.v1",
+    name: "Notes",
+    items: [
+      new EVALUATION({
+        archetype_node_id: "openEHR-EHR-EVALUATION.clinical_synopsis.v1",
+        name: "Clinical Synopsis",
+        data: new ITEM_TREE({
+          items: [
+            new ELEMENT({
+              name: "Synopsis",
+              value: new DV_TEXT({ value: formData.notes })
+            })
+          ]
+        })
+      })
+    ]
+  });
+  
+  // Add notes section to content
+  composition.content.push(notesSection);
+}
+```
+
+#### Performance and Efficiency
+
+Direct property assignment is also the most efficient approach:
+
+1. **No method call overhead:** Direct property assignment is faster than method calls
+2. **No object copying:** Unlike spread syntax in every `.with()` call
+3. **Clear mutation:** It's obvious that the object is being modified
+4. **Memory efficient:** No intermediate objects created
+
+#### When to Use Each Approach
+
+**Use constructor initialization when:**
+- Creating objects with all or most properties known upfront
+- Properties are mandatory or commonly set together
+- Building from JSON or other structured data
+
+**Use direct property assignment when:**
+- Adding optional properties conditionally
+- Building complex nested structures incrementally
+- Working with arrays or computed properties
+- Integrating with existing patterns in a codebase
+
+**Use hybrid (constructor + direct assignment) when:**
+- You want the best of both worlds (most common case)
+- Creating objects with some required and some optional properties
+- Building from forms or user input where not all fields may be present
+
+**Avoid `.with()` or method chaining when:**
+- Direct property assignment is more natural for the use case
+- You're working with non-mandatory attributes
+- You need conditional logic around property setting
+
+**Pros:**
+- ✅ **Zero implementation cost** - already works with existing dual getter/setter pattern
+- ✅ Natural JavaScript/TypeScript idiom
+- ✅ Most efficient approach (no method call overhead)
+- ✅ Excellent for conditional property setting
+- ✅ Works seamlessly with existing code patterns
+- ✅ Better IDE autocomplete (shows actual properties)
+- ✅ No need for additional `.with()` methods
+- ✅ Clear mutation semantics
+- ✅ Flexible mixing with other approaches
+
+**Cons:**
+- ⚠️ May be less fluent than method chaining for some developers
+- ⚠️ Doesn't return `this` (can't chain assignments like methods)
+- ⚠️ Requires variable declaration for the object
+
+**Lines of code:** ~10-12 lines (comparable to other approaches) - **73-78% reduction**
+
+**Note:** This approach requires **no additional implementation** in Phase 4f.2, as it already works through the existing dual getter/setter pattern. It's included here to highlight JavaScript/TypeScript's advantage over Java and to discourage over-engineering with unnecessary `.with()` methods or full method chaining.
+
+---
+
 ## Comparison Matrix
 
-| Criterion | Current | 1A: Canonical | 1B: Inferred | 1C: Terse | 2: Chaining | 3: Hybrid |
-|-----------|---------|---------------|--------------|-----------|-------------|-----------|
-| **Lines of Code** | 45 | 17 | 14 | 11 | 11 | 11-14 |
-| **Reduction** | — | 62% | 69% | 76% | 76% | 69-76% |
-| **Readability** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Type Safety** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Discoverability** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Learning Curve** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| **Backward Compat** | N/A | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Maintenance** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| **IDE Support** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Nested Objects** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
-| **openEHR Std** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Criterion | Current | 1A: Canonical | 1B: Inferred | 1C: Terse | 2: Chaining | 3: Hybrid | 4: Direct Props |
+|-----------|---------|---------------|--------------|-----------|-------------|-----------|-----------------|
+| **Lines of Code** | 45 | 17 | 14 | 11 | 11 | 11-14 | 10-12 |
+| **Reduction** | — | 62% | 69% | 76% | 76% | 69-76% | 73-78% |
+| **Readability** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Type Safety** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Discoverability** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Learning Curve** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Backward Compat** | N/A | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Maintenance** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **IDE Support** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Nested Objects** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **openEHR Std** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Impl. Cost** | N/A | Medium | Medium | Medium | High | High | **Zero*** |
 
 **Legend:** ⭐ = Poor, ⭐⭐⭐ = Average, ⭐⭐⭐⭐⭐ = Excellent
+
+**Note:** *Alternative 4 (Direct Props) has **zero implementation cost** as it already works with the existing dual getter/setter pattern. This makes it particularly attractive as a recommended pattern alongside constructor initialization.
 
 ---
 
 ## Recommendations
 
-### Primary Recommendation: Hybrid Approach (Alternative 3)
+### Primary Recommendation: Hybrid Approach with Direct Property Assignment
 
-Implement the **Hybrid Approach** as it provides:
+Implement **Alternative 3 (Hybrid Approach)** for new features, while **strongly recommending Alternative 4 (Direct Property Assignment)** as the primary pattern for incremental building and optional properties.
+
+**Key Insight:** Alternative 4 (Direct Property Assignment) requires **zero implementation** as it already works through the existing dual getter/setter pattern. This JavaScript/TypeScript advantage over Java makes the `.with()` method largely unnecessary.
+
+#### Recommended Pattern Combination:
+
+1. **Constructor initialization** (Priority 1) for required properties
+2. **Terse format** (Priority 2) for coded terms within constructors
+3. **Direct property assignment** (no implementation needed) for optional/conditional properties
+4. **Skip `.with()` method** (Priority 3 becomes optional) - direct assignment is more natural
+
+#### Benefits of This Approach:
 
 1. **Maximum Developer Choice:** Developers can choose the style that fits their needs
 2. **Best Balance:** Combines compact syntax with readability and type safety
 3. **Backward Compatible:** Existing code continues to work unchanged
 4. **Progressive Adoption:** Teams can adopt new features incrementally
-5. **Future-Proof:** Extensible to support new formats and patterns
+5. **Zero Additional Implementation:** Direct property assignment already works
+6. **Most Natural:** Follows standard JavaScript/TypeScript idioms
+7. **Future-Proof:** Extensible to support new formats and patterns
 
 ### Implementation Priority
 
@@ -594,10 +891,11 @@ Implement the **Hybrid Approach** as it provides:
 - ✅ Type definitions for init objects (using TypeScript union types)
 - ✅ Comprehensive documentation and examples
 - ✅ Update DUAL-APPROACH-GUIDE.md with constructor patterns
+- ✅ **Document direct property assignment pattern (Alternative 4)** - already works, just needs documentation
 
-**Rationale:** This provides immediate benefit with minimal breaking changes and leverages existing dual getter/setter pattern.
+**Rationale:** This provides immediate benefit with minimal breaking changes and leverages existing dual getter/setter pattern. Alternative 4 requires zero implementation - just documentation.
 
-**Estimated effort:** 3-5 days
+**Estimated effort:** 3-5 days (implementation) + 1 day (documentation for Alternative 4)
 
 #### Priority 2: Terse Format Parsing (High Value) - SHOULD HAVE
 - ✅ Implement terse format parser for CODE_PHRASE: `[terminology::code|term|]`
@@ -611,22 +909,22 @@ Implement the **Hybrid Approach** as it provides:
 
 **Estimated effort:** 2-3 days
 
-#### Priority 3: Generic with() Method (Optional Enhancement) - COULD HAVE
-- ✅ Add single chainable `with()` method to base classes (LOCATABLE, DATA_VALUE, etc.)
-- ✅ Documentation and examples showing incremental building patterns
-- ⚠️ Note: This is "nice to have" - constructor initialization may be sufficient
+#### Priority 3: Generic with() Method (Deferred) - WON'T HAVE (for now)
+- ⚠️ **Recommendation changed:** Skip `.with()` method implementation
+- ✅ **Instead:** Promote direct property assignment (Alternative 4) which already works
+- ✅ Document that direct property assignment is more natural for JavaScript/TypeScript
 
-**Rationale:** Provides chaining benefits without the overhead of per-property methods. Low implementation cost.
+**Rationale:** Direct property assignment (Alternative 4) already provides all benefits of `.with()` with zero implementation cost and better developer experience. The `.with()` method is unnecessary given JavaScript/TypeScript's direct property access capability.
 
-**Estimated effort:** 1 day
+**Decision:** Defer `.with()` indefinitely. Recommend direct property assignment instead.
 
 #### Priority 4: Full Method Chaining (Deferred) - WON'T HAVE (for now)
 - ❌ Not recommended for Phase 4f.2 due to:
   - High maintenance burden (every property needs a method)
   - Poor fit for deeply nested structures
-  - Constructor approach provides similar benefits with less code
+  - Direct property assignment provides better ergonomics
 
-**Rationale:** The hybrid approach with constructor initialization and optional `with()` provides most chaining benefits without the drawbacks.
+**Rationale:** Direct property assignment (Alternative 4) is more natural for JavaScript/TypeScript and requires no implementation.
 
 **Decision:** Defer indefinitely unless strong user demand emerges.
 

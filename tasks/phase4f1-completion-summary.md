@@ -20,7 +20,7 @@ Creating openEHR RM objects currently requires extensive boilerplate code:
 
 ## Solution Overview
 
-The PRD recommends a **Hybrid Approach** that combines:
+The PRD recommends a **Hybrid Approach** combining constructor initialization, terse format, and direct property assignment:
 
 ### Priority 1: Constructor-Based Initialization (MUST HAVE)
 ```typescript
@@ -42,26 +42,35 @@ const composition = new COMPOSITION({
 ```
 **Benefit:** 76% code reduction, matches openEHR community conventions
 
-### Priority 3: Generic with() Method (COULD HAVE)
+### Priority 3: Direct Property Assignment (RECOMMENDED - Zero Implementation Cost)
 ```typescript
-const composition = new COMPOSITION()
-  .with({ name: "My Composition" })
-  .with({ language: "[ISO_639-1::en]" });
+// Create with required properties
+const composition = new COMPOSITION({
+  name: "My Composition",
+  language: "[ISO_639-1::en]"
+});
+
+// Add optional properties using direct assignment
+composition.composer = new PARTY_IDENTIFIED({ name: "Dr. Smith" });
+composition.context = new EVENT_CONTEXT({ start_time: "2024-12-09T14:00:00Z" });
 ```
-**Benefit:** Enables incremental building without per-property methods
+**Benefit:** 73-78% code reduction, **zero implementation cost** (already works!), most natural JavaScript/TypeScript pattern
+
+**Key Insight:** Unlike Java, JavaScript/TypeScript allows direct property access without setters. This makes the `.with()` method unnecessary for most use cases.
 
 ### Priority 4: Full Method Chaining (DEFERRED)
-**Decision:** Not recommended due to maintenance burden and poor fit for nested structures
+**Decision:** Not recommended due to maintenance burden and poor fit for nested structures. Direct property assignment is more natural.
 
 ## Alternatives Analyzed
 
-| Approach | Code Reduction | Pros | Cons |
-|----------|----------------|------|------|
-| 1A: Canonical-inspired | 62% | Explicit, matches JSON | Still verbose |
-| 1B: Value inference | 69% | Compact, clear | Inference logic |
-| 1C: Terse format | 76% | Most compact | Parsing complexity |
-| 2: Method chaining | 76% | Fluent, familiar | Poor for nesting |
-| 3: Hybrid (recommended) | 69-76% | Maximum flexibility | More complex impl |
+| Approach | Code Reduction | Pros | Cons | Impl. Cost |
+|----------|----------------|------|------|------------|
+| 1A: Canonical-inspired | 62% | Explicit, matches JSON | Still verbose | Medium |
+| 1B: Value inference | 69% | Compact, clear | Inference logic | Medium |
+| 1C: Terse format | 76% | Most compact | Parsing complexity | Medium |
+| 2: Method chaining | 76% | Fluent, familiar | Poor for nesting | High |
+| 3: Hybrid (recommended) | 69-76% | Maximum flexibility | More complex impl | High |
+| 4: Direct props (NEW!) | 73-78% | **Zero impl. cost**, natural JS/TS | Requires variable | **Zero** |
 
 ## Key Design Decisions
 
@@ -163,11 +172,12 @@ type CompositionInit = {
 **Recommended Implementation Order:**
 1. Constructor-based initialization (Priority 1) - 3-5 days
 2. Terse format parsing (Priority 2) - 2-3 days
-3. Generic with() method (Priority 3) - 1 day
-4. Documentation updates - 1-2 days
-5. Testing and validation - 2-3 days
+3. **Document direct property assignment (Priority 3) - 1 day** (zero implementation, just documentation)
+4. ~~Generic with() method~~ - **DEFERRED** (unnecessary given direct property assignment)
+5. Documentation updates - 1-2 days
+6. Testing and validation - 2-3 days
 
-**Total Estimated:** 9-14 days for full implementation
+**Total Estimated:** 9-13 days for full implementation (reduced from 9-14 days)
 
 ## Conclusion
 
