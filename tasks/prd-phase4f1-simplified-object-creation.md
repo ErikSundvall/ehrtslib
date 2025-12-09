@@ -269,7 +269,7 @@ const composition = new openehr_rm.COMPOSITION({
 ```typescript
 // CODE_PHRASE: "[terminology::code|term|]" or "[terminology::code]"
 function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
-  const match = terse.match(/^\[([^:]+)::([^\]|]+)(?:\|([^|]*)\|)?\]$/);
+  const match = terse.match(/^\[([^:]+)::([^|\]]+)(?:\|([^|]*)\|)?\]$/);
   if (!match) return null;
   
   const codePhrase = new CODE_PHRASE();
@@ -283,7 +283,7 @@ function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
 
 // DV_CODED_TEXT: "{[terminology::code|value|]}"
 function parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null {
-  const match = terse.match(/^\{\[([^:]+)::([^\]|]+)\|([^|]*)\|\]\}$/);
+  const match = terse.match(/^\{\[([^:]+)::([^|\]]+)\|([^|]*)\|\]\}$/);
   if (!match) return null;
   
   const codedText = new DV_CODED_TEXT();
@@ -769,7 +769,7 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
  */
 export function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
   // Regex: [terminology::code] or [terminology::code|term|]
-  const match = terse.match(/^\[([^:]+)::([^\]|]+)(?:\|([^|]*)\|)?\]$/);
+  const match = terse.match(/^\[([^:]+)::([^|\]]+)(?:\|([^|]*)\|)?\]$/);
   
   if (!match) {
     return null;  // Not terse format
@@ -834,7 +834,7 @@ export function toTerseCodePhrase(codePhrase: CODE_PHRASE): string {
  */
 export function parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null {
   // Regex: {[terminology::code|value|]}
-  const match = terse.match(/^\{\[([^:]+)::([^\]|]+)\|([^|]*)\|\]\}$/);
+  const match = terse.match(/^\{\[([^:]+)::([^|\]]+)\|([^|]*)\|\]\}$/);
   
   if (!match) {
     return null;  // Not terse format
