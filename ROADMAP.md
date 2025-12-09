@@ -373,6 +373,16 @@ const composition = new openehr_rm.COMPOSITION()
 
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
+Note that there may be errors in the above example, the openEHR specification is the 
+authority on defintions, not these examples. 
+
+### Other/combined alternatives
+
+Please also consider and describe other alternatives to reach the above stated goal, and
+describe or some combination
+
+## Phase 4f.2
+Rework the example documentation created in Phase 4e to only show the longwinded version once and then descrive and for the examplers use this mor compaxt way of creating objects
 
 ## Phase 4g
 
