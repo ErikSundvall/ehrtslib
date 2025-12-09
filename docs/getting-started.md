@@ -66,7 +66,7 @@ composition.name = name;
 
 // Set UID (required)
 const uid = new openehr_base.OBJECT_VERSION_ID();
-uid.value = "12345678-1234-1234-1234-123456789012::local::1";
+uid.value = "12345678-1234-1234-1234-123456789012::uk.nhs.example::1";
 composition.uid = uid;
 
 // Set language (required)
@@ -82,7 +82,7 @@ const territory = new openehr_base.CODE_PHRASE();
 const territoryTermId = new openehr_base.TERMINOLOGY_ID();
 territoryTermId.value = "ISO_3166-1";
 territory.terminology_id = territoryTermId;
-territory.code_string = "US";
+territory.code_string = "GB";
 composition.territory = territory;
 
 // Set category (required) - "event" category

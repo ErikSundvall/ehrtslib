@@ -25,7 +25,7 @@ function createTemperatureComposition(): openehr_rm.COMPOSITION {
   
   // Set UID
   const uid = new openehr_base.OBJECT_VERSION_ID();
-  uid.value = "9949182c-82ad-4088-a07f-48ead4180516::local.ehrbase.org::1";
+  uid.value = "9949182c-82ad-4088-a07f-48ead4180516::uk.nhs.example::1";
   composition.uid = uid;
   
   // Set language
@@ -41,7 +41,7 @@ function createTemperatureComposition(): openehr_rm.COMPOSITION {
   const territoryTermId = new openehr_base.TERMINOLOGY_ID();
   territoryTermId.value = "ISO_3166-1";
   territory.terminology_id = territoryTermId;
-  territory.code_string = "US";
+  territory.code_string = "GB";
   composition.territory = territory;
   
   // Set category (event)
