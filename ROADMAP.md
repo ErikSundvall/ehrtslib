@@ -297,7 +297,7 @@ console.log("Created COMPOSITION:", composition.name?.value);
 ```
 
 We also want to have a convenience constructor to be able to skip the "value" hierarchy step for e.g. many of openEHR's
-classes that are decendents of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
+classes that are descendants of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
 
 ```typescript
 import * as openehr_rm from "./openehr_rm.ts";
@@ -344,7 +344,7 @@ console.log("Created COMPOSITION:", composition.name?.value);
 ### Javascript method chaining
 This approach explores the approach described in https://dev.to/sundarbadagala081/javascript-chaining-3h6g
 
-It should be posisble to use a fluent "chainable" interface to build objects. This could be nice but may hide some
+It should be possible to use a fluent "chainable" interface to build objects. This could be nice but may hide some
 of the hierarchies and structure.
 
 ```typescript
