@@ -188,35 +188,202 @@ specific template. Template supported object creation will be implemented in lat
 phases, but it could be pedagogical to show that the RM is usable (albeit in a
 cumbersome way) on its own.
 
-## Phase 4f
-Explore if javacript chaining (as described in e.g
+## Phase 4f.1
+Goal: Add easier and more compact ways to create the deeply nested openEHR objects, to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be used when it is obvious from the openEHR RM what types to use, so that it will be enough to just provide the meaningful values when creating an object.
+
+Task: in Phase 4f.1 just create a detailed PRD or som other design document as a 
+guide that will then be inspected manually and then later used as instruction for 
+implementation in Phase 4f.2 Make it a markdown file.
+
+Possible alternatives for this is 
+- using Javascript "spread" and it's named key+value variables in function calls
+- using Javascript method chaining
+- perhaps some other method that you (the AI) can suggest
+
+The first two approaches are further described in subheadings below. 
+
+The running example of what we want to simplify is created like this using the code from Phase 4e:
+
+```typescript
+import * as openehr_rm from "./openehr_rm.ts";
+import * as openehr_base from "./openehr_base.ts";
+
+// Create a COMPOSITION
+const composition = new openehr_rm.COMPOSITION();
+composition.archetype_node_id = "openEHR-EHR-COMPOSITION.encounter.v1";
+
+// Set name
+const name = new openehr_rm.DV_TEXT();
+name.value = "My First Composition";
+composition.name = name;
+
+// Set UID (required)
+const uid = new openehr_base.OBJECT_VERSION_ID();
+uid.value = "12345678-1234-1234-1234-123456789012::org.example.hospital::1";
+composition.uid = uid;
+
+// Set language (required)
+const language = new openehr_base.CODE_PHRASE();
+const languageTermId = new openehr_base.TERMINOLOGY_ID();
+languageTermId.value = "ISO_639-1";
+language.terminology_id = languageTermId;
+language.code_string = "en";
+composition.language = language;
+
+// Set territory (required)
+const territory = new openehr_base.CODE_PHRASE();
+const territoryTermId = new openehr_base.TERMINOLOGY_ID();
+territoryTermId.value = "ISO_3166-1";
+territory.terminology_id = territoryTermId;
+territory.code_string = "GB";
+composition.territory = territory;
+
+// Set category (required) - "event" category
+const category = new openehr_rm.DV_CODED_TEXT();
+category.value = "event";
+const categoryCode = new openehr_base.CODE_PHRASE();
+const categoryTermId = new openehr_base.TERMINOLOGY_ID();
+categoryTermId.value = "openehr";
+categoryCode.terminology_id = categoryTermId;
+categoryCode.code_string = "433"; // openEHR event category code
+category.defining_code = categoryCode;
+composition.category = category;
+
+// Set composer (required) - who created this
+const composer = new openehr_rm.PARTY_IDENTIFIED();
+const composerName = new openehr_rm.DV_TEXT();
+composerName.value = "Dr. Example";
+composer.name = composerName;
+composition.composer = composer;
+
+// Set archetype details (required)
+const archetypeDetails = new openehr_rm.ARCHETYPED();
+const archetypeId = new openehr_base.ARCHETYPE_ID();
+archetypeId.value = "openEHR-EHR-COMPOSITION.encounter.v1";
+archetypeDetails.archetype_id = archetypeId;
+archetypeDetails.rm_version = "1.1.0";
+composition.archetype_details = archetypeDetails;
+
+console.log("Created COMPOSITION:", composition.name?.value);
+```
+
+## Javascript "spread" and it's named key+value variables in function calls
+This approach explores the approach described in https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+
+Note: In documentation add warning about overrides as described under the heading "Overriding properties" in
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#:~:text=Overriding%20properties
+
+### "canonical"-inspired
+It should be possible to use what we can call "canonical"-inspired form (very close to openEHRs canonical JSON serialisation format)
+that visibly fully represents the RM structure as it can be seen in UML diagrams etc;
+
+```typescript
+import * as openehr_rm from "./openehr_rm.ts";
+import * as openehr_base from "./openehr_base.ts";
+
+// Create a COMPOSITION
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: {value: "My First Composition"},
+  uid: {value: "12345678-1234-1234-1234-123456789012::org.example.hospital::1"},
+  language: {code_string: "en", terminology_id: {value: "ISO_639-1"}},
+  territory: {code_string: "GB", terminology_id: {value: "ISO_3166-1"}},
+  category: {value: "event", defining_code: {code_string: "433", terminology_id: "openehr"}},
+  composer: {name: {value: "Dr. Example"}},
+  archetype_details: {archetype_id: {value: "openEHR-EHR-COMPOSITION.encounter.v1"}, rm_version: "1.1.0"}
+});
+
+console.log("Created COMPOSITION:", composition.name?.value);
+```
+
+We also want to have a convenience constructor to be able to skip the "value" hierarchy step for e.g. many of openEHR's
+classes that are decendents of DATA_VALUE (often with class named prefixed DV_*) so that we would also allow an even shorter form:
+
+```typescript
+import * as openehr_rm from "./openehr_rm.ts";
+import * as openehr_base from "./openehr_base.ts";
+
+// Create a COMPOSITION
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "My First Composition",
+  uid: "12345678-1234-1234-1234-123456789012::org.example.hospital::1",
+  language: {code_string: "en", terminology_id: "ISO_639-1"},
+  territory: {code_string: "GB", terminology_id: "ISO_3166-1"},
+  category: {value: "event", defining_code: {code_string : "433", terminology_id: "openehr"}},
+  composer: {name: "Dr. Example"},
+  archetype_details: {archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1", rm_version: "1.1.0"}
+});
+
+console.log("Created COMPOSITION:", composition.name?.value);
+```
+
+For CODE_PHRASE and DV_CODED_TEXT we also want convenience constructors that parse the compact "terse"
+string form as discussed in https://discourse.openehr.org/t/simplified-data-template-sdt-data-types/546 
+and detailed in https://openehr.atlassian.net/wiki/spaces/spec/pages/624361477/Simplified+Serial+Formats+-+Data+Types
+
+```typescript
+import * as openehr_rm from "./openehr_rm.ts";
+import * as openehr_base from "./openehr_base.ts";
+
+// Create a COMPOSITION
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "My First Composition",
+  uid: "12345678-1234-1234-1234-123456789012::org.example.hospital::1",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "[openehr::433|event|]",
+  composer: {name: "Dr. Example"},
+  archetype_details: {archetype_id : "openEHR-EHR-COMPOSITION.encounter.v1", rm_version: "1.1.0"}
+});
+
+console.log("Created COMPOSITION:", composition.name?.value);
+```
+
+Note that there may be errors in all the above examples, the openEHR specification is the 
+authority on defintions, not these examples. 
+  
+## Javascript method chaining  
+
+Also explore if javacript chaining (as described in e.g
 https://dev.to/sundarbadagala081/javascript-chaining-3h6g and also often used
 in frameworks like D3.js) and other tricks could be used to make creating openEHR
 RM instancetrees easier and more compact in code. Perhaps the constructors or 
 some other method would be suitable for this if slightly enhanced. 
-Let's imagine something like the following (likely needs modification):
 
-new COMPOSITION()
-  .name("ChemoForm-MBA.v7")
-  .uid("573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1")
-  .archetype_details(
-    ARCHETYPE_ID("openEHR-EHR-COMPOSITION.self_reported_data.v1"),
-    TEMPLATE_ID("ChemoForm-MBA.v7")
-    // Add some way of represent "rm_version": "1.1.0"
-    )
+Let's imagine something like the following (likely needs modification), note
+thet this example uses the same the compact "terse" string form for at least 
+CODE_PHRASE and DV_CODED_TEXT
 
-Or something like this with a map and type inference
-new COMPOSTION(
-  "name": "ChemoForm-MBA.v7",
-  "uid": "573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1",
-  "archetype_details": {
-    "archetype_id": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
-    "template_id": "ChemoForm-MBA.v7"
-    },
-    "rm_version": "1.1.0"
-  }, ...
+```typescript
+import * as openehr_rm from "./openehr_rm.ts";
+import * as openehr_base from "./openehr_base.ts";
 
-  ...or some combination
+// Create a COMPOSITION
+const composition = new openehr_rm.COMPOSITION()
+  .archetype_node_id("openEHR-EHR-COMPOSITION.encounter.v1")
+  .name("My First Composition")
+  .uid("12345678-1234-1234-1234-123456789012::org.example.hospital::1")
+  .language("[ISO_639-1::en]")
+  .territory("[ISO_3166-1::GB]")
+  .category("[openehr::433|event|]")
+  .composer({name: {value: "Dr. Example"}})
+  .archetype_details({archetype_id: {value: "openEHR-EHR-COMPOSITION.encounter.v1"}, rm_version: "1.1.0"})
+
+console.log("Created COMPOSITION:", composition.name?.value);
+```
+Note that there may be errors in the above example, the openEHR specification is the 
+authority on defintions, not these examples. 
+
+## Other/combined alternatives
+
+Please also consider and describe other alternatives to reach the above stated goal, and
+describe or some combination
+
+## Phase 4f.2
+Rework the example documentation created in Phase 4e to only show the longwinded version once and then descrive and for the examplers use this mor compaxt way of creating objects
+
 
 ## Phase 4g
 
