@@ -35,7 +35,7 @@ const composition = new COMPOSITION({
 ### Priority 2: Terse Format Support (SHOULD HAVE)
 ```typescript
 const composition = new COMPOSITION({
-  language: "[ISO_639-1::en]",           // CODE_PHRASE
+  language: "ISO_639-1::en",           // CODE_PHRASE
   category: "{[openehr::433|event|]}",  // DV_CODED_TEXT
   // ... 11 lines total
 });
@@ -47,7 +47,7 @@ const composition = new COMPOSITION({
 // Create with required properties
 const composition = new COMPOSITION({
   name: "My Composition",
-  language: "[ISO_639-1::en]"
+  language: "ISO_639-1::en"
 });
 
 // Add optional properties using direct assignment
@@ -87,7 +87,7 @@ composition.context = new EVENT_CONTEXT({ start_time: "2024-12-09T14:00:00Z" });
 **CODE_PHRASE:**
 - Format: `[terminology::code]` or `[terminology::code|term|]`
 - Regex: `/^\[([^:]+)::([^|\]]+)(?:\|([^|]*)\|)?\]$/`
-- Example: `"[ISO_639-1::en]"`, `"[openehr::433|event|]"`
+- Example: `"ISO_639-1::en"`, `"[openehr::433|event|]"`
 
 **DV_CODED_TEXT:**
 - Format: `{[terminology::code|value|]}`

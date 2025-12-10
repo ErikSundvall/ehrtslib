@@ -527,7 +527,7 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
     if (parsed) return parsed;
     
     // If not terse format, throw descriptive error
-    throw new Error(`Invalid CODE_PHRASE format: "${value}". Expected terse format like "terminology::code" or an object`);
+    throw new Error(`Invalid CODE_PHRASE format: "${value}". Expected terse format like "[terminology::code]" or an object`);
   } else {
     return new CODE_PHRASE(value);
   }
@@ -713,8 +713,8 @@ This makes the `.with()` method and full method chaining potentially unnecessary
 const composition = new openehr_rm.COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "My First Composition",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
   category: "{[openehr::433|event|]}"
 });
 
@@ -741,8 +741,8 @@ The real power comes from mixing constructor initialization, terse format, and d
 const composition = new openehr_rm.COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "Blood Pressure Reading",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
   category: "{[openehr::433|event|]}"
 });
 
@@ -782,8 +782,8 @@ This approach provides similar incremental building capabilities as method chain
 **Direct Property Assignment:**
 ```typescript
 const comp = new COMPOSITION({ name: "Test" });
-comp.language = "ISO_639-1::en";
-comp.territory = "ISO_3166-1::GB";
+comp.language = "[ISO_639-1::en]";
+comp.territory = "[ISO_3166-1::GB]";
 comp.composer = { name: "Dr. Smith" };
 ```
 
@@ -791,8 +791,8 @@ comp.composer = { name: "Dr. Smith" };
 ```typescript
 const comp = new COMPOSITION()
   .with({ name: "Test" })
-  .with({ language: "ISO_639-1::en" })
-  .with({ territory: "ISO_3166-1::GB" })
+  .with({ language: "[ISO_639-1::en]" })
+  .with({ territory: "[ISO_3166-1::GB]" })
   .with({ composer: { name: "Dr. Smith" } });
 ```
 
@@ -813,8 +813,8 @@ Direct property assignment excels when building complex nested structures increm
 const composition = new COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "Clinical Encounter",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
   category: "{[openehr::433|event|]}"
 });
 
@@ -867,8 +867,8 @@ const formData = {
 const composition = new COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "Vital Signs Recording",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
   category: "{[openehr::433|event|]}"
 });
 
@@ -1044,7 +1044,7 @@ Implement **Alternative 3 (Hybrid Approach)** for new features, while **strongly
 **Estimated effort:** 3-5 days (implementation) + 1 day (documentation for Alternative 4)
 
 #### Priority 2: Terse Format Parsing (High Value) - SHOULD HAVE
-- ✅ Implement terse format parser for CODE_PHRASE: `terminology::code|term|`
+- ✅ Implement terse format parser for CODE_PHRASE: `[terminology::code|term|]`
 - ✅ Implement terse format parser for DV_CODED_TEXT: `{[terminology::code|value|]}`
 - ✅ Integration with constructor initialization and property setters
 - ✅ Comprehensive error handling and validation with clear error messages
@@ -1055,26 +1055,14 @@ Implement **Alternative 3 (Hybrid Approach)** for new features, while **strongly
 
 **Estimated effort:** 2-3 days
 
-#### Priority 3: Generic with() Method (Optional) - COULD HAVE
-- ✅ Add single chainable `with()` method to base classes (LOCATABLE, DATA_VALUE, etc.)
-- ✅ Documentation and examples showing when `.with()` is useful vs. direct property assignment
-- ⚠️ Note: This is optional - direct property assignment covers most use cases
+#### Priority 3: Generic with() Method (Deferred) - WON'T HAVE (for now)
+- ⚠️ **Recommendation changed:** Skip `.with()` method implementation
+- ✅ **Instead:** Promote direct property assignment (Alternative 4) which already works
+- ✅ Document that direct property assignment is more natural for JavaScript/TypeScript
 
-**When `.with()` is Useful:**
-- Conditional building with method chaining style
-- Transformation pipelines where objects flow through steps
-- Builder pattern implementations
-- Functional programming style with immutable-style updates
+**Rationale:** Direct property assignment (Alternative 4) already provides all benefits of `.with()` with zero implementation cost and better developer experience. The `.with()` method is unnecessary given JavaScript/TypeScript's direct property access capability.
 
-**When Direct Property Assignment is Better:**
-- Simple, straightforward property setting
-- No need for chaining or functional style
-- Better IDE autocomplete (shows actual properties)
-- Slightly more performant
-
-**Rationale:** Both patterns have their place. Provide `.with()` for developers who prefer fluent/functional style, while direct property assignment remains the primary recommendation for simplicity.
-
-**Estimated effort:** 1 day
+**Decision:** Defer `.with()` indefinitely. Recommend direct property assignment instead.
 
 #### Priority 4: Full Method Chaining (Deferred) - WON'T HAVE (for now)
 - ❌ Not recommended for Phase 4f.2 due to:
@@ -1179,7 +1167,7 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
     // Not terse format - error
     throw new Error(
       `Invalid CODE_PHRASE format: "${value}". ` +
-      `Expected terse format like "terminology::code" or an object.`
+      `Expected terse format like "[terminology::code]" or an object.`
     );
   } else if (value instanceof CODE_PHRASE) {
     return value;
@@ -1206,26 +1194,26 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
 
 #### 2.1 CODE_PHRASE Terse Format
 
-**Format:** `terminology::code` or `terminology::code|preferred_term|`
+**Format:** `[terminology::code]` or `[terminology::code|preferred_term|]`
 
 **Parser Implementation:**
 ```typescript
 /**
  * Parse terse CODE_PHRASE format.
  * 
- * Format: terminology::code or terminology::code|preferred_term|
+ * Format: [terminology::code] or [terminology::code|preferred_term|]
  * 
  * Examples:
- * - "ISO_639-1::en"
- * - "openehr::433|event|"
- * - "SNOMED-CT::12345|diabetes mellitus|"
+ * - "[ISO_639-1::en]"
+ * - "[openehr::433|event|]"
+ * - "[SNOMED-CT::12345|diabetes mellitus|]"
  * 
  * @param terse - The terse format string
  * @returns Parsed CODE_PHRASE or null if format is invalid
  */
 export function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
-  // Regex: terminology::code or terminology::code|term|
-  const match = terse.match(/^([^:]+)::([^|]+)(?:\|([^|]*)\|)?$/);
+  // Regex: [terminology::code] or [terminology::code|term|]
+  const match = terse.match(/^\[([^:]+)::([^|\]]+)(?:\|([^|]*)\|)?\]$/);
   
   if (!match) {
     return null;  // Not terse format
@@ -1261,36 +1249,36 @@ export function toTerseCodePhrase(codePhrase: CODE_PHRASE): string {
   const term = codePhrase.preferred_term;
   
   if (term) {
-    return `${termId}::${code}|${term}|`;
+    return `[${termId}::${code}|${term}|]`;
   } else {
-    return `${termId}::${code}`;
+    return `[${termId}::${code}]`;
   }
 }
 ```
 
 #### 2.2 DV_CODED_TEXT Terse Format
 
-**Format:** `terminology::code|value|`
+**Format:** `{[terminology::code|value|]}`
 
 **Parser Implementation:**
 ```typescript
 /**
  * Parse terse DV_CODED_TEXT format.
  * 
- * Format: terminology::code|value|
+ * Format: {[terminology::code|value|]}
  * 
- * The trailing pipe distinguishes DV_CODED_TEXT from CODE_PHRASE with optional term.
+ * The curly braces distinguish DV_CODED_TEXT from CODE_PHRASE.
  * 
  * Examples:
- * - "openehr::433|event|"
- * - "SNOMED-CT::12345|diabetes mellitus|"
+ * - "{[openehr::433|event|]}"
+ * - "{[SNOMED-CT::12345|diabetes mellitus|]}"
  * 
  * @param terse - The terse format string
  * @returns Parsed DV_CODED_TEXT or null if format is invalid
  */
 export function parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null {
-  // Regex: terminology::code|value| (must end with pipe)
-  const match = terse.match(/^([^:]+)::([^|]+)\|([^|]*)\|$/);
+  // Regex: {[terminology::code|value|]}
+  const match = terse.match(/^\{\[([^:]+)::([^|\]]+)\|([^|]*)\|\]\}$/);
   
   if (!match) {
     return null;  // Not terse format
@@ -1326,7 +1314,7 @@ export function toTerseDvCodedText(codedText: DV_CODED_TEXT): string {
   const code = codedText.defining_code?.code_string || "";
   const value = codedText.value || "";
   
-  return `${termId}::${code}|${value}|`;
+  return `{[${termId}::${code}|${value}|]}`;
 }
 ```
 
@@ -1342,10 +1330,10 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
     
     throw new Error(
       `Invalid CODE_PHRASE format: "${value}"\n` +
-      `Expected terse format like "terminology::code" or "terminology::code|term|"\n` +
+      `Expected terse format like "[terminology::code]" or "[terminology::code|term|]"\n` +
       `Examples:\n` +
-      `  - "ISO_639-1::en"\n` +
-      `  - "openehr::433|event|" (for optional term)\n` +
+      `  - "[ISO_639-1::en]"\n` +
+      `  - "[openehr::433|event|]"\n` +
       `Or use object format: { code_string: "en", terminology_id: "ISO_639-1" }`
     );
   }
@@ -1370,7 +1358,7 @@ export abstract class LOCATABLE extends Pathable {
    * ```typescript
    * const comp = new COMPOSITION()
    *   .with({ name: "My Composition" })
-   *   .with({ language: "ISO_639-1::en" });
+   *   .with({ language: "[ISO_639-1::en]" });
    * ```
    * 
    * @param updates - Partial initialization object
@@ -1417,7 +1405,7 @@ const codePhrase = new CODE_PHRASE({
 });
 
 // Or use terse format
-const codePhrase2 = new CODE_PHRASE("ISO_639-1::en");
+const codePhrase2 = new CODE_PHRASE("[ISO_639-1::en]");
 ```
 
 ### Complete Example
@@ -1426,9 +1414,9 @@ const codePhrase2 = new CODE_PHRASE("ISO_639-1::en");
 const composition = new COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "Blood Pressure Reading",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
-  category: "openehr::433|event|",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
+  category: "{[openehr::433|event|]}",
   composer: { name: "Dr. Smith" },
   archetype_details: {
     archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
@@ -1440,13 +1428,12 @@ const composition = new COMPOSITION({
 ### Terse Format for Coded Terms
 
 **CODE_PHRASE:**
-- Format: `terminology::code` or `terminology::code|term|`
-- Example: `"ISO_639-1::en"` or `"SNOMED-CT::12345|diabetes|"`
+- Format: `[terminology::code]` or `[terminology::code|term|]`
+- Example: `"[ISO_639-1::en]"` or `"[openehr::433|event|]"`
 
 **DV_CODED_TEXT:**
-- Format: `terminology::code|value|` (note the trailing pipe)
-- Example: `"openehr::433|event|"`
-- The trailing pipe distinguishes it from CODE_PHRASE with optional term
+- Format: `{[terminology::code|value|]}`
+- Example: `"{[openehr::433|event|]}"`
 
 ### Mixing Styles
 
@@ -1459,10 +1446,10 @@ const comp = new COMPOSITION({
 });
 
 // Update with property assignment
-comp.language = "ISO_639-1::en";
+comp.language = "[ISO_639-1::en]";
 
 // Or use with() method
-comp.with({ territory: "ISO_3166-1::GB" });
+comp.with({ territory: "[ISO_3166-1::GB]" });
 ```
 ```
 
@@ -1626,7 +1613,7 @@ Update `examples/basic-composition.ts` to show both old and new approaches.
 **Options:**
 A. Auto-detect (recommended): Try parsing any string as terse, fall back to error
 B. Explicit: Require calling `parseTerseCodePhrase()` manually
-C. Typed wrapper: `terse("ISO_639-1::en")` function
+C. Typed wrapper: `terse("[ISO_639-1::en]")` function
 
 **Recommendation:** Option A (auto-detect) for best developer experience.
 
@@ -1725,8 +1712,8 @@ const composition = new openehr_rm.COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
   name: "Blood Pressure Reading",
   uid: "8849182c-82ad-4088-a07f-48ead4180515::uk.nhs.example::1",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
+  language: "[ISO_639-1::en]",
+  territory: "[ISO_3166-1::GB]",
   category: "{[openehr::433|event|]}",
   composer: { name: "Dr. Smith" },
   archetype_details: {
