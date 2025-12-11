@@ -693,6 +693,38 @@ This combination provides:
 - **Backwards compatibility:** Existing code continues to work
 - **Progressive enhancement:** Add new formats without breaking existing code
 
+#### Note on CTX Objects
+
+The [openEHR Simplified Formats specification](https://specifications.openehr.org/releases/ITS-REST/development/simplified_formats.html) describes CTX (context) objects that provide reusable configuration snippets. **ehrtslib does not implement separate CTX objects** because the same effect is achieved more naturally in JavaScript/TypeScript using predefined Partial objects that can be passed to constructors alongside other parameters.
+
+**Example - Reusable Configuration Snippets:**
+```typescript
+// Define reusable configuration snippets as Partials
+const commonContext = {
+  setting: "openehr::238|other care|",
+  start_time: () => new Date().toISOString()
+};
+
+const commonLanguageTerritory = {
+  language: "ISO_639-1::en",
+  territory: "ISO_3166-1::GB"
+};
+
+// Use with constructor - same effect as CTX objects
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Blood Pressure Reading",
+  ...commonLanguageTerritory,  // Spread reusable config
+  category: "openehr::433|event|",
+  context: new EVENT_CONTEXT({
+    ...commonContext,
+    start_time: commonContext.start_time()
+  })
+});
+```
+
+This approach provides the same benefits as CTX objects (reusability, consistency) while leveraging native JavaScript/TypeScript features (object spreading, composition) that developers already know and IDEs fully support.
+
 ---
 
 ### Alternative 4: Direct Property Assignment (JavaScript/TypeScript Advantage)
