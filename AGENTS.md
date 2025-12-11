@@ -7,9 +7,9 @@
   quality or based on outdated versions.
 - It is good to offload some tasks to external MCP (Model Context Protocol)
   - If you are a local agent (e.g. Gemini CLI), you already have a built in way
-    to access MCP servers, but you may need to ask user to add certain NCP
-    servers to you configuration.
-  - If you are Jules or any other AI that does not have direct MCP tool access,
+    to access MCP servers, but you may need to ask user to add certain MCP
+    servers to you configuration (please do ask).
+  - If you are Jules or any other AI that does _not_ have direct MCP tool access,
     you must use one of the following official MCP clients, also see details and
     examples in the file AGENTS-jules-MCP-hints.md:
     - **TypeScript:** Use the `@modelcontextprotocol/sdk` package. See the
@@ -24,8 +24,8 @@
   MCP server. Successful connections to the Deepwiki server has been established
   using all the methods described above, so if conenction fails stop and ask
   user for help, don't try to invent other ways to call MCP servers. If you are
-  a local agent (e.g. Gemini CLI), you have direct access to the Deepwiki MCP
-  tools (configured by user).
+  a local agent (e.g. Gemini CLI), you should have direct access to the Deepwiki MCP
+  tools already (configured by user), if not - ask user for help.
 - The DeepWiki MCP server offers three main tools:
   1. read_wiki_structure - Get a list of documentation topics for a GitHub
      repository
