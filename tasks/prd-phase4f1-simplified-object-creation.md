@@ -245,8 +245,8 @@ const composition = new openehr_rm.COMPOSITION({
 This approach adds support for openEHR's "terse" string format for CODE_PHRASE and DV_CODED_TEXT, following the compact serialization format discussed in the openEHR community (see [discourse.openehr.org](https://discourse.openehr.org/t/terse-compact-serialisation-of-openehr-leaf-nodes-like-ecisflat-values/11649/5)).
 
 **Terse Format Specification:**
-- **CODE_PHRASE**: `"terminology::code"` or `"terminology::code|preferred_term|"`
-- **DV_CODED_TEXT**: `"terminology::code|value|"` (the trailing pipe distinguishes it from CODE_PHRASE with optional term)
+- **CODE_PHRASE**: `"terminology::code"` (simple format with terminology and code only)
+- **DV_CODED_TEXT**: `"terminology::code|value|"` (the trailing pipe with value distinguishes it from CODE_PHRASE)
 
 ```typescript
 // Most compact form with terse string parsing
@@ -267,18 +267,15 @@ const composition = new openehr_rm.COMPOSITION({
 
 **Terse Format Parsing Logic:**
 ```typescript
-// CODE_PHRASE: "terminology::code|term|" or "terminology::code"
+// CODE_PHRASE: "terminology::code"
 function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
-  // Match pattern: terminology::code or terminology::code|term|
-  const match = terse.match(/^([^:]+)::([^|]+)(?:\|([^|]*)\|)?$/);
+  // Match pattern: terminology::code (no optional term)
+  const match = terse.match(/^([^:]+)::([^|]+)$/);
   if (!match) return null;
   
   const codePhrase = new CODE_PHRASE();
   codePhrase.terminology_id = match[1];  // Auto-wrapped as TERMINOLOGY_ID
   codePhrase.code_string = match[2];
-  if (match[3]) {
-    codePhrase.preferred_term = match[3];
-  }
   return codePhrase;
 }
 
@@ -1044,14 +1041,14 @@ Implement **Alternative 3 (Hybrid Approach)** for new features, while **strongly
 **Estimated effort:** 3-5 days (implementation) + 1 day (documentation for Alternative 4)
 
 #### Priority 2: Terse Format Parsing (High Value) - SHOULD HAVE
-- ✅ Implement terse format parser for CODE_PHRASE: `terminology::code|term|`
-- ✅ Implement terse format parser for DV_CODED_TEXT: `{[terminology::code|value|]}`
+- ✅ Implement terse format parser for CODE_PHRASE: `terminology::code`
+- ✅ Implement terse format parser for DV_CODED_TEXT: `terminology::code|value|`
 - ✅ Integration with constructor initialization and property setters
 - ✅ Comprehensive error handling and validation with clear error messages
 - ✅ Documentation of format specification with examples
 - ✅ Unit tests for all parsing scenarios (valid and invalid)
 
-**Rationale:** Terse format is an openEHR community convention and provides significant compactness for coded terms (most common boilerplate).
+**Rationale:** Terse format is an openEHR community convention and provides significant compactness for coded terms (most common boilerplate). CODE_PHRASE supports only the basic format with terminology and code_string. If preferred_term is needed, use object initialization.
 
 **Estimated effort:** 2-3 days
 
@@ -1194,9 +1191,6 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
     if (value.code_string !== undefined) {
       cp.code_string = value.code_string;
     }
-    if (value.preferred_term !== undefined) {
-      cp.preferred_term = value.preferred_term;
-    }
     return cp;
   }
 }
@@ -1206,26 +1200,28 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
 
 #### 2.1 CODE_PHRASE Terse Format
 
-**Format:** `terminology::code` or `terminology::code|preferred_term|`
+**Format:** `terminology::code`
 
 **Parser Implementation:**
 ```typescript
 /**
  * Parse terse CODE_PHRASE format.
  * 
- * Format: terminology::code or terminology::code|preferred_term|
+ * Format: terminology::code
  * 
  * Examples:
  * - "ISO_639-1::en"
- * - "openehr::433|event|"
- * - "SNOMED-CT::12345|diabetes mellitus|"
+ * - "ISO_3166-1::GB"
+ * - "openehr::433"
+ * 
+ * Note: If you need to include a preferred_term, use object initialization instead.
  * 
  * @param terse - The terse format string
  * @returns Parsed CODE_PHRASE or null if format is invalid
  */
 export function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
-  // Regex: terminology::code or terminology::code|term|
-  const match = terse.match(/^([^:]+)::([^|]+)(?:\|([^|]*)\|)?$/);
+  // Regex: terminology::code (no pipes allowed - those are for DV_CODED_TEXT)
+  const match = terse.match(/^([^:]+)::([^|]+)$/);
   
   if (!match) {
     return null;  // Not terse format
@@ -1241,11 +1237,6 @@ export function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
   // code_string (required)
   codePhrase.code_string = match[2];
   
-  // preferred_term (optional)
-  if (match[3]) {
-    codePhrase.preferred_term = match[3];
-  }
-  
   return codePhrase;
 }
 
@@ -1258,13 +1249,8 @@ export function parseTerseCodePhrase(terse: string): CODE_PHRASE | null {
 export function toTerseCodePhrase(codePhrase: CODE_PHRASE): string {
   const termId = codePhrase.terminology_id?.value || "";
   const code = codePhrase.code_string || "";
-  const term = codePhrase.preferred_term;
   
-  if (term) {
-    return `${termId}::${code}|${term}|`;
-  } else {
-    return `${termId}::${code}`;
-  }
+  return `${termId}::${code}`;
 }
 ```
 
@@ -1342,10 +1328,10 @@ function _initializeCodePhrase(value: string | CODE_PHRASE | Partial<CODE_PHRASE
     
     throw new Error(
       `Invalid CODE_PHRASE format: "${value}"\n` +
-      `Expected terse format like "terminology::code" or "terminology::code|term|"\n` +
+      `Expected terse format like "terminology::code"\n` +
       `Examples:\n` +
       `  - "ISO_639-1::en"\n` +
-      `  - "openehr::433|event|" (for optional term)\n` +
+      `  - "openehr::433"\n` +
       `Or use object format: { code_string: "en", terminology_id: "ISO_639-1" }`
     );
   }
@@ -1440,13 +1426,14 @@ const composition = new COMPOSITION({
 ### Terse Format for Coded Terms
 
 **CODE_PHRASE:**
-- Format: `terminology::code` or `terminology::code|term|`
-- Example: `"ISO_639-1::en"` or `"SNOMED-CT::12345|diabetes|"`
+- Format: `terminology::code` (simple format only)
+- Example: `"ISO_639-1::en"` or `"openehr::433"`
+- Note: For CODE_PHRASE with preferred_term, use object initialization instead
 
 **DV_CODED_TEXT:**
 - Format: `terminology::code|value|` (note the trailing pipe)
 - Example: `"openehr::433|event|"`
-- The trailing pipe distinguishes it from CODE_PHRASE with optional term
+- The trailing pipe distinguishes it from CODE_PHRASE
 
 ### Mixing Styles
 
@@ -1772,7 +1759,6 @@ export type CompositionInit = LocatableInit & {
 export type CodePhraseInit = {
   terminology_id?: string | TERMINOLOGY_ID | Partial<TERMINOLOGY_ID>;
   code_string?: string;
-  preferred_term?: string;
 };
 
 /**
