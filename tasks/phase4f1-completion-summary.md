@@ -36,7 +36,7 @@ const composition = new COMPOSITION({
 ```typescript
 const composition = new COMPOSITION({
   language: "ISO_639-1::en",           // CODE_PHRASE
-  category: "{[openehr::433|event|]}",  // DV_CODED_TEXT
+  category: "openehr::433|event|",  // DV_CODED_TEXT
   // ... 11 lines total
 });
 ```
@@ -85,14 +85,15 @@ composition.context = new EVENT_CONTEXT({ start_time: "2024-12-09T14:00:00Z" });
 ### Terse Format Specification
 
 **CODE_PHRASE:**
-- Format: `[terminology::code]` or `[terminology::code|term|]`
-- Regex: `/^\[([^:]+)::([^|\]]+)(?:\|([^|]*)\|)?\]$/`
-- Example: `"ISO_639-1::en"`, `"[openehr::433|event|]"`
+- Format: `terminology::code` (simple format only)
+- Regex: `/^([^:]+)::([^|]+)$/`
+- Example: `"ISO_639-1::en"`
+- Note: If `preferred_term` needed, use object initialization
 
 **DV_CODED_TEXT:**
-- Format: `{[terminology::code|value|]}`
-- Regex: `/^\{\[([^:]+)::([^|\]]+)\|([^|]*)\|\]\}$/`
-- Example: `"{[openehr::433|event|]}"`
+- Format: `terminology::code|value|` (trailing pipe distinguishes from CODE_PHRASE)
+- Regex: `/^([^:]+)::([^|]+)\|([^|]*)\|$/`
+- Example: `"openehr::433|event|"`
 
 ### Constructor Pattern
 
