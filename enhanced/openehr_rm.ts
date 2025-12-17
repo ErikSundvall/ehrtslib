@@ -27,6 +27,7 @@ import {
   initEventContext,
   initObjectVersionId
 } from "./init_helpers.ts";
+import { parseTerseDvCodedText } from "./terse_format.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -3160,8 +3161,8 @@ export class DV_CODED_TEXT extends DV_TEXT {
    */
   constructor(init?: string | Partial<DvCodedTextInit>) {
     if (typeof init === 'string') {
-      // Initialize from terse format
-      const parsed = initDvCodedText(init);
+      // Initialize from terse format - parse directly to avoid circular dependency
+      const parsed = parseTerseDvCodedText(init);
       if (parsed) {
         super({ value: parsed.value });
         this.defining_code = parsed.defining_code;

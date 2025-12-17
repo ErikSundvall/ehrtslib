@@ -110,16 +110,11 @@ export function initDvText(
     return undefined;
   }
   
-  if (typeof value === 'string') {
-    const text = new DV_TEXT();
-    text.value = value;
-    return text;
-  } else if (value instanceof DV_TEXT) {
+  if (value instanceof DV_TEXT) {
     return value;
   } else {
-    const text = new DV_TEXT();
-    Object.assign(text, value);
-    return text;
+    // Use DV_TEXT constructor to leverage its initialization logic
+    return new DV_TEXT(value);
   }
 }
 

@@ -116,7 +116,7 @@ export function parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null {
   }
 
   // Regex: terminology::code|value| (must end with pipe)
-  // Pattern: non-colon chars, ::, non-pipe chars, |, any chars (value can be empty), |
+  // Pattern: non-colon chars, ::, non-pipe chars, |, any non-pipe chars (value cannot contain pipes), |
   const match = terse.match(/^([^:]+)::([^|]+)\|([^|]*)\|$/);
   
   if (!match) {
