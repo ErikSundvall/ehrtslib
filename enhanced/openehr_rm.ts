@@ -18,6 +18,15 @@
 
 import * as openehr_base from "./openehr_base.ts";
 import { OpenEHRTerminologyService } from "./terminology_service.ts";
+import {
+  initDvText,
+  initCodePhrase,
+  initDvCodedText,
+  initPartyProxy,
+  initArchetyped,
+  initEventContext,
+  initObjectVersionId
+} from "./init_helpers.ts";
 
 // Unknown types - defined as 'any' for now
 type T = any;
@@ -2970,7 +2979,59 @@ export class DV_PARAGRAPH extends DATA_VALUE {
  *
  * A \`DV_TEXT\` can be coded by adding mappings to it.
  */
+/**
+ * Initialization type for DV_TEXT.
+ */
+export type DvTextInit = {
+  value?: string;
+  hyperlink?: DV_URI | Partial<DV_URI>;
+  formatting?: string;
+  mappings?: TERM_MAPPING[] | Partial<TERM_MAPPING>[];
+  language?: string | CODE_PHRASE | Partial<CODE_PHRASE>;
+  encoding?: string | CODE_PHRASE | Partial<CODE_PHRASE>;
+};
+
 export class DV_TEXT extends DATA_VALUE {
+  /**
+   * Constructor supports initialization from string or object.
+   * 
+   * @param init - String (sets value) or initialization object
+   * 
+   * @example
+   * ```typescript
+   * // Simple string
+   * const text = new DV_TEXT("Hello world");
+   * 
+   * // Object format
+   * const text2 = new DV_TEXT({ value: "Hello", language: "ISO_639-1::en" });
+   * ```
+   */
+  constructor(init?: string | Partial<DvTextInit>) {
+    super();
+    if (typeof init === 'string') {
+      this.value = init;
+    } else if (init) {
+      if (init.value !== undefined) {
+        this.value = init.value;
+      }
+      if (init.hyperlink !== undefined) {
+        this.hyperlink = init.hyperlink as DV_URI;
+      }
+      if (init.formatting !== undefined) {
+        this.formatting = init.formatting;
+      }
+      if (init.mappings !== undefined) {
+        this.mappings = init.mappings as TERM_MAPPING[];
+      }
+      if (init.language !== undefined) {
+        this.language = initCodePhrase(init.language as any);
+      }
+      if (init.encoding !== undefined) {
+        this.encoding = initCodePhrase(init.encoding as any);
+      }
+    }
+  }
+
   /**
    * Internal storage for value
    * @protected
@@ -3072,7 +3133,49 @@ export class DV_TEXT extends DATA_VALUE {
  *
  * Misuse: If the intention is to represent a term code attached in some way to a fragment of plain text, \`DV_CODED_TEXT\` should not be used; instead use a \`DV_TEXT\` and a \`TERM_MAPPING\` to a \`CODE_PHRASE\`.
  */
+/**
+ * Initialization type for DV_CODED_TEXT.
+ */
+export type DvCodedTextInit = DvTextInit & {
+  defining_code?: string | CODE_PHRASE | Partial<CODE_PHRASE>;
+};
+
 export class DV_CODED_TEXT extends DV_TEXT {
+  /**
+   * Constructor supports initialization from terse format or object.
+   * 
+   * @param init - String (terse format "terminology::code|value|") or initialization object
+   * 
+   * @example
+   * ```typescript
+   * // Terse format
+   * const dct = new DV_CODED_TEXT("openehr::433|event|");
+   * 
+   * // Object format
+   * const dct2 = new DV_CODED_TEXT({
+   *   value: "event",
+   *   defining_code: { code_string: "433", terminology_id: "openehr" }
+   * });
+   * ```
+   */
+  constructor(init?: string | Partial<DvCodedTextInit>) {
+    if (typeof init === 'string') {
+      // Initialize from terse format
+      const parsed = initDvCodedText(init);
+      if (parsed) {
+        super({ value: parsed.value });
+        this.defining_code = parsed.defining_code;
+      } else {
+        super();
+      }
+    } else {
+      super(init);
+      if (init && init.defining_code !== undefined) {
+        this.defining_code = initCodePhrase(init.defining_code as any);
+      }
+    }
+  }
+
   /**
    * The term of which the  \`_value_\` attribute is the textual rendition (i.e. rubric).
    */
@@ -3155,7 +3258,64 @@ export class TERM_MAPPING {
 /**
  * A fully coordinated (i.e. all coordination has been performed) term from a terminology service (as distinct from a particular terminology).
  */
+/**
+ * Initialization type for CODE_PHRASE.
+ */
+export type CodePhraseInit = {
+  terminology_id?: string | openehr_base.TERMINOLOGY_ID | Partial<openehr_base.TERMINOLOGY_ID>;
+  code_string?: string;
+  preferred_term?: string;
+};
+
 export class CODE_PHRASE {
+  /**
+   * Constructor supports initialization from terse format or object.
+   * 
+   * @param init - String (terse format "terminology::code") or initialization object
+   * 
+   * @example
+   * ```typescript
+   * // Terse format
+   * const cp = new CODE_PHRASE("ISO_639-1::en");
+   * 
+   * // Object format
+   * const cp2 = new CODE_PHRASE({
+   *   code_string: "en",
+   *   terminology_id: "ISO_639-1"
+   * });
+   * ```
+   */
+  constructor(init?: string | Partial<CodePhraseInit>) {
+    if (typeof init === 'string') {
+      // Initialize from terse format
+      const parsed = initCodePhrase(init);
+      if (parsed) {
+        this.terminology_id = parsed.terminology_id;
+        this.code_string = parsed.code_string;
+        if (parsed.preferred_term) {
+          this.preferred_term = parsed.preferred_term;
+        }
+      }
+    } else if (init) {
+      // Initialize from object
+      if (init.terminology_id !== undefined) {
+        if (typeof init.terminology_id === 'string') {
+          const termId = new openehr_base.TERMINOLOGY_ID();
+          termId.value = init.terminology_id;
+          this.terminology_id = termId;
+        } else {
+          this.terminology_id = init.terminology_id as openehr_base.TERMINOLOGY_ID;
+        }
+      }
+      if (init.code_string !== undefined) {
+        this.code_string = init.code_string;
+      }
+      if (init.preferred_term !== undefined) {
+        this.preferred_term = init.preferred_term;
+      }
+    }
+  }
+
   /**
    * Identifier of the distinct terminology from which the code_string (or its elements) was extracted.
    */
@@ -7993,7 +8153,101 @@ export class GENERIC_ENTRY extends CONTENT_ITEM {
  * NOTE: It is strongly recommended that the inherited attribute \`_uid_\` be populated in Compositions, using the UID copied from the \`_object_id()_\` of the \`_uid_\` field of the enclosing \`VERSION\` object. +
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\` would be copied to the \`_uid_\` field of the Composition.
  */
+/**
+ * Initialization type for COMPOSITION.
+ * Supports multiple input formats for convenience.
+ */
+export type CompositionInit = {
+  // Inherited from LOCATABLE
+  archetype_node_id?: string;
+  name?: string | DV_TEXT | Partial<DV_TEXT>;
+  uid?: string | openehr_base.OBJECT_VERSION_ID | Partial<openehr_base.OBJECT_VERSION_ID>;
+  archetype_details?: ARCHETYPED | Partial<ARCHETYPED>;
+  feeder_audit?: FEEDER_AUDIT | Partial<FEEDER_AUDIT>;
+  links?: LINK[] | Partial<LINK>[];
+  
+  // COMPOSITION-specific properties
+  language?: string | CODE_PHRASE | Partial<CODE_PHRASE>;
+  territory?: string | CODE_PHRASE | Partial<CODE_PHRASE>;
+  category?: string | DV_CODED_TEXT | Partial<DV_CODED_TEXT>;
+  context?: EVENT_CONTEXT | Partial<EVENT_CONTEXT>;
+  composer?: PARTY_PROXY | Partial<PARTY_PROXY>;
+  content?: any; // CONTENT_ITEM[] but type not fully defined yet
+};
+
 export class COMPOSITION extends LOCATABLE {
+  /**
+   * Constructor supports partial initialization via spread syntax.
+   * Accepts primitives, objects, and terse strings where appropriate.
+   * 
+   * @param init - Optional initialization object
+   * 
+   * @example
+   * ```typescript
+   * // Compact creation with terse format
+   * const composition = new COMPOSITION({
+   *   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+   *   name: "Blood Pressure Reading",
+   *   language: "ISO_639-1::en",
+   *   territory: "ISO_3166-1::GB",
+   *   category: "openehr::433|event|",
+   *   composer: { name: "Dr. Smith" }
+   * });
+   * ```
+   */
+  constructor(init?: Partial<CompositionInit>) {
+    super();
+    if (init) {
+      this._applyInit(init);
+    }
+  }
+  
+  /**
+   * Internal helper to process initialization data.
+   * @private
+   */
+  private _applyInit(init: Partial<CompositionInit>): void {
+    // LOCATABLE properties
+    if (init.archetype_node_id !== undefined) {
+      this.archetype_node_id = init.archetype_node_id;
+    }
+    if (init.name !== undefined) {
+      this.name = initDvText(init.name as any);
+    }
+    if (init.uid !== undefined) {
+      this.uid = initObjectVersionId(init.uid as any);
+    }
+    if (init.archetype_details !== undefined) {
+      this.archetype_details = initArchetyped(init.archetype_details as any);
+    }
+    if (init.feeder_audit !== undefined) {
+      this.feeder_audit = init.feeder_audit as any;
+    }
+    if (init.links !== undefined) {
+      this.links = init.links as any;
+    }
+    
+    // COMPOSITION properties
+    if (init.language !== undefined) {
+      this.language = initCodePhrase(init.language as any);
+    }
+    if (init.territory !== undefined) {
+      this.territory = initCodePhrase(init.territory as any);
+    }
+    if (init.category !== undefined) {
+      this.category = initDvCodedText(init.category as any);
+    }
+    if (init.context !== undefined) {
+      this.context = initEventContext(init.context as any);
+    }
+    if (init.composer !== undefined) {
+      this.composer = initPartyProxy(init.composer as any);
+    }
+    if (init.content !== undefined) {
+      this.content = init.content;
+    }
+  }
+
   /**
    * Mandatory indicator of the localised language in which this Composition is written. Coded from openEHR Code Set  \`languages\`. The language of an Entry if different from the Composition is indicated in \`ENTRY._language_\`.
    */
