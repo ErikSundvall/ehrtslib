@@ -177,7 +177,7 @@ Archie or other openEHR libraries have implemented something.
 During this research, continuosly update the instruction files when gaps are
 detected during implementation or testing, since they may be used by others later.
 
-## Phase 4e
+## Phase 4e ✅ (done)
 
 Create documentation and runnable example code That shows how to build an RM
 object tree for an openEHR COMPOSITION from scratch based on manually looking
@@ -188,7 +188,7 @@ specific template. Template supported object creation will be implemented in lat
 phases, but it could be pedagogical to show that the RM is usable (albeit in a
 cumbersome way) on its own.
 
-## Phase 4f.1
+## Phase 4f.1 ✅ (done)
 Goal: Add easier and more compact ways to create the deeply nested openEHR objects, 
 to avoid a lot of tedious boilerplate code. Some kind of automatic typing should be 
 used when it is obvious from the openEHR RM what types to use, so that it will be 
@@ -394,15 +394,15 @@ Rework the example documentation created in Phase 4e to only show the longwinded
 (that represents all parts of the RM) once and then describe and for the examples use, 
 the more compact way of creating objects introduced by Phase 4f.1
 
-## Phase 4g
+## Phase 4g.1
 
 Serialisation and deserialisation of RM object instance trees to and from
 openEHRs canonical JSON and XML formats (in separate classes so that you only
 import the ones you need, since often a project using the library will need
-either XML or JSON). If JS/TS built in support for JSON and XML is not enough
-and/or if it helps keeping the implementation cleaner and more understandable
-feel free to import and use libraries like the following or others that you
-find:
+either XML or JSON). If JS/TS Denos's/Browser's built in support for 
+JSON and XML is not enough and/or if it helps keeping the implementation cleaner 
+and more understandable, then feel free to import and use libraries like the 
+following or others that you find:
 
 - https://github.com/typestack/class-transformer or
   https://github.com/GillianPerard/typescript-json-serializer for going between
@@ -410,6 +410,22 @@ find:
 - https://github.com/Leonidas-from-XIV/node-xml2js or
   https://github.com/GillianPerard/typescript-json-serializer for going between
   Typescript object instances and XML
+
+Also provide a suggestion for YAML serialisation/deserialisation based on the
+same sematics as the canonical JSON format. Make it configurable to use flow
+or block style of YAML or mixed hybrid approach as explored in e.g.
+https://github.com/ErikSundvall/zipehr/blob/main/zipehr-convert.js where
+we break siblings branches onto separate lines, but keep values/leafs inline
+if possible-
+
+In JSON and YAML formats make it configurable to use or skip the `_type:` field
+in the places where it can be inferred. Do note that in many use cases the 
+more verbose prectice of including `_type:` is actually preferred
+
+  In this phase, just make a PRD decribing the 
+
+## Phase 4g.1
+
 
 ## Phase 5a
 Implement the AM package, use deepwiki and the files in /instructions to understand
