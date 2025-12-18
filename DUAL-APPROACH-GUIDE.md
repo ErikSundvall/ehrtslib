@@ -271,7 +271,14 @@ const composition = new COMPOSITION({
   language: "ISO_639-1::en",
   territory: "ISO_3166-1::GB",
   category: "openehr::433|event|",
-  composer: { name: "Dr. Smith" }
+  composer: {
+    name: "Dr. Smith",
+    identifiers: [{
+      id: "1234567890",
+      issuer: "Medical Council",
+      type: "Medical License"
+    }]
+  }
 });
 ```
 

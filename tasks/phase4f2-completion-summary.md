@@ -249,9 +249,37 @@ const composition = new COMPOSITION({
 Phase 4f.2 is now **COMPLETE**. Recommended next steps:
 
 1. **Phase 4f.3:** Rework Phase 4e documentation to use simplified patterns
+   - Already completed: Examples in basic-composition.ts show both old and new patterns
+   - Already completed: SIMPLIFIED-CREATION-GUIDE.md provides comprehensive examples
+   - Remaining: Review and update other example files to demonstrate simplified patterns where appropriate
+   - Remaining: Consider adding more complex examples (OBSERVATION, EVALUATION, etc.)
+
 2. **User Feedback:** Gather feedback from early adopters
+
 3. **Additional Classes:** Extend constructor support to more RM classes as needed
+   - **High Priority Classes** (commonly used in clinical data):
+     - OBSERVATION - for clinical observations (vital signs, lab results, etc.)
+     - EVALUATION - for assessments and evaluations
+     - INSTRUCTION - for orders and instructions
+     - ACTION - for actions performed
+     - SECTION - for organizing content
+     - ITEM_TREE, ITEM_LIST, ITEM_SINGLE - for data structures
+     - ELEMENT - for individual data points
+     - DV_QUANTITY - for numeric measurements with units
+     - DV_DATE_TIME, DV_DATE, DV_TIME - for temporal data
+     - DV_ORDINAL - for ordinal values
+   - **Medium Priority Classes**:
+     - EVENT_CONTEXT - partially done (basic initialization helper exists)
+     - PARTY_RELATED, PARTY_SELF - for party relationships
+     - HISTORY, POINT_EVENT, INTERVAL_EVENT - for time-series data
+     - CLUSTER - for grouped items
+   - **Lower Priority Classes**:
+     - Less commonly used RM classes can be added based on user demand
+   
+   Implementation approach: Use the same pattern as COMPOSITION (constructor with Partial<InitType>, helper functions, terse format where applicable)
+
 4. **Performance Testing:** Benchmark simplified patterns vs manual construction
+
 5. **Documentation:** Add video tutorial showing simplified creation patterns
 
 ## References

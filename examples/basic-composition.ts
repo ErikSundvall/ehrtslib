@@ -5,8 +5,8 @@
  * for recording blood pressure using ehrtslib.
  * 
  * Two approaches are shown:
- * 1. Simplified creation (NEW in Phase 4f.2) - compact, readable
- * 2. Manual creation (traditional) - explicit, detailed
+ * 1. Simplified creation - compact, readable
+ * 2. Manual creation - explicit, detailed
  * 
  * Note: Template-based validation will be added in future phases via the AM package.
  */
@@ -18,7 +18,7 @@ import * as openehr_base from "../openehr_base.ts";
  * Create a simple blood pressure COMPOSITION using the SIMPLIFIED approach
  * 
  * This is the recommended approach for new code - it's compact, readable,
- * and achieves 69-76% code reduction compared to manual creation.
+ * and achieves approximately 70% code reduction compared to manual creation.
  * 
  * @returns A fully initialized COMPOSITION object
  */
@@ -36,8 +36,15 @@ function createBloodPressureCompositionSimplified(): openehr_rm.COMPOSITION {
     // Terse format for DV_CODED_TEXT: "terminology::code|value|"
     category: "openehr::433|event|",
     
-    // Nested object initialization
-    composer: { name: "Dr. Smith" },
+    // Nested object initialization with identifiers
+    composer: {
+      name: "Dr. Smith",
+      identifiers: [{
+        id: "1234567890",
+        issuer: "Medical Council",
+        type: "Medical License"
+      }]
+    },
     
     archetype_details: {
       archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",

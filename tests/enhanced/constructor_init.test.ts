@@ -138,9 +138,12 @@ Deno.test("COMPOSITION: constructor with terse formats", () => {
   
   assertEquals(comp.name?.value, "Blood Pressure Reading");
   assertEquals(comp.language?.code_string, "en");
+  assertEquals(comp.language?.terminology_id?.value, "ISO_639-1");
   assertEquals(comp.territory?.code_string, "GB");
+  assertEquals(comp.territory?.terminology_id?.value, "ISO_3166-1");
   assertEquals(comp.category?.value, "event");
   assertEquals(comp.category?.defining_code?.code_string, "433");
+  assertEquals(comp.category?.defining_code?.terminology_id?.value, "openehr");
 });
 
 Deno.test("COMPOSITION: constructor with object formats", () => {
@@ -170,7 +173,12 @@ Deno.test("COMPOSITION: constructor with composer object", () => {
     archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
     name: "Test",
     composer: {
-      name: "Dr. Smith"
+      name: "Dr. Smith",
+      identifiers: [{
+        id: "1234567890",
+        issuer: "Medical Council",
+        type: "Medical License"
+      }]
     }
   });
   
@@ -195,13 +203,15 @@ Deno.test("COMPOSITION: constructor with archetype_details", () => {
     name: "Test",
     archetype_details: {
       archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-      rm_version: "1.1.0"
+      rm_version: "1.1.0",
+      template_id: "openEHR-EHR-COMPOSITION.encounter.v1"
     }
   });
   
   assertExists(comp.archetype_details);
   assertEquals(comp.archetype_details?.archetype_id?.value, "openEHR-EHR-COMPOSITION.encounter.v1");
   assertEquals(comp.archetype_details?.rm_version, "1.1.0");
+  assertEquals(comp.archetype_details?.template_id?.value, "openEHR-EHR-COMPOSITION.encounter.v1");
 });
 
 Deno.test("COMPOSITION: constructor with empty init", () => {
@@ -223,10 +233,18 @@ Deno.test("COMPOSITION: complete creation with compact syntax", () => {
     language: "ISO_639-1::en",
     territory: "ISO_3166-1::GB",
     category: "openehr::433|event|",
-    composer: { name: "Dr. Smith" },
+    composer: {
+      name: "Dr. Smith",
+      identifiers: [{
+        id: "1234567890",
+        issuer: "Medical Council",
+        type: "Medical License"
+      }]
+    },
     archetype_details: {
       archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-      rm_version: "1.1.0"
+      rm_version: "1.1.0",
+      template_id: "openEHR-EHR-COMPOSITION.encounter.v1"
     }
   });
   
@@ -244,6 +262,7 @@ Deno.test("COMPOSITION: complete creation with compact syntax", () => {
   assertEquals(comp.composer?.name, "Dr. Smith");
   assertEquals(comp.archetype_details?.archetype_id?.value, "openEHR-EHR-COMPOSITION.encounter.v1");
   assertEquals(comp.archetype_details?.rm_version, "1.1.0");
+  assertEquals(comp.archetype_details?.template_id?.value, "openEHR-EHR-COMPOSITION.encounter.v1");
 });
 
 // ============================================================================

@@ -300,6 +300,10 @@ Deno.test("parseTerseDvCodedText: value with pipes not at boundaries", () => {
 });
 
 Deno.test("parseTerseDvCodedText: multiline value (newlines)", () => {
+  // Note: The openEHR terse format specification does not explicitly forbid newlines
+  // in values. This test verifies that newlines are preserved when present.
+  // However, in practice, multiline values in terse format may be rare and 
+  // consideration should be given to readability and data exchange compatibility.
   const result = parseTerseDvCodedText("local::at0001|Line 1\nLine 2|");
   
   assertExists(result);

@@ -11,7 +11,7 @@
  * - Full instances -> pass-through
  */
 
-import { TERMINOLOGY_ID, ARCHETYPE_ID, OBJECT_VERSION_ID } from "./openehr_base.ts";
+import { TERMINOLOGY_ID, ARCHETYPE_ID, OBJECT_VERSION_ID, TEMPLATE_ID } from "./openehr_base.ts";
 import { 
   CODE_PHRASE, 
   DV_TEXT, 
@@ -89,6 +89,18 @@ export function initObjectVersionId(
   value: string | OBJECT_VERSION_ID | Partial<OBJECT_VERSION_ID> | undefined
 ): OBJECT_VERSION_ID | undefined {
   return initSingleValueWrapper(value, OBJECT_VERSION_ID);
+}
+
+/**
+ * Initialize TEMPLATE_ID from string or object.
+ * 
+ * @param value - String, full instance, or partial object
+ * @returns Initialized TEMPLATE_ID or undefined
+ */
+export function initTemplateId(
+  value: string | TEMPLATE_ID | Partial<TEMPLATE_ID> | undefined
+): TEMPLATE_ID | undefined {
+  return initSingleValueWrapper(value, TEMPLATE_ID);
 }
 
 /**
@@ -302,7 +314,9 @@ export function initArchetyped(
   if ('rm_version' in value && value.rm_version !== undefined) {
     archetyped.rm_version = value.rm_version as string;
   }
-  if ('template_id' in value) archetyped.template_id = value.template_id as any;
+  if ('template_id' in value && value.template_id !== undefined) {
+    archetyped.template_id = initTemplateId(value.template_id as any);
+  }
   
   return archetyped;
 }
