@@ -232,3 +232,83 @@ To implement the dual pattern for a new class property:
 - See **STORY-PR6-AI-DEVELOPER-DIALOGUE.md** (Chapters 4-6) for detailed background and design rationale
 - See **README.md** for library usage examples
 - See **ROADMAP.md** for implementation phases
+- See **SIMPLIFIED-CREATION-GUIDE.md** for constructor initialization patterns
+
+## Constructor Initialization Pattern
+
+As of Phase 4f.2, ehrtslib supports **constructor-based initialization** for simplified object creation, building on top of the dual getter/setter pattern.
+
+### Basic Constructor Usage
+
+All major RM classes now support optional initialization via constructor:
+
+```typescript
+// Simple string values are auto-wrapped
+const text = new DV_TEXT("Hello world");
+
+// Or use object format
+const text2 = new DV_TEXT({ value: "Hello", language: "ISO_639-1::en" });
+```
+
+### Terse Format Support
+
+CODE_PHRASE and DV_CODED_TEXT support openEHR's compact "terse" format:
+
+```typescript
+// CODE_PHRASE: "terminology::code"
+const language = new CODE_PHRASE("ISO_639-1::en");
+
+// DV_CODED_TEXT: "terminology::code|value|"
+const category = new DV_CODED_TEXT("openehr::433|event|");
+```
+
+### Complete COMPOSITION Example
+
+```typescript
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Blood Pressure Recording",
+  language: "ISO_639-1::en",
+  territory: "ISO_3166-1::GB",
+  category: "openehr::433|event|",
+  composer: {
+    name: "Dr. Smith",
+    identifiers: [{
+      id: "1234567890",
+      issuer: "Medical Council",
+      type: "Medical License"
+    }]
+  }
+});
+```
+
+This achieves **69-76% code reduction** compared to manual construction.
+
+### Direct Property Assignment Pattern
+
+Because JavaScript/TypeScript allows direct property access (unlike Java), you can combine constructor initialization with direct property assignment:
+
+```typescript
+// Create with required properties
+const comp = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Test Composition",
+  language: "ISO_639-1::en"
+});
+
+// Add optional properties using direct assignment (works via dual setters!)
+comp.territory = new CODE_PHRASE("ISO_3166-1::GB");
+comp.category = new DV_CODED_TEXT("openehr::433|event|");
+```
+
+This pattern requires **zero additional implementation** - it already works through the existing dual getter/setter pattern!
+
+### Benefits
+
+1. **Compact Syntax**: 69-76% less code for typical object creation
+2. **Type Safety**: Full TypeScript type inference and validation
+3. **Backward Compatible**: Existing code continues to work unchanged
+4. **Flexible**: Mix and match initialization styles as needed
+5. **Standards Aligned**: Terse format matches openEHR community conventions
+
+For more examples and patterns, see **SIMPLIFIED-CREATION-GUIDE.md**.
