@@ -8,7 +8,8 @@ This directory contains examples demonstrating how to use ehrtslib to create ope
 A complete example showing how to create a blood pressure recording COMPOSITION.
 
 **Demonstrates:**
-- Creating a COMPOSITION with all required properties
+- Creating a COMPOSITION with all required properties using **both simplified and manual approaches**
+- Simplified creation with constructor initialization and terse format (Phase 4f.2)
 - Adding an OBSERVATION with HISTORY and POINT_EVENT
 - Using ITEM_TREE and ELEMENT to structure data
 - Working with DV_QUANTITY for measurements
@@ -20,15 +21,16 @@ deno run examples/basic-composition.ts
 ```
 
 **Output:**
-Prints a summary of the created COMPOSITION including the blood pressure measurements (systolic: 120 mm[Hg], diastolic: 80 mm[Hg]).
+Prints summaries of two equivalent COMPOSITIONs created using different approaches, including the blood pressure measurements (systolic: 120 mm[Hg], diastolic: 80 mm[Hg]).
 
 ### simple-observation.ts
-A simpler variation showing a temperature recording.
+A simpler variation showing a temperature recording with **both simplified and manual approaches**.
 
 **Demonstrates:**
 - Same COMPOSITION structure as basic-composition but with different values
-- Using DV_QUANTITY for temperature (°C)
+- Using DV_QUANTITY for temperature (Cel)
 - A single measurement instead of multiple values
+- Comparison between simplified and manual creation patterns
 
 **To run:**
 ```bash
@@ -36,29 +38,74 @@ deno run examples/simple-observation.ts
 ```
 
 **Output:**
-Prints a summary showing the temperature measurement (37.2°C).
+Prints summaries of two equivalent COMPOSITIONs showing the temperature measurement (37.2 Cel).
 
 ## Key Concepts Illustrated
 
-Both examples demonstrate the manual construction approach required at this stage:
+Both examples demonstrate **two approaches** for creating openEHR objects:
+
+### 1. Simplified Approach (Phase 4f.2) - **Recommended for new code**
+
+- **Constructor initialization** with nested objects
+- **Terse format** for CODE_PHRASE and DV_CODED_TEXT
+- **~70% code reduction** compared to manual approach
+- Full type safety with TypeScript inference
+- Backward compatible with existing code
+
+Example:
+```typescript
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Blood Pressure Recording",
+  language: "ISO_639-1::en",           // Terse format
+  territory: "ISO_3166-1::GB",         // Terse format
+  category: "openehr::433|event|",     // Terse format
+  composer: { name: "Dr. Smith" }      // Nested initialization
+});
+```
+
+### 2. Manual Approach (Traditional) - **Still fully supported**
+
+- Explicit object instantiation and property assignment
+- Fine-grained control over object creation
+- Useful for complex scenarios and debugging
+- Traditional approach that continues to work
+
+Example:
+```typescript
+const composition = new COMPOSITION();
+const language = new CODE_PHRASE();
+const languageTermId = new TERMINOLOGY_ID();
+languageTermId.value = "ISO_639-1";
+language.terminology_id = languageTermId;
+language.code_string = "en";
+composition.language = language;
+```
+
+## Core Concepts
 
 1. **COMPOSITION Setup**: Creating the root container with required properties
 2. **OBSERVATION Creation**: Building an observation entry with proper metadata
 3. **HISTORY Structure**: Using HISTORY > POINT_EVENT > ITEM_TREE > ELEMENT hierarchy
 4. **Data Types**: Working with DV_TEXT, DV_QUANTITY, DV_CODED_TEXT, DV_DATE_TIME
 5. **Identifiers**: Using CODE_PHRASE, TERMINOLOGY_ID, ARCHETYPE_ID, OBJECT_VERSION_ID
+6. **Terse Format**: Compact string representation for coded terms (Phase 4f.2)
+7. **Constructor Initialization**: Creating objects with all properties upfront (Phase 4f.2)
 
-## Current Limitations
+## Current Status & Future Development
 
-These examples use manual construction because:
-- Template validation is not yet implemented (Phase 5b)
-- Archetype Model (AM) package is not yet available (Phase 5a)
-- Simplified creation APIs have not been added yet (Phase 4f)
+**Available Now (Phase 4f.2 ✅):**
+- Simplified object creation with constructor initialization
+- Terse format parsing for CODE_PHRASE and DV_CODED_TEXT
+- Type-safe nested object initialization
+- ~70% code reduction for typical use cases
 
-Future phases will add:
+**Coming Soon:**
+- Template validation (Phase 5b)
+- Archetype Model (AM) package (Phase 5a)
+- Serialization/deserialization (Phase 4g)
 - Template-based creation that ensures valid structures
 - Automatic validation against archetypes
-- Builder patterns or fluent APIs for easier construction
 
 ## Using These Examples
 
@@ -68,19 +115,31 @@ Study the examples to understand:
 - How to structure nested objects
 - Proper use of openEHR data types
 - The relationship between COMPOSITION, OBSERVATION, HISTORY, EVENT, and data structures
+- **How simplified creation patterns reduce boilerplate** (Phase 4f.2)
+- **When to use terse format vs. object initialization**
 
 ### As Templates
 Copy and modify these examples for your own COMPOSITION structures:
 1. Start with one of the examples
-2. Change the archetype IDs to match your needs
-3. Modify the data elements and values
-4. Adjust the metadata (language, territory, composer, etc.)
+2. Choose simplified or manual approach (or mix both!)
+3. Change the archetype IDs to match your needs
+4. Modify the data elements and values
+5. Adjust the metadata (language, territory, composer, etc.)
 
 ### As Reference
 Use these examples to:
 - Look up the syntax for creating specific objects
 - Understand property naming conventions
 - See working examples of data type usage
+- **Learn terse format syntax** (e.g., `"ISO_639-1::en"`, `"openehr::433|event|"`)
+- **Compare simplified vs. manual approaches** side-by-side
+
+## Documentation References
+
+- **SIMPLIFIED-CREATION-GUIDE.md** - Comprehensive guide to simplified object creation (Phase 4f.2)
+- **DUAL-APPROACH-GUIDE.md** - Explains the dual getter/setter pattern that enables simplified creation
+- **docs/getting-started.md** - Introduction to ehrtslib
+- **ROADMAP.md** - Project phases and upcoming features
 
 ## Template Information
 
