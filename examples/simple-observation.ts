@@ -48,7 +48,7 @@ function createTemperatureCompositionSimplified(): openehr_rm.COMPOSITION {
     archetype_details: {
       archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
       rm_version: "1.1.0",
-      template_id: "openEHR-EHR-COMPOSITION.encounter.v1"
+      template_id: "uk.nhs.clinical::encounter_template.v1"
     }
   });
   

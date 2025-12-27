@@ -184,6 +184,7 @@ enhanced/
       serialization_base.ts    - Shared interfaces and utilities
       type_registry.ts         - Type name mapping
       type_inference.ts        - Shared type inference logic for JSON/YAML
+      terse_format.ts          - Shared terse format handlers for CODE_PHRASE/DV_CODED_TEXT
 ```
 
 ### Recommended Implementation Approach
@@ -269,6 +270,58 @@ export class TypeInferenceEngine {
 - Easier maintenance and testing
 - Can be extended for future formats
 
+**Terse Format Support**:
+
+In addition to type inference, both JSON and YAML serializers support an optional terse format mode for CODE_PHRASE and DV_CODED_TEXT. This mode serializes these types as compact strings:
+
+- CODE_PHRASE: `"terminology::code"` (e.g., `"ISO_639-1::en"`)
+- DV_CODED_TEXT: `"terminology::code|value|"` (e.g., `"openehr::433|event|"`)
+
+The terse format provides significant size reduction and improved readability, especially in YAML where there is no official openEHR standard. For JSON, it should be noted that using terse format breaks the canonical standard and should only be used in controlled environments.
+
+```typescript
+// In common/terse_format.ts (shared between JSON and YAML)
+export class TerseFormatHandler {
+  /**
+   * Serialize CODE_PHRASE to terse format
+   * @returns string like "ISO_639-1::en"
+   */
+  static serializeCodePhrase(obj: CODE_PHRASE): string {
+    const termId = obj.terminology_id?.value || '';
+    const code = obj.code_string || '';
+    return `${termId}::${code}`;
+  }
+  
+  /**
+   * Serialize DV_CODED_TEXT to terse format
+   * @returns string like "openehr::433|event|"
+   */
+  static serializeDvCodedText(obj: DV_CODED_TEXT): string {
+    const code = this.serializeCodePhrase(obj.defining_code);
+    const value = obj.value || '';
+    return `${code}|${value}|`;
+  }
+  
+  /**
+   * Parse terse CODE_PHRASE format
+   */
+  static parseCodePhrase(str: string): CODE_PHRASE | null {
+    const match = str.match(/^([^:]+)::(.+)$/);
+    if (!match) return null;
+    // Create CODE_PHRASE object with parsed values
+  }
+  
+  /**
+   * Parse terse DV_CODED_TEXT format
+   */
+  static parseDvCodedText(str: string): DV_CODED_TEXT | null {
+    const match = str.match(/^([^:]+)::([^|]+)\|([^|]*)\|$/);
+    if (!match) return null;
+    // Create DV_CODED_TEXT object with parsed values
+  }
+}
+```
+
 **Usage in Serializers**:
 ```typescript
 // In JSON serializer
@@ -329,6 +382,15 @@ export interface JsonSerializationConfig {
    * @default 2
    */
   indent?: number;
+  
+  /**
+   * Use terse format for CODE_PHRASE and DV_CODED_TEXT
+   * When true, serializes these as compact strings like "ISO_639-1::en" and "openehr::433|event|"
+   * WARNING: This breaks the openEHR canonical JSON standard and should only be used
+   * for internal applications or when interoperating with systems that support this format.
+   * @default false
+   */
+  useTerseFormat?: boolean;
 }
 
 export interface JsonDeserializationConfig {
@@ -349,6 +411,14 @@ export interface JsonDeserializationConfig {
    * @default false
    */
   allowIncomplete?: boolean;
+  
+  /**
+   * Parse terse format for CODE_PHRASE and DV_CODED_TEXT
+   * When true, recognizes compact string formats like "ISO_639-1::en" and "openehr::433|event|"
+   * and converts them to proper objects during deserialization.
+   * @default false
+   */
+  parseTerseFormat?: boolean;
 }
 ```
 
@@ -445,6 +515,23 @@ console.log(json);
 const deserializer = new JsonDeserializer();
 const restored = deserializer.deserialize<openehr_rm.COMPOSITION>(json);
 console.log(restored.name?.value); // "Test Composition"
+
+// Using terse format (WARNING: breaks canonical JSON standard)
+const terseSerializer = new JsonSerializer({
+  useTerseFormat: true,
+  prettyPrint: true
+});
+const terseJson = terseSerializer.serialize(composition);
+// Output includes compact strings like:
+// "language": "ISO_639-1::en"
+// "category": "openehr::433|event|"
+// instead of full object structures
+
+// Deserializing terse format
+const terseDeserializer = new JsonDeserializer({
+  parseTerseFormat: true
+});
+const restoredFromTerse = terseDeserializer.deserialize<openehr_rm.COMPOSITION>(terseJson);
 ```
 
 ### 2. XML Serialization
@@ -630,6 +717,15 @@ export interface YamlSerializationConfig {
    * @default 80
    */
   lineWidth?: number;
+  
+  /**
+   * Use terse format for CODE_PHRASE and DV_CODED_TEXT
+   * When true, serializes these as compact strings like "ISO_639-1::en" and "openehr::433|event|"
+   * Since there is no standard openEHR YAML format, this is a recommended compact representation
+   * that maintains readability while reducing verbosity.
+   * @default false
+   */
+  useTerseFormat?: boolean;
 }
 
 export interface YamlDeserializationConfig {
@@ -644,6 +740,14 @@ export interface YamlDeserializationConfig {
    * @default false
    */
   allowDuplicateKeys?: boolean;
+  
+  /**
+   * Parse terse format for CODE_PHRASE and DV_CODED_TEXT
+   * When true, recognizes compact string formats like "ISO_639-1::en" and "openehr::433|event|"
+   * and converts them to proper objects during deserialization.
+   * @default false
+   */
+  parseTerseFormat?: boolean;
 }
 ```
 
@@ -730,8 +834,26 @@ console.log(serializer3.serialize(composition));
 //   code_string: en
 //   terminology_id: ISO_639-1
 
+// Using terse format for maximum compactness
+const terseSerializer = new YamlSerializer({
+  useTerseFormat: true,
+  hybridStyle: true
+});
+console.log(terseSerializer.serialize(composition));
+// archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+// name: Test Composition
+// language: "ISO_639-1::en"
+// category: "openehr::433|event|"
+// (CODE_PHRASE and DV_CODED_TEXT rendered as compact strings)
+
 const deserializer = new YamlDeserializer();
 const restored = deserializer.deserialize<openehr_rm.COMPOSITION>(yaml);
+
+// Deserializing terse format
+const terseDeserializer = new YamlDeserializer({
+  parseTerseFormat: true
+});
+const restoredFromTerse = terseDeserializer.deserialize<openehr_rm.COMPOSITION>(terseYaml);
 ```
 
 ## Implementation Strategy
@@ -1136,6 +1258,40 @@ composer:
 ```
 
 **Note**: The compact variant omits `_type` fields where the type can be inferred from the property context (similar to the compact JSON format). This provides maximum readability while maintaining semantic correctness.
+
+### YAML (Compact with Terse Format)
+```yaml
+archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+name: Blood Pressure Recording
+language: "ISO_639-1::en"
+territory: "ISO_3166-1::GB"
+category: "openehr::433|event|"
+composer:
+  name: Dr. Smith
+```
+
+**Note**: The terse format option renders CODE_PHRASE and DV_CODED_TEXT as compact strings (e.g., `"ISO_639-1::en"`, `"openehr::433|event|"`). Since there is no official openEHR YAML standard, this approach maximizes compactness and readability for YAML use cases while maintaining full semantic information.
+
+### JSON (With Terse Format - Non-Standard)
+```json
+{
+  "_type": "COMPOSITION",
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "name": {
+    "_type": "DV_TEXT",
+    "value": "Blood Pressure Recording"
+  },
+  "language": "ISO_639-1::en",
+  "territory": "ISO_3166-1::GB",
+  "category": "openehr::433|event|",
+  "composer": {
+    "_type": "PARTY_IDENTIFIED",
+    "name": "Dr. Smith"
+  }
+}
+```
+
+**WARNING**: Using terse format in JSON breaks the openEHR canonical JSON standard. This should only be used for internal applications or when interoperating with systems that explicitly support this compact format. For standards-compliant JSON, use the canonical format without the `useTerseFormat` option.
 
 ## Summary
 
