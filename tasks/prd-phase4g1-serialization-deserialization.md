@@ -183,6 +183,7 @@ enhanced/
     common/
       serialization_base.ts    - Shared interfaces and utilities
       type_registry.ts         - Type name mapping
+      type_inference.ts        - Shared type inference logic for JSON/YAML
 ```
 
 ### Recommended Implementation Approach
@@ -191,6 +192,7 @@ enhanced/
 - Leverage JavaScript's native JSON capabilities
 - Add custom reviver/replacer functions for type handling
 - Implement type registry for polymorphic reconstruction
+- Implement shared type inference logic (see below)
 - **Rationale**: Minimal dependencies, maximum control, aligns with openEHR spec
 
 **For XML:** Use fast-xml-parser
@@ -201,7 +203,88 @@ enhanced/
 **For YAML:** Use yaml by eemeli
 - Better style control for hybrid formatting
 - Modern API aligns with project style
+- Share type inference logic with JSON (see below)
 - **Rationale**: Best fit for zipehr-style mixed formatting
+
+### Shared Type Inference Mechanism
+
+To reduce code maintenance and ensure consistency, JSON and YAML serializers should share a common type inference mechanism:
+
+```typescript
+// In common/type_inference.ts
+export class TypeInferenceEngine {
+  /**
+   * Determine if _type can be omitted for a property
+   * @param propertyName - Name of the property (e.g., "name", "language")
+   * @param parentType - Type of the parent object (e.g., "COMPOSITION")
+   * @param value - The value being serialized
+   * @returns true if _type can be safely omitted
+   */
+  static canOmitType(
+    propertyName: string,
+    parentType: string,
+    value: any
+  ): boolean {
+    // Check if property has unambiguous type based on RM specification
+    const propertyType = this.getPropertyType(parentType, propertyName);
+    if (!propertyType) return false;
+    
+    // If property type is concrete (not polymorphic), can omit
+    if (!this.isPolymorphic(propertyType)) return true;
+    
+    // If value matches the most common/default type for this property, can omit
+    const valueType = this.getTypeName(value);
+    return valueType === this.getDefaultTypeForProperty(parentType, propertyName);
+  }
+  
+  /**
+   * Infer type from context during deserialization
+   * @param propertyName - Name of the property
+   * @param parentType - Type of the parent object
+   * @param data - The data being deserialized
+   * @returns inferred type name
+   */
+  static inferType(
+    propertyName: string,
+    parentType: string,
+    data: any
+  ): string | undefined {
+    // Use RM specification to determine expected type
+    const propertyType = this.getPropertyType(parentType, propertyName);
+    
+    // If property is not polymorphic, return the concrete type
+    if (propertyType && !this.isPolymorphic(propertyType)) {
+      return propertyType;
+    }
+    
+    // For polymorphic properties, try to infer from data structure
+    return this.inferFromStructure(data, propertyType);
+  }
+}
+```
+
+**Benefits of Shared Type Inference**:
+- Single source of truth for type inference rules
+- Consistent behavior between JSON and YAML formats
+- Easier maintenance and testing
+- Can be extended for future formats
+
+**Usage in Serializers**:
+```typescript
+// In JSON serializer
+if (config.useTypeInference && TypeInferenceEngine.canOmitType(propName, parentType, value)) {
+  // Omit _type field
+} else {
+  obj._type = getTypeName(value);
+}
+
+// In YAML serializer (same logic)
+if (config.useTypeInference && TypeInferenceEngine.canOmitType(propName, parentType, value)) {
+  // Omit _type field
+} else {
+  obj._type = getTypeName(value);
+}
+```
 
 ## Detailed Design
 
@@ -512,6 +595,13 @@ export interface YamlSerializationConfig {
   includeType?: boolean;
   
   /**
+   * Use type inference to omit _type where unambiguous (compact mode)
+   * When true, _type is omitted for properties where type can be inferred from context
+   * @default false
+   */
+  useTypeInference?: boolean;
+  
+  /**
    * Use flow style for values (inline)
    * @default false
    */
@@ -627,6 +717,18 @@ console.log(serializer2.serialize(composition));
 //   _type: CODE_PHRASE
 //   code_string: en
 //   terminology_id: {_type: TERMINOLOGY_ID, value: ISO_639-1}
+
+// Compact style with type inference
+const serializer3 = new YamlSerializer({
+  useTypeInference: true,
+  hybridStyle: true
+});
+console.log(serializer3.serialize(composition));
+// archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+// name: Test Composition
+// language:
+//   code_string: en
+//   terminology_id: ISO_639-1
 
 const deserializer = new YamlDeserializer();
 const restored = deserializer.deserialize<openehr_rm.COMPOSITION>(yaml);
@@ -1013,6 +1115,27 @@ category:
     terminology_id: {_type: TERMINOLOGY_ID, value: openehr}
 composer: {_type: PARTY_IDENTIFIED, name: Dr. Smith}
 ```
+
+### YAML (Compact with Type Inference)
+```yaml
+archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+name: Blood Pressure Recording
+language:
+  code_string: en
+  terminology_id: ISO_639-1
+territory:
+  code_string: GB
+  terminology_id: ISO_3166-1
+category:
+  value: event
+  defining_code:
+    code_string: "433"
+    terminology_id: openehr
+composer:
+  name: Dr. Smith
+```
+
+**Note**: The compact variant omits `_type` fields where the type can be inferred from the property context (similar to the compact JSON format). This provides maximum readability while maintaining semantic correctness.
 
 ## Summary
 

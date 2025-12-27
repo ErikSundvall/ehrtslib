@@ -6,7 +6,7 @@
  * from the blood pressure example.
  * 
  * Two approaches are shown:
- * 1. Simplified creation - compact, readable (Phase 4f.2)
+ * 1. Simplified creation - compact, readable
  * 2. Manual creation - explicit, detailed (traditional)
  */
 
@@ -25,6 +25,7 @@ function createTemperatureCompositionSimplified(): openehr_rm.COMPOSITION {
   const composition = new openehr_rm.COMPOSITION({
     archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
     name: "Temperature Recording",
+    // Note: UID is often set by the CDR (Clinical Data Repository) server upon submission
     uid: "9949182c-82ad-4088-a07f-48ead4180516::uk.nhs.example::1",
     
     // Terse format for CODE_PHRASE: "terminology::code"
@@ -46,14 +47,14 @@ function createTemperatureCompositionSimplified(): openehr_rm.COMPOSITION {
     
     archetype_details: {
       archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-      rm_version: "1.1.0"
+      rm_version: "1.1.0",
+      template_id: "openEHR-EHR-COMPOSITION.encounter.v1"
     }
   });
   
   // Add context using direct property assignment
   composition.context = new openehr_rm.EVENT_CONTEXT();
-  composition.context.start_time = new openehr_rm.DV_DATE_TIME();
-  composition.context.start_time.value = "2024-12-08T15:45:00";
+  composition.context.start_time = new openehr_rm.DV_DATE_TIME("2024-12-08T15:45:00");
   composition.context.setting = new openehr_rm.DV_CODED_TEXT("openehr::235|primary care|");
   
   // Create the temperature OBSERVATION
@@ -291,8 +292,8 @@ if (import.meta.main) {
   console.log("=".repeat(80));
   console.log();
   
-  // Example 1: Simplified approach (recommended for new code)
-  console.log("Example 1: SIMPLIFIED APPROACH (Phase 4f.2)");
+  // Example 1: Simplified approach (recommended for most code)
+  console.log("Example 1: SIMPLIFIED APPROACH");
   console.log("-".repeat(80));
   console.log("Creating COMPOSITION using simplified constructor initialization...\n");
   
@@ -315,7 +316,6 @@ if (import.meta.main) {
   
   console.log("✓ COMPOSITION created with explicit object instantiation");
   console.log("✓ Full control over every step");
-  console.log("✓ Backward compatible with existing code");
   console.log();
   
   // Summary
@@ -325,7 +325,7 @@ if (import.meta.main) {
   console.log("Both approaches produce equivalent COMPOSITION objects.");
   console.log("Choose the approach that best fits your needs:");
   console.log();
-  console.log("  • Simplified: Compact, readable, recommended for new code");
+  console.log("  • Simplified: Compact, readable, recommended for most code/use-cases");
   console.log("  • Manual: Explicit, detailed, useful for complex scenarios");
   console.log();
   console.log("See SIMPLIFIED-CREATION-GUIDE.md for more examples and patterns.");

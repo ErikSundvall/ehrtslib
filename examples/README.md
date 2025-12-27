@@ -9,7 +9,7 @@ A complete example showing how to create a blood pressure recording COMPOSITION.
 
 **Demonstrates:**
 - Creating a COMPOSITION with all required properties using **both simplified and manual approaches**
-- Simplified creation with constructor initialization and terse format (Phase 4f.2)
+- Simplified creation with constructor initialization and terse format
 - Adding an OBSERVATION with HISTORY and POINT_EVENT
 - Using ITEM_TREE and ELEMENT to structure data
 - Working with DV_QUANTITY for measurements
@@ -44,13 +44,13 @@ Prints summaries of two equivalent COMPOSITIONs showing the temperature measurem
 
 Both examples demonstrate **two approaches** for creating openEHR objects:
 
-### 1. Simplified Approach (Phase 4f.2) - **Recommended for new code**
+### 1. Simplified Approach - **Recommended for most code**
 
 - **Constructor initialization** with nested objects
 - **Terse format** for CODE_PHRASE and DV_CODED_TEXT
 - **~70% code reduction** compared to manual approach
 - Full type safety with TypeScript inference
-- Backward compatible with existing code
+- Backward compatible
 
 Example:
 ```typescript
@@ -89,12 +89,12 @@ composition.language = language;
 3. **HISTORY Structure**: Using HISTORY > POINT_EVENT > ITEM_TREE > ELEMENT hierarchy
 4. **Data Types**: Working with DV_TEXT, DV_QUANTITY, DV_CODED_TEXT, DV_DATE_TIME
 5. **Identifiers**: Using CODE_PHRASE, TERMINOLOGY_ID, ARCHETYPE_ID, OBJECT_VERSION_ID
-6. **Terse Format**: Compact string representation for coded terms (Phase 4f.2)
-7. **Constructor Initialization**: Creating objects with all properties upfront (Phase 4f.2)
+6. **Terse Format**: Compact string representation for coded terms
+7. **Constructor Initialization**: Creating objects with all properties upfront
 
 ## Current Status & Future Development
 
-**Available Now (Phase 4f.2 ✅):**
+**Available Now:**
 - Simplified object creation with constructor initialization
 - Terse format parsing for CODE_PHRASE and DV_CODED_TEXT
 - Type-safe nested object initialization
@@ -115,10 +115,10 @@ Study the examples to understand:
 - How to structure nested objects
 - Proper use of openEHR data types
 - The relationship between COMPOSITION, OBSERVATION, HISTORY, EVENT, and data structures
-- **How simplified creation patterns reduce boilerplate** (Phase 4f.2)
+- **How simplified creation patterns reduce boilerplate**
 - **When to use terse format vs. object initialization**
 
-### As Templates
+### As Starting Points
 Copy and modify these examples for your own COMPOSITION structures:
 1. Start with one of the examples
 2. Choose simplified or manual approach (or mix both!)
@@ -136,10 +136,10 @@ Use these examples to:
 
 ## Documentation References
 
-- **SIMPLIFIED-CREATION-GUIDE.md** - Comprehensive guide to simplified object creation (Phase 4f.2)
+- **SIMPLIFIED-CREATION-GUIDE.md** - Comprehensive guide to simplified object creation
 - **DUAL-APPROACH-GUIDE.md** - Explains the dual getter/setter pattern that enables simplified creation
 - **docs/getting-started.md** - Introduction to ehrtslib
-- **ROADMAP.md** - Project phases and upcoming features
+- **ROADMAP.md** - Project roadmap and upcoming features
 
 ## Template Information
 
