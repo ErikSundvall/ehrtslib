@@ -424,19 +424,38 @@ more verbose prectice of including `_type:` is actually preferred
 
   In this phase, just make a PRD decribing the 
 
-## Phase 4g.1
+## Phase 4g.2
+Based on the PRD /tasks/prd-phase4g1-serialization-deserialization.md (following the recommendations in the section /tasks/prd-phase4g1-serialization-deserialization.md#recommended-implementation-approach)
+- Create one detailed task list for implementing the XML serialisation
+- Create one detailed combined task list for implementing the JSON and YAML serialisation
+- Create one detailed task list for implementing a demo (static site) web application that allows format Conversions between all formats XML ↔ JSON ↔ YAML - by providing one of them and getting the other two plus gernerated Ehrtslib compact typedscript initialisation code (using terse format etc). For JSON & YAML include selection for format options (e.g. terse & hybrid/zipehr-like) in the GUI.
 
+Remember to include test cases
+
+Update associated filename slots in the three following Phases
+ 
+## Phase 4g.3 Implement XML serialisation
+- Implement the serialisation code based on ---insert file name here---
+
+## Phase 4g.4 Implement JSON and YAML serialisations
+- Implement the serialisation code based on ---insert file name here---
+
+## Phase 4g.5
+- Implement the demo web application code based on ---insert file name here---
 
 ## Phase 5a
 Implement the AM package, use deepwiki and the files in /instructions to understand
 AM and the task at hand. Note that there is an official grammar for the ADL language
-available form openEHR if needed.
+available form openEHR - documentation of it is also available via Deepwiki
 
+## Phase 6
+Exploration of:
+Serialisation and deserialisation of RM object instance trees to and from
+openEHRs simplified JSON formats (likely using other already existing library if
+it can be made fairly dependency free)
 
-
-## Pase 5b
-
-Simplified openEHR template specific forms of instance tree creation and
+## Phase 7?
+Explore other Simplified openEHR template specific forms of instance tree creation and
 validation. (Take inspiration from Archie and openEHR's simplified formats and
 "web template" but also allow ADL2 flattened templates as validatiadl-toolson
 source).
@@ -446,12 +465,6 @@ source).
 - Also make a (less lightweight) version that can be synchronously multiuser
   updated using Y.js or
 - Create build step to genenrate minivfed and web component versions
-
-## Phase 6
-
-Serialisation and deserialisation of RM object instance trees to and from
-openEHRs simplified JSON formats (likely using other already existing library if
-it can be made fairly dependency free)
 
 ## Phase X
 
