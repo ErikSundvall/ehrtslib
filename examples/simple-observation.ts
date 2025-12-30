@@ -4,15 +4,75 @@
  * This example shows a minimal COMPOSITION with a single OBSERVATION
  * recording body temperature - demonstrating different data values
  * from the blood pressure example.
+ * 
+ * Two approaches are shown:
+ * 1. Simplified creation - compact, readable
+ * 2. Manual creation - explicit, detailed (traditional)
  */
 
 import * as openehr_rm from "../openehr_rm.ts";
 import * as openehr_base from "../openehr_base.ts";
 
 /**
- * Create a simple temperature recording COMPOSITION
+ * Create a simple temperature recording COMPOSITION using the SIMPLIFIED approach
+ * 
+ * This is the recommended approach - compact and readable with approximately 70% less code.
+ * 
+ * @returns A fully initialized COMPOSITION object
  */
-function createTemperatureComposition(): openehr_rm.COMPOSITION {
+function createTemperatureCompositionSimplified(): openehr_rm.COMPOSITION {
+  // Create COMPOSITION with all required metadata in one constructor call
+  const composition = new openehr_rm.COMPOSITION({
+    archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+    name: "Temperature Recording",
+    // Note: UID is often set by the CDR (Clinical Data Repository) server upon submission
+    uid: "9949182c-82ad-4088-a07f-48ead4180516::uk.nhs.example::1",
+    
+    // Terse format for CODE_PHRASE: "terminology::code"
+    language: "ISO_639-1::en",
+    territory: "ISO_3166-1::GB",
+    
+    // Terse format for DV_CODED_TEXT: "terminology::code|value|"
+    category: "openehr::433|event|",
+    
+    // Nested object initialization
+    composer: {
+      name: "Nurse Johnson",
+      identifiers: [{
+        id: "NMC9876543",
+        issuer: "Nursing and Midwifery Council",
+        type: "Professional Registration"
+      }]
+    },
+    
+    archetype_details: {
+      archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+      rm_version: "1.1.0",
+      template_id: "uk.nhs.clinical::encounter_template.v1"
+    }
+  });
+  
+  // Add context using direct property assignment
+  composition.context = new openehr_rm.EVENT_CONTEXT();
+  composition.context.start_time = new openehr_rm.DV_DATE_TIME("2024-12-08T15:45:00");
+  composition.context.setting = new openehr_rm.DV_CODED_TEXT("openehr::235|primary care|");
+  
+  // Create the temperature OBSERVATION
+  const observation = createTemperatureObservation();
+  composition.content = [observation];
+  
+  return composition;
+}
+
+/**
+ * Create a simple temperature recording COMPOSITION using the MANUAL approach
+ * 
+ * This is the traditional approach - still valid and fully supported.
+ * Use when you need fine-grained control or explicit object construction.
+ * 
+ * @returns A fully initialized COMPOSITION object
+ */
+function createTemperatureCompositionManual(): openehr_rm.COMPOSITION {
   // Create the root COMPOSITION
   const composition = new openehr_rm.COMPOSITION();
   
@@ -227,10 +287,47 @@ function printCompositionSummary(composition: openehr_rm.COMPOSITION): void {
 
 // Main execution
 if (import.meta.main) {
-  console.log("Creating a simple temperature COMPOSITION...\n");
+  console.log("=".repeat(80));
+  console.log("EHRTSLIB TEMPERATURE COMPOSITION EXAMPLES");
+  console.log("=".repeat(80));
+  console.log();
   
-  const composition = createTemperatureComposition();
-  printCompositionSummary(composition);
+  // Example 1: Simplified approach (recommended for most code)
+  console.log("Example 1: SIMPLIFIED APPROACH");
+  console.log("-".repeat(80));
+  console.log("Creating COMPOSITION using simplified constructor initialization...\n");
   
-  console.log("✓ COMPOSITION created successfully!");
+  const compositionSimplified = createTemperatureCompositionSimplified();
+  printCompositionSummary(compositionSimplified);
+  
+  console.log("✓ COMPOSITION created with compact syntax (approximately 70% reduction!)");
+  console.log("✓ Uses terse format: 'ISO_639-1::en', 'openehr::433|event|'");
+  console.log("✓ Constructor initialization with type inference");
+  console.log();
+  
+  // Example 2: Manual approach (traditional, still fully supported)
+  console.log("\n" + "=".repeat(80));
+  console.log("Example 2: MANUAL APPROACH (traditional)");
+  console.log("-".repeat(80));
+  console.log("Creating COMPOSITION using explicit manual construction...\n");
+  
+  const compositionManual = createTemperatureCompositionManual();
+  printCompositionSummary(compositionManual);
+  
+  console.log("✓ COMPOSITION created with explicit object instantiation");
+  console.log("✓ Full control over every step");
+  console.log();
+  
+  // Summary
+  console.log("\n" + "=".repeat(80));
+  console.log("SUMMARY");
+  console.log("=".repeat(80));
+  console.log("Both approaches produce equivalent COMPOSITION objects.");
+  console.log("Choose the approach that best fits your needs:");
+  console.log();
+  console.log("  • Simplified: Compact, readable, recommended for most code/use-cases");
+  console.log("  • Manual: Explicit, detailed, useful for complex scenarios");
+  console.log();
+  console.log("See SIMPLIFIED-CREATION-GUIDE.md for more examples and patterns.");
+  console.log("=".repeat(80));
 }
