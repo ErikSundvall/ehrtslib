@@ -185,6 +185,7 @@ enhanced/
       type_registry.ts         - Type name mapping
       type_inference.ts        - Shared type inference logic for JSON/YAML
       terse_format.ts          - Shared terse format handlers for CODE_PHRASE/DV_CODED_TEXT
+      hybrid_formatter.ts      - Shared hybrid style formatting for JSON/YAML
 ```
 
 ### Recommended Implementation Approach
@@ -322,6 +323,67 @@ export class TerseFormatHandler {
 }
 ```
 
+**Shared Hybrid Style Formatter**:
+
+The hybrid style (zipehr-like) formatting strategy can be shared between JSON and YAML implementations to reduce code maintenance:
+
+```typescript
+// In common/hybrid_formatter.ts (shared between JSON and YAML)
+export class HybridStyleFormatter {
+  /**
+   * Determine if an object should be formatted inline (single line) or multiline
+   * @param obj - The object to check
+   * @param maxInlineProperties - Maximum properties for inline formatting
+   * @returns true if object should be inline
+   */
+  static shouldFormatInline(obj: any, maxInlineProperties: number = 3): boolean {
+    if (typeof obj !== 'object' || obj === null) return true;
+    
+    const keys = Object.keys(obj);
+    if (keys.length > maxInlineProperties) return false;
+    
+    // Check if all values are simple (not nested objects)
+    return keys.every(key => !this.isComplexValue(obj[key]));
+  }
+  
+  /**
+   * Check if a value is complex (contains nested objects)
+   */
+  static isComplexValue(value: any): boolean {
+    if (typeof value !== 'object' || value === null) return false;
+    if (Array.isArray(value)) return value.some(v => typeof v === 'object');
+    
+    const keys = Object.keys(value);
+    return keys.some(key => typeof value[key] === 'object');
+  }
+  
+  /**
+   * Apply hybrid formatting to JSON string (post-processing)
+   * This can be called after standard JSON.stringify with prettyPrint
+   */
+  static applyHybridFormattingToJson(jsonString: string): string {
+    // Parse and rebuild with intelligent line breaking
+    // Simple objects stay on one line, complex ones break across lines
+    // Implementation would analyze structure and adjust line breaks
+  }
+  
+  /**
+   * Apply hybrid formatting to YAML output
+   * Uses flow style for simple objects, block style for complex
+   */
+  static applyHybridFormattingToYaml(obj: any): any {
+    // Transform object structure to indicate flow vs block style
+    // Can be used with yaml library's flow/block style options
+  }
+}
+```
+
+**Benefits of Shared Hybrid Formatter**:
+- Single implementation for both JSON and YAML
+- Consistent formatting rules across formats
+- Can be implemented as post-processing for JSON (simpler integration)
+- Reduces maintenance burden
+
 **Usage in Serializers**:
 ```typescript
 // In JSON serializer
@@ -391,6 +453,16 @@ export interface JsonSerializationConfig {
    * @default false
    */
   useTerseFormat?: boolean;
+  
+  /**
+   * Use hybrid style (zipehr-like: simple objects inline, complex objects multiline)
+   * When true, applies intelligent line breaking where simple leaf objects stay on one line
+   * (e.g., {"_type": "DV_TEXT", "value": "..."}) while complex nested structures break across lines.
+   * This can be implemented as a post-processing step after serialization.
+   * The folding strategy can be shared with YAML implementation to reduce maintenance.
+   * @default false
+   */
+  useHybridStyle?: boolean;
 }
 
 export interface JsonDeserializationConfig {
@@ -532,6 +604,17 @@ const terseDeserializer = new JsonDeserializer({
   parseTerseFormat: true
 });
 const restoredFromTerse = terseDeserializer.deserialize<openehr_rm.COMPOSITION>(terseJson);
+
+// Using hybrid style (zipehr-like)
+const hybridSerializer = new JsonSerializer({
+  prettyPrint: true,
+  useHybridStyle: true
+});
+const hybridJson = hybridSerializer.serialize(composition);
+// Output uses intelligent line breaking:
+// Simple objects on one line: {"_type": "DV_TEXT", "value": "..."}
+// Complex objects across multiple lines
+// This balances readability with compactness
 ```
 
 ### 2. XML Serialization
@@ -1145,6 +1228,37 @@ A successful implementation will:
   }
 }
 ```
+
+### JSON (Hybrid Style - zipehr-like)
+```json
+{
+  "_type": "COMPOSITION",
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "name": {"_type": "DV_TEXT", "value": "Blood Pressure Recording"},
+  "language": {
+    "_type": "CODE_PHRASE",
+    "code_string": "en",
+    "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "code_string": "GB",
+    "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}
+  },
+  "category": {
+    "_type": "DV_CODED_TEXT",
+    "value": "event",
+    "defining_code": {
+      "_type": "CODE_PHRASE",
+      "code_string": "433",
+      "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}
+    }
+  },
+  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"}
+}
+```
+
+**Note**: The hybrid style breaks complex nested objects across multiple lines while keeping simple leaf objects on a single line (e.g., `{"_type": "DV_TEXT", "value": "..."}`). This balances readability with compactness. The line-breaking strategy can be implemented as a post-processing step after JSON serialization, making implementation simpler. This folding strategy can be shared between JSON and YAML implementations to reduce code maintenance.
 
 ### XML (Canonical)
 ```xml
