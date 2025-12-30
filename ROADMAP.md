@@ -435,13 +435,13 @@ Remember to include test cases
 Update associated filename slots in the three following Phases
  
 ## Phase 4g.3 Implement XML serialisation
-- Implement the serialisation code based on ---insert file name here---
+- Implement the serialisation code based on `/tasks/task-list-phase4g3-xml-serialization.md`
 
 ## Phase 4g.4 Implement JSON and YAML serialisations
-- Implement the serialisation code based on ---insert file name here---
+- Implement the serialisation code based on `/tasks/task-list-phase4g4-json-yaml-serialization.md`
 
-## Phase 4g.5
-- Implement the demo web application code based on ---insert file name here---
+## Phase 4g.5 Implement demo web application
+- Implement the demo web application code based on `/tasks/task-list-phase4g5-demo-app.md`
 
 ## Phase 5a
 Implement the AM package, use deepwiki and the files in /instructions to understand
