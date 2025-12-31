@@ -110,7 +110,9 @@ export class TypeRegistry {
         // Throw error for non-class exports to catch module import issues early
         throw new Error(
           `Cannot register '${name}': expected a class constructor but got ${typeof value}. ` +
-          `Ensure you're passing a clean module with only class exports.`
+          `Only class constructors can be registered. ` +
+          `If importing from a module, ensure it exports only classes (no functions, constants, or types). ` +
+          `Example: import * as rm from './openehr_rm.ts' where openehr_rm.ts exports only class definitions.`
         );
       }
     }
