@@ -38,14 +38,14 @@ This task list implements JSON and YAML serialization and deserialization for op
 
 **Note:** `enhanced/serialization/common/` already exists from XML implementation. Verify and reuse existing code.
 
-- [ ] 1.1 Create directory structure `enhanced/serialization/json/`
-- [ ] 1.2 Create directory structure `enhanced/serialization/yaml/`
-- [ ] 1.3 Verify `enhanced/serialization/common/` exists and review existing code:
-  - [ ] TypeRegistry implementation
-  - [ ] Error classes (SerializationError, DeserializationError, TypeNotFoundError)
-- [ ] 1.4 Add `yaml` dependency to `deno.json` (v2.x by eemeli, ISC licensed, ~80KB minified)
-- [ ] 1.5 Create `enhanced/serialization/json/mod.ts` as main JSON export
-- [ ] 1.6 Create `enhanced/serialization/yaml/mod.ts` as main YAML export
+- [x] 1.1 Create directory structure `enhanced/serialization/json/`
+- [x] 1.2 Create directory structure `enhanced/serialization/yaml/`
+- [x] 1.3 Verify `enhanced/serialization/common/` exists and review existing code:
+  - [x] TypeRegistry implementation
+  - [x] Error classes (SerializationError, DeserializationError, TypeNotFoundError)
+- [x] 1.4 Add `yaml` dependency to `deno.json` (v2.x by eemeli, ISC licensed, ~80KB minified)
+- [x] 1.5 Create `enhanced/serialization/json/mod.ts` as main JSON export
+- [x] 1.6 Create `enhanced/serialization/yaml/mod.ts` as main YAML export
 - [ ] 1.7 Verify dependency installation and imports work correctly
 
 ## 2. Common Infrastructure (Shared Between JSON and YAML)
