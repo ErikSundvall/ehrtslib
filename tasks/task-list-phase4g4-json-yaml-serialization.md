@@ -13,24 +13,36 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
 
 This task list implements JSON and YAML serialization and deserialization for openEHR RM objects according to the PRD in `/tasks/prd-phase4g1-serialization-deserialization.md`.
 
+**IMPORTANT NOTE:** Phase 4g.3 (XML serialization) has been completed. The following infrastructure is already available and should be reused:
+- ✅ TypeRegistry in `enhanced/serialization/common/type_registry.ts`
+- ✅ Error classes in `enhanced/serialization/common/errors.ts`
+- ✅ Terse format functions in `enhanced/terse_format.ts` (for CODE_PHRASE and DV_CODED_TEXT)
+
 **Key Design Principles:**
 - JSON and YAML share common infrastructure (type inference, terse format, hybrid formatting)
 - JSON uses native JSON.parse/stringify with custom reviver/replacer
 - YAML uses `yaml` by eemeli (v2.x) for better style control
 - Modular design allows importing only what you need
+- **Reuse existing terse format implementation** - do not duplicate
 
 **References:**
 - PRD: `/tasks/prd-phase4g1-serialization-deserialization.md`
 - openEHR ITS-JSON: https://github.com/openEHR/specifications-ITS-JSON
 - Archie JSON implementation: https://github.com/openEHR/archie
 - Terse format spec: https://openehr.atlassian.net/wiki/spaces/spec/pages/624361477/
-- Existing terse format: `enhanced/terse_format.ts`
+- **Existing terse format implementation:** `enhanced/terse_format.ts` (parseTerseCodePhrase, toTerseCodePhrase, parseTerseDvCodedText, toTerseDvCodedText)
+- **Existing TypeRegistry:** `enhanced/serialization/common/type_registry.ts`
+- **Existing error classes:** `enhanced/serialization/common/errors.ts`
 
 ## 1. Project Setup and Dependencies
 
+**Note:** `enhanced/serialization/common/` already exists from XML implementation. Verify and reuse existing code.
+
 - [ ] 1.1 Create directory structure `enhanced/serialization/json/`
 - [ ] 1.2 Create directory structure `enhanced/serialization/yaml/`
-- [ ] 1.3 Create directory structure `enhanced/serialization/common/` (shared with XML)
+- [ ] 1.3 Verify `enhanced/serialization/common/` exists and review existing code:
+  - [ ] TypeRegistry implementation
+  - [ ] Error classes (SerializationError, DeserializationError, TypeNotFoundError)
 - [ ] 1.4 Add `yaml` dependency to `deno.json` (v2.x by eemeli, ISC licensed, ~80KB minified)
 - [ ] 1.5 Create `enhanced/serialization/json/mod.ts` as main JSON export
 - [ ] 1.6 Create `enhanced/serialization/yaml/mod.ts` as main YAML export
@@ -38,18 +50,20 @@ This task list implements JSON and YAML serialization and deserialization for op
 
 ## 2. Common Infrastructure (Shared Between JSON and YAML)
 
-### 2.1 Type Registry (if not already created for XML)
+### 2.1 Type Registry (Already Implemented in XML Phase)
 
-- [ ] 2.1.1 Create/verify `enhanced/serialization/common/type_registry.ts`
-- [ ] 2.1.2 Implement `TypeRegistry` class with methods:
+**Note:** TypeRegistry already exists in `enhanced/serialization/common/type_registry.ts`. Review, verify it meets requirements, and extend if needed.
+
+- [ ] 2.1.1 Review existing `enhanced/serialization/common/type_registry.ts` implementation
+- [ ] 2.1.2 Verify `TypeRegistry` class has required methods:
   - [ ] `register(typeName: string, constructor: new () => any): void`
   - [ ] `getConstructor(typeName: string): (new () => any) | undefined`
   - [ ] `getTypeName(constructor: new () => any): string | undefined`
   - [ ] `hasType(typeName: string): boolean`
   - [ ] `getTypeName(obj: any): string | undefined` (from instance)
-  - [ ] `getAllTypes(): string[]` (list all registered types)
-- [ ] 2.1.3 Add auto-registration for all RM classes
-- [ ] 2.1.4 Create/verify unit tests for `TypeRegistry`
+  - [ ] `getAllTypes(): string[]` (list all registered types) - **add if missing**
+- [ ] 2.1.3 Verify auto-registration for all RM classes works correctly
+- [ ] 2.1.4 Review existing unit tests for `TypeRegistry` - add tests for JSON/YAML specific needs if needed
 
 ### 2.2 Type Inference Engine
 
@@ -67,21 +81,25 @@ This task list implements JSON and YAML serialization and deserialization for op
 - [ ] 2.2.6 Create comprehensive unit tests for type inference
 - [ ] 2.2.7 Test with all major RM types (COMPOSITION, OBSERVATION, DV_*, etc.)
 
-### 2.3 Terse Format Handler
+### 2.3 Terse Format Handler (Reuse Existing Implementation)
 
-- [ ] 2.3.1 Create `enhanced/serialization/common/terse_format.ts`
-- [ ] 2.3.2 Review existing `enhanced/terse_format.ts` for reuse
-- [ ] 2.3.3 Implement `TerseFormatHandler` class with static methods:
-  - [ ] `serializeCodePhrase(obj: CODE_PHRASE): string` - returns "terminology::code"
-  - [ ] `parseCodePhrase(str: string): CODE_PHRASE | null`
-  - [ ] `serializeDvCodedText(obj: DV_CODED_TEXT): string` - returns "terminology::code|value|"
-  - [ ] `parseDvCodedText(str: string): DV_CODED_TEXT | null`
-  - [ ] `isTerseCodePhrase(str: string): boolean` - detection
-  - [ ] `isTerseDvCodedText(str: string): boolean` - detection
-- [ ] 2.3.4 Reuse or adapt existing functions from `enhanced/terse_format.ts`
-- [ ] 2.3.5 Handle edge cases (empty strings, special characters, malformed)
-- [ ] 2.3.6 Create comprehensive unit tests for terse format
-- [ ] 2.3.7 Test with examples from openEHR simplified format spec
+**IMPORTANT:** Terse format functions already exist in `enhanced/terse_format.ts`. **DO NOT reimplement** - reuse existing functions:
+- `parseTerseCodePhrase(terse: string): CODE_PHRASE | null`
+- `toTerseCodePhrase(codePhrase: CODE_PHRASE): string`
+- `parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null`
+- `toTerseDvCodedText(codedText: DV_CODED_TEXT): string`
+
+- [ ] 2.3.1 Review existing `enhanced/terse_format.ts` implementation
+- [ ] 2.3.2 Verify functions match requirements:
+  - [ ] `parseTerseCodePhrase(str: string): CODE_PHRASE | null` - parses "terminology::code"
+  - [ ] `toTerseCodePhrase(obj: CODE_PHRASE): string` - serializes to "terminology::code"
+  - [ ] `parseTerseDvCodedText(str: string): DV_CODED_TEXT | null` - parses "terminology::code|value|"
+  - [ ] `toTerseDvCodedText(obj: DV_CODED_TEXT): string` - serializes to "terminology::code|value|"
+- [ ] 2.3.3 Add helper detection methods in serialization code if needed:
+  - [ ] `isTerseCodePhrase(str: string): boolean` - detection helper
+  - [ ] `isTerseDvCodedText(str: string): boolean` - detection helper
+- [ ] 2.3.4 Create integration tests for terse format in JSON/YAML context
+- [ ] 2.3.5 Verify edge case handling (empty strings, special characters, malformed)
 
 ### 2.4 Hybrid Style Formatter
 
@@ -98,16 +116,18 @@ This task list implements JSON and YAML serialization and deserialization for op
 - [ ] 2.4.6 Create unit tests for hybrid formatting
 - [ ] 2.4.7 Test with COMPOSITION examples
 
-### 2.5 Error Classes (if not already created for XML)
+### 2.5 Error Classes (Already Implemented in XML Phase)
 
-- [ ] 2.5.1 Create/verify `enhanced/serialization/common/errors.ts`
-- [ ] 2.5.2 Implement error classes:
+**Note:** Error classes already exist in `enhanced/serialization/common/errors.ts`. Review and extend if needed.
+
+- [ ] 2.5.1 Review existing `enhanced/serialization/common/errors.ts`
+- [ ] 2.5.2 Verify error classes exist:
   - [ ] `SerializationError`
   - [ ] `DeserializationError`
   - [ ] `TypeNotFoundError`
-  - [ ] `InvalidFormatError` (for terse format parsing)
-- [ ] 2.5.3 Add comprehensive error context
-- [ ] 2.5.4 Create/verify unit tests for errors
+  - [ ] `InvalidFormatError` (for terse format parsing) - **add if missing**
+- [ ] 2.5.3 Verify comprehensive error context is included
+- [ ] 2.5.4 Review existing unit tests - add tests for JSON/YAML specific cases if needed
 
 ## 3. JSON Configuration
 

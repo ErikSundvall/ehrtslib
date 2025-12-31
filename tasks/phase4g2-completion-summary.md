@@ -13,7 +13,7 @@ Phase 4g.2 has been successfully completed. Three comprehensive task lists have 
 ### 1. XML Serialization Task List
 **File:** `/tasks/task-list-phase4g3-xml-serialization.md`  
 **Size:** ~12 KB  
-**Tasks:** 275 individual checkboxes organized in 10 major sections
+**Tasks:** 141 individual checkboxes organized in 10 major sections
 
 **Coverage:**
 - Project setup and dependency management (fast-xml-parser v4.x)
@@ -36,7 +36,7 @@ Phase 4g.2 has been successfully completed. Three comprehensive task lists have 
 ### 2. JSON and YAML Serialization Task List
 **File:** `/tasks/task-list-phase4g4-json-yaml-serialization.md`  
 **Size:** ~23 KB  
-**Tasks:** 375 individual checkboxes organized in 13 major sections
+**Tasks:** 269 individual checkboxes organized in 13 major sections
 
 **Coverage:**
 - Project setup with yaml library (by eemeli)
@@ -67,7 +67,7 @@ Phase 4g.2 has been successfully completed. Three comprehensive task lists have 
 ### 3. Demo Web Application Task List
 **File:** `/tasks/task-list-phase4g5-demo-app.md`  
 **Size:** ~17 KB  
-**Tasks:** 210 individual checkboxes organized in 11 major sections
+**Tasks:** 215 individual checkboxes organized in 11 major sections
 
 **Coverage:**
 - Project setup and build configuration
