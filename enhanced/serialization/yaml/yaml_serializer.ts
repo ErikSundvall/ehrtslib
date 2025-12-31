@@ -111,10 +111,35 @@ export class YamlSerializer {
       result._type = typeName || obj.constructor.name.toUpperCase();
     }
     
+    // Get all property names including getters
+    const allProperties = new Set<string>();
+    
+    // Add own properties
+    Object.keys(obj).forEach(key => allProperties.add(key));
+    
+    // Add properties from prototype chain (getters)
+    let proto = Object.getPrototypeOf(obj);
+    while (proto && proto !== Object.prototype) {
+      Object.getOwnPropertyNames(proto).forEach(key => {
+        if (key !== 'constructor') {
+          const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+          if (descriptor && descriptor.get) {
+            allProperties.add(key);
+          }
+        }
+      });
+      proto = Object.getPrototypeOf(proto);
+    }
+    
     // Serialize all properties
-    for (const key of Object.keys(obj)) {
-      // Skip internal properties
-      if (key.startsWith('_')) {
+    for (const key of allProperties) {
+      // Skip internal properties (starting with _ or $)
+      if (key.startsWith('_') || key.startsWith('$')) {
+        continue;
+      }
+      
+      // Skip functions
+      if (typeof obj[key] === 'function') {
         continue;
       }
       
@@ -122,11 +147,6 @@ export class YamlSerializer {
       
       // Skip null/undefined if not including them
       if ((value === null || value === undefined) && !this.config.includeNullValues) {
-        continue;
-      }
-      
-      // Skip functions
-      if (typeof value === 'function') {
         continue;
       }
       

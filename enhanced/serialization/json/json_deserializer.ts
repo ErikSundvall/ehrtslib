@@ -54,6 +54,15 @@ export class JsonDeserializer {
   deserialize<T = any>(json: string): T {
     try {
       const parsed = JSON.parse(json);
+      
+      // Check if parsed result is a terse format string
+      if (this.config.parseTerseFormat && typeof parsed === 'string') {
+        const terseResult = this.parseTerseString(parsed);
+        if (terseResult) {
+          return terseResult as T;
+        }
+      }
+      
       return this.fromJsonObject(parsed);
     } catch (error) {
       if (error instanceof DeserializationError) {
@@ -78,6 +87,15 @@ export class JsonDeserializer {
   deserializeAs<T>(json: string, type: new () => T): T {
     try {
       const parsed = JSON.parse(json);
+      
+      // Check if parsed result is a terse format string
+      if (this.config.parseTerseFormat && typeof parsed === 'string') {
+        const terseResult = this.parseTerseString(parsed);
+        if (terseResult) {
+          return terseResult as T;
+        }
+      }
+      
       const typeName = TypeRegistry.getTypeName(type);
       return this.fromJsonObject(parsed, typeName);
     } catch (error) {
