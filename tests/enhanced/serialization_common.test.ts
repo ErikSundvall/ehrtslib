@@ -57,13 +57,13 @@ Deno.test("TypeRegistry - getTypeNameFromInstance", () => {
   assertEquals(typeName, "TEST_CLASS_1");
 });
 
-Deno.test("TypeRegistry - getTypeNameFromInstance returns undefined for unregistered", () => {
+Deno.test("TypeRegistry - getTypeNameFromInstance returns uppercase constructor name for unregistered", () => {
   TypeRegistry.clear();
   
   const instance = new TestClass1();
   const typeName = TypeRegistry.getTypeNameFromInstance(instance);
   
-  // Should return uppercase constructor name as fallback
+  // When type is not registered, falls back to uppercase constructor name
   assertEquals(typeName, "TESTCLASS1");
 });
 
@@ -87,22 +87,36 @@ Deno.test("TypeRegistry - clear removes all registrations", () => {
   assertEquals(TypeRegistry.getAllTypeNames().length, 0);
 });
 
-Deno.test("TypeRegistry - registerModule", () => {
+Deno.test("TypeRegistry - registerModule throws error for non-class exports", () => {
   TypeRegistry.clear();
   
-  const module = {
+  const moduleWithNonClass = {
     TestClass1,
     TestClass2,
     notAClass: "string value",
     alsoNotAClass: 123,
   };
   
-  TypeRegistry.registerModule(module);
+  // Should throw error when encountering non-class exports
+  assertThrows(
+    () => TypeRegistry.registerModule(moduleWithNonClass),
+    Error,
+    "Cannot register 'notAClass': expected a class constructor"
+  );
+});
+
+Deno.test("TypeRegistry - registerModule succeeds with only classes", () => {
+  TypeRegistry.clear();
+  
+  const cleanModule = {
+    TestClass1,
+    TestClass2,
+  };
+  
+  TypeRegistry.registerModule(cleanModule);
   
   assert(TypeRegistry.hasType("TestClass1"));
   assert(TypeRegistry.hasType("TestClass2"));
-  assert(!TypeRegistry.hasType("notAClass"));
-  assert(!TypeRegistry.hasType("alsoNotAClass"));
 });
 
 // Error class tests

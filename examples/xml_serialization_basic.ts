@@ -55,6 +55,11 @@ const terminologyId = new TERMINOLOGY_ID();
 terminologyId.value = "ISO_639-1";
 codePhrase.terminology_id = terminologyId;
 
+// Note: XML serialization doesn't support terse format (per openEHR ITS-XML spec).
+// For compact representation, use JSON/YAML serialization with terse format enabled:
+// In terse format this would be: "ISO_639-1::en"
+// See Phase 4g.4 for JSON/YAML serialization with terse format support.
+
 const xml2 = serializer.serialize(codePhrase);
 console.log("Serialized CODE_PHRASE:");
 console.log(xml2);

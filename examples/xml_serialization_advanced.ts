@@ -89,6 +89,11 @@ definingCode.terminology_id = openehrTermId;
 
 dvCodedText.defining_code = definingCode;
 
+// Note: XML serialization follows openEHR ITS-XML spec and doesn't support terse format.
+// For compact representation, use JSON/YAML with terse format enabled (Phase 4g.4):
+// In terse format this DV_CODED_TEXT would be: "openehr::433|event|"
+// The CODE_PHRASE alone would be: "openehr::433"
+
 const serializer = new XmlSerializer({ 
   prettyPrint: true,
   includeDeclaration: true 

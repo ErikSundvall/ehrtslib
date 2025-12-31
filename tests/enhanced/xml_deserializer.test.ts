@@ -17,6 +17,10 @@ TypeRegistry.register("CODE_PHRASE", CODE_PHRASE);
 TypeRegistry.register("TERMINOLOGY_ID", TERMINOLOGY_ID);
 
 Deno.test("XmlDeserializer - deserialize simple DV_TEXT", () => {
+  // XML element names use lowercase (e.g., <dv_text>) by convention, while
+  // xsi:type attribute uses uppercase openEHR type name (DV_TEXT) per spec.
+  // The deserializer handles both: infers type from xsi:type or converts
+  // element name to uppercase for type lookup.
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <dv_text xmlns="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="DV_TEXT">
   <value>Hello World</value>

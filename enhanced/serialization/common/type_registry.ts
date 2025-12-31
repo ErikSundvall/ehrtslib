@@ -98,6 +98,7 @@ export class TypeRegistry {
    * Register all classes from a module
    * Scans the module exports and registers all classes that appear to be RM types
    * @param moduleExports - The module exports object (e.g., import * as rm from './openehr_rm.ts')
+   * @throws Error if moduleExports contains non-function values (validates clean module exports)
    */
   static registerModule(moduleExports: Record<string, any>): void {
     for (const [name, value] of Object.entries(moduleExports)) {
@@ -105,6 +106,12 @@ export class TypeRegistry {
       if (typeof value === 'function' && value.prototype) {
         // Register using the exported name as the type name
         this.register(name, value);
+      } else {
+        // Throw error for non-class exports to catch module import issues early
+        throw new Error(
+          `Cannot register '${name}': expected a class constructor but got ${typeof value}. ` +
+          `Ensure you're passing a clean module with only class exports.`
+        );
       }
     }
   }
