@@ -1,5 +1,8 @@
 {
   "nodeModulesDir": "auto",
+  "imports": {
+    "fast-xml-parser": "npm:fast-xml-parser@^4.3.0"
+  },
   "tasks": {
     "test": "deno test --allow-read",
     "check": "deno check enhanced/*.ts"
