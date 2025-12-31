@@ -88,9 +88,10 @@ This task list implements JSON and YAML serialization and deserialization for op
 - `toTerseCodePhrase(codePhrase: CODE_PHRASE): string`
 - `parseTerseDvCodedText(terse: string): DV_CODED_TEXT | null`
 - `toTerseDvCodedText(codedText: DV_CODED_TEXT): string`
+  lso consider using existing support for terse from possibly available in in constructors/methods 
 
 - [ ] 2.3.1 Review existing `enhanced/terse_format.ts` implementation
-- [ ] 2.3.2 Verify functions match requirements:
+- [ ] 2.3.2 Verify that functions match requirements:
   - [ ] `parseTerseCodePhrase(str: string): CODE_PHRASE | null` - parses "terminology::code"
   - [ ] `toTerseCodePhrase(obj: CODE_PHRASE): string` - serializes to "terminology::code"
   - [ ] `parseTerseDvCodedText(str: string): DV_CODED_TEXT | null` - parses "terminology::code|value|"
@@ -108,8 +109,8 @@ This task list implements JSON and YAML serialization and deserialization for op
   - [ ] `shouldFormatInline(obj: any, maxInlineProperties?: number): boolean`
   - [ ] `isComplexValue(value: any): boolean`
   - [ ] `applyHybridFormattingToJson(jsonString: string): string` - post-process
-  - [ ] `applyHybridFormattingToYaml(obj: any): any` - pre-process for yaml lib
-  - [ ] `getComplexityScore(obj: any): number` - determine nesting level
+  - [ ] `applyHybridFormattingToYaml(obj: any): any` - pre-process for yaml lib  - or do something more suitable you might think of
+  - [ ] `getComplexityScore(obj: any): number` - determine nesting level  - or do something more suitable you might think of
 - [ ] 2.4.3 Implement intelligent line breaking logic (zipehr-style)
 - [ ] 2.4.4 Handle nested objects vs. leaf objects
 - [ ] 2.4.5 Make configurable (max properties for inline, etc.)
@@ -283,7 +284,7 @@ This task list implements JSON and YAML serialization and deserialization for op
 
 ### 7.4 Hybrid Style Integration
 
-- [ ] 7.4.1 Use `HybridStyleFormatter.applyHybridFormattingToYaml()`
+- [ ] 7.4.1 Use `HybridStyleFormatter.applyHybridFormattingToYaml()` - or do something more suitable you might thingk of
 - [ ] 7.4.2 Configure yaml library for flow style on simple objects
 - [ ] 7.4.3 Configure yaml library for block style on complex objects
 - [ ] 7.4.4 Test zipehr-style output (siblings separate, values inline)
@@ -508,7 +509,7 @@ This task list implements JSON and YAML serialization and deserialization for op
 - [ ] 12.6 Verify no circular dependencies
 - [ ] 12.7 Check bundle size impact
 - [ ] 12.8 Test with real-world openEHR data
-- [ ] 12.9 Validate JSON against openEHR JSON schemas (if available)
+- [ ] 12.9 Validate JSON against openEHR JSON schemas (download from openEHR if neccesary)
 - [ ] 12.10 Cross-validate with Archie output (where possible)
 
 ## 13. Final Review
@@ -516,7 +517,7 @@ This task list implements JSON and YAML serialization and deserialization for op
 - [ ] 13.1 Review all code for consistency with project style
 - [ ] 13.2 Review all documentation for completeness
 - [ ] 13.3 Ensure all tests pass
-- [ ] 13.4 Check code coverage (aim for >90%)
+- [ ] 13.4 Check code coverage (aim for >50%)
 - [ ] 13.5 Verify shared code reuse between JSON and YAML
 - [ ] 13.6 Confirm terse format warnings are clear
 - [ ] 13.7 Update ROADMAP.md to mark Phase 4g.4 as complete
