@@ -155,7 +155,7 @@ export class JsonDeserializer {
     if (!typeName) {
       if (this.config.strict) {
         throw new DeserializationError(
-          'Cannot determine type for object',
+          'Cannot determine type for object (strict mode enabled)',
           JSON.stringify(obj)
         );
       }
@@ -168,7 +168,7 @@ export class JsonDeserializer {
     
     if (!constructor) {
       if (this.config.strict) {
-        throw new TypeNotFoundError(typeName, JSON.stringify(obj));
+        throw new TypeNotFoundError(typeName, JSON.stringify(obj) + ' (strict mode enabled)');
       }
       // In lenient mode, return plain object
       return obj as T;

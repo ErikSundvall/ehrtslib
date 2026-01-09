@@ -3,7 +3,7 @@
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { JsonSerializer, JsonDeserializer, INTERNAL_JSON_CONFIG } from "../../enhanced/serialization/json/mod.ts";
+import { JsonSerializer, JsonDeserializer, NON_STANDARD_VERY_COMPACT_JSON_CONFIG } from "../../enhanced/serialization/json/mod.ts";
 import { CODE_PHRASE, DV_CODED_TEXT } from "../../enhanced/openehr_rm.ts";
 import { TERMINOLOGY_ID } from "../../enhanced/openehr_base.ts";
 import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
@@ -95,8 +95,8 @@ Deno.test("JSON: compact config with type inference", () => {
   codePhrase.terminology_id.value = "ISO_639-1";
   codePhrase.code_string = "en";
   
-  // Serialize with INTERNAL_JSON_CONFIG (compact + terse)
-  const serializer = new JsonSerializer(INTERNAL_JSON_CONFIG);
+  // Serialize with NON_STANDARD_VERY_COMPACT_JSON_CONFIG (compact + terse)
+  const serializer = new JsonSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
   const json = serializer.serialize(codePhrase);
   
   console.log("Compact JSON:", json);

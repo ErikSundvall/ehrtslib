@@ -5,7 +5,7 @@ This module provides JSON serialization and deserialization for openEHR Referenc
 ## Features
 
 - ✅ **Canonical JSON format** - Compliant with openEHR ITS-JSON specification
-- ✅ **Type inference** - Intelligently omit `_type` fields when they can be inferred
+- ✅ **Type inference (optional)** - Intelligently omit `_type` fields when they can be inferred (enabled via configuration)
 - ✅ **Terse format** - Optional compact representation for CODE_PHRASE and DV_CODED_TEXT
 - ✅ **Flexible configuration** - Multiple preset configurations for different use cases
 - ✅ **Type-safe deserialization** - Automatic reconstruction of typed objects
@@ -57,7 +57,8 @@ interface JsonSerializationConfig {
   // Type property name (default: "_type")
   typePropertyName?: string;
   
-  // Always include type, even when inferable (default: false)
+  // Always include type, even when inferable (default: true)
+  // Setting to false enables type inference (trade-off: smaller size but slower)
   alwaysIncludeType?: boolean;
   
   // Include null values (default: false)
@@ -218,8 +219,8 @@ TypeRegistry.registerModule(base);
 
 1. **Reuse serializer instances** - Create once, use multiple times
 2. **Disable pretty printing** for production (smaller output, faster)
-3. **Enable type inference** for smaller JSON (requires deserialization support)
-4. **Use terse format** only for internal storage (not interoperable)
+3. **Type inference trade-off** - Setting `alwaysIncludeType: false` reduces JSON size by ~20-30% but makes serialization and deserialization slower due to type inference computation. Choose based on your priority: speed vs size.
+4. **Use terse format** only for internal storage (not interoperable, non-standard)
 
 ## Examples
 

@@ -2,7 +2,7 @@
 
 This module provides YAML serialization and deserialization for openEHR Reference Model (RM) objects.
 
-**Note**: YAML is not an official openEHR standard format, but it provides excellent human readability for configuration files, documentation, and data inspection.
+**Note**: YAML is not an official openEHR standard format, but it provides excellent human readability for files, documentation, and data inspection.
 
 ## Features
 
@@ -23,7 +23,7 @@ import { DV_TEXT } from './enhanced/openehr_rm.ts';
 
 // Create an RM object
 const dvText = new DV_TEXT();
-dvText.value = "Blood pressure reading";
+dvText.value = "Patient temperature reading";
 
 // Serialize to YAML
 const serializer = new YamlSerializer();
@@ -32,7 +32,7 @@ const yaml = serializer.serialize(dvText);
 console.log(yaml);
 // Output:
 // _type: DV_TEXT
-// value: Blood pressure reading
+// value: Patient temperature reading
 ```
 
 ### Basic Deserialization

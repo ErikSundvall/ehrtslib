@@ -8,7 +8,7 @@
 import {
   JsonSerializer,
   JsonDeserializer,
-  INTERNAL_JSON_CONFIG,
+  NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
   COMPACT_JSON_CONFIG
 } from "../enhanced/serialization/json/mod.ts";
 import {
@@ -86,7 +86,7 @@ console.log();
 
 // Example 5: Internal Storage Config (Terse + Compact)
 console.log("5. Internal Storage Format (Most Compact):");
-const internalSerializer = new JsonSerializer(INTERNAL_JSON_CONFIG);
+const internalSerializer = new JsonSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
 const internalJson = internalSerializer.serialize(codePhrase);
 console.log(internalJson);
 console.log("Size:", internalJson.length, "bytes (vs canonical JSON which would be larger)");

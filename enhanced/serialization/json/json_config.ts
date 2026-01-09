@@ -16,8 +16,10 @@ export interface JsonSerializationConfig {
   typePropertyName?: string;
   
   /**
-   * Always include the type property, even when it could be inferred
-   * @default false (use type inference to omit when safe)
+   * Always include the type property, even when it could be inferred.
+   * Setting this to false enables type inference which reduces JSON size but may
+   * impact serialization/deserialization performance (trade-off: size vs speed).
+   * @default true (for canonical JSON compliance and maximum interoperability)
    */
   alwaysIncludeType?: boolean;
   
@@ -103,14 +105,15 @@ export interface JsonDeserializationConfig {
 }
 
 /**
- * Default serialization configuration (canonical JSON format)
+ * Default serialization configuration (canonical JSON format - openEHR standard)
+ * This is the recommended configuration for interoperability with other openEHR implementations.
  */
 export const DEFAULT_JSON_SERIALIZATION_CONFIG: Required<JsonSerializationConfig> = {
   typePropertyName: '_type',
-  alwaysIncludeType: false,
+  alwaysIncludeType: true,  // Changed to true for canonical compliance by default
   includeNullValues: false,
   includeEmptyCollections: true,
-  prettyPrint: false,
+  prettyPrint: true,  // Changed to true for readability by default
   indent: 2,
   useTerseFormat: false,
   useHybridStyle: false,
@@ -129,6 +132,7 @@ export const DEFAULT_JSON_DESERIALIZATION_CONFIG: Required<JsonDeserializationCo
 
 /**
  * Preset: Canonical JSON format (strict openEHR compliance)
+ * Use this for maximum interoperability with other openEHR implementations.
  */
 export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
   typePropertyName: '_type',
@@ -142,7 +146,18 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
 };
 
 /**
+ * Preset: Canonical JSON deserialization (strict openEHR compliance)
+ */
+export const CANONICAL_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
+  typePropertyName: '_type',
+  strict: false,
+  allowIncomplete: false,
+  parseTerseFormat: false,
+};
+
+/**
  * Preset: Compact JSON format (smaller output with type inference)
+ * Trade-off: Smaller size but slower serialization/deserialization due to type inference.
  */
 export const COMPACT_JSON_CONFIG: JsonSerializationConfig = {
   typePropertyName: '_type',
@@ -155,7 +170,17 @@ export const COMPACT_JSON_CONFIG: JsonSerializationConfig = {
 };
 
 /**
- * Preset: Human-readable JSON with hybrid formatting
+ * Preset: Compact JSON deserialization
+ */
+export const COMPACT_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
+  typePropertyName: '_type',
+  strict: false,
+  allowIncomplete: false,
+  parseTerseFormat: false,
+};
+
+/**
+ * Preset: Somewhat more human-readable JSON with hybrid formatting
  */
 export const HYBRID_JSON_CONFIG: JsonSerializationConfig = {
   typePropertyName: '_type',
@@ -165,15 +190,26 @@ export const HYBRID_JSON_CONFIG: JsonSerializationConfig = {
   prettyPrint: true,
   indent: 2,
   useTerseFormat: false,
-  useHybridStyle: true,
+  useHybridStyle: true,  // Note: Hybrid formatting is not fully implemented
   maxInlineProperties: 3,
 };
 
 /**
- * Preset: Internal storage format (terse + compact)
- * **WARNING**: Not interoperable with standard openEHR JSON
+ * Preset: Hybrid JSON deserialization
  */
-export const INTERNAL_JSON_CONFIG: JsonSerializationConfig = {
+export const HYBRID_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
+  typePropertyName: '_type',
+  strict: false,
+  allowIncomplete: false,
+  parseTerseFormat: false,
+};
+
+/**
+ * Preset: Non-standard very compact format (terse + compact)
+ * **WARNING**: Not interoperable with standard openEHR JSON. Use only for internal storage.
+ * Trade-off: Smallest size but breaks canonical format and impacts performance.
+ */
+export const NON_STANDARD_VERY_COMPACT_JSON_CONFIG: JsonSerializationConfig = {
   typePropertyName: '_type',
   alwaysIncludeType: false,
   includeNullValues: false,
@@ -181,4 +217,15 @@ export const INTERNAL_JSON_CONFIG: JsonSerializationConfig = {
   prettyPrint: false,
   useTerseFormat: true, // Non-standard!
   useHybridStyle: false,
+};
+
+/**
+ * Preset: Non-standard very compact deserialization
+ * **WARNING**: Only use with NON_STANDARD_VERY_COMPACT_JSON_CONFIG serialized data.
+ */
+export const NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
+  typePropertyName: '_type',
+  strict: false,
+  allowIncomplete: false,
+  parseTerseFormat: true,  // Must enable to deserialize terse format
 };

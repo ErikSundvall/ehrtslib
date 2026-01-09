@@ -147,24 +147,10 @@ export class HybridStyleFormatter {
    * @param obj - The object to score
    * @param depth - Current nesting depth
    * @returns Complexity score
+   * @throws Error - Not implemented, reserved for future use
    */
   static getComplexityScore(obj: any, depth: number = 0): number {
-    if (obj === null || obj === undefined) {
-      return 0;
-    }
-    
-    if (typeof obj !== 'object') {
-      return 1;
-    }
-    
-    if (Array.isArray(obj)) {
-      return 5 + obj.reduce((sum, item) => 
-        sum + this.getComplexityScore(item, depth + 1), 0);
-    }
-    
-    const properties = Object.keys(obj);
-    return 5 + properties.reduce((sum, key) => 
-      sum + this.getComplexityScore(obj[key], depth + 1), 0);
+    throw new Error("getComplexityScore is not implemented. Use shouldFormatInline() instead.");
   }
   
   /**
@@ -174,17 +160,13 @@ export class HybridStyleFormatter {
    * @param jsonString - Pretty-printed JSON string
    * @param options - Formatting options
    * @returns Reformatted JSON string
+   * @throws Error - Not implemented, reserved for future use
    */
   static applyHybridFormattingToJson(
     jsonString: string,
     options: HybridFormatterOptions = {}
   ): string {
-    // This is a simplified implementation
-    // A complete version would parse and reformat more intelligently
-    
-    // For now, we'll just return the input
-    // The actual hybrid formatting should happen during serialization
-    return jsonString;
+    throw new Error("applyHybridFormattingToJson is not implemented. Hybrid formatting is not currently supported for JSON.");
   }
   
   /**
@@ -194,15 +176,13 @@ export class HybridStyleFormatter {
    * @param obj - The object to prepare
    * @param options - Formatting options
    * @returns Object with style hints (or original if not needed)
+   * @throws Error - Not implemented, reserved for future use
    */
   static applyHybridFormattingToYaml(
     obj: any,
     options: HybridFormatterOptions = {}
   ): any {
-    // This would add metadata for the YAML serializer
-    // For now, return the original object
-    // The YAML serializer will use shouldFormatInline() to make decisions
-    return obj;
+    throw new Error("applyHybridFormattingToYaml is not implemented. Use shouldFormatInline() instead.");
   }
   
   /**

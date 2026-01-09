@@ -7,7 +7,7 @@
  * ```typescript
  * import { JsonSerializer, JsonDeserializer } from './enhanced/serialization/json/mod.ts';
  * 
- * // Serialize
+ * // Serialize (uses canonical format by default)
  * const serializer = new JsonSerializer();
  * const json = serializer.serialize(composition);
  * 
@@ -27,7 +27,11 @@ export {
   DEFAULT_JSON_SERIALIZATION_CONFIG,
   DEFAULT_JSON_DESERIALIZATION_CONFIG,
   CANONICAL_JSON_CONFIG,
+  CANONICAL_JSON_DESERIALIZE_CONFIG,
   COMPACT_JSON_CONFIG,
+  COMPACT_JSON_DESERIALIZE_CONFIG,
   HYBRID_JSON_CONFIG,
-  INTERNAL_JSON_CONFIG,
+  HYBRID_JSON_DESERIALIZE_CONFIG,
+  NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
+  NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG,
 } from './json_config.ts';

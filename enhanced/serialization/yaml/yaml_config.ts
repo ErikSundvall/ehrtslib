@@ -108,18 +108,19 @@ export interface YamlDeserializationConfig {
 
 /**
  * Default YAML serialization configuration
+ * For YAML, we prioritize readability and compactness since there's no official openEHR YAML standard.
  */
 export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig> = {
   includeType: true,
-  useTypeInference: false,
+  useTypeInference: true,  // Changed to true - omit types when safe for smaller output
   flowStyleValues: false,
   blockStyleObjects: true,
   hybridStyle: false,
   indent: 2,
   lineWidth: 80,
-  useTerseFormat: false,
+  useTerseFormat: true,  // Changed to true - terse format recommended for YAML
   includeNullValues: false,
-  includeEmptyCollections: true,
+  includeEmptyCollections: false,  // Changed to false for more compact output
   maxInlineProperties: 3,
 };
 
@@ -129,7 +130,7 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
 export const DEFAULT_YAML_DESERIALIZATION_CONFIG: Required<YamlDeserializationConfig> = {
   strict: true,
   allowDuplicateKeys: false,
-  parseTerseFormat: false,
+  parseTerseFormat: true,  // Changed to true to match default serialization
 };
 
 /**

@@ -34,18 +34,21 @@ export class TypeInferenceEngine {
   private static propertyTypeMap = new Map<string, PropertyTypeInfo>();
   
   // List of known polymorphic types
+  // These are types that have concrete subtypes that may appear in their place
   private static polymorphicTypes = new Set<string>([
     'DATA_VALUE',
     'DV_ORDERED',
+    'DV_TEXT',  // DV_CODED_TEXT inherits from DV_TEXT
     'ITEM',
     'ITEM_STRUCTURE',
-    'EVENT',
+    'EVENT',  // POINT_EVENT and INTERVAL_EVENT
     'LOCATABLE',
     'CONTENT_ITEM',
     'CARE_ENTRY',
     'ENTRY',
     'SECTION',
     'PATHABLE',
+    'PARTY_IDENTIFIED',  // PARTY_RELATED inherits from PARTY_IDENTIFIED
   ]);
   
   /**
@@ -105,7 +108,17 @@ export class TypeInferenceEngine {
     }
     
     // Strategy 3: Use the default type even if polymorphic (best guess)
-    return defaultType;
+    if (defaultType) {
+      // Log when we're making a best guess on a polymorphic type
+      if (this.isPolymorphic(defaultType)) {
+        if (typeof console !== 'undefined' && console.debug) {
+          console.debug(
+            `TypeInferenceEngine: Using best guess type '${defaultType}' for polymorphic property '${propertyName}' on '${parentType}'`
+          );
+        }
+      }
+      return defaultType;
+    }
   }
   
   /**
