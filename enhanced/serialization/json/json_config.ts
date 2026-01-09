@@ -68,6 +68,7 @@ export interface JsonSerializationConfig {
   
   /**
    * Maximum properties for inline formatting in hybrid style
+   * Note: Only used when useHybridStyle is true, ignored otherwise
    * @default 3
    */
   maxInlineProperties?: number;
@@ -147,10 +148,11 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
 
 /**
  * Preset: Canonical JSON deserialization (strict openEHR compliance)
+ * Uses strict mode to ensure full compliance
  */
 export const CANONICAL_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
   typePropertyName: '_type',
-  strict: false,
+  strict: true,  // Strict mode for canonical compliance
   allowIncomplete: false,
   parseTerseFormat: false,
 };

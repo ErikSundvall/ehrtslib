@@ -49,6 +49,7 @@ export class TypeInferenceEngine {
     'SECTION',
     'PATHABLE',
     'PARTY_IDENTIFIED',  // PARTY_RELATED inherits from PARTY_IDENTIFIED
+    'PARTY_PROXY',  // Abstract, can be PARTY_SELF, PARTY_IDENTIFIED, or PARTY_RELATED
   ]);
   
   /**

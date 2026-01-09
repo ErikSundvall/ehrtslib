@@ -1,5 +1,5 @@
 /**
- * JSON Serializer for openEHR RM Objects
+ * JSON Configurable Serializer for openEHR RM Objects
  * 
  * Serializes openEHR Reference Model objects to JSON format according to
  * the openEHR ITS-JSON specification.
@@ -25,9 +25,9 @@ import {
 } from './json_config.ts';
 
 /**
- * JSON Serializer for openEHR RM objects
+ * JSON Configurable Serializer for openEHR RM objects
  */
-export class JsonSerializer {
+export class JsonConfigurableSerializer {
   private config: Required<JsonSerializationConfig>;
   
   /**

@@ -1,5 +1,5 @@
 /**
- * JSON Deserializer for openEHR RM Objects
+ * JSON Configurable Deserializer for openEHR RM Objects
  * 
  * Deserializes JSON to openEHR Reference Model objects according to
  * the openEHR ITS-JSON specification.
@@ -30,9 +30,9 @@ import {
 } from './json_config.ts';
 
 /**
- * JSON Deserializer for openEHR RM objects
+ * JSON Configurable Deserializer for openEHR RM objects
  */
-export class JsonDeserializer {
+export class JsonConfigurableDeserializer {
   private config: Required<JsonDeserializationConfig>;
   
   /**

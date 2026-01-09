@@ -141,51 +141,6 @@ export class HybridStyleFormatter {
   }
   
   /**
-   * Calculate complexity score for an object
-   * Higher score means more complex
-   * 
-   * @param obj - The object to score
-   * @param depth - Current nesting depth
-   * @returns Complexity score
-   * @throws Error - Not implemented, reserved for future use
-   */
-  static getComplexityScore(obj: any, depth: number = 0): number {
-    throw new Error("getComplexityScore is not implemented. Use shouldFormatInline() instead.");
-  }
-  
-  /**
-   * Apply hybrid formatting to a JSON string as post-processing
-   * This reformats already-serialized JSON to use hybrid style
-   * 
-   * @param jsonString - Pretty-printed JSON string
-   * @param options - Formatting options
-   * @returns Reformatted JSON string
-   * @throws Error - Not implemented, reserved for future use
-   */
-  static applyHybridFormattingToJson(
-    jsonString: string,
-    options: HybridFormatterOptions = {}
-  ): string {
-    throw new Error("applyHybridFormattingToJson is not implemented. Hybrid formatting is not currently supported for JSON.");
-  }
-  
-  /**
-   * Prepare an object for YAML serialization with hybrid style hints
-   * Adds style metadata that the YAML serializer can use
-   * 
-   * @param obj - The object to prepare
-   * @param options - Formatting options
-   * @returns Object with style hints (or original if not needed)
-   * @throws Error - Not implemented, reserved for future use
-   */
-  static applyHybridFormattingToYaml(
-    obj: any,
-    options: HybridFormatterOptions = {}
-  ): any {
-    throw new Error("applyHybridFormattingToYaml is not implemented. Use shouldFormatInline() instead.");
-  }
-  
-  /**
    * Determine formatting style for a property value
    * 
    * @param value - The property value

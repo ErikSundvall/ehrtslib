@@ -148,27 +148,12 @@ export const STANDARD_YAML_CONFIG: YamlSerializationConfig = {
 };
 
 /**
- * Preset: Compact YAML format (fewer types, more concise)
- */
-export const COMPACT_YAML_CONFIG: YamlSerializationConfig = {
-  includeType: true,
-  useTypeInference: true, // Omit types when safe
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: false,
-  indent: 2,
-  lineWidth: 80,
-  useTerseFormat: true, // Terse format recommended for YAML
-  includeNullValues: false,
-  includeEmptyCollections: false,
-};
-
-/**
- * Preset: Hybrid YAML format (zipehr-like, most readable)
+ * Preset: Hybrid YAML format (zipehr-like, optimized for readability)
+ * Inverted settings for less redundancy and better readability
  */
 export const HYBRID_YAML_CONFIG: YamlSerializationConfig = {
-  includeType: true,
-  useTypeInference: false,
+  includeType: false,  // Inverted: omit types for less redundancy
+  useTypeInference: true,  // Inverted: enable inference for cleaner output
   flowStyleValues: false,
   blockStyleObjects: true,
   hybridStyle: true, // Intelligent inline/block mixing

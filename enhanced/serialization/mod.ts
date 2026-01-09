@@ -18,8 +18,12 @@
 
 // JSON exports
 export {
-  JsonSerializer,
-  JsonDeserializer,
+  JsonClinicalSerializer,
+  JsonClinicalDeserializer,
+  JsonConfigurableSerializer,
+  JsonConfigurableDeserializer,
+  JsonSerializer,  // Alias for JsonConfigurableSerializer
+  JsonDeserializer,  // Alias for JsonConfigurableDeserializer
   type JsonSerializationConfig,
   type JsonDeserializationConfig,
   DEFAULT_JSON_SERIALIZATION_CONFIG,
@@ -43,7 +47,6 @@ export {
   DEFAULT_YAML_SERIALIZATION_CONFIG,
   DEFAULT_YAML_DESERIALIZATION_CONFIG,
   STANDARD_YAML_CONFIG,
-  COMPACT_YAML_CONFIG,
   HYBRID_YAML_CONFIG,
   FLOW_YAML_CONFIG,
 } from './yaml/mod.ts';

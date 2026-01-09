@@ -6,8 +6,8 @@
  */
 
 import {
-  JsonSerializer,
-  JsonDeserializer,
+  JsonConfigurableSerializer,
+  JsonConfigurableDeserializer,
   NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
   COMPACT_JSON_CONFIG
 } from "../enhanced/serialization/json/mod.ts";
@@ -34,7 +34,7 @@ codePhrase.terminology_id = new TERMINOLOGY_ID();
 codePhrase.terminology_id.value = "ISO_639-1";
 codePhrase.code_string = "en";
 
-const terseSerializer = new JsonSerializer({ useTerseFormat: true });
+const terseSerializer = new JsonConfigurableSerializer({ useTerseFormat: true });
 const terseJson = terseSerializer.serialize(codePhrase);
 console.log("Terse CODE_PHRASE:", terseJson);
 
@@ -51,7 +51,7 @@ console.log();
 
 // Example 2: Deserializing Terse Format
 console.log("2. Deserializing Terse Format:");
-const terseDeserializer = new JsonDeserializer({ parseTerseFormat: true });
+const terseDeserializer = new JsonConfigurableDeserializer({ parseTerseFormat: true });
 const restoredCode = terseDeserializer.deserialize(terseJson);
 console.log("Restored CODE_PHRASE:", restoredCode);
 console.log("  terminology:", restoredCode.terminology_id.value);
@@ -60,7 +60,7 @@ console.log();
 
 // Example 3: Type Inference
 console.log("3. Type Inference (Smart Type Omission):");
-const inferenceSerializer = new JsonSerializer({
+const inferenceSerializer = new JsonConfigurableSerializer({
   alwaysIncludeType: false, // Enable inference
   prettyPrint: true
 });
@@ -78,15 +78,15 @@ console.log();
 
 // Example 4: Compact Configuration
 console.log("4. Compact Configuration (Smallest JSON):");
-const compactSerializer = new JsonSerializer(COMPACT_JSON_CONFIG);
+const compactSerializer = new JsonConfigurableSerializer(COMPACT_JSON_CONFIG);
 const compactJson = compactSerializer.serialize(complexObject);
 console.log(compactJson);
 console.log("Size:", compactJson.length, "bytes");
 console.log();
 
 // Example 5: Internal Storage Config (Terse + Compact)
-console.log("5. Internal Storage Format (Most Compact):");
-const internalSerializer = new JsonSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
+console.log("5. Potential Internal Archive Format (Most Compact):");
+const internalSerializer = new JsonConfigurableSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
 const internalJson = internalSerializer.serialize(codePhrase);
 console.log(internalJson);
 console.log("Size:", internalJson.length, "bytes (vs canonical JSON which would be larger)");
@@ -96,7 +96,7 @@ console.log();
 console.log("6. Error Handling:");
 try {
   const invalidJson = '{"_type":"UNKNOWN_TYPE","value":"test"}';
-  const strictDeserializer = new JsonDeserializer({ strict: true });
+  const strictDeserializer = new JsonConfigurableDeserializer({ strict: true });
   strictDeserializer.deserialize(invalidJson);
 } catch (error) {
   if (error instanceof TypeNotFoundError) {
@@ -111,7 +111,7 @@ console.log();
 console.log("7. Lenient Mode (No Error on Unknown Type):");
 try {
   const invalidJson = '{"_type":"UNKNOWN_TYPE","value":"test"}';
-  const lenientDeserializer = new JsonDeserializer({ strict: false });
+  const lenientDeserializer = new JsonConfigurableDeserializer({ strict: false });
   const result = lenientDeserializer.deserialize(invalidJson);
   console.log("✓ Lenient mode returned:", result);
 } catch (error) {
@@ -121,7 +121,7 @@ console.log();
 
 // Example 8: Reusing Serializer Instances (Best Practice)
 console.log("8. Reusing Serializer Instances (Performance):");
-const reusableSerializer = new JsonSerializer({ prettyPrint: false });
+const reusableSerializer = new JsonConfigurableSerializer({ prettyPrint: false });
 
 const objects = [
   new DV_TEXT("Object 1"),

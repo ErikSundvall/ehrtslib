@@ -3,22 +3,44 @@
  * 
  * Main entry point for JSON serialization and deserialization of openEHR RM objects.
  * 
+ * Two implementations are available:
+ * 1. Clinical (simple, canonical only) - JsonClinicalSerializer/Deserializer
+ * 2. Configurable (advanced, flexible) - JsonConfigurableSerializer/Deserializer
+ * 
  * @example
  * ```typescript
- * import { JsonSerializer, JsonDeserializer } from './enhanced/serialization/json/mod.ts';
+ * import { JsonClinicalSerializer, JsonClinicalDeserializer } from './enhanced/serialization/json/mod.ts';
  * 
- * // Serialize (uses canonical format by default)
- * const serializer = new JsonSerializer();
+ * // Clinical: Canonical format only (fast, minimal)
+ * const serializer = new JsonClinicalSerializer();
  * const json = serializer.serialize(composition);
  * 
- * // Deserialize
- * const deserializer = new JsonDeserializer();
+ * const deserializer = new JsonClinicalDeserializer();
  * const obj = deserializer.deserialize(json);
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * import { JsonConfigurableSerializer, JsonConfigurableDeserializer } from './enhanced/serialization/json/mod.ts';
+ * 
+ * // Configurable: Advanced options
+ * const serializer = new JsonConfigurableSerializer({ useTerseFormat: true });
+ * const json = serializer.serialize(composition);
  * ```
  */
 
-export { JsonSerializer } from './json_serializer.ts';
-export { JsonDeserializer } from './json_deserializer.ts';
+// Clinical classes (simple, canonical only)
+export { JsonClinicalSerializer } from './json_clinical_serializer.ts';
+export { JsonClinicalDeserializer } from './json_clinical_deserializer.ts';
+
+// Configurable classes (advanced, flexible)
+export { JsonConfigurableSerializer } from './json_configurable_serializer.ts';
+export { JsonConfigurableDeserializer } from './json_configurable_deserializer.ts';
+
+// Backward compatibility aliases (use JsonConfigurableSerializer/Deserializer)
+export { JsonConfigurableSerializer as JsonSerializer } from './json_configurable_serializer.ts';
+export { JsonConfigurableDeserializer as JsonDeserializer } from './json_configurable_deserializer.ts';
+
 export type {
   JsonSerializationConfig,
   JsonDeserializationConfig,
