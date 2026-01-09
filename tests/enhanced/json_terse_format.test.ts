@@ -3,7 +3,7 @@
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { JsonSerializer, JsonDeserializer, NON_STANDARD_VERY_COMPACT_JSON_CONFIG } from "../../enhanced/serialization/json/mod.ts";
+import { JsonConfigurableSerializer, JsonConfigurableDeserializer, NON_STANDARD_VERY_COMPACT_JSON_CONFIG } from "../../enhanced/serialization/json/mod.ts";
 import { CODE_PHRASE, DV_CODED_TEXT } from "../../enhanced/openehr_rm.ts";
 import { TERMINOLOGY_ID } from "../../enhanced/openehr_base.ts";
 import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
@@ -20,7 +20,7 @@ Deno.test("JSON Terse: serialize CODE_PHRASE", () => {
   codePhrase.terminology_id.value = "ISO_639-1";
   codePhrase.code_string = "en";
   
-  const serializer = new JsonSerializer({ useTerseFormat: true, prettyPrint: true });
+  const serializer = new JsonConfigurableSerializer({ useTerseFormat: true, prettyPrint: true });
   const json = serializer.serialize(codePhrase);
   
   assertExists(json);
@@ -38,7 +38,7 @@ Deno.test("JSON Terse: serialize DV_CODED_TEXT", () => {
   codedText.defining_code.terminology_id.value = "openehr";
   codedText.defining_code.code_string = "433";
   
-  const serializer = new JsonSerializer({ useTerseFormat: true });
+  const serializer = new JsonConfigurableSerializer({ useTerseFormat: true });
   const json = serializer.serialize(codedText);
   
   assertExists(json);
@@ -51,7 +51,7 @@ Deno.test("JSON Terse: serialize DV_CODED_TEXT", () => {
 Deno.test("JSON Terse: deserialize CODE_PHRASE", () => {
   const json = '"ISO_639-1::en"';
   
-  const deserializer = new JsonDeserializer({ parseTerseFormat: true });
+  const deserializer = new JsonConfigurableDeserializer({ parseTerseFormat: true });
   const obj = deserializer.deserialize(json);
   
   assertExists(obj);
@@ -63,7 +63,7 @@ Deno.test("JSON Terse: deserialize CODE_PHRASE", () => {
 Deno.test("JSON Terse: deserialize DV_CODED_TEXT", () => {
   const json = '"openehr::433|event|"';
   
-  const deserializer = new JsonDeserializer({ parseTerseFormat: true });
+  const deserializer = new JsonConfigurableDeserializer({ parseTerseFormat: true });
   const obj = deserializer.deserialize(json);
   
   assertExists(obj);
@@ -78,10 +78,10 @@ Deno.test("JSON Terse: round-trip CODE_PHRASE", () => {
   original.terminology_id.value = "SNOMED-CT";
   original.code_string = "12345";
   
-  const serializer = new JsonSerializer({ useTerseFormat: true });
+  const serializer = new JsonConfigurableSerializer({ useTerseFormat: true });
   const json = serializer.serialize(original);
   
-  const deserializer = new JsonDeserializer({ parseTerseFormat: true });
+  const deserializer = new JsonConfigurableDeserializer({ parseTerseFormat: true });
   const restored = deserializer.deserialize(json);
   
   assertEquals(restored.terminology_id.value, original.terminology_id.value);
@@ -96,13 +96,13 @@ Deno.test("JSON: compact config with type inference", () => {
   codePhrase.code_string = "en";
   
   // Serialize with NON_STANDARD_VERY_COMPACT_JSON_CONFIG (compact + terse)
-  const serializer = new JsonSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
+  const serializer = new JsonConfigurableSerializer(NON_STANDARD_VERY_COMPACT_JSON_CONFIG);
   const json = serializer.serialize(codePhrase);
   
   console.log("Compact JSON:", json);
   
   // Deserialize
-  const deserializer = new JsonDeserializer({ parseTerseFormat: true });
+  const deserializer = new JsonConfigurableDeserializer({ parseTerseFormat: true });
   const restored = deserializer.deserialize(json);
   
   assertEquals(restored.code_string, "en");

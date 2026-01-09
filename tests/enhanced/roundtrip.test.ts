@@ -1,10 +1,16 @@
 /**
  * Round-trip tests for JSON and YAML serialization
  * Tests that objects can be serialized and deserialized without data loss
+ * Includes tests for both clinical and configurable serializers
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { JsonSerializer, JsonDeserializer } from "../../enhanced/serialization/json/mod.ts";
+import {
+  JsonClinicalSerializer,
+  JsonClinicalDeserializer,
+  JsonConfigurableSerializer,
+  JsonConfigurableDeserializer,
+} from "../../enhanced/serialization/json/mod.ts";
 import { YamlSerializer, YamlDeserializer } from "../../enhanced/serialization/yaml/mod.ts";
 import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT, DV_QUANTITY } from "../../enhanced/openehr_rm.ts";
 import { TERMINOLOGY_ID } from "../../enhanced/openehr_base.ts";
@@ -23,12 +29,12 @@ Deno.test("JSON Round-trip: Complex CODE_PHRASE", () => {
   original.code_string = "73211009";
   original.preferred_term = "diabetes mellitus";
   
-  const serializer = new JsonSerializer({ alwaysIncludeType: true, prettyPrint: true });
+  const serializer = new JsonConfigurableSerializer({ alwaysIncludeType: true, prettyPrint: true });
   const json = serializer.serialize(original);
   
   console.log("Complex CODE_PHRASE JSON:\n", json);
   
-  const deserializer = new JsonDeserializer();
+  const deserializer = new JsonConfigurableDeserializer();
   const restored = deserializer.deserialize(json);
   
   assertEquals(restored.terminology_id.value, original.terminology_id.value);
@@ -44,12 +50,12 @@ Deno.test("JSON Round-trip: DV_CODED_TEXT", () => {
   original.defining_code.terminology_id.value = "SNOMED-CT";
   original.defining_code.code_string = "73211009";
   
-  const serializer = new JsonSerializer({ alwaysIncludeType: true, prettyPrint: true });
+  const serializer = new JsonConfigurableSerializer({ alwaysIncludeType: true, prettyPrint: true });
   const json = serializer.serialize(original);
   
   console.log("DV_CODED_TEXT JSON:\n", json);
   
-  const deserializer = new JsonDeserializer();
+  const deserializer = new JsonConfigurableDeserializer();
   const restored = deserializer.deserialize(json);
   
   assertEquals(restored.value, original.value);
@@ -83,11 +89,11 @@ Deno.test("JSON to YAML conversion", () => {
   dvText.value = "Cross-format test";
   
   // Serialize to JSON
-  const jsonSerializer = new JsonSerializer({ alwaysIncludeType: true });
+  const jsonSerializer = new JsonConfigurableSerializer({ alwaysIncludeType: true });
   const json = jsonSerializer.serialize(dvText);
   
   // Deserialize from JSON
-  const jsonDeserializer = new JsonDeserializer();
+  const jsonDeserializer = new JsonConfigurableDeserializer();
   const obj = jsonDeserializer.deserialize(json);
   
   // Serialize to YAML
@@ -115,13 +121,13 @@ value: YAML to JSON test
   const obj = yamlDeserializer.deserialize(yaml);
   
   // Serialize to JSON
-  const jsonSerializer = new JsonSerializer({ alwaysIncludeType: true, prettyPrint: true });
+  const jsonSerializer = new JsonConfigurableSerializer({ alwaysIncludeType: true, prettyPrint: true });
   const json = jsonSerializer.serialize(obj);
   
   console.log("YAML to JSON conversion:\n", json);
   
   // Deserialize from JSON
-  const jsonDeserializer = new JsonDeserializer();
+  const jsonDeserializer = new JsonConfigurableDeserializer();
   const restored = jsonDeserializer.deserialize(json);
   
   assertEquals(restored.value, "YAML to JSON test");
@@ -132,14 +138,48 @@ Deno.test("JSON Round-trip: with type inference (compact)", () => {
   original.value = "Type inference test";
   
   // Serialize without always including type
-  const serializer = new JsonSerializer({ alwaysIncludeType: false });
+  const serializer = new JsonConfigurableSerializer({ alwaysIncludeType: false });
   const json = serializer.serialize(original);
   
   console.log("Compact JSON (type inference):", json);
   
   // Deserialize - should infer type from structure
-  const deserializer = new JsonDeserializer();
+  const deserializer = new JsonConfigurableDeserializer();
   const restored = deserializer.deserialize(json);
   
   assertEquals(restored.value, original.value);
+});
+
+Deno.test("JSON Clinical vs Configurable Canonical: Same output", () => {
+  const dvText = new DV_TEXT();
+  dvText.value = "Comparison test";
+  
+  const clinicalSerializer = new JsonClinicalSerializer();
+  const configurableSerializer = new JsonConfigurableSerializer({
+    alwaysIncludeType: true,
+    prettyPrint: true,
+    includeNullValues: false,
+    includeEmptyCollections: true,
+  });
+  
+  const clinicalJson = clinicalSerializer.serialize(dvText);
+  const configurableJson = configurableSerializer.serialize(dvText);
+  
+  // Both should produce canonical JSON
+  assertEquals(clinicalJson, configurableJson);
+  console.log("Clinical and Configurable produce same output");
+});
+
+Deno.test("JSON Cross-serializer Round-trip: Clinical serialize, Configurable deserialize", () => {
+  const original = new DV_TEXT();
+  original.value = "Cross-serializer test";
+  
+  const clinicalSerializer = new JsonClinicalSerializer();
+  const json = clinicalSerializer.serialize(original);
+  
+  const configurableDeserializer = new JsonConfigurableDeserializer();
+  const restored = configurableDeserializer.deserialize(json);
+  
+  assertEquals(restored.value, original.value);
+  console.log("Cross-serializer round-trip successful");
 });

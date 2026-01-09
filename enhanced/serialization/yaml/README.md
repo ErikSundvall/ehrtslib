@@ -106,38 +106,75 @@ interface YamlDeserializationConfig {
 
 ## Preset Configurations
 
+The following examples all serialize the same DV_CODED_TEXT object to show the differences between configurations.
+
+**Input Object:**
+```typescript
+const codedText = new DV_CODED_TEXT();
+codedText.value = "Diabetes mellitus type 2";
+codedText.defining_code = new CODE_PHRASE();
+codedText.defining_code.terminology_id = new TERMINOLOGY_ID();
+codedText.defining_code.terminology_id.value = "SNOMED-CT";
+codedText.defining_code.code_string = "44054006";
+codedText.defining_code.preferred_term = "Type 2 diabetes mellitus";
+```
+
+### Default YAML (Compact & Readable - Recommended)
+
+```typescript
+const serializer = new YamlSerializer();  // Uses DEFAULT_YAML_SERIALIZATION_CONFIG
+const yaml = serializer.serialize(codedText);
+```
+
+**Output:**
+```yaml
+_type: DV_CODED_TEXT
+defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+value: Diabetes mellitus type 2
+```
+
+Uses type inference and terse format for maximum conciseness while maintaining readability. Empty collections omitted.
+
 ### Standard YAML
 
 ```typescript
 import { YamlSerializer, STANDARD_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(STANDARD_YAML_CONFIG);
-const yaml = serializer.serialize(composition);
+const yaml = serializer.serialize(codedText);
 ```
 
-Readable YAML with full type information.
-
-### Compact YAML (Recommended)
-
-```typescript
-import { YamlSerializer, COMPACT_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
-
-const serializer = new YamlSerializer(COMPACT_YAML_CONFIG);
-const yaml = serializer.serialize(composition);
+**Output:**
+```yaml
+_type: DV_CODED_TEXT
+defining_code:
+  _type: CODE_PHRASE
+  terminology_id:
+    _type: TERMINOLOGY_ID
+    value: SNOMED-CT
+  code_string: "44054006"
+  preferred_term: Type 2 diabetes mellitus
+value: Diabetes mellitus type 2
 ```
 
-Uses type inference and terse format for maximum conciseness while maintaining readability.
+Full YAML with all type information and no terse format. Most verbose but clearest structure.
 
-### Hybrid YAML (ZipEHR-style)
+### Hybrid YAML (Optimized for Readability)
 
 ```typescript
 import { YamlSerializer, HYBRID_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
-const yaml = serializer.serialize(composition);
+const yaml = serializer.serialize(codedText);
 ```
 
-Inspired by ZipEHR: simple objects inline, complex objects with line breaks.
+**Output:**
+```yaml
+defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+value: Diabetes mellitus type 2
+```
+
+Inverted settings: types omitted for less redundancy, inference enabled for cleaner output. Best for human readability when types aren't needed.
 
 ### Flow Style (JSON-like)
 
@@ -145,8 +182,15 @@ Inspired by ZipEHR: simple objects inline, complex objects with line breaks.
 import { YamlSerializer, FLOW_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(FLOW_YAML_CONFIG);
-const yaml = serializer.serialize(composition);
+const yaml = serializer.serialize(codedText);
 ```
+
+**Output:**
+```yaml
+{_type: DV_CODED_TEXT, defining_code: {_type: CODE_PHRASE, terminology_id: {_type: TERMINOLOGY_ID, value: SNOMED-CT}, code_string: "44054006", preferred_term: Type 2 diabetes mellitus}, value: Diabetes mellitus type 2}
+```
+
+More compact, JSON-like appearance. Useful when horizontal space is prioritized over vertical readability.
 
 More compact, JSON-like appearance.
 

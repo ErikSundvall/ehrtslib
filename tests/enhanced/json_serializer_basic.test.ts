@@ -1,10 +1,17 @@
 /**
  * Basic integration test for JSON serialization
- * Tests that the serializers can be imported and basic functionality works
+ * Tests both clinical (canonical) and configurable serializers
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { JsonSerializer, JsonDeserializer } from "../../enhanced/serialization/json/mod.ts";
+import {
+  JsonClinicalSerializer,
+  JsonClinicalDeserializer,
+  JsonConfigurableSerializer,
+  JsonConfigurableDeserializer,
+  JsonSerializer,  // Alias test
+  JsonDeserializer,  // Alias test
+} from "../../enhanced/serialization/json/mod.ts";
 import { DV_TEXT, CODE_PHRASE } from "../../enhanced/openehr_rm.ts";
 import { TERMINOLOGY_ID } from "../../enhanced/openehr_base.ts";
 import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
@@ -15,46 +22,42 @@ import * as base from "../../enhanced/openehr_base.ts";
 TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);
 
-Deno.test("JsonSerializer: serialize simple DV_TEXT", () => {
+Deno.test("JsonClinicalSerializer: serialize simple DV_TEXT", () => {
   const dvText = new DV_TEXT();
   dvText.value = "Hello World";
   
-  const serializer = new JsonSerializer({ prettyPrint: true });
+  const serializer = new JsonClinicalSerializer();
   const json = serializer.serialize(dvText);
   
   assertExists(json);
   console.log("Serialized DV_TEXT:", json);
   
-  // Should contain the value
-  assertEquals(json.includes("Hello World"), true);
+  const parsed = JSON.parse(json);
+  assertEquals(parsed._type, "DV_TEXT");
+  assertEquals(parsed.value, "Hello World");
 });
 
-Deno.test("JsonSerializer: serialize CODE_PHRASE with type", () => {
+Deno.test("JsonClinicalSerializer: serialize CODE_PHRASE with type", () => {
   const codePhrase = new CODE_PHRASE();
   codePhrase.terminology_id = new TERMINOLOGY_ID();
   codePhrase.terminology_id.value = "ISO_639-1";
   codePhrase.code_string = "en";
   
-  const serializer = new JsonSerializer({ 
-    alwaysIncludeType: true,
-    prettyPrint: true 
-  });
+  const serializer = new JsonClinicalSerializer();
   const json = serializer.serialize(codePhrase);
   
   assertExists(json);
   console.log("Serialized CODE_PHRASE:", json);
   
-  // Should contain _type
-  assertEquals(json.includes("_type"), true);
-  assertEquals(json.includes("CODE_PHRASE"), true);
-  assertEquals(json.includes("ISO_639-1"), true);
-  assertEquals(json.includes("en"), true);
+  const parsed = JSON.parse(json);
+  assertEquals(parsed._type, "CODE_PHRASE");
+  assertEquals(parsed.code_string, "en");
 });
 
-Deno.test("JsonDeserializer: deserialize simple DV_TEXT", () => {
+Deno.test("JsonClinicalDeserializer: deserialize simple DV_TEXT", () => {
   const json = '{"_type":"DV_TEXT","value":"Test Value"}';
   
-  const deserializer = new JsonDeserializer();
+  const deserializer = new JsonClinicalDeserializer();
   const obj = deserializer.deserialize(json);
   
   assertExists(obj);
@@ -62,17 +65,42 @@ Deno.test("JsonDeserializer: deserialize simple DV_TEXT", () => {
   console.log("Deserialized object:", obj);
 });
 
-Deno.test("JSON Round-trip: DV_TEXT", () => {
+Deno.test("JSON Clinical Round-trip: DV_TEXT", () => {
   const original = new DV_TEXT();
   original.value = "Round trip test";
   
-  const serializer = new JsonSerializer({ alwaysIncludeType: true });
+  const serializer = new JsonClinicalSerializer();
   const json = serializer.serialize(original);
   
-  const deserializer = new JsonDeserializer();
+  const deserializer = new JsonClinicalDeserializer();
   const restored = deserializer.deserialize(json);
   
   assertExists(restored);
   assertEquals(restored.value, original.value);
   console.log("Round-trip successful");
+});
+
+Deno.test("JsonConfigurableSerializer: works with default config", () => {
+  const dvText = new DV_TEXT();
+  dvText.value = "Configurable test";
+  
+  const serializer = new JsonConfigurableSerializer();
+  const json = serializer.serialize(dvText);
+  
+  assertExists(json);
+  const parsed = JSON.parse(json);
+  assertEquals(parsed._type, "DV_TEXT");
+  assertEquals(parsed.value, "Configurable test");
+});
+
+Deno.test("Backward compatibility: JsonSerializer alias works", () => {
+  const dvText = new DV_TEXT();
+  dvText.value = "Alias test";
+  
+  const serializer = new JsonSerializer();
+  const json = serializer.serialize(dvText);
+  
+  assertExists(json);
+  const parsed = JSON.parse(json);
+  assertEquals(parsed.value, "Alias test");
 });
