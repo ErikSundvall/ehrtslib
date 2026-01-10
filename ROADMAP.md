@@ -443,7 +443,7 @@ Update associated filename slots in the three following Phases
 - Implement the serialisation code based on `/tasks/task-list-phase4g4-json-yaml-serialization.md`
 
 ## Phase 4g.4b Refine hybrid YAML serialisation 
-The current hybrid exampoel in the YAML related readme https://github.com/ErikSundvall/ehrtslib/tree/main/enhanced/serialization/yaml is:
+The current hybrid example in the YAML related readme https://github.com/ErikSundvall/ehrtslib/tree/main/enhanced/serialization/yaml is:
 ```
 name:
   value: Vital Signs
@@ -459,8 +459,9 @@ items:
       magnitude: 72
       units: /min
 ```
-The code generating hybrid YAML shoud instead use a mix of block and flow YAML to make the data more compact 
-using fewer lines. Please adjust the serialiser code for hybrid style to produce output more like this if possible:
+The code generating hybrid YAML shoud instead use a mix of block and flow YAML to make the output more compact 
+using fewer lines and keeping outer branches pof the treestructure on one line if it fits. 
+Please adjust the serialiser code for hybrid style to produce output more like this if possible:
 ```
 name: {value: Vital Signs}
 items:
