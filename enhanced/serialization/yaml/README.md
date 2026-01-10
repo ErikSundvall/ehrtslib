@@ -174,7 +174,6 @@ defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
 value: Diabetes mellitus type 2
 ```
 
-Inverted settings: types omitted for less redundancy, inference enabled for cleaner output. Best for human readability when types aren't needed.
 
 ### Flow Style (JSON-like)
 
@@ -304,53 +303,10 @@ TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);
 ```
 
-## Use Cases
-
-### Configuration Files
-
-YAML is perfect for openEHR templates and configuration:
-
-```yaml
-# template_config.yaml
-_type: TEMPLATE
-name: Blood Pressure Template
-definition:
-  _type: COMPOSITION
-  category: openehr::433|event|
-  content:
-    - _type: OBSERVATION
-      name: Blood Pressure
-```
-
-### Human-Readable Data Dumps
-
-Export data in a format that's easy to read and edit:
-
-```typescript
-const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
-const yaml = serializer.serialize(composition);
-
-// Save to file
-await Deno.writeTextFile('composition.yaml', yaml);
-```
-
-### Documentation
-
-Use YAML in documentation to show examples:
-
-````markdown
-## Example COMPOSITION
-
-```yaml
-_type: COMPOSITION
-name: Blood Pressure Recording
-category: openehr::433|event|
-```
-````
 
 ## Permissions
 
-The YAML library may require environment variable access:
+The YAML library used is `yaml` from JSR. It may require environment variable access:
 
 ```bash
 deno run --allow-env --allow-read your_script.ts
