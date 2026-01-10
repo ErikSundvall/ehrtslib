@@ -39,7 +39,7 @@ export interface YamlSerializationConfig {
   
   /**
    * Use hybrid style (zipehr-like)
-   * Simple objects inline, complex objects block
+   * Simple objects inline using flow style ({key: value}), complex objects block style
    * @default false
    */
   hybridStyle?: boolean;

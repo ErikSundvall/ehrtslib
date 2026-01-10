@@ -13,7 +13,7 @@
  * - Configurable formatting
  */
 
-import { stringify } from 'yaml';
+import { stringify, Document } from 'yaml';
 import { TypeRegistry } from '../common/type_registry.ts';
 import { TypeInferenceEngine } from '../common/type_inference.ts';
 import { HybridStyleFormatter } from '../common/hybrid_formatter.ts';
@@ -54,6 +54,11 @@ export class YamlSerializer {
       // Convert to plain object
       const plainObj = this.toPlainObject(obj);
       
+      // For hybrid style, use Document API for fine-grained control
+      if (this.config.hybridStyle) {
+        return this.serializeHybrid(plainObj);
+      }
+      
       // Configure YAML stringify options
       const options = this.getYamlOptions();
       
@@ -66,6 +71,124 @@ export class YamlSerializer {
         error instanceof Error ? error : undefined
       );
     }
+  }
+  
+  /**
+   * Serialize with hybrid formatting using Document API
+   * This allows fine-grained control over flow vs block style
+   * 
+   * @param obj - The plain object to serialize
+   * @returns YAML string
+   */
+  private serializeHybrid(obj: any): string {
+    const doc = new Document(obj);
+    
+    // Configure document options
+    doc.options.indent = this.config.indent;
+    doc.options.lineWidth = this.config.lineWidth;
+    
+    // Walk the document tree and set flow/block style based on complexity
+    this.applyHybridFormattingToNode(doc.contents, 0);
+    
+    return doc.toString();
+  }
+  
+  /**
+   * Apply hybrid formatting to a YAML node
+   * Simple objects get flow style, complex objects get block style
+   * 
+   * @param node - The YAML node to format
+   * @param depth - Current depth in the tree
+   */
+  private applyHybridFormattingToNode(node: any, depth: number): void {
+    if (!node) return;
+    
+    // Handle different node types
+    if (node.items && Array.isArray(node.items)) {
+      // This is a collection (array or map)
+      
+      if (node.type === 'MAP' || node.type === 'FLOW_MAP') {
+        // Check if this map should be inline
+        const shouldBeInline = this.shouldNodeBeInline(node);
+        
+        if (shouldBeInline) {
+          node.flow = true;  // Use flow style (inline)
+        } else {
+          node.flow = false; // Use block style
+        }
+        
+        // Recurse into map items
+        for (const pair of node.items) {
+          if (pair.value) {
+            this.applyHybridFormattingToNode(pair.value, depth + 1);
+          }
+        }
+      } else if (node.type === 'SEQ' || node.type === 'FLOW_SEQ') {
+        // Sequence/array - usually keep block style
+        node.flow = false;
+        
+        // Recurse into sequence items
+        for (const item of node.items) {
+          this.applyHybridFormattingToNode(item, depth + 1);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Determine if a YAML node should be formatted inline
+   * 
+   * @param node - The YAML node
+   * @returns true if the node should use flow style
+   */
+  private shouldNodeBeInline(node: any): boolean {
+    if (!node.items || !Array.isArray(node.items)) {
+      return true; // Scalars are always inline
+    }
+    
+    // For maps, check number of properties and complexity
+    if (node.type === 'MAP' || node.type === 'FLOW_MAP') {
+      const numProps = node.items.length;
+      
+      // Too many properties -> block style
+      if (numProps > this.config.maxInlineProperties) {
+        return false;
+      }
+      
+      // Check if any values are complex
+      for (const pair of node.items) {
+        if (this.isNodeComplex(pair.value)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Check if a YAML node is complex (contains nested objects/arrays)
+   * 
+   * @param node - The YAML node
+   * @returns true if the node is complex
+   */
+  private isNodeComplex(node: any): boolean {
+    if (!node) return false;
+    
+    // Scalars are not complex
+    if (node.type === 'SCALAR' || !node.items) {
+      return false;
+    }
+    
+    // Maps and sequences are complex
+    if (node.type === 'MAP' || node.type === 'FLOW_MAP' || 
+        node.type === 'SEQ' || node.type === 'FLOW_SEQ') {
+      return true;
+    }
+    
+    return false;
   }
   
   /**
@@ -191,13 +314,7 @@ export class YamlSerializer {
     };
     
     // Configure style
-    if (this.config.hybridStyle) {
-      // Hybrid style: use custom function to decide per-value
-      options.defaultStringType = 'PLAIN';
-      options.defaultKeyType = 'PLAIN';
-      // Note: The yaml library doesn't have direct hybrid support,
-      // so we pre-process the object structure
-    } else if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
+    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
       // Full flow style
       options.flowLevel = 0;
     } else if (this.config.blockStyleObjects) {
