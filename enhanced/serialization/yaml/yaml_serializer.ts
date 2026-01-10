@@ -28,6 +28,17 @@ import {
 } from './yaml_config.ts';
 
 /**
+ * YAML node type constants
+ */
+const YAML_NODE_TYPES = {
+  MAP: 'MAP',
+  FLOW_MAP: 'FLOW_MAP',
+  SEQ: 'SEQ',
+  FLOW_SEQ: 'FLOW_SEQ',
+  SCALAR: 'SCALAR',
+} as const;
+
+/**
  * YAML Serializer for openEHR RM objects
  */
 export class YamlSerializer {
@@ -107,7 +118,7 @@ export class YamlSerializer {
     if (node.items && Array.isArray(node.items)) {
       // This is a collection (array or map)
       
-      if (node.type === 'MAP' || node.type === 'FLOW_MAP') {
+      if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
         // Check if this map should be inline
         const shouldBeInline = this.shouldNodeBeInline(node);
         
@@ -123,7 +134,7 @@ export class YamlSerializer {
             this.applyHybridFormattingToNode(pair.value, depth + 1);
           }
         }
-      } else if (node.type === 'SEQ' || node.type === 'FLOW_SEQ') {
+      } else if (node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
         // Sequence/array - usually keep block style
         node.flow = false;
         
@@ -147,11 +158,13 @@ export class YamlSerializer {
     }
     
     // For maps, check number of properties and complexity
-    if (node.type === 'MAP' || node.type === 'FLOW_MAP') {
+    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
       const numProps = node.items.length;
       
       // Too many properties -> block style
-      if (numProps > this.config.maxInlineProperties) {
+      // Use default value if maxInlineProperties is undefined
+      const maxProps = this.config.maxInlineProperties ?? 3;
+      if (numProps > maxProps) {
         return false;
       }
       
@@ -178,13 +191,13 @@ export class YamlSerializer {
     if (!node) return false;
     
     // Scalars are not complex
-    if (node.type === 'SCALAR' || !node.items) {
+    if (node.type === YAML_NODE_TYPES.SCALAR || !node.items) {
       return false;
     }
     
     // Maps and sequences are complex
-    if (node.type === 'MAP' || node.type === 'FLOW_MAP' || 
-        node.type === 'SEQ' || node.type === 'FLOW_SEQ') {
+    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP || 
+        node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
       return true;
     }
     

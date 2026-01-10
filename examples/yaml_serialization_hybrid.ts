@@ -69,14 +69,9 @@ section.items = [diabetesElement, pulseElement];
 
 const yaml2 = hybridSerializer.serialize(section);
 console.log(yaml2);
-console.log("Expected output:");
-console.log("name: {value: Vital Signs}");
-console.log("items:");
-console.log("  - name: {value: Diagnosis}");
-console.log("    value: {defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2}");
-console.log("  - name: {value: Pulse rate}");
-console.log("    value: {magnitude: 72, units: /min}");
-console.log();
+console.log("\nNote: In hybrid style, simple objects like {value: Text} are formatted");
+console.log("inline using flow style, while complex structures maintain block formatting.");
+console.log("This combines the compactness of JSON with the readability of YAML.\n");
 
 // Example 3: Comparison with other styles
 console.log("3. Style Comparison:\n");
