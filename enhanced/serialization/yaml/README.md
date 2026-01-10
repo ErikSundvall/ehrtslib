@@ -300,9 +300,10 @@ const yaml = serializer.serialize(composition);
 ```
 
 The hybrid style intelligently decides whether to format objects inline or across multiple lines:
-- **Simple objects** (≤3 properties, no nested objects) → Flow style: `{value: Text, units: kg}`
+- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{value: Text, units: kg}`
 - **Complex objects** (many properties or nested structures) → Block style with proper indentation
 - **Arrays** → Block style with items properly indented
+- The threshold is configurable via `maxInlineProperties` (default: 3)
 - Inspired by the zipehr approach for optimal readability
 
 ### Cross-Format Conversion

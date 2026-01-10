@@ -474,7 +474,8 @@ Also update relevant tests, examples and documentation/readme-files
 
 **Implementation completed**: 
 - Enhanced YAML serializer to use Document API for fine-grained flow/block style control
-- Simple objects (≤3 properties, no nested objects) now use flow style (inline formatting)
+- Simple objects (≤ `maxInlineProperties`, no nested objects) now use flow style (inline formatting)
+- The threshold is configurable via `maxInlineProperties` (default: 3)
 - Complex objects and arrays maintain block style for readability
 - Updated README with new compact hybrid YAML examples
 - Created comprehensive test suite and example files
