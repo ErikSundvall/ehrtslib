@@ -1,5 +1,5 @@
 /**
- * Clinical JSON Serializer for openEHR RM Objects
+ * Canonical JSON Serializer for openEHR RM Objects
  * 
  * Simplified, non-configurable serializer that produces canonical openEHR JSON.
  * This class is optimized for performance and minimal code size - it always:
@@ -8,13 +8,18 @@
  * - Follows openEHR ITS-JSON specification strictly
  * - Does not support terse format or hybrid styles
  * 
+ * **Note on _type field**: The openEHR ITS-JSON specification allows the _type 
+ * field to be omitted in some cases where the type can be inferred from context.
+ * However, this serializer ALWAYS includes _type fields for maximum clarity and
+ * interoperability. For configurable type inclusion, use JsonConfigurableSerializer.
+ * 
  * For configurable serialization, use JsonConfigurableSerializer instead.
  * 
  * @example
  * ```typescript
- * import { JsonClinicalSerializer } from './enhanced/serialization/json/mod.ts';
+ * import { JsonCanonicalSerializer } from './enhanced/serialization/json/mod.ts';
  * 
- * const serializer = new JsonClinicalSerializer();
+ * const serializer = new JsonCanonicalSerializer();
  * const json = serializer.serialize(composition);
  * ```
  */
@@ -23,9 +28,9 @@ import { TypeRegistry } from '../common/type_registry.ts';
 import { SerializationError } from '../common/errors.ts';
 
 /**
- * Clinical JSON Serializer - Canonical openEHR JSON only
+ * Canonical JSON Serializer - Canonical openEHR JSON only
  */
-export class JsonClinicalSerializer {
+export class JsonCanonicalSerializer {
   private readonly TYPE_PROPERTY = '_type';
   private readonly INDENT = 2;
   

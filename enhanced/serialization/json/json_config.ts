@@ -147,8 +147,8 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
 };
 
 /**
- * Preset: Canonical JSON deserialization (strict openEHR compliance)
- * Uses strict mode to ensure full compliance
+ * Preset: Canonical JSON deserialization (strict openEHR compliance). Note: Requires _type fields.
+ * Requires _type fields and uses strict mode
  */
 export const CANONICAL_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
   typePropertyName: '_type',
@@ -202,13 +202,13 @@ export const HYBRID_JSON_CONFIG: JsonSerializationConfig = {
 export const HYBRID_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
   typePropertyName: '_type',
   strict: false,
-  allowIncomplete: false,
+  allowIncomplete: true,
   parseTerseFormat: false,
 };
 
 /**
  * Preset: Non-standard very compact format (terse + compact)
- * **WARNING**: Not interoperable with standard openEHR JSON. Use only for internal storage.
+ * **WARNING**: Not interoperable with standard openEHR JSON. Smallest possible representation for internal purposes (e.g., storage)
  * Trade-off: Smallest size but breaks canonical format and impacts performance.
  */
 export const NON_STANDARD_VERY_COMPACT_JSON_CONFIG: JsonSerializationConfig = {
@@ -223,11 +223,12 @@ export const NON_STANDARD_VERY_COMPACT_JSON_CONFIG: JsonSerializationConfig = {
 
 /**
  * Preset: Non-standard very compact deserialization
- * **WARNING**: Only use with NON_STANDARD_VERY_COMPACT_JSON_CONFIG serialized data.
+  * For internal purposes (e.g., storage)
+  * **WARNING**: Only use with NON_STANDARD_VERY_COMPACT_JSON_CONFIG serialized data.
  */
 export const NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
   typePropertyName: '_type',
   strict: false,
-  allowIncomplete: false,
+  allowIncomplete: true,
   parseTerseFormat: true,  // Must enable to deserialize terse format
 };

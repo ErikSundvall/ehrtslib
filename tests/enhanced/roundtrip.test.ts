@@ -1,13 +1,13 @@
 /**
  * Round-trip tests for JSON and YAML serialization
  * Tests that objects can be serialized and deserialized without data loss
- * Includes tests for both clinical and configurable serializers
+ * Includes tests for both canonical and configurable serializers
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
 import {
-  JsonClinicalSerializer,
-  JsonClinicalDeserializer,
+  JsonCanonicalSerializer,
+  JsonCanonicalDeserializer,
   JsonConfigurableSerializer,
   JsonConfigurableDeserializer,
 } from "../../enhanced/serialization/json/mod.ts";
@@ -150,11 +150,11 @@ Deno.test("JSON Round-trip: with type inference (compact)", () => {
   assertEquals(restored.value, original.value);
 });
 
-Deno.test("JSON Clinical vs Configurable Canonical: Same output", () => {
+Deno.test("JSON Canonical vs Configurable Canonical: Same output", () => {
   const dvText = new DV_TEXT();
   dvText.value = "Comparison test";
   
-  const clinicalSerializer = new JsonClinicalSerializer();
+  const canonicalSerializer = new JsonCanonicalSerializer();
   const configurableSerializer = new JsonConfigurableSerializer({
     alwaysIncludeType: true,
     prettyPrint: true,
@@ -162,20 +162,20 @@ Deno.test("JSON Clinical vs Configurable Canonical: Same output", () => {
     includeEmptyCollections: true,
   });
   
-  const clinicalJson = clinicalSerializer.serialize(dvText);
+  const canonicalJson = canonicalSerializer.serialize(dvText);
   const configurableJson = configurableSerializer.serialize(dvText);
   
   // Both should produce canonical JSON
-  assertEquals(clinicalJson, configurableJson);
-  console.log("Clinical and Configurable produce same output");
+  assertEquals(canonicalJson, configurableJson);
+  console.log("Canonical and Configurable produce same output");
 });
 
-Deno.test("JSON Cross-serializer Round-trip: Clinical serialize, Configurable deserialize", () => {
+Deno.test("JSON Cross-serializer Round-trip: Canonical serialize, Configurable deserialize", () => {
   const original = new DV_TEXT();
   original.value = "Cross-serializer test";
   
-  const clinicalSerializer = new JsonClinicalSerializer();
-  const json = clinicalSerializer.serialize(original);
+  const canonicalSerializer = new JsonCanonicalSerializer();
+  const json = canonicalSerializer.serialize(original);
   
   const configurableDeserializer = new JsonConfigurableDeserializer();
   const restored = configurableDeserializer.deserialize(json);

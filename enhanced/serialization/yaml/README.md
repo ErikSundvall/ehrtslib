@@ -138,9 +138,9 @@ Uses type inference and terse format for maximum conciseness while maintaining r
 ### Standard YAML
 
 ```typescript
-import { YamlSerializer, STANDARD_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
+import { YamlSerializer, VERBOSE_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
-const serializer = new YamlSerializer(STANDARD_YAML_CONFIG);
+const serializer = new YamlSerializer(VERBOSE_YAML_CONFIG);
 const yaml = serializer.serialize(codedText);
 ```
 

@@ -1,5 +1,5 @@
 /**
- * Clinical JSON Deserializer for openEHR RM Objects
+ * Canonical JSON Deserializer for openEHR RM Objects
  * 
  * Simplified, non-configurable deserializer for canonical openEHR JSON.
  * This class is optimized for performance and minimal code size - it always:
@@ -8,13 +8,18 @@
  * - Follows openEHR ITS-JSON specification strictly
  * - Does not support terse format parsing
  * 
+ * **Important**: The openEHR ITS-JSON specification allows the _type field to be
+ * omitted in some cases where the type can be inferred from context. However, this
+ * deserializer REQUIRES _type fields and will throw errors if they are missing.
+ * For flexible deserialization with type inference, use JsonConfigurableDeserializer.
+ * 
  * For configurable deserialization, use JsonConfigurableDeserializer instead.
  * 
  * @example
  * ```typescript
- * import { JsonClinicalDeserializer } from './enhanced/serialization/json/mod.ts';
+ * import { JsonCanonicalDeserializer } from './enhanced/serialization/json/mod.ts';
  * 
- * const deserializer = new JsonClinicalDeserializer();
+ * const deserializer = new JsonCanonicalDeserializer();
  * const obj = deserializer.deserialize(jsonString);
  * ```
  */
@@ -26,9 +31,9 @@ import {
 } from '../common/errors.ts';
 
 /**
- * Clinical JSON Deserializer - Canonical openEHR JSON only
+ * Canonical JSON Deserializer - Canonical openEHR JSON only
  */
-export class JsonClinicalDeserializer {
+export class JsonCanonicalDeserializer {
   private readonly TYPE_PROPERTY = '_type';
   
   /**
@@ -83,7 +88,7 @@ export class JsonClinicalDeserializer {
     
     if (!typeName) {
       throw new DeserializationError(
-        'Cannot determine type for object: _type field is required in canonical JSON (clinical deserializer, strict mode)',
+        'Cannot determine type for object: _type field is required in canonical JSON (canonical deserializer, strict mode). Note: The openEHR spec allows _type to be omitted in some cases, but this deserializer requires it.',
         JSON.stringify(obj)
       );
     }
@@ -94,7 +99,7 @@ export class JsonClinicalDeserializer {
     if (!constructor) {
       throw new TypeNotFoundError(
         typeName,
-        JSON.stringify(obj) + ' (clinical deserializer, strict mode)'
+        JSON.stringify(obj) + ' (canonical deserializer, strict mode)'
       );
     }
     
@@ -115,7 +120,7 @@ export class JsonClinicalDeserializer {
         throw new DeserializationError(
           `Failed to deserialize property '${key}' of ${typeName}: ${
             error instanceof Error ? error.message : String(error)
-          } (clinical deserializer, strict mode)`,
+          } (canonical deserializer, strict mode)`,
           JSON.stringify(obj),
           error instanceof Error ? error : undefined
         );

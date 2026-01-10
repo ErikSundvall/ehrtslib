@@ -4,18 +4,18 @@
  * Main entry point for JSON serialization and deserialization of openEHR RM objects.
  * 
  * Two implementations are available:
- * 1. Clinical (simple, canonical only) - JsonClinicalSerializer/Deserializer
+ * 1. Canonical (simple, canonical only) - JsonCanonicalSerializer/Deserializer
  * 2. Configurable (advanced, flexible) - JsonConfigurableSerializer/Deserializer
  * 
  * @example
  * ```typescript
- * import { JsonClinicalSerializer, JsonClinicalDeserializer } from './enhanced/serialization/json/mod.ts';
+ * import { JsonCanonicalSerializer, JsonCanonicalDeserializer } from './enhanced/serialization/json/mod.ts';
  * 
- * // Clinical: Canonical format only (fast, minimal)
- * const serializer = new JsonClinicalSerializer();
+ * // Canonical: Canonical format only (fast, minimal)
+ * const serializer = new JsonCanonicalSerializer();
  * const json = serializer.serialize(composition);
  * 
- * const deserializer = new JsonClinicalDeserializer();
+ * const deserializer = new JsonCanonicalDeserializer();
  * const obj = deserializer.deserialize(json);
  * ```
  * 
@@ -29,17 +29,13 @@
  * ```
  */
 
-// Clinical classes (simple, canonical only)
-export { JsonClinicalSerializer } from './json_clinical_serializer.ts';
-export { JsonClinicalDeserializer } from './json_clinical_deserializer.ts';
+// Canonical classes (simple, canonical only)
+export { JsonCanonicalSerializer } from './json_canonical_serializer.ts';
+export { JsonCanonicalDeserializer } from './json_canonical_deserializer.ts';
 
 // Configurable classes (advanced, flexible)
 export { JsonConfigurableSerializer } from './json_configurable_serializer.ts';
 export { JsonConfigurableDeserializer } from './json_configurable_deserializer.ts';
-
-// Backward compatibility aliases (use JsonConfigurableSerializer/Deserializer)
-export { JsonConfigurableSerializer as JsonSerializer } from './json_configurable_serializer.ts';
-export { JsonConfigurableDeserializer as JsonDeserializer } from './json_configurable_deserializer.ts';
 
 export type {
   JsonSerializationConfig,

@@ -14,14 +14,14 @@
 export interface YamlSerializationConfig {
   /**
    * Include _type fields in output
-   * @default true
+   * @default false
    */
   includeType?: boolean;
   
   /**
    * Use type inference to omit _type when safe
    * Enables compact mode with fewer type annotations
-   * @default false
+   * @default true
    */
   useTypeInference?: boolean;
   
@@ -60,7 +60,7 @@ export interface YamlSerializationConfig {
    * Use terse format for CODE_PHRASE and DV_CODED_TEXT
    * Works well with YAML (no official standard)
    * 
-   * @default false (but recommended for YAML)
+   * @default true
    */
   useTerseFormat?: boolean;
   
@@ -72,7 +72,7 @@ export interface YamlSerializationConfig {
   
   /**
    * Include empty collections
-   * @default true
+   * @default false
    */
   includeEmptyCollections?: boolean;
   
@@ -101,7 +101,7 @@ export interface YamlDeserializationConfig {
   
   /**
    * Parse terse format strings to CODE_PHRASE and DV_CODED_TEXT
-   * @default false
+   * @default true
    */
   parseTerseFormat?: boolean;
 }
@@ -111,7 +111,7 @@ export interface YamlDeserializationConfig {
  * For YAML, we prioritize readability and compactness since there's no official openEHR YAML standard.
  */
 export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig> = {
-  includeType: true,
+  includeType: false,
   useTypeInference: true,  // Changed to true - omit types when safe for smaller output
   flowStyleValues: false,
   blockStyleObjects: true,
@@ -136,7 +136,7 @@ export const DEFAULT_YAML_DESERIALIZATION_CONFIG: Required<YamlDeserializationCo
 /**
  * Preset: Standard YAML format (readable with types)
  */
-export const STANDARD_YAML_CONFIG: YamlSerializationConfig = {
+export const VERBOSE_YAML_CONFIG: YamlSerializationConfig = {
   includeType: true,
   useTypeInference: false,
   flowStyleValues: false,
