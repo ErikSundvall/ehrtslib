@@ -16,7 +16,6 @@
 import { stringify, Document } from 'yaml';
 import { TypeRegistry } from '../common/type_registry.ts';
 import { TypeInferenceEngine } from '../common/type_inference.ts';
-import { HybridStyleFormatter } from '../common/hybrid_formatter.ts';
 import { SerializationError } from '../common/errors.ts';
 import {
   toTerseCodePhrase,
@@ -29,6 +28,7 @@ import {
 
 /**
  * YAML node type constants
+ * These match the type property values used by the yaml library's Document API
  */
 const YAML_NODE_TYPES = {
   MAP: 'MAP',
@@ -107,6 +107,10 @@ export class YamlSerializer {
   /**
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
+   * 
+   * Note: The node parameter uses 'any' type because the yaml library's
+   * Node types are not easily accessible in the public API. The implementation
+   * relies on duck typing to check for 'items', 'type', and 'flow' properties.
    * 
    * @param node - The YAML node to format
    * @param depth - Current depth in the tree
