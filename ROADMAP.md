@@ -442,7 +442,7 @@ Update associated filename slots in the three following Phases
 ## Phase 4g.4 Implement JSON and YAML serialisations ✅ (done)
 - Implement the serialisation code based on `/tasks/task-list-phase4g4-json-yaml-serialization.md`
 
-## Phase 4g.4b Refine hybrid YAML serialisation 
+## Phase 4g.4b Refine hybrid YAML serialisation ✅ (done)
 The current hybrid example in the YAML related readme https://github.com/ErikSundvall/ehrtslib/tree/main/enhanced/serialization/yaml is:
 ```
 name:
@@ -471,6 +471,14 @@ items:
     value: {magnitude: 72, units: /min}
 ```
 Also update relevant tests, examples and documentation/readme-files 
+
+**Implementation completed**: 
+- Enhanced YAML serializer to use Document API for fine-grained flow/block style control
+- Simple objects (≤3 properties, no nested objects) now use flow style (inline formatting)
+- Complex objects and arrays maintain block style for readability
+- Updated README with new compact hybrid YAML examples
+- Created comprehensive test suite and example files
+- All documentation updated to reflect new behavior 
 
 ## Phase 4g.5 Implement demo web application
 - Implement the demo web application code based on `/tasks/task-list-phase4g5-demo-app.md`
