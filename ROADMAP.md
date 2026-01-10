@@ -386,15 +386,15 @@ authority on defintions, not these examples.
 Please also consider and describe other alternatives to reach the above stated goal, and
 describe or some combination
 
-## Phase 4f.2
+## Phase 4f.2 ✅ (done)
 Implement the PRD/design from Phase 4f.1: `/tasks/prd-phase4f1-simplified-object-creation.md`
 
-## Phase 4f.3
+## Phase 4f.3 ✅ (done)
 Rework the example documentation created in Phase 4e to only show the longwinded version 
 (that represents all parts of the RM) once and then describe and for the examples use, 
 the more compact way of creating objects introduced by Phase 4f.1
 
-## Phase 4g.1
+## Phase 4g.1 ✅ (done)
 
 Serialisation and deserialisation of RM object instance trees to and from
 openEHRs canonical JSON and XML formats (in separate classes so that you only
@@ -424,7 +424,7 @@ more verbose prectice of including `_type:` is actually preferred
 
   In this phase, just make a PRD decribing the 
 
-## Phase 4g.2
+## Phase 4g.2 ✅ (done)
 Based on the PRD /tasks/prd-phase4g1-serialization-deserialization.md (following the recommendations in the section /tasks/prd-phase4g1-serialization-deserialization.md#recommended-implementation-approach)
 - Create one detailed task list for implementing the XML serialisation
 - Create one detailed combined task list for implementing the JSON and YAML serialisation
@@ -439,8 +439,37 @@ Update associated filename slots in the three following Phases
 - Successfully completed with full test coverage and comprehensive documentation
 - See `/enhanced/serialization/xml/README.md` for usage guide
 
-## Phase 4g.4 Implement JSON and YAML serialisations
+## Phase 4g.4 Implement JSON and YAML serialisations ✅ (done)
 - Implement the serialisation code based on `/tasks/task-list-phase4g4-json-yaml-serialization.md`
+
+## Phase 4g.4b Refine hybrid YAML serialisation 
+The current hybrid exampoel in the YAML related readme https://github.com/ErikSundvall/ehrtslib/tree/main/enhanced/serialization/yaml is:
+```
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
+```
+The code generating hybrid YAML shoud instead use a mix of block and flow YAML to make the data more compact 
+using fewer lines. Please adjust the serialiser code for hybrid style to produce output more like this if possible:
+```
+name: {value: Vital Signs}
+items:
+  - name: {value: Diagnosis}
+    value: {defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2}
+  - name: {value: Pulse rate}
+    value: {magnitude: 72, units: /min}
+```
+Also update relevant tests, examples and documentation/readme-files 
 
 ## Phase 4g.5 Implement demo web application
 - Implement the demo web application code based on `/tasks/task-list-phase4g5-demo-app.md`
