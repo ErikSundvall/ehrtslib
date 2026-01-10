@@ -53,3 +53,22 @@ export class TypeNotFoundError extends DeserializationError {
     }
   }
 }
+
+/**
+ * Error thrown when a terse format string is invalid
+ */
+export class InvalidFormatError extends DeserializationError {
+  constructor(
+    message: string,
+    public readonly formatString?: string,
+    cause?: Error
+  ) {
+    super(message, formatString, cause);
+    this.name = "InvalidFormatError";
+    
+    // Maintain proper stack trace in V8 environments
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, InvalidFormatError);
+    }
+  }
+}
