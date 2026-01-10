@@ -220,22 +220,15 @@ const yaml = serializer.serialize(section);
 
 **Output:**
 ```yaml
-name:
-  value: Vital Signs
+name: {value: Vital Signs}
 items:
-  - name:
-      value: Diagnosis
-    value:
-      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
-      value: Diabetes mellitus type 2
-  - name:
-      value: Pulse rate
-    value:
-      magnitude: 72
-      units: /min
+  - name: {value: Diagnosis}
+    value: {defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2}
+  - name: {value: Pulse rate}
+    value: {magnitude: 72, units: /min}
 ```
 
-Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style for most concise output.
+Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{value: Text}`), while complex nested structures maintain block style formatting.
 
 ### Flow Style (JSON-like)
 
@@ -297,13 +290,21 @@ This produces the most concise YAML while still being deserializable.
 ```typescript
 const serializer = new YamlSerializer({
   hybridStyle: true,
+  useTerseFormat: true,
   maxInlineProperties: 3
 });
 
-// Simple objects appear inline
+// Simple objects are formatted inline (flow style)
 // Complex objects use block style
 const yaml = serializer.serialize(composition);
 ```
+
+The hybrid style intelligently decides whether to format objects inline or across multiple lines:
+- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{value: Text, units: kg}`
+- **Complex objects** (many properties or nested structures) → Block style with proper indentation
+- **Arrays** → Block style with items properly indented
+- The threshold is configurable via `maxInlineProperties` (default: 3)
+- Inspired by the zipehr approach for optimal readability
 
 ### Cross-Format Conversion
 
