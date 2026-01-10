@@ -57,10 +57,10 @@ console.log(obj.value); // "Test value"
 
 ```typescript
 interface YamlSerializationConfig {
-  // Include _type fields (default: true)
+  // Include _type fields (default: false - only on polymorphic types)
   includeType?: boolean;
   
-  // Use type inference (compact mode) (default: false)
+  // Use type inference (compact mode) (default: true)
   useTypeInference?: boolean;
   
   // Flow style for values (default: false)
@@ -78,13 +78,13 @@ interface YamlSerializationConfig {
   // Line width (default: 80)
   lineWidth?: number;
   
-  // Use terse format (recommended for YAML!) (default: false)
+  // Use terse format (recommended for YAML!) (default: true)
   useTerseFormat?: boolean;
   
   // Include null values (default: false)
   includeNullValues?: boolean;
   
-  // Include empty collections (default: true)
+  // Include empty collections (default: false)
   includeEmptyCollections?: boolean;
 }
 ```
@@ -99,62 +99,112 @@ interface YamlDeserializationConfig {
   // Allow duplicate keys (default: false)
   allowDuplicateKeys?: boolean;
   
-  // Parse terse format (default: false)
+  // Parse terse format (default: true)
   parseTerseFormat?: boolean;
 }
 ```
 
 ## Preset Configurations
 
-The following examples all serialize the same DV_CODED_TEXT object to show the differences between configurations.
+The following examples all serialize the same SECTION with two data elements to show the differences between configurations.
 
 **Input Object:**
 ```typescript
-const codedText = new DV_CODED_TEXT();
-codedText.value = "Diabetes mellitus type 2";
-codedText.defining_code = new CODE_PHRASE();
-codedText.defining_code.terminology_id = new TERMINOLOGY_ID();
-codedText.defining_code.terminology_id.value = "SNOMED-CT";
-codedText.defining_code.code_string = "44054006";
-codedText.defining_code.preferred_term = "Type 2 diabetes mellitus";
+// Create a section with diabetes diagnosis and pulse observation
+const section = new SECTION();
+section.name = new DV_TEXT();
+section.name.value = "Vital Signs";
+
+// First element: Diabetes diagnosis (DV_CODED_TEXT)
+const diabetesElement = new ELEMENT();
+diabetesElement.name = new DV_TEXT();
+diabetesElement.name.value = "Diagnosis";
+diabetesElement.value = new DV_CODED_TEXT();
+diabetesElement.value.value = "Diabetes mellitus type 2";
+diabetesElement.value.defining_code = new CODE_PHRASE();
+diabetesElement.value.defining_code.terminology_id = new TERMINOLOGY_ID();
+diabetesElement.value.defining_code.terminology_id.value = "SNOMED-CT";
+diabetesElement.value.defining_code.code_string = "44054006";
+diabetesElement.value.defining_code.preferred_term = "Type 2 diabetes mellitus";
+
+// Second element: Pulse rate (DV_QUANTITY)
+const pulseElement = new ELEMENT();
+pulseElement.name = new DV_TEXT();
+pulseElement.name.value = "Pulse rate";
+pulseElement.value = new DV_QUANTITY();
+pulseElement.value.magnitude = 72;
+pulseElement.value.units = "/min";
+
+section.items = [diabetesElement, pulseElement];
 ```
 
 ### Default YAML (Compact & Readable - Recommended)
 
 ```typescript
+import { YamlSerializer } from './enhanced/serialization/yaml/mod.ts';
+
 const serializer = new YamlSerializer();  // Uses DEFAULT_YAML_SERIALIZATION_CONFIG
-const yaml = serializer.serialize(codedText);
+const yaml = serializer.serialize(section);
 ```
 
 **Output:**
 ```yaml
-_type: DV_CODED_TEXT
-defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
-value: Diabetes mellitus type 2
+_type: SECTION
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
 ```
 
-Uses type inference and terse format for maximum conciseness while maintaining readability. Empty collections omitted.
+Uses type inference and terse format for maximum conciseness while maintaining readability. _type included only on polymorphic classes. Empty collections omitted.
 
-### Standard YAML
+### Verbose YAML
 
 ```typescript
 import { YamlSerializer, VERBOSE_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(VERBOSE_YAML_CONFIG);
-const yaml = serializer.serialize(codedText);
+const yaml = serializer.serialize(section);
 ```
 
 **Output:**
 ```yaml
-_type: DV_CODED_TEXT
-defining_code:
-  _type: CODE_PHRASE
-  terminology_id:
-    _type: TERMINOLOGY_ID
-    value: SNOMED-CT
-  code_string: "44054006"
-  preferred_term: Type 2 diabetes mellitus
-value: Diabetes mellitus type 2
+_type: SECTION
+name:
+  _type: DV_TEXT
+  value: Vital Signs
+items:
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Diagnosis
+    value:
+      _type: DV_CODED_TEXT
+      defining_code:
+        _type: CODE_PHRASE
+        terminology_id:
+          _type: TERMINOLOGY_ID
+          value: SNOMED-CT
+        code_string: "44054006"
+        preferred_term: Type 2 diabetes mellitus
+      value: Diabetes mellitus type 2
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Pulse rate
+    value:
+      _type: DV_QUANTITY
+      magnitude: 72
+      units: /min
 ```
 
 Full YAML with all type information and no terse format. Most verbose but clearest structure.
@@ -165,15 +215,27 @@ Full YAML with all type information and no terse format. Most verbose but cleare
 import { YamlSerializer, HYBRID_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
-const yaml = serializer.serialize(codedText);
+const yaml = serializer.serialize(section);
 ```
 
 **Output:**
 ```yaml
-defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
-value: Diabetes mellitus type 2
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
 ```
 
+Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style for most concise output.
 
 ### Flow Style (JSON-like)
 
@@ -181,17 +243,15 @@ value: Diabetes mellitus type 2
 import { YamlSerializer, FLOW_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
 
 const serializer = new YamlSerializer(FLOW_YAML_CONFIG);
-const yaml = serializer.serialize(codedText);
+const yaml = serializer.serialize(section);
 ```
 
 **Output:**
 ```yaml
-{_type: DV_CODED_TEXT, defining_code: {_type: CODE_PHRASE, terminology_id: {_type: TERMINOLOGY_ID, value: SNOMED-CT}, code_string: "44054006", preferred_term: Type 2 diabetes mellitus}, value: Diabetes mellitus type 2}
+{_type: SECTION, name: {_type: DV_TEXT, value: Vital Signs}, items: [{_type: ELEMENT, name: {_type: DV_TEXT, value: Diagnosis}, value: {_type: DV_CODED_TEXT, defining_code: {_type: CODE_PHRASE, terminology_id: {_type: TERMINOLOGY_ID, value: SNOMED-CT}, code_string: "44054006", preferred_term: Type 2 diabetes mellitus}, value: Diabetes mellitus type 2}}, {_type: ELEMENT, name: {_type: DV_TEXT, value: Pulse rate}, value: {_type: DV_QUANTITY, magnitude: 72, units: /min}}]}
 ```
 
 More compact, JSON-like appearance. Useful when horizontal space is prioritized over vertical readability.
-
-More compact, JSON-like appearance.
 
 ## Advanced Usage
 
