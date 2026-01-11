@@ -728,7 +728,7 @@ cat deno.json | grep fast-xml-parser
      }
    }
    ```
-3. Also update in `package.json` if needed:
+3. Also update in `package.json` if needed (the project uses both Deno and npm for MCP server):
    ```bash
    npm update fast-xml-parser
    # or for major version update
@@ -873,4 +873,4 @@ Perform these checks quarterly or when major updates are available:
 - [openEHR Discourse Discussion](https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968)
 - [UCUM Specification](https://ucum.org/ucum.html)
 - [openEHR ITS-XML Specification](https://specifications.openehr.org/releases/ITS-XML/)
-- [openEHR ITS-JSON Specification](https://github.com/openEHR/specifications-ITS-JSON)
+- [openEHR ITS-JSON Specification](https://specifications.openehr.org/releases/ITS-JSON/)
