@@ -784,10 +784,7 @@ cat deno.json | grep yaml
 **Important Notes:**
 - Used for YAML serialization in `enhanced/serialization/yaml/`
 - Supports multiple formatting styles (block, flow, hybrid)
-- Better style control than js-yaml
 - ISC licensed (library size varies by version)
-- YAML is **not** an official openEHR standard (unlike JSON and XML)
-- Terse format is recommended for YAML (no official standard to break)
 
 ### Updating PropertyUnitData.xml
 
