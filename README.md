@@ -660,6 +660,8 @@ section describes how to keep these dependencies up to date.
 | Dependency | Source | Purpose | Update Frequency |
 |------------|--------|---------|------------------|
 | `@lhncbc/ucum-lhc` | npm | UCUM validation/conversion | Quarterly/As needed |
+| `fast-xml-parser` | npm | XML serialization/deserialization | Quarterly/As needed |
+| `yaml` | npm | YAML serialization/deserialization | Quarterly/As needed |
 | `PropertyUnitData.xml` | openEHR GitHub | Property/unit groupings | As needed |
 | `ucum-essence.xml` | Bundled in ucum-lhc | Base unit definitions | With ucum-lhc updates |
 
@@ -700,6 +702,92 @@ npm outdated @lhncbc/ucum-lhc
 - The ucum-lhc library bundles `ucum-essence.xml` internally
 - Updates may include new units or fix conversion issues
 - The library handles special conversions (e.g., Celsius↔Fahrenheit) correctly
+
+### Updating fast-xml-parser
+
+The fast-xml-parser library provides XML serialization and deserialization for openEHR RM objects according to the [openEHR ITS-XML specification](https://specifications.openehr.org/releases/ITS-XML/).
+
+**Check for updates:**
+
+```bash
+# Check current version in deno.json
+cat deno.json | grep fast-xml-parser
+
+# Check for available updates
+# Visit https://github.com/NaturalIntelligence/fast-xml-parser/releases
+```
+
+**Update process:**
+
+1. Check the [fast-xml-parser releases](https://github.com/NaturalIntelligence/fast-xml-parser/releases) for breaking changes
+2. Update the dependency in `deno.json`:
+   ```json
+   {
+     "imports": {
+       "fast-xml-parser": "npm:fast-xml-parser@^4.5.0"
+     }
+   }
+   ```
+3. Also update in `package.json` if needed:
+   ```bash
+   npm update fast-xml-parser
+   # or for major version update
+   npm install fast-xml-parser@latest
+   ```
+4. Run tests to verify compatibility:
+   ```bash
+   deno test tests/enhanced/xml_serializer.test.ts
+   deno test tests/enhanced/xml_deserializer.test.ts
+   deno test tests/enhanced/serialization_common.test.ts
+   ```
+5. Document the update in commit message
+
+**Important Notes:**
+- Used for XML serialization in `enhanced/serialization/xml/`
+- Supports openEHR ITS-XML compliance with xsi:type attributes
+- Lightweight (~50KB minified) and performant
+- MIT licensed
+
+### Updating yaml
+
+The yaml library (by eemeli) provides YAML serialization and deserialization for openEHR RM objects. YAML is not an official openEHR standard format, but provides excellent human readability.
+
+**Check for updates:**
+
+```bash
+# Check current version in deno.json
+cat deno.json | grep yaml
+
+# Check for available updates
+# Visit https://github.com/eemeli/yaml/releases
+```
+
+**Update process:**
+
+1. Check the [yaml releases](https://github.com/eemeli/yaml/releases) for breaking changes
+2. Update the dependency in `deno.json`:
+   ```json
+   {
+     "imports": {
+       "yaml": "npm:yaml@^2.4.0"
+     }
+   }
+   ```
+3. Run tests to verify compatibility:
+   ```bash
+   deno test tests/enhanced/yaml_serializer_basic.test.ts
+   deno test tests/enhanced/yaml_hybrid_test.ts
+   deno test tests/enhanced/roundtrip.test.ts
+   ```
+4. Document the update in commit message
+
+**Important Notes:**
+- Used for YAML serialization in `enhanced/serialization/yaml/`
+- Supports multiple formatting styles (block, flow, hybrid)
+- Better style control than js-yaml
+- ISC licensed (~80KB minified)
+- YAML is **not** an official openEHR standard (unlike JSON and XML)
+- Terse format is recommended for YAML (no official standard to break)
 
 ### Updating PropertyUnitData.xml
 
@@ -768,6 +856,8 @@ Based on the openEHR community discussion
 Perform these checks quarterly or when major updates are available:
 
 - [ ] Check for ucum-lhc updates on npm/GitHub
+- [ ] Check for fast-xml-parser updates on npm/GitHub
+- [ ] Check for yaml library updates on npm/GitHub
 - [ ] Check for PropertyUnitData.xml changes in specifications-TERM repo
 - [ ] Review any openEHR Discourse discussions about units/measurements
 - [ ] Run full test suite after updates
@@ -777,6 +867,10 @@ Perform these checks quarterly or when major updates are available:
 
 - [ucum-lhc GitHub](https://github.com/lhncbc/ucum-lhc)
 - [ucum-lhc Documentation](https://lhncbc.github.io/ucum-lhc/)
+- [fast-xml-parser GitHub](https://github.com/NaturalIntelligence/fast-xml-parser)
+- [yaml GitHub](https://github.com/eemeli/yaml)
 - [PropertyUnitData.xml](https://github.com/openEHR/specifications-TERM/blob/master/computable/XML/PropertyUnitData.xml)
 - [openEHR Discourse Discussion](https://discourse.openehr.org/t/propertyunitdata-xml-and-conversion-information/4968)
 - [UCUM Specification](https://ucum.org/ucum.html)
+- [openEHR ITS-XML Specification](https://specifications.openehr.org/releases/ITS-XML/)
+- [openEHR ITS-JSON Specification](https://github.com/openEHR/specifications-ITS-JSON)
