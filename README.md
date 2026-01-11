@@ -728,7 +728,7 @@ cat deno.json | grep fast-xml-parser
      }
    }
    ```
-3. Also update in `package.json` if needed (the project uses both Deno and npm for MCP server):
+3. Also update in `package.json` if needed (some tooling like Model Context Protocol integrations use npm):
    ```bash
    npm update fast-xml-parser
    # or for major version update
@@ -745,7 +745,7 @@ cat deno.json | grep fast-xml-parser
 **Important Notes:**
 - Used for XML serialization in `enhanced/serialization/xml/`
 - Supports openEHR ITS-XML compliance with xsi:type attributes
-- Lightweight (~50KB minified) and performant
+- Lightweight and performant
 - MIT licensed
 
 ### Updating yaml
@@ -785,7 +785,7 @@ cat deno.json | grep yaml
 - Used for YAML serialization in `enhanced/serialization/yaml/`
 - Supports multiple formatting styles (block, flow, hybrid)
 - Better style control than js-yaml
-- ISC licensed (~80KB minified)
+- ISC licensed (library size varies by version)
 - YAML is **not** an official openEHR standard (unlike JSON and XML)
 - Terse format is recommended for YAML (no official standard to break)
 
