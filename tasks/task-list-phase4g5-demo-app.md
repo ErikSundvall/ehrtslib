@@ -42,7 +42,7 @@ This task list implements a demo static-site web application that demonstrates s
   - [ ] Three-panel layout (input, options, output)
   - [ ] All form controls (dropdowns, checkboxes, textareas, buttons)
   - [ ] Example data pre-filled to show functionality
-  - [ j Option to upload example (in any of the formats)
+  - [ ] Option to upload example (in any of the formats)
   - [ ] Footer with links
 - [ ] 0.3 Create `examples/demo-app/mockup/styles.css` with complete styling:
   - [ ] Layout (grid/flexbox for panels)
@@ -172,12 +172,12 @@ This task list implements a demo static-site web application that demonstrates s
 
 - [ ] 3.1.1 Create `examples/demo-app/src/main.ts` as entry point
 - [ ] 3.1.2 Import serialization modules:
-  - [ ] `JsonSerializer`, `JsonDeserializer`
-  - [ ] `YamlSerializer`, `YamlDeserializer`
-  - [ ] `XmlSerializer`, `XmlDeserializer`
-- [ ] 3.1.3 Import RM classes from `openehr_rm.ts`, `openehr_base.ts`
-- [ ] 3.1.4 Set up TypeRegistry with all RM types
-- [ ] 3.1.5 Initialize serializers with default configs
+  - [ ] JSON: `JsonCanonicalSerializer`, `JsonCanonicalDeserializer` (simple, canonical only) or `JsonConfigurableSerializer`, `JsonConfigurableDeserializer` (advanced with options) from `enhanced/serialization/json/mod.ts`
+  - [ ] YAML: `YamlSerializer`, `YamlDeserializer` from `enhanced/serialization/yaml/mod.ts`
+  - [ ] XML: `XmlSerializer`, `XmlDeserializer` from `enhanced/serialization/xml/mod.ts` (note: not exported from main mod.ts)
+- [ ] 3.1.3 Import RM classes from `enhanced/openehr_rm.ts`, `enhanced/openehr_base.ts`
+- [ ] 3.1.4 Set up TypeRegistry with all RM types from `enhanced/serialization/common/type_registry.ts`
+- [ ] 3.1.5 Initialize serializers with appropriate configs (see preset configs in each serialization module)
 
 ### 3.2 Input Handling
 
@@ -221,15 +221,15 @@ This task list implements a demo static-site web application that demonstrates s
 - [ ] 3.5.3 Generate import statements
 - [ ] 3.5.4 Generate constructor calls with initialization objects
 - [ ] 3.5.5 Support terse format for CODE_PHRASE and DV_CODED_TEXT
-- [ ] 3.5.6 Support compact constructor syntax (from Phase 4f)
+- [ ] 3.5.6 Support compact constructor syntax (from Phase 4f.2 - see SIMPLIFIED-CREATION-GUIDE.md)
 - [ ] 3.5.7 Add comments explaining generated code (optional)
 - [ ] 3.5.8 Format generated code (indentation, line breaks)
 - [ ] 3.5.9 Test with all example data
 
 Example generated code:
 ```typescript
-import * as openehr_rm from "./openehr_rm.ts";
-import * as openehr_base from "./openehr_base.ts";
+import * as openehr_rm from "./enhanced/openehr_rm.ts";
+import * as openehr_base from "./enhanced/openehr_base.ts";
 
 const composition = new openehr_rm.COMPOSITION({
   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
