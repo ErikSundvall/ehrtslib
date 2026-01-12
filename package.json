@@ -2,6 +2,7 @@
   "dependencies": {
     "@lhncbc/ucum-lhc": "^7.1.3",
     "@modelcontextprotocol/sdk": "^1.21.1",
-    "fast-xml-parser": "^5.3.3"
+    "fast-xml-parser": "^5.3.3",
+    "temporal-polyfill": "^0.3.0"
   }
 }
