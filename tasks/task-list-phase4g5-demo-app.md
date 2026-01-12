@@ -58,6 +58,31 @@ This task list implements a demo static-site web application that demonstrates s
   - [x] What functionality will be added in implementation phase
 - [x] 0.6 **STOP HERE** - Present mockup to developer for review and approval before proceeding with sections 1-11
 
+### 0.7 Mockup Updates Based on Review
+
+- [x] 0.7.1 Change convert button icon to play arrow (►)
+- [x] 0.7.2 Add configuration preset dropdowns for each format:
+  - [x] JSON: Canonical, Compact, Hybrid, Very Compact, Custom
+  - [x] YAML: Default, Verbose, Hybrid, Flow Style, Custom
+  - [x] XML: Default, Custom
+- [x] 0.7.3 Add JSON serializer type selection (Canonical vs Configurable)
+- [x] 0.7.4 Add input deserializer options section:
+  - [x] Deserializer preset dropdown (Default, Canonical, Compact, Hybrid, Custom)
+  - [x] Strict mode checkbox
+  - [x] Parse terse format checkbox
+  - [x] Allow incomplete objects checkbox
+- [x] 0.7.5 Disable individual checkboxes when preset is selected (enable on "Custom")
+- [x] 0.7.6 Add numeric input fields for indent/depth settings:
+  - [x] JSON indent (spaces)
+  - [x] YAML indent (spaces)
+  - [x] XML indent (spaces)
+  - [x] TypeScript indent (spaces)
+- [x] 0.7.7 Add additional configuration options:
+  - [x] JSON: Include null values, Include empty collections
+  - [x] YAML: Block style, Hybrid style checkboxes
+  - [x] XML: Include declaration checkbox
+
+
 ## 1. Project Setup
 
 ### 1.1 Directory Structure

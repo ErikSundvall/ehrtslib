@@ -353,6 +353,67 @@ body {
     color: var(--text-primary);
 }
 
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.config-dropdown {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.config-dropdown:hover {
+    border-color: var(--border-dark);
+}
+
+.config-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.indent-input {
+    width: 60px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    margin-right: var(--spacing-sm);
+}
+
+.indent-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.indent-input:disabled {
+    background-color: var(--bg-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.checkbox-label input[type="checkbox"]:disabled,
+.checkbox-label input[type="number"]:disabled,
+.config-dropdown:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .tooltip-container {
     position: relative;
 }

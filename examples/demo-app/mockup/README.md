@@ -89,12 +89,50 @@ deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts
 ✅ Validation status indicator  
 
 ### Options Panel
-✅ Output format checkboxes (XML, JSON, YAML, TypeScript)  
-✅ JSON options (pretty print, terse format, hybrid style, type inference)  
-✅ YAML options (block/hybrid style, terse format, type inference)  
-✅ XML options (pretty print, namespaces)  
-✅ TypeScript options (terse format, compact constructors, comments)  
-✅ Large Convert button  
+✅ **Input Deserializer Options:**
+- Deserializer preset dropdown (Default, Canonical, Compact, Hybrid, Custom)
+- Strict mode checkbox
+- Parse terse format checkbox
+- Allow incomplete objects checkbox
+
+✅ **Output format checkboxes** (XML, JSON, YAML, TypeScript)
+
+✅ **JSON Options:**
+- Serializer type selection (Canonical vs Configurable)
+- Configuration preset dropdown (Canonical, Compact, Hybrid, Very Compact, Custom)
+- Pretty print checkbox
+- Indent numeric input (spaces)
+- Terse format checkbox (with warning)
+- Hybrid style checkbox
+- Type inference checkbox
+- Include null values checkbox
+- Include empty collections checkbox
+- Individual options disabled when preset selected (enabled for "Custom")
+
+✅ **YAML Options:**
+- Configuration preset dropdown (Default, Verbose, Hybrid, Flow Style, Custom)
+- Block style checkbox
+- Hybrid style checkbox
+- Terse format checkbox (recommended)
+- Type inference checkbox
+- Indent numeric input (spaces)
+- Individual options disabled when preset selected (enabled for "Custom")
+
+✅ **XML Options:**
+- Configuration preset dropdown (Default, Custom)
+- Pretty print checkbox
+- Include namespaces checkbox
+- Include XML declaration checkbox
+- Indent numeric input (spaces)
+- Individual options disabled when preset selected (enabled for "Custom")
+
+✅ **TypeScript Options:**
+- Terse format checkbox
+- Compact constructors checkbox
+- Include comments checkbox
+- Indent numeric input (spaces)
+
+✅ **Large Convert button** with play arrow icon (►)
 ✅ Loading state indicator  
 ✅ Error state display  
 
@@ -123,6 +161,8 @@ This is a **static mockup** - the following are NOT yet implemented:
 ❌ Download functionality  
 ❌ Tab switching  
 ❌ Real-time character counting  
+❌ Preset dropdown functionality (disabling/enabling checkboxes)  
+❌ Dynamic configuration updates based on preset selection  
 ❌ Error handling  
 ❌ Dynamic option toggling  
 
