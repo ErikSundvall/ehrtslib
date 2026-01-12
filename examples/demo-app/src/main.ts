@@ -5,46 +5,27 @@
  */
 
 import { EXAMPLES } from './examples.js';
-
-// Import serialization modules from ehrtslib
-// Note: These paths will be resolved by esbuild during the build process
 import {
-  JsonCanonicalSerializer,
-  JsonCanonicalDeserializer,
-  JsonConfigurableSerializer,
-  JsonConfigurableDeserializer,
-  DEFAULT_JSON_SERIALIZATION_CONFIG,
-  DEFAULT_JSON_DESERIALIZATION_CONFIG,
-  CANONICAL_JSON_CONFIG,
-  CANONICAL_JSON_DESERIALIZE_CONFIG,
-  COMPACT_JSON_CONFIG,
-  COMPACT_JSON_DESERIALIZE_CONFIG,
-  HYBRID_JSON_CONFIG,
-  HYBRID_JSON_DESERIALIZE_CONFIG,
-  NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
-  NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG,
+  convert,
+  initializeTypeRegistry,
+  getJsonConfigPreset,
+  getJsonDeserializeConfigPreset,
+  getYamlConfigPreset,
+  getYamlDeserializeConfigPreset,
+  type ConversionOptions,
+  type InputFormat,
+  type OutputFormat,
+} from './converter.js';
+
+import type {
+  JsonSerializationConfig,
+  JsonDeserializationConfig,
 } from '../../../enhanced/serialization/json/mod.ts';
 
-import {
-  YamlSerializer,
-  YamlDeserializer,
-  DEFAULT_YAML_SERIALIZATION_CONFIG,
-  DEFAULT_YAML_DESERIALIZATION_CONFIG,
-  VERBOSE_YAML_CONFIG,
-  HYBRID_YAML_CONFIG,
-  FLOW_YAML_CONFIG,
+import type {
+  YamlSerializationConfig,
+  YamlDeserializationConfig,
 } from '../../../enhanced/serialization/yaml/mod.ts';
-
-import {
-  XmlSerializer,
-  XmlDeserializer,
-} from '../../../enhanced/serialization/xml/mod.ts';
-
-import {
-  TypeRegistry,
-  SerializationError,
-  DeserializationError,
-} from '../../../enhanced/serialization/common/mod.ts';
 
 // Application state
 let currentInputFormat = 'json';
@@ -56,10 +37,18 @@ let currentOutputs: any = {};
 function init() {
   console.log('🚀 ehrtslib Format Converter initialized');
   
+  // Initialize TypeRegistry
+  try {
+    initializeTypeRegistry();
+  } catch (error) {
+    console.error('Failed to initialize TypeRegistry:', error);
+    showError('Failed to initialize application. Please refresh the page.');
+    return;
+  }
+  
   // Set up event listeners
   setupEventListeners();
   
-  // Initialize TypeRegistry (will be done when first needed)
   console.log('✓ Application ready');
 }
 
@@ -373,17 +362,147 @@ async function handleConvert() {
     const inputText = inputTextarea.value.trim();
     if (!inputText) throw new Error('Input is empty');
     
-    // TODO: Implement actual conversion logic
-    // For now, just show a placeholder message
-    setTimeout(() => {
-      hideLoading();
-      showError('Conversion not yet implemented. Coming soon!');
-    }, 1000);
+    // Gather conversion options from UI
+    const options = gatherConversionOptions();
+    
+    // Perform conversion
+    const result = await convert(inputText, options);
+    
+    hideLoading();
+    
+    if (!result.success) {
+      showError(result.error || 'Conversion failed');
+      return;
+    }
+    
+    // Update output panels
+    if (result.outputs) {
+      updateOutputs(result.outputs);
+    }
+    
+    console.log('✅ Conversion successful');
     
   } catch (error) {
     hideLoading();
     console.error('Conversion error:', error);
     showError((error as Error).message);
+  }
+}
+
+/**
+ * Gather conversion options from UI controls
+ */
+function gatherConversionOptions(): ConversionOptions {
+  // Input format
+  const inputFormatSelect = document.getElementById('input-format') as HTMLSelectElement;
+  const inputFormat = (inputFormatSelect?.value || 'json') as InputFormat;
+  
+  // Input deserializer config
+  const inputDeserializerPreset = (document.getElementById('input-deserializer-preset') as HTMLSelectElement)?.value || 'default';
+  const inputDeserializerConfig = getJsonDeserializeConfigPreset(inputDeserializerPreset);
+  
+  // Output formats
+  const outputFormats: OutputFormat[] = [];
+  if ((document.getElementById('output-xml') as HTMLInputElement)?.checked) {
+    outputFormats.push('xml');
+  }
+  if ((document.getElementById('output-json') as HTMLInputElement)?.checked) {
+    outputFormats.push('json');
+  }
+  if ((document.getElementById('output-yaml') as HTMLInputElement)?.checked) {
+    outputFormats.push('yaml');
+  }
+  if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
+    outputFormats.push('typescript');
+  }
+  
+  // JSON serializer type and config
+  const jsonSerializerType = ((document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable') as 'canonical' | 'configurable';
+  const jsonConfigPreset = (document.getElementById('json-config-preset') as HTMLSelectElement)?.value || 'canonical';
+  const jsonConfig = getJsonConfigPreset(jsonConfigPreset);
+  
+  // Apply custom JSON settings if preset is 'custom'
+  if (jsonConfigPreset === 'custom') {
+    const indent = parseInt((document.getElementById('json-indent') as HTMLInputElement)?.value || '2');
+    jsonConfig.indent = indent;
+    jsonConfig.useTerseFormat = (document.getElementById('json-terse') as HTMLInputElement)?.checked || false;
+    jsonConfig.useHybridStyle = (document.getElementById('json-hybrid') as HTMLInputElement)?.checked || false;
+    jsonConfig.useTypeInference = (document.getElementById('json-type-inference') as HTMLInputElement)?.checked || false;
+  }
+  
+  // YAML config
+  const yamlConfigPreset = (document.getElementById('yaml-config-preset') as HTMLSelectElement)?.value || 'default';
+  const yamlConfig = getYamlConfigPreset(yamlConfigPreset);
+  
+  // Apply custom YAML settings if preset is 'custom'
+  if (yamlConfigPreset === 'custom') {
+    const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
+    yamlConfig.indent = indent;
+    yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
+    yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
+  }
+  
+  // XML config
+  const xmlConfigPreset = (document.getElementById('xml-config-preset') as HTMLSelectElement)?.value || 'default';
+  const xmlIndent = parseInt((document.getElementById('xml-indent') as HTMLInputElement)?.value || '2');
+  const xmlConfig = {
+    prettyPrint: (document.getElementById('xml-pretty') as HTMLInputElement)?.checked !== false,
+    indent: xmlIndent,
+    includeDeclaration: (document.getElementById('xml-declaration') as HTMLInputElement)?.checked !== false,
+    includeNamespaces: (document.getElementById('xml-namespaces') as HTMLInputElement)?.checked !== false,
+  };
+  
+  // TypeScript config
+  const tsIndent = parseInt((document.getElementById('ts-indent') as HTMLInputElement)?.value || '2');
+  const typescriptConfig = {
+    useTerse: (document.getElementById('ts-terse') as HTMLInputElement)?.checked !== false,
+    useCompactConstructors: (document.getElementById('ts-compact') as HTMLInputElement)?.checked !== false,
+    includeComments: (document.getElementById('ts-comments') as HTMLInputElement)?.checked || false,
+    indent: tsIndent,
+  };
+  
+  return {
+    inputFormat,
+    inputDeserializerConfig,
+    outputFormats,
+    jsonSerializerType,
+    jsonConfig,
+    yamlConfig,
+    xmlConfig,
+    typescriptConfig,
+  };
+}
+
+/**
+ * Update output panels with converted data
+ */
+function updateOutputs(outputs: Record<string, string>) {
+  if (outputs.xml) {
+    const xmlContent = document.getElementById('output-xml-content');
+    if (xmlContent) {
+      xmlContent.textContent = outputs.xml;
+    }
+  }
+  
+  if (outputs.json) {
+    const jsonContent = document.getElementById('output-json-content');
+    if (jsonContent) {
+      jsonContent.textContent = outputs.json;
+    }
+  }
+  
+  if (outputs.yaml) {
+    const yamlContent = document.getElementById('output-yaml-content');
+    if (yamlContent) {
+      yamlContent.textContent = outputs.yaml;
+    }
+  }
+  
+  if (outputs.typescript) {
+    const tsContent = document.getElementById('output-typescript-content');
+    if (tsContent) {
+      tsContent.textContent = outputs.typescript;
+    }
   }
 }
 

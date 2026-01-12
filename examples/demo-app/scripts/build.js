@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '../../..');
 
 async function build() {
   console.log('🔨 Building ehrtslib demo app...');
@@ -30,6 +31,15 @@ async function build() {
       minify: process.env.NODE_ENV === 'production',
       define: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+      },
+      // Resolve node_modules from project root
+      nodePaths: [
+        path.join(projectRoot, 'node_modules'),
+        path.join(rootDir, 'node_modules')
+      ],
+      // External packages that will be loaded from CDN or node_modules
+      alias: {
+        'npm:temporal-polyfill@0.2.5': 'temporal-polyfill'
       }
     });
     
