@@ -72,14 +72,14 @@ See [SIMPLIFIED-CREATION-GUIDE.md](SIMPLIFIED-CREATION-GUIDE.md) for comprehensi
 The library supports multiple serialization formats (JSON, XML, YAML):
 
 ```typescript
-import { JsonSerializer, JsonDeserializer } from "./enhanced/serialization/json/mod.ts";
+import { JsonConfigurableSerializer, JsonConfigurableDeserializer } from "./enhanced/serialization/json/mod.ts";
 
 // Serialize to JSON
-const serializer = new JsonSerializer({ prettyPrint: true });
+const serializer = new JsonConfigurableSerializer({ prettyPrint: true });
 const json = serializer.serialize(composition);
 
 // Deserialize from JSON
-const deserializer = new JsonDeserializer();
+const deserializer = new JsonConfigurableDeserializer();
 const restored = deserializer.deserialize(json);
 ```
 
