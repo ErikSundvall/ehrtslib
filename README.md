@@ -84,11 +84,9 @@ const restored = deserializer.deserialize(json);
 ```
 
 **Supported formats:**
-- **JSON** - Compliant with openEHR ITS-JSON specification
-- **XML** - Compliant with openEHR ITS-XML specification  
-- **YAML** - Human-readable format with multiple style options
-
-See documentation in `enhanced/serialization/` for format-specific guides and configuration options.
+- **JSON** - Compliant with openEHR ITS-JSON specification, plus optimized variants (compact, type-inferred). See [JSON serialization guide](enhanced/serialization/json/README.md)
+- **XML** - Compliant with openEHR ITS-XML specification. See [XML serialization guide](enhanced/serialization/xml/README.md)
+- **YAML** - Human-readable format with multiple style options. See [YAML serialization guide](enhanced/serialization/yaml/README.md)
 
 ## Additional Resources
 
