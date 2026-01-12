@@ -507,7 +507,17 @@ source).
   updated using Y.js or
 - Create build step to genenrate minivfed and web component versions
 
-## Phase X
+## Phase X - dist and docs
 
 Create /dist directory and subdirectories with different distributions for
-targeted purposes
+targeted purposes for example
+- compact code for browser use
+- simultaneous multi-user editing
+- complete release e.g. for making advanced tooling
+
+create end user docs using same format as openEHR specs include static website app for conversion and example generation
+
+## Phase Y - inspire future work
+- semi automated generation of python impl.
+= UI/form impl
+- ...
