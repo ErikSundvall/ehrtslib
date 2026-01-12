@@ -36,27 +36,27 @@ This task list implements a demo static-site web application that demonstrates s
 
 **IMPORTANT:** Before proceeding with implementation, create a static HTML/CSS mockup that can be reviewed by the developer.
 
-- [ ] 0.1 Create `examples/demo-app/mockup/` directory for initial design
-- [ ] 0.2 Create `examples/demo-app/mockup/index.html` with complete UI structure:
-  - [ ] Header with title and description
-  - [ ] Three-panel layout (input, options, output)
-  - [ ] All form controls (dropdowns, checkboxes, textareas, buttons)
-  - [ ] Example data pre-filled to show functionality
-  - [ ] Option to upload example (in any of the formats)
-  - [ ] Footer with links
-- [ ] 0.3 Create `examples/demo-app/mockup/styles.css` with complete styling:
-  - [ ] Layout (grid/flexbox for panels)
-  - [ ] Typography and colors
-  - [ ] Form styling
-  - [ ] Button styles
-  - [ ] Responsive design (mobile breakpoints)
-  - [ ] Loading/error states
-- [ ] 0.4 Ensure mockup is viewable by opening HTML file directly in browser
-- [ ] 0.5 Add `examples/demo-app/mockup/README.md` explaining:
-  - [ ] How to view the mockup
-  - [ ] Design decisions made
-  - [ ] What functionality will be added in implementation phase
-- [ ] 0.6 **STOP HERE** - Present mockup to developer for review and approval before proceeding with sections 1-11
+- [x] 0.1 Create `examples/demo-app/mockup/` directory for initial design
+- [x] 0.2 Create `examples/demo-app/mockup/index.html` with complete UI structure:
+  - [x] Header with title and description
+  - [x] Three-panel layout (input, options, output)
+  - [x] All form controls (dropdowns, checkboxes, textareas, buttons)
+  - [x] Example data pre-filled to show functionality
+  - [x] Option to upload example (in any of the formats)
+  - [x] Footer with links
+- [x] 0.3 Create `examples/demo-app/mockup/styles.css` with complete styling:
+  - [x] Layout (grid/flexbox for panels)
+  - [x] Typography and colors
+  - [x] Form styling
+  - [x] Button styles
+  - [x] Responsive design (mobile breakpoints)
+  - [x] Loading/error states
+- [x] 0.4 Ensure mockup is viewable by opening HTML file directly in browser
+- [x] 0.5 Add `examples/demo-app/mockup/README.md` explaining:
+  - [x] How to view the mockup
+  - [x] Design decisions made
+  - [x] What functionality will be added in implementation phase
+- [x] 0.6 **STOP HERE** - Present mockup to developer for review and approval before proceeding with sections 1-11
 
 ## 1. Project Setup
 

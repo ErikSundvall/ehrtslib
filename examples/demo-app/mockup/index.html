@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ehrtslib Format Converter - Demo application showcasing serialization/deserialization between XML, JSON, YAML, and TypeScript code generation">
+    <title>ehrtslib Format Converter - Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1>🔄 ehrtslib Format Converter</h1>
+            <p class="subtitle">Convert between XML, JSON, YAML formats and generate TypeScript initialization code</p>
+            <p class="description">
+                This demo showcases ehrtslib's powerful serialization and deserialization capabilities. 
+                Convert openEHR Reference Model (RM) objects between different formats with various configuration options.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Input Panel -->
+        <section class="panel input-panel">
+            <div class="panel-header">
+                <h2>📥 Input</h2>
+                <div class="format-selector">
+                    <label for="input-format">Format:</label>
+                    <select id="input-format" class="format-dropdown">
+                        <option value="xml">XML</option>
+                        <option value="json" selected>JSON</option>
+                        <option value="yaml">YAML</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="panel-body">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <button class="btn btn-secondary" id="load-example">
+                            📂 Load Example
+                        </button>
+                        <div class="example-menu hidden" id="example-menu">
+                            <button class="example-item" data-example="dv-text">Simple DV_TEXT</button>
+                            <button class="example-item" data-example="code-phrase">CODE_PHRASE</button>
+                            <button class="example-item" data-example="dv-coded-text">DV_CODED_TEXT</button>
+                            <button class="example-item" data-example="basic-composition">Basic COMPOSITION</button>
+                            <button class="example-item" data-example="complex-composition">Complex COMPOSITION</button>
+                        </div>
+                        <button class="btn btn-secondary" id="upload-file">
+                            📤 Upload File
+                        </button>
+                        <input type="file" id="file-input" accept=".xml,.json,.yaml,.yml" class="hidden">
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn btn-secondary" id="clear-input">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <textarea 
+                    class="input-textarea" 
+                    id="input-text" 
+                    placeholder="Paste your XML, JSON, or YAML here..."
+                    spellcheck="false"
+                >{
+  "_type": "DV_TEXT",
+  "value": "Patient has diabetes mellitus"
+}</textarea>
+                
+                <div class="input-info">
+                    <span class="char-count">
+                        <span class="label">Characters:</span> <span id="char-count">65</span>
+                    </span>
+                    <span class="line-count">
+                        <span class="label">Lines:</span> <span id="line-count">3</span>
+                    </span>
+                    <span class="validation-status">
+                        <span class="status-icon valid" id="validation-icon">✓</span>
+                        <span id="validation-text">Valid JSON</span>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Options Panel -->
+        <section class="panel options-panel">
+            <div class="panel-header">
+                <h2>⚙️ Options</h2>
+            </div>
+            
+            <div class="panel-body">
+                <!-- Output Formats Section -->
+                <div class="option-section">
+                    <h3>Output Formats</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-xml" checked>
+                            <span>XML</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-json" checked>
+                            <span>JSON</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-yaml" checked>
+                            <span>YAML</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-typescript">
+                            <span>TypeScript Code</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- JSON Options -->
+                <div class="option-section">
+                    <h3>JSON Options</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="json-pretty" checked>
+                            <span>Pretty Print</span>
+                        </label>
+                        <label class="checkbox-label tooltip-container">
+                            <input type="checkbox" id="json-terse">
+                            <span>Terse Format ⚠️</span>
+                            <span class="tooltip">Compact format using string shortcuts for CODE_PHRASE and DV_CODED_TEXT. Not standard-compliant.</span>
+                        </label>
+                        <label class="checkbox-label tooltip-container">
+                            <input type="checkbox" id="json-hybrid">
+                            <span>Hybrid Style (zipehr-like) ℹ️</span>
+                            <span class="tooltip">Mix of standard and terse formats for better readability</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="json-type-inference">
+                            <span>Type Inference</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- YAML Options -->
+                <div class="option-section">
+                    <h3>YAML Options</h3>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="yaml-style" value="block" checked>
+                            <span>Block Style</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="yaml-style" value="hybrid">
+                            <span>Hybrid Style</span>
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label tooltip-container">
+                            <input type="checkbox" id="yaml-terse" checked>
+                            <span>Terse Format (Recommended) ✓</span>
+                            <span class="tooltip">Uses compact notation for codes - recommended for YAML</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="yaml-type-inference">
+                            <span>Type Inference (Compact Mode)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- XML Options -->
+                <div class="option-section">
+                    <h3>XML Options</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="xml-pretty" checked>
+                            <span>Pretty Print</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="xml-namespaces">
+                            <span>Include Namespaces</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- TypeScript Options -->
+                <div class="option-section">
+                    <h3>TypeScript Options</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ts-terse" checked>
+                            <span>Use Terse Format</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ts-compact" checked>
+                            <span>Use Compact Constructors</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ts-comments">
+                            <span>Include Comments</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Convert Button -->
+                <div class="convert-section">
+                    <button class="btn btn-primary btn-large" id="convert-btn">
+                        🔄 Convert
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state hidden" id="loading-state">
+                    <div class="spinner"></div>
+                    <span>Converting...</span>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state hidden" id="error-state">
+                    <span class="error-icon">⚠️</span>
+                    <div class="error-message">
+                        <strong>Conversion Error</strong>
+                        <p id="error-text">An error occurred during conversion.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="dismiss-error">Dismiss</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Output Panel -->
+        <section class="panel output-panel">
+            <div class="panel-header">
+                <h2>📤 Output</h2>
+            </div>
+            
+            <div class="panel-body">
+                <!-- Tab Navigation -->
+                <div class="tabs" id="output-tabs">
+                    <button class="tab active" data-tab="xml">XML</button>
+                    <button class="tab" data-tab="json">JSON</button>
+                    <button class="tab" data-tab="yaml">YAML</button>
+                    <button class="tab" data-tab="typescript">TypeScript</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- XML Output -->
+                    <div class="tab-pane active" id="tab-xml">
+                        <div class="output-toolbar">
+                            <button class="btn btn-secondary btn-sm" id="copy-xml">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="download-xml">
+                                💾 Download
+                            </button>
+                        </div>
+                        <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;DV_TEXT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;value&gt;Patient has diabetes mellitus&lt;/value&gt;
+&lt;/DV_TEXT&gt;</pre>
+                        <div class="success-message hidden" id="success-xml">
+                            <span class="success-icon">✓</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <!-- JSON Output -->
+                    <div class="tab-pane" id="tab-json">
+                        <div class="output-toolbar">
+                            <button class="btn btn-secondary btn-sm" id="copy-json">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="download-json">
+                                💾 Download
+                            </button>
+                        </div>
+                        <pre class="output-content" id="output-json-content">{
+  "_type": "DV_TEXT",
+  "value": "Patient has diabetes mellitus"
+}</pre>
+                        <div class="success-message hidden" id="success-json">
+                            <span class="success-icon">✓</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <!-- YAML Output -->
+                    <div class="tab-pane" id="tab-yaml">
+                        <div class="output-toolbar">
+                            <button class="btn btn-secondary btn-sm" id="copy-yaml">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="download-yaml">
+                                💾 Download
+                            </button>
+                        </div>
+                        <pre class="output-content" id="output-yaml-content">_type: DV_TEXT
+value: Patient has diabetes mellitus</pre>
+                        <div class="success-message hidden" id="success-yaml">
+                            <span class="success-icon">✓</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <!-- TypeScript Output -->
+                    <div class="tab-pane" id="tab-typescript">
+                        <div class="output-toolbar">
+                            <button class="btn btn-secondary btn-sm" id="copy-typescript">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="download-typescript">
+                                💾 Download
+                            </button>
+                        </div>
+                        <pre class="output-content" id="output-typescript-content">import { DV_TEXT } from "./enhanced/openehr_rm.ts";
+
+// Create DV_TEXT object
+const dvText = new DV_TEXT({
+  value: "Patient has diabetes mellitus"
+});
+
+// Serialize to JSON
+import { JsonCanonicalSerializer } from "./enhanced/serialization/json/mod.ts";
+const serializer = new JsonCanonicalSerializer();
+const json = serializer.serialize(dvText);
+console.log(json);</pre>
+                        <div class="success-message hidden" id="success-typescript">
+                            <span class="success-icon">✓</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">
+                    GitHub Repository
+                </a>
+                <a href="../../../README.md">Documentation</a>
+                <a href="../../../SIMPLIFIED-CREATION-GUIDE.md">Creation Guide</a>
+                <a href="https://openehr.org" target="_blank" rel="noopener">openEHR.org</a>
+            </div>
+            <div class="footer-info">
+                <p>ehrtslib - Electronic Health Record TypeScript Library</p>
+                <p class="copyright">&copy; 2025 ehrtslib contributors. Licensed under Apache 2.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Note: JavaScript functionality will be added in the implementation phase -->
+    <script>
+        // This is a static mockup - JavaScript interactivity will be added during implementation
+        console.log('ehrtslib Format Converter Mockup v1.0');
+        console.log('Interactive functionality will be implemented in Phase 1-11');
+    </script>
+</body>
+</html>
