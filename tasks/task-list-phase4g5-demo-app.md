@@ -14,14 +14,14 @@ If running in interactive mode (e.g. Gemini CLI) then stop after each parent tas
 This task list implements a demo static-site web application that demonstrates serialization/deserialization capabilities with format conversion between XML, JSON, and YAML, plus generation of TypeScript initialization code.
 
 **Key Features:**
-- Convert between XML ↔ JSON ↔ YAML formats
-- Generate ehrtslib TypeScript initialization code (using terse format and compact constructors)
-- Configurable format options (terse format, hybrid style, type inference)
+- Convert between XML ↔ JSON ↔ YAML ↔ XML formats
+- Option to generate ehrtslib TypeScript initialization code based on chosen input example (configurable to use terse format and compact constructors, and advanced option to include call to a serializer of choice)
+- Configurable format options suitable for each format (terse format, hybrid style, type inference)
 - Static site (no server required) - runs entirely in browser
-- Deployed as part of the ehrtslib documentation
+- Deployed as part of the ehrtslib documentation (on github pages)
 
 **Technology Stack:**
-- Vanilla TypeScript/JavaScript (no framework dependencies)
+- Vanilla TypeScript/JavaScript (no framework dependencies other than the ones in ehrtslib)
 - Deno for building
 - Modern CSS (no framework)
 - Responsive design
@@ -30,6 +30,7 @@ This task list implements a demo static-site web application that demonstrates s
 - PRD: `/tasks/prd-phase4g1-serialization-deserialization.md`
 - Serialization modules: `enhanced/serialization/`
 - SIMPLIFIED-CREATION-GUIDE.md for TypeScript code generation examples
+- README.md
 
 ## 0. Create Initial Static Mockup
 
@@ -41,6 +42,7 @@ This task list implements a demo static-site web application that demonstrates s
   - [ ] Three-panel layout (input, options, output)
   - [ ] All form controls (dropdowns, checkboxes, textareas, buttons)
   - [ ] Example data pre-filled to show functionality
+  - [ j Option to upload example (in any of the formats)
   - [ ] Footer with links
 - [ ] 0.3 Create `examples/demo-app/mockup/styles.css` with complete styling:
   - [ ] Layout (grid/flexbox for panels)
