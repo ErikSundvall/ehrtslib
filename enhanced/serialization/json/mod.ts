@@ -40,6 +40,7 @@ export { JsonConfigurableDeserializer } from './json_configurable_deserializer.t
 export type {
   JsonSerializationConfig,
   JsonDeserializationConfig,
+  ArchetypeNodeIdLocation,
 } from './json_config.ts';
 export {
   DEFAULT_JSON_SERIALIZATION_CONFIG,

@@ -24,6 +24,7 @@ export { YamlDeserializer } from './yaml_deserializer.ts';
 export type {
   YamlSerializationConfig,
   YamlDeserializationConfig,
+  ArchetypeNodeIdLocation,
 } from './yaml_config.ts';
 export {
   DEFAULT_YAML_SERIALIZATION_CONFIG,

@@ -60,14 +60,14 @@ export function initializeTypeRegistry() {
   if (typeRegistryInitialized) {
     return;
   }
-  
+
   try {
     // Register RM types
     TypeRegistry.registerModule(openehr_rm);
-    
+
     // Register BASE types
     TypeRegistry.registerModule(openehr_base);
-    
+
     typeRegistryInitialized = true;
     console.log('✓ TypeRegistry initialized with', TypeRegistry.getAllTypeNames().length, 'types');
   } catch (error) {
@@ -97,7 +97,7 @@ export interface ConversionOptions {
   jsonConfig: JsonSerializationConfig;
   yamlConfig: YamlSerializationConfig;
   xmlConfig: { prettyPrint: boolean; indent: number; includeDeclaration: boolean; includeNamespaces: boolean };
-  typescriptConfig: { useTerse: boolean; useCompactConstructors: boolean; includeComments: boolean; indent: number };
+  typescriptConfig: { useTerse: boolean; usePrimitiveConstructors: boolean; includeComments: boolean; indent: number; includeUndefined?: boolean };
 }
 
 /**
@@ -123,14 +123,14 @@ export async function convert(input: string, options: ConversionOptions): Promis
   if (!typeRegistryInitialized) {
     initializeTypeRegistry();
   }
-  
+
   try {
     // Step 1: Deserialize input to RM object
     const rmObject = await deserializeInput(input, options.inputFormat, options.inputDeserializerConfig);
-    
+
     // Step 2: Serialize to requested output formats
     const outputs: Record<string, string> = {};
-    
+
     for (const format of options.outputFormats) {
       try {
         switch (format) {
@@ -152,12 +152,12 @@ export async function convert(input: string, options: ConversionOptions): Promis
         throw new Error(`Failed to convert to ${format}: ${(error as Error).message}`);
       }
     }
-    
+
     return {
       success: true,
       outputs
     };
-    
+
   } catch (error) {
     console.error('Conversion error:', error);
     return {
@@ -204,7 +204,11 @@ function serializeToJson(
 ): string {
   if (serializerType === 'canonical') {
     const serializer = new JsonCanonicalSerializer();
-    return serializer.serialize(obj);
+    return serializer.serialize(obj, {
+      prettyPrint: config.prettyPrint,
+      indent: config.indent,
+      archetypeNodeIdLocation: config.archetypeNodeIdLocation
+    });
   } else {
     const serializer = new JsonConfigurableSerializer(config);
     return serializer.serialize(obj);
@@ -240,26 +244,41 @@ function serializeToXml(
  */
 function generateTypeScriptCode(
   obj: any,
-  config: { useTerse: boolean; useCompactConstructors: boolean; includeComments: boolean; indent: number }
+  config: { useTerse: boolean; usePrimitiveConstructors: boolean; includeComments: boolean; indent: number; includeUndefined?: boolean }
 ): string {
   const indentStr = ' '.repeat(config.indent);
   let code = '';
-  
+
+  // Collect used types for named imports
+  const rmTypes = new Set<string>();
+  const baseTypes = new Set<string>();
+  collectUsedTypes(obj, rmTypes, baseTypes);
+
   // Add imports
-  code += `import * as openehr_rm from "./enhanced/openehr_rm.ts";\n`;
-  code += `import * as openehr_base from "./enhanced/openehr_base.ts";\n\n`;
-  
+  if (rmTypes.size > 0) {
+    code += `import { ${Array.from(rmTypes).sort().join(', ')} } from "./enhanced/openehr_rm.ts";\n`;
+  } else {
+    code += `import * as openehr_rm from "./enhanced/openehr_rm.ts";\n`;
+  }
+
+  if (baseTypes.size > 0) {
+    code += `import { ${Array.from(baseTypes).sort().join(', ')} } from "./enhanced/openehr_base.ts";\n`;
+  } else {
+    code += `import * as openehr_base from "./enhanced/openehr_base.ts";\n`;
+  }
+  code += `\n`;
+
   if (config.includeComments) {
     code += `// Generated TypeScript initialization code\n`;
     code += `// Based on openEHR Reference Model\n\n`;
   }
-  
+
   // Generate object initialization
   const variableName = generateVariableName(obj);
   code += `const ${variableName} = `;
   code += generateObjectCode(obj, config, 0);
   code += `;\n`;
-  
+
   return code;
 }
 
@@ -269,7 +288,7 @@ function generateTypeScriptCode(
 function generateVariableName(obj: any): string {
   const typeName = TypeRegistry.getTypeNameFromInstance(obj);
   if (!typeName) return 'rmObject';
-  
+
   return typeName.toLowerCase().replace(/_/g, '');
 }
 
@@ -278,13 +297,13 @@ function generateVariableName(obj: any): string {
  */
 function generateObjectCode(
   obj: any,
-  config: { useTerse: boolean; useCompactConstructors: boolean; includeComments: boolean; indent: number },
+  config: { useTerse: boolean; usePrimitiveConstructors: boolean; includeComments: boolean; indent: number; includeUndefined?: boolean },
   depth: number
 ): string {
   if (obj === null || obj === undefined) {
     return 'undefined';
   }
-  
+
   // Handle primitives
   if (typeof obj === 'string') {
     return JSON.stringify(obj);
@@ -292,26 +311,35 @@ function generateObjectCode(
   if (typeof obj === 'number' || typeof obj === 'boolean') {
     return String(obj);
   }
-  
+
   // Handle arrays
   if (Array.isArray(obj)) {
     if (obj.length === 0) {
       return '[]';
     }
     const indentStr = ' '.repeat(config.indent * (depth + 1));
-    const items = obj.map(item => 
+    const items = obj.map(item =>
       indentStr + generateObjectCode(item, config, depth + 1)
     ).join(',\n');
     return `[\n${items}\n${' '.repeat(config.indent * depth)}]`;
   }
-  
+
   // Handle objects
   const typeName = TypeRegistry.getTypeNameFromInstance(obj);
   if (!typeName) {
     // Plain object
     return JSON.stringify(obj, null, config.indent);
   }
-  
+
+  // Check for primitive wrapper optimization
+  if (config.usePrimitiveConstructors && isPrimitiveWrapper(typeName)) {
+    const keys = getAllPropertyNames(obj).filter(k => !k.startsWith('_') && !k.startsWith('$') && k !== 'constructor');
+    // If it only has 'value' and it's a primitive type, use the primitive value
+    if (keys.length === 1 && keys[0] === 'value' && (typeof obj.value === 'string' || typeof obj.value === 'number' || typeof obj.value === 'boolean')) {
+      return generateObjectCode(obj.value, config, depth);
+    }
+  }
+
   // Check for terse format opportunity
   if (config.useTerse && (typeName === 'CODE_PHRASE' || typeName === 'DV_CODED_TEXT')) {
     const terseForm = getTerseForm(obj, typeName);
@@ -319,19 +347,18 @@ function generateObjectCode(
       return JSON.stringify(terseForm);
     }
   }
-  
+
   // Generate constructor call
-  const modulePrefix = getModulePrefix(typeName);
-  let code = `new ${modulePrefix}.${typeName}(`;
-  
-  if (config.useCompactConstructors) {
+  let code = `new ${typeName}(`;
+
+  if (config.usePrimitiveConstructors) {
     // Use single initialization object
     code += generateInitObject(obj, config, depth + 1);
   } else {
     // Use individual property assignments (less common)
     code += generateInitObject(obj, config, depth + 1);
   }
-  
+
   code += ')';
   return code;
 }
@@ -341,13 +368,13 @@ function generateObjectCode(
  */
 function getModulePrefix(typeName: string): string {
   // Common BASE types
-  const baseTypes = ['TERMINOLOGY_ID', 'CODE_PHRASE', 'ARCHETYPE_ID', 'OBJECT_VERSION_ID', 
-                      'TEMPLATE_ID', 'GENERIC_ID', 'OBJECT_ID', 'UID_BASED_ID', 'HIER_OBJECT_ID'];
-  
+  const baseTypes = ['TERMINOLOGY_ID', 'CODE_PHRASE', 'ARCHETYPE_ID', 'OBJECT_VERSION_ID',
+    'TEMPLATE_ID', 'GENERIC_ID', 'OBJECT_ID', 'UID_BASED_ID', 'HIER_OBJECT_ID'];
+
   if (baseTypes.includes(typeName)) {
     return 'openehr_base';
   }
-  
+
   return 'openehr_rm';
 }
 
@@ -356,26 +383,68 @@ function getModulePrefix(typeName: string): string {
  */
 function generateInitObject(
   obj: any,
-  config: { useTerse: boolean; useCompactConstructors: boolean; includeComments: boolean; indent: number },
+  config: { useTerse: boolean; usePrimitiveConstructors: boolean; includeComments: boolean; indent: number; includeUndefined?: boolean },
   depth: number
 ): string {
   const indentStr = ' '.repeat(config.indent * depth);
   const properties: string[] = [];
-  
-  for (const [key, value] of Object.entries(obj)) {
+
+  let keys = getAllPropertyNames(obj);
+
+  // If includeUndefined is requested, try to get all possible keys from a default instance
+  if (config.includeUndefined) {
+    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+    if (typeName) {
+      try {
+        const moduleName = getModulePrefix(typeName);
+        // We need to access the module dynamically. Since we imported them as namespaces,
+        // we can check which one contains the type.
+        // Note: We use the imported namespaces openehr_rm and openehr_base from the top of the file
+        const module = moduleName === 'openehr_base' ? openehr_base : openehr_rm;
+        const Class = (module as any)[typeName];
+
+        if (Class) {
+          try {
+            const defaultInstance = new Class();
+            const defaultKeys = Object.keys(defaultInstance);
+            // Merge keys to ensure we have all properties, maintaining order of existing obj keys first if desired
+            // But usually we just want the union.
+            keys = Array.from(new Set([...keys, ...defaultKeys]));
+          } catch (e) {
+            // Constructor might fail if it requires arguments, ignore
+          }
+        }
+      } catch (e) {
+        // Ignore errors looking up default instance
+      }
+    }
+  }
+
+  for (const key of keys) {
     // Skip internal properties
     if (key.startsWith('_') || key === 'constructor') {
       continue;
     }
-    
+
+    // Get value, or undefined if not present
+    const value = obj[key];
+
+    // If value is explicitly undefined (or missing and we are including undefined), print it
+    if (value === undefined) {
+      if (config.includeUndefined) {
+        properties.push(`${indentStr}${key}: undefined`);
+      }
+      continue;
+    }
+
     const valueCode = generateObjectCode(value, config, depth);
     properties.push(`${indentStr}${key}: ${valueCode}`);
   }
-  
+
   if (properties.length === 0) {
     return '{}';
   }
-  
+
   return `{\n${properties.join(',\n')}\n${' '.repeat(config.indent * (depth - 1))}}`;
 }
 
@@ -401,6 +470,89 @@ function getTerseForm(obj: any, typeName: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Get all property names including getters from prototype chain
+ */
+function getAllPropertyNames(obj: any): string[] {
+  if (!obj || typeof obj !== 'object') return [];
+
+  const allProperties = new Set<string>();
+
+  // Add own properties (excluding internal ones)
+  Object.keys(obj).forEach(key => {
+    if (!key.startsWith('_') && !key.startsWith('$')) {
+      allProperties.add(key);
+    }
+  });
+
+  // Add properties from prototype chain (getters)
+  let proto = Object.getPrototypeOf(obj);
+  while (proto && proto !== Object.prototype) {
+    Object.getOwnPropertyNames(proto).forEach(key => {
+      if (key !== 'constructor' && !key.startsWith('_') && !key.startsWith('$')) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (descriptor && descriptor.get) {
+          allProperties.add(key);
+        }
+      }
+    });
+    proto = Object.getPrototypeOf(proto);
+  }
+
+  return Array.from(allProperties);
+}
+
+/**
+ * Recursively collect all RM/BASE types used in the object tree
+ */
+function collectUsedTypes(obj: any, rmTypes: Set<string>, baseTypes: Set<string>, visited = new Set<any>()) {
+  if (!obj || typeof obj !== 'object' || visited.has(obj)) return;
+  visited.add(obj);
+
+  if (Array.isArray(obj)) {
+    obj.forEach(item => collectUsedTypes(item, rmTypes, baseTypes, visited));
+    return;
+  }
+
+  const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+  if (typeName) {
+    const prefix = getModulePrefix(typeName);
+    if (prefix === 'openehr_base') {
+      baseTypes.add(typeName);
+    } else {
+      rmTypes.add(typeName);
+    }
+
+    // Get all properties and check them recursively
+    const keys = getAllPropertyNames(obj);
+    for (const key of keys) {
+      if (key.startsWith('_')) continue;
+
+      try {
+        const val = obj[key];
+        if (val !== undefined && val !== null) {
+          collectUsedTypes(val, rmTypes, baseTypes, visited);
+        }
+      } catch (e) {
+        // Ignore potentially failing getters
+      }
+    }
+  }
+}
+
+/**
+ * Check if a type is a simple primitive wrapper
+ */
+function isPrimitiveWrapper(typeName: string | undefined): boolean {
+  if (!typeName) return false;
+  const wrappers = [
+    'DV_TEXT', 'STRING', 'BOOLEAN', 'INTEGER', 'REAL',
+    'DV_DATE', 'DV_TIME', 'DV_DATE_TIME', 'DV_DURATION',
+    'TERMINOLOGY_ID', 'ARCHETYPE_ID', 'OBJECT_VERSION_ID', 'TEMPLATE_ID', 'HIER_OBJECT_ID'
+  ];
+  return wrappers.includes(typeName.toUpperCase());
 }
 
 /**

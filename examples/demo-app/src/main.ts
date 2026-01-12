@@ -4,7 +4,7 @@
  * Main entry point for the browser application.
  */
 
-import { EXAMPLES } from './examples.js';
+import { EXAMPLES } from './examples.ts';
 import {
   convert,
   initializeTypeRegistry,
@@ -15,7 +15,7 @@ import {
   type ConversionOptions,
   type InputFormat,
   type OutputFormat,
-} from './converter.js';
+} from './converter.ts';
 
 import type {
   JsonSerializationConfig,
@@ -36,7 +36,7 @@ let currentOutputs: any = {};
  */
 function init() {
   console.log('🚀 ehrtslib Format Converter initialized');
-  
+
   // Initialize TypeRegistry
   try {
     initializeTypeRegistry();
@@ -45,10 +45,10 @@ function init() {
     showError('Failed to initialize application. Please refresh the page.');
     return;
   }
-  
+
   // Set up event listeners
   setupEventListeners();
-  
+
   console.log('✓ Application ready');
 }
 
@@ -61,7 +61,7 @@ function setupEventListeners() {
   if (inputFormatSelect) {
     inputFormatSelect.addEventListener('change', handleInputFormatChange);
   }
-  
+
   // Load example button and menu
   const loadExampleBtn = document.getElementById('load-example');
   const exampleMenu = document.getElementById('example-menu');
@@ -69,7 +69,7 @@ function setupEventListeners() {
     loadExampleBtn.addEventListener('click', () => {
       exampleMenu.classList.toggle('hidden');
     });
-    
+
     // Example menu items
     const exampleItems = exampleMenu.querySelectorAll('.example-item');
     exampleItems.forEach(item => {
@@ -82,7 +82,7 @@ function setupEventListeners() {
       });
     });
   }
-  
+
   // Upload file button
   const uploadBtn = document.getElementById('upload-file');
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -90,39 +90,212 @@ function setupEventListeners() {
     uploadBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileUpload);
   }
-  
+
   // Clear input button
   const clearBtn = document.getElementById('clear-input');
   if (clearBtn) {
     clearBtn.addEventListener('click', clearInput);
   }
-  
+
   // Input textarea
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   if (inputTextarea) {
     inputTextarea.addEventListener('input', handleInputChange);
   }
-  
+
   // Convert button
   const convertBtn = document.getElementById('convert-btn');
   if (convertBtn) {
     convertBtn.addEventListener('click', handleConvert);
   }
-  
+
   // Preset dropdowns
   setupPresetListeners();
-  
+
   // Output tabs
   setupOutputTabs();
-  
+
+  // Splitters
+  setupSplitters();
+
   // Copy and download buttons
   setupCopyDownloadButtons();
-  
+
   // Dismiss error button
   const dismissErrorBtn = document.getElementById('dismiss-error');
   if (dismissErrorBtn) {
     dismissErrorBtn.addEventListener('click', hideError);
   }
+
+  // Output visibility
+  setupOutputVisibilityListeners();
+}
+
+/**
+ * Set up listeners for output format checkboxes to toggle tabs
+ */
+function setupOutputVisibilityListeners() {
+  const formats = ['xml', 'json', 'yaml', 'typescript'];
+
+  formats.forEach(format => {
+    const checkbox = document.getElementById(`output-${format}`) as HTMLInputElement;
+    if (checkbox) {
+      // Initial state
+      toggleOutputTab(format, checkbox.checked);
+
+      // Change listener
+      checkbox.addEventListener('change', () => {
+        toggleOutputTab(format, checkbox.checked);
+      });
+    }
+  });
+}
+
+/**
+ * Toggle visibility of an output tab and its options section
+ */
+function toggleOutputTab(format: string, visible: boolean) {
+  // Find the tab button
+  const tabs = document.querySelectorAll('.tab');
+  let tabBtn: HTMLElement | null = null;
+
+  tabs.forEach(t => {
+    if (t.getAttribute('data-tab') === format) {
+      tabBtn = t as HTMLElement;
+    }
+  });
+
+  // Find the options section
+  const optionsSection = document.getElementById(`${format}-options`);
+
+  if (!tabBtn) return;
+
+  if (visible) {
+    (tabBtn as HTMLElement).classList.remove('hidden');
+    if (optionsSection) {
+      optionsSection.classList.remove('hidden');
+    }
+  } else {
+    (tabBtn as HTMLElement).classList.add('hidden');
+    if (optionsSection) {
+      optionsSection.classList.add('hidden');
+    }
+
+    // If we just hid the active tab, switch to another one
+    if ((tabBtn as HTMLElement).classList.contains('active')) {
+      // Find first visible tab
+      const visibleTab = Array.from(document.querySelectorAll('.tab'))
+        .find(t => !t.classList.contains('hidden'));
+
+      if (visibleTab) {
+        const targetFormat = visibleTab.getAttribute('data-tab');
+        if (targetFormat) {
+          switchOutputTab(targetFormat);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Set up resizable splitters
+ */
+function setupSplitters() {
+  const splitterO1 = document.getElementById('splitter-1');
+  const splitterO2 = document.getElementById('splitter-2');
+
+  if (splitterO1) {
+    setupSplitter(splitterO1, 'input-panel', 'options-panel');
+  }
+
+  if (splitterO2) {
+    setupSplitter(splitterO2, 'options-panel', 'output-panel');
+  }
+}
+
+/**
+ * Set up a single splitter
+ */
+function setupSplitter(splitter: HTMLElement, leftClass: string, rightClass: string) {
+  let isDragging = false;
+  let startX: number;
+  let leftWidth: number;
+  let rightWidth: number;
+
+  const mainContent = document.querySelector('.main-content') as HTMLElement;
+
+  splitter.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    splitter.classList.add('active');
+
+    // Get panels
+    // We navigate DOM or query
+    const panels = Array.from(document.querySelectorAll('.panel'));
+    // Find the panels adjacent to this splitter
+    // Assuming DOM order: Input, Splitter1, Options, Splitter2, Output
+
+    // But easier to find by class if we know them
+    // Actually, simple resize logic:
+    // Left element is previousSibling, Right is nextSibling?
+    // Intermediate text nodes might exist.
+
+    e.preventDefault(); // Prevent text selection
+    document.body.style.cursor = 'col-resize';
+
+    // Disable iframe pointer events if any (none here)
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - startX;
+    startX = e.clientX; // Update for incremental change or use accumulative?
+    // Incremental is easier if we rely on flex-basis or width
+
+    // Let's use simple logic: 
+    // Previous Element Width += deltaX
+    // Next Element Width -= deltaX
+    // But dealing with flex: 1 and fixed widths is tricky.
+
+    // Better approach:
+    // When dragging Splitter 1 (Input | Options):
+    // Resize Input Panel (flex-grow/basis) and Options Panel (width).
+
+    // Let's find the elements dynamically
+    const prev = splitter.previousElementSibling as HTMLElement;
+    const next = splitter.nextElementSibling as HTMLElement;
+
+    if (prev && next) {
+      const prevRect = prev.getBoundingClientRect();
+      const nextRect = next.getBoundingClientRect();
+
+      // Apply new widths. Note: We need to switch from flex 1 to explicit px or % during drag?
+      // Or simply adjust flex-basis?
+
+      const newPrevWidth = prevRect.width + deltaX;
+      const newNextWidth = nextRect.width - deltaX;
+
+      // Minimum width check
+      if (newPrevWidth > 200 && newNextWidth > 200) {
+        prev.style.flex = `0 0 ${newPrevWidth}px`;
+        next.style.flex = `0 0 ${newNextWidth}px`;
+        // Also explicit width to be safe
+        prev.style.width = `${newPrevWidth}px`;
+        next.style.width = `${newNextWidth}px`;
+      }
+
+      startX = e.clientX; // Reset startX to current to avoid accumulation drift
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      splitter.classList.remove('active');
+      document.body.style.cursor = '';
+    }
+  });
 }
 
 /**
@@ -137,7 +310,7 @@ function setupPresetListeners() {
       updateInputDeserializerOptions(preset);
     });
   }
-  
+
   // JSON config preset
   const jsonConfigPreset = document.getElementById('json-config-preset') as HTMLSelectElement;
   if (jsonConfigPreset) {
@@ -146,7 +319,17 @@ function setupPresetListeners() {
       updateJsonOptions(preset);
     });
   }
-  
+
+  // JSON serializer type
+  const jsonSerializerType = document.getElementById('json-serializer-type') as HTMLSelectElement;
+  if (jsonSerializerType) {
+    jsonSerializerType.addEventListener('change', () => {
+      // Trigger update of options based on current preset and serializer
+      const preset = jsonConfigPreset?.value || 'custom';
+      updateJsonOptions(preset);
+    });
+  }
+
   // YAML config preset
   const yamlConfigPreset = document.getElementById('yaml-config-preset') as HTMLSelectElement;
   if (yamlConfigPreset) {
@@ -155,7 +338,7 @@ function setupPresetListeners() {
       updateYamlOptions(preset);
     });
   }
-  
+
   // XML config preset
   const xmlConfigPreset = document.getElementById('xml-config-preset') as HTMLSelectElement;
   if (xmlConfigPreset) {
@@ -189,11 +372,11 @@ function setupCopyDownloadButtons() {
   formats.forEach(format => {
     const copyBtn = document.getElementById(`copy-${format}`);
     const downloadBtn = document.getElementById(`download-${format}`);
-    
+
     if (copyBtn) {
       copyBtn.addEventListener('click', () => copyToClipboard(format));
     }
-    
+
     if (downloadBtn) {
       downloadBtn.addEventListener('click', () => downloadOutput(format));
     }
@@ -217,16 +400,16 @@ function loadExample(exampleKey: string) {
     console.error('Example not found:', exampleKey);
     return;
   }
-  
+
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
-  
+
   if (inputTextarea && formatSelect) {
     // Load the appropriate format
     const format = formatSelect.value;
     inputTextarea.value = example[format as keyof typeof example] as string || example.json;
     currentInputFormat = format;
-    
+
     // Update character count and validation
     handleInputChange();
   }
@@ -238,14 +421,14 @@ function loadExample(exampleKey: string) {
 async function handleFileUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
-  
+
   try {
     const text = await file.text();
     const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
     if (inputTextarea) {
       inputTextarea.value = text;
       handleInputChange();
-      
+
       // Try to detect format from file extension
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext === 'xml' || ext === 'json' || ext === 'yaml' || ext === 'yml') {
@@ -279,21 +462,21 @@ function clearInput() {
 function handleInputChange() {
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   if (!inputTextarea) return;
-  
+
   const text = inputTextarea.value;
-  
+
   // Update character count
   const charCount = document.getElementById('char-count');
   if (charCount) {
     charCount.textContent = text.length.toString();
   }
-  
+
   // Update line count
   const lineCount = document.getElementById('line-count');
   if (lineCount) {
     lineCount.textContent = (text.split('\n').length).toString();
   }
-  
+
   // Validate input
   validateInput();
 }
@@ -305,9 +488,9 @@ function validateInput() {
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   const validationIcon = document.getElementById('validation-icon');
   const validationText = document.getElementById('validation-text');
-  
+
   if (!inputTextarea || !validationIcon || !validationText) return;
-  
+
   const text = inputTextarea.value.trim();
   if (!text) {
     validationIcon.textContent = '○';
@@ -315,7 +498,7 @@ function validateInput() {
     validationText.textContent = 'Empty';
     return;
   }
-  
+
   // Simple format validation
   try {
     if (currentInputFormat === 'json') {
@@ -354,34 +537,34 @@ async function handleConvert() {
   console.log('🔄 Converting...');
   showLoading();
   hideError();
-  
+
   try {
     const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
     if (!inputTextarea) throw new Error('Input textarea not found');
-    
+
     const inputText = inputTextarea.value.trim();
     if (!inputText) throw new Error('Input is empty');
-    
+
     // Gather conversion options from UI
     const options = gatherConversionOptions();
-    
+
     // Perform conversion
     const result = await convert(inputText, options);
-    
+
     hideLoading();
-    
+
     if (!result.success) {
       showError(result.error || 'Conversion failed');
       return;
     }
-    
+
     // Update output panels
     if (result.outputs) {
       updateOutputs(result.outputs);
     }
-    
+
     console.log('✅ Conversion successful');
-    
+
   } catch (error) {
     hideLoading();
     console.error('Conversion error:', error);
@@ -396,11 +579,11 @@ function gatherConversionOptions(): ConversionOptions {
   // Input format
   const inputFormatSelect = document.getElementById('input-format') as HTMLSelectElement;
   const inputFormat = (inputFormatSelect?.value || 'json') as InputFormat;
-  
+
   // Input deserializer config
   const inputDeserializerPreset = (document.getElementById('input-deserializer-preset') as HTMLSelectElement)?.value || 'default';
   const inputDeserializerConfig = getJsonDeserializeConfigPreset(inputDeserializerPreset);
-  
+
   // Output formats
   const outputFormats: OutputFormat[] = [];
   if ((document.getElementById('output-xml') as HTMLInputElement)?.checked) {
@@ -415,25 +598,29 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
     outputFormats.push('typescript');
   }
-  
+
   // JSON serializer type and config
   const jsonSerializerType = ((document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable') as 'canonical' | 'configurable';
   const jsonConfigPreset = (document.getElementById('json-config-preset') as HTMLSelectElement)?.value || 'canonical';
   const jsonConfig = getJsonConfigPreset(jsonConfigPreset);
-  
+  const jsonArchIdLoc = (document.getElementById('json-arch-id-location') as HTMLSelectElement)?.value as any;
+  if (jsonArchIdLoc) jsonConfig.archetypeNodeIdLocation = jsonArchIdLoc;
+
   // Apply custom JSON settings if preset is 'custom'
   if (jsonConfigPreset === 'custom') {
     const indent = parseInt((document.getElementById('json-indent') as HTMLInputElement)?.value || '2');
     jsonConfig.indent = indent;
     jsonConfig.useTerseFormat = (document.getElementById('json-terse') as HTMLInputElement)?.checked || false;
     jsonConfig.useHybridStyle = (document.getElementById('json-hybrid') as HTMLInputElement)?.checked || false;
-    jsonConfig.useTypeInference = (document.getElementById('json-type-inference') as HTMLInputElement)?.checked || false;
+    // jsonConfig.useTypeInference = (document.getElementById('json-type-inference') as HTMLInputElement)?.checked || false;
   }
-  
+
   // YAML config
   const yamlConfigPreset = (document.getElementById('yaml-config-preset') as HTMLSelectElement)?.value || 'default';
   const yamlConfig = getYamlConfigPreset(yamlConfigPreset);
-  
+  const yamlArchIdLoc = (document.getElementById('yaml-arch-id-location') as HTMLSelectElement)?.value as any;
+  if (yamlArchIdLoc) yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
+
   // Apply custom YAML settings if preset is 'custom'
   if (yamlConfigPreset === 'custom') {
     const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
@@ -441,7 +628,7 @@ function gatherConversionOptions(): ConversionOptions {
     yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
     yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
   }
-  
+
   // XML config
   const xmlConfigPreset = (document.getElementById('xml-config-preset') as HTMLSelectElement)?.value || 'default';
   const xmlIndent = parseInt((document.getElementById('xml-indent') as HTMLInputElement)?.value || '2');
@@ -451,16 +638,17 @@ function gatherConversionOptions(): ConversionOptions {
     includeDeclaration: (document.getElementById('xml-declaration') as HTMLInputElement)?.checked !== false,
     includeNamespaces: (document.getElementById('xml-namespaces') as HTMLInputElement)?.checked !== false,
   };
-  
+
   // TypeScript config
   const tsIndent = parseInt((document.getElementById('ts-indent') as HTMLInputElement)?.value || '2');
   const typescriptConfig = {
     useTerse: (document.getElementById('ts-terse') as HTMLInputElement)?.checked !== false,
-    useCompactConstructors: (document.getElementById('ts-compact') as HTMLInputElement)?.checked !== false,
+    usePrimitiveConstructors: (document.getElementById('ts-compact') as HTMLInputElement)?.checked !== false,
     includeComments: (document.getElementById('ts-comments') as HTMLInputElement)?.checked || false,
     indent: tsIndent,
+    includeUndefined: (document.getElementById('ts-include-undefined') as HTMLInputElement)?.checked || false,
   };
-  
+
   return {
     inputFormat,
     inputDeserializerConfig,
@@ -483,21 +671,21 @@ function updateOutputs(outputs: Record<string, string>) {
       xmlContent.textContent = outputs.xml;
     }
   }
-  
+
   if (outputs.json) {
     const jsonContent = document.getElementById('output-json-content');
     if (jsonContent) {
       jsonContent.textContent = outputs.json;
     }
   }
-  
+
   if (outputs.yaml) {
     const yamlContent = document.getElementById('output-yaml-content');
     if (yamlContent) {
       yamlContent.textContent = outputs.yaml;
     }
   }
-  
+
   if (outputs.typescript) {
     const tsContent = document.getElementById('output-typescript-content');
     if (tsContent) {
@@ -513,13 +701,13 @@ function updateInputDeserializerOptions(preset: string) {
   const strictCheckbox = document.getElementById('input-strict') as HTMLInputElement;
   const terseCheckbox = document.getElementById('input-parse-terse') as HTMLInputElement;
   const incompleteCheckbox = document.getElementById('input-allow-incomplete') as HTMLInputElement;
-  
+
   const isCustom = preset === 'custom';
-  
+
   [strictCheckbox, terseCheckbox, incompleteCheckbox].forEach(checkbox => {
     if (checkbox) checkbox.disabled = !isCustom;
   });
-  
+
   if (!isCustom && strictCheckbox && terseCheckbox && incompleteCheckbox) {
     // Set values based on preset
     switch (preset) {
@@ -558,45 +746,71 @@ function updateJsonOptions(preset: string) {
   const typeInferenceCheckbox = document.getElementById('json-type-inference') as HTMLInputElement;
   const includeNullCheckbox = document.getElementById('json-include-null') as HTMLInputElement;
   const includeEmptyCheckbox = document.getElementById('json-include-empty') as HTMLInputElement;
-  
-  const isCustom = preset === 'custom';
-  
-  // Enable/disable based on custom
-  [prettyCheckbox, indentInput, terseCheckbox, hybridCheckbox, typeInferenceCheckbox, includeNullCheckbox, includeEmptyCheckbox].forEach(elem => {
-    if (elem) elem.disabled = !isCustom;
-  });
-  
-  if (!isCustom) {
-    // Apply preset values
-    switch (preset) {
-      case 'canonical':
-        if (prettyCheckbox) prettyCheckbox.checked = true;
-        if (terseCheckbox) terseCheckbox.checked = false;
-        if (hybridCheckbox) hybridCheckbox.checked = false;
-        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
-        if (includeEmptyCheckbox) includeEmptyCheckbox.checked = true;
-        break;
-      case 'compact':
-        if (prettyCheckbox) prettyCheckbox.checked = true;
-        if (terseCheckbox) terseCheckbox.checked = false;
-        if (hybridCheckbox) hybridCheckbox.checked = false;
-        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
-        if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
-        break;
-      case 'hybrid':
-        if (prettyCheckbox) prettyCheckbox.checked = true;
-        if (terseCheckbox) terseCheckbox.checked = true;
-        if (hybridCheckbox) hybridCheckbox.checked = true;
-        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
-        if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
-        break;
-      case 'very-compact':
-        if (prettyCheckbox) prettyCheckbox.checked = true;
-        if (terseCheckbox) terseCheckbox.checked = true;
-        if (hybridCheckbox) hybridCheckbox.checked = false;
-        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
-        if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
-        break;
+  const configPresetSelect = document.getElementById('json-config-preset') as HTMLSelectElement;
+  const archIdLocSelect = document.getElementById('json-arch-id-location') as HTMLSelectElement;
+
+  const serializerType = (document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable';
+  const isCanonicalSerializer = serializerType === 'canonical';
+
+  if (isCanonicalSerializer) {
+    // If Canonical Serializer is selected:
+    // - Config preset is disabled
+    // - Pretty print and indent are enabled (customizable)
+    // - All other configurable options are disabled
+    if (configPresetSelect) configPresetSelect.disabled = true;
+
+    if (prettyCheckbox) prettyCheckbox.disabled = false;
+    if (indentInput) indentInput.disabled = false;
+    if (archIdLocSelect) archIdLocSelect.disabled = false;
+
+    // Disable irrelevant options
+    [terseCheckbox, hybridCheckbox, typeInferenceCheckbox, includeNullCheckbox, includeEmptyCheckbox].forEach(elem => {
+      if (elem) elem.disabled = true;
+    });
+
+  } else {
+    // Configurable Serializer
+    if (configPresetSelect) configPresetSelect.disabled = false;
+
+    const isCustom = preset === 'custom';
+
+    // Enable/disable based on custom
+    [prettyCheckbox, indentInput, terseCheckbox, hybridCheckbox, typeInferenceCheckbox, includeNullCheckbox, includeEmptyCheckbox, archIdLocSelect].forEach(elem => {
+      if (elem) elem.disabled = !isCustom;
+    });
+
+    if (!isCustom) {
+      // Apply preset values
+      switch (preset) {
+        case 'canonical':
+          if (prettyCheckbox) prettyCheckbox.checked = true;
+          if (terseCheckbox) terseCheckbox.checked = false;
+          if (hybridCheckbox) hybridCheckbox.checked = false;
+          if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
+          if (includeEmptyCheckbox) includeEmptyCheckbox.checked = true;
+          break;
+        case 'compact':
+          if (prettyCheckbox) prettyCheckbox.checked = true;
+          if (terseCheckbox) terseCheckbox.checked = false;
+          if (hybridCheckbox) hybridCheckbox.checked = false;
+          if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+          if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
+          break;
+        case 'hybrid':
+          if (prettyCheckbox) prettyCheckbox.checked = true;
+          if (terseCheckbox) terseCheckbox.checked = true;
+          if (hybridCheckbox) hybridCheckbox.checked = true;
+          if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+          if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
+          break;
+        case 'very-compact':
+          if (prettyCheckbox) prettyCheckbox.checked = true;
+          if (terseCheckbox) terseCheckbox.checked = true;
+          if (hybridCheckbox) hybridCheckbox.checked = false;
+          if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+          if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
+          break;
+      }
     }
   }
 }
@@ -610,13 +824,14 @@ function updateYamlOptions(preset: string) {
   const terseCheckbox = document.getElementById('yaml-terse') as HTMLInputElement;
   const typeInferenceCheckbox = document.getElementById('yaml-type-inference') as HTMLInputElement;
   const indentInput = document.getElementById('yaml-indent') as HTMLInputElement;
-  
+  const archIdLocSelect = document.getElementById('yaml-arch-id-location') as HTMLSelectElement;
+
   const isCustom = preset === 'custom';
-  
-  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput].forEach(elem => {
+
+  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput, archIdLocSelect].forEach(elem => {
     if (elem) elem.disabled = !isCustom;
   });
-  
+
   if (!isCustom) {
     switch (preset) {
       case 'default':
@@ -650,14 +865,14 @@ function updateXmlOptions(preset: string) {
   const prettyCheckbox = document.getElementById('xml-pretty') as HTMLInputElement;
   const namespacesCheckbox = document.getElementById('xml-namespaces') as HTMLInputElement;
   const declarationCheckbox = document.getElementById('xml-declaration') as HTMLInputElement;
-  const indentInput = document.getElementById('xml-indent') as HTMLInputInput;
-  
+  const indentInput = document.getElementById('xml-indent') as HTMLInputElement;
+
   const isCustom = preset === 'custom';
-  
+
   [prettyCheckbox, namespacesCheckbox, declarationCheckbox, indentInput].forEach(elem => {
     if (elem) elem.disabled = !isCustom;
   });
-  
+
   if (!isCustom && prettyCheckbox && namespacesCheckbox && declarationCheckbox) {
     // Default preset
     prettyCheckbox.checked = true;
@@ -679,7 +894,7 @@ function switchOutputTab(tabName: string) {
       tab.classList.remove('active');
     }
   });
-  
+
   // Update tab panes
   const panes = document.querySelectorAll('.tab-pane');
   panes.forEach(pane => {
@@ -700,9 +915,9 @@ async function copyToClipboard(format: string) {
     console.error('Output element not found:', format);
     return;
   }
-  
+
   const text = outputElement.textContent || '';
-  
+
   try {
     await navigator.clipboard.writeText(text);
     showSuccessMessage(format);
@@ -721,7 +936,7 @@ function downloadOutput(format: string) {
     console.error('Output element not found:', format);
     return;
   }
-  
+
   const text = outputElement.textContent || '';
   const extensions: Record<string, string> = {
     xml: 'xml',
@@ -729,13 +944,13 @@ function downloadOutput(format: string) {
     yaml: 'yaml',
     typescript: 'ts'
   };
-  
+
   const ext = extensions[format] || 'txt';
   const filename = `openehr_output.${ext}`;
-  
+
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
-  
+
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
@@ -784,7 +999,7 @@ function hideLoading() {
 function showError(message: string) {
   const errorState = document.getElementById('error-state');
   const errorText = document.getElementById('error-text');
-  
+
   if (errorState && errorText) {
     errorText.textContent = message;
     errorState.classList.remove('hidden');

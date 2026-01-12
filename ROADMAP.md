@@ -484,10 +484,22 @@ Also update relevant tests, examples and documentation/readme-files
 ## Phase 4g.5 Implement demo web application
 - Implement the demo web application code based on `/tasks/task-list-phase4g5-demo-app.md`
 
+## Phase 4g.6 Improve demo web application
+- Improve the demo web application code based on `/tasks/task-list-phase4g6-improve-demo-app.md` corrently available in the `/examples/demo-app` directory
+- make the input and output panes expand to fill the available space
+- make the input and output panes scrollable if the content is too large
+- make the input and output panes resizable
+- Don't prefill the output pane with dummy data, instead run a first conversion of input pane example.
+- stop calling the app "mockup" and instead call it "Ehrtslib-demo-app" and change directory names etc.
+
+
 ## Phase 5a
-Implement the AM package, use deepwiki and the files in /instructions to understand
-AM and the task at hand. Note that there is an official grammar for the ADL language
-available form openEHR - documentation of it is also available via Deepwiki
+- Implement/refine any remaining classes of the AM package, use deepwiki and the files in /instructions to understand. If needed improve the files in /instructions first.
+- A central piece is creating an ADL parser that can parse ADL2 files and generate example or validate RM object instance trees from them. Note that there is an official grammar for the ADL language available form openEHR - documentation of it is also available via Deepwiki. 
+- We want to base our AM implementation primarily on verstion 2 of ADL and AOM and later make conversions to/from version 1.4 etc. 
+- We need to find a fairly non intrusive way of adding AM validation to the existing BASE+RM implementation. Remember that we want to be able to add more classes or alternative RMs (or RM verions) in the future and still use the same AM. Not that already we have an inital implemtation of a type registry in the serialisation code of the existing RM implementation.
+- Feel free to use any existing AM implementation (like Archie and other previously mentioned implementations) as a reference, but try to make it as TypeScript native/natural as possible adn with few dependencies.
+- When maiking the PRD for this step do the research to find the best way to implement this so that the suggestion can be inspected in the PRD before actual implementation.
 
 ## Phase 6
 Exploration of:

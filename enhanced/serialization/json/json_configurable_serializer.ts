@@ -29,7 +29,7 @@ import {
  */
 export class JsonConfigurableSerializer {
   private config: Required<JsonSerializationConfig>;
-  
+
   /**
    * Create a JSON serializer with the given configuration
    * 
@@ -38,7 +38,7 @@ export class JsonConfigurableSerializer {
   constructor(config: JsonSerializationConfig = {}) {
     this.config = { ...DEFAULT_JSON_SERIALIZATION_CONFIG, ...config };
   }
-  
+
   /**
    * Serialize an RM object to JSON string
    * 
@@ -49,7 +49,7 @@ export class JsonConfigurableSerializer {
   serialize(obj: any): string {
     try {
       const jsonObj = this.toJsonObject(obj);
-      
+
       if (this.config.prettyPrint) {
         return JSON.stringify(jsonObj, null, this.config.indent);
       } else {
@@ -63,7 +63,7 @@ export class JsonConfigurableSerializer {
       );
     }
   }
-  
+
   /**
    * Convert an RM object to a plain JSON object
    * 
@@ -77,11 +77,11 @@ export class JsonConfigurableSerializer {
     if (obj === null || obj === undefined) {
       return this.config.includeNullValues ? null : undefined;
     }
-    
+
     if (typeof obj !== 'object') {
       return obj;
     }
-    
+
     // Handle arrays
     if (Array.isArray(obj)) {
       const result = obj.map(item => this.toJsonObject(item, parentType, propertyName));
@@ -90,29 +90,29 @@ export class JsonConfigurableSerializer {
       }
       return result;
     }
-    
+
     // Handle terse format conversion if enabled
     if (this.config.useTerseFormat && this.canUseTerseFormat(obj)) {
       return this.toTerseFormat(obj);
     }
-    
+
     // Get type information
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    
+
     // Create result object
     const result: Record<string, any> = {};
-    
+
     // Add type property if needed
     if (this.shouldIncludeType(obj, typeName, parentType, propertyName)) {
       result[this.config.typePropertyName] = typeName || obj.constructor.name.toUpperCase();
     }
-    
+
     // Get all property names including getters
     const allProperties = new Set<string>();
-    
+
     // Add own properties
     Object.keys(obj).forEach(key => allProperties.add(key));
-    
+
     // Add properties from prototype chain (getters)
     let proto = Object.getPrototypeOf(obj);
     while (proto && proto !== Object.prototype) {
@@ -126,44 +126,65 @@ export class JsonConfigurableSerializer {
       });
       proto = Object.getPrototypeOf(proto);
     }
-    
-    // Serialize all properties
-    for (const key of allProperties) {
+
+    // Collect properties to serialize
+    const props = Array.from(allProperties).filter(key => {
       // Skip internal properties (starting with _ or $)
-      if (key.startsWith('_') || key.startsWith('$')) {
-        continue;
-      }
-      
+      if (key.startsWith('_') || key.startsWith('$')) return false;
       // Skip functions
-      if (typeof obj[key] === 'function') {
-        continue;
-      }
-      
-      const value = obj[key];
-      
+      if (typeof obj[key] === 'function') return false;
       // Skip null/undefined if not including them
-      if ((value === null || value === undefined) && !this.config.includeNullValues) {
-        continue;
+      if ((obj[key] === null || obj[key] === undefined) && !this.config.includeNullValues) return false;
+      return true;
+    });
+
+    // Reorder properties if archetype_node_id is present
+    let orderedKeys: string[] = [];
+    const archIdLocation = this.config.archetypeNodeIdLocation;
+    const hasArchId = props.includes('archetype_node_id');
+    const hasName = props.includes('name');
+
+    if (hasArchId) {
+      const rest = props.filter(k => k !== 'archetype_node_id');
+      if (archIdLocation === 'beginning') {
+        orderedKeys = ['archetype_node_id', ...rest];
+      } else if (archIdLocation === 'after_name' && hasName) {
+        for (const key of rest) {
+          orderedKeys.push(key);
+          if (key === 'name') orderedKeys.push('archetype_node_id');
+        }
+      } else if (archIdLocation === 'end') {
+        orderedKeys = [...rest, 'archetype_node_id'];
+      } else {
+        // Fallback for 'after_name' if name not found, or any other case
+        orderedKeys = [...rest, 'archetype_node_id'];
       }
-      
+    } else {
+      orderedKeys = props;
+    }
+
+    // Serialize properties in order
+    for (const key of orderedKeys) {
+      const value = obj[key];
+
       // Recursively convert
       const jsonValue = this.toJsonObject(value, typeName, key);
-      
+
       // Skip undefined values
       if (jsonValue !== undefined) {
         result[key] = jsonValue;
       }
     }
-    
+
     // Skip empty objects if not including them
     const hasProperties = Object.keys(result).some(k => k !== this.config.typePropertyName);
     if (!hasProperties && !this.config.includeEmptyCollections) {
       return undefined;
     }
-    
+
     return result;
   }
-  
+
   /**
    * Serialize with a specific configuration (one-time use)
    * 
@@ -172,10 +193,10 @@ export class JsonConfigurableSerializer {
    * @returns JSON string
    */
   static serializeWith(obj: any, config: JsonSerializationConfig): string {
-    const serializer = new JsonSerializer(config);
+    const serializer = new JsonConfigurableSerializer(config);
     return serializer.serialize(obj);
   }
-  
+
   /**
    * Determine if type property should be included
    */
@@ -189,21 +210,21 @@ export class JsonConfigurableSerializer {
     if (this.config.alwaysIncludeType) {
       return true;
     }
-    
+
     // If no type name, we can't include it
     if (!typeName) {
       return false;
     }
-    
+
     // If no context (top-level), include type
     if (!parentType || !propertyName) {
       return true;
     }
-    
+
     // Use type inference to decide
     return !TypeInferenceEngine.canOmitType(propertyName, parentType, obj);
   }
-  
+
   /**
    * Check if an object can use terse format
    */
@@ -211,25 +232,25 @@ export class JsonConfigurableSerializer {
     if (!obj || typeof obj !== 'object') {
       return false;
     }
-    
+
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
     return typeName === 'CODE_PHRASE' || typeName === 'DV_CODED_TEXT';
   }
-  
+
   /**
    * Convert object to terse format string
    */
   private toTerseFormat(obj: any): string {
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    
+
     if (typeName === 'CODE_PHRASE') {
       return toTerseCodePhrase(obj);
     }
-    
+
     if (typeName === 'DV_CODED_TEXT') {
       return toTerseDvCodedText(obj);
     }
-    
+
     throw new SerializationError(`Cannot convert ${typeName} to terse format`, obj);
   }
 }

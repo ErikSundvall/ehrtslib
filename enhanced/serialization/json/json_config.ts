@@ -1,9 +1,5 @@
-/**
- * JSON Serialization Configuration
- * 
- * Defines configuration options for JSON serialization and deserialization
- * of openEHR RM objects, following the openEHR ITS-JSON specification.
- */
+import { ArchetypeNodeIdLocation } from '../common/mod.ts';
+export type { ArchetypeNodeIdLocation };
 
 /**
  * Configuration options for JSON serialization
@@ -14,7 +10,7 @@ export interface JsonSerializationConfig {
    * @default "_type"
    */
   typePropertyName?: string;
-  
+
   /**
    * Always include the type property, even when it could be inferred.
    * Setting this to false enables type inference which reduces JSON size but may
@@ -22,31 +18,31 @@ export interface JsonSerializationConfig {
    * @default true (for canonical JSON compliance and maximum interoperability)
    */
   alwaysIncludeType?: boolean;
-  
+
   /**
    * Include properties with null values
    * @default false
    */
   includeNullValues?: boolean;
-  
+
   /**
    * Include empty collections (arrays/objects)
    * @default true
    */
   includeEmptyCollections?: boolean;
-  
+
   /**
    * Use pretty printing (formatted with indentation)
    * @default false
    */
   prettyPrint?: boolean;
-  
+
   /**
    * Indentation size (spaces) when pretty printing
    * @default 2
    */
   indent?: number;
-  
+
   /**
    * Use terse format for CODE_PHRASE and DV_CODED_TEXT
    * 
@@ -57,7 +53,7 @@ export interface JsonSerializationConfig {
    * @default false
    */
   useTerseFormat?: boolean;
-  
+
   /**
    * Use hybrid style formatting (zipehr-like)
    * Simple objects inline, complex objects with line breaks
@@ -65,13 +61,20 @@ export interface JsonSerializationConfig {
    * @default false
    */
   useHybridStyle?: boolean;
-  
+
   /**
    * Maximum properties for inline formatting in hybrid style
    * Note: Only used when useHybridStyle is true, ignored otherwise
    * @default 3
    */
   maxInlineProperties?: number;
+
+  /**
+   * Location of the archetype_node_id property in the serialized output.
+   * 
+   * @default 'after_name' (recommended for readability)
+   */
+  archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
 }
 
 /**
@@ -83,19 +86,19 @@ export interface JsonDeserializationConfig {
    * @default "_type"
    */
   typePropertyName?: string;
-  
+
   /**
    * Strict mode: fail on unknown types or missing required properties
    * @default false
    */
   strict?: boolean;
-  
+
   /**
    * Allow incomplete objects (missing required properties)
    * @default false
    */
   allowIncomplete?: boolean;
-  
+
   /**
    * Parse terse format strings to CODE_PHRASE and DV_CODED_TEXT
    * Automatically detects and converts strings like "ISO_639-1::en"
@@ -119,6 +122,7 @@ export const DEFAULT_JSON_SERIALIZATION_CONFIG: Required<JsonSerializationConfig
   useTerseFormat: false,
   useHybridStyle: false,
   maxInlineProperties: 3,
+  archetypeNodeIdLocation: 'after_name',
 };
 
 /**
@@ -144,6 +148,7 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
   indent: 2,
   useTerseFormat: false,
   useHybridStyle: false,
+  archetypeNodeIdLocation: 'after_name',
 };
 
 /**

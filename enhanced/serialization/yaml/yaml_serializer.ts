@@ -43,7 +43,7 @@ const YAML_NODE_TYPES = {
  */
 export class YamlSerializer {
   private config: Required<YamlSerializationConfig>;
-  
+
   /**
    * Create a YAML serializer with the given configuration
    * 
@@ -52,7 +52,7 @@ export class YamlSerializer {
   constructor(config: YamlSerializationConfig = {}) {
     this.config = { ...DEFAULT_YAML_SERIALIZATION_CONFIG, ...config };
   }
-  
+
   /**
    * Serialize an RM object to YAML string
    * 
@@ -64,15 +64,15 @@ export class YamlSerializer {
     try {
       // Convert to plain object
       const plainObj = this.toPlainObject(obj);
-      
+
       // For hybrid style, use Document API for fine-grained control
       if (this.config.hybridStyle) {
         return this.serializeHybrid(plainObj);
       }
-      
+
       // Configure YAML stringify options
       const options = this.getYamlOptions();
-      
+
       // Serialize to YAML
       return stringify(plainObj, options);
     } catch (error) {
@@ -83,7 +83,7 @@ export class YamlSerializer {
       );
     }
   }
-  
+
   /**
    * Serialize with hybrid formatting using Document API
    * This allows fine-grained control over flow vs block style
@@ -93,17 +93,16 @@ export class YamlSerializer {
    */
   private serializeHybrid(obj: any): string {
     const doc = new Document(obj);
-    
-    // Configure document options
-    doc.options.indent = this.config.indent;
-    doc.options.lineWidth = this.config.lineWidth;
-    
+
     // Walk the document tree and set flow/block style based on complexity
     this.applyHybridFormattingToNode(doc.contents, 0);
-    
-    return doc.toString();
+
+    return doc.toString({
+      indent: this.config.indent,
+      lineWidth: this.config.lineWidth,
+    });
   }
-  
+
   /**
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
@@ -117,21 +116,21 @@ export class YamlSerializer {
    */
   private applyHybridFormattingToNode(node: any, depth: number): void {
     if (!node) return;
-    
+
     // Handle different node types
     if (node.items && Array.isArray(node.items)) {
       // This is a collection (array or map)
-      
+
       if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
         // Check if this map should be inline
         const shouldBeInline = this.shouldNodeBeInline(node);
-        
+
         if (shouldBeInline) {
           node.flow = true;  // Use flow style (inline)
         } else {
           node.flow = false; // Use block style
         }
-        
+
         // Recurse into map items
         for (const pair of node.items) {
           if (pair.value) {
@@ -141,7 +140,7 @@ export class YamlSerializer {
       } else if (node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
         // Sequence/array - usually keep block style
         node.flow = false;
-        
+
         // Recurse into sequence items
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
@@ -149,7 +148,7 @@ export class YamlSerializer {
       }
     }
   }
-  
+
   /**
    * Determine if a YAML node should be formatted inline
    * 
@@ -160,31 +159,31 @@ export class YamlSerializer {
     if (!node.items || !Array.isArray(node.items)) {
       return true; // Scalars are always inline
     }
-    
+
     // For maps, check number of properties and complexity
     if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
       const numProps = node.items.length;
-      
+
       // Too many properties -> block style
       // Use default value if maxInlineProperties is undefined
       const maxProps = this.config.maxInlineProperties ?? 3;
       if (numProps > maxProps) {
         return false;
       }
-      
+
       // Check if any values are complex
       for (const pair of node.items) {
         if (this.isNodeComplex(pair.value)) {
           return false;
         }
       }
-      
+
       return true;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Check if a YAML node is complex (contains nested objects/arrays)
    * 
@@ -193,21 +192,21 @@ export class YamlSerializer {
    */
   private isNodeComplex(node: any): boolean {
     if (!node) return false;
-    
+
     // Scalars are not complex
     if (node.type === YAML_NODE_TYPES.SCALAR || !node.items) {
       return false;
     }
-    
+
     // Maps and sequences are complex
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP || 
-        node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
+    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP ||
+      node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
       return true;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Convert an RM object to a plain object suitable for YAML serialization
    * 
@@ -221,11 +220,11 @@ export class YamlSerializer {
     if (obj === null || obj === undefined) {
       return this.config.includeNullValues ? null : undefined;
     }
-    
+
     if (typeof obj !== 'object') {
       return obj;
     }
-    
+
     // Handle arrays
     if (Array.isArray(obj)) {
       const result = obj.map(item => this.toPlainObject(item, parentType, propertyName));
@@ -234,29 +233,29 @@ export class YamlSerializer {
       }
       return result;
     }
-    
+
     // Handle terse format conversion if enabled
     if (this.config.useTerseFormat && this.canUseTerseFormat(obj)) {
       return this.toTerseFormat(obj);
     }
-    
+
     // Get type information
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    
+
     // Create result object
     const result: Record<string, any> = {};
-    
+
     // Add type property if needed
     if (this.shouldIncludeType(obj, typeName, parentType, propertyName)) {
       result._type = typeName || obj.constructor.name.toUpperCase();
     }
-    
+
     // Get all property names including getters
     const allProperties = new Set<string>();
-    
+
     // Add own properties
     Object.keys(obj).forEach(key => allProperties.add(key));
-    
+
     // Add properties from prototype chain (getters)
     let proto = Object.getPrototypeOf(obj);
     while (proto && proto !== Object.prototype) {
@@ -270,44 +269,65 @@ export class YamlSerializer {
       });
       proto = Object.getPrototypeOf(proto);
     }
-    
-    // Serialize all properties
-    for (const key of allProperties) {
+
+    // Collect properties to serialize
+    const props = Array.from(allProperties).filter(key => {
       // Skip internal properties (starting with _ or $)
-      if (key.startsWith('_') || key.startsWith('$')) {
-        continue;
-      }
-      
+      if (key.startsWith('_') || key.startsWith('$')) return false;
       // Skip functions
-      if (typeof obj[key] === 'function') {
-        continue;
-      }
-      
-      const value = obj[key];
-      
+      if (typeof obj[key] === 'function') return false;
       // Skip null/undefined if not including them
-      if ((value === null || value === undefined) && !this.config.includeNullValues) {
-        continue;
+      if ((obj[key] === null || obj[key] === undefined) && !this.config.includeNullValues) return false;
+      return true;
+    });
+
+    // Reorder properties if archetype_node_id is present
+    let orderedKeys: string[] = [];
+    const archIdLocation = this.config.archetypeNodeIdLocation;
+    const hasArchId = props.includes('archetype_node_id');
+    const hasName = props.includes('name');
+
+    if (hasArchId) {
+      const rest = props.filter(k => k !== 'archetype_node_id');
+      if (archIdLocation === 'beginning') {
+        orderedKeys = ['archetype_node_id', ...rest];
+      } else if (archIdLocation === 'after_name' && hasName) {
+        for (const key of rest) {
+          orderedKeys.push(key);
+          if (key === 'name') orderedKeys.push('archetype_node_id');
+        }
+      } else if (archIdLocation === 'end') {
+        orderedKeys = [...rest, 'archetype_node_id'];
+      } else {
+        // Fallback for 'after_name' if name not found, or any other case
+        orderedKeys = [...rest, 'archetype_node_id'];
       }
-      
+    } else {
+      orderedKeys = props;
+    }
+
+    // Serialize properties in order
+    for (const key of orderedKeys) {
+      const value = obj[key];
+
       // Recursively convert
       const plainValue = this.toPlainObject(value, typeName, key);
-      
+
       // Skip undefined values
       if (plainValue !== undefined) {
         result[key] = plainValue;
       }
     }
-    
+
     // Skip empty objects if not including them
     const hasProperties = Object.keys(result).some(k => k !== '_type');
     if (!hasProperties && !this.config.includeEmptyCollections) {
       return undefined;
     }
-    
+
     return result;
   }
-  
+
   /**
    * Serialize with a specific configuration (one-time use)
    * 
@@ -319,7 +339,7 @@ export class YamlSerializer {
     const serializer = new YamlSerializer(config);
     return serializer.serialize(obj);
   }
-  
+
   /**
    * Get YAML library options based on configuration
    */
@@ -329,7 +349,7 @@ export class YamlSerializer {
       lineWidth: this.config.lineWidth,
       minContentWidth: 20,
     };
-    
+
     // Configure style
     if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
       // Full flow style
@@ -338,10 +358,10 @@ export class YamlSerializer {
       // Block style (default)
       options.flowLevel = -1;
     }
-    
+
     return options;
   }
-  
+
   /**
    * Determine if type property should be included
    */
@@ -355,16 +375,16 @@ export class YamlSerializer {
     if (!this.config.includeType) {
       return false;
     }
-    
+
     // If type inference is enabled, try to omit
     if (this.config.useTypeInference && parentType && propertyName && typeName) {
       return !TypeInferenceEngine.canOmitType(propertyName, parentType, obj);
     }
-    
+
     // Default: include type
     return true;
   }
-  
+
   /**
    * Check if an object can use terse format
    */
@@ -372,25 +392,25 @@ export class YamlSerializer {
     if (!obj || typeof obj !== 'object') {
       return false;
     }
-    
+
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
     return typeName === 'CODE_PHRASE' || typeName === 'DV_CODED_TEXT';
   }
-  
+
   /**
    * Convert object to terse format string
    */
   private toTerseFormat(obj: any): string {
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    
+
     if (typeName === 'CODE_PHRASE') {
       return toTerseCodePhrase(obj);
     }
-    
+
     if (typeName === 'DV_CODED_TEXT') {
       return toTerseDvCodedText(obj);
     }
-    
+
     throw new SerializationError(`Cannot convert ${typeName} to terse format`, obj);
   }
 }

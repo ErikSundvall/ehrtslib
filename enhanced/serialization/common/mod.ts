@@ -8,6 +8,7 @@ export { TypeRegistry } from './type_registry.ts';
 export { TypeInferenceEngine } from './type_inference.ts';
 export { HybridStyleFormatter } from './hybrid_formatter.ts';
 export type { HybridFormatterOptions } from './hybrid_formatter.ts';
+export type { ArchetypeNodeIdLocation } from './types.ts';
 export {
   SerializationError,
   DeserializationError,

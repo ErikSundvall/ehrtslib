@@ -6,6 +6,7 @@
   },
   "tasks": {
     "test": "deno test --allow-read",
-    "check": "deno check enhanced/*.ts"
+    "check": "deno check enhanced/*.ts",
+    "build:demo": "deno run -A examples/demo-app/scripts/build.ts"
   }
 }

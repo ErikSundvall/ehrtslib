@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ehrtslib Format Converter - Demo application showcasing serialization/deserialization between XML, JSON, YAML, and TypeScript code generation">
+    <meta name="description"
+        content="ehrtslib Format Converter - Demo application showcasing serialization/deserialization between XML, JSON, YAML, and TypeScript code generation">
     <title>ehrtslib Format Converter - Demo</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Header Section -->
     <header class="app-header">
@@ -14,8 +17,9 @@
             <h1>🔄 ehrtslib Format Converter</h1>
             <p class="subtitle">Convert between XML, JSON, YAML formats and generate TypeScript initialization code</p>
             <p class="description">
-                This demo showcases ehrtslib's powerful serialization and deserialization capabilities. 
-                Convert openEHR Reference Model (RM) objects between different formats with various configuration options.
+                This demo showcases ehrtslib's powerful serialization and deserialization capabilities.
+                Convert openEHR Reference Model (RM) objects between different formats with various configuration
+                options.
             </p>
         </div>
     </header>
@@ -35,7 +39,7 @@
                     </select>
                 </div>
             </div>
-            
+
             <div class="panel-body">
                 <div class="toolbar">
                     <div class="toolbar-left">
@@ -48,6 +52,8 @@
                             <button class="example-item" data-example="dv-coded-text">DV_CODED_TEXT</button>
                             <button class="example-item" data-example="basic-composition">Basic COMPOSITION</button>
                             <button class="example-item" data-example="complex-composition">Complex COMPOSITION</button>
+                            <button class="example-item" data-example="realistic-composition">Realistic Template
+                                Composition</button>
                         </div>
                         <button class="btn btn-secondary" id="upload-file">
                             📤 Upload File
@@ -60,13 +66,9 @@
                         </button>
                     </div>
                 </div>
-                
-                <textarea 
-                    class="input-textarea" 
-                    id="input-text" 
-                    placeholder="Paste your XML, JSON, or YAML here..."
-                    spellcheck="false"
-                >{
+
+                <textarea class="input-textarea" id="input-text" placeholder="Paste your XML, JSON, or YAML here..."
+                    spellcheck="false">{
   "_type": "COMPOSITION",
   "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
   "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
@@ -99,7 +101,7 @@
     ]
   }]
 }</textarea>
-                
+
                 <div class="input-info">
                     <span class="char-count">
                         <span class="label">Characters:</span> <span id="char-count">987</span>
@@ -115,13 +117,34 @@
             </div>
         </section>
 
+        </section>
+
+        <!-- Splitter 1 -->
+        <div class="splitter" id="splitter-1"></div>
+
         <!-- Options Panel -->
         <section class="panel options-panel">
             <div class="panel-header">
                 <h2>⚙️ Options</h2>
             </div>
-            
+
             <div class="panel-body">
+                <!-- Error State -->
+                <div class="error-state hidden" id="error-state">
+                    <span class="error-icon">⚠️</span>
+                    <div class="error-message">
+                        <strong>Conversion Error</strong>
+                        <p id="error-text">An error occurred during conversion.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="dismiss-error">Dismiss</button>
+                </div>
+
+                <!-- Convert Button -->
+                <div class="convert-section" style="margin-top: 0; margin-bottom: var(--spacing-md);">
+                    <button class="btn btn-primary btn-large" id="convert-btn">
+                        ► Convert
+                    </button>
+                </div>
                 <!-- Input Deserializer Options -->
                 <div class="option-section">
                     <h3>Input Deserializer Options</h3>
@@ -132,20 +155,20 @@
                             <option value="canonical">Canonical (Strict)</option>
                             <option value="compact">Compact</option>
                             <option value="hybrid">Hybrid (Flexible)</option>
-                            <option value="custom">Custom...</option>
+                            <option value="custom" selected>Custom...</option>
                         </select>
                     </div>
                     <div class="checkbox-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="input-strict" disabled>
+                            <input type="checkbox" id="input-strict">
                             <span>Strict Mode</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="input-parse-terse" disabled>
+                            <input type="checkbox" id="input-parse-terse">
                             <span>Parse Terse Format</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="input-allow-incomplete" disabled>
+                            <input type="checkbox" id="input-allow-incomplete">
                             <span>Allow Incomplete Objects</span>
                         </label>
                     </div>
@@ -168,14 +191,14 @@
                             <span>YAML</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="output-typescript">
+                            <input type="checkbox" id="output-typescript" checked>
                             <span>TypeScript Code</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- JSON Options -->
-                <div class="option-section">
+                <div class="option-section" id="json-options">
                     <h3>JSON Options</h3>
                     <div class="form-group">
                         <label for="json-serializer-type">Serializer Type:</label>
@@ -191,45 +214,54 @@
                             <option value="compact">Compact</option>
                             <option value="hybrid">Hybrid</option>
                             <option value="very-compact">Very Compact (Non-standard)</option>
-                            <option value="custom">Custom...</option>
+                            <option value="custom" selected>Custom...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="json-arch-id-location">Archetype ID Location:</label>
+                        <select id="json-arch-id-location" class="config-dropdown">
+                            <option value="beginning">Beginning of Object</option>
+                            <option value="after_name" selected>After "name" attribute</option>
+                            <option value="end">End of Object</option>
                         </select>
                     </div>
                     <div class="checkbox-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="json-pretty" checked disabled>
+                            <input type="checkbox" id="json-pretty" checked>
                             <span>Pretty Print</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="number" id="json-indent" value="2" min="0" max="8" class="indent-input" disabled>
+                            <input type="number" id="json-indent" value="2" min="0" max="8" class="indent-input">
                             <span>Indent (spaces)</span>
                         </label>
                         <label class="checkbox-label tooltip-container">
-                            <input type="checkbox" id="json-terse" disabled>
+                            <input type="checkbox" id="json-terse">
                             <span>Terse Format ⚠️</span>
-                            <span class="tooltip">Compact format using string shortcuts for CODE_PHRASE and DV_CODED_TEXT. Not standard-compliant.</span>
+                            <span class="tooltip">Compact format using string shortcuts for CODE_PHRASE and
+                                DV_CODED_TEXT. Not standard-compliant.</span>
                         </label>
                         <label class="checkbox-label tooltip-container">
-                            <input type="checkbox" id="json-hybrid" disabled>
+                            <input type="checkbox" id="json-hybrid">
                             <span>Hybrid Style (zipehr-like) ℹ️</span>
                             <span class="tooltip">Mix of standard and terse formats for better readability</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="json-type-inference" disabled>
+                            <input type="checkbox" id="json-type-inference">
                             <span>Type Inference</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="json-include-null" disabled>
+                            <input type="checkbox" id="json-include-null">
                             <span>Include Null Values</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="json-include-empty" checked disabled>
+                            <input type="checkbox" id="json-include-empty" checked>
                             <span>Include Empty Collections</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- YAML Options -->
-                <div class="option-section">
+                <div class="option-section" id="yaml-options">
                     <h3>YAML Options</h3>
                     <div class="form-group">
                         <label for="yaml-config-preset">Configuration Preset:</label>
@@ -239,6 +271,14 @@
                             <option value="hybrid">Hybrid (zipehr-like)</option>
                             <option value="flow">Flow Style</option>
                             <option value="custom">Custom...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="yaml-arch-id-location">Archetype ID Location:</label>
+                        <select id="yaml-arch-id-location" class="config-dropdown">
+                            <option value="beginning">Beginning of Object</option>
+                            <option value="after_name" selected>After "name" attribute</option>
+                            <option value="end">End of Object</option>
                         </select>
                     </div>
                     <div class="checkbox-group">
@@ -261,44 +301,45 @@
                             <span>Type Inference (Compact Mode)</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="number" id="yaml-indent" value="2" min="0" max="8" class="indent-input" disabled>
+                            <input type="number" id="yaml-indent" value="2" min="0" max="8" class="indent-input"
+                                disabled>
                             <span>Indent (spaces)</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- XML Options -->
-                <div class="option-section">
+                <div class="option-section" id="xml-options">
                     <h3>XML Options</h3>
                     <div class="form-group">
                         <label for="xml-config-preset">Configuration Preset:</label>
                         <select id="xml-config-preset" class="config-dropdown">
                             <option value="default">Default</option>
-                            <option value="custom">Custom...</option>
+                            <option value="custom" selected>Custom...</option>
                         </select>
                     </div>
                     <div class="checkbox-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="xml-pretty" checked disabled>
+                            <input type="checkbox" id="xml-pretty" checked>
                             <span>Pretty Print</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="xml-namespaces" checked disabled>
+                            <input type="checkbox" id="xml-namespaces" checked>
                             <span>Include Namespaces</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" id="xml-declaration" checked disabled>
+                            <input type="checkbox" id="xml-declaration" checked>
                             <span>Include XML Declaration</span>
                         </label>
                         <label class="checkbox-label">
-                            <input type="number" id="xml-indent" value="2" min="0" max="8" class="indent-input" disabled>
+                            <input type="number" id="xml-indent" value="2" min="0" max="8" class="indent-input">
                             <span>Indent (spaces)</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- TypeScript Options -->
-                <div class="option-section">
+                <div class="option-section" id="typescript-options">
                     <h3>TypeScript Options</h3>
                     <div class="checkbox-group">
                         <label class="checkbox-label">
@@ -307,11 +348,15 @@
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="ts-compact" checked>
-                            <span>Use Compact Constructors</span>
+                            <span>Use primitive value constructors</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="ts-comments">
                             <span>Include Comments</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ts-include-undefined">
+                            <span>Include Undefined Attributes</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="number" id="ts-indent" value="2" min="0" max="8" class="indent-input">
@@ -321,11 +366,7 @@
                 </div>
 
                 <!-- Convert Button -->
-                <div class="convert-section">
-                    <button class="btn btn-primary btn-large" id="convert-btn">
-                        ► Convert
-                    </button>
-                </div>
+
 
                 <!-- Loading State -->
                 <div class="loading-state hidden" id="loading-state">
@@ -333,112 +374,36 @@
                     <span>Converting...</span>
                 </div>
 
-                <!-- Error State -->
-                <div class="error-state hidden" id="error-state">
-                    <span class="error-icon">⚠️</span>
-                    <div class="error-message">
-                        <strong>Conversion Error</strong>
-                        <p id="error-text">An error occurred during conversion.</p>
-                    </div>
-                    <button class="btn btn-secondary" id="dismiss-error">Dismiss</button>
-                </div>
             </div>
         </section>
+
+        </section>
+
+        <!-- Splitter 2 -->
+        <div class="splitter" id="splitter-2"></div>
 
         <!-- Output Panel -->
         <section class="panel output-panel">
             <div class="panel-header">
                 <h2>📤 Output</h2>
             </div>
-            
+
             <div class="panel-body">
                 <!-- Tab Navigation -->
                 <div class="tabs" id="output-tabs">
-                    <button class="tab active" data-tab="xml">XML</button>
-                    <button class="tab" data-tab="json">JSON</button>
+                    <button class="tab active" data-tab="json">JSON</button>
                     <button class="tab" data-tab="yaml">YAML</button>
                     <button class="tab" data-tab="typescript">TypeScript</button>
+                    <button class="tab" data-tab="xml">XML</button>
                 </div>
 
                 <!-- Tab Content -->
                 <div class="tab-content">
                     <!-- XML Output -->
-                    <div class="tab-pane active" id="tab-xml">
-                        <div class="output-toolbar">
-                            <button class="btn btn-secondary btn-sm" id="copy-xml">
-                                📋 Copy
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="download-xml">
-                                💾 Download
-                            </button>
-                        </div>
-                        <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
-  &lt;name xsi:type="DV_TEXT"&gt;
-    &lt;value&gt;Vital Signs Encounter&lt;/value&gt;
-  &lt;/name&gt;
-  &lt;archetype_node_id&gt;openEHR-EHR-COMPOSITION.encounter.v1&lt;/archetype_node_id&gt;
-  &lt;language&gt;
-    &lt;terminology_id&gt;
-      &lt;value&gt;ISO_639-1&lt;/value&gt;
-    &lt;/terminology_id&gt;
-    &lt;code_string&gt;en&lt;/code_string&gt;
-  &lt;/language&gt;
-  &lt;territory&gt;
-    &lt;terminology_id&gt;
-      &lt;value&gt;ISO_3166-1&lt;/value&gt;
-    &lt;/terminology_id&gt;
-    &lt;code_string&gt;GB&lt;/code_string&gt;
-  &lt;/territory&gt;
-  &lt;category xsi:type="DV_CODED_TEXT"&gt;
-    &lt;value&gt;event&lt;/value&gt;
-    &lt;defining_code&gt;
-      &lt;terminology_id&gt;
-        &lt;value&gt;openehr&lt;/value&gt;
-      &lt;/terminology_id&gt;
-      &lt;code_string&gt;433&lt;/code_string&gt;
-    &lt;/defining_code&gt;
-  &lt;/category&gt;
-  &lt;composer xsi:type="PARTY_IDENTIFIED"&gt;
-    &lt;name&gt;Dr. Smith&lt;/name&gt;
-  &lt;/composer&gt;
-  &lt;content xsi:type="SECTION"&gt;
-    &lt;name xsi:type="DV_TEXT"&gt;
-      &lt;value&gt;Vital Signs&lt;/value&gt;
-    &lt;/name&gt;
-    &lt;items xsi:type="ELEMENT"&gt;
-      &lt;name xsi:type="DV_TEXT"&gt;
-        &lt;value&gt;Diagnosis&lt;/value&gt;
-      &lt;/name&gt;
-      &lt;value xsi:type="DV_CODED_TEXT"&gt;
-        &lt;value&gt;Diabetes mellitus type 2&lt;/value&gt;
-        &lt;defining_code&gt;
-          &lt;terminology_id&gt;
-            &lt;value&gt;SNOMED-CT&lt;/value&gt;
-          &lt;/terminology_id&gt;
-          &lt;code_string&gt;44054006&lt;/code_string&gt;
-        &lt;/defining_code&gt;
-      &lt;/value&gt;
-    &lt;/items&gt;
-    &lt;items xsi:type="ELEMENT"&gt;
-      &lt;name xsi:type="DV_TEXT"&gt;
-        &lt;value&gt;Pulse rate&lt;/value&gt;
-      &lt;/name&gt;
-      &lt;value xsi:type="DV_QUANTITY"&gt;
-        &lt;magnitude&gt;72&lt;/magnitude&gt;
-        &lt;units&gt;/min&lt;/units&gt;
-      &lt;/value&gt;
-    &lt;/items&gt;
-  &lt;/content&gt;
-&lt;/COMPOSITION&gt;</pre>
-                        <div class="success-message hidden" id="success-xml">
-                            <span class="success-icon">✓</span>
-                            <span>Copied to clipboard!</span>
-                        </div>
-                    </div>
+
 
                     <!-- JSON Output -->
-                    <div class="tab-pane" id="tab-json">
+                    <div class="tab-pane active" id="tab-json">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-json">
                                 📋 Copy
@@ -576,6 +541,81 @@ console.log(json);</pre>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
+
+                    <!-- XML Output -->
+                    <div class="tab-pane" id="tab-xml">
+                        <div class="output-toolbar">
+                            <button class="btn btn-secondary btn-sm" id="copy-xml">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="download-xml">
+                                💾 Download
+                            </button>
+                        </div>
+                        <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;name xsi:type="DV_TEXT"&gt;
+    &lt;value&gt;Vital Signs Encounter&lt;/value&gt;
+  &lt;/name&gt;
+  &lt;archetype_node_id&gt;openEHR-EHR-COMPOSITION.encounter.v1&lt;/archetype_node_id&gt;
+  &lt;language&gt;
+    &lt;terminology_id&gt;
+      &lt;value&gt;ISO_639-1&lt;/value&gt;
+    &lt;/terminology_id&gt;
+    &lt;code_string&gt;en&lt;/code_string&gt;
+  &lt;/language&gt;
+  &lt;territory&gt;
+    &lt;terminology_id&gt;
+      &lt;value&gt;ISO_3166-1&lt;/value&gt;
+    &lt;/terminology_id&gt;
+    &lt;code_string&gt;GB&lt;/code_string&gt;
+  &lt;/territory&gt;
+  &lt;category xsi:type="DV_CODED_TEXT"&gt;
+    &lt;value&gt;event&lt;/value&gt;
+    &lt;defining_code&gt;
+      &lt;terminology_id&gt;
+        &lt;value&gt;openehr&lt;/value&gt;
+      &lt;/terminology_id&gt;
+      &lt;code_string&gt;433&lt;/code_string&gt;
+    &lt;/defining_code&gt;
+  &lt;/category&gt;
+  &lt;composer xsi:type="PARTY_IDENTIFIED"&gt;
+    &lt;name&gt;Dr. Smith&lt;/name&gt;
+  &lt;/composer&gt;
+  &lt;content xsi:type="SECTION"&gt;
+    &lt;name xsi:type="DV_TEXT"&gt;
+      &lt;value&gt;Vital Signs&lt;/value&gt;
+    &lt;/name&gt;
+    &lt;items xsi:type="ELEMENT"&gt;
+      &lt;name xsi:type="DV_TEXT"&gt;
+        &lt;value&gt;Diagnosis&lt;/value&gt;
+      &lt;/name&gt;
+      &lt;value xsi:type="DV_CODED_TEXT"&gt;
+        &lt;value&gt;Diabetes mellitus type 2&lt;/value&gt;
+        &lt;defining_code&gt;
+          &lt;terminology_id&gt;
+            &lt;value&gt;SNOMED-CT&lt;/value&gt;
+          &lt;/terminology_id&gt;
+          &lt;code_string&gt;44054006&lt;/code_string&gt;
+        &lt;/defining_code&gt;
+      &lt;/value&gt;
+    &lt;/items&gt;
+    &lt;items xsi:type="ELEMENT"&gt;
+      &lt;name xsi:type="DV_TEXT"&gt;
+        &lt;value&gt;Pulse rate&lt;/value&gt;
+      &lt;/name&gt;
+      &lt;value xsi:type="DV_QUANTITY"&gt;
+        &lt;magnitude&gt;72&lt;/magnitude&gt;
+        &lt;units&gt;/min&lt;/units&gt;
+      &lt;/value&gt;
+    &lt;/items&gt;
+  &lt;/content&gt;
+&lt;/COMPOSITION&gt;</pre>
+                        <div class="success-message hidden" id="success-xml">
+                            <span class="success-icon">✓</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -599,7 +639,8 @@ console.log(json);</pre>
         </div>
     </footer>
 
-    <!-- Application JavaScript -->
-    <script src="bundle.js" defer></script>
+    <!-- Note: JavaScript functionality will be added in the implementation phase -->
+    <script type="module" src="bundle.js"></script>
 </body>
+
 </html>

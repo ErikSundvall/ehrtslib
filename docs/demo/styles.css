@@ -6,50 +6,50 @@
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-active: #1e40af;
-    
+
     /* Secondary Colors */
     --secondary-color: #64748b;
     --secondary-hover: #475569;
-    
+
     /* Success/Error/Warning */
     --success-color: #10b981;
     --error-color: #ef4444;
     --warning-color: #f59e0b;
-    
+
     /* Background Colors */
     --bg-primary: #ffffff;
     --bg-secondary: #f8fafc;
     --bg-tertiary: #f1f5f9;
     --bg-code: #1e293b;
-    
+
     /* Text Colors */
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
     --text-code: #e2e8f0;
-    
+
     /* Border Colors */
     --border-light: #e2e8f0;
     --border-medium: #cbd5e1;
     --border-dark: #94a3b8;
-    
+
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    
+
     /* Spacing */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
-    
+
     /* Border Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
-    
+
     /* Font Families */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
@@ -114,13 +114,79 @@ body {
    ========================================== */
 .main-content {
     flex: 1;
-    max-width: 1400px;
+    flex: 1;
     width: 100%;
-    margin: var(--spacing-xl) auto;
+    margin: var(--spacing-md) auto;
     padding: 0 var(--spacing-lg);
-    display: grid;
-    grid-template-columns: 1fr 380px 1fr;
-    gap: var(--spacing-lg);
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    /* Handled by splitter */
+    height: calc(100vh - 300px);
+    /* Fill available vertical space */
+    min-height: 500px;
+}
+
+.main-content>.panel.input-panel,
+.main-content>.panel.output-panel {
+    flex: 1;
+    min-width: 200px;
+    /* Minimum width constraint */
+}
+
+/* Splitter */
+.splitter {
+    width: 6px;
+    background-color: transparent;
+    cursor: col-resize;
+    transition: background-color 0.2s;
+    z-index: 10;
+    margin: 0 2px;
+}
+
+.splitter:hover,
+.splitter.active {
+    background-color: var(--primary-color);
+}
+
+/* Options panel (make it a modal or sidebar? For now, keep it in flow or move it? 
+   Request says "input and output panes expand". Options might be best as side/collapsible.
+   For simplicity, let's keep it in the middle but maybe as a vertical strip or make it collapsible?
+   The user request implies: "make the input and output panes expand to fill the available space"
+   and "resizable".
+   Current layout: Input | Options | Output.
+   Let's keep 3 columns but make them resizable.
+   Or move options to a sidebar/modal.
+   Let's stick to 3 columns for now but enable resizing for all?
+   Or just Input vs Output.
+   Let's try to make Input and Output the main actors.
+   Maybe move Options to a collapsible drawer or bottom?
+   Let's assume the user wants the 3-column layout to be resizable.
+*/
+
+.main-content>.panel.options-panel {
+    width: 380px;
+    flex: 0 0 380px;
+    /* Fixed width initially */
+    margin: 0 var(--spacing-sm);
+}
+
+/* Make textareas fill height */
+.input-textarea {
+    flex: 1;
+    height: 100% !important;
+    min-height: 0 !important;
+    /* Allow shrinking */
+    resize: none !important;
+    /* Disable native resize */
+}
+
+.output-content {
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* ==========================================
@@ -205,6 +271,10 @@ body {
 .toolbar-right {
     display: flex;
     gap: var(--spacing-sm);
+}
+
+.toolbar-left {
+    position: relative;
 }
 
 .example-menu {
@@ -474,7 +544,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .error-icon {
@@ -702,17 +774,18 @@ body {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
     }
-    
+
     .app-header h1 {
         font-size: 2rem;
     }
-    
+
     .app-header .subtitle {
         font-size: 1.125rem;
     }
-    
+
     .tooltip {
-        display: none !important; /* Hide tooltips on smaller screens */
+        display: none !important;
+        /* Hide tooltips on smaller screens */
     }
 }
 
@@ -721,42 +794,42 @@ body {
     .app-header {
         padding: var(--spacing-lg) var(--spacing-md);
     }
-    
+
     .app-header h1 {
         font-size: 1.75rem;
     }
-    
+
     .app-header .subtitle {
         font-size: 1rem;
     }
-    
+
     .main-content {
         padding: 0 var(--spacing-md);
         margin: var(--spacing-lg) auto;
     }
-    
+
     .panel-body {
         padding: var(--spacing-md);
     }
-    
+
     .toolbar {
         flex-wrap: wrap;
     }
-    
+
     .input-info {
         flex-direction: column;
         gap: var(--spacing-sm);
     }
-    
+
     .tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     .tab {
         flex-shrink: 0;
     }
-    
+
     .footer-links {
         flex-direction: column;
         gap: var(--spacing-sm);
@@ -768,16 +841,16 @@ body {
     .app-header h1 {
         font-size: 1.5rem;
     }
-    
+
     .btn {
         font-size: 0.8125rem;
         padding: var(--spacing-xs) var(--spacing-md);
     }
-    
+
     .btn-large {
         font-size: 0.875rem;
     }
-    
+
     .input-textarea {
         min-height: 300px;
     }
