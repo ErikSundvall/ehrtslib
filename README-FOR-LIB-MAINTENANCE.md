@@ -2,6 +2,24 @@
 
 This document contains instructions for maintaining and developing the ehrtslib library itself. If you're a developer looking to **use** this library in your own projects, please see [README.md](README.md) instead.
 
+## Table of Contents
+
+- [TypeScript EHR Library Generation](#for-library-maintainers-typescript-ehr-library-generation)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [What the Generator Does](#what-the-generator-does)
+  - [Discovering Latest BMM Versions](#discovering-latest-bmm-versions)
+  - [Manual Configuration](#manual-configuration)
+  - [Output Structure](#output-structure)
+- [Updating to a New Version of a Previously Used BMM](#updating-to-a-new-version-of-a-previously-used-bmm)
+- [Adding a New BMM File](#adding-a-new-bmm-file)
+- [Architecture / Code Structure: Orchestrator & Generator](#architecture--code-structure-orchestrator--generator)
+- [Maintaining External Dependencies](#maintaining-external-dependencies)
+  - [Updating @lhncbc/ucum-lhc](#updating-lhncbcucum-lhc)
+  - [Updating fast-xml-parser](#updating-fast-xml-parser)
+  - [Updating yaml](#updating-yaml)
+  - [Updating PropertyUnitData.xml](#updating-propertyunitdataxml)
+
 ## For library maintainers: TypeScript EHR Library Generation
 
 This section describes how to generate TypeScript libraries from the latest
