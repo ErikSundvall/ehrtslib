@@ -67,16 +67,45 @@
                     placeholder="Paste your XML, JSON, or YAML here..."
                     spellcheck="false"
                 >{
-  "_type": "DV_TEXT",
-  "value": "Patient has diabetes mellitus"
+  "_type": "COMPOSITION",
+  "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "language": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}, "code_string": "en"},
+  "territory": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}, "code_string": "GB"},
+  "category": {"_type": "DV_CODED_TEXT", "value": "event", "defining_code": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}, "code_string": "433"}},
+  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"},
+  "content": [{
+    "_type": "SECTION",
+    "name": {"_type": "DV_TEXT", "value": "Vital Signs"},
+    "items": [
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Diagnosis"},
+        "value": {
+          "_type": "DV_CODED_TEXT",
+          "value": "Diabetes mellitus type 2",
+          "defining_code": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "SNOMED-CT"},
+            "code_string": "44054006"
+          }
+        }
+      },
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Pulse rate"},
+        "value": {"_type": "DV_QUANTITY", "magnitude": 72, "units": "/min"}
+      }
+    ]
+  }]
 }</textarea>
                 
                 <div class="input-info">
                     <span class="char-count">
-                        <span class="label">Characters:</span> <span id="char-count">65</span>
+                        <span class="label">Characters:</span> <span id="char-count">987</span>
                     </span>
                     <span class="line-count">
-                        <span class="label">Lines:</span> <span id="line-count">3</span>
+                        <span class="label">Lines:</span> <span id="line-count">31</span>
                     </span>
                     <span class="validation-status">
                         <span class="status-icon valid" id="validation-icon">✓</span>
@@ -254,9 +283,64 @@
                             </button>
                         </div>
                         <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;DV_TEXT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
-  &lt;value&gt;Patient has diabetes mellitus&lt;/value&gt;
-&lt;/DV_TEXT&gt;</pre>
+&lt;COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;name xsi:type="DV_TEXT"&gt;
+    &lt;value&gt;Vital Signs Encounter&lt;/value&gt;
+  &lt;/name&gt;
+  &lt;archetype_node_id&gt;openEHR-EHR-COMPOSITION.encounter.v1&lt;/archetype_node_id&gt;
+  &lt;language&gt;
+    &lt;terminology_id&gt;
+      &lt;value&gt;ISO_639-1&lt;/value&gt;
+    &lt;/terminology_id&gt;
+    &lt;code_string&gt;en&lt;/code_string&gt;
+  &lt;/language&gt;
+  &lt;territory&gt;
+    &lt;terminology_id&gt;
+      &lt;value&gt;ISO_3166-1&lt;/value&gt;
+    &lt;/terminology_id&gt;
+    &lt;code_string&gt;GB&lt;/code_string&gt;
+  &lt;/territory&gt;
+  &lt;category xsi:type="DV_CODED_TEXT"&gt;
+    &lt;value&gt;event&lt;/value&gt;
+    &lt;defining_code&gt;
+      &lt;terminology_id&gt;
+        &lt;value&gt;openehr&lt;/value&gt;
+      &lt;/terminology_id&gt;
+      &lt;code_string&gt;433&lt;/code_string&gt;
+    &lt;/defining_code&gt;
+  &lt;/category&gt;
+  &lt;composer xsi:type="PARTY_IDENTIFIED"&gt;
+    &lt;name&gt;Dr. Smith&lt;/name&gt;
+  &lt;/composer&gt;
+  &lt;content xsi:type="SECTION"&gt;
+    &lt;name xsi:type="DV_TEXT"&gt;
+      &lt;value&gt;Vital Signs&lt;/value&gt;
+    &lt;/name&gt;
+    &lt;items xsi:type="ELEMENT"&gt;
+      &lt;name xsi:type="DV_TEXT"&gt;
+        &lt;value&gt;Diagnosis&lt;/value&gt;
+      &lt;/name&gt;
+      &lt;value xsi:type="DV_CODED_TEXT"&gt;
+        &lt;value&gt;Diabetes mellitus type 2&lt;/value&gt;
+        &lt;defining_code&gt;
+          &lt;terminology_id&gt;
+            &lt;value&gt;SNOMED-CT&lt;/value&gt;
+          &lt;/terminology_id&gt;
+          &lt;code_string&gt;44054006&lt;/code_string&gt;
+        &lt;/defining_code&gt;
+      &lt;/value&gt;
+    &lt;/items&gt;
+    &lt;items xsi:type="ELEMENT"&gt;
+      &lt;name xsi:type="DV_TEXT"&gt;
+        &lt;value&gt;Pulse rate&lt;/value&gt;
+      &lt;/name&gt;
+      &lt;value xsi:type="DV_QUANTITY"&gt;
+        &lt;magnitude&gt;72&lt;/magnitude&gt;
+        &lt;units&gt;/min&lt;/units&gt;
+      &lt;/value&gt;
+    &lt;/items&gt;
+  &lt;/content&gt;
+&lt;/COMPOSITION&gt;</pre>
                         <div class="success-message hidden" id="success-xml">
                             <span class="success-icon">✓</span>
                             <span>Copied to clipboard!</span>
@@ -274,8 +358,37 @@
                             </button>
                         </div>
                         <pre class="output-content" id="output-json-content">{
-  "_type": "DV_TEXT",
-  "value": "Patient has diabetes mellitus"
+  "_type": "COMPOSITION",
+  "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "language": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}, "code_string": "en"},
+  "territory": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}, "code_string": "GB"},
+  "category": {"_type": "DV_CODED_TEXT", "value": "event", "defining_code": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}, "code_string": "433"}},
+  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"},
+  "content": [{
+    "_type": "SECTION",
+    "name": {"_type": "DV_TEXT", "value": "Vital Signs"},
+    "items": [
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Diagnosis"},
+        "value": {
+          "_type": "DV_CODED_TEXT",
+          "value": "Diabetes mellitus type 2",
+          "defining_code": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "SNOMED-CT"},
+            "code_string": "44054006"
+          }
+        }
+      },
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Pulse rate"},
+        "value": {"_type": "DV_QUANTITY", "magnitude": 72, "units": "/min"}
+      }
+    ]
+  }]
 }</pre>
                         <div class="success-message hidden" id="success-json">
                             <span class="success-icon">✓</span>
@@ -293,8 +406,27 @@
                                 💾 Download
                             </button>
                         </div>
-                        <pre class="output-content" id="output-yaml-content">_type: DV_TEXT
-value: Patient has diabetes mellitus</pre>
+                        <pre class="output-content" id="output-yaml-content">_type: COMPOSITION
+name: {value: Vital Signs Encounter}
+archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+language: ISO_639-1::en
+territory: ISO_3166-1::GB
+category: openehr::433|event|
+composer:
+  name: Dr. Smith
+content:
+  - _type: SECTION
+    name: {value: Vital Signs}
+    items:
+      - _type: ELEMENT
+        name: {value: Diagnosis}
+        value:
+          _type: DV_CODED_TEXT
+          value: Diabetes mellitus type 2
+          defining_code: SNOMED-CT::44054006
+      - _type: ELEMENT
+        name: {value: Pulse rate}
+        value: {magnitude: 72, units: /min}</pre>
                         <div class="success-message hidden" id="success-yaml">
                             <span class="success-icon">✓</span>
                             <span>Copied to clipboard!</span>
@@ -311,17 +443,43 @@ value: Patient has diabetes mellitus</pre>
                                 💾 Download
                             </button>
                         </div>
-                        <pre class="output-content" id="output-typescript-content">import { DV_TEXT } from "./enhanced/openehr_rm.ts";
+                        <pre class="output-content" id="output-typescript-content">import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
 
-// Create DV_TEXT object
-const dvText = new DV_TEXT({
-  value: "Patient has diabetes mellitus"
+// Create COMPOSITION with terse format and compact constructors
+const composition = new COMPOSITION({
+  name: "Vital Signs Encounter",
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  language: "ISO_639-1::en",
+  territory: "ISO_3166-1::GB",
+  category: "openehr::433|event|",
+  composer: { name: "Dr. Smith" },
+  content: [
+    new SECTION({
+      name: "Vital Signs",
+      items: [
+        new ELEMENT({
+          name: "Diagnosis",
+          value: new DV_CODED_TEXT({
+            value: "Diabetes mellitus type 2",
+            defining_code: "SNOMED-CT::44054006"
+          })
+        }),
+        new ELEMENT({
+          name: "Pulse rate",
+          value: new DV_QUANTITY({
+            magnitude: 72,
+            units: "/min"
+          })
+        })
+      ]
+    })
+  ]
 });
 
 // Serialize to JSON
 import { JsonCanonicalSerializer } from "./enhanced/serialization/json/mod.ts";
 const serializer = new JsonCanonicalSerializer();
-const json = serializer.serialize(dvText);
+const json = serializer.serialize(composition);
 console.log(json);</pre>
                         <div class="success-message hidden" id="success-typescript">
                             <span class="success-icon">✓</span>

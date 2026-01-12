@@ -152,38 +152,112 @@ After stakeholder approval of this mockup, the implementation will proceed with:
 
 ## 📝 Example Data in Mockup
 
-The mockup shows a simple **DV_TEXT** example:
+The mockup demonstrates a **complex COMPOSITION** example with nested structures, based on the YAML serializer documentation. It shows a COMPOSITION containing a SECTION with two sibling ELEMENT items - one with DV_CODED_TEXT (diagnosis) and one with DV_QUANTITY (pulse rate).
 
 **JSON Input:**
 ```json
 {
-  "_type": "DV_TEXT",
-  "value": "Patient has diabetes mellitus"
+  "_type": "COMPOSITION",
+  "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "language": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}, "code_string": "en"},
+  "territory": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}, "code_string": "GB"},
+  "category": {"_type": "DV_CODED_TEXT", "value": "event", "defining_code": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}, "code_string": "433"}},
+  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"},
+  "content": [{
+    "_type": "SECTION",
+    "name": {"_type": "DV_TEXT", "value": "Vital Signs"},
+    "items": [
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Diagnosis"},
+        "value": {
+          "_type": "DV_CODED_TEXT",
+          "value": "Diabetes mellitus type 2",
+          "defining_code": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "SNOMED-CT"},
+            "code_string": "44054006"
+          }
+        }
+      },
+      {
+        "_type": "ELEMENT",
+        "name": {"_type": "DV_TEXT", "value": "Pulse rate"},
+        "value": {"_type": "DV_QUANTITY", "magnitude": 72, "units": "/min"}
+      }
+    ]
+  }]
 }
 ```
 
-**XML Output:**
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<DV_TEXT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <value>Patient has diabetes mellitus</value>
-</DV_TEXT>
-```
-
-**YAML Output:**
+**YAML Output (with terse format):**
 ```yaml
-_type: DV_TEXT
-value: Patient has diabetes mellitus
+_type: COMPOSITION
+name: {value: Vital Signs Encounter}
+archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+language: ISO_639-1::en
+territory: ISO_3166-1::GB
+category: openehr::433|event|
+composer:
+  name: Dr. Smith
+content:
+  - _type: SECTION
+    name: {value: Vital Signs}
+    items:
+      - _type: ELEMENT
+        name: {value: Diagnosis}
+        value:
+          _type: DV_CODED_TEXT
+          value: Diabetes mellitus type 2
+          defining_code: SNOMED-CT::44054006
+      - _type: ELEMENT
+        name: {value: Pulse rate}
+        value: {magnitude: 72, units: /min}
 ```
 
-**TypeScript Output:**
+**TypeScript Output (with terse format and compact constructors):**
 ```typescript
-import { DV_TEXT } from "./enhanced/openehr_rm.ts";
+import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
 
-const dvText = new DV_TEXT({
-  value: "Patient has diabetes mellitus"
+const composition = new COMPOSITION({
+  name: "Vital Signs Encounter",
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  language: "ISO_639-1::en",
+  territory: "ISO_3166-1::GB",
+  category: "openehr::433|event|",
+  composer: { name: "Dr. Smith" },
+  content: [
+    new SECTION({
+      name: "Vital Signs",
+      items: [
+        new ELEMENT({
+          name: "Diagnosis",
+          value: new DV_CODED_TEXT({
+            value: "Diabetes mellitus type 2",
+            defining_code: "SNOMED-CT::44054006"
+          })
+        }),
+        new ELEMENT({
+          name: "Pulse rate",
+          value: new DV_QUANTITY({
+            magnitude: 72,
+            units: "/min"
+          })
+        })
+      ]
+    })
+  ]
 });
 ```
+
+This example demonstrates:
+- **COMPOSITION** as the root container
+- **SECTION** for organizing related items
+- **ELEMENT** items with different data types (DV_CODED_TEXT and DV_QUANTITY)
+- **Terse format** for CODE_PHRASE and DV_CODED_TEXT (e.g., "ISO_639-1::en", "SNOMED-CT::44054006")
+- **Compact constructors** in TypeScript using object initialization
+- **Sibling elements** showing different value types in the same container
 
 ## 🎯 Design Goals Achieved
 
