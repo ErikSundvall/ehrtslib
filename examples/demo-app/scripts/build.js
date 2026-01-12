@@ -8,6 +8,28 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const projectRoot = path.resolve(__dirname, '../../..');
 
+// Plugin to replace Deno-specific imports with browser-compatible alternatives
+const denoBrowserShim = {
+  name: 'deno-browser-shim',
+  setup(build) {
+    // Intercept deno_dom imports and provide a browser-compatible alternative
+    build.onResolve({ filter: /deno_dom/ }, args => {
+      return { path: args.path, namespace: 'deno-dom-shim' };
+    });
+    
+    build.onLoad({ filter: /.*/, namespace: 'deno-dom-shim' }, () => {
+      return {
+        contents: `
+          // Browser shim for deno_dom
+          export const DOMParser = window.DOMParser;
+          export const Document = window.Document;
+        `,
+        loader: 'js'
+      };
+    });
+  }
+};
+
 async function build() {
   console.log('🔨 Building ehrtslib demo app...');
   
@@ -40,7 +62,8 @@ async function build() {
       // External packages that will be loaded from CDN or node_modules
       alias: {
         'npm:temporal-polyfill@0.2.5': 'temporal-polyfill'
-      }
+      },
+      plugins: [denoBrowserShim]
     });
     
     // Copy static assets from public/

@@ -228,9 +228,9 @@ function serializeToXml(
 ): string {
   const serializer = new XmlSerializer({
     prettyPrint: config.prettyPrint,
-    indent: config.indent,
+    indent: ' '.repeat(config.indent), // Convert number to string of spaces
     includeDeclaration: config.includeDeclaration,
-    includeNamespaces: config.includeNamespaces
+    useNamespaces: config.includeNamespaces
   });
   return serializer.serialize(obj);
 }
