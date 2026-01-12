@@ -1,0 +1,58 @@
+import * as esbuild from 'esbuild';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
+
+async function build() {
+  console.log('🔨 Building ehrtslib demo app...');
+  
+  try {
+    // Clean dist directory
+    const distDir = path.join(rootDir, 'dist');
+    if (fs.existsSync(distDir)) {
+      fs.rmSync(distDir, { recursive: true });
+    }
+    fs.mkdirSync(distDir, { recursive: true });
+    
+    // Bundle TypeScript
+    await esbuild.build({
+      entryPoints: [path.join(rootDir, 'src/main.ts')],
+      bundle: true,
+      outfile: path.join(distDir, 'bundle.js'),
+      format: 'iife',
+      platform: 'browser',
+      target: 'es2022',
+      sourcemap: true,
+      minify: process.env.NODE_ENV === 'production',
+      define: {
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+      }
+    });
+    
+    // Copy static assets from public/
+    const publicDir = path.join(rootDir, 'public');
+    const files = fs.readdirSync(publicDir);
+    
+    for (const file of files) {
+      const srcPath = path.join(publicDir, file);
+      const destPath = path.join(distDir, file);
+      
+      if (fs.statSync(srcPath).isFile()) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`  ✓ Copied ${file}`);
+      }
+    }
+    
+    console.log('✅ Build completed successfully!');
+    console.log(`📦 Output: ${distDir}`);
+  } catch (error) {
+    console.error('❌ Build failed:', error);
+    process.exit(1);
+  }
+}
+
+build();

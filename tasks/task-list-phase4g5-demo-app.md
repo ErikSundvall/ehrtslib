@@ -87,29 +87,29 @@ This task list implements a demo static-site web application that demonstrates s
 
 ### 1.1 Directory Structure
 
-- [ ] 1.1.1 Create `examples/demo-app/` directory
-- [ ] 1.1.2 Create `examples/demo-app/src/` for source code
-- [ ] 1.1.3 Create `examples/demo-app/public/` for static assets
-- [ ] 1.1.4 Create `examples/demo-app/dist/` for built output (add to .gitignore)
-- [ ] 1.1.5 Create `examples/demo-app/tests/` for tests
+- [x] 1.1.1 Create `examples/demo-app/` directory
+- [x] 1.1.2 Create `examples/demo-app/src/` for source code
+- [x] 1.1.3 Create `examples/demo-app/public/` for static assets
+- [x] 1.1.4 Create `examples/demo-app/dist/` for built output (add to .gitignore)
+- [x] 1.1.5 Create `examples/demo-app/tests/` for tests
 
 ### 1.2 Build Configuration
 
-- [ ] 1.2.1 Create `examples/demo-app/deno.json` for Deno configuration
-- [ ] 1.2.2 Add build script to bundle TypeScript to single JS file
-- [ ] 1.2.3 Add dev server script for local development
+- [x] 1.2.1 Create `examples/demo-app/package.json` with esbuild configuration (using Node.js instead of Deno since Deno not available)
+- [x] 1.2.2 Add build script to bundle TypeScript to single JS file
+- [x] 1.2.3 Add dev server script for local development
 - [ ] 1.2.4 Add watch mode for auto-rebuild during development
-- [ ] 1.2.5 Configure import maps for serialization modules
-- [ ] 1.2.6 Test build process
+- [x] 1.2.5 Configure import maps for serialization modules (using relative paths in TypeScript)
+- [x] 1.2.6 Test build process
 
 ### 1.3 HTML Structure
 
-- [ ] 1.3.1 Create `examples/demo-app/public/index.html`
-- [ ] 1.3.2 Add meta tags (charset, viewport, description)
-- [ ] 1.3.3 Add title: "ehrtslib Format Converter - Demo"
-- [ ] 1.3.4 Add link to CSS file
-- [ ] 1.3.5 Add script tag for bundled JavaScript (defer)
-- [ ] 1.3.6 Include basic semantic HTML structure
+- [x] 1.3.1 Create `examples/demo-app/public/index.html` (copied from mockup)
+- [x] 1.3.2 Add meta tags (charset, viewport, description)
+- [x] 1.3.3 Add title: "ehrtslib Format Converter - Demo"
+- [x] 1.3.4 Add link to CSS file
+- [x] 1.3.5 Add script tag for bundled JavaScript (defer)
+- [x] 1.3.6 Include basic semantic HTML structure
 
 ## 2. User Interface Design
 
