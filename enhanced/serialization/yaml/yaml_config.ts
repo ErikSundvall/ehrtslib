@@ -80,6 +80,14 @@ export interface YamlSerializationConfig {
    * @default 'after_name'
    */
   archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
+
+  /**
+   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline in hybrid style.
+   * When enabled, these properties are formatted on the same line using flow style,
+   * while other properties remain on separate lines.
+   * @default true (enabled by default in hybrid mode)
+   */
+  keepArchetypeDetailsInline?: boolean;
 }
 
 /**
@@ -122,6 +130,7 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
   includeEmptyCollections: false,  // Changed to false for more compact output
   maxInlineProperties: 3,
   archetypeNodeIdLocation: 'after_name',
+  keepArchetypeDetailsInline: true,  // Enabled by default for cleaner archetype representation
 };
 
 /**
@@ -159,11 +168,12 @@ export const HYBRID_YAML_CONFIG: YamlSerializationConfig = {
   blockStyleObjects: true,
   hybridStyle: true, // Intelligent inline/block mixing
   indent: 2,
-  lineWidth: 80,
+  lineWidth: 0,  // Disable line width wrapping for inline archetype metadata
   useTerseFormat: true,
   includeNullValues: false,
   includeEmptyCollections: true,
   maxInlineProperties: 3,
+  keepArchetypeDetailsInline: true,  // Keep archetype metadata on same line
 };
 
 /**

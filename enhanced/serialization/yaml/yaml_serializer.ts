@@ -91,7 +91,7 @@ export class YamlSerializer {
     });
   }
 
-  /**
+   /**
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
    * 
@@ -103,13 +103,20 @@ export class YamlSerializer {
 
     // Handle different node types
     if (isMap(node)) {
-      // Check if this map should be inline
-      const shouldBeInline = this.shouldNodeBeInline(node);
-
-      if (shouldBeInline) {
-        node.flow = true;  // Use flow style (inline)
+      // Check if we should apply special archetype formatting
+      if (this.config.keepArchetypeDetailsInline && this.hasArchetypeMetadata(node)) {
+        this.applyArchetypeInlineFormatting(node, depth);
+        // Don't recurse into items here - applyArchetypeInlineFormatting handles it
+        return;
       } else {
-        node.flow = false; // Use block style
+        // Check if this map should be inline
+        const shouldBeInline = this.shouldNodeBeInline(node);
+
+        if (shouldBeInline) {
+          node.flow = true;  // Use flow style (inline)
+        } else {
+          node.flow = false; // Use block style
+        }
       }
 
       // Recurse into map items
@@ -129,6 +136,87 @@ export class YamlSerializer {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
+      }
+    }
+  }
+
+  /**
+   * Check if a map node has archetype metadata properties
+   * (name, archetype_node_id, or archetype_details)
+   */
+  private hasArchetypeMetadata(node: any): boolean {
+    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
+      return false;
+    }
+
+    const keys = node.items.map((pair: any) => pair.key?.value).filter(Boolean);
+    return keys.some((k: string) => 
+      k === 'name' || k === 'archetype_node_id' || k === 'archetype_details'
+    );
+  }
+
+  /**
+   * Apply special formatting for objects with archetype metadata
+   * Groups name, archetype_node_id, and archetype_details inline,
+   * while keeping other properties on separate lines
+   */
+  private applyArchetypeInlineFormatting(node: any, depth: number): void {
+    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
+      return;
+    }
+
+    const archetypeKeys = new Set(['name', 'archetype_node_id', 'archetype_details']);
+    const keys = node.items.map((pair: any) => pair.key?.value).filter(Boolean);
+    
+    // Check if object has non-archetype properties
+    const hasOtherProperties = keys.some((k: string) => !archetypeKeys.has(k));
+
+    if (!hasOtherProperties) {
+      // If only archetype properties, make entire object inline
+      node.flow = true;
+      
+      // Also make nested objects inline (like name, archetype_details)
+      for (const pair of node.items) {
+        if (pair.value && isMap(pair.value)) {
+          pair.value.flow = true;
+        }
+      }
+    } else {
+      // If has other properties, make the map block style
+      node.flow = false;
+      
+      // But make the archetype property values inline
+      for (const pair of node.items) {
+        const key = (pair as any).key?.value;
+        if (archetypeKeys.has(key)) {
+          if (pair.value && isMap(pair.value)) {
+            // Make the value itself inline
+            pair.value.flow = true;
+            // Recursively make all nested maps inline too
+            this.makeAllNestedMapsInline(pair.value);
+          }
+        } else {
+          // For non-archetype properties, recurse normally
+          if (pair.value) {
+            this.applyHybridFormattingToNode(pair.value, depth + 1);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Recursively make all nested maps within a node inline (flow style)
+   */
+  private makeAllNestedMapsInline(node: any): void {
+    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
+      return;
+    }
+
+    for (const pair of node.items) {
+      if (pair.value && isMap(pair.value)) {
+        pair.value.flow = true;
+        this.makeAllNestedMapsInline(pair.value);
       }
     }
   }
