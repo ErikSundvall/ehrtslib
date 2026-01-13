@@ -146,6 +146,9 @@ function setupEventListeners() {
 
   // Output visibility
   setupOutputVisibilityListeners();
+
+  // Collapsible sections
+  setupCollapsibleSections();
 }
 
 /**
@@ -1076,6 +1079,22 @@ function hideError() {
   if (errorState) {
     errorState.classList.add('hidden');
   }
+}
+
+/**
+ * Set up collapsible option sections
+ */
+function setupCollapsibleSections() {
+  const collapsibleSections = document.querySelectorAll('.option-section.collapsible');
+
+  collapsibleSections.forEach(section => {
+    const header = section.querySelector('.section-header');
+    if (header) {
+      header.addEventListener('click', () => {
+        section.classList.toggle('collapsed');
+      });
+    }
+  });
 }
 
 /**
