@@ -35,7 +35,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-01-13T18:06:23.600Z", buildId: "7CX565BY" };
+    define_BUILD_INFO_default = { timestamp: "2026-01-13T21:28:25.914Z", buildId: "BRWUE542" };
   }
 });
 
@@ -31435,12 +31435,6 @@ var DEFAULT_YAML_SERIALIZATION_CONFIG = {
   includeType: false,
   useTypeInference: true,
   // Changed to true - omit types when safe for smaller output
-  flowStyleValues: false,
-  // Deprecated - use mainStyle
-  blockStyleObjects: true,
-  // Deprecated - use mainStyle
-  hybridStyle: false,
-  // Deprecated - use mainStyle
   indent: 2,
   lineWidth: 80,
   useTerseFormat: true,
@@ -31547,19 +31541,9 @@ var YamlSerializer = class _YamlSerializer {
   }
   /**
    * Determine the effective main style based on configuration
-   * Handles backward compatibility with deprecated options
    */
   getEffectiveMainStyle() {
-    if (this.config.mainStyle) {
-      return this.config.mainStyle;
-    }
-    if (this.config.hybridStyle) {
-      return "hybrid";
-    }
-    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
-      return "flow";
-    }
-    return "block";
+    return this.config.mainStyle || "hybrid";
   }
   /**
    * Serialize with hybrid formatting using Document API
@@ -31607,9 +31591,15 @@ var YamlSerializer = class _YamlSerializer {
    */
   addStrategicLineBreaks(yaml) {
     let result2 = yaml;
-    result2 = result2.replace(/},\s*items:\s*\[/g, "},\n    items: [");
-    result2 = result2.replace(/},\s*value:\s*([{[])/g, "},\n       value: $1");
-    result2 = result2.replace(/}\s*,\s*\{name:/g, "},\n      {name:");
+    const indentStr = " ".repeat(this.config.indent);
+    const baseIndent = indentStr.repeat(2);
+    const valueIndent = indentStr.repeat(3) + " ".repeat(3);
+    result2 = result2.replace(/},\s*items:\s*\[/g, `},
+${baseIndent}items: [`);
+    result2 = result2.replace(/},\s*value:\s*([{[])/g, `},
+${valueIndent}value: $1`);
+    result2 = result2.replace(/}\s*,\s*\{name:/g, `},
+${baseIndent}  {name:`);
     return result2;
   }
   /**
@@ -31825,9 +31815,10 @@ var YamlSerializer = class _YamlSerializer {
       lineWidth: this.config.lineWidth,
       minContentWidth: 20
     };
-    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
+    const mainStyle = this.getEffectiveMainStyle();
+    if (mainStyle === "flow") {
       options.flowLevel = 0;
-    } else if (this.config.blockStyleObjects) {
+    } else {
       options.flowLevel = -1;
     }
     return options;
@@ -33526,9 +33517,9 @@ function updateYamlOptions(preset) {
     }
   }
   updateArchetypeInlineVisibility();
-  if (mainStyleSelect) {
-    mainStyleSelect.removeEventListener("change", updateArchetypeInlineVisibility);
+  if (mainStyleSelect && !mainStyleSelect.dataset.listenerAttached) {
     mainStyleSelect.addEventListener("change", updateArchetypeInlineVisibility);
+    mainStyleSelect.dataset.listenerAttached = "true";
   }
 }
 function updateXmlOptions(preset) {

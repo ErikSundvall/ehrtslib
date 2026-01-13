@@ -448,7 +448,7 @@ This produces the most concise YAML while still being deserializable.
 
 ```typescript
 const serializer = new YamlSerializer({
-  hybridStyle: true,
+  mainStyle: 'hybrid',
   useTerseFormat: true,
   maxInlineProperties: 3
 });

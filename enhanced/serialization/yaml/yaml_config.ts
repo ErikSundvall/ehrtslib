@@ -33,28 +33,6 @@ export interface YamlSerializationConfig {
   useTypeInference?: boolean;
 
   /**
-   * @deprecated Use mainStyle instead. This option is kept for backward compatibility.
-   * Use flow style for values (inline: {a: 1, b: 2})
-   * @default false
-   */
-  flowStyleValues?: boolean;
-
-  /**
-   * @deprecated Use mainStyle instead. This option is kept for backward compatibility.
-   * Use block style for objects (multi-line)
-   * @default true
-   */
-  blockStyleObjects?: boolean;
-
-  /**
-   * @deprecated Use mainStyle: 'hybrid' instead. This option is kept for backward compatibility.
-   * Use hybrid style (zipehr-like)
-   * Simple objects inline using flow style ({key: value}), complex objects block style
-   * @default false
-   */
-  hybridStyle?: boolean;
-
-  /**
    * Indentation size (spaces)
    * @default 2
    */
@@ -141,9 +119,6 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
   mainStyle: 'hybrid',
   includeType: false,
   useTypeInference: true,  // Changed to true - omit types when safe for smaller output
-  flowStyleValues: false,  // Deprecated - use mainStyle
-  blockStyleObjects: true,  // Deprecated - use mainStyle
-  hybridStyle: false,  // Deprecated - use mainStyle
   indent: 2,
   lineWidth: 80,
   useTerseFormat: true,  // Changed to true - terse format recommended for YAML

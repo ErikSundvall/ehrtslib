@@ -77,25 +77,10 @@ export class YamlSerializer {
 
   /**
    * Determine the effective main style based on configuration
-   * Handles backward compatibility with deprecated options
    */
   private getEffectiveMainStyle(): 'block' | 'flow' | 'hybrid' {
-    // Check new mainStyle option first
-    if (this.config.mainStyle) {
-      return this.config.mainStyle;
-    }
-
-    // Backward compatibility: check deprecated options
-    if (this.config.hybridStyle) {
-      return 'hybrid';
-    }
-
-    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
-      return 'flow';
-    }
-
-    // Default to block style
-    return 'block';
+    // Return the configured mainStyle, defaulting to 'hybrid'
+    return this.config.mainStyle || 'hybrid';
   }
 
   /**
@@ -463,11 +448,12 @@ export class YamlSerializer {
       minContentWidth: 20,
     };
 
-    // Configure style
-    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
+    // Configure style based on mainStyle
+    const mainStyle = this.getEffectiveMainStyle();
+    if (mainStyle === 'flow') {
       // Full flow style
       options.flowLevel = 0;
-    } else if (this.config.blockStyleObjects) {
+    } else {
       // Block style (default)
       options.flowLevel = -1;
     }

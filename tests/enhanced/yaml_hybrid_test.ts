@@ -95,7 +95,7 @@ Deno.test("Hybrid YAML: comparison with block style", () => {
   const blockSerializer = new YamlSerializer({
     includeType: true,
     useTypeInference: false,
-    hybridStyle: false,
+    mainStyle: 'block',
     useTerseFormat: false,
   });
   const blockYaml = blockSerializer.serialize(dvText);

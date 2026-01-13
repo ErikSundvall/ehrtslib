@@ -185,44 +185,21 @@ Deno.test("Phase 4g.8: Default config produces valid YAML", () => {
   assert(Array.isArray(parsed.items));
 });
 
-Deno.test("Phase 4g.8: Backward compatibility - hybridStyle option still works", () => {
+Deno.test("Phase 4g.8: mainStyle option works correctly", () => {
   const section = createTestStructure();
   const serializer = new YamlSerializer({
-    hybridStyle: true,
-    useTerseFormat: true,
-    indent: 2,
-  });
-  const yaml = serializer.serialize(section);
-
-  console.log("=== Backward Compatibility (hybridStyle) ===");
-  console.log(yaml);
-  console.log("============================================\n");
-
-  const parsed = assertValidYaml(yaml, "Backward compatibility hybridStyle");
-
-  // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
-  assert(Array.isArray(parsed.items));
-});
-
-Deno.test("Phase 4g.8: mainStyle option overrides deprecated options", () => {
-  const section = createTestStructure();
-  const serializer = new YamlSerializer({
-    mainStyle: 'flow',  // This should take precedence
-    hybridStyle: true,  // Deprecated, should be ignored
-    flowStyleValues: false,  // Deprecated, should be ignored
+    mainStyle: 'flow',
     keepArchetypeDetailsInline: false,
   });
   const yaml = serializer.serialize(section);
 
-  console.log("=== mainStyle Overrides Deprecated Options ===");
+  console.log("=== mainStyle: 'flow' ===");
   console.log(yaml);
-  console.log("==============================================\n");
+  console.log("=========================\n");
 
-  const parsed = assertValidYaml(yaml, "mainStyle override");
+  const parsed = assertValidYaml(yaml, "mainStyle flow");
 
-  // Should use flow style even though hybridStyle is true
-  // Flow style typically has all content on fewer lines
+  // Should use flow style
   assertEquals(parsed.name.value, "Item tree");
   assert(Array.isArray(parsed.items));
 });
