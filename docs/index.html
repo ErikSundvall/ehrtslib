@@ -363,22 +363,32 @@
             <h2>📚 Developer Resources</h2>
 
             <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--text-secondary);">Quick Start</h3>
-            <div class="code-example">// Import what you need
-                import { COMPOSITION, DV_TEXT } from "./openehr_rm.ts";
-                import { JsonConfigurableSerializer } from "./enhanced/serialization/json/mod.ts";
+            <div class="code-example">
+                <pre>
+// Import what you need
+import { COMPOSITION } from "./openehr_rm.ts";
+import { JsonConfigurableSerializer } from "./enhanced/serialization/json/mod.ts";
 
-                // Create openEHR data structures with ease
-                const composition = new COMPOSITION({
-                archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-                name: "Blood Pressure Recording",
-                language: "ISO_639-1::en", // Terse format
-                category: "openehr::433|event|", // Terse coded text
-                composer: { name: "Dr. Smith" }
-                });
+// Create a composition with all common properties
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Blood Pressure Recording",
+  language: "ISO_639-1::en",           // Terse format for codes
+  territory: "ISO_3166-1::GB",
+  category: "openehr::433|event|",     // Terse format for coded text
+  composer: {
+    name: "Dr. Smith"
+  }
+});
 
-                // Serialize to any format
-                const serializer = new JsonConfigurableSerializer({ prettyPrint: true });
-                const json = serializer.serialize(composition);</div>
+// Modify properties directly
+composition.uid = "8849182c-82ad-4088-a07f-48ead4180515::uk.nhs.example::1";
+
+// Serialize to any format
+const serializer = new JsonConfigurableSerializer({ prettyPrint: true });
+const json = serializer.serialize(composition);
+</pre>
+            </div>
 
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--text-secondary);">Documentation</h3>
             <ul class="resource-list">
