@@ -31233,13 +31233,6 @@ var FLOW_YAML_CONFIG = {
 };
 
 // enhanced/serialization/yaml/yaml_serializer.ts
-var YAML_NODE_TYPES = {
-  MAP: "MAP",
-  FLOW_MAP: "FLOW_MAP",
-  SEQ: "SEQ",
-  FLOW_SEQ: "FLOW_SEQ",
-  SCALAR: "SCALAR"
-};
 var YamlSerializer = class _YamlSerializer {
   config;
   /**
@@ -31292,31 +31285,29 @@ var YamlSerializer = class _YamlSerializer {
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
    * 
-   * Note: The node parameter uses 'any' type because the yaml library's
-   * Node types are not easily accessible in the public API. The implementation
-   * relies on duck typing to check for 'items', 'type', and 'flow' properties.
-   * 
    * @param node - The YAML node to format
    * @param depth - Current depth in the tree
    */
   applyHybridFormattingToNode(node, depth) {
     if (!node)
       return;
-    if (node.items && Array.isArray(node.items)) {
-      if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
-        const shouldBeInline = this.shouldNodeBeInline(node);
-        if (shouldBeInline) {
-          node.flow = true;
-        } else {
-          node.flow = false;
-        }
+    if (isMap(node)) {
+      const shouldBeInline = this.shouldNodeBeInline(node);
+      if (shouldBeInline) {
+        node.flow = true;
+      } else {
+        node.flow = false;
+      }
+      if (node.items && Array.isArray(node.items)) {
         for (const pair of node.items) {
           if (pair.value) {
             this.applyHybridFormattingToNode(pair.value, depth + 1);
           }
         }
-      } else if (node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
-        node.flow = false;
+      }
+    } else if (isSeq(node)) {
+      node.flow = false;
+      if (node.items && Array.isArray(node.items)) {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
@@ -31330,10 +31321,13 @@ var YamlSerializer = class _YamlSerializer {
    * @returns true if the node should use flow style
    */
   shouldNodeBeInline(node) {
-    if (!node.items || !Array.isArray(node.items)) {
+    if (isScalar(node)) {
       return true;
     }
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
+    if (isMap(node)) {
+      if (!node.items || !Array.isArray(node.items)) {
+        return true;
+      }
       const numProps = node.items.length;
       const maxProps = this.config.maxInlineProperties ?? 3;
       if (numProps > maxProps) {
@@ -31357,10 +31351,10 @@ var YamlSerializer = class _YamlSerializer {
   isNodeComplex(node) {
     if (!node)
       return false;
-    if (node.type === YAML_NODE_TYPES.SCALAR || !node.items) {
+    if (isScalar(node)) {
       return false;
     }
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP || node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
+    if (isMap(node) || isSeq(node)) {
       return true;
     }
     return false;
@@ -32894,7 +32888,9 @@ function gatherConversionOptions() {
     yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
   if (yamlConfigPreset === "custom") {
     const indent = parseInt(document.getElementById("yaml-indent")?.value || "2");
+    const maxInlineProps = parseInt(document.getElementById("yaml-max-inline-props")?.value || "3");
     yamlConfig.indent = indent;
+    yamlConfig.maxInlineProperties = maxInlineProps;
     yamlConfig.useTerseFormat = document.getElementById("yaml-terse")?.checked !== false;
     yamlConfig.useTypeInference = document.getElementById("yaml-type-inference")?.checked !== false;
   }
