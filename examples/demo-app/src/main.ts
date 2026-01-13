@@ -637,6 +637,7 @@ function gatherConversionOptions(): ConversionOptions {
     yamlConfig.maxInlineProperties = maxInlineProps;
     yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
     yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
+    yamlConfig.keepArchetypeDetailsInline = (document.getElementById('yaml-archetype-inline') as HTMLInputElement)?.checked !== false;
   }
 
   // XML config
@@ -835,11 +836,13 @@ function updateYamlOptions(preset: string) {
   const terseCheckbox = document.getElementById('yaml-terse') as HTMLInputElement;
   const typeInferenceCheckbox = document.getElementById('yaml-type-inference') as HTMLInputElement;
   const indentInput = document.getElementById('yaml-indent') as HTMLInputElement;
+  const maxInlinePropsInput = document.getElementById('yaml-max-inline-props') as HTMLInputElement;
+  const archetypeInlineCheckbox = document.getElementById('yaml-archetype-inline') as HTMLInputElement;
   const archIdLocSelect = document.getElementById('yaml-arch-id-location') as HTMLSelectElement;
 
   const isCustom = preset === 'custom';
 
-  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput, archIdLocSelect].forEach(elem => {
+  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach(elem => {
     if (elem) elem.disabled = !isCustom;
   });
 
@@ -859,6 +862,7 @@ function updateYamlOptions(preset: string) {
         if (hybridStyleCheckbox) hybridStyleCheckbox.checked = true;
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = true;
         break;
       case 'flow':
         if (blockStyleCheckbox) blockStyleCheckbox.checked = false;

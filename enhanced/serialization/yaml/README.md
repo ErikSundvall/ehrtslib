@@ -246,6 +246,72 @@ const yaml = serializer.serialize(section);
 
 More compact, JSON-like appearance. Useful when horizontal space is prioritized over vertical readability.
 
+## Archetype Metadata Inline Formatting (Phase 4g.7)
+
+In hybrid YAML mode, there's a special feature for formatting archetype metadata properties inline for better readability.
+
+### Configuration
+
+```typescript
+interface YamlSerializationConfig {
+  // ... other options ...
+  
+  /**
+   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline in hybrid style.
+   * When enabled, these properties are formatted on the same line using flow style,
+   * while other properties remain on separate lines.
+   * @default true (enabled by default in hybrid mode)
+   */
+  keepArchetypeDetailsInline?: boolean;
+}
+```
+
+### Example
+
+When `keepArchetypeDetailsInline` is `true` (default in hybrid mode):
+
+```typescript
+const cluster = new CLUSTER();
+cluster.name = new DV_TEXT({ value: "Organization" });
+cluster.archetype_node_id = "openEHR-EHR-CLUSTER.organisation.v1";
+cluster.archetype_details = new ARCHETYPED();
+cluster.archetype_details.archetype_id = new ARCHETYPE_ID({ value: "openEHR-EHR-CLUSTER.organisation.v1" });
+cluster.archetype_details.rm_version = "1.1.0";
+cluster.items = [...]; // Some items
+
+const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
+const yaml = serializer.serialize(cluster);
+```
+
+**Output:**
+```yaml
+name: {value: Organization}
+archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}
+items:
+  - name: {value: Child Item}
+    archetype_node_id: at0001
+    value: {value: Some value}
+```
+
+Notice how:
+- `name`, `archetype_node_id`, and `archetype_details` are formatted inline (flow style)
+- `archetype_details` and all its nested objects are on a single line
+- Other properties like `items` remain on separate lines for readability
+
+This format makes it easy to quickly scan the archetype structure while keeping the details compact.
+
+### Disabling the Feature
+
+To disable this feature and use standard hybrid formatting:
+
+```typescript
+const serializer = new YamlSerializer({
+  ...HYBRID_YAML_CONFIG,
+  keepArchetypeDetailsInline: false,
+});
+```
+
 ## Advanced Usage
 
 ### Terse Format (Recommended for YAML)
