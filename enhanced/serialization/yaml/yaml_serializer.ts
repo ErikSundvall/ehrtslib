@@ -13,7 +13,7 @@
  * - Configurable formatting
  */
 
-import { stringify, Document } from 'yaml';
+import { stringify, Document, isMap, isSeq, isScalar } from 'yaml';
 import { TypeRegistry } from '../common/type_registry.ts';
 import { TypeInferenceEngine } from '../common/type_inference.ts';
 import { SerializationError } from '../common/errors.ts';
@@ -25,18 +25,6 @@ import {
   YamlSerializationConfig,
   DEFAULT_YAML_SERIALIZATION_CONFIG,
 } from './yaml_config.ts';
-
-/**
- * YAML node type constants
- * These match the type property values used by the yaml library's Document API
- */
-const YAML_NODE_TYPES = {
-  MAP: 'MAP',
-  FLOW_MAP: 'FLOW_MAP',
-  SEQ: 'SEQ',
-  FLOW_SEQ: 'FLOW_SEQ',
-  SCALAR: 'SCALAR',
-} as const;
 
 /**
  * YAML Serializer for openEHR RM objects
@@ -107,10 +95,6 @@ export class YamlSerializer {
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
    * 
-   * Note: The node parameter uses 'any' type because the yaml library's
-   * Node types are not easily accessible in the public API. The implementation
-   * relies on duck typing to check for 'items', 'type', and 'flow' properties.
-   * 
    * @param node - The YAML node to format
    * @param depth - Current depth in the tree
    */
@@ -118,30 +102,30 @@ export class YamlSerializer {
     if (!node) return;
 
     // Handle different node types
-    if (node.items && Array.isArray(node.items)) {
-      // This is a collection (array or map)
+    if (isMap(node)) {
+      // Check if this map should be inline
+      const shouldBeInline = this.shouldNodeBeInline(node);
 
-      if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
-        // Check if this map should be inline
-        const shouldBeInline = this.shouldNodeBeInline(node);
+      if (shouldBeInline) {
+        node.flow = true;  // Use flow style (inline)
+      } else {
+        node.flow = false; // Use block style
+      }
 
-        if (shouldBeInline) {
-          node.flow = true;  // Use flow style (inline)
-        } else {
-          node.flow = false; // Use block style
-        }
-
-        // Recurse into map items
+      // Recurse into map items
+      if (node.items && Array.isArray(node.items)) {
         for (const pair of node.items) {
           if (pair.value) {
             this.applyHybridFormattingToNode(pair.value, depth + 1);
           }
         }
-      } else if (node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
-        // Sequence/array - usually keep block style
-        node.flow = false;
+      }
+    } else if (isSeq(node)) {
+      // Sequence/array - usually keep block style
+      node.flow = false;
 
-        // Recurse into sequence items
+      // Recurse into sequence items
+      if (node.items && Array.isArray(node.items)) {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
@@ -156,16 +140,20 @@ export class YamlSerializer {
    * @returns true if the node should use flow style
    */
   private shouldNodeBeInline(node: any): boolean {
-    if (!node.items || !Array.isArray(node.items)) {
-      return true; // Scalars are always inline
+    // Scalars are always inline
+    if (isScalar(node)) {
+      return true;
     }
 
     // For maps, check number of properties and complexity
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
+    if (isMap(node)) {
+      if (!node.items || !Array.isArray(node.items)) {
+        return true;
+      }
+
       const numProps = node.items.length;
 
       // Too many properties -> block style
-      // Use default value if maxInlineProperties is undefined
       const maxProps = this.config.maxInlineProperties ?? 3;
       if (numProps > maxProps) {
         return false;
@@ -181,6 +169,7 @@ export class YamlSerializer {
       return true;
     }
 
+    // Sequences are not inlined by default
     return false;
   }
 
@@ -194,13 +183,12 @@ export class YamlSerializer {
     if (!node) return false;
 
     // Scalars are not complex
-    if (node.type === YAML_NODE_TYPES.SCALAR || !node.items) {
+    if (isScalar(node)) {
       return false;
     }
 
     // Maps and sequences are complex
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP ||
-      node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
+    if (isMap(node) || isSeq(node)) {
       return true;
     }
 

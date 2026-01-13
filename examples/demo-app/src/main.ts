@@ -632,7 +632,9 @@ function gatherConversionOptions(): ConversionOptions {
   // Apply custom YAML settings if preset is 'custom'
   if (yamlConfigPreset === 'custom') {
     const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
+    const maxInlineProps = parseInt((document.getElementById('yaml-max-inline-props') as HTMLInputElement)?.value || '3');
     yamlConfig.indent = indent;
+    yamlConfig.maxInlineProperties = maxInlineProps;
     yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
     yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
   }
