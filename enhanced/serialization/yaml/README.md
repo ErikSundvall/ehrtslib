@@ -283,22 +283,19 @@ const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
 const yaml = serializer.serialize(cluster);
 ```
 
-**Current Output:**
+**Output with `keepArchetypeDetailsInline: true` (default in hybrid mode):**
 ```yaml
-name: { value: Organization }
-archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
-archetype_details: { archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }, rm_version: 1.1.0 }
+{ name: { value: Organization }, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: { archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }, rm_version: 1.1.0 } }
 items:
-  - name: { value: Child Item }
-    archetype_node_id: at0001
+  - { name: { value: Child Item }, archetype_node_id: at0001 }
     value: { value: Some value }
 ```
 
 Notice how:
-- Each archetype metadata property (`name`, `archetype_node_id`, `archetype_details`) is formatted inline using flow style
-- Each property appears on its own line for better readability
+- All archetype metadata properties (`name`, `archetype_node_id`, `archetype_details`) are grouped on a single line using flow style
 - Nested objects within archetype properties are also inline
-- Other properties like `items` remain on separate lines
+- Other properties like `items` and `value` appear on subsequent lines
+- This format makes it easy to scan archetype structures while keeping details compact
 
 This format makes it easy to quickly scan the archetype structure while keeping the details compact.
 

@@ -85,10 +85,160 @@ export class YamlSerializer {
     // Walk the document tree and set flow/block style based on complexity
     this.applyHybridFormattingToNode(doc.contents, 0);
 
-    return doc.toString({
+    let yaml = doc.toString({
       indent: this.config.indent,
       lineWidth: this.config.lineWidth,
     });
+
+    // Post-process to merge archetype properties onto single lines if enabled
+    if (this.config.keepArchetypeDetailsInline) {
+      yaml = this.mergeArchetypePropertiesOntoSingleLine(yaml);
+    }
+
+    return yaml;
+  }
+
+  /**
+   * Post-process YAML to merge archetype metadata properties onto a single line.
+   * Converts sequences like:
+   *   - name: { value: X }
+   *     archetype_node_id: Y
+   *     archetype_details: { ... }
+   *     items:
+   * To:
+   *   - { name: { value: X }, archetype_node_id: Y, archetype_details: { ... } }
+   *     items:
+   */
+  private mergeArchetypePropertiesOntoSingleLine(yaml: string): string {
+    const lines = yaml.split('\n');
+    const result: string[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      
+      // Try to detect start of potential archetype metadata block
+      if (this.isArchetypeMetadataStart(line, lines, i)) {
+        const merged = this.tryMergeArchetypeBlock(lines, i);
+        if (merged) {
+          result.push(...merged.lines);
+          i = merged.nextIndex;
+          continue;
+        }
+      }
+
+      result.push(line);
+      i++;
+    }
+
+    return result.join('\n');
+  }
+
+  /**
+   * Check if a line starts an archetype metadata block
+   */
+  private isArchetypeMetadataStart(line: string, lines: string[], index: number): boolean {
+    const trimmed = line.trim();
+    // Check for name property (either as array item or regular property)
+    if (trimmed.startsWith('- name:') || trimmed.startsWith('name:')) {
+      // Look ahead to see if archetype_node_id follows
+      if (index + 1 < lines.length) {
+        const nextTrimmed = lines[index + 1].trim();
+        return nextTrimmed.startsWith('archetype_node_id:');
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Try to merge an archetype metadata block into a single line
+   * Returns the merged lines and the next index to process, or null if merge not applicable
+   */
+  private tryMergeArchetypeBlock(lines: string[], startIndex: number): { lines: string[], nextIndex: number } | null {
+    const firstLine = lines[startIndex];
+    const firstLineIndent = firstLine.match(/^(\s*)/)?.[1] || '';
+    const isArrayItem = firstLine.trim().startsWith('- ');
+    
+    // For array items, the base indent for properties is the indent of the first line plus 2 spaces for the "- "
+    // For regular objects, the base indent is the same as the first line
+    const baseIndent = isArrayItem ? firstLineIndent : firstLineIndent;
+    const propIndent = isArrayItem ? firstLineIndent + '  ' : firstLineIndent;
+    
+    const archetypeProps: { name?: string, archetype_node_id?: string, archetype_details?: string } = {};
+    let currentIndex = startIndex;
+    let hasOtherProperties = false;
+
+    // Parse the first line (name)
+    const firstTrimmed = firstLine.trim();
+    if (isArrayItem && firstTrimmed.startsWith('- name:')) {
+      archetypeProps.name = firstTrimmed.substring(7).trim();
+      currentIndex++;
+    } else if (firstTrimmed.startsWith('name:')) {
+      archetypeProps.name = firstTrimmed.substring(5).trim();
+      currentIndex++;
+    } else {
+      return null;
+    }
+
+    // Parse the following lines
+    while (currentIndex < lines.length) {
+      const line = lines[currentIndex];
+      const indent = line.match(/^(\s*)/)?.[1] || '';
+      const trimmed = line.trim();
+
+      // Stop if blank line
+      if (trimmed.length === 0) {
+        break;
+      }
+
+      // For array items, properties should be at propIndent level
+      // For regular objects, properties should be at propIndent level
+      const expectedIndent = isArrayItem ? propIndent : baseIndent;
+      
+      // Stop if indentation is less than expected (moved to outer level)
+      if (indent.length < expectedIndent.length) {
+        break;
+      }
+
+      // Check if this is at the same level as other archetype properties
+      if (indent === expectedIndent) {
+        if (trimmed.startsWith('archetype_node_id:')) {
+          archetypeProps.archetype_node_id = trimmed.substring(18).trim();
+          currentIndex++;
+        } else if (trimmed.startsWith('archetype_details:')) {
+          archetypeProps.archetype_details = trimmed.substring(18).trim();
+          currentIndex++;
+        } else {
+          // This is a non-archetype property at the same level
+          hasOtherProperties = true;
+          break;
+        }
+      } else {
+        // Different indentation - stop
+        break;
+      }
+    }
+
+    // Only merge if we have archetype properties and other properties follow
+    if (!hasOtherProperties || !archetypeProps.name) {
+      return null;
+    }
+
+    // Build the merged line
+    const parts: string[] = [];
+    if (archetypeProps.name) parts.push(`name: ${archetypeProps.name}`);
+    if (archetypeProps.archetype_node_id) parts.push(`archetype_node_id: ${archetypeProps.archetype_node_id}`);
+    if (archetypeProps.archetype_details) parts.push(`archetype_details: ${archetypeProps.archetype_details}`);
+
+    const mergedContent = parts.join(', ');
+    const mergedLine = isArrayItem 
+      ? `${baseIndent}- { ${mergedContent} }`
+      : `${baseIndent}{ ${mergedContent} }`;
+
+    return {
+      lines: [mergedLine],
+      nextIndex: currentIndex
+    };
   }
 
    /**
