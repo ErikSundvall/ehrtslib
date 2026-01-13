@@ -53,16 +53,19 @@ export class YamlSerializer {
       // Convert to plain object
       const plainObj = this.toPlainObject(obj);
 
-      // For hybrid style, use Document API for fine-grained control
-      if (this.config.hybridStyle) {
+      // Determine which style to use
+      const mainStyle = this.getEffectiveMainStyle();
+
+      // Use Document API for hybrid and flow styles
+      if (mainStyle === 'hybrid') {
         return this.serializeHybrid(plainObj);
+      } else if (mainStyle === 'flow') {
+        return this.serializeFlow(plainObj);
+      } else {
+        // Block style - use basic stringify
+        const options = this.getYamlOptions();
+        return stringify(plainObj, options);
       }
-
-      // Configure YAML stringify options
-      const options = this.getYamlOptions();
-
-      // Serialize to YAML
-      return stringify(plainObj, options);
     } catch (error) {
       throw new SerializationError(
         `Failed to serialize to YAML: ${error instanceof Error ? error.message : String(error)}`,
@@ -73,8 +76,17 @@ export class YamlSerializer {
   }
 
   /**
+   * Determine the effective main style based on configuration
+   */
+  private getEffectiveMainStyle(): 'block' | 'flow' | 'hybrid' {
+    // Return the configured mainStyle, defaulting to 'hybrid'
+    return this.config.mainStyle || 'hybrid';
+  }
+
+  /**
    * Serialize with hybrid formatting using Document API
    * This allows fine-grained control over flow vs block style
+   * Simple objects are inline, complex objects use block style
    * 
    * @param obj - The plain object to serialize
    * @returns YAML string
@@ -85,160 +97,108 @@ export class YamlSerializer {
     // Walk the document tree and set flow/block style based on complexity
     this.applyHybridFormattingToNode(doc.contents, 0);
 
-    let yaml = doc.toString({
+    const yaml = doc.toString({
       indent: this.config.indent,
       lineWidth: this.config.lineWidth,
     });
 
-    // Post-process to merge archetype properties onto single lines if enabled
+    return yaml;
+  }
+
+  /**
+   * Serialize with flow formatting using Document API
+   * Uses flow style with strategic line breaks for archetype metadata
+   * 
+   * @param obj - The plain object to serialize
+   * @returns YAML string
+   */
+  private serializeFlow(obj: any): string {
+    const doc = new Document(obj);
+
+    // Apply flow style to all nodes
+    this.applyFlowFormattingToNode(doc.contents);
+
+    let yaml = doc.toString({
+      indent: this.config.indent,
+      lineWidth: this.config.lineWidth || 0,
+    });
+
+    // If keepArchetypeDetailsInline is enabled, add strategic line breaks
     if (this.config.keepArchetypeDetailsInline) {
-      yaml = this.mergeArchetypePropertiesOntoSingleLine(yaml);
+      yaml = this.addStrategicLineBreaks(yaml);
     }
 
     return yaml;
   }
 
   /**
-   * Post-process YAML to merge archetype metadata properties onto a single line.
-   * Converts sequences like:
-   *   - name: { value: X }
-   *     archetype_node_id: Y
-   *     archetype_details: { ... }
-   *     items:
-   * To:
-   *   - { name: { value: X }, archetype_node_id: Y, archetype_details: { ... } }
-   *     items:
+   * Add strategic line breaks to flow-style YAML for better readability.
+   * Adds line breaks after archetype metadata and before 'items' and 'value' properties.
+   * This creates valid YAML with improved structure visibility.
+   * 
+   * @param yaml - Flow-style YAML string
+   * @returns YAML string with strategic line breaks
    */
-  private mergeArchetypePropertiesOntoSingleLine(yaml: string): string {
-    const lines = yaml.split('\n');
-    const result: string[] = [];
-    let i = 0;
+  private addStrategicLineBreaks(yaml: string): string {
+    // Strategy: Add line breaks in flow style at key points
+    // 1. After archetype_details (before next property)
+    // 2. Before 'items:' array
+    // 3. Before 'value:' when it's after archetype metadata
+    
+    let result = yaml;
 
-    while (i < lines.length) {
-      const line = lines[i];
-      
-      // Try to detect start of potential archetype metadata block
-      if (this.isArchetypeMetadataStart(line, lines, i)) {
-        const merged = this.tryMergeArchetypeBlock(lines, i);
-        if (merged) {
-          result.push(...merged.lines);
-          i = merged.nextIndex;
-          continue;
-        }
-      }
+    // Create indentation strings based on config
+    const indentStr = ' '.repeat(this.config.indent);
+    const baseIndent = indentStr.repeat(2); // 2 levels
+    const valueIndent = indentStr.repeat(3) + ' '.repeat(3); // 3 levels + align
 
-      result.push(line);
-      i++;
-    }
+    // Add line break and proper indentation before 'items:' in flow style
+    // Pattern: }, items: [{ or }, items: [{
+    result = result.replace(/},\s*items:\s*\[/g, `},\n${baseIndent}items: [`);
+    
+    // Add line break before 'value:' when it follows archetype metadata
+    // Pattern: }, value: { or }, value: text
+    result = result.replace(/},\s*value:\s*([{[])/g, `},\n${valueIndent}value: $1`);
+    
+    // For nested array items, add line break between items
+    // Pattern: }, {name: becomes },\n      {name:
+    result = result.replace(/}\s*,\s*\{name:/g, `},\n${baseIndent}  {name:`);
 
-    return result.join('\n');
+    return result;
   }
 
   /**
-   * Check if a line starts an archetype metadata block
+   * Apply flow formatting to a YAML node
+   * Sets all nodes to use flow style
+   * 
+   * @param node - The YAML node to format
    */
-  private isArchetypeMetadataStart(line: string, lines: string[], index: number): boolean {
-    const trimmed = line.trim();
-    // Check for name property (either as array item or regular property)
-    if (trimmed.startsWith('- name:') || trimmed.startsWith('name:')) {
-      // Look ahead to see if archetype_node_id follows
-      if (index + 1 < lines.length) {
-        const nextTrimmed = lines[index + 1].trim();
-        return nextTrimmed.startsWith('archetype_node_id:');
-      }
-    }
-    return false;
-  }
+  private applyFlowFormattingToNode(node: any): void {
+    if (!node) return;
 
-  /**
-   * Try to merge an archetype metadata block into a single line
-   * Returns the merged lines and the next index to process, or null if merge not applicable
-   */
-  private tryMergeArchetypeBlock(lines: string[], startIndex: number): { lines: string[], nextIndex: number } | null {
-    const firstLine = lines[startIndex];
-    const firstLineIndent = firstLine.match(/^(\s*)/)?.[1] || '';
-    const isArrayItem = firstLine.trim().startsWith('- ');
-    
-    // For array items, the base indent for properties is the indent of the first line plus 2 spaces for the "- "
-    // For regular objects, the base indent is the same as the first line
-    const baseIndent = isArrayItem ? firstLineIndent : firstLineIndent;
-    const propIndent = isArrayItem ? firstLineIndent + '  ' : firstLineIndent;
-    
-    const archetypeProps: { name?: string, archetype_node_id?: string, archetype_details?: string } = {};
-    let currentIndex = startIndex;
-    let hasOtherProperties = false;
+    // Set flow style for maps
+    if (isMap(node)) {
+      node.flow = true;
 
-    // Parse the first line (name)
-    const firstTrimmed = firstLine.trim();
-    if (isArrayItem && firstTrimmed.startsWith('- name:')) {
-      archetypeProps.name = firstTrimmed.substring(7).trim();
-      currentIndex++;
-    } else if (firstTrimmed.startsWith('name:')) {
-      archetypeProps.name = firstTrimmed.substring(5).trim();
-      currentIndex++;
-    } else {
-      return null;
-    }
-
-    // Parse the following lines
-    while (currentIndex < lines.length) {
-      const line = lines[currentIndex];
-      const indent = line.match(/^(\s*)/)?.[1] || '';
-      const trimmed = line.trim();
-
-      // Stop if blank line
-      if (trimmed.length === 0) {
-        break;
-      }
-
-      // For array items, properties should be at propIndent level
-      // For regular objects, properties should be at propIndent level
-      const expectedIndent = isArrayItem ? propIndent : baseIndent;
-      
-      // Stop if indentation is less than expected (moved to outer level)
-      if (indent.length < expectedIndent.length) {
-        break;
-      }
-
-      // Check if this is at the same level as other archetype properties
-      if (indent === expectedIndent) {
-        if (trimmed.startsWith('archetype_node_id:')) {
-          archetypeProps.archetype_node_id = trimmed.substring(18).trim();
-          currentIndex++;
-        } else if (trimmed.startsWith('archetype_details:')) {
-          archetypeProps.archetype_details = trimmed.substring(18).trim();
-          currentIndex++;
-        } else {
-          // This is a non-archetype property at the same level
-          hasOtherProperties = true;
-          break;
+      // Recurse into map items
+      if (node.items && Array.isArray(node.items)) {
+        for (const pair of node.items) {
+          if (pair.value) {
+            this.applyFlowFormattingToNode(pair.value);
+          }
         }
-      } else {
-        // Different indentation - stop
-        break;
+      }
+    } else if (isSeq(node)) {
+      // Set flow style for sequences
+      node.flow = true;
+
+      // Recurse into sequence items
+      if (node.items && Array.isArray(node.items)) {
+        for (const item of node.items) {
+          this.applyFlowFormattingToNode(item);
+        }
       }
     }
-
-    // Only merge if we have archetype properties and other properties follow
-    if (!hasOtherProperties || !archetypeProps.name) {
-      return null;
-    }
-
-    // Build the merged line
-    const parts: string[] = [];
-    if (archetypeProps.name) parts.push(`name: ${archetypeProps.name}`);
-    if (archetypeProps.archetype_node_id) parts.push(`archetype_node_id: ${archetypeProps.archetype_node_id}`);
-    if (archetypeProps.archetype_details) parts.push(`archetype_details: ${archetypeProps.archetype_details}`);
-
-    const mergedContent = parts.join(', ');
-    const mergedLine = isArrayItem 
-      ? `${baseIndent}- { ${mergedContent} }`
-      : `${baseIndent}{ ${mergedContent} }`;
-
-    return {
-      lines: [mergedLine],
-      nextIndex: currentIndex
-    };
   }
 
    /**
@@ -253,20 +213,13 @@ export class YamlSerializer {
 
     // Handle different node types
     if (isMap(node)) {
-      // Check if we should apply special archetype formatting
-      if (this.config.keepArchetypeDetailsInline && this.hasArchetypeMetadata(node)) {
-        this.applyArchetypeInlineFormatting(node, depth);
-        // Don't recurse into items here - applyArchetypeInlineFormatting handles it
-        return;
-      } else {
-        // Check if this map should be inline
-        const shouldBeInline = this.shouldNodeBeInline(node);
+      // Check if this map should be inline
+      const shouldBeInline = this.shouldNodeBeInline(node);
 
-        if (shouldBeInline) {
-          node.flow = true;  // Use flow style (inline)
-        } else {
-          node.flow = false; // Use block style
-        }
+      if (shouldBeInline) {
+        node.flow = true;  // Use flow style (inline)
+      } else {
+        node.flow = false; // Use block style
       }
 
       // Recurse into map items
@@ -286,87 +239,6 @@ export class YamlSerializer {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
-      }
-    }
-  }
-
-  /**
-   * Check if a map node has archetype metadata properties
-   * (name, archetype_node_id, or archetype_details)
-   */
-  private hasArchetypeMetadata(node: any): boolean {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return false;
-    }
-
-    const keys = node.items.map((pair: any) => pair.key?.value).filter(Boolean);
-    return keys.some((k: string) => 
-      k === 'name' || k === 'archetype_node_id' || k === 'archetype_details'
-    );
-  }
-
-  /**
-   * Apply special formatting for objects with archetype metadata
-   * Groups name, archetype_node_id, and archetype_details inline,
-   * while keeping other properties on separate lines
-   */
-  private applyArchetypeInlineFormatting(node: any, depth: number): void {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return;
-    }
-
-    const archetypeKeys = new Set(['name', 'archetype_node_id', 'archetype_details']);
-    const keys = node.items.map((pair: any) => pair.key?.value).filter(Boolean);
-    
-    // Check if object has non-archetype properties
-    const hasOtherProperties = keys.some((k: string) => !archetypeKeys.has(k));
-
-    if (!hasOtherProperties) {
-      // If only archetype properties, make entire object inline
-      node.flow = true;
-      
-      // Also make nested objects inline (like name, archetype_details)
-      for (const pair of node.items) {
-        if (pair.value && isMap(pair.value)) {
-          pair.value.flow = true;
-        }
-      }
-    } else {
-      // If has other properties, make the map block style
-      node.flow = false;
-      
-      // But make the archetype property values inline
-      for (const pair of node.items) {
-        const key = (pair as any).key?.value;
-        if (archetypeKeys.has(key)) {
-          if (pair.value && isMap(pair.value)) {
-            // Make the value itself inline
-            pair.value.flow = true;
-            // Recursively make all nested maps inline too
-            this.makeAllNestedMapsInline(pair.value);
-          }
-        } else {
-          // For non-archetype properties, recurse normally
-          if (pair.value) {
-            this.applyHybridFormattingToNode(pair.value, depth + 1);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Recursively make all nested maps within a node inline (flow style)
-   */
-  private makeAllNestedMapsInline(node: any): void {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return;
-    }
-
-    for (const pair of node.items) {
-      if (pair.value && isMap(pair.value)) {
-        pair.value.flow = true;
-        this.makeAllNestedMapsInline(pair.value);
       }
     }
   }
@@ -576,11 +448,12 @@ export class YamlSerializer {
       minContentWidth: 20,
     };
 
-    // Configure style
-    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
+    // Configure style based on mainStyle
+    const mainStyle = this.getEffectiveMainStyle();
+    if (mainStyle === 'flow') {
       // Full flow style
       options.flowLevel = 0;
-    } else if (this.config.blockStyleObjects) {
+    } else {
       // Block style (default)
       options.flowLevel = -1;
     }

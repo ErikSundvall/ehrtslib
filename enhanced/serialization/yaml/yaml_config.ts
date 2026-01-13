@@ -2,9 +2,23 @@ import { ArchetypeNodeIdLocation } from '../common/mod.ts';
 export type { ArchetypeNodeIdLocation };
 
 /**
+ * YAML main style options
+ */
+export type YamlMainStyle = 'block' | 'flow' | 'hybrid';
+
+/**
  * Configuration options for YAML serialization
  */
 export interface YamlSerializationConfig {
+  /**
+   * Main YAML style: 'block', 'flow', or 'hybrid'
+   * - 'block': Multi-line block style for all objects
+   * - 'flow': Inline flow style with proper line breaks
+   * - 'hybrid': Mix of inline and block (simple objects inline, complex objects block)
+   * @default 'hybrid'
+   */
+  mainStyle?: YamlMainStyle;
+
   /**
    * Include _type fields in output
    * @default false
@@ -17,25 +31,6 @@ export interface YamlSerializationConfig {
    * @default true
    */
   useTypeInference?: boolean;
-
-  /**
-   * Use flow style for values (inline: {a: 1, b: 2})
-   * @default false
-   */
-  flowStyleValues?: boolean;
-
-  /**
-   * Use block style for objects (multi-line)
-   * @default true
-   */
-  blockStyleObjects?: boolean;
-
-  /**
-   * Use hybrid style (zipehr-like)
-   * Simple objects inline using flow style ({key: value}), complex objects block style
-   * @default false
-   */
-  hybridStyle?: boolean;
 
   /**
    * Indentation size (spaces)
@@ -82,10 +77,13 @@ export interface YamlSerializationConfig {
   archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
 
   /**
-   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline in hybrid style.
-   * When enabled, these properties are formatted on the same line using flow style,
-   * while other properties remain on separate lines.
-   * @default true (enabled by default in hybrid mode)
+   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline.
+   * ONLY works with mainStyle: 'flow'. When enabled in flow style, archetype metadata
+   * is formatted on one line with strategic line breaks, while other properties 
+   * remain on separate lines for better readability.
+   * 
+   * Has no effect in 'block' or 'hybrid' styles.
+   * @default true (enabled by default in flow mode)
    */
   keepArchetypeDetailsInline?: boolean;
 }
@@ -118,11 +116,9 @@ export interface YamlDeserializationConfig {
  * For YAML, we prioritize readability and compactness since there's no official openEHR YAML standard.
  */
 export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig> = {
+  mainStyle: 'hybrid',
   includeType: false,
   useTypeInference: true,  // Changed to true - omit types when safe for smaller output
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: false,
   indent: 2,
   lineWidth: 80,
   useTerseFormat: true,  // Changed to true - terse format recommended for YAML
@@ -130,7 +126,7 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
   includeEmptyCollections: false,  // Changed to false for more compact output
   maxInlineProperties: 3,
   archetypeNodeIdLocation: 'after_name',
-  keepArchetypeDetailsInline: true,  // Enabled by default for cleaner archetype representation
+  keepArchetypeDetailsInline: false,  // Only works with flow style
 };
 
 /**
@@ -146,46 +142,58 @@ export const DEFAULT_YAML_DESERIALIZATION_CONFIG: Required<YamlDeserializationCo
  * Preset: Standard YAML format (readable with types)
  */
 export const VERBOSE_YAML_CONFIG: YamlSerializationConfig = {
+  mainStyle: 'block',
   includeType: true,
   useTypeInference: false,
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: false,
   indent: 2,
   lineWidth: 80,
   useTerseFormat: false,
   archetypeNodeIdLocation: 'after_name',
+  keepArchetypeDetailsInline: false,
 };
 
 /**
  * Preset: Hybrid YAML format (zipehr-like, optimized for readability)
- * Inverted settings for less redundancy and better readability
+ * Simple objects inline, complex objects in block style
  */
 export const HYBRID_YAML_CONFIG: YamlSerializationConfig = {
-  includeType: false,  // Inverted: omit types for less redundancy
-  useTypeInference: true,  // Inverted: enable inference for cleaner output
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: true, // Intelligent inline/block mixing
+  mainStyle: 'hybrid',
+  includeType: false,
+  useTypeInference: true,
   indent: 2,
-  lineWidth: 0,  // Disable line width wrapping for inline archetype metadata
+  lineWidth: 0,
   useTerseFormat: true,
   includeNullValues: false,
   includeEmptyCollections: true,
   maxInlineProperties: 3,
-  keepArchetypeDetailsInline: true,  // Keep archetype metadata on same line
+  keepArchetypeDetailsInline: false,  // Not applicable in hybrid mode
+  archetypeNodeIdLocation: 'after_name',
 };
 
 /**
- * Preset: Flow-style YAML (more JSON-like)
+ * Preset: Flow-style YAML (compact with strategic line breaks)
  */
 export const FLOW_YAML_CONFIG: YamlSerializationConfig = {
-  includeType: true,
-  useTypeInference: false,
-  flowStyleValues: true,
-  blockStyleObjects: false,
-  hybridStyle: false,
+  mainStyle: 'flow',
+  includeType: false,
+  useTypeInference: true,
   indent: 2,
-  lineWidth: 120,
-  useTerseFormat: false,
+  lineWidth: 0,  // Disable wrapping for better control
+  useTerseFormat: true,
+  keepArchetypeDetailsInline: true,  // Enable archetype inline in flow mode
+  archetypeNodeIdLocation: 'after_name',
+};
+
+/**
+ * Preset: Block-style YAML (traditional multi-line format)
+ */
+export const BLOCK_YAML_CONFIG: YamlSerializationConfig = {
+  mainStyle: 'block',
+  includeType: false,
+  useTypeInference: true,
+  indent: 2,
+  lineWidth: 80,
+  useTerseFormat: true,
+  keepArchetypeDetailsInline: false,  // Not applicable in block mode
+  archetypeNodeIdLocation: 'after_name',
 };
