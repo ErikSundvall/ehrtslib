@@ -24,6 +24,7 @@ export { YamlDeserializer } from './yaml_deserializer.ts';
 export type {
   YamlSerializationConfig,
   YamlDeserializationConfig,
+  YamlMainStyle,
   ArchetypeNodeIdLocation,
 } from './yaml_config.ts';
 export {
@@ -32,4 +33,5 @@ export {
   VERBOSE_YAML_CONFIG,
   HYBRID_YAML_CONFIG,
   FLOW_YAML_CONFIG,
+  BLOCK_YAML_CONFIG,
 } from './yaml_config.ts';
