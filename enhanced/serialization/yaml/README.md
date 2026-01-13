@@ -57,20 +57,14 @@ console.log(obj.value); // "Test value"
 
 ```typescript
 interface YamlSerializationConfig {
+  // Main YAML style (default: 'hybrid')
+  mainStyle?: 'block' | 'flow' | 'hybrid';
+  
   // Include _type fields (default: false - only on polymorphic types)
   includeType?: boolean;
   
   // Use type inference (compact mode) (default: true)
   useTypeInference?: boolean;
-  
-  // Flow style for values (default: false)
-  flowStyleValues?: boolean;
-  
-  // Block style for objects (default: true)
-  blockStyleObjects?: boolean;
-  
-  // Hybrid style (zipehr-like) (default: false)
-  hybridStyle?: boolean;
   
   // Indentation (default: 2)
   indent?: number;
@@ -86,8 +80,24 @@ interface YamlSerializationConfig {
   
   // Include empty collections (default: false)
   includeEmptyCollections?: boolean;
+  
+  // Max properties for inline formatting in hybrid style (default: 3)
+  maxInlineProperties?: number;
+  
+  // Keep archetype details inline - ONLY for flow style (default: false)
+  keepArchetypeDetailsInline?: boolean;
 }
 ```
+
+### Three Main Styles
+
+**Phase 4g.8 Update**: The YAML serializer now supports three distinct, valid YAML styles:
+
+1. **Hybrid Style** (Default): Simple objects are inline using flow style, complex objects use block style. This provides a good balance between compactness and readability.
+
+2. **Flow Style**: All objects use flow style (inline with curly braces and brackets). When `keepArchetypeDetailsInline` is enabled, strategic line breaks are added for better readability while maintaining valid YAML syntax.
+
+3. **Block Style**: Traditional multi-line YAML format. Most verbose but arguably most readable for deeply nested structures.
 
 ### Deserialization Configuration
 
@@ -209,7 +219,7 @@ items:
 
 Full YAML with all type information and no terse format. Most verbose but clearest structure.
 
-### Hybrid YAML (Optimized for Readability)
+### Hybrid YAML (Default - Balance of Compact & Readable)
 
 ```typescript
 import { YamlSerializer, HYBRID_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
@@ -228,9 +238,37 @@ items:
     value: { magnitude: 72, units: /min }
 ```
 
-Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{ value: Text }`), while complex nested structures maintain block style formatting.
+Simple objects are formatted inline using flow style (e.g., `{ value: Text }`), while complex nested structures maintain block style formatting. Uses terse format and type inference for compact output. **This is the default and recommended style.**
 
-### Flow Style (JSON-like)
+### Block Style (Traditional Multi-line)
+
+```typescript
+import { YamlSerializer, BLOCK_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(BLOCK_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
+```
+
+Traditional multi-line YAML block style. Most verbose but arguably most readable for deeply nested structures. Each property on its own line with consistent indentation.
+
+### Flow Style (Compact with Strategic Line Breaks)
 
 ```typescript
 import { YamlSerializer, FLOW_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
@@ -238,6 +276,63 @@ import { YamlSerializer, FLOW_YAML_CONFIG } from './enhanced/serialization/yaml/
 const serializer = new YamlSerializer(FLOW_YAML_CONFIG);
 const yaml = serializer.serialize(section);
 ```
+
+**Output (with keepArchetypeDetailsInline enabled):**
+```yaml
+{
+  name: { value: Vital Signs },
+  items: [
+    {name: { value: Diagnosis },
+     value: { defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2 }},
+    {name: { value: Pulse rate },
+     value: { magnitude: 72, units: /min }}
+  ]
+}
+```
+
+Most compact format using flow style (inline JSON-like syntax) with strategic line breaks when `keepArchetypeDetailsInline` is enabled. Archetype metadata (name, archetype_node_id, archetype_details) is kept on one line for better readability.
+
+### Verbose YAML (With All Types)
+
+```typescript
+import { YamlSerializer, VERBOSE_YAML_CONFIG } from './enhanced/serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(VERBOSE_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+_type: SECTION
+name:
+  _type: DV_TEXT
+  value: Vital Signs
+items:
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Diagnosis
+    value:
+      _type: DV_CODED_TEXT
+      defining_code:
+        _type: CODE_PHRASE
+        terminology_id:
+          _type: TERMINOLOGY_ID
+          value: SNOMED-CT
+        code_string: "44054006"
+        preferred_term: Type 2 diabetes mellitus
+      value: Diabetes mellitus type 2
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Pulse rate
+    value:
+      _type: DV_QUANTITY
+      magnitude: 72
+      units: /min
+```
+
+Full YAML with all type information included. Block style without terse format. Most verbose but clearest structure for debugging or when type information is critical.
 
 **Output:**
 ```yaml

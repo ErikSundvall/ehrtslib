@@ -35,13 +35,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-01-13T16:32:24.950Z", buildId: "QCIGI0KZ" };
+    define_BUILD_INFO_default = { timestamp: "2026-01-13T18:06:23.600Z", buildId: "7CX565BY" };
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
 var require_util = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
@@ -99,9 +99,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
 var require_validator = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -414,9 +414,9 @@ var require_validator = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var require_OptionsBuilder = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
     init_define_BUILD_INFO();
     var defaultOptions = {
       preserveOrder: false,
@@ -470,9 +470,9 @@ var require_OptionsBuilder = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
 var require_xmlNode = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var XmlNode = class {
@@ -500,9 +500,9 @@ var require_xmlNode = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var require_DocTypeReader = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
     init_define_BUILD_INFO();
     var util = require_util();
     function readDocType(xmlData, i3) {
@@ -611,9 +611,9 @@ var require_DocTypeReader = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
+// ../../../.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
 var require_strnum = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
     init_define_BUILD_INFO();
     var hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
     var numRegex = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/;
@@ -719,9 +719,9 @@ var require_strnum = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
 var require_ignoreAttributes = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
     init_define_BUILD_INFO();
     function getIgnoreAttributesFn(ignoreAttributes) {
       if (typeof ignoreAttributes === "function") {
@@ -745,9 +745,9 @@ var require_ignoreAttributes = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
 var require_OrderedObjParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -1253,9 +1253,9 @@ var require_OrderedObjParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
 var require_node2json = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     function prettify(node, options) {
@@ -1350,9 +1350,9 @@ var require_node2json = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var require_XMLParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
     init_define_BUILD_INFO();
     var { buildOptions } = require_OptionsBuilder();
     var OrderedObjParser = require_OrderedObjParser();
@@ -1412,9 +1412,9 @@ var require_XMLParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
 var require_orderedJs2Xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
     init_define_BUILD_INFO();
     var EOL = "\n";
     function toXml(jArray, options) {
@@ -1547,9 +1547,9 @@ var require_orderedJs2Xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
 var require_json2xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var buildFromOrderedJs = require_orderedJs2Xml();
@@ -1800,9 +1800,9 @@ var require_json2xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
 var require_fxp = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var validator = require_validator();
@@ -3119,13 +3119,13 @@ init_define_BUILD_INFO();
 // enhanced/temporal_polyfill.ts
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
 init_define_BUILD_INFO();
 function clampProp(e2, n2, t2, o2, r2) {
   return clampEntity(n2, getDefinedProp(e2, n2), t2, o2, r2);
@@ -6206,7 +6206,7 @@ var a = [/* @__PURE__ */ createOptionsTransformer(fs, ns, Is), isoToEpochMilli, 
 var i2 = [/* @__PURE__ */ createOptionsTransformer(ds, es, Ms), isoToEpochMilli, 1];
 var ys;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 function createSlotClass(e2, t2, n2, o2, r2) {
   function Class(...e3) {
     if (!(this instanceof Class)) {
@@ -25053,19 +25053,19 @@ init_define_BUILD_INFO();
 // enhanced/serialization/yaml/yaml_serializer.ts
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
 init_define_BUILD_INFO();
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
@@ -25102,7 +25102,7 @@ function isNode(node) {
 }
 var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
 init_define_BUILD_INFO();
 var BREAK = Symbol("break visit");
 var SKIP = Symbol("skip children");
@@ -25253,7 +25253,7 @@ function replaceNode(key, path, node) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 var escapeChars = {
   "!": "%21",
   ",": "%2C",
@@ -25416,13 +25416,13 @@ var Directives = class _Directives {
 Directives.defaultYaml = { explicit: false, version: "1.2" };
 Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
 init_define_BUILD_INFO();
 function anchorIsValid(anchor) {
   if (/[\x00-\x19\s,[\]{}]/.test(anchor)) {
@@ -25482,10 +25482,10 @@ function createNodeAnchors(doc, prefix) {
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
 init_define_BUILD_INFO();
 function applyReviver(reviver, obj, key, val) {
   if (val && typeof val === "object") {
@@ -25530,7 +25530,7 @@ function applyReviver(reviver, obj, key, val) {
   return reviver.call(obj, key, val);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
 init_define_BUILD_INFO();
 function toJS(value, arg, ctx) {
   if (Array.isArray(value))
@@ -25554,7 +25554,7 @@ function toJS(value, arg, ctx) {
   return value;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 var NodeBase = class {
   constructor(type) {
     Object.defineProperty(this, NODE_TYPE, { value: type });
@@ -25586,7 +25586,7 @@ var NodeBase = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 var Alias = class extends NodeBase {
   constructor(source) {
     super(ALIAS);
@@ -25689,13 +25689,13 @@ function getAliasCount(doc, node, anchors) {
   return 1;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
 init_define_BUILD_INFO();
 var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
 var Scalar = class extends NodeBase {
@@ -25716,7 +25716,7 @@ Scalar.PLAIN = "PLAIN";
 Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
 Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 var defaultTagPrefix = "tag:yaml.org,2002:";
 function findTagObject(value, tagName, tags) {
   if (tagName) {
@@ -25782,7 +25782,7 @@ function createNode(value, tagName, ctx) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 function collectionFromPath(schema4, path, value) {
   let v2 = value;
   for (let i3 = path.length - 1; i3 >= 0; --i3) {
@@ -25914,16 +25914,16 @@ var Collection = class extends NodeBase {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
 init_define_BUILD_INFO();
 var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
 function indentComment(comment, indent) {
@@ -25933,10 +25933,10 @@ function indentComment(comment, indent) {
 }
 var lineComment = (str, indent, comment) => str.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str.endsWith(" ") ? "" : " ") + comment;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
 init_define_BUILD_INFO();
 var FOLD_FLOW = "flow";
 var FOLD_BLOCK = "block";
@@ -26064,7 +26064,7 @@ function consumeMoreIndentedLines(text, i3, indent) {
   return end;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 var getFoldOptions = (ctx, isBlock2) => ({
   indentAtStart: isBlock2 ? ctx.indent.length : ctx.indentAtStart,
   lineWidth: ctx.options.lineWidth,
@@ -26339,7 +26339,7 @@ function stringifyString(item, ctx, onComment, onChompKeep) {
   return res;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 function createStringifyContext(doc, options) {
   const opt = Object.assign({
     blockQuote: true,
@@ -26451,7 +26451,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 ${ctx.indent}${str}`;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
   const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
   let keyComment = isNode(key) && key.comment || null;
@@ -26574,10 +26574,10 @@ ${ctx.indent}`;
   return str;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
 init_define_BUILD_INFO();
 function warn(logLevel, warning) {
   if (logLevel === "debug" || logLevel === "warn") {
@@ -26585,7 +26585,7 @@ function warn(logLevel, warning) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
 init_define_BUILD_INFO();
 var MERGE_KEY = "<<";
 var merge = {
@@ -26633,7 +26633,7 @@ function mergeValue(ctx, map2, value) {
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 function addPairToJSMap(ctx, map2, { key, value }) {
   if (isNode(key) && key.addToJSMap)
     key.addToJSMap(ctx, map2, value);
@@ -26686,7 +26686,7 @@ function stringifyKey(key, jsKey, ctx) {
   return JSON.stringify(jsKey);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 function createPair(key, value, ctx) {
   const k2 = createNode(key, void 0, ctx);
   const v2 = createNode(value, void 0, ctx);
@@ -26715,16 +26715,16 @@ var Pair = class _Pair {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
 init_define_BUILD_INFO();
 function stringifyCollection(collection, ctx, options) {
   const flow = ctx.inFlow ?? collection.flow;
@@ -26860,7 +26860,7 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 function findPair(items, key) {
   const k2 = isScalar(key) ? key.value : key;
   for (const it2 of items) {
@@ -26991,7 +26991,7 @@ var YAMLMap = class extends Collection {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 var map = {
   collection: "map",
   default: true,
@@ -27005,10 +27005,10 @@ var map = {
   createNode: (schema4, obj, ctx) => YAMLMap.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
 init_define_BUILD_INFO();
 var YAMLSeq = class extends Collection {
   static get tagName() {
@@ -27113,7 +27113,7 @@ function asItemIndex(key) {
   return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 var seq = {
   collection: "seq",
   default: true,
@@ -27127,7 +27127,7 @@ var seq = {
   createNode: (schema4, obj, ctx) => YAMLSeq.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
 init_define_BUILD_INFO();
 var string = {
   identify: (value) => typeof value === "string",
@@ -27140,10 +27140,10 @@ var string = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
 init_define_BUILD_INFO();
 var nullTag = {
   identify: (value) => value == null,
@@ -27155,7 +27155,7 @@ var nullTag = {
   stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
 init_define_BUILD_INFO();
 var boolTag = {
   identify: (value) => typeof value === "boolean",
@@ -27173,10 +27173,10 @@ var boolTag = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
 init_define_BUILD_INFO();
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
   if (typeof value === "bigint")
@@ -27198,7 +27198,7 @@ function stringifyNumber({ format, minFractionDigits, tag, value }) {
   return n2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 var floatNaN = {
   identify: (value) => typeof value === "number",
   default: true,
@@ -27234,7 +27234,7 @@ var float = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
 init_define_BUILD_INFO();
 var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
 var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
@@ -27271,7 +27271,7 @@ var intHex = {
   stringify: (node) => intStringify(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
 init_define_BUILD_INFO();
 var schema = [
   map,
@@ -27287,7 +27287,7 @@ var schema = [
   float
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
 init_define_BUILD_INFO();
 function intIdentify2(value) {
   return typeof value === "bigint" || Number.isInteger(value);
@@ -27346,7 +27346,7 @@ var jsonError = {
 };
 var schema2 = [map, seq].concat(jsonScalars, jsonError);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
 init_define_BUILD_INFO();
 var binary = {
   identify: (value) => value instanceof Uint8Array,
@@ -27400,10 +27400,10 @@ var binary = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
 init_define_BUILD_INFO();
 function resolvePairs(seq2, onError) {
   if (isSeq(seq2)) {
@@ -27470,7 +27470,7 @@ var pairs = {
   createNode: createPairs
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 var YAMLOMap = class _YAMLOMap extends YAMLSeq {
   constructor() {
     super();
@@ -27536,10 +27536,10 @@ var omap = {
   createNode: (schema4, iterable, ctx) => YAMLOMap.from(schema4, iterable, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
 init_define_BUILD_INFO();
 function boolStringify({ value, source }, ctx) {
   const boolObj = value ? trueTag : falseTag;
@@ -27564,7 +27564,7 @@ var falseTag = {
   stringify: boolStringify
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
 init_define_BUILD_INFO();
 var floatNaN2 = {
   identify: (value) => typeof value === "number",
@@ -27604,7 +27604,7 @@ var float2 = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
 init_define_BUILD_INFO();
 var intIdentify3 = (value) => typeof value === "bigint" || Number.isInteger(value);
 function intResolve2(str, offset, radix, { intAsBigInt }) {
@@ -27674,7 +27674,7 @@ var intHex2 = {
   stringify: (node) => intStringify2(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
 init_define_BUILD_INFO();
 var YAMLSet = class _YAMLSet extends YAMLMap {
   constructor(schema4) {
@@ -27754,7 +27754,7 @@ var set = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
 init_define_BUILD_INFO();
 function parseSexagesimal(str, asBigInt) {
   const sign = str[0];
@@ -27834,7 +27834,7 @@ var timestamp = {
   stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 var schema3 = [
   map,
   seq,
@@ -27859,7 +27859,7 @@ var schema3 = [
   timestamp
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 var schemas = /* @__PURE__ */ new Map([
   ["core", schema],
   ["failsafe", [map, seq, string]],
@@ -27930,7 +27930,7 @@ function getTags(customTags, schemaName, addMergeTag) {
   }, []);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 var sortMapEntriesByKey = (a2, b2) => a2.key < b2.key ? -1 : a2.key > b2.key ? 1 : 0;
 var Schema = class _Schema {
   constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema4, sortMapEntries, toStringDefaults }) {
@@ -27951,7 +27951,7 @@ var Schema = class _Schema {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
 init_define_BUILD_INFO();
 function stringifyDocument(doc, options) {
   const lines = [];
@@ -28023,7 +28023,7 @@ function stringifyDocument(doc, options) {
   return lines.join("\n") + "\n";
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 var Document3 = class _Document {
   constructor(value, replacer, options) {
     this.commentBefore = null;
@@ -28315,7 +28315,7 @@ function assertCollection(contents) {
   throw new Error("Expected a YAML collection as document contents");
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
 init_define_BUILD_INFO();
 var YAMLError = class extends Error {
   constructor(name, pos, code, message) {
@@ -28372,19 +28372,19 @@ ${pointer}
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
 init_define_BUILD_INFO();
 function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
   let spaceBefore = false;
@@ -28512,7 +28512,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
 init_define_BUILD_INFO();
 function containsNewline(key) {
   if (!key)
@@ -28549,7 +28549,7 @@ function containsNewline(key) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
 init_define_BUILD_INFO();
 function flowIndentCheck(indent, fc, onError) {
   if (fc?.type === "flow-collection") {
@@ -28561,7 +28561,7 @@ function flowIndentCheck(indent, fc, onError) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
 init_define_BUILD_INFO();
 function mapIncludes(ctx, items, search) {
   const { uniqueKeys } = ctx.options;
@@ -28571,7 +28571,7 @@ function mapIncludes(ctx, items, search) {
   return items.some((pair) => isEqual(pair.key, search));
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 var startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLMap;
@@ -28667,7 +28667,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
 init_define_BUILD_INFO();
 function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLSeq;
@@ -28710,10 +28710,10 @@ function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeE
   return seq2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
 init_define_BUILD_INFO();
 function resolveEnd(end, offset, reqSpace, onError) {
   let comment = "";
@@ -28751,7 +28751,7 @@ function resolveEnd(end, offset, reqSpace, onError) {
   return { comment, offset };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 var blockMsg = "Block collections are not allowed within flow collections";
 var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
 function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, fc, onError, tag) {
@@ -28932,7 +28932,7 @@ function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: co
   return coll;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 function resolveCollection(CN2, ctx, token, onError, tagName, tag) {
   const coll = token.type === "block-map" ? resolveBlockMap(CN2, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq(CN2, ctx, token, onError, tag) : resolveFlowCollection(CN2, ctx, token, onError, tag);
   const Coll = coll.constructor;
@@ -28984,10 +28984,10 @@ function composeCollection(CN2, ctx, token, props, onError) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
 init_define_BUILD_INFO();
 function resolveBlockScalar(ctx, scalar, onError) {
   const start = scalar.offset;
@@ -29162,7 +29162,7 @@ function splitLines(source) {
   return lines;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
 init_define_BUILD_INFO();
 function resolveFlowScalar(scalar, strict, onError) {
   const { offset, type, source, end } = scalar;
@@ -29372,7 +29372,7 @@ function parseCharCode(source, offset, length, onError) {
   return String.fromCodePoint(code);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 function composeScalar(ctx, token, tagToken, onError) {
   const { value, type, comment, range } = token.type === "block-scalar" ? resolveBlockScalar(ctx, token, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
   const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
@@ -29443,7 +29443,7 @@ function findScalarTagByTest({ atKey, directives, schema: schema4 }, value, toke
   return tag;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
 init_define_BUILD_INFO();
 function emptyScalarPosition(offset, before, pos) {
   if (before) {
@@ -29468,7 +29468,7 @@ function emptyScalarPosition(offset, before, pos) {
   return offset;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 var CN = { composeNode, composeEmptyNode };
 function composeNode(ctx, token, props, onError) {
   const atKey = ctx.atKey;
@@ -29556,7 +29556,7 @@ function composeAlias({ options }, { offset, source, end }, onError) {
   return alias;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
   const opts = Object.assign({ _directives: directives }, options);
   const doc = new Document3(void 0, opts);
@@ -29589,7 +29589,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
   return doc;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 function getErrorPos(src) {
   if (typeof src === "number")
     return [src, src + 1];
@@ -29780,16 +29780,16 @@ ${end.comment}` : end.comment;
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
 init_define_BUILD_INFO();
 var BREAK2 = Symbol("break visit");
 var SKIP2 = Symbol("skip children");
@@ -29846,7 +29846,7 @@ function _visit(path, item, visitor) {
   return typeof ctrl === "function" ? ctrl(item, path) : ctrl;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 var BOM = "\uFEFF";
 var DOCUMENT = "";
 var FLOW_END = "";
@@ -29911,7 +29911,7 @@ function tokenType(source) {
   return null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
 init_define_BUILD_INFO();
 function isEmpty(ch) {
   switch (ch) {
@@ -30480,7 +30480,7 @@ var Lexer = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
 init_define_BUILD_INFO();
 var LineCounter = class {
   constructor() {
@@ -30506,7 +30506,7 @@ var LineCounter = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
 init_define_BUILD_INFO();
 function includesToken(list, type) {
   for (let i3 = 0; i3 < list.length; ++i3)
@@ -31360,7 +31360,7 @@ var Parser = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
 init_define_BUILD_INFO();
 function parseOptions(options) {
   const prettyErrors = options.prettyErrors !== false;
@@ -31431,12 +31431,16 @@ function stringify3(value, replacer, options) {
 // enhanced/serialization/yaml/yaml_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_YAML_SERIALIZATION_CONFIG = {
+  mainStyle: "hybrid",
   includeType: false,
   useTypeInference: true,
   // Changed to true - omit types when safe for smaller output
   flowStyleValues: false,
+  // Deprecated - use mainStyle
   blockStyleObjects: true,
+  // Deprecated - use mainStyle
   hybridStyle: false,
+  // Deprecated - use mainStyle
   indent: 2,
   lineWidth: 80,
   useTerseFormat: true,
@@ -31446,8 +31450,8 @@ var DEFAULT_YAML_SERIALIZATION_CONFIG = {
   // Changed to false for more compact output
   maxInlineProperties: 3,
   archetypeNodeIdLocation: "after_name",
-  keepArchetypeDetailsInline: true
-  // Enabled by default for cleaner archetype representation
+  keepArchetypeDetailsInline: false
+  // Only works with flow style
 };
 var DEFAULT_YAML_DESERIALIZATION_CONFIG = {
   strict: true,
@@ -31456,44 +31460,51 @@ var DEFAULT_YAML_DESERIALIZATION_CONFIG = {
   // Changed to true to match default serialization
 };
 var VERBOSE_YAML_CONFIG = {
+  mainStyle: "block",
   includeType: true,
   useTypeInference: false,
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: false,
   indent: 2,
   lineWidth: 80,
   useTerseFormat: false,
-  archetypeNodeIdLocation: "after_name"
+  archetypeNodeIdLocation: "after_name",
+  keepArchetypeDetailsInline: false
 };
 var HYBRID_YAML_CONFIG = {
+  mainStyle: "hybrid",
   includeType: false,
-  // Inverted: omit types for less redundancy
   useTypeInference: true,
-  // Inverted: enable inference for cleaner output
-  flowStyleValues: false,
-  blockStyleObjects: true,
-  hybridStyle: true,
-  // Intelligent inline/block mixing
   indent: 2,
   lineWidth: 0,
-  // Disable line width wrapping for inline archetype metadata
   useTerseFormat: true,
   includeNullValues: false,
   includeEmptyCollections: true,
   maxInlineProperties: 3,
-  keepArchetypeDetailsInline: true
-  // Keep archetype metadata on same line
+  keepArchetypeDetailsInline: false,
+  // Not applicable in hybrid mode
+  archetypeNodeIdLocation: "after_name"
 };
 var FLOW_YAML_CONFIG = {
-  includeType: true,
-  useTypeInference: false,
-  flowStyleValues: true,
-  blockStyleObjects: false,
-  hybridStyle: false,
+  mainStyle: "flow",
+  includeType: false,
+  useTypeInference: true,
   indent: 2,
-  lineWidth: 120,
-  useTerseFormat: false
+  lineWidth: 0,
+  // Disable wrapping for better control
+  useTerseFormat: true,
+  keepArchetypeDetailsInline: true,
+  // Enable archetype inline in flow mode
+  archetypeNodeIdLocation: "after_name"
+};
+var BLOCK_YAML_CONFIG = {
+  mainStyle: "block",
+  includeType: false,
+  useTypeInference: true,
+  indent: 2,
+  lineWidth: 80,
+  useTerseFormat: true,
+  keepArchetypeDetailsInline: false,
+  // Not applicable in block mode
+  archetypeNodeIdLocation: "after_name"
 };
 
 // enhanced/serialization/yaml/yaml_serializer.ts
@@ -31517,11 +31528,15 @@ var YamlSerializer = class _YamlSerializer {
   serialize(obj) {
     try {
       const plainObj = this.toPlainObject(obj);
-      if (this.config.hybridStyle) {
+      const mainStyle = this.getEffectiveMainStyle();
+      if (mainStyle === "hybrid") {
         return this.serializeHybrid(plainObj);
+      } else if (mainStyle === "flow") {
+        return this.serializeFlow(plainObj);
+      } else {
+        const options = this.getYamlOptions();
+        return stringify3(plainObj, options);
       }
-      const options = this.getYamlOptions();
-      return stringify3(plainObj, options);
     } catch (error) {
       throw new SerializationError(
         `Failed to serialize to YAML: ${error instanceof Error ? error.message : String(error)}`,
@@ -31531,8 +31546,25 @@ var YamlSerializer = class _YamlSerializer {
     }
   }
   /**
+   * Determine the effective main style based on configuration
+   * Handles backward compatibility with deprecated options
+   */
+  getEffectiveMainStyle() {
+    if (this.config.mainStyle) {
+      return this.config.mainStyle;
+    }
+    if (this.config.hybridStyle) {
+      return "hybrid";
+    }
+    if (this.config.flowStyleValues && !this.config.blockStyleObjects) {
+      return "flow";
+    }
+    return "block";
+  }
+  /**
    * Serialize with hybrid formatting using Document API
    * This allows fine-grained control over flow vs block style
+   * Simple objects are inline, complex objects use block style
    * 
    * @param obj - The plain object to serialize
    * @returns YAML string
@@ -31540,123 +31572,72 @@ var YamlSerializer = class _YamlSerializer {
   serializeHybrid(obj) {
     const doc = new Document3(obj);
     this.applyHybridFormattingToNode(doc.contents, 0);
-    let yaml = doc.toString({
+    const yaml = doc.toString({
       indent: this.config.indent,
       lineWidth: this.config.lineWidth
     });
+    return yaml;
+  }
+  /**
+   * Serialize with flow formatting using Document API
+   * Uses flow style with strategic line breaks for archetype metadata
+   * 
+   * @param obj - The plain object to serialize
+   * @returns YAML string
+   */
+  serializeFlow(obj) {
+    const doc = new Document3(obj);
+    this.applyFlowFormattingToNode(doc.contents);
+    let yaml = doc.toString({
+      indent: this.config.indent,
+      lineWidth: this.config.lineWidth || 0
+    });
     if (this.config.keepArchetypeDetailsInline) {
-      yaml = this.mergeArchetypePropertiesOntoSingleLine(yaml);
+      yaml = this.addStrategicLineBreaks(yaml);
     }
     return yaml;
   }
   /**
-   * Post-process YAML to merge archetype metadata properties onto a single line.
-   * Converts sequences like:
-   *   - name: { value: X }
-   *     archetype_node_id: Y
-   *     archetype_details: { ... }
-   *     items:
-   * To:
-   *   - { name: { value: X }, archetype_node_id: Y, archetype_details: { ... } }
-   *     items:
+   * Add strategic line breaks to flow-style YAML for better readability.
+   * Adds line breaks after archetype metadata and before 'items' and 'value' properties.
+   * This creates valid YAML with improved structure visibility.
+   * 
+   * @param yaml - Flow-style YAML string
+   * @returns YAML string with strategic line breaks
    */
-  mergeArchetypePropertiesOntoSingleLine(yaml) {
-    const lines = yaml.split("\n");
-    const result2 = [];
-    let i3 = 0;
-    while (i3 < lines.length) {
-      const line = lines[i3];
-      if (this.isArchetypeMetadataStart(line, lines, i3)) {
-        const merged = this.tryMergeArchetypeBlock(lines, i3);
-        if (merged) {
-          result2.push(...merged.lines);
-          i3 = merged.nextIndex;
-          continue;
-        }
-      }
-      result2.push(line);
-      i3++;
-    }
-    return result2.join("\n");
+  addStrategicLineBreaks(yaml) {
+    let result2 = yaml;
+    result2 = result2.replace(/},\s*items:\s*\[/g, "},\n    items: [");
+    result2 = result2.replace(/},\s*value:\s*([{[])/g, "},\n       value: $1");
+    result2 = result2.replace(/}\s*,\s*\{name:/g, "},\n      {name:");
+    return result2;
   }
   /**
-   * Check if a line starts an archetype metadata block
+   * Apply flow formatting to a YAML node
+   * Sets all nodes to use flow style
+   * 
+   * @param node - The YAML node to format
    */
-  isArchetypeMetadataStart(line, lines, index) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("- name:") || trimmed.startsWith("name:")) {
-      if (index + 1 < lines.length) {
-        const nextTrimmed = lines[index + 1].trim();
-        return nextTrimmed.startsWith("archetype_node_id:");
-      }
-    }
-    return false;
-  }
-  /**
-   * Try to merge an archetype metadata block into a single line
-   * Returns the merged lines and the next index to process, or null if merge not applicable
-   */
-  tryMergeArchetypeBlock(lines, startIndex) {
-    const firstLine = lines[startIndex];
-    const firstLineIndent = firstLine.match(/^(\s*)/)?.[1] || "";
-    const isArrayItem = firstLine.trim().startsWith("- ");
-    const baseIndent = isArrayItem ? firstLineIndent : firstLineIndent;
-    const propIndent = isArrayItem ? firstLineIndent + "  " : firstLineIndent;
-    const archetypeProps = {};
-    let currentIndex = startIndex;
-    let hasOtherProperties = false;
-    const firstTrimmed = firstLine.trim();
-    if (isArrayItem && firstTrimmed.startsWith("- name:")) {
-      archetypeProps.name = firstTrimmed.substring(7).trim();
-      currentIndex++;
-    } else if (firstTrimmed.startsWith("name:")) {
-      archetypeProps.name = firstTrimmed.substring(5).trim();
-      currentIndex++;
-    } else {
-      return null;
-    }
-    while (currentIndex < lines.length) {
-      const line = lines[currentIndex];
-      const indent = line.match(/^(\s*)/)?.[1] || "";
-      const trimmed = line.trim();
-      if (trimmed.length === 0) {
-        break;
-      }
-      const expectedIndent = isArrayItem ? propIndent : baseIndent;
-      if (indent.length < expectedIndent.length) {
-        break;
-      }
-      if (indent === expectedIndent) {
-        if (trimmed.startsWith("archetype_node_id:")) {
-          archetypeProps.archetype_node_id = trimmed.substring(18).trim();
-          currentIndex++;
-        } else if (trimmed.startsWith("archetype_details:")) {
-          archetypeProps.archetype_details = trimmed.substring(18).trim();
-          currentIndex++;
-        } else {
-          hasOtherProperties = true;
-          break;
+  applyFlowFormattingToNode(node) {
+    if (!node)
+      return;
+    if (isMap(node)) {
+      node.flow = true;
+      if (node.items && Array.isArray(node.items)) {
+        for (const pair of node.items) {
+          if (pair.value) {
+            this.applyFlowFormattingToNode(pair.value);
+          }
         }
-      } else {
-        break;
+      }
+    } else if (isSeq(node)) {
+      node.flow = true;
+      if (node.items && Array.isArray(node.items)) {
+        for (const item of node.items) {
+          this.applyFlowFormattingToNode(item);
+        }
       }
     }
-    if (!hasOtherProperties || !archetypeProps.name) {
-      return null;
-    }
-    const parts = [];
-    if (archetypeProps.name)
-      parts.push(`name: ${archetypeProps.name}`);
-    if (archetypeProps.archetype_node_id)
-      parts.push(`archetype_node_id: ${archetypeProps.archetype_node_id}`);
-    if (archetypeProps.archetype_details)
-      parts.push(`archetype_details: ${archetypeProps.archetype_details}`);
-    const mergedContent = parts.join(", ");
-    const mergedLine = isArrayItem ? `${baseIndent}- { ${mergedContent} }` : `${baseIndent}{ ${mergedContent} }`;
-    return {
-      lines: [mergedLine],
-      nextIndex: currentIndex
-    };
   }
   /**
   * Apply hybrid formatting to a YAML node
@@ -31669,16 +31650,11 @@ var YamlSerializer = class _YamlSerializer {
     if (!node)
       return;
     if (isMap(node)) {
-      if (this.config.keepArchetypeDetailsInline && this.hasArchetypeMetadata(node)) {
-        this.applyArchetypeInlineFormatting(node, depth);
-        return;
+      const shouldBeInline = this.shouldNodeBeInline(node);
+      if (shouldBeInline) {
+        node.flow = true;
       } else {
-        const shouldBeInline = this.shouldNodeBeInline(node);
-        if (shouldBeInline) {
-          node.flow = true;
-        } else {
-          node.flow = false;
-        }
+        node.flow = false;
       }
       if (node.items && Array.isArray(node.items)) {
         for (const pair of node.items) {
@@ -31693,69 +31669,6 @@ var YamlSerializer = class _YamlSerializer {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
-      }
-    }
-  }
-  /**
-   * Check if a map node has archetype metadata properties
-   * (name, archetype_node_id, or archetype_details)
-   */
-  hasArchetypeMetadata(node) {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return false;
-    }
-    const keys = node.items.map((pair) => pair.key?.value).filter(Boolean);
-    return keys.some(
-      (k2) => k2 === "name" || k2 === "archetype_node_id" || k2 === "archetype_details"
-    );
-  }
-  /**
-   * Apply special formatting for objects with archetype metadata
-   * Groups name, archetype_node_id, and archetype_details inline,
-   * while keeping other properties on separate lines
-   */
-  applyArchetypeInlineFormatting(node, depth) {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return;
-    }
-    const archetypeKeys = /* @__PURE__ */ new Set(["name", "archetype_node_id", "archetype_details"]);
-    const keys = node.items.map((pair) => pair.key?.value).filter(Boolean);
-    const hasOtherProperties = keys.some((k2) => !archetypeKeys.has(k2));
-    if (!hasOtherProperties) {
-      node.flow = true;
-      for (const pair of node.items) {
-        if (pair.value && isMap(pair.value)) {
-          pair.value.flow = true;
-        }
-      }
-    } else {
-      node.flow = false;
-      for (const pair of node.items) {
-        const key = pair.key?.value;
-        if (archetypeKeys.has(key)) {
-          if (pair.value && isMap(pair.value)) {
-            pair.value.flow = true;
-            this.makeAllNestedMapsInline(pair.value);
-          }
-        } else {
-          if (pair.value) {
-            this.applyHybridFormattingToNode(pair.value, depth + 1);
-          }
-        }
-      }
-    }
-  }
-  /**
-   * Recursively make all nested maps within a node inline (flow style)
-   */
-  makeAllNestedMapsInline(node) {
-    if (!isMap(node) || !node.items || !Array.isArray(node.items)) {
-      return;
-    }
-    for (const pair of node.items) {
-      if (pair.value && isMap(pair.value)) {
-        pair.value.flow = true;
-        this.makeAllNestedMapsInline(pair.value);
       }
     }
   }
@@ -32943,6 +32856,8 @@ function getYamlConfigPreset(preset) {
       return HYBRID_YAML_CONFIG;
     case "flow":
       return FLOW_YAML_CONFIG;
+    case "block":
+      return BLOCK_YAML_CONFIG;
     default:
       return DEFAULT_YAML_SERIALIZATION_CONFIG;
   }
@@ -33346,11 +33261,17 @@ function gatherConversionOptions() {
   if (yamlConfigPreset === "custom") {
     const indent = parseInt(document.getElementById("yaml-indent")?.value || "2");
     const maxInlineProps = parseInt(document.getElementById("yaml-max-inline-props")?.value || "3");
+    const mainStyle = document.getElementById("yaml-main-style")?.value;
     yamlConfig.indent = indent;
     yamlConfig.maxInlineProperties = maxInlineProps;
+    yamlConfig.mainStyle = mainStyle || "hybrid";
     yamlConfig.useTerseFormat = document.getElementById("yaml-terse")?.checked !== false;
     yamlConfig.useTypeInference = document.getElementById("yaml-type-inference")?.checked !== false;
-    yamlConfig.keepArchetypeDetailsInline = document.getElementById("yaml-archetype-inline")?.checked !== false;
+    if (mainStyle === "flow") {
+      yamlConfig.keepArchetypeDetailsInline = document.getElementById("yaml-archetype-inline")?.checked !== false;
+    } else {
+      yamlConfig.keepArchetypeDetailsInline = false;
+    }
   }
   const xmlConfigPreset = document.getElementById("xml-config-preset")?.value || "default";
   const xmlIndent = parseInt(document.getElementById("xml-indent")?.value || "2");
@@ -33527,8 +33448,7 @@ function updateJsonOptions(preset) {
   }
 }
 function updateYamlOptions(preset) {
-  const blockStyleCheckbox = document.getElementById("yaml-block-style");
-  const hybridStyleCheckbox = document.getElementById("yaml-hybrid-style");
+  const mainStyleSelect = document.getElementById("yaml-main-style");
   const terseCheckbox = document.getElementById("yaml-terse");
   const typeInferenceCheckbox = document.getElementById("yaml-type-inference");
   const indentInput = document.getElementById("yaml-indent");
@@ -33536,31 +33456,56 @@ function updateYamlOptions(preset) {
   const archetypeInlineCheckbox = document.getElementById("yaml-archetype-inline");
   const archIdLocSelect = document.getElementById("yaml-arch-id-location");
   const isCustom = preset === "custom";
-  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach((elem) => {
+  [mainStyleSelect, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach((elem) => {
     if (elem)
       elem.disabled = !isCustom;
   });
+  const updateArchetypeInlineVisibility = () => {
+    const mainStyle = mainStyleSelect?.value || "hybrid";
+    const archetypeInlineGroup = document.getElementById("yaml-archetype-inline-group");
+    if (archetypeInlineGroup) {
+      if (mainStyle === "flow") {
+        archetypeInlineGroup.style.display = "";
+      } else {
+        archetypeInlineGroup.style.display = "none";
+      }
+    }
+  };
   if (!isCustom) {
     switch (preset) {
       case "default":
-        if (blockStyleCheckbox)
-          blockStyleCheckbox.checked = true;
+        if (mainStyleSelect)
+          mainStyleSelect.value = "hybrid";
         if (terseCheckbox)
           terseCheckbox.checked = true;
         if (typeInferenceCheckbox)
           typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox)
+          archetypeInlineCheckbox.checked = false;
         break;
       case "verbose":
-        if (blockStyleCheckbox)
-          blockStyleCheckbox.checked = true;
+        if (mainStyleSelect)
+          mainStyleSelect.value = "block";
         if (terseCheckbox)
           terseCheckbox.checked = false;
         if (typeInferenceCheckbox)
           typeInferenceCheckbox.checked = false;
+        if (archetypeInlineCheckbox)
+          archetypeInlineCheckbox.checked = false;
         break;
       case "hybrid":
-        if (hybridStyleCheckbox)
-          hybridStyleCheckbox.checked = true;
+        if (mainStyleSelect)
+          mainStyleSelect.value = "hybrid";
+        if (terseCheckbox)
+          terseCheckbox.checked = true;
+        if (typeInferenceCheckbox)
+          typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox)
+          archetypeInlineCheckbox.checked = false;
+        break;
+      case "flow":
+        if (mainStyleSelect)
+          mainStyleSelect.value = "flow";
         if (terseCheckbox)
           terseCheckbox.checked = true;
         if (typeInferenceCheckbox)
@@ -33568,15 +33513,22 @@ function updateYamlOptions(preset) {
         if (archetypeInlineCheckbox)
           archetypeInlineCheckbox.checked = true;
         break;
-      case "flow":
-        if (blockStyleCheckbox)
-          blockStyleCheckbox.checked = false;
+      case "block":
+        if (mainStyleSelect)
+          mainStyleSelect.value = "block";
         if (terseCheckbox)
-          terseCheckbox.checked = false;
+          terseCheckbox.checked = true;
         if (typeInferenceCheckbox)
-          typeInferenceCheckbox.checked = false;
+          typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox)
+          archetypeInlineCheckbox.checked = false;
         break;
     }
+  }
+  updateArchetypeInlineVisibility();
+  if (mainStyleSelect) {
+    mainStyleSelect.removeEventListener("change", updateArchetypeInlineVisibility);
+    mainStyleSelect.addEventListener("change", updateArchetypeInlineVisibility);
   }
 }
 function updateXmlOptions(preset) {
