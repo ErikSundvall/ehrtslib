@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehrtslib - Electronic Health Record TypeScript Library</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-light: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-xl);
+            width: 100%;
+        }
+
+        .hero {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, #2563eb 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .hero .description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 800px;
+        }
+
+        .demo-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .demo-section h2 {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .demo-section p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--radius-md);
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-secondary);
+            transform: translateY(-2px);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .feature-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--primary-color);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .feature-card code {
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--primary-color);
+        }
+
+        .code-example {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: var(--spacing-lg) 0;
+        }
+
+        .resources {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .resources h2 {
+            font-size: 1.75rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-primary);
+        }
+
+        .resource-list {
+            list-style: none;
+        }
+
+        .resource-list li {
+            margin-bottom: var(--spacing-md);
+            padding-left: var(--spacing-lg);
+            position: relative;
+        }
+
+        .resource-list li::before {
+            content: "📚";
+            position: absolute;
+            left: 0;
+        }
+
+        .resource-list a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .resource-list a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        .resource-list .description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-left: var(--spacing-sm);
+        }
+
+        .footer {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .footer-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .demo-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>📊 ehrtslib</h1>
+            <p class="subtitle">Electronic Health Record TypeScript Library</p>
+            <p class="description">
+                A (not yet finished)comprehensive TypeScript library for working with openEHR data structures.
+                Designed for use in modern web browsers and server environments (Deno/Node.js),
+                ehrtslib provides type-safe interfaces, flexible serialization, and a developer-friendly API
+                for building healthcare applications.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Live Interactive Demo</h2>
+            <p>Try ehrtslib with an interactive format converter running locally in your web browser</p>
+            <a href="demo/" class="btn btn-primary" style="margin-right: 1rem;">
+                Launch Demo App →
+            </a>
+            <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener" class="btn btn-secondary">
+                View project on GitHub →
+            </a>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>🎯 Type-Safe API</h3>
+                <p>
+                    Full TypeScript support with IDE autocomplete for all openEHR reference model classes.
+                    Work with <code>COMPOSITION</code>, <code>OBSERVATION</code>, <code>DV_TEXT</code>,
+                    and more with complete type safety.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔄 Multiple Formats</h3>
+                <p>
+                    Serialize and deserialize openEHR data in JSON, XML, and YAML formats.
+                    Supports canonical formats and optimized variants for different use cases.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>⚡ Simple & Powerful</h3>
+                <p>
+                    Use primitive values directly in a simple way (or if needed, access openEHR's nested 'value' objects
+                    using a <code>$</code> prefix.
+                    Constructor-based initialization with primitive values and terse format support for codes like
+                    <code>"ISO_639-1::en"</code>.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🌳 Tree Shaking Ready</h3>
+                <p>
+                    Import only what you need. The library is designed for optimal bundle sizes in
+                    modern build tools. Zero runtime dependencies for core functionality.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔧 Developer Friendly</h3>
+                <p>
+                    Flexible property access patterns, validation helpers, and intuitive APIs.
+                    Built with developer experience in mind.
+                </p>
+            </div>
+        </div>
+
+        <div class="resources">
+            <h2>📚 Developer Resources</h2>
+
+            <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--text-secondary);">Quick Start</h3>
+            <div class="code-example">// Import what you need
+                import { COMPOSITION, DV_TEXT } from "./openehr_rm.ts";
+                import { JsonConfigurableSerializer } from "./enhanced/serialization/json/mod.ts";
+
+                // Create openEHR data structures with ease
+                const composition = new COMPOSITION({
+                archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+                name: "Blood Pressure Recording",
+                language: "ISO_639-1::en", // Terse format
+                category: "openehr::433|event|", // Terse coded text
+                composer: { name: "Dr. Smith" }
+                });
+
+                // Serialize to any format
+                const serializer = new JsonConfigurableSerializer({ prettyPrint: true });
+                const json = serializer.serialize(composition);</div>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--text-secondary);">Documentation</h3>
+            <ul class="resource-list">
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/README.md" target="_blank"
+                        rel="noopener">
+                        Main README
+                    </a>
+                    <span class="description">— Getting started guide for library users</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/SIMPLIFIED-CREATION-GUIDE.md"
+                        target="_blank" rel="noopener">
+                        Creation Guide
+                    </a>
+                    <span class="description">— How to create openEHR data structures</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/DUAL-APPROACH-GUIDE.md" target="_blank"
+                        rel="noopener">
+                        Dual Approach Guide
+                    </a>
+                    <span class="description">— Understanding the dual getter/setter pattern</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/enhanced/serialization/json/README.md"
+                        target="_blank" rel="noopener">
+                        JSON Serialization
+                    </a>
+                    <span class="description">— JSON format options and configuration</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/enhanced/serialization/xml/README.md"
+                        target="_blank" rel="noopener">
+                        XML Serialization
+                    </a>
+                    <span class="description">— XML format compliance and usage</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/enhanced/serialization/yaml/README.md"
+                        target="_blank" rel="noopener">
+                        YAML Serialization
+                    </a>
+                    <span class="description">— Human-readable YAML format options</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/README-FOR-LIB-MAINTENANCE.md"
+                        target="_blank" rel="noopener">
+                        Library Maintenance Guide
+                    </a>
+                    <span class="description">— For maintainers: BMM syncing and updates</span>
+                </li>
+                <li>
+                    <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/ROADMAP.md" target="_blank"
+                        rel="noopener">
+                        Roadmap
+                    </a>
+                    <span class="description">— Project development phases and future plans</span>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--text-secondary);">Key Features</h3>
+            <ul class="resource-list" style="padding-left: 1.5rem;">
+                <li><strong>Dual Property Access:</strong> Use primitives directly or access wrapper objects with
+                    <code>$</code> prefix
+                </li>
+                <li><strong>Terse Format Support:</strong> Shortcuts like <code>"ISO_639-1::en"</code> for CODE_PHRASE
+                </li>
+                <li><strong>Constructor Initialization:</strong> Create complex structures with nested object literals
+                </li>
+                <li><strong>Multiple Serialization Formats:</strong> JSON (canonical, compact, hybrid), XML, YAML</li>
+                <li><strong>Type Registry:</strong> Advanced deserialization with automatic type resolution</li>
+                <li><strong>Validation Helpers:</strong> Built-in support for openEHR constraints and terminology</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <a href="demo/">Interactive Demo</a>
+                <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">GitHub Repository</a>
+                <a href="https://specifications.openehr.org/" target="_blank" rel="noopener">openEHR Specifications</a>
+            </div>
+            <p>
+                Ehrtslib — A TypeScript implementation of the openEHR reference model
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
