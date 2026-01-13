@@ -31,6 +31,12 @@ import type {
 let currentInputFormat = 'json';
 let currentOutputs: any = {};
 
+// Declare build info injected by esbuild
+declare const __BUILD_INFO__: {
+  timestamp: string;
+  buildId: string;
+};
+
 /**
  * Initialize the application when DOM is loaded
  */
@@ -46,12 +52,15 @@ function init() {
     return;
   }
 
+  // Display build info
+  displayBuildInfo();
+
   // Set up event listeners
   setupEventListeners();
 
   // Load default example and run initial conversion
   loadExample('section');
-  
+
   // Run initial conversion after a short delay to allow UI to settle
   setTimeout(() => {
     handleConvert();
@@ -1028,6 +1037,19 @@ function hideError() {
   const errorState = document.getElementById('error-state');
   if (errorState) {
     errorState.classList.add('hidden');
+  }
+}
+
+/**
+ * Display build information in the footer
+ */
+function displayBuildInfo() {
+  const buildInfoElem = document.getElementById('build-info');
+  if (buildInfoElem && typeof __BUILD_INFO__ !== 'undefined') {
+    const date = new Date(__BUILD_INFO__.timestamp);
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString();
+    buildInfoElem.textContent = `Build: ${__BUILD_INFO__.buildId} (${dateStr} ${timeStr})`;
   }
 }
 

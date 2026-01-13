@@ -752,6 +752,12 @@ body {
     font-size: 0.875rem;
 }
 
+.build-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 .copyright {
     margin-top: var(--spacing-xs);
     color: var(--text-muted);

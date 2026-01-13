@@ -306,10 +306,17 @@
                             <span>Indent (spaces)</span>
                         </label>
                         <label class="checkbox-label tooltip-container">
-                            <input type="number" id="yaml-max-inline-props" value="3" min="1" max="10" class="indent-input"
-                                disabled>
+                            <input type="number" id="yaml-max-inline-props" value="3" min="1" max="10"
+                                class="indent-input" disabled>
                             <span>Max Inline Properties</span>
-                            <span class="tooltip">Maximum number of properties for inline formatting in hybrid style</span>
+                            <span class="tooltip">Maximum number of properties for inline formatting in hybrid
+                                style</span>
+                        </label>
+                        <label class="checkbox-label tooltip-container">
+                            <input type="checkbox" id="yaml-archetype-inline" checked disabled>
+                            <span>Keep Archetype Details Inline</span>
+                            <span class="tooltip">In hybrid mode, keeps name, archetype_node_id, and archetype_details
+                                on the same line for better readability</span>
                         </label>
                     </div>
                 </div>
@@ -648,6 +655,7 @@ console.log(json);</pre>
             </div>
             <div class="footer-info">
                 <p>ehrtslib - Electronic Health Record TypeScript Library</p>
+                <p id="build-info" class="build-info"></p>
                 <p class="copyright">&copy; 2025 ehrtslib contributors. Licensed under Apache 2.0</p>
             </div>
         </div>

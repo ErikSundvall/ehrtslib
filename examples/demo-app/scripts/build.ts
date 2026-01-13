@@ -38,7 +38,13 @@ try {
         platform: "browser",
         sourcemap: true,
         minify: false, // Set to true for production if desired
-        define: { "process.env.NODE_ENV": '"production"' },
+        define: {
+            "process.env.NODE_ENV": '"production"',
+            "__BUILD_INFO__": JSON.stringify({
+                timestamp: new Date().toISOString(),
+                buildId: Math.random().toString(36).substring(2, 10).toUpperCase()
+            })
+        },
     });
 
     console.log("✅ Build complete: bundle.js");
