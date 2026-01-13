@@ -178,6 +178,82 @@ export class YamlSerializer {
   }
 
   /**
+   * Apply flow formatting to a YAML node
+   * Sets all nodes to use flow style
+   * 
+   * @param node - The YAML node to format
+   */
+  private applyFlowFormattingToNode(node: any): void {
+    if (!node) return;
+
+    // Set flow style for maps
+    if (isMap(node)) {
+      node.flow = true;
+
+      // Recurse into map items
+      if (node.items && Array.isArray(node.items)) {
+        for (const pair of node.items) {
+          if (pair.value) {
+            this.applyFlowFormattingToNode(pair.value);
+          }
+        }
+      }
+    } else if (isSeq(node)) {
+      // Set flow style for sequences
+      node.flow = true;
+
+      // Recurse into sequence items
+      if (node.items && Array.isArray(node.items)) {
+        for (const item of node.items) {
+          this.applyFlowFormattingToNode(item);
+        }
+      }
+    }
+  }
+
+   /**
+   * Apply hybrid formatting to a YAML node
+   * Simple objects get flow style, complex objects get block style
+   * 
+   * @param node - The YAML node to format
+   * @param depth - Current depth in the tree
+   */
+  private applyHybridFormattingToNode(node: any, depth: number): void {
+    if (!node) return;
+
+    // Handle different node types
+    if (isMap(node)) {
+      // Check if this map should be inline
+      const shouldBeInline = this.shouldNodeBeInline(node);
+
+      if (shouldBeInline) {
+        node.flow = true;  // Use flow style (inline)
+      } else {
+        node.flow = false; // Use block style
+      }
+
+      // Recurse into map items
+      if (node.items && Array.isArray(node.items)) {
+        for (const pair of node.items) {
+          if (pair.value) {
+            this.applyHybridFormattingToNode(pair.value, depth + 1);
+          }
+        }
+      }
+    } else if (isSeq(node)) {
+      // Sequence/array - usually keep block style
+      node.flow = false;
+
+      // Recurse into sequence items
+      if (node.items && Array.isArray(node.items)) {
+        for (const item of node.items) {
+          this.applyHybridFormattingToNode(item, depth + 1);
+        }
+      }
+    }
+  }
+
+  /**
    * Determine if a YAML node should be formatted inline
    * 
    * @param node - The YAML node
