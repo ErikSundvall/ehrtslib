@@ -540,6 +540,7 @@ other_context:
               rm_version: 1.1.0
 
 ### Desired output
+```yaml
 other_context: {name: {value: Item tree}, archetype_node_id: at0003}
 items:
   - {name: {value: Vårdenhet}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}
@@ -551,6 +552,7 @@ items:
       - {name: {value: Roll}, archetype_node_id: at0004}
         value: http://snomed.info/sct/900000000000207008::43741000|vårdenhet|
       - {name: {value: Vårdgivare}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}
+```
 
 ## Phase 4g.8 Fix hybrid YAML serialiser.
 
@@ -565,7 +567,7 @@ Update the demo app UI accordingly and make sure only sensible options are avail
 By the way: were the methods applyArchetypeInlineFormatting and mergeArchetypePropertiesOntoSingleLine in current yaml_serializer.ts both used? Are they trying to do partly the same thing but with different approaches? Are they using the imported yaml library optimally? Maybe they will be removed or very rewritten now when we move the "special treatment" for archetype metadata from hybrid to flow style.
 
 ### New desired output for "Keep Archetype Details Inline" option - now purely YAML flow based
-
+```yaml
  other_context: {
   name: {value: Item tree}, archetype_node_id: at0003,
   items: [{
@@ -578,7 +580,8 @@ By the way: were the methods applyArchetypeInlineFormatting and mergeArchetypePr
       {name: {value: Roll}, archetype_node_id: at0004, 
        value: http://snomed.info/sct/900000000000207008::43741000|vårdenhet|},
       {name: {value: Vårdgivare}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}]}]
-}     
+}
+```     
 
 ## Phase 5a
 - Implement/refine any remaining classes of the AM package, use deepwiki and the files in /instructions to understand. If needed improve the files in /instructions first.
