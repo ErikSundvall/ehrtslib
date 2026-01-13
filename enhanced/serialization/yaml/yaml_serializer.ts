@@ -162,17 +162,22 @@ export class YamlSerializer {
     
     let result = yaml;
 
+    // Create indentation strings based on config
+    const indentStr = ' '.repeat(this.config.indent);
+    const baseIndent = indentStr.repeat(2); // 2 levels
+    const valueIndent = indentStr.repeat(3) + ' '.repeat(3); // 3 levels + align
+
     // Add line break and proper indentation before 'items:' in flow style
     // Pattern: }, items: [{ or }, items: [{
-    result = result.replace(/},\s*items:\s*\[/g, '},\n    items: [');
+    result = result.replace(/},\s*items:\s*\[/g, `},\n${baseIndent}items: [`);
     
     // Add line break before 'value:' when it follows archetype metadata
     // Pattern: }, value: { or }, value: text
-    result = result.replace(/},\s*value:\s*([{[])/g, '},\n       value: $1');
+    result = result.replace(/},\s*value:\s*([{[])/g, `},\n${valueIndent}value: $1`);
     
     // For nested array items, add line break between items
     // Pattern: }, {name: becomes },\n      {name:
-    result = result.replace(/}\s*,\s*\{name:/g, '},\n      {name:');
+    result = result.replace(/}\s*,\s*\{name:/g, `},\n${baseIndent}  {name:`);
 
     return result;
   }

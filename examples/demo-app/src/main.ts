@@ -912,10 +912,11 @@ function updateYamlOptions(preset: string) {
 
   updateArchetypeInlineVisibility();
 
-  // Add event listener to update visibility when style changes
-  if (mainStyleSelect) {
-    mainStyleSelect.removeEventListener('change', updateArchetypeInlineVisibility);
+  // Add event listener only if not already attached
+  // Use a data attribute to track if listener is attached
+  if (mainStyleSelect && !mainStyleSelect.dataset.listenerAttached) {
     mainStyleSelect.addEventListener('change', updateArchetypeInlineVisibility);
+    mainStyleSelect.dataset.listenerAttached = 'true';
   }
 }
 
