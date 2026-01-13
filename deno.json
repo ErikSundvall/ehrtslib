@@ -1,5 +1,5 @@
 {
-  "nodeModulesDir": "auto",
+  "nodeModulesDir": true,
   "imports": {
     "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",
     "yaml": "npm:yaml@^2.3.4"
