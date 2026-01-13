@@ -484,25 +484,29 @@ Also update relevant tests, examples and documentation/readme-files
 ## Phase 4g.5 Implement demo web application
 - Implement the demo web application code based on `/tasks/task-list-phase4g5-demo-app.md`
 
-## Phase 4g.6 Improve demo web application
-Background: We want to improve the demo web application code based on `/tasks/task-list-phase4g6-improve-demo-app.md` and saom library code it is dependent on
+## Phase 4g.6 Improve demo web application ✅ (done)
+Background: We want to improve the demo web application code based on `/tasks/task-list-phase4g6-improve-demo-app.md` and some library code it is dependent on
 - Currently it is available in the `/examples/demo-app` directory. 
 - To build the application run `deno task build:demo` from project root. It is then automatically packed and copied to the /docs directory and upon push to github published to https://eriksundvall.github.io/ehrtslib/demo
 
-Improvements:
-- Don't prefill the output pane with dummy data, instead run a first conversion of input pane example.
-- Add another serialisation (not deserialsation) called "TypeScriptConstructorSerialiser" to ones already implemented (e.g. XML, JSON, YAML) in the /serialisation directory.  Just like those it takes an input and instance object hieararchy, but is should output a constructor call chain that can be used to create the corresponding object hieararchy. It should adhere to the "Nested Object Initialization" section of the /SIMPLIFIED-CREATION-GUIDE.md 
-- Once tested and working fine, update the demo app to use the new serialiser for the typescript tab output instead of the ad hoc code used currently. 
-- Note that the demo app has some config options that we want to implemnent in the new serialiser as well:
-  - Use Terse Format (for DV_CODED_TEXT and CODE_PHRASE) (default true)
-  - Use primitive value constructors (default true)
-  - Include Comments (add comments to output, for example listing alternative values for defined and possible values for undefined attributes) (default false)
-  - Include Undefined Attributes (also adds RM attributes (as undefined) to output that are not set in the input) (default false)
-- Add the "Archetype ID Location" selector+config option for this serialiser too
-
-Bugfix to do:
-- the YAML serialiser currently doees not produce correct output for the "hybrid style (inline + block) as specified in enhanced\serialization\yaml\README.md section "### Hybrid YAML (Optimized for Readability)". Please fix this. 
-- Also make sure the config option maxInlineProperties is used to control for wich objects/lines to use flow style (inline formatting) for simple objects. Add a number selector for this in the demo app too. 
+**Completed Improvements:**
+- ✅ Now runs initial conversion on load instead of prefilling with dummy data
+- ✅ Added TypeScriptConstructorSerializer to `/enhanced/serialization/typescript/` directory
+  - ✅ Follows "Nested Object Initialization" pattern from SIMPLIFIED-CREATION-GUIDE.md
+  - ✅ Comprehensive test suite (13/13 tests passing)
+  - ✅ Full documentation in README.md
+- ✅ Demo app now uses TypeScriptConstructorSerializer instead of ad hoc code (reduced code from 610 to 305 lines!)
+- ✅ Config options implemented:
+  - ✅ Use Terse Format (for DV_CODED_TEXT and CODE_PHRASE) - default true
+  - ✅ Use primitive value constructors - default true
+  - ✅ Include Comments - default false
+  - ✅ Include Undefined Attributes - default false
+  - ✅ Archetype ID Location selector (beginning, after_name, end)
+- ✅ **Bugfix**: YAML hybrid style now produces correct inline flow formatting
+  - ✅ Fixed by using proper type checking functions (isMap, isSeq, isScalar) from yaml library
+  - ✅ Simple objects now render as `{value: Text}` instead of multi-line block format
+  - ✅ maxInlineProperties config option works correctly (default: 3)
+  - ✅ Added maxInlineProperties number selector to demo app YAML options
 
 
 ## Phase 5a

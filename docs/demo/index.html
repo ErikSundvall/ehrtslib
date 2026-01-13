@@ -305,6 +305,12 @@
                                 disabled>
                             <span>Indent (spaces)</span>
                         </label>
+                        <label class="checkbox-label tooltip-container">
+                            <input type="number" id="yaml-max-inline-props" value="3" min="1" max="10" class="indent-input"
+                                disabled>
+                            <span>Max Inline Properties</span>
+                            <span class="tooltip">Maximum number of properties for inline formatting in hybrid style</span>
+                        </label>
                     </div>
                 </div>
 
@@ -341,6 +347,14 @@
                 <!-- TypeScript Options -->
                 <div class="option-section" id="typescript-options">
                     <h3>TypeScript Options</h3>
+                    <div class="form-group">
+                        <label for="ts-arch-id-location">Archetype ID Location:</label>
+                        <select id="ts-arch-id-location" class="config-dropdown">
+                            <option value="beginning">Beginning of Object</option>
+                            <option value="after_name" selected>After "name" attribute</option>
+                            <option value="end">End of Object</option>
+                        </select>
+                    </div>
                     <div class="checkbox-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="ts-terse" checked>

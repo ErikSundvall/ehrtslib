@@ -49,6 +49,14 @@ function init() {
   // Set up event listeners
   setupEventListeners();
 
+  // Load default example and run initial conversion
+  loadExample('section');
+  
+  // Run initial conversion after a short delay to allow UI to settle
+  setTimeout(() => {
+    handleConvert();
+  }, 100);
+
   console.log('✓ Application ready');
 }
 
@@ -624,7 +632,9 @@ function gatherConversionOptions(): ConversionOptions {
   // Apply custom YAML settings if preset is 'custom'
   if (yamlConfigPreset === 'custom') {
     const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
+    const maxInlineProps = parseInt((document.getElementById('yaml-max-inline-props') as HTMLInputElement)?.value || '3');
     yamlConfig.indent = indent;
+    yamlConfig.maxInlineProperties = maxInlineProps;
     yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
     yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
   }
@@ -642,11 +652,12 @@ function gatherConversionOptions(): ConversionOptions {
   // TypeScript config
   const tsIndent = parseInt((document.getElementById('ts-indent') as HTMLInputElement)?.value || '2');
   const typescriptConfig = {
-    useTerse: (document.getElementById('ts-terse') as HTMLInputElement)?.checked !== false,
+    useTerseFormat: (document.getElementById('ts-terse') as HTMLInputElement)?.checked !== false,
     usePrimitiveConstructors: (document.getElementById('ts-compact') as HTMLInputElement)?.checked !== false,
     includeComments: (document.getElementById('ts-comments') as HTMLInputElement)?.checked || false,
     indent: tsIndent,
-    includeUndefined: (document.getElementById('ts-include-undefined') as HTMLInputElement)?.checked || false,
+    includeUndefinedAttributes: (document.getElementById('ts-include-undefined') as HTMLInputElement)?.checked || false,
+    archetypeNodeIdLocation: (document.getElementById('ts-arch-id-location') as HTMLSelectElement)?.value as 'beginning' | 'after_name' | 'end' || 'after_name',
   };
 
   return {

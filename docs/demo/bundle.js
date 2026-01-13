@@ -28,9 +28,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
 var require_util = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
     "use strict";
     var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
     var nameChar = nameStartChar + "\\-.\\d\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
@@ -87,9 +87,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
 var require_validator = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
     "use strict";
     var util = require_util();
     var defaultOptions = {
@@ -401,9 +401,9 @@ var require_validator = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var require_OptionsBuilder = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
     var defaultOptions = {
       preserveOrder: false,
       attributeNamePrefix: "@_",
@@ -456,9 +456,9 @@ var require_OptionsBuilder = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
 var require_xmlNode = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
     "use strict";
     var XmlNode = class {
       constructor(tagname) {
@@ -485,9 +485,9 @@ var require_xmlNode = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var require_DocTypeReader = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
     var util = require_util();
     function readDocType(xmlData, i3) {
       const entities = {};
@@ -595,9 +595,9 @@ var require_DocTypeReader = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
+// ../../../.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
 var require_strnum = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
     var hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
     var numRegex = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/;
     var consider = {
@@ -702,9 +702,9 @@ var require_strnum = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
 var require_ignoreAttributes = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
     function getIgnoreAttributesFn(ignoreAttributes) {
       if (typeof ignoreAttributes === "function") {
         return ignoreAttributes;
@@ -727,9 +727,9 @@ var require_ignoreAttributes = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
 var require_OrderedObjParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
     "use strict";
     var util = require_util();
     var xmlNode = require_xmlNode();
@@ -1234,9 +1234,9 @@ var require_OrderedObjParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
 var require_node2json = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
     function prettify(node, options) {
       return compress(node, options);
@@ -1330,9 +1330,9 @@ var require_node2json = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var require_XMLParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
     var { buildOptions } = require_OptionsBuilder();
     var OrderedObjParser = require_OrderedObjParser();
     var { prettify } = require_node2json();
@@ -1391,9 +1391,9 @@ var require_XMLParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
 var require_orderedJs2Xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
     var EOL = "\n";
     function toXml(jArray, options) {
       let indentation = "";
@@ -1525,9 +1525,9 @@ var require_orderedJs2Xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
 var require_json2xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
     "use strict";
     var buildFromOrderedJs = require_orderedJs2Xml();
     var getIgnoreAttributesFn = require_ignoreAttributes();
@@ -1777,9 +1777,9 @@ var require_json2xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
+// ../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
 var require_fxp = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
+  "../../../.cache/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
     "use strict";
     var validator = require_validator();
     var XMLParser2 = require_XMLParser();
@@ -3060,7 +3060,7 @@ __export(openehr_base_exports, {
   registerType: () => registerType
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
 function clampProp(e2, n2, t2, o2, r2) {
   return clampEntity(n2, getDefinedProp(e2, n2), t2, o2, r2);
 }
@@ -6140,7 +6140,7 @@ var a = [/* @__PURE__ */ createOptionsTransformer(fs, ns, Is), isoToEpochMilli, 
 var i2 = [/* @__PURE__ */ createOptionsTransformer(ds, es, Ms), isoToEpochMilli, 1];
 var ys;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../../.cache/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 function createSlotClass(e2, t2, n2, o2, r2) {
   function Class(...e3) {
     if (!(this instanceof Class)) {
@@ -24930,7 +24930,7 @@ var JsonConfigurableDeserializer = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
 var MAP = Symbol.for("yaml.map");
@@ -24966,7 +24966,7 @@ function isNode(node) {
 }
 var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
 var BREAK = Symbol("break visit");
 var SKIP = Symbol("skip children");
 var REMOVE = Symbol("remove node");
@@ -25116,7 +25116,7 @@ function replaceNode(key, path, node) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 var escapeChars = {
   "!": "%21",
   ",": "%2C",
@@ -25279,7 +25279,7 @@ var Directives = class _Directives {
 Directives.defaultYaml = { explicit: false, version: "1.2" };
 Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
 function anchorIsValid(anchor) {
   if (/[\x00-\x19\s,[\]{}]/.test(anchor)) {
     const sa2 = JSON.stringify(anchor);
@@ -25338,7 +25338,7 @@ function createNodeAnchors(doc, prefix) {
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
 function applyReviver(reviver, obj, key, val) {
   if (val && typeof val === "object") {
     if (Array.isArray(val)) {
@@ -25382,7 +25382,7 @@ function applyReviver(reviver, obj, key, val) {
   return reviver.call(obj, key, val);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
 function toJS(value, arg, ctx) {
   if (Array.isArray(value))
     return value.map((v2, i3) => toJS(v2, String(i3), ctx));
@@ -25405,7 +25405,7 @@ function toJS(value, arg, ctx) {
   return value;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 var NodeBase = class {
   constructor(type) {
     Object.defineProperty(this, NODE_TYPE, { value: type });
@@ -25437,7 +25437,7 @@ var NodeBase = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 var Alias = class extends NodeBase {
   constructor(source) {
     super(ALIAS);
@@ -25540,7 +25540,7 @@ function getAliasCount(doc, node, anchors) {
   return 1;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
 var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
 var Scalar = class extends NodeBase {
   constructor(value) {
@@ -25560,7 +25560,7 @@ Scalar.PLAIN = "PLAIN";
 Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
 Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 var defaultTagPrefix = "tag:yaml.org,2002:";
 function findTagObject(value, tagName, tags) {
   if (tagName) {
@@ -25626,7 +25626,7 @@ function createNode(value, tagName, ctx) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 function collectionFromPath(schema4, path, value) {
   let v2 = value;
   for (let i3 = path.length - 1; i3 >= 0; --i3) {
@@ -25758,7 +25758,7 @@ var Collection = class extends NodeBase {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
 var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
 function indentComment(comment, indent) {
   if (/^\n+$/.test(comment))
@@ -25767,7 +25767,7 @@ function indentComment(comment, indent) {
 }
 var lineComment = (str, indent, comment) => str.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str.endsWith(" ") ? "" : " ") + comment;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
 var FOLD_FLOW = "flow";
 var FOLD_BLOCK = "block";
 var FOLD_QUOTED = "quoted";
@@ -25894,7 +25894,7 @@ function consumeMoreIndentedLines(text, i3, indent) {
   return end;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 var getFoldOptions = (ctx, isBlock2) => ({
   indentAtStart: isBlock2 ? ctx.indent.length : ctx.indentAtStart,
   lineWidth: ctx.options.lineWidth,
@@ -26169,7 +26169,7 @@ function stringifyString(item, ctx, onComment, onChompKeep) {
   return res;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 function createStringifyContext(doc, options) {
   const opt = Object.assign({
     blockQuote: true,
@@ -26281,7 +26281,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 ${ctx.indent}${str}`;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
   const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
   let keyComment = isNode(key) && key.comment || null;
@@ -26404,14 +26404,14 @@ ${ctx.indent}`;
   return str;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
 function warn(logLevel, warning) {
   if (logLevel === "debug" || logLevel === "warn") {
     console.warn(warning);
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
 var MERGE_KEY = "<<";
 var merge = {
   identify: (value) => value === MERGE_KEY || typeof value === "symbol" && value.description === MERGE_KEY,
@@ -26458,7 +26458,7 @@ function mergeValue(ctx, map2, value) {
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 function addPairToJSMap(ctx, map2, { key, value }) {
   if (isNode(key) && key.addToJSMap)
     key.addToJSMap(ctx, map2, value);
@@ -26511,7 +26511,7 @@ function stringifyKey(key, jsKey, ctx) {
   return JSON.stringify(jsKey);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 function createPair(key, value, ctx) {
   const k2 = createNode(key, void 0, ctx);
   const v2 = createNode(value, void 0, ctx);
@@ -26540,7 +26540,7 @@ var Pair = class _Pair {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
 function stringifyCollection(collection, ctx, options) {
   const flow = ctx.inFlow ?? collection.flow;
   const stringify4 = flow ? stringifyFlowCollection : stringifyBlockCollection;
@@ -26675,7 +26675,7 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 function findPair(items, key) {
   const k2 = isScalar(key) ? key.value : key;
   for (const it2 of items) {
@@ -26806,7 +26806,7 @@ var YAMLMap = class extends Collection {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 var map = {
   collection: "map",
   default: true,
@@ -26820,7 +26820,7 @@ var map = {
   createNode: (schema4, obj, ctx) => YAMLMap.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
 var YAMLSeq = class extends Collection {
   static get tagName() {
     return "tag:yaml.org,2002:seq";
@@ -26924,7 +26924,7 @@ function asItemIndex(key) {
   return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 var seq = {
   collection: "seq",
   default: true,
@@ -26938,7 +26938,7 @@ var seq = {
   createNode: (schema4, obj, ctx) => YAMLSeq.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
 var string = {
   identify: (value) => typeof value === "string",
   default: true,
@@ -26950,7 +26950,7 @@ var string = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
 var nullTag = {
   identify: (value) => value == null,
   createNode: () => new Scalar(null),
@@ -26961,7 +26961,7 @@ var nullTag = {
   stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
 var boolTag = {
   identify: (value) => typeof value === "boolean",
   default: true,
@@ -26978,7 +26978,7 @@ var boolTag = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
   if (typeof value === "bigint")
     return String(value);
@@ -26999,7 +26999,7 @@ function stringifyNumber({ format, minFractionDigits, tag, value }) {
   return n2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 var floatNaN = {
   identify: (value) => typeof value === "number",
   default: true,
@@ -27035,7 +27035,7 @@ var float = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
 var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
 var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
 function intStringify(node, radix, prefix) {
@@ -27071,7 +27071,7 @@ var intHex = {
   stringify: (node) => intStringify(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
 var schema = [
   map,
   seq,
@@ -27086,7 +27086,7 @@ var schema = [
   float
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
 function intIdentify2(value) {
   return typeof value === "bigint" || Number.isInteger(value);
 }
@@ -27144,7 +27144,7 @@ var jsonError = {
 };
 var schema2 = [map, seq].concat(jsonScalars, jsonError);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
 var binary = {
   identify: (value) => value instanceof Uint8Array,
   // Buffer inherits from Uint8Array
@@ -27197,7 +27197,7 @@ var binary = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
 function resolvePairs(seq2, onError) {
   if (isSeq(seq2)) {
     for (let i3 = 0; i3 < seq2.items.length; ++i3) {
@@ -27263,7 +27263,7 @@ var pairs = {
   createNode: createPairs
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 var YAMLOMap = class _YAMLOMap extends YAMLSeq {
   constructor() {
     super();
@@ -27329,7 +27329,7 @@ var omap = {
   createNode: (schema4, iterable, ctx) => YAMLOMap.from(schema4, iterable, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
 function boolStringify({ value, source }, ctx) {
   const boolObj = value ? trueTag : falseTag;
   if (source && boolObj.test.test(source))
@@ -27353,7 +27353,7 @@ var falseTag = {
   stringify: boolStringify
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
 var floatNaN2 = {
   identify: (value) => typeof value === "number",
   default: true,
@@ -27392,7 +27392,7 @@ var float2 = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
 var intIdentify3 = (value) => typeof value === "bigint" || Number.isInteger(value);
 function intResolve2(str, offset, radix, { intAsBigInt }) {
   const sign = str[0];
@@ -27461,7 +27461,7 @@ var intHex2 = {
   stringify: (node) => intStringify2(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
 var YAMLSet = class _YAMLSet extends YAMLMap {
   constructor(schema4) {
     super(schema4);
@@ -27540,7 +27540,7 @@ var set = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
 function parseSexagesimal(str, asBigInt) {
   const sign = str[0];
   const parts = sign === "-" || sign === "+" ? str.substring(1) : str;
@@ -27619,7 +27619,7 @@ var timestamp = {
   stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 var schema3 = [
   map,
   seq,
@@ -27644,7 +27644,7 @@ var schema3 = [
   timestamp
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 var schemas = /* @__PURE__ */ new Map([
   ["core", schema],
   ["failsafe", [map, seq, string]],
@@ -27715,7 +27715,7 @@ function getTags(customTags, schemaName, addMergeTag) {
   }, []);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 var sortMapEntriesByKey = (a2, b2) => a2.key < b2.key ? -1 : a2.key > b2.key ? 1 : 0;
 var Schema = class _Schema {
   constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema4, sortMapEntries, toStringDefaults }) {
@@ -27736,7 +27736,7 @@ var Schema = class _Schema {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
 function stringifyDocument(doc, options) {
   const lines = [];
   let hasDirectives = options.directives === true;
@@ -27807,7 +27807,7 @@ function stringifyDocument(doc, options) {
   return lines.join("\n") + "\n";
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 var Document3 = class _Document {
   constructor(value, replacer, options) {
     this.commentBefore = null;
@@ -28099,7 +28099,7 @@ function assertCollection(contents) {
   throw new Error("Expected a YAML collection as document contents");
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
 var YAMLError = class extends Error {
   constructor(name, pos, code, message) {
     super();
@@ -28155,7 +28155,7 @@ ${pointer}
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
 function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
   let spaceBefore = false;
   let atNewline = startOnNewline;
@@ -28282,7 +28282,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
 function containsNewline(key) {
   if (!key)
     return null;
@@ -28318,7 +28318,7 @@ function containsNewline(key) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
 function flowIndentCheck(indent, fc, onError) {
   if (fc?.type === "flow-collection") {
     const end = fc.end[0];
@@ -28329,7 +28329,7 @@ function flowIndentCheck(indent, fc, onError) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
 function mapIncludes(ctx, items, search) {
   const { uniqueKeys } = ctx.options;
   if (uniqueKeys === false)
@@ -28338,7 +28338,7 @@ function mapIncludes(ctx, items, search) {
   return items.some((pair) => isEqual(pair.key, search));
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 var startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLMap;
@@ -28434,7 +28434,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
 function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLSeq;
   const seq2 = new NodeClass(ctx.schema);
@@ -28476,7 +28476,7 @@ function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeE
   return seq2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
 function resolveEnd(end, offset, reqSpace, onError) {
   let comment = "";
   if (end) {
@@ -28513,7 +28513,7 @@ function resolveEnd(end, offset, reqSpace, onError) {
   return { comment, offset };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 var blockMsg = "Block collections are not allowed within flow collections";
 var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
 function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, fc, onError, tag) {
@@ -28694,7 +28694,7 @@ function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: co
   return coll;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 function resolveCollection(CN2, ctx, token, onError, tagName, tag) {
   const coll = token.type === "block-map" ? resolveBlockMap(CN2, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq(CN2, ctx, token, onError, tag) : resolveFlowCollection(CN2, ctx, token, onError, tag);
   const Coll = coll.constructor;
@@ -28746,7 +28746,7 @@ function composeCollection(CN2, ctx, token, props, onError) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
 function resolveBlockScalar(ctx, scalar, onError) {
   const start = scalar.offset;
   const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
@@ -28920,7 +28920,7 @@ function splitLines(source) {
   return lines;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
 function resolveFlowScalar(scalar, strict, onError) {
   const { offset, type, source, end } = scalar;
   let _type;
@@ -29129,7 +29129,7 @@ function parseCharCode(source, offset, length, onError) {
   return String.fromCodePoint(code);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 function composeScalar(ctx, token, tagToken, onError) {
   const { value, type, comment, range } = token.type === "block-scalar" ? resolveBlockScalar(ctx, token, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
   const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
@@ -29200,7 +29200,7 @@ function findScalarTagByTest({ atKey, directives, schema: schema4 }, value, toke
   return tag;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
 function emptyScalarPosition(offset, before, pos) {
   if (before) {
     pos ?? (pos = before.length);
@@ -29224,7 +29224,7 @@ function emptyScalarPosition(offset, before, pos) {
   return offset;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 var CN = { composeNode, composeEmptyNode };
 function composeNode(ctx, token, props, onError) {
   const atKey = ctx.atKey;
@@ -29312,7 +29312,7 @@ function composeAlias({ options }, { offset, source, end }, onError) {
   return alias;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
   const opts = Object.assign({ _directives: directives }, options);
   const doc = new Document3(void 0, opts);
@@ -29345,7 +29345,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
   return doc;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 function getErrorPos(src) {
   if (typeof src === "number")
     return [src, src + 1];
@@ -29536,7 +29536,7 @@ ${end.comment}` : end.comment;
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
 var BREAK2 = Symbol("break visit");
 var SKIP2 = Symbol("skip children");
 var REMOVE2 = Symbol("remove item");
@@ -29592,7 +29592,7 @@ function _visit(path, item, visitor) {
   return typeof ctrl === "function" ? ctrl(item, path) : ctrl;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 var BOM = "\uFEFF";
 var DOCUMENT = "";
 var FLOW_END = "";
@@ -29657,7 +29657,7 @@ function tokenType(source) {
   return null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
 function isEmpty(ch) {
   switch (ch) {
     case void 0:
@@ -30225,7 +30225,7 @@ var Lexer = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
 var LineCounter = class {
   constructor() {
     this.lineStarts = [];
@@ -30250,7 +30250,7 @@ var LineCounter = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
 function includesToken(list, type) {
   for (let i3 = 0; i3 < list.length; ++i3)
     if (list[i3].type === type)
@@ -31103,7 +31103,7 @@ var Parser = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
+// ../../../.cache/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
 function parseOptions(options) {
   const prettyErrors = options.prettyErrors !== false;
   const lineCounter = options.lineCounter || prettyErrors && new LineCounter() || null;
@@ -31233,13 +31233,6 @@ var FLOW_YAML_CONFIG = {
 };
 
 // enhanced/serialization/yaml/yaml_serializer.ts
-var YAML_NODE_TYPES = {
-  MAP: "MAP",
-  FLOW_MAP: "FLOW_MAP",
-  SEQ: "SEQ",
-  FLOW_SEQ: "FLOW_SEQ",
-  SCALAR: "SCALAR"
-};
 var YamlSerializer = class _YamlSerializer {
   config;
   /**
@@ -31292,31 +31285,29 @@ var YamlSerializer = class _YamlSerializer {
    * Apply hybrid formatting to a YAML node
    * Simple objects get flow style, complex objects get block style
    * 
-   * Note: The node parameter uses 'any' type because the yaml library's
-   * Node types are not easily accessible in the public API. The implementation
-   * relies on duck typing to check for 'items', 'type', and 'flow' properties.
-   * 
    * @param node - The YAML node to format
    * @param depth - Current depth in the tree
    */
   applyHybridFormattingToNode(node, depth) {
     if (!node)
       return;
-    if (node.items && Array.isArray(node.items)) {
-      if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
-        const shouldBeInline = this.shouldNodeBeInline(node);
-        if (shouldBeInline) {
-          node.flow = true;
-        } else {
-          node.flow = false;
-        }
+    if (isMap(node)) {
+      const shouldBeInline = this.shouldNodeBeInline(node);
+      if (shouldBeInline) {
+        node.flow = true;
+      } else {
+        node.flow = false;
+      }
+      if (node.items && Array.isArray(node.items)) {
         for (const pair of node.items) {
           if (pair.value) {
             this.applyHybridFormattingToNode(pair.value, depth + 1);
           }
         }
-      } else if (node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
-        node.flow = false;
+      }
+    } else if (isSeq(node)) {
+      node.flow = false;
+      if (node.items && Array.isArray(node.items)) {
         for (const item of node.items) {
           this.applyHybridFormattingToNode(item, depth + 1);
         }
@@ -31330,10 +31321,13 @@ var YamlSerializer = class _YamlSerializer {
    * @returns true if the node should use flow style
    */
   shouldNodeBeInline(node) {
-    if (!node.items || !Array.isArray(node.items)) {
+    if (isScalar(node)) {
       return true;
     }
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP) {
+    if (isMap(node)) {
+      if (!node.items || !Array.isArray(node.items)) {
+        return true;
+      }
       const numProps = node.items.length;
       const maxProps = this.config.maxInlineProperties ?? 3;
       if (numProps > maxProps) {
@@ -31357,10 +31351,10 @@ var YamlSerializer = class _YamlSerializer {
   isNodeComplex(node) {
     if (!node)
       return false;
-    if (node.type === YAML_NODE_TYPES.SCALAR || !node.items) {
+    if (isScalar(node)) {
       return false;
     }
-    if (node.type === YAML_NODE_TYPES.MAP || node.type === YAML_NODE_TYPES.FLOW_MAP || node.type === YAML_NODE_TYPES.SEQ || node.type === YAML_NODE_TYPES.FLOW_SEQ) {
+    if (isMap(node) || isSeq(node)) {
       return true;
     }
     return false;
@@ -32035,6 +32029,324 @@ var XmlDeserializer = class {
   }
 };
 
+// enhanced/serialization/typescript/typescript_constructor_serializer.ts
+var DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG = {
+  useTerseFormat: true,
+  usePrimitiveConstructors: true,
+  includeComments: false,
+  includeUndefinedAttributes: false,
+  indent: 2,
+  archetypeNodeIdLocation: "after_name"
+};
+var TypeScriptConstructorSerializer = class {
+  config;
+  usedTypes = /* @__PURE__ */ new Set();
+  /**
+   * Create a TypeScript constructor serializer
+   * @param config - Serialization configuration
+   */
+  constructor(config = {}) {
+    this.config = { ...DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG, ...config };
+  }
+  /**
+   * Serialize an RM object to TypeScript constructor code
+   * 
+   * @param obj - The object to serialize
+   * @param variableName - Optional variable name (default: inferred from type)
+   * @returns TypeScript code string
+   * @throws SerializationError if serialization fails
+   */
+  serialize(obj, variableName) {
+    try {
+      this.usedTypes = /* @__PURE__ */ new Set();
+      const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+      if (!typeName) {
+        throw new SerializationError("Cannot serialize object without type information", obj);
+      }
+      const varName = variableName || this.getDefaultVariableName(typeName);
+      const constructorCode = this.generateConstructorCall(obj, 0);
+      const rmTypes = [];
+      const baseTypes = [];
+      for (const type of this.usedTypes) {
+        if (this.isBaseType(type)) {
+          baseTypes.push(type);
+        } else {
+          rmTypes.push(type);
+        }
+      }
+      let code = "";
+      if (rmTypes.length > 0) {
+        code += `import { ${rmTypes.sort().join(", ")} } from './enhanced/openehr_rm.ts';
+`;
+      }
+      if (baseTypes.length > 0) {
+        code += `import { ${baseTypes.sort().join(", ")} } from './enhanced/openehr_base.ts';
+`;
+      }
+      if (code) {
+        code += "\n";
+      }
+      code += `const ${varName} = ${constructorCode};
+`;
+      return code;
+    } catch (error) {
+      throw new SerializationError(
+        `Failed to serialize to TypeScript: ${error instanceof Error ? error.message : String(error)}`,
+        obj,
+        error instanceof Error ? error : void 0
+      );
+    }
+  }
+  /**
+   * Generate a constructor call for an object
+   */
+  generateConstructorCall(obj, depth) {
+    if (obj === null || obj === void 0) {
+      return "undefined";
+    }
+    if (typeof obj === "string") {
+      return JSON.stringify(obj);
+    }
+    if (typeof obj === "number" || typeof obj === "boolean") {
+      return String(obj);
+    }
+    if (Array.isArray(obj)) {
+      return this.generateArrayCode(obj, depth);
+    }
+    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+    if (!typeName) {
+      return this.generatePlainObjectCode(obj, depth);
+    }
+    this.usedTypes.add(typeName);
+    if (this.config.useTerseFormat) {
+      const terseForm = this.getTerseForm(obj, typeName);
+      if (terseForm !== null) {
+        return JSON.stringify(terseForm);
+      }
+    }
+    if (this.config.usePrimitiveConstructors && this.isPrimitiveWrapper(typeName)) {
+      const keys = this.getAllPropertyNames(obj).filter((k2) => !k2.startsWith("_") && !k2.startsWith("$") && k2 !== "constructor");
+      const keysWithValues = keys.filter((k2) => obj[k2] !== void 0);
+      if (keysWithValues.length === 1 && keysWithValues[0] === "value" && (typeof obj.value === "string" || typeof obj.value === "number" || typeof obj.value === "boolean")) {
+        return this.generateConstructorCall(obj.value, depth);
+      }
+    }
+    return `new ${typeName}(${this.generateInitializationObject(obj, depth + 1)})`;
+  }
+  /**
+   * Generate array code
+   */
+  generateArrayCode(arr, depth) {
+    if (arr.length === 0) {
+      return "[]";
+    }
+    const indentStr = " ".repeat(this.config.indent * (depth + 1));
+    const items = arr.map(
+      (item) => indentStr + this.generateConstructorCall(item, depth + 1)
+    ).join(",\n");
+    return `[
+${items}
+${" ".repeat(this.config.indent * depth)}]`;
+  }
+  /**
+   * Generate plain object code
+   */
+  generatePlainObjectCode(obj, depth) {
+    const indentStr = " ".repeat(this.config.indent * (depth + 1));
+    const properties = [];
+    for (const [key, value] of Object.entries(obj)) {
+      if (key.startsWith("_") || key === "constructor") {
+        continue;
+      }
+      const valueCode = this.generateConstructorCall(value, depth + 1);
+      properties.push(`${indentStr}${key}: ${valueCode}`);
+    }
+    if (properties.length === 0) {
+      return "{}";
+    }
+    return `{
+${properties.join(",\n")}
+${" ".repeat(this.config.indent * depth)}}`;
+  }
+  /**
+   * Generate initialization object for a constructor
+   */
+  generateInitializationObject(obj, depth) {
+    const indentStr = " ".repeat(this.config.indent * depth);
+    const properties = [];
+    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+    let keys = this.getAllPropertyNames(obj);
+    if (this.config.includeUndefinedAttributes && typeName) {
+      keys = this.getAllPossibleKeys(typeName, keys);
+    }
+    const hasArchetypeNodeId = keys.includes("archetype_node_id");
+    const hasName = keys.includes("name");
+    let orderedKeys = [];
+    if (hasArchetypeNodeId && hasName) {
+      const location = this.config.archetypeNodeIdLocation;
+      const otherKeys = keys.filter((k2) => k2 !== "archetype_node_id" && k2 !== "name");
+      if (location === "beginning") {
+        orderedKeys = ["archetype_node_id", "name", ...otherKeys];
+      } else if (location === "after_name") {
+        orderedKeys = ["name", "archetype_node_id", ...otherKeys];
+      } else {
+        orderedKeys = ["name", ...otherKeys, "archetype_node_id"];
+      }
+    } else {
+      orderedKeys = keys;
+    }
+    for (const key of orderedKeys) {
+      if (key.startsWith("_") || key === "constructor") {
+        continue;
+      }
+      const value = obj[key];
+      if (value === void 0) {
+        if (this.config.includeUndefinedAttributes) {
+          if (this.config.includeComments) {
+            properties.push(`${indentStr}${key}: undefined  // TODO: Set value`);
+          } else {
+            properties.push(`${indentStr}${key}: undefined`);
+          }
+        }
+        continue;
+      }
+      const valueCode = this.generateConstructorCall(value, depth);
+      let propertyLine = `${indentStr}${key}: ${valueCode}`;
+      if (this.config.includeComments) {
+        const comment = this.getPropertyComment(typeName, key, value);
+        if (comment) {
+          propertyLine += `  // ${comment}`;
+        }
+      }
+      properties.push(propertyLine);
+    }
+    if (properties.length === 0) {
+      return "{}";
+    }
+    return `{
+${properties.join(",\n")}
+${" ".repeat(this.config.indent * (depth - 1))}}`;
+  }
+  /**
+   * Get all property names from an object, including getters
+   */
+  getAllPropertyNames(obj) {
+    if (!obj || typeof obj !== "object")
+      return [];
+    const allProperties = /* @__PURE__ */ new Set();
+    Object.keys(obj).forEach((key) => {
+      if (!key.startsWith("_") && !key.startsWith("$")) {
+        allProperties.add(key);
+      }
+    });
+    let proto = Object.getPrototypeOf(obj);
+    while (proto && proto !== Object.prototype) {
+      Object.getOwnPropertyNames(proto).forEach((key) => {
+        if (key !== "constructor" && !key.startsWith("_") && !key.startsWith("$")) {
+          const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+          if (descriptor && descriptor.get) {
+            allProperties.add(key);
+          }
+        }
+      });
+      proto = Object.getPrototypeOf(proto);
+    }
+    return Array.from(allProperties);
+  }
+  /**
+   * Get all possible keys for a type (including undefined ones)
+   */
+  getAllPossibleKeys(typeName, existingKeys) {
+    return existingKeys;
+  }
+  /**
+   * Get terse form for CODE_PHRASE or DV_CODED_TEXT
+   */
+  getTerseForm(obj, typeName) {
+    if (typeName === "CODE_PHRASE") {
+      const terminologyId = obj.terminology_id?.value;
+      const codeString = obj.code_string;
+      if (terminologyId && codeString) {
+        return `${terminologyId}::${codeString}`;
+      }
+    } else if (typeName === "DV_CODED_TEXT") {
+      const value = obj.value;
+      const definingCode = obj.defining_code;
+      if (definingCode) {
+        const terminologyId = definingCode.terminology_id?.value;
+        const codeString = definingCode.code_string;
+        if (terminologyId && codeString) {
+          return `${terminologyId}::${codeString}|${value || ""}|`;
+        }
+      }
+    }
+    return null;
+  }
+  /**
+   * Check if a type is a primitive wrapper
+   */
+  isPrimitiveWrapper(typeName) {
+    const primitiveWrappers = [
+      "DV_TEXT",
+      "DV_CODED_TEXT",
+      "TERMINOLOGY_ID",
+      "OBJECT_VERSION_ID",
+      "ARCHETYPE_ID",
+      "TEMPLATE_ID",
+      "HIER_OBJECT_ID",
+      "GENERIC_ID"
+    ];
+    return primitiveWrappers.includes(typeName);
+  }
+  /**
+   * Check if a type belongs to the BASE package
+   */
+  isBaseType(typeName) {
+    const baseTypes = [
+      "TERMINOLOGY_ID",
+      "CODE_PHRASE",
+      "ARCHETYPE_ID",
+      "OBJECT_VERSION_ID",
+      "TEMPLATE_ID",
+      "GENERIC_ID",
+      "OBJECT_ID",
+      "UID_BASED_ID",
+      "HIER_OBJECT_ID",
+      "PARTY_REF",
+      "OBJECT_REF",
+      "LOCATABLE_REF",
+      "ACCESS_GROUP_REF",
+      "VERSIONED_OBJECT_REF",
+      "Boolean",
+      "Integer",
+      "Integer64",
+      "Real",
+      "Any",
+      "Ordered",
+      "Ordered_Numeric"
+    ];
+    return baseTypes.includes(typeName);
+  }
+  /**
+   * Get default variable name from type name
+   */
+  getDefaultVariableName(typeName) {
+    const name = typeName.toLowerCase();
+    if (name.includes("_")) {
+      return name.split("_").map(
+        (word, i3) => i3 === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+      ).join("");
+    }
+    return name;
+  }
+  /**
+   * Get a comment for a property (for includeComments mode)
+   */
+  getPropertyComment(typeName, key, value) {
+    return null;
+  }
+};
+
 // examples/demo-app/src/converter.ts
 var typeRegistryInitialized = false;
 function initializeTypeRegistry() {
@@ -32138,248 +32450,8 @@ function serializeToXml(obj, config) {
   return serializer.serialize(obj);
 }
 function generateTypeScriptCode(obj, config) {
-  const indentStr = " ".repeat(config.indent);
-  let code = "";
-  const rmTypes = /* @__PURE__ */ new Set();
-  const baseTypes = /* @__PURE__ */ new Set();
-  collectUsedTypes(obj, rmTypes, baseTypes);
-  if (rmTypes.size > 0) {
-    code += `import { ${Array.from(rmTypes).sort().join(", ")} } from "./enhanced/openehr_rm.ts";
-`;
-  } else {
-    code += `import * as openehr_rm from "./enhanced/openehr_rm.ts";
-`;
-  }
-  if (baseTypes.size > 0) {
-    code += `import { ${Array.from(baseTypes).sort().join(", ")} } from "./enhanced/openehr_base.ts";
-`;
-  } else {
-    code += `import * as openehr_base from "./enhanced/openehr_base.ts";
-`;
-  }
-  code += `
-`;
-  if (config.includeComments) {
-    code += `// Generated TypeScript initialization code
-`;
-    code += `// Based on openEHR Reference Model
-
-`;
-  }
-  const variableName = generateVariableName(obj);
-  code += `const ${variableName} = `;
-  code += generateObjectCode(obj, config, 0);
-  code += `;
-`;
-  return code;
-}
-function generateVariableName(obj) {
-  const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-  if (!typeName)
-    return "rmObject";
-  return typeName.toLowerCase().replace(/_/g, "");
-}
-function generateObjectCode(obj, config, depth) {
-  if (obj === null || obj === void 0) {
-    return "undefined";
-  }
-  if (typeof obj === "string") {
-    return JSON.stringify(obj);
-  }
-  if (typeof obj === "number" || typeof obj === "boolean") {
-    return String(obj);
-  }
-  if (Array.isArray(obj)) {
-    if (obj.length === 0) {
-      return "[]";
-    }
-    const indentStr = " ".repeat(config.indent * (depth + 1));
-    const items = obj.map(
-      (item) => indentStr + generateObjectCode(item, config, depth + 1)
-    ).join(",\n");
-    return `[
-${items}
-${" ".repeat(config.indent * depth)}]`;
-  }
-  const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-  if (!typeName) {
-    return JSON.stringify(obj, null, config.indent);
-  }
-  if (config.usePrimitiveConstructors && isPrimitiveWrapper(typeName)) {
-    const keys = getAllPropertyNames(obj).filter((k2) => !k2.startsWith("_") && !k2.startsWith("$") && k2 !== "constructor");
-    if (keys.length === 1 && keys[0] === "value" && (typeof obj.value === "string" || typeof obj.value === "number" || typeof obj.value === "boolean")) {
-      return generateObjectCode(obj.value, config, depth);
-    }
-  }
-  if (config.useTerse && (typeName === "CODE_PHRASE" || typeName === "DV_CODED_TEXT")) {
-    const terseForm = getTerseForm(obj, typeName);
-    if (terseForm) {
-      return JSON.stringify(terseForm);
-    }
-  }
-  let code = `new ${typeName}(`;
-  if (config.usePrimitiveConstructors) {
-    code += generateInitObject(obj, config, depth + 1);
-  } else {
-    code += generateInitObject(obj, config, depth + 1);
-  }
-  code += ")";
-  return code;
-}
-function getModulePrefix(typeName) {
-  const baseTypes = [
-    "TERMINOLOGY_ID",
-    "CODE_PHRASE",
-    "ARCHETYPE_ID",
-    "OBJECT_VERSION_ID",
-    "TEMPLATE_ID",
-    "GENERIC_ID",
-    "OBJECT_ID",
-    "UID_BASED_ID",
-    "HIER_OBJECT_ID"
-  ];
-  if (baseTypes.includes(typeName)) {
-    return "openehr_base";
-  }
-  return "openehr_rm";
-}
-function generateInitObject(obj, config, depth) {
-  const indentStr = " ".repeat(config.indent * depth);
-  const properties = [];
-  let keys = getAllPropertyNames(obj);
-  if (config.includeUndefined) {
-    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    if (typeName) {
-      try {
-        const moduleName = getModulePrefix(typeName);
-        const module2 = moduleName === "openehr_base" ? openehr_base_exports : openehr_rm_exports;
-        const Class = module2[typeName];
-        if (Class) {
-          try {
-            const defaultInstance = new Class();
-            const defaultKeys = Object.keys(defaultInstance);
-            keys = Array.from(/* @__PURE__ */ new Set([...keys, ...defaultKeys]));
-          } catch (e2) {
-          }
-        }
-      } catch (e2) {
-      }
-    }
-  }
-  for (const key of keys) {
-    if (key.startsWith("_") || key === "constructor") {
-      continue;
-    }
-    const value = obj[key];
-    if (value === void 0) {
-      if (config.includeUndefined) {
-        properties.push(`${indentStr}${key}: undefined`);
-      }
-      continue;
-    }
-    const valueCode = generateObjectCode(value, config, depth);
-    properties.push(`${indentStr}${key}: ${valueCode}`);
-  }
-  if (properties.length === 0) {
-    return "{}";
-  }
-  return `{
-${properties.join(",\n")}
-${" ".repeat(config.indent * (depth - 1))}}`;
-}
-function getTerseForm(obj, typeName) {
-  if (typeName === "CODE_PHRASE") {
-    const terminologyId = obj.terminology_id?.value;
-    const codeString = obj.code_string;
-    if (terminologyId && codeString) {
-      return `[${terminologyId}::${codeString}]`;
-    }
-  } else if (typeName === "DV_CODED_TEXT") {
-    const value = obj.value;
-    const definingCode = obj.defining_code;
-    if (value && definingCode) {
-      const terminologyId = definingCode.terminology_id?.value;
-      const codeString = definingCode.code_string;
-      if (terminologyId && codeString) {
-        return `[${terminologyId}::${codeString}|${value}|]`;
-      }
-    }
-  }
-  return null;
-}
-function getAllPropertyNames(obj) {
-  if (!obj || typeof obj !== "object")
-    return [];
-  const allProperties = /* @__PURE__ */ new Set();
-  Object.keys(obj).forEach((key) => {
-    if (!key.startsWith("_") && !key.startsWith("$")) {
-      allProperties.add(key);
-    }
-  });
-  let proto = Object.getPrototypeOf(obj);
-  while (proto && proto !== Object.prototype) {
-    Object.getOwnPropertyNames(proto).forEach((key) => {
-      if (key !== "constructor" && !key.startsWith("_") && !key.startsWith("$")) {
-        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-        if (descriptor && descriptor.get) {
-          allProperties.add(key);
-        }
-      }
-    });
-    proto = Object.getPrototypeOf(proto);
-  }
-  return Array.from(allProperties);
-}
-function collectUsedTypes(obj, rmTypes, baseTypes, visited = /* @__PURE__ */ new Set()) {
-  if (!obj || typeof obj !== "object" || visited.has(obj))
-    return;
-  visited.add(obj);
-  if (Array.isArray(obj)) {
-    obj.forEach((item) => collectUsedTypes(item, rmTypes, baseTypes, visited));
-    return;
-  }
-  const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-  if (typeName) {
-    const prefix = getModulePrefix(typeName);
-    if (prefix === "openehr_base") {
-      baseTypes.add(typeName);
-    } else {
-      rmTypes.add(typeName);
-    }
-    const keys = getAllPropertyNames(obj);
-    for (const key of keys) {
-      if (key.startsWith("_"))
-        continue;
-      try {
-        const val = obj[key];
-        if (val !== void 0 && val !== null) {
-          collectUsedTypes(val, rmTypes, baseTypes, visited);
-        }
-      } catch (e2) {
-      }
-    }
-  }
-}
-function isPrimitiveWrapper(typeName) {
-  if (!typeName)
-    return false;
-  const wrappers = [
-    "DV_TEXT",
-    "STRING",
-    "BOOLEAN",
-    "INTEGER",
-    "REAL",
-    "DV_DATE",
-    "DV_TIME",
-    "DV_DATE_TIME",
-    "DV_DURATION",
-    "TERMINOLOGY_ID",
-    "ARCHETYPE_ID",
-    "OBJECT_VERSION_ID",
-    "TEMPLATE_ID",
-    "HIER_OBJECT_ID"
-  ];
-  return wrappers.includes(typeName.toUpperCase());
+  const serializer = new TypeScriptConstructorSerializer(config);
+  return serializer.serialize(obj);
 }
 function getJsonConfigPreset(preset) {
   switch (preset) {
@@ -32432,6 +32504,10 @@ function init2() {
     return;
   }
   setupEventListeners();
+  loadExample("section");
+  setTimeout(() => {
+    handleConvert();
+  }, 100);
   console.log("\u2713 Application ready");
 }
 function setupEventListeners() {
@@ -32812,7 +32888,9 @@ function gatherConversionOptions() {
     yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
   if (yamlConfigPreset === "custom") {
     const indent = parseInt(document.getElementById("yaml-indent")?.value || "2");
+    const maxInlineProps = parseInt(document.getElementById("yaml-max-inline-props")?.value || "3");
     yamlConfig.indent = indent;
+    yamlConfig.maxInlineProperties = maxInlineProps;
     yamlConfig.useTerseFormat = document.getElementById("yaml-terse")?.checked !== false;
     yamlConfig.useTypeInference = document.getElementById("yaml-type-inference")?.checked !== false;
   }
@@ -32826,11 +32904,12 @@ function gatherConversionOptions() {
   };
   const tsIndent = parseInt(document.getElementById("ts-indent")?.value || "2");
   const typescriptConfig = {
-    useTerse: document.getElementById("ts-terse")?.checked !== false,
+    useTerseFormat: document.getElementById("ts-terse")?.checked !== false,
     usePrimitiveConstructors: document.getElementById("ts-compact")?.checked !== false,
     includeComments: document.getElementById("ts-comments")?.checked || false,
     indent: tsIndent,
-    includeUndefined: document.getElementById("ts-include-undefined")?.checked || false
+    includeUndefinedAttributes: document.getElementById("ts-include-undefined")?.checked || false,
+    archetypeNodeIdLocation: document.getElementById("ts-arch-id-location")?.value || "after_name"
   };
   return {
     inputFormat,
