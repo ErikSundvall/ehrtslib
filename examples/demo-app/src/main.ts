@@ -642,11 +642,18 @@ function gatherConversionOptions(): ConversionOptions {
   if (yamlConfigPreset === 'custom') {
     const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
     const maxInlineProps = parseInt((document.getElementById('yaml-max-inline-props') as HTMLInputElement)?.value || '3');
+    const mainStyle = (document.getElementById('yaml-main-style') as HTMLSelectElement)?.value as 'block' | 'flow' | 'hybrid';
     yamlConfig.indent = indent;
     yamlConfig.maxInlineProperties = maxInlineProps;
+    yamlConfig.mainStyle = mainStyle || 'hybrid';
     yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
     yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
-    yamlConfig.keepArchetypeDetailsInline = (document.getElementById('yaml-archetype-inline') as HTMLInputElement)?.checked !== false;
+    // Only apply keepArchetypeDetailsInline if flow style
+    if (mainStyle === 'flow') {
+      yamlConfig.keepArchetypeDetailsInline = (document.getElementById('yaml-archetype-inline') as HTMLInputElement)?.checked !== false;
+    } else {
+      yamlConfig.keepArchetypeDetailsInline = false;
+    }
   }
 
   // XML config
@@ -840,8 +847,7 @@ function updateJsonOptions(preset: string) {
  * Update YAML options based on preset
  */
 function updateYamlOptions(preset: string) {
-  const blockStyleCheckbox = document.getElementById('yaml-block-style') as HTMLInputElement;
-  const hybridStyleCheckbox = document.getElementById('yaml-hybrid-style') as HTMLInputElement;
+  const mainStyleSelect = document.getElementById('yaml-main-style') as HTMLSelectElement;
   const terseCheckbox = document.getElementById('yaml-terse') as HTMLInputElement;
   const typeInferenceCheckbox = document.getElementById('yaml-type-inference') as HTMLInputElement;
   const indentInput = document.getElementById('yaml-indent') as HTMLInputElement;
@@ -851,34 +857,65 @@ function updateYamlOptions(preset: string) {
 
   const isCustom = preset === 'custom';
 
-  [blockStyleCheckbox, hybridStyleCheckbox, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach(elem => {
+  [mainStyleSelect, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach(elem => {
     if (elem) elem.disabled = !isCustom;
   });
+
+  // Update archetype inline visibility based on main style
+  const updateArchetypeInlineVisibility = () => {
+    const mainStyle = mainStyleSelect?.value || 'hybrid';
+    const archetypeInlineGroup = document.getElementById('yaml-archetype-inline-group');
+    if (archetypeInlineGroup) {
+      // Only show for flow style
+      if (mainStyle === 'flow') {
+        archetypeInlineGroup.style.display = '';
+      } else {
+        archetypeInlineGroup.style.display = 'none';
+      }
+    }
+  };
 
   if (!isCustom) {
     switch (preset) {
       case 'default':
-        if (blockStyleCheckbox) blockStyleCheckbox.checked = true;
+        if (mainStyleSelect) mainStyleSelect.value = 'hybrid';
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
       case 'verbose':
-        if (blockStyleCheckbox) blockStyleCheckbox.checked = true;
+        if (mainStyleSelect) mainStyleSelect.value = 'block';
         if (terseCheckbox) terseCheckbox.checked = false;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
+        if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
       case 'hybrid':
-        if (hybridStyleCheckbox) hybridStyleCheckbox.checked = true;
+        if (mainStyleSelect) mainStyleSelect.value = 'hybrid';
+        if (terseCheckbox) terseCheckbox.checked = true;
+        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
+        break;
+      case 'flow':
+        if (mainStyleSelect) mainStyleSelect.value = 'flow';
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = true;
         break;
-      case 'flow':
-        if (blockStyleCheckbox) blockStyleCheckbox.checked = false;
-        if (terseCheckbox) terseCheckbox.checked = false;
-        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
+      case 'block':
+        if (mainStyleSelect) mainStyleSelect.value = 'block';
+        if (terseCheckbox) terseCheckbox.checked = true;
+        if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
+        if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
     }
+  }
+
+  updateArchetypeInlineVisibility();
+
+  // Add event listener to update visibility when style changes
+  if (mainStyleSelect) {
+    mainStyleSelect.removeEventListener('change', updateArchetypeInlineVisibility);
+    mainStyleSelect.addEventListener('change', updateArchetypeInlineVisibility);
   }
 }
 

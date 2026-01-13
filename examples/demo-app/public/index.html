@@ -270,6 +270,7 @@
                             <option value="verbose">Verbose (With Types)</option>
                             <option value="hybrid">Hybrid (zipehr-like)</option>
                             <option value="flow">Flow Style</option>
+                            <option value="block">Block Style</option>
                             <option value="custom">Custom...</option>
                         </select>
                     </div>
@@ -282,14 +283,14 @@
                         </select>
                     </div>
                     <div class="checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="yaml-block-style" checked disabled>
-                            <span>Block Style</span>
-                        </label>
                         <label class="checkbox-label tooltip-container">
-                            <input type="checkbox" id="yaml-hybrid-style" disabled>
-                            <span>Hybrid Style (inline + block)</span>
-                            <span class="tooltip">Simple objects inline, complex objects in block format</span>
+                            <select id="yaml-main-style" class="config-dropdown" disabled>
+                                <option value="hybrid">Hybrid (inline + block)</option>
+                                <option value="flow">Flow (compact with line breaks)</option>
+                                <option value="block">Block (traditional multi-line)</option>
+                            </select>
+                            <span>Main Style</span>
+                            <span class="tooltip">Choose YAML formatting style: Hybrid (simple objects inline), Flow (all inline with strategic breaks), or Block (traditional multi-line)</span>
                         </label>
                         <label class="checkbox-label tooltip-container">
                             <input type="checkbox" id="yaml-terse" checked disabled>
@@ -312,11 +313,10 @@
                             <span class="tooltip">Maximum number of properties for inline formatting in hybrid
                                 style</span>
                         </label>
-                        <label class="checkbox-label tooltip-container">
-                            <input type="checkbox" id="yaml-archetype-inline" checked disabled>
+                        <label class="checkbox-label tooltip-container" id="yaml-archetype-inline-group">
+                            <input type="checkbox" id="yaml-archetype-inline" disabled>
                             <span>Keep Archetype Details Inline</span>
-                            <span class="tooltip">In hybrid mode, keeps name, archetype_node_id, and archetype_details
-                                on the same line for better readability</span>
+                            <span class="tooltip">Only for flow style: Groups archetype metadata (name, archetype_node_id, archetype_details) on one line with strategic line breaks</span>
                         </label>
                     </div>
                 </div>

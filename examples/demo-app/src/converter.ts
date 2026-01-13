@@ -33,6 +33,7 @@ import {
   VERBOSE_YAML_CONFIG,
   HYBRID_YAML_CONFIG,
   FLOW_YAML_CONFIG,
+  BLOCK_YAML_CONFIG,
 } from '../../../enhanced/serialization/yaml/mod.ts';
 
 import {
@@ -294,6 +295,8 @@ export function getYamlConfigPreset(preset: string): YamlSerializationConfig {
       return HYBRID_YAML_CONFIG;
     case 'flow':
       return FLOW_YAML_CONFIG;
+    case 'block':
+      return BLOCK_YAML_CONFIG;
     default:
       return DEFAULT_YAML_SERIALIZATION_CONFIG;
   }
