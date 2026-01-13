@@ -508,6 +508,49 @@ Background: We want to improve the demo web application code based on `/tasks/ta
   - ✅ maxInlineProperties config option works correctly (default: 3)
   - ✅ Added maxInlineProperties number selector to demo app YAML options
 
+## Phase 4g.7 Improve hybrid YAML serialiser.
+In the default for hybrid YAML we after the name of a node want sepecial treatment to to get the archetype_id (and any archetype_details) printed on the same line as the name.
+The rest of the attributes should be printed on following lines in the was hybrid style already is/was before before. I hot the following are valid and semantically equal YAML structures that can be used as test. (Otherwise alarm)
+Update the YAML seraliser and demo-app to work this way by introducing a setting for this special treatment (on by default in hybrid mode)
+
+### Example input
+other_context:
+    name: { value: Item tree }
+    archetype_node_id: at0003
+    items:
+      - name: { value: Vårdenhet }
+        archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+        archetype_details:
+          archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }
+          rm_version: 1.1.0
+        items:
+          - name: { value: Namn }
+            archetype_node_id: at0001
+            value: { value: Brandbergens vårdcentral }
+          - name: { value: Identifierare }
+            archetype_node_id: at0003
+            value: { id: SE2321000016-1003, type: urn:oid:1.2.752.29.4.19 }
+          - name: { value: Roll }
+            archetype_node_id: at0004
+            value: http://snomed.info/sct/900000000000207008::43741000|vårdenhet|
+          - name: { value: Vårdgivare }
+            archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+            archetype_details:
+              archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }
+              rm_version: 1.1.0
+
+### Desired output
+other_context: {name: {value: Item tree}, archetype_node_id: at0003}
+items:
+  - {name: {value: Vårdenhet}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}
+    items:
+      - {name: {value: Namn}, archetype_node_id: at0001}
+        value: { value: Brandbergens vårdcentral }
+      - {name: {value: Identifierare}, archetype_node_id: at0003}
+        value: { id: SE2321000016-1003, type: urn:oid:1.2.752.29.4.19 }
+      - {name: {value: Roll}, archetype_node_id: at0004}
+        value: http://snomed.info/sct/900000000000207008::43741000|vårdenhet|
+      - {name: {value: Vårdgivare}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}
 
 ## Phase 5a
 - Implement/refine any remaining classes of the AM package, use deepwiki and the files in /instructions to understand. If needed improve the files in /instructions first.
