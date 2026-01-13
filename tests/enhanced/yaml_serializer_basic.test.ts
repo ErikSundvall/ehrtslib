@@ -26,7 +26,8 @@ Deno.test("YamlSerializer: serialize simple DV_TEXT", () => {
   
   // Should contain the value
   assertEquals(yaml.includes("Hello YAML"), true);
-  assertEquals(yaml.includes("_type: DV_TEXT"), true);
+  // Note: Default config has includeType: false, so _type is not included
+  assertEquals(yaml.includes("value:"), true);
 });
 
 Deno.test("YamlSerializer: serialize CODE_PHRASE", () => {

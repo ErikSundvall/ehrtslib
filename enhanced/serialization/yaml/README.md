@@ -220,15 +220,15 @@ const yaml = serializer.serialize(section);
 
 **Output:**
 ```yaml
-name: {value: Vital Signs}
+name: { value: Vital Signs }
 items:
-  - name: {value: Diagnosis}
-    value: {defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2}
-  - name: {value: Pulse rate}
-    value: {magnitude: 72, units: /min}
+  - name: { value: Diagnosis }
+    value: { defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2 }
+  - name: { value: Pulse rate }
+    value: { magnitude: 72, units: /min }
 ```
 
-Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{value: Text}`), while complex nested structures maintain block style formatting.
+Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{ value: Text }`), while complex nested structures maintain block style formatting.
 
 ### Flow Style (JSON-like)
 
@@ -245,6 +245,70 @@ const yaml = serializer.serialize(section);
 ```
 
 More compact, JSON-like appearance. Useful when horizontal space is prioritized over vertical readability.
+
+## Archetype Metadata Inline Formatting (Phase 4g.7)
+
+In hybrid YAML mode, there's a special feature for formatting archetype metadata properties inline for better readability.
+
+### Configuration
+
+```typescript
+interface YamlSerializationConfig {
+  // ... other options ...
+  
+  /**
+   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline in hybrid style.
+   * When enabled, these properties are formatted on the same line using flow style,
+   * while other properties remain on separate lines.
+   * @default true (enabled by default in hybrid mode)
+   */
+  keepArchetypeDetailsInline?: boolean;
+}
+```
+
+### Example
+
+When `keepArchetypeDetailsInline` is `true` (default in hybrid mode):
+
+```typescript
+const cluster = new CLUSTER();
+cluster.name = new DV_TEXT({ value: "Organization" });
+cluster.archetype_node_id = "openEHR-EHR-CLUSTER.organisation.v1";
+cluster.archetype_details = new ARCHETYPED();
+cluster.archetype_details.archetype_id = new ARCHETYPE_ID({ value: "openEHR-EHR-CLUSTER.organisation.v1" });
+cluster.archetype_details.rm_version = "1.1.0";
+cluster.items = [...]; // Some items
+
+const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
+const yaml = serializer.serialize(cluster);
+```
+
+**Output with `keepArchetypeDetailsInline: true` (default in hybrid mode):**
+```yaml
+{ name: { value: Organization }, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: { archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }, rm_version: 1.1.0 } }
+items:
+  - { name: { value: Child Item }, archetype_node_id: at0001 }
+    value: { value: Some value }
+```
+
+Notice how:
+- All archetype metadata properties (`name`, `archetype_node_id`, `archetype_details`) are grouped on a single line using flow style
+- Nested objects within archetype properties are also inline
+- Other properties like `items` and `value` appear on subsequent lines
+- This format makes it easy to scan archetype structures while keeping details compact
+
+This format makes it easy to quickly scan the archetype structure while keeping the details compact.
+
+### Disabling the Feature
+
+To disable this feature and use standard hybrid formatting:
+
+```typescript
+const serializer = new YamlSerializer({
+  ...HYBRID_YAML_CONFIG,
+  keepArchetypeDetailsInline: false,
+});
+```
 
 ## Advanced Usage
 
@@ -300,7 +364,7 @@ const yaml = serializer.serialize(composition);
 ```
 
 The hybrid style intelligently decides whether to format objects inline or across multiple lines:
-- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{value: Text, units: kg}`
+- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{ value: Text, units: kg }`
 - **Complex objects** (many properties or nested structures) → Block style with proper indentation
 - **Arrays** → Block style with items properly indented
 - The threshold is configurable via `maxInlineProperties` (default: 3)
