@@ -14,52 +14,60 @@ Instead of verbose imperative code, you get concise declarative constructors.
 
 ```typescript
 import { TypeScriptConstructorSerializer } from './enhanced/serialization/typescript/mod.ts';
-import { DV_TEXT } from './enhanced/openehr_rm.ts';
+import { SECTION, ELEMENT, DV_TEXT, DV_CODED_TEXT, DV_QUANTITY, CODE_PHRASE } from './enhanced/openehr_rm.ts';
+import { TERMINOLOGY_ID } from './enhanced/openehr_base.ts';
 
-// Create an RM object
-const dvText = new DV_TEXT();
-dvText.value = "Patient temperature reading";
+// Create a section with diabetes diagnosis and pulse observation
+const section = new SECTION();
+section.name = new DV_TEXT();
+section.name.value = "Vital Signs";
+
+// First element: Diabetes diagnosis (DV_CODED_TEXT)
+const diabetesElement = new ELEMENT();
+diabetesElement.name = new DV_TEXT();
+diabetesElement.name.value = "Diagnosis";
+diabetesElement.value = new DV_CODED_TEXT();
+diabetesElement.value.value = "Diabetes mellitus type 2";
+diabetesElement.value.defining_code = new CODE_PHRASE();
+diabetesElement.value.defining_code.terminology_id = new TERMINOLOGY_ID();
+diabetesElement.value.defining_code.terminology_id.value = "SNOMED-CT";
+diabetesElement.value.defining_code.code_string = "44054006";
+diabetesElement.value.defining_code.preferred_term = "Type 2 diabetes mellitus";
+
+// Second element: Pulse rate (DV_QUANTITY)
+const pulseElement = new ELEMENT();
+pulseElement.name = new DV_TEXT();
+pulseElement.name.value = "Pulse rate";
+pulseElement.value = new DV_QUANTITY();
+pulseElement.value.magnitude = 72;
+pulseElement.value.units = "/min";
+
+section.items = [diabetesElement, pulseElement];
 
 // Generate TypeScript code
 const serializer = new TypeScriptConstructorSerializer();
-const code = serializer.serialize(dvText);
+const code = serializer.serialize(section);
 
 console.log(code);
 // Output:
-// import { DV_TEXT } from './enhanced/openehr_rm.ts';
+// import { DV_CODED_TEXT, DV_QUANTITY, DV_TEXT, ELEMENT, SECTION } from './enhanced/openehr_rm.ts';
+// import { CODE_PHRASE, TERMINOLOGY_ID } from './enhanced/openehr_base.ts';
 //
-// const dvText = new DV_TEXT("Patient temperature reading");
-```
-
-### Complex Objects
-
-```typescript
-import { TypeScriptConstructorSerializer } from './enhanced/serialization/typescript/mod.ts';
-import { COMPOSITION, DV_TEXT, CODE_PHRASE, DV_CODED_TEXT } from './enhanced/openehr_rm.ts';
-import { TERMINOLOGY_ID, OBJECT_VERSION_ID, ARCHETYPE_ID } from './enhanced/openehr_base.ts';
-
-// Create a composition
-const composition = new COMPOSITION();
-composition.archetype_node_id = "openEHR-EHR-COMPOSITION.encounter.v1";
-composition.name = new DV_TEXT("Encounter");
-composition.language = new CODE_PHRASE();
-composition.language.terminology_id = new TERMINOLOGY_ID();
-composition.language.terminology_id.value = "ISO_639-1";
-composition.language.code_string = "en";
-
-// Generate code
-const serializer = new TypeScriptConstructorSerializer();
-const code = serializer.serialize(composition);
-
-console.log(code);
-// Output:
-// import { COMPOSITION } from './enhanced/openehr_rm.ts';
-// import { ARCHETYPE_ID, CODE_PHRASE, OBJECT_VERSION_ID } from './enhanced/openehr_base.ts';
-//
-// const composition = new COMPOSITION({
-//   name: "Encounter",
-//   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-//   language: "ISO_639-1::en"
+// const section = new SECTION({
+//   name: "Vital Signs",
+//   items: [
+//     new ELEMENT({
+//       name: "Diagnosis",
+//       value: "SNOMED-CT::44054006|Diabetes mellitus type 2|"
+//     }),
+//     new ELEMENT({
+//       name: "Pulse rate",
+//       value: new DV_QUANTITY({
+//         magnitude: 72,
+//         units: "/min"
+//       })
+//     })
+//   ]
 // });
 ```
 
@@ -91,54 +99,101 @@ interface TypeScriptConstructorSerializationConfig {
 
 ## Features
 
+The following examples all use the same SECTION object from the Quick Start to show how different configuration options affect the generated code.
+
 ### 1. Terse Format (Recommended)
 
-Uses compact string notation for CODE_PHRASE and DV_CODED_TEXT:
+With terse format enabled (default), CODE_PHRASE and DV_CODED_TEXT use compact string notation:
 
 ```typescript
-// With terse format (default)
 const serializer = new TypeScriptConstructorSerializer({ useTerseFormat: true });
+const code = serializer.serialize(section);
 
-// CODE_PHRASE
-// Input: {terminology_id: {value: "ISO_639-1"}, code_string: "en"}
-// Output: "ISO_639-1::en"
+// Output:
+// const section = new SECTION({
+//   name: "Vital Signs",
+//   items: [
+//     new ELEMENT({
+//       name: "Diagnosis",
+//       value: "SNOMED-CT::44054006|Diabetes mellitus type 2|"  // Terse format!
+//     }),
+//     new ELEMENT({
+//       name: "Pulse rate",
+//       value: new DV_QUANTITY({
+//         magnitude: 72,
+//         units: "/min"
+//       })
+//     })
+//   ]
+// });
+```
 
-// DV_CODED_TEXT  
-// Input: {value: "event", defining_code: {terminology_id: {value: "openehr"}, code_string: "433"}}
-// Output: "openehr::433|event|"
+Without terse format:
+
+```typescript
+const serializer = new TypeScriptConstructorSerializer({ useTerseFormat: false });
+
+// Output:
+// const section = new SECTION({
+//   name: "Vital Signs",
+//   items: [
+//     new ELEMENT({
+//       name: "Diagnosis",
+//       value: new DV_CODED_TEXT({
+//         defining_code: new CODE_PHRASE({
+//           terminology_id: "SNOMED-CT",
+//           code_string: "44054006",
+//           preferred_term: "Type 2 diabetes mellitus"
+//         }),
+//         value: "Diabetes mellitus type 2"
+//       })
+//     }),
+//     // ...
+//   ]
+// });
 ```
 
 ### 2. Primitive Value Constructors
 
-Simplifies wrapper types that only contain a value:
+With primitive constructors enabled (default), simple wrapper types like DV_TEXT are simplified:
 
 ```typescript
-// With primitive constructors (default)
 const serializer = new TypeScriptConstructorSerializer({ usePrimitiveConstructors: true });
 
-// DV_TEXT
-// Input: {value: "Hello world"}
-// Output: "Hello world"
+// name: "Vital Signs"  // Simplified from new DV_TEXT({value: "Vital Signs"})
+```
 
-// TERMINOLOGY_ID
-// Input: {value: "ISO_639-1"}
-// Output: "ISO_639-1"
+Without primitive constructors:
+
+```typescript
+const serializer = new TypeScriptConstructorSerializer({ usePrimitiveConstructors: false });
+
+// name: new DV_TEXT({
+//   value: "Vital Signs"
+// })
 ```
 
 ### 3. Archetype Node ID Location
 
-Control where `archetype_node_id` appears in the generated code:
+Control where `archetype_node_id` appears in the generated code. This is useful for objects like COMPOSITION that have this property.
 
 ```typescript
+// Example with a COMPOSITION instead
+const composition = new COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "Encounter",
+  language: "ISO_639-1::en"
+});
+
 // After name (default) - most readable
 const serializer1 = new TypeScriptConstructorSerializer({ 
   archetypeNodeIdLocation: 'after_name' 
 });
 // Output:
 // new COMPOSITION({
-//   name: "Test",
+//   name: "Encounter",
 //   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-//   // ... other properties
+//   language: "ISO_639-1::en"
 // });
 
 // Beginning - spec order
@@ -148,25 +203,25 @@ const serializer2 = new TypeScriptConstructorSerializer({
 // Output:
 // new COMPOSITION({
 //   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-//   name: "Test",
-//   // ... other properties
+//   name: "Encounter",
+//   language: "ISO_639-1::en"
 // });
 
-// End - emphasize other properties
+// End - emphasize data properties
 const serializer3 = new TypeScriptConstructorSerializer({ 
   archetypeNodeIdLocation: 'end' 
 });
 // Output:
 // new COMPOSITION({
-//   name: "Test",
-//   // ... other properties
+//   name: "Encounter",
+//   language: "ISO_639-1::en",
 //   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1"
 // });
 ```
 
 ### 4. Include Comments (Development Mode)
 
-Add helpful comments for development:
+Add helpful comments for development (note: comment generation is currently basic):
 
 ```typescript
 const serializer = new TypeScriptConstructorSerializer({ 
@@ -174,16 +229,17 @@ const serializer = new TypeScriptConstructorSerializer({
 });
 
 // Output includes comments:
-// const composition = new COMPOSITION({
-//   name: "Test",  // DV_TEXT or string
-//   archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",  // Required
-//   // ...
+// const section = new SECTION({
+//   name: "Vital Signs",  // DV_TEXT or string
+//   items: [
+//     // Array of ELEMENT objects
+//   ]
 // });
 ```
 
-### 5. Include Undefined Attributes (Template Mode)
+### 5. Include Undefined Attributes (Skeleton Mode)
 
-Show all possible properties as templates:
+Show all possible properties as placeholders - useful for generating code scaffolds:
 
 ```typescript
 const serializer = new TypeScriptConstructorSerializer({ 
@@ -191,13 +247,13 @@ const serializer = new TypeScriptConstructorSerializer({
 });
 
 // Output includes undefined properties:
-// const composition = new COMPOSITION({
-//   name: "Test",
+// const section = new SECTION({
+//   name: "Vital Signs",
 //   archetype_node_id: undefined,  // TODO: Set value
-//   language: undefined,  // TODO: Set value
-//   territory: undefined,  // TODO: Set value
-//   category: undefined,  // TODO: Set value
-//   // ...
+//   items: [...],
+//   feeder_audit: undefined,  // TODO: Set value
+//   links: undefined,  // TODO: Set value
+//   // ... other possible properties
 // });
 ```
 
@@ -209,15 +265,17 @@ const serializer = new TypeScriptConstructorSerializer({
 const serializer = new TypeScriptConstructorSerializer();
 
 // Default variable name (inferred from type)
-const code1 = serializer.serialize(composition);
-// Output: const composition = new COMPOSITION({ ... });
+const code1 = serializer.serialize(section);
+// Output: const section = new SECTION({ ... });
 
 // Custom variable name
-const code2 = serializer.serialize(composition, 'myComposition');
-// Output: const myComposition = new COMPOSITION({ ... });
+const code2 = serializer.serialize(section, 'vitalSigns');
+// Output: const vitalSigns = new SECTION({ ... });
 ```
 
 ### Different Configuration Presets
+
+Here's how different presets affect the output for our example section:
 
 ```typescript
 // Compact mode (default) - for production code
@@ -227,6 +285,24 @@ const compact = new TypeScriptConstructorSerializer({
   includeComments: false,
   includeUndefinedAttributes: false
 });
+const code1 = compact.serialize(section);
+// Output:
+// const section = new SECTION({
+//   name: "Vital Signs",
+//   items: [
+//     new ELEMENT({
+//       name: "Diagnosis",
+//       value: "SNOMED-CT::44054006|Diabetes mellitus type 2|"
+//     }),
+//     new ELEMENT({
+//       name: "Pulse rate",
+//       value: new DV_QUANTITY({
+//         magnitude: 72,
+//         units: "/min"
+//       })
+//     })
+//   ]
+// });
 
 // Verbose mode - for learning/documentation
 const verbose = new TypeScriptConstructorSerializer({
@@ -235,14 +311,39 @@ const verbose = new TypeScriptConstructorSerializer({
   includeComments: true,
   includeUndefinedAttributes: false
 });
+const code2 = verbose.serialize(section);
+// Output:
+// const section = new SECTION({
+//   name: new DV_TEXT({
+//     value: "Vital Signs"
+//   }),
+//   items: [
+//     new ELEMENT({
+//       name: new DV_TEXT({
+//         value: "Diagnosis"
+//       }),
+//       value: new DV_CODED_TEXT({
+//         defining_code: new CODE_PHRASE({
+//           terminology_id: "SNOMED-CT",
+//           code_string: "44054006",
+//           preferred_term: "Type 2 diabetes mellitus"
+//         }),
+//         value: "Diabetes mellitus type 2"
+//       })
+//     }),
+//     // ...
+//   ]
+// });
 
-// Template mode - for code generation
-const template = new TypeScriptConstructorSerializer({
+// Skeleton mode - for code generation scaffolds
+const skeleton = new TypeScriptConstructorSerializer({
   useTerseFormat: true,
   usePrimitiveConstructors: true,
   includeComments: true,
   includeUndefinedAttributes: true
 });
+const code3 = skeleton.serialize(section);
+// Output includes all possible properties as undefined placeholders
 ```
 
 ## Integration with Other Serializers
@@ -253,13 +354,19 @@ The TypeScript serializer works well with JSON, XML, and YAML deserializers:
 import { JsonDeserializer } from '../json/mod.ts';
 import { TypeScriptConstructorSerializer } from './mod.ts';
 
-// Parse JSON
+// Parse JSON containing our section data
+const jsonString = `{
+  "_type": "SECTION",
+  "name": {"value": "Vital Signs"},
+  "items": [...]
+}`;
+
 const jsonDeserializer = new JsonDeserializer();
-const composition = jsonDeserializer.deserialize(jsonString);
+const section = jsonDeserializer.deserialize(jsonString);
 
 // Generate TypeScript code
 const tsSerializer = new TypeScriptConstructorSerializer();
-const code = tsSerializer.serialize(composition);
+const code = tsSerializer.serialize(section);
 
 // Now you have executable TypeScript code!
 console.log(code);
@@ -268,7 +375,7 @@ console.log(code);
 ## Use Cases
 
 1. **Documentation** - Generate example code for documentation
-2. **Code Generation** - Create TypeScript code from templates or data
+2. **Code Generation** - Create TypeScript code from data or schemas
 3. **Learning** - Show how to construct openEHR objects
 4. **Testing** - Generate test data constructors
 5. **Migration** - Convert data formats to TypeScript code
@@ -279,7 +386,7 @@ console.log(code);
 2. **Use Primitive Constructors** - Reduces boilerplate significantly
 3. **Set archetypeNodeIdLocation** - Choose based on your preference
 4. **Enable Comments for Docs** - Helpful for generated documentation
-5. **Enable Undefined for Templates** - Useful when generating code templates
+5. **Enable Undefined for Scaffolding** - Useful when generating code scaffolds
 
 ## Limitations
 
