@@ -220,15 +220,15 @@ const yaml = serializer.serialize(section);
 
 **Output:**
 ```yaml
-name: {value: Vital Signs}
+name: { value: Vital Signs }
 items:
-  - name: {value: Diagnosis}
-    value: {defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2}
-  - name: {value: Pulse rate}
-    value: {magnitude: 72, units: /min}
+  - name: { value: Diagnosis }
+    value: { defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2 }
+  - name: { value: Pulse rate }
+    value: { magnitude: 72, units: /min }
 ```
 
-Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{value: Text}`), while complex nested structures maintain block style formatting.
+Types omitted for better readability (included only when polymorphism requires them). Uses terse format and hybrid style with flow formatting for simple objects, resulting in the most concise and readable output. Simple objects are formatted inline using flow style (e.g., `{ value: Text }`), while complex nested structures maintain block style formatting.
 
 ### Flow Style (JSON-like)
 
@@ -283,21 +283,22 @@ const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
 const yaml = serializer.serialize(cluster);
 ```
 
-**Output:**
+**Current Output:**
 ```yaml
-name: {value: Organization}
+name: { value: Organization }
 archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
-archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}
+archetype_details: { archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }, rm_version: 1.1.0 }
 items:
-  - name: {value: Child Item}
+  - name: { value: Child Item }
     archetype_node_id: at0001
-    value: {value: Some value}
+    value: { value: Some value }
 ```
 
 Notice how:
-- `name`, `archetype_node_id`, and `archetype_details` are formatted inline (flow style)
-- `archetype_details` and all its nested objects are on a single line
-- Other properties like `items` remain on separate lines for readability
+- Each archetype metadata property (`name`, `archetype_node_id`, `archetype_details`) is formatted inline using flow style
+- Each property appears on its own line for better readability
+- Nested objects within archetype properties are also inline
+- Other properties like `items` remain on separate lines
 
 This format makes it easy to quickly scan the archetype structure while keeping the details compact.
 
@@ -366,7 +367,7 @@ const yaml = serializer.serialize(composition);
 ```
 
 The hybrid style intelligently decides whether to format objects inline or across multiple lines:
-- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{value: Text, units: kg}`
+- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{ value: Text, units: kg }`
 - **Complex objects** (many properties or nested structures) → Block style with proper indentation
 - **Arrays** → Block style with items properly indented
 - The threshold is configurable via `maxInlineProperties` (default: 3)
