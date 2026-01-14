@@ -140,31 +140,115 @@ export class YamlSerializer {
    * @returns YAML string with strategic line breaks
    */
   private addStrategicLineBreaks(yaml: string): string {
-    // Strategy: Add line breaks in flow style at key points
-    // 1. After archetype_details (before next property)
-    // 2. Before 'items:' array
-    // 3. Before 'value:' when it's after archetype metadata
-    
-    let result = yaml;
+    const indentSize = this.config.indent || 2;
 
-    // Create indentation strings based on config
-    const indentStr = ' '.repeat(this.config.indent);
-    const baseIndent = indentStr.repeat(2); // 2 levels
-    const valueIndent = indentStr.repeat(3) + ' '.repeat(3); // 3 levels + align
+    // 1. Normalize: remove all newlines and multiple spaces outside quotes
+    let input = "";
+    let inQuotes = false;
+    let quoteChar = "";
+    for (let i = 0; i < yaml.length; i++) {
+      const c = yaml[i];
+      if ((c === "\"" || c === "'") && (i === 0 || yaml[i - 1] !== "\\")) {
+        if (!inQuotes) { inQuotes = true; quoteChar = c; }
+        else if (c === quoteChar) inQuotes = false;
+        input += c;
+      } else if (inQuotes) {
+        input += c;
+      } else if (c === "\n" || c === "\r") {
+        input += " ";
+      } else {
+        input += c;
+      }
+    }
+    input = input.replace(/\s+/g, " ");
 
-    // Add line break and proper indentation before 'items:' in flow style
-    // Pattern: }, items: [{ or }, items: [{
-    result = result.replace(/},\s*items:\s*\[/g, `},\n${baseIndent}items: [`);
-    
-    // Add line break before 'value:' when it follows archetype metadata
-    // Pattern: }, value: { or }, value: text
-    result = result.replace(/},\s*value:\s*([{[])/g, `},\n${valueIndent}value: $1`);
-    
-    // For nested array items, add line break between items
-    // Pattern: }, {name: becomes },\n      {name:
-    result = result.replace(/}\s*,\s*\{name:/g, `},\n${baseIndent}  {name:`);
+    const getIndent = (d: number) => "\n" + " ".repeat(Math.max(0, d) * indentSize);
+    const metadataFields = ["name", "archetype_node_id", "archetype_details", "_type"];
 
-    return result;
+    let result = "";
+    let depth = 0;
+    let i = 0;
+    const fieldStack: string[][] = [[]]; // Track fields at each nesting level
+
+    while (i < input.length) {
+      const char = input[i];
+
+      // Skip quotes
+      if ((char === "\"" || char === "'") && (i === 0 || input[i - 1] !== "\\")) {
+        const q = char;
+        result += input[i++];
+        while (i < input.length && input[i] !== q) {
+          if (input[i] === "\\") result += input[i++];
+          result += input[i++];
+        }
+        if (i < input.length) result += input[i++];
+        continue;
+      }
+
+      if (char === "{") {
+        const prev = input.substring(Math.max(0, i - 30), i);
+        // Detect if this brace follows a major property (possibly with a [ for arrays)
+        const prevNorm = prev.replace(/\s+/g, "");
+        const isMajorProp = !!prevNorm.match(/(?:context|other_context|data|items|content|activities|description|protocol|state):\[?$/);
+
+        result += char;
+        fieldStack.push([]);
+        depth++;
+
+        if (isMajorProp || (depth === 1 && result.trim() === "{")) {
+          result += getIndent(depth);
+        }
+      } else if (char === "[") {
+        result += char;
+        fieldStack.push([]);
+        depth++;
+      } else if (char === "}" || char === "]") {
+        if (fieldStack.length > 0) fieldStack.pop();
+        depth--;
+        result += char;
+      } else if (char === ":") {
+        // Identify the field name just before this colon
+        let k = result.length - 1;
+        while (k >= 0 && /[\w_]/.test(result[k])) k--;
+        const fieldName = result.substring(k + 1);
+        if (fieldStack[depth]) {
+          fieldStack[depth].push(fieldName);
+        }
+        result += char;
+      } else if (char === ",") {
+        result += char;
+
+        // Look ahead to see what's next
+        let j = i + 1;
+        while (j < input.length && /\s/.test(input[j])) j++;
+        const remaining = input.substring(j);
+
+        // Identify next field
+        const nextFieldMatch = remaining.match(/^(\w+):/);
+        const nextField = nextFieldMatch ? nextFieldMatch[1] : "";
+
+        // CORE LOGIC: Stay together if next is metadata. Break if next is NOT metadata.
+        const nextIsMetadata = metadataFields.includes(nextField);
+
+        if (nextField !== "" && !nextIsMetadata) {
+          result += getIndent(depth);
+          i = j - 1;
+        }
+        // Also break before next object in an array (sequence items)
+        else if (remaining.startsWith("{")) {
+          result += getIndent(depth);
+          i = j - 1;
+        }
+      } else if (char === " " && result.endsWith(" ")) {
+        // Skip multiple spaces
+      } else {
+        result += char;
+      }
+      i++;
+    }
+
+    // Final cleanup: remove trailing spaces and ensure no blank lines at the end
+    return result.replace(/[ \t]+\n/g, "\n").trim();
   }
 
   /**
@@ -201,13 +285,13 @@ export class YamlSerializer {
     }
   }
 
-   /**
-   * Apply hybrid formatting to a YAML node
-   * Simple objects get flow style, complex objects get block style
-   * 
-   * @param node - The YAML node to format
-   * @param depth - Current depth in the tree
-   */
+  /**
+  * Apply hybrid formatting to a YAML node
+  * Simple objects get flow style, complex objects get block style
+  * 
+  * @param node - The YAML node to format
+  * @param depth - Current depth in the tree
+  */
   private applyHybridFormattingToNode(node: any, depth: number): void {
     if (!node) return;
 

@@ -573,6 +573,23 @@ The YAML serializer now supports three distinct, valid YAML styles:
 - Comprehensive test suite validates all outputs are valid YAML
 - Documentation updated with examples of all three styles
 
+### New desired output for "Keep Archetype Details Inline" option - now purely YAML flow based
+```yaml
+ other_context: {
+  name: {value: Item tree}, archetype_node_id: at0003,
+  items: [{
+    name: {value: Vårdenhet}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0},
+    items: [
+      {name: {value: Namn}, archetype_node_id: at0001, 
+       value: {value: Brandbergens vårdcentral}},
+      {name: {value: Identifierare}, archetype_node_id: at0003, 
+       value: {id: SE2321000016-1003, type: urn:oid:1.2.752.29.4.19}},
+      {name: {value: Roll}, archetype_node_id: at0004, 
+       value: http://snomed.info/sct/900000000000207008::43741000|vårdenhet|},
+      {name: {value: Vårdgivare}, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: {archetype_id: {value: openEHR-EHR-CLUSTER.organisation.v1}, rm_version: 1.1.0}}]}]
+}
+```     
+
 **Implementation completed**: All tests pass (9/9), demo app builds successfully, and all YAML outputs are valid.
      
 

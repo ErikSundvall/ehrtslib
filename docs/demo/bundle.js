@@ -35,7 +35,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-01-13T22:44:57.039Z", buildId: "QY61G6K2" };
+    define_BUILD_INFO_default = { timestamp: "2026-01-14T00:16:07.079Z", buildId: "QWYCNEU8" };
   }
 });
 
@@ -31590,17 +31590,98 @@ var YamlSerializer = class _YamlSerializer {
    * @returns YAML string with strategic line breaks
    */
   addStrategicLineBreaks(yaml) {
-    let result2 = yaml;
-    const indentStr = " ".repeat(this.config.indent);
-    const baseIndent = indentStr.repeat(2);
-    const valueIndent = indentStr.repeat(3) + " ".repeat(3);
-    result2 = result2.replace(/},\s*items:\s*\[/g, `},
-${baseIndent}items: [`);
-    result2 = result2.replace(/},\s*value:\s*([{[])/g, `},
-${valueIndent}value: $1`);
-    result2 = result2.replace(/}\s*,\s*\{name:/g, `},
-${baseIndent}  {name:`);
-    return result2;
+    const indentSize = this.config.indent || 2;
+    let input = "";
+    let inQuotes = false;
+    let quoteChar = "";
+    for (let i4 = 0; i4 < yaml.length; i4++) {
+      const c2 = yaml[i4];
+      if ((c2 === '"' || c2 === "'") && (i4 === 0 || yaml[i4 - 1] !== "\\")) {
+        if (!inQuotes) {
+          inQuotes = true;
+          quoteChar = c2;
+        } else if (c2 === quoteChar)
+          inQuotes = false;
+        input += c2;
+      } else if (inQuotes) {
+        input += c2;
+      } else if (c2 === "\n" || c2 === "\r") {
+        input += " ";
+      } else {
+        input += c2;
+      }
+    }
+    input = input.replace(/\s+/g, " ");
+    const getIndent = (d2) => "\n" + " ".repeat(Math.max(0, d2) * indentSize);
+    let result2 = "";
+    let depth = 0;
+    let i3 = 0;
+    while (i3 < input.length) {
+      const char = input[i3];
+      if ((char === '"' || char === "'") && (i3 === 0 || input[i3 - 1] !== "\\")) {
+        const q2 = char;
+        result2 += input[i3++];
+        while (i3 < input.length && input[i3] !== q2) {
+          if (input[i3] === "\\")
+            result2 += input[i3++];
+          result2 += input[i3++];
+        }
+        if (i3 < input.length)
+          result2 += input[i3++];
+        continue;
+      }
+      if (char === "{" || char === "[") {
+        const prev = input.substring(Math.max(0, i3 - 25), i3);
+        const isMajorProp = !!prev.match(/(?:context|other_context|data|items|content|activities|description|protocol|state):\s*$/);
+        result2 += char;
+        depth++;
+        if (isMajorProp || depth === 1 && result2.trim() === "{") {
+          result2 += getIndent(depth);
+        }
+      } else if (char === "}" || char === "]") {
+        depth--;
+        result2 += char;
+      } else if (char === ",") {
+        result2 += char;
+        let j2 = i3 + 1;
+        while (j2 < input.length && /\s/.test(input[j2]))
+          j2++;
+        const remaining = input.substring(j2);
+        if (remaining.startsWith("items:") || remaining.startsWith("content:")) {
+          result2 += getIndent(depth);
+          i3 = j2 - 1;
+        } else if (remaining.startsWith("value:")) {
+          let lastOpen = -1;
+          let d2 = 0;
+          for (let k2 = result2.length - 1; k2 >= 0; k2--) {
+            const c2 = result2[k2];
+            if (c2 === "}" || c2 === "]")
+              d2++;
+            else if (c2 === "{" || c2 === "[") {
+              if (d2 === 0) {
+                lastOpen = k2;
+                break;
+              }
+              d2--;
+            }
+          }
+          const context = result2.substring(lastOpen + 1);
+          if (context.includes("name:") || context.includes("archetype_node_id:") || context.includes("_type:")) {
+            const align = context.trim().startsWith("name:") ? " " : "";
+            result2 += getIndent(depth) + align;
+            i3 = j2 - 1;
+          }
+        } else if (remaining.startsWith("{")) {
+          result2 += getIndent(depth);
+          i3 = j2 - 1;
+        }
+      } else if (char === " " && result2.endsWith(" ")) {
+      } else {
+        result2 += char;
+      }
+      i3++;
+    }
+    return result2.replace(/[ \t]+\n/g, "\n").trim();
   }
   /**
    * Apply flow formatting to a YAML node
