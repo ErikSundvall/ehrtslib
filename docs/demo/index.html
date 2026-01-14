@@ -116,6 +116,10 @@
                         <span class="status-icon valid" id="validation-icon">✓</span>
                         <span id="validation-text">Valid JSON</span>
                     </span>
+                    <label class="checkbox-label" style="margin-left:auto;align-items:center;display:flex;gap:0.5rem;">
+                        <input type="checkbox" id="input-disable-linebreaks">
+                        <span>Disable Line Wrap (side-scroll)</span>
+                    </label>
                 </div>
             </div>
         </section>
@@ -455,37 +459,7 @@
                             </button>
                         </div>
                         <pre class="output-content" id="output-json-content">{
-  "_type": "COMPOSITION",
-  "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
-  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
-  "language": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}, "code_string": "en"},
-  "territory": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}, "code_string": "GB"},
-  "category": {"_type": "DV_CODED_TEXT", "value": "event", "defining_code": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}, "code_string": "433"}},
-  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"},
-  "content": [{
-    "_type": "SECTION",
-    "name": {"_type": "DV_TEXT", "value": "Vital Signs"},
-    "items": [
-      {
-        "_type": "ELEMENT",
-        "name": {"_type": "DV_TEXT", "value": "Diagnosis"},
-        "value": {
-          "_type": "DV_CODED_TEXT",
-          "value": "Diabetes mellitus type 2",
-          "defining_code": {
-            "_type": "CODE_PHRASE",
-            "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "SNOMED-CT"},
-            "code_string": "44054006"
-          }
-        }
-      },
-      {
-        "_type": "ELEMENT",
-        "name": {"_type": "DV_TEXT", "value": "Pulse rate"},
-        "value": {"_type": "DV_QUANTITY", "magnitude": 72, "units": "/min"}
-      }
-    ]
-  }]
+  
 }</pre>
                         <div class="success-message hidden" id="success-json">
                             <span class="success-icon">✓</span>
@@ -658,6 +632,20 @@ console.log(json);</pre>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
+
+                <div class="output-info">
+                    <span class="char-count">
+                        <span class="label">Characters:</span> <span id="output-char-count">0</span>
+                    </span>
+                    <span class="line-count">
+                        <span class="label">Lines:</span> <span id="output-line-count">0</span>
+                    </span>
+                    <label class="checkbox-label" style="margin-left:auto;align-items:center;display:flex;gap:0.5rem;">
+                        <input type="checkbox" id="output-disable-linebreaks">
+                        <span>Disable Line Wrap (use side-scroll instead)</span>
+                    </label>
+                </div>
+
                 </div>
             </div>
         </section>

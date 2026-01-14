@@ -594,10 +594,18 @@ The YAML serializer now supports three distinct, valid YAML styles:
      
 
 ## Phase 5a
+Now we will add the archetyping/templating layer to out openEHR implementation. Make a plan inspired by a PRD, but since there are several potential design options for many of the points below present alterantive pahways through that PRD so that I can consider which ways to select for future implementaion (in leter phase).
+
 - Implement/refine any remaining classes of the AM package, use deepwiki and the files in /instructions to understand. If needed improve the files in /instructions first.
-- A central piece is creating an ADL parser that can parse ADL2 files and generate example or validate RM object instance trees from them. Note that there is an official grammar for the ADL language available form openEHR - documentation of it is also available via Deepwiki. 
+- A central piece is creating an ADL parser that can parse ADL2 files for temnplates and archetypes and generate a (usually in-memory) Archetype model (AOM) instance tree that can then with some addtional wrapper/utility code be used for example for:
+  - validate RM object instance trees based on a certain template
+  - generate example RM instances based on a template
+  - generate typescritp skeleton/scaffolding code (initially typescript) based on a certain template
+  - serve as basis for furher editing the template/archetype and serialise back to ADL and other serialisation formats
+  
+- Note that there is an official grammar for the ADL language available form openEHR - documentation of it is also available via Deepwiki. 
 - We want to base our AM implementation primarily on verstion 2 of ADL and AOM and later make conversions to/from version 1.4 etc. 
-- We need to find a fairly non intrusive way of adding AM validation to the existing BASE+RM implementation. Remember that we want to be able to add more classes or alternative RMs (or RM verions) in the future and still use the same AM. Not that already we have an inital implemtation of a type registry in the serialisation code of the existing RM implementation.
+- We need to find a fairly non intrusive way of adding AM validation to the existing BASE+RM implementation. Remember that we want to be able to add more classes or alternative RMs (or RM verions) in the future and still use the same AM and validation mechanisms. Not that already we have an inital implemtation of a type registry in the serialisation code of the existing RM implementation.
 - Feel free to use any existing AM implementation (like Archie and other previously mentioned implementations) as a reference, but try to make it as TypeScript native/natural as possible adn with few dependencies.
 - When maiking the PRD for this step do the research to find the best way to implement this so that the suggestion can be inspected in the PRD before actual implementation.
 

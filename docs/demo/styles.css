@@ -340,6 +340,23 @@ body {
     font-size: 0.875rem;
 }
 
+.output-info {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+/* When active, prevent soft-wrapping and enable horizontal scroll */
+.no-linebreak {
+    white-space: pre !important;
+    overflow-x: auto !important;
+    word-wrap: normal !important;
+}
+
 .input-info .label {
     color: var(--text-secondary);
     font-weight: 500;

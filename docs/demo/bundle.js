@@ -35,7 +35,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-01-14T00:16:07.079Z", buildId: "QWYCNEU8" };
+    define_BUILD_INFO_default = { timestamp: "2026-01-14T09:56:01.458Z", buildId: "VZY68IU3" };
   }
 });
 
@@ -31613,9 +31613,11 @@ var YamlSerializer = class _YamlSerializer {
     }
     input = input.replace(/\s+/g, " ");
     const getIndent = (d2) => "\n" + " ".repeat(Math.max(0, d2) * indentSize);
+    const metadataFields = ["name", "archetype_node_id", "archetype_details", "_type"];
     let result2 = "";
     let depth = 0;
     let i3 = 0;
+    const fieldStack = [[]];
     while (i3 < input.length) {
       const char = input[i3];
       if ((char === '"' || char === "'") && (i3 === 0 || input[i3 - 1] !== "\\")) {
@@ -31630,16 +31632,33 @@ var YamlSerializer = class _YamlSerializer {
           result2 += input[i3++];
         continue;
       }
-      if (char === "{" || char === "[") {
-        const prev = input.substring(Math.max(0, i3 - 25), i3);
-        const isMajorProp = !!prev.match(/(?:context|other_context|data|items|content|activities|description|protocol|state):\s*$/);
+      if (char === "{") {
+        const prev = input.substring(Math.max(0, i3 - 30), i3);
+        const prevNorm = prev.replace(/\s+/g, "");
+        const isMajorProp = !!prevNorm.match(/(?:context|other_context|data|items|content|activities|description|protocol|state):\[?$/);
         result2 += char;
+        fieldStack.push([]);
         depth++;
         if (isMajorProp || depth === 1 && result2.trim() === "{") {
           result2 += getIndent(depth);
         }
+      } else if (char === "[") {
+        result2 += char;
+        fieldStack.push([]);
+        depth++;
       } else if (char === "}" || char === "]") {
+        if (fieldStack.length > 0)
+          fieldStack.pop();
         depth--;
+        result2 += char;
+      } else if (char === ":") {
+        let k2 = result2.length - 1;
+        while (k2 >= 0 && /[\w_]/.test(result2[k2]))
+          k2--;
+        const fieldName = result2.substring(k2 + 1);
+        if (fieldStack[depth]) {
+          fieldStack[depth].push(fieldName);
+        }
         result2 += char;
       } else if (char === ",") {
         result2 += char;
@@ -31647,30 +31666,12 @@ var YamlSerializer = class _YamlSerializer {
         while (j2 < input.length && /\s/.test(input[j2]))
           j2++;
         const remaining = input.substring(j2);
-        if (remaining.startsWith("items:") || remaining.startsWith("content:")) {
+        const nextFieldMatch = remaining.match(/^(\w+):/);
+        const nextField = nextFieldMatch ? nextFieldMatch[1] : "";
+        const nextIsMetadata = metadataFields.includes(nextField);
+        if (nextField !== "" && !nextIsMetadata) {
           result2 += getIndent(depth);
           i3 = j2 - 1;
-        } else if (remaining.startsWith("value:")) {
-          let lastOpen = -1;
-          let d2 = 0;
-          for (let k2 = result2.length - 1; k2 >= 0; k2--) {
-            const c2 = result2[k2];
-            if (c2 === "}" || c2 === "]")
-              d2++;
-            else if (c2 === "{" || c2 === "[") {
-              if (d2 === 0) {
-                lastOpen = k2;
-                break;
-              }
-              d2--;
-            }
-          }
-          const context = result2.substring(lastOpen + 1);
-          if (context.includes("name:") || context.includes("archetype_node_id:") || context.includes("_type:")) {
-            const align = context.trim().startsWith("name:") ? " " : "";
-            result2 += getIndent(depth) + align;
-            i3 = j2 - 1;
-          }
         } else if (remaining.startsWith("{")) {
           result2 += getIndent(depth);
           i3 = j2 - 1;
@@ -32990,6 +32991,14 @@ function setupEventListeners() {
   if (inputTextarea) {
     inputTextarea.addEventListener("input", handleInputChange);
   }
+  const inputDisableLinebreaks = document.getElementById("input-disable-linebreaks");
+  if (inputDisableLinebreaks) {
+    applyInputLineWrap(!!inputDisableLinebreaks.checked);
+    inputDisableLinebreaks.addEventListener("change", () => {
+      applyInputLineWrap(!!inputDisableLinebreaks.checked);
+      handleInputChange();
+    });
+  }
   const convertBtn = document.getElementById("convert-btn");
   if (convertBtn) {
     convertBtn.addEventListener("click", handleConvert);
@@ -33399,6 +33408,7 @@ function updateOutputs(outputs) {
       tsContent.textContent = outputs.typescript;
     }
   }
+  updateOutputInfo();
 }
 function updateInputDeserializerOptions(preset) {
   const strictCheckbox = document.getElementById("input-strict");
@@ -33636,6 +33646,62 @@ function switchOutputTab(tabName) {
     } else {
       pane.classList.remove("active");
     }
+  });
+  updateOutputInfo();
+}
+function applyInputLineWrap(disable) {
+  const inputTextarea = document.getElementById("input-text");
+  if (!inputTextarea)
+    return;
+  if (disable) {
+    inputTextarea.classList.add("no-linebreak");
+    inputTextarea.setAttribute("wrap", "off");
+    inputTextarea.style.whiteSpace = "pre";
+  } else {
+    inputTextarea.classList.remove("no-linebreak");
+    inputTextarea.setAttribute("wrap", "soft");
+    inputTextarea.style.whiteSpace = "";
+  }
+}
+function applyOutputLineWrap(disable) {
+  const outputs = document.querySelectorAll(".output-content");
+  outputs.forEach((o2) => {
+    const el = o2;
+    if (disable) {
+      el.classList.add("no-linebreak");
+      el.style.whiteSpace = "pre";
+      el.style.wordWrap = "normal";
+    } else {
+      el.classList.remove("no-linebreak");
+      el.style.whiteSpace = "";
+      el.style.wordWrap = "";
+    }
+  });
+}
+function updateOutputInfo() {
+  const activeTab = document.querySelector(".tab.active");
+  const outputChar = document.getElementById("output-char-count");
+  const outputLine = document.getElementById("output-line-count");
+  const outputDisable = document.getElementById("output-disable-linebreaks");
+  if (!activeTab || !outputChar || !outputLine)
+    return;
+  const tabName = activeTab.getAttribute("data-tab") || "json";
+  const contentElem = document.getElementById(`output-${tabName}-content`);
+  if (!contentElem)
+    return;
+  const text = contentElem.textContent || "";
+  outputChar.textContent = String(text.length);
+  outputLine.textContent = String(text.split("\n").length);
+  if (outputDisable) {
+    applyOutputLineWrap(!!outputDisable.checked);
+  }
+}
+var outputDisableCheckbox = document.getElementById("output-disable-linebreaks");
+if (outputDisableCheckbox) {
+  applyOutputLineWrap(!!outputDisableCheckbox.checked);
+  outputDisableCheckbox.addEventListener("change", () => {
+    applyOutputLineWrap(!!outputDisableCheckbox.checked);
+    updateOutputInfo();
   });
 }
 async function copyToClipboard(format) {

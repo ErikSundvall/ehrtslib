@@ -120,6 +120,18 @@ function setupEventListeners() {
     inputTextarea.addEventListener('input', handleInputChange);
   }
 
+  // Input line-wrap toggle (default: false => wrapping enabled = unchecked)
+  const inputDisableLinebreaks = document.getElementById('input-disable-linebreaks') as HTMLInputElement;
+  if (inputDisableLinebreaks) {
+    // apply initial state
+    applyInputLineWrap(!!inputDisableLinebreaks.checked);
+    inputDisableLinebreaks.addEventListener('change', () => {
+      applyInputLineWrap(!!inputDisableLinebreaks.checked);
+      // update counts/layout as necessary
+      handleInputChange();
+    });
+  }
+
   // Convert button
   const convertBtn = document.getElementById('convert-btn');
   if (convertBtn) {
@@ -723,6 +735,8 @@ function updateOutputs(outputs: Record<string, string>) {
       tsContent.textContent = outputs.typescript;
     }
   }
+  // Refresh output info (counts and styles) for current active tab
+  updateOutputInfo();
 }
 
 /**
@@ -968,6 +982,81 @@ function switchOutputTab(tabName: string) {
     } else {
       pane.classList.remove('active');
     }
+  });
+
+  // Update counts/info for newly selected tab
+  updateOutputInfo();
+}
+
+/**
+ * Apply or remove input textarea line-wrapping disabling
+ */
+function applyInputLineWrap(disable: boolean) {
+  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+  if (!inputTextarea) return;
+  if (disable) {
+    inputTextarea.classList.add('no-linebreak');
+    inputTextarea.setAttribute('wrap', 'off');
+    inputTextarea.style.whiteSpace = 'pre';
+  } else {
+    inputTextarea.classList.remove('no-linebreak');
+    inputTextarea.setAttribute('wrap', 'soft');
+    inputTextarea.style.whiteSpace = '';
+  }
+}
+
+/**
+ * Apply or remove output pre elements line-wrapping disabling
+ */
+function applyOutputLineWrap(disable: boolean) {
+  const outputs = document.querySelectorAll('.output-content');
+  outputs.forEach(o => {
+    const el = o as HTMLElement;
+    if (disable) {
+      el.classList.add('no-linebreak');
+      el.style.whiteSpace = 'pre';
+      el.style.wordWrap = 'normal';
+    } else {
+      el.classList.remove('no-linebreak');
+      el.style.whiteSpace = '';
+      el.style.wordWrap = '';
+    }
+  });
+}
+
+/**
+ * Update output info panel (characters and lines) for active output tab
+ */
+function updateOutputInfo() {
+  const activeTab = document.querySelector('.tab.active') as HTMLElement | null;
+  const outputChar = document.getElementById('output-char-count');
+  const outputLine = document.getElementById('output-line-count');
+  const outputDisable = document.getElementById('output-disable-linebreaks') as HTMLInputElement | null;
+
+  if (!activeTab || !outputChar || !outputLine) return;
+
+  const tabName = activeTab.getAttribute('data-tab') || 'json';
+  const contentElem = document.getElementById(`output-${tabName}-content`);
+  if (!contentElem) return;
+
+  const text = contentElem.textContent || '';
+  outputChar.textContent = String(text.length);
+  outputLine.textContent = String(text.split('\n').length);
+
+  // Ensure output wrap setting is applied according to checkbox
+  if (outputDisable) {
+    applyOutputLineWrap(!!outputDisable.checked);
+  }
+}
+
+// Wire up output disable checkbox after DOM ready
+const outputDisableCheckbox = document.getElementById('output-disable-linebreaks') as HTMLInputElement | null;
+if (outputDisableCheckbox) {
+  // initial state: unchecked => wrapping enabled
+  applyOutputLineWrap(!!outputDisableCheckbox.checked);
+  outputDisableCheckbox.addEventListener('change', () => {
+    applyOutputLineWrap(!!outputDisableCheckbox.checked);
+    updateOutputInfo();
   });
 }
 
