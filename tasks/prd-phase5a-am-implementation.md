@@ -144,23 +144,22 @@ The project can reference these mature implementations:
 5. ✅ Serialize AOM instances back to ADL2 format
 6. ✅ Integrate validation into existing RM classes non-intrusively
 7. ✅ Support both ADL2 and ADL 1.4 (conversion to ADL2)
+8. ✅ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL
+9. ✅ Support archetype slots and includes/excludes
+10. ✅ Handle archetype specialization and flattening
+11. ✅ Provide clear error messages for validation failures
 
 **Secondary Goals:**
 
-- ✅ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL
-- ✅ Support archetype slots and includes/excludes
-- ✅ Handle archetype specialization and flattening
-- ✅ Provide clear error messages for validation failures
 - ✅ Maintain zero or minimal new dependencies
 
 ### 3.2 Non-Goals
 
 **Out of Scope for Phase 5a:**
 
-- ❌ Visual archetype editor UI (future phase)
-- ❌ Archetype repository implementation (future phase)
-- ❌ Web template format support (future phase)
-- ❌ Simplified data template (SDT) support (Phase 6)
+- ❌ Visual archetype editor UI (potential future phase)
+- ❌ Archetype repository implementation (potential future phase)
+- ❌ Web template / Simplified data template/format (SDT) support (Phase 6?)
 - ❌ Multi-user collaborative editing (Phase 7)
 - ❌ Client-side form generation from templates (Phase 7)
 
