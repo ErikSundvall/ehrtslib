@@ -549,6 +549,395 @@ While ANTLR provides deterministic parser generation, the **AOM construction log
 
 ---
 
+#### 5.3.2 Using ANTLR Grammar to Accelerate Alternative Parser Implementations
+
+**Question:** Can we use the official ANTLR grammar as input to generate stubs/scaffolding for OTHER parser strategies (hand-written, PEG), similar to how we generate class stubs from BMM files?
+
+**Answer:** Yes! This is a powerful approach that combines the benefits of having an official, proven grammar with the flexibility to choose your implementation strategy.
+
+**Concept: Grammar as Specification, Multiple Implementations**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Input: Official ANTLR Grammar (Single Source of Truth)       │
+│   grammars/Adl.g4, cadl.g4, odin.g4                          │
+└──────────────────────────────────────────────────────────────┘
+                           ↓
+          ┌────────────────┼────────────────┐
+          ↓                ↓                ↓
+  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+  │ ANTLR Parser │  │ Hand-Written │  │ PEG Grammar  │
+  │ (Alternative │  │ Parser Stubs │  │ (Peggy)      │
+  │      C)      │  │ (Alternative │  │ (Alternative │
+  │              │  │      A)      │  │      B)      │
+  └──────────────┘  └──────────────┘  └──────────────┘
+```
+
+### Approach 1: ANTLR Grammar → Hand-Written Parser Stubs
+
+**Goal:** Use ANTLR grammar to generate skeleton code for a hand-written recursive descent parser.
+
+**Process:**
+
+1. **Parse the ANTLR grammar** to extract rules and structure
+2. **Generate TypeScript parser class stubs** with method signatures
+3. **Developer fills in parsing logic** manually
+
+**Example Transformation:**
+
+```antlr
+// Input: ANTLR grammar rule (Adl.g4)
+archetype:
+    'archetype' archetype_id
+    specialize_section?
+    language_section
+    description_section
+    definition_section
+    terminology_section
+    ;
+
+definition_section:
+    'definition' NEWLINE
+    c_complex_object
+    ;
+```
+
+**Generated Hand-Written Parser Stub:**
+
+```typescript
+// Generated: /generated/parser/ADL2ParserStubs.ts
+// Based on ANTLR grammar Adl.g4
+
+export class ADL2Parser {
+  private tokens: Token[];
+  private current = 0;
+
+  // Generated from 'archetype' rule
+  private parseArchetype(): ARCHETYPE {
+    this.expect('archetype');
+    const archetypeId = this.parseArchetypeId();
+    const specialize = this.maybeParseSpecializeSection();
+    const language = this.parseLanguageSection();
+    const description = this.parseDescriptionSection();
+    const definition = this.parseDefinitionSection();
+    const terminology = this.parseTerminologySection();
+    
+    // TODO: Construct and return ARCHETYPE instance
+    throw new Error("Not implemented");
+  }
+
+  // Generated from 'definition_section' rule
+  private parseDefinitionSection(): C_COMPLEX_OBJECT {
+    this.expect('definition');
+    this.expect('NEWLINE');
+    const cObject = this.parseCComplexObject();
+    
+    // TODO: Return parsed object
+    throw new Error("Not implemented");
+  }
+
+  // Utility methods (also generated)
+  private expect(keyword: string): void { /* TODO */ }
+  private maybeParseSpecializeSection(): string | undefined { /* TODO */ }
+  // ... more stubs
+}
+```
+
+**Generation Script:**
+
+```typescript
+// tools/generate_parser_stubs_from_antlr.ts
+import { ANTLRGrammarParser } from "./antlr_grammar_parser.ts";
+
+const grammar = ANTLRGrammarParser.parseFile("grammars/Adl.g4");
+
+for (const rule of grammar.rules) {
+  const methodName = `parse${capitalize(rule.name)}`;
+  const returnType = inferReturnType(rule);
+  
+  output += `
+  private ${methodName}(): ${returnType} {
+    ${generateRuleStub(rule)}
+    throw new Error("Not implemented: ${rule.name}");
+  }
+  `;
+}
+```
+
+**Benefits:**
+
+- ✅ **Official grammar as source of truth** - ensures correctness
+- ✅ **Hand-written implementation** - zero runtime dependencies
+- ✅ **Accelerated development** - 70% of boilerplate generated
+- ✅ **Type-safe signatures** - methods have correct return types
+- ✅ **Grammar updates propagate** - re-run generator when grammar changes
+
+**Manual Work Required:**
+
+- Implement token recognition and consumption logic
+- Add error handling and recovery
+- Construct AOM instances from parsed data
+- Performance optimization
+
+### Approach 2: ANTLR Grammar → PEG Grammar
+
+**Goal:** Transform ANTLR4 grammar to Peggy (PEG) grammar format.
+
+**Process:**
+
+1. **Parse ANTLR grammar** to extract rules
+2. **Transform ANTLR syntax → PEG syntax**
+3. **Generate .peggy file**
+4. **Use Peggy to generate parser**
+
+**Example Transformation:**
+
+```antlr
+// Input: ANTLR rule (Adl.g4)
+archetype_id:
+    ARCHETYPE_HRID
+    | ARCHETYPE_REF
+    ;
+
+ARCHETYPE_HRID:
+    (namespace '::')? rm_publisher '-' rm_package '-' rm_class '.' concept_id '.v' version
+    ;
+```
+
+**Generated PEG Grammar:**
+
+```peggy
+// Generated: grammars/adl.peggy
+// Transformed from ANTLR Adl.g4
+
+archetype_id
+  = ARCHETYPE_HRID
+  / ARCHETYPE_REF
+
+ARCHETYPE_HRID
+  = namespace:((identifier "::"))? 
+    publisher:identifier "-" 
+    package:identifier "-" 
+    rmclass:identifier "." 
+    concept:identifier ".v" 
+    version:version_id
+    {
+      return {
+        namespace: namespace?.[0],
+        rm_publisher: publisher,
+        rm_package: package,
+        rm_class: rmclass,
+        concept_id: concept,
+        version: version
+      };
+    }
+
+identifier = [a-zA-Z_][a-zA-Z0-9_]*
+```
+
+**Transformation Rules:**
+
+| ANTLR Syntax | PEG Equivalent | Notes |
+|--------------|----------------|-------|
+| `rule1 \| rule2` | `rule1 / rule2` | Choice operator |
+| `rule?` | `rule?` | Optional (same) |
+| `rule*` | `rule*` | Zero or more (same) |
+| `rule+` | `rule+` | One or more (same) |
+| `'keyword'` | `"keyword"` | String literals (quotes) |
+| `~rule` | `!rule` | Negation |
+| `fragment` | Helper rule | Both have helpers |
+
+**Generation Script:**
+
+```typescript
+// tools/antlr_to_peg_converter.ts
+import { ANTLRGrammarParser } from "./antlr_grammar_parser.ts";
+
+const antlrGrammar = ANTLRGrammarParser.parseFile("grammars/Adl.g4");
+const pegGrammar = convertToPEG(antlrGrammar);
+
+Deno.writeTextFileSync("grammars/adl.peggy", pegGrammar);
+
+function convertToPEG(grammar: ANTLRGrammar): string {
+  return grammar.rules.map(rule => {
+    const alternatives = rule.alternatives.map(alt => {
+      return convertAlternative(alt);
+    }).join("\n  / ");
+    
+    return `${rule.name}\n  = ${alternatives}\n`;
+  }).join("\n");
+}
+```
+
+**Benefits:**
+
+- ✅ **Leverage official grammar** - proven correct
+- ✅ **Get PEG advantages** - readable, maintainable
+- ✅ **Smaller runtime** - ~50KB vs 300KB
+- ✅ **Automatic updates** - grammar changes flow through
+
+**Challenges:**
+
+- ⚠️ **Semantic actions** - need manual translation
+- ⚠️ **Left recursion** - ANTLR handles it, PEG doesn't (requires transformation)
+- ⚠️ **Lexer vs. parser** - ANTLR separates them, PEG combines
+
+### Approach 3: ANTLR Grammar → Test Cases
+
+**Goal:** Use ANTLR grammar to generate comprehensive test suite for ANY parser implementation.
+
+**Process:**
+
+1. **Extract grammar rules** and create test cases for each
+2. **Generate positive tests** (valid inputs)
+3. **Generate negative tests** (invalid inputs)
+4. **Use ANTLR parser** as reference implementation for expected results
+
+**Example:**
+
+```typescript
+// Generated: tests/parser/grammar_derived_tests.ts
+// Auto-generated from ANTLR grammar rules
+
+Deno.test("archetype_id - valid HRID format", () => {
+  const input = "openEHR-EHR-OBSERVATION.blood_pressure.v1";
+  const result = parser.parseArchetypeId(input);
+  
+  assertEquals(result.rm_publisher, "openEHR");
+  assertEquals(result.rm_package, "EHR");
+  assertEquals(result.rm_class, "OBSERVATION");
+  assertEquals(result.concept_id, "blood_pressure");
+  assertEquals(result.version, "1");
+});
+
+Deno.test("archetype_id - with namespace", () => {
+  const input = "org.example::openEHR-EHR-OBSERVATION.test.v1";
+  const result = parser.parseArchetypeId(input);
+  
+  assertEquals(result.namespace, "org.example");
+});
+
+Deno.test("archetype_id - invalid format", () => {
+  const input = "INVALID-FORMAT";
+  assertThrows(() => parser.parseArchetypeId(input));
+});
+```
+
+**Benefits:**
+
+- ✅ **Comprehensive test coverage** - every grammar rule tested
+- ✅ **Reference implementation** - ANTLR parser validates expected behavior
+- ✅ **Any parser can use** - tests work for hand-written, PEG, or ANTLR
+- ✅ **Regression detection** - grammar changes → new tests
+
+### Practical Implementation Strategy
+
+**Recommended Workflow:**
+
+```bash
+# 1. Use ANTLR grammar as specification
+cd /home/runner/work/ehrtslib/ehrtslib
+mkdir -p grammars
+# Copy official ANTLR grammars from Archie
+cp path/to/archie/Adl.g4 grammars/
+cp path/to/archie/cadl.g4 grammars/
+cp path/to/archie/odin.g4 grammars/
+
+# 2. Generate multiple artifacts from grammar
+deno run --allow-read --allow-write tools/generate_from_antlr.ts
+
+# Outputs:
+# - /generated/parser/hand_written_stubs.ts (Alternative A scaffold)
+# - /generated/grammars/adl.peggy (Alternative B input)
+# - /tests/parser/grammar_tests.ts (Test suite for any implementation)
+
+# 3. Choose implementation approach and fill in logic
+# - Hand-written: Implement stubs in /enhanced/parser
+# - PEG: Use generated .peggy with Peggy tool
+# - ANTLR: Use grammars directly with ANTLR
+
+# 4. Run grammar-derived tests against your parser
+deno test tests/parser/grammar_tests.ts
+```
+
+**Example Tool Structure:**
+
+```typescript
+// tools/generate_from_antlr.ts
+import { ANTLRGrammarParser } from "./antlr_grammar_parser.ts";
+
+const grammar = ANTLRGrammarParser.parseFile("grammars/Adl.g4");
+
+// Generate hand-written parser stubs
+const stubs = generateHandWrittenStubs(grammar);
+Deno.writeTextFileSync("generated/parser/hand_written_stubs.ts", stubs);
+
+// Generate PEG grammar
+const pegGrammar = convertToPEG(grammar);
+Deno.writeTextFileSync("generated/grammars/adl.peggy", pegGrammar);
+
+// Generate test cases
+const tests = generateTests(grammar);
+Deno.writeTextFileSync("tests/parser/grammar_tests.ts", tests);
+
+console.log("✅ Generated parser artifacts from ANTLR grammar");
+console.log("   - Hand-written stubs: generated/parser/hand_written_stubs.ts");
+console.log("   - PEG grammar: generated/grammars/adl.peggy");
+console.log("   - Test suite: tests/parser/grammar_tests.ts");
+```
+
+### Comparison: Direct Implementation vs. Grammar-Assisted
+
+| Aspect | Direct Hand-Written | Grammar-Assisted |
+|--------|-------------------|------------------|
+| **Development Time** | 2-3 weeks | 1-2 weeks (30-40% faster) |
+| **Initial Learning** | Study ADL2 spec | Study ANTLR grammar |
+| **Correctness** | Risk of interpretation errors | Grammar is proven correct |
+| **Maintenance** | Manual updates | Regenerate from grammar |
+| **Test Coverage** | Manual test writing | Auto-generated tests |
+| **Dependencies** | Zero | ANTLR tooling (dev-only) |
+
+### Recommendation: Hybrid Approach
+
+**Best of Both Worlds:**
+
+1. ✅ **Use ANTLR grammar** as specification and to generate:
+   - Parser method stubs (70% of boilerplate)
+   - Comprehensive test suite
+   - Documentation of grammar structure
+
+2. ✅ **Implement hand-written parser** in generated stubs:
+   - Zero runtime dependencies
+   - Full control over performance
+   - TypeScript-native implementation
+
+3. ✅ **Optional: Generate PEG grammar** for complex sub-sections if needed
+
+**Process:**
+
+```bash
+# One-time setup
+deno run tools/generate_from_antlr.ts
+
+# Implement parser (manual work)
+# Edit: /enhanced/parser/adl2_parser.ts (based on generated stubs)
+
+# Validate against grammar-derived tests
+deno test tests/parser/grammar_tests.ts
+
+# When ANTLR grammar updates:
+deno run tools/generate_from_antlr.ts
+# Review diffs in generated stubs, manually merge changes
+```
+
+**Result:** 
+- ✅ Benefits of official, proven grammar
+- ✅ Zero runtime dependencies (hand-written implementation)
+- ✅ 30-40% faster development (generated stubs + tests)
+- ✅ High confidence in correctness (grammar-derived tests)
+
+---
+
 ### 5.4 Alternative D: Hybrid Hand-Written + Peggy
 
 **Description:**
@@ -1494,7 +1883,17 @@ class OpenEHRRMInfo implements RMInfo {
 - **Alternative C (ANTLR4)** scores lowest due to heavy dependencies and complexity
 - **Alternative B (Peggy)** is middle-ground option
 
-**RECOMMENDATION:** Choose **Alternative A (Hand-Written)** for Phase 5a, with option to add Peggy for complex sub-grammars (Alternative D) if needed during implementation.
+**Note on Grammar-Assisted Development (Section 5.3.2):**
+
+All alternatives can benefit from using the official ANTLR grammar as input to generate scaffolding:
+- **Alternative A:** Generate hand-written parser stubs (30-40% faster development)
+- **Alternative B:** Transform ANTLR → PEG grammar (ensures correctness)
+- **Alternative D:** Generate stubs for hand-written part, use grammar for complex parts
+- **All alternatives:** Generate comprehensive test suites from grammar
+
+This approach provides the best of both worlds: official proven grammar as specification + chosen implementation strategy.
+
+**RECOMMENDATION:** Choose **Alternative A (Hand-Written)** for Phase 5a, using ANTLR grammar to generate parser stubs and tests (Section 5.3.2). Option to add Peggy for complex sub-grammars (Alternative D) if needed during implementation.
 
 ### 10.2 Validation Integration Decision Matrix
 
@@ -1517,12 +1916,13 @@ class OpenEHRRMInfo implements RMInfo {
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| **ADL2 grammar complexity underestimated** | Medium | High | Start with parser for subset, expand iteratively. Use Archie test suite for validation. |
+| **ADL2 grammar complexity underestimated** | Medium | High | Start with parser for subset, expand iteratively. Use Archie test suite for validation. **Use ANTLR grammar to generate stubs (Section 5.3.2) - reduces development time by 30-40%.** |
 | **Parser performance issues** | Low | Medium | Profile early, optimize hot paths, consider incremental parsing. |
-| **Validation too strict/loose** | Medium | High | Extensive testing with real archetypes. Reference Archie behavior. Allow configurable strictness. |
+| **Validation too strict/loose** | Medium | High | Extensive testing with real archetypes. Reference Archie behavior. Allow configurable strictness. **Use grammar-derived tests for comprehensive coverage.** |
 | **Integration breaks existing code** | Low | High | Comprehensive regression testing. Make validation opt-in. Use external validator pattern. |
 | **Template flattening complexity** | Medium | Medium | Start with operational templates (already flattened). Add flattening in later phase. |
 | **Type system limitations** | Low | Medium | Use TypeRegistry for runtime type info. Document limitations clearly. |
+| **Grammar updates require parser changes** | Low | Low | **Use ANTLR grammar as source to regenerate stubs and tests (Section 5.3.2) - grammar changes automatically propagate.** |
 
 ### 11.2 Open Questions
 
