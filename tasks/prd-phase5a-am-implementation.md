@@ -179,9 +179,9 @@ The project can reference these mature implementations:
 | P-1.4 | Support all ADL2 constraint types (C_COMPLEX_OBJECT, C_ATTRIBUTE, primitives) | MUST |
 | P-1.5 | Parse ODIN notation for metadata sections | MUST |
 | P-1.6 | Parse archetype terminology sections | MUST |
-| P-1.7 | Handle archetype slots with includes/excludes | SHOULD |
+| P-1.7 | Handle archetype slots with includes/excludes | MUST |
 | P-1.8 | Parse rules/invariants section | SHOULD |
-| P-1.9 | Support ADL 1.4 with conversion to ADL2 | COULD |
+| P-1.9 | Support ADL 1.4 with conversion to ADL2 | MUST |
 | P-1.10 | Provide detailed error messages with line/column numbers | MUST |
 
 **Non-Functional Requirements:**
@@ -205,7 +205,7 @@ The project can reference these mature implementations:
 | V-1.3 | Validate RM instance occurrences constraints | MUST |
 | V-1.4 | Validate primitive value constraints (ranges, patterns, lists) | MUST |
 | V-1.5 | Validate terminology code constraints | MUST |
-| V-1.6 | Validate archetype slot matches | SHOULD |
+| V-1.6 | Validate archetype slot matches | MUST |
 | V-1.7 | Validate attribute tuple constraints | SHOULD |
 | V-1.8 | Evaluate rules/invariants | COULD |
 | V-1.9 | Provide detailed validation error messages with paths | MUST |
@@ -249,10 +249,10 @@ The project can reference these mature implementations:
 
 | Req ID | Requirement | Priority |
 |--------|-------------|----------|
-| S-1.1 | Serialize AOM instances back to ADL2 format | SHOULD |
+| S-1.1 | Serialize AOM instances back to ADL2 format | MUST |
 | S-1.2 | Preserve original formatting/comments | COULD |
 | S-1.3 | Pretty-print with configurable indentation | SHOULD |
-| S-1.4 | Round-trip: ADL2 → AOM → ADL2 (lossless) | SHOULD |
+| S-1.4 | Round-trip: ADL2 → AOM → ADL2 (lossless) | MUST |
 
 ---
 
@@ -1841,20 +1841,25 @@ class OpenEHRRMInfo implements RMInfo {
 - Complete documentation
 - Example workflows
 
-### 9.6 Phase 5a.6: ADL 1.4 Support (Optional, Weeks 13-14)
+### 9.6 Phase 5a.6: ADL 1.4 Support & Archetype Specialization (Weeks 13-14)
 
-**Goal:** Support legacy ADL 1.4.
+**Goal:** Support legacy ADL 1.4 and implement archetype specialization/flattening.
 
 **Tasks:**
 
 1. ✅ Implement ADL 1.4 parser (or converter)
 2. ✅ Conversion: ADL 1.4 → ADL2
 3. ✅ Test with legacy archetypes
+4. ✅ Implement archetype specialization rules
+5. ✅ Implement template flattening engine
+6. ✅ Test specialization and flattening with real archetypes
 
 **Deliverables:**
 
 - ADL 1.4 support
 - Conversion utility
+- Archetype specialization implementation
+- Template flattening capability
 
 ---
 
@@ -1927,11 +1932,11 @@ This approach provides the best of both worlds: official proven grammar as speci
 
 **For Decision Before Implementation:**
 
-1. **Parser Approach:** Which alternative (A, B, C, or D)? → Recommended: A or D
-2. **ADL 1.4 Support:** Essential or nice-to-have? → Defer to Phase 5a.6 (optional)
-3. **Archetype Repository:** File-based or in-memory? → File-based initially, abstract later
-4. **Template Flattening:** Implement or require pre-flattened OPTs? → Start with pre-flattened
-5. **Performance Targets:** What's acceptable for parsing/validation? → <100ms parse, <50ms validation typical archetype
+1. **Parser Approach:** Which alternative (A, B, C, or D)? → Recommended: A with grammar-assisted stub generation
+2. **Archetype Repository:** File-based or in-memory? → File-based initially, abstract later
+3. **Performance Targets:** What's acceptable for parsing/validation? → <100ms parse, <50ms validation typical archetype
+4. **Template Flattening Implementation Strategy:** Build flattening engine or start with pre-flattened OPTs and add later? → Requires decision given it's now a Primary Goal
+5. **ADL 1.4 Conversion Strategy:** Full bidirectional conversion or ADL 1.4→ADL2 only? → Requires decision given it's now a Primary Goal
 
 ---
 
@@ -1940,10 +1945,13 @@ This approach provides the best of both worlds: official proven grammar as speci
 ### 12.1 Functional Success Criteria
 
 - ✅ Parse valid ADL2 archetypes and templates into AOM instances
+- ✅ Parse and convert ADL 1.4 archetypes to ADL2 format
 - ✅ Validate RM instances against operational templates with >95% accuracy vs. Archie
+- ✅ Validate archetype slot matches and constraints
 - ✅ Generate valid RM instances from templates
 - ✅ Generate TypeScript scaffolding code that compiles without errors
-- ✅ Serialize AOM instances back to ADL2 format
+- ✅ Serialize AOM instances back to ADL2 format with round-trip capability
+- ✅ Support archetype specialization and template flattening
 - ✅ Pass all tests from Archie's test suite (adapted to TypeScript)
 
 ### 12.2 Non-Functional Success Criteria
@@ -1966,14 +1974,16 @@ This approach provides the best of both worlds: official proven grammar as speci
 
 **Full Phase 5a Completion:**
 
-1. Parse archetypes, templates, and operational templates
+1. Parse archetypes, templates, and operational templates (ADL2 and ADL 1.4)
 2. Validate any RM instance type against templates
-3. Generate RM instances (minimal/example/maximal modes)
-4. Generate TypeScript scaffolding with builders
-5. Serialize AOM to ADL2
-6. Comprehensive error messages with paths
-7. Integration with existing serializers
-8. Complete documentation and examples
+3. Validate archetype slots with includes/excludes
+4. Generate RM instances (minimal/example/maximal modes)
+5. Generate TypeScript scaffolding with builders
+6. Serialize AOM to ADL2 with round-trip capability
+7. Support archetype specialization and template flattening
+8. Comprehensive error messages with paths
+9. Integration with existing serializers
+10. Complete documentation and examples
 
 ---
 
