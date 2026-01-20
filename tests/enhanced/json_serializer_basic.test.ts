@@ -89,3 +89,4 @@ Deno.test("JsonConfigurableSerializer: works with default config", () => {
   const parsed = JSON.parse(json);
   assertEquals(parsed._type, "DV_TEXT");
   assertEquals(parsed.value, "Configurable test");
+});
