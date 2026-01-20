@@ -2068,8 +2068,10 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
    */
   as_hierarchy(): ELEMENT {
     // For ITEM_SINGLE, the hierarchy is just the single element itself
-    // Note: Full implementation requires accessing the element item
-    throw new Error("ITEM_SINGLE.as_hierarchy requires item access - not yet fully implemented");
+    if (!this.item) {
+      throw new Error("ITEM_SINGLE.as_hierarchy: item is not set");
+    }
+    return this.item;
   }
 }
 
