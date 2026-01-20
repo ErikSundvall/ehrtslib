@@ -625,7 +625,7 @@ export class YamlSerializer {
     }
 
     // Simple wrappers just become their value
-    // TODO: Developer comment: Not sure we actually want this, it likely breaks standard and deserialisation
+    // TODO: Developer comment: Not sure we actually want this if it changes the semantics (not just line wrapping etc) it likely breaks standard and deserialisation
     if (typeName === 'DV_TEXT' ||
       typeName === 'ARCHETYPE_ID' ||
       typeName === 'TEMPLATE_ID' ||
