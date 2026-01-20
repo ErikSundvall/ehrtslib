@@ -3193,8 +3193,8 @@ export class DV_CODED_TEXT extends DV_TEXT {
   }
 
   /**
-   * Gets the CODE_PHRASE wrapper object for defining_code.
-   * Use this to access CODE_PHRASE methods.
+   * Gets the CODE_PHRASE object for defining_code.
+   * Both defining_code and $defining_code return the same CODE_PHRASE instance.
    */
   get $defining_code(): CODE_PHRASE | undefined {
     return this._defining_code;
@@ -8302,8 +8302,8 @@ export class COMPOSITION extends LOCATABLE {
   }
 
   /**
-   * Gets the DV_CODED_TEXT wrapper object for category.
-   * Use this to access DV_CODED_TEXT methods.
+   * Gets the DV_CODED_TEXT object for category.
+   * Both category and $category return the same DV_CODED_TEXT instance.
    */
   get $category(): DV_CODED_TEXT | undefined {
     return this._category;
