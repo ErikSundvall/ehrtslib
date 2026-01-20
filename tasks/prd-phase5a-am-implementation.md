@@ -191,8 +191,8 @@ The project can reference these mature implementations:
 | P-2.1 | Parse typical archetype (< 500 lines) in < 100ms | SHOULD |
 | P-2.2 | Handle large operational templates (> 5000 lines) | MUST |
 | P-2.3 | Minimal memory footprint for parsed AOM | SHOULD |
-| P-2.4 | Full TypeScript type safety | MUST |
-| P-2.5 | Zero or minimal dependencies (prefer hand-written) | SHOULD |
+| P-2.4 | Full TypeScript type safety where possible | MUST |
+| P-2.5 | Zero or minimal dependencies if possible and not overcomplicating own code| SHOULD |
 
 ### 4.2 Validation Framework Requirements
 
@@ -219,7 +219,7 @@ The project can reference these mature implementations:
 | V-2.2 | Work with any RM version/extension | MUST |
 | V-2.3 | Use existing TypeRegistry for type resolution | MUST |
 | V-2.4 | Support validation during deserialization | SHOULD |
-| V-2.5 | Optional validation (can be disabled for performance) | SHOULD |
+| V-2.5 | Make validation optional (can be manually disabled for performance) | SHOULD |
 
 ### 4.3 Generation Requirements
 
@@ -231,17 +231,15 @@ The project can reference these mature implementations:
 | G-1.2 | Generate example data for required attributes | MUST |
 | G-1.3 | Support min/max example generation (minimal vs. full) | SHOULD |
 | G-1.4 | Respect cardinality and occurrence constraints | MUST |
-| G-1.5 | Fill slots with compatible archetypes from repository | COULD |
 
 **TypeScript Code Generation:**
 
 | Req ID | Requirement | Priority |
 |--------|-------------|----------|
-| G-2.1 | Generate TypeScript class/interface per template | SHOULD |
-| G-2.2 | Generate helper functions using simplified creation patterns | MUST |
+| G-2.1 | Configurable ability to generate TypeScript class/interface tree per template where both the root instance and its contained object instances are named after the natural language names in the corresponding template structures. A parameter selects wich natural language to use, otherwise defaults to the template's original/main language. The instance tree should have validation logic attached/included. Multiple choice options should be listed in jsdoc if the selection is under N (configurable) options | SHOULD |
+| G-2.2 | Use simplified creation patterns and terse style to reduce code length | MUST |
 | G-2.3 | Include JSDoc with archetype metadata | SHOULD |
 | G-2.4 | Generate type-safe builders for complex structures | COULD |
-| G-2.5 | Output both full and terse formats | SHOULD |
 
 ### 4.4 Serialization Requirements
 
@@ -1554,7 +1552,9 @@ const maximal = generator.generate(template, 'maximal');
 
 ### 7.2 TypeScript Scaffolding Generation
 
-**Goal:** Generate TypeScript code that creates template-specific helpers.
+**Goal:** Generate TypeScript code that creates template-specific helpers/scaffolds as described in Req ID G-2.1 above
+
+Note that the approaches below and their examples were written before Req ID G-2.1 was considerably updated in the PRD, so let the requirement have precedence, not the examples
 
 **Approach 1: Helper Functions**
 
@@ -1749,7 +1749,7 @@ class OpenEHRRMInfo implements RMInfo {
 
 ## 9. Implementation Phases
 
-### 9.1 Phase 5a.1: Foundation (Weeks 1-2)
+### 9.1 Phase 5b.1: Foundation (Weeks 1-2)
 
 **Goal:** Basic infrastructure and parser choice.
 
@@ -1768,7 +1768,7 @@ class OpenEHRRMInfo implements RMInfo {
 - AM class methods implemented
 - Test suite structure
 
-### 9.2 Phase 5a.2: Parser Implementation (Weeks 3-5)
+### 9.2 Phase 5b.2: Parser Implementation (Weeks 3-5)
 
 **Goal:** Complete ADL2 parser.
 
@@ -1787,7 +1787,7 @@ class OpenEHRRMInfo implements RMInfo {
 - Comprehensive test coverage
 - Error message system
 
-### 9.3 Phase 5a.3: Validation Framework (Weeks 6-8)
+### 9.3 Phase 5b.3: Validation Framework (Weeks 6-8)
 
 **Goal:** Implement template validation.
 
@@ -1806,7 +1806,7 @@ class OpenEHRRMInfo implements RMInfo {
 - Validation test suite
 - Integration with type registry
 
-### 9.4 Phase 5a.4: Generation (Weeks 9-10)
+### 9.4 Phase 5b.4: Generation (Weeks 9-10)
 
 **Goal:** Generate RM instances and TypeScript code.
 
@@ -1823,7 +1823,7 @@ class OpenEHRRMInfo implements RMInfo {
 - TypeScript code generator
 - Examples and documentation
 
-### 9.5 Phase 5a.5: Serialization & Polish (Weeks 11-12)
+### 9.5 Phase 5b.5: Serialization & Polish (Weeks 11-12)
 
 **Goal:** ADL2 serialization and refinement.
 
@@ -1841,15 +1841,15 @@ class OpenEHRRMInfo implements RMInfo {
 - Complete documentation
 - Example workflows
 
-### 9.6 Phase 5a.6: ADL 1.4 Support & Archetype Specialization (Weeks 13-14)
+### 9.6 Phase 5b.6: ADL 1.4 Support & Archetype Specialization (Weeks 13-14)
 
 **Goal:** Support legacy ADL 1.4 and implement archetype specialization/flattening.
 
 **Tasks:**
 
 1. ✅ Implement ADL 1.4 parser (or converter)
-2. ✅ Conversion: ADL 1.4 → ADL2
-3. ✅ Test with legacy archetypes
+2. ✅ Conversion: ADL 1.4 → ADL2 (+ roundtrip testing → ADL 1.4)
+3. ✅ Test with realistic archetypes/templates from openEHR
 4. ✅ Implement archetype specialization rules
 5. ✅ Implement template flattening engine
 6. ✅ Test specialization and flattening with real archetypes
