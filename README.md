@@ -88,6 +88,69 @@ const restored = deserializer.deserialize(json);
 - **XML** - Compliant with openEHR ITS-XML specification. See [XML serialization guide](enhanced/serialization/xml/README.md)
 - **YAML** - Human-readable format with multiple style options. See [YAML serialization guide](enhanced/serialization/yaml/README.md)
 
+### Archetype and Template Support
+
+The library includes comprehensive support for openEHR Archetype Model (AM) layer:
+
+#### ADL2 Parsing
+Parse ADL2 (Archetype Definition Language) files into AOM (Archetype Object Model):
+
+```typescript
+import { ADL2Tokenizer, ADL2Parser } from "./enhanced/parser/mod.ts";
+
+const tokenizer = new ADL2Tokenizer(adl2Text);
+const parser = new ADL2Parser(tokenizer.tokenize());
+const { archetype, warnings } = parser.parse();
+```
+
+#### Validation Framework
+Comprehensive validation of RM instances against templates/archetypes:
+
+```typescript
+import { TemplateValidator } from "./enhanced/validation/template_validator.ts";
+
+const validator = new TemplateValidator({
+  validateUnits: true,                // UCUM unit validation
+  validateTerminology: true,          // Terminology validation
+  validateIntervals: true,            // DV_INTERVAL bounds validation
+  validateRMSpecification: true,      // RM spec constraints (e.g., COMPOSITION.category)
+  useTypeRegistry: true,              // Type resolution
+});
+
+await validator.initialize();
+const result = validator.validate(rmInstance, template);
+
+if (!result.valid) {
+  result.errors.forEach(err => {
+    console.log(`${err.path}: ${err.message} [${err.constraintType}]`);
+  });
+}
+```
+
+**Validation Features:**
+- **Occurrence and cardinality** constraints
+- **Primitive constraints**: patterns, ranges, value lists
+- **UCUM unit validation** using official UCUM library
+- **Terminology validation**: DV_CODED_TEXT structure
+- **Interval validation**: DV_INTERVAL bounds and ordering
+- **RM specification constraints**: e.g., COMPOSITION.category must be 431|persistent| or 433|event|
+- **TypeRegistry integration** for type resolution
+
+#### Code Generation
+Generate TypeScript code from templates with natural language names:
+
+```typescript
+import { TypeScriptGenerator } from "./enhanced/generation/mod.ts";
+
+const generator = new TypeScriptGenerator({ language: "en" });
+const code = generator.generate(template);
+```
+
+#### Complete Documentation
+- **[Archetype and Template Usage Guide](examples/archetype_template_usage.ts)** - Complete examples of parsing, validation, and generation
+- **[Validation Framework](enhanced/validation/)** - Comprehensive validation with multiple validators
+- **[Code Generation](enhanced/generation/)** - Generate TypeScript, RM instances, and serialize to ADL2
+
 ## Additional Resources
 
 - **[README-FOR-LIB-MAINTENANCE.md](README-FOR-LIB-MAINTENANCE.md)** - Comprehensive guide for library maintainers on generating TypeScript from openEHR BMM specifications, updating versions, and managing dependencies
