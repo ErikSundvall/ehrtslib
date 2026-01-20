@@ -8,6 +8,8 @@
 import * as openehr_am from "../openehr_am.ts";
 import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import { UcumService } from "../ucum_service.ts";
+import { IntervalValidator } from "./interval_validator.ts";
+import { RMSpecificationValidator } from "./rm_specification_validator.ts";
 
 /**
  * Validation result
@@ -35,9 +37,11 @@ export interface ValidationConfig {
   failFast?: boolean;
   requiredOnly?: boolean;
   maxDepth?: number;
-  validateUnits?: boolean;         // Enable UCUM unit validation
-  validateTerminology?: boolean;   // Enable terminology validation
-  useTypeRegistry?: boolean;       // Use TypeRegistry for type resolution
+  validateUnits?: boolean;              // Enable UCUM unit validation
+  validateTerminology?: boolean;        // Enable terminology validation
+  useTypeRegistry?: boolean;            // Use TypeRegistry for type resolution
+  validateIntervals?: boolean;          // Enable DV_INTERVAL validation
+  validateRMSpecification?: boolean;    // Enable RM specification constraints
 }
 
 /**
@@ -50,6 +54,8 @@ export class TemplateValidator {
   private primitiveValidator: PrimitiveValidator;
   private terminologyValidator?: TerminologyValidator;
   private ucumService?: UcumService;
+  private intervalValidator?: IntervalValidator;
+  private rmSpecValidator?: RMSpecificationValidator;
 
   constructor(config?: ValidationConfig) {
     this.config = {
@@ -59,6 +65,8 @@ export class TemplateValidator {
       validateUnits: true,
       validateTerminology: true,
       useTypeRegistry: true,
+      validateIntervals: true,
+      validateRMSpecification: true,
       ...config,
     };
     
@@ -72,6 +80,14 @@ export class TemplateValidator {
     
     if (this.config.validateUnits) {
       this.ucumService = new UcumService();
+    }
+    
+    if (this.config.validateIntervals) {
+      this.intervalValidator = new IntervalValidator();
+    }
+    
+    if (this.config.validateRMSpecification) {
+      this.rmSpecValidator = new RMSpecificationValidator();
     }
   }
 
@@ -180,6 +196,28 @@ export class TemplateValidator {
       const termMsgs = this.terminologyValidator.validate(rmNode, cObject, path);
       errors.push(...termMsgs.filter(m => m.severity === "error"));
       warnings.push(...termMsgs.filter(m => m.severity === "warning"));
+    }
+
+    // Validate intervals if enabled
+    if (this.config.validateIntervals && this.intervalValidator && rmNode) {
+      const intervalMsgs = this.intervalValidator.validate(rmNode, path);
+      errors.push(...intervalMsgs.filter(m => m.severity === "error"));
+      warnings.push(...intervalMsgs.filter(m => m.severity === "warning"));
+    }
+
+    // Validate RM specification constraints if enabled
+    if (this.config.validateRMSpecification && this.rmSpecValidator && rmNode && cObject.rm_type_name) {
+      // Check if this is a specific attribute that has RM constraints
+      const typeName = cObject.rm_type_name;
+      // We need the attribute name - extract from path
+      const pathParts = path.split('/');
+      const attributeName = pathParts[pathParts.length - 1];
+      
+      if (attributeName && !attributeName.match(/^\d+$/)) { // Not an array index
+        const rmSpecMsgs = this.rmSpecValidator.validate(rmNode, typeName, attributeName, path);
+        errors.push(...rmSpecMsgs.filter(m => m.severity === "error"));
+        warnings.push(...rmSpecMsgs.filter(m => m.severity === "warning"));
+      }
     }
 
     // Validate complex object
