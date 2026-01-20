@@ -7,6 +7,7 @@
 
 import { Token, TokenType } from "./adl2_tokenizer.ts";
 import { OdinParser, OdinValue, OdinObject } from "./odin_parser.ts";
+import { CadlParser } from "./cadl_parser.ts";
 import * as openehr_am from "../openehr_am.ts";
 import * as openehr_base from "../openehr_base.ts";
 
@@ -205,18 +206,66 @@ export class ADL2Parser {
   private parseDefinitionSection(archetype: openehr_am.ARCHETYPE): void {
     this.consumeKeyword(TokenType.DEFINITION, "Expected 'definition' keyword");
 
-    // Parse C_COMPLEX_OBJECT tree
-    // This is a complex parser that needs to handle the cADL syntax
-    // For now, we'll create a placeholder
-    const definition = new openehr_am.C_COMPLEX_OBJECT();
-    archetype.definition = definition;
+    // Collect tokens for the definition section (until next section keyword)
+    const defTokens = this.collectDefinitionTokens();
+    
+    // Parse using cADL parser
+    const cadlParser = new CadlParser(defTokens);
+    try {
+      const definition = cadlParser.parseComplexObject();
+      archetype.definition = definition;
+    } catch (e) {
+      this.warnings.push(`Definition section parsing error: ${e.message}`);
+      // Create minimal definition as fallback
+      const definition = new openehr_am.C_COMPLEX_OBJECT();
+      archetype.definition = definition;
+    }
+  }
 
-    this.warnings.push(
-      "Definition section parsing not yet fully implemented"
-    );
+  private collectDefinitionTokens(): Token[] {
+    const defTokens: Token[] = [];
+    let depth = 0;
 
-    // Skip to next section
-    this.skipToNextSection();
+    // Collect tokens until we reach the next section keyword or EOF
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+
+      // Track depth of braces
+      if (token.type === TokenType.LBRACE) {
+        depth++;
+      } else if (token.type === TokenType.RBRACE) {
+        depth--;
+      }
+
+      // If we're at depth 0 and hit a section keyword, stop
+      if (
+        depth === 0 &&
+        (token.type === TokenType.LANGUAGE ||
+          token.type === TokenType.DESCRIPTION ||
+          token.type === TokenType.RULES ||
+          token.type === TokenType.TERMINOLOGY ||
+          token.type === TokenType.ANNOTATIONS)
+      ) {
+        break;
+      }
+
+      defTokens.push(this.advance());
+
+      // Stop when depth returns to 0 after collecting content
+      if (depth === 0 && defTokens.length > 1) {
+        break;
+      }
+    }
+
+    // Add EOF token
+    defTokens.push({
+      type: TokenType.EOF,
+      value: "",
+      line: this.peek().line,
+      column: this.peek().column,
+    });
+
+    return defTokens;
   }
 
   private parseRulesSection(archetype: openehr_am.ARCHETYPE): void {
