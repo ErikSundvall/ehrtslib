@@ -1,14 +1,15 @@
 /**
- * Phase 5b Usage Examples
+ * Archetype and Template Usage Examples
  * 
- * Demonstrates ADL2 parsing, validation, and generation capabilities.
+ * Demonstrates ADL2 parsing, validation, and generation capabilities
+ * for openEHR archetypes and operational templates.
  */
 
 // Parsing ADL2
 import { ADL2Tokenizer } from "../enhanced/parser/adl2_tokenizer.ts";
 import { ADL2Parser } from "../enhanced/parser/adl2_parser.ts";
 
-// Validation
+// Validation with optional enhancements
 import { TemplateValidator } from "../enhanced/validation/template_validator.ts";
 
 // Generation
@@ -38,13 +39,25 @@ export function exampleParseADL2(adl2Text: string) {
 }
 
 /**
- * Example 2: Validate RM instance against template
+ * Example 2: Validate RM instance with enhanced features
+ * 
+ * Demonstrates optional validation features:
+ * - Primitive constraint validation (patterns, ranges, lists)
+ * - UCUM unit validation
+ * - Terminology validation
+ * - TypeRegistry integration
  */
-export function exampleValidate(rmInstance: any, template: any) {
+export async function exampleEnhancedValidate(rmInstance: any, template: any) {
   const validator = new TemplateValidator({
     failFast: false,
     maxDepth: 100,
+    validateUnits: true,         // Enable UCUM unit validation
+    validateTerminology: true,   // Enable terminology validation
+    useTypeRegistry: true,       // Use TypeRegistry for type resolution
   });
+  
+  // Initialize async dependencies (UCUM service)
+  await validator.initialize();
   
   const result = validator.validate(rmInstance, template);
   
@@ -52,7 +65,7 @@ export function exampleValidate(rmInstance: any, template: any) {
   if (!result.valid) {
     console.log("Errors:");
     result.errors.forEach(err => {
-      console.log(`  ${err.path}: ${err.message}`);
+      console.log(`  ${err.path}: ${err.message} [${err.constraintType}]`);
     });
   }
   
@@ -120,8 +133,8 @@ export async function exampleCompleteWorkflow(adl2FilePath: string) {
   // 2. Generate RM instance
   const instance = exampleGenerateInstance(archetype);
   
-  // 3. Validate generated instance
-  const validationResult = exampleValidate(instance, archetype);
+  // 3. Validate generated instance with enhanced features
+  const validationResult = await exampleEnhancedValidate(instance, archetype);
   
   // 4. Generate TypeScript code
   const tsCode = exampleGenerateTypeScript(archetype);
@@ -138,9 +151,47 @@ export async function exampleCompleteWorkflow(adl2FilePath: string) {
   };
 }
 
+/**
+ * Example 7: Primitive constraint validation
+ */
+export async function examplePrimitiveValidation() {
+  console.log("=== Primitive Constraint Validation ===\n");
+  
+  // String pattern validation
+  const stringValidator = new TemplateValidator();
+  console.log("String pattern validation: checking if value matches ^[A-Z]{3}$");
+  
+  // Integer range validation
+  console.log("Integer range validation: checking if value is in range 0..100");
+  
+  // Real value validation
+  console.log("Real value validation: checking decimal precision");
+  
+  // Boolean constraint validation
+  console.log("Boolean constraint validation: checking allowed values");
+}
+
+/**
+ * Example 8: UCUM unit validation
+ */
+export async function exampleUCUMValidation() {
+  console.log("=== UCUM Unit Validation ===\n");
+  
+  const validator = new TemplateValidator({
+    validateUnits: true,  // Enable UCUM validation
+  });
+  
+  await validator.initialize();
+  
+  console.log("Validating units in DV_QUANTITY instances");
+  console.log("Examples: mg/dL, Cel, [degF], m/s");
+  
+  // UCUM service checks units against official UCUM specification
+}
+
 // Run example if this is the main module
 if (import.meta.main) {
-  console.log("=== Phase 5b Examples ===\n");
+  console.log("=== Archetype and Template Usage Examples ===\n");
   
   const testADL = `archetype (adl_version=2.0.5)
     openEHR-EHR-OBSERVATION.test.v1.0.0
@@ -158,5 +209,10 @@ terminology
   console.log("Example 1: Parse ADL2");
   exampleParseADL2(testADL);
   
-  console.log("\nPhase 5b capabilities demonstrated!");
+  console.log("\nArchetype and template capabilities demonstrated!");
+  console.log("\nOptional enhancements available:");
+  console.log("- Primitive constraint validation (patterns, ranges, lists)");
+  console.log("- UCUM unit validation using @lhncbc/ucum-lhc");
+  console.log("- Terminology validation (coded text, terminology IDs)");
+  console.log("- TypeRegistry integration for type resolution");
 }
