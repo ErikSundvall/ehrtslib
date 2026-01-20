@@ -609,6 +609,22 @@ Now we will add the archetyping/templating layer to out openEHR implementation. 
 - Feel free to use any existing AM implementation (like Archie and other previously mentioned implementations) as a reference, but try to make it as TypeScript native/natural as possible adn with few dependencies.
 - When maiking the PRD for this step do the research to find the best way to implement this so that the suggestion can be inspected in the PRD before actual implementation.
 
+## Phase 5b
+Implement the ideas from Phase 5 a experessed in the PRD file tasks/prd-phase5a-am-implementation.md with the following choises
+
+### Regarding validation (section 6 of tasks/prd-phase5a-am-implementation.md)
+Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code examples in the PRD are just examples and yo may deviate from them to produce something better tailored to requirements etc.
+
+### Regarding section 11.2 Open Questions (in tasks/prd-phase5a-am-implementation.md)
+1. **Parser Approach:** Which alternative (A, B, C, or D)? → Recommended: A with grammar-assisted stub generation
+* From section "5.3.2 Using ANTLR Grammar to Accelerate Alternative Parser Implementations" pick "### Recommendation: Hybrid Approach" summarized on line 897-936
+2. **Archetype Repository:** File-based or in-memory? → File-based initially, abstract later
+* Not needed now
+4. **Performance Targets:** What's acceptable for parsing/validation? → <100ms parse, <50ms validation typical archetype
+* Sounds like OK targets but not critical now
+5. **Template Flattening Implementation Strategy:**
+* Bidirectional abilities
+
 ## Phase 6
 Exploration of:
 Serialisation and deserialisation of RM object instance trees to and from
