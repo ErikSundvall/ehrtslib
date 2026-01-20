@@ -3180,9 +3180,32 @@ export class DV_CODED_TEXT extends DV_TEXT {
   }
 
   /**
+   * Internal storage for defining_code
+   * @protected
+   */
+  protected _defining_code?: CODE_PHRASE;
+
+  /**
    * The term of which the  \`_value_\` attribute is the textual rendition (i.e. rubric).
    */
-  defining_code?: CODE_PHRASE;
+  get defining_code(): CODE_PHRASE | undefined {
+    return this._defining_code;
+  }
+
+  /**
+   * Gets the CODE_PHRASE wrapper object for defining_code.
+   * Use this to access CODE_PHRASE methods.
+   */
+  get $defining_code(): CODE_PHRASE | undefined {
+    return this._defining_code;
+  }
+
+  /**
+   * Sets defining_code from a CODE_PHRASE object.
+   */
+  set defining_code(val: CODE_PHRASE | undefined) {
+    this._defining_code = val;
+  }
 }
 
 /**
@@ -8260,6 +8283,12 @@ export class COMPOSITION extends LOCATABLE {
    */
   territory?: CODE_PHRASE;
   /**
+   * Internal storage for category
+   * @protected
+   */
+  protected _category?: DV_CODED_TEXT;
+
+  /**
    * Temporal category of this Composition, i.e.
    *
    * * \`431|persistent|\` - of potential life-time validity;
@@ -8268,7 +8297,25 @@ export class COMPOSITION extends LOCATABLE {
    *
    * or any other code defined in the openEHR terminology group 'category'.
    */
-  category?: DV_CODED_TEXT;
+  get category(): DV_CODED_TEXT | undefined {
+    return this._category;
+  }
+
+  /**
+   * Gets the DV_CODED_TEXT wrapper object for category.
+   * Use this to access DV_CODED_TEXT methods.
+   */
+  get $category(): DV_CODED_TEXT | undefined {
+    return this._category;
+  }
+
+  /**
+   * Sets category from a DV_CODED_TEXT object.
+   */
+  set category(val: DV_CODED_TEXT | undefined) {
+    this._category = val;
+  }
+
   /**
    * The clinical session context of this Composition, i.e. the contextual attributes of the clinical session.
    */
