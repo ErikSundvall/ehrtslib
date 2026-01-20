@@ -8,7 +8,7 @@ export class TypeRegistry {
   private static typeNameToConstructor = new Map<string, new () => any>();
   private static constructorToTypeName = new Map<new () => any, string>();
   private static instanceToTypeName = new WeakMap<object, string>();
-  
+
   /**
    * Register a class with its openEHR type name
    * @param typeName - The openEHR type name (e.g., "COMPOSITION", "DV_TEXT")
@@ -18,7 +18,7 @@ export class TypeRegistry {
     this.typeNameToConstructor.set(typeName, constructor);
     this.constructorToTypeName.set(constructor, typeName);
   }
-  
+
   /**
    * Get constructor for a type name
    * @param typeName - The openEHR type name
@@ -27,7 +27,7 @@ export class TypeRegistry {
   static getConstructor(typeName: string): (new () => any) | undefined {
     return this.typeNameToConstructor.get(typeName);
   }
-  
+
   /**
    * Get type name for a constructor
    * @param constructor - The class constructor
@@ -36,7 +36,7 @@ export class TypeRegistry {
   static getTypeName(constructor: new () => any): string | undefined {
     return this.constructorToTypeName.get(constructor);
   }
-  
+
   /**
    * Get type name from an object instance
    * @param obj - The object instance
@@ -46,13 +46,13 @@ export class TypeRegistry {
     if (!obj || typeof obj !== 'object') {
       return undefined;
     }
-    
+
     // Check if we have a cached type name for this instance
     const cached = this.instanceToTypeName.get(obj);
     if (cached) {
       return cached;
     }
-    
+
     // Try to get from constructor
     const typeName = this.constructorToTypeName.get(obj.constructor);
     if (typeName) {
@@ -60,15 +60,25 @@ export class TypeRegistry {
       this.instanceToTypeName.set(obj, typeName);
       return typeName;
     }
-    
+
+    // FIX: Check for _type property on the object itself (common in plain JSON data)
+    if (obj._type && typeof obj._type === 'string') {
+      return obj._type;
+    }
+
     // Try to get from constructor.name (as fallback, uppercase)
     if (obj.constructor && obj.constructor.name) {
-      return obj.constructor.name.toUpperCase();
+      const name = obj.constructor.name.toUpperCase();
+      // Only return if it's not generic 'OBJECT' or 'ARRAY'
+      // effectively we can't trust Object/Array constructors to mean a specific RM type
+      if (name !== 'OBJECT' && name !== 'ARRAY') {
+        return name;
+      }
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Check if a type is registered
    * @param typeName - The openEHR type name
@@ -77,7 +87,7 @@ export class TypeRegistry {
   static hasType(typeName: string): boolean {
     return this.typeNameToConstructor.has(typeName);
   }
-  
+
   /**
    * Get all registered type names
    * @returns Array of all registered type names
@@ -85,7 +95,7 @@ export class TypeRegistry {
   static getAllTypeNames(): string[] {
     return Array.from(this.typeNameToConstructor.keys());
   }
-  
+
   /**
    * Clear all registrations (useful for testing)
    */
@@ -93,7 +103,7 @@ export class TypeRegistry {
     this.typeNameToConstructor.clear();
     this.constructorToTypeName.clear();
   }
-  
+
   /**
    * Register all classes from a module
    * Scans the module exports and registers all classes that appear to be RM types

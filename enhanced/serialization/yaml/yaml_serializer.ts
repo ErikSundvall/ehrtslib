@@ -84,6 +84,13 @@ export class YamlSerializer {
   }
 
   /**
+   * Determine if we are effectively in block mode (pure block style)
+   */
+  private isEffectiveBlockMode(): boolean {
+    return this.getEffectiveMainStyle() === 'block';
+  }
+
+  /**
    * Serialize with hybrid formatting using Document API
    * This allows fine-grained control over flow vs block style
    * Simple objects are inline, complex objects use block style
@@ -260,10 +267,13 @@ export class YamlSerializer {
   private applyFlowFormattingToNode(node: any): void {
     if (!node) return;
 
-    // Set flow style for maps
+    // FIX 3: Visual Formatting
+    // In Flow mode, we want to force everything to be flow style.
+    // Standard YAML serializers might wrap flow objects if they are long,
+    // but setting flow=true explicitly helps hint the stringifier.
+
     if (isMap(node)) {
       node.flow = true;
-
       // Recurse into map items
       if (node.items && Array.isArray(node.items)) {
         for (const pair of node.items) {
@@ -273,9 +283,7 @@ export class YamlSerializer {
         }
       }
     } else if (isSeq(node)) {
-      // Set flow style for sequences
       node.flow = true;
-
       // Recurse into sequence items
       if (node.items && Array.isArray(node.items)) {
         for (const item of node.items) {
@@ -337,6 +345,12 @@ export class YamlSerializer {
     // Scalars are always inline
     if (isScalar(node)) {
       return true;
+    }
+
+    // if in strict block mode, never inline maps unless empty
+    if (this.isEffectiveBlockMode()) {
+      if (isMap(node) && node.items && node.items.length === 0) return true;
+      return false;
     }
 
     // For maps, check number of properties and complexity
@@ -416,13 +430,22 @@ export class YamlSerializer {
       return result;
     }
 
-    // Handle terse format conversion if enabled
-    if (this.config.useTerseFormat && this.canUseTerseFormat(obj)) {
-      return this.toTerseFormat(obj);
+    // Get type information
+    let typeName = TypeRegistry.getTypeNameFromInstance(obj);
+
+    // Try to infer type if not found
+    if (!typeName && this.config.useTypeInference) {
+      if (parentType && propertyName) {
+        typeName = TypeInferenceEngine.inferType(propertyName, parentType, obj);
+      } else {
+        typeName = TypeInferenceEngine.inferFromStructure(obj);
+      }
     }
 
-    // Get type information
-    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+    // Handle terse format conversion if enabled
+    if (this.config.useTerseFormat && this.canUseTerseFormat(obj, typeName)) {
+      return this.toTerseFormat(obj, typeName);
+    }
 
     // Create result object
     const result: Record<string, any> = {};
@@ -571,20 +594,27 @@ export class YamlSerializer {
   /**
    * Check if an object can use terse format
    */
-  private canUseTerseFormat(obj: any): boolean {
+  private canUseTerseFormat(obj: any, knownTypeName?: string): boolean {
     if (!obj || typeof obj !== 'object') {
       return false;
     }
 
-    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
-    return typeName === 'CODE_PHRASE' || typeName === 'DV_CODED_TEXT';
+    const typeName = knownTypeName || TypeRegistry.getTypeNameFromInstance(obj);
+
+    return typeName === 'CODE_PHRASE' ||
+      typeName === 'DV_CODED_TEXT' ||
+      typeName === 'DV_TEXT' ||
+      typeName === 'ARCHETYPE_ID' ||
+      typeName === 'TEMPLATE_ID' ||
+      typeName === 'TERMINOLOGY_ID' ||
+      typeName === 'OBJECT_VERSION_ID';
   }
 
   /**
    * Convert object to terse format string
    */
-  private toTerseFormat(obj: any): string {
-    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+  private toTerseFormat(obj: any, knownTypeName?: string): string {
+    const typeName = knownTypeName || TypeRegistry.getTypeNameFromInstance(obj);
 
     if (typeName === 'CODE_PHRASE') {
       return toTerseCodePhrase(obj);
@@ -592,6 +622,16 @@ export class YamlSerializer {
 
     if (typeName === 'DV_CODED_TEXT') {
       return toTerseDvCodedText(obj);
+    }
+
+    // Simple wrappers just become their value
+    // TODO: Developer comment: Not sure we actually want this, it likely breaks standard and deserialisation
+    if (typeName === 'DV_TEXT' ||
+      typeName === 'ARCHETYPE_ID' ||
+      typeName === 'TEMPLATE_ID' ||
+      typeName === 'TERMINOLOGY_ID' ||
+      typeName === 'OBJECT_VERSION_ID') {
+      return obj.value;
     }
 
     throw new SerializationError(`Cannot convert ${typeName} to terse format`, obj);

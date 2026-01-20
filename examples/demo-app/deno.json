@@ -1,7 +1,7 @@
 {
     "tasks": {
         "build": "deno run -A scripts/build.ts",
-        "dev": "deno run -A scripts/build.ts --watch"
+        "dev": "deno run -A scripts/dev-server.ts"
     },
     "compilerOptions": {
         "lib": [
