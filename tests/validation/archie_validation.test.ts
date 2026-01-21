@@ -428,8 +428,3 @@ Deno.test("Archie-Inspired - Boolean Constraint Validation", () => {
   assertEquals(invalidResult.valid, false, "false should be invalid when false_valid=false");
   assertEquals(invalidResult.errors[0].constraintType, "boolean");
 });
-
-console.log("\n✅ Archie-Inspired Validation Tests");
-console.log("Test patterns inspired by openEHR Archie's validation framework");
-console.log("Source: https://github.com/openEHR/archie");
-console.log("License: Apache License 2.0\n");

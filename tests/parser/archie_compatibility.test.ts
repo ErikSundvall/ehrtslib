@@ -70,7 +70,7 @@ Deno.test("Archie Compatibility - Primitive Types", async () => {
   // - integer_attr1 through integer_attr12 (integer constraints with ranges)
   // - real_attr1 through real_attr12 (real constraints with ranges)
   // - date/time/datetime constraints
-  console.log(`Parsed ${result.archetype.definition.attributes?.length || 0} attributes from primitive types archetype`);
+  // Note: Archetype contains numerous primitive constraint attributes
 });
 
 Deno.test("Archie Compatibility - Assumed Values", async () => {
@@ -241,8 +241,3 @@ Deno.test("Archie Compatibility - ODIN Lists", () => {
   assertEquals(result.values.length, 3);
   assertEquals(result.values[0], 1.5);
 });
-
-console.log("\n✅ Archie Compatibility Tests");
-console.log("These tests validate compatibility with openEHR Archie project");
-console.log("Source: https://github.com/openEHR/archie");
-console.log("License: Apache License 2.0\n");
