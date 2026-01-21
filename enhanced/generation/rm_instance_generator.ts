@@ -145,7 +145,7 @@ export class RMInstanceGenerator {
     
     // Second, add mandatory RM attributes not in template (if enabled)
     if (this.config.includeMandatoryRMAttributes) {
-      this.addMandatoryRMAttributes(instance, cObject.rm_type_name || "", generatedAttributes);
+      this.addMandatoryRMAttributes(instance, cObject.rm_type_name || "", generatedAttributes, cObject.node_id);
     }
   }
   
@@ -157,7 +157,8 @@ export class RMInstanceGenerator {
   private addMandatoryRMAttributes(
     instance: any,
     rmTypeName: string,
-    generatedAttributes: Set<string>
+    generatedAttributes: Set<string>,
+    nodeId?: string
   ): void {
     const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES[rmTypeName] || [];
     
@@ -172,7 +173,7 @@ export class RMInstanceGenerator {
       }
       
       // Generate default value for mandatory attribute
-      instance[attrName] = this.generateDefaultValue(rmTypeName, attrName);
+      instance[attrName] = this.generateDefaultValue(rmTypeName, attrName, nodeId);
     }
   }
   
@@ -191,7 +192,7 @@ export class RMInstanceGenerator {
   /**
    * Generate default value for mandatory attribute
    */
-  private generateDefaultValue(rmTypeName: string, attrName: string): any {
+  private generateDefaultValue(rmTypeName: string, attrName: string, nodeId?: string): any {
     // Attribute-specific defaults
     switch (`${rmTypeName}.${attrName}`) {
       case "COMPOSITION.language":
@@ -238,16 +239,25 @@ export class RMInstanceGenerator {
       case "INTERVAL_EVENT.math_function":
         return {
           _type: "DV_CODED_TEXT",
-          value: "mean",
+          value: "actual",
           defining_code: {
             _type: "CODE_PHRASE",
             terminology_id: { value: "openehr" },
-            code_string: "146"
+            code_string: "640"
           }
         };
       
       case "LOCATABLE.archetype_node_id":
-        return "at0000";  // Generic node ID
+        // archetype_node_id MUST come from the template/archetype C_OBJECT
+        // We cannot make it up
+        if (!nodeId) {
+          throw new Error(
+            `Cannot generate archetype_node_id for ${rmTypeName}: ` +
+            `node_id must be provided from the template/archetype C_OBJECT. ` +
+            `This is a mandatory RM attribute that cannot be fabricated.`
+          );
+        }
+        return nodeId;
       
       case "LOCATABLE.name":
       case "EVENT.name":
