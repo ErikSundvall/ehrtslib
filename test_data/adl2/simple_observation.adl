@@ -1,0 +1,72 @@
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.simple_test.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    original_author = <
+        ["name"] = <"Test Author">
+        ["email"] = <"test@example.com">
+    >
+    lifecycle_state = <"unmanaged">
+    details = <
+        ["en"] = <
+            language = <[ISO_639-1::en]>
+            purpose = <"A simple test archetype for parser development.">
+            keywords = <"test", "example", "simple">
+        >
+    >
+
+definition
+    OBSERVATION[id1] matches {
+        data matches {
+            HISTORY[id2] matches {
+                events cardinality matches {1..*} matches {
+                    EVENT[id3] occurrences matches {1..*} matches {
+                        data matches {
+                            ITEM_TREE[id4] matches {
+                                items cardinality matches {0..*} matches {
+                                    ELEMENT[id5] occurrences matches {0..1} matches {
+                                        value matches {
+                                            DV_TEXT[id6]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = <
+                text = <"Simple Observation">
+                description = <"Root observation node.">
+            >
+            ["id2"] = <
+                text = <"History">
+                description = <"History of events.">
+            >
+            ["id3"] = <
+                text = <"Any Event">
+                description = <"Default, unspecified event.">
+            >
+            ["id4"] = <
+                text = <"Tree">
+                description = <"Tree structure for data.">
+            >
+            ["id5"] = <
+                text = <"Test Element">
+                description = <"A simple test element.">
+            >
+            ["id6"] = <
+                text = <"Test Value">
+                description = <"The test value.">
+            >
+        >
+    >
