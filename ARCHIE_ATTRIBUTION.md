@@ -69,15 +69,6 @@ While inspired by Archie, ehrtslib includes:
 3. **Additional Validators:** Extended validation capabilities beyond Archie's scope
 4. **Integration with ehrtslib:** Designed to work with ehrtslib's existing type system and serialization
 
-## Honesty in Attribution
-
-We acknowledge that:
-
-1. **Archie is the reference implementation:** Archie is the official Java-based openEHR library maintained by the openEHR Foundation
-2. **Test data is sourced from Archie:** The ADL2 test files are copied directly from Archie's test suite
-3. **Test patterns are inspired by Archie:** Our test structure and validation patterns follow Archie's proven approach
-4. **We aim for compatibility:** ehrtslib strives to be compatible with Archie and the broader openEHR ecosystem
-
 ## License Compliance
 
 Both Archie and ehrtslib use the **Apache License 2.0**, ensuring full compatibility. All adapted code and test data includes proper attribution to the original openEHR project and Archie contributors.
@@ -109,9 +100,3 @@ For questions about attribution or compatibility between ehrtslib and Archie:
 - **ehrtslib:** https://github.com/ErikSundvall/ehrtslib
 - **Archie:** https://github.com/openEHR/archie
 - **openEHR:** https://www.openehr.org/contact
-
-## Updates
-
-This attribution will be kept up-to-date as more test data or patterns are adapted from Archie.
-
-**Last Updated:** 2026-01-21

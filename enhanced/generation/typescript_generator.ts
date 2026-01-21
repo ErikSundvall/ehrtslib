@@ -3,9 +3,40 @@
  * 
  * Generates TypeScript code from operational templates/archetypes.
  * Following PRD G-2.1: Uses natural language names from template terminology.
+ * 
+ * Includes mandatory RM attributes even if not explicitly constrained in the template.
+ * Reference: openEHR RM specification
  */
 
 import * as openehr_am from "../openehr_am.ts";
+
+/**
+ * Mandatory RM attributes per type (from RM specification)
+ */
+const MANDATORY_RM_ATTRIBUTES: Record<string, Array<{name: string, type: string}>> = {
+  "COMPOSITION": [
+    { name: "language", type: "CODE_PHRASE" },
+    { name: "territory", type: "CODE_PHRASE" },
+    { name: "category", type: "DV_CODED_TEXT" },
+    { name: "composer", type: "PARTY_PROXY" },
+  ],
+  "OBSERVATION": [
+    { name: "data", type: "HISTORY<ITEM_STRUCTURE>" },
+  ],
+  "INSTRUCTION": [
+    { name: "narrative", type: "DV_TEXT" },
+  ],
+  "ACTION": [
+    { name: "time", type: "DV_DATE_TIME" },
+  ],
+  "HISTORY": [
+    { name: "origin", type: "DV_DATE_TIME" },
+  ],
+  "LOCATABLE": [
+    { name: "archetype_node_id", type: "string" },
+    { name: "name", type: "DV_TEXT" },
+  ],
+};
 
 /**
  * Generator configuration
@@ -15,6 +46,7 @@ export interface TypeScriptGeneratorConfig {
   includeValidation?: boolean; // Include validation logic
   maxChoices?: number;         // Max choices to list in JSDoc (default: 10)
   terseStyle?: boolean;        // Use terse/compact style
+  includeMandatoryRMAttributes?: boolean; // Include mandatory RM attributes (NEW)
 }
 
 /**
@@ -30,6 +62,7 @@ export class TypeScriptGenerator {
       includeValidation: true,
       maxChoices: 10,
       terseStyle: true,
+      includeMandatoryRMAttributes: true,  // Default: include mandatory attributes
       ...config,
     };
   }
@@ -56,20 +89,75 @@ export class TypeScriptGenerator {
   
   private generateInterface(cObject: openehr_am.C_COMPLEX_OBJECT): string {
     const typeName = this.getTypeName(cObject);
+    const rmTypeName = cObject.rm_type_name || "";
     let code = `/**\n`;
     code += ` * ${this.getDescription(cObject)}\n`;
     code += ` */\n`;
     code += `export interface ${typeName} {\n`;
     
-    // Generate properties
+    // Track which attributes we've generated
+    const generatedAttributes = new Set<string>();
+    
+    // Generate properties from template constraints
     if (cObject.attributes) {
       for (const attr of cObject.attributes) {
         code += this.generateProperty(attr);
+        if (attr.rm_attribute_name) {
+          generatedAttributes.add(attr.rm_attribute_name);
+        }
       }
+    }
+    
+    // Add mandatory RM attributes not in template (if enabled)
+    if (this.config.includeMandatoryRMAttributes) {
+      code += this.generateMandatoryRMAttributes(rmTypeName, generatedAttributes);
     }
     
     code += "}\n";
     return code;
+  }
+  
+  /**
+   * Generate TypeScript properties for mandatory RM attributes not in template
+   */
+  private generateMandatoryRMAttributes(
+    rmTypeName: string,
+    generatedAttributes: Set<string>
+  ): string {
+    let code = "";
+    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES[rmTypeName] || [];
+    
+    // Also check LOCATABLE parent class
+    if (this.isLocatableDescendant(rmTypeName)) {
+      for (const attr of MANDATORY_RM_ATTRIBUTES["LOCATABLE"] || []) {
+        if (!mandatoryAttrs.some(a => a.name === attr.name)) {
+          mandatoryAttrs.push(attr);
+        }
+      }
+    }
+    
+    for (const attr of mandatoryAttrs) {
+      if (generatedAttributes.has(attr.name)) {
+        continue;  // Already generated from template
+      }
+      
+      code += `  /** ${attr.name} (RM mandatory) */\n`;
+      code += `  ${attr.name}: ${attr.type};\n`;
+    }
+    
+    return code;
+  }
+  
+  /**
+   * Check if a type descends from LOCATABLE
+   */
+  private isLocatableDescendant(rmTypeName: string): boolean {
+    const locatableTypes = [
+      "COMPOSITION", "SECTION", "OBSERVATION", "EVALUATION", "INSTRUCTION", "ACTION",
+      "ADMIN_ENTRY", "CLUSTER", "ELEMENT", "ITEM_TREE", "ITEM_LIST", "ITEM_TABLE",
+      "ITEM_SINGLE", "HISTORY", "EVENT", "POINT_EVENT", "INTERVAL_EVENT",
+    ];
+    return locatableTypes.includes(rmTypeName);
   }
   
   private generateProperty(cAttribute: openehr_am.C_ATTRIBUTE): string {

@@ -4,58 +4,201 @@
  * Validates instances against openEHR Reference Model specification constraints.
  * These are constraints defined in the RM specification itself, not in archetypes.
  * 
- * Examples:
- * - COMPOSITION.category must be from openEHR terminology (431|persistent| or 433|event|)
- * - OBSERVATION.history must contain at least one EVENT
- * - Specific terminology_id values for certain coded text fields
+ * References:
+ * - openEHR RM Specification: https://specifications.openehr.org/releases/RM/latest/
+ * - openEHR Terminology: https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html
+ * - Archie implementation: https://github.com/openEHR/archie
  */
 
 import type { ValidationMessage } from "./template_validator.ts";
 
 /**
  * RM specification constraints knowledge base
+ * 
+ * Based on openEHR RM specification and internal terminology.
+ * Sources: Archie's RMObjectValidator, openEHR terminology XML files
  */
 const RM_CONSTRAINTS = {
-  // COMPOSITION.category must be from specific code list
+  // COMPOSITION.category - RM 1.1.0 Section 5.1.2
+  // https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class
   "COMPOSITION.category": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
-    allowed_codes: ["431", "433"],  // persistent, event
+    allowed_codes: ["431", "433", "451"],  // persistent, event, episodic
     code_meanings: {
       "431": "persistent",
       "433": "event",
+      "451": "episodic",
     },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
   
-  // EVENT_CONTEXT.setting must be from specific code list (ISM 229)
+  // EVENT_CONTEXT.setting - RM 1.1.0 Section 5.1.3
+  // https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class
   "EVENT_CONTEXT.setting": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
-    allowed_codes: ["229", "230", "231", "232", "233", "234", "235", "236", "237", "238"],
+    allowed_codes: ["225", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "802"],
     code_meanings: {
-      "229": "home",
-      "230": "emergency care",
-      "231": "primary medical care",
-      // ... etc
+      "225": "home",
+      "227": "emergency care",
+      "228": "primary medical care",
+      "229": "primary nursing care",
+      "230": "primary allied health care",
+      "231": "midwifery care",
+      "232": "secondary medical care",
+      "233": "secondary nursing care",
+      "234": "secondary allied health care",
+      "235": "complementary health care",
+      "236": "dental care",
+      "237": "nursing home care",
+      "238": "other care",
+      "802": "mental healthcare",
     },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class",
   },
   
-  // INSTRUCTION.narrative must be present
-  "INSTRUCTION.narrative": {
+  // DV_ORDERED.normal_status - RM 1.1.0 Section 8.2.1
+  // https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class
+  "DV_ORDERED.normal_status": {
+    type: "coded_text_value_set",
+    terminology_id: "openehr",
+    allowed_codes: ["HHH", "HH", "H", "N", "L", "LL", "LLL"],
+    code_meanings: {
+      "HHH": "critically high",
+      "HH": "very high",
+      "H": "high",
+      "N": "normal",
+      "L": "low",
+      "LL": "very low",
+      "LLL": "critically low",
+    },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class",
+  },
+  
+  // ATTESTATION.reason - RM 1.1.0 Section 10.3.2
+  // https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class
+  "ATTESTATION.reason": {
+    type: "coded_text_value_set",
+    terminology_id: "openehr",
+    allowed_codes: ["240", "648"],
+    code_meanings: {
+      "240": "signed",
+      "648": "witnessed",
+    },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class",
+  },
+  
+  // AUDIT_DETAILS.change_type - RM 1.1.0 Section 10.3.1
+  // https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class
+  "AUDIT_DETAILS.change_type": {
+    type: "coded_text_value_set",
+    terminology_id: "openehr",
+    allowed_codes: ["249", "250", "251", "252", "253", "523", "666"],
+    code_meanings: {
+      "249": "creation",
+      "250": "amendment",
+      "251": "modification",
+      "252": "synthesis",
+      "253": "unknown",
+      "523": "deleted",
+      "666": "attestation",
+    },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class",
+  },
+  
+  // INTERVAL_EVENT.math_function - RM 1.1.0 Section 4.5.3
+  // https://specifications.openehr.org/releases/RM/latest/data_structures.html#_interval_event_class
+  "INTERVAL_EVENT.math_function": {
+    type: "coded_text_value_set",
+    terminology_id: "openehr",
+    allowed_codes: ["144", "145", "146", "147", "148", "149", "267", "268", "521", "522", "640"],
+    code_meanings: {
+      "144": "maximum",
+      "145": "minimum",
+      "146": "mean",
+      "147": "change",
+      "148": "total",
+      "149": "variation",
+      "267": "mode",
+      "268": "median",
+      "521": "decrease",
+      "522": "increase",
+      "640": "actual",
+    },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_interval_event_class",
+  },
+  
+  // ISM_TRANSITION.current_state - RM 1.1.0 Section 7.3.2
+  // https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class
+  "ISM_TRANSITION.current_state": {
+    type: "coded_text_value_set",
+    terminology_id: "openehr",
+    // Instruction state machine codes (524-533)
+    allowed_codes: ["245", "524", "526", "527", "528", "529", "530", "531", "532", "533"],
+    code_meanings: {
+      "245": "active",
+      "524": "initial",
+      "526": "planned",
+      "527": "postponed",
+      "528": "cancelled",
+      "529": "scheduled",
+      "530": "active",
+      "531": "suspended",
+      "532": "aborted",
+      "533": "completed",
+    },
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class",
+  },
+  
+  // Required attributes
+  // COMPOSITION.language - RM 1.1.0
+  "COMPOSITION.language": {
     type: "required",
-    message: "INSTRUCTION.narrative is required by RM specification",
+    message: "COMPOSITION.language is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
   
-  // ACTION.time must be present
-  "ACTION.time": {
+  // COMPOSITION.territory - RM 1.1.0
+  "COMPOSITION.territory": {
     type: "required",
-    message: "ACTION.time is required by RM specification",
+    message: "COMPOSITION.territory is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
   
-  // OBSERVATION must have data
+  // COMPOSITION.composer - RM 1.1.0
+  "COMPOSITION.composer": {
+    type: "required",
+    message: "COMPOSITION.composer is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
+  },
+  
+  // OBSERVATION.data - RM 1.1.0
   "OBSERVATION.data": {
     type: "required",
     message: "OBSERVATION.data is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class",
+  },
+  
+  // INSTRUCTION.narrative - RM 1.1.0
+  "INSTRUCTION.narrative": {
+    type: "required",
+    message: "INSTRUCTION.narrative is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class",
+  },
+  
+  // ACTION.time - RM 1.1.0
+  "ACTION.time": {
+    type: "required",
+    message: "ACTION.time is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_action_class",
+  },
+  
+  // HISTORY.origin - RM 1.1.0
+  "HISTORY.origin": {
+    type: "required",
+    message: "HISTORY.origin is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_history_class",
   },
 };
 
@@ -131,7 +274,7 @@ export class RMSpecificationValidator {
     
     // Handle terse string format: "terminology::code|value|"
     if (typeof rmValue === 'string') {
-      const match = rmValue.match(/^([^:]+)::(\d+)\|?([^|]*)?\|?$/);
+      const match = rmValue.match(/^([^:]+)::(\w+)\|?([^|]*)?\|?$/);
       if (match) {
         const [, terminology, code] = match;
         this.checkCodeValue(terminology, code, constraint, path, messages);
@@ -178,9 +321,11 @@ export class RMSpecificationValidator {
         return meaning ? `${c}|${meaning}|` : c;
       }).join(", ");
       
+      const specRef = constraint.spec_ref ? ` (see ${constraint.spec_ref})` : "";
+      
       messages.push({
         path,
-        message: `Code "${code}" not allowed by RM specification. Allowed values: ${allowedList}`,
+        message: `Code "${code}" not allowed by RM specification. Allowed values: ${allowedList}${specRef}`,
         severity: "error",
         constraintType: "rm_specification",
       });
@@ -200,7 +345,7 @@ export class RMSpecificationValidator {
     if (codedText.defining_code) {
       if (typeof codedText.defining_code === 'string') {
         // Terse format
-        const match = codedText.defining_code.match(/::(\d+)/);
+        const match = codedText.defining_code.match(/::(\w+)/);
         return match ? match[1] : null;
       }
       if (codedText.defining_code.code_string) {
