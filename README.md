@@ -1,5 +1,7 @@
 # ehrtslib (Electronic Health Record TypeScript Library)
 
+[Experimental website](https://eriksundvall.github.io/ehrtslib)
+
 TypeScript library for (to begin with) openEHR. Intended for (partial) use both
 in clients like web browsers or in servers based on e.g. Deno or Node.js. The
 library is big and detailed, so developers using it are assumed to be importing
