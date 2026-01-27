@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archetype & Validation Demo - Ehrtslib</title>
+    <title>ehrtslib Demo - Format Conversion & Archetype Validation</title>
     <link rel="stylesheet" href="shared-medical.css">
     <style>
         /* Page-specific styles for archetype demo */
@@ -130,27 +130,38 @@
             border-color: var(--med-text-primary);
             box-shadow: 0 0 10px rgba(182, 208, 135, 0.2);
         }
+
+        /* Iframe for format converter */
+        .converter-iframe {
+            width: 100%;
+            height: calc(100vh - 200px);
+            border: none;
+            background: var(--med-bg-panel);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Archetype & Validation Demo</h1>
-            <p>ADL2 parsing, validation, and code generation</p>
-            <div class="demo-links">
-                <a href="index.html" class="demo-link">Back to Format Converter</a>
-            </div>
+            <h1>ehrtslib Demo</h1>
+            <p>Format conversion, ADL2 parsing, validation, and code generation</p>
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('parsing')">ADL2 Parsing</button>
+            <button class="tab active" onclick="showTab('conversion')">Format Conversion</button>
+            <button class="tab" onclick="showTab('parsing')">ADL2 Parsing</button>
             <button class="tab" onclick="showTab('validation')">Validation</button>
             <button class="tab" onclick="showTab('generation')">Code Generation</button>
             <button class="tab" onclick="showTab('examples')">Examples</button>
         </div>
 
+        <!-- Format Conversion Tab -->
+        <div id="conversion" class="tab-content active">
+            <iframe src="converter.html" class="converter-iframe" title="Format Converter"></iframe>
+        </div>
+
         <!-- ADL2 Parsing Tab -->
-        <div id="parsing" class="tab-content active">
+        <div id="parsing" class="tab-content">
             <div class="demo-section">
                 <h2>ADL2 Parser</h2>
                 <p>Parse ADL2 archetype files into Archetype Object Model (AOM) structures.</p>
