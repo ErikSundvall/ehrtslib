@@ -1,34 +1,167 @@
 /* ==========================================
-   CSS Variables and Color Scheme
+   ehrtslib Format Converter - Unified Styles
+   Medical Monitoring Theme
    ========================================== */
+
+/* CSS Variables */
 :root {
-    /* Use medical monitoring theme from shared-medical.css */
-    /* Keep spacing and layout variables */
+    /* Medical Monitoring Color Scheme */
+    --med-bg-dark: #12150C;
+    --med-bg-panel: #1A1D14;
+    --med-bg-darker: #0E100A;
+    --med-border: #3A4D34;
+    --med-border-light: #4A5D44;
+    --med-text-primary: #B6D087;
+    --med-text-secondary: #9DB872;
+    --med-text-muted: #7A8D5C;
     
-    /* Spacing */
+    /* Alert/Warning Colors */
+    --med-warning: #C89A5C;
+    --med-warning-bg: #1A1814;
+    --med-warning-border: #3A3524;
+    --med-error: #E89B9B;
+    --med-error-bg: #1A1008;
+    --med-error-border: #3A2D24;
+    --med-success-bg: #0E150A;
+    --med-success-border: #3A4D24;
+    
+    /* Spacing and Layout */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
-
+    
     /* Border Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
-
+    --border-radius: 8px;
+    --border-radius-sm: 5px;
+    --border-radius-lg: 15px;
+    
     /* Font Families */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    
+    /* Transitions */
+    --transition-speed: 0.3s;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+    
+    /* Alias variables for compatibility */
+    --bg-primary: var(--med-bg-panel);
+    --bg-secondary: var(--med-bg-darker);
+    --bg-tertiary: var(--med-bg-dark);
+    --bg-code: var(--med-bg-darker);
+    --text-primary: var(--med-text-primary);
+    --text-secondary: var(--med-text-secondary);
+    --text-muted: var(--med-text-muted);
+    --text-code: var(--med-text-primary);
+    --border-light: var(--med-border);
+    --border-medium: var(--med-border-light);
+    --border-dark: var(--med-text-muted);
+    --primary-color: var(--med-text-primary);
+    --primary-hover: var(--med-text-secondary);
+    --primary-active: var(--med-text-muted);
+    --secondary-color: var(--med-bg-panel);
+    --secondary-hover: var(--med-border);
+    --success-color: var(--med-text-primary);
+    --error-color: var(--med-error);
+}
+
+/* Material Icons - Loaded via Google Fonts CDN */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    vertical-align: middle;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Icon sizes for different contexts */
+.panel-header h2 .material-icons {
+    font-size: 24px;
+    margin-right: 0.5rem;
+}
+
+.btn .material-icons {
+    font-size: 18px;
+    margin-right: 0.25rem;
+}
+
+.app-header h1 .material-icons {
+    font-size: 36px;
+    vertical-align: middle;
+    margin-right: 0.5rem;
 }
 
 /* ==========================================
-   Global Styles - Extended from shared-medical.css
+   Global Styles
    ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    background: var(--med-bg-dark);
+    color: var(--med-text-primary);
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
 
 /* ==========================================
-   Header Styles - Now using shared medical theme
+   Header Styles
    ========================================== */
+.app-header {
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    padding: var(--spacing-xl) var(--spacing-lg);
+    text-align: center;
+    border-bottom: 2px solid var(--med-border);
+}
+
+.app-header .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.app-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--med-text-primary);
+}
+
+.app-header .subtitle {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--med-text-secondary);
+}
+
+.app-header .description {
+    font-size: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--med-text-muted);
+}
 
 /* ==========================================
    Main Content Layout
@@ -36,22 +169,27 @@
 .main-content {
     flex: 1;
     width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
     padding: var(--spacing-lg);
     display: flex;
     flex-direction: row;
     align-items: stretch;
     gap: 0;
-    /* Handled by splitter */
     height: calc(100vh - 300px);
-    /* Fill available vertical space */
     min-height: 500px;
 }
 
-.main-content>.panel.input-panel,
-.main-content>.panel.output-panel {
+.main-content > .panel.input-panel,
+.main-content > .panel.output-panel {
     flex: 1;
     min-width: 200px;
-    /* Minimum width constraint */
+}
+
+.main-content > .panel.options-panel {
+    width: 380px;
+    flex: 0 0 380px;
+    margin: 0 var(--spacing-sm);
 }
 
 /* Splitter */
@@ -69,36 +207,12 @@
     background-color: var(--primary-color);
 }
 
-/* Options panel (make it a modal or sidebar? For now, keep it in flow or move it? 
-   Request says "input and output panes expand". Options might be best as side/collapsible.
-   For simplicity, let's keep it in the middle but maybe as a vertical strip or make it collapsible?
-   The user request implies: "make the input and output panes expand to fill the available space"
-   and "resizable".
-   Current layout: Input | Options | Output.
-   Let's keep 3 columns but make them resizable.
-   Or move options to a sidebar/modal.
-   Let's stick to 3 columns for now but enable resizing for all?
-   Or just Input vs Output.
-   Let's try to make Input and Output the main actors.
-   Maybe move Options to a collapsible drawer or bottom?
-   Let's assume the user wants the 3-column layout to be resizable.
-*/
-
-.main-content>.panel.options-panel {
-    width: 380px;
-    flex: 0 0 380px;
-    /* Fixed width initially */
-    margin: 0 var(--spacing-sm);
-}
-
 /* Make textareas fill height */
 .input-textarea {
     flex: 1;
     height: 100% !important;
     min-height: 0 !important;
-    /* Allow shrinking */
     resize: none !important;
-    /* Disable native resize */
 }
 
 .output-content {
@@ -134,6 +248,9 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 .panel-body {
@@ -250,16 +367,7 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.input-info {
-    display: flex;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-}
-
+.input-info,
 .output-info {
     display: flex;
     gap: var(--spacing-lg);
@@ -667,6 +775,9 @@
     justify-content: center;
     gap: var(--spacing-xs);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    border: 2px solid var(--med-border);
 }
 
 .btn:focus {
@@ -676,11 +787,13 @@
 
 .btn-primary {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--med-bg-dark);
+    border-color: var(--primary-color);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
 }
@@ -797,7 +910,6 @@
 
     .tooltip {
         display: none !important;
-        /* Hide tooltips on smaller screens */
     }
 }
 
@@ -891,30 +1003,4 @@
         --border-light: #000000;
         --border-medium: #000000;
     }
-}
-/* Demo links in header */
-.demo-links {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.demo-link {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: var(--secondary-color);
-    color: white;
-    text-decoration: none;
-    border-radius: var(--border-radius);
-    font-weight: 500;
-    transition: all var(--transition-speed);
-    border: 2px solid transparent;
-}
-
-.demo-link:hover {
-    background-color: var(--secondary-hover);
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }

@@ -7,6 +7,7 @@
     <meta name="description"
         content="ehrtslib Format Converter - Demo application showcasing serialization/deserialization between XML, JSON, YAML, and TypeScript code generation">
     <title>ehrtslib Format Converter - Demo</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -14,7 +15,7 @@
     <!-- Header Section -->
     <header class="app-header">
         <div class="header-content">
-            <h1>🔄 ehrtslib Format Converter</h1>
+            <h1><span class="material-icons">sync</span> ehrtslib Format Converter</h1>
             <p class="subtitle">Convert between XML, JSON, YAML formats and generate TypeScript initialization code</p>
             <p class="description">
                 This demo demonstrates ehrtslib's serialization and deserialization capabilities.
@@ -29,7 +30,7 @@
         <!-- Input Panel -->
         <section class="panel input-panel">
             <div class="panel-header">
-                <h2>📥 Input</h2>
+                <h2><span class="material-icons">input</span> Input</h2>
                 <div class="format-selector">
                     <label for="input-format">Format:</label>
                     <select id="input-format" class="format-dropdown">
@@ -44,7 +45,7 @@
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <button class="btn btn-secondary" id="load-example">
-                            📂 Load Example
+                            <span class="material-icons">folder_open</span> Load Example
                         </button>
                         <div class="example-menu hidden" id="example-menu">
                             <button class="example-item" data-example="dv-text">Simple DV_TEXT</button>
@@ -56,16 +57,16 @@
                                 Composition</button>
                         </div>
                         <button class="btn btn-secondary" id="upload-file">
-                            📤 Upload File
+                            <span class="material-icons">upload</span> Upload File
                         </button>
                         <input type="file" id="file-input" accept=".xml,.json,.yaml,.yml" class="hidden">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn btn-secondary" id="clear-input">
-                            🗑️ Clear
+                            <span class="material-icons">delete</span> Clear
                         </button>
                         <button class="btn btn-primary" id="convert-btn">
-                            ► Convert
+                            <span class="material-icons">play_arrow</span> Convert
                         </button>
                     </div>
                 </div>
@@ -132,7 +133,7 @@
         <!-- Options Panel -->
         <section class="panel options-panel">
             <div class="panel-header">
-                <h2>⚙️ Options</h2>
+                <h2><span class="material-icons">settings</span> Options</h2>
             </div>
 
             <div class="panel-body">
@@ -411,7 +412,7 @@
         <!-- Output Panel -->
         <section class="panel output-panel">
             <div class="panel-header">
-                <h2>📤 Output formats</h2>
+                <h2><span class="material-icons">upload</span> Output formats</h2>
                 <div id="output-tab-enable-section">
                     <div class="checkbox-group-horizontal">
                         <label class="checkbox-label">
@@ -452,10 +453,10 @@
                     <div class="tab-pane active" id="tab-json">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-json">
-                                📋 Copy
+                                <span class="material-icons">content_copy</span> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-json">
-                                💾 Download
+                                <span class="material-icons">save</span> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-json-content">{
@@ -471,10 +472,10 @@
                     <div class="tab-pane" id="tab-yaml">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-yaml">
-                                📋 Copy
+                                <span class="material-icons">content_copy</span> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-yaml">
-                                💾 Download
+                                <span class="material-icons">save</span> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-yaml-content">_type: COMPOSITION
@@ -508,10 +509,10 @@ content:
                     <div class="tab-pane" id="tab-typescript">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-typescript">
-                                📋 Copy
+                                <span class="material-icons">content_copy</span> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-typescript">
-                                💾 Download
+                                <span class="material-icons">save</span> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-typescript-content">import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
@@ -562,10 +563,10 @@ console.log(json);</pre>
                     <div class="tab-pane" id="tab-xml">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-xml">
-                                📋 Copy
+                                <span class="material-icons">content_copy</span> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-xml">
-                                💾 Download
+                                <span class="material-icons">save</span> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
