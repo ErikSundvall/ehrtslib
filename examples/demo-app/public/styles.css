@@ -323,7 +323,6 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--med-border);
     margin-bottom: var(--spacing-md);
-    border-bottom: none;
 }
 
 .option-section.collapsible .section-header {
