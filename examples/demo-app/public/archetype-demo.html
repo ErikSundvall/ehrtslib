@@ -3,79 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archetype & Validation Demo - Ehrtslib</title>
+    <title>ehrtslib Demo - Format Conversion & Archetype Validation</title>
+    <link rel="stylesheet" href="shared-medical.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2563eb 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .tabs {
-            display: flex;
-            background: #f1f5f9;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #64748b;
-            transition: all 0.3s;
-        }
-
-        .tab:hover {
-            background: #e2e8f0;
-        }
-
-        .tab.active {
-            background: white;
-            color: #2563eb;
-            border-bottom: 3px solid #2563eb;
-        }
-
+        /* Page-specific styles for archetype demo */
         .tab-content {
             padding: 30px;
             display: none;
+            background: var(--med-bg-panel);
+            color: var(--med-text-primary);
         }
 
         .tab-content.active {
@@ -87,13 +23,13 @@
         }
 
         .demo-section h2 {
-            color: #2563eb;
+            color: var(--med-text-primary);
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
 
         .demo-section h3 {
-            color: #475569;
+            color: var(--med-text-secondary);
             margin: 20px 0 10px 0;
             font-size: 1.2rem;
         }
@@ -106,95 +42,17 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #334155;
+            color: var(--med-text-primary);
         }
 
         textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 5px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 13px;
             min-height: 200px;
-            resize: vertical;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
         }
 
         .button-group {
             display: flex;
             gap: 10px;
             margin: 20px 0;
-        }
-
-        button {
-            padding: 12px 24px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-        }
-
-        button.secondary {
-            background: #64748b;
-        }
-
-        button.secondary:hover {
-            background: #475569;
-        }
-
-        .output {
-            background: #1e293b;
-            color: #e2e8f0;
-            padding: 20px;
-            border-radius: 5px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .output.error {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 2px solid #fecaca;
-        }
-
-        .output.success {
-            background: #f0fdf4;
-            color: #166534;
-            border: 2px solid #bbf7d0;
-        }
-
-        .info-box {
-            background: #dbeafe;
-            border-left: 4px solid #2563eb;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .warning-box {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
         }
 
         .feature-grid {
@@ -205,14 +63,15 @@
         }
 
         .feature-card {
-            background: #f8fafc;
-            border-left: 4px solid #2563eb;
+            background: var(--med-bg-panel);
+            border: 2px solid var(--med-border);
+            border-left: 4px solid var(--med-text-primary);
             padding: 20px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
         }
 
         .feature-card h4 {
-            color: #2563eb;
+            color: var(--med-text-primary);
             margin-bottom: 10px;
         }
 
@@ -223,7 +82,7 @@
 
         .feature-card li::before {
             content: "✓ ";
-            color: #10b981;
+            color: var(--med-text-primary);
             font-weight: bold;
             margin-right: 8px;
         }
@@ -252,40 +111,57 @@
             display: flex;
             gap: 10px;
             margin: 20px 0;
+            flex-wrap: wrap;
         }
 
         .example-links a {
-            color: #2563eb;
+            color: var(--med-text-primary);
             text-decoration: none;
             padding: 8px 16px;
-            border: 2px solid #2563eb;
-            border-radius: 5px;
+            border: 2px solid var(--med-border);
+            border-radius: var(--border-radius);
             font-size: 0.9rem;
-            transition: all 0.3s;
+            transition: all var(--transition-speed);
+            background: var(--med-bg-panel);
         }
 
         .example-links a:hover {
-            background: #2563eb;
-            color: white;
+            background: var(--med-border);
+            border-color: var(--med-text-primary);
+            box-shadow: 0 0 10px rgba(182, 208, 135, 0.2);
+        }
+
+        /* Iframe for format converter */
+        .converter-iframe {
+            width: 100%;
+            height: calc(100vh - 200px);
+            border: none;
+            background: var(--med-bg-panel);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏗️ Archetype & Validation Demo</h1>
-            <p>Interactive demonstration of ADL2 parsing, validation, and code generation</p>
+            <h1>ehrtslib Demo</h1>
+            <p>Format conversion, ADL2 parsing, validation, and code generation</p>
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('parsing')">ADL2 Parsing</button>
+            <button class="tab active" onclick="showTab('conversion')">Format Conversion</button>
+            <button class="tab" onclick="showTab('parsing')">ADL2 Parsing</button>
             <button class="tab" onclick="showTab('validation')">Validation</button>
             <button class="tab" onclick="showTab('generation')">Code Generation</button>
             <button class="tab" onclick="showTab('examples')">Examples</button>
         </div>
 
+        <!-- Format Conversion Tab -->
+        <div id="conversion" class="tab-content active">
+            <iframe src="converter.html" class="converter-iframe" title="Format Converter"></iframe>
+        </div>
+
         <!-- ADL2 Parsing Tab -->
-        <div id="parsing" class="tab-content active">
+        <div id="parsing" class="tab-content">
             <div class="demo-section">
                 <h2>ADL2 Parser</h2>
                 <p>Parse ADL2 archetype files into Archetype Object Model (AOM) structures.</p>
@@ -501,16 +377,16 @@ terminology
 
                 <h3>Documentation Links:</h3>
                 <div class="example-links">
-                    <a href="../../../docs/archetype-validation.html">Full Documentation</a>
-                    <a href="../../../examples/archetype_template_usage.ts">Usage Examples</a>
-                    <a href="../../../enhanced/validation/">Validation Source</a>
-                    <a href="../../../enhanced/parser/">Parser Source</a>
-                    <a href="../../../README.md">Main README</a>
+                    <a href="../../docs/archetype-validation.html">Full Documentation</a>
+                    <a href="../../examples/archetype_template_usage.ts">Usage Examples</a>
+                    <a href="../../enhanced/validation/">Validation Source</a>
+                    <a href="../../enhanced/parser/">Parser Source</a>
+                    <a href="../../README.md">Main README</a>
                 </div>
 
                 <h3>Example ADL2 Files:</h3>
                 <div class="example-links">
-                    <a href="../../../test_data/adl2/simple_observation.adl">Simple Observation</a>
+                    <a href="../../test_data/adl2/simple_observation.adl">Simple Observation</a>
                     <a href="#" onclick="alert('More examples coming soon!'); return false;">Blood Pressure</a>
                     <a href="#" onclick="alert('More examples coming soon!'); return false;">Medication Order</a>
                 </div>
@@ -518,7 +394,7 @@ terminology
                 <div class="info-box" style="margin-top: 30px;">
                     <strong>📚 Learn More</strong><br>
                     For complete API documentation and advanced usage, see the
-                    <a href="../../../enhanced/validation/template_validator.ts" style="color: #2563eb;">TemplateValidator source code</a>
+                    <a href="../../enhanced/validation/template_validator.ts" style="color: #B6D087; text-decoration: underline;">TemplateValidator source code</a>
                     with inline documentation.
                 </div>
             </div>
