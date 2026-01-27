@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Format Converter</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
@@ -24,12 +23,57 @@
 <body>
     <div class="container">
 
+    <!-- SVG Icon Definitions -->
+    <svg style="display: none;" aria-hidden="true">
+        <defs>
+            <!-- Input icon -->
+            <symbol id="icon-input" viewBox="0 0 24 24">
+                <path d="M21 3.01H3c-1.1 0-2 .9-2 2V9h2V4.99h18v14.03H3V15H1v4.01c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98v-14c0-1.11-.9-2-2-2zM11 16l4-4-4-4v3H1v2h10v3z"/>
+            </symbol>
+            
+            <!-- Settings icon -->
+            <symbol id="icon-settings" viewBox="0 0 24 24">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </symbol>
+            
+            <!-- Upload icon -->
+            <symbol id="icon-upload" viewBox="0 0 24 24">
+                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </symbol>
+            
+            <!-- Folder Open icon -->
+            <symbol id="icon-folder-open" viewBox="0 0 24 24">
+                <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
+            </symbol>
+            
+            <!-- Delete icon -->
+            <symbol id="icon-delete" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </symbol>
+            
+            <!-- Play Arrow icon -->
+            <symbol id="icon-play-arrow" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </symbol>
+            
+            <!-- Content Copy icon -->
+            <symbol id="icon-content-copy" viewBox="0 0 24 24">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+            </symbol>
+            
+            <!-- Save/Download icon -->
+            <symbol id="icon-save" viewBox="0 0 24 24">
+                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+            </symbol>
+        </defs>
+    </svg>
+
     <!-- Main Content Area -->
     <main class="main-content">
         <!-- Input Panel -->
         <section class="panel input-panel">
             <div class="panel-header">
-                <h2><span class="material-icons">input</span> Input</h2>
+                <h2><svg class="icon" aria-hidden="true"><use href="#icon-input"/></svg> Input</h2>
                 <div class="format-selector">
                     <label for="input-format">Format:</label>
                     <select id="input-format" class="format-dropdown">
@@ -44,7 +88,7 @@
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <button class="btn btn-secondary" id="load-example">
-                            <span class="material-icons">folder_open</span> Load Example
+                            <svg class="icon" aria-hidden="true"><use href="#icon-folder-open"/></svg> Load Example
                         </button>
                         <div class="example-menu hidden" id="example-menu">
                             <button class="example-item" data-example="dv-text">Simple DV_TEXT</button>
@@ -56,16 +100,16 @@
                                 Composition</button>
                         </div>
                         <button class="btn btn-secondary" id="upload-file">
-                            <span class="material-icons">upload</span> Upload File
+                            <svg class="icon" aria-hidden="true"><use href="#icon-upload"/></svg> Upload File
                         </button>
                         <input type="file" id="file-input" accept=".xml,.json,.yaml,.yml" class="hidden">
                     </div>
                     <div class="toolbar-right">
                         <button class="btn btn-secondary" id="clear-input">
-                            <span class="material-icons">delete</span> Clear
+                            <svg class="icon" aria-hidden="true"><use href="#icon-delete"/></svg> Clear
                         </button>
                         <button class="btn btn-primary" id="convert-btn">
-                            <span class="material-icons">play_arrow</span> Convert
+                            <svg class="icon" aria-hidden="true"><use href="#icon-play-arrow"/></svg> Convert
                         </button>
                     </div>
                 </div>
@@ -130,7 +174,7 @@
         <!-- Options Panel -->
         <section class="panel options-panel">
             <div class="panel-header">
-                <h2><span class="material-icons">settings</span> Options</h2>
+                <h2><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg> Options</h2>
             </div>
 
             <div class="panel-body">
@@ -409,7 +453,7 @@
         <!-- Output Panel -->
         <section class="panel output-panel">
             <div class="panel-header">
-                <h2><span class="material-icons">upload</span> Output formats</h2>
+                <h2><svg class="icon" aria-hidden="true"><use href="#icon-upload"/></svg> Output formats</h2>
                 <div id="output-tab-enable-section">
                     <div class="checkbox-group-horizontal">
                         <label class="checkbox-label">
@@ -450,10 +494,10 @@
                     <div class="tab-pane active" id="tab-json">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-json">
-                                <span class="material-icons">content_copy</span> Copy
+                                <svg class="icon" aria-hidden="true"><use href="#icon-content-copy"/></svg> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-json">
-                                <span class="material-icons">save</span> Download
+                                <svg class="icon" aria-hidden="true"><use href="#icon-save"/></svg> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-json-content">{
@@ -469,10 +513,10 @@
                     <div class="tab-pane" id="tab-yaml">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-yaml">
-                                <span class="material-icons">content_copy</span> Copy
+                                <svg class="icon" aria-hidden="true"><use href="#icon-content-copy"/></svg> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-yaml">
-                                <span class="material-icons">save</span> Download
+                                <svg class="icon" aria-hidden="true"><use href="#icon-save"/></svg> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-yaml-content">_type: COMPOSITION
@@ -506,10 +550,10 @@ content:
                     <div class="tab-pane" id="tab-typescript">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-typescript">
-                                <span class="material-icons">content_copy</span> Copy
+                                <svg class="icon" aria-hidden="true"><use href="#icon-content-copy"/></svg> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-typescript">
-                                <span class="material-icons">save</span> Download
+                                <svg class="icon" aria-hidden="true"><use href="#icon-save"/></svg> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-typescript-content">import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
@@ -560,10 +604,10 @@ console.log(json);</pre>
                     <div class="tab-pane" id="tab-xml">
                         <div class="output-toolbar">
                             <button class="btn btn-secondary btn-sm" id="copy-xml">
-                                <span class="material-icons">content_copy</span> Copy
+                                <svg class="icon" aria-hidden="true"><use href="#icon-content-copy"/></svg> Copy
                             </button>
                             <button class="btn btn-secondary btn-sm" id="download-xml">
-                                <span class="material-icons">save</span> Download
+                                <svg class="icon" aria-hidden="true"><use href="#icon-save"/></svg> Download
                             </button>
                         </div>
                         <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;

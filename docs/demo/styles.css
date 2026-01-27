@@ -73,37 +73,32 @@
     --error-color: var(--med-error);
 }
 
-/* Material Icons - Loaded via Google Fonts CDN */
-.material-icons {
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
+/* SVG Icon Styles */
+.icon {
+    width: 20px;
+    height: 20px;
     display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
     vertical-align: middle;
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
+    fill: currentColor;
+    flex-shrink: 0;
 }
 
 /* Icon sizes for different contexts */
-.panel-header h2 .material-icons {
-    font-size: 24px;
+.panel-header h2 .icon {
+    width: 24px;
+    height: 24px;
     margin-right: 0.5rem;
 }
 
-.btn .material-icons {
-    font-size: 18px;
+.btn .icon {
+    width: 18px;
+    height: 18px;
     margin-right: 0.25rem;
 }
 
-.app-header h1 .material-icons {
-    font-size: 36px;
+.app-header h1 .icon-heading {
+    width: 36px;
+    height: 36px;
     vertical-align: middle;
     margin-right: 0.5rem;
 }
