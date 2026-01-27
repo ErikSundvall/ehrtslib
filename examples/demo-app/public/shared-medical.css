@@ -1,0 +1,279 @@
+/* ==========================================
+   Medical Monitoring Theme - Shared Styles
+   ========================================== */
+
+/* CSS Variables for Medical Monitoring Theme */
+:root {
+    /* Medical Monitoring Color Scheme */
+    --med-bg-dark: #12150C;
+    --med-bg-panel: #1A1D14;
+    --med-bg-darker: #0E100A;
+    --med-border: #2A2D24;
+    --med-border-light: #3A3D34;
+    --med-text-primary: #B6D087;
+    --med-text-secondary: #9DB872;
+    --med-text-muted: #7A8D5C;
+    
+    /* Alert/Warning Colors */
+    --med-warning: #C89A5C;
+    --med-warning-bg: #1A1814;
+    --med-warning-border: #3A3524;
+    --med-error: #E89B9B;
+    --med-error-bg: #1A1008;
+    --med-error-border: #3A2D24;
+    --med-success-bg: #0E150A;
+    --med-success-border: #3A4D24;
+    
+    /* Spacing and Layout */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Border Radius */
+    --border-radius: 8px;
+    --border-radius-sm: 5px;
+    --border-radius-lg: 15px;
+    
+    /* Font */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    
+    /* Transitions */
+    --transition-speed: 0.3s;
+}
+
+/* ==========================================
+   Global Styles
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    background: var(--med-bg-dark);
+    color: var(--med-text-primary);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ==========================================
+   Container/Layout
+   ========================================== */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--med-bg-panel);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border: 2px solid var(--med-border);
+}
+
+/* ==========================================
+   Header Styles
+   ========================================== */
+header {
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    padding: 20px 30px;
+    text-align: center;
+    border-bottom: 2px solid var(--med-border);
+}
+
+header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    color: var(--med-text-secondary);
+}
+
+/* Demo navigation links */
+.demo-links {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.demo-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: all var(--transition-speed);
+    border: 2px solid var(--med-border);
+    font-size: 0.85rem;
+}
+
+.demo-link:hover {
+    background: var(--med-border);
+    border-color: var(--med-text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
+}
+
+/* ==========================================
+   Button Styles
+   ========================================== */
+button {
+    padding: 12px 24px;
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    border: 2px solid var(--med-border);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all var(--transition-speed);
+}
+
+button:hover {
+    background: var(--med-border);
+    border-color: var(--med-text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
+}
+
+button.secondary {
+    background: var(--med-bg-dark);
+    border-color: var(--med-border);
+}
+
+button.secondary:hover {
+    background: var(--med-bg-panel);
+    border-color: var(--med-text-muted);
+}
+
+/* ==========================================
+   Input/Textarea Styles
+   ========================================== */
+textarea,
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--med-border);
+    border-radius: var(--border-radius);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--med-bg-darker);
+    color: var(--med-text-primary);
+    resize: vertical;
+}
+
+textarea:focus,
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--med-text-primary);
+    box-shadow: 0 0 10px rgba(182, 208, 135, 0.3);
+}
+
+/* ==========================================
+   Info/Warning/Error Boxes
+   ========================================== */
+.info-box {
+    background: var(--med-bg-panel);
+    border: 2px solid var(--med-border);
+    border-left: 4px solid var(--med-text-primary);
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: var(--border-radius);
+    color: var(--med-text-primary);
+}
+
+.warning-box {
+    background: var(--med-warning-bg);
+    border: 2px solid var(--med-warning-border);
+    border-left: 4px solid var(--med-warning);
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: var(--border-radius);
+    color: var(--med-warning);
+}
+
+/* ==========================================
+   Output/Code Display
+   ========================================== */
+.output {
+    background: var(--med-bg-darker);
+    color: var(--med-text-primary);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--med-border);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.output.error {
+    background: var(--med-error-bg);
+    color: var(--med-error);
+    border: 2px solid var(--med-error-border);
+}
+
+.output.success {
+    background: var(--med-success-bg);
+    color: var(--med-text-primary);
+    border: 2px solid var(--med-success-border);
+}
+
+/* ==========================================
+   Tabs
+   ========================================== */
+.tabs {
+    display: flex;
+    background: var(--med-bg-dark);
+    border-bottom: 2px solid var(--med-border);
+}
+
+.tab {
+    flex: 1;
+    padding: 15px 20px;
+    background: var(--med-bg-panel);
+    border: none;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--med-text-muted);
+    transition: all var(--transition-speed);
+    margin: 0 2px;
+}
+
+.tab:hover {
+    background: var(--med-border);
+    color: var(--med-text-secondary);
+}
+
+.tab.active {
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    border-bottom: 3px solid var(--med-text-primary);
+}
+
+/* ==========================================
+   Links
+   ========================================== */
+a {
+    color: var(--med-text-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

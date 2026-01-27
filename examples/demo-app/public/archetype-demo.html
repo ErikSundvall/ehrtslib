@@ -4,86 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archetype & Validation Demo - Ehrtslib</title>
+    <link rel="stylesheet" href="shared-medical.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            background: #12150C;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: #1A1D14;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-            border: 2px solid #2A2D24;
-        }
-
-        header {
-            background: #1A1D14;
-            color: #B6D087;
-            padding: 30px;
-            text-align: center;
-            border-bottom: 2px solid #2A2D24;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.8;
-            color: #9DB872;
-        }
-
-        .tabs {
-            display: flex;
-            background: #12150C;
-            border-bottom: 2px solid #2A2D24;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px 20px;
-            background: #1A1D14;
-            border: none;
-            border-radius: 8px 8px 0 0;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #7A8D5C;
-            transition: all 0.3s;
-            margin: 0 2px;
-        }
-
-        .tab:hover {
-            background: #2A2D24;
-            color: #9DB872;
-        }
-
-        .tab.active {
-            background: #1A1D14;
-            color: #B6D087;
-            border-bottom: 3px solid #B6D087;
-        }
-
+        /* Page-specific styles for archetype demo */
         .tab-content {
             padding: 30px;
             display: none;
-            background: #1A1D14;
-            color: #B6D087;
+            background: var(--med-bg-panel);
+            color: var(--med-text-primary);
         }
 
         .tab-content.active {
@@ -95,13 +23,13 @@
         }
 
         .demo-section h2 {
-            color: #B6D087;
+            color: var(--med-text-primary);
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
 
         .demo-section h3 {
-            color: #9DB872;
+            color: var(--med-text-secondary);
             margin: 20px 0 10px 0;
             font-size: 1.2rem;
         }
@@ -114,106 +42,17 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #B6D087;
+            color: var(--med-text-primary);
         }
 
         textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #2A2D24;
-            border-radius: 8px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 13px;
             min-height: 200px;
-            resize: vertical;
-            background: #0E100A;
-            color: #B6D087;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #B6D087;
-            box-shadow: 0 0 10px rgba(182, 208, 135, 0.3);
         }
 
         .button-group {
             display: flex;
             gap: 10px;
             margin: 20px 0;
-        }
-
-        button {
-            padding: 12px 24px;
-            background: #1A1D14;
-            color: #B6D087;
-            border: 2px solid #2A2D24;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            background: #2A2D24;
-            border-color: #B6D087;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
-        }
-
-        button.secondary {
-            background: #12150C;
-            border-color: #2A2D24;
-        }
-
-        button.secondary:hover {
-            background: #1A1D14;
-            border-color: #7A8D5C;
-        }
-
-        .output {
-            background: #0E100A;
-            color: #B6D087;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #2A2D24;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .output.error {
-            background: #1A1008;
-            color: #E89B9B;
-            border: 2px solid #3A2D24;
-        }
-
-        .output.success {
-            background: #0E150A;
-            color: #B6D087;
-            border: 2px solid #3A4D24;
-        }
-
-        .info-box {
-            background: #1A1D14;
-            border: 2px solid #2A2D24;
-            border-left: 4px solid #B6D087;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-            color: #B6D087;
-        }
-
-        .warning-box {
-            background: #1A1814;
-            border: 2px solid #3A3524;
-            border-left: 4px solid #C89A5C;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-            color: #C89A5C;
         }
 
         .feature-grid {
@@ -224,15 +63,15 @@
         }
 
         .feature-card {
-            background: #1A1D14;
-            border: 2px solid #2A2D24;
-            border-left: 4px solid #B6D087;
+            background: var(--med-bg-panel);
+            border: 2px solid var(--med-border);
+            border-left: 4px solid var(--med-text-primary);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
         }
 
         .feature-card h4 {
-            color: #B6D087;
+            color: var(--med-text-primary);
             margin-bottom: 10px;
         }
 
@@ -243,7 +82,7 @@
 
         .feature-card li::before {
             content: "✓ ";
-            color: #B6D087;
+            color: var(--med-text-primary);
             font-weight: bold;
             margin-right: 8px;
         }
@@ -272,60 +111,34 @@
             display: flex;
             gap: 10px;
             margin: 20px 0;
+            flex-wrap: wrap;
         }
 
         .example-links a {
-            color: #B6D087;
+            color: var(--med-text-primary);
             text-decoration: none;
             padding: 8px 16px;
-            border: 2px solid #2A2D24;
-            border-radius: 8px;
+            border: 2px solid var(--med-border);
+            border-radius: var(--border-radius);
             font-size: 0.9rem;
-            transition: all 0.3s;
-            background: #1A1D14;
+            transition: all var(--transition-speed);
+            background: var(--med-bg-panel);
         }
 
         .example-links a:hover {
-            background: #2A2D24;
-            border-color: #B6D087;
+            background: var(--med-border);
+            border-color: var(--med-text-primary);
             box-shadow: 0 0 10px rgba(182, 208, 135, 0.2);
-        }
-
-        /* Demo navigation link */
-        .demo-links {
-            margin-top: 1rem;
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        .demo-link {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: #1A1D14;
-            color: #B6D087;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
-            border: 2px solid #2A2D24;
-        }
-
-        .demo-link:hover {
-            background: #2A2D24;
-            border-color: #B6D087;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏗️ Archetype & Validation Demo</h1>
-            <p>Interactive demonstration of ADL2 parsing, validation, and code generation</p>
+            <h1>Archetype & Validation Demo</h1>
+            <p>ADL2 parsing, validation, and code generation</p>
             <div class="demo-links">
-                <a href="index.html" class="demo-link">🔄 Back to Format Converter</a>
+                <a href="index.html" class="demo-link">Back to Format Converter</a>
             </div>
         </header>
 
