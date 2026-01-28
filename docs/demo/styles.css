@@ -1,58 +1,106 @@
 /* ==========================================
-   CSS Variables and Color Scheme
+   ehrtslib Format Converter - Unified Styles
+   Medical Monitoring Theme
    ========================================== */
+
+/* CSS Variables */
 :root {
-    /* Primary Colors */
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --primary-active: #1e40af;
-
-    /* Secondary Colors */
-    --secondary-color: #64748b;
-    --secondary-hover: #475569;
-
-    /* Success/Error/Warning */
-    --success-color: #10b981;
-    --error-color: #ef4444;
-    --warning-color: #f59e0b;
-
-    /* Background Colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --bg-code: #1e293b;
-
-    /* Text Colors */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --text-code: #e2e8f0;
-
-    /* Border Colors */
-    --border-light: #e2e8f0;
-    --border-medium: #cbd5e1;
-    --border-dark: #94a3b8;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-
-    /* Spacing */
+    /* Medical Monitoring Color Scheme */
+    --med-bg-dark: #12150C;
+    --med-bg-panel: #1A1D14;
+    --med-bg-darker: #0E100A;
+    --med-border: #3A4D34;
+    --med-border-light: #4A5D44;
+    --med-text-primary: #B6D087;
+    --med-text-secondary: #9DB872;
+    --med-text-muted: #7A8D5C;
+    
+    /* Alert/Warning Colors */
+    --med-warning: #C89A5C;
+    --med-warning-bg: #1A1814;
+    --med-warning-border: #3A3524;
+    --med-error: #E89B9B;
+    --med-error-bg: #1A1008;
+    --med-error-border: #3A2D24;
+    --med-success-bg: #0E150A;
+    --med-success-border: #3A4D24;
+    
+    /* Spacing and Layout */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
-
+    
     /* Border Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
-
+    --border-radius: 8px;
+    --border-radius-sm: 5px;
+    --border-radius-lg: 15px;
+    
     /* Font Families */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    
+    /* Transitions */
+    --transition-speed: 0.3s;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+    
+    /* Alias variables for compatibility */
+    --bg-primary: var(--med-bg-panel);
+    --bg-secondary: var(--med-bg-darker);
+    --bg-tertiary: var(--med-bg-dark);
+    --bg-code: var(--med-bg-darker);
+    --text-primary: var(--med-text-primary);
+    --text-secondary: var(--med-text-secondary);
+    --text-muted: var(--med-text-muted);
+    --text-code: var(--med-text-primary);
+    --border-light: var(--med-border);
+    --border-medium: var(--med-border-light);
+    --border-dark: var(--med-text-muted);
+    --primary-color: var(--med-text-primary);
+    --primary-hover: var(--med-text-secondary);
+    --primary-active: var(--med-text-muted);
+    --secondary-color: var(--med-bg-panel);
+    --secondary-hover: var(--med-border);
+    --success-color: var(--med-text-primary);
+    --error-color: var(--med-error);
+}
+
+/* SVG Icon Styles */
+.icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* Icon sizes for different contexts */
+.panel-header h2 .icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+}
+
+.btn .icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.25rem;
+}
+
+.app-header h1 .icon-heading {
+    width: 36px;
+    height: 36px;
+    vertical-align: middle;
+    margin-right: 0.5rem;
 }
 
 /* ==========================================
@@ -66,47 +114,48 @@
 
 body {
     font-family: var(--font-sans);
-    font-size: 16px;
     line-height: 1.6;
-    color: var(--text-primary);
-    background-color: var(--bg-secondary);
+    background: var(--med-bg-dark);
+    color: var(--med-text-primary);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    padding: 0;
+    margin: 0;
 }
 
 /* ==========================================
    Header Styles
    ========================================== */
 .app-header {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    color: white;
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
     padding: var(--spacing-xl) var(--spacing-lg);
-    box-shadow: var(--shadow-md);
+    text-align: center;
+    border-bottom: 2px solid var(--med-border);
 }
 
-.header-content {
+.app-header .header-content {
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .app-header h1 {
     font-size: 2.5rem;
-    font-weight: 700;
     margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--med-text-primary);
 }
 
 .app-header .subtitle {
     font-size: 1.25rem;
-    font-weight: 500;
     margin-bottom: var(--spacing-md);
-    opacity: 0.95;
+    color: var(--med-text-secondary);
 }
 
 .app-header .description {
     font-size: 1rem;
-    opacity: 0.9;
     max-width: 800px;
+    margin: 0 auto;
+    color: var(--med-text-muted);
 }
 
 /* ==========================================
@@ -114,25 +163,28 @@ body {
    ========================================== */
 .main-content {
     flex: 1;
-    flex: 1;
     width: 100%;
-    margin: var(--spacing-md) auto;
-    padding: 0 var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
     display: flex;
     flex-direction: row;
     align-items: stretch;
     gap: 0;
-    /* Handled by splitter */
     height: calc(100vh - 300px);
-    /* Fill available vertical space */
     min-height: 500px;
 }
 
-.main-content>.panel.input-panel,
-.main-content>.panel.output-panel {
+.main-content > .panel.input-panel,
+.main-content > .panel.output-panel {
     flex: 1;
     min-width: 200px;
-    /* Minimum width constraint */
+}
+
+.main-content > .panel.options-panel {
+    width: 380px;
+    flex: 0 0 380px;
+    margin: 0 var(--spacing-sm);
 }
 
 /* Splitter */
@@ -150,36 +202,12 @@ body {
     background-color: var(--primary-color);
 }
 
-/* Options panel (make it a modal or sidebar? For now, keep it in flow or move it? 
-   Request says "input and output panes expand". Options might be best as side/collapsible.
-   For simplicity, let's keep it in the middle but maybe as a vertical strip or make it collapsible?
-   The user request implies: "make the input and output panes expand to fill the available space"
-   and "resizable".
-   Current layout: Input | Options | Output.
-   Let's keep 3 columns but make them resizable.
-   Or move options to a sidebar/modal.
-   Let's stick to 3 columns for now but enable resizing for all?
-   Or just Input vs Output.
-   Let's try to make Input and Output the main actors.
-   Maybe move Options to a collapsible drawer or bottom?
-   Let's assume the user wants the 3-column layout to be resizable.
-*/
-
-.main-content>.panel.options-panel {
-    width: 380px;
-    flex: 0 0 380px;
-    /* Fixed width initially */
-    margin: 0 var(--spacing-sm);
-}
-
 /* Make textareas fill height */
 .input-textarea {
     flex: 1;
     height: 100% !important;
     min-height: 0 !important;
-    /* Allow shrinking */
     resize: none !important;
-    /* Disable native resize */
 }
 
 .output-content {
@@ -195,7 +223,8 @@ body {
 .panel {
     background-color: var(--bg-primary);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--med-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -214,6 +243,9 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 .panel-body {
@@ -330,16 +362,7 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.input-info {
-    display: flex;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-}
-
+.input-info,
 .output-info {
     display: flex;
     gap: var(--spacing-lg);
@@ -400,9 +423,9 @@ body {
     background-color: var(--bg-secondary);
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--med-border);
     margin-bottom: var(--spacing-md);
-    border-bottom: none;
 }
 
 .option-section.collapsible .section-header {
@@ -419,7 +442,7 @@ body {
 
 .option-section.collapsible .section-header:hover {
     background-color: var(--bg-tertiary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(182, 208, 135, 0.25);
 }
 
 .option-section.collapsible .section-header:hover h3 {
@@ -662,16 +685,19 @@ body {
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .tab:hover {
     color: var(--text-primary);
     background-color: var(--bg-secondary);
+    box-shadow: 0 4px 8px rgba(182, 208, 135, 0.25);
 }
 
 .tab.active {
     color: var(--primary-color);
     border-bottom-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
 }
 
 .tab-content {
@@ -743,20 +769,28 @@ body {
     align-items: center;
     justify-content: center;
     gap: var(--spacing-xs);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    background: var(--med-bg-panel);
+    color: var(--med-text-primary);
+    border: 2px solid var(--med-border);
 }
 
 .btn:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .btn-primary {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--med-bg-dark);
+    border-color: var(--primary-color);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
 }
 
 .btn-primary:active {
@@ -772,6 +806,8 @@ body {
 .btn-secondary:hover {
     background-color: var(--bg-secondary);
     border-color: var(--border-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(182, 208, 135, 0.3);
 }
 
 .btn-large {
@@ -869,7 +905,6 @@ body {
 
     .tooltip {
         display: none !important;
-        /* Hide tooltips on smaller screens */
     }
 }
 
