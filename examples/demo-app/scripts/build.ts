@@ -54,7 +54,6 @@ try {
     await copy(join(publicDir, "index.html"), join(outDir, "index.html"), { overwrite: true });
     await copy(join(publicDir, "converter.html"), join(outDir, "converter.html"), { overwrite: true });
     await copy(join(publicDir, "styles.css"), join(outDir, "styles.css"), { overwrite: true });
-    await copy(join(publicDir, "shared-medical.css"), join(outDir, "shared-medical.css"), { overwrite: true });
     await copy(join(publicDir, "archetype-demo.html"), join(outDir, "archetype-demo.html"), { overwrite: true });
 
     console.log("✅ Assets copied to docs/demo/");

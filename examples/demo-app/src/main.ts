@@ -59,7 +59,7 @@ function init() {
   setupEventListeners();
 
   // Load default example and run initial conversion
-  loadExample('section');
+  loadExample('complex-composition');
 
   // Run initial conversion after a short delay to allow UI to settle
   setTimeout(() => {
