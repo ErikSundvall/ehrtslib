@@ -35,13 +35,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-04-15T23:08:06.704Z", buildId: "DMQCKYMZ" };
+    define_BUILD_INFO_default = { timestamp: "2026-04-16T01:20:12.145Z", buildId: "P97BIYMQ" };
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
 var require_util = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
@@ -99,9 +99,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
 var require_validator = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -414,9 +414,9 @@ var require_validator = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var require_OptionsBuilder = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
     init_define_BUILD_INFO();
     var defaultOptions = {
       preserveOrder: false,
@@ -470,9 +470,9 @@ var require_OptionsBuilder = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
 var require_xmlNode = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var XmlNode = class {
@@ -500,9 +500,9 @@ var require_xmlNode = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var require_DocTypeReader = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
     init_define_BUILD_INFO();
     var util = require_util();
     function readDocType(xmlData, i3) {
@@ -611,9 +611,9 @@ var require_DocTypeReader = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
+// ../../deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
 var require_strnum = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
+  "../../deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
     init_define_BUILD_INFO();
     var hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
     var numRegex = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/;
@@ -719,9 +719,9 @@ var require_strnum = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
 var require_ignoreAttributes = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
     init_define_BUILD_INFO();
     function getIgnoreAttributesFn(ignoreAttributes) {
       if (typeof ignoreAttributes === "function") {
@@ -745,9 +745,9 @@ var require_ignoreAttributes = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
 var require_OrderedObjParser = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -1253,9 +1253,9 @@ var require_OrderedObjParser = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
 var require_node2json = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     function prettify(node, options) {
@@ -1350,9 +1350,9 @@ var require_node2json = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var require_XMLParser = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
     init_define_BUILD_INFO();
     var { buildOptions } = require_OptionsBuilder();
     var OrderedObjParser = require_OrderedObjParser();
@@ -1412,9 +1412,9 @@ var require_XMLParser = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
 var require_orderedJs2Xml = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
     init_define_BUILD_INFO();
     var EOL = "\n";
     function toXml(jArray, options) {
@@ -1547,9 +1547,9 @@ var require_orderedJs2Xml = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
 var require_json2xml = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var buildFromOrderedJs = require_orderedJs2Xml();
@@ -1800,9 +1800,9 @@ var require_json2xml = __commonJS({
   }
 });
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
+// ../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
 var require_fxp = __commonJS({
-  "../../../../../../../AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
+  "../../deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var validator = require_validator();
@@ -2550,7 +2550,617 @@ content:
       }
     }
   ]
-}`
+}`,
+    yaml: `_type: COMPOSITION
+name:
+  _type: DV_TEXT
+  value: ChemoForm-MBA.v7
+uid:
+  _type: OBJECT_VERSION_ID
+  value: 573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1
+archetype_details:
+  _type: ARCHETYPED
+  archetype_id:
+    _type: ARCHETYPE_ID
+    value: openEHR-EHR-COMPOSITION.self_reported_data.v1
+  template_id:
+    _type: TEMPLATE_ID
+    value: ChemoForm-MBA.v7
+  rm_version: 1.1.0
+feeder_audit:
+  _type: FEEDER_AUDIT
+  original_content:
+    _type: DV_PARSABLE
+    value: '{}'
+    formalism: application/json
+  originating_system_audit:
+    _type: FEEDER_AUDIT_DETAILS
+    system_id: FormRenderer
+archetype_node_id: openEHR-EHR-COMPOSITION.self_reported_data.v1
+language:
+  _type: CODE_PHRASE
+  terminology_id:
+    _type: TERMINOLOGY_ID
+    value: ISO_639-1
+  code_string: sv
+territory:
+  _type: CODE_PHRASE
+  terminology_id:
+    _type: TERMINOLOGY_ID
+    value: ISO_3166-1
+  code_string: SI
+category:
+  _type: DV_CODED_TEXT
+  value: event
+  defining_code:
+    _type: CODE_PHRASE
+    terminology_id:
+      _type: TERMINOLOGY_ID
+      value: openehr
+    code_string: '433'
+composer:
+  _type: PARTY_IDENTIFIED
+  name: erik.sundvall@regionstockholm.se
+context:
+  _type: EVENT_CONTEXT
+  start_time:
+    _type: DV_DATE_TIME
+    value: '2023-08-31T18:31:16.004+02:00'
+  setting:
+    _type: DV_CODED_TEXT
+    value: other care
+    defining_code:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: openehr
+      code_string: '238'
+  other_context:
+    _type: ITEM_TREE
+    name:
+      _type: DV_TEXT
+      value: Item tree
+    archetype_node_id: at0003
+    items:
+      - _type: CLUSTER
+        name:
+          _type: DV_TEXT
+          value: V\xE5rdenhet
+        archetype_details:
+          _type: ARCHETYPED
+          archetype_id:
+            _type: ARCHETYPE_ID
+            value: openEHR-EHR-CLUSTER.organisation.v1
+          rm_version: 1.1.0
+        archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+        items:
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Namn
+            archetype_node_id: at0001
+            value:
+              _type: DV_TEXT
+              value: Brandbergens v\xE5rdcentral
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Identifierare
+            archetype_node_id: at0003
+            value:
+              _type: DV_IDENTIFIER
+              id: SE2321000016-1003
+              type: urn:oid:1.2.752.29.4.19
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Roll
+            archetype_node_id: at0004
+            value:
+              _type: DV_CODED_TEXT
+              value: v\xE5rdenhet
+              defining_code:
+                _type: CODE_PHRASE
+                terminology_id:
+                  _type: TERMINOLOGY_ID
+                  value: http://snomed.info/sct/900000000000207008
+                code_string: '43741000'
+          - _type: CLUSTER
+            name:
+              _type: DV_TEXT
+              value: V\xE5rdgivare
+            archetype_details:
+              _type: ARCHETYPED
+              archetype_id:
+                _type: ARCHETYPE_ID
+                value: openEHR-EHR-CLUSTER.organisation.v1
+              rm_version: 1.1.0
+            archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+            items:
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Namn
+                archetype_node_id: at0001
+                value:
+                  _type: DV_TEXT
+                  value: Stockholms l\xE4ns sjukv\xE5rdsomr\xE5de
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Identifierare
+                archetype_node_id: at0003
+                value:
+                  _type: DV_IDENTIFIER
+                  id: SE2321000016-2GJS
+                  type: urn:oid:1.2.752.29.4.19
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Organisationsnummer
+                archetype_node_id: at0003
+                value:
+                  _type: DV_IDENTIFIER
+                  id: '2232084'
+                  type: urn:oid:2.5.4.97
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Roll
+                archetype_node_id: at0004
+                value:
+                  _type: DV_CODED_TEXT
+                  value: v\xE5rdgivare
+                  defining_code:
+                    _type: CODE_PHRASE
+                    terminology_id:
+                      _type: TERMINOLOGY_ID
+                      value: http://snomed.info/sct/45991000052106
+                    code_string: '143591000052106'
+content:
+  - _type: OBSERVATION
+    name:
+      _type: DV_TEXT
+      value: Fr\xE5geformul\xE4r f\xF6r symptom och andra tecken
+    archetype_details:
+      _type: ARCHETYPED
+      archetype_id:
+        _type: ARCHETYPE_ID
+        value: openEHR-EHR-OBSERVATION.symptom_sign_screening.v1
+      rm_version: 1.1.0
+    archetype_node_id: openEHR-EHR-OBSERVATION.symptom_sign_screening.v1
+    language:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: ISO_639-1
+      code_string: sv
+    encoding:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: IANA_character-sets
+      code_string: UTF-8
+    subject:
+      _type: PARTY_SELF
+    data:
+      _type: HISTORY
+      name:
+        _type: DV_TEXT
+        value: History
+      archetype_node_id: at0001
+      origin:
+        _type: DV_DATE_TIME
+        value: '2023-08-31T18:31:16.004+02:00'
+      events:
+        - _type: POINT_EVENT
+          name:
+            _type: DV_TEXT
+            value: Ospecificerad h\xE4ndelse
+          archetype_node_id: at0002
+          time:
+            _type: DV_DATE_TIME
+            value: '2023-08-31T18:31:16.004+02:00'
+          data:
+            _type: ITEM_TREE
+            name:
+              _type: DV_TEXT
+              value: Tree
+            archetype_node_id: at0003
+            items:
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Screeningssyfte
+                archetype_node_id: at0034
+                value:
+                  _type: DV_CODED_TEXT
+                  value: utv\xE4rdering av cytostatikabehandling
+                  defining_code:
+                    _type: CODE_PHRASE
+                    terminology_id:
+                      _type: TERMINOLOGY_ID
+                      value: SNOMED-CT
+                    code_string: '385785003'
+              - _type: CLUSTER
+                name:
+                  _type: DV_TEXT
+                  value: Tr\xF6tthet
+                archetype_details:
+                  _type: ARCHETYPED
+                  archetype_id:
+                    _type: ARCHETYPE_ID
+                    value: openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0
+                  rm_version: 1.1.0
+                archetype_node_id: openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0
+                items:
+                  - _type: ELEMENT
+                    name:
+                      _type: DV_TEXT
+                      value: Symptom/tecken-ben\xE4mning
+                    archetype_node_id: at0004
+                    value:
+                      _type: DV_CODED_TEXT
+                      value: tr\xF6tthet (fatigue)
+                      defining_code:
+                        _type: CODE_PHRASE
+                        terminology_id:
+                          _type: TERMINOLOGY_ID
+                          value: SNOMED-CT
+                        code_string: '84229001'
+                  - _type: ELEMENT
+                    name:
+                      _type: DV_TEXT
+                      value: Upplever du tr\xF6tthet (fatigue) som p\xE5verkar ditt dagliga liv?
+                    archetype_node_id: at0005
+                    value:
+                      _type: DV_CODED_TEXT
+                      value: Ja
+                      defining_code:
+                        _type: CODE_PHRASE
+                        terminology_id:
+                          _type: TERMINOLOGY_ID
+                          value: local
+                        code_string: at0023
+                  - _type: CLUSTER
+                    name:
+                      _type: DV_TEXT
+                      value: f\xF6ljdfr\xE5ga
+                    archetype_details:
+                      _type: ARCHETYPED
+                      archetype_id:
+                        _type: ARCHETYPE_ID
+                        value: openEHR-EHR-CLUSTER.followup_question.v0
+                      rm_version: 1.1.0
+                    archetype_node_id: openEHR-EHR-CLUSTER.followup_question.v0
+                    items:
+                      - _type: ELEMENT
+                        name:
+                          _type: DV_TEXT
+                          value: Hur p\xE5verkar tr\xF6ttheten ditt dagliga liv?
+                        archetype_node_id: at0002
+                        value:
+                          _type: DV_ORDINAL
+                          value: 2
+                          symbol:
+                            _type: DV_CODED_TEXT
+                            value: M\xE5ttlig tr\xF6tthet, vilar mindre \xE4n 50% av vaken tid
+                            defining_code:
+                              _type: CODE_PHRASE
+                              terminology_id:
+                                _type: TERMINOLOGY_ID
+                                value: local
+                              code_string: at0.17`,
+    xml: `<?xml version="1.0" encoding="UTF-8"?>
+<COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <name xsi:type="DV_TEXT">
+    <value>ChemoForm-MBA.v7</value>
+  </name>
+  <uid xsi:type="OBJECT_VERSION_ID">
+    <value>573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1</value>
+  </uid>
+  <archetype_details>
+    <archetype_id>
+      <value>openEHR-EHR-COMPOSITION.self_reported_data.v1</value>
+    </archetype_id>
+    <template_id>
+      <value>ChemoForm-MBA.v7</value>
+    </template_id>
+    <rm_version>1.1.0</rm_version>
+  </archetype_details>
+  <feeder_audit>
+    <original_content xsi:type="DV_PARSABLE">
+      <value>{}</value>
+      <formalism>application/json</formalism>
+    </original_content>
+    <originating_system_audit>
+      <system_id>FormRenderer</system_id>
+    </originating_system_audit>
+  </feeder_audit>
+  <archetype_node_id>openEHR-EHR-COMPOSITION.self_reported_data.v1</archetype_node_id>
+  <language>
+    <terminology_id>
+      <value>ISO_639-1</value>
+    </terminology_id>
+    <code_string>sv</code_string>
+  </language>
+  <territory>
+    <terminology_id>
+      <value>ISO_3166-1</value>
+    </terminology_id>
+    <code_string>SI</code_string>
+  </territory>
+  <category xsi:type="DV_CODED_TEXT">
+    <value>event</value>
+    <defining_code>
+      <terminology_id>
+        <value>openehr</value>
+      </terminology_id>
+      <code_string>433</code_string>
+    </defining_code>
+  </category>
+  <composer xsi:type="PARTY_IDENTIFIED">
+    <name>erik.sundvall@regionstockholm.se</name>
+  </composer>
+  <context>
+    <start_time>
+      <value>2023-08-31T18:31:16.004+02:00</value>
+    </start_time>
+    <setting xsi:type="DV_CODED_TEXT">
+      <value>other care</value>
+      <defining_code>
+        <terminology_id>
+          <value>openehr</value>
+        </terminology_id>
+        <code_string>238</code_string>
+      </defining_code>
+    </setting>
+    <other_context xsi:type="ITEM_TREE">
+      <name xsi:type="DV_TEXT">
+        <value>Item tree</value>
+      </name>
+      <archetype_node_id>at0003</archetype_node_id>
+      <items xsi:type="CLUSTER">
+        <name xsi:type="DV_TEXT">
+          <value>V\xE5rdenhet</value>
+        </name>
+        <archetype_details>
+          <archetype_id>
+            <value>openEHR-EHR-CLUSTER.organisation.v1</value>
+          </archetype_id>
+          <rm_version>1.1.0</rm_version>
+        </archetype_details>
+        <archetype_node_id>openEHR-EHR-CLUSTER.organisation.v1</archetype_node_id>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Namn</value>
+          </name>
+          <archetype_node_id>at0001</archetype_node_id>
+          <value xsi:type="DV_TEXT">
+            <value>Brandbergens v\xE5rdcentral</value>
+          </value>
+        </items>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Identifierare</value>
+          </name>
+          <archetype_node_id>at0003</archetype_node_id>
+          <value xsi:type="DV_IDENTIFIER">
+            <id>SE2321000016-1003</id>
+            <type>urn:oid:1.2.752.29.4.19</type>
+          </value>
+        </items>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Roll</value>
+          </name>
+          <archetype_node_id>at0004</archetype_node_id>
+          <value xsi:type="DV_CODED_TEXT">
+            <value>v\xE5rdenhet</value>
+            <defining_code>
+              <terminology_id>
+                <value>http://snomed.info/sct/900000000000207008</value>
+              </terminology_id>
+              <code_string>43741000</code_string>
+            </defining_code>
+          </value>
+        </items>
+        <items xsi:type="CLUSTER">
+          <name xsi:type="DV_TEXT">
+            <value>V\xE5rdgivare</value>
+          </name>
+          <archetype_details>
+            <archetype_id>
+              <value>openEHR-EHR-CLUSTER.organisation.v1</value>
+            </archetype_id>
+            <rm_version>1.1.0</rm_version>
+          </archetype_details>
+          <archetype_node_id>openEHR-EHR-CLUSTER.organisation.v1</archetype_node_id>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Namn</value>
+            </name>
+            <archetype_node_id>at0001</archetype_node_id>
+            <value xsi:type="DV_TEXT">
+              <value>Stockholms l\xE4ns sjukv\xE5rdsomr\xE5de</value>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Identifierare</value>
+            </name>
+            <archetype_node_id>at0003</archetype_node_id>
+            <value xsi:type="DV_IDENTIFIER">
+              <id>SE2321000016-2GJS</id>
+              <type>urn:oid:1.2.752.29.4.19</type>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Organisationsnummer</value>
+            </name>
+            <archetype_node_id>at0003</archetype_node_id>
+            <value xsi:type="DV_IDENTIFIER">
+              <id>2232084</id>
+              <type>urn:oid:2.5.4.97</type>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Roll</value>
+            </name>
+            <archetype_node_id>at0004</archetype_node_id>
+            <value xsi:type="DV_CODED_TEXT">
+              <value>v\xE5rdgivare</value>
+              <defining_code>
+                <terminology_id>
+                  <value>http://snomed.info/sct/45991000052106</value>
+                </terminology_id>
+                <code_string>143591000052106</code_string>
+              </defining_code>
+            </value>
+          </items>
+        </items>
+      </items>
+    </other_context>
+  </context>
+  <content xsi:type="OBSERVATION">
+    <name xsi:type="DV_TEXT">
+      <value>Fr\xE5geformul\xE4r f\xF6r symptom och andra tecken</value>
+    </name>
+    <archetype_details>
+      <archetype_id>
+        <value>openEHR-EHR-OBSERVATION.symptom_sign_screening.v1</value>
+      </archetype_id>
+      <rm_version>1.1.0</rm_version>
+    </archetype_details>
+    <archetype_node_id>openEHR-EHR-OBSERVATION.symptom_sign_screening.v1</archetype_node_id>
+    <language>
+      <terminology_id>
+        <value>ISO_639-1</value>
+      </terminology_id>
+      <code_string>sv</code_string>
+    </language>
+    <encoding>
+      <terminology_id>
+        <value>IANA_character-sets</value>
+      </terminology_id>
+      <code_string>UTF-8</code_string>
+    </encoding>
+    <subject xsi:type="PARTY_SELF"/>
+    <data xsi:type="HISTORY">
+      <name xsi:type="DV_TEXT">
+        <value>History</value>
+      </name>
+      <archetype_node_id>at0001</archetype_node_id>
+      <origin>
+        <value>2023-08-31T18:31:16.004+02:00</value>
+      </origin>
+      <events xsi:type="POINT_EVENT">
+        <name xsi:type="DV_TEXT">
+          <value>Ospecificerad h\xE4ndelse</value>
+        </name>
+        <archetype_node_id>at0002</archetype_node_id>
+        <time>
+          <value>2023-08-31T18:31:16.004+02:00</value>
+        </time>
+        <data xsi:type="ITEM_TREE">
+          <name xsi:type="DV_TEXT">
+            <value>Tree</value>
+          </name>
+          <archetype_node_id>at0003</archetype_node_id>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Screeningssyfte</value>
+            </name>
+            <archetype_node_id>at0034</archetype_node_id>
+            <value xsi:type="DV_CODED_TEXT">
+              <value>utv\xE4rdering av cytostatikabehandling</value>
+              <defining_code>
+                <terminology_id>
+                  <value>SNOMED-CT</value>
+                </terminology_id>
+                <code_string>385785003</code_string>
+              </defining_code>
+            </value>
+          </items>
+          <items xsi:type="CLUSTER">
+            <name xsi:type="DV_TEXT">
+              <value>Tr\xF6tthet</value>
+            </name>
+            <archetype_details>
+              <archetype_id>
+                <value>openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0</value>
+              </archetype_id>
+              <rm_version>1.1.0</rm_version>
+            </archetype_details>
+            <archetype_node_id>openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0</archetype_node_id>
+            <items xsi:type="ELEMENT">
+              <name xsi:type="DV_TEXT">
+                <value>Symptom/tecken-ben\xE4mning</value>
+              </name>
+              <archetype_node_id>at0004</archetype_node_id>
+              <value xsi:type="DV_CODED_TEXT">
+                <value>tr\xF6tthet (fatigue)</value>
+                <defining_code>
+                  <terminology_id>
+                    <value>SNOMED-CT</value>
+                  </terminology_id>
+                  <code_string>84229001</code_string>
+                </defining_code>
+              </value>
+            </items>
+            <items xsi:type="ELEMENT">
+              <name xsi:type="DV_TEXT">
+                <value>Upplever du tr\xF6tthet (fatigue) som p\xE5verkar ditt dagliga liv?</value>
+              </name>
+              <archetype_node_id>at0005</archetype_node_id>
+              <value xsi:type="DV_CODED_TEXT">
+                <value>Ja</value>
+                <defining_code>
+                  <terminology_id>
+                    <value>local</value>
+                  </terminology_id>
+                  <code_string>at0023</code_string>
+                </defining_code>
+              </value>
+            </items>
+            <items xsi:type="CLUSTER">
+              <name xsi:type="DV_TEXT">
+                <value>f\xF6ljdfr\xE5ga</value>
+              </name>
+              <archetype_details>
+                <archetype_id>
+                  <value>openEHR-EHR-CLUSTER.followup_question.v0</value>
+                </archetype_id>
+                <rm_version>1.1.0</rm_version>
+              </archetype_details>
+              <archetype_node_id>openEHR-EHR-CLUSTER.followup_question.v0</archetype_node_id>
+              <items xsi:type="ELEMENT">
+                <name xsi:type="DV_TEXT">
+                  <value>Hur p\xE5verkar tr\xF6ttheten ditt dagliga liv?</value>
+                </name>
+                <archetype_node_id>at0002</archetype_node_id>
+                <value xsi:type="DV_ORDINAL">
+                  <value>2</value>
+                  <symbol xsi:type="DV_CODED_TEXT">
+                    <value>M\xE5ttlig tr\xF6tthet, vilar mindre \xE4n 50% av vaken tid</value>
+                    <defining_code>
+                      <terminology_id>
+                        <value>local</value>
+                      </terminology_id>
+                      <code_string>at0.17</code_string>
+                    </defining_code>
+                  </symbol>
+                </value>
+              </items>
+            </items>
+          </items>
+        </data>
+      </events>
+    </data>
+  </content>
+</COMPOSITION>`
   }
 };
 
@@ -3125,13 +3735,13 @@ init_define_BUILD_INFO();
 // enhanced/temporal_polyfill.ts
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
+// ../../deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
+// ../../deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
 init_define_BUILD_INFO();
 function clampProp(e2, n2, t2, o2, r2) {
   return clampEntity(n2, getDefinedProp(e2, n2), t2, o2, r2);
@@ -6212,7 +6822,7 @@ var a = [/* @__PURE__ */ createOptionsTransformer(fs, ns, Is), isoToEpochMilli, 
 var i2 = [/* @__PURE__ */ createOptionsTransformer(ds, es, Ms), isoToEpochMilli, 1];
 var ys;
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 function createSlotClass(e2, t2, n2, o2, r2) {
   function Class(...e3) {
     if (!(this instanceof Class)) {
@@ -15514,8 +16124,8 @@ function SetupSizzle(window2) {
   }, rhtml = /HTML$/i, rinputs = /^(?:input|select|textarea|button)$/i, rheader = /^h\d$/i, rnative = /^[^{]+\{\s*\[native \w/, rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/, rsibling = /[+~]/, runescape = new RegExp(
     "\\\\[\\da-fA-F]{1,6}" + whitespace + "?|\\\\([^\\r\\n\\f])",
     "g"
-  ), funescape = function(escape, nonHex) {
-    var high = "0x" + escape.slice(1) - 65536;
+  ), funescape = function(escape2, nonHex) {
+    var high = "0x" + escape2.slice(1) - 65536;
     return nonHex ? (
       // Strip the backslash prefix from a non-hex escape sequence
       nonHex
@@ -18240,8 +18850,8 @@ var VERSIONED_OBJECT = class {
    * @returns Revision history
    */
   revision_history() {
-    const history = new REVISION_HISTORY();
-    history.items = this._versions.map((version) => {
+    const history2 = new REVISION_HISTORY();
+    history2.items = this._versions.map((version) => {
       const item = new REVISION_HISTORY_ITEM();
       if (version instanceof ORIGINAL_VERSION) {
         item.version_id = version.uid;
@@ -18259,7 +18869,7 @@ var VERSIONED_OBJECT = class {
       }
       return item;
     });
-    return history;
+    return history2;
   }
   /**
    * Return the most recently added version (i.e. on trunk or any branch).
@@ -25102,19 +25712,19 @@ init_define_BUILD_INFO();
 // enhanced/serialization/yaml/yaml_serializer.ts
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
 init_define_BUILD_INFO();
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
@@ -25151,7 +25761,7 @@ function isNode(node) {
 }
 var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
 init_define_BUILD_INFO();
 var BREAK = Symbol("break visit");
 var SKIP = Symbol("skip children");
@@ -25302,7 +25912,7 @@ function replaceNode(key, path, node) {
   }
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 var escapeChars = {
   "!": "%21",
   ",": "%2C",
@@ -25465,13 +26075,13 @@ var Directives = class _Directives {
 Directives.defaultYaml = { explicit: false, version: "1.2" };
 Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
 init_define_BUILD_INFO();
 function anchorIsValid(anchor) {
   if (/[\x00-\x19\s,[\]{}]/.test(anchor)) {
@@ -25531,10 +26141,10 @@ function createNodeAnchors(doc, prefix) {
   };
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
 init_define_BUILD_INFO();
 function applyReviver(reviver, obj, key, val) {
   if (val && typeof val === "object") {
@@ -25579,7 +26189,7 @@ function applyReviver(reviver, obj, key, val) {
   return reviver.call(obj, key, val);
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
 init_define_BUILD_INFO();
 function toJS(value, arg, ctx) {
   if (Array.isArray(value))
@@ -25603,7 +26213,7 @@ function toJS(value, arg, ctx) {
   return value;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 var NodeBase = class {
   constructor(type) {
     Object.defineProperty(this, NODE_TYPE, { value: type });
@@ -25635,7 +26245,7 @@ var NodeBase = class {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 var Alias = class extends NodeBase {
   constructor(source) {
     super(ALIAS);
@@ -25738,13 +26348,13 @@ function getAliasCount(doc, node, anchors) {
   return 1;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
 init_define_BUILD_INFO();
 var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
 var Scalar = class extends NodeBase {
@@ -25765,7 +26375,7 @@ Scalar.PLAIN = "PLAIN";
 Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
 Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 var defaultTagPrefix = "tag:yaml.org,2002:";
 function findTagObject(value, tagName, tags) {
   if (tagName) {
@@ -25831,7 +26441,7 @@ function createNode(value, tagName, ctx) {
   return node;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 function collectionFromPath(schema4, path, value) {
   let v2 = value;
   for (let i3 = path.length - 1; i3 >= 0; --i3) {
@@ -25963,16 +26573,16 @@ var Collection = class extends NodeBase {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
 init_define_BUILD_INFO();
 var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
 function indentComment(comment, indent) {
@@ -25982,10 +26592,10 @@ function indentComment(comment, indent) {
 }
 var lineComment = (str, indent, comment) => str.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str.endsWith(" ") ? "" : " ") + comment;
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
 init_define_BUILD_INFO();
 var FOLD_FLOW = "flow";
 var FOLD_BLOCK = "block";
@@ -26113,7 +26723,7 @@ function consumeMoreIndentedLines(text, i3, indent) {
   return end;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 var getFoldOptions = (ctx, isBlock2) => ({
   indentAtStart: isBlock2 ? ctx.indent.length : ctx.indentAtStart,
   lineWidth: ctx.options.lineWidth,
@@ -26388,7 +26998,7 @@ function stringifyString(item, ctx, onComment, onChompKeep) {
   return res;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 function createStringifyContext(doc, options) {
   const opt = Object.assign({
     blockQuote: true,
@@ -26500,7 +27110,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 ${ctx.indent}${str}`;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
   const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
   let keyComment = isNode(key) && key.comment || null;
@@ -26623,10 +27233,10 @@ ${ctx.indent}`;
   return str;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
 init_define_BUILD_INFO();
 function warn(logLevel, warning) {
   if (logLevel === "debug" || logLevel === "warn") {
@@ -26634,7 +27244,7 @@ function warn(logLevel, warning) {
   }
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
 init_define_BUILD_INFO();
 var MERGE_KEY = "<<";
 var merge = {
@@ -26682,7 +27292,7 @@ function mergeValue(ctx, map2, value) {
   return map2;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 function addPairToJSMap(ctx, map2, { key, value }) {
   if (isNode(key) && key.addToJSMap)
     key.addToJSMap(ctx, map2, value);
@@ -26735,7 +27345,7 @@ function stringifyKey(key, jsKey, ctx) {
   return JSON.stringify(jsKey);
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 function createPair(key, value, ctx) {
   const k2 = createNode(key, void 0, ctx);
   const v2 = createNode(value, void 0, ctx);
@@ -26764,16 +27374,16 @@ var Pair = class _Pair {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
 init_define_BUILD_INFO();
 function stringifyCollection(collection, ctx, options) {
   const flow = ctx.inFlow ?? collection.flow;
@@ -26909,7 +27519,7 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
   }
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 function findPair(items, key) {
   const k2 = isScalar(key) ? key.value : key;
   for (const it2 of items) {
@@ -27040,7 +27650,7 @@ var YAMLMap = class extends Collection {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 var map = {
   collection: "map",
   default: true,
@@ -27054,10 +27664,10 @@ var map = {
   createNode: (schema4, obj, ctx) => YAMLMap.from(schema4, obj, ctx)
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
 init_define_BUILD_INFO();
 var YAMLSeq = class extends Collection {
   static get tagName() {
@@ -27162,7 +27772,7 @@ function asItemIndex(key) {
   return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 var seq = {
   collection: "seq",
   default: true,
@@ -27176,7 +27786,7 @@ var seq = {
   createNode: (schema4, obj, ctx) => YAMLSeq.from(schema4, obj, ctx)
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
 init_define_BUILD_INFO();
 var string = {
   identify: (value) => typeof value === "string",
@@ -27189,10 +27799,10 @@ var string = {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
 init_define_BUILD_INFO();
 var nullTag = {
   identify: (value) => value == null,
@@ -27204,7 +27814,7 @@ var nullTag = {
   stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
 init_define_BUILD_INFO();
 var boolTag = {
   identify: (value) => typeof value === "boolean",
@@ -27222,10 +27832,10 @@ var boolTag = {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
 init_define_BUILD_INFO();
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
   if (typeof value === "bigint")
@@ -27247,7 +27857,7 @@ function stringifyNumber({ format, minFractionDigits, tag, value }) {
   return n2;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 var floatNaN = {
   identify: (value) => typeof value === "number",
   default: true,
@@ -27283,7 +27893,7 @@ var float = {
   stringify: stringifyNumber
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
 init_define_BUILD_INFO();
 var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
 var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
@@ -27320,7 +27930,7 @@ var intHex = {
   stringify: (node) => intStringify(node, 16, "0x")
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
 init_define_BUILD_INFO();
 var schema = [
   map,
@@ -27336,7 +27946,7 @@ var schema = [
   float
 ];
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
 init_define_BUILD_INFO();
 function intIdentify2(value) {
   return typeof value === "bigint" || Number.isInteger(value);
@@ -27395,7 +28005,7 @@ var jsonError = {
 };
 var schema2 = [map, seq].concat(jsonScalars, jsonError);
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
 init_define_BUILD_INFO();
 var binary = {
   identify: (value) => value instanceof Uint8Array,
@@ -27449,10 +28059,10 @@ var binary = {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
 init_define_BUILD_INFO();
 function resolvePairs(seq2, onError) {
   if (isSeq(seq2)) {
@@ -27519,7 +28129,7 @@ var pairs = {
   createNode: createPairs
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 var YAMLOMap = class _YAMLOMap extends YAMLSeq {
   constructor() {
     super();
@@ -27585,10 +28195,10 @@ var omap = {
   createNode: (schema4, iterable, ctx) => YAMLOMap.from(schema4, iterable, ctx)
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
 init_define_BUILD_INFO();
 function boolStringify({ value, source }, ctx) {
   const boolObj = value ? trueTag : falseTag;
@@ -27613,7 +28223,7 @@ var falseTag = {
   stringify: boolStringify
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
 init_define_BUILD_INFO();
 var floatNaN2 = {
   identify: (value) => typeof value === "number",
@@ -27653,7 +28263,7 @@ var float2 = {
   stringify: stringifyNumber
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
 init_define_BUILD_INFO();
 var intIdentify3 = (value) => typeof value === "bigint" || Number.isInteger(value);
 function intResolve2(str, offset, radix, { intAsBigInt }) {
@@ -27723,7 +28333,7 @@ var intHex2 = {
   stringify: (node) => intStringify2(node, 16, "0x")
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
 init_define_BUILD_INFO();
 var YAMLSet = class _YAMLSet extends YAMLMap {
   constructor(schema4) {
@@ -27803,7 +28413,7 @@ var set = {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
 init_define_BUILD_INFO();
 function parseSexagesimal(str, asBigInt) {
   const sign = str[0];
@@ -27883,7 +28493,7 @@ var timestamp = {
   stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 var schema3 = [
   map,
   seq,
@@ -27908,7 +28518,7 @@ var schema3 = [
   timestamp
 ];
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 var schemas = /* @__PURE__ */ new Map([
   ["core", schema],
   ["failsafe", [map, seq, string]],
@@ -27979,7 +28589,7 @@ function getTags(customTags, schemaName, addMergeTag) {
   }, []);
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 var sortMapEntriesByKey = (a2, b2) => a2.key < b2.key ? -1 : a2.key > b2.key ? 1 : 0;
 var Schema = class _Schema {
   constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema4, sortMapEntries, toStringDefaults }) {
@@ -28000,7 +28610,7 @@ var Schema = class _Schema {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
 init_define_BUILD_INFO();
 function stringifyDocument(doc, options) {
   const lines = [];
@@ -28072,7 +28682,7 @@ function stringifyDocument(doc, options) {
   return lines.join("\n") + "\n";
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 var Document3 = class _Document {
   constructor(value, replacer, options) {
     this.commentBefore = null;
@@ -28364,7 +28974,7 @@ function assertCollection(contents) {
   throw new Error("Expected a YAML collection as document contents");
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
 init_define_BUILD_INFO();
 var YAMLError = class extends Error {
   constructor(name, pos, code, message) {
@@ -28421,19 +29031,19 @@ ${pointer}
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
 init_define_BUILD_INFO();
 function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
   let spaceBefore = false;
@@ -28561,7 +29171,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
   };
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
 init_define_BUILD_INFO();
 function containsNewline(key) {
   if (!key)
@@ -28598,7 +29208,7 @@ function containsNewline(key) {
   }
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
 init_define_BUILD_INFO();
 function flowIndentCheck(indent, fc, onError) {
   if (fc?.type === "flow-collection") {
@@ -28610,7 +29220,7 @@ function flowIndentCheck(indent, fc, onError) {
   }
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
 init_define_BUILD_INFO();
 function mapIncludes(ctx, items, search) {
   const { uniqueKeys } = ctx.options;
@@ -28620,7 +29230,7 @@ function mapIncludes(ctx, items, search) {
   return items.some((pair) => isEqual(pair.key, search));
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 var startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLMap;
@@ -28716,7 +29326,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
   return map2;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
 init_define_BUILD_INFO();
 function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLSeq;
@@ -28759,10 +29369,10 @@ function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeE
   return seq2;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
 init_define_BUILD_INFO();
 function resolveEnd(end, offset, reqSpace, onError) {
   let comment = "";
@@ -28800,7 +29410,7 @@ function resolveEnd(end, offset, reqSpace, onError) {
   return { comment, offset };
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 var blockMsg = "Block collections are not allowed within flow collections";
 var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
 function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, fc, onError, tag) {
@@ -28981,7 +29591,7 @@ function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: co
   return coll;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 function resolveCollection(CN2, ctx, token, onError, tagName, tag) {
   const coll = token.type === "block-map" ? resolveBlockMap(CN2, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq(CN2, ctx, token, onError, tag) : resolveFlowCollection(CN2, ctx, token, onError, tag);
   const Coll = coll.constructor;
@@ -29033,10 +29643,10 @@ function composeCollection(CN2, ctx, token, props, onError) {
   return node;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
 init_define_BUILD_INFO();
 function resolveBlockScalar(ctx, scalar, onError) {
   const start = scalar.offset;
@@ -29211,7 +29821,7 @@ function splitLines(source) {
   return lines;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
 init_define_BUILD_INFO();
 function resolveFlowScalar(scalar, strict, onError) {
   const { offset, type, source, end } = scalar;
@@ -29421,7 +30031,7 @@ function parseCharCode(source, offset, length, onError) {
   return String.fromCodePoint(code);
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 function composeScalar(ctx, token, tagToken, onError) {
   const { value, type, comment, range } = token.type === "block-scalar" ? resolveBlockScalar(ctx, token, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
   const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
@@ -29492,7 +30102,7 @@ function findScalarTagByTest({ atKey, directives, schema: schema4 }, value, toke
   return tag;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
 init_define_BUILD_INFO();
 function emptyScalarPosition(offset, before, pos) {
   if (before) {
@@ -29517,7 +30127,7 @@ function emptyScalarPosition(offset, before, pos) {
   return offset;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 var CN = { composeNode, composeEmptyNode };
 function composeNode(ctx, token, props, onError) {
   const atKey = ctx.atKey;
@@ -29605,7 +30215,7 @@ function composeAlias({ options }, { offset, source, end }, onError) {
   return alias;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
   const opts = Object.assign({ _directives: directives }, options);
   const doc = new Document3(void 0, opts);
@@ -29638,7 +30248,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
   return doc;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 function getErrorPos(src) {
   if (typeof src === "number")
     return [src, src + 1];
@@ -29829,16 +30439,16 @@ ${end.comment}` : end.comment;
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
 init_define_BUILD_INFO();
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
 init_define_BUILD_INFO();
 var BREAK2 = Symbol("break visit");
 var SKIP2 = Symbol("skip children");
@@ -29895,7 +30505,7 @@ function _visit(path, item, visitor) {
   return typeof ctrl === "function" ? ctrl(item, path) : ctrl;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 var BOM = "\uFEFF";
 var DOCUMENT = "";
 var FLOW_END = "";
@@ -29960,7 +30570,7 @@ function tokenType(source) {
   return null;
 }
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
 init_define_BUILD_INFO();
 function isEmpty(ch) {
   switch (ch) {
@@ -30529,7 +31139,7 @@ var Lexer = class {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
 init_define_BUILD_INFO();
 var LineCounter = class {
   constructor() {
@@ -30555,7 +31165,7 @@ var LineCounter = class {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
 init_define_BUILD_INFO();
 function includesToken(list, type) {
   for (let i3 = 0; i3 < list.length; ++i3)
@@ -31409,7 +32019,7 @@ var Parser = class {
   }
 };
 
-// ../../../../../../../AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
+// ../../deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
 init_define_BUILD_INFO();
 function parseOptions(options) {
   const prettyErrors = options.prettyErrors !== false;
@@ -33019,7 +33629,10 @@ function init2() {
   }
   displayBuildInfo();
   setupEventListeners();
-  loadExample("complex-composition");
+  const restoredFromUrl = readUrlState();
+  if (!restoredFromUrl) {
+    loadExample("complex-composition");
+  }
   setTimeout(() => {
     handleConvert();
   }, 100);
@@ -33083,6 +33696,16 @@ function setupEventListeners() {
   }
   setupOutputVisibilityListeners();
   setupCollapsibleSections();
+  const shareBtn = document.getElementById("share-btn");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", copyShareUrl);
+  }
+  document.addEventListener("keydown", (e2) => {
+    if ((e2.ctrlKey || e2.metaKey) && e2.key === "Enter") {
+      e2.preventDefault();
+      handleConvert();
+    }
+  });
 }
 function setupOutputVisibilityListeners() {
   const formats = ["xml", "json", "yaml", "typescript"];
@@ -33369,10 +33992,63 @@ async function handleConvert() {
       updateOutputs(result2.outputs);
     }
     console.log("\u2705 Conversion successful");
+    writeUrlState();
   } catch (error) {
     hideLoading();
     console.error("Conversion error:", error);
     showError(error.message);
+  }
+}
+function writeUrlState() {
+  try {
+    const inputTextarea = document.getElementById("input-text");
+    const formatSelect = document.getElementById("input-format");
+    if (!inputTextarea || !formatSelect)
+      return;
+    const state = JSON.stringify({ fmt: formatSelect.value, data: inputTextarea.value });
+    const encoded = btoa(unescape(encodeURIComponent(state))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    history.replaceState(null, "", "#q=" + encoded);
+  } catch {
+  }
+}
+function readUrlState() {
+  try {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#q="))
+      return false;
+    const encoded = hash.slice(3);
+    const padded = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(escape(atob(padded)));
+    const state = JSON.parse(json);
+    if (!state.fmt || typeof state.data !== "string")
+      return false;
+    const inputTextarea = document.getElementById("input-text");
+    const formatSelect = document.getElementById("input-format");
+    if (!inputTextarea || !formatSelect)
+      return false;
+    formatSelect.value = state.fmt;
+    currentInputFormat = state.fmt;
+    inputTextarea.value = state.data;
+    handleInputChange();
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function copyShareUrl() {
+  writeUrlState();
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    const btn = document.getElementById("share-btn");
+    if (btn) {
+      const original = btn.textContent || "";
+      btn.textContent = "\u2713 Copied!";
+      setTimeout(() => {
+        btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#icon-share"/></svg> Share';
+      }, 2e3);
+    }
+  } catch {
+    showError("Failed to copy share URL");
   }
 }
 function gatherConversionOptions() {

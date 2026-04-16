@@ -58,8 +58,11 @@ function init() {
   // Set up event listeners
   setupEventListeners();
 
-  // Load default example and run initial conversion
-  loadExample('complex-composition');
+  // Restore from URL state or load default example
+  const restoredFromUrl = readUrlState();
+  if (!restoredFromUrl) {
+    loadExample('complex-composition');
+  }
 
   // Run initial conversion after a short delay to allow UI to settle
   setTimeout(() => {
@@ -161,6 +164,12 @@ function setupEventListeners() {
 
   // Collapsible sections
   setupCollapsibleSections();
+
+  // Share button
+  const shareBtn = document.getElementById('share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', copyShareUrl);
+  }
 
   // Keyboard shortcut: Ctrl+Enter to convert
   document.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -604,11 +613,78 @@ async function handleConvert() {
     }
 
     console.log('✅ Conversion successful');
+    writeUrlState();
 
   } catch (error) {
     hideLoading();
     console.error('Conversion error:', error);
     showError((error as Error).message);
+  }
+}
+
+/**
+ * Encode current input state into URL hash so the page can be bookmarked/shared.
+ * Format: #q=<base64url(JSON{fmt,data})>
+ */
+function writeUrlState() {
+  try {
+    const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+    const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
+    if (!inputTextarea || !formatSelect) return;
+
+    const state = JSON.stringify({ fmt: formatSelect.value, data: inputTextarea.value });
+    const encoded = btoa(unescape(encodeURIComponent(state)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    history.replaceState(null, '', '#q=' + encoded);
+  } catch {
+    // Non-critical — ignore encoding errors
+  }
+}
+
+/**
+ * Restore input state from URL hash if present.
+ * Returns true if state was restored (caller should skip default example load).
+ */
+function readUrlState(): boolean {
+  try {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#q=')) return false;
+
+    const encoded = hash.slice(3);
+    const padded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(escape(atob(padded)));
+    const state = JSON.parse(json) as { fmt: string; data: string };
+    if (!state.fmt || typeof state.data !== 'string') return false;
+
+    const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+    const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
+    if (!inputTextarea || !formatSelect) return false;
+
+    formatSelect.value = state.fmt;
+    currentInputFormat = state.fmt;
+    inputTextarea.value = state.data;
+    handleInputChange();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Copy the current shareable URL to clipboard
+ */
+async function copyShareUrl() {
+  writeUrlState();
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    const btn = document.getElementById('share-btn');
+    if (btn) {
+      const original = btn.textContent || '';
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#icon-share"/></svg> Share'; }, 2000);
+    }
+  } catch {
+    showError('Failed to copy share URL');
   }
 }
 
