@@ -738,6 +738,616 @@ content:
       }
     }
   ]
-}`
+}`,
+    yaml: `_type: COMPOSITION
+name:
+  _type: DV_TEXT
+  value: ChemoForm-MBA.v7
+uid:
+  _type: OBJECT_VERSION_ID
+  value: 573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1
+archetype_details:
+  _type: ARCHETYPED
+  archetype_id:
+    _type: ARCHETYPE_ID
+    value: openEHR-EHR-COMPOSITION.self_reported_data.v1
+  template_id:
+    _type: TEMPLATE_ID
+    value: ChemoForm-MBA.v7
+  rm_version: 1.1.0
+feeder_audit:
+  _type: FEEDER_AUDIT
+  original_content:
+    _type: DV_PARSABLE
+    value: '{}'
+    formalism: application/json
+  originating_system_audit:
+    _type: FEEDER_AUDIT_DETAILS
+    system_id: FormRenderer
+archetype_node_id: openEHR-EHR-COMPOSITION.self_reported_data.v1
+language:
+  _type: CODE_PHRASE
+  terminology_id:
+    _type: TERMINOLOGY_ID
+    value: ISO_639-1
+  code_string: sv
+territory:
+  _type: CODE_PHRASE
+  terminology_id:
+    _type: TERMINOLOGY_ID
+    value: ISO_3166-1
+  code_string: SI
+category:
+  _type: DV_CODED_TEXT
+  value: event
+  defining_code:
+    _type: CODE_PHRASE
+    terminology_id:
+      _type: TERMINOLOGY_ID
+      value: openehr
+    code_string: '433'
+composer:
+  _type: PARTY_IDENTIFIED
+  name: erik.sundvall@regionstockholm.se
+context:
+  _type: EVENT_CONTEXT
+  start_time:
+    _type: DV_DATE_TIME
+    value: '2023-08-31T18:31:16.004+02:00'
+  setting:
+    _type: DV_CODED_TEXT
+    value: other care
+    defining_code:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: openehr
+      code_string: '238'
+  other_context:
+    _type: ITEM_TREE
+    name:
+      _type: DV_TEXT
+      value: Item tree
+    archetype_node_id: at0003
+    items:
+      - _type: CLUSTER
+        name:
+          _type: DV_TEXT
+          value: Vårdenhet
+        archetype_details:
+          _type: ARCHETYPED
+          archetype_id:
+            _type: ARCHETYPE_ID
+            value: openEHR-EHR-CLUSTER.organisation.v1
+          rm_version: 1.1.0
+        archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+        items:
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Namn
+            archetype_node_id: at0001
+            value:
+              _type: DV_TEXT
+              value: Brandbergens vårdcentral
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Identifierare
+            archetype_node_id: at0003
+            value:
+              _type: DV_IDENTIFIER
+              id: SE2321000016-1003
+              type: urn:oid:1.2.752.29.4.19
+          - _type: ELEMENT
+            name:
+              _type: DV_TEXT
+              value: Roll
+            archetype_node_id: at0004
+            value:
+              _type: DV_CODED_TEXT
+              value: vårdenhet
+              defining_code:
+                _type: CODE_PHRASE
+                terminology_id:
+                  _type: TERMINOLOGY_ID
+                  value: http://snomed.info/sct/900000000000207008
+                code_string: '43741000'
+          - _type: CLUSTER
+            name:
+              _type: DV_TEXT
+              value: Vårdgivare
+            archetype_details:
+              _type: ARCHETYPED
+              archetype_id:
+                _type: ARCHETYPE_ID
+                value: openEHR-EHR-CLUSTER.organisation.v1
+              rm_version: 1.1.0
+            archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1
+            items:
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Namn
+                archetype_node_id: at0001
+                value:
+                  _type: DV_TEXT
+                  value: Stockholms läns sjukvårdsområde
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Identifierare
+                archetype_node_id: at0003
+                value:
+                  _type: DV_IDENTIFIER
+                  id: SE2321000016-2GJS
+                  type: urn:oid:1.2.752.29.4.19
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Organisationsnummer
+                archetype_node_id: at0003
+                value:
+                  _type: DV_IDENTIFIER
+                  id: '2232084'
+                  type: urn:oid:2.5.4.97
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Roll
+                archetype_node_id: at0004
+                value:
+                  _type: DV_CODED_TEXT
+                  value: vårdgivare
+                  defining_code:
+                    _type: CODE_PHRASE
+                    terminology_id:
+                      _type: TERMINOLOGY_ID
+                      value: http://snomed.info/sct/45991000052106
+                    code_string: '143591000052106'
+content:
+  - _type: OBSERVATION
+    name:
+      _type: DV_TEXT
+      value: Frågeformulär för symptom och andra tecken
+    archetype_details:
+      _type: ARCHETYPED
+      archetype_id:
+        _type: ARCHETYPE_ID
+        value: openEHR-EHR-OBSERVATION.symptom_sign_screening.v1
+      rm_version: 1.1.0
+    archetype_node_id: openEHR-EHR-OBSERVATION.symptom_sign_screening.v1
+    language:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: ISO_639-1
+      code_string: sv
+    encoding:
+      _type: CODE_PHRASE
+      terminology_id:
+        _type: TERMINOLOGY_ID
+        value: IANA_character-sets
+      code_string: UTF-8
+    subject:
+      _type: PARTY_SELF
+    data:
+      _type: HISTORY
+      name:
+        _type: DV_TEXT
+        value: History
+      archetype_node_id: at0001
+      origin:
+        _type: DV_DATE_TIME
+        value: '2023-08-31T18:31:16.004+02:00'
+      events:
+        - _type: POINT_EVENT
+          name:
+            _type: DV_TEXT
+            value: Ospecificerad händelse
+          archetype_node_id: at0002
+          time:
+            _type: DV_DATE_TIME
+            value: '2023-08-31T18:31:16.004+02:00'
+          data:
+            _type: ITEM_TREE
+            name:
+              _type: DV_TEXT
+              value: Tree
+            archetype_node_id: at0003
+            items:
+              - _type: ELEMENT
+                name:
+                  _type: DV_TEXT
+                  value: Screeningssyfte
+                archetype_node_id: at0034
+                value:
+                  _type: DV_CODED_TEXT
+                  value: utvärdering av cytostatikabehandling
+                  defining_code:
+                    _type: CODE_PHRASE
+                    terminology_id:
+                      _type: TERMINOLOGY_ID
+                      value: SNOMED-CT
+                    code_string: '385785003'
+              - _type: CLUSTER
+                name:
+                  _type: DV_TEXT
+                  value: Trötthet
+                archetype_details:
+                  _type: ARCHETYPED
+                  archetype_id:
+                    _type: ARCHETYPE_ID
+                    value: openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0
+                  rm_version: 1.1.0
+                archetype_node_id: openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0
+                items:
+                  - _type: ELEMENT
+                    name:
+                      _type: DV_TEXT
+                      value: Symptom/tecken-benämning
+                    archetype_node_id: at0004
+                    value:
+                      _type: DV_CODED_TEXT
+                      value: trötthet (fatigue)
+                      defining_code:
+                        _type: CODE_PHRASE
+                        terminology_id:
+                          _type: TERMINOLOGY_ID
+                          value: SNOMED-CT
+                        code_string: '84229001'
+                  - _type: ELEMENT
+                    name:
+                      _type: DV_TEXT
+                      value: Upplever du trötthet (fatigue) som påverkar ditt dagliga liv?
+                    archetype_node_id: at0005
+                    value:
+                      _type: DV_CODED_TEXT
+                      value: Ja
+                      defining_code:
+                        _type: CODE_PHRASE
+                        terminology_id:
+                          _type: TERMINOLOGY_ID
+                          value: local
+                        code_string: at0023
+                  - _type: CLUSTER
+                    name:
+                      _type: DV_TEXT
+                      value: följdfråga
+                    archetype_details:
+                      _type: ARCHETYPED
+                      archetype_id:
+                        _type: ARCHETYPE_ID
+                        value: openEHR-EHR-CLUSTER.followup_question.v0
+                      rm_version: 1.1.0
+                    archetype_node_id: openEHR-EHR-CLUSTER.followup_question.v0
+                    items:
+                      - _type: ELEMENT
+                        name:
+                          _type: DV_TEXT
+                          value: Hur påverkar tröttheten ditt dagliga liv?
+                        archetype_node_id: at0002
+                        value:
+                          _type: DV_ORDINAL
+                          value: 2
+                          symbol:
+                            _type: DV_CODED_TEXT
+                            value: Måttlig trötthet, vilar mindre än 50% av vaken tid
+                            defining_code:
+                              _type: CODE_PHRASE
+                              terminology_id:
+                                _type: TERMINOLOGY_ID
+                                value: local
+                              code_string: at0.17`,
+    xml: `<?xml version="1.0" encoding="UTF-8"?>
+<COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <name xsi:type="DV_TEXT">
+    <value>ChemoForm-MBA.v7</value>
+  </name>
+  <uid xsi:type="OBJECT_VERSION_ID">
+    <value>573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1</value>
+  </uid>
+  <archetype_details>
+    <archetype_id>
+      <value>openEHR-EHR-COMPOSITION.self_reported_data.v1</value>
+    </archetype_id>
+    <template_id>
+      <value>ChemoForm-MBA.v7</value>
+    </template_id>
+    <rm_version>1.1.0</rm_version>
+  </archetype_details>
+  <feeder_audit>
+    <original_content xsi:type="DV_PARSABLE">
+      <value>{}</value>
+      <formalism>application/json</formalism>
+    </original_content>
+    <originating_system_audit>
+      <system_id>FormRenderer</system_id>
+    </originating_system_audit>
+  </feeder_audit>
+  <archetype_node_id>openEHR-EHR-COMPOSITION.self_reported_data.v1</archetype_node_id>
+  <language>
+    <terminology_id>
+      <value>ISO_639-1</value>
+    </terminology_id>
+    <code_string>sv</code_string>
+  </language>
+  <territory>
+    <terminology_id>
+      <value>ISO_3166-1</value>
+    </terminology_id>
+    <code_string>SI</code_string>
+  </territory>
+  <category xsi:type="DV_CODED_TEXT">
+    <value>event</value>
+    <defining_code>
+      <terminology_id>
+        <value>openehr</value>
+      </terminology_id>
+      <code_string>433</code_string>
+    </defining_code>
+  </category>
+  <composer xsi:type="PARTY_IDENTIFIED">
+    <name>erik.sundvall@regionstockholm.se</name>
+  </composer>
+  <context>
+    <start_time>
+      <value>2023-08-31T18:31:16.004+02:00</value>
+    </start_time>
+    <setting xsi:type="DV_CODED_TEXT">
+      <value>other care</value>
+      <defining_code>
+        <terminology_id>
+          <value>openehr</value>
+        </terminology_id>
+        <code_string>238</code_string>
+      </defining_code>
+    </setting>
+    <other_context xsi:type="ITEM_TREE">
+      <name xsi:type="DV_TEXT">
+        <value>Item tree</value>
+      </name>
+      <archetype_node_id>at0003</archetype_node_id>
+      <items xsi:type="CLUSTER">
+        <name xsi:type="DV_TEXT">
+          <value>Vårdenhet</value>
+        </name>
+        <archetype_details>
+          <archetype_id>
+            <value>openEHR-EHR-CLUSTER.organisation.v1</value>
+          </archetype_id>
+          <rm_version>1.1.0</rm_version>
+        </archetype_details>
+        <archetype_node_id>openEHR-EHR-CLUSTER.organisation.v1</archetype_node_id>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Namn</value>
+          </name>
+          <archetype_node_id>at0001</archetype_node_id>
+          <value xsi:type="DV_TEXT">
+            <value>Brandbergens vårdcentral</value>
+          </value>
+        </items>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Identifierare</value>
+          </name>
+          <archetype_node_id>at0003</archetype_node_id>
+          <value xsi:type="DV_IDENTIFIER">
+            <id>SE2321000016-1003</id>
+            <type>urn:oid:1.2.752.29.4.19</type>
+          </value>
+        </items>
+        <items xsi:type="ELEMENT">
+          <name xsi:type="DV_TEXT">
+            <value>Roll</value>
+          </name>
+          <archetype_node_id>at0004</archetype_node_id>
+          <value xsi:type="DV_CODED_TEXT">
+            <value>vårdenhet</value>
+            <defining_code>
+              <terminology_id>
+                <value>http://snomed.info/sct/900000000000207008</value>
+              </terminology_id>
+              <code_string>43741000</code_string>
+            </defining_code>
+          </value>
+        </items>
+        <items xsi:type="CLUSTER">
+          <name xsi:type="DV_TEXT">
+            <value>Vårdgivare</value>
+          </name>
+          <archetype_details>
+            <archetype_id>
+              <value>openEHR-EHR-CLUSTER.organisation.v1</value>
+            </archetype_id>
+            <rm_version>1.1.0</rm_version>
+          </archetype_details>
+          <archetype_node_id>openEHR-EHR-CLUSTER.organisation.v1</archetype_node_id>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Namn</value>
+            </name>
+            <archetype_node_id>at0001</archetype_node_id>
+            <value xsi:type="DV_TEXT">
+              <value>Stockholms läns sjukvårdsområde</value>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Identifierare</value>
+            </name>
+            <archetype_node_id>at0003</archetype_node_id>
+            <value xsi:type="DV_IDENTIFIER">
+              <id>SE2321000016-2GJS</id>
+              <type>urn:oid:1.2.752.29.4.19</type>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Organisationsnummer</value>
+            </name>
+            <archetype_node_id>at0003</archetype_node_id>
+            <value xsi:type="DV_IDENTIFIER">
+              <id>2232084</id>
+              <type>urn:oid:2.5.4.97</type>
+            </value>
+          </items>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Roll</value>
+            </name>
+            <archetype_node_id>at0004</archetype_node_id>
+            <value xsi:type="DV_CODED_TEXT">
+              <value>vårdgivare</value>
+              <defining_code>
+                <terminology_id>
+                  <value>http://snomed.info/sct/45991000052106</value>
+                </terminology_id>
+                <code_string>143591000052106</code_string>
+              </defining_code>
+            </value>
+          </items>
+        </items>
+      </items>
+    </other_context>
+  </context>
+  <content xsi:type="OBSERVATION">
+    <name xsi:type="DV_TEXT">
+      <value>Frågeformulär för symptom och andra tecken</value>
+    </name>
+    <archetype_details>
+      <archetype_id>
+        <value>openEHR-EHR-OBSERVATION.symptom_sign_screening.v1</value>
+      </archetype_id>
+      <rm_version>1.1.0</rm_version>
+    </archetype_details>
+    <archetype_node_id>openEHR-EHR-OBSERVATION.symptom_sign_screening.v1</archetype_node_id>
+    <language>
+      <terminology_id>
+        <value>ISO_639-1</value>
+      </terminology_id>
+      <code_string>sv</code_string>
+    </language>
+    <encoding>
+      <terminology_id>
+        <value>IANA_character-sets</value>
+      </terminology_id>
+      <code_string>UTF-8</code_string>
+    </encoding>
+    <subject xsi:type="PARTY_SELF"/>
+    <data xsi:type="HISTORY">
+      <name xsi:type="DV_TEXT">
+        <value>History</value>
+      </name>
+      <archetype_node_id>at0001</archetype_node_id>
+      <origin>
+        <value>2023-08-31T18:31:16.004+02:00</value>
+      </origin>
+      <events xsi:type="POINT_EVENT">
+        <name xsi:type="DV_TEXT">
+          <value>Ospecificerad händelse</value>
+        </name>
+        <archetype_node_id>at0002</archetype_node_id>
+        <time>
+          <value>2023-08-31T18:31:16.004+02:00</value>
+        </time>
+        <data xsi:type="ITEM_TREE">
+          <name xsi:type="DV_TEXT">
+            <value>Tree</value>
+          </name>
+          <archetype_node_id>at0003</archetype_node_id>
+          <items xsi:type="ELEMENT">
+            <name xsi:type="DV_TEXT">
+              <value>Screeningssyfte</value>
+            </name>
+            <archetype_node_id>at0034</archetype_node_id>
+            <value xsi:type="DV_CODED_TEXT">
+              <value>utvärdering av cytostatikabehandling</value>
+              <defining_code>
+                <terminology_id>
+                  <value>SNOMED-CT</value>
+                </terminology_id>
+                <code_string>385785003</code_string>
+              </defining_code>
+            </value>
+          </items>
+          <items xsi:type="CLUSTER">
+            <name xsi:type="DV_TEXT">
+              <value>Trötthet</value>
+            </name>
+            <archetype_details>
+              <archetype_id>
+                <value>openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0</value>
+              </archetype_id>
+              <rm_version>1.1.0</rm_version>
+            </archetype_details>
+            <archetype_node_id>openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0</archetype_node_id>
+            <items xsi:type="ELEMENT">
+              <name xsi:type="DV_TEXT">
+                <value>Symptom/tecken-benämning</value>
+              </name>
+              <archetype_node_id>at0004</archetype_node_id>
+              <value xsi:type="DV_CODED_TEXT">
+                <value>trötthet (fatigue)</value>
+                <defining_code>
+                  <terminology_id>
+                    <value>SNOMED-CT</value>
+                  </terminology_id>
+                  <code_string>84229001</code_string>
+                </defining_code>
+              </value>
+            </items>
+            <items xsi:type="ELEMENT">
+              <name xsi:type="DV_TEXT">
+                <value>Upplever du trötthet (fatigue) som påverkar ditt dagliga liv?</value>
+              </name>
+              <archetype_node_id>at0005</archetype_node_id>
+              <value xsi:type="DV_CODED_TEXT">
+                <value>Ja</value>
+                <defining_code>
+                  <terminology_id>
+                    <value>local</value>
+                  </terminology_id>
+                  <code_string>at0023</code_string>
+                </defining_code>
+              </value>
+            </items>
+            <items xsi:type="CLUSTER">
+              <name xsi:type="DV_TEXT">
+                <value>följdfråga</value>
+              </name>
+              <archetype_details>
+                <archetype_id>
+                  <value>openEHR-EHR-CLUSTER.followup_question.v0</value>
+                </archetype_id>
+                <rm_version>1.1.0</rm_version>
+              </archetype_details>
+              <archetype_node_id>openEHR-EHR-CLUSTER.followup_question.v0</archetype_node_id>
+              <items xsi:type="ELEMENT">
+                <name xsi:type="DV_TEXT">
+                  <value>Hur påverkar tröttheten ditt dagliga liv?</value>
+                </name>
+                <archetype_node_id>at0002</archetype_node_id>
+                <value xsi:type="DV_ORDINAL">
+                  <value>2</value>
+                  <symbol xsi:type="DV_CODED_TEXT">
+                    <value>Måttlig trötthet, vilar mindre än 50% av vaken tid</value>
+                    <defining_code>
+                      <terminology_id>
+                        <value>local</value>
+                      </terminology_id>
+                      <code_string>at0.17</code_string>
+                    </defining_code>
+                  </symbol>
+                </value>
+              </items>
+            </items>
+          </items>
+        </data>
+      </events>
+    </data>
+  </content>
+</COMPOSITION>`
   },
 };

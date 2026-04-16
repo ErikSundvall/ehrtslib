@@ -161,6 +161,14 @@ function setupEventListeners() {
 
   // Collapsible sections
   setupCollapsibleSections();
+
+  // Keyboard shortcut: Ctrl+Enter to convert
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleConvert();
+    }
+  });
 }
 
 /**
