@@ -973,6 +973,11 @@ body {
     .input-textarea {
         min-height: 300px;
     }
+
+    .toolbar-left,
+    .toolbar-right {
+        flex-wrap: wrap;
+    }
 }
 
 /* ==========================================
