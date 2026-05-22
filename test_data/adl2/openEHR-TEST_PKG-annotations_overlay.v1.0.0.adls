@@ -1,0 +1,40 @@
+archetype (adl_version=2.0.6; rm_release=1.0.4)
+    openEHR-TEST_PKG-annotations_overlay.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    original_author = <
+        ["name"] = <"ehrtslib test">
+    >
+    lifecycle_state = <"published">
+
+definition
+    WHOLE[id1]
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = <
+                text = <"whole">
+                description = <"whole">
+            >
+        >
+    >
+
+annotations
+    documentation = <
+        ["en"] = <
+            ["/data[id2]"] = <
+                ["ui"] = <"passthrough">
+            >
+        >
+    >
+
+rm_overlay
+    rm_visibility = <
+        ["/data[id2]/value"] = <
+            ["visibility"] = <"show">
+        >
+    >

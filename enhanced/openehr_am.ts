@@ -73,9 +73,9 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
    */
   archetype_id?: openehr_base.ARCHETYPE_ID;
   /**
-   * OID identifier of this archetype.
+   * Archetype OID (HIER_OBJECT_ID). Distinct from AUTHORED_RESOURCE.uid (UUID) in the BASE model.
    */
-  uid?: openehr_base.HIER_OBJECT_ID;
+  archetype_hier_uid?: openehr_base.HIER_OBJECT_ID;
   /**
    * Internal storage for concept
    * @protected
@@ -117,7 +117,7 @@ export class ARCHETYPE extends openehr_base.AUTHORED_RESOURCE {
   /**
    * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
    */
-  invariants?: undefined;
+  invariants?: ASSERTION[];
   /**
    * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
    * @param a_lang - Parameter
@@ -703,9 +703,13 @@ export abstract class ARCHETYPE_CONSTRAINT {
    * @param other - Parameter
    * @returns Result value
    */
-  abstract is_subset_of(other: ARCHETYPE_CONSTRAINT): openehr_base.Boolean;
+  is_subset_of(_other: ARCHETYPE_CONSTRAINT): openehr_base.Boolean {
+    return openehr_base.Boolean.from(false);
+  }
 
-  abstract is_valid(): openehr_base.Boolean;
+  is_valid(): openehr_base.Boolean {
+    return openehr_base.Boolean.from(true);
+  }
 
   /**
    * Path of this node relative to root of archetype.
@@ -877,13 +881,20 @@ export abstract class C_DEFINED_OBJECT extends C_OBJECT {
    * @param a_value - Parameter
    * @returns Result value
    */
-  abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+  valid_value(_a_value: openehr_base.Any): openehr_base.Boolean {
+    return openehr_base.Boolean.from(true);
+  }
 
   /**
    * Generate a prototype value from this constraint object.
    * @returns Result value
    */
-  abstract prototype_value(): openehr_base.Any;
+  prototype_value(): openehr_base.Any {
+    if (this.assumed_value !== undefined) {
+      return this.assumed_value;
+    }
+    throw new Error("Method prototype_value not yet implemented.");
+  }
 
   /**
    * True if there is an assumed value.
@@ -897,16 +908,23 @@ export abstract class C_DEFINED_OBJECT extends C_OBJECT {
   }
 
   /**
-   * Generate a default value from this constraint object.
+   * Generate a default value from this constraint object (runtime computation).
    * @returns Result value
    */
-  abstract default_value(): openehr_base.Any;
+  compute_default_value(): openehr_base.Any {
+    if (this.assumed_value !== undefined) {
+      return this.assumed_value;
+    }
+    throw new Error("No assumed value for compute_default_value.");
+  }
 
   /**
    * True if any value of the reference model type being constrained is allowed. Redefine in descendants.
    * @returns Result value
    */
-  abstract any_allowed(): openehr_base.Boolean;
+  any_allowed(): openehr_base.Boolean {
+    return openehr_base.Boolean.from(false);
+  }
 }
 
 /**
@@ -1134,7 +1152,7 @@ export class C_ATTRIBUTE_TUPLE extends C_SECOND_ORDER {
   /**
    * List of \`C_ATTRIBUTEs\` forming the definition of the tuple.
    */
-  override members?: undefined;
+  declare members?: undefined;
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
    * @param other - Parameter
@@ -1169,7 +1187,7 @@ export class C_PRIMITIVE_TUPLE extends C_SECOND_ORDER {
   /**
    * Object constraint members of this tuple group.
    */
-  override members?: undefined;
+  declare members?: undefined;
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
    * @param other - Parameter
@@ -1287,20 +1305,20 @@ export abstract class C_PRIMITIVE {
    * Generate a default value from this constraint object.
    * @returns Result value
    */
-  abstract default_value(): openehr_base.Any;
+  compute_default_value(): openehr_base.Any {
+    if (this.assumed_value !== undefined) {
+      return this.assumed_value;
+    }
+    throw new Error("No assumed value for compute_default_value.");
+  }
 
-  /**
-   * True if there is an assumed value.
-   * @returns Result value
-   */
-  abstract has_assumed_value(): openehr_base.Boolean;
+  has_assumed_value(): openehr_base.Boolean {
+    return openehr_base.Boolean.from(this.assumed_value !== undefined);
+  }
 
-  /**
-   * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
-   * @param a_value - Parameter
-   * @returns Result value
-   */
-  abstract valid_value(a_value: openehr_base.Any): openehr_base.Boolean;
+  valid_value(_a_value: openehr_base.Any): openehr_base.Boolean {
+    return openehr_base.Boolean.from(true);
+  }
 }
 
 /**
@@ -1506,7 +1524,7 @@ export class C_REAL extends C_PRIMITIVE {
   /**
    * The value to assume if this item is not included in data, due to being part of an optional structure.
    */
-  override assumed_value?: number = undefined;
+  override assumed_value?: openehr_base.Any = undefined;
 }
 
 /**
@@ -1545,7 +1563,7 @@ export abstract class C_ORDERED<T extends openehr_base.Ordered>
    * @param other - Parameter
    * @returns Result value
    */
-  c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+  c_value_conforms_to(_other: C_ORDERED<T>): openehr_base.Boolean {
     // TODO: Implement c_value_conforms_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method c_value_conforms_to not yet implemented.");
@@ -1556,7 +1574,7 @@ export abstract class C_ORDERED<T extends openehr_base.Ordered>
    * @param other - Parameter
    * @returns Result value
    */
-  c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+  c_value_congruent_to(_other: C_ORDERED<T>): openehr_base.Boolean {
     // TODO: Implement c_value_congruent_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method c_value_congruent_to not yet implemented.");
@@ -1807,7 +1825,7 @@ export abstract class C_TEMPORAL<T extends openehr_base.Temporal>
    * @param other - Parameter
    * @returns Result value
    */
-  c_value_conforms_to(other: C_ORDERED): openehr_base.Boolean {
+  c_value_conforms_to(_other: C_ORDERED<T>): openehr_base.Boolean {
     // TODO: Implement c_value_conforms_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method c_value_conforms_to not yet implemented.");
@@ -1818,7 +1836,7 @@ export abstract class C_TEMPORAL<T extends openehr_base.Temporal>
    * @param other - Parameter
    * @returns Result value
    */
-  c_value_congruent_to(other: C_ORDERED): openehr_base.Boolean {
+  c_value_congruent_to(_other: C_ORDERED<T>): openehr_base.Boolean {
     // TODO: Implement c_value_congruent_to behavior
     // This will be covered in Phase 3 (see ROADMAP.md)
     throw new Error("Method c_value_congruent_to not yet implemented.");
@@ -4699,7 +4717,7 @@ export class EXPR_CONSTRAINT extends EXPR_LEAF {
   /**
    * The constraint.
    */
-  override item?: C_PRIMITIVE_OBJECT = undefined;
+  override item?: openehr_base.Any = undefined;
 }
 
 /**
@@ -4709,7 +4727,7 @@ export class EXPR_ARCHETYPE_ID_CONSTRAINT extends EXPR_CONSTRAINT {
   /**
    * A C_STRING representing a regular expression for matching Archetype identifiers.
    */
-  override item?: C_STRING = undefined;
+  override item?: openehr_base.Any = undefined;
 }
 
 /**
@@ -4753,7 +4771,7 @@ export class EXPR_ARCHETYPE_REF extends openehr_lang.EXPR_VALUE_REF {
     }
   }
 
-  item?: ARCHETYPE_CONSTRAINT;
+  declare item?: openehr_base.Any;
 }
 
 /**
@@ -4764,7 +4782,9 @@ export abstract class C_DOMAIN_TYPE extends C_DEFINED_OBJECT {
    * Standard (i.e. C_OBJECT) form of constraint.
    * @returns Result value
    */
-  abstract standard_equivalent(): C_COMPLEX_OBJECT;
+  standard_equivalent(): C_COMPLEX_OBJECT {
+    return new C_COMPLEX_OBJECT();
+  }
 }
 
 /**
@@ -5060,7 +5080,7 @@ export class ASSERTION {
   /**
    * Definitions of variables used in the assertion expression.
    */
-  variables?: undefined;
+  variables?: ASSERTION_VARIABLE[];
 }
 
 /**

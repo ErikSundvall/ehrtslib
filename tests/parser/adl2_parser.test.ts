@@ -6,12 +6,27 @@ import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.t
 import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
 import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
 import { ADL2Serializer } from "../../enhanced/generation/adl2_serializer.ts";
+import type { ADL2ParseResult } from "../../enhanced/parser/adl2_parser.ts";
+import * as openehr_am from "../../enhanced/openehr_am.ts";
 
-function parseAdl2(input: string) {
+const TEST_DATA = new URL("../../test_data/", import.meta.url);
+
+function readTestData(relativePath: string): Promise<string> {
+  return Deno.readTextFile(new URL(relativePath, TEST_DATA));
+}
+
+function parseAdl2(input: string): ADL2ParseResult {
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
   const parser = new ADL2Parser(tokens);
   return parser.parse();
+}
+
+function archetypeFrom(result: ADL2ParseResult): openehr_am.ARCHETYPE {
+  if (!result.archetype) {
+    throw new Error(`Expected archetype parse result, got kind=${result.kind}`);
+  }
+  return result.archetype;
 }
 
 /**
@@ -99,13 +114,12 @@ terminology
     >
 `;
 
-  const result = parseAdl2(input);
-  
-  assert(result.archetype !== undefined);
-  assert(result.archetype.archetype_id !== undefined);
-  assertEquals(result.archetype.archetype_id.value, "openEHR-EHR-OBSERVATION.test.v1.0.0");
-  assertEquals(result.archetype.adl_version, "2.0.5");
-  assertEquals(result.archetype.rm_release, "1.0.2");
+  const archetype = archetypeFrom(parseAdl2(input));
+
+  assert(archetype.archetype_id !== undefined);
+  assertEquals(archetype.archetype_id.value, "openEHR-EHR-OBSERVATION.test.v1.0.0");
+  assertEquals(archetype.adl_version, "2.0.5");
+  assertEquals(archetype.rm_release, "1.0.2");
 });
 
 Deno.test("ADL2 Parser - archetype with specialization", () => {
@@ -127,35 +141,30 @@ terminology
     >
 `;
 
-  const result = parseAdl2(input);
-  
-  assert(result.archetype !== undefined);
-  assert(result.archetype.parent_archetype_id !== undefined);
+  const archetype = archetypeFrom(parseAdl2(input));
+
+  assert(archetype.parent_archetype_id !== undefined);
   assertEquals(
-    result.archetype.parent_archetype_id.value,
+    archetype.parent_archetype_id.value,
     "openEHR-EHR-OBSERVATION.test.v1.0.0"
   );
 });
 
 Deno.test("ADL2 Parser - parse simple observation file", async () => {
-  const input = await Deno.readTextFile(
-    "/home/runner/work/ehrtslib/ehrtslib/test_data/adl2/simple_observation.adl"
-  );
+  const input = await readTestData("adl2/simple_observation.adl");
+  const parsed = parseAdl2(input);
+  const archetype = archetypeFrom(parsed);
 
-  const result = parseAdl2(input);
-  
-  assert(result.archetype !== undefined);
-  assert(result.archetype.archetype_id !== undefined);
+  assert(archetype.archetype_id !== undefined);
   assertEquals(
-    result.archetype.archetype_id.value,
+    archetype.archetype_id.value,
     "openEHR-EHR-OBSERVATION.simple_test.v1.0.0"
   );
-  
-  // Should have parsed terminology
-  assert(result.archetype.ontology !== undefined);
-  
-  // Will have warnings about unimplemented features
-  assert(result.warnings.length > 0);
+
+  assert(archetype.ontology !== undefined);
+  const terms = (archetype.ontology as { term_definitions?: unknown })
+    .term_definitions;
+  assert(terms !== undefined && Object.keys(terms as object).length > 0);
 });
 
 // Round-trip tests with deep comparison
@@ -194,22 +203,19 @@ terminology
     >
 `;
 
-  // Parse original
   const result1 = parseAdl2(input);
-  assert(result1.archetype !== undefined, "First parse failed");
-  
-  // Serialize to ADL2
+  const archetype1 = archetypeFrom(result1);
+  assert(archetype1.definition !== undefined, "Definition should parse with matches block");
+
   const serializer = new ADL2Serializer();
-  const serialized = serializer.serialize(result1.archetype);
+  const serialized = serializer.serialize(archetype1);
   assert(serialized.length > 0, "Serialization produced empty string");
   assert(serialized.includes("openEHR-EHR-OBSERVATION.test_roundtrip.v1.0.0"), "Serialized missing archetype ID");
-  
-  // Parse serialized version
+
   const result2 = parseAdl2(serialized);
-  assert(result2.archetype !== undefined, "Second parse failed");
-  
-  // Deep comparison of archetypes
-  const differences = deepCompare(result1.archetype, result2.archetype, "archetype");
+  const archetype2 = archetypeFrom(result2);
+
+  const differences = deepCompare(archetype1, archetype2, "archetype");
   
   if (differences.length > 0) {
     console.log("\n⚠️  Differences found in round-trip:");
@@ -222,14 +228,14 @@ terminology
   
   // Critical elements must match
   assertEquals(
-    result2.archetype.archetype_id?.value,
-    result1.archetype.archetype_id?.value,
+    archetype2.archetype_id?.value,
+    archetype1.archetype_id?.value,
     "Archetype IDs don't match after round-trip"
   );
-  
+
   assertEquals(
-    result2.archetype.adl_version,
-    result1.archetype.adl_version,
+    archetype2.adl_version,
+    archetype1.adl_version,
     "ADL versions don't match after round-trip"
   );
 });
@@ -257,45 +263,43 @@ terminology
 
   // Parse → Serialize → Parse
   const result1 = parseAdl2(input);
+  const archetype1 = archetypeFrom(result1);
   const serializer = new ADL2Serializer();
-  const serialized = serializer.serialize(result1.archetype);
+  const serialized = serializer.serialize(archetype1);
   const result2 = parseAdl2(serialized);
+  const archetype2 = archetypeFrom(result2);
   
   // Deep comparison
-  const differences = deepCompare(result1.archetype, result2.archetype, "archetype");
-  
+  const differences = deepCompare(archetype1, archetype2, "archetype");
+
   if (differences.length > 0) {
     console.log("\n⚠️  Differences found in terminology round-trip:");
     differences.forEach(diff => console.log(`  - ${diff}`));
     console.log("");
   }
-  
-  // Verify terminology survived
-  assert(result2.archetype.ontology !== undefined, "Ontology lost in round-trip");
-  assert(result1.archetype.ontology !== undefined);
+
+  assert(archetype2.ontology !== undefined, "Ontology lost in round-trip");
+  assert(archetype1.ontology !== undefined);
   
   console.log(`✅ Round-trip with terminology passed - ${differences.length} differences found`);
 });
 
 Deno.test("ADL2 Parser - round-trip Archie test file (deep comparison)", async () => {
   // Use one of the Archie test files
-  const testFile = "/home/runner/work/ehrtslib/ehrtslib/test_data/archie-tests/basics/openEHR-TEST_PKG-WHOLE.most_minimal.v1.0.0.adls";
-  
-  try {
-    const input = await Deno.readTextFile(testFile);
-    
-    // Parse → Serialize → Parse
-    const result1 = parseAdl2(input);
-    assert(result1.archetype !== undefined, "Failed to parse Archie test file");
-    
-    const serializer = new ADL2Serializer();
-    const serialized = serializer.serialize(result1.archetype);
-    
-    const result2 = parseAdl2(serialized);
-    assert(result2.archetype !== undefined, "Failed to parse serialized Archie file");
-    
-    // Deep comparison
-    const differences = deepCompare(result1.archetype, result2.archetype, "archetype");
+  const input = await readTestData(
+    "archie-tests/basics/openEHR-TEST_PKG-WHOLE.most_minimal.v1.0.0.adls"
+  );
+
+  const result1 = parseAdl2(input);
+  const archetype1 = archetypeFrom(result1);
+
+  const serializer = new ADL2Serializer();
+  const serialized = serializer.serialize(archetype1);
+
+  const result2 = parseAdl2(serialized);
+  const archetype2 = archetypeFrom(result2);
+
+  const differences = deepCompare(archetype1, archetype2, "archetype");
     
     if (differences.length > 0) {
       console.log("\n⚠️  Differences found in Archie file round-trip:");
@@ -307,17 +311,13 @@ Deno.test("ADL2 Parser - round-trip Archie test file (deep comparison)", async (
     }
     
     // Verify archetype ID matches
-    assertEquals(
-      result2.archetype.archetype_id?.value,
-      result1.archetype.archetype_id?.value,
-      "Archetype IDs don't match in Archie round-trip"
-    );
-    
-    console.log(`✅ Round-trip with Archie test file passed - ${differences.length} differences found`);
-  } catch (e) {
-    console.log(`⚠️  Archie test file not found or parse error: ${e.message}`);
-    // Don't fail test if file not found - this is optional validation
-  }
+  assertEquals(
+    archetype2.archetype_id?.value,
+    archetype1.archetype_id?.value,
+    "Archetype IDs don't match in Archie round-trip"
+  );
+
+  console.log(`✅ Round-trip with Archie test file passed - ${differences.length} differences found`);
 });
 
 console.log("\n✅ ADL2 Parser tests completed (including deep round-trip tests)");

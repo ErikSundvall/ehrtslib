@@ -80,9 +80,10 @@ Deno.test("ODIN - keyed objects", () => {
     ["de"] = <"German">
   >`;
   const result = parseOdin(input);
-  // Result should be a list with two values
-  assertEquals(Array.isArray(result), true);
-  assertEquals((result as any[]).length, 2);
+  assertEquals(result, {
+    en: "English",
+    de: "German",
+  });
 });
 
 Deno.test("ODIN - language section example", () => {

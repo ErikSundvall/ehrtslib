@@ -1,4 +1,5 @@
 import { ArchetypeNodeIdLocation } from '../common/mod.ts';
+import type * as openehr_am from '../../openehr_am.ts';
 export type { ArchetypeNodeIdLocation };
 
 /**
@@ -106,6 +107,11 @@ export interface JsonDeserializationConfig {
    * @default false
    */
   parseTerseFormat?: boolean;
+
+  /**
+   * After deserialization, validate the RM instance against this template/archetype.
+   */
+  validateAgainstTemplate?: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE;
 }
 
 /**
@@ -128,11 +134,14 @@ export const DEFAULT_JSON_SERIALIZATION_CONFIG: Required<JsonSerializationConfig
 /**
  * Default deserialization configuration
  */
-export const DEFAULT_JSON_DESERIALIZATION_CONFIG: Required<JsonDeserializationConfig> = {
+export const DEFAULT_JSON_DESERIALIZATION_CONFIG: Required<
+  Omit<JsonDeserializationConfig, "validateAgainstTemplate">
+> & Pick<JsonDeserializationConfig, "validateAgainstTemplate"> = {
   typePropertyName: '_type',
   strict: false,
   allowIncomplete: false,
   parseTerseFormat: false,
+  validateAgainstTemplate: undefined,
 };
 
 /**

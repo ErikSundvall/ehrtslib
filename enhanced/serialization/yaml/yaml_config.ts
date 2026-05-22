@@ -88,6 +88,8 @@ export interface YamlSerializationConfig {
   keepArchetypeDetailsInline?: boolean;
 }
 
+import type * as openehr_am from "../../openehr_am.ts";
+
 /**
  * Configuration options for YAML deserialization
  */
@@ -109,6 +111,9 @@ export interface YamlDeserializationConfig {
    * @default true
    */
   parseTerseFormat?: boolean;
+
+  /** Validate deserialized RM instance against this template/archetype. */
+  validateAgainstTemplate?: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE;
 }
 
 /**
@@ -132,10 +137,13 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
 /**
  * Default YAML deserialization configuration
  */
-export const DEFAULT_YAML_DESERIALIZATION_CONFIG: Required<YamlDeserializationConfig> = {
+export const DEFAULT_YAML_DESERIALIZATION_CONFIG: Required<
+  Omit<YamlDeserializationConfig, "validateAgainstTemplate">
+> & Pick<YamlDeserializationConfig, "validateAgainstTemplate"> = {
   strict: true,
   allowDuplicateKeys: false,
   parseTerseFormat: true,  // Changed to true to match default serialization
+  validateAgainstTemplate: undefined,
 };
 
 /**

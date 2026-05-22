@@ -31,11 +31,15 @@ export function exampleParseADL2(adl2Text: string) {
   const parser = new ADL2Parser(tokens);
   const result = parser.parse();
   
-  console.log("Parsed archetype:", result.archetype.archetype_id?.value);
-  console.log("Definition:", result.archetype.definition?.rm_type_name);
+  const archetype = result.archetype;
+  if (!archetype) {
+    throw new Error(`Expected archetype, parsed kind=${result.kind}`);
+  }
+  console.log("Parsed archetype:", archetype.archetype_id?.value);
+  console.log("Definition:", archetype.definition?.rm_type_name);
   console.log("Warnings:", result.warnings);
-  
-  return result.archetype;
+
+  return archetype;
 }
 
 /**

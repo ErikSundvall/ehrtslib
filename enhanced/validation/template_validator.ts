@@ -10,6 +10,7 @@ import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import { UcumService } from "../ucum_service.ts";
 import { IntervalValidator } from "./interval_validator.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
+import { InvariantEvaluator } from "./invariant_evaluator.ts";
 
 /**
  * Validation result
@@ -24,7 +25,10 @@ export interface ValidationResult {
  * Validation message
  */
 export interface ValidationMessage {
+  /** RM instance JSON path (e.g. `/data/events[0]/`). */
   path: string;
+  /** Constraint path in archetype definition (ADL path when known; otherwise same as `path`). */
+  archetypePath?: string;
   message: string;
   severity: "error" | "warning" | "info";
   constraintType: string;
@@ -42,6 +46,7 @@ export interface ValidationConfig {
   useTypeRegistry?: boolean;            // Use TypeRegistry for type resolution
   validateIntervals?: boolean;          // Enable DV_INTERVAL validation
   validateRMSpecification?: boolean;    // Enable RM specification constraints
+  validateInvariants?: boolean;         // Evaluate archetype rules / invariants
 }
 
 /**
@@ -67,6 +72,7 @@ export class TemplateValidator {
       useTypeRegistry: true,
       validateIntervals: true,
       validateRMSpecification: true,
+      validateInvariants: true,
       ...config,
     };
     
@@ -123,7 +129,30 @@ export class TemplateValidator {
         constraintType: "structure",
       });
     } else {
-      this.validateNode(rmInstance, template.definition, "/", errors, warnings, 0);
+      this.validateNode(
+        rmInstance,
+        template.definition,
+        "/",
+        errors,
+        warnings,
+        0,
+        template.definition.rm_type_name,
+      );
+    }
+
+    if (
+      this.config.validateInvariants &&
+      template.invariants?.length
+    ) {
+      const invariantMsgs = new InvariantEvaluator({
+        definition: template.definition,
+      }).validateInvariants(
+        rmInstance,
+        template.invariants,
+        template.definition,
+      );
+      errors.push(...invariantMsgs.filter((m) => m.severity === "error"));
+      warnings.push(...invariantMsgs.filter((m) => m.severity === "warning"));
     }
 
     return {
@@ -139,11 +168,13 @@ export class TemplateValidator {
     path: string,
     errors: ValidationMessage[],
     warnings: ValidationMessage[],
-    depth: number
+    depth: number,
+    parentRmType?: string,
   ): void {
     if (depth > (this.config.maxDepth || 100)) {
       warnings.push({
         path,
+        archetypePath: path,
         message: "Maximum validation depth exceeded",
         severity: "warning",
         constraintType: "depth",
@@ -157,6 +188,7 @@ export class TemplateValidator {
       if (actualType && actualType !== cObject.rm_type_name) {
         errors.push({
           path,
+          archetypePath: path,
           message: `Type mismatch: expected ${cObject.rm_type_name}, got ${actualType}`,
           severity: "error",
           constraintType: "type",
@@ -205,24 +237,39 @@ export class TemplateValidator {
       warnings.push(...intervalMsgs.filter(m => m.severity === "warning"));
     }
 
-    // Validate RM specification constraints if enabled
-    if (this.config.validateRMSpecification && this.rmSpecValidator && rmNode && cObject.rm_type_name) {
-      // Check if this is a specific attribute that has RM constraints
-      const typeName = cObject.rm_type_name;
-      // We need the attribute name - extract from path
-      const pathParts = path.split('/');
-      const attributeName = pathParts[pathParts.length - 1];
-      
-      if (attributeName && !attributeName.match(/^\d+$/)) { // Not an array index
-        const rmSpecMsgs = this.rmSpecValidator.validate(rmNode, typeName, attributeName, path);
-        errors.push(...rmSpecMsgs.filter(m => m.severity === "error"));
-        warnings.push(...rmSpecMsgs.filter(m => m.severity === "warning"));
+    // Validate RM specification constraints if enabled (parent RM type + attribute name)
+    if (
+      this.config.validateRMSpecification && this.rmSpecValidator && rmNode &&
+      parentRmType
+    ) {
+      const pathParts = path.split("/").filter(Boolean);
+      const attributeName = pathParts[pathParts.length - 1]?.replace(/\[\d+\]$/, "");
+      if (attributeName && !/^\d+$/.test(attributeName)) {
+        const rmSpecMsgs = this.rmSpecValidator.validate(
+          rmNode,
+          parentRmType,
+          attributeName,
+          path,
+        );
+        for (const m of rmSpecMsgs) {
+          m.archetypePath = m.archetypePath ?? path;
+        }
+        errors.push(...rmSpecMsgs.filter((m) => m.severity === "error"));
+        warnings.push(...rmSpecMsgs.filter((m) => m.severity === "warning"));
       }
     }
 
     // Validate complex object
     if (cObject instanceof openehr_am.C_COMPLEX_OBJECT && rmNode) {
-      this.validateComplexObject(rmNode, cObject, path, errors, warnings, depth);
+      this.validateComplexObject(
+        rmNode,
+        cObject,
+        path,
+        errors,
+        warnings,
+        depth,
+        cObject.rm_type_name,
+      );
     }
   }
 
@@ -232,7 +279,8 @@ export class TemplateValidator {
     path: string,
     errors: ValidationMessage[],
     warnings: ValidationMessage[],
-    depth: number
+    depth: number,
+    parentRmType?: string,
   ): void {
     if (!cObject.attributes) return;
 
@@ -241,7 +289,8 @@ export class TemplateValidator {
       if (!attrName) continue;
 
       const rmValue = rmNode[attrName];
-      const attrPath = `${path}${attrName}`;
+      const attrPath = `${path}${attrName}/`;
+      const archetypeAttrPath = `${path}${attrName}/`;
 
       // Validate cardinality
       if (Array.isArray(rmValue)) {
@@ -255,10 +304,26 @@ export class TemplateValidator {
         for (const child of cAttribute.children) {
           if (Array.isArray(rmValue)) {
             rmValue.forEach((item, i) => {
-              this.validateNode(item, child, `${attrPath}[${i}]/`, errors, warnings, depth + 1);
+              this.validateNode(
+                item,
+                child,
+                `${attrPath}[${i}]/`,
+                errors,
+                warnings,
+                depth + 1,
+                parentRmType ?? cObject.rm_type_name,
+              );
             });
           } else {
-            this.validateNode(rmValue, child, `${attrPath}/`, errors, warnings, depth + 1);
+            this.validateNode(
+              rmValue,
+              child,
+              attrPath,
+              errors,
+              warnings,
+              depth + 1,
+              parentRmType ?? cObject.rm_type_name,
+            );
           }
         }
       }
@@ -267,20 +332,29 @@ export class TemplateValidator {
 
   private validateUnits(rmNode: any, path: string): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
-    
-    // Check for units property (common in DV_QUANTITY)
-    if (rmNode.units && typeof rmNode.units === 'string') {
-      const validationResult = this.ucumService!.validateSync(rmNode.units);
+    if (!rmNode || typeof rmNode !== "object") return messages;
+
+    if (rmNode.units && typeof rmNode.units === "string") {
+      const validationResult = this.ucumService!.validate(rmNode.units);
       if (validationResult && validationResult.status === "invalid") {
         messages.push({
           path,
-          message: `Invalid UCUM unit: "${rmNode.units}"${validationResult.msg ? ': ' + validationResult.msg.join(', ') : ''}`,
+          archetypePath: path,
+          message: `Invalid UCUM unit: "${rmNode.units}"${
+            validationResult.msg ? ": " + validationResult.msg.join(", ") : ""
+          }`,
           severity: "error",
           constraintType: "ucum",
         });
       }
     }
-    
+
+    for (const [key, val] of Object.entries(rmNode)) {
+      if (val && typeof val === "object") {
+        messages.push(...this.validateUnits(val, `${path}${key}/`));
+      }
+    }
+
     return messages;
   }
 
@@ -582,8 +656,9 @@ export class TerminologyValidator {
   ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
     
-    // Check for coded text values (DV_CODED_TEXT)
-    if (rmValue && rmValue._type === "DV_CODED_TEXT") {
+    const isCodedText = cObject.rm_type_name === "DV_CODED_TEXT" ||
+      (rmValue && typeof rmValue === "object" && "defining_code" in rmValue);
+    if (isCodedText && rmValue) {
       if (rmValue.defining_code) {
         const code = rmValue.defining_code;
         
@@ -591,6 +666,7 @@ export class TerminologyValidator {
         if (!code.terminology_id || !code.terminology_id.value) {
           messages.push({
             path,
+            archetypePath: path,
             message: "Missing terminology_id in coded text",
             severity: "error",
             constraintType: "terminology",

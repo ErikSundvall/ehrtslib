@@ -27,6 +27,7 @@ import {
   YamlDeserializationConfig,
   DEFAULT_YAML_DESERIALIZATION_CONFIG,
 } from './yaml_config.ts';
+import { validateDeserializedInstance } from '../common/post_deserialize_validation.ts';
 
 /**
  * YAML Deserializer for openEHR RM objects
@@ -58,8 +59,8 @@ export class YamlDeserializer {
         uniqueKeys: !this.config.allowDuplicateKeys,
       });
       
-      // Convert to RM objects
-      return this.fromPlainObject(parsed);
+      const instance = this.fromPlainObject(parsed);
+      return this.maybeValidateAgainstTemplate(instance);
     } catch (error) {
       if (error instanceof DeserializationError) {
         throw error;
@@ -192,6 +193,24 @@ export class YamlDeserializer {
     }
     
     return instance as T;
+  }
+
+  private maybeValidateAgainstTemplate<T>(instance: T): T {
+    const template = this.config.validateAgainstTemplate;
+    if (!template) return instance;
+
+    const result = validateDeserializedInstance(instance, {
+      validateAgainstTemplate: template,
+    });
+    if (result && !result.valid) {
+      const summary = result.errors.map((e) => `${e.path}: ${e.message}`).join(
+        "; ",
+      );
+      throw new DeserializationError(
+        `Deserialized instance failed template validation: ${summary}`,
+      );
+    }
+    return instance;
   }
   
   /**

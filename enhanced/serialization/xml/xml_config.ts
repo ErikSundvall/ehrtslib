@@ -50,6 +50,8 @@ export interface XmlSerializationConfig {
   indent?: string;
 }
 
+import type * as openehr_am from "../../openehr_am.ts";
+
 /**
  * Configuration options for XML deserialization
  */
@@ -71,6 +73,9 @@ export interface XmlDeserializationConfig {
    * @default false
    */
   ignoreAttributes?: boolean;
+
+  /** Validate deserialized RM instance against this template/archetype. */
+  validateAgainstTemplate?: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE;
 }
 
 /**
@@ -90,8 +95,11 @@ export const DEFAULT_XML_SERIALIZATION_CONFIG: Required<XmlSerializationConfig> 
 /**
  * Default XML deserialization configuration
  */
-export const DEFAULT_XML_DESERIALIZATION_CONFIG: Required<XmlDeserializationConfig> = {
+export const DEFAULT_XML_DESERIALIZATION_CONFIG: Required<
+  Omit<XmlDeserializationConfig, "validateAgainstTemplate">
+> & Pick<XmlDeserializationConfig, "validateAgainstTemplate"> = {
   strict: true,
   preserveOrder: false,
-  ignoreAttributes: false
+  ignoreAttributes: false,
+  validateAgainstTemplate: undefined,
 };

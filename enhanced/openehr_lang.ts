@@ -20,6 +20,38 @@ import * as openehr_base from "./openehr_base.ts";
 
 // Unknown types - defined as 'any' for now
 type BMM_CLASS = any;
+type BMM_MODULE = any;
+type BMM_ROUTINE_TYPE = any;
+type BMM_SIGNATURE = any;
+
+/** Procedure signature shell (LANG runtime). */
+export class BMM_PROCEDURE_TYPE {
+  argument_types?: BMM_TYPE[];
+  [key: string]: unknown;
+}
+
+/** Function signature shell (LANG runtime). */
+export class BMM_FUNCTION_TYPE {
+  argument_types?: BMM_TYPE[];
+  result_type?: BMM_TYPE;
+  [key: string]: unknown;
+}
+
+/** Tuple type shell (LANG runtime). */
+export class BMM_TUPLE_TYPE {
+  [key: string]: unknown;
+}
+
+/** Runtime shells for BMM class definitions (used by P_BMM_CLASS.create_bmm_class). */
+export class BMM_SIMPLE_CLASS {
+  name?: string | openehr_base.String;
+  is_abstract?: boolean | openehr_base.Boolean;
+  is_primitive?: boolean;
+  ancestors?: Map<string, BMM_CLASS>;
+  base_class?: BMM_CLASS;
+  [key: string]: unknown;
+}
+export class BMM_GENERIC_CLASS extends BMM_SIMPLE_CLASS {}
 type BMM_CONTAINER_TYPE = any;
 type BMM_ENUMERATION = any;
 type BMM_ENUMERATION_INTEGER = any;
@@ -29,7 +61,6 @@ type BMM_INDEXED_CONTAINER_TYPE = any;
 type BMM_PARAMETER_TYPE = any;
 type BMM_SIMPLE_TYPE = any;
 type BMM_STATUS_TYPE = any;
-type BMM_TUPLE_TYPE = any;
 type BMM_TYPE = any;
 type BMM_UNITARY_TYPE = any;
 type C_OBJECT = any;
@@ -56,10 +87,7 @@ export class BMM_DEFINITIONS extends openehr_base.BASIC_DEFINITIONS {
    * @returns Result value
    */
   Any_type(): BMM_SIMPLE_TYPE {
-    // Return a built-in Any type definition
-    const anyType = new BMM_SIMPLE_TYPE();
-    anyType.base_class = this.Any_class();
-    return anyType;
+    return { base_class: this.Any_class() } as BMM_SIMPLE_TYPE;
   }
 
   /**
@@ -281,7 +309,7 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
     // Parse version string to compare major version
     const versionStr = typeof schemaVersion === "string"
       ? schemaVersion
-      : schemaVersion.value;
+      : (schemaVersion as openehr_base.String).value ?? String(schemaVersion);
     const majorVersion = parseInt(versionStr?.split(".")[0] || "2", 10);
     return openehr_base.Boolean.from(majorVersion <= supportedBmmVersionMajor);
   }
@@ -754,18 +782,9 @@ export abstract class BMM_SCHEMA extends BMM_MODEL_METADATA {
    */
   schema_id(): openehr_base.String {
     // Form schema ID from component parts
-    const publisher =
-      (typeof this.rm_publisher === "string"
-        ? this.rm_publisher
-        : this.rm_publisher?.value) || "";
-    const schemaName =
-      (typeof this.schema_name === "string"
-        ? this.schema_name
-        : this.schema_name?.value) || "";
-    const release =
-      (typeof this.rm_release === "string"
-        ? this.rm_release
-        : this.rm_release?.value) || "";
+    const publisher = this.rm_publisher || "";
+    const schemaName = this.schema_name || "";
+    const release = this.rm_release || "";
     return openehr_base.String.from(
       `${publisher.toLowerCase()}_${schemaName.toLowerCase()}_${release}`,
     );
@@ -942,7 +961,9 @@ export abstract class BMM_FORMAL_ELEMENT extends BMM_MODEL_ELEMENT {
    * Specific implementations in descendants.
    * @returns Result value
    */
-  abstract signature(): BMM_SIGNATURE;
+  signature(): BMM_SIGNATURE {
+    return { name: this.name } as BMM_SIGNATURE;
+  }
 
   /**
    * True if \`_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`'Boolean'\`).
@@ -1033,7 +1054,7 @@ export class BMM_CONSTANT extends BMM_STATIC {
   /**
    * Literal value of the constant.
    */
-  generator?: BMM_LITERAL_VALUE;
+  generator?: BMM_LITERAL_VALUE<any>;
 }
 
 /**
@@ -2182,7 +2203,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
    * @returns Result value
    */
   any_type_definition(): BMM_SIMPLE_TYPE {
-    const anyType = new BMM_SIMPLE_TYPE();
+    const anyType = {} as BMM_SIMPLE_TYPE;
     anyType.base_class = this.any_class_definition();
     return anyType;
   }
@@ -2193,7 +2214,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
    */
   boolean_type_definition(): BMM_SIMPLE_TYPE {
     // Try to find "Boolean" class in definitions
-    const boolType = new BMM_SIMPLE_TYPE();
+    const boolType = {} as BMM_SIMPLE_TYPE;
     if (this.class_definitions?.has("BOOLEAN")) {
       boolType.base_class = this.class_definitions.get(
         "BOOLEAN",
@@ -2273,7 +2294,9 @@ export abstract class EL_EXPRESSION {
    * Effected in descendants.
    * @returns Result value
    */
-  abstract eval_type(): BMM_TYPE;
+  eval_type(): BMM_TYPE {
+    return {} as BMM_TYPE;
+  }
 
   /**
    * True if \`_eval_type_\` is notionally Boolean (i.e. a \`BMM_SIMPLE_TYPE\` with \`_type_name()_\` = \`Boolean\`).
@@ -2372,6 +2395,10 @@ export abstract class EL_OPERATOR extends EL_EXPRESSION {
    */
   call?: EL_FUNCTION_CALL;
   /**
+   * Routine definition for operator overload resolution.
+   */
+  definition?: BMM_FUNCTION;
+  /**
    * Operator definition derived from \`_definition.operator_definition()_\`.
    * @returns Result value
    */
@@ -2442,7 +2469,7 @@ export class EL_LITERAL extends EL_SIMPLE {
       return this.value.type;
     }
     // Return a default Any type if no value set
-    const anyType = new BMM_SIMPLE_TYPE();
+    const anyType = {} as BMM_SIMPLE_TYPE;
     const anyClass = new BMM_SIMPLE_CLASS();
     anyClass.name = "Any";
     anyType.base_class = anyClass;
@@ -2605,7 +2632,7 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
       return this.definition.type;
     }
     // Return Any type if no definition
-    const anyType = new BMM_SIMPLE_TYPE();
+    const anyType = {} as BMM_SIMPLE_TYPE;
     const anyClass = new BMM_SIMPLE_CLASS();
     anyClass.name = "Any";
     anyType.base_class = anyClass;
@@ -2627,7 +2654,7 @@ export abstract class EL_PREDICATE extends EL_SIMPLE {
    */
   eval_type(): BMM_SIMPLE_TYPE {
     // Predicates always return Boolean type
-    const boolType = new BMM_SIMPLE_TYPE();
+    const boolType = {} as BMM_SIMPLE_TYPE;
     const boolClass = new BMM_SIMPLE_CLASS();
     boolClass.name = "Boolean";
     boolType.base_class = boolClass;
@@ -2660,7 +2687,11 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
   /**
    * The function agent being called.
    */
-  override agent?: EL_FUNCTION_AGENT = undefined;
+  agent?: EL_FUNCTION_AGENT = undefined;
+  /**
+   * Routine definition when this call is built from an operator expression.
+   */
+  definition?: BMM_FUNCTION;
   /**
    * Defined to return False.
    */
@@ -2698,7 +2729,7 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
       return this.agent.definition.type;
     }
     // Return Any type if no agent definition
-    const anyType = new BMM_SIMPLE_TYPE();
+    const anyType = {} as BMM_SIMPLE_TYPE;
     const anyClass = new BMM_SIMPLE_CLASS();
     anyClass.name = "Any";
     anyType.base_class = anyClass;
@@ -2820,7 +2851,7 @@ export abstract class EL_AGENT extends EL_FEATURE_REF {
     ) {
       return openehr_base.Boolean.from(true);
     }
-    const closedCount = this.closed_args?.length || 0;
+    const closedCount = this.closed_args?.items?.length || 0;
     const requiredCount = this.definition.parameters.length;
     return openehr_base.Boolean.from(closedCount >= requiredCount);
   }
@@ -3030,7 +3061,7 @@ export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
     if (this.type) {
       return this.type;
     }
-    const anyType = new BMM_SIMPLE_TYPE();
+    const anyType = {} as BMM_SIMPLE_TYPE;
     const anyClass = new BMM_SIMPLE_CLASS();
     anyClass.name = "Any";
     anyType.base_class = anyClass;
@@ -3083,10 +3114,6 @@ export abstract class EL_DECISION_TABLE<T extends EL_TERMINAL>
  */
 export class EL_CONDITION_CHAIN<T extends EL_TERMINAL>
   extends EL_DECISION_TABLE<T> {
-  /**
-   * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
-   */
-  override items?: undefined;
 }
 
 /**
@@ -3097,10 +3124,6 @@ export class EL_CONDITION_CHAIN<T extends EL_TERMINAL>
  * If no member of \`_items_\` has a True-returning \`_condition_\`, the evaluation result is the result of evaluating the \`_else_\` expression.
  */
 export class EL_CASE_TABLE<T extends EL_TERMINAL> extends EL_DECISION_TABLE<T> {
-  /**
-   * Members of the chain, equivalent to branches in an if/then/else chain and cases in a case statement.
-   */
-  override items?: undefined;
   /**
    * Expressing generating the input value for the case table.
    */
@@ -3629,14 +3652,15 @@ export class P_BMM_CLASS extends P_BMM_MODEL_ELEMENT {
    * @returns Result value
    */
   is_generic(): openehr_base.Boolean {
-    // A class is generic if it has generic parameters defined
-    return openehr_base.Boolean.from(
-      this.generic_parameter_defs !== undefined &&
-        this.generic_parameter_defs !== null &&
-        (Array.isArray(this.generic_parameter_defs)
-          ? this.generic_parameter_defs.length > 0
-          : Object.keys(this.generic_parameter_defs).length > 0),
-    );
+    const defs = this.generic_parameter_defs as
+      | unknown[]
+      | Record<string, unknown>
+      | undefined;
+    if (!defs) return openehr_base.Boolean.from(false);
+    if (Array.isArray(defs)) {
+      return openehr_base.Boolean.from(defs.length > 0);
+    }
+    return openehr_base.Boolean.from(Object.keys(defs).length > 0);
   }
 
   /**
@@ -3699,7 +3723,11 @@ export class P_BMM_PACKAGE_CONTAINER {
 /**
  * Persisted form of \`BMM_SCHEMA\`.
  */
-export class P_BMM_SCHEMA extends P_BMM_PACKAGE_CONTAINER {
+export class P_BMM_SCHEMA extends BMM_SCHEMA {
+  /**
+   * Package structure as a hierarchy of packages (persisted).
+   */
+  packages?: undefined;
   /**
    * Primitive type definitions. Persisted attribute.
    */
@@ -4095,13 +4123,20 @@ export abstract class P_BMM_TYPE {
    * @param a_class_def - Parameter
    * @returns Result value
    */
-  abstract create_bmm_type(a_schema: BMM_MODEL, a_class_def: BMM_CLASS): void;
+  create_bmm_type(
+    _a_schema: BMM_MODEL,
+    _a_class_def: BMM_CLASS,
+  ): void {
+    throw new Error("Method create_bmm_type not yet implemented.");
+  }
 
   /**
    * Formal name of the type for display.
    * @returns Result value
    */
-  abstract as_type_string(): openehr_base.String;
+  as_type_string(): openehr_base.String {
+    throw new Error("Method as_type_string not yet implemented.");
+  }
 }
 
 /**
@@ -4560,8 +4595,7 @@ export class P_BMM_SINGLE_PROPERTY extends P_BMM_PROPERTY {
    * Generate \`_type_ref_\` from \`_type_\` and save.
    * @returns Result value
    */
-  type_def(): P_BMM_SIMPLE_TYPE {
-    // Generate a P_BMM_SIMPLE_TYPE from the type string
+  resolve_type_def(): P_BMM_SIMPLE_TYPE {
     if (!this.type_ref) {
       this.type_ref = new P_BMM_SIMPLE_TYPE();
       this.type_ref.type = this.type;
@@ -4620,8 +4654,7 @@ export class P_BMM_SINGLE_PROPERTY_OPEN extends P_BMM_PROPERTY {
    * Generate \`_type_ref_\` from \`_type_\` and save.
    * @returns Result value
    */
-  type_def(): P_BMM_OPEN_TYPE {
-    // Generate a P_BMM_OPEN_TYPE from the type string
+  resolve_type_def(): P_BMM_OPEN_TYPE {
     if (!this.type_ref) {
       this.type_ref = new P_BMM_OPEN_TYPE();
       this.type_ref.type = this.type;
@@ -4829,7 +4862,9 @@ export abstract class EXPR_VALUE {
    * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
    * @returns Result value
    */
-  abstract value(): openehr_base.Any;
+  value(): openehr_base.Any {
+    throw new Error("Method value not yet implemented.");
+  }
 }
 
 /**
@@ -4840,7 +4875,9 @@ export abstract class EXPRESSION extends EXPR_VALUE {
    * The primitive type of this node, which must be determined by redefinitions in concrete classes.
    * @returns Result value
    */
-  abstract type(): EXPR_TYPE_DEF;
+  type(): EXPR_TYPE_DEF {
+    throw new Error("Method type not yet implemented.");
+  }
 }
 
 /**
@@ -4946,7 +4983,7 @@ export abstract class EXPR_LEAF extends EXPRESSION {
   /**
    * The reference item from which the value of this node can be computed.
    */
-  item?: openehr_base.Any;
+  item?: openehr_base.Any | VARIABLE_DECLARATION;
 }
 
 /**
@@ -4966,7 +5003,7 @@ export class EXPR_LITERAL extends EXPR_LEAF {
   /**
    * A statically set constant value of a primitive type.
    */
-  override item?: openehr_base.Any;
+  declare item?: openehr_base.Any;
 }
 
 /**
@@ -5461,7 +5498,7 @@ export class TYPE_DEF_REAL extends EXPR_TYPE_DEF {
     }
   }
 
-  override type_anchor?: number = undefined;
+  override type_anchor?: openehr_base.Real = undefined;
 }
 
 /**

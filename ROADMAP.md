@@ -25,7 +25,7 @@ Now we will add the archetyping/templating layer to out openEHR implementation. 
 Implement the ideas from Phase 5 a experessed in the PRD file tasks/prd-phase5a-am-implementation.md with the following choises
 
 ### Regarding validation (section 6 of tasks/prd-phase5a-am-implementation.md)
-Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code examples in the PRD are just examples and yo may deviate from them to produce something better tailored to requirements etc.
+Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code examples in the PRD are just examples and you may deviate from them to produce something better tailored to requirements etc.
 
 ### Regarding section 11.2 Open Questions (in tasks/prd-phase5a-am-implementation.md)
 1. **Parser Approach:** Which alternative (A, B, C, or D)? → Recommended: A with grammar-assisted stub generation
@@ -35,7 +35,9 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 4. **Performance Targets:** What's acceptable for parsing/validation? → <100ms parse, <50ms validation typical archetype
 * Sounds like OK targets but not critical now
 5. **Template Flattening Implementation Strategy:**
-* Bidirectional abilities
+* Bidirectional abilities — **done (MVP)** (`enhanced/am/`: `flattenToOperationalTemplate`, `extractDifferentialDefinition` for editor round-trip)
+* **ADL2 only** for now; ADL 1.4 conversion deferred ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
+* **Rules/invariants** — parse/serialize/evaluate MVP done ([`docs/ADL2_SUPPORT.md`](docs/ADL2_SUPPORT.md)); ADL 1.4 still deferred ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
 
 ## Phase 6
 Exploration of:
