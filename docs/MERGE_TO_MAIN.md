@@ -25,7 +25,7 @@ deno check ../consumer-issue52-repro/main.ts
 - **Archetype AOM validation** (`ArchetypeValidator`) for structural checks on parsed artefacts.
 - Template flattening MVP (`enhanced/am/`).
 - Post-deserialize `validateAgainstTemplate` on JSON / YAML / XML.
-- Docs: [ADL2_SUPPORT.md](ADL2_SUPPORT.md), [ADL2_ROUNDTRIP.md](ADL2_ROUNDTRIP.md), [phase5b-deferred.md](../tasks/phase5b-deferred.md).
+- Docs: [ADL_SUPPORT.md](ADL_SUPPORT.md), [ADL2_ROUNDTRIP.md](ADL2_ROUNDTRIP.md).
 
 **Still not in scope:** full Archie JVM semantic validator; complete ADL 1.4↔2 AOM code migration (ac-code/value_sets reshaping).
 
@@ -50,7 +50,7 @@ gh pr create --base main --head ui-restoration-2026-02-18 \
 
 1. Tag or note release in CHANGELOG if you maintain one.
 2. Publish [ADL2_SUPPORT.md](ADL2_SUPPORT.md) link from README (already referenced).
-3. Track follow-ups in [phase5b-deferred.md](../tasks/phase5b-deferred.md) (expression AST edge cases, deeper 1.4 semantic migration).
+3. Track follow-ups in [ROADMAP.md](../ROADMAP.md) Phase 6b.
 
 ## Conflict hotspots
 

@@ -36,17 +36,40 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 * Sounds like OK targets but not critical now
 5. **Template Flattening Implementation Strategy:**
 * Bidirectional abilities — **done (MVP)** (`enhanced/am/`: `flattenToOperationalTemplate`, `extractDifferentialDefinition` for editor round-trip)
-* **ADL2 only** for now; ADL 1.4 conversion deferred ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
-* **Rules/invariants** — parse/serialize/evaluate done ([`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md))
-* **ADL 1.4** — syntactic conversion + `parseAdl()` done; deep AOM migration follow-up ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
+* **ADL 2** — parse, serialize, rules, annotations, rm_overlay ([`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md))
+* **ADL 1.4** — syntactic conversion + `parseAdl()` **done**; deeper AOM migration → Phase 6b
+* **Rules/invariants** — parse, serialize, evaluate **done**
+* **Validation** — `TemplateValidator`, `InvariantEvaluator`, `ArchetypeValidator`, deserializer `validateAgainstTemplate` **done**
+
+Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`docs/MERGE_TO_MAIN.md`](docs/MERGE_TO_MAIN.md) for merge checklist.
 
 ## Phase 6a
+Exploration of:
+Serialisation and deserialisation of RM object instance tree examples (and associated serialisations) based on templates + validation of RM instances related to templates
+
+## Phase 6b
+Follow-up enhancements after Phase 5b AM/ADL MVP (non-blocking).
+
+### ADL / AOM
+- **Deep ADL 1.4 AOM migration** — ac-code / value_sets reshaping per openEHR conversion guide; full `constraint_definitions` merge into `term_definitions`; use ADL Workbench for difficult legacy artefacts
+- **Expression language** — fuller AST for rare operators and nested forms (beyond current `string_expression` + MVP tree)
+- **ADL 1.4 regression suite** — curated `.adl` fixtures and round-trip tests beyond the minimal `test_data/adl14/` sample
+
+### Validation
+- **Archie AOM structural parity** — raise `ArchetypeValidator` pass rate on all `test_data/archie-tests/` (parse is 8/8; primitive-constraint archetypes need richer `rm_type_name` mapping)
+- **Archie semantic parity** — optional benchmark against Archie JVM validator (out of scope for a dependency-free TS library unless run as external tool)
+
+### Tooling / docs
+- Performance profiling vs PRD targets (<100ms parse, <50ms validation typical archetype)
+- Expand [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) with conversion limit examples
+
+## Phase 7a
 Exploration of:
 Serialisation and deserialisation of RM object instance trees to and from
 openEHRs simplified JSON formats (likely using other already existing library if
 it can be made fairly dependency free)
 
-## Phase 7?
+## Phase 7b
 Explore other Simplified openEHR template specific forms of instance tree creation and
 validation. (Take inspiration from Archie and openEHR's simplified formats and
 "web template" but also allow ADL2 flattened templates as validatiadl-toolson
@@ -69,6 +92,6 @@ targeted purposes for example
 create end user docs using same format as openEHR specs include static website app for conversion and example generation
 
 ## Phase Y - inspire future work
-- semi automated generation of python impl.
-= UI/form impl
+- semi automated generation of python impl. - dont do myself
+= UI/form impl - started pencil-in project
 - ...

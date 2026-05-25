@@ -59,6 +59,10 @@ deno test tests/parser/ tests/validation/ tests/am/ --allow-read --no-check
 deno test tests/parser/adl14_converter.test.ts --allow-read --no-check
 ```
 
+## Planned enhancements
+
+See [ROADMAP.md](../ROADMAP.md#phase-6b) Phase 6b (deep 1.4 AOM migration, fuller expression AST, Archie AOM parity, performance).
+
 ## Merge to main
 
 See [MERGE_TO_MAIN.md](MERGE_TO_MAIN.md).

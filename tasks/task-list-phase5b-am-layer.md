@@ -44,7 +44,7 @@ If running in interactive mode then stop after each parent task and let user rev
 
 - `enhanced/am/` — Flattening + differential extraction (`flattenToOperationalTemplate`, `extractDifferentialDefinition`)
 
-- `tasks/phase5b-deferred.md` — ADL 1.4 and rules/invariants deferred scope
+- [ROADMAP.md](../ROADMAP.md) Phase 6b — post-5b follow-up enhancements
 
 - `enhanced/generation/adl2_serializer.ts` — AOM → ADL2
 
@@ -80,7 +80,7 @@ If running in interactive mode then stop after each parent task and let user rev
 
 - Type-check: `deno check` on individual `enhanced/` modules; full-tree check still blocked by legacy AM stubs — use `--no-check` in CI until cleanup (§7.1)
 
-- ROADMAP 5b choices: hand-written parser + grammar assist; external validator; **bidirectional flattening** (ADL2 only; see [`phase5b-deferred.md`](phase5b-deferred.md))
+- ROADMAP 5b choices: hand-written parser + grammar assist; external validator; **bidirectional flattening**; ADL 1.4 syntactic conversion — see [ROADMAP Phase 6b](../ROADMAP.md#phase-6b) for follow-ups
 
 - Product decisions (2026-05-22): ADL2 only first; ADL 1.4 deferred; rules/invariants deferred; flattening bidirectional for editor tools
 
@@ -184,7 +184,7 @@ If running in interactive mode then stop after each parent task and let user rev
 
 
 
-- [x] 8.0 Deferred / product decisions (see [`phase5b-deferred.md`](phase5b-deferred.md))
+- [x] 8.0 Phase 5b scope complete; follow-ups → [ROADMAP Phase 6b](../ROADMAP.md#phase-6b)
 
   - [x] 8.1 Template flattening engine — MVP bidirectional (`enhanced/am/`: flatten + `extractDifferentialDefinition`)
 

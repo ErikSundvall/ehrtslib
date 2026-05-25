@@ -1,7 +1,7 @@
 /**
  * Template / archetype flattening and differential extraction (editor round-trip).
  *
- * ADL2-only; ADL 1.4 conversion is out of scope (see tasks/phase5b-deferred.md).
+ * Uses ADL2 AOM; legacy ADL 1.4 text should be converted first via `parseAdl()` (see ROADMAP Phase 6b for deep migration).
  */
 
 import * as openehr_am from "../../openehr_am.ts";

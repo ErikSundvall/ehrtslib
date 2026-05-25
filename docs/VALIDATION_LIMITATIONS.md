@@ -10,5 +10,5 @@
 
 ## Deferred
 
-- Rules / invariants evaluation (`tasks/phase5b-deferred.md`)
+- Rules / invariants: MVP evaluation in `InvariantEvaluator`; fuller expression AST → ROADMAP Phase 6b
 - Full Archie `RMObjectValidator` parity (benchmark in `tests/validation/archie_benchmark.test.ts`)

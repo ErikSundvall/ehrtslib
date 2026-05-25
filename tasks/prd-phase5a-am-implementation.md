@@ -141,9 +141,9 @@ The items below were true when this PRD was written. **Phase 5b (2026-05-22)** a
 | ADL2 serialization | Partial | `enhanced/generation/adl2_serializer.ts` — see `docs/ADL2_ROUNDTRIP.md` |
 | Flattening | MVP bidirectional | `enhanced/am/` |
 | AM class methods | Partial | Many generated AM methods still stubs |
-| ADL 1.4 | Deferred | `tasks/phase5b-deferred.md` |
-| Rules / invariants | Deferred | Parse/storage later; no evaluation yet |
-| Deserializer validation hook | Deferred | PRD V-2.4; `tasks/phase5b-deferred.md` |
+| ADL 1.4 | MVP done | Syntactic conversion + `parseAdl()`; deep AOM migration → ROADMAP Phase 6b |
+| Rules / invariants | MVP done | Parse, serialize, evaluate; fuller AST → Phase 6b |
+| Deserializer validation hook | Done | `validateAgainstTemplate` on JSON/YAML/XML |
 
 Task tracking: [`tasks/task-list-phase5b-am-layer.md`](task-list-phase5b-am-layer.md).
 
@@ -156,13 +156,13 @@ Task tracking: [`tasks/task-list-phase5b-am-layer.md`](task-list-phase5b-am-laye
 **Primary Goals:**
 
 1. ✅ Parse ADL2 archetypes and templates into AOM instances — **Phase 5b MVP** (`enhanced/parser/`)
-2. ✅ Validate RM object instances against operational templates — **Phase 5b MVP** (external `TemplateValidator`)
+2. ✅ Validate RM object instances against operational templates — **Phase 5b MVP** (`TemplateValidator` + optional **invariant** evaluation)
 3. ✅ Generate example RM instances from templates — **Phase 5b MVP**
 4. ✅ Generate TypeScript scaffolding code from templates — **Phase 5b MVP**
-5. ⚠️ Serialize AOM instances back to ADL2 format — **partial**; non-lossless areas documented
-6. ⚠️ Integrate validation into existing RM classes non-intrusively — **external validator**; optional deserializer hook deferred
-7. ❌ Support both ADL2 and ADL 1.4 (conversion to ADL2) — **deferred** (ADL2-only first)
-8. ⚠️ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL — **improving**; flattening bidirectional for editors
+5. ⚠️ Serialize AOM instances back to ADL2 format — **partial**; rules, annotations, rm_overlay round-trip; see `docs/ADL2_ROUNDTRIP.md`
+6. ✅ Integrate validation non-intrusively — **external** `TemplateValidator`; optional **`validateAgainstTemplate`** on JSON/YAML/XML deserializers
+7. ⚠️ Support ADL 1.4 — **MVP done** (`parseAdl()`, syntactic conversion); deep AOM migration → [ROADMAP Phase 6b](../ROADMAP.md#phase-6b)
+8. ⚠️ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL — **MVP**; flattening bidirectional; ADL2 serializer gaps documented
 9. ✅ Support archetype slots and includes/excludes — **Phase 5b** cADL parser
 10. ⚠️ Handle archetype specialization and flattening — **flattening MVP**; full specialization rules TBD
 11. ✅ Provide clear error messages for validation failures — **`archetypePath` on messages**
