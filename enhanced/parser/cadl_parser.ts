@@ -1,10 +1,8 @@
 /**
  * cADL (Constraint ADL) Parser
- * 
+ *
  * Parses the definition section of ADL2 files.
  * Based on cadl.g4 grammar from openEHR/archie.
- * 
- * Grammar rule: c_complex_object: type_id '[' ( ROOT_ID_CODE | ID_CODE ) ']' c_occurrences? ( SYM_MATCHES '{' c_attribute_def+ '}' )? ;
  */
 
 import { Token, TokenType } from "./adl2_tokenizer.ts";
@@ -23,45 +21,47 @@ export class CadlParser {
   }
 
   /**
-   * Parse c_complex_object (root of definition section)
-   * Grammar: type_id '[' ( ROOT_ID_CODE | ID_CODE ) ']' c_occurrences? ( SYM_MATCHES '{' c_attribute_def+ '}' )? ;
+   * Parse root c_object (complex, use archetype, allow archetype).
    */
   parseComplexObject(): openehr_am.C_COMPLEX_OBJECT {
-    const cObject = new openehr_am.C_COMPLEX_OBJECT();
+    if (this.checkKeyword("use") && this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+      return this.parseCArchetypeRoot();
+    }
+    return this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
+  }
 
-    // Parse type_id (e.g., OBSERVATION, ELEMENT, DV_TEXT)
+  private parseComplexObjectBody(
+    cObject: openehr_am.C_COMPLEX_OBJECT,
+  ): openehr_am.C_COMPLEX_OBJECT {
     const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
     cObject.rm_type_name = typeId.value;
 
-    // Parse node id: '[' ID_CODE ']'
     this.consume(TokenType.LBRACKET, "Expected '[' for node id");
-    
+
     const nodeIdToken = this.peek();
-    if (nodeIdToken.type === TokenType.ID_CODE || nodeIdToken.type === TokenType.AT_CODE) {
+    if (
+      nodeIdToken.type === TokenType.ID_CODE ||
+      nodeIdToken.type === TokenType.AT_CODE
+    ) {
       cObject.node_id = this.advance().value;
     } else {
       throw this.error("Expected node id code (id1, at0000, etc.)");
     }
-    
+
     this.consume(TokenType.RBRACKET, "Expected ']' after node id");
 
-    // Parse optional occurrences
     if (this.check(TokenType.OCCURRENCES)) {
       this.parseOccurrences(cObject);
     }
 
-    // Parse optional matches block
     if (this.check(TokenType.MATCHES)) {
-      this.advance(); // consume 'matches'
+      this.advance();
       this.consume(TokenType.LBRACE, "Expected '{' after matches");
 
-      // Parse attributes until we hit closing brace
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         const attribute = this.parseAttribute();
         if (attribute) {
-          if (!cObject.attributes) {
-            cObject.attributes = [];
-          }
+          if (!cObject.attributes) cObject.attributes = [];
           cObject.attributes.push(attribute);
         }
       }
@@ -72,141 +72,378 @@ export class CadlParser {
     return cObject;
   }
 
-  /**
-   * Parse c_attribute
-   * Grammar: (ADL_PATH | attribute_id) c_existence? c_cardinality? ( SYM_MATCHES ('{' c_objects '}' | CONTAINED_REGEXP) )? ;
-   */
+  private parseCArchetypeRoot(): openehr_am.C_ARCHETYPE_ROOT {
+    this.consumeKeyword("use");
+    this.consumeKeyword("archetype");
+    const root = new openehr_am.C_ARCHETYPE_ROOT();
+    return this.parseArchetypeRootTail(root);
+  }
+
+  private parseArchetypeRootTail(
+    root: openehr_am.C_ARCHETYPE_ROOT,
+  ): openehr_am.C_ARCHETYPE_ROOT {
+    const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
+    root.rm_type_name = typeId.value;
+
+    this.consume(TokenType.LBRACKET, "Expected '['");
+    root.node_id = this.consume(
+      TokenType.ID_CODE,
+      "Expected id code",
+    ).value;
+
+    if (this.check(TokenType.COMMA)) {
+      this.advance();
+      root.archetype_ref = this.consumeArchetypeRef();
+    }
+
+    this.consume(TokenType.RBRACKET, "Expected ']'");
+
+    if (this.check(TokenType.OCCURRENCES)) {
+      this.parseOccurrences(root);
+    }
+
+    if (this.check(TokenType.MATCHES)) {
+      this.advance();
+      this.consume(TokenType.LBRACE, "Expected '{'");
+      while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        const attribute = this.parseAttribute();
+        if (attribute) {
+          if (!root.attributes) root.attributes = [];
+          root.attributes.push(attribute);
+        }
+      }
+      this.consume(TokenType.RBRACE, "Expected '}'");
+    }
+
+    return root;
+  }
+
+  private isAllowArchetype(): boolean {
+    if (this.checkIdentifier("allow_archetype")) return true;
+    return this.checkKeyword("allow") &&
+      this.peekAhead(1)?.value.toLowerCase() === "archetype";
+  }
+
+  private checkIdentifier(name: string): boolean {
+    return this.check(TokenType.IDENTIFIER) &&
+      this.peek().value.toLowerCase() === name.toLowerCase();
+  }
+
+  private parseArchetypeSlotAsComplex(): openehr_am.ARCHETYPE_SLOT {
+    if (this.checkIdentifier("allow_archetype")) {
+      this.advance();
+    } else {
+      this.consumeKeyword("allow");
+      this.consumeKeyword("archetype");
+    }
+    const slot = new openehr_am.ARCHETYPE_SLOT();
+    const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
+    slot.rm_type_name = typeId.value;
+    this.consume(TokenType.LBRACKET, "Expected '['");
+    slot.node_id = this.consume(TokenType.ID_CODE, "Expected id code").value;
+    this.consume(TokenType.RBRACKET, "Expected ']'");
+
+    if (this.check(TokenType.OCCURRENCES)) {
+      this.parseOccurrences(slot);
+    }
+
+    if (this.check(TokenType.MATCHES)) {
+      this.advance();
+      this.consume(TokenType.LBRACE, "Expected '{'");
+      while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        if (this.checkKeyword("include")) {
+          this.parseIncludeExclude(slot, "includes");
+        } else if (this.checkKeyword("exclude")) {
+          this.parseIncludeExclude(slot, "excludes");
+        } else {
+          throw this.error(`Unexpected token in archetype slot: ${this.peek().value}`);
+        }
+      }
+      this.consume(TokenType.RBRACE, "Expected '}'");
+    }
+
+    return slot;
+  }
+
+  private skipIncludeExcludeBlock(): void {
+    this.advance();
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      if (this.check(TokenType.IDENTIFIER) && this.checkAhead(TokenType.MATCHES, 1)) {
+        this.advance();
+        if (this.check(TokenType.MATCHES)) this.advance();
+        if (this.check(TokenType.LBRACE)) {
+          this.advance();
+          while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+            this.advance();
+          }
+          if (this.check(TokenType.RBRACE)) this.advance();
+        }
+      } else {
+        this.advance();
+      }
+    }
+  }
+
+  private parseIncludeExclude(
+    slot: openehr_am.ARCHETYPE_SLOT,
+    field: "includes" | "excludes",
+  ): void {
+    this.advance(); // include | exclude
+    const list = (slot as Record<string, openehr_am.ARCHETYPE_ID_CONSTRAINT[]>)[
+      field
+    ] ?? [];
+    while (
+      !this.check(TokenType.RBRACE) &&
+      !this.checkKeyword("include") &&
+      !this.checkKeyword("exclude") &&
+      !this.isAtEnd()
+    ) {
+      const constraint = new openehr_am.ARCHETYPE_ID_CONSTRAINT();
+      const str = new openehr_am.C_STRING();
+      if (this.check(TokenType.STRING)) {
+        str.pattern = this.advance().value;
+      } else if (this.check(TokenType.IDENTIFIER)) {
+        str.pattern = this.advance().value;
+      } else {
+        throw this.error("Expected archetype id constraint");
+      }
+      constraint.constraint = str;
+      list.push(constraint);
+    }
+    (slot as Record<string, openehr_am.ARCHETYPE_ID_CONSTRAINT[]>)[field] =
+      list;
+  }
+
+  private consumeArchetypeRef(): string {
+    const parts: string[] = [];
+    while (
+      this.check(TokenType.IDENTIFIER) ||
+      this.check(TokenType.DOT) ||
+      this.check(TokenType.INTEGER)
+    ) {
+      parts.push(this.advance().value);
+    }
+    return parts.join("");
+  }
+
   private parseAttribute(): openehr_am.C_ATTRIBUTE | null {
-    // Skip if we hit a closing brace
-    if (this.check(TokenType.RBRACE)) {
-      return null;
+    if (this.check(TokenType.RBRACE)) return null;
+    if (!this.check(TokenType.IDENTIFIER)) return null;
+
+    let attributeName = this.advance().value;
+    if (this.check(TokenType.SLASH) && this.checkAhead(TokenType.IDENTIFIER, 1)) {
+      attributeName += "/" + this.advance().value;
+      this.advance(); // second part of path e.g. archetype_id/value
     }
-
-    // Parse attribute name
-    if (!this.check(TokenType.IDENTIFIER)) {
-      return null;
-    }
-
-    const attributeName = this.advance().value;
-
-    // Determine if it's a single or multiple attribute
-    // For now, we'll create C_SINGLE_ATTRIBUTE (simplified)
-    const attribute = new openehr_am.C_SINGLE_ATTRIBUTE();
+    const hasCardinality = this.check(TokenType.CARDINALITY);
+    const attribute: openehr_am.C_ATTRIBUTE = hasCardinality
+      ? new openehr_am.C_MULTIPLE_ATTRIBUTE()
+      : new openehr_am.C_SINGLE_ATTRIBUTE();
     attribute.rm_attribute_name = attributeName;
 
-    // Parse optional existence
     if (this.check(TokenType.EXISTENCE)) {
-      // existence: SYM_EXISTENCE SYM_MATCHES '{' existence '}'
-      // For now, skip implementation
-      this.skipExistence();
+      const existence = this.parseExistence();
+      (attribute as { existence: openehr_base.Multiplicity_interval }).existence =
+        existence;
     }
 
-    // Parse optional cardinality
     if (this.check(TokenType.CARDINALITY)) {
-      // cardinality: SYM_CARDINALITY SYM_MATCHES '{' cardinality '}'
-      // For now, skip implementation
-      this.skipCardinality();
+      const card = this.parseCardinality();
+      if (attribute instanceof openehr_am.C_MULTIPLE_ATTRIBUTE) {
+        attribute.cardinality = card;
+      }
     }
 
-    // Parse optional matches block
     if (this.check(TokenType.MATCHES)) {
-      this.advance(); // consume 'matches'
+      this.advance();
       this.consume(TokenType.LBRACE, "Expected '{' after matches in attribute");
 
-      // Parse child objects
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
-        // Check if it's a complex object (starts with type identifier)
-        if (this.check(TokenType.IDENTIFIER)) {
-          const childObject = this.parseComplexObject();
-          if (!attribute.children) {
-            attribute.children = [];
+        const stringChild = this.tryParseStringConstraint();
+        if (stringChild) {
+          if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
+            (attribute as { children: openehr_am.C_OBJECT[] }).children = [];
           }
-          attribute.children.push(childObject);
-        } else {
-          // Skip unknown tokens
-          this.advance();
+          (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(
+            stringChild,
+          );
+          continue;
+        }
+        const child = this.parseChildObject();
+        if (child) {
+          if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
+            (attribute as { children: openehr_am.C_OBJECT[] }).children = [];
+          }
+          (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(
+            child,
+          );
         }
       }
 
-      this.consume(TokenType.RBRACE, "Expected '}' to close attribute matches block");
+      this.consume(TokenType.RBRACE, "Expected '}' to close attribute matches");
     }
 
     return attribute;
   }
 
-  /**
-   * Parse occurrences constraint
-   * Grammar: SYM_OCCURRENCES SYM_MATCHES '{' multiplicity '}'
-   * multiplicity: INTEGER | '*' | INTEGER SYM_INTERVAL_SEP ( INTEGER | '*' )
-   */
-  private parseOccurrences(cObject: openehr_am.C_COMPLEX_OBJECT): void {
-    this.consume(TokenType.OCCURRENCES, "Expected 'occurrences'");
-    this.consume(TokenType.MATCHES, "Expected 'matches' after occurrences");
-    this.consume(TokenType.LBRACE, "Expected '{' for occurrences");
+  /** `matches { "literal" }` string constraint (BOOK archetype style). */
+  private tryParseStringConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    if (!this.check(TokenType.STRING)) return null;
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "DV_TEXT";
+    const str = new openehr_am.C_STRING();
+    str.pattern = this.advance().value.replace(/^["']|["']$/g, "");
+    prim.item = str;
+    while (this.check(TokenType.COMMA)) {
+      this.advance();
+      if (this.check(TokenType.STRING)) {
+        str.pattern += "|" +
+          this.advance().value.replace(/^["']|["']$/g, "");
+      }
+    }
+    return prim;
+  }
 
-    // Parse multiplicity (e.g., 1..*, 0..1, 1, *)
+  private parseChildObject(): openehr_am.C_OBJECT | null {
+    if (this.check(TokenType.RBRACE)) return null;
+    const stringChild = this.tryParseStringConstraint();
+    if (stringChild) return stringChild;
+    if (this.check(TokenType.REGEX)) {
+      const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+      prim.rm_type_name = "STRING";
+      const str = new openehr_am.C_STRING();
+      str.pattern = this.advance().value;
+      prim.item = str;
+      return prim;
+    }
+    if (!this.check(TokenType.IDENTIFIER)) {
+      throw this.error(`Unexpected token: ${this.peek().value}`);
+    }
+    if (this.checkKeyword("use") &&
+      this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+      return this.parseCArchetypeRoot();
+    }
+    if (this.isAllowArchetype()) {
+      return this.parseArchetypeSlotAsComplex();
+    }
+    if (this.checkKeyword("include") || this.checkKeyword("exclude")) {
+      this.skipIncludeExcludeBlock();
+      return null;
+    }
+    if (this.isPrimitiveType(this.peek().value)) {
+      return this.parsePrimitiveObject();
+    }
+    return this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
+  }
+
+  private isPrimitiveType(typeName: string): boolean {
+    return typeName.startsWith("DV_") || typeName === "CODE_PHRASE";
+  }
+
+  private parsePrimitiveObject(): openehr_am.C_PRIMITIVE_OBJECT {
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    const typeId = this.consume(TokenType.IDENTIFIER, "Expected primitive type");
+    prim.rm_type_name = typeId.value;
+    this.consume(TokenType.LBRACKET, "Expected '['");
+    prim.node_id = this.peek().type === TokenType.AT_CODE ||
+        this.peek().type === TokenType.ID_CODE
+      ? this.advance().value
+      : this.consume(TokenType.ID_CODE, "Expected node id").value;
+    this.consume(TokenType.RBRACKET, "Expected ']'");
+    return prim;
+  }
+
+  private parseExistence(): openehr_base.Multiplicity_interval {
+    this.consume(TokenType.EXISTENCE, "Expected 'existence'");
+    this.consume(TokenType.MATCHES, "Expected 'matches'");
+    this.consume(TokenType.LBRACE, "Expected '{'");
+    const interval = this.parseMultiplicity();
+    this.consume(TokenType.RBRACE, "Expected '}'");
+    return interval;
+  }
+
+  private parseCardinality(): openehr_am.CARDINALITY {
+    this.consume(TokenType.CARDINALITY, "Expected 'cardinality'");
+    this.consume(TokenType.MATCHES, "Expected 'matches'");
+    this.consume(TokenType.LBRACE, "Expected '{'");
+
+    const card = new openehr_am.CARDINALITY();
+    const interval = this.parseMultiplicity();
+    (card as { interval: openehr_base.Multiplicity_interval }).interval =
+      interval;
+
+    while (this.check(TokenType.SEMICOLON)) {
+      this.advance();
+      if (this.checkKeyword("ordered")) {
+        this.advance();
+        card.is_ordered = true;
+      } else if (this.checkKeyword("unordered")) {
+        this.advance();
+        card.is_ordered = false;
+      } else if (this.checkKeyword("unique")) {
+        this.advance();
+        (card as { is_unique: boolean }).is_unique = true;
+      } else {
+        throw this.error(`Unknown cardinality modifier: ${this.peek().value}`);
+      }
+    }
+
+    this.consume(TokenType.RBRACE, "Expected '}'");
+    return card;
+  }
+
+  private parseOccurrences(cObject: openehr_am.C_OBJECT): void {
+    this.consume(TokenType.OCCURRENCES, "Expected 'occurrences'");
+    this.consume(TokenType.MATCHES, "Expected 'matches'");
+    this.consume(TokenType.LBRACE, "Expected '{'");
+    cObject.occurrences = this.parseMultiplicity();
+    this.consume(TokenType.RBRACE, "Expected '}'");
+  }
+
+  private parseMultiplicity(): openehr_base.Multiplicity_interval {
+    const interval = new openehr_base.Multiplicity_interval();
+
     if (this.check(TokenType.INTEGER)) {
-      const lower = parseInt(this.advance().value);
-      
+      const lower = parseInt(this.advance().value, 10);
       if (this.check(TokenType.ELLIPSIS)) {
-        this.advance(); // consume '..'
-        
-        // Upper bound: INTEGER or '*'
-        let upper: number | undefined;
+        this.advance();
         if (this.check(TokenType.STAR)) {
           this.advance();
-          upper = undefined; // unbounded
+          interval.lower = lower;
+          interval.upper = undefined;
         } else if (this.check(TokenType.INTEGER)) {
-          upper = parseInt(this.advance().value);
+          interval.lower = lower;
+          interval.upper = parseInt(this.advance().value, 10);
+        } else {
+          interval.lower = lower;
+          interval.upper = undefined;
         }
-
-        // Create multiplicity interval
-        const occurrences = new openehr_base.Multiplicity_interval();
-        occurrences.lower = lower;
-        occurrences.upper = upper;
-        cObject.occurrences = occurrences;
       } else {
-        // Single value (e.g., "1" means 1..1)
-        const occurrences = new openehr_base.Multiplicity_interval();
-        occurrences.lower = lower;
-        occurrences.upper = lower;
-        cObject.occurrences = occurrences;
+        interval.lower = lower;
+        interval.upper = lower;
       }
     } else if (this.check(TokenType.STAR)) {
-      // Unbounded: *
       this.advance();
-      const occurrences = new openehr_base.Multiplicity_interval();
-      occurrences.lower = 0;
-      occurrences.upper = undefined;
-      cObject.occurrences = occurrences;
+      interval.lower = 0;
+      interval.upper = undefined;
+    } else {
+      throw this.error("Expected multiplicity");
     }
 
-    this.consume(TokenType.RBRACE, "Expected '}' to close occurrences");
+    return interval;
   }
 
-  private skipExistence(): void {
-    this.advance(); // EXISTENCE
-    if (this.check(TokenType.MATCHES)) this.advance();
-    if (this.check(TokenType.LBRACE)) this.advance();
-    // Skip until closing brace
-    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
-      this.advance();
+  private checkKeyword(word: string): boolean {
+    if (!this.check(TokenType.IDENTIFIER)) return false;
+    return this.peek().value.toLowerCase() === word.toLowerCase();
+  }
+
+  private consumeKeyword(word: string): void {
+    if (!this.checkKeyword(word)) {
+      throw this.error(`Expected keyword '${word}'`);
     }
-    if (this.check(TokenType.RBRACE)) this.advance();
+    this.advance();
   }
-
-  private skipCardinality(): void {
-    this.advance(); // CARDINALITY
-    if (this.check(TokenType.MATCHES)) this.advance();
-    if (this.check(TokenType.LBRACE)) this.advance();
-    // Skip until closing brace
-    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
-      this.advance();
-    }
-    if (this.check(TokenType.RBRACE)) this.advance();
-  }
-
-  // Token navigation helpers
 
   private check(type: TokenType): boolean {
     if (this.isAtEnd()) return false;
@@ -227,6 +464,12 @@ export class CadlParser {
     return this.tokens[this.position];
   }
 
+  private peekAhead(offset: number): Token | undefined {
+    const idx = this.position + offset;
+    if (idx >= this.tokens.length) return undefined;
+    return this.tokens[idx];
+  }
+
   private previous(): Token {
     return this.tokens[this.position - 1];
   }
@@ -241,7 +484,7 @@ export class CadlParser {
   private error(message: string): Error {
     const token = this.peek();
     return new Error(
-      `cADL parse error at line ${token.line}, column ${token.column}: ${message}`
+      `cADL parse error at line ${token.line}, column ${token.column}: ${message}`,
     );
   }
 }

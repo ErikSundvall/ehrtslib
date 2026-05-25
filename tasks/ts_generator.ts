@@ -162,6 +162,26 @@ function findPropertyInAncestors(
   return undefined;
 }
 
+function findFunctionInAncestors(
+  functionName: string,
+  bmmClass: BmmClass,
+  bmmModel: BmmModel,
+): boolean {
+  if (!bmmClass.ancestors || bmmClass.ancestors.length === 0) {
+    return false;
+  }
+  for (const ancestorName of bmmClass.ancestors) {
+    const ancestorClass = bmmModel.class_definitions?.[ancestorName] ||
+      bmmModel.primitive_types?.[ancestorName];
+    if (!ancestorClass) continue;
+    if (ancestorClass.functions?.[functionName]) return true;
+    if (findFunctionInAncestors(functionName, ancestorClass, bmmModel)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Checks if a BMM class is a primitive wrapper type that needs special handling.
  * These types wrap TypeScript primitives and provide validation and methods.
@@ -539,9 +559,14 @@ export function generateTypeScriptClass(
         returnType = resolveTypeReference(func.result.type, context);
       }
 
-      // Generate method signature - mark as abstract if specified
+      const overridesAncestor = bmmModel
+        ? findFunctionInAncestors(funcName, bmmClass, bmmModel)
+        : false;
+      const overridePrefix = overridesAncestor && !func.is_abstract
+        ? "override "
+        : "";
       const abstractPrefix = func.is_abstract ? "abstract " : "";
-      tsClass += `    ${abstractPrefix}${funcName}(${params}): ${returnType}`;
+      tsClass += `    ${overridePrefix}${abstractPrefix}${funcName}(${params}): ${returnType}`;
 
       // For abstract methods, just add semicolon
       // For concrete methods, add stub implementation marked as TODO

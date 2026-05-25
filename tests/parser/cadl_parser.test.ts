@@ -5,6 +5,7 @@
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
 import { CadlParser } from "../../enhanced/parser/cadl_parser.ts";
+import * as openehr_am from "../../enhanced/openehr_am.ts";
 
 function parseCadl(input: string) {
   const tokenizer = new ADL2Tokenizer(input);
@@ -108,6 +109,51 @@ Deno.test("cADL - at code instead of id code", () => {
   
   assertEquals(result.rm_type_name, "DV_CODED_TEXT");
   assertEquals(result.node_id, "at0001");
+});
+
+Deno.test("cADL - existence on attribute", () => {
+  const input = `OBSERVATION[id1] matches {
+    data existence matches {1..1} matches {
+      HISTORY[id2]
+    }
+  }`;
+  const result = parseCadl(input);
+  const data = result.attributes?.[0];
+  assertEquals(data?.rm_attribute_name, "data");
+  const existence = (data as { existence?: { lower?: number; upper?: number } })
+    .existence;
+  assert(existence !== undefined);
+  assertEquals(existence?.lower, 1);
+  assertEquals(existence?.upper, 1);
+});
+
+Deno.test("cADL - cardinality creates multiple attribute", () => {
+  const input = `HISTORY[id2] matches {
+    events cardinality matches {1..*} matches {
+      EVENT[id3]
+    }
+  }`;
+  const result = parseCadl(input);
+  const events = result.attributes?.[0];
+  assert(events instanceof openehr_am.C_MULTIPLE_ATTRIBUTE);
+  const card = (events as openehr_am.C_MULTIPLE_ATTRIBUTE).cardinality;
+  const interval = (card as { interval?: { lower?: number; upper?: number } })
+    ?.interval;
+  assertEquals(interval?.lower, 1);
+  assertEquals(interval?.upper, undefined);
+});
+
+Deno.test("cADL - primitive DV_TEXT", () => {
+  const input = `ELEMENT[id5] matches {
+    value matches {
+      DV_TEXT[id6]
+    }
+  }`;
+  const result = parseCadl(input);
+  const valueAttr = result.attributes?.[0];
+  const child = (valueAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+  assert(child instanceof openehr_am.C_PRIMITIVE_OBJECT);
+  assertEquals(child.rm_type_name, "DV_TEXT");
 });
 
 console.log("\n✅ cADL Parser tests completed");

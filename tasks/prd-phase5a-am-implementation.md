@@ -120,7 +120,9 @@ The project can reference these mature implementations:
 - Automatic type inference for DATA_VALUE descendants
 - 69-76% code reduction compared to manual instantiation
 
-### 2.2 What's Missing
+### 2.2 What's Missing (original PRD draft)
+
+The items below were true when this PRD was written. **Phase 5b (2026-05-22)** added MVP implementations; see §2.3.
 
 ❌ **ADL2 Parser:** No parser exists to read ADL2 files
 ❌ **Validation Engine:** No validation of RM instances against templates
@@ -128,6 +130,22 @@ The project can reference these mature implementations:
 ❌ **Code Generator:** No scaffolding generator for TypeScript from templates
 ❌ **ADL Serialization:** Can't write AOM instances back to ADL2
 ❌ **Complete AM Method Implementation:** Many AM class methods are stubs
+
+### 2.3 Phase 5b implementation status (2026-05-22)
+
+| Area | Status | Location / notes |
+|------|--------|------------------|
+| ADL2 parser | MVP | `enhanced/parser/` — hand-written tokenizer + cADL/ODIN; Archie fixtures **8/8** parse |
+| Template validation | MVP | `enhanced/validation/template_validator.ts` — external validator (PRD §6 Option 1) |
+| RM / TS generation | MVP | `enhanced/generation/rm_instance_generator.ts`, `typescript_generator.ts` |
+| ADL2 serialization | Partial | `enhanced/generation/adl2_serializer.ts` — see `docs/ADL2_ROUNDTRIP.md` |
+| Flattening | MVP bidirectional | `enhanced/am/` |
+| AM class methods | Partial | Many generated AM methods still stubs |
+| ADL 1.4 | MVP done | Syntactic conversion + `parseAdl()`; deep AOM migration → ROADMAP Phase 6b |
+| Rules / invariants | MVP done | Parse, serialize, evaluate; fuller AST → Phase 6b |
+| Deserializer validation hook | Done | `validateAgainstTemplate` on JSON/YAML/XML |
+
+Task tracking: [`tasks/task-list-phase5b-am-layer.md`](task-list-phase5b-am-layer.md).
 
 ---
 
@@ -137,21 +155,21 @@ The project can reference these mature implementations:
 
 **Primary Goals:**
 
-1. ✅ Parse ADL2 archetypes and templates into AOM instances
-2. ✅ Validate RM object instances against operational templates
-3. ✅ Generate example RM instances from templates
-4. ✅ Generate TypeScript scaffolding code from templates
-5. ✅ Serialize AOM instances back to ADL2 format
-6. ✅ Integrate validation into existing RM classes non-intrusively
-7. ✅ Support both ADL2 and ADL 1.4 (conversion to ADL2)
-8. ✅ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL
-9. ✅ Support archetype slots and includes/excludes
-10. ✅ Handle archetype specialization and flattening
-11. ✅ Provide clear error messages for validation failures
+1. ✅ Parse ADL2 archetypes and templates into AOM instances — **Phase 5b MVP** (`enhanced/parser/`)
+2. ✅ Validate RM object instances against operational templates — **Phase 5b MVP** (`TemplateValidator` + optional **invariant** evaluation)
+3. ✅ Generate example RM instances from templates — **Phase 5b MVP**
+4. ✅ Generate TypeScript scaffolding code from templates — **Phase 5b MVP**
+5. ⚠️ Serialize AOM instances back to ADL2 format — **partial**; rules, annotations, rm_overlay round-trip; see `docs/ADL2_ROUNDTRIP.md`
+6. ✅ Integrate validation non-intrusively — **external** `TemplateValidator`; optional **`validateAgainstTemplate`** on JSON/YAML/XML deserializers
+7. ⚠️ Support ADL 1.4 — **MVP done** (`parseAdl()`, syntactic conversion); deep AOM migration → [ROADMAP Phase 6b](../ROADMAP.md#phase-6b)
+8. ⚠️ Enable archetype editing and round-trip ADL ↔ AOM ↔ ADL — **MVP**; flattening bidirectional; ADL2 serializer gaps documented
+9. ✅ Support archetype slots and includes/excludes — **Phase 5b** cADL parser
+10. ⚠️ Handle archetype specialization and flattening — **flattening MVP**; full specialization rules TBD
+11. ✅ Provide clear error messages for validation failures — **`archetypePath` on messages**
 
 **Secondary Goals:**
 
-- ✅ Maintain zero or minimal new dependencies
+- ✅ Maintain zero or minimal new dependencies — **no new runtime deps** for parser/validator
 
 ### 3.2 Non-Goals
 

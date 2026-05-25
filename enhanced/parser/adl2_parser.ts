@@ -6,8 +6,18 @@
  */
 
 import { Token, TokenType } from "./adl2_tokenizer.ts";
-import { OdinParser, OdinValue, OdinObject } from "./odin_parser.ts";
+import { OdinParser, OdinObject, OdinValue } from "./odin_parser.ts";
+import {
+  applyTerminologyOdin,
+  mapDescription,
+  mapOriginalLanguage,
+} from "./odin_aom_mapper.ts";
 import { CadlParser } from "./cadl_parser.ts";
+import { RulesParser } from "./rules_parser.ts";
+import {
+  applyAnnotationsOdin,
+  applyRmOverlayOdin,
+} from "./aom_odin_sections.ts";
 import * as openehr_am from "../openehr_am.ts";
 import * as openehr_base from "../openehr_base.ts";
 
@@ -15,7 +25,10 @@ import * as openehr_base from "../openehr_base.ts";
  * ADL2 Parser result
  */
 export interface ADL2ParseResult {
-  archetype: openehr_am.ARCHETYPE;
+  kind: "archetype" | "template" | "operational_template";
+  archetype?: openehr_am.ARCHETYPE;
+  template?: openehr_am.TEMPLATE;
+  operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE;
   warnings: string[];
 }
 
@@ -35,16 +48,52 @@ export class ADL2Parser {
    * Parse ADL2 text from tokens
    */
   parse(): ADL2ParseResult {
-    const archetype = this.parseArchetype();
-    return {
-      archetype,
-      warnings: this.warnings,
-    };
+    if (this.isAtEnd()) {
+      throw this.error("Empty ADL2 input");
+    }
+
+    const keyword = this.peek().type;
+    if (keyword === TokenType.TEMPLATE) {
+      const template = this.parseTemplate();
+      return { kind: "template", template, warnings: this.warnings };
+    }
+    if (keyword === TokenType.OPERATIONAL_TEMPLATE) {
+      const operationalTemplate = this.parseOperationalTemplate();
+      return {
+        kind: "operational_template",
+        operationalTemplate,
+        warnings: this.warnings,
+      };
+    }
+    if (keyword === TokenType.ARCHETYPE) {
+      const archetype = this.parseArchetype();
+      return { kind: "archetype", archetype, warnings: this.warnings };
+    }
+
+    throw this.error(
+      `Expected 'archetype', 'template', or 'operational_template', got ${this.peek().value}`
+    );
+  }
+
+  private parseTemplate(): openehr_am.TEMPLATE {
+    this.consumeKeyword(TokenType.TEMPLATE, "Expected 'template' keyword");
+    return this.parseAuthoredArchetype(new openehr_am.TEMPLATE());
+  }
+
+  private parseOperationalTemplate(): openehr_am.OPERATIONAL_TEMPLATE {
+    this.consumeKeyword(
+      TokenType.OPERATIONAL_TEMPLATE,
+      "Expected 'operational_template' keyword"
+    );
+    return this.parseAuthoredArchetype(new openehr_am.OPERATIONAL_TEMPLATE());
   }
 
   private parseArchetype(): openehr_am.ARCHETYPE {
-    // Parse archetype header
     this.consumeKeyword(TokenType.ARCHETYPE, "Expected 'archetype' keyword");
+    return this.parseAuthoredArchetype(new openehr_am.ARCHETYPE());
+  }
+
+  private parseAuthoredArchetype<T extends openehr_am.ARCHETYPE>(archetype: T): T {
 
     // Parse metadata (in parentheses)
     const metadata = this.parseMetadata();
@@ -58,9 +107,6 @@ export class ADL2Parser {
       this.advance();
       parentId = this.parseArchetypeId();
     }
-
-    // Create archetype object
-    const archetype = new openehr_am.ARCHETYPE();
 
     // Set basic properties
     archetype.archetype_id = new openehr_base.ARCHETYPE_ID();
@@ -89,10 +135,12 @@ export class ADL2Parser {
         this.parseDefinitionSection(archetype);
       } else if (this.check(TokenType.RULES)) {
         this.parseRulesSection(archetype);
-      } else if (this.check(TokenType.TERMINOLOGY)) {
+      } else if (this.check(TokenType.TERMINOLOGY) || this.check(TokenType.ONTOLOGY)) {
         this.parseTerminologySection(archetype);
       } else if (this.check(TokenType.ANNOTATIONS)) {
         this.parseAnnotationsSection(archetype);
+      } else if (this.check(TokenType.RM_OVERLAY)) {
+        this.parseRmOverlaySection(archetype);
       } else {
         // Unknown section or end of file
         break;
@@ -114,20 +162,23 @@ export class ADL2Parser {
     while (!this.check(TokenType.RPAREN) && !this.isAtEnd()) {
       // Parse key = value pairs
       const key = this.consume(TokenType.IDENTIFIER, "Expected metadata key");
-      this.consume(TokenType.EQUALS, "Expected '=' after metadata key");
 
-      // Value can be a string, number, or identifier
       let value: string;
-      if (this.check(TokenType.STRING)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.REAL)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.INTEGER)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.IDENTIFIER)) {
-        value = this.advance().value;
+      if (this.check(TokenType.EQUALS)) {
+        this.advance();
+        if (this.check(TokenType.STRING)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.REAL)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.INTEGER)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.IDENTIFIER)) {
+          value = this.advance().value;
+        } else {
+          throw this.error("Expected metadata value");
+        }
       } else {
-        throw this.error("Expected metadata value");
+        value = "true";
       }
 
       metadata[key.value] = value;
@@ -178,14 +229,8 @@ export class ADL2Parser {
     const odinParser = new OdinParser(odinTokens);
     const languageData = odinParser.parse() as OdinObject;
 
-    // Convert to archetype properties
-    if (languageData.original_language) {
-      // Store language as a string for now
-      // In a complete implementation, would convert to proper CODE_PHRASE
-      this.warnings.push(
-        "Language section parsed but not fully converted to AOM objects"
-      );
-    }
+    const lang = mapOriginalLanguage(languageData);
+    if (lang) archetype.original_language = lang;
   }
 
   private parseDescriptionSection(archetype: openehr_am.ARCHETYPE): void {
@@ -196,11 +241,9 @@ export class ADL2Parser {
     const odinParser = new OdinParser(odinTokens);
     const descriptionData = odinParser.parse() as OdinObject;
 
-    // Convert to archetype properties
-    // In a complete implementation, would convert to RESOURCE_DESCRIPTION
-    this.warnings.push(
-      "Description section parsed but not fully converted to AOM objects"
-    );
+    if (Object.keys(descriptionData).length > 0) {
+      archetype.description = mapDescription(descriptionData);
+    }
   }
 
   private parseDefinitionSection(archetype: openehr_am.ARCHETYPE): void {
@@ -244,17 +287,14 @@ export class ADL2Parser {
           token.type === TokenType.DESCRIPTION ||
           token.type === TokenType.RULES ||
           token.type === TokenType.TERMINOLOGY ||
-          token.type === TokenType.ANNOTATIONS)
+          token.type === TokenType.ONTOLOGY ||
+          token.type === TokenType.ANNOTATIONS ||
+          token.type === TokenType.RM_OVERLAY)
       ) {
         break;
       }
 
       defTokens.push(this.advance());
-
-      // Stop when depth returns to 0 after collecting content
-      if (depth === 0 && defTokens.length > 1) {
-        break;
-      }
     }
 
     // Add EOF token
@@ -271,34 +311,55 @@ export class ADL2Parser {
   private parseRulesSection(archetype: openehr_am.ARCHETYPE): void {
     this.consumeKeyword(TokenType.RULES, "Expected 'rules' keyword");
 
-    // Parse rules (expression language)
-    // For now, skip
-    this.warnings.push("Rules section not yet implemented");
-    this.skipToNextSection();
+    const rulesTokens = this.collectRulesTokens();
+    const { assertions, warnings } = new RulesParser(rulesTokens).parse();
+    archetype.invariants = assertions.length > 0 ? assertions : undefined;
+    this.warnings.push(...warnings);
+  }
+
+  private collectRulesTokens(): Token[] {
+    const out: Token[] = [];
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+      if (
+        token.type === TokenType.TERMINOLOGY ||
+        token.type === TokenType.ANNOTATIONS ||
+        token.type === TokenType.RM_OVERLAY
+      ) {
+        break;
+      }
+      out.push(this.advance());
+    }
+    out.push({
+      type: TokenType.EOF,
+      value: "",
+      line: this.peek().line,
+      column: this.peek().column,
+    });
+    return out;
   }
 
   private parseTerminologySection(archetype: openehr_am.ARCHETYPE): void {
-    this.consumeKeyword(
-      TokenType.TERMINOLOGY,
-      "Expected 'terminology' keyword"
-    );
+    if (this.check(TokenType.ONTOLOGY)) {
+      this.advance();
+    } else {
+      this.consumeKeyword(
+        TokenType.TERMINOLOGY,
+        "Expected 'terminology' keyword",
+      );
+    }
 
     // Parse ODIN content
     const odinTokens = this.collectOdinTokens();
-    const odinParser = new OdinParser(odinTokens);
-    const terminologyData = odinParser.parse() as OdinObject;
-
-    // Create terminology object
-    const terminology = new openehr_am.ARCHETYPE_ONTOLOGY();
-    archetype.ontology = terminology;
-
-    // Parse term_definitions
-    if (terminologyData.term_definitions) {
-      // term_definitions is a map of language -> term map
-      // For now, just record that we parsed it
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const terminologyData = odinParser.parse() as OdinObject;
+      applyTerminologyOdin(archetype, terminologyData);
+    } catch (e) {
       this.warnings.push(
-        "Terminology section parsed but not fully converted to AOM objects"
+        `Terminology section parse error: ${e instanceof Error ? e.message : String(e)}`,
       );
+      archetype.ontology = archetype.ontology ?? new openehr_am.ARCHETYPE_ONTOLOGY();
     }
   }
 
@@ -308,10 +369,38 @@ export class ADL2Parser {
       "Expected 'annotations' keyword"
     );
 
-    // Parse ODIN content
-    this.collectOdinTokens();
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const data = odinParser.parse() as OdinObject;
+      applyAnnotationsOdin(archetype, data);
+    } catch (e) {
+      this.warnings.push(
+        `Annotations section parse error: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
+  }
 
-    this.warnings.push("Annotations section not yet implemented");
+  private parseRmOverlaySection(archetype: openehr_am.ARCHETYPE): void {
+    this.consumeKeyword(
+      TokenType.RM_OVERLAY,
+      "Expected 'rm_overlay' keyword",
+    );
+
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const data = odinParser.parse() as OdinObject;
+      applyRmOverlayOdin(archetype, data);
+    } catch (e) {
+      this.warnings.push(
+        `rm_overlay section parse error: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
   }
 
   private collectOdinTokens(): Token[] {
@@ -340,17 +429,14 @@ export class ADL2Parser {
           token.type === TokenType.DEFINITION ||
           token.type === TokenType.RULES ||
           token.type === TokenType.TERMINOLOGY ||
-          token.type === TokenType.ANNOTATIONS)
+          token.type === TokenType.ONTOLOGY ||
+          token.type === TokenType.ANNOTATIONS ||
+          token.type === TokenType.RM_OVERLAY)
       ) {
         break;
       }
 
       odinTokens.push(this.advance());
-
-      // Stop when depth returns to 0 after collecting at least one opening bracket
-      if (depth === 0 && hasContent && odinTokens.length > 1) {
-        break;
-      }
     }
 
     // Add EOF token

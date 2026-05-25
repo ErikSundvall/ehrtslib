@@ -46,10 +46,35 @@ export class OdinParser {
   }
 
   /**
-   * Parse ODIN text from tokens
+   * Parse ODIN text from tokens (single value or top-level `name = <...>` assignments).
    */
   parse(): OdinValue {
+    this.skipWhitespace();
+    if (this.isTopLevelAssignment()) {
+      return this.parseTopLevelAssignments();
+    }
     return this.parseValue();
+  }
+
+  private isTopLevelAssignment(): boolean {
+    return this.isIdentifierLike() && this.checkAhead(TokenType.EQUALS, 1);
+  }
+
+  private parseTopLevelAssignments(): OdinObject {
+    const root: OdinObject = {};
+    while (!this.isAtEnd()) {
+      this.skipWhitespace();
+      if (!this.isIdentifierLike() || !this.checkAhead(TokenType.EQUALS, 1)) {
+        break;
+      }
+      const attr = this.advance();
+      this.skipWhitespace();
+      this.consume(TokenType.EQUALS, "Expected '=' after attribute name");
+      this.skipWhitespace();
+      root[attr.value] = this.parseValue();
+      this.skipWhitespace();
+    }
+    return root;
   }
 
   private parseValue(): OdinValue {
@@ -67,34 +92,67 @@ export class OdinParser {
   private parseObjectBlock(): OdinValue {
     this.consume(TokenType.LANGLE, "Expected '<' to start object block");
 
-    // Check for empty object
     if (this.check(TokenType.RANGLE)) {
       this.advance();
       return {};
     }
 
-    // Check if it's a list of keyed objects
-    if (this.checkAhead(TokenType.LBRACKET)) {
-      return this.parseKeyedList();
-    }
-
-    // Check for attribute-value pairs (token followed by =)
-    if (this.isIdentifierLike() && this.checkAhead(TokenType.EQUALS, 1)) {
-      return this.parseAttributeValuePairs();
-    }
-
-    // Check for primitive list
     if (this.isPrimitive()) {
       return this.parsePrimitiveList();
     }
 
-    // Check for interval
     if (this.check(TokenType.PIPE)) {
       return this.parseInterval();
     }
 
+    if (
+      this.checkAhead(TokenType.LBRACKET) && !this.looksLikeKeyedObjectBlock()
+    ) {
+      const code = this.parseBracketedCode();
+      this.consume(TokenType.RANGLE, "Expected '>'");
+      return code;
+    }
+
+    return this.parseMixedObjectBody();
+  }
+
+  /** ODIN object with `["key"] = <>` entries and/or `attr = <>` pairs. */
+  private parseMixedObjectBody(): OdinObject {
+    const obj: OdinObject = {};
+
+    while (!this.check(TokenType.RANGLE) && !this.isAtEnd()) {
+      this.skipWhitespace();
+      if (this.check(TokenType.RANGLE)) break;
+
+      if (this.check(TokenType.LBRACKET) && this.looksLikeKeyedObjectBlock()) {
+        this.consume(TokenType.LBRACKET, "Expected '['");
+        let key = "";
+        while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+          key += this.advance().value;
+        }
+        key = key.replace(/^["']|["']$/g, "");
+        this.consume(TokenType.RBRACKET, "Expected ']'");
+        this.skipWhitespace();
+        this.consume(TokenType.EQUALS, "Expected '='");
+        this.skipWhitespace();
+        obj[key] = this.parseValue();
+        continue;
+      }
+
+      if (this.isIdentifierLike() && this.checkAhead(TokenType.EQUALS, 1)) {
+        const attr = this.advance();
+        this.skipWhitespace();
+        this.consume(TokenType.EQUALS, "Expected '='");
+        this.skipWhitespace();
+        obj[attr.value] = this.parseValue();
+        continue;
+      }
+
+      break;
+    }
+
     this.consume(TokenType.RANGLE, "Expected '>' to close object block");
-    return {};
+    return obj;
   }
 
   private parseAttributeValuePairs(): OdinObject {
@@ -145,34 +203,51 @@ export class OdinParser {
     return obj;
   }
 
-  private parseKeyedList(): OdinList {
-    const list: OdinList = [];
+  private looksLikeKeyedObjectBlock(): boolean {
+    let i = this.position + 1;
+    while (i < this.tokens.length && this.tokens[i].type !== TokenType.RBRACKET) {
+      i++;
+    }
+    if (i >= this.tokens.length) return false;
+    return this.tokens[i + 1]?.type === TokenType.EQUALS;
+  }
+
+  private parseBracketedCode(): string {
+    this.consume(TokenType.LBRACKET, "Expected '['");
+    let code = "";
+    while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+      code += this.advance().value;
+    }
+    this.consume(TokenType.RBRACKET, "Expected ']'");
+    return code.replace(/^["']|["']$/g, "");
+  }
+
+  private parseKeyedList(): OdinObject {
+    const obj: OdinObject = {};
 
     while (!this.check(TokenType.RANGLE) && !this.isAtEnd()) {
       this.skipWhitespace();
 
       if (this.check(TokenType.RANGLE)) break;
+      if (!this.check(TokenType.LBRACKET)) break;
 
-      // Parse key [key]
       this.consume(TokenType.LBRACKET, "Expected '[' for keyed object");
-      const key = this.parsePrimitive();
+      let key = "";
+      while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+        key += this.advance().value;
+      }
+      key = key.replace(/^["']|["']$/g, "");
       this.consume(TokenType.RBRACKET, "Expected ']' after key");
       this.skipWhitespace();
       this.consume(TokenType.EQUALS, "Expected '=' after key");
       this.skipWhitespace();
 
-      // Parse value
-      const value = this.parseValue();
-      
-      // For now, we'll store keyed values in array
-      // In a more complete implementation, we might want to preserve keys
-      list.push(value);
-
+      obj[key] = this.parseValue();
       this.skipWhitespace();
     }
 
     this.consume(TokenType.RANGLE, "Expected '>' to close keyed list");
-    return list;
+    return obj;
   }
 
   private parsePrimitiveList(): OdinValue {

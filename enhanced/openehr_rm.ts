@@ -620,11 +620,7 @@ export class VERSIONED_OBJECT<T> {
         if (v instanceof ORIGINAL_VERSION) {
           return v.uid;
         } else if (v instanceof IMPORTED_VERSION) {
-          try {
-            return v.uid();
-          } catch {
-            return undefined;
-          }
+          return v.item?.uid;
         }
         return undefined;
       })
@@ -668,11 +664,7 @@ export class VERSIONED_OBJECT<T> {
       if (version instanceof ORIGINAL_VERSION) {
         versionId = version.uid?.value;
       } else if (version instanceof IMPORTED_VERSION) {
-        try {
-          versionId = version.uid().value;
-        } catch {
-          continue;
-        }
+        versionId = version.item?.uid?.value;
       }
       if (versionId === targetId) {
         return openehr_base.Boolean.from(true);
@@ -694,11 +686,7 @@ export class VERSIONED_OBJECT<T> {
       if (version instanceof ORIGINAL_VERSION) {
         versionId = version.uid?.value;
       } else if (version instanceof IMPORTED_VERSION) {
-        try {
-          versionId = version.uid().value;
-        } catch {
-          continue;
-        }
+        versionId = version.item?.uid?.value;
       }
       if (versionId === targetId) {
         return version;
@@ -749,14 +737,9 @@ export class VERSIONED_OBJECT<T> {
           item.audits = [version.commit_audit];
         }
       } else if (version instanceof IMPORTED_VERSION) {
-        try {
-          item.version_id = version.uid();
-          // Populate audits from commit_audit
-          if (version.commit_audit) {
-            item.audits = [version.commit_audit];
-          }
-        } catch {
-          // Skip if uid not available
+        item.version_id = version.item?.uid;
+        if (version.commit_audit) {
+          item.audits = [version.commit_audit];
         }
       }
       return item;
@@ -977,27 +960,23 @@ export abstract class VERSION<T> {
   commit_audit?: AUDIT_DETAILS;
   /**
    * Unique identifier of this \`VERSION\`, in the form of an \`{object_id, a version_tree_id, creating_system_id}\` triple, where the \`_object_id_\` has the same value as the containing \`VERSIONED_OBJECT _uid_\`.
-   * @returns Result value
    */
-  abstract uid(): openehr_base.OBJECT_VERSION_ID;
+  uid?: openehr_base.OBJECT_VERSION_ID;
 
   /**
    * Unique identifier of the version of which this version is a modification; Void if this is the first version.
-   * @returns Result value
    */
-  abstract preceding_version_uid(): openehr_base.OBJECT_VERSION_ID;
+  preceding_version_uid?: openehr_base.OBJECT_VERSION_ID;
 
   /**
    * The data of this Version.
-   * @returns Result value
    */
-  abstract data(): T;
+  data?: T;
 
   /**
    * Lifecycle state of this version; coded by openEHR vocabulary \`version lifecycle state\`.
-   * @returns Result value
    */
-  abstract lifecycle_state(): DV_CODED_TEXT;
+  lifecycle_state?: DV_CODED_TEXT;
 
   /**
    * A canonical serial form of this Version, suitable for generating reliable hashes and signatures.
@@ -1007,9 +986,9 @@ export abstract class VERSION<T> {
   canonical_form(): openehr_base.String {
     // Create a canonical JSON representation
     const canonicalObj = {
-      uid: this.uid()?.value,
-      preceding_version_uid: this.preceding_version_uid?.()?.value,
-      lifecycle_state: this.lifecycle_state?.()?.defining_code?.code_string,
+      uid: this.uid?.value,
+      preceding_version_uid: this.preceding_version_uid?.value,
+      lifecycle_state: this.lifecycle_state?.defining_code?.code_string,
       contribution: this.contribution?.id?.value,
       commit_audit: {
         time_committed: this.commit_audit?.time_committed?.value,
@@ -1026,7 +1005,7 @@ export abstract class VERSION<T> {
    * @returns HIER_OBJECT_ID representing the owner
    */
   owner_id(): openehr_base.HIER_OBJECT_ID {
-    const versionUid = this.uid();
+    const versionUid = this.uid;
     if (!versionUid) {
       throw new Error("VERSION uid is not set");
     }
@@ -1046,7 +1025,7 @@ export abstract class VERSION<T> {
    * @returns Boolean indicating if this is a branch version
    */
   is_branch(): openehr_base.Boolean {
-    const versionUid = this.uid();
+    const versionUid = this.uid;
     if (!versionUid) {
       return openehr_base.Boolean.from(false);
     }
@@ -1067,53 +1046,6 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
    * The \`ORIGINAL_VERSION\` object that was imported.
    */
   item?: ORIGINAL_VERSION<T>;
-  /**
-   * Computed version of inheritance precursor, derived as \`_item.uid_\`.
-   * @returns Result value
-   */
-  uid(): openehr_base.OBJECT_VERSION_ID {
-    // Return the uid from the imported item
-    if (!this.item) {
-      throw new Error("IMPORTED_VERSION item is not set");
-    }
-    if (!this.item.uid) {
-      throw new Error("IMPORTED_VERSION item.uid is not set");
-    }
-    return this.item.uid;
-  }
-
-  /**
-   * Computed version of inheritance precursor, derived as \`_item.preceding_version_uid_\`.
-   * @returns The preceding version UID from the imported original version
-   */
-  preceding_version_uid(): openehr_base.OBJECT_VERSION_ID | undefined {
-    if (!this.item) {
-      return undefined;
-    }
-    return this.item.preceding_version_uid;
-  }
-
-  /**
-   * Lifecycle state of the content item in wrapped \`ORIGINAL_VERSION\`, derived as \`_item.lifecycle_state_\`; coded by openEHR vocabulary \`version lifecycle state\`.
-   * @returns The lifecycle state from the imported original version
-   */
-  lifecycle_state(): DV_CODED_TEXT | undefined {
-    if (!this.item) {
-      return undefined;
-    }
-    return this.item.lifecycle_state;
-  }
-
-  /**
-   * Original content of this Version.
-   * @returns The data from the imported original version
-   */
-  data(): T | undefined {
-    if (!this.item) {
-      return undefined;
-    }
-    return this.item.data as T;
-  }
 }
 
 /**
@@ -1121,29 +1053,13 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
  */
 export class ORIGINAL_VERSION<T> extends VERSION<T> {
   /**
-   * Stored version of inheritance precursor.
-   */
-  uid?: openehr_base.OBJECT_VERSION_ID;
-  /**
-   * Stored version of inheritance precursor.
-   */
-  preceding_version_uid?: openehr_base.OBJECT_VERSION_ID;
-  /**
    * Identifiers of other versions whose content was merged into this version, if any.
    */
   other_input_version_uids?: openehr_base.OBJECT_VERSION_ID[];
   /**
-   * Lifecycle state of the content item in this version; coded by openEHR vocabulary \`version lifecycle state\`.
-   */
-  lifecycle_state?: DV_CODED_TEXT;
-  /**
    * Set of attestations relating to this version.
    */
   attestations?: ATTESTATION[];
-  /**
-   * Data content of this Version.
-   */
-  data?: T;
   
   /**
    * True if this Version was created from more than just the preceding (checked out) version.
@@ -1525,7 +1441,7 @@ export abstract class AUTHORED_RESOURCE {
   /**
    * List of details for each natural-language translation made of this resource, keyed by language. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
    */
-  translations?: undefined;
+  translations?: TRANSLATION_DETAILS[];
   /**
    * Description and lifecycle information of the resource.
    */
@@ -2048,7 +1964,7 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
    * Generate a CEN EN13606-compatible hierarchy, which is the same as the tree's physical representation.
    * @returns Result value
    */
-  as_hierarchy(): CLUSTER {
+  override as_hierarchy(): CLUSTER {
     const result = new CLUSTER();
     result.archetype_node_id = this.archetype_node_id;
     result.name = this.name;
@@ -2066,7 +1982,7 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
    * Generate a CEN EN13606-compatible hierarchy consisting of a single \`ELEMENT\`.
    * @returns Result value
    */
-  as_hierarchy(): ELEMENT {
+  override as_hierarchy(): ELEMENT {
     // For ITEM_SINGLE, the hierarchy is just the single element itself
     if (!this.item) {
       throw new Error("ITEM_SINGLE.as_hierarchy: item is not set");
@@ -2221,7 +2137,7 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
    * Generate a CEN EN13606-compatible hierarchy consisting of a single \`CLUSTER\` containing the \`CLUSTERs\` representing the columns of this table.
    * @returns Result value
    */
-  as_hierarchy(): CLUSTER {
+  override as_hierarchy(): CLUSTER {
     const result = new CLUSTER();
     result.archetype_node_id = this.archetype_node_id;
     result.name = this.name;
@@ -2285,7 +2201,7 @@ export class ITEM_LIST extends ITEM_STRUCTURE {
    * Generate a CEN EN13606-compatible hierarchy consisting of a single \`CLUSTER\` containing the \`ELEMENTs\` of this list.
    * @returns Result value
    */
-  as_hierarchy(): CLUSTER {
+  override as_hierarchy(): CLUSTER {
     const result = new CLUSTER();
     result.archetype_node_id = this.archetype_node_id;
     result.name = this.name;
@@ -2338,13 +2254,13 @@ export abstract class EVENT<T extends ITEM_STRUCTURE> extends LOCATABLE {
 /**
  * Defines a single point event in a series.
  */
-export class POINT_EVENT<T> extends EVENT<T> {
+export class POINT_EVENT<T extends ITEM_STRUCTURE> extends EVENT<T> {
 }
 
 /**
  * Defines a single interval event in a series.
  */
-export class INTERVAL_EVENT<T> extends EVENT<T> {
+export class INTERVAL_EVENT<T extends ITEM_STRUCTURE> extends EVENT<T> {
   /**
    * Duration of the time interval during which the values recorded under \`data\` are true and, if set, the values recorded under \`state\` are true. Void if an instantaneous event.
    */
@@ -3118,7 +3034,7 @@ export class DV_TEXT extends DATA_VALUE {
   /**
    * Terms from other terminologies most closely matching this term, typically used where the originator (e.g. pathology lab) of information uses a local terminology but also supplies one or more equivalents from well known terminologies (e.g. LOINC).
    */
-  mappings?: undefined;
+  mappings?: TERM_MAPPING[];
   /**
    * Optional indicator of the localised language in which the value is written. Coded from openEHR Code Set  languages . Only used when either the text object is in a different language from the enclosing \`ENTRY\`, or else the text object is being used outside of an \`ENTRY\` or other enclosing structure which indicates the language.
    */
@@ -3428,11 +3344,11 @@ export abstract class DV_ORDERED extends DATA_VALUE {
   /**
    * Optional normal range.
    */
-  normal_range?: DV_INTERVAL;
+  normal_range?: DV_INTERVAL<DV_QUANTIFIED>;
   /**
    * Optional tagged other reference ranges for this value in its particular measurement context.
    */
-  other_reference_ranges?: undefined;
+  other_reference_ranges?: REFERENCE_RANGE<DV_QUANTIFIED>[];
   /**
    * Test if two instances are strictly comparable. Effected in descendants.
    * @param other - Parameter
@@ -3500,7 +3416,7 @@ export class REFERENCE_RANGE<T extends DV_ORDERED> {
   /**
    * The data range for this meaning, e.g. critical  etc.
    */
-  range?: DV_INTERVAL;
+  range?: DV_INTERVAL<DV_QUANTIFIED>;
   /**
    * Indicates if the value  \`_v_\` is inside the range.
    *
@@ -3582,7 +3498,8 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
     return openehr_base.Boolean.from(validStatuses.includes(this.magnitude_status));
   }
 
-  abstract magnitude(): openehr_base.Ordered_Numeric;
+  /** Magnitude for ordered comparison (RM operation; distinct from data fields named magnitude). */
+  abstract ordered_magnitude(): openehr_base.Ordered_Numeric;
 
   /**
    * True if accuracy is not known, e.g. due to not being recorded or discernable.
@@ -3590,7 +3507,9 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    */
   accuracy_unknown(): openehr_base.Boolean {
     // Accuracy is unknown if not set or set to special unknown value (-1)
-    return openehr_base.Boolean.from(this.accuracy === undefined || this.accuracy === -1);
+    const acc = this.accuracy;
+    const accNum = typeof acc === "number" ? acc : undefined;
+    return openehr_base.Boolean.from(accNum === undefined || accNum === -1);
   }
 
   /**
@@ -3607,8 +3526,8 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
    */
   less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
     // Compare based on magnitude
-    const thisMag = this.magnitude();
-    const otherMag = other.magnitude();
+    const thisMag = this.ordered_magnitude();
+    const otherMag = other.ordered_magnitude();
     
     // Handle different types of Ordered_Numeric
     if (typeof thisMag === 'number' && typeof otherMag === 'number') {
@@ -3674,7 +3593,7 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    *
    * A value of \`_unknown_accuracy_value_\` means that accuracy was not recorded.
    */
-  override accuracy?: number = undefined;
+  override accuracy?: openehr_base.Any = undefined;
   /**
    * Test whether a number is a valid percentage, i.e. between 0 and 100.
    * @param number - Parameter
@@ -3726,7 +3645,7 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @param other - Parameter
    * @returns Result value
    */
-  abstract is_equal(other: DV_QUANTIFIED): openehr_base.Boolean;
+  abstract override is_equal(other: DV_QUANTIFIED): openehr_base.Boolean;
 
   /**
    * Product of this Amount and \`_factor_\`.
@@ -3752,10 +3671,13 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_AMOUNT): openehr_base.Boolean {
+  override less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_AMOUNT)) {
+      return openehr_base.Boolean.from(false);
+    }
     // Compare based on magnitude
-    const thisMag = this.magnitude();
-    const otherMag = other.magnitude();
+    const thisMag = this.ordered_magnitude();
+    const otherMag = other.ordered_magnitude();
     
     // Handle numeric comparison
     const thisVal = typeof thisMag === 'number' ? thisMag : Number(thisMag);
@@ -3772,7 +3694,7 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
  *
  * Misuse: Should not be used to represent things like blood pressure which are often written using a  '/' character, giving the misleading impression that the item is a ratio, when in fact it is a structured value. Similarly, visual acuity, often written as (e.g.) "6/24" in clinical notes is not a ratio but an ordinal (which includes non-numeric symbols like CF = count fingers etc). Should not be used for formulations.
  */
-export class DV_PROPORTION extends PROPORTION_KIND {
+export class DV_PROPORTION extends DV_AMOUNT {
   /**
    * Numerator of ratio
    */
@@ -3850,23 +3772,17 @@ export class DV_PROPORTION extends PROPORTION_KIND {
   }
 
   /**
-   * Optional normal range.
-   */
-  override normal_range?: undefined = undefined;
-  /**
-   * Optional tagged other reference ranges for this value in its particular measurement context.
-   */
-  override other_reference_ranges?: undefined;
-  /**
    * Effective magnitude represented by ratio.
-   * @returns Result value
    */
-  magnitude(): number {
-    // Magnitude is numerator divided by denominator
+  override ordered_magnitude(): openehr_base.Real {
     if (!this.denominator || this.denominator === 0) {
       throw new Error("Cannot compute magnitude with zero or undefined denominator");
     }
-    return (this.numerator || 0) / this.denominator;
+    return openehr_base.Real.from((this.numerator || 0) / this.denominator);
+  }
+
+  ratio_magnitude(): number {
+    return this.ordered_magnitude().value ?? 0;
   }
 
   /**
@@ -3882,7 +3798,7 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @param other - Parameter
    * @returns Result value
    */
-  add(other: DV_PROPORTION): DV_PROPORTION {
+  override add(other: DV_PROPORTION): DV_PROPORTION {
     // Check type compatibility
     if (this.type !== other.type) {
       throw new Error("Cannot add proportions with different types");
@@ -3908,7 +3824,7 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @param other - Parameter
    * @returns Result value
    */
-  subtract(other: DV_PROPORTION): DV_PROPORTION {
+  override subtract(other: DV_PROPORTION): DV_PROPORTION {
     // Check type compatibility
     if (this.type !== other.type) {
       throw new Error("Cannot subtract proportions with different types");
@@ -3951,7 +3867,7 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @param factor - Parameter
    * @returns Result value
    */
-  multiply(factor: number): DV_PROPORTION {
+  override multiply(factor: number): DV_PROPORTION {
     const result = new DV_PROPORTION();
     result.numerator = (this.numerator || 0) * factor;
     result.denominator = this.denominator;
@@ -3966,9 +3882,9 @@ export class DV_PROPORTION extends PROPORTION_KIND {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_PROPORTION): openehr_base.Boolean {
+  override less_than(other: DV_PROPORTION): openehr_base.Boolean {
     // Compare based on magnitude (numerator/denominator)
-    return openehr_base.Boolean.from(this.magnitude() < other.magnitude());
+    return openehr_base.Boolean.from(this.ratio_magnitude() < other.ratio_magnitude());
   }
 
   /**
@@ -3985,6 +3901,16 @@ export class DV_PROPORTION extends PROPORTION_KIND {
   }
 }
 
+/** Numeric part of `accuracy` when stored as BASE Real/Integer wrappers (BMM types it as Any). */
+function accuracyAsNumber(acc: openehr_base.Any | undefined): number | undefined {
+  if (acc === undefined) return undefined;
+  if (acc instanceof openehr_base.Real) return acc.value;
+  if (acc instanceof openehr_base.Integer) return acc.value;
+  if (acc instanceof openehr_base.Integer64) return acc.value;
+  if (acc instanceof openehr_base.Double) return acc.value;
+  return undefined;
+}
+
 /**
  * Quantitified type representing  scientific  quantities, i.e. quantities expressed as a magnitude and units. Units are expressed in the UCUM syntax (http://unitsofmeasure.org/ucum.html[Unified Code for Units of Measure (UCUM)], by Gunther Schadow and Clement J. McDonald of The Regenstrief Institute)  (case-sensitive form) by default, or another system if \`_units_system_\` is set.
  *
@@ -3995,6 +3921,11 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * Numeric magnitude of the quantity.
    */
   magnitude?: number;
+
+  override ordered_magnitude(): openehr_base.Real {
+    return openehr_base.Real.from(this.magnitude ?? 0);
+  }
+
   /**
    * Internal storage for precision
    * @protected
@@ -4073,11 +4004,11 @@ export class DV_QUANTITY extends DV_AMOUNT {
   /**
    * Optional normal range.
    */
-  override normal_range?: undefined = undefined;
+  declare normal_range?: undefined;
   /**
    * Optional tagged other reference ranges for this value in its particular measurement context.
    */
-  override other_reference_ranges?: undefined;
+  declare other_reference_ranges?: undefined;
   /**
    * Internal storage for units_system
    * @protected
@@ -4157,7 +4088,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  add(other: DV_QUANTITY): DV_QUANTITY {
+  override add(other: DV_QUANTITY): DV_QUANTITY {
     // Check units compatibility
     if (this.units !== other.units) {
       throw new Error("Cannot add quantities with different units");
@@ -4169,11 +4100,12 @@ export class DV_QUANTITY extends DV_AMOUNT {
     result.units_system = this.units_system;
     result.precision = this.precision;
     
-    // Handle accuracy if present
-    if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = this.accuracy + other.accuracy;
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    const otherAcc = accuracyAsNumber(other.accuracy);
+    if (thisAcc !== undefined && otherAcc !== undefined) {
+      result.accuracy = openehr_base.Real.from(thisAcc + otherAcc);
     }
-    
+
     return result;
   }
 
@@ -4182,7 +4114,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  subtract(other: DV_QUANTITY): DV_QUANTITY {
+  override subtract(other: DV_QUANTITY): DV_QUANTITY {
     // Check units compatibility
     if (this.units !== other.units) {
       throw new Error("Cannot subtract quantities with different units");
@@ -4194,11 +4126,14 @@ export class DV_QUANTITY extends DV_AMOUNT {
     result.units_system = this.units_system;
     result.precision = this.precision;
     
-    // Handle accuracy if present - use RSS for uncertainty propagation
-    if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    const otherAcc = accuracyAsNumber(other.accuracy);
+    if (thisAcc !== undefined && otherAcc !== undefined) {
+      result.accuracy = openehr_base.Real.from(
+        Math.sqrt(thisAcc ** 2 + otherAcc ** 2),
+      );
     }
-    
+
     return result;
   }
 
@@ -4207,18 +4142,18 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @param factor - Parameter
    * @returns Result value
    */
-  multiply(factor: number): DV_QUANTITY {
+  override multiply(factor: number): DV_QUANTITY {
     const result = new DV_QUANTITY();
     result.magnitude = (this.magnitude || 0) * factor;
     result.units = this.units;
     result.units_system = this.units_system;
     result.precision = this.precision;
-    
-    // Handle accuracy if present
-    if (this.accuracy !== undefined) {
-      result.accuracy = this.accuracy * Math.abs(factor);
+
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    if (thisAcc !== undefined) {
+      result.accuracy = openehr_base.Real.from(thisAcc * Math.abs(factor));
     }
-    
+
     return result;
   }
 
@@ -4227,7 +4162,7 @@ export class DV_QUANTITY extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_QUANTITY): openehr_base.Boolean {
+  override less_than(other: DV_QUANTITY): openehr_base.Boolean {
     // Should check units compatibility but comparison is still possible
     if (this.units !== other.units) {
       console.warn("Comparing quantities with different units");
@@ -4324,25 +4259,31 @@ export class DV_COUNT extends DV_AMOUNT {
   /**
    * Optional normal range.
    */
-  override normal_range?: undefined = undefined;
+  declare normal_range?: undefined;
   /**
    * Optional tagged other reference ranges for this value in its particular measurement context.
    */
-  override other_reference_ranges?: undefined;
+  declare other_reference_ranges?: undefined;
+
+  override ordered_magnitude(): openehr_base.Integer64 {
+    return this._magnitude ?? openehr_base.Integer64.from(0);
+  }
+
   /**
    * Sum of this \`DV_COUNT\` and \`_other_\`.
    * @param other - Parameter
    * @returns Result value
    */
-  add(other: DV_COUNT): DV_COUNT {
+  override add(other: DV_COUNT): DV_COUNT {
     const result = new DV_COUNT();
     result.magnitude = (this.magnitude || 0) + (other.magnitude || 0);
     
-    // Handle accuracy if present
-    if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = this.accuracy + other.accuracy;
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    const otherAcc = accuracyAsNumber(other.accuracy);
+    if (thisAcc !== undefined && otherAcc !== undefined) {
+      result.accuracy = openehr_base.Integer.from(Math.round(thisAcc + otherAcc));
     }
-    
+
     return result;
   }
 
@@ -4351,15 +4292,18 @@ export class DV_COUNT extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  subtract(other: DV_COUNT): DV_COUNT {
+  override subtract(other: DV_COUNT): DV_COUNT {
     const result = new DV_COUNT();
     result.magnitude = (this.magnitude || 0) - (other.magnitude || 0);
     
-    // Handle accuracy if present - use RSS for uncertainty propagation
-    if (this.accuracy !== undefined && other.accuracy !== undefined) {
-      result.accuracy = Math.sqrt(this.accuracy ** 2 + other.accuracy ** 2);
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    const otherAcc = accuracyAsNumber(other.accuracy);
+    if (thisAcc !== undefined && otherAcc !== undefined) {
+      result.accuracy = openehr_base.Integer.from(
+        Math.round(Math.sqrt(thisAcc ** 2 + otherAcc ** 2)),
+      );
     }
-    
+
     return result;
   }
 
@@ -4368,15 +4312,17 @@ export class DV_COUNT extends DV_AMOUNT {
    * @param factor - Parameter
    * @returns Result value
    */
-  multiply(factor: number): DV_COUNT {
+  override multiply(factor: number): DV_COUNT {
     const result = new DV_COUNT();
     result.magnitude = Math.round((this.magnitude || 0) * factor);
     
-    // Handle accuracy if present
-    if (this.accuracy !== undefined) {
-      result.accuracy = this.accuracy * Math.abs(factor);
+    const thisAcc = accuracyAsNumber(this.accuracy);
+    if (thisAcc !== undefined) {
+      result.accuracy = openehr_base.Integer.from(
+        Math.round(thisAcc * Math.abs(factor)),
+      );
     }
-    
+
     return result;
   }
 
@@ -4385,7 +4331,7 @@ export class DV_COUNT extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_COUNT): openehr_base.Boolean {
+  override less_than(other: DV_COUNT): openehr_base.Boolean {
     return openehr_base.Boolean.from((this.magnitude || 0) < (other.magnitude || 0));
   }
 
@@ -4417,7 +4363,7 @@ export class DV_COUNT extends DV_AMOUNT {
  * Abstract class defining the concept of quantified entities whose values are absolute with respect to an origin. Dates and Times are the main example.
  */
 export abstract class DV_ABSOLUTE_QUANTITY extends DV_QUANTIFIED {
-  override accuracy?: DV_AMOUNT = undefined;
+  override accuracy?: openehr_base.Any = undefined;
   /**
    * Addition of a differential amount to this quantity.
    *
@@ -4641,7 +4587,7 @@ export class DV_DURATION extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  add(other: DV_DURATION): DV_DURATION {
+  override add(other: DV_DURATION): DV_DURATION {
     // Create Iso8601_duration instances from the values
     const dur1 = new openehr_base.Iso8601_duration();
     dur1.value = this.value || "";
@@ -4663,7 +4609,7 @@ export class DV_DURATION extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  subtract(other: DV_DURATION): DV_DURATION {
+  override subtract(other: DV_DURATION): DV_DURATION {
     // Create Iso8601_duration instances from the values
     const dur1 = new openehr_base.Iso8601_duration();
     dur1.value = this.value || "";
@@ -4685,7 +4631,7 @@ export class DV_DURATION extends DV_AMOUNT {
    * @param factor - Parameter
    * @returns Result value
    */
-  multiply(factor: number): DV_DURATION {
+  override multiply(factor: number): DV_DURATION {
     // Create Iso8601_duration instance from the value
     const dur = new openehr_base.Iso8601_duration();
     dur.value = this.value || "";
@@ -4704,9 +4650,11 @@ export class DV_DURATION extends DV_AMOUNT {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_DURATION): openehr_base.Boolean {
+  override less_than(other: DV_DURATION): openehr_base.Boolean {
     // Compare based on magnitude (seconds)
-    return openehr_base.Boolean.from(this.magnitude() < other.magnitude());
+    const a = this.ordered_magnitude().value ?? 0;
+    const b = other.ordered_magnitude().value ?? 0;
+    return openehr_base.Boolean.from(a < b);
   }
 
   /**
@@ -4728,7 +4676,7 @@ export class DV_DURATION extends DV_AMOUNT {
    * Assuming the current duration is positive, the negated version represents a time prior to some origin point, or a negative age (e.g. so-called 'adjusted age' of premature infant).
    * @returns Result value
    */
-  negative(): DV_DURATION {
+  override negative(): DV_DURATION {
     // Negate the duration according to ISO8601 format
     // ISO8601 durations: P[n]Y[n]M[n]DT[n]H[n]M[n]S
     // Negative durations: -P[n]Y[n]M[n]DT[n]H[n]M[n]S
@@ -4755,11 +4703,11 @@ export class DV_DURATION extends DV_AMOUNT {
    * Numeric value of the duration as a number of seconds. Computed using the method \`_to_seconds()_\` inherited from \`Iso8601_duration\`.
    * @returns Result value
    */
-  magnitude(): number {
+  override ordered_magnitude(): openehr_base.Real {
     // Use the Iso8601_duration.to_seconds() method from BASE package
     const dur = new openehr_base.Iso8601_duration();
     dur.value = this.value || "";
-    return dur.to_seconds();
+    return openehr_base.Real.from(dur.to_seconds());
   }
 
   /**
@@ -4781,29 +4729,25 @@ export class DV_DURATION extends DV_AMOUNT {
  */
 export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
   /**
-   * Time accuracy, expressed as a duration.
-   */
-  override accuracy?: DV_DURATION = undefined;
-  /**
    * Addition of a Duration to this temporal entity.
    * @param a_diff - Parameter
    * @returns Result value
    */
-  abstract add(a_diff: DV_DURATION): DV_TEMPORAL;
+  abstract override add(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY;
 
   /**
    * Subtract a Duration from this temporal entity.
    * @param a_diff - Parameter
    * @returns Result value
    */
-  abstract subtract(a_diff: DV_DURATION): DV_TEMPORAL;
+  abstract override subtract(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY;
 
   /**
    * Difference between this temporal entity and \`_other_\`.
    * @param other - Parameter
    * @returns Result value
    */
-  abstract diff(other: DV_TEMPORAL): DV_DURATION;
+  abstract override diff(other: DV_ABSOLUTE_QUANTITY): DV_AMOUNT;
 }
 
 /**
@@ -4848,7 +4792,7 @@ export class DV_DATE extends DV_TEMPORAL {
    * Numeric value of the date as days since the calendar origin date \`0001-01-01\`.
    * @returns Result value
    */
-  magnitude(): openehr_base.Integer {
+  override ordered_magnitude(): openehr_base.Integer {
     // Calculate days since 0001-01-01
     const val = this.value || "";
     if (!val) {
@@ -4867,7 +4811,7 @@ export class DV_DATE extends DV_TEMPORAL {
       // Calculate days since 0001-01-01 using Julian day calculation
       // This is an approximation using the Gregorian calendar formula
       const a = Math.floor((14 - month) / 12);
-      const y = year + 4800 - a;
+      const y = (year ?? 0) + 4800 - a;
       const m = month + 12 * a - 3;
       
       // Julian Day Number formula for Gregorian calendar
@@ -4884,34 +4828,22 @@ export class DV_DATE extends DV_TEMPORAL {
   }
 
   /**
-   * Return True if this \`DV_QUANTIFIED\` is considered equal to \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other: DV_QUANTIFIED): openehr_base.Boolean {
-    if (!(other instanceof DV_DATE)) {
-      return openehr_base.Boolean.from(false);
-    }
-    return openehr_base.Boolean.from(this.value === other.value);
-  }
-
-  /**
    * Addition of a Duration to this Date.
    * Uses the Iso8601_date.add() method from BASE package.
    * @param a_diff - Parameter
    * @returns Result value
    */
-  add(a_diff: DV_DURATION): DV_DATE {
-    // Create Iso8601_date and Iso8601_duration from values
+  override add(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_DATE.add requires DV_DURATION");
+    }
     const date = new openehr_base.Iso8601_date();
     date.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package add method
+
     const resultDate = date.add(dur);
-    
-    // Create and return new DV_DATE with result
+
     const result = new DV_DATE();
     result.value = resultDate.value;
     return result;
@@ -4923,17 +4855,17 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param a_diff - Parameter
    * @returns Result value
    */
-  subtract(a_diff: DV_DURATION): DV_DATE {
-    // Create Iso8601_date and Iso8601_duration from values
+  override subtract(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_DATE.subtract requires DV_DURATION");
+    }
     const date = new openehr_base.Iso8601_date();
     date.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package subtract method
+
     const resultDate = date.subtract(dur);
-    
-    // Create and return new DV_DATE with result
+
     const result = new DV_DATE();
     result.value = resultDate.value;
     return result;
@@ -4945,8 +4877,10 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  diff(other: DV_DATE): DV_DURATION {
-    // Create Iso8601_date instances from values
+  override diff(other: DV_ABSOLUTE_QUANTITY): DV_AMOUNT {
+    if (!(other instanceof DV_DATE)) {
+      throw new Error("DV_DATE.diff requires another DV_DATE");
+    }
     const date1 = new openehr_base.Iso8601_date();
     date1.value = this.value || "";
     const date2 = new openehr_base.Iso8601_date();
@@ -4966,7 +4900,11 @@ export class DV_DATE extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_DATE): openehr_base.Boolean {
+  override less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE)) {
+      return openehr_base.Boolean.from(false);
+    }
+    const otherDate = other;
     // Compare ISO8601 date strings lexicographically (works for standard format)
     if (!this.value || !other.value) {
       return openehr_base.Boolean.from(false);
@@ -5042,27 +4980,24 @@ export class DV_TIME extends DV_TEMPORAL {
    * Numeric value of the time as seconds since the start of day, i.e. \`00:00:00\`.
    * @returns Result value
    */
-  magnitude(): number {
+  override ordered_magnitude(): openehr_base.Real {
     // Calculate seconds since 00:00:00
     const val = this.value || "";
     if (!val) {
-      return 0;
+      return openehr_base.Real.from(0);
     }
     try {
-      // Parse using Iso8601_time from BASE
       const time = new openehr_base.Iso8601_time();
       time.value = val;
-      
-      // Get components
-      const hours = time.hour().value;
-      const minutes = time.minute().value;
-      const seconds = time.second().value;
-      const fractional = time.fractional_second().value;
-      
-      // Calculate total seconds
-      return hours * 3600 + minutes * 60 + seconds + fractional;
+      const hours = time.hour().value ?? 0;
+      const minutes = time.minute().value ?? 0;
+      const seconds = time.second().value ?? 0;
+      const fractional = time.fractional_second() ?? 0;
+      return openehr_base.Real.from(
+        hours * 3600 + minutes * 60 + seconds + fractional,
+      );
     } catch {
-      return 0;
+      return openehr_base.Real.from(0);
     }
   }
 
@@ -5072,17 +5007,17 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param a_diff - Parameter
    * @returns Result value
    */
-  add(a_diff: DV_DURATION): DV_TIME {
-    // Create Iso8601_time and Iso8601_duration from values
+  override add(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_TIME.add requires DV_DURATION");
+    }
     const time = new openehr_base.Iso8601_time();
     time.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package add method
+
     const resultTime = time.add(dur);
-    
-    // Create and return new DV_TIME with result
+
     const result = new DV_TIME();
     result.value = resultTime.value;
     return result;
@@ -5094,17 +5029,17 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param a_diff - Parameter
    * @returns Result value
    */
-  subtract(a_diff: DV_DURATION): DV_TIME {
-    // Create Iso8601_time and Iso8601_duration from values
+  override subtract(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_TIME.subtract requires DV_DURATION");
+    }
     const time = new openehr_base.Iso8601_time();
     time.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package subtract method
+
     const resultTime = time.subtract(dur);
-    
-    // Create and return new DV_TIME with result
+
     const result = new DV_TIME();
     result.value = resultTime.value;
     return result;
@@ -5116,8 +5051,10 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  diff(other: DV_TIME): DV_DURATION {
-    // Create Iso8601_time instances from values
+  override diff(other: DV_ABSOLUTE_QUANTITY): DV_AMOUNT {
+    if (!(other instanceof DV_TIME)) {
+      throw new Error("DV_TIME.diff requires another DV_TIME");
+    }
     const time1 = new openehr_base.Iso8601_time();
     time1.value = this.value || "";
     const time2 = new openehr_base.Iso8601_time();
@@ -5137,7 +5074,10 @@ export class DV_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_TIME): openehr_base.Boolean {
+  override less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
     // Compare ISO8601 time strings lexicographically (works for standard format)
     if (!this.value || !other.value) {
       return openehr_base.Boolean.from(false);
@@ -5214,29 +5154,26 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    *
    * @returns Result value
    */
-  magnitude(): number {
+  override ordered_magnitude(): openehr_base.Real {
     // Calculate seconds since 0001-01-01T00:00:00Z
     const val = this.value || "";
     if (!val) {
-      return 0;
+      return openehr_base.Real.from(0);
     }
     try {
-      // Parse using Iso8601_date_time from BASE
       const dt = new openehr_base.Iso8601_date_time();
       dt.value = val;
-      
-      // Get components
-      const year = dt.year().value;
-      const month = dt.month().value || 1;
-      const day = dt.day().value || 1;
-      const hour = dt.hour().value;
-      const minute = dt.minute().value;
+      const year = dt.year().value ?? 0;
+      const month = dt.month().value ?? 1;
+      const day = dt.day().value ?? 1;
+      const hour = dt.hour().value ?? 0;
+      const minute = dt.minute().value ?? 0;
       const second = dt.second().value;
-      const fractional = dt.fractional_second().value;
+      const fractional = dt.fractional_second() ?? 0;
       
       // Calculate Julian Day Number for the date part
       const a = Math.floor((14 - month) / 12);
-      const y = year + 4800 - a;
+      const y = (year ?? 0) + 4800 - a;
       const m = month + 12 * a - 3;
       
       const jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y +
@@ -5246,11 +5183,11 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
       const daysSinceOrigin = jdn - 1721426;
       
       // Calculate total seconds
-      const secondsInDay = hour * 3600 + minute * 60 + second + fractional;
+      const secondsInDay = hour * 3600 + minute * 60 + (second ?? 0) + fractional;
       
-      return daysSinceOrigin * 86400 + secondsInDay;
+      return openehr_base.Real.from(daysSinceOrigin * 86400 + secondsInDay);
     } catch {
-      return 0;
+      return openehr_base.Real.from(0);
     }
   }
 
@@ -5260,17 +5197,17 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param a_diff - Parameter
    * @returns Result value
    */
-  add(a_diff: DV_DURATION): DV_DATE_TIME {
-    // Create Iso8601_date_time and Iso8601_duration from values
+  override add(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_DATE_TIME.add requires DV_DURATION");
+    }
     const dt = new openehr_base.Iso8601_date_time();
     dt.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package add method
+
     const resultDt = dt.add(dur);
-    
-    // Create and return new DV_DATE_TIME with result
+
     const result = new DV_DATE_TIME();
     result.value = resultDt.value;
     return result;
@@ -5282,17 +5219,17 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param a_diff - Parameter
    * @returns Result value
    */
-  subtract(a_diff: DV_DURATION): DV_DATE_TIME {
-    // Create Iso8601_date_time and Iso8601_duration from values
+  override subtract(a_diff: DV_AMOUNT): DV_ABSOLUTE_QUANTITY {
+    if (!(a_diff instanceof DV_DURATION)) {
+      throw new Error("DV_DATE_TIME.subtract requires DV_DURATION");
+    }
     const dt = new openehr_base.Iso8601_date_time();
     dt.value = this.value || "";
     const dur = new openehr_base.Iso8601_duration();
     dur.value = a_diff.value || "";
-    
-    // Use BASE package subtract method
+
     const resultDt = dt.subtract(dur);
-    
-    // Create and return new DV_DATE_TIME with result
+
     const result = new DV_DATE_TIME();
     result.value = resultDt.value;
     return result;
@@ -5304,8 +5241,10 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  diff(other: DV_DATE_TIME): DV_DURATION {
-    // Create Iso8601_date_time instances from values
+  override diff(other: DV_ABSOLUTE_QUANTITY): DV_AMOUNT {
+    if (!(other instanceof DV_DATE_TIME)) {
+      throw new Error("DV_DATE_TIME.diff requires another DV_DATE_TIME");
+    }
     const dt1 = new openehr_base.Iso8601_date_time();
     dt1.value = this.value || "";
     const dt2 = new openehr_base.Iso8601_date_time();
@@ -5325,7 +5264,10 @@ export class DV_DATE_TIME extends DV_TEMPORAL {
    * @param other - Parameter
    * @returns Result value
    */
-  less_than(other: DV_DATE_TIME): openehr_base.Boolean {
+  override less_than(other: DV_QUANTIFIED): openehr_base.Boolean {
+    if (!(other instanceof DV_DATE_TIME)) {
+      return openehr_base.Boolean.from(false);
+    }
     // Compare ISO8601 datetime strings lexicographically (works for standard format)
     if (!this.value || !other.value) {
       return openehr_base.Boolean.from(false);
@@ -5775,9 +5717,9 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
    * @returns Result value
    */
   valid_code_set_id(an_id: openehr_base.String): openehr_base.Boolean {
-    // Get terminology service and check if code set exists
     const service = OpenEHRTerminologyService.getInstance();
-    const idStr = typeof an_id === 'string' ? an_id : an_id.value;
+    const idStr = typeof an_id === "string" ? an_id : an_id.value;
+    if (!idStr) return openehr_base.Boolean.from(false);
     return openehr_base.Boolean.from(service.hasCodeSet(idStr));
   }
 }
@@ -5796,9 +5738,10 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   terminology(name: openehr_base.String): TERMINOLOGY_ACCESS {
-    const nameStr = typeof name === 'string' ? name : name.value;
-    
-    // Only "openehr" is currently supported
+    const nameStr = typeof name === "string" ? name : name.value;
+    if (!nameStr) {
+      throw new Error("Terminology name is required");
+    }
     if (nameStr.toLowerCase() !== "openehr") {
       throw new Error(`Terminology "${nameStr}" is not supported. Only "openehr" is currently available.`);
     }
@@ -5812,9 +5755,8 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set(name: openehr_base.String): CODE_SET_ACCESS {
-    const nameStr = typeof name === 'string' ? name : name.value;
-    
-    // Check if code set exists
+    const nameStr = typeof name === "string" ? name : name.value;
+    if (!nameStr) throw new Error("Code set name is required");
     const service = OpenEHRTerminologyService.getInstance();
     if (!service.hasCodeSet(nameStr)) {
       throw new Error(`Code set "${nameStr}" not found`);
@@ -5830,9 +5772,8 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   code_set_for_id(id: openehr_base.String): CODE_SET_ACCESS {
-    const idStr = typeof id === 'string' ? id : id.value;
-    
-    // Check if code set exists
+    const idStr = typeof id === "string" ? id : id.value;
+    if (!idStr) throw new Error("Code set id is required");
     const service = OpenEHRTerminologyService.getInstance();
     if (!service.hasCodeSet(idStr)) {
       throw new Error(`Code set with id "${idStr}" not found`);
@@ -5851,9 +5792,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_terminology(name: openehr_base.String): openehr_base.Boolean {
-    // Get terminology service
     const service = OpenEHRTerminologyService.getInstance();
-    const nameStr = typeof name === 'string' ? name : name.value;
+    const nameStr = typeof name === "string" ? name : name.value;
+    if (!nameStr) return openehr_base.Boolean.from(false);
     return openehr_base.Boolean.from(service.hasTerminology(nameStr));
   }
 
@@ -5863,9 +5804,9 @@ export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
    * @returns Result value
    */
   has_code_set(name: openehr_base.String): openehr_base.Boolean {
-    // Get terminology service
     const service = OpenEHRTerminologyService.getInstance();
-    const nameStr = typeof name === 'string' ? name : name.value;
+    const nameStr = typeof name === "string" ? name : name.value;
+    if (!nameStr) return openehr_base.Boolean.from(false);
     return openehr_base.Boolean.from(service.hasCodeSet(nameStr));
   }
 
@@ -6143,8 +6084,9 @@ export class CODE_SET_ACCESS {
    */
   has_lang(a_lang: openehr_base.String): openehr_base.Boolean {
     // Check if the language is supported (en, es, pt currently)
-    const lang = typeof a_lang === 'string' ? a_lang : a_lang.value;
-    const supportedLangs = ['en', 'es', 'pt'];
+    const lang = typeof a_lang === "string" ? a_lang : a_lang.value;
+    if (!lang) return openehr_base.Boolean.from(false);
+    const supportedLangs = ["en", "es", "pt"];
     return openehr_base.Boolean.from(supportedLangs.includes(lang));
   }
 
@@ -6157,7 +6099,8 @@ export class CODE_SET_ACCESS {
     // Get codes from terminology service
     const service = OpenEHRTerminologyService.getInstance();
     const codes = service.getAllCodes(this.codeSetId, this.language);
-    const codeStr = typeof a_code === 'string' ? a_code : a_code.value;
+    const codeStr = typeof a_code === "string" ? a_code : a_code.value;
+    if (!codeStr) return openehr_base.Boolean.from(false);
     return openehr_base.Boolean.from(codes.includes(codeStr));
   }
 }
@@ -7283,7 +7226,7 @@ export class OPENEHR_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
   /**
    * Content object.
    */
-  override item?: X_VERSIONED_OBJECT = undefined;
+  override item?: openehr_base.Any = undefined;
 }
 
 /**

@@ -28,6 +28,7 @@ import {
   JsonDeserializationConfig,
   DEFAULT_JSON_DESERIALIZATION_CONFIG,
 } from './json_config.ts';
+import { validateDeserializedInstance } from '../common/post_deserialize_validation.ts';
 
 /**
  * JSON Configurable Deserializer for openEHR RM objects
@@ -63,7 +64,8 @@ export class JsonConfigurableDeserializer {
         }
       }
       
-      return this.fromJsonObject(parsed);
+      const instance = this.fromJsonObject(parsed);
+      return this.maybeValidateAgainstTemplate(instance);
     } catch (error) {
       if (error instanceof DeserializationError) {
         throw error;
@@ -97,7 +99,8 @@ export class JsonConfigurableDeserializer {
       }
       
       const typeName = TypeRegistry.getTypeName(type);
-      return this.fromJsonObject(parsed, typeName);
+      const instance = this.fromJsonObject(parsed, typeName);
+      return this.maybeValidateAgainstTemplate(instance);
     } catch (error) {
       if (error instanceof DeserializationError) {
         throw error;
@@ -203,6 +206,24 @@ export class JsonConfigurableDeserializer {
     }
     
     return instance as T;
+  }
+
+  private maybeValidateAgainstTemplate<T>(instance: T): T {
+    const template = this.config.validateAgainstTemplate;
+    if (!template) return instance;
+
+    const result = validateDeserializedInstance(instance, {
+      validateAgainstTemplate: template,
+    });
+    if (result && !result.valid) {
+      const summary = result.errors.map((e) => `${e.path}: ${e.message}`).join(
+        "; ",
+      );
+      throw new DeserializationError(
+        `Deserialized instance failed template validation: ${summary}`,
+      );
+    }
+    return instance;
   }
   
   /**

@@ -16,6 +16,8 @@ export enum TokenType {
   DEFINITION = "DEFINITION",
   RULES = "RULES",
   TERMINOLOGY = "TERMINOLOGY",
+  /** ADL 1.4 alias for terminology */
+  ONTOLOGY = "ONTOLOGY",
   ANNOTATIONS = "ANNOTATIONS",
   RM_OVERLAY = "RM_OVERLAY",
   MATCHES = "MATCHES",
@@ -23,8 +25,21 @@ export enum TokenType {
   CARDINALITY = "CARDINALITY",
   EXISTENCE = "EXISTENCE",
   SPECIALIZE = "SPECIALIZE",
-  
+  /** Rules / expression keywords */
+  FOR_ALL = "FOR_ALL",
+  THERE_EXISTS = "THERE_EXISTS",
+  EXISTS = "EXISTS",
+  IMPLIES = "IMPLIES",
+  AND = "AND",
+  OR = "OR",
+  XOR = "XOR",
+  NOT = "NOT",
+  TRUE = "TRUE",
+  FALSE = "FALSE",
+  IN = "IN",
+
   // Literals
+  VARIABLE = "VARIABLE",
   IDENTIFIER = "IDENTIFIER",
   STRING = "STRING",
   INTEGER = "INTEGER",
@@ -47,6 +62,8 @@ export enum TokenType {
   COLON = "COLON",            // :
   DOUBLE_COLON = "DOUBLE_COLON", // ::
   EQUALS = "EQUALS",          // =
+  ASSIGN = "ASSIGN",          // :=
+  NOT_EQUALS = "NOT_EQUALS",  // /=
   PIPE = "PIPE",              // |
   ELLIPSIS = "ELLIPSIS",      // ..
   STAR = "STAR",              // *
@@ -56,6 +73,7 @@ export enum TokenType {
   AT_CODE = "AT_CODE",        // at0000
   ID_CODE = "ID_CODE",        // id1
   AC_CODE = "AC_CODE",        // ac0000
+  REGEX = "REGEX",            // /pattern/
   
   // Control
   NEWLINE = "NEWLINE",
@@ -87,7 +105,12 @@ export class ADL2Tokenizer {
    */
   tokenize(): Token[] {
     this.tokens = [];
-    
+    // UTF-8 BOM (e.g. Archie whitespace fixture)
+    if (this.input.charCodeAt(0) === 0xfeff) {
+      this.position = 1;
+      this.column = 2;
+    }
+
     while (!this.isAtEnd()) {
       this.skipWhitespaceAndComments();
       if (this.isAtEnd()) break;
@@ -136,12 +159,35 @@ export class ADL2Tokenizer {
       case "}":
         this.advance();
         return this.makeToken(TokenType.RBRACE, "}", startLine, startColumn);
-      case "<":
+      case "<": {
+        if (this.previousCharsMatch(2, "..")) {
+          this.advance();
+          if (this.peek() === "=") {
+            this.advance();
+            return this.makeToken(TokenType.IDENTIFIER, "<=", startLine, startColumn);
+          }
+          if (this.isDigit(this.peek())) {
+            return this.makeToken(TokenType.IDENTIFIER, "<", startLine, startColumn);
+          }
+        }
         this.advance();
         return this.makeToken(TokenType.LANGLE, "<", startLine, startColumn);
-      case ">":
+      }
+      case ">": {
+        const before = this.charBefore();
+        if (before === "|" || before === "{") {
+          this.advance();
+          if (this.peek() === "=") {
+            this.advance();
+            return this.makeToken(TokenType.IDENTIFIER, ">=", startLine, startColumn);
+          }
+          if (this.isDigit(this.peek())) {
+            return this.makeToken(TokenType.IDENTIFIER, ">", startLine, startColumn);
+          }
+        }
         this.advance();
         return this.makeToken(TokenType.RANGLE, ">", startLine, startColumn);
+      }
       case ",":
         this.advance();
         return this.makeToken(TokenType.COMMA, ",", startLine, startColumn);
@@ -151,12 +197,36 @@ export class ADL2Tokenizer {
       case "=":
         this.advance();
         return this.makeToken(TokenType.EQUALS, "=", startLine, startColumn);
+      case "!":
+        this.advance();
+        if (this.peek() === "=") {
+          this.advance();
+          return this.makeToken(TokenType.NOT_EQUALS, "!=", startLine, startColumn);
+        }
+        return this.makeToken(TokenType.NOT, "!", startLine, startColumn);
+      case "$": {
+        this.advance();
+        let varName = "$";
+        while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
+          varName += this.peek();
+          this.advance();
+        }
+        return this.makeToken(TokenType.VARIABLE, varName, startLine, startColumn);
+      }
       case "*":
         this.advance();
         return this.makeToken(TokenType.STAR, "*", startLine, startColumn);
-      case "/":
+      case "/": {
+        if (this.charBefore() === "{") {
+          return this.scanRegex(startLine, startColumn);
+        }
         this.advance();
+        if (this.peek() === "=") {
+          this.advance();
+          return this.makeToken(TokenType.NOT_EQUALS, "/=", startLine, startColumn);
+        }
         return this.makeToken(TokenType.SLASH, "/", startLine, startColumn);
+      }
       case "|":
         this.advance();
         return this.makeToken(TokenType.PIPE, "|", startLine, startColumn);
@@ -174,6 +244,10 @@ export class ADL2Tokenizer {
     
     if (char === ":") {
       this.advance();
+      if (this.peek() === "=") {
+        this.advance();
+        return this.makeToken(TokenType.ASSIGN, ":=", startLine, startColumn);
+      }
       if (this.peek() === ":") {
         this.advance();
         return this.makeToken(TokenType.DOUBLE_COLON, "::", startLine, startColumn);
@@ -191,17 +265,59 @@ export class ADL2Tokenizer {
       return this.scanNumber(startLine, startColumn);
     }
     
-    // Identifiers and keywords
-    if (this.isAlpha(char) || char === "_") {
+    // Identifiers and keywords (including Unicode letters in ADL text)
+    if (this.isIdentifierStart(char)) {
       return this.scanIdentifierOrKeyword(startLine, startColumn);
     }
+
+    // cADL pattern punctuation (e.g. yyyy-??-??, hh:mm:??)
+    if (char === "?" || char === "X") {
+      this.advance();
+      return this.makeToken(TokenType.IDENTIFIER, char, startLine, startColumn);
+    }
     
-    // Unknown character
+    // Escaped character outside strings (e.g. regex \. in cADL)
+    if (char === "\\" && !this.isAtEnd()) {
+      this.advance();
+      const escaped = this.advance();
+      return this.makeToken(TokenType.IDENTIFIER, `\\${escaped}`, startLine, startColumn);
+    }
+
     throw new Error(
       `Unexpected character '${char}' at line ${this.line}, column ${this.column}`
     );
   }
   
+  private scanRegex(startLine: number, startColumn: number): Token {
+    this.advance(); // opening /
+    let value = "";
+    while (!this.isAtEnd()) {
+      if (this.peek() === "/") {
+        const next = this.peekNext();
+        if (
+          next === "}" || next === ")" || next === "," || next === ";" ||
+          next === "\n" || next === "\r"
+        ) {
+          break;
+        }
+      }
+      if (this.peek() === "\\") {
+        this.advance();
+        value += "\\" + this.peek();
+      } else {
+        value += this.peek();
+      }
+      this.advance();
+    }
+    if (this.isAtEnd() || this.peek() !== "/") {
+      throw new Error(
+        `Unterminated regex at line ${startLine}, column ${startColumn}`
+      );
+    }
+    this.advance(); // closing /
+    return this.makeToken(TokenType.REGEX, value, startLine, startColumn);
+  }
+
   private scanString(startLine: number, startColumn: number): Token {
     this.advance(); // consume opening quote
     let value = "";
@@ -325,8 +441,8 @@ export class ADL2Tokenizer {
       this.position = tempPos;
     }
     
-    // Regular identifier (allow hyphens in identifiers for archetype IDs)
-    while (!this.isAtEnd() && (this.isAlphaNumeric(this.peek()) || this.peek() === "_" || this.peek() === "-")) {
+    // Regular identifier (hyphens for HRIDs; ?/X for cADL date/time patterns)
+    while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
       value += this.peek();
       this.advance();
     }
@@ -337,6 +453,29 @@ export class ADL2Tokenizer {
   }
   
   private getKeywordType(value: string): TokenType {
+    const lower = value.toLowerCase();
+    switch (lower) {
+      case "for_all":
+        return TokenType.FOR_ALL;
+      case "there_exists":
+        return TokenType.THERE_EXISTS;
+      case "exists":
+        return TokenType.EXISTS;
+      case "implies":
+        return TokenType.IMPLIES;
+      case "and":
+        return TokenType.AND;
+      case "or":
+        return TokenType.OR;
+      case "xor":
+        return TokenType.XOR;
+      case "not":
+        return TokenType.NOT;
+      case "in":
+        return TokenType.IN;
+      default:
+        break;
+    }
     const upper = value.toUpperCase();
     switch (upper) {
       case "ARCHETYPE":
@@ -357,6 +496,8 @@ export class ADL2Tokenizer {
         return TokenType.RULES;
       case "TERMINOLOGY":
         return TokenType.TERMINOLOGY;
+      case "ONTOLOGY":
+        return TokenType.ONTOLOGY;
       case "ANNOTATIONS":
         return TokenType.ANNOTATIONS;
       case "RM_OVERLAY":
@@ -371,6 +512,17 @@ export class ADL2Tokenizer {
         return TokenType.EXISTENCE;
       case "SPECIALIZE":
         return TokenType.SPECIALIZE;
+      case "USE_ARCHETYPE":
+      case "USE":
+        return TokenType.IDENTIFIER;
+      case "ALLOW_ARCHETYPE":
+        return TokenType.IDENTIFIER;
+      case "INCLUDE":
+      case "EXCLUDE":
+      case "ORDERED":
+      case "UNORDERED":
+      case "UNIQUE":
+        return TokenType.IDENTIFIER;
       default:
         return TokenType.IDENTIFIER;
     }
@@ -409,6 +561,17 @@ export class ADL2Tokenizer {
   private isAtEnd(): boolean {
     return this.position >= this.input.length;
   }
+
+  private charBefore(): string {
+    if (this.position <= 0) return "";
+    return this.input[this.position - 1];
+  }
+
+  private previousCharsMatch(length: number, text: string): boolean {
+    const start = this.position - length;
+    if (start < 0) return false;
+    return this.input.slice(start, this.position) === text;
+  }
   
   private peek(): string {
     if (this.isAtEnd()) return "\0";
@@ -438,7 +601,26 @@ export class ADL2Tokenizer {
   private isAlphaNumeric(char: string): boolean {
     return this.isAlpha(char) || this.isDigit(char);
   }
-  
+
+  private isUnicodeLetter(char: string): boolean {
+    return char.length === 1 && /\p{L}/u.test(char);
+  }
+
+  private isIdentifierStart(char: string): boolean {
+    return this.isAlpha(char) || char === "_" || this.isUnicodeLetter(char);
+  }
+
+  private isIdentifierPart(char: string): boolean {
+    return (
+      this.isAlphaNumeric(char) ||
+      char === "_" ||
+      char === "-" ||
+      char === "?" ||
+      char === "X" ||
+      this.isUnicodeLetter(char)
+    );
+  }
+
   private makeToken(
     type: TokenType,
     value: string,

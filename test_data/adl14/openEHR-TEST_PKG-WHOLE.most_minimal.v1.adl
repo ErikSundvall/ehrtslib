@@ -1,0 +1,34 @@
+archetype
+    openEHR-TEST_PKG-WHOLE.most_minimal.v1
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    original_author = <
+        ["name"] = <"ehrtslib adl14 test">
+    >
+    lifecycle_state = <"published">
+
+revision
+    1.0.0
+
+concept
+    at0000
+
+definition
+    WHOLE[at0001] matches {
+    }
+
+ontology
+    terminologies_available = <"local">
+    term_definitions = <
+        ["en"] = <
+            items = <
+                ["at0001"] = <
+                    text = <"whole">
+                    description = <"whole archetype">
+                >
+            >
+        >
+    >

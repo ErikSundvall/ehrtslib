@@ -5,6 +5,7 @@ import {
   XmlDeserializationConfig,
   DEFAULT_XML_DESERIALIZATION_CONFIG
 } from "./xml_config.ts";
+import { validateDeserializedInstance } from "../common/post_deserialize_validation.ts";
 
 /**
  * XmlDeserializer converts XML to openEHR RM objects
@@ -51,8 +52,8 @@ export class XmlDeserializer {
       const rootKey = Object.keys(parsed)[0];
       const rootData = parsed[rootKey];
       
-      // Reconstruct object from parsed data
-      return this.reconstructObject(rootData, rootKey) as T;
+      const instance = this.reconstructObject(rootData, rootKey) as T;
+      return this.maybeValidateAgainstTemplate(instance);
     } catch (error) {
       throw new DeserializationError(
         `Failed to deserialize XML: ${error.message}`,
@@ -211,5 +212,23 @@ export class XmlDeserializer {
     }
     
     return result;
+  }
+
+  private maybeValidateAgainstTemplate<T>(instance: T): T {
+    const template = this.config.validateAgainstTemplate;
+    if (!template) return instance;
+
+    const result = validateDeserializedInstance(instance, {
+      validateAgainstTemplate: template,
+    });
+    if (result && !result.valid) {
+      const summary = result.errors.map((e) => `${e.path}: ${e.message}`).join(
+        "; ",
+      );
+      throw new DeserializationError(
+        `Deserialized instance failed template validation: ${summary}`,
+      );
+    }
+    return instance;
   }
 }

@@ -1,3 +1,5 @@
+/// <reference lib="deno.ns" />
+
 /**
  * OpenEHR Terminology Service Implementation
  * 
