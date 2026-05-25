@@ -29,6 +29,24 @@ deno check ../consumer-issue52-repro/main.ts
 
 **Still not in scope:** full Archie JVM semantic validator; complete ADL 1.4↔2 AOM code migration (ac-code/value_sets reshaping).
 
+## Demo UI restore
+
+This branch was cut before Copilot demo PRs (#50, #51) on `main` (medical theme, Material Icons, split `converter.html`, mockup → `public`). Branch commits do not touch the demo tree, so a plain merge **does not conflict** but also **does not restore** the older demo UX: Git sees demo as changed only on `main`, so `main`’s demo files win when this branch is merged.
+
+- **Do not** `git merge origin/main` into the feature branch unless you reset `examples/demo-app/` and `docs/demo/` afterward (that merge re-applies `main`’s demo).
+- **Do** restore demo **after** the library merge lands on `main` (same PR branch is fine — add a second commit):
+
+```bash
+git checkout main
+git merge ui-restoration-2026-02-18
+git checkout ui-restoration-2026-02-18 -- examples/demo-app/ docs/demo/
+deno task build:demo
+git add examples/demo-app/ docs/demo/
+git commit -m "Restore demo webapp UI baseline (revert Copilot demo aesthetics)"
+```
+
+Optional: port only `examples/demo-app/scripts/build.ts` asset-copy fixes from `main` before committing ([`tasks/remote-main-vs-local-feature-report-2026-02-18.md`](../tasks/remote-main-vs-local-feature-report-2026-02-18.md)).
+
 ## Suggested PR steps
 
 ```bash
@@ -36,9 +54,8 @@ git fetch origin
 git checkout ui-restoration-2026-02-18
 git pull origin ui-restoration-2026-02-18
 
-# Rebase or merge latest main if needed
-git merge origin/main
-# resolve conflicts, re-run tests
+# Optional: merge latest main (see Demo UI restore — reset demo/ afterward if you do)
+# git merge origin/main
 
 git push origin ui-restoration-2026-02-18
 gh pr create --base main --head ui-restoration-2026-02-18 \
@@ -48,11 +65,14 @@ gh pr create --base main --head ui-restoration-2026-02-18 \
 
 ## Post-merge on `main`
 
-1. Tag or note release in CHANGELOG if you maintain one.
-2. Publish [ADL2_SUPPORT.md](ADL2_SUPPORT.md) link from README (already referenced).
-3. Track follow-ups in [ROADMAP.md](../ROADMAP.md) Phase 6b.
+1. **Demo UI restore** — see [Demo UI restore](#demo-ui-restore) (required if you want the pre–PR #50/#51 demo on `main`).
+2. Tag or note release in CHANGELOG if you maintain one.
+3. Publish [ADL2_SUPPORT.md](ADL2_SUPPORT.md) link from README (already referenced).
+4. Track follow-ups in [ROADMAP.md](../ROADMAP.md) Phase 6b.
 
 ## Conflict hotspots
+
+Git reports **no merge conflicts** for library files; `README.md` auto-merges (ADL docs + experimental-site link).
 
 Likely overlap with `main` if others touched:
 
