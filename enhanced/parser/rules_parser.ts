@@ -238,7 +238,21 @@ export class RulesParser {
       leaf.reference_type = "attribute";
       return leaf;
     }
+    if (/^not\s+/i.test(text.trim())) {
+      const inner = text.replace(/^not\s+/i, "").trim();
+      const unary = new openehr_am.EXPR_UNARY_OPERATOR();
+      unary.operator = openehr_am.OPERATOR_KIND.from("not");
+      unary.operand = this.parseExpression(inner) ?? this.pathOrExprLeaf(inner);
+      return unary;
+    }
+    const memberOf = /^(.+?)\s+member_of\s+(.+)$/is.exec(text.trim());
+    if (memberOf) {
+      return this.binary("member_of", memberOf[1], memberOf[2]);
+    }
     if (text.trim().startsWith("/") || text.includes("/data[")) {
+      return this.pathOrExprLeaf(text.trim());
+    }
+    if (/^\$[A-Za-z_]\w*$/.test(text.trim())) {
       return this.pathOrExprLeaf(text.trim());
     }
     return undefined;

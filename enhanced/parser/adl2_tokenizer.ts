@@ -16,6 +16,8 @@ export enum TokenType {
   DEFINITION = "DEFINITION",
   RULES = "RULES",
   TERMINOLOGY = "TERMINOLOGY",
+  /** ADL 1.4 alias for terminology */
+  ONTOLOGY = "ONTOLOGY",
   ANNOTATIONS = "ANNOTATIONS",
   RM_OVERLAY = "RM_OVERLAY",
   MATCHES = "MATCHES",
@@ -494,6 +496,8 @@ export class ADL2Tokenizer {
         return TokenType.RULES;
       case "TERMINOLOGY":
         return TokenType.TERMINOLOGY;
+      case "ONTOLOGY":
+        return TokenType.ONTOLOGY;
       case "ANNOTATIONS":
         return TokenType.ANNOTATIONS;
       case "RM_OVERLAY":

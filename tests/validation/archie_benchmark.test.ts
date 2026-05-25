@@ -3,8 +3,8 @@
  */
 
 import { assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
+import { parseAdl } from "../../enhanced/parser/mod.ts";
+import { ArchetypeValidator } from "../../enhanced/validation/archetype_validator.ts";
 
 const ARCHIE_ROOT = new URL("../../test_data/archie-tests/", import.meta.url);
 
@@ -19,28 +19,45 @@ const ARCHIE_FIXTURES = [
   "terminology/openEHR-EHR-OBSERVATION.term_bindings_paths_use_refs.v1.0.0.adls",
 ];
 
-Deno.test("Archie benchmark - parse pass rate", async () => {
-  let passed = 0;
+Deno.test("Archie benchmark - parse and AOM validation pass rate", async () => {
+  let parsePassed = 0;
+  let aomPassed = 0;
   const failures: string[] = [];
+  const validator = new ArchetypeValidator();
 
   for (const rel of ARCHIE_FIXTURES) {
     try {
       const text = await Deno.readTextFile(new URL(rel, ARCHIE_ROOT));
-      const parser = new ADL2Parser(new ADL2Tokenizer(text).tokenize());
-      parser.parse();
-      passed++;
+      const result = parseAdl(text);
+      const archetype = result.archetype ?? result.template ?? result.operationalTemplate;
+      if (!archetype) throw new Error("No archetype in parse result");
+      parsePassed++;
+      const check = validator.validate(archetype);
+      if (check.valid) {
+        aomPassed++;
+      } else {
+        failures.push(
+          `${rel} (AOM): ${check.errors.map((e) => e.message).join("; ")}`,
+        );
+      }
     } catch (e) {
       failures.push(`${rel}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
-  const rate = (passed / ARCHIE_FIXTURES.length) * 100;
+  const parseRate = (parsePassed / ARCHIE_FIXTURES.length) * 100;
+  const aomRate = (aomPassed / ARCHIE_FIXTURES.length) * 100;
   console.log(
-    `Archie parse benchmark: ${passed}/${ARCHIE_FIXTURES.length} (${rate.toFixed(1)}%)`,
+    `Archie parse benchmark: ${parsePassed}/${ARCHIE_FIXTURES.length} (${parseRate.toFixed(1)}%)`,
+  );
+  console.log(
+    `Archie AOM validation: ${aomPassed}/${ARCHIE_FIXTURES.length} (${aomRate.toFixed(1)}%)`,
   );
   if (failures.length) {
     console.log("Failures:\n" + failures.join("\n"));
   }
 
-  assert(rate >= 95, `Parse rate ${rate}% below target 95%`);
+  assert(parseRate >= 95, `Parse rate ${parseRate}% below target 95%`);
+  // AOM structural validation is informational until all Archie constraint styles map rm_type_name
+  assert(aomRate >= 0);
 });

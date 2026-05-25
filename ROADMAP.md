@@ -37,9 +37,10 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 5. **Template Flattening Implementation Strategy:**
 * Bidirectional abilities — **done (MVP)** (`enhanced/am/`: `flattenToOperationalTemplate`, `extractDifferentialDefinition` for editor round-trip)
 * **ADL2 only** for now; ADL 1.4 conversion deferred ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
-* **Rules/invariants** — parse/serialize/evaluate MVP done ([`docs/ADL2_SUPPORT.md`](docs/ADL2_SUPPORT.md)); ADL 1.4 still deferred ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
+* **Rules/invariants** — parse/serialize/evaluate done ([`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md))
+* **ADL 1.4** — syntactic conversion + `parseAdl()` done; deep AOM migration follow-up ([`tasks/phase5b-deferred.md`](tasks/phase5b-deferred.md))
 
-## Phase 6
+## Phase 6a
 Exploration of:
 Serialisation and deserialisation of RM object instance trees to and from
 openEHRs simplified JSON formats (likely using other already existing library if

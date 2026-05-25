@@ -188,7 +188,7 @@ If running in interactive mode then stop after each parent task and let user rev
 
   - [x] 8.1 Template flattening engine — MVP bidirectional (`enhanced/am/`: flatten + `extractDifferentialDefinition`)
 
-  - [ ] 8.2 ADL 1.4 parser/converter — **deferred** (ADL2 only; editors export ADL2)
+  - [x] 8.2 ADL 1.4 → ADL2 syntactic converter + `parseAdl()` — **done** ([`docs/ADL_SUPPORT.md`](../docs/ADL_SUPPORT.md))
 
   - [x] 8.3 Rules section parse/serialize/evaluate — **done** (`InvariantEvaluator`, `validateInvariants`)
   - [x] 8.5 Annotations + rm_overlay parse/serialize — **done**

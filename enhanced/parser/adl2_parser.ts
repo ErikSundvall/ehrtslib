@@ -135,7 +135,7 @@ export class ADL2Parser {
         this.parseDefinitionSection(archetype);
       } else if (this.check(TokenType.RULES)) {
         this.parseRulesSection(archetype);
-      } else if (this.check(TokenType.TERMINOLOGY)) {
+      } else if (this.check(TokenType.TERMINOLOGY) || this.check(TokenType.ONTOLOGY)) {
         this.parseTerminologySection(archetype);
       } else if (this.check(TokenType.ANNOTATIONS)) {
         this.parseAnnotationsSection(archetype);
@@ -162,20 +162,23 @@ export class ADL2Parser {
     while (!this.check(TokenType.RPAREN) && !this.isAtEnd()) {
       // Parse key = value pairs
       const key = this.consume(TokenType.IDENTIFIER, "Expected metadata key");
-      this.consume(TokenType.EQUALS, "Expected '=' after metadata key");
 
-      // Value can be a string, number, or identifier
       let value: string;
-      if (this.check(TokenType.STRING)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.REAL)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.INTEGER)) {
-        value = this.advance().value;
-      } else if (this.check(TokenType.IDENTIFIER)) {
-        value = this.advance().value;
+      if (this.check(TokenType.EQUALS)) {
+        this.advance();
+        if (this.check(TokenType.STRING)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.REAL)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.INTEGER)) {
+          value = this.advance().value;
+        } else if (this.check(TokenType.IDENTIFIER)) {
+          value = this.advance().value;
+        } else {
+          throw this.error("Expected metadata value");
+        }
       } else {
-        throw this.error("Expected metadata value");
+        value = "true";
       }
 
       metadata[key.value] = value;
@@ -284,6 +287,7 @@ export class ADL2Parser {
           token.type === TokenType.DESCRIPTION ||
           token.type === TokenType.RULES ||
           token.type === TokenType.TERMINOLOGY ||
+          token.type === TokenType.ONTOLOGY ||
           token.type === TokenType.ANNOTATIONS ||
           token.type === TokenType.RM_OVERLAY)
       ) {
@@ -336,10 +340,14 @@ export class ADL2Parser {
   }
 
   private parseTerminologySection(archetype: openehr_am.ARCHETYPE): void {
-    this.consumeKeyword(
-      TokenType.TERMINOLOGY,
-      "Expected 'terminology' keyword"
-    );
+    if (this.check(TokenType.ONTOLOGY)) {
+      this.advance();
+    } else {
+      this.consumeKeyword(
+        TokenType.TERMINOLOGY,
+        "Expected 'terminology' keyword",
+      );
+    }
 
     // Parse ODIN content
     const odinTokens = this.collectOdinTokens();
@@ -421,6 +429,7 @@ export class ADL2Parser {
           token.type === TokenType.DEFINITION ||
           token.type === TokenType.RULES ||
           token.type === TokenType.TERMINOLOGY ||
+          token.type === TokenType.ONTOLOGY ||
           token.type === TokenType.ANNOTATIONS ||
           token.type === TokenType.RM_OVERLAY)
       ) {

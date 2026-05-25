@@ -87,8 +87,17 @@ export function mapTermDefinitions(
   const byLang = termDefs as OdinObject;
   for (const [lang, terms] of Object.entries(byLang)) {
     if (!terms || typeof terms !== "object" || Array.isArray(terms)) continue;
+    let termEntries = terms as OdinObject;
+    if (
+      "items" in termEntries &&
+      termEntries.items &&
+      typeof termEntries.items === "object" &&
+      !Array.isArray(termEntries.items)
+    ) {
+      termEntries = termEntries.items as OdinObject;
+    }
     table[lang] = {};
-    for (const [code, termObj] of Object.entries(terms as OdinObject)) {
+    for (const [code, termObj] of Object.entries(termEntries)) {
       if (!termObj || typeof termObj !== "object" || Array.isArray(termObj)) {
         continue;
       }

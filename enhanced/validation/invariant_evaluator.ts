@@ -261,6 +261,19 @@ export class InvariantEvaluator {
       return !this.evaluateString(root, expr.replace(/^not\s+/i, "").trim(), env);
     }
 
+    const memberOf = /^(.+?)\s+member_of\s+(.+)$/is.exec(expr);
+    if (memberOf) {
+      const left = this.evalExpression(root, memberOf[1].trim(), env);
+      const right = this.evalExpression(root, memberOf[2].trim(), env);
+      if (Array.isArray(right)) {
+        return right.includes(left);
+      }
+      if (typeof right === "string" && typeof left === "string") {
+        return right.split(",").map((s) => s.trim()).includes(left);
+      }
+      return false;
+    }
+
     if (expr.startsWith("$")) {
       const name = expr.match(/^\$[A-Za-z_]\w*/)?.[0];
       if (name && env.has(name)) return env.get(name);
@@ -386,6 +399,9 @@ export class InvariantEvaluator {
         return this.toBoolean(left) !== this.toBoolean(right);
       case "implies":
         return !this.toBoolean(left) || this.toBoolean(right);
+      case "member_of":
+        if (Array.isArray(right)) return right.includes(left);
+        return false;
       default:
         throw new Error(`Unknown operator: ${op}`);
     }

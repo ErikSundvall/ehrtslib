@@ -90,23 +90,22 @@ const restored = deserializer.deserialize(json);
 
 ### Archetype and Template Support
 
-The library includes support for the openEHR Archetype Model (AM) layer, focused on **ADL2** (not ADL 1.4).
+The library includes support for the openEHR Archetype Model (AM) layer for **ADL 2** and **ADL 1.4** (via conversion).
 
-**What to expect in this release:** see **[docs/ADL2_SUPPORT.md](docs/ADL2_SUPPORT.md)** for a concise matrix (parser, serializer, rules storage, validation, and known gaps).
+**What to expect:** see **[docs/ADL_SUPPORT.md](docs/ADL_SUPPORT.md)** (parser, serializer, 1.4 conversion, rules, validation).
 
-#### ADL2 Parsing
-Parse ADL2 files into AOM instances (`archetype`, `template`, or `operational_template`):
+#### ADL parsing (1.4 and 2.x)
 
 ```typescript
-import { ADL2Tokenizer } from "./enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "./enhanced/parser/adl2_parser.ts";
+import { parseAdl } from "./enhanced/parser/mod.ts";
 
-const tokenizer = new ADL2Tokenizer(adl2Text);
-const { archetype, warnings } = new ADL2Parser(tokenizer.tokenize()).parse();
-// archetype.invariants holds parsed `rules` assertions
+const { archetype, warnings, convertedFrom14 } = parseAdl(adlText);
+// ADL 1.4 is converted to ADL2 syntax automatically
 ```
 
-**Not included yet:** ADL 1.4 import and full Archie semantic validation. Rules are **evaluated** when using `TemplateValidator` with `validateInvariants: true` (default). Annotations and `rm_overlay` sections parse and serialize; see [ADL2 support matrix](docs/ADL2_SUPPORT.md).
+Low-level ADL2-only API: `ADL2Tokenizer` + `ADL2Parser` in `enhanced/parser/`.
+
+**Not included:** full Archie JVM semantic validator; deep legacy AOM code migration (ac-code/value_sets) — see [ADL_SUPPORT.md](docs/ADL_SUPPORT.md).
 
 #### Validation Framework
 Comprehensive validation of RM instances against templates/archetypes:
@@ -152,7 +151,8 @@ const code = generator.generate(template);
 ```
 
 #### Complete Documentation
-- **[ADL2 support matrix](docs/ADL2_SUPPORT.md)** - What is implemented vs deferred for this commit
+- **[ADL support (1.4 + 2.x)](docs/ADL_SUPPORT.md)** - Feature matrix and conversion limits
+- **[Merge to main checklist](docs/MERGE_TO_MAIN.md)** - Pre-merge verification for this branch
 - **[Archetype and Template Usage Guide](examples/archetype_template_usage.ts)** - Complete examples of parsing, validation, and generation
 - **[Validation Framework](enhanced/validation/)** - Comprehensive validation with multiple validators
 - **[Code Generation](enhanced/generation/)** - Generate TypeScript, RM instances, and serialize to ADL2
