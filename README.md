@@ -154,7 +154,6 @@ const code = generator.generate(template);
 
 #### Complete Documentation
 - **[ADL support (1.4 + 2.x)](docs/ADL_SUPPORT.md)** - Feature matrix and conversion limits
-- **[Merge to main checklist](docs/MERGE_TO_MAIN.md)** - Pre-merge verification for this branch
 - **[Archetype and Template Usage Guide](examples/archetype_template_usage.ts)** - Complete examples of parsing, validation, and generation
 - **[Validation Framework](enhanced/validation/)** - Comprehensive validation with multiple validators
 - **[Code Generation](enhanced/generation/)** - Generate TypeScript, RM instances, and serialize to ADL2
