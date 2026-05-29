@@ -176,7 +176,59 @@
                 </div>
 
                 <div class="input-tab-pane" id="input-tab-template">
-                    <p class="placeholder-message">Template (schema) input mode — prototype placeholder for future OPT/template authoring.</p>
+                    <div class="toolbar">
+                        <div class="toolbar-left">
+                            <div class="form-group">
+                                <label for="template-generation-mode">generation_mode:</label>
+                                <select id="template-generation-mode" class="config-dropdown">
+                                    <option value="minimal">minimal</option>
+                                    <option value="example" selected>example</option>
+                                    <option value="maximal">maximal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <button class="btn btn-secondary" id="clear-template-input">
+                                <span class="material-icons btn-icon" aria-hidden="true">delete</span>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="editor-block">
+                        <div class="input-info">
+                            <span class="char-count">
+                                <span class="label">Characters:</span> <span id="template-char-count">0</span>
+                            </span>
+                            <span class="line-count">
+                                <span class="label">Lines:</span> <span id="template-line-count">0</span>
+                            </span>
+                            <span class="validation-status">
+                                <span class="material-icons status-icon valid" id="template-validation-icon" aria-hidden="true">check</span>
+                                <span id="template-validation-text">Valid operational template ADL</span>
+                            </span>
+                        </div>
+                        <textarea class="input-textarea" id="template-input-text"
+                            placeholder="Paste operational_template ADL here..." spellcheck="false">operational_template (adl_version=2.0.5)
+    openEHR-EHR-COMPOSITION.demo_generated.v1.0.0
+
+language
+    original_language = <"ISO_639-1::en">
+
+definition
+    COMPOSITION[id1] matches {
+        content matches {
+            SECTION[id2]
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Demo composition"> >
+            ["id2"] = < text = <"Generated section"> >
+        >
+    ></textarea>
+                    </div>
                 </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ The demo application provides:
 - **Configurable Options**: Fine-tune output for each format
 - **Terse Format Support**: Compact notation for CODE_PHRASE and DV_CODED_TEXT
 - **Hybrid YAML Style**: Intelligent inline/block formatting for optimal readability
+- **Template Tab Prototype**: Paste `operational_template` ADL and generate example RM instances + TypeScript stubs using `generation_mode` (`minimal`, `example`, `maximal`)
 
 ### New in Phase 4g.6
 
@@ -93,4 +94,3 @@ To work on the demo app:
 - Main Documentation: https://github.com/ErikSundvall/ehrtslib
 - TypeScript Serializer README: ../../enhanced/serialization/typescript/README.md
 - YAML Serializer README: ../../enhanced/serialization/yaml/README.md
-
