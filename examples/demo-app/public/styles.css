@@ -227,6 +227,13 @@ body {
 /* ==========================================
    Input Panel Specific
    ========================================== */
+.panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
 .format-selector {
     display: flex;
     align-items: center;
@@ -643,6 +650,27 @@ body {
 
 .tooltip-container:hover .tooltip {
     display: block;
+}
+
+.btn-auto-convert {
+    min-width: 9rem;
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.8125rem;
+}
+
+.btn-auto-convert:not(.is-active) {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+}
+
+.btn-auto-convert:not(.is-active):hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-dark);
+}
+
+.btn-auto-convert.is-active .btn-icon {
+    color: inherit;
 }
 
 .convert-section {

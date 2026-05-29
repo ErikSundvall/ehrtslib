@@ -1,5 +1,5 @@
 {
-  "version": "2.10",
+  "version": "2.11",
   "children": [
     {
       "type": "frame",
@@ -12,6 +12,2153 @@
       "height": 600,
       "fill": "#FFFFFF",
       "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "DqEd3",
+      "x": 920,
+      "y": 0,
+      "name": "ehrtslib Converter (2-col redesign)",
+      "clip": true,
+      "width": 1440,
+      "height": 860,
+      "fill": "$ehr-bg-page",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "MKflT",
+          "name": "App Header",
+          "width": "fill_container",
+          "height": 88,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 135,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#2563eb",
+                "position": 0
+              },
+              {
+                "color": "#1e40af",
+                "position": 1
+              }
+            ]
+          },
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            16,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Ddwxp",
+              "name": "Title",
+              "fill": "#ffffff",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ehrtslib - rudimentary demos: Format Conversions, code generation etc.",
+              "fontFamily": "Inter",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "X887Qx",
+              "name": "Subtitle",
+              "fill": "#ffffffE6",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "openEHR --> various variants of · JSON · YAML ·  XML · TypeScript stubs ",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yj4EK",
+          "name": "Main Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 8,
+          "padding": [
+            16,
+            24
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "D5olBX",
+              "name": "Input Panel",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$ehr-bg-panel",
+              "cornerRadius": 12,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$ehr-border"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#0000001a",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 6
+              },
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Y63Ox",
+                  "name": "Panel Header",
+                  "width": "fill_container",
+                  "height": 56,
+                  "fill": "$ehr-bg-tertiary",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": {
+                      "bottom": 1
+                    },
+                    "fill": "$ehr-border"
+                  },
+                  "padding": [
+                    12,
+                    20
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "A7Gxd",
+                      "name": "input Panel Icon",
+                      "width": 20,
+                      "height": 20,
+                      "iconFontName": "input",
+                      "iconFontFamily": "Material Symbols Outlined",
+                      "fill": "$ehr-text-primary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Am5dz",
+                      "name": "Panel Title",
+                      "fill": "$ehr-text-primary",
+                      "content": "Input",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "sfWRe",
+                      "name": "Header Actions",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "NJCPs",
+                          "name": "Auto-convert On",
+                          "fill": "$ehr-primary",
+                          "cornerRadius": 8,
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            24
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "eU6ik",
+                              "name": "Convert Icon",
+                              "width": 20,
+                              "height": 20,
+                              "iconFontName": "pause",
+                              "iconFontFamily": "Material Symbols Outlined",
+                              "fill": "#ffffff"
+                            },
+                            {
+                              "type": "text",
+                              "id": "h0C7LA",
+                              "name": "Convert Label",
+                              "fill": "#ffffff",
+                              "textGrowth": "fixed-width",
+                              "width": "fit_content(97)",
+                              "content": "Auto-convert",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wzF2l",
+                          "name": "Format Selector",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FnyTa",
+                              "name": "Format Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "Format:",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wGSrz",
+                              "name": "Format Dropdown",
+                              "fill": "$ehr-bg-panel",
+                              "cornerRadius": 4,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "JEvpv",
+                                  "name": "Format Value",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "JSON",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "U6Omdc",
+                  "name": "Panel Body",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "HXUm5",
+                      "name": "Toolbar",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "uffnp",
+                          "name": "Toolbar Left",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "a5wXU8",
+                              "name": "Load Example",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 8,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "w3C6q",
+                                  "name": "Load Example Icon",
+                                  "width": 18,
+                                  "height": 18,
+                                  "iconFontName": "folder_open",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-secondary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ShgXt",
+                                  "name": "Load Example Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Load Example",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "veZk1",
+                              "name": "Upload File",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 8,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "d0Dtx",
+                                  "name": "Upload File Icon",
+                                  "width": 18,
+                                  "height": 18,
+                                  "iconFontName": "upload_file",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-secondary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "E7wFs",
+                                  "name": "Upload File Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Upload",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QUZ3w",
+                          "name": "Toolbar Right",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "JXW4w",
+                              "name": "Clear",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 8,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "P8dl2",
+                                  "name": "Clear Icon",
+                                  "width": 18,
+                                  "height": 18,
+                                  "iconFontName": "delete",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-secondary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "cUkki",
+                                  "name": "Clear Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Clear",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 13,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Tgby5",
+                      "name": "Input Code Editor",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$ehr-bg-code",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#334155"
+                      },
+                      "layout": "vertical",
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gZyhv",
+                          "name": "Sample JSON",
+                          "fill": "$ehr-text-code",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "{\n  \"_type\": \"COMPOSITION\",\n  \"name\": {\"_type\": \"DV_TEXT\", \"value\": \"Vital Signs Encounter\"},\n  \"archetype_node_id\": \"openEHR-EHR-COMPOSITION.encounter.v1\"\n}",
+                          "lineHeight": 1.6,
+                          "fontFamily": "Roboto Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "f1jCSj",
+                      "name": "Input Info Bar",
+                      "width": "fill_container",
+                      "fill": "$ehr-bg-tertiary",
+                      "cornerRadius": 4,
+                      "gap": 24,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "a2DMAj",
+                          "name": "Char Count",
+                          "fill": "$ehr-text-secondary",
+                          "content": "Characters: 987",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ortu1",
+                          "name": "Line Count",
+                          "fill": "$ehr-text-secondary",
+                          "content": "Lines: 31",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fQm8g",
+                          "name": "Validation",
+                          "fill": "$ehr-success",
+                          "content": "Valid JSON",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "DFw4Y",
+                          "name": "Spacer",
+                          "width": "fill_container",
+                          "height": 1
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WyKEr",
+                          "name": "Line Wrap Toggle",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 3,
+                              "id": "Lyn9G",
+                              "name": "Checkbox",
+                              "fill": "$ehr-bg-panel",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "id": "hCIiD",
+                              "name": "Line Wrap Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "Disable Line Wrap",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KLrQs",
+                      "name": "Input parsing (deserializer)",
+                      "width": "fill_container",
+                      "fill": "$ehr-bg-page",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$ehr-border"
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "jeXdL",
+                          "name": "Input Deserializer Options Preset Row",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "n5AbZ",
+                              "name": "Deserializer Preset Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "Deserializer Preset:",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wgycx",
+                              "name": "Deserializer Preset Dropdown",
+                              "width": "fill_container",
+                              "fill": "$ehr-bg-panel",
+                              "cornerRadius": 4,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "NeTng",
+                                  "name": "Deserializer Preset Value",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Custom...",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Isf26",
+                              "name": "Strict Mode",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "Jovql",
+                                  "name": "Strict Mode Box",
+                                  "fill": "$ehr-bg-panel",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "hu7Zc",
+                                  "name": "Strict Mode Text",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Strict Mode",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "uiCoH",
+                              "name": "Parse Terse Format",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "Uc6uS",
+                                  "name": "Parse Terse Format Box",
+                                  "fill": "$ehr-bg-panel",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "onioG",
+                                  "name": "Parse Terse Format Text",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Parse Terse Format",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "huD16",
+              "name": "Output Panel",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$ehr-bg-panel",
+              "cornerRadius": 12,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$ehr-border"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#0000001a",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 6
+              },
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uffAN",
+                  "name": "Output Header",
+                  "width": "fill_container",
+                  "fill": "$ehr-bg-tertiary",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": {
+                      "bottom": 1
+                    },
+                    "fill": "$ehr-border"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    12,
+                    20
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "yDPFl",
+                      "name": "Output Header Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "j9ge5",
+                          "name": "output Panel Icon",
+                          "width": 20,
+                          "height": 20,
+                          "iconFontName": "output",
+                          "iconFontFamily": "Material Symbols Outlined",
+                          "fill": "$ehr-text-primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "QV8N3",
+                          "name": "Output Title",
+                          "fill": "$ehr-text-primary",
+                          "content": "Output",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "R43tNU",
+                          "name": "Format Checkboxes",
+                          "gap": 16,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "wn5NS",
+                              "name": "JSON Toggle",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "TV5FS",
+                                  "name": "JSON Box",
+                                  "fill": "$ehr-primary",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "NwCnX",
+                                  "name": "JSON Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "JSON",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "oCbOW",
+                              "name": "YAML Toggle",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "N58AEN",
+                                  "name": "YAML Box",
+                                  "fill": "$ehr-primary",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "l70sJq",
+                                  "name": "YAML Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "YAML",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Js1Xx",
+                              "name": "TypeScript Toggle",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "QdMag",
+                                  "name": "TypeScript Box",
+                                  "fill": "$ehr-primary",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "P13x6",
+                                  "name": "TypeScript Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "TypeScript",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "lAgxB",
+                              "name": "XML Toggle",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "rectangle",
+                                  "cornerRadius": 3,
+                                  "id": "SjpuM",
+                                  "name": "XML Box",
+                                  "fill": "$ehr-primary",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "m9Y3Y",
+                                  "name": "XML Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "XML",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bpMXN",
+                  "name": "Output Body",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hG3SN",
+                      "name": "Output Tabs",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 2
+                        },
+                        "fill": "$ehr-border"
+                      },
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "sb5ni",
+                          "name": "JSON Tab",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": {
+                              "bottom": 2
+                            },
+                            "fill": "$ehr-primary"
+                          },
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "RvGVl",
+                              "name": "JSON Tab Label",
+                              "fill": "$ehr-primary",
+                              "content": "JSON",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "b5pRnC",
+                          "name": "YAML Tab",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 0
+                          },
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WBMEb",
+                              "name": "YAML Tab Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "YAML",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "H9hrkj",
+                          "name": "TypeScript Tab",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 0
+                          },
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "h4beD",
+                              "name": "TypeScript Tab Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "TypeScript",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ycwG1",
+                          "name": "XML Tab",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 0
+                          },
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "B11JPt",
+                              "name": "XML Tab Label",
+                              "fill": "$ehr-text-secondary",
+                              "content": "XML",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "NB3Fk",
+                          "name": "Output Toolbar",
+                          "gap": 8,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "habsi",
+                              "name": "Copy",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "O67b6h",
+                                  "name": "Copy Icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "content_copy",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-primary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "mHDg4",
+                                  "name": "Copy Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Copy",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "vbMhe",
+                              "name": "Download",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "GKBLs",
+                                  "name": "Download Icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "download",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-primary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "T3WZ2X",
+                                  "name": "Download Label",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Download",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "V9aEiC",
+                      "name": "JSON Tab Panel",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "gAR5h",
+                          "name": "Output Code",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "$ehr-bg-code",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FtJB7",
+                              "name": "Output Sample",
+                              "fill": "$ehr-text-code",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "{\n  \"_type\": \"COMPOSITION\",\n  \"name\": {\"value\": \"Vital Signs Encounter\"}\n}",
+                              "lineHeight": 1.6,
+                              "fontFamily": "Roboto Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "tLkTU",
+                          "name": "JSON Options",
+                          "width": "fill_container",
+                          "fill": "$ehr-bg-page",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$ehr-border"
+                          },
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "gKWmO",
+                              "name": "Input Info Bar",
+                              "width": "fill_container",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 4,
+                              "gap": 24,
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "G9sTG",
+                                  "name": "Char Count",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Characters: 987",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "JYRec",
+                                  "name": "Line Count",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Lines: 31",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "RRSWK",
+                                  "name": "Validation",
+                                  "fill": "$ehr-success",
+                                  "content": "Valid JSON",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Cp2dk",
+                                  "name": "Spacer",
+                                  "width": "fill_container",
+                                  "height": 1
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "pc257",
+                                  "name": "Line Wrap Toggle",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "XasGs",
+                                      "name": "Checkbox",
+                                      "fill": "$ehr-bg-panel",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "qEXSd",
+                                      "name": "Line Wrap Label",
+                                      "fill": "$ehr-text-secondary",
+                                      "content": "Disable Line Wrap",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "W5nav",
+                              "name": "JSON Options Preset Row",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "muLWi",
+                                  "name": "Configuration Preset Label",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Serializer configuration Preset:",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HbmuU",
+                                  "name": "Configuration Preset Dropdown",
+                                  "width": "fill_container",
+                                  "fill": "$ehr-bg-panel",
+                                  "cornerRadius": 4,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  },
+                                  "padding": [
+                                    8,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "gFFxI",
+                                      "name": "Configuration Preset Value",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Custom...",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Jj0Ey",
+                                  "name": "Pretty Print",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "jig0z",
+                                      "name": "Pretty Print Box",
+                                      "fill": "$ehr-primary",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "NsKbK",
+                                      "name": "Pretty Print Text",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Pretty Print",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Ooldm",
+                                  "name": "Terse Format",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "hxPGy",
+                                      "name": "Terse Format Box",
+                                      "fill": "$ehr-bg-panel",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "r1r65",
+                                      "name": "Terse Format Text",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Terse Format",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b9INE",
+                      "x": 0,
+                      "y": 0,
+                      "name": "YAML Tab Panel",
+                      "enabled": false,
+                      "width": "fill_container(0)",
+                      "height": "fill_container(0)",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "KAGKe",
+                          "name": "YAML Options",
+                          "width": "fill_container",
+                          "fill": "$ehr-bg-page",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$ehr-border"
+                          },
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "a8D6sS",
+                              "name": "YAML Options Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "AprSY",
+                                  "name": "YAML Options Title",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "YAML Options",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ENVRL",
+                                  "name": "YAML Options Chevron",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "▼",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CAavd",
+                              "name": "YAML Options Preset Row",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "lvK1K",
+                                  "name": "Configuration Preset Label",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Configuration Preset:",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Nl7LO",
+                                  "name": "Configuration Preset Dropdown",
+                                  "width": "fill_container",
+                                  "fill": "$ehr-bg-panel",
+                                  "cornerRadius": 4,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  },
+                                  "padding": [
+                                    8,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "wjztF",
+                                      "name": "Configuration Preset Value",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Default",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "vv7qe",
+                                  "name": "Terse Format (Recommended)",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "WN0AN",
+                                      "name": "Terse Format (Recommended) Box",
+                                      "fill": "$ehr-primary",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "TzjwX",
+                                      "name": "Terse Format (Recommended) Text",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Terse Format (Recommended)",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "VOpOi",
+                          "name": "Toolbar",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "n5GTKe",
+                              "name": "Copy",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "olcGn",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "content_copy",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-primary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "iMoRE",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Copy",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RBUoo",
+                          "name": "Code Preview",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "$ehr-bg-code",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "k53pb",
+                              "name": "Code",
+                              "fill": "$ehr-text-code",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "_type: COMPOSITION\nname: {value: Vital Signs}",
+                              "fontFamily": "Roboto Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "tcP08",
+                      "x": 0,
+                      "y": 0,
+                      "name": "TypeScript Tab Panel",
+                      "enabled": false,
+                      "width": "fill_container(0)",
+                      "height": "fill_container(0)",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "RAzVp",
+                          "name": "TypeScript Options",
+                          "width": "fill_container",
+                          "fill": "$ehr-bg-page",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$ehr-border"
+                          },
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "xToTy",
+                              "name": "TypeScript Options Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "PCp9r",
+                                  "name": "TypeScript Options Title",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "TypeScript Options",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "PIico",
+                                  "name": "TypeScript Options Chevron",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "▼",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "aiYfJ",
+                              "name": "TypeScript Options Preset Row",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "PdVHf",
+                                  "name": "Archetype ID Location Label",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Archetype ID Location:",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "AeN6O",
+                                  "name": "Archetype ID Location Dropdown",
+                                  "width": "fill_container",
+                                  "fill": "$ehr-bg-panel",
+                                  "cornerRadius": 4,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  },
+                                  "padding": [
+                                    8,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "NUvWq",
+                                      "name": "Archetype ID Location Value",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "After name",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nPMb4",
+                                  "name": "Use Terse Format",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "H8NIG",
+                                      "name": "Use Terse Format Box",
+                                      "fill": "$ehr-primary",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "J0rBXN",
+                                      "name": "Use Terse Format Text",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Use Terse Format",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "BfFjj",
+                          "name": "Toolbar",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "AsZAK",
+                              "name": "Copy",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "lmyy1",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "content_copy",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-primary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "WxyeU",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Copy",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zZNel",
+                          "name": "Code Preview",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "$ehr-bg-code",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "cgWmb",
+                              "name": "Code",
+                              "fill": "$ehr-text-code",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "import { COMPOSITION } from ...",
+                              "fontFamily": "Roboto Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SLQpy",
+                      "x": 0,
+                      "y": 0,
+                      "name": "XML Tab Panel",
+                      "enabled": false,
+                      "width": "fill_container(0)",
+                      "height": "fill_container(0)",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "czSTY",
+                          "name": "XML Options",
+                          "width": "fill_container",
+                          "fill": "$ehr-bg-page",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$ehr-border"
+                          },
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "B1qBLo",
+                              "name": "XML Options Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "LS0z6",
+                                  "name": "XML Options Title",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "XML Options",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "vCtld",
+                                  "name": "XML Options Chevron",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "▼",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "jazRn",
+                              "name": "XML Options Preset Row",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "YZxnY",
+                                  "name": "Configuration Preset Label",
+                                  "fill": "$ehr-text-secondary",
+                                  "content": "Configuration Preset:",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "TPBXS",
+                                  "name": "Configuration Preset Dropdown",
+                                  "width": "fill_container",
+                                  "fill": "$ehr-bg-panel",
+                                  "cornerRadius": 4,
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "$ehr-border"
+                                  },
+                                  "padding": [
+                                    8,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "WN6pg",
+                                      "name": "Configuration Preset Value",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Custom...",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "w3Xcm",
+                                  "name": "Pretty Print",
+                                  "gap": 8,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 3,
+                                      "id": "hZlpI",
+                                      "name": "Pretty Print Box",
+                                      "fill": "$ehr-primary",
+                                      "width": 16,
+                                      "height": 16,
+                                      "stroke": {
+                                        "align": "inside",
+                                        "thickness": 1,
+                                        "fill": "$ehr-border"
+                                      }
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "WKlWM",
+                                      "name": "Pretty Print Text",
+                                      "fill": "$ehr-text-primary",
+                                      "content": "Pretty Print",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "A3VFE3",
+                          "name": "Toolbar",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "ZT63a",
+                              "name": "Copy",
+                              "fill": "$ehr-bg-tertiary",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$ehr-border"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                6,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "uEVvw",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "content_copy",
+                                  "iconFontFamily": "Material Symbols Outlined",
+                                  "fill": "$ehr-text-primary"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "AKaF2",
+                                  "fill": "$ehr-text-primary",
+                                  "content": "Copy",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Mtgy8",
+                          "name": "Code Preview",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "$ehr-bg-code",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vC3Ch",
+                              "name": "Code",
+                              "fill": "$ehr-text-code",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "<?xml version=\"1.0\"?>\n<COMPOSITION>...</COMPOSITION>",
+                              "fontFamily": "Roboto Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zAKrG",
+          "name": "App Footer",
+          "width": "fill_container",
+          "fill": "$ehr-bg-tertiary",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "$ehr-border"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            12,
+            24
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "X2Isrn",
+              "name": "Footer Links",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e61PbB",
+                  "name": "GitHub Repository",
+                  "fill": "$ehr-primary",
+                  "content": "GitHub",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "VdiGo",
+                  "name": "Documentation",
+                  "fill": "$ehr-primary",
+                  "content": "Docs",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "E6Odiq",
+                  "name": "Creation Guide",
+                  "fill": "$ehr-primary",
+                  "content": "Guide",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "kWel1",
+                  "name": "openEHR.org",
+                  "fill": "$ehr-primary",
+                  "content": "openEHR.org",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sxcFL",
+          "name": "Redesign Note",
+          "width": "fill_container",
+          "fill": "#fef9c3",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#fbbf24"
+          },
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            8,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "BTQop",
+              "name": "Note",
+              "fill": "#854d0e",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "2-column layout (pen only): options per output tab; input deserializer at bottom of input; no middle options column.",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "variables": {
+    "ehr-bg-code": {
+      "type": "color",
+      "value": "#1e293b"
+    },
+    "ehr-bg-page": {
+      "type": "color",
+      "value": "#f8fafc"
+    },
+    "ehr-bg-panel": {
+      "type": "color",
+      "value": "#ffffff"
+    },
+    "ehr-bg-tertiary": {
+      "type": "color",
+      "value": "#f1f5f9"
+    },
+    "ehr-border": {
+      "type": "color",
+      "value": "#e2e8f0"
+    },
+    "ehr-primary": {
+      "type": "color",
+      "value": "#2563eb"
+    },
+    "ehr-primary-dark": {
+      "type": "color",
+      "value": "#1e40af"
+    },
+    "ehr-success": {
+      "type": "color",
+      "value": "#10b981"
+    },
+    "ehr-text-code": {
+      "type": "color",
+      "value": "#e2e8f0"
+    },
+    "ehr-text-primary": {
+      "type": "color",
+      "value": "#0f172a"
+    },
+    "ehr-text-secondary": {
+      "type": "color",
+      "value": "#475569"
+    }
+  }
 }

@@ -31,13 +31,20 @@
         <section class="panel input-panel">
             <div class="panel-header">
                 <h2><span class="material-icons panel-icon" aria-hidden="true">input</span> Input</h2>
-                <div class="format-selector">
-                    <label for="input-format">Format:</label>
-                    <select id="input-format" class="format-dropdown">
-                        <option value="xml">XML</option>
-                        <option value="json" selected>JSON</option>
-                        <option value="yaml">YAML</option>
-                    </select>
+                <div class="panel-header-actions">
+                    <button type="button" class="btn btn-primary btn-auto-convert is-active" id="auto-convert-btn"
+                        aria-pressed="true" title="Pause auto-convert">
+                        <span class="material-icons btn-icon" id="auto-convert-icon" aria-hidden="true">pause</span>
+                        <span id="auto-convert-label">Auto-convert</span>
+                    </button>
+                    <div class="format-selector">
+                        <label for="input-format">Format:</label>
+                        <select id="input-format" class="format-dropdown">
+                            <option value="xml">XML</option>
+                            <option value="json" selected>JSON</option>
+                            <option value="yaml">YAML</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -67,10 +74,6 @@
                         <button class="btn btn-secondary" id="clear-input">
                             <span class="material-icons btn-icon" aria-hidden="true">delete</span>
                             Clear
-                        </button>
-                        <button class="btn btn-primary" id="convert-btn">
-                            <span class="material-icons btn-icon" aria-hidden="true">play_arrow</span>
-                            Convert
                         </button>
                     </div>
                 </div>

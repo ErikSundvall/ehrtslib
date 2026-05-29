@@ -30,6 +30,9 @@ import type {
 // Application state
 let currentInputFormat = 'json';
 let currentOutputs: any = {};
+let autoConvertEnabled = true;
+let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+const AUTO_CONVERT_DEBOUNCE_MS = 350;
 
 // Declare build info injected by esbuild
 declare const __BUILD_INFO__: {
@@ -55,16 +58,11 @@ function init() {
   // Display build info
   displayBuildInfo();
 
-  // Set up event listeners
   setupEventListeners();
+  updateAutoConvertButtonUi();
 
-  // Load default example and run initial conversion
+  // Load default example (triggers debounced auto-convert via handleInputChange)
   loadExample('section');
-
-  // Run initial conversion after a short delay to allow UI to settle
-  setTimeout(() => {
-    handleConvert();
-  }, 100);
 
   console.log('✓ Application ready');
 }
@@ -132,10 +130,23 @@ function setupEventListeners() {
     });
   }
 
-  // Convert button
-  const convertBtn = document.getElementById('convert-btn');
-  if (convertBtn) {
-    convertBtn.addEventListener('click', handleConvert);
+  const autoConvertBtn = document.getElementById('auto-convert-btn');
+  if (autoConvertBtn) {
+    autoConvertBtn.addEventListener('click', toggleAutoConvert);
+  }
+
+  const optionsPanelBody = document.querySelector('.options-panel .panel-body');
+  const inputPanelBody = document.querySelector('.input-panel .panel-body');
+  if (optionsPanelBody) {
+    optionsPanelBody.addEventListener('change', () => scheduleAutoConvert());
+  }
+  if (inputPanelBody) {
+    inputPanelBody.addEventListener('change', () => scheduleAutoConvert());
+  }
+
+  const outputFormatSection = document.getElementById('output-tab-enable-section');
+  if (outputFormatSection) {
+    outputFormatSection.addEventListener('change', () => scheduleAutoConvert());
   }
 
   // Preset dropdowns
@@ -421,6 +432,7 @@ function setupCopyDownloadButtons() {
 function handleInputFormatChange(e: Event) {
   currentInputFormat = (e.target as HTMLSelectElement).value;
   validateInput();
+  scheduleAutoConvert();
 }
 
 /**
@@ -509,8 +521,8 @@ function handleInputChange() {
     lineCount.textContent = (text.split('\n').length).toString();
   }
 
-  // Validate input
   validateInput();
+  scheduleAutoConvert();
 }
 
 /**
@@ -563,7 +575,57 @@ function validateInput() {
 }
 
 /**
- * Handle convert button click
+ * Toggle live auto-convert (play = off, pause = on).
+ */
+function toggleAutoConvert() {
+  autoConvertEnabled = !autoConvertEnabled;
+  updateAutoConvertButtonUi();
+  if (autoConvertEnabled) {
+    scheduleAutoConvert();
+  } else if (autoConvertDebounceTimer !== undefined) {
+    clearTimeout(autoConvertDebounceTimer);
+    autoConvertDebounceTimer = undefined;
+  }
+}
+
+function updateAutoConvertButtonUi() {
+  const btn = document.getElementById('auto-convert-btn');
+  const icon = document.getElementById('auto-convert-icon');
+  const label = document.getElementById('auto-convert-label');
+  if (!btn || !icon) return;
+
+  if (autoConvertEnabled) {
+    icon.textContent = 'pause';
+    btn.classList.add('is-active');
+    btn.classList.remove('btn-secondary');
+    btn.classList.add('btn-primary');
+    btn.setAttribute('aria-pressed', 'true');
+    btn.title = 'Pause auto-convert';
+    if (label) label.textContent = 'Auto-convert';
+  } else {
+    icon.textContent = 'play_arrow';
+    btn.classList.remove('is-active');
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+    btn.setAttribute('aria-pressed', 'false');
+    btn.title = 'Resume auto-convert';
+    if (label) label.textContent = 'Paused';
+  }
+}
+
+function scheduleAutoConvert() {
+  if (!autoConvertEnabled) return;
+  if (autoConvertDebounceTimer !== undefined) {
+    clearTimeout(autoConvertDebounceTimer);
+  }
+  autoConvertDebounceTimer = setTimeout(() => {
+    autoConvertDebounceTimer = undefined;
+    void handleConvert();
+  }, AUTO_CONVERT_DEBOUNCE_MS);
+}
+
+/**
+ * Run conversion (debounced when auto-convert is on).
  */
 async function handleConvert() {
   console.log('🔄 Converting...');
