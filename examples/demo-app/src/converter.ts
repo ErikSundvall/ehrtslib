@@ -46,6 +46,13 @@ import {
   type TypeScriptConstructorSerializationConfig,
 } from '../../../enhanced/serialization/typescript/mod.ts';
 
+import { parseAdl } from '../../../enhanced/parser/mod.ts';
+import {
+  RMInstanceGenerator,
+  TypeScriptGenerator,
+  type GenerationMode,
+} from '../../../enhanced/generation/mod.ts';
+
 import {
   TypeRegistry,
   SerializationError,
@@ -86,6 +93,8 @@ export function initializeTypeRegistry() {
  * Input format types
  */
 export type InputFormat = 'xml' | 'json' | 'yaml';
+export type InputMode = 'instance' | 'template';
+export type TemplateGenerationMode = GenerationMode;
 
 /**
  * Output format types
@@ -96,9 +105,11 @@ export type OutputFormat = 'xml' | 'json' | 'yaml' | 'typescript';
  * Conversion options
  */
 export interface ConversionOptions {
+  inputMode: InputMode;
   inputFormat: InputFormat;
   inputDeserializerConfig: JsonDeserializationConfig | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
+  templateGenerationMode: TemplateGenerationMode;
   jsonSerializerType: 'canonical' | 'configurable';
   jsonConfig: JsonSerializationConfig;
   yamlConfig: YamlSerializationConfig;
@@ -131,6 +142,10 @@ export async function convert(input: string, options: ConversionOptions): Promis
   }
 
   try {
+    if (options.inputMode === 'template') {
+      return convertTemplateInput(input, options);
+    }
+
     // Step 1: Deserialize input to RM object
     const rmObject = await deserializeInput(input, options.inputFormat, options.inputDeserializerConfig);
 
@@ -171,6 +186,64 @@ export async function convert(input: string, options: ConversionOptions): Promis
       error: (error as Error).message,
       errorDetails: error
     };
+  }
+}
+
+function convertTemplateInput(
+  input: string,
+  options: ConversionOptions,
+): ConversionResult {
+  const parsed = parseAdl(input, { convertAdl14: true });
+  if (parsed.kind !== 'operational_template' || !parsed.operationalTemplate) {
+    throw new Error(
+      `Expected an operational_template ADL input, parsed kind: ${parsed.kind}.`,
+    );
+  }
+
+  const template = parsed.operationalTemplate;
+  const generator = new RMInstanceGenerator({
+    mode: options.templateGenerationMode,
+  });
+
+  const generatedInstance = generator.generate(template);
+  const outputs: Record<string, string> = {};
+
+  for (const format of options.outputFormats) {
+    switch (format) {
+      case 'xml':
+        outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
+        break;
+      case 'json':
+        outputs.json = serializeToJson(generatedInstance, options.jsonSerializerType, options.jsonConfig);
+        break;
+      case 'yaml':
+        outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
+        break;
+      case 'typescript': {
+        const tsGenerator = new TypeScriptGenerator({ language: 'en' });
+        outputs.typescript = tsGenerator.generate(template);
+        break;
+      }
+    }
+  }
+
+  return { success: true, outputs };
+}
+
+export function validateTemplateInput(input: string): { valid: boolean; message: string } {
+  const text = input.trim();
+  if (!text) {
+    return { valid: false, message: 'Empty template' };
+  }
+
+  try {
+    const parsed = parseAdl(text, { convertAdl14: true });
+    if (parsed.kind !== 'operational_template') {
+      return { valid: false, message: `Parsed ${parsed.kind}; expected operational_template` };
+    }
+    return { valid: true, message: 'Valid operational template ADL' };
+  } catch (error) {
+    return { valid: false, message: `Invalid template: ${(error as Error).message}` };
   }
 }
 

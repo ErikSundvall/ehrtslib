@@ -36,7 +36,7 @@ const MANDATORY_RM_ATTRIBUTES: Record<string, string[]> = {
 /**
  * Generation mode
  */
-export type GenerationMode = "minimal" | "maximal";
+export type GenerationMode = "minimal" | "example" | "maximal";
 
 /**
  * Generator configuration
@@ -56,8 +56,8 @@ export class RMInstanceGenerator {
   
   constructor(config?: GeneratorConfig) {
     this.config = {
-      mode: "minimal",
-      fillOptional: false,
+      mode: "example",
+      fillOptional: undefined,
       maxDepth: 50,
       includeMandatoryRMAttributes: true,  // Default: include mandatory attributes
       ...config,
@@ -116,7 +116,8 @@ export class RMInstanceGenerator {
         // Check if attribute is required
         const isRequired = this.isAttributeRequired(cAttribute);
         
-        if (!isRequired && !this.config.fillOptional) {
+        const shouldFillOptional = this.shouldFillOptional(cAttribute, depth);
+        if (!isRequired && !shouldFillOptional) {
           continue;
         }
         
@@ -127,7 +128,7 @@ export class RMInstanceGenerator {
           // Check if multiple values needed
           if (cAttribute instanceof openehr_am.C_MULTIPLE_ATTRIBUTE) {
             // Generate array
-            const minCard = 1; // Could get from cardinality
+            const minCard = this.getArrayItemCount(cAttribute, isRequired);
             instance[attrName] = [];
             for (let i = 0; i < minCard; i++) {
               const childInstance = this.generateFromCObject(child, depth + 1);
@@ -294,5 +295,51 @@ export class RMInstanceGenerator {
       }
     }
     return false;
+  }
+
+  private shouldFillOptional(cAttribute: openehr_am.C_ATTRIBUTE, depth: number): boolean {
+    if (typeof this.config.fillOptional === "boolean") {
+      return this.config.fillOptional;
+    }
+
+    switch (this.config.mode) {
+      case "minimal":
+        return false;
+      case "maximal":
+        return true;
+      case "example":
+      default:
+        return this.includeOptionalInExampleMode(cAttribute, depth);
+    }
+  }
+
+  private includeOptionalInExampleMode(cAttribute: openehr_am.C_ATTRIBUTE, depth: number): boolean {
+    const seed = `${cAttribute.rm_attribute_name || ""}:${depth}:${cAttribute.children?.length || 0}`;
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) % 2 === 0;
+  }
+
+  private getArrayItemCount(cAttribute: openehr_am.C_MULTIPLE_ATTRIBUTE, isRequired: boolean): number {
+    const lower = (cAttribute as any)?.cardinality?.interval?.lower;
+    const upper = (cAttribute as any)?.cardinality?.interval?.upper;
+    const lowerBound = typeof lower === "number" ? lower : (isRequired ? 1 : 0);
+    const safeLowerBound = Math.max(0, lowerBound);
+
+    if (this.config.mode === "minimal") {
+      return Math.max(1, safeLowerBound);
+    }
+
+    if (this.config.mode === "maximal") {
+      if (typeof upper === "number") {
+        return Math.max(Math.max(1, safeLowerBound), Math.min(upper, 3));
+      }
+      return Math.max(2, Math.max(1, safeLowerBound));
+    }
+
+    return Math.max(1, safeLowerBound);
   }
 }

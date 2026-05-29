@@ -15,9 +15,12 @@ import {
   getJsonDeserializeConfigPreset,
   getYamlConfigPreset,
   getYamlDeserializeConfigPreset,
+  validateTemplateInput,
   type ConversionOptions,
   type InputFormat,
+  type InputMode,
   type OutputFormat,
+  type TemplateGenerationMode,
 } from './converter.ts';
 
 import type {
@@ -32,6 +35,7 @@ import type {
 
 // Application state
 let currentInputFormat = 'json';
+let currentInputTab: InputMode = 'instance';
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
 let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -66,6 +70,7 @@ function init() {
 
   // Load default example (triggers debounced auto-convert via handleInputChange)
   loadExample('section');
+  handleInputChange('template');
 
   console.log('✓ Application ready');
 }
@@ -114,11 +119,20 @@ function setupEventListeners() {
   if (clearBtn) {
     clearBtn.addEventListener('click', clearInput);
   }
+  const clearTemplateBtn = document.getElementById('clear-template-input');
+  if (clearTemplateBtn) {
+    clearTemplateBtn.addEventListener('click', clearInput);
+  }
 
   // Input textarea
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   if (inputTextarea) {
-    inputTextarea.addEventListener('input', handleInputChange);
+    inputTextarea.addEventListener('input', () => handleInputChange('instance'));
+  }
+
+  const templateTextarea = document.getElementById('template-input-text') as HTMLTextAreaElement;
+  if (templateTextarea) {
+    templateTextarea.addEventListener('input', () => handleInputChange('template'));
   }
 
   // Input line-wrap toggle (default: false => wrapping enabled = unchecked)
@@ -155,6 +169,11 @@ function setupEventListeners() {
   }
   if (inputPanelBody) {
     inputPanelBody.addEventListener('change', () => scheduleAutoConvert());
+  }
+
+  const templateModeSelect = document.getElementById('template-generation-mode') as HTMLSelectElement;
+  if (templateModeSelect) {
+    templateModeSelect.addEventListener('change', () => scheduleAutoConvert());
   }
 
   const outputFormatSection = document.getElementById('output-tab-enable-section');
@@ -415,17 +434,25 @@ function setupInputTabs() {
     tab.addEventListener('click', (e) => {
       const name = (e.currentTarget as HTMLElement).getAttribute('data-input-tab');
       if (!name) return;
-      tabs.forEach((t) => {
-        const el = t as HTMLElement;
-        const active = el.getAttribute('data-input-tab') === name;
-        el.classList.toggle('active', active);
-        el.setAttribute('aria-selected', active ? 'true' : 'false');
-      });
-      document.querySelectorAll('.input-tab-pane').forEach((pane) => {
-        pane.classList.toggle('active', pane.id === `input-tab-${name}`);
-      });
+      activateInputTab(name as InputMode);
     });
   });
+}
+
+function activateInputTab(mode: InputMode) {
+  const tabs = document.querySelectorAll('#input-tabs .tab');
+  tabs.forEach((t) => {
+    const el = t as HTMLElement;
+    const active = el.getAttribute('data-input-tab') === mode;
+    el.classList.toggle('active', active);
+    el.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.input-tab-pane').forEach((pane) => {
+    pane.classList.toggle('active', pane.id === `input-tab-${mode}`);
+  });
+  currentInputTab = mode;
+  validateInput();
+  scheduleAutoConvert();
 }
 
 /**
@@ -482,13 +509,14 @@ function loadExample(exampleKey: string) {
   const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
 
   if (inputTextarea && formatSelect) {
+    activateInputTab('instance');
     // Load the appropriate format
     const format = formatSelect.value;
     inputTextarea.value = example[format as keyof typeof example] as string || example.json;
     currentInputFormat = format;
 
     // Update character count and validation
-    handleInputChange();
+    handleInputChange('instance');
   }
 }
 
@@ -503,8 +531,9 @@ async function handleFileUpload(e: Event) {
     const text = await file.text();
     const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
     if (inputTextarea) {
+      activateInputTab('instance');
       inputTextarea.value = text;
-      handleInputChange();
+      handleInputChange('instance');
 
       // Try to detect format from file extension
       const ext = file.name.split('.').pop()?.toLowerCase();
@@ -526,30 +555,37 @@ async function handleFileUpload(e: Event) {
  * Clear the input textarea
  */
 function clearInput() {
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
-  if (inputTextarea) {
-    inputTextarea.value = '';
-    handleInputChange();
+  const textarea = getCurrentInputTextarea();
+  if (textarea) {
+    textarea.value = '';
+    handleInputChange(currentInputTab);
   }
+}
+
+function getInputTextarea(mode: InputMode): HTMLTextAreaElement | null {
+  const id = mode === 'template' ? 'template-input-text' : 'input-text';
+  return document.getElementById(id) as HTMLTextAreaElement | null;
+}
+
+function getCurrentInputTextarea(): HTMLTextAreaElement | null {
+  return getInputTextarea(currentInputTab);
 }
 
 /**
  * Handle input text change
  */
-function handleInputChange() {
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+function handleInputChange(tab: InputMode = currentInputTab) {
+  const inputTextarea = getInputTextarea(tab);
   if (!inputTextarea) return;
 
   const text = inputTextarea.value;
 
-  // Update character count
-  const charCount = document.getElementById('char-count');
+  const charCount = document.getElementById(tab === 'template' ? 'template-char-count' : 'char-count');
   if (charCount) {
     charCount.textContent = text.length.toString();
   }
 
-  // Update line count
-  const lineCount = document.getElementById('line-count');
+  const lineCount = document.getElementById(tab === 'template' ? 'template-line-count' : 'line-count');
   if (lineCount) {
     lineCount.textContent = (text.split('\n').length).toString();
   }
@@ -562,9 +598,13 @@ function handleInputChange() {
  * Validate the input text
  */
 function validateInput() {
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
-  const validationIcon = document.getElementById('validation-icon');
-  const validationText = document.getElementById('validation-text');
+  const inputTextarea = getCurrentInputTextarea();
+  const validationIcon = document.getElementById(
+    currentInputTab === 'template' ? 'template-validation-icon' : 'validation-icon',
+  );
+  const validationText = document.getElementById(
+    currentInputTab === 'template' ? 'template-validation-text' : 'validation-text',
+  );
 
   if (!inputTextarea || !validationIcon || !validationText) return;
 
@@ -578,6 +618,17 @@ function validateInput() {
 
   // Simple format validation
   try {
+    if (currentInputTab === 'template') {
+      const templateValidation = validateTemplateInput(text);
+      if (!templateValidation.valid) {
+        throw new Error(templateValidation.message);
+      }
+      validationIcon.textContent = 'check';
+      validationIcon.className = 'material-icons status-icon valid';
+      validationText.textContent = templateValidation.message;
+      return;
+    }
+
     if (currentInputFormat === 'json') {
       JSON.parse(text);
       validationIcon.textContent = 'check';
@@ -603,7 +654,9 @@ function validateInput() {
   } catch (error) {
     validationIcon.textContent = 'error';
     validationIcon.className = 'material-icons status-icon invalid';
-    validationText.textContent = `Invalid ${currentInputFormat.toUpperCase()}`;
+    validationText.textContent = currentInputTab === 'template'
+      ? (error as Error).message
+      : `Invalid ${currentInputFormat.toUpperCase()}`;
   }
 }
 
@@ -666,7 +719,7 @@ async function handleConvert() {
   hideError();
 
   try {
-    const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+    const inputTextarea = getCurrentInputTextarea();
     if (!inputTextarea) throw new Error('Input textarea not found');
 
     const inputText = inputTextarea.value.trim();
@@ -703,6 +756,8 @@ async function handleConvert() {
  * Gather conversion options from UI controls
  */
 function gatherConversionOptions(): ConversionOptions {
+  const inputMode = currentInputTab;
+
   // Input format
   const inputFormatSelect = document.getElementById('input-format') as HTMLSelectElement;
   const inputFormat = (inputFormatSelect?.value || 'json') as InputFormat;
@@ -710,6 +765,10 @@ function gatherConversionOptions(): ConversionOptions {
   // Input deserializer config
   const inputDeserializerPreset = (document.getElementById('input-deserializer-preset') as HTMLSelectElement)?.value || 'default';
   const inputDeserializerConfig = getJsonDeserializeConfigPreset(inputDeserializerPreset);
+
+  const templateGenerationMode = (
+    (document.getElementById('template-generation-mode') as HTMLSelectElement)?.value || 'example'
+  ) as TemplateGenerationMode;
 
   // Output formats
   const outputFormats: OutputFormat[] = [];
@@ -788,9 +847,11 @@ function gatherConversionOptions(): ConversionOptions {
   };
 
   return {
+    inputMode,
     inputFormat,
     inputDeserializerConfig,
     outputFormats,
+    templateGenerationMode,
     jsonSerializerType,
     jsonConfig,
     yamlConfig,
