@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-05-29T15:12:35.895Z", buildId: "0XFX953E" };
+    define_BUILD_INFO_default = { timestamp: "2026-05-29T15:17:49.730Z", buildId: "KSL58SX9" };
   }
 });
 
@@ -29597,6 +29597,285 @@ var EXPR_VALUE_REF = class extends EXPR_LEAF {
 };
 
 // enhanced/openehr_am.ts
+var ARCHETYPE = class extends AUTHORED_RESOURCE {
+  /**
+   * Root node of the definition of this archetype.
+   */
+  definition;
+  /**
+   * The ontology of the archetype.
+   */
+  ontology;
+  /**
+   * Internal storage for adl_version
+   * @protected
+   */
+  _adl_version;
+  /**
+   * ADL version if archetype was read in from an ADL sharable archetype.
+   */
+  get adl_version() {
+    return this._adl_version?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for adl_version.
+   * Use this to access openehr_base.String methods.
+   */
+  get $adl_version() {
+    return this._adl_version;
+  }
+  /**
+   * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+   */
+  set adl_version(val) {
+    if (val === void 0 || val === null) {
+      this._adl_version = void 0;
+    } else if (typeof val === "string") {
+      this._adl_version = String2.from(val);
+    } else {
+      this._adl_version = val;
+    }
+  }
+  /**
+   * Multi-axial identifier of this archetype in archetype space.
+   */
+  archetype_id;
+  /**
+   * Archetype OID (HIER_OBJECT_ID). Distinct from AUTHORED_RESOURCE.uid (UUID) in the BASE model.
+   */
+  archetype_hier_uid;
+  /**
+   * Internal storage for concept
+   * @protected
+   */
+  _concept;
+  /**
+   * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
+   */
+  get concept() {
+    return this._concept?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for concept.
+   * Use this to access openehr_base.String methods.
+   */
+  get $concept() {
+    return this._concept;
+  }
+  /**
+   * Sets concept from either a primitive value or openehr_base.String wrapper.
+   */
+  set concept(val) {
+    if (val === void 0 || val === null) {
+      this._concept = void 0;
+    } else if (typeof val === "string") {
+      this._concept = String2.from(val);
+    } else {
+      this._concept = val;
+    }
+  }
+  /**
+   * Identifier of the specialisation parent of this archetype.
+   */
+  parent_archetype_id;
+  /**
+   * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
+   */
+  invariants;
+  /**
+   * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
+   * @param a_lang - Parameter
+   * @returns Result value
+   */
+  concept_name(a_lang) {
+    throw new Error("Method concept_name not yet implemented.");
+  }
+  /**
+   * Set of language-independent paths extracted from archetype. Paths obey Xpath-like syntax and are formed from alternations of C_OBJECT.node_id and C_ATTRIBUTE.rm_attribute_name values.
+   * @returns Result value
+   */
+  physical_paths() {
+    throw new Error("Method physical_paths not yet implemented.");
+  }
+  /**
+   * Set of language-dependent paths extracted from archetype. Paths obey the same syntax as physical_paths, but with node_ids replaced by their meanings from the ontology.
+   * @param lang - Parameter
+   * @returns Result value
+   */
+  logical_paths(lang) {
+    throw new Error("Method logical_paths not yet implemented.");
+  }
+  /**
+   * Specialisation depth of this archetype; larger than 0 if this archetype has a parent. Derived from terminology.specialisation_depth.
+   * @returns Result value
+   */
+  specialisation_depth() {
+    throw new Error("Method specialisation_depth not yet implemented.");
+  }
+  /**
+   * True if this archetype is a specialisation of another.
+   * @returns Result value
+   */
+  is_specialised() {
+    throw new Error("Method is_specialised not yet implemented.");
+  }
+  /**
+   * True if the archetype is valid overall; various tests should be used, including checks on node_ids, internal references, and constraint references.
+   * @returns Result value
+   */
+  is_valid() {
+    throw new Error("Method is_valid not yet implemented.");
+  }
+  /**
+   * True if every node_id found on a C_OBJECT node is found in ontology.term_codes.
+   * @returns Result value
+   */
+  node_ids_valid() {
+    throw new Error("Method node_ids_valid not yet implemented.");
+  }
+  /**
+   * Version of predecessor archetype of this archetype, if any.
+   * @returns Result value
+   */
+  previous_version() {
+    throw new Error("Method previous_version not yet implemented.");
+  }
+  /**
+   * True if every ARCHETYPE_INTERNAL_REF. target_path refers to a legitimate node in the archetype definition.
+   * @returns Result value
+   */
+  internal_references_valid() {
+    throw new Error("Method internal_references_valid not yet implemented.");
+  }
+  /**
+   * True if every CONSTRAINT_REF.reference found on a C_OBJECT node in the archetype definition is found in ontology.constraint_codes.
+   * @returns Result value
+   */
+  constraint_references_valid() {
+    throw new Error("Method constraint_references_valid not yet implemented.");
+  }
+  /**
+   * The short concept name of the archetype extracted from the archetype_id.
+   * @returns Result value
+   */
+  short_concept_name() {
+    throw new Error("Method short_concept_name not yet implemented.");
+  }
+  version() {
+    throw new Error("Method version not yet implemented.");
+  }
+};
+var AUTHORED_ARCHETYPE = class extends ARCHETYPE {
+  /**
+   * ADL version if archetype was read in from an ADL sharable archetype.
+   */
+  get adl_version() {
+    return this._adl_version?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for adl_version.
+   * Use this to access openehr_base.String methods.
+   */
+  get $adl_version() {
+    return this._adl_version;
+  }
+  /**
+   * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+   */
+  set adl_version(val) {
+    if (val === void 0 || val === null) {
+      this._adl_version = void 0;
+    } else if (typeof val === "string") {
+      this._adl_version = String2.from(val);
+    } else {
+      this._adl_version = val;
+    }
+  }
+  /**
+   * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
+   */
+  build_uid;
+  /**
+   * Internal storage for rm_release
+   * @protected
+   */
+  _rm_release;
+  /**
+   * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
+   */
+  get rm_release() {
+    return this._rm_release?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for rm_release.
+   * Use this to access openehr_base.String methods.
+   */
+  get $rm_release() {
+    return this._rm_release;
+  }
+  /**
+   * Sets rm_release from either a primitive value or openehr_base.String wrapper.
+   */
+  set rm_release(val) {
+    if (val === void 0 || val === null) {
+      this._rm_release = void 0;
+    } else if (typeof val === "string") {
+      this._rm_release = String2.from(val);
+    } else {
+      this._rm_release = val;
+    }
+  }
+  /**
+   * Internal storage for is_generated
+   * @protected
+   */
+  _is_generated;
+  /**
+   * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
+   */
+  get is_generated() {
+    return this._is_generated?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for is_generated.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $is_generated() {
+    return this._is_generated;
+  }
+  /**
+   * Sets is_generated from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set is_generated(val) {
+    if (val === void 0 || val === null) {
+      this._is_generated = void 0;
+    } else if (typeof val === "boolean") {
+      this._is_generated = Boolean2.from(val);
+    } else {
+      this._is_generated = val;
+    }
+  }
+  other_meta_data;
+};
+var TEMPLATE = class extends AUTHORED_ARCHETYPE {
+  /**
+   * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
+   */
+  overlays;
+};
+var OPERATIONAL_TEMPLATE = class extends AUTHORED_ARCHETYPE {
+  /**
+   * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
+   */
+  component_terminologies;
+  /**
+   * Compendium of flattened terminology extracts (i.e. from external terminologies) from archetypes referenced from this template, keyed by archetype identifier.
+   */
+  terminology_extracts;
+  component_terminology(an_id) {
+    throw new Error("Method component_terminology not yet implemented.");
+  }
+};
 var ARCHETYPE_CONSTRAINT = class {
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other.
@@ -29693,6 +29972,53 @@ var C_OBJECT = class extends ARCHETYPE_CONSTRAINT {
     }
   }
 };
+var C_ATTRIBUTE = class extends ARCHETYPE_CONSTRAINT {
+  /**
+   * Internal storage for rm_attribute_name
+   * @protected
+   */
+  _rm_attribute_name;
+  /**
+   * Reference model attribute within the enclosing type represented by a C_OBJECT.
+   */
+  get rm_attribute_name() {
+    return this._rm_attribute_name?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for rm_attribute_name.
+   * Use this to access openehr_base.String methods.
+   */
+  get $rm_attribute_name() {
+    return this._rm_attribute_name;
+  }
+  /**
+   * Sets rm_attribute_name from either a primitive value or openehr_base.String wrapper.
+   */
+  set rm_attribute_name(val) {
+    if (val === void 0 || val === null) {
+      this._rm_attribute_name = void 0;
+    } else if (typeof val === "string") {
+      this._rm_attribute_name = String2.from(val);
+    } else {
+      this._rm_attribute_name = val;
+    }
+  }
+  /**
+   * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
+   */
+  existence;
+  /**
+   * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes.
+   */
+  children;
+  /**
+   * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
+   * @returns Result value
+   */
+  any_allowed() {
+    throw new Error("Method any_allowed not yet implemented.");
+  }
+};
 var C_DEFINED_OBJECT = class extends C_OBJECT {
   /**
    * Value to be assumed if none sent in data.
@@ -29742,6 +30068,18 @@ var C_DEFINED_OBJECT = class extends C_OBJECT {
     return Boolean2.from(false);
   }
 };
+var C_REFERENCE_OBJECT = class extends C_OBJECT {
+};
+var ARCHETYPE_SLOT = class extends C_REFERENCE_OBJECT {
+  /**
+   * List of constraints defining other archetypes that could be included at this point.
+   */
+  includes;
+  /**
+   * List of constraints defining other archetypes that cannot be included at this point.
+   */
+  excludes;
+};
 var C_PRIMITIVE_OBJECT = class extends C_DEFINED_OBJECT {
   /**
    * Object actually defining the constraint.
@@ -29767,6 +30105,44 @@ var C_COMPLEX_OBJECT = class extends C_DEFINED_OBJECT {
   any_allowed() {
     throw new Error("Method any_allowed not yet implemented.");
   }
+};
+var C_ARCHETYPE_ROOT = class extends C_COMPLEX_OBJECT {
+  /**
+   * Internal storage for archetype_ref
+   * @protected
+   */
+  _archetype_ref;
+  /**
+   * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
+   */
+  get archetype_ref() {
+    return this._archetype_ref?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for archetype_ref.
+   * Use this to access openehr_base.String methods.
+   */
+  get $archetype_ref() {
+    return this._archetype_ref;
+  }
+  /**
+   * Sets archetype_ref from either a primitive value or openehr_base.String wrapper.
+   */
+  set archetype_ref(val) {
+    if (val === void 0 || val === null) {
+      this._archetype_ref = void 0;
+    } else if (typeof val === "string") {
+      this._archetype_ref = String2.from(val);
+    } else {
+      this._archetype_ref = val;
+    }
+  }
+};
+var ARCHETYPE_ID_CONSTRAINT = class {
+  /**
+   * Right hand side of the constraint expression, in the form of a \`C_STRING\`, i.e. string value constrainer.
+   */
+  constraint;
 };
 var C_PRIMITIVE = class {
   /**
@@ -29962,6 +30338,12 @@ var C_REAL = class extends C_PRIMITIVE {
    */
   assumed_value = void 0;
 };
+var RM_OVERLAY = class {
+  /**
+   * Optional structure in which visibility and aliasing of reference model elements can be specified. Key is path to an RM attribute, which is typically formed from a path to an archetyped node concatenated with a further pure RM attribute path; may also refer to a non-archetyped attribute.
+   */
+  rm_visibility;
+};
 var EXPR_ITEM = class {
   /**
    * Internal storage for type
@@ -30026,6 +30408,138 @@ var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
     }
   }
 };
+var ASSERTION = class {
+  /**
+   * Internal storage for tag
+   * @protected
+   */
+  _tag;
+  /**
+   * Expression tag, used for differentiating multiple assertions.
+   */
+  get tag() {
+    return this._tag?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for tag.
+   * Use this to access openehr_base.String methods.
+   */
+  get $tag() {
+    return this._tag;
+  }
+  /**
+   * Sets tag from either a primitive value or openehr_base.String wrapper.
+   */
+  set tag(val) {
+    if (val === void 0 || val === null) {
+      this._tag = void 0;
+    } else if (typeof val === "string") {
+      this._tag = String2.from(val);
+    } else {
+      this._tag = val;
+    }
+  }
+  /**
+   * Internal storage for string_expression
+   * @protected
+   */
+  _string_expression;
+  /**
+   * String form of expression, in case an expression evaluator taking String expressions is used for evaluation.
+   */
+  get string_expression() {
+    return this._string_expression?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for string_expression.
+   * Use this to access openehr_base.String methods.
+   */
+  get $string_expression() {
+    return this._string_expression;
+  }
+  /**
+   * Sets string_expression from either a primitive value or openehr_base.String wrapper.
+   */
+  set string_expression(val) {
+    if (val === void 0 || val === null) {
+      this._string_expression = void 0;
+    } else if (typeof val === "string") {
+      this._string_expression = String2.from(val);
+    } else {
+      this._string_expression = val;
+    }
+  }
+  /**
+   * Root of expression tree.
+   */
+  expression;
+  /**
+   * Definitions of variables used in the assertion expression.
+   */
+  variables;
+};
+var ASSERTION_VARIABLE = class {
+  /**
+   * Internal storage for name
+   * @protected
+   */
+  _name;
+  /**
+   * Name of variable.
+   */
+  get name() {
+    return this._name?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for name.
+   * Use this to access openehr_base.String methods.
+   */
+  get $name() {
+    return this._name;
+  }
+  /**
+   * Sets name from either a primitive value or openehr_base.String wrapper.
+   */
+  set name(val) {
+    if (val === void 0 || val === null) {
+      this._name = void 0;
+    } else if (typeof val === "string") {
+      this._name = String2.from(val);
+    } else {
+      this._name = val;
+    }
+  }
+  /**
+   * Internal storage for definition
+   * @protected
+   */
+  _definition;
+  /**
+   * Formal definition of the variable.
+   */
+  get definition() {
+    return this._definition?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for definition.
+   * Use this to access openehr_base.String methods.
+   */
+  get $definition() {
+    return this._definition;
+  }
+  /**
+   * Sets definition from either a primitive value or openehr_base.String wrapper.
+   */
+  set definition(val) {
+    if (val === void 0 || val === null) {
+      this._definition = void 0;
+    } else if (typeof val === "string") {
+      this._definition = String2.from(val);
+    } else {
+      this._definition = val;
+    }
+  }
+};
 var EXPR_OPERATOR = class extends EXPR_ITEM {
   /**
    * Internal storage for precedence_overridden
@@ -30077,6 +30591,234 @@ var EXPR_BINARY_OPERATOR = class extends EXPR_OPERATOR {
    * Right operand node.
    */
   right_operand;
+};
+var OPERATOR_KIND = class extends String2 {
+};
+var CARDINALITY = class {
+  /**
+   * The interval of this cardinality.
+   */
+  interval;
+  /**
+   * Internal storage for is_ordered
+   * @protected
+   */
+  _is_ordered;
+  /**
+   * True if the members of the container attribute to which this cardinality refers are ordered.
+   */
+  get is_ordered() {
+    return this._is_ordered?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for is_ordered.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $is_ordered() {
+    return this._is_ordered;
+  }
+  /**
+   * Sets is_ordered from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set is_ordered(val) {
+    if (val === void 0 || val === null) {
+      this._is_ordered = void 0;
+    } else if (typeof val === "boolean") {
+      this._is_ordered = Boolean2.from(val);
+    } else {
+      this._is_ordered = val;
+    }
+  }
+  /**
+   * Internal storage for is_unique
+   * @protected
+   */
+  _is_unique;
+  /**
+   * True if the members of the container attribute to which this cardinality refers are unique.
+   */
+  get is_unique() {
+    return this._is_unique?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for is_unique.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $is_unique() {
+    return this._is_unique;
+  }
+  /**
+   * Sets is_unique from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set is_unique(val) {
+    if (val === void 0 || val === null) {
+      this._is_unique = void 0;
+    } else if (typeof val === "boolean") {
+      this._is_unique = Boolean2.from(val);
+    } else {
+      this._is_unique = val;
+    }
+  }
+  /**
+   * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+   * @returns Result value
+   */
+  is_bag() {
+    throw new Error("Method is_bag not yet implemented.");
+  }
+  /**
+   * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
+   * @returns Result value
+   */
+  is_list() {
+    throw new Error("Method is_list not yet implemented.");
+  }
+  /**
+   * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+   * @returns Result value
+   */
+  is_set() {
+    throw new Error("Method is_set not yet implemented.");
+  }
+};
+var C_SINGLE_ATTRIBUTE = class extends C_ATTRIBUTE {
+  /**
+   * List of alternative constraints for the single child of this attribute within the data.
+   * @returns Result value
+   */
+  alternatives() {
+    throw new Error("Method alternatives not yet implemented.");
+  }
+};
+var C_MULTIPLE_ATTRIBUTE = class extends C_ATTRIBUTE {
+  /**
+   * Cardinality of this attribute constraint, if it constraints a container attribute.
+   */
+  cardinality;
+  /**
+   * List of constraints representing members of the container value of this attribute within the data. Semantics of the uniqueness and ordering of items in the container are given by the cardinality.
+   * @returns Result value
+   */
+  members() {
+    throw new Error("Method members not yet implemented.");
+  }
+};
+var ARCHETYPE_ONTOLOGY = class {
+  /**
+   * List of all term codes in the ontology. Most of these correspond to “at” codes in an ADL archetype, which are the node_ids on C_OBJECT descendants. There may be an extra one, if a different term is used as the overall archetype concept from that used as the node_id of the outermost C_OBJECT in the definition part.
+   */
+  term_codes;
+  /**
+   * List of all term codes in the ontology. These correspond to the “ac” codes in an ADL archetype, or equivalently, the CONSTRAINT_REF.reference values in the archetype definition.
+   */
+  constraint_codes;
+  /**
+   * Archetype which owns this terminology.
+   */
+  parent_archetype;
+  /**
+   * List of terminologies to which term or constraint bindings exist in this terminology.
+   */
+  terminologies_available;
+  /**
+   * Internal storage for specialisation_depth
+   * @protected
+   */
+  _specialisation_depth;
+  /**
+   * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
+   */
+  get specialisation_depth() {
+    return this._specialisation_depth?.value;
+  }
+  /**
+   * Gets the openehr_base.Integer wrapper object for specialisation_depth.
+   * Use this to access openehr_base.Integer methods.
+   */
+  get $specialisation_depth() {
+    return this._specialisation_depth;
+  }
+  /**
+   * Sets specialisation_depth from either a primitive value or openehr_base.Integer wrapper.
+   */
+  set specialisation_depth(val) {
+    if (val === void 0 || val === null) {
+      this._specialisation_depth = void 0;
+    } else if (typeof val === "number") {
+      this._specialisation_depth = Integer.from(val);
+    } else {
+      this._specialisation_depth = val;
+    }
+  }
+  term_attribute_names;
+  /**
+   * True if terminology ‘a_terminology’ is present in archetype ontology.
+   * @param a_lang - Parameter
+   * @returns Result value
+   */
+  has_language(a_lang) {
+    throw new Error("Method has_language not yet implemented.");
+  }
+  /**
+   * True if terminology \`a_terminology' is present in archetype ontology.
+   * @param a_terminology_id - Parameter
+   * @returns Result value
+   */
+  has_terminology(a_terminology_id) {
+    throw new Error("Method has_terminology not yet implemented.");
+  }
+  /**
+   * True if term_codes has a_code.
+   * @param a_code - Parameter
+   * @returns Result value
+   */
+  has_term_code(a_code) {
+    throw new Error("Method has_term_code not yet implemented.");
+  }
+  /**
+   * True if constraint_codes has a_code.
+   * @param a_code - Parameter
+   * @returns Result value
+   */
+  has_constraint_code(a_code) {
+    throw new Error("Method has_constraint_code not yet implemented.");
+  }
+  /**
+   * Term definition for a code, in a specified language.
+   * @param a_lang - Parameter
+   * @param a_code - Parameter
+   * @returns Result value
+   */
+  term_definition(a_lang, a_code) {
+    throw new Error("Method term_definition not yet implemented.");
+  }
+  /**
+   * Constraint definition for a code, in a specified language.
+   * @param a_code - Parameter
+   * @param a_lang - Parameter
+   * @returns Result value
+   */
+  constraint_definition(a_code, a_lang) {
+    throw new Error("Method constraint_definition not yet implemented.");
+  }
+  /**
+   * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+   * @param a_terminology - Parameter
+   * @param a_code - Parameter
+   * @returns Result value
+   */
+  term_binding(a_terminology, a_code) {
+    throw new Error("Method term_binding not yet implemented.");
+  }
+  /**
+   * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+   * @param a_terminology_id - Parameter
+   * @param a_code - Parameter
+   * @returns Result value
+   */
+  constraint_binding(a_terminology_id, a_code) {
+    throw new Error("Method constraint_binding not yet implemented.");
+  }
 };
 
 // enhanced/ucum_service.ts
@@ -39818,6 +40560,2658 @@ ${" ".repeat(this.config.indent * (depth - 1))}}`;
   }
 };
 
+// enhanced/parser/mod.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/adl2_tokenizer.ts
+init_define_BUILD_INFO();
+var ADL2Tokenizer = class {
+  input;
+  position = 0;
+  line = 1;
+  column = 1;
+  tokens = [];
+  constructor(input) {
+    this.input = input;
+  }
+  /**
+   * Tokenize the input ADL2 text
+   */
+  tokenize() {
+    this.tokens = [];
+    if (this.input.charCodeAt(0) === 65279) {
+      this.position = 1;
+      this.column = 2;
+    }
+    while (!this.isAtEnd()) {
+      this.skipWhitespaceAndComments();
+      if (this.isAtEnd())
+        break;
+      const token = this.nextToken();
+      if (token) {
+        this.tokens.push(token);
+      }
+    }
+    this.tokens.push({
+      type: "EOF" /* EOF */,
+      value: "",
+      line: this.line,
+      column: this.column
+    });
+    return this.tokens;
+  }
+  nextToken() {
+    const start = this.position;
+    const startLine = this.line;
+    const startColumn = this.column;
+    const char = this.peek();
+    switch (char) {
+      case "(":
+        this.advance();
+        return this.makeToken("LPAREN" /* LPAREN */, "(", startLine, startColumn);
+      case ")":
+        this.advance();
+        return this.makeToken("RPAREN" /* RPAREN */, ")", startLine, startColumn);
+      case "[":
+        this.advance();
+        return this.makeToken("LBRACKET" /* LBRACKET */, "[", startLine, startColumn);
+      case "]":
+        this.advance();
+        return this.makeToken("RBRACKET" /* RBRACKET */, "]", startLine, startColumn);
+      case "{":
+        this.advance();
+        return this.makeToken("LBRACE" /* LBRACE */, "{", startLine, startColumn);
+      case "}":
+        this.advance();
+        return this.makeToken("RBRACE" /* RBRACE */, "}", startLine, startColumn);
+      case "<": {
+        if (this.previousCharsMatch(2, "..")) {
+          this.advance();
+          if (this.peek() === "=") {
+            this.advance();
+            return this.makeToken("IDENTIFIER" /* IDENTIFIER */, "<=", startLine, startColumn);
+          }
+          if (this.isDigit(this.peek())) {
+            return this.makeToken("IDENTIFIER" /* IDENTIFIER */, "<", startLine, startColumn);
+          }
+        }
+        this.advance();
+        return this.makeToken("LANGLE" /* LANGLE */, "<", startLine, startColumn);
+      }
+      case ">": {
+        const before = this.charBefore();
+        if (before === "|" || before === "{") {
+          this.advance();
+          if (this.peek() === "=") {
+            this.advance();
+            return this.makeToken("IDENTIFIER" /* IDENTIFIER */, ">=", startLine, startColumn);
+          }
+          if (this.isDigit(this.peek())) {
+            return this.makeToken("IDENTIFIER" /* IDENTIFIER */, ">", startLine, startColumn);
+          }
+        }
+        this.advance();
+        return this.makeToken("RANGLE" /* RANGLE */, ">", startLine, startColumn);
+      }
+      case ",":
+        this.advance();
+        return this.makeToken("COMMA" /* COMMA */, ",", startLine, startColumn);
+      case ";":
+        this.advance();
+        return this.makeToken("SEMICOLON" /* SEMICOLON */, ";", startLine, startColumn);
+      case "=":
+        this.advance();
+        return this.makeToken("EQUALS" /* EQUALS */, "=", startLine, startColumn);
+      case "!":
+        this.advance();
+        if (this.peek() === "=") {
+          this.advance();
+          return this.makeToken("NOT_EQUALS" /* NOT_EQUALS */, "!=", startLine, startColumn);
+        }
+        return this.makeToken("NOT" /* NOT */, "!", startLine, startColumn);
+      case "$": {
+        this.advance();
+        let varName = "$";
+        while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
+          varName += this.peek();
+          this.advance();
+        }
+        return this.makeToken("VARIABLE" /* VARIABLE */, varName, startLine, startColumn);
+      }
+      case "*":
+        this.advance();
+        return this.makeToken("STAR" /* STAR */, "*", startLine, startColumn);
+      case "/": {
+        if (this.charBefore() === "{") {
+          return this.scanRegex(startLine, startColumn);
+        }
+        this.advance();
+        if (this.peek() === "=") {
+          this.advance();
+          return this.makeToken("NOT_EQUALS" /* NOT_EQUALS */, "/=", startLine, startColumn);
+        }
+        return this.makeToken("SLASH" /* SLASH */, "/", startLine, startColumn);
+      }
+      case "|":
+        this.advance();
+        return this.makeToken("PIPE" /* PIPE */, "|", startLine, startColumn);
+    }
+    if (char === ".") {
+      this.advance();
+      if (this.peek() === ".") {
+        this.advance();
+        return this.makeToken("ELLIPSIS" /* ELLIPSIS */, "..", startLine, startColumn);
+      }
+      return this.makeToken("DOT" /* DOT */, ".", startLine, startColumn);
+    }
+    if (char === ":") {
+      this.advance();
+      if (this.peek() === "=") {
+        this.advance();
+        return this.makeToken("ASSIGN" /* ASSIGN */, ":=", startLine, startColumn);
+      }
+      if (this.peek() === ":") {
+        this.advance();
+        return this.makeToken("DOUBLE_COLON" /* DOUBLE_COLON */, "::", startLine, startColumn);
+      }
+      return this.makeToken("COLON" /* COLON */, ":", startLine, startColumn);
+    }
+    if (char === '"') {
+      return this.scanString(startLine, startColumn);
+    }
+    if (this.isDigit(char) || char === "-" && this.isDigit(this.peekNext())) {
+      return this.scanNumber(startLine, startColumn);
+    }
+    if (this.isIdentifierStart(char)) {
+      return this.scanIdentifierOrKeyword(startLine, startColumn);
+    }
+    if (char === "?" || char === "X") {
+      this.advance();
+      return this.makeToken("IDENTIFIER" /* IDENTIFIER */, char, startLine, startColumn);
+    }
+    if (char === "\\" && !this.isAtEnd()) {
+      this.advance();
+      const escaped = this.advance();
+      return this.makeToken("IDENTIFIER" /* IDENTIFIER */, `\\${escaped}`, startLine, startColumn);
+    }
+    throw new Error(
+      `Unexpected character '${char}' at line ${this.line}, column ${this.column}`
+    );
+  }
+  scanRegex(startLine, startColumn) {
+    this.advance();
+    let value = "";
+    while (!this.isAtEnd()) {
+      if (this.peek() === "/") {
+        const next = this.peekNext();
+        if (next === "}" || next === ")" || next === "," || next === ";" || next === "\n" || next === "\r") {
+          break;
+        }
+      }
+      if (this.peek() === "\\") {
+        this.advance();
+        value += "\\" + this.peek();
+      } else {
+        value += this.peek();
+      }
+      this.advance();
+    }
+    if (this.isAtEnd() || this.peek() !== "/") {
+      throw new Error(
+        `Unterminated regex at line ${startLine}, column ${startColumn}`
+      );
+    }
+    this.advance();
+    return this.makeToken("REGEX" /* REGEX */, value, startLine, startColumn);
+  }
+  scanString(startLine, startColumn) {
+    this.advance();
+    let value = "";
+    while (!this.isAtEnd() && this.peek() !== '"') {
+      if (this.peek() === "\\") {
+        this.advance();
+        const next = this.peek();
+        switch (next) {
+          case "n":
+            value += "\n";
+            break;
+          case "t":
+            value += "	";
+            break;
+          case "r":
+            value += "\r";
+            break;
+          case "\\":
+            value += "\\";
+            break;
+          case '"':
+            value += '"';
+            break;
+          default:
+            value += next;
+        }
+        this.advance();
+      } else {
+        value += this.peek();
+        this.advance();
+      }
+    }
+    if (this.isAtEnd()) {
+      throw new Error(
+        `Unterminated string at line ${startLine}, column ${startColumn}`
+      );
+    }
+    this.advance();
+    return this.makeToken("STRING" /* STRING */, value, startLine, startColumn);
+  }
+  scanNumber(startLine, startColumn) {
+    let value = "";
+    let hasDecimal = false;
+    if (this.peek() === "-") {
+      value += this.peek();
+      this.advance();
+    }
+    while (!this.isAtEnd() && (this.isDigit(this.peek()) || this.peek() === ".")) {
+      if (this.peek() === ".") {
+        if (!this.isDigit(this.peekNext()))
+          break;
+        hasDecimal = true;
+      }
+      value += this.peek();
+      this.advance();
+    }
+    return this.makeToken(
+      hasDecimal ? "REAL" /* REAL */ : "INTEGER" /* INTEGER */,
+      value,
+      startLine,
+      startColumn
+    );
+  }
+  scanIdentifierOrKeyword(startLine, startColumn) {
+    let value = "";
+    if (this.peek() === "a") {
+      const next = this.peekNext();
+      if (next === "t" || next === "c") {
+        const prefix = this.peek() + this.peekNext();
+        const tempPos = this.position;
+        this.position += 2;
+        if (!this.isAtEnd() && this.isDigit(this.peek())) {
+          let code = prefix;
+          while (!this.isAtEnd() && this.isDigit(this.peek())) {
+            code += this.peek();
+            this.advance();
+          }
+          return this.makeToken(
+            next === "t" ? "AT_CODE" /* AT_CODE */ : "AC_CODE" /* AC_CODE */,
+            code,
+            startLine,
+            startColumn
+          );
+        }
+        this.position = tempPos;
+      }
+    }
+    if (this.peek() === "i" && this.peekNext() === "d") {
+      const tempPos = this.position;
+      this.position += 2;
+      if (!this.isAtEnd() && this.isDigit(this.peek())) {
+        let code = "id";
+        while (!this.isAtEnd() && this.isDigit(this.peek())) {
+          code += this.peek();
+          this.advance();
+        }
+        return this.makeToken("ID_CODE" /* ID_CODE */, code, startLine, startColumn);
+      }
+      this.position = tempPos;
+    }
+    while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
+      value += this.peek();
+      this.advance();
+    }
+    const type = this.getKeywordType(value);
+    return this.makeToken(type, value, startLine, startColumn);
+  }
+  getKeywordType(value) {
+    const lower = value.toLowerCase();
+    switch (lower) {
+      case "for_all":
+        return "FOR_ALL" /* FOR_ALL */;
+      case "there_exists":
+        return "THERE_EXISTS" /* THERE_EXISTS */;
+      case "exists":
+        return "EXISTS" /* EXISTS */;
+      case "implies":
+        return "IMPLIES" /* IMPLIES */;
+      case "and":
+        return "AND" /* AND */;
+      case "or":
+        return "OR" /* OR */;
+      case "xor":
+        return "XOR" /* XOR */;
+      case "not":
+        return "NOT" /* NOT */;
+      case "in":
+        return "IN" /* IN */;
+      default:
+        break;
+    }
+    const upper = value.toUpperCase();
+    switch (upper) {
+      case "ARCHETYPE":
+        return "ARCHETYPE" /* ARCHETYPE */;
+      case "TEMPLATE":
+        return "TEMPLATE" /* TEMPLATE */;
+      case "OPERATIONAL_TEMPLATE":
+        return "OPERATIONAL_TEMPLATE" /* OPERATIONAL_TEMPLATE */;
+      case "TEMPLATE_OVERLAY":
+        return "TEMPLATE_OVERLAY" /* TEMPLATE_OVERLAY */;
+      case "LANGUAGE":
+        return "LANGUAGE" /* LANGUAGE */;
+      case "DESCRIPTION":
+        return "DESCRIPTION" /* DESCRIPTION */;
+      case "DEFINITION":
+        return "DEFINITION" /* DEFINITION */;
+      case "RULES":
+        return "RULES" /* RULES */;
+      case "TERMINOLOGY":
+        return "TERMINOLOGY" /* TERMINOLOGY */;
+      case "ONTOLOGY":
+        return "ONTOLOGY" /* ONTOLOGY */;
+      case "ANNOTATIONS":
+        return "ANNOTATIONS" /* ANNOTATIONS */;
+      case "RM_OVERLAY":
+        return "RM_OVERLAY" /* RM_OVERLAY */;
+      case "MATCHES":
+        return "MATCHES" /* MATCHES */;
+      case "OCCURRENCES":
+        return "OCCURRENCES" /* OCCURRENCES */;
+      case "CARDINALITY":
+        return "CARDINALITY" /* CARDINALITY */;
+      case "EXISTENCE":
+        return "EXISTENCE" /* EXISTENCE */;
+      case "SPECIALIZE":
+        return "SPECIALIZE" /* SPECIALIZE */;
+      case "USE_ARCHETYPE":
+      case "USE":
+        return "IDENTIFIER" /* IDENTIFIER */;
+      case "ALLOW_ARCHETYPE":
+        return "IDENTIFIER" /* IDENTIFIER */;
+      case "INCLUDE":
+      case "EXCLUDE":
+      case "ORDERED":
+      case "UNORDERED":
+      case "UNIQUE":
+        return "IDENTIFIER" /* IDENTIFIER */;
+      default:
+        return "IDENTIFIER" /* IDENTIFIER */;
+    }
+  }
+  skipWhitespaceAndComments() {
+    while (!this.isAtEnd()) {
+      const char = this.peek();
+      if (char === " " || char === "	" || char === "\r") {
+        this.advance();
+        continue;
+      }
+      if (char === "\n") {
+        this.advance();
+        this.line++;
+        this.column = 1;
+        continue;
+      }
+      if (char === "-" && this.peekNext() === "-") {
+        while (!this.isAtEnd() && this.peek() !== "\n") {
+          this.advance();
+        }
+        continue;
+      }
+      break;
+    }
+  }
+  isAtEnd() {
+    return this.position >= this.input.length;
+  }
+  charBefore() {
+    if (this.position <= 0)
+      return "";
+    return this.input[this.position - 1];
+  }
+  previousCharsMatch(length, text) {
+    const start = this.position - length;
+    if (start < 0)
+      return false;
+    return this.input.slice(start, this.position) === text;
+  }
+  peek() {
+    if (this.isAtEnd())
+      return "\0";
+    return this.input[this.position];
+  }
+  peekNext() {
+    if (this.position + 1 >= this.input.length)
+      return "\0";
+    return this.input[this.position + 1];
+  }
+  advance() {
+    const char = this.input[this.position];
+    this.position++;
+    this.column++;
+    return char;
+  }
+  isDigit(char) {
+    return char >= "0" && char <= "9";
+  }
+  isAlpha(char) {
+    return char >= "a" && char <= "z" || char >= "A" && char <= "Z";
+  }
+  isAlphaNumeric(char) {
+    return this.isAlpha(char) || this.isDigit(char);
+  }
+  isUnicodeLetter(char) {
+    return char.length === 1 && /\p{L}/u.test(char);
+  }
+  isIdentifierStart(char) {
+    return this.isAlpha(char) || char === "_" || this.isUnicodeLetter(char);
+  }
+  isIdentifierPart(char) {
+    return this.isAlphaNumeric(char) || char === "_" || char === "-" || char === "?" || char === "X" || this.isUnicodeLetter(char);
+  }
+  makeToken(type, value, line, column) {
+    return { type, value, line, column };
+  }
+};
+
+// enhanced/parser/adl2_parser.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/odin_parser.ts
+init_define_BUILD_INFO();
+var OdinParser = class {
+  tokens;
+  position = 0;
+  constructor(tokens) {
+    this.tokens = tokens;
+  }
+  /**
+   * Parse ODIN text from tokens (single value or top-level `name = <...>` assignments).
+   */
+  parse() {
+    this.skipWhitespace();
+    if (this.isTopLevelAssignment()) {
+      return this.parseTopLevelAssignments();
+    }
+    return this.parseValue();
+  }
+  isTopLevelAssignment() {
+    return this.isIdentifierLike() && this.checkAhead("EQUALS" /* EQUALS */, 1);
+  }
+  parseTopLevelAssignments() {
+    const root = {};
+    while (!this.isAtEnd()) {
+      this.skipWhitespace();
+      if (!this.isIdentifierLike() || !this.checkAhead("EQUALS" /* EQUALS */, 1)) {
+        break;
+      }
+      const attr = this.advance();
+      this.skipWhitespace();
+      this.consume("EQUALS" /* EQUALS */, "Expected '=' after attribute name");
+      this.skipWhitespace();
+      root[attr.value] = this.parseValue();
+      this.skipWhitespace();
+    }
+    return root;
+  }
+  parseValue() {
+    this.skipWhitespace();
+    if (this.check("LANGLE" /* LANGLE */)) {
+      return this.parseObjectBlock();
+    }
+    return this.parsePrimitive();
+  }
+  parseObjectBlock() {
+    this.consume("LANGLE" /* LANGLE */, "Expected '<' to start object block");
+    if (this.check("RANGLE" /* RANGLE */)) {
+      this.advance();
+      return {};
+    }
+    if (this.isPrimitive()) {
+      return this.parsePrimitiveList();
+    }
+    if (this.check("PIPE" /* PIPE */)) {
+      return this.parseInterval();
+    }
+    if (this.checkAhead("LBRACKET" /* LBRACKET */) && !this.looksLikeKeyedObjectBlock()) {
+      const code = this.parseBracketedCode();
+      this.consume("RANGLE" /* RANGLE */, "Expected '>'");
+      return code;
+    }
+    return this.parseMixedObjectBody();
+  }
+  /** ODIN object with `["key"] = <>` entries and/or `attr = <>` pairs. */
+  parseMixedObjectBody() {
+    const obj = {};
+    while (!this.check("RANGLE" /* RANGLE */) && !this.isAtEnd()) {
+      this.skipWhitespace();
+      if (this.check("RANGLE" /* RANGLE */))
+        break;
+      if (this.check("LBRACKET" /* LBRACKET */) && this.looksLikeKeyedObjectBlock()) {
+        this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
+        let key = "";
+        while (!this.check("RBRACKET" /* RBRACKET */) && !this.isAtEnd()) {
+          key += this.advance().value;
+        }
+        key = key.replace(/^["']|["']$/g, "");
+        this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
+        this.skipWhitespace();
+        this.consume("EQUALS" /* EQUALS */, "Expected '='");
+        this.skipWhitespace();
+        obj[key] = this.parseValue();
+        continue;
+      }
+      if (this.isIdentifierLike() && this.checkAhead("EQUALS" /* EQUALS */, 1)) {
+        const attr = this.advance();
+        this.skipWhitespace();
+        this.consume("EQUALS" /* EQUALS */, "Expected '='");
+        this.skipWhitespace();
+        obj[attr.value] = this.parseValue();
+        continue;
+      }
+      break;
+    }
+    this.consume("RANGLE" /* RANGLE */, "Expected '>' to close object block");
+    return obj;
+  }
+  parseAttributeValuePairs() {
+    const obj = {};
+    while (!this.check("RANGLE" /* RANGLE */) && !this.isAtEnd()) {
+      this.skipWhitespace();
+      if (this.check("RANGLE" /* RANGLE */))
+        break;
+      const token = this.peek();
+      const isValidAttributeName = token.type === "IDENTIFIER" /* IDENTIFIER */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DEFINITION" /* DEFINITION */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ARCHETYPE" /* ARCHETYPE */ || token.type === "RULES" /* RULES */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */;
+      if (!isValidAttributeName) {
+        break;
+      }
+      const isAttribute = this.checkAhead("EQUALS" /* EQUALS */, 1);
+      if (!isAttribute) {
+        break;
+      }
+      const attr = this.advance();
+      this.skipWhitespace();
+      this.consume("EQUALS" /* EQUALS */, "Expected '=' after attribute name");
+      this.skipWhitespace();
+      const value = this.parseValue();
+      obj[attr.value] = value;
+      this.skipWhitespace();
+    }
+    this.consume("RANGLE" /* RANGLE */, "Expected '>' to close object block");
+    return obj;
+  }
+  looksLikeKeyedObjectBlock() {
+    let i3 = this.position + 1;
+    while (i3 < this.tokens.length && this.tokens[i3].type !== "RBRACKET" /* RBRACKET */) {
+      i3++;
+    }
+    if (i3 >= this.tokens.length)
+      return false;
+    return this.tokens[i3 + 1]?.type === "EQUALS" /* EQUALS */;
+  }
+  parseBracketedCode() {
+    this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
+    let code = "";
+    while (!this.check("RBRACKET" /* RBRACKET */) && !this.isAtEnd()) {
+      code += this.advance().value;
+    }
+    this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
+    return code.replace(/^["']|["']$/g, "");
+  }
+  parseKeyedList() {
+    const obj = {};
+    while (!this.check("RANGLE" /* RANGLE */) && !this.isAtEnd()) {
+      this.skipWhitespace();
+      if (this.check("RANGLE" /* RANGLE */))
+        break;
+      if (!this.check("LBRACKET" /* LBRACKET */))
+        break;
+      this.consume("LBRACKET" /* LBRACKET */, "Expected '[' for keyed object");
+      let key = "";
+      while (!this.check("RBRACKET" /* RBRACKET */) && !this.isAtEnd()) {
+        key += this.advance().value;
+      }
+      key = key.replace(/^["']|["']$/g, "");
+      this.consume("RBRACKET" /* RBRACKET */, "Expected ']' after key");
+      this.skipWhitespace();
+      this.consume("EQUALS" /* EQUALS */, "Expected '=' after key");
+      this.skipWhitespace();
+      obj[key] = this.parseValue();
+      this.skipWhitespace();
+    }
+    this.consume("RANGLE" /* RANGLE */, "Expected '>' to close keyed list");
+    return obj;
+  }
+  parsePrimitiveList() {
+    const list = [];
+    while (!this.check("RANGLE" /* RANGLE */) && !this.isAtEnd()) {
+      this.skipWhitespace();
+      if (this.check("RANGLE" /* RANGLE */))
+        break;
+      list.push(this.parsePrimitive());
+      this.skipWhitespace();
+      if (this.check("COMMA" /* COMMA */)) {
+        this.advance();
+        this.skipWhitespace();
+      }
+    }
+    this.consume("RANGLE" /* RANGLE */, "Expected '>' to close primitive list");
+    return list.length === 1 ? list[0] : list;
+  }
+  parseInterval() {
+    this.consume("PIPE" /* PIPE */, "Expected '|' to start interval");
+    const interval = {
+      _type: "interval"
+    };
+    if (this.check("LANGLE" /* LANGLE */)) {
+      this.advance();
+      interval.lowerIncluded = false;
+      if (!this.check("EQUALS" /* EQUALS */)) {
+        interval.lower = this.parsePrimitiveValue();
+      }
+    } else if (this.check("IDENTIFIER" /* IDENTIFIER */) && this.peek().value === "undefined") {
+      this.advance();
+      interval.lowerUnbounded = true;
+    } else {
+      interval.lowerIncluded = true;
+      interval.lower = this.parsePrimitiveValue();
+    }
+    if (this.check("ELLIPSIS" /* ELLIPSIS */)) {
+      this.advance();
+      if (this.check("RANGLE" /* RANGLE */) && this.checkAhead("PIPE" /* PIPE */)) {
+        this.advance();
+        interval.upperIncluded = false;
+        interval.upper = this.parsePrimitiveValue();
+      } else if (this.check("IDENTIFIER" /* IDENTIFIER */) && this.peek().value === "undefined") {
+        this.advance();
+        interval.upperUnbounded = true;
+      } else {
+        interval.upperIncluded = true;
+        interval.upper = this.parsePrimitiveValue();
+      }
+    }
+    this.consume("PIPE" /* PIPE */, "Expected '|' to close interval");
+    return interval;
+  }
+  parsePrimitive() {
+    return this.parsePrimitiveValue();
+  }
+  parsePrimitiveValue() {
+    this.skipWhitespace();
+    if (this.check("STRING" /* STRING */)) {
+      return this.advance().value;
+    }
+    if (this.check("INTEGER" /* INTEGER */)) {
+      return parseInt(this.advance().value);
+    }
+    if (this.check("REAL" /* REAL */)) {
+      return parseFloat(this.advance().value);
+    }
+    if (this.check("IDENTIFIER" /* IDENTIFIER */)) {
+      const value = this.advance().value.toLowerCase();
+      if (value === "true")
+        return true;
+      if (value === "false")
+        return false;
+      if (value === "null" || value === "undefined")
+        return null;
+      return value;
+    }
+    throw this.error("Expected primitive value");
+  }
+  isPrimitive() {
+    return this.check("STRING" /* STRING */) || this.check("INTEGER" /* INTEGER */) || this.check("REAL" /* REAL */) || this.check("IDENTIFIER" /* IDENTIFIER */) && ["true", "false", "null", "undefined"].includes(
+      this.peek().value.toLowerCase()
+    );
+  }
+  isIdentifierLike() {
+    const token = this.peek();
+    return token.type === "IDENTIFIER" /* IDENTIFIER */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DEFINITION" /* DEFINITION */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ARCHETYPE" /* ARCHETYPE */ || token.type === "RULES" /* RULES */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */;
+  }
+  // Token navigation helpers
+  check(type) {
+    if (this.isAtEnd())
+      return false;
+    return this.peek().type === type;
+  }
+  checkAhead(type, offset = 0) {
+    const pos = this.position + offset;
+    if (pos >= this.tokens.length)
+      return false;
+    return this.tokens[pos].type === type;
+  }
+  advance() {
+    if (!this.isAtEnd())
+      this.position++;
+    return this.previous();
+  }
+  consume(type, message) {
+    if (this.check(type))
+      return this.advance();
+    throw this.error(message);
+  }
+  peek() {
+    return this.tokens[this.position];
+  }
+  previous() {
+    return this.tokens[this.position - 1];
+  }
+  isAtEnd() {
+    return this.position >= this.tokens.length || this.peek().type === "EOF" /* EOF */;
+  }
+  skipWhitespace() {
+  }
+  error(message) {
+    const token = this.peek();
+    return new Error(
+      `Parse error at line ${token.line}, column ${token.column}: ${message}`
+    );
+  }
+};
+
+// enhanced/parser/odin_aom_mapper.ts
+init_define_BUILD_INFO();
+function odinString(value) {
+  if (typeof value === "string") {
+    return value.replace(/^["']|["']$/g, "");
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return void 0;
+}
+function terminologyCodeFromAdlString(adlCode) {
+  const tc = new Terminology_code();
+  const parts = adlCode.split("::");
+  if (parts.length >= 2) {
+    tc.terminology_id = String2.from(parts[0]);
+    tc.code_string = String2.from(parts.slice(1).join("::"));
+  } else {
+    tc.code_string = String2.from(adlCode);
+  }
+  return tc;
+}
+function mapOriginalLanguage(languageData) {
+  const raw = languageData.original_language;
+  if (raw === void 0)
+    return void 0;
+  let code;
+  if (typeof raw === "string") {
+    code = odinString(raw);
+  } else if (Array.isArray(raw) && raw.length > 0) {
+    code = odinString(raw[0]);
+  }
+  if (!code)
+    return void 0;
+  return terminologyCodeFromAdlString(code);
+}
+function mapDescription(descriptionData) {
+  const desc = new RESOURCE_DESCRIPTION();
+  const bag = desc;
+  if (descriptionData.original_author !== void 0) {
+    bag.original_author = descriptionData.original_author;
+  }
+  if (descriptionData.details !== void 0) {
+    bag.details = descriptionData.details;
+  }
+  if (descriptionData.other_details !== void 0) {
+    bag.other_details = descriptionData.other_details;
+  }
+  const lifecycle = odinString(descriptionData.lifecycle_state);
+  if (lifecycle) {
+    desc.lifecycle_state = terminologyCodeFromAdlString(lifecycle);
+  }
+  const copyright = odinString(descriptionData.copyright);
+  if (copyright) {
+    bag.copyright = copyright;
+  }
+  return desc;
+}
+function mapTermDefinitions(termDefs) {
+  const table = {};
+  if (!termDefs || typeof termDefs !== "object" || Array.isArray(termDefs)) {
+    return table;
+  }
+  const byLang = termDefs;
+  for (const [lang, terms] of Object.entries(byLang)) {
+    if (!terms || typeof terms !== "object" || Array.isArray(terms))
+      continue;
+    let termEntries = terms;
+    if ("items" in termEntries && termEntries.items && typeof termEntries.items === "object" && !Array.isArray(termEntries.items)) {
+      termEntries = termEntries.items;
+    }
+    table[lang] = {};
+    for (const [code, termObj] of Object.entries(termEntries)) {
+      if (!termObj || typeof termObj !== "object" || Array.isArray(termObj)) {
+        continue;
+      }
+      const t2 = termObj;
+      table[lang][code] = {
+        text: odinString(t2.text),
+        description: odinString(t2.description)
+      };
+    }
+  }
+  return table;
+}
+function applyTerminologyOdin(archetype, terminologyData) {
+  const terminology = archetype.ontology ?? new ARCHETYPE_ONTOLOGY();
+  const bag = terminology;
+  if (terminologyData.term_definitions !== void 0) {
+    bag.term_definitions = mapTermDefinitions(terminologyData.term_definitions);
+  }
+  if (terminologyData.term_bindings !== void 0) {
+    bag.term_bindings = terminologyData.term_bindings;
+  }
+  if (terminologyData.value_sets !== void 0) {
+    bag.value_sets = terminologyData.value_sets;
+  }
+  if (terminologyData.terminology_extracts !== void 0) {
+    bag.terminology_extracts = terminologyData.terminology_extracts;
+  }
+  archetype.ontology = terminology;
+  return terminology;
+}
+
+// enhanced/parser/cadl_parser.ts
+init_define_BUILD_INFO();
+var CadlParser = class {
+  tokens;
+  position = 0;
+  constructor(tokens) {
+    this.tokens = tokens;
+  }
+  /**
+   * Parse root c_object (complex, use archetype, allow archetype).
+   */
+  parseComplexObject() {
+    if (this.checkKeyword("use") && this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+      return this.parseCArchetypeRoot();
+    }
+    return this.parseComplexObjectBody(new C_COMPLEX_OBJECT());
+  }
+  parseComplexObjectBody(cObject) {
+    const typeId = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected type identifier");
+    cObject.rm_type_name = typeId.value;
+    this.consume("LBRACKET" /* LBRACKET */, "Expected '[' for node id");
+    const nodeIdToken = this.peek();
+    if (nodeIdToken.type === "ID_CODE" /* ID_CODE */ || nodeIdToken.type === "AT_CODE" /* AT_CODE */) {
+      cObject.node_id = this.advance().value;
+    } else {
+      throw this.error("Expected node id code (id1, at0000, etc.)");
+    }
+    this.consume("RBRACKET" /* RBRACKET */, "Expected ']' after node id");
+    if (this.check("OCCURRENCES" /* OCCURRENCES */)) {
+      this.parseOccurrences(cObject);
+    }
+    if (this.check("MATCHES" /* MATCHES */)) {
+      this.advance();
+      this.consume("LBRACE" /* LBRACE */, "Expected '{' after matches");
+      while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+        const attribute = this.parseAttribute();
+        if (attribute) {
+          if (!cObject.attributes)
+            cObject.attributes = [];
+          cObject.attributes.push(attribute);
+        }
+      }
+      this.consume("RBRACE" /* RBRACE */, "Expected '}' to close matches block");
+    }
+    return cObject;
+  }
+  parseCArchetypeRoot() {
+    this.consumeKeyword("use");
+    this.consumeKeyword("archetype");
+    const root = new C_ARCHETYPE_ROOT();
+    return this.parseArchetypeRootTail(root);
+  }
+  parseArchetypeRootTail(root) {
+    const typeId = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected type identifier");
+    root.rm_type_name = typeId.value;
+    this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
+    root.node_id = this.consume(
+      "ID_CODE" /* ID_CODE */,
+      "Expected id code"
+    ).value;
+    if (this.check("COMMA" /* COMMA */)) {
+      this.advance();
+      root.archetype_ref = this.consumeArchetypeRef();
+    }
+    this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
+    if (this.check("OCCURRENCES" /* OCCURRENCES */)) {
+      this.parseOccurrences(root);
+    }
+    if (this.check("MATCHES" /* MATCHES */)) {
+      this.advance();
+      this.consume("LBRACE" /* LBRACE */, "Expected '{'");
+      while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+        const attribute = this.parseAttribute();
+        if (attribute) {
+          if (!root.attributes)
+            root.attributes = [];
+          root.attributes.push(attribute);
+        }
+      }
+      this.consume("RBRACE" /* RBRACE */, "Expected '}'");
+    }
+    return root;
+  }
+  isAllowArchetype() {
+    if (this.checkIdentifier("allow_archetype"))
+      return true;
+    return this.checkKeyword("allow") && this.peekAhead(1)?.value.toLowerCase() === "archetype";
+  }
+  checkIdentifier(name) {
+    return this.check("IDENTIFIER" /* IDENTIFIER */) && this.peek().value.toLowerCase() === name.toLowerCase();
+  }
+  parseArchetypeSlotAsComplex() {
+    if (this.checkIdentifier("allow_archetype")) {
+      this.advance();
+    } else {
+      this.consumeKeyword("allow");
+      this.consumeKeyword("archetype");
+    }
+    const slot = new ARCHETYPE_SLOT();
+    const typeId = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected type identifier");
+    slot.rm_type_name = typeId.value;
+    this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
+    slot.node_id = this.consume("ID_CODE" /* ID_CODE */, "Expected id code").value;
+    this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
+    if (this.check("OCCURRENCES" /* OCCURRENCES */)) {
+      this.parseOccurrences(slot);
+    }
+    if (this.check("MATCHES" /* MATCHES */)) {
+      this.advance();
+      this.consume("LBRACE" /* LBRACE */, "Expected '{'");
+      while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+        if (this.checkKeyword("include")) {
+          this.parseIncludeExclude(slot, "includes");
+        } else if (this.checkKeyword("exclude")) {
+          this.parseIncludeExclude(slot, "excludes");
+        } else {
+          throw this.error(`Unexpected token in archetype slot: ${this.peek().value}`);
+        }
+      }
+      this.consume("RBRACE" /* RBRACE */, "Expected '}'");
+    }
+    return slot;
+  }
+  skipIncludeExcludeBlock() {
+    this.advance();
+    while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+      if (this.check("IDENTIFIER" /* IDENTIFIER */) && this.checkAhead("MATCHES" /* MATCHES */, 1)) {
+        this.advance();
+        if (this.check("MATCHES" /* MATCHES */))
+          this.advance();
+        if (this.check("LBRACE" /* LBRACE */)) {
+          this.advance();
+          while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+            this.advance();
+          }
+          if (this.check("RBRACE" /* RBRACE */))
+            this.advance();
+        }
+      } else {
+        this.advance();
+      }
+    }
+  }
+  parseIncludeExclude(slot, field) {
+    this.advance();
+    const list = slot[field] ?? [];
+    while (!this.check("RBRACE" /* RBRACE */) && !this.checkKeyword("include") && !this.checkKeyword("exclude") && !this.isAtEnd()) {
+      const constraint = new ARCHETYPE_ID_CONSTRAINT();
+      const str = new C_STRING();
+      if (this.check("STRING" /* STRING */)) {
+        str.pattern = this.advance().value;
+      } else if (this.check("IDENTIFIER" /* IDENTIFIER */)) {
+        str.pattern = this.advance().value;
+      } else {
+        throw this.error("Expected archetype id constraint");
+      }
+      constraint.constraint = str;
+      list.push(constraint);
+    }
+    slot[field] = list;
+  }
+  consumeArchetypeRef() {
+    const parts = [];
+    while (this.check("IDENTIFIER" /* IDENTIFIER */) || this.check("DOT" /* DOT */) || this.check("INTEGER" /* INTEGER */)) {
+      parts.push(this.advance().value);
+    }
+    return parts.join("");
+  }
+  parseAttribute() {
+    if (this.check("RBRACE" /* RBRACE */))
+      return null;
+    if (!this.check("IDENTIFIER" /* IDENTIFIER */))
+      return null;
+    let attributeName = this.advance().value;
+    if (this.check("SLASH" /* SLASH */) && this.checkAhead("IDENTIFIER" /* IDENTIFIER */, 1)) {
+      attributeName += "/" + this.advance().value;
+      this.advance();
+    }
+    const hasCardinality = this.check("CARDINALITY" /* CARDINALITY */);
+    const attribute = hasCardinality ? new C_MULTIPLE_ATTRIBUTE() : new C_SINGLE_ATTRIBUTE();
+    attribute.rm_attribute_name = attributeName;
+    if (this.check("EXISTENCE" /* EXISTENCE */)) {
+      const existence = this.parseExistence();
+      attribute.existence = existence;
+    }
+    if (this.check("CARDINALITY" /* CARDINALITY */)) {
+      const card = this.parseCardinality();
+      if (attribute instanceof C_MULTIPLE_ATTRIBUTE) {
+        attribute.cardinality = card;
+      }
+    }
+    if (this.check("MATCHES" /* MATCHES */)) {
+      this.advance();
+      this.consume("LBRACE" /* LBRACE */, "Expected '{' after matches in attribute");
+      while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
+        const stringChild = this.tryParseStringConstraint();
+        if (stringChild) {
+          if (!attribute.children) {
+            attribute.children = [];
+          }
+          attribute.children.push(
+            stringChild
+          );
+          continue;
+        }
+        const child = this.parseChildObject();
+        if (child) {
+          if (!attribute.children) {
+            attribute.children = [];
+          }
+          attribute.children.push(
+            child
+          );
+        }
+      }
+      this.consume("RBRACE" /* RBRACE */, "Expected '}' to close attribute matches");
+    }
+    return attribute;
+  }
+  /** `matches { "literal" }` string constraint (BOOK archetype style). */
+  tryParseStringConstraint() {
+    if (!this.check("STRING" /* STRING */))
+      return null;
+    const prim = new C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "DV_TEXT";
+    const str = new C_STRING();
+    str.pattern = this.advance().value.replace(/^["']|["']$/g, "");
+    prim.item = str;
+    while (this.check("COMMA" /* COMMA */)) {
+      this.advance();
+      if (this.check("STRING" /* STRING */)) {
+        str.pattern += "|" + this.advance().value.replace(/^["']|["']$/g, "");
+      }
+    }
+    return prim;
+  }
+  parseChildObject() {
+    if (this.check("RBRACE" /* RBRACE */))
+      return null;
+    const stringChild = this.tryParseStringConstraint();
+    if (stringChild)
+      return stringChild;
+    if (this.check("REGEX" /* REGEX */)) {
+      const prim = new C_PRIMITIVE_OBJECT();
+      prim.rm_type_name = "STRING";
+      const str = new C_STRING();
+      str.pattern = this.advance().value;
+      prim.item = str;
+      return prim;
+    }
+    if (!this.check("IDENTIFIER" /* IDENTIFIER */)) {
+      throw this.error(`Unexpected token: ${this.peek().value}`);
+    }
+    if (this.checkKeyword("use") && this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+      return this.parseCArchetypeRoot();
+    }
+    if (this.isAllowArchetype()) {
+      return this.parseArchetypeSlotAsComplex();
+    }
+    if (this.checkKeyword("include") || this.checkKeyword("exclude")) {
+      this.skipIncludeExcludeBlock();
+      return null;
+    }
+    if (this.isPrimitiveType(this.peek().value)) {
+      return this.parsePrimitiveObject();
+    }
+    return this.parseComplexObjectBody(new C_COMPLEX_OBJECT());
+  }
+  isPrimitiveType(typeName) {
+    return typeName.startsWith("DV_") || typeName === "CODE_PHRASE";
+  }
+  parsePrimitiveObject() {
+    const prim = new C_PRIMITIVE_OBJECT();
+    const typeId = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected primitive type");
+    prim.rm_type_name = typeId.value;
+    this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
+    prim.node_id = this.peek().type === "AT_CODE" /* AT_CODE */ || this.peek().type === "ID_CODE" /* ID_CODE */ ? this.advance().value : this.consume("ID_CODE" /* ID_CODE */, "Expected node id").value;
+    this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
+    return prim;
+  }
+  parseExistence() {
+    this.consume("EXISTENCE" /* EXISTENCE */, "Expected 'existence'");
+    this.consume("MATCHES" /* MATCHES */, "Expected 'matches'");
+    this.consume("LBRACE" /* LBRACE */, "Expected '{'");
+    const interval = this.parseMultiplicity();
+    this.consume("RBRACE" /* RBRACE */, "Expected '}'");
+    return interval;
+  }
+  parseCardinality() {
+    this.consume("CARDINALITY" /* CARDINALITY */, "Expected 'cardinality'");
+    this.consume("MATCHES" /* MATCHES */, "Expected 'matches'");
+    this.consume("LBRACE" /* LBRACE */, "Expected '{'");
+    const card = new CARDINALITY();
+    const interval = this.parseMultiplicity();
+    card.interval = interval;
+    while (this.check("SEMICOLON" /* SEMICOLON */)) {
+      this.advance();
+      if (this.checkKeyword("ordered")) {
+        this.advance();
+        card.is_ordered = true;
+      } else if (this.checkKeyword("unordered")) {
+        this.advance();
+        card.is_ordered = false;
+      } else if (this.checkKeyword("unique")) {
+        this.advance();
+        card.is_unique = true;
+      } else {
+        throw this.error(`Unknown cardinality modifier: ${this.peek().value}`);
+      }
+    }
+    this.consume("RBRACE" /* RBRACE */, "Expected '}'");
+    return card;
+  }
+  parseOccurrences(cObject) {
+    this.consume("OCCURRENCES" /* OCCURRENCES */, "Expected 'occurrences'");
+    this.consume("MATCHES" /* MATCHES */, "Expected 'matches'");
+    this.consume("LBRACE" /* LBRACE */, "Expected '{'");
+    cObject.occurrences = this.parseMultiplicity();
+    this.consume("RBRACE" /* RBRACE */, "Expected '}'");
+  }
+  parseMultiplicity() {
+    const interval = new Multiplicity_interval();
+    if (this.check("INTEGER" /* INTEGER */)) {
+      const lower = parseInt(this.advance().value, 10);
+      if (this.check("ELLIPSIS" /* ELLIPSIS */)) {
+        this.advance();
+        if (this.check("STAR" /* STAR */)) {
+          this.advance();
+          interval.lower = lower;
+          interval.upper = void 0;
+        } else if (this.check("INTEGER" /* INTEGER */)) {
+          interval.lower = lower;
+          interval.upper = parseInt(this.advance().value, 10);
+        } else {
+          interval.lower = lower;
+          interval.upper = void 0;
+        }
+      } else {
+        interval.lower = lower;
+        interval.upper = lower;
+      }
+    } else if (this.check("STAR" /* STAR */)) {
+      this.advance();
+      interval.lower = 0;
+      interval.upper = void 0;
+    } else {
+      throw this.error("Expected multiplicity");
+    }
+    return interval;
+  }
+  checkKeyword(word) {
+    if (!this.check("IDENTIFIER" /* IDENTIFIER */))
+      return false;
+    return this.peek().value.toLowerCase() === word.toLowerCase();
+  }
+  consumeKeyword(word) {
+    if (!this.checkKeyword(word)) {
+      throw this.error(`Expected keyword '${word}'`);
+    }
+    this.advance();
+  }
+  check(type) {
+    if (this.isAtEnd())
+      return false;
+    return this.peek().type === type;
+  }
+  advance() {
+    if (!this.isAtEnd())
+      this.position++;
+    return this.previous();
+  }
+  consume(type, message) {
+    if (this.check(type))
+      return this.advance();
+    throw this.error(message);
+  }
+  peek() {
+    return this.tokens[this.position];
+  }
+  peekAhead(offset) {
+    const idx = this.position + offset;
+    if (idx >= this.tokens.length)
+      return void 0;
+    return this.tokens[idx];
+  }
+  previous() {
+    return this.tokens[this.position - 1];
+  }
+  isAtEnd() {
+    return this.position >= this.tokens.length || this.peek().type === "EOF" /* EOF */;
+  }
+  error(message) {
+    const token = this.peek();
+    return new Error(
+      `cADL parse error at line ${token.line}, column ${token.column}: ${message}`
+    );
+  }
+};
+
+// enhanced/parser/rules_parser.ts
+init_define_BUILD_INFO();
+var RULE_TYPE_NAMES = /* @__PURE__ */ new Set([
+  "Integer",
+  "Real",
+  "Boolean",
+  "String",
+  "Object_ref",
+  "Date",
+  "Time",
+  "Date_time",
+  "Duration"
+]);
+var RulesParser = class {
+  tokens;
+  position = 0;
+  warnings = [];
+  constructor(tokens) {
+    this.tokens = tokens.filter(
+      (t2) => t2.type !== "COMMENT" /* COMMENT */ && t2.type !== "WHITESPACE" /* WHITESPACE */
+    );
+  }
+  parse() {
+    const source = this.tokensToSource();
+    const lines = this.splitStatements(source);
+    const assertions = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("--"))
+        continue;
+      try {
+        assertions.push(this.parseStatement(trimmed));
+      } catch (e2) {
+        this.warnings.push(
+          `Rules statement parse error: ${e2 instanceof Error ? e2.message : String(e2)} \u2014 stored as raw text`
+        );
+        const fallback = new ASSERTION();
+        fallback.string_expression = trimmed;
+        assertions.push(fallback);
+      }
+    }
+    return { assertions, warnings: this.warnings };
+  }
+  /** Reconstruct source with newlines at token line boundaries. */
+  tokensToSource() {
+    const byLine = /* @__PURE__ */ new Map();
+    for (const t2 of this.tokens) {
+      if (t2.type === "EOF" /* EOF */)
+        break;
+      const line = byLine.get(t2.line) ?? [];
+      line.push(t2);
+      byLine.set(t2.line, line);
+    }
+    const lines = [];
+    for (const lineNo of [...byLine.keys()].sort((a2, b2) => a2 - b2)) {
+      lines.push(this.joinLineTokens(byLine.get(lineNo)));
+    }
+    return lines.join("\n");
+  }
+  joinLineTokens(tokens) {
+    let out = "";
+    for (let i3 = 0; i3 < tokens.length; i3++) {
+      const t2 = tokens[i3];
+      if (i3 > 0 && this.needsSpaceBetween(tokens[i3 - 1], t2)) {
+        out += " ";
+      }
+      out += this.tokenText(t2);
+    }
+    return out;
+  }
+  needsSpaceBetween(a2, b2) {
+    const pathGlue = /* @__PURE__ */ new Set([
+      "LBRACKET" /* LBRACKET */,
+      "RBRACKET" /* RBRACKET */,
+      "SLASH" /* SLASH */,
+      "DOT" /* DOT */
+    ]);
+    if (pathGlue.has(b2.type))
+      return false;
+    if (a2.type === "VARIABLE" /* VARIABLE */ && b2.type === "COLON" /* COLON */)
+      return false;
+    if (a2.type === "COLON" /* COLON */ && b2.type === "ASSIGN" /* ASSIGN */)
+      return false;
+    if (a2.type === "IDENTIFIER" /* IDENTIFIER */ && b2.type === "LBRACKET" /* LBRACKET */) {
+      return false;
+    }
+    if (a2.type === "LBRACKET" /* LBRACKET */ && (b2.type === "IDENTIFIER" /* IDENTIFIER */ || b2.type === "INTEGER" /* INTEGER */)) {
+      return false;
+    }
+    if (a2.type === "IDENTIFIER" /* IDENTIFIER */ && b2.type === "RBRACKET" /* RBRACKET */) {
+      return false;
+    }
+    if (a2.type === "RBRACKET" /* RBRACKET */ && b2.type === "SLASH" /* SLASH */)
+      return false;
+    if (a2.type === "SLASH" /* SLASH */ && (b2.type === "IDENTIFIER" /* IDENTIFIER */ || b2.type === "VARIABLE" /* VARIABLE */)) {
+      return false;
+    }
+    if (pathGlue.has(a2.type) && b2.type !== "COLON" /* COLON */)
+      return false;
+    return true;
+  }
+  tokenText(t2) {
+    switch (t2.type) {
+      case "STRING" /* STRING */:
+        return `"${t2.value}"`;
+      case "AT_CODE" /* AT_CODE */:
+        return `[${t2.value}]`;
+      case "ASSIGN" /* ASSIGN */:
+        return ":=";
+      case "NOT_EQUALS" /* NOT_EQUALS */:
+        return t2.value;
+      default:
+        return t2.value;
+    }
+  }
+  /** Group physical lines into logical statements (handles indented continuations). */
+  splitStatements(source) {
+    const physical = source.split(/\r?\n/);
+    const statements = [];
+    let current = "";
+    for (const raw of physical) {
+      const line = raw.trim();
+      if (!line || line.startsWith("--"))
+        continue;
+      if (this.isStatementStart(line) && current) {
+        statements.push(current.trim());
+        current = line;
+      } else if (!current) {
+        current = line;
+      } else {
+        current += " " + line;
+      }
+    }
+    if (current.trim())
+      statements.push(current.trim());
+    return statements;
+  }
+  isStatementStart(line) {
+    if (/^\$[A-Za-z_]\w*/.test(line))
+      return true;
+    if (/^for_all\b/i.test(line))
+      return true;
+    if (/^there_exists\b/i.test(line))
+      return true;
+    const tagged = /^([A-Za-z_][\w]*)\s*:/.exec(line);
+    if (!tagged)
+      return false;
+    const after = line.slice(tagged[0].length).trim();
+    const typeMatch = /^([A-Za-z_][\w]*)\s*:=/.exec(after);
+    if (typeMatch && RULE_TYPE_NAMES.has(typeMatch[1]))
+      return true;
+    return true;
+  }
+  parseStatement(text) {
+    const assertion = new ASSERTION();
+    const varDecl = /^\$([A-Za-z_]\w*)\s*:\s*([A-Za-z_][\w.]*)\s*:=\s*(.+)$/i.exec(text);
+    if (varDecl) {
+      const v2 = new ASSERTION_VARIABLE();
+      v2.name = `$${varDecl[1]}`;
+      v2.definition = `${varDecl[2]} := ${varDecl[3].trim()}`;
+      assertion.variables = [v2];
+      assertion.string_expression = text;
+      return assertion;
+    }
+    const varAssign = /^\$([A-Za-z_]\w*)\s*:=\s*(.+)$/is.exec(text);
+    if (varAssign) {
+      assertion.string_expression = text;
+      return assertion;
+    }
+    const tagged = /^([A-Za-z_][\w]*)\s*:\s*(.+)$/is.exec(text);
+    if (tagged && !RULE_TYPE_NAMES.has(tagged[1])) {
+      assertion.tag = tagged[1];
+      assertion.string_expression = tagged[2].trim();
+      assertion.expression = this.parseExpression(assertion.string_expression);
+      return assertion;
+    }
+    assertion.string_expression = text;
+    assertion.expression = this.parseExpression(text);
+    return assertion;
+  }
+  pathOrExprLeaf(path) {
+    const ref = new EXPR_ARCHETYPE_REF();
+    ref.reference_type = "attribute";
+    ref.path = path;
+    ref.item = path;
+    return ref;
+  }
+  /**
+   * Build a shallow expression tree for common operators; falls back to undefined.
+   */
+  parseExpression(text) {
+    const impliesParts = this.splitOutsideParens(text, "implies");
+    if (impliesParts && impliesParts.length === 2) {
+      return this.binary("implies", impliesParts[0], impliesParts[1]);
+    }
+    for (const op of [" or ", " xor ", " and "]) {
+      const parts = this.splitOutsideParens(text, op.trim());
+      if (parts && parts.length >= 2) {
+        return this.binary(op.trim(), parts[0], parts.slice(1).join(op));
+      }
+    }
+    const eq = this.splitComparison(text);
+    if (eq) {
+      return this.binary(eq.op, eq.left, eq.right);
+    }
+    if (/^exists\s+/i.test(text.trim())) {
+      const path = text.replace(/^exists\s+/i, "").trim();
+      const leaf = this.pathOrExprLeaf(path);
+      leaf.reference_type = "attribute";
+      return leaf;
+    }
+    if (/^not\s+/i.test(text.trim())) {
+      const inner = text.replace(/^not\s+/i, "").trim();
+      const unary = new EXPR_UNARY_OPERATOR();
+      unary.operator = OPERATOR_KIND.from("not");
+      unary.operand = this.parseExpression(inner) ?? this.pathOrExprLeaf(inner);
+      return unary;
+    }
+    const memberOf = /^(.+?)\s+member_of\s+(.+)$/is.exec(text.trim());
+    if (memberOf) {
+      return this.binary("member_of", memberOf[1], memberOf[2]);
+    }
+    if (text.trim().startsWith("/") || text.includes("/data[")) {
+      return this.pathOrExprLeaf(text.trim());
+    }
+    if (/^\$[A-Za-z_]\w*$/.test(text.trim())) {
+      return this.pathOrExprLeaf(text.trim());
+    }
+    return void 0;
+  }
+  splitComparison(text) {
+    for (const op of ["=", "/=", "!=", ">=", "<=", ">", "<"]) {
+      const idx = this.findOperator(text, op);
+      if (idx > 0) {
+        return {
+          op,
+          left: text.slice(0, idx).trim(),
+          right: text.slice(idx + op.length).trim()
+        };
+      }
+    }
+    return void 0;
+  }
+  findOperator(text, op) {
+    let depth = 0;
+    for (let i3 = 0; i3 <= text.length - op.length; i3++) {
+      const c2 = text[i3];
+      if (c2 === "(")
+        depth++;
+      else if (c2 === ")")
+        depth--;
+      else if (depth === 0 && text.slice(i3, i3 + op.length) === op) {
+        return i3;
+      }
+    }
+    return -1;
+  }
+  splitOutsideParens(text, sep) {
+    const lower = text.toLowerCase();
+    const needle = sep.toLowerCase();
+    let depth = 0;
+    for (let i3 = 0; i3 <= text.length - needle.length; i3++) {
+      const c2 = text[i3];
+      if (c2 === "(")
+        depth++;
+      else if (c2 === ")")
+        depth--;
+      else if (depth === 0 && lower.slice(i3, i3 + needle.length) === needle && (i3 === 0 || /\s/.test(text[i3 - 1])) && (i3 + needle.length >= text.length || /\s/.test(text[i3 + needle.length]))) {
+        return [
+          text.slice(0, i3).trim(),
+          text.slice(i3 + needle.length).trim()
+        ];
+      }
+    }
+    return void 0;
+  }
+  binary(op, leftText, rightText) {
+    const bin = new EXPR_BINARY_OPERATOR();
+    bin.operator = OPERATOR_KIND.from(op);
+    bin.left_operand = this.parseExpression(leftText) ?? this.pathOrExprLeaf(leftText);
+    bin.right_operand = this.parseExpression(rightText) ?? this.pathOrExprLeaf(rightText);
+    return bin;
+  }
+};
+
+// enhanced/parser/aom_odin_sections.ts
+init_define_BUILD_INFO();
+function applyAnnotationsOdin(archetype, data) {
+  const ann = new RESOURCE_ANNOTATIONS();
+  const bag = ann;
+  if (data.documentation !== void 0) {
+    bag.documentation = data.documentation;
+  } else if (Object.keys(data).length > 0) {
+    bag.documentation = data;
+  }
+  archetype.annotations = ann;
+}
+function applyRmOverlayOdin(archetype, data) {
+  const overlay = new RM_OVERLAY();
+  const bag = overlay;
+  if (data.rm_visibility !== void 0) {
+    bag.rm_visibility = data.rm_visibility;
+  } else if (Object.keys(data).length > 0) {
+    bag.rm_visibility = data;
+  }
+  archetype.rm_overlay = overlay;
+}
+
+// enhanced/parser/adl2_parser.ts
+var ADL2Parser = class {
+  tokens;
+  position = 0;
+  warnings = [];
+  constructor(tokens) {
+    this.tokens = tokens;
+  }
+  /**
+   * Parse ADL2 text from tokens
+   */
+  parse() {
+    if (this.isAtEnd()) {
+      throw this.error("Empty ADL2 input");
+    }
+    const keyword = this.peek().type;
+    if (keyword === "TEMPLATE" /* TEMPLATE */) {
+      const template = this.parseTemplate();
+      return { kind: "template", template, warnings: this.warnings };
+    }
+    if (keyword === "OPERATIONAL_TEMPLATE" /* OPERATIONAL_TEMPLATE */) {
+      const operationalTemplate = this.parseOperationalTemplate();
+      return {
+        kind: "operational_template",
+        operationalTemplate,
+        warnings: this.warnings
+      };
+    }
+    if (keyword === "ARCHETYPE" /* ARCHETYPE */) {
+      const archetype = this.parseArchetype();
+      return { kind: "archetype", archetype, warnings: this.warnings };
+    }
+    throw this.error(
+      `Expected 'archetype', 'template', or 'operational_template', got ${this.peek().value}`
+    );
+  }
+  parseTemplate() {
+    this.consumeKeyword("TEMPLATE" /* TEMPLATE */, "Expected 'template' keyword");
+    return this.parseAuthoredArchetype(new TEMPLATE());
+  }
+  parseOperationalTemplate() {
+    this.consumeKeyword(
+      "OPERATIONAL_TEMPLATE" /* OPERATIONAL_TEMPLATE */,
+      "Expected 'operational_template' keyword"
+    );
+    return this.parseAuthoredArchetype(new OPERATIONAL_TEMPLATE());
+  }
+  parseArchetype() {
+    this.consumeKeyword("ARCHETYPE" /* ARCHETYPE */, "Expected 'archetype' keyword");
+    return this.parseAuthoredArchetype(new ARCHETYPE());
+  }
+  parseAuthoredArchetype(archetype) {
+    const metadata = this.parseMetadata();
+    const archetypeId = this.parseArchetypeId();
+    let parentId;
+    if (this.check("SPECIALIZE" /* SPECIALIZE */)) {
+      this.advance();
+      parentId = this.parseArchetypeId();
+    }
+    archetype.archetype_id = new ARCHETYPE_ID();
+    archetype.archetype_id.value = archetypeId;
+    if (metadata.adl_version) {
+      archetype.adl_version = metadata.adl_version;
+    }
+    if (metadata.rm_release) {
+      archetype.rm_release = metadata.rm_release;
+    }
+    if (parentId) {
+      archetype.parent_archetype_id = new ARCHETYPE_ID();
+      archetype.parent_archetype_id.value = parentId;
+    }
+    while (!this.isAtEnd()) {
+      if (this.check("LANGUAGE" /* LANGUAGE */)) {
+        this.parseLanguageSection(archetype);
+      } else if (this.check("DESCRIPTION" /* DESCRIPTION */)) {
+        this.parseDescriptionSection(archetype);
+      } else if (this.check("DEFINITION" /* DEFINITION */)) {
+        this.parseDefinitionSection(archetype);
+      } else if (this.check("RULES" /* RULES */)) {
+        this.parseRulesSection(archetype);
+      } else if (this.check("TERMINOLOGY" /* TERMINOLOGY */) || this.check("ONTOLOGY" /* ONTOLOGY */)) {
+        this.parseTerminologySection(archetype);
+      } else if (this.check("ANNOTATIONS" /* ANNOTATIONS */)) {
+        this.parseAnnotationsSection(archetype);
+      } else if (this.check("RM_OVERLAY" /* RM_OVERLAY */)) {
+        this.parseRmOverlaySection(archetype);
+      } else {
+        break;
+      }
+    }
+    return archetype;
+  }
+  parseMetadata() {
+    const metadata = {};
+    if (!this.check("LPAREN" /* LPAREN */)) {
+      return metadata;
+    }
+    this.consume("LPAREN" /* LPAREN */, "Expected '(' for metadata");
+    while (!this.check("RPAREN" /* RPAREN */) && !this.isAtEnd()) {
+      const key = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected metadata key");
+      let value;
+      if (this.check("EQUALS" /* EQUALS */)) {
+        this.advance();
+        if (this.check("STRING" /* STRING */)) {
+          value = this.advance().value;
+        } else if (this.check("REAL" /* REAL */)) {
+          value = this.advance().value;
+        } else if (this.check("INTEGER" /* INTEGER */)) {
+          value = this.advance().value;
+        } else if (this.check("IDENTIFIER" /* IDENTIFIER */)) {
+          value = this.advance().value;
+        } else {
+          throw this.error("Expected metadata value");
+        }
+      } else {
+        value = "true";
+      }
+      metadata[key.value] = value;
+      if (this.check("SEMICOLON" /* SEMICOLON */) || this.check("COMMA" /* COMMA */)) {
+        this.advance();
+      }
+    }
+    this.consume("RPAREN" /* RPAREN */, "Expected ')' to close metadata");
+    return metadata;
+  }
+  parseArchetypeId() {
+    let id = "";
+    while (!this.isAtEnd()) {
+      if (this.check("IDENTIFIER" /* IDENTIFIER */)) {
+        id += this.advance().value;
+      } else if (this.check("DOT" /* DOT */)) {
+        id += this.advance().value;
+      } else if (this.check("REAL" /* REAL */)) {
+        id += this.advance().value;
+      } else {
+        break;
+      }
+    }
+    if (!id) {
+      throw this.error("Expected archetype ID");
+    }
+    return id;
+  }
+  parseLanguageSection(archetype) {
+    this.consumeKeyword("LANGUAGE" /* LANGUAGE */, "Expected 'language' keyword");
+    const odinTokens = this.collectOdinTokens();
+    const odinParser = new OdinParser(odinTokens);
+    const languageData = odinParser.parse();
+    const lang = mapOriginalLanguage(languageData);
+    if (lang)
+      archetype.original_language = lang;
+  }
+  parseDescriptionSection(archetype) {
+    this.consumeKeyword("DESCRIPTION" /* DESCRIPTION */, "Expected 'description' keyword");
+    const odinTokens = this.collectOdinTokens();
+    const odinParser = new OdinParser(odinTokens);
+    const descriptionData = odinParser.parse();
+    if (Object.keys(descriptionData).length > 0) {
+      archetype.description = mapDescription(descriptionData);
+    }
+  }
+  parseDefinitionSection(archetype) {
+    this.consumeKeyword("DEFINITION" /* DEFINITION */, "Expected 'definition' keyword");
+    const defTokens = this.collectDefinitionTokens();
+    const cadlParser = new CadlParser(defTokens);
+    try {
+      const definition = cadlParser.parseComplexObject();
+      archetype.definition = definition;
+    } catch (e2) {
+      this.warnings.push(`Definition section parsing error: ${e2.message}`);
+      const definition = new C_COMPLEX_OBJECT();
+      archetype.definition = definition;
+    }
+  }
+  collectDefinitionTokens() {
+    const defTokens = [];
+    let depth = 0;
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+      if (token.type === "LBRACE" /* LBRACE */) {
+        depth++;
+      } else if (token.type === "RBRACE" /* RBRACE */) {
+        depth--;
+      }
+      if (depth === 0 && (token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "RULES" /* RULES */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ONTOLOGY" /* ONTOLOGY */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */ || token.type === "RM_OVERLAY" /* RM_OVERLAY */)) {
+        break;
+      }
+      defTokens.push(this.advance());
+    }
+    defTokens.push({
+      type: "EOF" /* EOF */,
+      value: "",
+      line: this.peek().line,
+      column: this.peek().column
+    });
+    return defTokens;
+  }
+  parseRulesSection(archetype) {
+    this.consumeKeyword("RULES" /* RULES */, "Expected 'rules' keyword");
+    const rulesTokens = this.collectRulesTokens();
+    const { assertions, warnings } = new RulesParser(rulesTokens).parse();
+    archetype.invariants = assertions.length > 0 ? assertions : void 0;
+    this.warnings.push(...warnings);
+  }
+  collectRulesTokens() {
+    const out = [];
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+      if (token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */ || token.type === "RM_OVERLAY" /* RM_OVERLAY */) {
+        break;
+      }
+      out.push(this.advance());
+    }
+    out.push({
+      type: "EOF" /* EOF */,
+      value: "",
+      line: this.peek().line,
+      column: this.peek().column
+    });
+    return out;
+  }
+  parseTerminologySection(archetype) {
+    if (this.check("ONTOLOGY" /* ONTOLOGY */)) {
+      this.advance();
+    } else {
+      this.consumeKeyword(
+        "TERMINOLOGY" /* TERMINOLOGY */,
+        "Expected 'terminology' keyword"
+      );
+    }
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const terminologyData = odinParser.parse();
+      applyTerminologyOdin(archetype, terminologyData);
+    } catch (e2) {
+      this.warnings.push(
+        `Terminology section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+      );
+      archetype.ontology = archetype.ontology ?? new ARCHETYPE_ONTOLOGY();
+    }
+  }
+  parseAnnotationsSection(archetype) {
+    this.consumeKeyword(
+      "ANNOTATIONS" /* ANNOTATIONS */,
+      "Expected 'annotations' keyword"
+    );
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const data = odinParser.parse();
+      applyAnnotationsOdin(archetype, data);
+    } catch (e2) {
+      this.warnings.push(
+        `Annotations section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+      );
+    }
+  }
+  parseRmOverlaySection(archetype) {
+    this.consumeKeyword(
+      "RM_OVERLAY" /* RM_OVERLAY */,
+      "Expected 'rm_overlay' keyword"
+    );
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const data = odinParser.parse();
+      applyRmOverlayOdin(archetype, data);
+    } catch (e2) {
+      this.warnings.push(
+        `rm_overlay section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+      );
+    }
+  }
+  collectOdinTokens() {
+    const odinTokens = [];
+    let depth = 0;
+    let hasContent = false;
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+      if (token.type === "LANGLE" /* LANGLE */) {
+        depth++;
+        hasContent = true;
+      } else if (token.type === "RANGLE" /* RANGLE */) {
+        depth--;
+      }
+      if (depth === 0 && hasContent && (token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "DEFINITION" /* DEFINITION */ || token.type === "RULES" /* RULES */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ONTOLOGY" /* ONTOLOGY */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */ || token.type === "RM_OVERLAY" /* RM_OVERLAY */)) {
+        break;
+      }
+      odinTokens.push(this.advance());
+    }
+    odinTokens.push({
+      type: "EOF" /* EOF */,
+      value: "",
+      line: this.peek().line,
+      column: this.peek().column
+    });
+    return odinTokens;
+  }
+  skipToNextSection() {
+    let depth = 0;
+    while (!this.isAtEnd()) {
+      const token = this.peek();
+      if (token.type === "LBRACE" /* LBRACE */) {
+        depth++;
+      } else if (token.type === "RBRACE" /* RBRACE */) {
+        depth--;
+      }
+      if (depth === 0 && (token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "DEFINITION" /* DEFINITION */ || token.type === "RULES" /* RULES */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */)) {
+        break;
+      }
+      this.advance();
+    }
+  }
+  // Token navigation helpers
+  check(type) {
+    if (this.isAtEnd())
+      return false;
+    return this.peek().type === type;
+  }
+  advance() {
+    if (!this.isAtEnd())
+      this.position++;
+    return this.previous();
+  }
+  consume(type, message) {
+    if (this.check(type))
+      return this.advance();
+    throw this.error(message);
+  }
+  consumeKeyword(type, message) {
+    if (this.check(type))
+      return this.advance();
+    throw this.error(message);
+  }
+  peek() {
+    return this.tokens[this.position];
+  }
+  previous() {
+    return this.tokens[this.position - 1];
+  }
+  isAtEnd() {
+    return this.position >= this.tokens.length || this.peek().type === "EOF" /* EOF */;
+  }
+  error(message) {
+    const token = this.peek();
+    return new Error(
+      `Parse error at line ${token.line}, column ${token.column}: ${message}`
+    );
+  }
+};
+
+// enhanced/parser/parse_adl.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/adl14_to_adl2_converter.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/adl_version.ts
+init_define_BUILD_INFO();
+function hasSectionHeader(source, section) {
+  return new RegExp(`^[ \\t]*${section}\\b`, "im").test(source);
+}
+function detectAdlVersion(source) {
+  const head = source.slice(0, 1200);
+  const meta = head.match(/adl_version\s*=\s*([\d.]+)/i);
+  if (meta) {
+    const v2 = meta[1];
+    if (v2.startsWith("2"))
+      return "2.x";
+    if (v2.startsWith("1.4") || v2.startsWith("1.5"))
+      return "1.4";
+  }
+  const hasTerminology = hasSectionHeader(source, "terminology");
+  const hasOntology = hasSectionHeader(source, "ontology");
+  if (hasOntology && !hasTerminology)
+    return "1.4";
+  for (const name of [
+    "constraint_definitions",
+    "constraint_bindings",
+    "terminologies_available"
+  ]) {
+    if (hasSectionHeader(source, name))
+      return "1.4";
+  }
+  if (/\badl_version\s*=\s*2/i.test(head))
+    return "2.x";
+  if (hasTerminology)
+    return "2.x";
+  return "unknown";
+}
+
+// enhanced/parser/adl14_to_adl2_converter.ts
+var DEFAULT_OPTS = {
+  targetAdlVersion: "2.0.6",
+  rmRelease: "1.0.4",
+  markGenerated: true
+};
+function convertAdl14ToAdl2(source, options) {
+  const opts = { ...DEFAULT_OPTS, ...options };
+  const warnings = [];
+  const version = detectAdlVersion(source);
+  if (version === "2.x") {
+    return { adl2Text: source, converted: false, warnings };
+  }
+  if (version === "unknown") {
+    warnings.push(
+      "ADL version not detected; applying light ADL 1.4 normalisation heuristics."
+    );
+  }
+  let text = source.replace(/\r\n/g, "\n");
+  text = normalizeArchetypeHeader(text, opts, warnings);
+  text = removeStandaloneSections(text, ["concept", "revision"], warnings);
+  text = renameSectionKeyword(text, "ontology", "terminology");
+  text = renameSectionKeyword(text, "constraint_bindings", "term_bindings");
+  text = stripTerminologiesAvailable(text);
+  text = flattenTermDefinitionItemsWrappers(text);
+  text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings);
+  text = convertDefinitionNodeIds(text);
+  text = stripDeprecatedMatchesAny(text);
+  text = normalizeArchetypeHridVersion(text, warnings);
+  return { adl2Text: text, converted: true, warnings };
+}
+function normalizeArchetypeHeader(text, opts, warnings) {
+  const lines = text.split("\n");
+  const out = [];
+  let headerDone = false;
+  for (let i3 = 0; i3 < lines.length; i3++) {
+    const line = lines[i3];
+    const trimmed = line.trim();
+    if (!headerDone && /^archetype\b/i.test(trimmed)) {
+      if (trimmed.includes("(") && /adl_version/i.test(trimmed)) {
+        if (!/adl_version\s*=\s*2/i.test(trimmed)) {
+          warnings.push("Updated adl_version in header to ADL 2.x.");
+          out.push(
+            line.replace(
+              /adl_version\s*=\s*[^;)]+/i,
+              `adl_version=${opts.targetAdlVersion}`
+            )
+          );
+        } else {
+          out.push(line);
+        }
+        headerDone = true;
+        continue;
+      }
+      const meta = [
+        `adl_version=${opts.targetAdlVersion}`,
+        `rm_release=${opts.rmRelease}`
+      ];
+      if (opts.markGenerated)
+        meta.push("generated");
+      out.push(`archetype (${meta.join("; ")})`);
+      warnings.push("Inserted ADL 2 metadata on archetype header.");
+      headerDone = true;
+      continue;
+    }
+    out.push(line);
+  }
+  return out.join("\n");
+}
+function removeStandaloneSections(text, sectionNames, warnings) {
+  let result2 = text;
+  for (const name of sectionNames) {
+    const re2 = new RegExp(
+      `^([ \\t]*)${name}[ \\t]*\\n([\\s\\S]*?)(?=^[ \\t]*(?:language|description|definition|ontology|terminology|rules|annotations|rm_overlay|concept|revision|archetype|template|operational_template)\\b|\\Z)`,
+      "gim"
+    );
+    if (re2.test(result2)) {
+      warnings.push(`Removed ADL 1.4 '${name}' section.`);
+      result2 = result2.replace(re2, "");
+    }
+  }
+  return result2;
+}
+function renameSectionKeyword(text, from, to2) {
+  return text.replace(
+    new RegExp(`^([ \\t]*)${from}\\b`, "gim"),
+    `$1${to2}`
+  );
+}
+function stripTerminologiesAvailable(text) {
+  return text.replace(
+    /^[ \t]*terminologies_available\s*=\s*<[^>]*>\s*\n?/gim,
+    ""
+  );
+}
+function flattenTermDefinitionItemsWrappers(text) {
+  return text.replace(
+    /^([ \t]*)items\s*=\s*<\s*\n([\s\S]*?)^\1>/gm,
+    (_match, indent, body) => {
+      const inner = body.split("\n").map((l3) => `${indent}    ${l3.trimStart()}`);
+      return inner.join("\n") + "\n";
+    }
+  );
+}
+function mergeConstraintDefinitionsIntoTermDefinitions(text, warnings) {
+  const re2 = /^[ \t]*constraint_definitions\s*=\s*<([\s\S]*?)>\s*(?=\n[ \t]*(?:term_bindings|constraint_bindings|value_sets|terminology|ontology|definition|rules|annotations|rm_overlay)\b|\n[ \t]*\w|\Z)/gim;
+  if (!re2.test(text))
+    return text;
+  warnings.push(
+    "constraint_definitions merged into term_definitions by name (ADL 1.4 \u2192 2)."
+  );
+  return text.replace(re2, (_full, inner) => {
+    return inner.trim() ? `    /* merged constraint_definitions */
+${inner}` : "";
+  }).replace(
+    /^[ \t]*constraint_definitions\s*=\s*<\s*>/gim,
+    ""
+  );
+}
+function convertDefinitionNodeIds(text) {
+  const sections = splitTopLevelSections(text);
+  const converted = sections.map((sec) => {
+    if (!/^(definition|rules)\b/i.test(sec.header.trim()))
+      return sec.raw;
+    return sec.header + "\n" + convertAtNodeIdsInBody(sec.body);
+  });
+  return converted.join("\n");
+}
+function convertAtNodeIdsInBody(body) {
+  return body.replace(
+    /\[(at)(\d+)\]/gi,
+    (_m, _at, digits) => `[id${parseInt(digits, 10)}]`
+  );
+}
+function stripDeprecatedMatchesAny(text) {
+  return text.replace(/\s+matches\s*\{\s*\*\s*\}/g, "");
+}
+function normalizeArchetypeHridVersion(text, warnings) {
+  const updated = text.replace(
+    /^([ \t]+)(openEHR-[^\s]+)\.v(\d+)\s*$/gim,
+    (_line, indent, base, major) => {
+      warnings.push(`Normalised HRID version v${major} \u2192 v${major}.0.0.`);
+      return `${indent}${base}.v${major}.0.0`;
+    }
+  );
+  return updated;
+}
+function splitTopLevelSections(text) {
+  const lines = text.split("\n");
+  const slices = [];
+  let currentHeader = "";
+  let currentBody = [];
+  let startIdx = 0;
+  const isSectionStart = (trimmed) => /^(archetype|template|operational_template|language|description|definition|ontology|terminology|rules|annotations|rm_overlay)\b/i.test(trimmed);
+  for (let i3 = 0; i3 < lines.length; i3++) {
+    const trimmed = lines[i3].trim();
+    if (isSectionStart(trimmed)) {
+      if (currentHeader || currentBody.length) {
+        const raw = lines.slice(startIdx, i3).join("\n");
+        slices.push({
+          header: currentHeader,
+          body: currentBody.join("\n"),
+          raw
+        });
+      }
+      currentHeader = lines[i3];
+      currentBody = [];
+      startIdx = i3;
+    } else if (currentHeader) {
+      currentBody.push(lines[i3]);
+    }
+  }
+  if (currentHeader || currentBody.length) {
+    slices.push({
+      header: currentHeader,
+      body: currentBody.join("\n"),
+      raw: lines.slice(startIdx).join("\n")
+    });
+  }
+  if (slices.length === 0) {
+    return [{ header: "", body: text, raw: text }];
+  }
+  return slices;
+}
+
+// enhanced/parser/parse_adl.ts
+function parseAdl(source, options) {
+  const convert2 = options?.convertAdl14 !== false;
+  const detectedVersion = detectAdlVersion(source);
+  let adl2Source = source;
+  let convertedFrom14 = false;
+  let conversionWarnings = [];
+  if (convert2 && detectedVersion === "1.4") {
+    const conv = convertAdl14ToAdl2(source, {
+      targetAdlVersion: options?.targetAdlVersion,
+      rmRelease: options?.rmRelease
+    });
+    adl2Source = conv.adl2Text;
+    convertedFrom14 = conv.converted;
+    conversionWarnings = conv.warnings;
+  }
+  const tokenizer = new ADL2Tokenizer(adl2Source);
+  const parseResult = new ADL2Parser(tokenizer.tokenize()).parse();
+  return {
+    ...parseResult,
+    warnings: [...conversionWarnings, ...parseResult.warnings],
+    detectedVersion,
+    convertedFrom14,
+    conversionWarnings,
+    adl2Source
+  };
+}
+
+// enhanced/parser/rules_serializer.ts
+init_define_BUILD_INFO();
+
+// enhanced/generation/mod.ts
+init_define_BUILD_INFO();
+
+// enhanced/generation/rm_instance_generator.ts
+init_define_BUILD_INFO();
+var MANDATORY_RM_ATTRIBUTES = {
+  "COMPOSITION": ["language", "territory", "category", "composer"],
+  "OBSERVATION": ["data"],
+  "INSTRUCTION": ["narrative"],
+  "ACTION": ["time"],
+  "HISTORY": ["origin"],
+  "LOCATABLE": ["archetype_node_id", "name"],
+  "EVENT": ["time"],
+  "POINT_EVENT": ["time"],
+  "INTERVAL_EVENT": ["time", "math_function"],
+  "CLUSTER": ["items"],
+  "ELEMENT": []
+  // name inherited from LOCATABLE
+};
+var RMInstanceGenerator = class {
+  config;
+  constructor(config) {
+    this.config = {
+      mode: "example",
+      fillOptional: void 0,
+      maxDepth: 50,
+      includeMandatoryRMAttributes: true,
+      // Default: include mandatory attributes
+      ...config
+    };
+  }
+  /**
+   * Generate RM instance from template
+   */
+  generate(template) {
+    if (!template.definition) {
+      throw new Error("Template has no definition");
+    }
+    return this.generateFromCObject(template.definition, 0);
+  }
+  generateFromCObject(cObject, depth) {
+    if (depth > (this.config.maxDepth || 50)) {
+      return null;
+    }
+    const instance = {
+      _type: cObject.rm_type_name
+    };
+    if (cObject instanceof C_COMPLEX_OBJECT) {
+      this.generateAttributes(instance, cObject, depth);
+    }
+    return instance;
+  }
+  generateAttributes(instance, cObject, depth) {
+    const generatedAttributes = /* @__PURE__ */ new Set();
+    if (cObject.attributes) {
+      for (const cAttribute of cObject.attributes) {
+        const attrName = cAttribute.rm_attribute_name;
+        if (!attrName)
+          continue;
+        generatedAttributes.add(attrName);
+        const isRequired = this.isAttributeRequired(cAttribute);
+        const shouldFillOptional = this.shouldFillOptional(cAttribute, depth);
+        if (!isRequired && !shouldFillOptional) {
+          continue;
+        }
+        if (cAttribute.children && cAttribute.children.length > 0) {
+          const child = cAttribute.children[0];
+          if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE) {
+            const minCard = this.getArrayItemCount(cAttribute, isRequired);
+            instance[attrName] = [];
+            for (let i3 = 0; i3 < minCard; i3++) {
+              const childInstance = this.generateFromCObject(child, depth + 1);
+              if (childInstance) {
+                instance[attrName].push(childInstance);
+              }
+            }
+          } else {
+            instance[attrName] = this.generateFromCObject(child, depth + 1);
+          }
+        }
+      }
+    }
+    if (this.config.includeMandatoryRMAttributes) {
+      this.addMandatoryRMAttributes(instance, cObject.rm_type_name || "", generatedAttributes, cObject.node_id);
+    }
+  }
+  /**
+   * Add mandatory RM attributes that aren't in the template
+   * 
+   * Based on openEHR RM specification requirements
+   */
+  addMandatoryRMAttributes(instance, rmTypeName, generatedAttributes, nodeId) {
+    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES[rmTypeName] || [];
+    if (this.isLocatableDescendant(rmTypeName) && !mandatoryAttrs.includes("archetype_node_id")) {
+      mandatoryAttrs.push(...MANDATORY_RM_ATTRIBUTES["LOCATABLE"]);
+    }
+    for (const attrName of mandatoryAttrs) {
+      if (generatedAttributes.has(attrName)) {
+        continue;
+      }
+      instance[attrName] = this.generateDefaultValue(rmTypeName, attrName, nodeId);
+    }
+  }
+  /**
+   * Check if a type descends from LOCATABLE
+   */
+  isLocatableDescendant(rmTypeName) {
+    const locatableTypes = [
+      "COMPOSITION",
+      "SECTION",
+      "OBSERVATION",
+      "EVALUATION",
+      "INSTRUCTION",
+      "ACTION",
+      "ADMIN_ENTRY",
+      "CLUSTER",
+      "ELEMENT",
+      "ITEM_TREE",
+      "ITEM_LIST",
+      "ITEM_TABLE",
+      "ITEM_SINGLE",
+      "HISTORY",
+      "EVENT",
+      "POINT_EVENT",
+      "INTERVAL_EVENT"
+    ];
+    return locatableTypes.includes(rmTypeName);
+  }
+  /**
+   * Generate default value for mandatory attribute
+   */
+  generateDefaultValue(rmTypeName, attrName, nodeId) {
+    switch (`${rmTypeName}.${attrName}`) {
+      case "COMPOSITION.language":
+        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_639-1" }, code_string: "en" };
+      case "COMPOSITION.territory":
+        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_3166-1" }, code_string: "US" };
+      case "COMPOSITION.category":
+        return {
+          _type: "DV_CODED_TEXT",
+          value: "event",
+          defining_code: {
+            _type: "CODE_PHRASE",
+            terminology_id: { value: "openehr" },
+            code_string: "433"
+          }
+        };
+      case "COMPOSITION.composer":
+        return {
+          _type: "PARTY_IDENTIFIED",
+          name: "Unknown"
+        };
+      case "INSTRUCTION.narrative":
+        return {
+          _type: "DV_TEXT",
+          value: "Generated instruction narrative"
+        };
+      case "ACTION.time":
+        return {
+          _type: "DV_DATE_TIME",
+          value: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      case "HISTORY.origin":
+        return {
+          _type: "DV_DATE_TIME",
+          value: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      case "INTERVAL_EVENT.math_function":
+        return {
+          _type: "DV_CODED_TEXT",
+          value: "actual",
+          defining_code: {
+            _type: "CODE_PHRASE",
+            terminology_id: { value: "openehr" },
+            code_string: "640"
+          }
+        };
+      case "LOCATABLE.archetype_node_id":
+        if (!nodeId) {
+          throw new Error(
+            `Cannot generate archetype_node_id for ${rmTypeName}: node_id must be provided from the template/archetype C_OBJECT. This is a mandatory RM attribute that cannot be fabricated.`
+          );
+        }
+        return nodeId;
+      case "LOCATABLE.name":
+      case "EVENT.name":
+        return {
+          _type: "DV_TEXT",
+          value: rmTypeName
+        };
+      case "CLUSTER.items":
+        return [];
+      default:
+        if (attrName === "time") {
+          return { _type: "DV_DATE_TIME", value: (/* @__PURE__ */ new Date()).toISOString() };
+        }
+        if (attrName === "data") {
+          return null;
+        }
+        return null;
+    }
+  }
+  isAttributeRequired(cAttribute) {
+    if (cAttribute.children) {
+      for (const child of cAttribute.children) {
+        if (child.occurrences) {
+          const lower = child.occurrences.lower || 0;
+          if (lower > 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  shouldFillOptional(cAttribute, depth) {
+    if (typeof this.config.fillOptional === "boolean") {
+      return this.config.fillOptional;
+    }
+    switch (this.config.mode) {
+      case "minimal":
+        return false;
+      case "maximal":
+        return true;
+      case "example":
+      default:
+        return this.includeOptionalInExampleMode(cAttribute, depth);
+    }
+  }
+  includeOptionalInExampleMode(cAttribute, depth) {
+    const seed = `${cAttribute.rm_attribute_name || ""}:${depth}:${cAttribute.children?.length || 0}`;
+    let hash = 0;
+    for (let i3 = 0; i3 < seed.length; i3++) {
+      hash = (hash << 5) - hash + seed.charCodeAt(i3);
+      hash |= 0;
+    }
+    return Math.abs(hash) % 2 === 0;
+  }
+  getArrayItemCount(cAttribute, isRequired) {
+    const lower = cAttribute?.cardinality?.interval?.lower;
+    const upper = cAttribute?.cardinality?.interval?.upper;
+    const lowerBound = typeof lower === "number" ? lower : isRequired ? 1 : 0;
+    const safeLowerBound = Math.max(0, lowerBound);
+    if (this.config.mode === "minimal") {
+      return Math.max(1, safeLowerBound);
+    }
+    if (this.config.mode === "maximal") {
+      if (typeof upper === "number") {
+        return Math.max(Math.max(1, safeLowerBound), Math.min(upper, 3));
+      }
+      return Math.max(2, Math.max(1, safeLowerBound));
+    }
+    return Math.max(1, safeLowerBound);
+  }
+};
+
+// enhanced/generation/typescript_generator.ts
+init_define_BUILD_INFO();
+var MANDATORY_RM_ATTRIBUTES2 = {
+  "COMPOSITION": [
+    { name: "language", type: "CODE_PHRASE" },
+    { name: "territory", type: "CODE_PHRASE" },
+    { name: "category", type: "DV_CODED_TEXT" },
+    { name: "composer", type: "PARTY_PROXY" }
+  ],
+  "OBSERVATION": [
+    { name: "data", type: "HISTORY<ITEM_STRUCTURE>" }
+  ],
+  "INSTRUCTION": [
+    { name: "narrative", type: "DV_TEXT" }
+  ],
+  "ACTION": [
+    { name: "time", type: "DV_DATE_TIME" }
+  ],
+  "HISTORY": [
+    { name: "origin", type: "DV_DATE_TIME" }
+  ],
+  "LOCATABLE": [
+    { name: "archetype_node_id", type: "string" },
+    { name: "name", type: "DV_TEXT" }
+  ]
+};
+var TypeScriptGenerator = class {
+  config;
+  ontology;
+  constructor(config) {
+    this.config = {
+      language: "en",
+      includeValidation: true,
+      maxChoices: 10,
+      terseStyle: true,
+      includeMandatoryRMAttributes: true,
+      // Default: include mandatory attributes
+      ...config
+    };
+  }
+  /**
+   * Generate TypeScript code from template
+   */
+  generate(template) {
+    this.ontology = template.ontology;
+    if (!template.definition) {
+      throw new Error("Template has no definition");
+    }
+    let code = "// Generated from template\n\n";
+    code += this.generateInterface(template.definition);
+    code += "\n\n";
+    code += this.generateBuilder(template.definition);
+    return code;
+  }
+  generateInterface(cObject) {
+    const typeName = this.getTypeName(cObject);
+    const rmTypeName = cObject.rm_type_name || "";
+    let code = `/**
+`;
+    code += ` * ${this.getDescription(cObject)}
+`;
+    code += ` */
+`;
+    code += `export interface ${typeName} {
+`;
+    const generatedAttributes = /* @__PURE__ */ new Set();
+    if (cObject.attributes) {
+      for (const attr of cObject.attributes) {
+        code += this.generateProperty(attr);
+        if (attr.rm_attribute_name) {
+          generatedAttributes.add(attr.rm_attribute_name);
+        }
+      }
+    }
+    if (this.config.includeMandatoryRMAttributes) {
+      code += this.generateMandatoryRMAttributes(rmTypeName, generatedAttributes);
+    }
+    code += "}\n";
+    return code;
+  }
+  /**
+   * Generate TypeScript properties for mandatory RM attributes not in template
+   */
+  generateMandatoryRMAttributes(rmTypeName, generatedAttributes) {
+    let code = "";
+    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES2[rmTypeName] || [];
+    if (this.isLocatableDescendant(rmTypeName)) {
+      for (const attr of MANDATORY_RM_ATTRIBUTES2["LOCATABLE"] || []) {
+        if (!mandatoryAttrs.some((a2) => a2.name === attr.name)) {
+          mandatoryAttrs.push(attr);
+        }
+      }
+    }
+    for (const attr of mandatoryAttrs) {
+      if (generatedAttributes.has(attr.name)) {
+        continue;
+      }
+      code += `  /** ${attr.name} (RM mandatory) */
+`;
+      code += `  ${attr.name}: ${attr.type};
+`;
+    }
+    return code;
+  }
+  /**
+   * Check if a type descends from LOCATABLE
+   */
+  isLocatableDescendant(rmTypeName) {
+    const locatableTypes = [
+      "COMPOSITION",
+      "SECTION",
+      "OBSERVATION",
+      "EVALUATION",
+      "INSTRUCTION",
+      "ACTION",
+      "ADMIN_ENTRY",
+      "CLUSTER",
+      "ELEMENT",
+      "ITEM_TREE",
+      "ITEM_LIST",
+      "ITEM_TABLE",
+      "ITEM_SINGLE",
+      "HISTORY",
+      "EVENT",
+      "POINT_EVENT",
+      "INTERVAL_EVENT"
+    ];
+    return locatableTypes.includes(rmTypeName);
+  }
+  generateProperty(cAttribute) {
+    const propName = cAttribute.rm_attribute_name || "unknown";
+    const isRequired = this.isRequired(cAttribute);
+    const isArray = cAttribute instanceof C_MULTIPLE_ATTRIBUTE;
+    let code = "";
+    if (cAttribute.children && cAttribute.children.length > 0) {
+      const child = cAttribute.children[0];
+      const desc = this.getDescription(child);
+      code += `  /** ${desc} */
+`;
+      if (cAttribute.children.length > 1 && cAttribute.children.length <= (this.config.maxChoices || 10)) {
+        code += `  /** @choices ${cAttribute.children.map((c2) => this.getTypeName(c2)).join(", ")} */
+`;
+      }
+    }
+    const optMarker = isRequired ? "" : "?";
+    if (cAttribute.children && cAttribute.children.length > 0) {
+      const childType = this.getTypeName(cAttribute.children[0]);
+      const arrayMarker = isArray ? "[]" : "";
+      code += `  ${propName}${optMarker}: ${childType}${arrayMarker};
+`;
+    } else {
+      code += `  ${propName}${optMarker}: any;
+`;
+    }
+    return code;
+  }
+  generateBuilder(cObject) {
+    const typeName = this.getTypeName(cObject);
+    const builderName = `create${typeName}`;
+    let code = `/**
+`;
+    code += ` * Create ${typeName} with simplified pattern
+`;
+    code += ` */
+`;
+    code += `export function ${builderName}(data: Partial<${typeName}>): ${typeName} {
+`;
+    code += `  return {
+`;
+    code += `    _type: "${cObject.rm_type_name}",
+`;
+    code += `    ...data
+`;
+    code += `  } as ${typeName};
+`;
+    code += "}\n";
+    return code;
+  }
+  getTypeName(cObject) {
+    if (cObject.node_id && this.ontology) {
+      const term = this.getTermForCode(cObject.node_id);
+      if (term) {
+        return this.toPascalCase(term);
+      }
+    }
+    return cObject.rm_type_name || "Unknown";
+  }
+  getDescription(cObject) {
+    if (cObject.node_id && this.ontology) {
+      const term = this.getTermForCode(cObject.node_id);
+      if (term)
+        return term;
+    }
+    return cObject.rm_type_name || "Unknown";
+  }
+  getTermForCode(nodeId) {
+    return nodeId;
+  }
+  toPascalCase(text) {
+    return text.replace(/[^a-zA-Z0-9]+/g, " ").split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join("");
+  }
+  isRequired(cAttribute) {
+    if (cAttribute.children) {
+      for (const child of cAttribute.children) {
+        if (child.occurrences) {
+          const lower = child.occurrences.lower || 0;
+          if (lower > 0)
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+};
+
+// enhanced/generation/adl2_serializer.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/odin_serializer.ts
+init_define_BUILD_INFO();
+
 // examples/demo-app/src/converter.ts
 var typeRegistryInitialized = false;
 function initializeTypeRegistry() {
@@ -39839,6 +43233,9 @@ async function convert(input, options) {
     initializeTypeRegistry();
   }
   try {
+    if (options.inputMode === "template") {
+      return convertTemplateInput(input, options);
+    }
     const rmObject = await deserializeInput(input, options.inputFormat, options.inputDeserializerConfig);
     const outputs = {};
     for (const format of options.outputFormats) {
@@ -39873,6 +43270,54 @@ async function convert(input, options) {
       error: error.message,
       errorDetails: error
     };
+  }
+}
+function convertTemplateInput(input, options) {
+  const parsed = parseAdl(input, { convertAdl14: true });
+  if (parsed.kind !== "operational_template" || !parsed.operationalTemplate) {
+    throw new Error(
+      `Expected an operational_template ADL input, parsed kind: ${parsed.kind}.`
+    );
+  }
+  const template = parsed.operationalTemplate;
+  const generator = new RMInstanceGenerator({
+    mode: options.templateGenerationMode
+  });
+  const generatedInstance = generator.generate(template);
+  const outputs = {};
+  for (const format of options.outputFormats) {
+    switch (format) {
+      case "xml":
+        outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
+        break;
+      case "json":
+        outputs.json = serializeToJson(generatedInstance, options.jsonSerializerType, options.jsonConfig);
+        break;
+      case "yaml":
+        outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
+        break;
+      case "typescript": {
+        const tsGenerator = new TypeScriptGenerator({ language: "en" });
+        outputs.typescript = tsGenerator.generate(template);
+        break;
+      }
+    }
+  }
+  return { success: true, outputs };
+}
+function validateTemplateInput(input) {
+  const text = input.trim();
+  if (!text) {
+    return { valid: false, message: "Empty template" };
+  }
+  try {
+    const parsed = parseAdl(text, { convertAdl14: true });
+    if (parsed.kind !== "operational_template") {
+      return { valid: false, message: `Parsed ${parsed.kind}; expected operational_template` };
+    }
+    return { valid: true, message: "Valid operational template ADL" };
+  } catch (error) {
+    return { valid: false, message: `Invalid template: ${error.message}` };
   }
 }
 async function deserializeInput(input, format, config) {
@@ -39967,6 +43412,7 @@ function getYamlConfigPreset(preset) {
 
 // examples/demo-app/src/main.ts
 var currentInputFormat = "json";
+var currentInputTab = "instance";
 var autoConvertEnabled = true;
 var autoConvertDebounceTimer;
 var AUTO_CONVERT_DEBOUNCE_MS = 350;
@@ -39983,6 +43429,7 @@ function init2() {
   setupEventListeners();
   updateAutoConvertButtonUi();
   loadExample("section");
+  handleInputChange("template");
   console.log("\u2713 Application ready");
 }
 function setupEventListeners() {
@@ -40017,9 +43464,17 @@ function setupEventListeners() {
   if (clearBtn) {
     clearBtn.addEventListener("click", clearInput);
   }
+  const clearTemplateBtn = document.getElementById("clear-template-input");
+  if (clearTemplateBtn) {
+    clearTemplateBtn.addEventListener("click", clearInput);
+  }
   const inputTextarea = document.getElementById("input-text");
   if (inputTextarea) {
-    inputTextarea.addEventListener("input", handleInputChange);
+    inputTextarea.addEventListener("input", () => handleInputChange("instance"));
+  }
+  const templateTextarea = document.getElementById("template-input-text");
+  if (templateTextarea) {
+    templateTextarea.addEventListener("input", () => handleInputChange("template"));
   }
   const inputDisableLinebreaks = document.getElementById("input-disable-linebreaks");
   if (inputDisableLinebreaks) {
@@ -40050,6 +43505,10 @@ function setupEventListeners() {
   }
   if (inputPanelBody) {
     inputPanelBody.addEventListener("change", () => scheduleAutoConvert());
+  }
+  const templateModeSelect = document.getElementById("template-generation-mode");
+  if (templateModeSelect) {
+    templateModeSelect.addEventListener("change", () => scheduleAutoConvert());
   }
   const outputFormatSection = document.getElementById("output-tab-enable-section");
   if (outputFormatSection) {
@@ -40208,17 +43667,24 @@ function setupInputTabs() {
       const name = e2.currentTarget.getAttribute("data-input-tab");
       if (!name)
         return;
-      tabs.forEach((t2) => {
-        const el = t2;
-        const active = el.getAttribute("data-input-tab") === name;
-        el.classList.toggle("active", active);
-        el.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      document.querySelectorAll(".input-tab-pane").forEach((pane) => {
-        pane.classList.toggle("active", pane.id === `input-tab-${name}`);
-      });
+      activateInputTab(name);
     });
   });
+}
+function activateInputTab(mode) {
+  const tabs = document.querySelectorAll("#input-tabs .tab");
+  tabs.forEach((t2) => {
+    const el = t2;
+    const active = el.getAttribute("data-input-tab") === mode;
+    el.classList.toggle("active", active);
+    el.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  document.querySelectorAll(".input-tab-pane").forEach((pane) => {
+    pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
+  });
+  currentInputTab = mode;
+  validateInput();
+  scheduleAutoConvert();
 }
 function setupOutputTabs() {
   const tabs = document.querySelectorAll(".tab");
@@ -40255,10 +43721,11 @@ function loadExample(exampleKey) {
   const inputTextarea = document.getElementById("input-text");
   const formatSelect = document.getElementById("input-format");
   if (inputTextarea && formatSelect) {
+    activateInputTab("instance");
     const format = formatSelect.value;
     inputTextarea.value = example[format] || example.json;
     currentInputFormat = format;
-    handleInputChange();
+    handleInputChange("instance");
   }
 }
 async function handleFileUpload(e2) {
@@ -40269,8 +43736,9 @@ async function handleFileUpload(e2) {
     const text = await file.text();
     const inputTextarea = document.getElementById("input-text");
     if (inputTextarea) {
+      activateInputTab("instance");
       inputTextarea.value = text;
-      handleInputChange();
+      handleInputChange("instance");
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
         const formatSelect = document.getElementById("input-format");
@@ -40286,22 +43754,29 @@ async function handleFileUpload(e2) {
   }
 }
 function clearInput() {
-  const inputTextarea = document.getElementById("input-text");
-  if (inputTextarea) {
-    inputTextarea.value = "";
-    handleInputChange();
+  const textarea = getCurrentInputTextarea();
+  if (textarea) {
+    textarea.value = "";
+    handleInputChange(currentInputTab);
   }
 }
-function handleInputChange() {
-  const inputTextarea = document.getElementById("input-text");
+function getInputTextarea(mode) {
+  const id = mode === "template" ? "template-input-text" : "input-text";
+  return document.getElementById(id);
+}
+function getCurrentInputTextarea() {
+  return getInputTextarea(currentInputTab);
+}
+function handleInputChange(tab = currentInputTab) {
+  const inputTextarea = getInputTextarea(tab);
   if (!inputTextarea)
     return;
   const text = inputTextarea.value;
-  const charCount = document.getElementById("char-count");
+  const charCount = document.getElementById(tab === "template" ? "template-char-count" : "char-count");
   if (charCount) {
     charCount.textContent = text.length.toString();
   }
-  const lineCount = document.getElementById("line-count");
+  const lineCount = document.getElementById(tab === "template" ? "template-line-count" : "line-count");
   if (lineCount) {
     lineCount.textContent = text.split("\n").length.toString();
   }
@@ -40309,9 +43784,13 @@ function handleInputChange() {
   scheduleAutoConvert();
 }
 function validateInput() {
-  const inputTextarea = document.getElementById("input-text");
-  const validationIcon = document.getElementById("validation-icon");
-  const validationText = document.getElementById("validation-text");
+  const inputTextarea = getCurrentInputTextarea();
+  const validationIcon = document.getElementById(
+    currentInputTab === "template" ? "template-validation-icon" : "validation-icon"
+  );
+  const validationText = document.getElementById(
+    currentInputTab === "template" ? "template-validation-text" : "validation-text"
+  );
   if (!inputTextarea || !validationIcon || !validationText)
     return;
   const text = inputTextarea.value.trim();
@@ -40322,6 +43801,16 @@ function validateInput() {
     return;
   }
   try {
+    if (currentInputTab === "template") {
+      const templateValidation = validateTemplateInput(text);
+      if (!templateValidation.valid) {
+        throw new Error(templateValidation.message);
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      validationText.textContent = templateValidation.message;
+      return;
+    }
     if (currentInputFormat === "json") {
       JSON.parse(text);
       validationIcon.textContent = "check";
@@ -40345,7 +43834,7 @@ function validateInput() {
   } catch (error) {
     validationIcon.textContent = "error";
     validationIcon.className = "material-icons status-icon invalid";
-    validationText.textContent = `Invalid ${currentInputFormat.toUpperCase()}`;
+    validationText.textContent = currentInputTab === "template" ? error.message : `Invalid ${currentInputFormat.toUpperCase()}`;
   }
 }
 function toggleAutoConvert() {
@@ -40400,7 +43889,7 @@ async function handleConvert() {
   showLoading();
   hideError();
   try {
-    const inputTextarea = document.getElementById("input-text");
+    const inputTextarea = getCurrentInputTextarea();
     if (!inputTextarea)
       throw new Error("Input textarea not found");
     const inputText = inputTextarea.value.trim();
@@ -40424,10 +43913,12 @@ async function handleConvert() {
   }
 }
 function gatherConversionOptions() {
+  const inputMode = currentInputTab;
   const inputFormatSelect = document.getElementById("input-format");
   const inputFormat = inputFormatSelect?.value || "json";
   const inputDeserializerPreset = document.getElementById("input-deserializer-preset")?.value || "default";
   const inputDeserializerConfig = getJsonDeserializeConfigPreset(inputDeserializerPreset);
+  const templateGenerationMode = document.getElementById("template-generation-mode")?.value || "example";
   const outputFormats = [];
   if (document.getElementById("output-xml")?.checked) {
     outputFormats.push("xml");
@@ -40491,9 +43982,11 @@ function gatherConversionOptions() {
     archetypeNodeIdLocation: document.getElementById("ts-arch-id-location")?.value || "after_name"
   };
   return {
+    inputMode,
     inputFormat,
     inputDeserializerConfig,
     outputFormats,
+    templateGenerationMode,
     jsonSerializerType,
     jsonConfig,
     yamlConfig,
