@@ -1,7 +1,10 @@
 /**
  * ehrtslib Format Converter Demo App
- * 
+ *
  * Main entry point for the browser application.
+ *
+ * Layout note: config panels and status bars sit above editors (not below), because
+ * users rarely scroll to the bottom of long instance payloads.
  */
 
 import { EXAMPLES } from './examples.ts';
@@ -135,10 +138,20 @@ function setupEventListeners() {
     autoConvertBtn.addEventListener('click', toggleAutoConvert);
   }
 
-  const optionsPanelBody = document.querySelector('.options-panel .panel-body');
+  const outputPanelBody = document.querySelector('.output-panel .panel-body');
   const inputPanelBody = document.querySelector('.input-panel .panel-body');
-  if (optionsPanelBody) {
-    optionsPanelBody.addEventListener('change', () => scheduleAutoConvert());
+  if (outputPanelBody) {
+    outputPanelBody.addEventListener('change', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('output-disable-linebreaks')) {
+        const checked = (target as HTMLInputElement).checked;
+        document.querySelectorAll('.output-disable-linebreaks').forEach((cb) => {
+          (cb as HTMLInputElement).checked = checked;
+        });
+        applyOutputLineWrap(checked);
+      }
+      scheduleAutoConvert();
+    });
   }
   if (inputPanelBody) {
     inputPanelBody.addEventListener('change', () => scheduleAutoConvert());
@@ -154,6 +167,8 @@ function setupEventListeners() {
 
   // Output tabs
   setupOutputTabs();
+
+  setupInputTabs();
 
   // Splitters
   setupSplitters();
@@ -244,16 +259,15 @@ function toggleOutputTab(format: string, visible: boolean) {
  * Set up resizable splitters
  */
 function setupSplitters() {
-  const splitterO1 = document.getElementById('splitter-1');
-  const splitterO2 = document.getElementById('splitter-2');
-
-  if (splitterO1) {
-    setupSplitter(splitterO1, 'input-panel', 'options-panel');
+  const splitter = document.getElementById('splitter-main');
+  if (splitter) {
+    setupSplitter(splitter, 'input-panel', 'output-panel');
   }
+}
 
-  if (splitterO2) {
-    setupSplitter(splitterO2, 'options-panel', 'output-panel');
-  }
+function getActiveOutputFormat(): string {
+  const activeTab = document.querySelector('.tab.active');
+  return activeTab?.getAttribute('data-tab') || 'json';
 }
 
 /**
@@ -393,6 +407,28 @@ function setupPresetListeners() {
 }
 
 /**
+ * Input column tabs: Instance (current) vs Template (schema) prototype.
+ */
+function setupInputTabs() {
+  const tabs = document.querySelectorAll('#input-tabs .tab');
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', (e) => {
+      const name = (e.currentTarget as HTMLElement).getAttribute('data-input-tab');
+      if (!name) return;
+      tabs.forEach((t) => {
+        const el = t as HTMLElement;
+        const active = el.getAttribute('data-input-tab') === name;
+        el.classList.toggle('active', active);
+        el.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      document.querySelectorAll('.input-tab-pane').forEach((pane) => {
+        pane.classList.toggle('active', pane.id === `input-tab-${name}`);
+      });
+    });
+  });
+}
+
+/**
  * Set up output tab switching
  */
 function setupOutputTabs() {
@@ -411,19 +447,16 @@ function setupOutputTabs() {
  * Set up copy and download button handlers
  */
 function setupCopyDownloadButtons() {
-  const formats = ['xml', 'json', 'yaml', 'typescript'];
-  formats.forEach(format => {
-    const copyBtn = document.getElementById(`copy-${format}`);
-    const downloadBtn = document.getElementById(`download-${format}`);
+  const copyBtn = document.getElementById('copy-output');
+  const downloadBtn = document.getElementById('download-output');
 
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => copyToClipboard(format));
-    }
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => copyToClipboard(getActiveOutputFormat()));
+  }
 
-    if (downloadBtn) {
-      downloadBtn.addEventListener('click', () => downloadOutput(format));
-    }
-  });
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => downloadOutput(getActiveOutputFormat()));
+  }
 }
 
 /**
@@ -1090,14 +1123,14 @@ function applyOutputLineWrap(disable: boolean) {
  * Update output info panel (characters and lines) for active output tab
  */
 function updateOutputInfo() {
-  const activeTab = document.querySelector('.tab.active') as HTMLElement | null;
-  const outputChar = document.getElementById('output-char-count');
-  const outputLine = document.getElementById('output-line-count');
-  const outputDisable = document.getElementById('output-disable-linebreaks') as HTMLInputElement | null;
+  const tabName = getActiveOutputFormat();
+  const pane = document.getElementById(`tab-${tabName}`);
+  const outputChar = pane?.querySelector('.output-char-count');
+  const outputLine = pane?.querySelector('.output-line-count');
+  const outputDisable = pane?.querySelector('.output-disable-linebreaks') as HTMLInputElement | null;
 
-  if (!activeTab || !outputChar || !outputLine) return;
+  if (!pane || !outputChar || !outputLine) return;
 
-  const tabName = activeTab.getAttribute('data-tab') || 'json';
   const contentElem = document.getElementById(`output-${tabName}-content`);
   if (!contentElem) return;
 
@@ -1105,21 +1138,14 @@ function updateOutputInfo() {
   outputChar.textContent = String(text.length);
   outputLine.textContent = String(text.split('\n').length);
 
-  // Ensure output wrap setting is applied according to checkbox
   if (outputDisable) {
     applyOutputLineWrap(!!outputDisable.checked);
   }
 }
 
-// Wire up output disable checkbox after DOM ready
 const outputDisableCheckbox = document.getElementById('output-disable-linebreaks') as HTMLInputElement | null;
 if (outputDisableCheckbox) {
-  // initial state: unchecked => wrapping enabled
   applyOutputLineWrap(!!outputDisableCheckbox.checked);
-  outputDisableCheckbox.addEventListener('change', () => {
-    applyOutputLineWrap(!!outputDisableCheckbox.checked);
-    updateOutputInfo();
-  });
 }
 
 /**

@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-05-29T12:07:53.955Z", buildId: "4EPNKRC2" };
+    define_BUILD_INFO_default = { timestamp: "2026-05-29T14:49:25.280Z", buildId: "FL29TWMM" };
   }
 });
 
@@ -39613,10 +39613,20 @@ function setupEventListeners() {
   if (autoConvertBtn) {
     autoConvertBtn.addEventListener("click", toggleAutoConvert);
   }
-  const optionsPanelBody = document.querySelector(".options-panel .panel-body");
+  const outputPanelBody = document.querySelector(".output-panel .panel-body");
   const inputPanelBody = document.querySelector(".input-panel .panel-body");
-  if (optionsPanelBody) {
-    optionsPanelBody.addEventListener("change", () => scheduleAutoConvert());
+  if (outputPanelBody) {
+    outputPanelBody.addEventListener("change", (e2) => {
+      const target = e2.target;
+      if (target.classList.contains("output-disable-linebreaks")) {
+        const checked = target.checked;
+        document.querySelectorAll(".output-disable-linebreaks").forEach((cb) => {
+          cb.checked = checked;
+        });
+        applyOutputLineWrap(checked);
+      }
+      scheduleAutoConvert();
+    });
   }
   if (inputPanelBody) {
     inputPanelBody.addEventListener("change", () => scheduleAutoConvert());
@@ -39627,6 +39637,7 @@ function setupEventListeners() {
   }
   setupPresetListeners();
   setupOutputTabs();
+  setupInputTabs();
   setupSplitters();
   setupCopyDownloadButtons();
   const dismissErrorBtn = document.getElementById("dismiss-error");
@@ -39681,14 +39692,14 @@ function toggleOutputTab(format, visible) {
   }
 }
 function setupSplitters() {
-  const splitterO1 = document.getElementById("splitter-1");
-  const splitterO2 = document.getElementById("splitter-2");
-  if (splitterO1) {
-    setupSplitter(splitterO1, "input-panel", "options-panel");
+  const splitter = document.getElementById("splitter-main");
+  if (splitter) {
+    setupSplitter(splitter, "input-panel", "output-panel");
   }
-  if (splitterO2) {
-    setupSplitter(splitterO2, "options-panel", "output-panel");
-  }
+}
+function getActiveOutputFormat() {
+  const activeTab = document.querySelector(".tab.active");
+  return activeTab?.getAttribute("data-tab") || "json";
 }
 function setupSplitter(splitter, leftClass, rightClass) {
   let isDragging = false;
@@ -39770,6 +39781,25 @@ function setupPresetListeners() {
     });
   }
 }
+function setupInputTabs() {
+  const tabs = document.querySelectorAll("#input-tabs .tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", (e2) => {
+      const name = e2.currentTarget.getAttribute("data-input-tab");
+      if (!name)
+        return;
+      tabs.forEach((t2) => {
+        const el = t2;
+        const active = el.getAttribute("data-input-tab") === name;
+        el.classList.toggle("active", active);
+        el.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      document.querySelectorAll(".input-tab-pane").forEach((pane) => {
+        pane.classList.toggle("active", pane.id === `input-tab-${name}`);
+      });
+    });
+  });
+}
 function setupOutputTabs() {
   const tabs = document.querySelectorAll(".tab");
   tabs.forEach((tab) => {
@@ -39782,17 +39812,14 @@ function setupOutputTabs() {
   });
 }
 function setupCopyDownloadButtons() {
-  const formats = ["xml", "json", "yaml", "typescript"];
-  formats.forEach((format) => {
-    const copyBtn = document.getElementById(`copy-${format}`);
-    const downloadBtn = document.getElementById(`download-${format}`);
-    if (copyBtn) {
-      copyBtn.addEventListener("click", () => copyToClipboard(format));
-    }
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", () => downloadOutput(format));
-    }
-  });
+  const copyBtn = document.getElementById("copy-output");
+  const downloadBtn = document.getElementById("download-output");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", () => copyToClipboard(getActiveOutputFormat()));
+  }
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => downloadOutput(getActiveOutputFormat()));
+  }
 }
 function handleInputFormatChange(e2) {
   currentInputFormat = e2.target.value;
@@ -40350,13 +40377,13 @@ function applyOutputLineWrap(disable) {
   });
 }
 function updateOutputInfo() {
-  const activeTab = document.querySelector(".tab.active");
-  const outputChar = document.getElementById("output-char-count");
-  const outputLine = document.getElementById("output-line-count");
-  const outputDisable = document.getElementById("output-disable-linebreaks");
-  if (!activeTab || !outputChar || !outputLine)
+  const tabName = getActiveOutputFormat();
+  const pane = document.getElementById(`tab-${tabName}`);
+  const outputChar = pane?.querySelector(".output-char-count");
+  const outputLine = pane?.querySelector(".output-line-count");
+  const outputDisable = pane?.querySelector(".output-disable-linebreaks");
+  if (!pane || !outputChar || !outputLine)
     return;
-  const tabName = activeTab.getAttribute("data-tab") || "json";
   const contentElem = document.getElementById(`output-${tabName}-content`);
   if (!contentElem)
     return;
@@ -40370,10 +40397,6 @@ function updateOutputInfo() {
 var outputDisableCheckbox = document.getElementById("output-disable-linebreaks");
 if (outputDisableCheckbox) {
   applyOutputLineWrap(!!outputDisableCheckbox.checked);
-  outputDisableCheckbox.addEventListener("change", () => {
-    applyOutputLineWrap(!!outputDisableCheckbox.checked);
-    updateOutputInfo();
-  });
 }
 async function copyToClipboard(format) {
   const outputElement = document.getElementById(`output-${format}-content`);

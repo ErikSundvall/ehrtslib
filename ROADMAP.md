@@ -43,8 +43,11 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 
 Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`docs/MERGE_TO_MAIN.md`](docs/MERGE_TO_MAIN.md) for merge checklist.
 
-## Phase 6a
-Exploration of:
+## Phase 6a.1
+Interactive UI refinement for the demo app was performed using pencil.dev and cursor after phase 5. 
+Now we want Exploration of generating instance examples and typescript code stubs in the output column based on operational ADL templates being inserted in an editor in the so far unpopulated "template" tab of the input column. If there is no library code for generating examples then implement that so that the generation code is a part of ehrtslib rather than just the demo app. Use the openEHR REST ITS specs to understand generation mode options.
+
+## Phase 6a.2
 Serialisation and deserialisation of RM object instance tree examples (and associated serialisations) based on templates + validation of RM instances related to templates
 
 ## Phase 6b

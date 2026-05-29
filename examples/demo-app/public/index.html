@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -12,16 +12,19 @@
 </head>
 
 <body>
-    <!-- Header Section -->
+    <!-- Header Section (compact; links moved from footer) -->
     <header class="app-header">
         <div class="header-content">
-            <h1><span class="material-icons header-icon" aria-hidden="true">sync</span> ehrtslib Format Converter</h1>
-            <p class="subtitle">Convert between XML, JSON, YAML formats and generate TypeScript initialization code</p>
-            <p class="description">
-                This demo demonstrates ehrtslib's serialization and deserialization capabilities.
-                Convert openEHR Reference Model (RM) objects between different formats with various configuration
-                options.
-            </p>
+            <h1>Ehrtslib examples: Rudimentary experimental format conversions, code generation etc.</h1>
+            <div class="header-subline">
+                <p class="subtitle">openEHR → various variants of · JSON · YAML · XML · TypeScript stubs</p>
+                <nav class="header-links" aria-label="Related links">
+                    <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">GitHub</a>
+                    <a href="../../../README.md">Docs</a>
+                    <a href="../../../SIMPLIFIED-CREATION-GUIDE.md">Guide</a>
+                    <a href="https://openehr.org" target="_blank" rel="noopener">openEHR.org</a>
+                </nav>
+            </div>
         </div>
     </header>
 
@@ -49,6 +52,17 @@
             </div>
 
             <div class="panel-body">
+                <div class="tabs-row input-tabs-row">
+                    <div class="tabs" id="input-tabs" role="tablist" aria-label="Input mode">
+                        <button type="button" class="tab active" data-input-tab="instance" role="tab"
+                            aria-selected="true">Instance</button>
+                        <button type="button" class="tab" data-input-tab="template" role="tab"
+                            aria-selected="false">Template (schema)</button>
+                    </div>
+                </div>
+
+                <div class="input-tab-content">
+                <div class="input-tab-pane active" id="input-tab-instance">
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <button class="btn btn-secondary" id="load-example">
@@ -78,7 +92,53 @@
                     </div>
                 </div>
 
-                <textarea class="input-textarea" id="input-text" placeholder="Paste your XML, JSON, or YAML here..."
+                <!-- Config and status above editor: users rarely scroll past long instance payloads. -->
+                <div class="config-section" id="input-deserializer-section">
+                    <div class="config-grid config-grid--input-deser">
+                        <div class="config-col">
+                            <div class="form-group">
+                                <label for="input-deserializer-preset">Deserializer Preset:</label>
+                                <select id="input-deserializer-preset" class="config-dropdown">
+                                    <option value="default">Default</option>
+                                    <option value="canonical">Canonical (Strict)</option>
+                                    <option value="compact">Compact</option>
+                                    <option value="hybrid">Hybrid (Flexible)</option>
+                                    <option value="custom" selected>Custom...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="config-col config-col--checks">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="input-strict">
+                                <span>Strict Mode</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="input-parse-terse">
+                                <span>Parse Terse Format</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="input-allow-incomplete">
+                                <span>Allow Incomplete Objects</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="editor-block"><div class="input-info">
+                    <span class="char-count">
+                        <span class="label">Characters:</span> <span id="char-count">987</span>
+                    </span>
+                    <span class="line-count">
+                        <span class="label">Lines:</span> <span id="line-count">31</span>
+                    </span>
+                    <span class="validation-status">
+                        <span class="material-icons status-icon valid" id="validation-icon" aria-hidden="true">check</span>
+                        <span id="validation-text">Valid JSON</span>
+                    </span>
+                    <label class="checkbox-label input-info-line-wrap">
+                        <input type="checkbox" id="input-disable-linebreaks">
+                        <span>Disable Line Wrap</span>
+                    </label>
+                </div><textarea class="input-textarea" id="input-text" placeholder="Paste your XML, JSON, or YAML here..."
                     spellcheck="false">{
   "_type": "COMPOSITION",
   "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
@@ -112,312 +172,23 @@
     ]
   }]
 }</textarea>
+                </div>
+                </div>
 
-                <div class="input-info">
-                    <span class="char-count">
-                        <span class="label">Characters:</span> <span id="char-count">987</span>
-                    </span>
-                    <span class="line-count">
-                        <span class="label">Lines:</span> <span id="line-count">31</span>
-                    </span>
-                    <span class="validation-status">
-                        <span class="material-icons status-icon valid" id="validation-icon" aria-hidden="true">check</span>
-                        <span id="validation-text">Valid JSON</span>
-                    </span>
-                    <label class="checkbox-label" style="margin-left:auto;align-items:center;display:flex;gap:0.5rem;">
-                        <input type="checkbox" id="input-disable-linebreaks">
-                        <span>Disable Line Wrap (side-scroll)</span>
-                    </label>
+                <div class="input-tab-pane" id="input-tab-template">
+                    <p class="placeholder-message">Template (schema) input mode — prototype placeholder for future OPT/template authoring.</p>
+                </div>
                 </div>
             </div>
         </section>
 
-        <!-- Splitter 1 -->
-        <div class="splitter" id="splitter-1"></div>
+        <div class="splitter" id="splitter-main"></div>
 
-        <!-- Options Panel -->
-        <section class="panel options-panel">
-            <div class="panel-header">
-                <h2><span class="material-icons panel-icon" aria-hidden="true">tune</span> Options</h2>
-            </div>
-
-            <div class="panel-body">
-                <!-- Error State -->
-                <div class="error-state hidden" id="error-state">
-                    <span class="material-icons error-icon" aria-hidden="true">warning</span>
-                    <div class="error-message">
-                        <strong>Conversion Error</strong>
-                        <p id="error-text">An error occurred during conversion.</p>
-                    </div>
-                    <button class="btn btn-secondary" id="dismiss-error">Dismiss</button>
-                </div>
-
-                <!-- Input Deserializer Options -->
-                <div class="option-section collapsible">
-                    <div class="section-header">
-                        <h3>Input Deserializer Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="input-deserializer-preset">Deserializer Preset:</label>
-                            <select id="input-deserializer-preset" class="config-dropdown">
-                                <option value="default">Default</option>
-                                <option value="canonical">Canonical (Strict)</option>
-                                <option value="compact">Compact</option>
-                                <option value="hybrid">Hybrid (Flexible)</option>
-                                <option value="custom" selected>Custom...</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="input-strict">
-                                <span>Strict Mode</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="input-parse-terse">
-                                <span>Parse Terse Format</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="input-allow-incomplete">
-                                <span>Allow Incomplete Objects</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- JSON Options -->
-                <div class="option-section collapsible" id="json-options">
-                    <div class="section-header">
-                        <h3>JSON Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="json-serializer-type">Serializer Type:</label>
-                            <select id="json-serializer-type" class="config-dropdown">
-                                <option value="canonical">Canonical (JsonCanonicalSerializer)</option>
-                                <option value="configurable" selected>Configurable (JsonConfigurableSerializer)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="json-config-preset">Configuration Preset:</label>
-                            <select id="json-config-preset" class="config-dropdown">
-                                <option value="canonical">Canonical (Standard)</option>
-                                <option value="compact">Compact</option>
-                                <option value="hybrid">Hybrid</option>
-                                <option value="very-compact">Very Compact (Non-standard)</option>
-                                <option value="custom" selected>Custom...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="json-arch-id-location">Archetype ID Location:</label>
-                            <select id="json-arch-id-location" class="config-dropdown">
-                                <option value="beginning">Beginning of Object</option>
-                                <option value="after_name" selected>After "name" attribute</option>
-                                <option value="end">End of Object</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="json-pretty" checked>
-                                <span>Pretty Print</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="number" id="json-indent" value="2" min="0" max="8" class="indent-input">
-                                <span>Indent (spaces)</span>
-                            </label>
-                            <label class="checkbox-label tooltip-container">
-                                <input type="checkbox" id="json-terse">
-                                <span>Terse Format <span class="material-icons inline-icon" aria-hidden="true">warning</span></span>
-                                <span class="tooltip">Compact format using string shortcuts for CODE_PHRASE and
-                                    DV_CODED_TEXT. Not standard-compliant.</span>
-                            </label>
-                            <label class="checkbox-label tooltip-container">
-                                <input type="checkbox" id="json-hybrid">
-                                <span>Hybrid Style (zipehr-like) <span class="material-icons inline-icon" aria-hidden="true">info</span></span>
-                                <span class="tooltip">Mix of standard and terse formats for better readability</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="json-type-inference">
-                                <span>Type Inference</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="json-include-null">
-                                <span>Include Null Values</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="json-include-empty" checked>
-                                <span>Include Empty Collections</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- YAML Options -->
-                <div class="option-section collapsible" id="yaml-options">
-                    <div class="section-header">
-                        <h3>YAML Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="yaml-config-preset">Configuration Preset:</label>
-                            <select id="yaml-config-preset" class="config-dropdown">
-                                <option value="default">Default (Recommended)</option>
-                                <option value="verbose">Verbose (With Types)</option>
-                                <option value="hybrid">Hybrid (zipehr-like)</option>
-                                <option value="flow">Flow Style</option>
-                                <option value="block">Block Style</option>
-                                <option value="custom">Custom...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="yaml-arch-id-location">Archetype ID Location:</label>
-                            <select id="yaml-arch-id-location" class="config-dropdown">
-                                <option value="beginning">Beginning of Object</option>
-                                <option value="after_name" selected>After "name" attribute</option>
-                                <option value="end">End of Object</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label tooltip-container">
-                                <select id="yaml-main-style" class="config-dropdown" disabled>
-                                    <option value="hybrid">Hybrid (inline + block)</option>
-                                    <option value="flow">Flow (compact with line breaks)</option>
-                                    <option value="block">Block (traditional multi-line)</option>
-                                </select>
-                                <span>Main Style</span>
-                                <span class="tooltip">Choose YAML formatting style: Hybrid (simple objects inline), Flow
-                                    (all inline with strategic breaks), or Block (traditional multi-line)</span>
-                            </label>
-                            <label class="checkbox-label tooltip-container">
-                                <input type="checkbox" id="yaml-terse" checked disabled>
-                                <span>Terse Format (Recommended) <span class="material-icons inline-icon" aria-hidden="true">check</span></span>
-                                <span class="tooltip">Uses compact notation for codes - recommended for YAML</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="yaml-type-inference" checked disabled>
-                                <span>Type Inference (Compact Mode)</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="number" id="yaml-indent" value="2" min="0" max="8" class="indent-input"
-                                    disabled>
-                                <span>Indent (spaces)</span>
-                            </label>
-                            <label class="checkbox-label tooltip-container">
-                                <input type="number" id="yaml-max-inline-props" value="3" min="1" max="10"
-                                    class="indent-input" disabled>
-                                <span>Max Inline Properties</span>
-                                <span class="tooltip">Maximum number of properties for inline formatting in hybrid
-                                    style</span>
-                            </label>
-                            <label class="checkbox-label tooltip-container" id="yaml-archetype-inline-group">
-                                <input type="checkbox" id="yaml-archetype-inline" disabled>
-                                <span>Keep Archetype Details Inline</span>
-                                <span class="tooltip">Only for flow style: Groups archetype metadata (name,
-                                    archetype_node_id, archetype_details) on one line with strategic line breaks</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TypeScript Options -->
-                <div class="option-section collapsible" id="typescript-options">
-                    <div class="section-header">
-                        <h3>TypeScript Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="ts-arch-id-location">Archetype ID Location:</label>
-                            <select id="ts-arch-id-location" class="config-dropdown">
-                                <option value="beginning">Beginning of Object</option>
-                                <option value="after_name" selected>After "name" attribute</option>
-                                <option value="end">End of Object</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="ts-terse" checked>
-                                <span>Use Terse Format</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="ts-compact" checked>
-                                <span>Use primitive value constructors</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="ts-comments">
-                                <span>Include Comments</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="ts-include-undefined">
-                                <span>Include Undefined Attributes</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="number" id="ts-indent" value="2" min="0" max="8" class="indent-input">
-                                <span>Indent (spaces)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- XML Options -->
-                <div class="option-section collapsible" id="xml-options">
-                    <div class="section-header">
-                        <h3>XML Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="xml-config-preset">Configuration Preset:</label>
-                            <select id="xml-config-preset" class="config-dropdown">
-                                <option value="default">Default</option>
-                                <option value="custom" selected>Custom...</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="xml-pretty" checked>
-                                <span>Pretty Print</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="xml-namespaces" checked>
-                                <span>Include Namespaces</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="xml-declaration" checked>
-                                <span>Include XML Declaration</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="number" id="xml-indent" value="2" min="0" max="8" class="indent-input">
-                                <span>Indent (spaces)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <!-- Convert Button -->
-
-
-                <!-- Loading State -->
-                <div class="loading-state hidden" id="loading-state">
-                    <div class="spinner"></div>
-                    <span>Converting...</span>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Splitter 2 -->
-        <div class="splitter" id="splitter-2"></div>
 
         <!-- Output Panel -->
         <section class="panel output-panel">
             <div class="panel-header">
-                <h2><span class="material-icons panel-icon" aria-hidden="true">output</span> Output formats</h2>
+                <h2><span class="material-icons panel-icon" aria-hidden="true">output</span> Output</h2>
                 <div id="output-tab-enable-section">
                     <div class="checkbox-group-horizontal">
                         <label class="checkbox-label">
@@ -430,7 +201,7 @@
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="output-typescript" checked>
-                            <span>TypeScript Code</span>
+                            <span>TypeScript</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="output-xml" checked>
@@ -441,53 +212,199 @@
             </div>
 
             <div class="panel-body">
-                <!-- Tab Navigation -->
-                <div class="tabs" id="output-tabs">
-                    <button class="tab active" data-tab="json">JSON</button>
-                    <button class="tab" data-tab="yaml">YAML</button>
-                    <button class="tab" data-tab="typescript">TypeScript</button>
-                    <button class="tab" data-tab="xml">XML</button>
+                <div class="error-state hidden" id="error-state">
+                    <span class="material-icons error-icon" aria-hidden="true">warning</span>
+                    <div class="error-message">
+                        <strong>Conversion Error</strong>
+                        <p id="error-text">An error occurred during conversion.</p>
+                    </div>
+                    <button class="btn btn-secondary" id="dismiss-error">Dismiss</button>
+                </div>
+                <div class="loading-state hidden" id="loading-state">
+                    <div class="spinner"></div>
+                    <span>Converting...</span>
                 </div>
 
-                <!-- Tab Content -->
+                <div class="tabs-row">
+                    <div class="tabs" id="output-tabs">
+                        <button class="tab active" data-tab="json">JSON</button>
+                        <button class="tab" data-tab="yaml">YAML</button>
+                        <button class="tab" data-tab="typescript">TypeScript</button>
+                        <button class="tab" data-tab="xml">XML</button>
+                    </div>
+                    <div class="output-toolbar">
+                        <button class="btn btn-secondary btn-sm" id="copy-output" type="button">
+                            <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                            Copy
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="download-output" type="button">
+                            <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                            Download
+                        </button>
+                    </div>
+                </div>
+
                 <div class="tab-content">
-                    <!-- XML Output -->
-
-
-                    <!-- JSON Output -->
                     <div class="tab-pane active" id="tab-json">
-                        <div class="output-toolbar">
-                            <button class="btn btn-secondary btn-sm" id="copy-json">
-                                <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
-                                Copy
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="download-json">
-                                <span class="material-icons btn-icon" aria-hidden="true">download</span>
-                                Download
-                            </button>
-                        </div>
-                        <pre class="output-content" id="output-json-content">{
+                        <div class="config-section" id="json-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="json-serializer-type">Serializer Type:</label>
+                <select id="json-serializer-type" class="config-dropdown">
+                    <option value="canonical">Canonical (JsonCanonicalSerializer)</option>
+                    <option value="configurable" selected>Configurable (JsonConfigurableSerializer)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="json-config-preset">Configuration Preset:</label>
+                <select id="json-config-preset" class="config-dropdown">
+                    <option value="canonical">Canonical (Standard)</option>
+                    <option value="compact">Compact</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="very-compact">Very Compact (Non-standard)</option>
+                    <option value="custom" selected>Custom...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="json-arch-id-location">Archetype ID Location:</label>
+                <select id="json-arch-id-location" class="config-dropdown">
+                    <option value="beginning">Beginning of Object</option>
+                    <option value="after_name" selected>After "name" attribute</option>
+                    <option value="end">End of Object</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="json-pretty" checked>
+                <span>Pretty Print</span>
+            </label>
+            <label class="checkbox-label tooltip-container">
+                <input type="checkbox" id="json-terse">
+                <span>Terse Format <span class="material-icons inline-icon" aria-hidden="true">warning</span></span>
+                <span class="tooltip">Compact format using string shortcuts for CODE_PHRASE and DV_CODED_TEXT. Not standard-compliant.</span>
+            </label>
+            <label class="checkbox-label tooltip-container">
+                <input type="checkbox" id="json-hybrid">
+                <span>Hybrid Style (zipehr-like) <span class="material-icons inline-icon" aria-hidden="true">info</span></span>
+                <span class="tooltip">Mix of standard and terse formats for better readability</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="json-type-inference">
+                <span>Type Inference</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="json-include-null">
+                <span>Include Null Values</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="json-include-empty" checked>
+                <span>Include Empty Collections</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="number" id="json-indent" value="2" min="0" max="8" class="indent-input">
+                <span>Indent (spaces)</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" id="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-json-content">{
   
 }</pre>
+                        </div>
                         <div class="success-message hidden" id="success-json">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
 
-                    <!-- YAML Output -->
                     <div class="tab-pane" id="tab-yaml">
-                        <div class="output-toolbar">
-                            <button class="btn btn-secondary btn-sm" id="copy-yaml">
-                                <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
-                                Copy
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="download-yaml">
-                                <span class="material-icons btn-icon" aria-hidden="true">download</span>
-                                Download
-                            </button>
-                        </div>
-                        <pre class="output-content" id="output-yaml-content">_type: COMPOSITION
+                        <div class="config-section" id="yaml-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="yaml-config-preset">Configuration Preset:</label>
+                <select id="yaml-config-preset" class="config-dropdown">
+                    <option value="default">Default (Recommended)</option>
+                    <option value="verbose">Verbose (With Types)</option>
+                    <option value="hybrid">Hybrid (zipehr-like)</option>
+                    <option value="flow">Flow Style</option>
+                    <option value="block">Block Style</option>
+                    <option value="custom">Custom...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="yaml-arch-id-location">Archetype ID Location:</label>
+                <select id="yaml-arch-id-location" class="config-dropdown">
+                    <option value="beginning">Beginning of Object</option>
+                    <option value="after_name" selected>After "name" attribute</option>
+                    <option value="end">End of Object</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="yaml-main-style">Main Style:</label>
+                <select id="yaml-main-style" class="config-dropdown" disabled>
+                    <option value="hybrid">Hybrid (inline + block)</option>
+                    <option value="flow">Flow (compact with line breaks)</option>
+                    <option value="block">Block (traditional multi-line)</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label tooltip-container">
+                <input type="checkbox" id="yaml-terse" checked disabled>
+                <span>Terse Format (Recommended) <span class="material-icons inline-icon" aria-hidden="true">check</span></span>
+                <span class="tooltip">Uses compact notation for codes - recommended for YAML</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="yaml-type-inference" checked disabled>
+                <span>Type Inference (Compact Mode)</span>
+            </label>
+            <label class="checkbox-label tooltip-container" id="yaml-archetype-inline-group">
+                <input type="checkbox" id="yaml-archetype-inline" disabled>
+                <span>Keep Archetype Details Inline</span>
+                <span class="tooltip">Only for flow style: Groups archetype metadata on one line with strategic line breaks</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="number" id="yaml-indent" value="2" min="0" max="8" class="indent-input" disabled>
+                <span>Indent (spaces)</span>
+            </label>
+            <label class="checkbox-label tooltip-container">
+                <input type="number" id="yaml-max-inline-props" value="3" min="1" max="10" class="indent-input" disabled>
+                <span>Max Inline Properties</span>
+                <span class="tooltip">Maximum number of properties for inline formatting in hybrid style</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" class="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-yaml-content">_type: COMPOSITION
 name: {value: Vital Signs Encounter}
 archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
 language: ISO_639-1::en
@@ -508,25 +425,64 @@ content:
       - _type: ELEMENT
         name: {value: Pulse rate}
         value: {magnitude: 72, units: /min}</pre>
+                        </div>
                         <div class="success-message hidden" id="success-yaml">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
 
-                    <!-- TypeScript Output -->
                     <div class="tab-pane" id="tab-typescript">
-                        <div class="output-toolbar">
-                            <button class="btn btn-secondary btn-sm" id="copy-typescript">
-                                <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
-                                Copy
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="download-typescript">
-                                <span class="material-icons btn-icon" aria-hidden="true">download</span>
-                                Download
-                            </button>
-                        </div>
-                        <pre class="output-content" id="output-typescript-content">import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
+                        <div class="config-section" id="typescript-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="ts-arch-id-location">Archetype ID Location:</label>
+                <select id="ts-arch-id-location" class="config-dropdown">
+                    <option value="beginning">Beginning of Object</option>
+                    <option value="after_name" selected>After "name" attribute</option>
+                    <option value="end">End of Object</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="ts-terse" checked>
+                <span>Use Terse Format</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="ts-compact" checked>
+                <span>Use primitive value constructors</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="ts-comments">
+                <span>Include Comments</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="ts-include-undefined">
+                <span>Include Undefined Attributes</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="number" id="ts-indent" value="2" min="0" max="8" class="indent-input">
+                <span>Indent (spaces)</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" class="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-typescript-content">import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
 
 // Create COMPOSITION with terse format and compact constructors
 const composition = new COMPOSITION({
@@ -564,25 +520,59 @@ import { JsonCanonicalSerializer } from "./enhanced/serialization/json/mod.ts";
 const serializer = new JsonCanonicalSerializer();
 const json = serializer.serialize(composition);
 console.log(json);</pre>
+                        </div>
                         <div class="success-message hidden" id="success-typescript">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
 
-                    <!-- XML Output -->
                     <div class="tab-pane" id="tab-xml">
-                        <div class="output-toolbar">
-                            <button class="btn btn-secondary btn-sm" id="copy-xml">
-                                <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
-                                Copy
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="download-xml">
-                                <span class="material-icons btn-icon" aria-hidden="true">download</span>
-                                Download
-                            </button>
-                        </div>
-                        <pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                        <div class="config-section" id="xml-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="xml-config-preset">Configuration Preset:</label>
+                <select id="xml-config-preset" class="config-dropdown">
+                    <option value="default">Default</option>
+                    <option value="custom" selected>Custom...</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="xml-pretty" checked>
+                <span>Pretty Print</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="xml-namespaces" checked>
+                <span>Include Namespaces</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="xml-declaration" checked>
+                <span>Include XML Declaration</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="number" id="xml-indent" value="2" min="0" max="8" class="indent-input">
+                <span>Indent (spaces)</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" class="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-xml-content">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
   &lt;name xsi:type="DV_TEXT"&gt;
     &lt;value&gt;Vital Signs Encounter&lt;/value&gt;
@@ -641,24 +631,12 @@ console.log(json);</pre>
     &lt;/items&gt;
   &lt;/content&gt;
 &lt;/COMPOSITION&gt;</pre>
+                        </div>
                         <div class="success-message hidden" id="success-xml">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>
                     </div>
-
-                <div class="output-info">
-                    <span class="char-count">
-                        <span class="label">Characters:</span> <span id="output-char-count">0</span>
-                    </span>
-                    <span class="line-count">
-                        <span class="label">Lines:</span> <span id="output-line-count">0</span>
-                    </span>
-                    <label class="checkbox-label" style="margin-left:auto;align-items:center;display:flex;gap:0.5rem;">
-                        <input type="checkbox" id="output-disable-linebreaks">
-                        <span>Disable Line Wrap (use side-scroll instead)</span>
-                    </label>
-                </div>
 
                 </div>
             </div>
@@ -668,19 +646,8 @@ console.log(json);</pre>
     <!-- Footer Section -->
     <footer class="app-footer">
         <div class="footer-content">
-            <div class="footer-links">
-                <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">
-                    GitHub Repository
-                </a>
-                <a href="../../../README.md">Documentation</a>
-                <a href="../../../SIMPLIFIED-CREATION-GUIDE.md">Creation Guide</a>
-                <a href="https://openehr.org" target="_blank" rel="noopener">openEHR.org</a>
-            </div>
-            <div class="footer-info">
-                <p>ehrtslib - Electronic Health Record TypeScript Library</p>
-                <p id="build-info" class="build-info"></p>
-                <p class="copyright">&copy; 2025 ehrtslib contributors. Licensed under Apache 2.0</p>
-            </div>
+            <p id="build-info" class="build-info"></p>
+            <p class="copyright">&copy; 2025 ehrtslib contributors. Licensed under Apache 2.0</p>
         </div>
     </footer>
 
