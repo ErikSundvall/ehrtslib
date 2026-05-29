@@ -21,15 +21,29 @@ console.log(`📂 Source: ${srcDir}`);
 console.log(`📂 Public: ${publicDir}`);
 console.log(`📂 Output: ${outDir}`);
 
+/** Import .json from npm packages (e.g. ucum-lhc data files) as ESM default exports. */
+const jsonAsModulePlugin = {
+    name: "json-as-module",
+    setup(build: esbuild.PluginBuild) {
+        build.onLoad({ filter: /\.json$/ }, async (args) => ({
+            contents: `export default ${await Deno.readTextFile(args.path)}`,
+            loader: "js",
+        }));
+    },
+};
+
 try {
     // Ensure output directory exists
     await ensureDir(outDir);
 
     // Build TypeScript bundle
     await esbuild.build({
-        plugins: [...denoPlugins({
-            configPath: configPath
-        })],
+        plugins: [
+            jsonAsModulePlugin,
+            ...denoPlugins({
+                configPath: configPath,
+            }),
+        ],
         entryPoints: [toFileUrl(join(srcDir, "main.ts")).href],
         bundle: true,
         outfile: join(outDir, "bundle.js"),

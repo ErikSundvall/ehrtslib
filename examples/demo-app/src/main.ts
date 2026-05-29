@@ -525,8 +525,8 @@ function validateInput() {
 
   const text = inputTextarea.value.trim();
   if (!text) {
-    validationIcon.textContent = '○';
-    validationIcon.className = 'status-icon';
+    validationIcon.textContent = 'radio_button_unchecked';
+    validationIcon.className = 'material-icons status-icon';
     validationText.textContent = 'Empty';
     return;
   }
@@ -535,8 +535,8 @@ function validateInput() {
   try {
     if (currentInputFormat === 'json') {
       JSON.parse(text);
-      validationIcon.textContent = '✓';
-      validationIcon.className = 'status-icon valid';
+      validationIcon.textContent = 'check';
+      validationIcon.className = 'material-icons status-icon valid';
       validationText.textContent = 'Valid JSON';
     } else if (currentInputFormat === 'xml') {
       // Basic XML check
@@ -546,18 +546,18 @@ function validateInput() {
       if (parseError) {
         throw new Error('XML parse error');
       }
-      validationIcon.textContent = '✓';
-      validationIcon.className = 'status-icon valid';
+      validationIcon.textContent = 'check';
+      validationIcon.className = 'material-icons status-icon valid';
       validationText.textContent = 'Valid XML';
     } else if (currentInputFormat === 'yaml') {
       // YAML validation will be done during conversion
-      validationIcon.textContent = '✓';
-      validationIcon.className = 'status-icon valid';
+      validationIcon.textContent = 'check';
+      validationIcon.className = 'material-icons status-icon valid';
       validationText.textContent = 'Assumed valid YAML';
     }
   } catch (error) {
-    validationIcon.textContent = '✗';
-    validationIcon.className = 'status-icon invalid';
+    validationIcon.textContent = 'error';
+    validationIcon.className = 'material-icons status-icon invalid';
     validationText.textContent = `Invalid ${currentInputFormat.toUpperCase()}`;
   }
 }
