@@ -33,6 +33,8 @@ import type {
   YamlDeserializationConfig,
 } from '../../../enhanced/serialization/yaml/mod.ts';
 
+import { unzipSync, strFromU8 } from 'fflate';
+
 // Application state
 let currentInputFormat = 'json';
 let currentInputTab: InputMode = 'instance';
@@ -446,8 +448,17 @@ function setupTemplateFileUpload() {
     for (const file of Array.from(files)) {
       const name = file.name.toLowerCase();
       if (name.endsWith('.zip')) {
-        texts.push(await `# ZIP upload "${file.name}" is not yet extracted in-browser.\n` +
-          `# Extract .opt/.oet/.adl files locally and upload individually.\n`);
+        const buf = new Uint8Array(await file.arrayBuffer());
+        const entries = unzipSync(buf);
+        for (const [entryName, data] of Object.entries(entries)) {
+          const lower = entryName.toLowerCase();
+          if (/\.(opt|oet|adl|adls|xml)$/.test(lower) && !lower.includes('__macosx')) {
+            texts.push(strFromU8(data));
+          }
+        }
+        if (!texts.length) {
+          texts.push(`# ZIP "${file.name}" contained no .opt/.oet/.adl files.\n`);
+        }
         continue;
       }
       if (/\.(opt|oet|adl|adls|xml)$/.test(name)) {

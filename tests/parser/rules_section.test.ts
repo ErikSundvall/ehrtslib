@@ -8,6 +8,7 @@ import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
 import { ADL2Serializer } from "../../enhanced/generation/adl2_serializer.ts";
 import { RulesParser } from "../../enhanced/parser/rules_parser.ts";
 import { TokenType } from "../../enhanced/parser/adl2_tokenizer.ts";
+import * as openehr_am from "../../enhanced/openehr_am.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 
@@ -30,6 +31,17 @@ Deno.test("RulesParser - variable declaration and tagged assertion", () => {
       "$value>=0",
     ),
   );
+});
+
+Deno.test("RulesParser - for_all quantifier AST", () => {
+  const source = `for_all /data[id2]/events[id3] implies exists /data`;
+  const tokenizer = new ADL2Tokenizer(source);
+  const tokens = tokenizer.tokenize().filter((t) => t.type !== TokenType.EOF);
+  const { assertions } = new RulesParser(tokens).parse();
+  assertEquals(assertions.length, 1);
+  const expr = assertions[0].expression;
+  assert(expr instanceof openehr_am.EXPR_BINARY_OPERATOR);
+  assertEquals(expr.operator?.value ?? expr.operator, "for_all");
 });
 
 Deno.test("ADL2 archetype with rules section round-trip", async () => {

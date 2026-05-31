@@ -188,6 +188,11 @@
                             </div>
                         </div>
                         <div class="toolbar-right">
+                            <input type="file" id="template-file-input" accept=".opt,.oet,.adl,.adls,.xml,.zip" multiple hidden />
+                            <button class="btn btn-secondary" id="upload-template-files" title="Upload OPT, OET, ADL, or ZIP of archetypes">
+                                <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                                Upload
+                            </button>
                             <button class="btn btn-secondary" id="clear-template-input">
                                 <span class="material-icons btn-icon" aria-hidden="true">delete</span>
                                 Clear
@@ -208,7 +213,7 @@
                             </span>
                         </div>
                         <textarea class="input-textarea" id="template-input-text"
-                            placeholder="Paste operational_template ADL here..." spellcheck="false">operational_template (adl_version=2.0.5)
+                            placeholder="Paste operational template: ADL2/ADL1.4 operational_template, legacy OPT XML (.opt), or OET XML (.oet)..." spellcheck="false">operational_template (adl_version=2.0.5)
     openEHR-EHR-COMPOSITION.demo_generated.v1.0.0
 
 language

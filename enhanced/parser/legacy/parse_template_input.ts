@@ -6,6 +6,7 @@ import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
 import { detectAdlVersion } from "../adl_version.ts";
 import { isOptXml, parseOptXml } from "./opt_xml_parser.ts";
 import { isOetXml, parseOetXml, type OetParseResult } from "./oet_xml_parser.ts";
+import { compileOetToOperational } from "./oet_compiler.ts";
 import * as openehr_am from "../../openehr_am.ts";
 
 export type TemplateInputFormat =
@@ -14,6 +15,11 @@ export type TemplateInputFormat =
   | "opt_xml"
   | "oet_xml"
   | "unknown";
+
+export interface ParseTemplateInputOptions {
+  /** When set, OET XML is compiled to operational template using this repository. */
+  archetypeRepository?: import("./archetype_repository.ts").ArchetypeRepository;
+}
 
 export interface ParseTemplateInputResult {
   format: TemplateInputFormat;
@@ -50,7 +56,10 @@ export function detectTemplateInputFormat(source: string): TemplateInputFormat {
  * Parse template input from any supported legacy or ADL2 format.
  * Returns operational_template when possible (OPT XML, ADL operational_template).
  */
-export function parseTemplateInput(source: string): ParseTemplateInputResult {
+export function parseTemplateInput(
+  source: string,
+  options?: ParseTemplateInputOptions,
+): ParseTemplateInputResult {
   const format = detectTemplateInputFormat(source);
   const warnings: string[] = [];
 
@@ -66,6 +75,31 @@ export function parseTemplateInput(source: string): ParseTemplateInputResult {
 
   if (format === "oet_xml") {
     const oet = parseOetXml(source);
+    if (options?.archetypeRepository) {
+      try {
+        const compiled = compileOetToOperational(oet, {
+          repository: options.archetypeRepository,
+        });
+        return {
+          format,
+          kind: "operational_template",
+          operationalTemplate: compiled.operationalTemplate,
+          oet,
+          warnings: compiled.warnings,
+        };
+      } catch (e) {
+        return {
+          format,
+          kind: "oet_document",
+          template: oet.template,
+          oet,
+          warnings: [
+            ...oet.warnings,
+            `OET compile failed: ${(e as Error).message}`,
+          ],
+        };
+      }
+    }
     return {
       format,
       kind: "oet_document",
@@ -108,8 +142,9 @@ export function parseTemplateInput(source: string): ParseTemplateInputResult {
 
 export function getOperationalTemplateFromInput(
   source: string,
+  options?: ParseTemplateInputOptions,
 ): openehr_am.OPERATIONAL_TEMPLATE {
-  const parsed = parseTemplateInput(source);
+  const parsed = parseTemplateInput(source, options);
   if (parsed.operationalTemplate) return parsed.operationalTemplate;
   throw new Error(
     parsed.kind === "oet_document"

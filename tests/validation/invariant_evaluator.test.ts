@@ -79,6 +79,76 @@ Deno.test("InvariantEvaluator - failing rule", () => {
   assertEquals(msgs[0].archetypePath, "rules:positive");
 });
 
+Deno.test("InvariantEvaluator - for_all quantifier via expression tree", () => {
+  const template = new openehr_am.ARCHETYPE();
+  const definition = new openehr_am.C_COMPLEX_OBJECT();
+  definition.rm_type_name = "OBSERVATION";
+  definition.node_id = "id1";
+
+  const dataAttr = new openehr_am.C_SINGLE_ATTRIBUTE();
+  dataAttr.rm_attribute_name = "data";
+  const history = new openehr_am.C_COMPLEX_OBJECT();
+  history.rm_type_name = "HISTORY";
+  history.node_id = "id2";
+
+  const eventsAttr = new openehr_am.C_MULTIPLE_ATTRIBUTE();
+  eventsAttr.rm_attribute_name = "events";
+  const event = new openehr_am.C_COMPLEX_OBJECT();
+  event.rm_type_name = "EVENT";
+  event.node_id = "id3";
+
+  const eventDataAttr = new openehr_am.C_SINGLE_ATTRIBUTE();
+  eventDataAttr.rm_attribute_name = "data";
+  const tree = new openehr_am.C_COMPLEX_OBJECT();
+  tree.rm_type_name = "ITEM_TREE";
+  tree.node_id = "id4";
+
+  const itemsAttr = new openehr_am.C_MULTIPLE_ATTRIBUTE();
+  itemsAttr.rm_attribute_name = "items";
+  const element = new openehr_am.C_COMPLEX_OBJECT();
+  element.rm_type_name = "ELEMENT";
+  element.node_id = "id5";
+  const valueAttr = new openehr_am.C_SINGLE_ATTRIBUTE();
+  valueAttr.rm_attribute_name = "value";
+  (element as { attributes: openehr_am.C_ATTRIBUTE[] }).attributes = [valueAttr];
+  (itemsAttr as { children: openehr_am.C_OBJECT[] }).children = [element];
+  (tree as { attributes: openehr_am.C_ATTRIBUTE[] }).attributes = [itemsAttr];
+  (eventDataAttr as { children: openehr_am.C_OBJECT[] }).children = [tree];
+  (event as { attributes: openehr_am.C_ATTRIBUTE[] }).attributes = [eventDataAttr];
+  (eventsAttr as { children: openehr_am.C_OBJECT[] }).children = [event];
+  (history as { attributes: openehr_am.C_ATTRIBUTE[] }).attributes = [eventsAttr];
+  dataAttr.children = [history];
+  definition.attributes = [dataAttr];
+  template.definition = definition;
+
+  const forAll = new openehr_am.ASSERTION();
+  forAll.string_expression =
+    "for_all /data[id2]/events[id3] implies exists /data";
+
+  const instance = {
+    data: {
+      archetype_node_id: "at0002",
+      events: [
+        {
+          archetype_node_id: "at0003",
+          data: { items: [{ value: { magnitude: 1 } }] },
+        },
+        {
+          archetype_node_id: "at0003",
+          data: { items: [{ value: { magnitude: 2 } }] },
+        },
+      ],
+    },
+  };
+
+  const msgs = new InvariantEvaluator({ definition }).validateInvariants(
+    instance,
+    [forAll],
+    definition,
+  );
+  assertEquals(msgs.length, 0);
+});
+
 Deno.test("TemplateValidator - evaluates invariants by default", () => {
   const template = buildObservationWithDataRule();
   const validator = new TemplateValidator({ validateUnits: false });

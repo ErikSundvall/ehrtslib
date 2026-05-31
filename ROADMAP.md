@@ -66,14 +66,17 @@ Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl
 - **BMM survey** — [`tasks/bmm_survey_phase6b.md`](tasks/bmm_survey_phase6b.md) (pins unchanged; AM 2.4.0 JSON authoritative)
 - **Demo app** — Template upload button (`.opt`, `.oet`, `.adl`, `.adls`)
 - **cADL parser fix** — inline `--` comments no longer cause infinite parse loops (flattening fixtures)
+- **Deep ADL 1.4 AOM migration** — ac-code / value_sets; `constraint_definitions` → `term_definitions` merge
+- **OET → operational compile** — `compileOetToOperational()` with path rules + archetype repository + flattener
+- **OPT XML serialize** — `OptXmlSerializer` + round-trip tests on `opt14/`
+- **Expression language** — `for_all` / `there_exists` AST in rules parser + invariant evaluator
+- **ZIP extract in demo** — browser-side unzip via `fflate` for template/archetype folders
+- **Docs** — [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) conversion limit examples
 
-### Remaining
-- **Deep ADL 1.4 AOM migration** — ac-code / value_sets; full `constraint_definitions` merge
-- **OET → operational compile** — apply path rules with archetype repository + flattener
-- **OPT XML serialize** — semantic round-trip (optional)
-- **Expression language** — fuller AST for rare operators
-- **ZIP extract in demo** — browser-side unzip for folders with templates and archetypes
-- Expand [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) with conversion limit examples
+### Remaining (Phase 6b+)
+- OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
+- Archie JVM benchmark script (optional)
+- Full OET compile with CKM archetype bank (needs larger fixture download)
 
 ## Phase 7a
 Exploration of:

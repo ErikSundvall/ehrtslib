@@ -91,6 +91,18 @@ export class RulesParser {
   }
 
   private needsSpaceBetween(a: Token, b: Token): boolean {
+    const keywordAfterPath = new Set([
+      TokenType.IMPLIES,
+      TokenType.FOR_ALL,
+      TokenType.THERE_EXISTS,
+      TokenType.EXISTS,
+      TokenType.AND,
+      TokenType.OR,
+      TokenType.XOR,
+      TokenType.NOT,
+    ]);
+    if (keywordAfterPath.has(b.type)) return true;
+
     const pathGlue = new Set([
       TokenType.LBRACKET,
       TokenType.RBRACKET,
@@ -193,6 +205,18 @@ export class RulesParser {
       return assertion;
     }
 
+    const quantified =
+      /^(for_all|there_exists)\s*(.+?)\s+implies\s*(.+)$/is.exec(text.trim());
+    if (quantified) {
+      assertion.string_expression = text;
+      assertion.expression = this.quantified(
+        quantified[1].toLowerCase() as "for_all" | "there_exists",
+        quantified[2],
+        quantified[3],
+      );
+      return assertion;
+    }
+
     const tagged = /^([A-Za-z_][\w]*)\s*:\s*(.+)$/is.exec(text);
     if (tagged && !RULE_TYPE_NAMES.has(tagged[1])) {
       assertion.tag = tagged[1];
@@ -218,44 +242,94 @@ export class RulesParser {
    * Build a shallow expression tree for common operators; falls back to undefined.
    */
   private parseExpression(text: string): openehr_am.EXPR_ITEM | undefined {
-    const impliesParts = this.splitOutsideParens(text, "implies");
+    const trimmed = text.trim();
+
+    const forAll = /^for_all\s*(.+?)\s+implies\s*(.+)$/is.exec(trimmed);
+    if (forAll) {
+      return this.quantified("for_all", forAll[1], forAll[2]);
+    }
+    const thereExists = /^there_exists\s*(.+?)\s+implies\s*(.+)$/is.exec(trimmed);
+    if (thereExists) {
+      return this.quantified("there_exists", thereExists[1], thereExists[2]);
+    }
+
+    if (trimmed.startsWith("(")) {
+      const inner = this.stripOuterParens(trimmed);
+      if (inner !== trimmed) {
+        return this.parseExpression(inner);
+      }
+    }
+
+    const impliesParts = this.splitOutsideParens(trimmed, "implies");
     if (impliesParts && impliesParts.length === 2) {
       return this.binary("implies", impliesParts[0], impliesParts[1]);
     }
     for (const op of [" or ", " xor ", " and "] as const) {
-      const parts = this.splitOutsideParens(text, op.trim());
+      const parts = this.splitOutsideParens(trimmed, op.trim());
       if (parts && parts.length >= 2) {
         return this.binary(op.trim(), parts[0], parts.slice(1).join(op));
       }
     }
-    const eq = this.splitComparison(text);
+    const eq = this.splitComparison(trimmed);
     if (eq) {
       return this.binary(eq.op, eq.left, eq.right);
     }
-    if (/^exists\s+/i.test(text.trim())) {
-      const path = text.replace(/^exists\s+/i, "").trim();
+    if (/^exists\s+/i.test(trimmed)) {
+      const path = trimmed.replace(/^exists\s+/i, "").trim();
       const leaf = this.pathOrExprLeaf(path);
       leaf.reference_type = "attribute";
       return leaf;
     }
-    if (/^not\s+/i.test(text.trim())) {
-      const inner = text.replace(/^not\s+/i, "").trim();
+    if (/^not\s+/i.test(trimmed)) {
+      const inner = trimmed.replace(/^not\s+/i, "").trim();
       const unary = new openehr_am.EXPR_UNARY_OPERATOR();
       unary.operator = openehr_am.OPERATOR_KIND.from("not");
       unary.operand = this.parseExpression(inner) ?? this.pathOrExprLeaf(inner);
       return unary;
     }
-    const memberOf = /^(.+?)\s+member_of\s+(.+)$/is.exec(text.trim());
+    const memberOf = /^(.+?)\s+member_of\s+(.+)$/is.exec(trimmed);
     if (memberOf) {
       return this.binary("member_of", memberOf[1], memberOf[2]);
     }
-    if (text.trim().startsWith("/") || text.includes("/data[")) {
-      return this.pathOrExprLeaf(text.trim());
+    if (trimmed.startsWith("/") || trimmed.includes("/data[")) {
+      return this.pathOrExprLeaf(trimmed);
     }
-    if (/^\$[A-Za-z_]\w*$/.test(text.trim())) {
-      return this.pathOrExprLeaf(text.trim());
+    if (/^\$[A-Za-z_]\w*$/.test(trimmed)) {
+      return this.pathOrExprLeaf(trimmed);
     }
     return undefined;
+  }
+
+  private stripOuterParens(text: string): string {
+    let e = text.trim();
+    while (e.startsWith("(") && e.endsWith(")")) {
+      let depth = 0;
+      let wrapped = true;
+      for (let i = 0; i < e.length; i++) {
+        if (e[i] === "(") depth++;
+        else if (e[i] === ")") depth--;
+        if (depth === 0 && i < e.length - 1) {
+          wrapped = false;
+          break;
+        }
+      }
+      if (!wrapped) break;
+      e = e.slice(1, -1).trim();
+    }
+    return e;
+  }
+
+  private quantified(
+    op: "for_all" | "there_exists",
+    collectionPath: string,
+    condition: string,
+  ): openehr_am.EXPR_BINARY_OPERATOR {
+    const bin = new openehr_am.EXPR_BINARY_OPERATOR();
+    bin.operator = openehr_am.OPERATOR_KIND.from(op);
+    bin.left_operand = this.pathOrExprLeaf(collectionPath.trim());
+    bin.right_operand = this.parseExpression(condition.trim()) ??
+      this.pathOrExprLeaf(condition.trim());
+    return bin;
   }
 
   private splitComparison(
@@ -281,6 +355,12 @@ export class RulesParser {
       if (c === "(") depth++;
       else if (c === ")") depth--;
       else if (depth === 0 && text.slice(i, i + op.length) === op) {
+        if (op === "=") {
+          if (i > 0 && (text[i - 1] === ">" || text[i - 1] === "<" || text[i - 1] === "!")) {
+            continue;
+          }
+          if (i + 1 < text.length && text[i + 1] === "=") continue;
+        }
         return i;
       }
     }
