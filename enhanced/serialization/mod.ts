@@ -1,7 +1,7 @@
 /**
  * Serialization Module
  * 
- * Main entry point for all serialization formats (JSON, XML, YAML).
+ * Main entry point for all serialization formats (JSON, XML, YAML, Markdown).
  * 
  * This module re-exports all serializers and related utilities.
  * You can import specific formats or use this module to access everything.
@@ -12,7 +12,7 @@
  * import { JsonSerializer } from './enhanced/serialization/json/mod.ts';
  * 
  * // Or import from main module
- * import { JsonSerializer, YamlSerializer } from './enhanced/serialization/mod.ts';
+ * import { JsonSerializer, YamlSerializer, MarkdownSerializer } from './enhanced/serialization/mod.ts';
  * ```
  */
 
@@ -48,6 +48,19 @@ export {
   HYBRID_YAML_CONFIG,
   FLOW_YAML_CONFIG,
 } from './yaml/mod.ts';
+
+// Markdown exports
+export {
+  MarkdownSerializer,
+  type MarkdownSerializationConfig,
+  type MarkdownStyle,
+  type DataValueRendering,
+  type CodeRendering,
+  DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
+  CLINICAL_MARKDOWN_CONFIG,
+  STRUCTURAL_MARKDOWN_CONFIG,
+  COMPACT_MARKDOWN_CONFIG,
+} from './markdown/mod.ts';
 
 // Common utilities
 export {
