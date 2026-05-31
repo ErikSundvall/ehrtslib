@@ -216,7 +216,7 @@ function setupEventListeners() {
  * Set up listeners for output format checkboxes to toggle tabs
  */
 function setupOutputVisibilityListeners() {
-  const formats = ['xml', 'json', 'yaml', 'typescript'];
+  const formats = ['xml', 'json', 'yaml', 'typescript', 'flat', 'structured', 'webtemplate'];
 
   formats.forEach(format => {
     const checkbox = document.getElementById(`output-${format}`) as HTMLInputElement;
@@ -834,6 +834,15 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
     outputFormats.push('typescript');
   }
+  if ((document.getElementById('output-flat') as HTMLInputElement)?.checked) {
+    outputFormats.push('flat');
+  }
+  if ((document.getElementById('output-structured') as HTMLInputElement)?.checked) {
+    outputFormats.push('structured');
+  }
+  if ((document.getElementById('output-webtemplate') as HTMLInputElement)?.checked) {
+    outputFormats.push('webtemplate');
+  }
 
   // JSON serializer type and config
   const jsonSerializerType = ((document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable') as 'canonical' | 'configurable';
@@ -940,6 +949,21 @@ function updateOutputs(outputs: Record<string, string>) {
     if (tsContent) {
       tsContent.textContent = outputs.typescript;
     }
+  }
+
+  if (outputs.flat) {
+    const flatContent = document.getElementById('output-flat-content');
+    if (flatContent) flatContent.textContent = outputs.flat;
+  }
+
+  if (outputs.structured) {
+    const structuredContent = document.getElementById('output-structured-content');
+    if (structuredContent) structuredContent.textContent = outputs.structured;
+  }
+
+  if (outputs.webtemplate) {
+    const wtContent = document.getElementById('output-webtemplate-content');
+    if (wtContent) wtContent.textContent = outputs.webtemplate;
   }
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();

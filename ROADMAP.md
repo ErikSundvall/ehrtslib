@@ -78,17 +78,23 @@ Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl
 - Archie JVM benchmark script (optional)
 - Full OET compile with CKM archetype bank (needs larger fixture download)
 
-## Phase 7a
-Exploration of:
-Serialisation and deserialisation of RM object instance trees to and from
-openEHRs simplified JSON formats (likely using other already existing library if
-it can be made fairly dependency free)
+## Phase 7a — Done
+Exploration of serialisation and deserialisation of RM object instance trees to and from
+openEHR simplified JSON formats (FLAT, STRUCTURED via Web Template).
 
-## Phase 7b
+Implemented `deserializeFromFlat`, `deserializeFromStructured`, and `structuredToFlat` in
+`enhanced/serialization/simplified/`. Round-trip tests in `tests/serialization/simplified/roundtrip.test.ts`
+cover canonical JSON ↔ FLAT/STRUCTURED via Web Template.
+
+## Phase 7b — ✅ (done)
 Explore other Simplified openEHR template specific forms of instance tree creation and
-validation. (Take inspiration from Archie and openEHR's simplified formats and
-"web template" but also allow ADL2 flattened templates as validatiadl-toolson
-source).
+validation. (Take inspiration from Archie and openEHR's simplified formats using
+"web template"-based formalisms)
+Create library functionality and make sure the demo tool also allows convertion at least TO the different simplified formats
+
+Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
+
+## Phase X - dist and docs
 
 - One version of this code needs to be small so that it can fit and be run
   eficiently inside form engines etc.
@@ -96,7 +102,6 @@ source).
   updated using Y.js or
 - Create build step to genenrate minivfed and web component versions
 
-## Phase X - dist and docs
 
 Create /dist directory and subdirectories with different distributions for
 targeted purposes for example

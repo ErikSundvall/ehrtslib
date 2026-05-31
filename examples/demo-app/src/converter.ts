@@ -46,7 +46,12 @@ import {
   type TypeScriptConstructorSerializationConfig,
 } from '../../../enhanced/serialization/typescript/mod.ts';
 
-import { parseAdl, parseTemplateInput, getOperationalTemplateFromInput } from '../../../enhanced/parser/mod.ts';
+import {
+  buildWebTemplate,
+  serializeToFlatJson,
+  serializeToStructuredJson,
+} from '../../../enhanced/serialization/simplified/mod.ts';
+import { parseTemplateInput, getOperationalTemplateFromInput } from '../../../enhanced/parser/mod.ts';
 import {
   RMInstanceGenerator,
   TypeScriptGenerator,
@@ -99,7 +104,7 @@ export type TemplateGenerationMode = GenerationMode;
 /**
  * Output format types
  */
-export type OutputFormat = 'xml' | 'json' | 'yaml' | 'typescript';
+export type OutputFormat = 'xml' | 'json' | 'yaml' | 'typescript' | 'flat' | 'structured' | 'webtemplate';
 
 /**
  * Conversion options
@@ -127,6 +132,9 @@ export interface ConversionResult {
     json?: string;
     yaml?: string;
     typescript?: string;
+    flat?: string;
+    structured?: string;
+    webtemplate?: string;
   };
   error?: string;
   errorDetails?: any;
@@ -213,6 +221,7 @@ function convertTemplateInput(
   });
 
   const generatedInstance = generator.generate(template);
+  const webTemplate = buildWebTemplate(template);
   const outputs: Record<string, string> = {};
 
   for (const format of options.outputFormats) {
@@ -231,6 +240,15 @@ function convertTemplateInput(
         outputs.typescript = tsGenerator.generate(template);
         break;
       }
+      case 'flat':
+        outputs.flat = serializeToFlatJson(generatedInstance, webTemplate, { prettyPrint: true });
+        break;
+      case 'structured':
+        outputs.structured = serializeToStructuredJson(generatedInstance, webTemplate, { prettyPrint: true });
+        break;
+      case 'webtemplate':
+        outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
+        break;
     }
   }
 

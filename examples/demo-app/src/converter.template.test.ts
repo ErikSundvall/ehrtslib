@@ -73,3 +73,37 @@ Deno.test("convert template input generates RM example outputs and TypeScript st
   assertEquals(generatedJson._type, "COMPOSITION");
   assert(result.outputs?.typescript?.includes("export interface"));
 });
+
+Deno.test("convert template input generates simplified format outputs", async () => {
+  const result = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["flat", "structured", "webtemplate"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(result.success, true);
+  assert(result.outputs?.flat);
+  assert(result.outputs?.structured);
+  assert(result.outputs?.webtemplate);
+  assert(JSON.parse(result.outputs?.flat || "{}")["ctx/language"]);
+  assert(JSON.parse(result.outputs?.webtemplate || "{}").templateId);
+});
