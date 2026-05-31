@@ -54,7 +54,7 @@ Serialisation and deserialisation of RM object instance tree examples (and assoc
 Follow-up enhancements after Phase 5b AM/ADL MVP (non-blocking).
 
 ### ADL / AOM
-- **Deep ADL 1.4 AOM migration** — ac-code / value_sets reshaping per openEHR conversion guide; full `constraint_definitions` merge into `term_definitions`; use ADL Workbench for difficult legacy artefacts
+- **Deep ADL 1.4 AOM migration** — ac-code / value_sets reshaping per openEHR conversion guide; full `constraint_definitions` merge into `term_definitions`; use ADL Workbench for difficult legacy artefacts → see [`tasks/prd-phase6b-adl14-full-roundtrip.md`](tasks/prd-phase6b-adl14-full-roundtrip.md)
 - **Expression language** — fuller AST for rare operators and nested forms (beyond current `string_expression` + MVP tree)
 - **ADL 1.4 regression suite** — curated `.adl` fixtures and round-trip tests beyond the minimal `test_data/adl14/` sample
 

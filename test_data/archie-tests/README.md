@@ -57,6 +57,10 @@ Both Archie and ehrtslib use the Apache License 2.0, ensuring compatibility. All
 - `basics/` - Basic ADL2 structure and minimal archetype tests
 - `structures/` - Complex nested structures and cardinality tests
 - `terminology/` - Terminology binding and code validation tests
+- `flattening/` - ADL2 source templates for operational flattening / OPT2 scenarios (from Archie `features/flattening/`)
+- `validity-templates/` - Template validity edge cases (from Archie `validity/templates/`)
+
+See also [`../README.md`](../README.md) for `adl2/templates/`, `opt14/`, and fixture refresh scripts.
 
 ## Usage in Tests
 
