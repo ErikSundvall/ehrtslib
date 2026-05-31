@@ -1,59 +1,61 @@
 /**
- * Markdown Serializer for openEHR RM Objects
+ * AsciiDoc Serializer for openEHR RM Objects
  * 
- * Converts openEHR Reference Model instances to token-efficient Markdown
- * representations suitable for LLM context windows.
+ * Converts openEHR Reference Model instances to AsciiDoc representations.
  * 
- * Three variants are supported:
- * 1. **Clinical** - Human-readable clinical documents (lossy)
- * 2. **Structural** - Lossless format (round-trippable with template)
- * 3. **Compact** - Maximum token efficiency (lossy)
+ * Two variants are supported:
+ * 1. **Compact** - Human-readable documents (lossy, good for display)
+ * 2. **Lossless** - Full round-trip format (reconstructable with template)
  * 
  * The structural mapping is:
- * - COMPOSITION → Document (H1 = composition name)
- * - SECTION → Headings (H2, H3...)
+ * - COMPOSITION → Document (= composition name)
+ * - SECTION → Headings (==, ===, ...)
  * - ENTRY types (OBSERVATION, EVALUATION, etc.) → Headings or bold items
  * - CLUSTER → Nested lists or sub-headings
  * - ELEMENT → List items with values
  * - DATA_VALUE subtypes → Inline formatted values
+ * 
+ * Lossless mode uses:
+ * - AsciiDoc comments (`// node-id`) for archetype_node_ids
+ * - Document attributes for metadata
+ * - openEHR URN-based cross-references for archetype links
  */
 
 import { TypeRegistry } from '../common/type_registry.ts';
-import { TypeInferenceEngine } from '../common/type_inference.ts';
 import { SerializationError } from '../common/errors.ts';
 import {
   toTerseCodePhrase,
   toTerseDvCodedText,
 } from '../../terse_format.ts';
 import {
-  MarkdownSerializationConfig,
-  DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
-} from './markdown_config.ts';
+  AsciidocSerializationConfig,
+  DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+} from './asciidoc_config.ts';
 
 /**
- * Markdown Serializer for openEHR RM objects
+ * AsciiDoc Serializer for openEHR RM objects
  * 
  * @example
  * ```typescript
- * import { MarkdownSerializer } from './enhanced/serialization/markdown/mod.ts';
- * import { CLINICAL_MARKDOWN_CONFIG } from './enhanced/serialization/markdown/mod.ts';
+ * import { AsciidocSerializer } from './enhanced/serialization/asciidoc/mod.ts';
+ * import { COMPACT_ASCIIDOC_CONFIG } from './enhanced/serialization/asciidoc/mod.ts';
  * 
- * const serializer = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
- * const markdown = serializer.serialize(composition);
+ * const serializer = new AsciidocSerializer(COMPACT_ASCIIDOC_CONFIG);
+ * const adoc = serializer.serialize(composition);
  * ```
  */
-export class MarkdownSerializer {
-  private config: Required<MarkdownSerializationConfig>;
+export class AsciidocSerializer {
+  private config: Required<AsciidocSerializationConfig>;
 
-  constructor(config: MarkdownSerializationConfig = {}) {
-    this.config = { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...config };
+  constructor(config: AsciidocSerializationConfig = {}) {
+    this.config = { ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG, ...config };
   }
 
   /**
-   * Serialize an RM object to Markdown string
+   * Serialize an RM object to AsciiDoc string
    * 
    * @param obj - The openEHR RM object to serialize
-   * @returns Markdown string
+   * @returns AsciiDoc string
    * @throws SerializationError if serialization fails
    */
   serialize(obj: any): string {
@@ -64,20 +66,20 @@ export class MarkdownSerializer {
       if (typeName === 'COMPOSITION') {
         this.serializeComposition(obj, lines);
       } else if (typeName === 'SECTION') {
-        this.serializeSection(obj, lines, 1);
+        this.serializeSection(obj, lines, 2);
       } else if (this.isEntryType(typeName)) {
-        this.serializeEntry(obj, typeName, lines, 1);
+        this.serializeEntry(obj, typeName, lines, 2);
       } else if (this.isItemStructureType(typeName)) {
-        this.serializeItemStructure(obj, lines, 1);
+        this.serializeItemStructure(obj, lines, 2);
       } else {
         // Non-composition objects: serialize as standalone
-        this.serializeNode(obj, typeName, lines, 1);
+        this.serializeNode(obj, typeName, lines, 2);
       }
 
       return lines.join('\n') + '\n';
     } catch (error) {
       throw new SerializationError(
-        `Failed to serialize to Markdown: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to serialize to AsciiDoc: ${error instanceof Error ? error.message : String(error)}`,
         obj,
         error instanceof Error ? error : undefined
       );
@@ -87,23 +89,24 @@ export class MarkdownSerializer {
   /**
    * Serialize with a specific configuration (one-time use)
    */
-  static serializeWith(obj: any, config: MarkdownSerializationConfig): string {
-    const serializer = new MarkdownSerializer(config);
+  static serializeWith(obj: any, config: AsciidocSerializationConfig): string {
+    const serializer = new AsciidocSerializer(config);
     return serializer.serialize(obj);
   }
 
   // ─── COMPOSITION ─────────────────────────────────────────────────────
 
   private serializeComposition(comp: any, lines: string[]): void {
-    // YAML Frontmatter
-    if (this.config.includeFrontmatter) {
-      this.writeFrontmatter(comp, lines);
+    // Document header with attributes
+    if (this.config.includeHeader) {
+      this.writeHeader(comp, lines);
     }
 
-    // H1: Composition name
+    // = Composition name (level 1 heading)
     const name = this.extractName(comp);
-    const nodeIdAnnotation = this.formatNodeIdAnnotation(comp);
-    lines.push(`# ${name}${nodeIdAnnotation}`);
+    const nodeIdAnnotation = this.formatNodeIdComment(comp);
+    if (nodeIdAnnotation) lines.push(nodeIdAnnotation);
+    lines.push(`= ${name}`);
     lines.push('');
 
     // Context (if present)
@@ -119,13 +122,14 @@ export class MarkdownSerializer {
     }
   }
 
-  private writeFrontmatter(comp: any, lines: string[]): void {
-    lines.push('---');
+  private writeHeader(comp: any, lines: string[]): void {
+    // AsciiDoc document attributes
+    lines.push('// openEHR Composition');
 
     // UID
     if (comp.uid) {
       const uidValue = typeof comp.uid === 'object' ? comp.uid.value : comp.uid;
-      if (uidValue) lines.push(`uid: "${uidValue}"`);
+      if (uidValue) lines.push(`:uid: ${uidValue}`);
     }
 
     // Template
@@ -133,7 +137,7 @@ export class MarkdownSerializer {
       const tmplValue = typeof comp.archetype_details.template_id === 'object'
         ? comp.archetype_details.template_id.value
         : comp.archetype_details.template_id;
-      if (tmplValue) lines.push(`template_id: "${tmplValue}"`);
+      if (tmplValue) lines.push(`:template-id: ${tmplValue}`);
     }
 
     // Archetype ID
@@ -141,29 +145,28 @@ export class MarkdownSerializer {
       const archValue = typeof comp.archetype_details.archetype_id === 'object'
         ? comp.archetype_details.archetype_id.value
         : comp.archetype_details.archetype_id;
-      if (archValue) lines.push(`archetype_id: "${archValue}"`);
+      if (archValue) lines.push(`:archetype-id: ${archValue}`);
     }
 
     // Composer
     if (comp.composer) {
       const composerName = this.extractPartyName(comp.composer);
-      if (composerName) lines.push(`composer: "${composerName}"`);
+      if (composerName) lines.push(`:composer: ${composerName}`);
     }
 
     // Composition metadata
     if (this.config.includeCompositionMetadata) {
       if (comp.language) {
-        lines.push(`language: "${this.formatCodePhrase(comp.language)}"`);
+        lines.push(`:language: ${this.formatCodePhrase(comp.language)}`);
       }
       if (comp.territory) {
-        lines.push(`territory: "${this.formatCodePhrase(comp.territory)}"`);
+        lines.push(`:territory: ${this.formatCodePhrase(comp.territory)}`);
       }
       if (comp.category) {
-        lines.push(`category: "${this.formatDvCodedText(comp.category)}"`);
+        lines.push(`:category: ${this.formatDvCodedText(comp.category)}`);
       }
     }
 
-    lines.push('---');
     lines.push('');
   }
 
@@ -173,21 +176,21 @@ export class MarkdownSerializer {
     const parts: string[] = [];
 
     if (ctx.start_time) {
-      parts.push(`**Date:** ${this.formatDateTime(ctx.start_time)}`);
+      parts.push(`*Date:* ${this.formatDateTime(ctx.start_time)}`);
     }
     if (ctx.end_time) {
-      parts.push(`**End:** ${this.formatDateTime(ctx.end_time)}`);
+      parts.push(`*End:* ${this.formatDateTime(ctx.end_time)}`);
     }
     if (ctx.location) {
       const loc = typeof ctx.location === 'string' ? ctx.location : ctx.location?.value;
-      if (loc) parts.push(`**Location:** ${loc}`);
+      if (loc) parts.push(`*Location:* ${loc}`);
     }
     if (ctx.setting) {
-      parts.push(`**Setting:** ${this.formatDvCodedText(ctx.setting)}`);
+      parts.push(`*Setting:* ${this.formatDvCodedText(ctx.setting)}`);
     }
     if (ctx.health_care_facility) {
       const facName = this.extractPartyName(ctx.health_care_facility);
-      if (facName) parts.push(`**Facility:** ${facName}`);
+      if (facName) parts.push(`*Facility:* ${facName}`);
     }
 
     if (parts.length > 0) {
@@ -195,7 +198,7 @@ export class MarkdownSerializer {
         lines.push(parts.join(' | '));
       } else {
         for (const part of parts) {
-          lines.push(part + '  ');
+          lines.push(part + ' +');
         }
       }
       lines.push('');
@@ -224,9 +227,10 @@ export class MarkdownSerializer {
 
   private serializeSection(section: any, lines: string[], depth: number): void {
     const name = this.extractName(section);
-    const nodeId = this.formatNodeIdAnnotation(section);
+    const nodeId = this.formatNodeIdComment(section);
 
-    this.writeHeading(name + nodeId, depth, lines);
+    if (nodeId) lines.push(nodeId);
+    this.writeHeading(name, depth, lines);
     lines.push('');
 
     if (section.items && Array.isArray(section.items)) {
@@ -238,19 +242,21 @@ export class MarkdownSerializer {
 
   private serializeEntry(entry: any, typeName: string | undefined, lines: string[], depth: number): void {
     const name = this.extractName(entry);
-    const nodeId = this.formatNodeIdAnnotation(entry);
+    const nodeId = this.formatNodeIdComment(entry);
     const typeAnnotation = this.formatTypeAnnotation(typeName);
 
-    this.writeHeading(name + typeAnnotation + nodeId, depth, lines);
+    if (nodeId) lines.push(nodeId);
+    const headingText = typeAnnotation ? `${name} ${typeAnnotation}` : name;
+    this.writeHeading(headingText, depth, lines);
     lines.push('');
 
     // Entry-level metadata (if not redundant)
     if (this.config.includeRedundantEntryMetadata) {
       if (entry.language) {
-        lines.push(`- _language:_ ${this.formatCodePhrase(entry.language)}`);
+        lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
       }
       if (entry.encoding) {
-        lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
+        lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       }
     }
 
@@ -279,15 +285,12 @@ export class MarkdownSerializer {
   // ─── ENTRY TYPE SERIALIZERS ──────────────────────────────────────────
 
   private serializeObservation(obs: any, lines: string[], depth: number): void {
-    // data (History)
     if (obs.data) {
       this.serializeHistory(obs.data, 'Data', lines, depth);
     }
-    // state (History)
     if (obs.state) {
       this.serializeHistory(obs.state, 'State', lines, depth);
     }
-    // protocol
     if (obs.protocol) {
       this.serializeNamedItemStructure(obs.protocol, 'Protocol', lines, depth);
     }
@@ -305,7 +308,10 @@ export class MarkdownSerializer {
   private serializeInstruction(instr: any, lines: string[], depth: number): void {
     if (instr.narrative) {
       const narrative = this.formatDvText(instr.narrative);
-      lines.push(`> ${narrative}`);
+      lines.push(`[quote]`);
+      lines.push(`____`);
+      lines.push(narrative);
+      lines.push(`____`);
       lines.push('');
     }
     if (instr.activities && Array.isArray(instr.activities)) {
@@ -320,7 +326,7 @@ export class MarkdownSerializer {
 
   private serializeAction(action: any, lines: string[], depth: number): void {
     if (action.time) {
-      lines.push(`- _time:_ ${this.formatDateTime(action.time)}`);
+      lines.push(`* _time:_ ${this.formatDateTime(action.time)}`);
     }
     if (action.ism_transition) {
       this.serializeIsmTransition(action.ism_transition, lines);
@@ -348,14 +354,14 @@ export class MarkdownSerializer {
   private serializeActivity(activity: any, lines: string[], depth: number): void {
     const name = this.extractName(activity);
     if (name && name !== 'Activity') {
-      lines.push(`**${name}**`);
+      lines.push(`*${name}*`);
       lines.push('');
     }
     if (activity.description) {
       this.serializeItemStructure(activity.description, lines, depth);
     }
     if (activity.timing) {
-      lines.push(`- _timing:_ ${this.formatDvParsable(activity.timing)}`);
+      lines.push(`* _timing:_ ${this.formatDvParsable(activity.timing)}`);
     }
   }
 
@@ -371,26 +377,23 @@ export class MarkdownSerializer {
       parts.push(`step: ${this.formatDvCodedText(ism.careflow_step)}`);
     }
     if (parts.length > 0) {
-      lines.push(`- _ISM:_ ${parts.join(', ')}`);
+      lines.push(`* _ISM:_ ${parts.join(', ')}`);
     }
   }
 
   // ─── HISTORY ─────────────────────────────────────────────────────────
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
-    // History origin
     if (history.origin && this.config.style !== 'compact') {
-      lines.push(`- _origin:_ ${this.formatDateTime(history.origin)}`);
+      lines.push(`* _origin:_ ${this.formatDateTime(history.origin)}`);
     }
 
-    // Events
     if (history.events && Array.isArray(history.events)) {
       for (const event of history.events) {
         this.serializeEvent(event, lines, depth);
       }
     }
 
-    // Summary
     if (history.summary) {
       this.serializeNamedItemStructure(history.summary, 'Summary', lines, depth);
     }
@@ -398,34 +401,31 @@ export class MarkdownSerializer {
 
   private serializeEvent(event: any, lines: string[], depth: number): void {
     const name = this.extractName(event);
-    const nodeId = this.formatNodeIdAnnotation(event);
+    const nodeId = this.formatNodeIdComment(event);
     const typeName = this.getTypeName(event);
 
     // For single "Any event" we skip the heading in compact mode
     if (this.config.style !== 'compact' || name !== 'Any event') {
       if (name) {
         const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
-        lines.push(`**${name}**${typeAnn}${nodeId}`);
+        if (nodeId) lines.push(nodeId);
+        lines.push(`*${name}*${typeAnn}`);
         lines.push('');
       }
     }
 
-    // Time
     if (event.time && this.config.style !== 'compact') {
-      lines.push(`- _time:_ ${this.formatDateTime(event.time)}`);
+      lines.push(`* _time:_ ${this.formatDateTime(event.time)}`);
     }
 
-    // Width (for INTERVAL_EVENT)
     if (event.width) {
-      lines.push(`- _width:_ ${this.formatDuration(event.width)}`);
+      lines.push(`* _width:_ ${this.formatDuration(event.width)}`);
     }
 
-    // Data
     if (event.data) {
       this.serializeItemStructure(event.data, lines, depth);
     }
 
-    // State
     if (event.state) {
       this.serializeNamedItemStructure(event.state, 'State', lines, depth);
     }
@@ -435,10 +435,9 @@ export class MarkdownSerializer {
 
   private serializeNamedItemStructure(itemStruct: any, label: string, lines: string[], depth: number): void {
     if (this.config.style === 'compact') {
-      // Skip labels in compact mode
       this.serializeItemStructure(itemStruct, lines, depth);
     } else {
-      lines.push(`**${label}:**`);
+      lines.push(`*${label}:*`);
       lines.push('');
       this.serializeItemStructure(itemStruct, lines, depth);
     }
@@ -451,7 +450,6 @@ export class MarkdownSerializer {
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        // In clinical mode with table rendering, try to render as table
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
@@ -463,7 +461,6 @@ export class MarkdownSerializer {
         this.serializeItem(itemStruct.item, lines, 0);
       }
     } else {
-      // Unknown structure - try items
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         this.serializeItems(itemStruct.items, lines, 0);
       }
@@ -484,19 +481,18 @@ export class MarkdownSerializer {
     } else if (typeName === 'ELEMENT') {
       this.serializeElement(item, lines, nestLevel);
     } else {
-      // Unknown item type
       const name = this.extractName(item);
-      const indent = this.getIndent(nestLevel);
-      lines.push(`${indent}- ${name || '(unknown)'}`);
+      const indent = this.getListPrefix(nestLevel);
+      lines.push(`${indent} ${name || '(unknown)'}`);
     }
   }
 
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
-    const nodeId = this.formatNodeIdAnnotation(cluster);
-    const indent = this.getIndent(nestLevel);
+    const nodeId = this.formatNodeIdInline(cluster);
+    const indent = this.getListPrefix(nestLevel);
 
-    lines.push(`${indent}- **${name}**${nodeId}`);
+    lines.push(`${indent} *${name}*${nodeId}`);
 
     if (cluster.items && Array.isArray(cluster.items)) {
       this.serializeItems(cluster.items, lines, nestLevel + 1);
@@ -505,16 +501,15 @@ export class MarkdownSerializer {
 
   private serializeElement(element: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(element);
-    const nodeId = this.formatNodeIdAnnotation(element);
-    const indent = this.getIndent(nestLevel);
+    const nodeId = this.formatNodeIdInline(element);
+    const indent = this.getListPrefix(nestLevel);
 
     if (element.value === undefined || element.value === null) {
-      // Null element
       if (this.config.includeNullFlavour && element.null_flavour) {
         const nullStr = this.formatDvCodedText(element.null_flavour);
-        lines.push(`${indent}- ${name}: _${nullStr}_${nodeId}`);
+        lines.push(`${indent} ${name}: _${nullStr}_${nodeId}`);
       } else if (this.config.includeEmptyFields) {
-        lines.push(`${indent}- ${name}: —${nodeId}`);
+        lines.push(`${indent} ${name}: —${nodeId}`);
       }
       return;
     }
@@ -522,16 +517,15 @@ export class MarkdownSerializer {
     const valueStr = this.formatDataValue(element.value);
 
     if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent}- ${name}: ${valueStr}${nodeId}`);
+      lines.push(`${indent} ${name}: ${valueStr}${nodeId}`);
     } else {
-      lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}`);
+      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}`);
     }
   }
 
   // ─── TABLE RENDERING ─────────────────────────────────────────────────
 
   private canRenderAsTable(items: any[]): boolean {
-    // Can render as table if all items are ELEMENTs (no nested CLUSTERs)
     return items.every(item => {
       const typeName = this.getTypeName(item);
       return typeName === 'ELEMENT';
@@ -539,32 +533,40 @@ export class MarkdownSerializer {
   }
 
   private renderItemsAsTable(items: any[], lines: string[]): void {
-    // Determine if we need a code column
     const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
       return item.value && this.getDataValueCode(item.value);
     });
 
-    // Header
+    // AsciiDoc table syntax
     if (hasCode) {
-      lines.push('| Item | Value | Code |');
-      lines.push('| :--- | :--- | :--- |');
+      lines.push('[cols="2,2,1", options="header"]');
     } else {
-      lines.push('| Item | Value |');
-      lines.push('| :--- | :--- |');
+      lines.push('[cols="1,2", options="header"]');
     }
+    lines.push('|===');
 
-    // Rows
+    // Header row
+    if (hasCode) {
+      lines.push('| Item | Value | Code');
+    } else {
+      lines.push('| Item | Value');
+    }
+    lines.push('');
+
+    // Data rows
     for (const item of items) {
       const name = this.extractName(item);
       const valueStr = item.value ? this.formatDataValueForTable(item.value) : '—';
       const code = hasCode ? this.getDataValueCode(item.value) || '' : '';
 
       if (hasCode) {
-        lines.push(`| ${name} | ${valueStr} | ${code} |`);
+        lines.push(`| ${name} | ${valueStr} | ${code}`);
       } else {
-        lines.push(`| ${name} | ${valueStr} |`);
+        lines.push(`| ${name} | ${valueStr}`);
       }
     }
+
+    lines.push('|===');
     lines.push('');
   }
 
@@ -608,7 +610,6 @@ export class MarkdownSerializer {
       case 'DV_MULTIMEDIA':
         return this.formatDvMultimedia(dv);
       default:
-        // Fallback: try to extract a value
         if (dv.value !== undefined) {
           return String(dv.value);
         }
@@ -620,7 +621,6 @@ export class MarkdownSerializer {
   }
 
   private formatDataValueForTable(dv: any): string {
-    // For table cells, we strip terminology codes (they go in code column)
     if (!dv) return '—';
     const typeName = this.getTypeName(dv);
 
@@ -668,21 +668,12 @@ export class MarkdownSerializer {
     if (ct.defining_code && this.config.codeRendering !== 'hidden') {
       const code = this.formatCodeReference(ct.defining_code);
       switch (this.config.codeRendering) {
-        case 'wikilink':
-          return `[[${text}]] ${code}`;
-        case 'wikilink_urn': {
-          const termId = ct.defining_code.terminology_id?.value || '';
-          const codeStr = ct.defining_code.code_string || '';
-          // Use openEHR URN format for wikilinks where applicable
-          if (termId && codeStr) {
-            return `[[urn:openehr:term:${termId}::${codeStr}|${text}]]`;
-          }
-          return `[[${text}]]`;
-        }
+        case 'macro':
+          return `${text} term:${ct.defining_code.terminology_id?.value || ''}[${ct.defining_code.code_string || ''}]`;
         case 'inline_bracket':
           return `${text} ${code}`;
         case 'footnote':
-          return `${text}[^${code}]`;
+          return `${text} footnote:[${code}]`;
         default:
           return text;
       }
@@ -730,7 +721,7 @@ export class MarkdownSerializer {
   private formatDvProportion(dv: any): string {
     const num = dv.numerator ?? '';
     const den = dv.denominator ?? '';
-    if (dv.type === 2) return `${num}%`; // Percent
+    if (dv.type === 2) return `${num}%`;
     return `${num}/${den}`;
   }
 
@@ -782,8 +773,8 @@ export class MarkdownSerializer {
     const code = cp.code_string || '';
 
     switch (this.config.codeRendering) {
-      case 'wikilink':
-        return `[${termId}:${code}]`;
+      case 'macro':
+        return `term:${termId}[${code}]`;
       case 'inline_bracket':
         return `[${termId}::${code}]`;
       case 'footnote':
@@ -797,14 +788,14 @@ export class MarkdownSerializer {
 
   private serializeNode(obj: any, typeName: string | undefined, lines: string[], depth: number): void {
     const name = this.extractName(obj);
-    const nodeId = this.formatNodeIdAnnotation(obj);
+    const nodeId = this.formatNodeIdComment(obj);
 
     if (name) {
-      this.writeHeading(name + nodeId, depth, lines);
+      if (nodeId) lines.push(nodeId);
+      this.writeHeading(name, depth, lines);
       lines.push('');
     }
 
-    // Try to serialize based on common patterns
     if (obj.items && Array.isArray(obj.items)) {
       this.serializeItems(obj.items, lines, 0);
     } else if (obj.value !== undefined && typeof obj.value !== 'object') {
@@ -817,19 +808,13 @@ export class MarkdownSerializer {
 
   private getTypeName(obj: any): string | undefined {
     if (!obj || typeof obj !== 'object') return undefined;
-
-    // Check _type property first (from plain objects / deserialized)
     if (obj._type) return obj._type;
-
-    // Try TypeRegistry
     return TypeRegistry.getTypeNameFromInstance(obj);
   }
 
   private extractName(obj: any): string {
     if (!obj) return '';
     if (!obj.name) return '';
-
-    // name is typically DV_TEXT with a .value
     if (typeof obj.name === 'string') return obj.name;
     if (typeof obj.name === 'object' && obj.name.value) return obj.name.value;
     return '';
@@ -838,49 +823,74 @@ export class MarkdownSerializer {
   private extractPartyName(party: any): string {
     if (!party) return '';
     if (party.name) return party.name;
-    // PARTY_IDENTIFIED has external_ref sometimes
     if (party.external_ref?.id?.value) return party.external_ref.id.value;
     return '';
   }
 
-  private formatNodeIdAnnotation(obj: any): string {
+  /**
+   * Format archetype_node_id as an AsciiDoc comment line
+   */
+  private formatNodeIdComment(obj: any): string {
     if (!this.config.includeArchetypeNodeIds) return '';
     const nodeId = obj?.archetype_node_id;
     if (!nodeId) return '';
 
-    // Use openEHR URN wikilinks when configured
-    if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(nodeId)) {
-      const name = this.extractName(obj);
-      return ` [[urn:openehr:am:org.openehr::${nodeId}|${name || nodeId}]]`;
+    switch (this.config.nodeIdRendering) {
+      case 'comment':
+        if (this.config.useOpenehrUrnLinks && this.isArchetypeId(nodeId)) {
+          return `// ${this.toOpenehrUrn(nodeId)}`;
+        }
+        return `// ${nodeId}`;
+      case 'attribute':
+        return `:node-id: ${nodeId}`;
+      case 'inline_comment':
+        // Will be appended inline - handled separately
+        return '';
+      default:
+        return '';
     }
+  }
 
-    // Use HTML comment for structural, inline for others
-    if (this.config.style === 'structural') {
-      return ` <!-- ${nodeId} -->`;
+  /**
+   * Format archetype_node_id for inline use (within list items)
+   */
+  private formatNodeIdInline(obj: any): string {
+    if (!this.config.includeArchetypeNodeIds) return '';
+    const nodeId = obj?.archetype_node_id;
+    if (!nodeId) return '';
+
+    switch (this.config.nodeIdRendering) {
+      case 'inline_comment':
+        return ` // ${nodeId}`;
+      case 'comment':
+        // For inline context in lossless mode, use a trailing comment marker
+        if (this.config.useOpenehrUrnLinks && this.isArchetypeId(nodeId)) {
+          return ` // ${this.toOpenehrUrn(nodeId)}`;
+        }
+        return ` // ${nodeId}`;
+      default:
+        return '';
     }
-    return '';
   }
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
-    if (this.config.style === 'structural') {
-      return ` _[${typeName}]_`;
-    }
-    return '';
+    return `_[${typeName}]_`;
   }
 
   private writeHeading(text: string, depth: number, lines: string[]): void {
     if (depth <= this.config.maxHeadingDepth) {
-      const hashes = '#'.repeat(depth);
-      lines.push(`${hashes} ${text}`);
+      const equals = '='.repeat(depth);
+      lines.push(`${equals} ${text}`);
     } else {
       // Beyond max heading depth, use bold
-      lines.push(`**${text}**`);
+      lines.push(`*${text}*`);
     }
   }
 
-  private getIndent(nestLevel: number): string {
-    return ' '.repeat(nestLevel * this.config.indent);
+  private getListPrefix(nestLevel: number): string {
+    // AsciiDoc uses * for list items, ** for nested, *** for deeper
+    return '*'.repeat(nestLevel + 1);
   }
 
   private isEntryType(typeName: string | undefined): boolean {
@@ -898,5 +908,14 @@ export class MarkdownSerializer {
    */
   private isArchetypeId(nodeId: string): boolean {
     return nodeId.startsWith('openEHR-');
+  }
+
+  /**
+   * Convert an archetype ID to an openEHR URN
+   * e.g., openEHR-EHR-OBSERVATION.blood_pressure.v2 
+   *   → urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2
+   */
+  private toOpenehrUrn(archetypeId: string): string {
+    return `urn:openehr:am:org.openehr::${archetypeId}`;
   }
 }

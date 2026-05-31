@@ -26,7 +26,7 @@ export type DataValueRendering = 'inline' | 'table' | 'list';
 /**
  * How to represent terminology codes
  */
-export type CodeRendering = 'hidden' | 'inline_bracket' | 'wikilink' | 'footnote';
+export type CodeRendering = 'hidden' | 'inline_bracket' | 'wikilink' | 'wikilink_urn' | 'footnote';
 
 /**
  * Configuration options for Markdown serialization
@@ -121,6 +121,20 @@ export interface MarkdownSerializationConfig {
    * @default 2
    */
   indent?: number;
+
+  /**
+   * Use openEHR URN-based wikilinks for archetype references
+   * e.g., [[urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|Blood pressure]]
+   * @default false
+   */
+  useOpenehrUrnWikilinks?: boolean;
+
+  /**
+   * Hide type annotations when rendered (only show if lossless/structural)
+   * When true, type annotations are omitted from headings for cleaner display
+   * @default false
+   */
+  hideTypeAnnotationsForDisplay?: boolean;
 }
 
 /**
@@ -141,6 +155,8 @@ export const DEFAULT_MARKDOWN_SERIALIZATION_CONFIG: Required<MarkdownSerializati
   includeEmptyFields: false,
   useTypeInference: true,
   indent: 2,
+  useOpenehrUrnWikilinks: false,
+  hideTypeAnnotationsForDisplay: false,
 };
 
 /**
@@ -222,4 +238,41 @@ export const COMPACT_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   includeEmptyFields: false,
   useTypeInference: true,
   indent: 2,
+  useOpenehrUrnWikilinks: false,
+  hideTypeAnnotationsForDisplay: false,
+};
+
+/**
+ * Preset: Wikilink Markdown (human-friendly with openEHR URN wikilinks)
+ * 
+ * Designed for wiki-style rendering (e.g., Obsidian, Logseq, Notion).
+ * Uses openEHR URN-based wikilinks for archetype references:
+ *   [[urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|Blood pressure]]
+ * 
+ * Hides type annotations for cleaner display while preserving
+ * archetype references as navigable wikilinks.
+ * 
+ * The URN format follows the pattern:
+ *   urn:openehr:am:org.openehr::openEHR-EHR-{CLASS}.{concept}.v{version}
+ * 
+ * This implicitly encodes the RM class (OBSERVATION, EVALUATION, etc.)
+ * within the archetype identifier itself.
+ */
+export const WIKILINK_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
+  style: 'clinical',
+  includeFrontmatter: true,
+  includeArchetypeNodeIds: true,
+  includeTypeAnnotations: false,
+  codeRendering: 'wikilink_urn',
+  dataValueRendering: 'list',
+  useTerseFormat: true,
+  includeNullFlavour: false,
+  includeCompositionMetadata: false,
+  includeRedundantEntryMetadata: false,
+  maxHeadingDepth: 4,
+  includeEmptyFields: false,
+  useTypeInference: true,
+  indent: 2,
+  useOpenehrUrnWikilinks: true,
+  hideTypeAnnotationsForDisplay: true,
 };

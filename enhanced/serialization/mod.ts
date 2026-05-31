@@ -60,7 +60,21 @@ export {
   CLINICAL_MARKDOWN_CONFIG,
   STRUCTURAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
+  WIKILINK_MARKDOWN_CONFIG,
 } from './markdown/mod.ts';
+
+// AsciiDoc exports
+export {
+  AsciidocSerializer,
+  type AsciidocSerializationConfig,
+  type AsciidocStyle,
+  type AsciidocDataValueRendering,
+  type AsciidocCodeRendering,
+  type AsciidocNodeIdRendering,
+  DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+  COMPACT_ASCIIDOC_CONFIG,
+  LOSSLESS_ASCIIDOC_CONFIG,
+} from './asciidoc/mod.ts';
 
 // Common utilities
 export {

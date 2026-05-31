@@ -8,6 +8,7 @@ import {
   CLINICAL_MARKDOWN_CONFIG,
   STRUCTURAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
+  WIKILINK_MARKDOWN_CONFIG,
 } from "../../enhanced/serialization/markdown/mod.ts";
 import * as rm from "../../enhanced/openehr_rm.ts";
 import * as base from "../../enhanced/openehr_base.ts";
@@ -396,4 +397,41 @@ Deno.test("MarkdownSerializer: EVALUATION with data", () => {
   assertStringIncludes(md, "Mild");
 
   console.log("EVALUATION (structural):\n", md);
+});
+
+Deno.test("MarkdownSerializer: wikilink URN mode uses openEHR URN wikilinks for archetype refs", () => {
+  const comp = createSampleComposition();
+  const obs = createBloodPressureObservation();
+  comp.content = [obs] as any;
+
+  const serializer = new MarkdownSerializer(WIKILINK_MARKDOWN_CONFIG);
+  const md = serializer.serialize(comp);
+
+  assertExists(md);
+  // Should contain openEHR URN wikilinks for archetype IDs
+  assertStringIncludes(md, "[[urn:openehr:am:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1|");
+  assertStringIncludes(md, "[[urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|");
+  // Should NOT include type annotations (hidden for display)
+  assertEquals(md.includes("_[OBSERVATION]_"), false);
+
+  console.log("COMPOSITION (wikilink URN):\n", md);
+});
+
+Deno.test("MarkdownSerializer: wikilink URN mode uses URN for coded text", () => {
+  const element = createCodedElement(
+    "Diagnosis", "at0001", "SNOMED-CT", "73211009", "Diabetes mellitus"
+  );
+
+  const serializer = new MarkdownSerializer(WIKILINK_MARKDOWN_CONFIG);
+  const md = serializer.serialize({
+    _type: 'ITEM_TREE',
+    name: { value: "Items" },
+    items: [element]
+  });
+
+  assertExists(md);
+  // Should use URN-based wikilink for coded text
+  assertStringIncludes(md, "[[urn:openehr:term:SNOMED-CT::73211009|Diabetes mellitus]]");
+
+  console.log("Coded text (wikilink URN):\n", md);
 });
