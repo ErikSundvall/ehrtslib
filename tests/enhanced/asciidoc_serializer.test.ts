@@ -387,3 +387,272 @@ Deno.test("AsciidocSerializer: token efficiency comparison", () => {
   assertEquals(adocCompact.length <= adocLossless.length, true,
     `Compact (${adocCompact.length}) should be <= lossless (${adocLossless.length})`);
 });
+
+// ─── ADDITIONAL DATA TYPE TESTS ─────────────────────────────────────────
+
+Deno.test("AsciidocSerializer: DV_STATE formatting", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Current state" },
+    archetype_node_id: "at0010",
+    value: {
+      _type: 'DV_STATE',
+      value: {
+        _type: 'DV_CODED_TEXT',
+        value: "active",
+        defining_code: { _type: 'CODE_PHRASE', terminology_id: { value: "openehr" }, code_string: "532" }
+      },
+      is_terminal: false,
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "active");
+  console.log("DV_STATE:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_INTERVAL formatting", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Normal range" },
+    archetype_node_id: "at0011",
+    value: {
+      _type: 'DV_INTERVAL',
+      lower: { _type: 'DV_QUANTITY', magnitude: 60, units: "mm[Hg]" },
+      upper: { _type: 'DV_QUANTITY', magnitude: 90, units: "mm[Hg]" },
+      lower_included: true,
+      upper_included: true,
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "60 mm[Hg]");
+  assertStringIncludes(adoc, "90 mm[Hg]");
+  assertStringIncludes(adoc, "[");
+  assertStringIncludes(adoc, "]");
+  console.log("DV_INTERVAL:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_SCALE formatting", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Breathlessness" },
+    archetype_node_id: "at0012",
+    value: {
+      _type: 'DV_SCALE',
+      value: 3,
+      symbol: {
+        _type: 'DV_CODED_TEXT',
+        value: "moderate",
+        defining_code: { _type: 'CODE_PHRASE', terminology_id: { value: "local" }, code_string: "at0055" }
+      }
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "3 - ");
+  assertStringIncludes(adoc, "moderate");
+  console.log("DV_SCALE:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_PROPORTION types", () => {
+  const createProportionElement = (name: string, num: number, den: number, type: number) => ({
+    _type: 'ELEMENT',
+    name: { value: name },
+    archetype_node_id: "at0020",
+    value: { _type: 'DV_PROPORTION', numerator: num, denominator: den, type: type }
+  });
+
+  const tree: any = {
+    _type: 'ITEM_TREE',
+    items: [
+      createProportionElement("Ratio", 3, 4, 0),
+      createProportionElement("Unitary", 0.75, 1, 1),
+      createProportionElement("Percent", 75, 100, 2),
+      createProportionElement("Fraction", 3, 4, 3),
+    ]
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize(tree);
+  assertStringIncludes(adoc, "3:4");      // ratio
+  assertStringIncludes(adoc, "0.75");     // unitary
+  assertStringIncludes(adoc, "75%");      // percent
+  assertStringIncludes(adoc, "3/4");      // fraction
+  console.log("DV_PROPORTION types:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_IDENTIFIER with all fields", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Patient ID" },
+    archetype_node_id: "at0030",
+    value: {
+      _type: 'DV_IDENTIFIER',
+      issuer: "NHS",
+      assigner: "GP Practice",
+      id: "123456789",
+      type: "NHS Number",
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "NHS");
+  assertStringIncludes(adoc, "GP Practice");
+  assertStringIncludes(adoc, "123456789");
+  assertStringIncludes(adoc, "NHS Number");
+  console.log("DV_IDENTIFIER:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_PARAGRAPH formatting", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Clinical narrative" },
+    archetype_node_id: "at0040",
+    value: {
+      _type: 'DV_PARAGRAPH',
+      items: [
+        { _type: 'DV_TEXT', value: "Patient presents with chest pain." },
+        { _type: 'DV_TEXT', value: "Pain started 2 hours ago." },
+      ]
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "Patient presents with chest pain.");
+  assertStringIncludes(adoc, "Pain started 2 hours ago.");
+  console.log("DV_PARAGRAPH:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_MULTIMEDIA with all fields", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Image" },
+    archetype_node_id: "at0050",
+    value: {
+      _type: 'DV_MULTIMEDIA',
+      media_type: { _type: 'CODE_PHRASE', code_string: "image/png" },
+      size: 1024,
+      alternate_text: "X-ray chest",
+      uri: { _type: 'DV_URI', value: "https://example.com/xray.png" },
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "image/png");
+  assertStringIncludes(adoc, "1024 bytes");
+  assertStringIncludes(adoc, "X-ray chest");
+  assertStringIncludes(adoc, "https://example.com/xray.png");
+  console.log("DV_MULTIMEDIA:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_BOOLEAN and DV_URI types", () => {
+  const tree: any = {
+    _type: 'ITEM_TREE',
+    items: [
+      {
+        _type: 'ELEMENT',
+        name: { value: "Is active" },
+        archetype_node_id: "at0060",
+        value: { _type: 'DV_BOOLEAN', value: true }
+      },
+      {
+        _type: 'ELEMENT',
+        name: { value: "Reference" },
+        archetype_node_id: "at0061",
+        value: { _type: 'DV_URI', value: "https://example.com/guideline" }
+      },
+      {
+        _type: 'ELEMENT',
+        name: { value: "EHR Link" },
+        archetype_node_id: "at0062",
+        value: { _type: 'DV_EHR_URI', value: "ehr://system/composition/12345" }
+      },
+    ]
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize(tree);
+  assertStringIncludes(adoc, "true");
+  assertStringIncludes(adoc, "https://example.com/guideline");
+  assertStringIncludes(adoc, "ehr://system/composition/12345");
+  console.log("DV_BOOLEAN + DV_URI + DV_EHR_URI:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_DATE, DV_TIME, DV_DURATION types", () => {
+  const tree: any = {
+    _type: 'ITEM_TREE',
+    items: [
+      {
+        _type: 'ELEMENT',
+        name: { value: "Birth date" },
+        archetype_node_id: "at0070",
+        value: { _type: 'DV_DATE', value: "1985-03-15" }
+      },
+      {
+        _type: 'ELEMENT',
+        name: { value: "Onset time" },
+        archetype_node_id: "at0071",
+        value: { _type: 'DV_TIME', value: "14:30:00" }
+      },
+      {
+        _type: 'ELEMENT',
+        name: { value: "Duration" },
+        archetype_node_id: "at0072",
+        value: { _type: 'DV_DURATION', value: "P3Y2M1D" }
+      },
+    ]
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize(tree);
+  assertStringIncludes(adoc, "1985-03-15");
+  assertStringIncludes(adoc, "14:30:00");
+  assertStringIncludes(adoc, "P3Y2M1D");
+  console.log("DV_DATE + DV_TIME + DV_DURATION:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: DV_PARSABLE formatting", () => {
+  const element: any = {
+    _type: 'ELEMENT',
+    name: { value: "Timing" },
+    archetype_node_id: "at0080",
+    value: {
+      _type: 'DV_PARSABLE',
+      value: "R5/2026-01-01T08:00:00Z/P1D",
+      formalism: "timing",
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
+  assertStringIncludes(adoc, "R5/2026-01-01T08:00:00Z/P1D");
+  assertStringIncludes(adoc, "timing");
+  console.log("DV_PARSABLE:\n", adoc);
+});
+
+Deno.test("AsciidocSerializer: GENERIC_ENTRY handling", () => {
+  const entry: any = {
+    _type: 'GENERIC_ENTRY',
+    name: { value: "Legacy data" },
+    archetype_node_id: "openEHR-EHR-GENERIC_ENTRY.legacy.v1",
+    data: {
+      _type: 'ITEM_TREE',
+      items: [
+        { _type: 'ELEMENT', name: { value: "Note" }, archetype_node_id: "at0001", value: { _type: 'DV_TEXT', value: "Imported from old system" } }
+      ]
+    }
+  };
+
+  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adoc = serializer.serialize(entry);
+  assertStringIncludes(adoc, "Legacy data");
+  assertStringIncludes(adoc, "Imported from old system");
+  console.log("GENERIC_ENTRY:\n", adoc);
+});

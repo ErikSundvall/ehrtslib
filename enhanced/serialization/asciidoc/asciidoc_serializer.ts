@@ -277,6 +277,9 @@ export class AsciidocSerializer {
       case 'ADMIN_ENTRY':
         this.serializeAdminEntry(entry, lines, depth);
         break;
+      case 'GENERIC_ENTRY':
+        this.serializeGenericEntry(entry, lines, depth);
+        break;
       default:
         this.serializeGenericEntry(entry, lines, depth);
     }
@@ -600,6 +603,8 @@ export class AsciidocSerializer {
         return this.formatDvProportion(dv);
       case 'DV_ORDINAL':
         return this.formatDvOrdinal(dv);
+      case 'DV_SCALE':
+        return this.formatDvScale(dv);
       case 'DV_IDENTIFIER':
         return this.formatDvIdentifier(dv);
       case 'DV_URI':
@@ -609,9 +614,25 @@ export class AsciidocSerializer {
         return this.formatDvParsable(dv);
       case 'DV_MULTIMEDIA':
         return this.formatDvMultimedia(dv);
+      case 'DV_STATE':
+        return this.formatDvState(dv);
+      case 'DV_PARAGRAPH':
+        return this.formatDvParagraph(dv);
+      case 'DV_INTERVAL':
+        return this.formatDvInterval(dv);
+      case 'DV_PERIODIC_TIME_SPECIFICATION':
+      case 'DV_GENERAL_TIME_SPECIFICATION':
+        return this.formatDvTimeSpecification(dv);
       default:
+        // Use TypeRegistry to check if it's a known DATA_VALUE subtype
+        // and attempt generic formatting
         if (dv.value !== undefined) {
           return String(dv.value);
+        }
+        if (dv.magnitude !== undefined) {
+          // Likely a numeric DV_AMOUNT subtype
+          const units = dv.units ?? '';
+          return `${dv.magnitude}${units ? ' ' + units : ''}`;
         }
         if (typeName && this.config.includeTypeAnnotations) {
           return `[${typeName}]`;
@@ -721,8 +742,21 @@ export class AsciidocSerializer {
   private formatDvProportion(dv: any): string {
     const num = dv.numerator ?? '';
     const den = dv.denominator ?? '';
-    if (dv.type === 2) return `${num}%`;
-    return `${num}/${den}`;
+    // Proportion types: 0=ratio, 1=unitary, 2=percent, 3=fraction, 4=integer_fraction
+    switch (dv.type) {
+      case 0: // ratio
+        return `${num}:${den}`;
+      case 1: // unitary (denominator is 1)
+        return String(num);
+      case 2: // percent
+        return `${num}%`;
+      case 3: // fraction
+        return `${num}/${den}`;
+      case 4: // integer_fraction
+        return `${num}/${den}`;
+      default:
+        return den ? `${num}/${den}` : String(num);
+    }
   }
 
   private formatDvOrdinal(dv: any): string {
@@ -735,7 +769,9 @@ export class AsciidocSerializer {
   private formatDvIdentifier(dv: any): string {
     const parts: string[] = [];
     if (dv.issuer) parts.push(dv.issuer);
+    if (dv.assigner) parts.push(dv.assigner);
     if (dv.id) parts.push(dv.id);
+    if (dv.type && this.config.style !== 'compact') parts.push(`(${dv.type})`);
     return parts.join(': ') || '';
   }
 
@@ -754,7 +790,52 @@ export class AsciidocSerializer {
   private formatDvMultimedia(dv: any): string {
     const mediaType = dv.media_type?.code_string || 'unknown';
     const size = dv.size || '';
-    return `[multimedia: ${mediaType}${size ? ', ' + size + ' bytes' : ''}]`;
+    const altText = dv.alternate_text || '';
+    const uri = dv.uri?.value || '';
+    const parts = [`multimedia: ${mediaType}`];
+    if (size) parts.push(`${size} bytes`);
+    if (altText) parts.push(`"${altText}"`);
+    if (uri) parts.push(uri);
+    return `[${parts.join(', ')}]`;
+  }
+
+  private formatDvState(dv: any): string {
+    if (!dv) return '';
+    const stateValue = dv.value ? this.formatDvCodedText(dv.value) : '';
+    const terminal = dv.is_terminal === true ? ' (terminal)' : '';
+    return `${stateValue}${terminal}`;
+  }
+
+  private formatDvParagraph(dv: any): string {
+    if (!dv || !dv.items || !Array.isArray(dv.items)) return '';
+    return dv.items
+      .map((item: any) => this.formatDvText(item))
+      .filter((t: string) => t)
+      .join(' +\n');
+  }
+
+  private formatDvInterval(dv: any): string {
+    const lower = dv.lower ? this.formatDataValue(dv.lower) : '*';
+    const upper = dv.upper ? this.formatDataValue(dv.upper) : '*';
+    const lowerInc = dv.lower_included !== false ? '[' : '(';
+    const upperInc = dv.upper_included !== false ? ']' : ')';
+    return `${lowerInc}${lower}..${upper}${upperInc}`;
+  }
+
+  private formatDvScale(dv: any): string {
+    const scaleValue = dv.value ?? '';
+    const symbol = dv.symbol ? this.formatDvCodedText(dv.symbol) : '';
+    if (symbol) return `${scaleValue} - ${symbol}`;
+    return String(scaleValue);
+  }
+
+  private formatDvTimeSpecification(dv: any): string {
+    if (!dv) return '';
+    // DV_TIME_SPECIFICATION subtypes wrap a DV_PARSABLE
+    if (dv.value) {
+      return this.formatDvParsable(dv.value);
+    }
+    return '';
   }
 
   private formatCodePhrase(cp: any): string {
@@ -895,7 +976,7 @@ export class AsciidocSerializer {
 
   private isEntryType(typeName: string | undefined): boolean {
     if (!typeName) return false;
-    return ['OBSERVATION', 'EVALUATION', 'INSTRUCTION', 'ACTION', 'ADMIN_ENTRY'].includes(typeName);
+    return ['OBSERVATION', 'EVALUATION', 'INSTRUCTION', 'ACTION', 'ADMIN_ENTRY', 'GENERIC_ENTRY'].includes(typeName);
   }
 
   private isItemStructureType(typeName: string | undefined): boolean {
