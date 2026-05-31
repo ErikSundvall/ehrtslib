@@ -205,7 +205,7 @@ export const STRUCTURAL_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
  * Only clinical content remains. Ideal for stuffing maximum patient data
  * into LLM context windows.
  * 
- * ~70-80% token reduction vs canonical JSON.
+ * Typically retains only ~20-30% of canonical JSON token count.
  */
 export const COMPACT_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   style: 'compact',
