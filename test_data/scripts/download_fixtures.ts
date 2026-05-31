@@ -79,6 +79,20 @@ const fixtures: Fixture[] = [
     url: `${SDK_OPT_BASE}/${encodeURIComponent(name)}`,
     dest: `opt14/${name}`,
   })),
+
+  // CKM-mirror OET source templates (Ocean Template Editor XML)
+  ...[
+    "local/templates/entry/observation/Imaging.oet",
+    "local/templates/entry/observation/Symptom_sign screening.oet",
+    "local/templates/entry/observation/Imaging examination result.oet",
+    "local/templates/composition/Demo with hide-on-form.oet",
+  ].map((path) => {
+    const name = path.split("/").pop()!;
+    return {
+      url: `https://raw.githubusercontent.com/openEHR/CKM-mirror/master/${path.replace(/ /g, "%20")}`,
+      dest: `oet14/${name}`,
+    };
+  }),
 ];
 
 async function download(url: string, destPath: string): Promise<void> {

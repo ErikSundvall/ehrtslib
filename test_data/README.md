@@ -13,6 +13,7 @@ Curated openEHR archetype and template fixtures for parser, validation, and seri
 | `archie-tests/flattening/` | ADL 2 `.adls` | 10 | Template flattening / OPT2 source scenarios |
 | `archie-tests/validity-templates/` | ADL 2 `.adls` | 4 | Template validity edge cases |
 | `opt14/` | ADL 1.4 XML operational templates | 20 | Legacy OPT interop (ehrbase, REST `adl1.4`) |
+| `oet14/` | CKM OET source templates | 4+ | Ocean Template Editor XML (parse via `parseOetXml`) |
 | `external/` | — | — | Pointers to full upstream repos (not vendored) |
 
 ## Important: ADL2 operational templates (OPT2)

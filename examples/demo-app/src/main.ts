@@ -124,6 +124,8 @@ function setupEventListeners() {
     clearTemplateBtn.addEventListener('click', clearInput);
   }
 
+  setupTemplateFileUpload();
+
   // Input textarea
   const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
   if (inputTextarea) {
@@ -423,6 +425,43 @@ function setupPresetListeners() {
       updateXmlOptions(preset);
     });
   }
+}
+
+/**
+ * Template tab: upload OPT/OET/ADL files or ZIP archives (browser-only; no server upload).
+ */
+function setupTemplateFileUpload() {
+  const uploadBtn = document.getElementById('upload-template-files');
+  const fileInput = document.getElementById('template-file-input') as HTMLInputElement | null;
+  const textarea = document.getElementById('template-input-text') as HTMLTextAreaElement | null;
+  if (!uploadBtn || !fileInput || !textarea) return;
+
+  uploadBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', async () => {
+    const files = fileInput.files;
+    if (!files?.length) return;
+
+    const texts: string[] = [];
+    for (const file of Array.from(files)) {
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.zip')) {
+        texts.push(await `# ZIP upload "${file.name}" is not yet extracted in-browser.\n` +
+          `# Extract .opt/.oet/.adl files locally and upload individually.\n`);
+        continue;
+      }
+      if (/\.(opt|oet|adl|adls|xml)$/.test(name)) {
+        texts.push(await file.text());
+      }
+    }
+
+    if (texts.length) {
+      textarea.value = texts.join('\n\n');
+      activateInputTab('template');
+      handleInputChange('template');
+    }
+    fileInput.value = '';
+  });
 }
 
 /**

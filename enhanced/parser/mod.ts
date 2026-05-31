@@ -15,5 +15,17 @@ export {
   isAdl14,
   type AdlDetectedVersion,
 } from "./adl_version.ts";
+export {
+  detectTemplateInputFormat,
+  getOperationalTemplateFromInput,
+  isOptXml,
+  isOetXml,
+  parseOptXml,
+  parseOetXml,
+  parseTemplateInput,
+  ArchetypeRepository,
+  type ParseTemplateInputResult,
+  type TemplateInputFormat,
+} from "./legacy/mod.ts";
 export { RulesParser } from "./rules_parser.ts";
 export { serializeRulesSection } from "./rules_serializer.ts";

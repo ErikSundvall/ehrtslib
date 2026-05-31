@@ -59,10 +59,15 @@ export class CadlParser {
       this.consume(TokenType.LBRACE, "Expected '{' after matches");
 
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        this.skipComments();
+        const posBefore = this.position;
         const attribute = this.parseAttribute();
         if (attribute) {
           if (!cObject.attributes) cObject.attributes = [];
           cObject.attributes.push(attribute);
+        } else if (this.position === posBefore) {
+          if (this.check(TokenType.RBRACE)) break;
+          this.advance();
         }
       }
 
@@ -227,6 +232,7 @@ export class CadlParser {
   }
 
   private parseAttribute(): openehr_am.C_ATTRIBUTE | null {
+    this.skipComments();
     if (this.check(TokenType.RBRACE)) return null;
     if (!this.check(TokenType.IDENTIFIER)) return null;
 
@@ -259,6 +265,8 @@ export class CadlParser {
       this.consume(TokenType.LBRACE, "Expected '{' after matches in attribute");
 
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        this.skipComments();
+        const posBefore = this.position;
         const stringChild = this.tryParseStringConstraint();
         if (stringChild) {
           if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
@@ -277,6 +285,9 @@ export class CadlParser {
           (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(
             child,
           );
+        } else if (this.position === posBefore) {
+          if (this.check(TokenType.RBRACE)) break;
+          this.advance();
         }
       }
 
@@ -431,6 +442,10 @@ export class CadlParser {
     }
 
     return interval;
+  }
+
+  private skipComments(): void {
+    while (this.check(TokenType.COMMENT)) this.advance();
   }
 
   private checkKeyword(word: string): boolean {

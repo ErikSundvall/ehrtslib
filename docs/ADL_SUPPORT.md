@@ -1,19 +1,35 @@
 # ADL support (1.4 and 2.x)
 
-ehrtslib parses **ADL 2** natively and accepts **ADL 1.4** via automatic syntactic conversion to ADL 2 before parsing.
+ehrtslib parses **ADL 2** natively and accepts **ADL 1.4** via automatic syntactic conversion to ADL 2 before parsing. **Legacy OPT XML** and **OET XML** are supported for template input.
 
 ## Quick start
 
 ```typescript
-import { parseAdl } from "./enhanced/parser/mod.ts";
+import { parseAdl, parseTemplateInput } from "./enhanced/parser/mod.ts";
 
+// Archetype / ADL2 template
 const result = parseAdl(adlText); // 1.4 or 2.x
-const archetype = result.archetype;
+
+// Any template format (ADL operational_template, OPT XML, OET XML)
+const tpl = parseTemplateInput(text);
+const opt = tpl.operationalTemplate; // when OPT or ADL operational_template
 ```
 
 - `result.detectedVersion` — `"1.4"`, `"2.x"`, or `"unknown"`
 - `result.convertedFrom14` — `true` when 1.4 normalisation ran
-- `result.adl2Source` — text passed to the ADL2 parser (after conversion)
+- `parseTemplateInput().format` — `"adl14"`, `"adl2"`, `"opt_xml"`, `"oet_xml"`
+
+## Format matrix (Phase 6b)
+
+| Input | Parser | Output model | Instance generation |
+|-------|--------|--------------|---------------------|
+| ADL 2 `.adls` operational_template | `parseAdl` / `parseTemplateInput` | `OPERATIONAL_TEMPLATE` | Yes |
+| ADL 1.4 `.adl` (convert → ADL2) | `parseAdl` | `ARCHETYPE` / template | After flatten |
+| Legacy **OPT XML** (`.opt`) | `parseOptXml` | `OPERATIONAL_TEMPLATE` | Yes |
+| **OET XML** (`.oet`, CKM) | `parseOetXml` | `OetTemplateDocument` + partial `TEMPLATE` | Needs archetype repo |
+| ADL 1.4 serialize | `ADL14Serializer` | `.adl` text | Round-trip tests |
+
+Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT), `oet14/`, `adl14/`, `archie-tests/`.
 
 ## ADL 1.4 conversion (syntactic)
 
@@ -30,15 +46,17 @@ const archetype = result.archetype;
 | `matches {*}` | Removed (deprecated) |
 | HRID `v1` | Normalised to `v1.0.0` |
 
-**Not converted automatically:** full ac-code / value_sets semantic migration, `constraint_definitions` merge into term tables (logged only), ADL 1.4 tuple syntax for quantities/ordinals. Use openEHR ADL Workbench for heavy legacy artefacts.
+**ADL 1.4 down-convert:** `ADL14Serializer` in [`enhanced/generation/adl14_serializer.ts`](../enhanced/generation/adl14_serializer.ts) emits `ontology`, `[at####]` node ids, and ADL 1.4 header for BAD/CKM compatibility.
 
-Fixture: [`test_data/adl14/openEHR-TEST_PKG-WHOLE.most_minimal.v1.adl`](../test_data/adl14/openEHR-TEST_PKG-WHOLE.most_minimal.v1.adl)
+**Still manual / AWB for heavy legacy:** full ac-code / value_sets semantic migration, complex tuple syntax.
 
 ## ADL 2 feature matrix
 
 | Area | Status |
 |------|--------|
 | Parse / serialize archetype, template, operational_template | Yes |
+| Legacy OPT XML → operational template | Yes (20/20 `test_data/opt14/`) |
+| OET XML parse (CKM) | Yes (compile → OPT needs archetypes) |
 | cADL definition, ODIN metadata, terminology | Yes |
 | `rules` parse, serialize, evaluate | Yes |
 | `annotations`, `rm_overlay` | Yes |
@@ -46,23 +64,17 @@ Fixture: [`test_data/adl14/openEHR-TEST_PKG-WHOLE.most_minimal.v1.adl`](../test_
 | `TemplateValidator` + invariants | Yes |
 | Deserializer `validateAgainstTemplate` | JSON / YAML / XML |
 | `ArchetypeValidator` (AOM structure) | Yes |
-| Archie ADL2 parse benchmark | 8/8 fixtures |
-
-## Expression language
-
-Rules support paths, variables, comparisons, boolean operators, `exists`, `for_all` / `there_exists`, `not`, `member_of` (MVP). Complex expressions fall back to `string_expression` storage.
+| Demo app Template tab | ADL + OPT XML upload |
 
 ## Verify
 
 ```bash
-deno test tests/parser/ tests/validation/ tests/am/ --allow-read --no-check
-deno test tests/parser/adl14_converter.test.ts --allow-read --no-check
+deno test tests/adl14/ tests/test_data/ tests/parser/ --allow-read --no-check
+deno test examples/demo-app/src/converter.template.test.ts --allow-read --no-check
 ```
 
-## Planned enhancements
+## Related
 
-See [ROADMAP.md](../ROADMAP.md#phase-6b) Phase 6b (deep 1.4 AOM migration, fuller expression AST, Archie AOM parity, performance).
-
-## Merge to main
-
-See [MERGE_TO_MAIN.md](MERGE_TO_MAIN.md).
+- PRD: [`tasks/prd-phase6b-adl14-full-roundtrip.md`](../tasks/prd-phase6b-adl14-full-roundtrip.md)
+- BMM survey: [`tasks/bmm_survey_phase6b.md`](../tasks/bmm_survey_phase6b.md)
+- [ROADMAP.md](../ROADMAP.md#phase-6b)

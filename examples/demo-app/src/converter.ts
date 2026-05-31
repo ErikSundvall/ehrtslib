@@ -46,7 +46,7 @@ import {
   type TypeScriptConstructorSerializationConfig,
 } from '../../../enhanced/serialization/typescript/mod.ts';
 
-import { parseAdl } from '../../../enhanced/parser/mod.ts';
+import { parseAdl, parseTemplateInput, getOperationalTemplateFromInput } from '../../../enhanced/parser/mod.ts';
 import {
   RMInstanceGenerator,
   TypeScriptGenerator,
@@ -193,14 +193,21 @@ function convertTemplateInput(
   input: string,
   options: ConversionOptions,
 ): ConversionResult {
-  const parsed = parseAdl(input, { convertAdl14: true });
-  if (parsed.kind !== 'operational_template' || !parsed.operationalTemplate) {
-    throw new Error(
-      `Expected an operational_template ADL input, parsed kind: ${parsed.kind}.`,
-    );
+  let template;
+  try {
+    template = getOperationalTemplateFromInput(input);
+  } catch (firstError) {
+    const parsed = parseTemplateInput(input);
+    if (parsed.kind === "oet_document") {
+      throw new Error(
+        "OET template loaded but requires referenced archetypes to compile. " +
+          `Base archetype: ${parsed.oet?.document.definitionArchetypeId ?? "unknown"}. ` +
+          (firstError as Error).message,
+      );
+    }
+    throw firstError;
   }
 
-  const template = parsed.operationalTemplate;
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
   });
@@ -237,11 +244,20 @@ export function validateTemplateInput(input: string): { valid: boolean; message:
   }
 
   try {
-    const parsed = parseAdl(text, { convertAdl14: true });
-    if (parsed.kind !== 'operational_template') {
-      return { valid: false, message: `Parsed ${parsed.kind}; expected operational_template` };
+    const parsed = parseTemplateInput(text);
+    if (parsed.kind === 'operational_template' && parsed.operationalTemplate) {
+      const id = parsed.operationalTemplate.archetype_id?.value ?? 'operational template';
+      const fmt = parsed.format === 'opt_xml' ? 'OPT XML' : 'ADL';
+      return { valid: true, message: `Valid ${fmt}: ${id}` };
     }
-    return { valid: true, message: 'Valid operational template ADL' };
+    if (parsed.kind === 'oet_document' && parsed.oet) {
+      const id = parsed.oet.document.definitionArchetypeId ?? parsed.oet.document.name;
+      return { valid: true, message: `Valid OET (needs archetypes): ${id}` };
+    }
+    if (parsed.kind === 'template') {
+      return { valid: true, message: 'Valid ADL template (flatten to operational for instances)' };
+    }
+    return { valid: false, message: `Unsupported template kind: ${parsed.kind}` };
   } catch (error) {
     return { valid: false, message: `Invalid template: ${(error as Error).message}` };
   }

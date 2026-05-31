@@ -59,7 +59,7 @@ ehrtslib’s primary investment is **ADL 2 / AOM 2** (parse, serialize, flatten 
 - **Operational templates** in production are predominantly **ADL 1.4 XML OPT** files, not ADL2 OPT2 text.
 - **CKM** publishes mostly ADL 1.4 archetypes and OET source templates; ADL2 exports are limited and tooling support is uneven.
 - **Better Archetype Designer** (primary community authoring tool) works internally with AOM2 but commonly **imports/exports ADL 1.4**; raw ADL2 downloads from CKM often **fail to open** in desktop tooling or require conversion workflows users do not have locally.
-- **No substantial public bank of ADL2 operational templates** exists: Archie and adl-archetypes provide **source** `.adls` templates (~14 curated examples now in `test_data/`), while the largest ready-made OPT corpus is **ehrbase/openEHR_SDK** (~54 **ADL 1.4 XML** files — 20 curated into `test_data/opt14/`).
+- **No substantial public bank of ADL2 operational templates** exists: Archie and adl-archetypes provide **source** `.adls` templates (~14 curated examples now in `test_data/`), while the largest ready-made OPT corpus is **ehrbase/openEHR_SDK** (~54 **ADL 1.4 XML** files — copied 20 curated into `test_data/opt14/`).
 
 Without credible ADL 1.x round-trip support, ehrtslib cannot:
 
@@ -224,7 +224,7 @@ BAD exports ADL 1.4 with flat specialisations. Serializers must emit constructs 
 | ADL 1.4 archetype round-trip | ≥90% of curated CKM/Archie adl14 fixtures semantically equivalent |
 | OPT XML parse | 20/20 files in `test_data/opt14/` parse without error |
 | OPT-backed instance validation | ≥5 templates validate example instances (manual or generated) |
-| BAD open test | ≥3 ehrtslib-exported ADL 1.4 files open in Archetype Designer without manual fix |
+| BAD open test | ≥3 ehrtslib-exported ADL 1.4 files open in Archetype Designer without manual fix (this lmight require human operator?)|
 | Documentation | ADL_SUPPORT.md updated with 1.4 round-trip matrix and fixture guide |
 
 ---
@@ -249,12 +249,18 @@ OPT ↔ ADL2 OPT2 where feasible; BAD compatibility pass; optional Archie benchm
 ---
 
 ## 12. Open questions
+Developer's answers added inline below
 
 1. **OET XML schema version:** Single CKM export variant or multiple historical schemas?
+   - single
 2. **OPT XML normalisation:** Byte-identical round-trip vs semantic — which do ehrbase consumers require?
+   - semantic
 3. **CKM licence:** Confirm redistribution terms for bundled OET/adl fixtures beyond Apache-licensed upstreams.
+   - not needed right now
 4. **AM BMM 2.4 vs 2.3:** Is code-generator 2.4.0 JSON authoritative over ITS-BMM 2.3.0 ODIN for ehrtslib?
+   - check if BMM updates bring them up to same version
 5. **Demo app scope:** Should Template tab accept OPT XML only, or also OET + archetype folder upload?
+   - Would be good if also zips/folders could be uploaded to demo app and used
 
 ---
 

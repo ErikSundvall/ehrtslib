@@ -33,9 +33,10 @@ Deno.test("validateTemplateInput accepts operational_template input", () => {
   assertEquals(result.valid, true);
 });
 
-Deno.test("validateTemplateInput rejects non-operational template kinds", () => {
+Deno.test("validateTemplateInput rejects plain archetype (non-template) input", () => {
   const result = validateTemplateInput(OPERATIONAL_TEMPLATE_ADL.replace("operational_template", "archetype"));
   assertEquals(result.valid, false);
+  assert(result.message.includes("archetype") || result.message.includes("Invalid"));
 });
 
 Deno.test("convert template input generates RM example outputs and TypeScript stubs", async () => {

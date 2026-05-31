@@ -5,7 +5,7 @@ Partly done - completed steps are marked `✅ (done)`
 This file (ROADMAP.md) contains the latest parts. Once in a while finished 
 things are moved to ROADMAP-FINISHED-TASKS.md  in order to reduce the file size.
 
-## Phase 5a
+## Phase 5a ✅ (done)
 Now we will add the archetyping/templating layer to out openEHR implementation. Make a plan inspired by a PRD, but since there are several potential design options for many of the points below present alterantive pahways through that PRD so that I can consider which ways to select for future implementaion (in leter phase).
 
 - Implement/refine any remaining classes of the AM package, use deepwiki and the files in /instructions to understand. If needed improve the files in /instructions first.
@@ -21,7 +21,7 @@ Now we will add the archetyping/templating layer to out openEHR implementation. 
 - Feel free to use any existing AM implementation (like Archie and other previously mentioned implementations) as a reference, but try to make it as TypeScript native/natural as possible adn with few dependencies.
 - When maiking the PRD for this step do the research to find the best way to implement this so that the suggestion can be inspected in the PRD before actual implementation.
 
-## Phase 5b
+## Phase 5b ✅ (done)
 Implement the ideas from Phase 5 a experessed in the PRD file tasks/prd-phase5a-am-implementation.md with the following choises
 
 ### Regarding validation (section 6 of tasks/prd-phase5a-am-implementation.md)
@@ -43,27 +43,36 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 
 Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`docs/MERGE_TO_MAIN.md`](docs/MERGE_TO_MAIN.md) for merge checklist.
 
-## Phase 6a.1
+## Phase 6a.1 ✅ (done)
 Interactive UI refinement for the demo app was performed using pencil.dev and cursor after phase 5. 
-Now we want Exploration of generating instance examples and typescript code stubs in the output column based on operational ADL templates being inserted in an editor in the so far unpopulated "template" tab of the input column. If there is no library code for generating examples then implement that so that the generation code is a part of ehrtslib rather than just the demo app. Use the openEHR REST ITS specs to understand generation mode options.
+Now we want Exploration of generating instance examples and typescript code stubs in the output column based on operational ADL templates being inserted in an editor in the so far unpopulated "template" tab of the input column. 
 
-## Phase 6a.2
+## Phase 6a.2 [partly deferred to later]
+If there is no library code for generating examples then implement that so that the generation code is a part of ehrtslib rather than just the demo app. Use the openEHR REST ITS specs to understand generation mode options.
+
+## Phase 6a.3 [partly deferred to later]
 Serialisation and deserialisation of RM object instance tree examples (and associated serialisations) based on templates + validation of RM instances related to templates
 
 ## Phase 6b
-Follow-up enhancements after Phase 5b AM/ADL MVP (non-blocking).
+Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl14-full-roundtrip.md`](tasks/prd-phase6b-adl14-full-roundtrip.md).
 
-### ADL / AOM
-- **Deep ADL 1.4 AOM migration** — ac-code / value_sets reshaping per openEHR conversion guide; full `constraint_definitions` merge into `term_definitions`; use ADL Workbench for difficult legacy artefacts → see [`tasks/prd-phase6b-adl14-full-roundtrip.md`](tasks/prd-phase6b-adl14-full-roundtrip.md)
-- **Expression language** — fuller AST for rare operators and nested forms (beyond current `string_expression` + MVP tree)
-- **ADL 1.4 regression suite** — curated `.adl` fixtures and round-trip tests beyond the minimal `test_data/adl14/` sample
+### Done (2026-05-29)
+- **Legacy OPT XML parser** — `parseOptXml()`; 20/20 `test_data/opt14/` fixtures; demo Template tab accepts `.opt`
+- **Unified template input** — `parseTemplateInput()` for ADL / OPT / OET detection
+- **OET XML parser** — CKM Ocean Template format; `test_data/oet14/` fixtures
+- **ADL 1.4 serializer** — `ADL14Serializer` + round-trip test on `adl14/` fixture
+- **ArchetypeRepository** — file-based `.adl`/`.adls` lookup for future OET compile
+- **test_data compatibility scan** — parse-all corpora test with failure reporting
+- **BMM survey** — [`tasks/bmm_survey_phase6b.md`](tasks/bmm_survey_phase6b.md) (pins unchanged; AM 2.4.0 JSON authoritative)
+- **Demo app** — Template upload button (`.opt`, `.oet`, `.adl`, `.adls`)
+- **cADL parser fix** — inline `--` comments no longer cause infinite parse loops (flattening fixtures)
 
-### Validation
-- **Archie AOM structural parity** — raise `ArchetypeValidator` pass rate on all `test_data/archie-tests/` (parse is 8/8; primitive-constraint archetypes need richer `rm_type_name` mapping)
-- **Archie semantic parity** — optional benchmark against Archie JVM validator (out of scope for a dependency-free TS library unless run as external tool)
-
-### Tooling / docs
-- Performance profiling vs PRD targets (<100ms parse, <50ms validation typical archetype)
+### Remaining
+- **Deep ADL 1.4 AOM migration** — ac-code / value_sets; full `constraint_definitions` merge
+- **OET → operational compile** — apply path rules with archetype repository + flattener
+- **OPT XML serialize** — semantic round-trip (optional)
+- **Expression language** — fuller AST for rare operators
+- **ZIP extract in demo** — browser-side unzip for folders with templates and archetypes
 - Expand [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) with conversion limit examples
 
 ## Phase 7a
