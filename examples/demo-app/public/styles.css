@@ -445,13 +445,27 @@ body {
     color: var(--text-secondary);
 }
 
-.template-file-set-hint {
-    margin: 0;
-    font-size: 0.6875rem;
-    color: var(--text-secondary);
-    display: flex;
+.template-file-set-info {
+    display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: help;
+    line-height: 1;
+}
+
+.template-file-set-info .inline-icon {
+    font-size: 1rem;
+}
+
+.template-file-set-info:hover,
+.template-file-set-info:focus-visible {
+    color: var(--primary);
+    outline: none;
 }
 
 .template-file-tabs-scroll {
@@ -520,6 +534,18 @@ body {
     color: var(--text-secondary);
     padding-right: 0.35rem;
     text-transform: lowercase;
+}
+
+.kind-badge--model {
+    color: #1565c0;
+}
+
+.kind-badge--error {
+    color: #c62828;
+}
+
+.kind-badge--skipped {
+    color: #e65100;
 }
 
 .placeholder-message {

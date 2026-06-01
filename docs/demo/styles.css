@@ -415,6 +415,139 @@ body {
     border-bottom: 2px solid var(--border-light);
 }
 
+/* Template file set: scrollable tabs + generation-root radio */
+.template-file-set {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.template-file-set-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+}
+
+.template-file-set-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.template-file-set-summary {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.template-file-set-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: help;
+    line-height: 1;
+}
+
+.template-file-set-info .inline-icon {
+    font-size: 1rem;
+}
+
+.template-file-set-info:hover,
+.template-file-set-info:focus-visible {
+    color: var(--primary);
+    outline: none;
+}
+
+.template-file-tabs-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: 4.5rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+}
+
+.template-file-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: var(--bg-secondary);
+}
+
+.template-file-tab.active {
+    border-color: var(--primary);
+    background: var(--bg-primary);
+    border-bottom-color: var(--bg-primary);
+    margin-bottom: -1px;
+    z-index: 1;
+}
+
+.template-root-radio {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.125rem 0.25rem 0.375rem;
+    cursor: pointer;
+    margin: 0;
+}
+
+.template-root-radio input {
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+.template-file-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.6875rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-primary);
+    cursor: pointer;
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.template-file-tab-btn:hover {
+    color: var(--primary);
+}
+
+.template-file-tab .kind-badge {
+    font-size: 0.625rem;
+    color: var(--text-secondary);
+    padding-right: 0.35rem;
+    text-transform: lowercase;
+}
+
+.kind-badge--model {
+    color: #1565c0;
+}
+
+.kind-badge--error {
+    color: #c62828;
+}
+
+.kind-badge--skipped {
+    color: #e65100;
+}
+
 .placeholder-message {
     flex: 1;
     display: flex;

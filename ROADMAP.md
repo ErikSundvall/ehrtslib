@@ -92,11 +92,11 @@ Create library functionality and make sure the demo tool also allows convertion 
 
 Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
 
-## Phase 7c Refining UI -
-- Remove the "radio_button_checked Generation root (radio) drives example output; click a tab to edit that file" from UI and instead put under an "encircled i" with a tooltip showing it 
-- Add the "Disable Line Wrap" feature to the editor in the "Template (schema)" too just like for other editors
-- Make the explanation text on tabs colored ("archetype", "template" = blue ) ( error = red )  (skipped = dark orange)
-- figure out why the Vitals digns.oet inside the zip is "skipped" rather than being detected ads a template, the zip is in test_data\file-sets\Vital signs_2026_05_29-18_08_54.zip
+## Phase 7c Refining UI + debugging OPT — done
+- File-set hint moved to info icon + tooltip (`examples/demo-app`)
+- Template (schema) editor has Disable Line Wrap
+- Tab badges colored: archetype/template/oet/opt = blue, error = red, skipped = dark orange
+- OET/OPT XML classified as `oet_xml` / `opt_xml` in `ArchetypeRepository` (was misleading `skipped`; Vital signs `templates/composition/Vital signs.oet` covered by test)
 
 ## Remaining (Phase 8b+)
 - OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)

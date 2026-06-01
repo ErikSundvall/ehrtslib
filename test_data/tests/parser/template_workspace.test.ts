@@ -4,17 +4,18 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
-import { RMInstanceGenerator } from "../../enhanced/generation/rm_instance_generator.ts";
+import { RMInstanceGenerator } from "../../../enhanced/generation/rm_instance_generator.ts";
 import {
   ArchetypeRepository,
   TemplateWorkspace,
   getOperationalTemplateFromInput,
   parseTemplateInput,
-} from "../../enhanced/parser/mod.ts";
+} from "../../../enhanced/parser/mod.ts";
+import type { TemplateWorkspaceFile } from "../../../enhanced/parser/template_workspace.ts";
 
-const ADL2_DIR = fromFileUrl(new URL("../../test_data/adl2/", import.meta.url));
+const ADL2_DIR = fromFileUrl(new URL("../../adl2/", import.meta.url));
 const VALIDITY_TEMPLATES_DIR = fromFileUrl(
-  new URL("../../test_data/archie-tests/validity-templates/", import.meta.url),
+  new URL("../../archie-tests/validity-templates/", import.meta.url),
 );
 
 Deno.test("ArchetypeRepository.fromEntries loads archetypes and templates", async () => {
@@ -38,7 +39,7 @@ Deno.test("parseTemplateInput flattens ADL2 template when repository provided", 
 
 Deno.test("TemplateWorkspace resolves OPT from active file", async () => {
   const optPath = new URL(
-    "../../test_data/opt14/minimal_evaluation.opt",
+    "../../opt14/minimal_evaluation.opt",
     import.meta.url,
   );
   const xml = await Deno.readTextFile(optPath);
@@ -104,4 +105,51 @@ Deno.test("getOperationalTemplateFromInput with repository", async () => {
     archetypeRepository: repo,
   });
   assert(opt);
+});
+
+Deno.test("ArchetypeRepository.loadFile classifies OET XML as oet_xml not skipped", async () => {
+  const oetPath = fromFileUrl(
+    new URL("../../oet14/Demo with hide-on-form.oet", import.meta.url),
+  );
+  const text = await Deno.readTextFile(oetPath);
+  const repo = new ArchetypeRepository();
+  const result = repo.loadFile("demo.oet", text);
+  assertEquals(result.kind, "oet_xml");
+});
+
+Deno.test("TemplateWorkspace Vital signs zip: Vital signs.oet is oet_xml", async () => {
+  const zipPath = fromFileUrl(
+    new URL(
+      "../../file-sets/Vital signs_2026_05_29-18_08_54.zip",
+      import.meta.url,
+    ),
+  );
+  const buf = await Deno.readFile(zipPath);
+  const { unzipSync, strFromU8 } = await import("fflate");
+  const entries = unzipSync(buf);
+  const ws = new TemplateWorkspace();
+  const batch: Array<{ path: string; content: string }> = [];
+  for (const [entryName, data] of Object.entries(entries)) {
+    const lower = entryName.toLowerCase();
+    if (
+      /\.(opt|oet|adl|adls|xml)$/.test(lower) &&
+      !lower.includes("__macosx")
+    ) {
+      batch.push({
+        path: entryName.replace(/\\/g, "/").replace(/^\/+/, ""),
+        content: strFromU8(data),
+      });
+    }
+  }
+  ws.addFiles(batch);
+  const vitalSignsOet = ws.listFiles().find((f: TemplateWorkspaceFile) =>
+    /Vital signs\.oet$/i.test(f.path)
+  );
+  assert(
+    vitalSignsOet,
+    `expected Vital signs.oet in zip, got: ${
+      ws.listFiles().map((f: TemplateWorkspaceFile) => f.path).join(", ")
+    }`,
+  );
+  assertEquals(vitalSignsOet.loadResult?.kind, "oet_xml");
 });

@@ -35,7 +35,10 @@ export function canBeGenerationRoot(
 ): boolean {
   if (/\.(opt|oet)$/i.test(path)) return true;
   const kind = loadResult?.kind;
-  return kind === "template" || kind === "operational_template";
+  return kind === "template" ||
+    kind === "operational_template" ||
+    kind === "oet_xml" ||
+    kind === "opt_xml";
 }
 
 export interface ResolveOperationalResult {
@@ -110,7 +113,11 @@ export class TemplateWorkspace {
   /** Pick a sensible default generation root from loaded files. */
   static suggestGenerationRoot(files: TemplateWorkspaceFile[]): string | undefined {
     for (const f of files) {
-      if (f.loadResult?.kind === "template" || f.loadResult?.kind === "operational_template") {
+      const k = f.loadResult?.kind;
+      if (
+        k === "template" || k === "operational_template" || k === "oet_xml" ||
+        k === "opt_xml"
+      ) {
         return f.path;
       }
     }

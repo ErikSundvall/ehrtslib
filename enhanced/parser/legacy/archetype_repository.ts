@@ -4,6 +4,8 @@
 
 import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
 import { flattenToOperationalTemplate, type ArchetypeResolver } from "../../am/flattening/template_flattener.ts";
+import { isOptXml } from "./opt_xml_parser.ts";
+import { isOetXml } from "./oet_xml_parser.ts";
 import * as openehr_am from "../../openehr_am.ts";
 
 export interface ArchetypeRepositoryOptions {
@@ -15,6 +17,8 @@ export type RepositoryFileKind =
   | "archetype"
   | "template"
   | "operational_template"
+  | "oet_xml"
+  | "opt_xml"
   | "skipped"
   | "error";
 
@@ -109,10 +113,21 @@ export class ArchetypeRepository implements ArchetypeResolver {
       }
 
       if (trimmed.startsWith("<?xml") || trimmed.startsWith("<")) {
-        if (/<template[\s>]/i.test(trimmed) && /openEHR\/v1\/Template/i.test(trimmed)) {
-          return { path, kind: "skipped", message: "OET XML: use compileOetToOperational" };
+        if (isOetXml(trimmed)) {
+          return {
+            path,
+            kind: "oet_xml",
+            message: "OET XML (compiled at generation root)",
+          };
         }
-        return { path, kind: "skipped", message: "XML: use parseOptXml separately" };
+        if (isOptXml(trimmed)) {
+          return {
+            path,
+            kind: "opt_xml",
+            message: "OPT XML (parsed at generation root)",
+          };
+        }
+        return { path, kind: "skipped", message: "unrecognized XML" };
       }
 
       const parsed = parseAdl(text, { convertAdl14: true });

@@ -168,11 +168,28 @@ function setupEventListeners() {
   ) as HTMLInputElement;
   if (inputDisableLinebreaks) {
     // apply initial state
-    applyInputLineWrap(!!inputDisableLinebreaks.checked);
+    applyTextareaLineWrap("input-text", !!inputDisableLinebreaks.checked);
     inputDisableLinebreaks.addEventListener("change", () => {
-      applyInputLineWrap(!!inputDisableLinebreaks.checked);
+      applyTextareaLineWrap("input-text", !!inputDisableLinebreaks.checked);
       // update counts/layout as necessary
       handleInputChange();
+    });
+  }
+
+  const templateDisableLinebreaks = document.getElementById(
+    "template-disable-linebreaks",
+  ) as HTMLInputElement;
+  if (templateDisableLinebreaks) {
+    applyTextareaLineWrap(
+      "template-input-text",
+      !!templateDisableLinebreaks.checked,
+    );
+    templateDisableLinebreaks.addEventListener("change", () => {
+      applyTextareaLineWrap(
+        "template-input-text",
+        !!templateDisableLinebreaks.checked,
+      );
+      handleInputChange("template");
     });
   }
 
@@ -609,6 +626,36 @@ function selectTemplateFileTab(path: string) {
   handleInputChange('template');
 }
 
+/** Badge label + CSS class for file-set tab by load result. */
+function fileTabBadgeInfo(
+  path: string,
+  loadResult?: { kind?: string; message?: string },
+): { label: string; className: string; title?: string } {
+  const kind = loadResult?.kind;
+  if (kind === "archetype" || kind === "template" || kind === "operational_template") {
+    return { label: kind, className: "kind-badge kind-badge--model", title: loadResult?.message };
+  }
+  if (kind === "oet_xml") {
+    return { label: "oet", className: "kind-badge kind-badge--model", title: loadResult?.message };
+  }
+  if (kind === "opt_xml") {
+    return { label: "opt", className: "kind-badge kind-badge--model", title: loadResult?.message };
+  }
+  if (kind === "error") {
+    return { label: "error", className: "kind-badge kind-badge--error", title: loadResult?.message };
+  }
+  if (kind === "skipped") {
+    return { label: "skipped", className: "kind-badge kind-badge--skipped", title: loadResult?.message };
+  }
+  if (/\.opt$/i.test(path)) {
+    return { label: "opt", className: "kind-badge kind-badge--model" };
+  }
+  if (/\.oet$/i.test(path)) {
+    return { label: "oet", className: "kind-badge kind-badge--model" };
+  }
+  return { label: "?", className: "kind-badge" };
+}
+
 function updateTemplateFileSetUi() {
   const fileSetEl = document.getElementById('template-file-set');
   const tabsScroll = document.getElementById('template-file-tabs-scroll');
@@ -625,7 +672,7 @@ function updateTemplateFileSetUi() {
 
   tabsScroll.innerHTML = '';
   for (const f of files) {
-    const kind = f.loadResult?.kind ?? (f.path.match(/\.opt$/i) ? 'opt' : '?');
+    const badgeInfo = fileTabBadgeInfo(f.path, f.loadResult);
     const tab = document.createElement('div');
     tab.className = 'template-file-tab' + (f.path === active ? ' active' : '');
     tab.setAttribute('role', 'presentation');
@@ -652,8 +699,9 @@ function updateTemplateFileSetUi() {
     tabBtn.title = f.path;
 
     const badge = document.createElement('span');
-    badge.className = 'kind-badge';
-    badge.textContent = kind;
+    badge.className = badgeInfo.className;
+    badge.textContent = badgeInfo.label;
+    if (badgeInfo.title) badge.title = badgeInfo.title;
 
     tab.appendChild(radioLabel);
     tab.appendChild(tabBtn);
@@ -1845,21 +1893,19 @@ function switchOutputTab(tabName: string) {
 }
 
 /**
- * Apply or remove input textarea line-wrapping disabling
+ * Apply or remove textarea line-wrapping disabling
  */
-function applyInputLineWrap(disable: boolean) {
-  const inputTextarea = document.getElementById(
-    "input-text",
-  ) as HTMLTextAreaElement;
-  if (!inputTextarea) return;
+function applyTextareaLineWrap(textareaId: string, disable: boolean) {
+  const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
+  if (!textarea) return;
   if (disable) {
-    inputTextarea.classList.add("no-linebreak");
-    inputTextarea.setAttribute("wrap", "off");
-    inputTextarea.style.whiteSpace = "pre";
+    textarea.classList.add("no-linebreak");
+    textarea.setAttribute("wrap", "off");
+    textarea.style.whiteSpace = "pre";
   } else {
-    inputTextarea.classList.remove("no-linebreak");
-    inputTextarea.setAttribute("wrap", "soft");
-    inputTextarea.style.whiteSpace = "";
+    textarea.classList.remove("no-linebreak");
+    textarea.setAttribute("wrap", "soft");
+    textarea.style.whiteSpace = "";
   }
 }
 

@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta
       name="description"
-      content="Ehrtslib Format Converter - Demo application showcasing serialization/deserialization between various official JSON and XML formats also experimental JSON, YAML, Markdown, AsciiDoc and TypeScript code generation"
+      content="ehrtslib Format Converter - Demo application showcasing serialization/deserialization between XML, JSON, YAML, and TypeScript code generation"
     >
     <title>ehrtslib Format Converter - Demo</title>
     <link
@@ -25,8 +25,7 @@
         </h1>
         <div class="header-subline">
           <p class="subtitle">
-            openEHR conversion from/to various official JSON & XML and to 
-            experimental variants of · JSON · YAML · XML · Markdown ·
+            openEHR → various variants of · JSON · YAML · XML · Markdown ·
             AsciiDoc · TypeScript stubs
           </p>
           <nav class="header-links" aria-label="Related links">
@@ -306,6 +305,33 @@
                   </button>
                 </div>
               </div>
+              <div class="template-file-set" id="template-file-set" hidden>
+                <div class="template-file-set-header">
+                  <span class="template-file-set-title">File set</span>
+                  <button
+                    type="button"
+                    class="template-file-set-info"
+                    id="template-file-set-info"
+                    title="Generation root (radio) drives example output; click a tab to edit that file."
+                    aria-label="File set help: generation root radio drives example output; click a tab to edit that file."
+                  >
+                    <span class="material-icons inline-icon" aria-hidden="true"
+                    >info</span>
+                  </button>
+                  <span
+                    class="template-file-set-summary"
+                    id="template-file-set-summary"
+                  ></span>
+                </div>
+                <div
+                  class="template-file-tabs-scroll"
+                  id="template-file-tabs-scroll"
+                  role="tablist"
+                  aria-label="Template file set"
+                >
+                  <!-- populated by main.ts -->
+                </div>
+              </div>
               <div class="editor-block">
                 <div class="input-info">
                   <span class="char-count">
@@ -327,6 +353,10 @@
                     <span id="template-validation-text"
                     >Valid operational template ADL</span>
                   </span>
+                  <label class="checkbox-label input-info-line-wrap">
+                    <input type="checkbox" id="template-disable-linebreaks">
+                    <span>Disable Line Wrap</span>
+                  </label>
                 </div>
                 <textarea
                   class="input-textarea"
