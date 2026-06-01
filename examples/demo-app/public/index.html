@@ -105,67 +105,106 @@
                 Template (schema)
               </button>
             </div>
+            <div
+              class="input-toolbar active"
+              data-input-toolbar="instance"
+              aria-label="Instance input actions"
+            >
+              <div class="toolbar-left">
+                <button class="btn btn-secondary btn-sm" id="load-example">
+                  <span class="material-icons btn-icon" aria-hidden="true"
+                  >folder_open</span>
+                  Load Example
+                </button>
+                <div class="example-menu hidden" id="example-menu">
+                  <button class="example-item" data-example="dv-text">
+                    Simple DV_TEXT
+                  </button>
+                  <button class="example-item" data-example="code-phrase">
+                    CODE_PHRASE
+                  </button>
+                  <button class="example-item" data-example="dv-coded-text">
+                    DV_CODED_TEXT
+                  </button>
+                  <button
+                    class="example-item"
+                    data-example="basic-composition"
+                  >
+                    Basic COMPOSITION
+                  </button>
+                  <button
+                    class="example-item"
+                    data-example="complex-composition"
+                  >
+                    Complex COMPOSITION
+                  </button>
+                  <button
+                    class="example-item"
+                    data-example="realistic-composition"
+                  >
+                    Realistic Template Composition
+                  </button>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="upload-file">
+                  <span class="material-icons btn-icon" aria-hidden="true"
+                  >upload_file</span>
+                  Upload File
+                </button>
+                <input
+                  type="file"
+                  id="file-input"
+                  accept=".xml,.json,.yaml,.yml"
+                  class="hidden"
+                >
+              </div>
+              <button class="btn btn-secondary btn-sm" id="clear-input">
+                <span class="material-icons btn-icon" aria-hidden="true"
+                >delete</span>
+                Clear
+              </button>
+            </div>
+            <div
+              class="input-toolbar"
+              data-input-toolbar="template"
+              aria-label="Template input actions"
+            >
+              <div class="form-group form-group-inline">
+                <label for="template-generation-mode">generation_mode:</label>
+                <select id="template-generation-mode" class="config-dropdown">
+                  <option value="minimal">minimal</option>
+                  <option value="example" selected>example</option>
+                  <option value="maximal">maximal</option>
+                </select>
+              </div>
+              <input
+                type="file"
+                id="template-file-input"
+                accept=".opt,.oet,.adl,.adls,.xml,.zip"
+                multiple
+                hidden
+              />
+              <button
+                class="btn btn-secondary btn-sm"
+                id="upload-template-files"
+                title="Upload OPT, OET, ADL, or ZIP of archetypes"
+              >
+                <span class="material-icons btn-icon" aria-hidden="true"
+                >upload_file</span>
+                Upload
+              </button>
+              <button
+                class="btn btn-secondary btn-sm"
+                id="clear-template-input"
+              >
+                <span class="material-icons btn-icon" aria-hidden="true"
+                >delete</span>
+                Clear
+              </button>
+            </div>
           </div>
 
           <div class="input-tab-content">
             <div class="input-tab-pane active" id="input-tab-instance">
-              <div class="toolbar">
-                <div class="toolbar-left">
-                  <button class="btn btn-secondary" id="load-example">
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >folder_open</span>
-                    Load Example
-                  </button>
-                  <div class="example-menu hidden" id="example-menu">
-                    <button class="example-item" data-example="dv-text">
-                      Simple DV_TEXT
-                    </button>
-                    <button class="example-item" data-example="code-phrase">
-                      CODE_PHRASE
-                    </button>
-                    <button class="example-item" data-example="dv-coded-text">
-                      DV_CODED_TEXT
-                    </button>
-                    <button
-                      class="example-item"
-                      data-example="basic-composition"
-                    >
-                      Basic COMPOSITION
-                    </button>
-                    <button
-                      class="example-item"
-                      data-example="complex-composition"
-                    >
-                      Complex COMPOSITION
-                    </button>
-                    <button
-                      class="example-item"
-                      data-example="realistic-composition"
-                    >
-                      Realistic Template Composition
-                    </button>
-                  </div>
-                  <button class="btn btn-secondary" id="upload-file">
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >upload_file</span>
-                    Upload File
-                  </button>
-                  <input
-                    type="file"
-                    id="file-input"
-                    accept=".xml,.json,.yaml,.yml"
-                    class="hidden"
-                  >
-                </div>
-                <div class="toolbar-right">
-                  <button class="btn btn-secondary" id="clear-input">
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >delete</span>
-                    Clear
-                  </button>
-                </div>
-              </div>
-
               <!-- Config and status above editor: users rarely scroll past long instance payloads. -->
               <div class="config-section" id="input-deserializer-section">
                 <div class="config-grid config-grid--input-deser">
@@ -266,45 +305,6 @@
             </div>
 
             <div class="input-tab-pane" id="input-tab-template">
-              <div class="toolbar">
-                <div class="toolbar-left">
-                  <div class="form-group">
-                    <label for="template-generation-mode"
-                    >generation_mode:</label>
-                    <select
-                      id="template-generation-mode"
-                      class="config-dropdown"
-                    >
-                      <option value="minimal">minimal</option>
-                      <option value="example" selected>example</option>
-                      <option value="maximal">maximal</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="toolbar-right">
-                  <input
-                    type="file"
-                    id="template-file-input"
-                    accept=".opt,.oet,.adl,.adls,.xml,.zip"
-                    multiple
-                    hidden
-                  />
-                  <button
-                    class="btn btn-secondary"
-                    id="upload-template-files"
-                    title="Upload OPT, OET, ADL, or ZIP of archetypes"
-                  >
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >upload_file</span>
-                    Upload
-                  </button>
-                  <button class="btn btn-secondary" id="clear-template-input">
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >delete</span>
-                    Clear
-                  </button>
-                </div>
-              </div>
               <div class="template-file-set" id="template-file-set" hidden>
                 <div class="template-file-set-header">
                   <span class="template-file-set-title">File set</span>
