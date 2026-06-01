@@ -53,3 +53,35 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 - The local environment is a Windows machine without admin privileges,
   Powershell and CMD are available. It uses [Scoop](https://scoop.sh/)
   for package installation, so base any advice on that.
+
+## Cursor Cloud specific instructions
+
+**Runtime:** Deno 2.x is installed via [`.cursor/environment.json`](.cursor/environment.json) (`$HOME/.deno/bin`). Cloud VMs should already have `deno` on `PATH` after the environment install step.
+
+**Primary commands** (repo root, see [`deno.json`](deno.json)):
+
+| Goal | Command |
+|------|---------|
+| Typecheck enhanced modules | `deno task check` |
+| Tests (recommended) | `deno test --allow-read --no-check` |
+| Demo unit tests | `deno test --allow-read --no-check examples/demo-app/src/converter.template.test.ts` |
+| Build static demo | `deno task build:demo` → output in `docs/demo/` |
+| Demo dev server | `cd examples/demo-app && deno task dev` → **http://127.0.0.1:8000** |
+
+**Test import paths:** files under `test_data/tests/` import via `../../enhanced/` and `../../openehr_*.ts`, which resolve under `test_data/`, not the repo root. Before running the full suite, create symlinks once per VM (also in the VM update script):
+
+```bash
+cd test_data
+ln -sfn ../enhanced enhanced
+for f in openehr_am openehr_base openehr_lang openehr_rm openehr_term; do
+  ln -sfn ../${f}.ts ${f}.ts
+done
+```
+
+**Tests vs `deno task test`:** `deno task test` runs without `--no-check` and currently fails type-checking on many test files (~300 errors). Use `--no-check` as documented in [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md). Expect some failing cases in the full suite (fixture/archie benchmarks); demo and `deno task check` are reliable smoke checks.
+
+**Lint/format:** `deno fmt --check` and `deno lint` include generated `docs/demo/bundle.js` and report thousands of issues. Lint source only: `deno lint enhanced examples/demo-app/src test_data/tests`.
+
+**No Docker/DB:** This repo is a library + static demo; CI ([`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)) only builds the demo for GitHub Pages.
+
+**MCP:** Enable servers from [`.cursor/mcp.json`](.cursor/mcp.json) at [cursor.com/agents](https://cursor.com/agents) per [`docs/CURSOR_CLOUD_SETUP.md`](docs/CURSOR_CLOUD_SETUP.md) for openEHR modeling tasks.
