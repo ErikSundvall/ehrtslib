@@ -1,4 +1,7 @@
-import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
   convert,
   getAsciidocConfigPreset,
@@ -36,9 +39,13 @@ Deno.test("validateTemplateInput accepts operational_template input", () => {
 });
 
 Deno.test("validateTemplateInput rejects plain archetype (non-template) input", () => {
-  const result = validateTemplateInput(OPERATIONAL_TEMPLATE_ADL.replace("operational_template", "archetype"));
+  const result = validateTemplateInput(
+    OPERATIONAL_TEMPLATE_ADL.replace("operational_template", "archetype"),
+  );
   assertEquals(result.valid, false);
-  assert(result.message.includes("archetype") || result.message.includes("Invalid"));
+  assert(
+    result.message.includes("archetype") || result.message.includes("Invalid"),
+  );
 });
 
 Deno.test("convert template input generates RM example outputs and TypeScript stubs", async () => {
@@ -141,6 +148,6 @@ Deno.test("convert template input generates markdown and asciidoc outputs", asyn
   assertEquals(result.success, true);
   assert(result.outputs?.markdown);
   assert(result.outputs?.asciidoc);
-  assert(result.outputs?.markdown?.includes("Demo composition"));
-  assert(result.outputs?.asciidoc?.includes("Demo composition"));
+  assert(result.outputs?.markdown?.includes("composer:"));
+  assert(result.outputs?.asciidoc?.includes(":composer:"));
 });

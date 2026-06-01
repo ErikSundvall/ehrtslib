@@ -1,90 +1,93 @@
 /**
  * Converter Module
- * 
+ *
  * Handles conversion between different openEHR formats using ehrtslib serialization modules.
  */
 
 import {
-  JsonCanonicalSerializer,
-  JsonCanonicalDeserializer,
-  JsonConfigurableSerializer,
-  JsonConfigurableDeserializer,
-  type JsonSerializationConfig,
-  type JsonDeserializationConfig,
-  DEFAULT_JSON_SERIALIZATION_CONFIG,
-  DEFAULT_JSON_DESERIALIZATION_CONFIG,
   CANONICAL_JSON_CONFIG,
   CANONICAL_JSON_DESERIALIZE_CONFIG,
   COMPACT_JSON_CONFIG,
   COMPACT_JSON_DESERIALIZE_CONFIG,
+  DEFAULT_JSON_DESERIALIZATION_CONFIG,
+  DEFAULT_JSON_SERIALIZATION_CONFIG,
   HYBRID_JSON_CONFIG,
   HYBRID_JSON_DESERIALIZE_CONFIG,
+  JsonCanonicalDeserializer,
+  JsonCanonicalSerializer,
+  JsonConfigurableDeserializer,
+  JsonConfigurableSerializer,
+  type JsonDeserializationConfig,
+  type JsonSerializationConfig,
   NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
   NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG,
-} from '../../../enhanced/serialization/json/mod.ts';
+} from "../../../enhanced/serialization/json/mod.ts";
 
 import {
-  YamlSerializer,
+  BLOCK_YAML_CONFIG,
+  DEFAULT_YAML_DESERIALIZATION_CONFIG,
+  DEFAULT_YAML_SERIALIZATION_CONFIG,
+  FLOW_YAML_CONFIG,
+  HYBRID_YAML_CONFIG,
+  VERBOSE_YAML_CONFIG,
+  type YamlDeserializationConfig,
   YamlDeserializer,
   type YamlSerializationConfig,
-  type YamlDeserializationConfig,
-  DEFAULT_YAML_SERIALIZATION_CONFIG,
-  DEFAULT_YAML_DESERIALIZATION_CONFIG,
-  VERBOSE_YAML_CONFIG,
-  HYBRID_YAML_CONFIG,
-  FLOW_YAML_CONFIG,
-  BLOCK_YAML_CONFIG,
-} from '../../../enhanced/serialization/yaml/mod.ts';
+  YamlSerializer,
+} from "../../../enhanced/serialization/yaml/mod.ts";
 
 import {
-  XmlSerializer,
   XmlDeserializer,
-} from '../../../enhanced/serialization/xml/mod.ts';
+  XmlSerializer,
+} from "../../../enhanced/serialization/xml/mod.ts";
 
 import {
-  MarkdownSerializer,
-  type MarkdownSerializationConfig,
-  DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
   CLINICAL_MARKDOWN_CONFIG,
-  STRUCTURAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
+  DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
+  type MarkdownSerializationConfig,
+  MarkdownSerializer,
+  STRUCTURAL_MARKDOWN_CONFIG,
   WIKILINK_MARKDOWN_CONFIG,
-} from '../../../enhanced/serialization/markdown/mod.ts';
+} from "../../../enhanced/serialization/markdown/mod.ts";
 
 import {
-  AsciidocSerializer,
   type AsciidocSerializationConfig,
-  DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+  AsciidocSerializer,
   COMPACT_ASCIIDOC_CONFIG,
+  DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
   LOSSLESS_ASCIIDOC_CONFIG,
-} from '../../../enhanced/serialization/asciidoc/mod.ts';
+} from "../../../enhanced/serialization/asciidoc/mod.ts";
 
 import {
-  TypeScriptConstructorSerializer,
   type TypeScriptConstructorSerializationConfig,
-} from '../../../enhanced/serialization/typescript/mod.ts';
+  TypeScriptConstructorSerializer,
+} from "../../../enhanced/serialization/typescript/mod.ts";
 
 import {
   buildWebTemplate,
   serializeToFlatJson,
   serializeToStructuredJson,
-} from '../../../enhanced/serialization/simplified/mod.ts';
-import { parseTemplateInput, getOperationalTemplateFromInput } from '../../../enhanced/parser/mod.ts';
+} from "../../../enhanced/serialization/simplified/mod.ts";
 import {
+  getOperationalTemplateFromInput,
+  parseTemplateInput,
+} from "../../../enhanced/parser/mod.ts";
+import {
+  type GenerationMode,
   RMInstanceGenerator,
   TypeScriptGenerator,
-  type GenerationMode,
-} from '../../../enhanced/generation/mod.ts';
+} from "../../../enhanced/generation/mod.ts";
 
 import {
-  TypeRegistry,
-  SerializationError,
   DeserializationError,
-} from '../../../enhanced/serialization/common/mod.ts';
+  SerializationError,
+  TypeRegistry,
+} from "../../../enhanced/serialization/common/mod.ts";
 
 // Import RM and Base modules for type registration
-import * as openehr_rm from '../../../enhanced/openehr_rm.ts';
-import * as openehr_base from '../../../enhanced/openehr_base.ts';
+import * as openehr_rm from "../../../enhanced/openehr_rm.ts";
+import * as openehr_base from "../../../enhanced/openehr_base.ts";
 
 // Global flag to track if TypeRegistry is initialized
 let typeRegistryInitialized = false;
@@ -105,9 +108,13 @@ export function initializeTypeRegistry() {
     TypeRegistry.registerModule(openehr_base);
 
     typeRegistryInitialized = true;
-    console.log('✓ TypeRegistry initialized with', TypeRegistry.getAllTypeNames().length, 'types');
+    console.log(
+      "✓ TypeRegistry initialized with",
+      TypeRegistry.getAllTypeNames().length,
+      "types",
+    );
   } catch (error) {
-    console.error('Failed to initialize TypeRegistry:', error);
+    console.error("Failed to initialize TypeRegistry:", error);
     throw error;
   }
 }
@@ -115,23 +122,23 @@ export function initializeTypeRegistry() {
 /**
  * Input format types
  */
-export type InputFormat = 'xml' | 'json' | 'yaml';
-export type InputMode = 'instance' | 'template';
+export type InputFormat = "xml" | "json" | "yaml";
+export type InputMode = "instance" | "template";
 export type TemplateGenerationMode = GenerationMode;
 
 /**
  * Output format types
  */
 export type OutputFormat =
-  | 'xml'
-  | 'json'
-  | 'yaml'
-  | 'markdown'
-  | 'asciidoc'
-  | 'typescript'
-  | 'flat'
-  | 'structured'
-  | 'webtemplate';
+  | "xml"
+  | "json"
+  | "yaml"
+  | "markdown"
+  | "asciidoc"
+  | "typescript"
+  | "flat"
+  | "structured"
+  | "webtemplate";
 
 /**
  * Conversion options
@@ -139,15 +146,22 @@ export type OutputFormat =
 export interface ConversionOptions {
   inputMode: InputMode;
   inputFormat: InputFormat;
-  inputDeserializerConfig: JsonDeserializationConfig | YamlDeserializationConfig;
+  inputDeserializerConfig:
+    | JsonDeserializationConfig
+    | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
   templateGenerationMode: TemplateGenerationMode;
-  jsonSerializerType: 'canonical' | 'configurable';
+  jsonSerializerType: "canonical" | "configurable";
   jsonConfig: JsonSerializationConfig;
   yamlConfig: YamlSerializationConfig;
   markdownConfig: MarkdownSerializationConfig;
   asciidocConfig: AsciidocSerializationConfig;
-  xmlConfig: { prettyPrint: boolean; indent: number; includeDeclaration: boolean; includeNamespaces: boolean };
+  xmlConfig: {
+    prettyPrint: boolean;
+    indent: number;
+    includeDeclaration: boolean;
+    includeNamespaces: boolean;
+  };
   typescriptConfig: TypeScriptConstructorSerializationConfig;
 }
 
@@ -174,19 +188,26 @@ export interface ConversionResult {
 /**
  * Convert input data to requested output formats
  */
-export async function convert(input: string, options: ConversionOptions): Promise<ConversionResult> {
+export async function convert(
+  input: string,
+  options: ConversionOptions,
+): Promise<ConversionResult> {
   // Initialize TypeRegistry if not done yet
   if (!typeRegistryInitialized) {
     initializeTypeRegistry();
   }
 
   try {
-    if (options.inputMode === 'template') {
+    if (options.inputMode === "template") {
       return convertTemplateInput(input, options);
     }
 
     // Step 1: Deserialize input to RM object
-    const rmObject = await deserializeInput(input, options.inputFormat, options.inputDeserializerConfig);
+    const rmObject = await deserializeInput(
+      input,
+      options.inputFormat,
+      options.inputDeserializerConfig,
+    );
 
     // Step 2: Serialize to requested output formats
     const outputs: Record<string, string> = {};
@@ -194,42 +215,56 @@ export async function convert(input: string, options: ConversionOptions): Promis
     for (const format of options.outputFormats) {
       try {
         switch (format) {
-          case 'xml':
+          case "xml":
             outputs.xml = serializeToXml(rmObject, options.xmlConfig);
             break;
-          case 'json':
-            outputs.json = serializeToJson(rmObject, options.jsonSerializerType, options.jsonConfig);
+          case "json":
+            outputs.json = serializeToJson(
+              rmObject,
+              options.jsonSerializerType,
+              options.jsonConfig,
+            );
             break;
-          case 'yaml':
+          case "yaml":
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
             break;
-          case 'markdown':
-            outputs.markdown = serializeToMarkdown(rmObject, options.markdownConfig);
+          case "markdown":
+            outputs.markdown = serializeToMarkdown(
+              rmObject,
+              options.markdownConfig,
+            );
             break;
-          case 'asciidoc':
-            outputs.asciidoc = serializeToAsciidoc(rmObject, options.asciidocConfig);
+          case "asciidoc":
+            outputs.asciidoc = serializeToAsciidoc(
+              rmObject,
+              options.asciidocConfig,
+            );
             break;
-          case 'typescript':
-            outputs.typescript = generateTypeScriptCode(rmObject, options.typescriptConfig);
+          case "typescript":
+            outputs.typescript = generateTypeScriptCode(
+              rmObject,
+              options.typescriptConfig,
+            );
             break;
         }
       } catch (error) {
         console.error(`Failed to serialize to ${format}:`, error);
-        throw new Error(`Failed to convert to ${format}: ${(error as Error).message}`);
+        throw new Error(
+          `Failed to convert to ${format}: ${(error as Error).message}`,
+        );
       }
     }
 
     return {
       success: true,
-      outputs
+      outputs,
     };
-
   } catch (error) {
-    console.error('Conversion error:', error);
+    console.error("Conversion error:", error);
     return {
       success: false,
       error: (error as Error).message,
-      errorDetails: error
+      errorDetails: error,
     };
   }
 }
@@ -246,7 +281,9 @@ function convertTemplateInput(
     if (parsed.kind === "oet_document") {
       throw new Error(
         "OET template loaded but requires referenced archetypes to compile. " +
-          `Base archetype: ${parsed.oet?.document.definitionArchetypeId ?? "unknown"}. ` +
+          `Base archetype: ${
+            parsed.oet?.document.definitionArchetypeId ?? "unknown"
+          }. ` +
           (firstError as Error).message,
       );
     }
@@ -263,33 +300,49 @@ function convertTemplateInput(
 
   for (const format of options.outputFormats) {
     switch (format) {
-      case 'xml':
+      case "xml":
         outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
         break;
-      case 'json':
-        outputs.json = serializeToJson(generatedInstance, options.jsonSerializerType, options.jsonConfig);
+      case "json":
+        outputs.json = serializeToJson(
+          generatedInstance,
+          options.jsonSerializerType,
+          options.jsonConfig,
+        );
         break;
-      case 'yaml':
+      case "yaml":
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
         break;
-      case 'markdown':
-        outputs.markdown = serializeToMarkdown(generatedInstance, options.markdownConfig);
+      case "markdown":
+        outputs.markdown = serializeToMarkdown(
+          generatedInstance,
+          options.markdownConfig,
+        );
         break;
-      case 'asciidoc':
-        outputs.asciidoc = serializeToAsciidoc(generatedInstance, options.asciidocConfig);
+      case "asciidoc":
+        outputs.asciidoc = serializeToAsciidoc(
+          generatedInstance,
+          options.asciidocConfig,
+        );
         break;
-      case 'typescript': {
-        const tsGenerator = new TypeScriptGenerator({ language: 'en' });
+      case "typescript": {
+        const tsGenerator = new TypeScriptGenerator({ language: "en" });
         outputs.typescript = tsGenerator.generate(template);
         break;
       }
-      case 'flat':
-        outputs.flat = serializeToFlatJson(generatedInstance, webTemplate, { prettyPrint: true });
+      case "flat":
+        outputs.flat = serializeToFlatJson(generatedInstance, webTemplate, {
+          prettyPrint: true,
+        });
         break;
-      case 'structured':
-        outputs.structured = serializeToStructuredJson(generatedInstance, webTemplate, { prettyPrint: true });
+      case "structured":
+        outputs.structured = serializeToStructuredJson(
+          generatedInstance,
+          webTemplate,
+          { prettyPrint: true },
+        );
         break;
-      case 'webtemplate':
+      case "webtemplate":
         outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
         break;
     }
@@ -298,29 +351,42 @@ function convertTemplateInput(
   return { success: true, outputs };
 }
 
-export function validateTemplateInput(input: string): { valid: boolean; message: string } {
+export function validateTemplateInput(
+  input: string,
+): { valid: boolean; message: string } {
   const text = input.trim();
   if (!text) {
-    return { valid: false, message: 'Empty template' };
+    return { valid: false, message: "Empty template" };
   }
 
   try {
     const parsed = parseTemplateInput(text);
-    if (parsed.kind === 'operational_template' && parsed.operationalTemplate) {
-      const id = parsed.operationalTemplate.archetype_id?.value ?? 'operational template';
-      const fmt = parsed.format === 'opt_xml' ? 'OPT XML' : 'ADL';
+    if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
+      const id = parsed.operationalTemplate.archetype_id?.value ??
+        "operational template";
+      const fmt = parsed.format === "opt_xml" ? "OPT XML" : "ADL";
       return { valid: true, message: `Valid ${fmt}: ${id}` };
     }
-    if (parsed.kind === 'oet_document' && parsed.oet) {
-      const id = parsed.oet.document.definitionArchetypeId ?? parsed.oet.document.name;
+    if (parsed.kind === "oet_document" && parsed.oet) {
+      const id = parsed.oet.document.definitionArchetypeId ??
+        parsed.oet.document.name;
       return { valid: true, message: `Valid OET (needs archetypes): ${id}` };
     }
-    if (parsed.kind === 'template') {
-      return { valid: true, message: 'Valid ADL template (flatten to operational for instances)' };
+    if (parsed.kind === "template") {
+      return {
+        valid: true,
+        message: "Valid ADL template (flatten to operational for instances)",
+      };
     }
-    return { valid: false, message: `Unsupported template kind: ${parsed.kind}` };
+    return {
+      valid: false,
+      message: `Unsupported template kind: ${parsed.kind}`,
+    };
   } catch (error) {
-    return { valid: false, message: `Invalid template: ${(error as Error).message}` };
+    return {
+      valid: false,
+      message: `Invalid template: ${(error as Error).message}`,
+    };
   }
 }
 
@@ -330,18 +396,22 @@ export function validateTemplateInput(input: string): { valid: boolean; message:
 async function deserializeInput(
   input: string,
   format: InputFormat,
-  config: JsonDeserializationConfig | YamlDeserializationConfig
+  config: JsonDeserializationConfig | YamlDeserializationConfig,
 ): Promise<any> {
   switch (format) {
-    case 'json': {
-      const deserializer = new JsonConfigurableDeserializer(config as JsonDeserializationConfig);
+    case "json": {
+      const deserializer = new JsonConfigurableDeserializer(
+        config as JsonDeserializationConfig,
+      );
       return deserializer.deserialize(input);
     }
-    case 'yaml': {
-      const deserializer = new YamlDeserializer(config as YamlDeserializationConfig);
+    case "yaml": {
+      const deserializer = new YamlDeserializer(
+        config as YamlDeserializationConfig,
+      );
       return deserializer.deserialize(input);
     }
-    case 'xml': {
+    case "xml": {
       const deserializer = new XmlDeserializer();
       return deserializer.deserialize(input);
     }
@@ -355,15 +425,15 @@ async function deserializeInput(
  */
 function serializeToJson(
   obj: any,
-  serializerType: 'canonical' | 'configurable',
-  config: JsonSerializationConfig
+  serializerType: "canonical" | "configurable",
+  config: JsonSerializationConfig,
 ): string {
-  if (serializerType === 'canonical') {
+  if (serializerType === "canonical") {
     const serializer = new JsonCanonicalSerializer();
     return serializer.serialize(obj, {
       prettyPrint: config.prettyPrint,
       indent: config.indent,
-      archetypeNodeIdLocation: config.archetypeNodeIdLocation
+      archetypeNodeIdLocation: config.archetypeNodeIdLocation,
     });
   } else {
     const serializer = new JsonConfigurableSerializer(config);
@@ -382,7 +452,10 @@ function serializeToYaml(obj: any, config: YamlSerializationConfig): string {
 /**
  * Serialize RM object to Markdown
  */
-function serializeToMarkdown(obj: any, config: MarkdownSerializationConfig): string {
+function serializeToMarkdown(
+  obj: any,
+  config: MarkdownSerializationConfig,
+): string {
   const serializer = new MarkdownSerializer(config);
   return serializer.serialize(obj);
 }
@@ -390,7 +463,10 @@ function serializeToMarkdown(obj: any, config: MarkdownSerializationConfig): str
 /**
  * Serialize RM object to AsciiDoc
  */
-function serializeToAsciidoc(obj: any, config: AsciidocSerializationConfig): string {
+function serializeToAsciidoc(
+  obj: any,
+  config: AsciidocSerializationConfig,
+): string {
   const serializer = new AsciidocSerializer(config);
   return serializer.serialize(obj);
 }
@@ -400,13 +476,18 @@ function serializeToAsciidoc(obj: any, config: AsciidocSerializationConfig): str
  */
 function serializeToXml(
   obj: any,
-  config: { prettyPrint: boolean; indent: number; includeDeclaration: boolean; includeNamespaces: boolean }
+  config: {
+    prettyPrint: boolean;
+    indent: number;
+    includeDeclaration: boolean;
+    includeNamespaces: boolean;
+  },
 ): string {
   const serializer = new XmlSerializer({
     prettyPrint: config.prettyPrint,
-    indent: ' '.repeat(config.indent), // Convert number to string of spaces
+    indent: " ".repeat(config.indent), // Convert number to string of spaces
     includeDeclaration: config.includeDeclaration,
-    useNamespaces: config.includeNamespaces
+    useNamespaces: config.includeNamespaces,
   });
   return serializer.serialize(obj);
 }
@@ -416,7 +497,7 @@ function serializeToXml(
  */
 function generateTypeScriptCode(
   obj: any,
-  config: TypeScriptConstructorSerializationConfig
+  config: TypeScriptConstructorSerializationConfig,
 ): string {
   const serializer = new TypeScriptConstructorSerializer(config);
   return serializer.serialize(obj);
@@ -427,26 +508,28 @@ function generateTypeScriptCode(
  */
 export function getJsonConfigPreset(preset: string): JsonSerializationConfig {
   switch (preset) {
-    case 'canonical':
+    case "canonical":
       return { ...CANONICAL_JSON_CONFIG };
-    case 'compact':
+    case "compact":
       return { ...COMPACT_JSON_CONFIG };
-    case 'hybrid':
+    case "hybrid":
       return { ...HYBRID_JSON_CONFIG };
-    case 'very-compact':
+    case "very-compact":
       return { ...NON_STANDARD_VERY_COMPACT_JSON_CONFIG };
     default:
       return { ...DEFAULT_JSON_SERIALIZATION_CONFIG };
   }
 }
 
-export function getJsonDeserializeConfigPreset(preset: string): JsonDeserializationConfig {
+export function getJsonDeserializeConfigPreset(
+  preset: string,
+): JsonDeserializationConfig {
   switch (preset) {
-    case 'canonical':
+    case "canonical":
       return { ...CANONICAL_JSON_DESERIALIZE_CONFIG };
-    case 'compact':
+    case "compact":
       return { ...COMPACT_JSON_DESERIALIZE_CONFIG };
-    case 'hybrid':
+    case "hybrid":
       return { ...HYBRID_JSON_DESERIALIZE_CONFIG };
     default:
       return { ...DEFAULT_JSON_DESERIALIZATION_CONFIG };
@@ -455,44 +538,56 @@ export function getJsonDeserializeConfigPreset(preset: string): JsonDeserializat
 
 export function getYamlConfigPreset(preset: string): YamlSerializationConfig {
   switch (preset) {
-    case 'verbose':
+    case "verbose":
       return { ...VERBOSE_YAML_CONFIG };
-    case 'hybrid':
+    case "hybrid":
       return { ...HYBRID_YAML_CONFIG };
-    case 'flow':
+    case "flow":
       return { ...FLOW_YAML_CONFIG };
-    case 'block':
+    case "block":
       return { ...BLOCK_YAML_CONFIG };
     default:
       return { ...DEFAULT_YAML_SERIALIZATION_CONFIG };
   }
 }
 
-export function getYamlDeserializeConfigPreset(preset: string): YamlDeserializationConfig {
+export function getYamlDeserializeConfigPreset(
+  preset: string,
+): YamlDeserializationConfig {
   // For now, use default for all presets
   return { ...DEFAULT_YAML_DESERIALIZATION_CONFIG };
 }
 
-export function getMarkdownConfigPreset(preset: string): MarkdownSerializationConfig {
+export function getMarkdownConfigPreset(
+  preset: string,
+): MarkdownSerializationConfig {
   switch (preset) {
-    case 'clinical':
+    case "clinical":
       return { ...CLINICAL_MARKDOWN_CONFIG };
-    case 'compact':
+    case "compact":
       return { ...COMPACT_MARKDOWN_CONFIG };
-    case 'wikilink':
+    case "wikilink":
       return { ...WIKILINK_MARKDOWN_CONFIG };
-    case 'structural':
+    case "structural":
     default:
-      return { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...STRUCTURAL_MARKDOWN_CONFIG };
+      return {
+        ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
+        ...STRUCTURAL_MARKDOWN_CONFIG,
+      };
   }
 }
 
-export function getAsciidocConfigPreset(preset: string): AsciidocSerializationConfig {
+export function getAsciidocConfigPreset(
+  preset: string,
+): AsciidocSerializationConfig {
   switch (preset) {
-    case 'compact':
+    case "compact":
       return { ...COMPACT_ASCIIDOC_CONFIG };
-    case 'lossless':
+    case "lossless":
     default:
-      return { ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG, ...LOSSLESS_ASCIIDOC_CONFIG };
+      return {
+        ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+        ...LOSSLESS_ASCIIDOC_CONFIG,
+      };
   }
 }
