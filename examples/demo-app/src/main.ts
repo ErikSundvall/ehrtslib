@@ -33,6 +33,8 @@ import type {
   YamlDeserializationConfig,
 } from '../../../enhanced/serialization/yaml/mod.ts';
 
+import { unzipSync, strFromU8 } from 'fflate';
+
 // Application state
 let currentInputFormat = 'json';
 let currentInputTab: InputMode = 'instance';
@@ -214,7 +216,7 @@ function setupEventListeners() {
  * Set up listeners for output format checkboxes to toggle tabs
  */
 function setupOutputVisibilityListeners() {
-  const formats = ['xml', 'json', 'yaml', 'typescript'];
+  const formats = ['xml', 'json', 'yaml', 'typescript', 'flat', 'structured', 'webtemplate'];
 
   formats.forEach(format => {
     const checkbox = document.getElementById(`output-${format}`) as HTMLInputElement;
@@ -446,8 +448,17 @@ function setupTemplateFileUpload() {
     for (const file of Array.from(files)) {
       const name = file.name.toLowerCase();
       if (name.endsWith('.zip')) {
-        texts.push(await `# ZIP upload "${file.name}" is not yet extracted in-browser.\n` +
-          `# Extract .opt/.oet/.adl files locally and upload individually.\n`);
+        const buf = new Uint8Array(await file.arrayBuffer());
+        const entries = unzipSync(buf);
+        for (const [entryName, data] of Object.entries(entries)) {
+          const lower = entryName.toLowerCase();
+          if (/\.(opt|oet|adl|adls|xml)$/.test(lower) && !lower.includes('__macosx')) {
+            texts.push(strFromU8(data));
+          }
+        }
+        if (!texts.length) {
+          texts.push(`# ZIP "${file.name}" contained no .opt/.oet/.adl files.\n`);
+        }
         continue;
       }
       if (/\.(opt|oet|adl|adls|xml)$/.test(name)) {
@@ -823,6 +834,15 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
     outputFormats.push('typescript');
   }
+  if ((document.getElementById('output-flat') as HTMLInputElement)?.checked) {
+    outputFormats.push('flat');
+  }
+  if ((document.getElementById('output-structured') as HTMLInputElement)?.checked) {
+    outputFormats.push('structured');
+  }
+  if ((document.getElementById('output-webtemplate') as HTMLInputElement)?.checked) {
+    outputFormats.push('webtemplate');
+  }
 
   // JSON serializer type and config
   const jsonSerializerType = ((document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable') as 'canonical' | 'configurable';
@@ -929,6 +949,21 @@ function updateOutputs(outputs: Record<string, string>) {
     if (tsContent) {
       tsContent.textContent = outputs.typescript;
     }
+  }
+
+  if (outputs.flat) {
+    const flatContent = document.getElementById('output-flat-content');
+    if (flatContent) flatContent.textContent = outputs.flat;
+  }
+
+  if (outputs.structured) {
+    const structuredContent = document.getElementById('output-structured-content');
+    if (structuredContent) structuredContent.textContent = outputs.structured;
+  }
+
+  if (outputs.webtemplate) {
+    const wtContent = document.getElementById('output-webtemplate-content');
+    if (wtContent) wtContent.textContent = outputs.webtemplate;
   }
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();

@@ -264,6 +264,18 @@ terminology
                             <input type="checkbox" id="output-xml" checked>
                             <span>XML</span>
                         </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-flat">
+                            <span>FLAT</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-structured">
+                            <span>STRUCTURED</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-webtemplate">
+                            <span>Web Template</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -288,6 +300,9 @@ terminology
                         <button class="tab" data-tab="yaml">YAML</button>
                         <button class="tab" data-tab="typescript">TypeScript</button>
                         <button class="tab" data-tab="xml">XML</button>
+                        <button class="tab" data-tab="flat">FLAT</button>
+                        <button class="tab" data-tab="structured">STRUCTURED</button>
+                        <button class="tab" data-tab="webtemplate">Web Template</button>
                     </div>
                     <div class="output-toolbar">
                         <button class="btn btn-secondary btn-sm" id="copy-output" type="button">
@@ -690,6 +705,42 @@ console.log(json);</pre>
 &lt;/COMPOSITION&gt;</pre>
                         </div>
                         <div class="success-message hidden" id="success-xml">
+                            <span class="material-icons success-icon" aria-hidden="true">check</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-flat">
+                        <div class="output-info">
+                            <span class="output-char-count">0 chars</span>
+                            <span class="output-line-count">0 lines</span>
+                        </div>
+                        <pre class="output-content" id="output-flat-content">{}</pre>
+                        <div class="success-message hidden" id="success-flat">
+                            <span class="material-icons success-icon" aria-hidden="true">check</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-structured">
+                        <div class="output-info">
+                            <span class="output-char-count">0 chars</span>
+                            <span class="output-line-count">0 lines</span>
+                        </div>
+                        <pre class="output-content" id="output-structured-content">{}</pre>
+                        <div class="success-message hidden" id="success-structured">
+                            <span class="material-icons success-icon" aria-hidden="true">check</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-webtemplate">
+                        <div class="output-info">
+                            <span class="output-char-count">0 chars</span>
+                            <span class="output-line-count">0 lines</span>
+                        </div>
+                        <pre class="output-content" id="output-webtemplate-content">{}</pre>
+                        <div class="success-message hidden" id="success-webtemplate">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>

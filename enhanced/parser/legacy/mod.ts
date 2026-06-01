@@ -19,4 +19,10 @@ export {
   getOperationalTemplateFromInput,
   type TemplateInputFormat,
   type ParseTemplateInputResult,
+  type ParseTemplateInputOptions,
 } from "./parse_template_input.ts";
+export {
+  compileOetToOperational,
+  type OetCompileOptions,
+  type OetCompileResult,
+} from "./oet_compiler.ts";

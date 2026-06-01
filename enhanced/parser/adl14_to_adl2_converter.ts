@@ -4,8 +4,8 @@
  * Based on openEHR ADL2 spec §7.13.5 and ADL 1.4 conversion notes (ontology → terminology,
  * merged term tables, id-codes for node ids, deprecated `matches {*}`, etc.).
  *
- * Full AOM semantic migration (value_sets, ac-code reshaping) is not applied here — only
- * syntactic normalisation so the ADL2 parser can consume community legacy files.
+ * Semantic migration covers ac-code / value_sets reshaping in terminology sections and
+ * merging `constraint_definitions` into `term_definitions` by code key.
  */
 
 import { detectAdlVersion } from "./adl_version.ts";
@@ -60,7 +60,9 @@ export function convertAdl14ToAdl2(
   text = renameSectionKeyword(text, "constraint_bindings", "term_bindings");
   text = stripTerminologiesAvailable(text);
   text = flattenTermDefinitionItemsWrappers(text);
+  text = convertTerminologyAcCodes(text, warnings);
   text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings);
+  text = migrateValueSetsSection(text, warnings);
   text = convertDefinitionNodeIds(text);
   text = stripDeprecatedMatchesAny(text);
   text = normalizeArchetypeHridVersion(text, warnings);
@@ -165,22 +167,222 @@ function flattenTermDefinitionItemsWrappers(text: string): string {
   );
 }
 
+/** Convert `[at0001]` / `[ac1]` keys in terminology blocks to ADL2 `[id1]` form. */
+function convertTerminologyAcCodes(text: string, warnings: string[]): string {
+  const sections = splitTopLevelSections(text);
+  let changed = false;
+  const converted = sections.map((sec) => {
+    const header = sec.header.trim().toLowerCase();
+    if (header !== "ontology" && header !== "terminology") return sec.raw;
+    const body = convertAcCodeKeysInTerminologyBody(sec.body);
+    if (body !== sec.body) changed = true;
+    return sec.header + "\n" + body;
+  });
+  if (changed) {
+    warnings.push("Converted ac-code keys in terminology to ADL2 id form.");
+  }
+  return converted.join("\n");
+}
+
+function convertAcCodeKeysInTerminologyBody(body: string): string {
+  return body
+    .replace(
+      /\["(at\d+|ac[\d.]+)"\]/gi,
+      (_m, code: string) => `["${acCodeToIdKey(code)}"]`,
+    )
+    .replace(
+      /\[(at\d+|ac[\d.]+)\]/gi,
+      (_m, code: string) => `[${acCodeToIdKey(code)}]`,
+    );
+}
+
+function acCodeToIdKey(code: string): string {
+  const at = /^at(\d+)$/i.exec(code);
+  if (at) return `id${parseInt(at[1], 10)}`;
+  const ac = /^ac([\d.]+)$/i.exec(code);
+  if (ac) return `ac${ac[1]}`;
+  return code;
+}
+
+interface TermEntry {
+  code: string;
+  lines: string[];
+}
+
+function parseTermTableEntries(block: string): TermEntry[] {
+  const entries: TermEntry[] = [];
+  const re = /\["([^"]+)"\]\s*=\s*</g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(block)) !== null) {
+    const open = block.indexOf("<", m.index);
+    let depth = 0;
+    let close = open;
+    for (let i = open; i < block.length; i++) {
+      if (block[i] === "<") depth++;
+      else if (block[i] === ">") {
+        depth--;
+        if (depth === 0) {
+          close = i;
+          break;
+        }
+      }
+    }
+    const body = block.slice(open + 1, close).trim();
+    entries.push({
+      code: m[1],
+      lines: body ? body.split("\n").map((l) => l.trimEnd()) : [],
+    });
+  }
+  return entries;
+}
+
+function mergeTermEntryLines(
+  existing: string[],
+  incoming: string[],
+): string[] {
+  const map = new Map<string, string>();
+  for (const line of existing) {
+    const kv = /^(\w+)\s*=/.exec(line.trim());
+    if (kv) map.set(kv[1], line);
+  }
+  for (const line of incoming) {
+    const kv = /^(\w+)\s*=/.exec(line.trim());
+    if (kv) map.set(kv[1], line);
+    else if (line.trim()) map.set(`__${map.size}`, line);
+  }
+  return [...map.values()];
+}
+
+function parseLanguageBlocks(block: string): Map<string, string> {
+  const langs = new Map<string, string>();
+  const re = /\["([^"]+)"\]\s*=\s*</g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(block)) !== null) {
+    const open = block.indexOf("<", m.index);
+    let depth = 0;
+    for (let i = open; i < block.length; i++) {
+      if (block[i] === "<") depth++;
+      else if (block[i] === ">") {
+        depth--;
+        if (depth === 0) {
+          langs.set(m[1], block.slice(open + 1, i));
+          break;
+        }
+      }
+    }
+  }
+  return langs;
+}
+
+function mergeLanguageTermBlocks(
+  termDefsBlock: string,
+  constraintDefsBlock: string,
+): string {
+  const termLangs = parseLanguageBlocks(termDefsBlock);
+  const constraintLangs = parseLanguageBlocks(constraintDefsBlock);
+
+  for (const [lang, constraintInner] of constraintLangs) {
+    const termInner = termLangs.get(lang) ?? "";
+    const termEntries = parseTermTableEntries(termInner);
+    const constraintEntries = parseTermTableEntries(constraintInner);
+    const byCode = new Map(termEntries.map((e) => [e.code, e]));
+
+    for (const ce of constraintEntries) {
+      const idCode = acCodeToIdKey(ce.code);
+      const existing = byCode.get(idCode) ?? byCode.get(ce.code);
+      if (existing) {
+        existing.lines = mergeTermEntryLines(existing.lines, ce.lines);
+        byCode.set(existing.code, existing);
+      } else {
+        byCode.set(idCode, { code: idCode, lines: ce.lines });
+      }
+    }
+
+    const mergedEntries = [...byCode.values()]
+      .map((e) => {
+        const inner = e.lines.map((l) => `            ${l.trim()}`).join("\n");
+        return `        ["${e.code}"] = <\n${inner}\n        >`;
+      })
+      .join("\n");
+
+    termLangs.set(lang, mergedEntries || termInner.trim());
+  }
+
+  return [...termLangs.entries()]
+    .map(([lang, inner]) => {
+      const body = inner.includes('["')
+        ? inner
+        : inner.trim();
+      return `    ["${lang}"] = <\n${body}\n    >`;
+    })
+    .join("\n");
+}
+
+function extractOdinAssignmentBlock(text: string, key: string): string | undefined {
+  const re = new RegExp(`\\b${key}\\s*=\\s*<`, "i");
+  const match = re.exec(text);
+  if (!match) return undefined;
+  const open = text.indexOf("<", match.index);
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === "<") depth++;
+    else if (text[i] === ">") {
+      depth--;
+      if (depth === 0) return text.slice(open + 1, i);
+    }
+  }
+  return undefined;
+}
+
 function mergeConstraintDefinitionsIntoTermDefinitions(
   text: string,
   warnings: string[],
 ): string {
-  const re =
-    /^[ \t]*constraint_definitions\s*=\s*<([\s\S]*?)>\s*(?=\n[ \t]*(?:term_bindings|constraint_bindings|value_sets|terminology|ontology|definition|rules|annotations|rm_overlay)\b|\n[ \t]*\w|\Z)/gim;
-  if (!re.test(text)) return text;
+  const termBody = extractOdinAssignmentBlock(text, "term_definitions");
+  const constraintBody = extractOdinAssignmentBlock(text, "constraint_definitions");
+  if (!termBody || !constraintBody) {
+    return text.replace(/\s*constraint_definitions\s*=\s*<[\s\S]*?>\s*/gi, "");
+  }
+
   warnings.push(
-    "constraint_definitions merged into term_definitions by name (ADL 1.4 → 2).",
+    "constraint_definitions merged into term_definitions by code (ADL 1.4 → 2).",
   );
-  return text.replace(re, (_full, inner: string) => {
-    return inner.trim() ? `    /* merged constraint_definitions */\n${inner}` : "";
-  }).replace(
-    /^[ \t]*constraint_definitions\s*=\s*<\s*>/gim,
+  const merged = mergeLanguageTermBlocks(termBody, constraintBody);
+  const termStart = text.search(/\bterm_definitions\s*=/i);
+  const termOpen = text.indexOf("<", termStart);
+  let depth = 0;
+  let termClose = -1;
+  for (let i = termOpen; i < text.length; i++) {
+    if (text[i] === "<") depth++;
+    else if (text[i] === ">") {
+      depth--;
+      if (depth === 0) {
+        termClose = i;
+        break;
+      }
+    }
+  }
+  const before = text.slice(0, termOpen + 1);
+  const after = text.slice(termClose);
+  const withoutConstraint = after.replace(
+    /\s*constraint_definitions\s*=\s*<[\s\S]*?>\s*/i,
     "",
   );
+  return `${before}\n${merged}\n    ${withoutConstraint}`;
+}
+
+/** ADL 1.4 value_sets under ontology: ensure block survives terminology rename. */
+function migrateValueSetsSection(text: string, warnings: string[]): string {
+  const re = /^([ \t]*)value_sets\s*=\s*<\s*\n([\s\S]*?)^\1>/gim;
+  if (!re.test(text)) return text;
+  warnings.push("Normalised value_sets block under terminology.");
+  return text.replace(re, (_full, indent: string, body: string) => {
+    const inner = body.replace(
+      /\[(at\d+|ac[\d.]+)\]/gi,
+      (_m, code: string) => `[${acCodeToIdKey(code)}]`,
+    );
+    return `${indent}value_sets = <\n${inner}${indent}>`;
+  });
 }
 
 /** Convert node id brackets in definition/rules: [at0001] → [id1]. */

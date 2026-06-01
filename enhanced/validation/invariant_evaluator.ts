@@ -153,6 +153,9 @@ export class InvariantEvaluator {
 
     if (node instanceof openehr_am.EXPR_BINARY_OPERATOR) {
       const op = this.operatorCode(node);
+      if (op === "for_all" || op === "there_exists") {
+        return this.evalQuantified(root, op, node, env);
+      }
       const left = node.left_operand
         ? this.evalTreeNode(root, node.left_operand, env)
         : undefined;
@@ -174,6 +177,45 @@ export class InvariantEvaluator {
       }
     }
 
+    return undefined;
+  }
+
+  private evalQuantified(
+    root: unknown,
+    op: "for_all" | "there_exists",
+    node: openehr_am.EXPR_BINARY_OPERATOR,
+    env: Map<string, EvalValue>,
+  ): boolean {
+    const leftPath = this.pathFromExprRef(node.left_operand);
+    const condition = node.right_operand;
+    if (!leftPath || !condition) return false;
+
+    const collection = this.pathResolver.resolve(root, leftPath);
+    const items = Array.isArray(collection)
+      ? collection
+      : collection != null
+      ? [collection]
+      : [];
+
+    if (op === "for_all") {
+      if (items.length === 0) return true;
+      for (const item of items) {
+        if (!this.evaluateExprTree(item, condition, env)) return false;
+      }
+      return true;
+    }
+
+    for (const item of items) {
+      if (this.evaluateExprTree(item, condition, env)) return true;
+    }
+    return false;
+  }
+
+  private pathFromExprRef(node?: openehr_am.EXPR_ITEM): string | undefined {
+    if (!node) return undefined;
+    if (node instanceof openehr_am.EXPR_ARCHETYPE_REF) {
+      return node.path ?? (typeof node.item === "string" ? node.item : undefined);
+    }
     return undefined;
   }
 
@@ -362,6 +404,7 @@ export class InvariantEvaluator {
       else if (c === ")") depth--;
       else if (depth === 0 && text.slice(i, i + op.length) === op) {
         if (op === "=" && i > 0 && text[i - 1] === ":") continue;
+        if (op === "=" && (text[i - 1] === ">" || text[i - 1] === "<" || text[i - 1] === "!")) continue;
         if (op === ">" && i + 1 < text.length && text[i + 1] === "=") continue;
         if (op === "<" && i + 1 < text.length && text[i + 1] === "=") continue;
         return i;

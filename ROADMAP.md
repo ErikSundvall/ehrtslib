@@ -66,26 +66,35 @@ Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl
 - **BMM survey** — [`tasks/bmm_survey_phase6b.md`](tasks/bmm_survey_phase6b.md) (pins unchanged; AM 2.4.0 JSON authoritative)
 - **Demo app** — Template upload button (`.opt`, `.oet`, `.adl`, `.adls`)
 - **cADL parser fix** — inline `--` comments no longer cause infinite parse loops (flattening fixtures)
+- **Deep ADL 1.4 AOM migration** — ac-code / value_sets; `constraint_definitions` → `term_definitions` merge
+- **OET → operational compile** — `compileOetToOperational()` with path rules + archetype repository + flattener
+- **OPT XML serialize** — `OptXmlSerializer` + round-trip tests on `opt14/`
+- **Expression language** — `for_all` / `there_exists` AST in rules parser + invariant evaluator
+- **ZIP extract in demo** — browser-side unzip via `fflate` for template/archetype folders
+- **Docs** — [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) conversion limit examples
 
-### Remaining
-- **Deep ADL 1.4 AOM migration** — ac-code / value_sets; full `constraint_definitions` merge
-- **OET → operational compile** — apply path rules with archetype repository + flattener
-- **OPT XML serialize** — semantic round-trip (optional)
-- **Expression language** — fuller AST for rare operators
-- **ZIP extract in demo** — browser-side unzip for folders with templates and archetypes
-- Expand [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) with conversion limit examples
+### Remaining (Phase 6b+)
+- OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
+- Archie JVM benchmark script (optional)
+- Full OET compile with CKM archetype bank (needs larger fixture download)
 
-## Phase 7a
-Exploration of:
-Serialisation and deserialisation of RM object instance trees to and from
-openEHRs simplified JSON formats (likely using other already existing library if
-it can be made fairly dependency free)
+## Phase 7a — Done
+Exploration of serialisation and deserialisation of RM object instance trees to and from
+openEHR simplified JSON formats (FLAT, STRUCTURED via Web Template).
 
-## Phase 7b
+Implemented `deserializeFromFlat`, `deserializeFromStructured`, and `structuredToFlat` in
+`enhanced/serialization/simplified/`. Round-trip tests in `tests/serialization/simplified/roundtrip.test.ts`
+cover canonical JSON ↔ FLAT/STRUCTURED via Web Template.
+
+## Phase 7b — ✅ (done)
 Explore other Simplified openEHR template specific forms of instance tree creation and
-validation. (Take inspiration from Archie and openEHR's simplified formats and
-"web template" but also allow ADL2 flattened templates as validatiadl-toolson
-source).
+validation. (Take inspiration from Archie and openEHR's simplified formats using
+"web template"-based formalisms)
+Create library functionality and make sure the demo tool also allows convertion at least TO the different simplified formats
+
+Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
+
+## Phase X - dist and docs
 
 - One version of this code needs to be small so that it can fit and be run
   eficiently inside form engines etc.
@@ -93,7 +102,6 @@ source).
   updated using Y.js or
 - Create build step to genenrate minivfed and web component versions
 
-## Phase X - dist and docs
 
 Create /dist directory and subdirectories with different distributions for
 targeted purposes for example

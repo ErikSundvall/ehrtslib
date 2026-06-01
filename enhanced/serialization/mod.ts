@@ -87,3 +87,22 @@ export {
   TypeNotFoundError,
   InvalidFormatError,
 } from './common/mod.ts';
+
+// Simplified formats (Web Template, FLAT, STRUCTURED)
+export {
+  buildWebTemplate,
+  serializeToFlat,
+  serializeToFlatJson,
+  deserializeFromFlat,
+  deserializeFromFlatJson,
+  serializeToStructured,
+  serializeToStructuredJson,
+  deserializeFromStructured,
+  deserializeFromStructuredJson,
+  structuredToFlat,
+  validateFlatPayload,
+  type WebTemplate,
+  type FlatPayload,
+  type FlatSerializerOptions,
+  type StructuredSerializerOptions,
+} from './simplified/mod.ts';

@@ -24,6 +24,8 @@ export {
   parseOetXml,
   parseTemplateInput,
   ArchetypeRepository,
+  compileOetToOperational,
+  type ParseTemplateInputOptions,
   type ParseTemplateInputResult,
   type TemplateInputFormat,
 } from "./legacy/mod.ts";
