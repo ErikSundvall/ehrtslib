@@ -39,6 +39,7 @@ import type { MarkdownSerializationConfig } from "../../../enhanced/serializatio
 import type { AsciidocSerializationConfig } from "../../../enhanced/serialization/asciidoc/mod.ts";
 
 import { strFromU8, unzipSync } from "fflate";
+import { TemplateWorkspace } from "../../../enhanced/parser/template_workspace.ts";
 
 // Application state
 let currentInputFormat = "json";
@@ -47,6 +48,9 @@ let currentOutputs: any = {};
 let autoConvertEnabled = true;
 let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 const AUTO_CONVERT_DEBOUNCE_MS = 350;
+
+/** In-browser template/archetype file set (ADL2 + legacy OPT/OET). */
+const templateWorkspace = new TemplateWorkspace();
 
 // Declare build info injected by esbuild
 declare const __BUILD_INFO__: {
@@ -513,48 +517,158 @@ function setupTemplateFileUpload() {
   const textarea = document.getElementById("template-input-text") as
     | HTMLTextAreaElement
     | null;
+  const tabsScroll = document.getElementById("template-file-tabs-scroll");
   if (!uploadBtn || !fileInput || !textarea) return;
 
   uploadBtn.addEventListener("click", () => fileInput.click());
+
+  tabsScroll?.addEventListener("change", (e) => {
+    const target = e.target as HTMLInputElement;
+    if (
+      target.name === "template-generation-root" &&
+      target.type === "radio" &&
+      target.checked
+    ) {
+      templateWorkspace.setGenerationRootPath(target.value);
+      updateTemplateFileSetUi();
+      handleInputChange("template");
+    }
+  });
+
+  tabsScroll?.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest(
+      ".template-file-tab-btn",
+    ) as HTMLButtonElement | null;
+    if (!btn?.dataset.path) return;
+    selectTemplateFileTab(btn.dataset.path);
+  });
+
+  textarea.addEventListener("input", () => {
+    const path = templateWorkspace.getActivePath();
+    if (path) {
+      templateWorkspace.addFile(path, textarea.value);
+      updateTemplateFileSetUi();
+    }
+  });
 
   fileInput.addEventListener("change", async () => {
     const files = fileInput.files;
     if (!files?.length) return;
 
-    const texts: string[] = [];
+    let lastPath: string | undefined;
     for (const file of Array.from(files)) {
       const name = file.name.toLowerCase();
       if (name.endsWith(".zip")) {
         const buf = new Uint8Array(await file.arrayBuffer());
         const entries = unzipSync(buf);
+        const batch: Array<{ path: string; content: string }> = [];
         for (const [entryName, data] of Object.entries(entries)) {
           const lower = entryName.toLowerCase();
           if (
             /\.(opt|oet|adl|adls|xml)$/.test(lower) &&
             !lower.includes("__macosx")
           ) {
-            texts.push(strFromU8(data));
+            const path = entryName.replace(/\\/g, "/").replace(/^\/+/, "");
+            batch.push({ path, content: strFromU8(data) });
           }
         }
-        if (!texts.length) {
-          texts.push(
-            `# ZIP "${file.name}" contained no .opt/.oet/.adl files.\n`,
-          );
+        if (batch.length) {
+          templateWorkspace.addFiles(batch);
+          lastPath = batch[batch.length - 1]?.path;
         }
         continue;
       }
       if (/\.(opt|oet|adl|adls|xml)$/.test(name)) {
-        texts.push(await file.text());
+        templateWorkspace.addFile(file.name, await file.text());
+        lastPath = file.name;
       }
     }
 
-    if (texts.length) {
-      textarea.value = texts.join("\n\n");
+    if (templateWorkspace.listFiles().length) {
+      const root = TemplateWorkspace.suggestGenerationRoot(
+        templateWorkspace.listFiles(),
+      );
+      if (root) templateWorkspace.setGenerationRootPath(root);
+      selectTemplateFileTab(
+        lastPath ?? root ?? templateWorkspace.getActivePath() ?? "",
+      );
       activateInputTab("template");
       handleInputChange("template");
     }
     fileInput.value = "";
   });
+}
+
+function selectTemplateFileTab(path: string) {
+  if (!path) return;
+  const textarea = document.getElementById('template-input-text') as HTMLTextAreaElement | null;
+  templateWorkspace.setActivePath(path);
+  const file = templateWorkspace.getFile(path);
+  if (textarea && file) textarea.value = file.content;
+  updateTemplateFileSetUi();
+  handleInputChange('template');
+}
+
+function updateTemplateFileSetUi() {
+  const fileSetEl = document.getElementById('template-file-set');
+  const tabsScroll = document.getElementById('template-file-tabs-scroll');
+  const summary = document.getElementById('template-file-set-summary');
+  if (!tabsScroll) return;
+
+  const files = templateWorkspace.listFiles();
+  const active = templateWorkspace.getActivePath();
+  const generationRoot = templateWorkspace.getGenerationRootPath();
+
+  if (fileSetEl) {
+    fileSetEl.hidden = files.length === 0;
+  }
+
+  tabsScroll.innerHTML = '';
+  for (const f of files) {
+    const kind = f.loadResult?.kind ?? (f.path.match(/\.opt$/i) ? 'opt' : '?');
+    const tab = document.createElement('div');
+    tab.className = 'template-file-tab' + (f.path === active ? ' active' : '');
+    tab.setAttribute('role', 'presentation');
+
+    const radioLabel = document.createElement('label');
+    radioLabel.className = 'template-root-radio';
+    radioLabel.title = 'Use as generation root for example output';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'template-generation-root';
+    radio.value = f.path;
+    radio.checked = f.path === generationRoot;
+    radio.setAttribute('aria-label', `Generation root: ${f.path}`);
+    radioLabel.appendChild(radio);
+
+    const tabBtn = document.createElement('button');
+    tabBtn.type = 'button';
+    tabBtn.className = 'template-file-tab-btn';
+    tabBtn.dataset.path = f.path;
+    tabBtn.setAttribute('role', 'tab');
+    tabBtn.setAttribute('aria-selected', f.path === active ? 'true' : 'false');
+    const baseName = f.path.split('/').pop() ?? f.path;
+    tabBtn.textContent = baseName;
+    tabBtn.title = f.path;
+
+    const badge = document.createElement('span');
+    badge.className = 'kind-badge';
+    badge.textContent = kind;
+
+    tab.appendChild(radioLabel);
+    tab.appendChild(tabBtn);
+    tab.appendChild(badge);
+    tabsScroll.appendChild(tab);
+  }
+
+  if (summary) {
+    const nArch = templateWorkspace.repository.listIds().length;
+    const nTpl = templateWorkspace.repository.listTemplateIds().length;
+    const rootLabel = generationRoot ? generationRoot.split('/').pop() : '—';
+    summary.textContent = files.length
+      ? `${files.length} files · ${nArch} archetypes · ${nTpl} templates · root: ${rootLabel}`
+      : '';
+  }
 }
 
 /**
@@ -707,6 +821,10 @@ function clearInput() {
   const textarea = getCurrentInputTextarea();
   if (textarea) {
     textarea.value = "";
+    if (currentInputTab === "template") {
+      templateWorkspace.clear();
+      updateTemplateFileSetUi();
+    }
     handleInputChange(currentInputTab);
   }
 }
@@ -776,7 +894,7 @@ function validateInput() {
   // Simple format validation
   try {
     if (currentInputTab === "template") {
-      const templateValidation = validateTemplateInput(text);
+      const templateValidation = validateTemplateInput(text, templateWorkspace);
       if (!templateValidation.valid) {
         throw new Error(templateValidation.message);
       }
@@ -1181,6 +1299,7 @@ function gatherConversionOptions(): ConversionOptions {
     asciidocConfig,
     xmlConfig,
     typescriptConfig,
+    templateWorkspace,
   };
 }
 

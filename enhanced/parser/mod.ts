@@ -31,3 +31,12 @@ export {
 } from "./legacy/mod.ts";
 export { RulesParser } from "./rules_parser.ts";
 export { serializeRulesSection } from "./rules_serializer.ts";
+export {
+  TemplateWorkspace,
+  resolveToOperationalTemplate,
+  getOperationalTemplateFromWorkspace,
+  type TemplateWorkspaceFile,
+  type ResolveOperationalOptions,
+  type ResolveOperationalResult,
+  canBeGenerationRoot,
+} from "./template_workspace.ts";

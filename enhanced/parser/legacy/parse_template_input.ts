@@ -7,6 +7,7 @@ import { detectAdlVersion } from "../adl_version.ts";
 import { isOptXml, parseOptXml } from "./opt_xml_parser.ts";
 import { isOetXml, parseOetXml, type OetParseResult } from "./oet_xml_parser.ts";
 import { compileOetToOperational } from "./oet_compiler.ts";
+import { flattenToOperationalTemplate } from "../../am/flattening/template_flattener.ts";
 import * as openehr_am from "../../openehr_am.ts";
 
 export type TemplateInputFormat =
@@ -123,6 +124,20 @@ export function parseTemplateInput(
       };
     }
     if (adl.kind === "template" && adl.template) {
+      if (options?.archetypeRepository) {
+        const operationalTemplate = flattenToOperationalTemplate(
+          adl.template,
+          options.archetypeRepository,
+        );
+        return {
+          format: adl.convertedFrom14 ? "adl14" : "adl2",
+          kind: "operational_template",
+          operationalTemplate,
+          template: adl.template,
+          adl,
+          warnings,
+        };
+      }
       return {
         format: adl.convertedFrom14 ? "adl14" : "adl2",
         kind: "template",
@@ -146,9 +161,17 @@ export function getOperationalTemplateFromInput(
 ): openehr_am.OPERATIONAL_TEMPLATE {
   const parsed = parseTemplateInput(source, options);
   if (parsed.operationalTemplate) return parsed.operationalTemplate;
+  if (parsed.kind === "template" && parsed.template && options?.archetypeRepository) {
+    return flattenToOperationalTemplate(
+      parsed.template,
+      options.archetypeRepository,
+    );
+  }
   throw new Error(
     parsed.kind === "oet_document"
       ? "OET source templates require archetype repository compilation before use as operational template"
+      : parsed.kind === "template"
+      ? "ADL source template requires archetype repository (file set) to flatten to operational template"
       : `Input is ${parsed.kind}, not operational_template`,
   );
 }

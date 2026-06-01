@@ -78,6 +78,8 @@ Example (from openEHR curated example `openehr://examples/flat/vital_signs_blood
 
 On the **Template (schema)** input tab, enable **FLAT**, **STRUCTURED**, or **Web Template** output checkboxes. The converter builds a Web Template from the operational template, generates an example RM instance, and emits the selected simplified formats.
 
+Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `TemplateWorkspace` for ADL2 flattening.
+
 ## Limitations
 
 - Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal); terminology rubrics from OPT XML may be incomplete when term text is nested XML objects.

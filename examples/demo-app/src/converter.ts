@@ -72,6 +72,7 @@ import {
 import {
   getOperationalTemplateFromInput,
   parseTemplateInput,
+  type TemplateWorkspace,
 } from "../../../enhanced/parser/mod.ts";
 import {
   type GenerationMode,
@@ -163,6 +164,8 @@ export interface ConversionOptions {
     includeNamespaces: boolean;
   };
   typescriptConfig: TypeScriptConstructorSerializationConfig;
+  /** Loaded template/archetype file set (ADL2 differential + OPT/OET). */
+  templateWorkspace?: TemplateWorkspace;
 }
 
 /**
@@ -275,15 +278,24 @@ function convertTemplateInput(
 ): ConversionResult {
   let template;
   try {
-    template = getOperationalTemplateFromInput(input);
+    if (options.templateWorkspace?.listFiles().length) {
+      template = options.templateWorkspace.resolveOperational().operationalTemplate;
+    } else {
+      template = getOperationalTemplateFromInput(input, {
+        archetypeRepository: options.templateWorkspace?.repository,
+      });
+    }
   } catch (firstError) {
-    const parsed = parseTemplateInput(input);
+    const parsed = parseTemplateInput(input, {
+      archetypeRepository: options.templateWorkspace?.repository,
+    });
     if (parsed.kind === "oet_document") {
       throw new Error(
         "OET template loaded but requires referenced archetypes to compile. " +
           `Base archetype: ${
             parsed.oet?.document.definitionArchetypeId ?? "unknown"
           }. ` +
+          "Upload archetype .adl files or a ZIP containing the full file set. " +
           (firstError as Error).message,
       );
     }
@@ -353,14 +365,32 @@ function convertTemplateInput(
 
 export function validateTemplateInput(
   input: string,
+  workspace?: TemplateWorkspace,
 ): { valid: boolean; message: string } {
   const text = input.trim();
-  if (!text) {
+  if (!text && !workspace?.listFiles().length) {
     return { valid: false, message: "Empty template" };
   }
 
   try {
-    const parsed = parseTemplateInput(text);
+    if (workspace?.listFiles().length) {
+      const resolved = workspace.resolveOperational();
+      const id = resolved.operationalTemplate.archetype_id?.value ??
+        "operational template";
+      const kind = resolved.sourceKind;
+      const fileCount = workspace.listFiles().length;
+      const archCount = workspace.repository.listIds().length;
+      const root = workspace.getGenerationRootPath()?.split("/").pop() ?? "?";
+      return {
+        valid: true,
+        message:
+          `Valid ${kind}: ${id} (root: ${root}, ${fileCount} files, ${archCount} archetypes)`,
+      };
+    }
+
+    const parsed = parseTemplateInput(text, {
+      archetypeRepository: workspace?.repository,
+    });
     if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
       const id = parsed.operationalTemplate.archetype_id?.value ??
         "operational template";

@@ -47,11 +47,12 @@ Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`
 Interactive UI refinement for the demo app was performed using pencil.dev and cursor after phase 5. 
 Now we want Exploration of generating instance examples and typescript code stubs in the output column based on operational ADL templates being inserted in an editor in the so far unpopulated "template" tab of the input column. 
 
-## Phase 6a.2 [partly deferred to later]
-If there is no library code for generating examples then implement that so that the generation code is a part of ehrtslib rather than just the demo app. Use the openEHR REST ITS specs to understand generation mode options.
+## Phase 6a.2 — Done
+Library example generation via `RMInstanceGenerator` (already in `enhanced/generation/`). Template file sets:
+`TemplateWorkspace` + extended `ArchetypeRepository` flatten ADL2 differential `template` → operational when archetypes are in the set.
+Demo: multi-file + ZIP upload, active-file selector, workspace-backed conversion (not textarea concat). See `docs/ADL_SUPPORT.md` and `tests/parser/template_workspace.test.ts`.
 
-## Phase 6a.3 [partly deferred to later]
-Serialisation and deserialisation of RM object instance tree examples (and associated serialisations) based on templates + validation of RM instances related to templates
+Serialisation/deserialisation of RM instances from templates: covered in Phase 7a/7b (simplified formats); canonical validation via `TemplateValidator` (Phase 5b).
 
 ## Phase 6b
 Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl14-full-roundtrip.md`](tasks/prd-phase6b-adl14-full-roundtrip.md).
@@ -75,10 +76,9 @@ Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl
 
 ### Remaining (Phase 6b+)
 - OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
-- Archie JVM benchmark script (optional)
-- Full OET compile with CKM archetype bank (needs larger fixture download)
+- More OET test compile with CKM archetype bank (needs larger fixture download)
 
-## Phase 7a — Done
+## Phase 7a — ✅ (done)
 Exploration of serialisation and deserialisation of RM object instance trees to and from
 openEHR simplified JSON formats (FLAT, STRUCTURED via Web Template).
 
