@@ -42,6 +42,24 @@ import {
 } from '../../../enhanced/serialization/xml/mod.ts';
 
 import {
+  MarkdownSerializer,
+  type MarkdownSerializationConfig,
+  DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
+  CLINICAL_MARKDOWN_CONFIG,
+  STRUCTURAL_MARKDOWN_CONFIG,
+  COMPACT_MARKDOWN_CONFIG,
+  WIKILINK_MARKDOWN_CONFIG,
+} from '../../../enhanced/serialization/markdown/mod.ts';
+
+import {
+  AsciidocSerializer,
+  type AsciidocSerializationConfig,
+  DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+  COMPACT_ASCIIDOC_CONFIG,
+  LOSSLESS_ASCIIDOC_CONFIG,
+} from '../../../enhanced/serialization/asciidoc/mod.ts';
+
+import {
   TypeScriptConstructorSerializer,
   type TypeScriptConstructorSerializationConfig,
 } from '../../../enhanced/serialization/typescript/mod.ts';
@@ -104,7 +122,16 @@ export type TemplateGenerationMode = GenerationMode;
 /**
  * Output format types
  */
-export type OutputFormat = 'xml' | 'json' | 'yaml' | 'typescript' | 'flat' | 'structured' | 'webtemplate';
+export type OutputFormat =
+  | 'xml'
+  | 'json'
+  | 'yaml'
+  | 'markdown'
+  | 'asciidoc'
+  | 'typescript'
+  | 'flat'
+  | 'structured'
+  | 'webtemplate';
 
 /**
  * Conversion options
@@ -118,6 +145,8 @@ export interface ConversionOptions {
   jsonSerializerType: 'canonical' | 'configurable';
   jsonConfig: JsonSerializationConfig;
   yamlConfig: YamlSerializationConfig;
+  markdownConfig: MarkdownSerializationConfig;
+  asciidocConfig: AsciidocSerializationConfig;
   xmlConfig: { prettyPrint: boolean; indent: number; includeDeclaration: boolean; includeNamespaces: boolean };
   typescriptConfig: TypeScriptConstructorSerializationConfig;
 }
@@ -131,6 +160,8 @@ export interface ConversionResult {
     xml?: string;
     json?: string;
     yaml?: string;
+    markdown?: string;
+    asciidoc?: string;
     typescript?: string;
     flat?: string;
     structured?: string;
@@ -171,6 +202,12 @@ export async function convert(input: string, options: ConversionOptions): Promis
             break;
           case 'yaml':
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
+            break;
+          case 'markdown':
+            outputs.markdown = serializeToMarkdown(rmObject, options.markdownConfig);
+            break;
+          case 'asciidoc':
+            outputs.asciidoc = serializeToAsciidoc(rmObject, options.asciidocConfig);
             break;
           case 'typescript':
             outputs.typescript = generateTypeScriptCode(rmObject, options.typescriptConfig);
@@ -234,6 +271,12 @@ function convertTemplateInput(
         break;
       case 'yaml':
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
+        break;
+      case 'markdown':
+        outputs.markdown = serializeToMarkdown(generatedInstance, options.markdownConfig);
+        break;
+      case 'asciidoc':
+        outputs.asciidoc = serializeToAsciidoc(generatedInstance, options.asciidocConfig);
         break;
       case 'typescript': {
         const tsGenerator = new TypeScriptGenerator({ language: 'en' });
@@ -337,6 +380,22 @@ function serializeToYaml(obj: any, config: YamlSerializationConfig): string {
 }
 
 /**
+ * Serialize RM object to Markdown
+ */
+function serializeToMarkdown(obj: any, config: MarkdownSerializationConfig): string {
+  const serializer = new MarkdownSerializer(config);
+  return serializer.serialize(obj);
+}
+
+/**
+ * Serialize RM object to AsciiDoc
+ */
+function serializeToAsciidoc(obj: any, config: AsciidocSerializationConfig): string {
+  const serializer = new AsciidocSerializer(config);
+  return serializer.serialize(obj);
+}
+
+/**
  * Serialize RM object to XML
  */
 function serializeToXml(
@@ -369,47 +428,71 @@ function generateTypeScriptCode(
 export function getJsonConfigPreset(preset: string): JsonSerializationConfig {
   switch (preset) {
     case 'canonical':
-      return CANONICAL_JSON_CONFIG;
+      return { ...CANONICAL_JSON_CONFIG };
     case 'compact':
-      return COMPACT_JSON_CONFIG;
+      return { ...COMPACT_JSON_CONFIG };
     case 'hybrid':
-      return HYBRID_JSON_CONFIG;
+      return { ...HYBRID_JSON_CONFIG };
     case 'very-compact':
-      return NON_STANDARD_VERY_COMPACT_JSON_CONFIG;
+      return { ...NON_STANDARD_VERY_COMPACT_JSON_CONFIG };
     default:
-      return DEFAULT_JSON_SERIALIZATION_CONFIG;
+      return { ...DEFAULT_JSON_SERIALIZATION_CONFIG };
   }
 }
 
 export function getJsonDeserializeConfigPreset(preset: string): JsonDeserializationConfig {
   switch (preset) {
     case 'canonical':
-      return CANONICAL_JSON_DESERIALIZE_CONFIG;
+      return { ...CANONICAL_JSON_DESERIALIZE_CONFIG };
     case 'compact':
-      return COMPACT_JSON_DESERIALIZE_CONFIG;
+      return { ...COMPACT_JSON_DESERIALIZE_CONFIG };
     case 'hybrid':
-      return HYBRID_JSON_DESERIALIZE_CONFIG;
+      return { ...HYBRID_JSON_DESERIALIZE_CONFIG };
     default:
-      return DEFAULT_JSON_DESERIALIZATION_CONFIG;
+      return { ...DEFAULT_JSON_DESERIALIZATION_CONFIG };
   }
 }
 
 export function getYamlConfigPreset(preset: string): YamlSerializationConfig {
   switch (preset) {
     case 'verbose':
-      return VERBOSE_YAML_CONFIG;
+      return { ...VERBOSE_YAML_CONFIG };
     case 'hybrid':
-      return HYBRID_YAML_CONFIG;
+      return { ...HYBRID_YAML_CONFIG };
     case 'flow':
-      return FLOW_YAML_CONFIG;
+      return { ...FLOW_YAML_CONFIG };
     case 'block':
-      return BLOCK_YAML_CONFIG;
+      return { ...BLOCK_YAML_CONFIG };
     default:
-      return DEFAULT_YAML_SERIALIZATION_CONFIG;
+      return { ...DEFAULT_YAML_SERIALIZATION_CONFIG };
   }
 }
 
 export function getYamlDeserializeConfigPreset(preset: string): YamlDeserializationConfig {
   // For now, use default for all presets
-  return DEFAULT_YAML_DESERIALIZATION_CONFIG;
+  return { ...DEFAULT_YAML_DESERIALIZATION_CONFIG };
+}
+
+export function getMarkdownConfigPreset(preset: string): MarkdownSerializationConfig {
+  switch (preset) {
+    case 'clinical':
+      return { ...CLINICAL_MARKDOWN_CONFIG };
+    case 'compact':
+      return { ...COMPACT_MARKDOWN_CONFIG };
+    case 'wikilink':
+      return { ...WIKILINK_MARKDOWN_CONFIG };
+    case 'structural':
+    default:
+      return { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...STRUCTURAL_MARKDOWN_CONFIG };
+  }
+}
+
+export function getAsciidocConfigPreset(preset: string): AsciidocSerializationConfig {
+  switch (preset) {
+    case 'compact':
+      return { ...COMPACT_ASCIIDOC_CONFIG };
+    case 'lossless':
+    default:
+      return { ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG, ...LOSSLESS_ASCIIDOC_CONFIG };
+  }
 }

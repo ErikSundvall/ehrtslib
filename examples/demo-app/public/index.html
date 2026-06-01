@@ -17,7 +17,7 @@
         <div class="header-content">
             <h1>Ehrtslib examples: Rudimentary experimental format conversions, code generation etc.</h1>
             <div class="header-subline">
-                <p class="subtitle">openEHR → various variants of · JSON · YAML · XML · TypeScript stubs</p>
+                <p class="subtitle">openEHR → various variants of · JSON · YAML · XML · Markdown · AsciiDoc · TypeScript stubs</p>
                 <nav class="header-links" aria-label="Related links">
                     <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">GitHub</a>
                     <a href="../../../README.md">Docs</a>
@@ -257,6 +257,14 @@ terminology
                             <span>YAML</span>
                         </label>
                         <label class="checkbox-label">
+                            <input type="checkbox" id="output-markdown">
+                            <span>Markdown</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="output-asciidoc">
+                            <span>AsciiDoc</span>
+                        </label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="output-typescript" checked>
                             <span>TypeScript</span>
                         </label>
@@ -298,6 +306,8 @@ terminology
                     <div class="tabs" id="output-tabs">
                         <button class="tab active" data-tab="json">JSON</button>
                         <button class="tab" data-tab="yaml">YAML</button>
+                        <button class="tab hidden" data-tab="markdown">Markdown</button>
+                        <button class="tab hidden" data-tab="asciidoc">AsciiDoc</button>
                         <button class="tab" data-tab="typescript">TypeScript</button>
                         <button class="tab" data-tab="xml">XML</button>
                         <button class="tab" data-tab="flat">FLAT</button>
@@ -499,6 +509,187 @@ content:
         value: {magnitude: 72, units: /min}</pre>
                         </div>
                         <div class="success-message hidden" id="success-yaml">
+                            <span class="material-icons success-icon" aria-hidden="true">check</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-markdown">
+                        <div class="config-section hidden" id="markdown-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="markdown-config-preset">Configuration Preset:</label>
+                <select id="markdown-config-preset" class="config-dropdown">
+                    <option value="structural">Structural (Lossless)</option>
+                    <option value="clinical">Clinical</option>
+                    <option value="compact">Compact</option>
+                    <option value="wikilink">Wikilink URN</option>
+                    <option value="custom">Custom...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="markdown-style">Style:</label>
+                <select id="markdown-style" class="config-dropdown" disabled>
+                    <option value="structural">Structural</option>
+                    <option value="clinical">Clinical</option>
+                    <option value="compact">Compact</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="markdown-code-rendering">Code Rendering:</label>
+                <select id="markdown-code-rendering" class="config-dropdown" disabled>
+                    <option value="inline_bracket">Inline Bracket</option>
+                    <option value="hidden">Hidden</option>
+                    <option value="wikilink">Wikilink</option>
+                    <option value="wikilink_urn">Wikilink URN</option>
+                    <option value="footnote">Footnote</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="markdown-frontmatter" checked disabled>
+                <span>Include Frontmatter</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="markdown-node-ids" checked disabled>
+                <span>Include Node IDs</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="markdown-type-annotations" checked disabled>
+                <span>Include Type Annotations</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="markdown-urn-wikilinks" disabled>
+                <span>Use openEHR URN Wikilinks</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <div class="form-group">
+                <label for="markdown-data-rendering">Data Rendering:</label>
+                <select id="markdown-data-rendering" class="config-dropdown" disabled>
+                    <option value="list">List</option>
+                    <option value="table">Table</option>
+                    <option value="inline">Inline</option>
+                </select>
+            </div>
+            <label class="checkbox-label">
+                <input type="checkbox" id="markdown-hide-type-annotations" disabled>
+                <span>Hide Type Annotations for Display</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="number" id="markdown-max-heading-depth" value="4" min="1" max="6" class="indent-input" disabled>
+                <span>Max Heading Depth</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" class="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-markdown-content"># Markdown output will appear here</pre>
+                        </div>
+                        <div class="success-message hidden" id="success-markdown">
+                            <span class="material-icons success-icon" aria-hidden="true">check</span>
+                            <span>Copied to clipboard!</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-asciidoc">
+                        <div class="config-section hidden" id="asciidoc-options">
+    <div class="config-grid">
+        <div class="config-col">
+            <div class="form-group">
+                <label for="asciidoc-config-preset">Configuration Preset:</label>
+                <select id="asciidoc-config-preset" class="config-dropdown">
+                    <option value="lossless">Lossless</option>
+                    <option value="compact">Compact</option>
+                    <option value="custom">Custom...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="asciidoc-style">Style:</label>
+                <select id="asciidoc-style" class="config-dropdown" disabled>
+                    <option value="lossless">Lossless</option>
+                    <option value="compact">Compact</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="asciidoc-node-id-rendering">Node ID Rendering:</label>
+                <select id="asciidoc-node-id-rendering" class="config-dropdown" disabled>
+                    <option value="comment">Comment</option>
+                    <option value="hidden">Hidden</option>
+                    <option value="attribute">Attribute</option>
+                    <option value="inline_comment">Inline Comment</option>
+                </select>
+            </div>
+        </div>
+        <div class="config-col config-col--checks">
+            <label class="checkbox-label">
+                <input type="checkbox" id="asciidoc-header" checked disabled>
+                <span>Include Header</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="asciidoc-node-ids" checked disabled>
+                <span>Include Node IDs</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="asciidoc-type-annotations" checked disabled>
+                <span>Include Type Annotations</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="asciidoc-urn-links" checked disabled>
+                <span>Use openEHR URN Links</span>
+            </label>
+        </div>
+        <div class="config-col config-col--checks">
+            <div class="form-group">
+                <label for="asciidoc-code-rendering">Code Rendering:</label>
+                <select id="asciidoc-code-rendering" class="config-dropdown" disabled>
+                    <option value="inline_bracket">Inline Bracket</option>
+                    <option value="hidden">Hidden</option>
+                    <option value="macro">Macro</option>
+                    <option value="footnote">Footnote</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="asciidoc-data-rendering">Data Rendering:</label>
+                <select id="asciidoc-data-rendering" class="config-dropdown" disabled>
+                    <option value="list">List</option>
+                    <option value="table">Table</option>
+                    <option value="inline">Inline</option>
+                </select>
+            </div>
+            <label class="checkbox-label">
+                <input type="number" id="asciidoc-max-heading-depth" value="5" min="1" max="6" class="indent-input" disabled>
+                <span>Max Heading Depth</span>
+            </label>
+        </div>
+    </div>
+</div>
+                        <div class="editor-block"><div class="output-info">
+                                <span class="char-count">
+                                    <span class="label">Characters:</span> <span class="output-char-count">0</span>
+                                </span>
+                                <span class="line-count">
+                                    <span class="label">Lines:</span> <span class="output-line-count">0</span>
+                                </span>
+                                <label class="checkbox-label output-info-line-wrap">
+                                    <input type="checkbox" class="output-disable-linebreaks">
+                                    <span>Disable Line Wrap</span>
+                                </label>
+                            </div><pre class="output-content" id="output-asciidoc-content">= AsciiDoc output will appear here</pre>
+                        </div>
+                        <div class="success-message hidden" id="success-asciidoc">
                             <span class="material-icons success-icon" aria-hidden="true">check</span>
                             <span>Copied to clipboard!</span>
                         </div>

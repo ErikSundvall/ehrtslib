@@ -1,8 +1,10 @@
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
   convert,
+  getAsciidocConfigPreset,
   getJsonConfigPreset,
   getJsonDeserializeConfigPreset,
+  getMarkdownConfigPreset,
   getYamlConfigPreset,
   validateTemplateInput,
 } from "./converter.ts";
@@ -106,4 +108,39 @@ Deno.test("convert template input generates simplified format outputs", async ()
   assert(result.outputs?.webtemplate);
   assert(JSON.parse(result.outputs?.flat || "{}")["ctx/language"]);
   assert(JSON.parse(result.outputs?.webtemplate || "{}").templateId);
+});
+
+Deno.test("convert template input generates markdown and asciidoc outputs", async () => {
+  const result = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["markdown", "asciidoc"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    markdownConfig: getMarkdownConfigPreset("structural"),
+    asciidocConfig: getAsciidocConfigPreset("lossless"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(result.success, true);
+  assert(result.outputs?.markdown);
+  assert(result.outputs?.asciidoc);
+  assert(result.outputs?.markdown?.includes("Demo composition"));
+  assert(result.outputs?.asciidoc?.includes("Demo composition"));
 });

@@ -15,6 +15,8 @@ import {
   getJsonDeserializeConfigPreset,
   getYamlConfigPreset,
   getYamlDeserializeConfigPreset,
+  getMarkdownConfigPreset,
+  getAsciidocConfigPreset,
   validateTemplateInput,
   type ConversionOptions,
   type InputFormat,
@@ -32,6 +34,9 @@ import type {
   YamlSerializationConfig,
   YamlDeserializationConfig,
 } from '../../../enhanced/serialization/yaml/mod.ts';
+
+import type { MarkdownSerializationConfig } from '../../../enhanced/serialization/markdown/mod.ts';
+import type { AsciidocSerializationConfig } from '../../../enhanced/serialization/asciidoc/mod.ts';
 
 import { unzipSync, strFromU8 } from 'fflate';
 
@@ -216,7 +221,7 @@ function setupEventListeners() {
  * Set up listeners for output format checkboxes to toggle tabs
  */
 function setupOutputVisibilityListeners() {
-  const formats = ['xml', 'json', 'yaml', 'typescript', 'flat', 'structured', 'webtemplate'];
+  const formats = ['xml', 'json', 'yaml', 'markdown', 'asciidoc', 'typescript', 'flat', 'structured', 'webtemplate'];
 
   formats.forEach(format => {
     const checkbox = document.getElementById(`output-${format}`) as HTMLInputElement;
@@ -425,6 +430,22 @@ function setupPresetListeners() {
     xmlConfigPreset.addEventListener('change', (e) => {
       const preset = (e.target as HTMLSelectElement).value;
       updateXmlOptions(preset);
+    });
+  }
+
+  const markdownConfigPreset = document.getElementById('markdown-config-preset') as HTMLSelectElement;
+  if (markdownConfigPreset) {
+    markdownConfigPreset.addEventListener('change', (e) => {
+      const preset = (e.target as HTMLSelectElement).value;
+      updateMarkdownOptions(preset);
+    });
+  }
+
+  const asciidocConfigPreset = document.getElementById('asciidoc-config-preset') as HTMLSelectElement;
+  if (asciidocConfigPreset) {
+    asciidocConfigPreset.addEventListener('change', (e) => {
+      const preset = (e.target as HTMLSelectElement).value;
+      updateAsciidocOptions(preset);
     });
   }
 }
@@ -831,6 +852,12 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById('output-yaml') as HTMLInputElement)?.checked) {
     outputFormats.push('yaml');
   }
+  if ((document.getElementById('output-markdown') as HTMLInputElement)?.checked) {
+    outputFormats.push('markdown');
+  }
+  if ((document.getElementById('output-asciidoc') as HTMLInputElement)?.checked) {
+    outputFormats.push('asciidoc');
+  }
   if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
     outputFormats.push('typescript');
   }
@@ -884,6 +911,34 @@ function gatherConversionOptions(): ConversionOptions {
     }
   }
 
+  const markdownConfigPreset = (document.getElementById('markdown-config-preset') as HTMLSelectElement)?.value || 'structural';
+  const markdownConfig: MarkdownSerializationConfig = getMarkdownConfigPreset(markdownConfigPreset);
+  if (markdownConfigPreset === 'custom') {
+    markdownConfig.style = ((document.getElementById('markdown-style') as HTMLSelectElement)?.value || 'structural') as MarkdownSerializationConfig['style'];
+    markdownConfig.codeRendering = ((document.getElementById('markdown-code-rendering') as HTMLSelectElement)?.value || 'inline_bracket') as MarkdownSerializationConfig['codeRendering'];
+    markdownConfig.dataValueRendering = ((document.getElementById('markdown-data-rendering') as HTMLSelectElement)?.value || 'list') as MarkdownSerializationConfig['dataValueRendering'];
+    markdownConfig.includeFrontmatter = (document.getElementById('markdown-frontmatter') as HTMLInputElement)?.checked !== false;
+    markdownConfig.includeArchetypeNodeIds = !!(document.getElementById('markdown-node-ids') as HTMLInputElement)?.checked;
+    markdownConfig.includeTypeAnnotations = !!(document.getElementById('markdown-type-annotations') as HTMLInputElement)?.checked;
+    markdownConfig.useOpenehrUrnWikilinks = !!(document.getElementById('markdown-urn-wikilinks') as HTMLInputElement)?.checked;
+    markdownConfig.hideTypeAnnotationsForDisplay = !!(document.getElementById('markdown-hide-type-annotations') as HTMLInputElement)?.checked;
+    markdownConfig.maxHeadingDepth = parseInt((document.getElementById('markdown-max-heading-depth') as HTMLInputElement)?.value || '4');
+  }
+
+  const asciidocConfigPreset = (document.getElementById('asciidoc-config-preset') as HTMLSelectElement)?.value || 'lossless';
+  const asciidocConfig: AsciidocSerializationConfig = getAsciidocConfigPreset(asciidocConfigPreset);
+  if (asciidocConfigPreset === 'custom') {
+    asciidocConfig.style = ((document.getElementById('asciidoc-style') as HTMLSelectElement)?.value || 'lossless') as AsciidocSerializationConfig['style'];
+    asciidocConfig.nodeIdRendering = ((document.getElementById('asciidoc-node-id-rendering') as HTMLSelectElement)?.value || 'comment') as AsciidocSerializationConfig['nodeIdRendering'];
+    asciidocConfig.codeRendering = ((document.getElementById('asciidoc-code-rendering') as HTMLSelectElement)?.value || 'inline_bracket') as AsciidocSerializationConfig['codeRendering'];
+    asciidocConfig.dataValueRendering = ((document.getElementById('asciidoc-data-rendering') as HTMLSelectElement)?.value || 'list') as AsciidocSerializationConfig['dataValueRendering'];
+    asciidocConfig.includeHeader = (document.getElementById('asciidoc-header') as HTMLInputElement)?.checked !== false;
+    asciidocConfig.includeArchetypeNodeIds = !!(document.getElementById('asciidoc-node-ids') as HTMLInputElement)?.checked;
+    asciidocConfig.includeTypeAnnotations = !!(document.getElementById('asciidoc-type-annotations') as HTMLInputElement)?.checked;
+    asciidocConfig.useOpenehrUrnLinks = !!(document.getElementById('asciidoc-urn-links') as HTMLInputElement)?.checked;
+    asciidocConfig.maxHeadingDepth = parseInt((document.getElementById('asciidoc-max-heading-depth') as HTMLInputElement)?.value || '5');
+  }
+
   // XML config
   const xmlConfigPreset = (document.getElementById('xml-config-preset') as HTMLSelectElement)?.value || 'default';
   const xmlIndent = parseInt((document.getElementById('xml-indent') as HTMLInputElement)?.value || '2');
@@ -914,6 +969,8 @@ function gatherConversionOptions(): ConversionOptions {
     jsonSerializerType,
     jsonConfig,
     yamlConfig,
+    markdownConfig,
+    asciidocConfig,
     xmlConfig,
     typescriptConfig,
   };
@@ -941,6 +998,20 @@ function updateOutputs(outputs: Record<string, string>) {
     const yamlContent = document.getElementById('output-yaml-content');
     if (yamlContent) {
       yamlContent.textContent = outputs.yaml;
+    }
+  }
+
+  if (outputs.markdown) {
+    const markdownContent = document.getElementById('output-markdown-content');
+    if (markdownContent) {
+      markdownContent.textContent = outputs.markdown;
+    }
+  }
+
+  if (outputs.asciidoc) {
+    const asciidocContent = document.getElementById('output-asciidoc-content');
+    if (asciidocContent) {
+      asciidocContent.textContent = outputs.asciidoc;
     }
   }
 
@@ -1191,6 +1262,92 @@ function updateXmlOptions(preset: string) {
 }
 
 /**
+ * Update Markdown options based on preset
+ */
+function updateMarkdownOptions(preset: string) {
+  const styleSelect = document.getElementById('markdown-style') as HTMLSelectElement;
+  const codeRenderingSelect = document.getElementById('markdown-code-rendering') as HTMLSelectElement;
+  const dataRenderingSelect = document.getElementById('markdown-data-rendering') as HTMLSelectElement;
+  const frontmatterCheckbox = document.getElementById('markdown-frontmatter') as HTMLInputElement;
+  const nodeIdsCheckbox = document.getElementById('markdown-node-ids') as HTMLInputElement;
+  const typeAnnotationsCheckbox = document.getElementById('markdown-type-annotations') as HTMLInputElement;
+  const urnWikilinksCheckbox = document.getElementById('markdown-urn-wikilinks') as HTMLInputElement;
+  const hideTypeAnnotationsCheckbox = document.getElementById('markdown-hide-type-annotations') as HTMLInputElement;
+  const maxHeadingDepthInput = document.getElementById('markdown-max-heading-depth') as HTMLInputElement;
+
+  const isCustom = preset === 'custom';
+  [
+    styleSelect,
+    codeRenderingSelect,
+    dataRenderingSelect,
+    frontmatterCheckbox,
+    nodeIdsCheckbox,
+    typeAnnotationsCheckbox,
+    urnWikilinksCheckbox,
+    hideTypeAnnotationsCheckbox,
+    maxHeadingDepthInput,
+  ].forEach(elem => {
+    if (elem) elem.disabled = !isCustom;
+  });
+
+  if (!isCustom) {
+    const config = getMarkdownConfigPreset(preset);
+    if (styleSelect && config.style) styleSelect.value = config.style;
+    if (codeRenderingSelect && config.codeRendering) codeRenderingSelect.value = config.codeRendering;
+    if (dataRenderingSelect && config.dataValueRendering) dataRenderingSelect.value = config.dataValueRendering;
+    if (frontmatterCheckbox) frontmatterCheckbox.checked = config.includeFrontmatter !== false;
+    if (nodeIdsCheckbox) nodeIdsCheckbox.checked = !!config.includeArchetypeNodeIds;
+    if (typeAnnotationsCheckbox) typeAnnotationsCheckbox.checked = !!config.includeTypeAnnotations;
+    if (urnWikilinksCheckbox) urnWikilinksCheckbox.checked = !!config.useOpenehrUrnWikilinks;
+    if (hideTypeAnnotationsCheckbox) hideTypeAnnotationsCheckbox.checked = !!config.hideTypeAnnotationsForDisplay;
+    if (maxHeadingDepthInput && config.maxHeadingDepth) maxHeadingDepthInput.value = String(config.maxHeadingDepth);
+  }
+}
+
+/**
+ * Update AsciiDoc options based on preset
+ */
+function updateAsciidocOptions(preset: string) {
+  const styleSelect = document.getElementById('asciidoc-style') as HTMLSelectElement;
+  const nodeIdRenderingSelect = document.getElementById('asciidoc-node-id-rendering') as HTMLSelectElement;
+  const codeRenderingSelect = document.getElementById('asciidoc-code-rendering') as HTMLSelectElement;
+  const dataRenderingSelect = document.getElementById('asciidoc-data-rendering') as HTMLSelectElement;
+  const headerCheckbox = document.getElementById('asciidoc-header') as HTMLInputElement;
+  const nodeIdsCheckbox = document.getElementById('asciidoc-node-ids') as HTMLInputElement;
+  const typeAnnotationsCheckbox = document.getElementById('asciidoc-type-annotations') as HTMLInputElement;
+  const urnLinksCheckbox = document.getElementById('asciidoc-urn-links') as HTMLInputElement;
+  const maxHeadingDepthInput = document.getElementById('asciidoc-max-heading-depth') as HTMLInputElement;
+
+  const isCustom = preset === 'custom';
+  [
+    styleSelect,
+    nodeIdRenderingSelect,
+    codeRenderingSelect,
+    dataRenderingSelect,
+    headerCheckbox,
+    nodeIdsCheckbox,
+    typeAnnotationsCheckbox,
+    urnLinksCheckbox,
+    maxHeadingDepthInput,
+  ].forEach(elem => {
+    if (elem) elem.disabled = !isCustom;
+  });
+
+  if (!isCustom) {
+    const config = getAsciidocConfigPreset(preset);
+    if (styleSelect && config.style) styleSelect.value = config.style;
+    if (nodeIdRenderingSelect && config.nodeIdRendering) nodeIdRenderingSelect.value = config.nodeIdRendering;
+    if (codeRenderingSelect && config.codeRendering) codeRenderingSelect.value = config.codeRendering;
+    if (dataRenderingSelect && config.dataValueRendering) dataRenderingSelect.value = config.dataValueRendering;
+    if (headerCheckbox) headerCheckbox.checked = config.includeHeader !== false;
+    if (nodeIdsCheckbox) nodeIdsCheckbox.checked = !!config.includeArchetypeNodeIds;
+    if (typeAnnotationsCheckbox) typeAnnotationsCheckbox.checked = !!config.includeTypeAnnotations;
+    if (urnLinksCheckbox) urnLinksCheckbox.checked = !!config.useOpenehrUrnLinks;
+    if (maxHeadingDepthInput && config.maxHeadingDepth) maxHeadingDepthInput.value = String(config.maxHeadingDepth);
+  }
+}
+
+/**
  * Switch to a different output tab
  */
 function switchOutputTab(tabName: string) {
@@ -1319,6 +1476,8 @@ function downloadOutput(format: string) {
     xml: 'xml',
     json: 'json',
     yaml: 'yaml',
+    markdown: 'md',
+    asciidoc: 'adoc',
     typescript: 'ts'
   };
 
