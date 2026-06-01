@@ -297,7 +297,7 @@ function setupOutputVisibilityListeners() {
  */
 function toggleOutputTab(format: string, visible: boolean) {
   // Find the tab button
-  const tabs = document.querySelectorAll(".tab");
+  const tabs = document.querySelectorAll("#output-tabs .tab");
   let tabBtn: HTMLElement | null = null;
 
   tabs.forEach((t) => {
@@ -325,7 +325,9 @@ function toggleOutputTab(format: string, visible: boolean) {
     // If we just hid the active tab, switch to another one
     if ((tabBtn as HTMLElement).classList.contains("active")) {
       // Find first visible tab
-      const visibleTab = Array.from(document.querySelectorAll(".tab"))
+      const visibleTab = Array.from(
+        document.querySelectorAll("#output-tabs .tab"),
+      )
         .find((t) => !t.classList.contains("hidden"));
 
       if (visibleTab) {
@@ -349,7 +351,7 @@ function setupSplitters() {
 }
 
 function getActiveOutputFormat(): string {
-  const activeTab = document.querySelector(".tab.active");
+  const activeTab = document.querySelector("#output-tabs .tab.active");
   return activeTab?.getAttribute("data-tab") || "json";
 }
 
@@ -746,6 +748,13 @@ function activateInputTab(mode: InputMode) {
   document.querySelectorAll(".input-tab-pane").forEach((pane) => {
     pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
   });
+  document.querySelectorAll(".input-toolbar").forEach((toolbar) => {
+    const el = toolbar as HTMLElement;
+    el.classList.toggle(
+      "active",
+      el.getAttribute("data-input-toolbar") === mode,
+    );
+  });
   currentInputTab = mode;
   validateInput();
   scheduleAutoConvert();
@@ -755,7 +764,7 @@ function activateInputTab(mode: InputMode) {
  * Set up output tab switching
  */
 function setupOutputTabs() {
-  const tabs = document.querySelectorAll(".tab");
+  const tabs = document.querySelectorAll("#output-tabs .tab");
   tabs.forEach((tab) => {
     tab.addEventListener("click", (e) => {
       const tabName = (e.target as HTMLElement).getAttribute("data-tab");
@@ -1355,64 +1364,25 @@ function gatherConversionOptions(): ConversionOptions {
  * Update output panels with converted data
  */
 function updateOutputs(outputs: Record<string, string>) {
-  if (outputs.xml) {
-    const xmlContent = document.getElementById("output-xml-content");
-    if (xmlContent) {
-      xmlContent.textContent = outputs.xml;
+  currentOutputs = outputs;
+  const outputFormats: OutputFormat[] = [
+    "xml",
+    "json",
+    "yaml",
+    "markdown",
+    "asciidoc",
+    "typescript",
+    "flat",
+    "structured",
+    "webtemplate",
+  ];
+
+  outputFormats.forEach((format) => {
+    const content = document.getElementById(`output-${format}-content`);
+    if (content) {
+      content.textContent = outputs[format] ?? "";
     }
-  }
-
-  if (outputs.json) {
-    const jsonContent = document.getElementById("output-json-content");
-    if (jsonContent) {
-      jsonContent.textContent = outputs.json;
-    }
-  }
-
-  if (outputs.yaml) {
-    const yamlContent = document.getElementById("output-yaml-content");
-    if (yamlContent) {
-      yamlContent.textContent = outputs.yaml;
-    }
-  }
-
-  if (outputs.markdown) {
-    const markdownContent = document.getElementById("output-markdown-content");
-    if (markdownContent) {
-      markdownContent.textContent = outputs.markdown;
-    }
-  }
-
-  if (outputs.asciidoc) {
-    const asciidocContent = document.getElementById("output-asciidoc-content");
-    if (asciidocContent) {
-      asciidocContent.textContent = outputs.asciidoc;
-    }
-  }
-
-  if (outputs.typescript) {
-    const tsContent = document.getElementById("output-typescript-content");
-    if (tsContent) {
-      tsContent.textContent = outputs.typescript;
-    }
-  }
-
-  if (outputs.flat) {
-    const flatContent = document.getElementById("output-flat-content");
-    if (flatContent) flatContent.textContent = outputs.flat;
-  }
-
-  if (outputs.structured) {
-    const structuredContent = document.getElementById(
-      "output-structured-content",
-    );
-    if (structuredContent) structuredContent.textContent = outputs.structured;
-  }
-
-  if (outputs.webtemplate) {
-    const wtContent = document.getElementById("output-webtemplate-content");
-    if (wtContent) wtContent.textContent = outputs.webtemplate;
-  }
+  });
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();
 }
@@ -1869,7 +1839,7 @@ function updateAsciidocOptions(preset: string) {
  */
 function switchOutputTab(tabName: string) {
   // Update tab buttons
-  const tabs = document.querySelectorAll(".tab");
+  const tabs = document.querySelectorAll("#output-tabs .tab");
   tabs.forEach((tab) => {
     if (tab.getAttribute("data-tab") === tabName) {
       tab.classList.add("active");

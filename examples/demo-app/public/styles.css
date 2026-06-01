@@ -415,6 +415,40 @@ body {
     border-bottom: 2px solid var(--border-light);
 }
 
+.input-toolbar {
+    display: none;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.input-toolbar.active {
+    display: flex;
+}
+
+.input-toolbar .toolbar-left {
+    align-items: center;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: 0;
+}
+
+.form-group-inline label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.form-group-inline .config-dropdown {
+    width: auto;
+    padding: var(--spacing-xs) var(--spacing-md);
+}
+
 /* Template file set: scrollable tabs + generation-root radio */
 .template-file-set {
     flex-shrink: 0;
@@ -996,7 +1030,8 @@ body {
     border-bottom: none;
 }
 
-.tabs-row .output-toolbar {
+.tabs-row .output-toolbar,
+.tabs-row .input-toolbar {
     margin-bottom: 0;
     flex-shrink: 0;
 }
