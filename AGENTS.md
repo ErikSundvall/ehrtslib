@@ -1,5 +1,16 @@
 # Instructions for AI programming agents
 
+## Cursor Cloud agents
+
+Cloud agents use **this repo**, not your machine's `~/.cursor/` folder.
+
+- **Skills**: Loaded from `.cursor/skills/` (openEHR, Context7, and synced personal workflows).
+- **Rules**: `.cursor/rules/` (e.g. `openehr-context.mdc` for `*.adl` / `*.oet` / `*.opt`).
+- **MCP**: Repo [`.cursor/mcp.json`](.cursor/mcp.json) documents servers for the local IDE; **cloud agents need the same servers enabled at [cursor.com/agents](https://cursor.com/agents)** (see [docs/CURSOR_CLOUD_SETUP.md](docs/CURSOR_CLOUD_SETUP.md)).
+- **Deno**: Cloud VM runs `.cursor/environment.json` install on first use.
+
+Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, terminology) and skills under `.cursor/skills/`.
+
 ## Documentation guidance
 
 - Always prefer reading and analyzing original documentation of latest version

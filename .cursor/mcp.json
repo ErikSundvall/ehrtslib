@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "deepwiki": {
+      "url": "https://mcp.deepwiki.com/mcp"
+    },
+    "openehr-assistant": {
+      "url": "https://openehr-assistant-mcp.apps.cadasto.com/"
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}

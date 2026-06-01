@@ -1,0 +1,14 @@
+---
+name: openehr-context
+description: When working with openEHR (archetypes, templates, AQL, ADL, CKM, compositions), load guides from the MCP server before answering or editing.
+alwaysApply: false
+globs: ["**/*.adl", "**/*.oet", "**/*.opt"]
+---
+
+# openEHR context
+
+When the workspace involves openEHR (archetypes, templates, AQL, ADL, CKM, compositions, OPT, terminology):
+
+1. **Guide-first**: Load relevant implementation guides from the openEHR Assistant MCP server (`guide_search` / `guide_get`) before creating or editing archetypes, templates, AQL, or composition formats.
+2. **MCP tools**: Use openehr-assistant MCP tools for CKM search, guide access, terminology, type specs, ADL idioms, and curated examples as needed.
+3. **Skills**: Prefer project skills under `.cursor/skills/` (archetype-authoring, template-authoring, aql-query, composition-builder, archetype-lint, openehr-assistant).

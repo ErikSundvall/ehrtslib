@@ -1,0 +1,1422 @@
+{
+  "_type": "COMPOSITION",
+  "name": {
+    "_type": "DV_TEXT",
+    "value": "ChemoForm-MBA.v7"
+  },
+  "uid": {
+    "_type": "OBJECT_VERSION_ID",
+    "value": "573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1"
+  },
+  "archetype_details": {
+    "_type": "ARCHETYPED",
+    "archetype_id": {
+      "_type": "ARCHETYPE_ID",
+      "value": "openEHR-EHR-COMPOSITION.self_reported_data.v1"
+    },
+    "template_id": {
+      "_type": "TEMPLATE_ID",
+      "value": "ChemoForm-MBA.v7"
+    },
+    "rm_version": "1.1.0"
+  },
+  "feeder_audit": {
+    "_type": "FEEDER_AUDIT",
+    "original_content": {
+      "_type": "DV_PARSABLE",
+      "value": "{}",
+      "formalism": "application/json"
+    },
+    "originating_system_audit": {
+      "_type": "FEEDER_AUDIT_DETAILS",
+      "system_id": "FormRenderer"
+    }
+  },
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+  "language": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_639-1"
+    },
+    "code_string": "sv"
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_3166-1"
+    },
+    "code_string": "SI"
+  },
+  "category": {
+    "_type": "DV_CODED_TEXT",
+    "value": "event",
+    "defining_code": {
+      "_type": "CODE_PHRASE",
+      "terminology_id": {
+        "_type": "TERMINOLOGY_ID",
+        "value": "openehr"
+      },
+      "code_string": "433"
+    }
+  },
+  "composer": {
+    "_type": "PARTY_IDENTIFIED",
+    "name": "erik.sundvall@regionstockholm.se"
+  },
+  "context": {
+    "_type": "EVENT_CONTEXT",
+    "start_time": {
+      "_type": "DV_DATE_TIME",
+      "value": "2023-08-31T18:31:16.004+02:00"
+    },
+    "setting": {
+      "_type": "DV_CODED_TEXT",
+      "value": "other care",
+      "defining_code": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "openehr"
+        },
+        "code_string": "238"
+      }
+    },
+    "other_context": {
+      "_type": "ITEM_TREE",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Item tree"
+      },
+      "archetype_node_id": "at0003",
+      "items": [
+        {
+          "_type": "CLUSTER",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Vårdenhet"
+          },
+          "archetype_details": {
+            "_type": "ARCHETYPED",
+            "archetype_id": {
+              "_type": "ARCHETYPE_ID",
+              "value": "openEHR-EHR-CLUSTER.organisation.v1"
+            },
+            "rm_version": "1.1.0"
+          },
+          "archetype_node_id": "openEHR-EHR-CLUSTER.organisation.v1",
+          "items": [
+            {
+              "_type": "ELEMENT",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Namn"
+              },
+              "archetype_node_id": "at0001",
+              "value": {
+                "_type": "DV_TEXT",
+                "value": "Brandbergens vårdcentral"
+              }
+            },
+            {
+              "_type": "ELEMENT",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Identifierare"
+              },
+              "archetype_node_id": "at0003",
+              "value": {
+                "_type": "DV_IDENTIFIER",
+                "id": "SE2321000016-1003",
+                "type": "urn:oid:1.2.752.29.4.19"
+              }
+            },
+            {
+              "_type": "ELEMENT",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Roll"
+              },
+              "archetype_node_id": "at0004",
+              "value": {
+                "_type": "DV_CODED_TEXT",
+                "value": "vårdenhet",
+                "defining_code": {
+                  "_type": "CODE_PHRASE",
+                  "terminology_id": {
+                    "_type": "TERMINOLOGY_ID",
+                    "value": "http://snomed.info/sct/900000000000207008"
+                  },
+                  "code_string": "43741000"
+                }
+              }
+            },
+            {
+              "_type": "CLUSTER",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Vårdgivare"
+              },
+              "archetype_details": {
+                "_type": "ARCHETYPED",
+                "archetype_id": {
+                  "_type": "ARCHETYPE_ID",
+                  "value": "openEHR-EHR-CLUSTER.organisation.v1"
+                },
+                "rm_version": "1.1.0"
+              },
+              "archetype_node_id": "openEHR-EHR-CLUSTER.organisation.v1",
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Namn"
+                  },
+                  "archetype_node_id": "at0001",
+                  "value": {
+                    "_type": "DV_TEXT",
+                    "value": "Stockholms läns sjukvårdsområde"
+                  }
+                },
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Identifierare"
+                  },
+                  "archetype_node_id": "at0003",
+                  "value": {
+                    "_type": "DV_IDENTIFIER",
+                    "id": "SE2321000016-2GJS",
+                    "type": "urn:oid:1.2.752.29.4.19"
+                  }
+                },
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Organisationsnummer"
+                  },
+                  "archetype_node_id": "at0003",
+                  "value": {
+                    "_type": "DV_IDENTIFIER",
+                    "id": "2232084",
+                    "type": "urn:oid:2.5.4.97"
+                  }
+                },
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Roll"
+                  },
+                  "archetype_node_id": "at0004",
+                  "value": {
+                    "_type": "DV_CODED_TEXT",
+                    "value": "vårdgivare",
+                    "defining_code": {
+                      "_type": "CODE_PHRASE",
+                      "terminology_id": {
+                        "_type": "TERMINOLOGY_ID",
+                        "value": "http://snomed.info/sct/45991000052106"
+                      },
+                      "code_string": "143591000052106"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "content": [
+    {
+      "_type": "OBSERVATION",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Frågeformulär för symptom och andra tecken"
+      },
+      "archetype_details": {
+        "_type": "ARCHETYPED",
+        "archetype_id": {
+          "_type": "ARCHETYPE_ID",
+          "value": "openEHR-EHR-OBSERVATION.symptom_sign_screening.v1"
+        },
+        "rm_version": "1.1.0"
+      },
+      "archetype_node_id": "openEHR-EHR-OBSERVATION.symptom_sign_screening.v1",
+      "language": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "ISO_639-1"
+        },
+        "code_string": "sv"
+      },
+      "encoding": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "IANA_character-sets"
+        },
+        "code_string": "UTF-8"
+      },
+      "subject": {
+        "_type": "PARTY_SELF"
+      },
+      "data": {
+        "_type": "HISTORY",
+        "name": {
+          "_type": "DV_TEXT",
+          "value": "History"
+        },
+        "archetype_node_id": "at0001",
+        "origin": {
+          "_type": "DV_DATE_TIME",
+          "value": "2023-08-31T18:31:16.004+02:00"
+        },
+        "events": [
+          {
+            "_type": "POINT_EVENT",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Ospecificerad händelse"
+            },
+            "archetype_node_id": "at0002",
+            "time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2023-08-31T18:31:16.004+02:00"
+            },
+            "data": {
+              "_type": "ITEM_TREE",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Tree"
+              },
+              "archetype_node_id": "at0003",
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Screeningssyfte"
+                  },
+                  "archetype_node_id": "at0034",
+                  "value": {
+                    "_type": "DV_CODED_TEXT",
+                    "value": "utvärdering av cytostatikabehandling",
+                    "defining_code": {
+                      "_type": "CODE_PHRASE",
+                      "terminology_id": {
+                        "_type": "TERMINOLOGY_ID",
+                        "value": "SNOMED-CT"
+                      },
+                      "code_string": "385785003"
+                    }
+                  }
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Trötthet"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "trötthet (fatigue)",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "84229001"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Upplever du trötthet (fatigue) som påverkar ditt dagliga liv?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "CLUSTER",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "följdfråga"
+                      },
+                      "archetype_details": {
+                        "_type": "ARCHETYPED",
+                        "archetype_id": {
+                          "_type": "ARCHETYPE_ID",
+                          "value": "openEHR-EHR-CLUSTER.followup_question.v0"
+                        },
+                        "rm_version": "1.1.0"
+                      },
+                      "archetype_node_id": "openEHR-EHR-CLUSTER.followup_question.v0",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Hur påverkar tröttheten ditt dagliga liv?"
+                          },
+                          "archetype_node_id": "at0002",
+                          "value": {
+                            "_type": "DV_ORDINAL",
+                            "value": 2,
+                            "symbol": {
+                              "_type": "DV_CODED_TEXT",
+                              "value": "Måttlig trötthet, vilar mindre än 50% av vaken tid",
+                              "defining_code": {
+                                "_type": "CODE_PHRASE",
+                                "terminology_id": {
+                                  "_type": "TERMINOLOGY_ID",
+                                  "value": "local"
+                                },
+                                "code_string": "at0.17"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Andning"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "andnöd (dyspné)",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "267036007"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Upplever du svårigheter med din andning?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "CLUSTER",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "följdfråga"
+                      },
+                      "archetype_details": {
+                        "_type": "ARCHETYPED",
+                        "archetype_id": {
+                          "_type": "ARCHETYPE_ID",
+                          "value": "openEHR-EHR-CLUSTER.followup_question.v0"
+                        },
+                        "rm_version": "1.1.0"
+                      },
+                      "archetype_node_id": "openEHR-EHR-CLUSTER.followup_question.v0",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Vilka svårigheter upplever du med din andning?"
+                          },
+                          "archetype_node_id": "at0002",
+                          "value": {
+                            "_type": "DV_ORDINAL",
+                            "value": 1,
+                            "symbol": {
+                              "_type": "DV_CODED_TEXT",
+                              "value": "Lätta andningsbesvär, orkar gå uppför trappa utan paus",
+                              "defining_code": {
+                                "_type": "CODE_PHRASE",
+                                "terminology_id": {
+                                  "_type": "TERMINOLOGY_ID",
+                                  "value": "local"
+                                },
+                                "code_string": "at0.1"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Klåda"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "klåda",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "418290006"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du klåda?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Utslag eller hudrodnad"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "hudrodnad (huderytem)",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "444827008"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du utslag eller hudrodnad?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "CLUSTER",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "följdfråga"
+                      },
+                      "archetype_details": {
+                        "_type": "ARCHETYPED",
+                        "archetype_id": {
+                          "_type": "ARCHETYPE_ID",
+                          "value": "openEHR-EHR-CLUSTER.followup_question.v0"
+                        },
+                        "rm_version": "1.1.0"
+                      },
+                      "archetype_node_id": "openEHR-EHR-CLUSTER.followup_question.v0",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Hur upplever du dina besvär med utslag eller hudrodnad?"
+                          },
+                          "archetype_node_id": "at0002",
+                          "value": {
+                            "_type": "DV_ORDINAL",
+                            "value": 1,
+                            "symbol": {
+                              "_type": "DV_CODED_TEXT",
+                              "value": "Lätta besvär, enstaka rodnader och/eller utslag",
+                              "defining_code": {
+                                "_type": "CODE_PHRASE",
+                                "terminology_id": {
+                                  "_type": "TERMINOLOGY_ID",
+                                  "value": "local"
+                                },
+                                "code_string": "at0.1"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Mun/svalg"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "fynd som rör munhålan",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "116337000"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du förändringar i mun/svalg?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "CLUSTER",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "följdfråga"
+                      },
+                      "archetype_details": {
+                        "_type": "ARCHETYPED",
+                        "archetype_id": {
+                          "_type": "ARCHETYPE_ID",
+                          "value": "openEHR-EHR-CLUSTER.followup_question.v0"
+                        },
+                        "rm_version": "1.1.0"
+                      },
+                      "archetype_node_id": "openEHR-EHR-CLUSTER.followup_question.v0",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Hur upplever du dina besvär i mun/svalg?"
+                          },
+                          "archetype_node_id": "at0002",
+                          "value": {
+                            "_type": "DV_ORDINAL",
+                            "value": 1,
+                            "symbol": {
+                              "_type": "DV_CODED_TEXT",
+                              "value": "Lätta besvär, såsom ömhet, rodnad, brännande känsla i munnen. Inga blåsor",
+                              "defining_code": {
+                                "_type": "CODE_PHRASE",
+                                "terminology_id": {
+                                  "_type": "TERMINOLOGY_ID",
+                                  "value": "local"
+                                },
+                                "code_string": "at0.1"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Naglar"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "fynd som rör nagels utseende",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "297983004"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du förändringar av naglarna?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Svullnad"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Svullnad"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "svullnad",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "65124004"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du ökad svullnad i kroppen?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "CLUSTER",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "följdfråga"
+                      },
+                      "archetype_details": {
+                        "_type": "ARCHETYPED",
+                        "archetype_id": {
+                          "_type": "ARCHETYPE_ID",
+                          "value": "openEHR-EHR-CLUSTER.followup_question.v0"
+                        },
+                        "rm_version": "1.1.0"
+                      },
+                      "archetype_node_id": "openEHR-EHR-CLUSTER.followup_question.v0",
+                      "items": [
+                        {
+                          "_type": "ELEMENT",
+                          "name": {
+                            "_type": "DV_TEXT",
+                            "value": "Hur upplever du dina besvär med svullnad i kroppen?"
+                          },
+                          "archetype_node_id": "at0002",
+                          "value": {
+                            "_type": "DV_ORDINAL",
+                            "value": 2,
+                            "symbol": {
+                              "_type": "DV_CODED_TEXT",
+                              "value": "Måttliga besvär, påverkar rörligheten.",
+                              "defining_code": {
+                                "_type": "CODE_PHRASE",
+                                "terminology_id": {
+                                  "_type": "TERMINOLOGY_ID",
+                                  "value": "local"
+                                },
+                                "code_string": "at0.2"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Feber"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "feber",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "386661006"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du feber idag?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0023"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Diarréer"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "diarré",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "62315008"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du problem med diarréer?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Förstoppning"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "förstoppning",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "14760008"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du förstoppning?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Illamående"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "illamående",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "422587007"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Upplever du besvär av illamående?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Stickningar/pirrningar/domningar"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.specific_symptom_sign_question.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Symptom/tecken-benämning"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "parestesi",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "SNOMED-CT"
+                          },
+                          "code_string": "91019004"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Upplever du stickningar eller pirrningar/domningar i händer och/eller fötter?"
+                      },
+                      "archetype_node_id": "at0005",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0024"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "_type": "CLUSTER",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "generella behandlingsrelaterade frågor"
+                  },
+                  "archetype_details": {
+                    "_type": "ARCHETYPED",
+                    "archetype_id": {
+                      "_type": "ARCHETYPE_ID",
+                      "value": "openEHR-EHR-CLUSTER.general_treatment_questions.v0"
+                    },
+                    "rm_version": "1.1.0"
+                  },
+                  "archetype_node_id": "openEHR-EHR-CLUSTER.general_treatment_questions.v0",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har något eller några av de symptom du skattat förvärrats sedan föregående behandling?"
+                      },
+                      "archetype_node_id": "at0003",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0004"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Vilka symptom har förvärrats?"
+                      },
+                      "archetype_node_id": "at0007",
+                      "value": {
+                        "_type": "DV_TEXT",
+                        "value": "Svullnaden"
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du ytterligare biverkningar som du vill förmedla eller förtydliga för oss?"
+                      },
+                      "archetype_node_id": "at0008",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Nej",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0010"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Har du någon fråga inför kommande behandling?"
+                      },
+                      "archetype_node_id": "at0012",
+                      "value": {
+                        "_type": "DV_CODED_TEXT",
+                        "value": "Ja",
+                        "defining_code": {
+                          "_type": "CODE_PHRASE",
+                          "terminology_id": {
+                            "_type": "TERMINOLOGY_ID",
+                            "value": "local"
+                          },
+                          "code_string": "at0013"
+                        }
+                      }
+                    },
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Beskriv din fråga:"
+                      },
+                      "archetype_node_id": "at0015",
+                      "value": {
+                        "_type": "DV_TEXT",
+                        "value": "Kan jag äta frukost innan behandlingen?"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "_type": "OBSERVATION",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Kroppstemperatur"
+      },
+      "archetype_details": {
+        "_type": "ARCHETYPED",
+        "archetype_id": {
+          "_type": "ARCHETYPE_ID",
+          "value": "openEHR-EHR-OBSERVATION.body_temperature.v2"
+        },
+        "rm_version": "1.1.0"
+      },
+      "archetype_node_id": "openEHR-EHR-OBSERVATION.body_temperature.v2",
+      "language": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "ISO_639-1"
+        },
+        "code_string": "sv"
+      },
+      "encoding": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "IANA_character-sets"
+        },
+        "code_string": "UTF-8"
+      },
+      "subject": {
+        "_type": "PARTY_SELF"
+      },
+      "data": {
+        "_type": "HISTORY",
+        "name": {
+          "_type": "DV_TEXT",
+          "value": "History"
+        },
+        "archetype_node_id": "at0002",
+        "origin": {
+          "_type": "DV_DATE_TIME",
+          "value": "2023-08-31T18:31:16.004+02:00"
+        },
+        "events": [
+          {
+            "_type": "POINT_EVENT",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Ospecificerad händelse"
+            },
+            "archetype_node_id": "at0003",
+            "time": {
+              "_type": "DV_DATE_TIME",
+              "value": "2023-08-31T18:31:16.004+02:00"
+            },
+            "data": {
+              "_type": "ITEM_TREE",
+              "name": {
+                "_type": "DV_TEXT",
+                "value": "Tree"
+              },
+              "archetype_node_id": "at0001",
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Temperatur"
+                  },
+                  "archetype_node_id": "at0004",
+                  "value": {
+                    "_type": "DV_QUANTITY",
+                    "magnitude": 38,
+                    "units": "Cel",
+                    "precision": 1
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

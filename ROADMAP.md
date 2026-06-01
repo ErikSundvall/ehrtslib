@@ -74,9 +74,7 @@ Follow-up enhancements after Phase 5b AM/ADL MVP — see [`tasks/prd-phase6b-adl
 - **ZIP extract in demo** — browser-side unzip via `fflate` for template/archetype folders
 - **Docs** — [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md) conversion limit examples
 
-### Remaining (Phase 6b+)
-- OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
-- More OET test compile with CKM archetype bank (needs larger fixture download)
+
 
 ## Phase 7a — ✅ (done)
 Exploration of serialisation and deserialisation of RM object instance trees to and from
@@ -93,6 +91,16 @@ validation. (Take inspiration from Archie and openEHR's simplified formats using
 Create library functionality and make sure the demo tool also allows convertion at least TO the different simplified formats
 
 Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
+
+## Phase 7c Refining UI -
+- Remove the "radio_button_checked Generation root (radio) drives example output; click a tab to edit that file" from UI and instead put under an "encircled i" with a tooltip showing it 
+- Add the "Disable Line Wrap" feature to the editor in the "Template (schema)" too just like for other editors
+- Make the explanation text on tabs colored ("archetype", "template" = blue ) ( error = red )  (skipped = dark orange)
+- figure out why the Vitals digns.oet inside the zip is "skipped" rather than being detected ads a template, the zip is in test_data\file-sets\Vital signs_2026_05_29-18_08_54.zip
+
+## Remaining (Phase 8b+)
+- OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
+- More OET test compile with CKM archetype bank (needs larger fixture download)
 
 ## Phase X - dist and docs
 
