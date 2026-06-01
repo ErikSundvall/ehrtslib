@@ -7,37 +7,42 @@
  * users rarely scroll to the bottom of long instance payloads.
  */
 
-import { EXAMPLES } from './examples.ts';
+import { EXAMPLES } from "./examples.ts";
 import {
+  type ConversionOptions,
   convert,
-  initializeTypeRegistry,
+  getAsciidocConfigPreset,
   getJsonConfigPreset,
   getJsonDeserializeConfigPreset,
+  getMarkdownConfigPreset,
   getYamlConfigPreset,
   getYamlDeserializeConfigPreset,
-  validateTemplateInput,
-  type ConversionOptions,
+  initializeTypeRegistry,
   type InputFormat,
   type InputMode,
   type OutputFormat,
   type TemplateGenerationMode,
-} from './converter.ts';
+  validateTemplateInput,
+} from "./converter.ts";
 
 import type {
-  JsonSerializationConfig,
   JsonDeserializationConfig,
-} from '../../../enhanced/serialization/json/mod.ts';
+  JsonSerializationConfig,
+} from "../../../enhanced/serialization/json/mod.ts";
 
 import type {
-  YamlSerializationConfig,
   YamlDeserializationConfig,
-} from '../../../enhanced/serialization/yaml/mod.ts';
+  YamlSerializationConfig,
+} from "../../../enhanced/serialization/yaml/mod.ts";
 
-import { unzipSync, strFromU8 } from 'fflate';
+import type { MarkdownSerializationConfig } from "../../../enhanced/serialization/markdown/mod.ts";
+import type { AsciidocSerializationConfig } from "../../../enhanced/serialization/asciidoc/mod.ts";
+
+import { strFromU8, unzipSync } from "fflate";
 
 // Application state
-let currentInputFormat = 'json';
-let currentInputTab: InputMode = 'instance';
+let currentInputFormat = "json";
+let currentInputTab: InputMode = "instance";
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
 let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -53,14 +58,14 @@ declare const __BUILD_INFO__: {
  * Initialize the application when DOM is loaded
  */
 function init() {
-  console.log('🚀 ehrtslib Format Converter initialized');
+  console.log("🚀 ehrtslib Format Converter initialized");
 
   // Initialize TypeRegistry
   try {
     initializeTypeRegistry();
   } catch (error) {
-    console.error('Failed to initialize TypeRegistry:', error);
-    showError('Failed to initialize application. Please refresh the page.');
+    console.error("Failed to initialize TypeRegistry:", error);
+    showError("Failed to initialize application. Please refresh the page.");
     return;
   }
 
@@ -71,10 +76,10 @@ function init() {
   updateAutoConvertButtonUi();
 
   // Load default example (triggers debounced auto-convert via handleInputChange)
-  loadExample('section');
-  handleInputChange('template');
+  loadExample("section");
+  handleInputChange("template");
 
-  console.log('✓ Application ready');
+  console.log("✓ Application ready");
 }
 
 /**
@@ -82,107 +87,129 @@ function init() {
  */
 function setupEventListeners() {
   // Input format selector
-  const inputFormatSelect = document.getElementById('input-format') as HTMLSelectElement;
+  const inputFormatSelect = document.getElementById(
+    "input-format",
+  ) as HTMLSelectElement;
   if (inputFormatSelect) {
-    inputFormatSelect.addEventListener('change', handleInputFormatChange);
+    inputFormatSelect.addEventListener("change", handleInputFormatChange);
   }
 
   // Load example button and menu
-  const loadExampleBtn = document.getElementById('load-example');
-  const exampleMenu = document.getElementById('example-menu');
+  const loadExampleBtn = document.getElementById("load-example");
+  const exampleMenu = document.getElementById("example-menu");
   if (loadExampleBtn && exampleMenu) {
-    loadExampleBtn.addEventListener('click', () => {
-      exampleMenu.classList.toggle('hidden');
+    loadExampleBtn.addEventListener("click", () => {
+      exampleMenu.classList.toggle("hidden");
     });
 
     // Example menu items
-    const exampleItems = exampleMenu.querySelectorAll('.example-item');
-    exampleItems.forEach(item => {
-      item.addEventListener('click', (e) => {
-        const exampleKey = (e.target as HTMLElement).getAttribute('data-example');
+    const exampleItems = exampleMenu.querySelectorAll(".example-item");
+    exampleItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        const exampleKey = (e.target as HTMLElement).getAttribute(
+          "data-example",
+        );
         if (exampleKey) {
           loadExample(exampleKey);
-          exampleMenu.classList.add('hidden');
+          exampleMenu.classList.add("hidden");
         }
       });
     });
   }
 
   // Upload file button
-  const uploadBtn = document.getElementById('upload-file');
-  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const uploadBtn = document.getElementById("upload-file");
+  const fileInput = document.getElementById("file-input") as HTMLInputElement;
   if (uploadBtn && fileInput) {
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileUpload);
+    uploadBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", handleFileUpload);
   }
 
   // Clear input button
-  const clearBtn = document.getElementById('clear-input');
+  const clearBtn = document.getElementById("clear-input");
   if (clearBtn) {
-    clearBtn.addEventListener('click', clearInput);
+    clearBtn.addEventListener("click", clearInput);
   }
-  const clearTemplateBtn = document.getElementById('clear-template-input');
+  const clearTemplateBtn = document.getElementById("clear-template-input");
   if (clearTemplateBtn) {
-    clearTemplateBtn.addEventListener('click', clearInput);
+    clearTemplateBtn.addEventListener("click", clearInput);
   }
 
   setupTemplateFileUpload();
 
   // Input textarea
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+  const inputTextarea = document.getElementById(
+    "input-text",
+  ) as HTMLTextAreaElement;
   if (inputTextarea) {
-    inputTextarea.addEventListener('input', () => handleInputChange('instance'));
+    inputTextarea.addEventListener(
+      "input",
+      () => handleInputChange("instance"),
+    );
   }
 
-  const templateTextarea = document.getElementById('template-input-text') as HTMLTextAreaElement;
+  const templateTextarea = document.getElementById(
+    "template-input-text",
+  ) as HTMLTextAreaElement;
   if (templateTextarea) {
-    templateTextarea.addEventListener('input', () => handleInputChange('template'));
+    templateTextarea.addEventListener(
+      "input",
+      () => handleInputChange("template"),
+    );
   }
 
   // Input line-wrap toggle (default: false => wrapping enabled = unchecked)
-  const inputDisableLinebreaks = document.getElementById('input-disable-linebreaks') as HTMLInputElement;
+  const inputDisableLinebreaks = document.getElementById(
+    "input-disable-linebreaks",
+  ) as HTMLInputElement;
   if (inputDisableLinebreaks) {
     // apply initial state
     applyInputLineWrap(!!inputDisableLinebreaks.checked);
-    inputDisableLinebreaks.addEventListener('change', () => {
+    inputDisableLinebreaks.addEventListener("change", () => {
       applyInputLineWrap(!!inputDisableLinebreaks.checked);
       // update counts/layout as necessary
       handleInputChange();
     });
   }
 
-  const autoConvertBtn = document.getElementById('auto-convert-btn');
+  const autoConvertBtn = document.getElementById("auto-convert-btn");
   if (autoConvertBtn) {
-    autoConvertBtn.addEventListener('click', toggleAutoConvert);
+    autoConvertBtn.addEventListener("click", toggleAutoConvert);
   }
 
-  const outputPanelBody = document.querySelector('.output-panel .panel-body');
-  const inputPanelBody = document.querySelector('.input-panel .panel-body');
+  const outputPanelBody = document.querySelector(".output-panel .panel-body");
+  const inputPanelBody = document.querySelector(".input-panel .panel-body");
   if (outputPanelBody) {
-    outputPanelBody.addEventListener('change', (e) => {
+    outputPanelBody.addEventListener("change", (e) => {
       const target = e.target as HTMLElement;
-      if (target.classList.contains('output-disable-linebreaks')) {
+      if (target.classList.contains("output-disable-linebreaks")) {
         const checked = (target as HTMLInputElement).checked;
-        document.querySelectorAll('.output-disable-linebreaks').forEach((cb) => {
-          (cb as HTMLInputElement).checked = checked;
-        });
+        document.querySelectorAll(".output-disable-linebreaks").forEach(
+          (cb) => {
+            (cb as HTMLInputElement).checked = checked;
+          },
+        );
         applyOutputLineWrap(checked);
       }
       scheduleAutoConvert();
     });
   }
   if (inputPanelBody) {
-    inputPanelBody.addEventListener('change', () => scheduleAutoConvert());
+    inputPanelBody.addEventListener("change", () => scheduleAutoConvert());
   }
 
-  const templateModeSelect = document.getElementById('template-generation-mode') as HTMLSelectElement;
+  const templateModeSelect = document.getElementById(
+    "template-generation-mode",
+  ) as HTMLSelectElement;
   if (templateModeSelect) {
-    templateModeSelect.addEventListener('change', () => scheduleAutoConvert());
+    templateModeSelect.addEventListener("change", () => scheduleAutoConvert());
   }
 
-  const outputFormatSection = document.getElementById('output-tab-enable-section');
+  const outputFormatSection = document.getElementById(
+    "output-tab-enable-section",
+  );
   if (outputFormatSection) {
-    outputFormatSection.addEventListener('change', () => scheduleAutoConvert());
+    outputFormatSection.addEventListener("change", () => scheduleAutoConvert());
   }
 
   // Preset dropdowns
@@ -200,9 +227,9 @@ function setupEventListeners() {
   setupCopyDownloadButtons();
 
   // Dismiss error button
-  const dismissErrorBtn = document.getElementById('dismiss-error');
+  const dismissErrorBtn = document.getElementById("dismiss-error");
   if (dismissErrorBtn) {
-    dismissErrorBtn.addEventListener('click', hideError);
+    dismissErrorBtn.addEventListener("click", hideError);
   }
 
   // Output visibility
@@ -216,16 +243,28 @@ function setupEventListeners() {
  * Set up listeners for output format checkboxes to toggle tabs
  */
 function setupOutputVisibilityListeners() {
-  const formats = ['xml', 'json', 'yaml', 'typescript', 'flat', 'structured', 'webtemplate'];
+  const formats = [
+    "xml",
+    "json",
+    "yaml",
+    "markdown",
+    "asciidoc",
+    "typescript",
+    "flat",
+    "structured",
+    "webtemplate",
+  ];
 
-  formats.forEach(format => {
-    const checkbox = document.getElementById(`output-${format}`) as HTMLInputElement;
+  formats.forEach((format) => {
+    const checkbox = document.getElementById(
+      `output-${format}`,
+    ) as HTMLInputElement;
     if (checkbox) {
       // Initial state
       toggleOutputTab(format, checkbox.checked);
 
       // Change listener
-      checkbox.addEventListener('change', () => {
+      checkbox.addEventListener("change", () => {
         toggleOutputTab(format, checkbox.checked);
       });
     }
@@ -237,11 +276,11 @@ function setupOutputVisibilityListeners() {
  */
 function toggleOutputTab(format: string, visible: boolean) {
   // Find the tab button
-  const tabs = document.querySelectorAll('.tab');
+  const tabs = document.querySelectorAll(".tab");
   let tabBtn: HTMLElement | null = null;
 
-  tabs.forEach(t => {
-    if (t.getAttribute('data-tab') === format) {
+  tabs.forEach((t) => {
+    if (t.getAttribute("data-tab") === format) {
       tabBtn = t as HTMLElement;
     }
   });
@@ -252,24 +291,24 @@ function toggleOutputTab(format: string, visible: boolean) {
   if (!tabBtn) return;
 
   if (visible) {
-    (tabBtn as HTMLElement).classList.remove('hidden');
+    (tabBtn as HTMLElement).classList.remove("hidden");
     if (optionsSection) {
-      optionsSection.classList.remove('hidden');
+      optionsSection.classList.remove("hidden");
     }
   } else {
-    (tabBtn as HTMLElement).classList.add('hidden');
+    (tabBtn as HTMLElement).classList.add("hidden");
     if (optionsSection) {
-      optionsSection.classList.add('hidden');
+      optionsSection.classList.add("hidden");
     }
 
     // If we just hid the active tab, switch to another one
-    if ((tabBtn as HTMLElement).classList.contains('active')) {
+    if ((tabBtn as HTMLElement).classList.contains("active")) {
       // Find first visible tab
-      const visibleTab = Array.from(document.querySelectorAll('.tab'))
-        .find(t => !t.classList.contains('hidden'));
+      const visibleTab = Array.from(document.querySelectorAll(".tab"))
+        .find((t) => !t.classList.contains("hidden"));
 
       if (visibleTab) {
-        const targetFormat = visibleTab.getAttribute('data-tab');
+        const targetFormat = visibleTab.getAttribute("data-tab");
         if (targetFormat) {
           switchOutputTab(targetFormat);
         }
@@ -282,36 +321,40 @@ function toggleOutputTab(format: string, visible: boolean) {
  * Set up resizable splitters
  */
 function setupSplitters() {
-  const splitter = document.getElementById('splitter-main');
+  const splitter = document.getElementById("splitter-main");
   if (splitter) {
-    setupSplitter(splitter, 'input-panel', 'output-panel');
+    setupSplitter(splitter, "input-panel", "output-panel");
   }
 }
 
 function getActiveOutputFormat(): string {
-  const activeTab = document.querySelector('.tab.active');
-  return activeTab?.getAttribute('data-tab') || 'json';
+  const activeTab = document.querySelector(".tab.active");
+  return activeTab?.getAttribute("data-tab") || "json";
 }
 
 /**
  * Set up a single splitter
  */
-function setupSplitter(splitter: HTMLElement, leftClass: string, rightClass: string) {
+function setupSplitter(
+  splitter: HTMLElement,
+  leftClass: string,
+  rightClass: string,
+) {
   let isDragging = false;
   let startX: number;
   let leftWidth: number;
   let rightWidth: number;
 
-  const mainContent = document.querySelector('.main-content') as HTMLElement;
+  const mainContent = document.querySelector(".main-content") as HTMLElement;
 
-  splitter.addEventListener('mousedown', (e) => {
+  splitter.addEventListener("mousedown", (e) => {
     isDragging = true;
     startX = e.clientX;
-    splitter.classList.add('active');
+    splitter.classList.add("active");
 
     // Get panels
     // We navigate DOM or query
-    const panels = Array.from(document.querySelectorAll('.panel'));
+    const panels = Array.from(document.querySelectorAll(".panel"));
     // Find the panels adjacent to this splitter
     // Assuming DOM order: Input, Splitter1, Options, Splitter2, Output
 
@@ -321,19 +364,19 @@ function setupSplitter(splitter: HTMLElement, leftClass: string, rightClass: str
     // Intermediate text nodes might exist.
 
     e.preventDefault(); // Prevent text selection
-    document.body.style.cursor = 'col-resize';
+    document.body.style.cursor = "col-resize";
 
     // Disable iframe pointer events if any (none here)
   });
 
-  document.addEventListener('mousemove', (e) => {
+  document.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
 
     const deltaX = e.clientX - startX;
     startX = e.clientX; // Update for incremental change or use accumulative?
     // Incremental is easier if we rely on flex-basis or width
 
-    // Let's use simple logic: 
+    // Let's use simple logic:
     // Previous Element Width += deltaX
     // Next Element Width -= deltaX
     // But dealing with flex: 1 and fixed widths is tricky.
@@ -369,11 +412,11 @@ function setupSplitter(splitter: HTMLElement, leftClass: string, rightClass: str
     }
   });
 
-  document.addEventListener('mouseup', () => {
+  document.addEventListener("mouseup", () => {
     if (isDragging) {
       isDragging = false;
-      splitter.classList.remove('active');
-      document.body.style.cursor = '';
+      splitter.classList.remove("active");
+      document.body.style.cursor = "";
     }
   });
 }
@@ -383,48 +426,78 @@ function setupSplitter(splitter: HTMLElement, leftClass: string, rightClass: str
  */
 function setupPresetListeners() {
   // Input deserializer preset
-  const inputDeserializerPreset = document.getElementById('input-deserializer-preset') as HTMLSelectElement;
+  const inputDeserializerPreset = document.getElementById(
+    "input-deserializer-preset",
+  ) as HTMLSelectElement;
   if (inputDeserializerPreset) {
-    inputDeserializerPreset.addEventListener('change', (e) => {
+    inputDeserializerPreset.addEventListener("change", (e) => {
       const preset = (e.target as HTMLSelectElement).value;
       updateInputDeserializerOptions(preset);
     });
   }
 
   // JSON config preset
-  const jsonConfigPreset = document.getElementById('json-config-preset') as HTMLSelectElement;
+  const jsonConfigPreset = document.getElementById(
+    "json-config-preset",
+  ) as HTMLSelectElement;
   if (jsonConfigPreset) {
-    jsonConfigPreset.addEventListener('change', (e) => {
+    jsonConfigPreset.addEventListener("change", (e) => {
       const preset = (e.target as HTMLSelectElement).value;
       updateJsonOptions(preset);
     });
   }
 
   // JSON serializer type
-  const jsonSerializerType = document.getElementById('json-serializer-type') as HTMLSelectElement;
+  const jsonSerializerType = document.getElementById(
+    "json-serializer-type",
+  ) as HTMLSelectElement;
   if (jsonSerializerType) {
-    jsonSerializerType.addEventListener('change', () => {
+    jsonSerializerType.addEventListener("change", () => {
       // Trigger update of options based on current preset and serializer
-      const preset = jsonConfigPreset?.value || 'custom';
+      const preset = jsonConfigPreset?.value || "custom";
       updateJsonOptions(preset);
     });
   }
 
   // YAML config preset
-  const yamlConfigPreset = document.getElementById('yaml-config-preset') as HTMLSelectElement;
+  const yamlConfigPreset = document.getElementById(
+    "yaml-config-preset",
+  ) as HTMLSelectElement;
   if (yamlConfigPreset) {
-    yamlConfigPreset.addEventListener('change', (e) => {
+    yamlConfigPreset.addEventListener("change", (e) => {
       const preset = (e.target as HTMLSelectElement).value;
       updateYamlOptions(preset);
     });
   }
 
   // XML config preset
-  const xmlConfigPreset = document.getElementById('xml-config-preset') as HTMLSelectElement;
+  const xmlConfigPreset = document.getElementById(
+    "xml-config-preset",
+  ) as HTMLSelectElement;
   if (xmlConfigPreset) {
-    xmlConfigPreset.addEventListener('change', (e) => {
+    xmlConfigPreset.addEventListener("change", (e) => {
       const preset = (e.target as HTMLSelectElement).value;
       updateXmlOptions(preset);
+    });
+  }
+
+  const markdownConfigPreset = document.getElementById(
+    "markdown-config-preset",
+  ) as HTMLSelectElement;
+  if (markdownConfigPreset) {
+    markdownConfigPreset.addEventListener("change", (e) => {
+      const preset = (e.target as HTMLSelectElement).value;
+      updateMarkdownOptions(preset);
+    });
+  }
+
+  const asciidocConfigPreset = document.getElementById(
+    "asciidoc-config-preset",
+  ) as HTMLSelectElement;
+  if (asciidocConfigPreset) {
+    asciidocConfigPreset.addEventListener("change", (e) => {
+      const preset = (e.target as HTMLSelectElement).value;
+      updateAsciidocOptions(preset);
     });
   }
 }
@@ -433,31 +506,40 @@ function setupPresetListeners() {
  * Template tab: upload OPT/OET/ADL files or ZIP archives (browser-only; no server upload).
  */
 function setupTemplateFileUpload() {
-  const uploadBtn = document.getElementById('upload-template-files');
-  const fileInput = document.getElementById('template-file-input') as HTMLInputElement | null;
-  const textarea = document.getElementById('template-input-text') as HTMLTextAreaElement | null;
+  const uploadBtn = document.getElementById("upload-template-files");
+  const fileInput = document.getElementById("template-file-input") as
+    | HTMLInputElement
+    | null;
+  const textarea = document.getElementById("template-input-text") as
+    | HTMLTextAreaElement
+    | null;
   if (!uploadBtn || !fileInput || !textarea) return;
 
-  uploadBtn.addEventListener('click', () => fileInput.click());
+  uploadBtn.addEventListener("click", () => fileInput.click());
 
-  fileInput.addEventListener('change', async () => {
+  fileInput.addEventListener("change", async () => {
     const files = fileInput.files;
     if (!files?.length) return;
 
     const texts: string[] = [];
     for (const file of Array.from(files)) {
       const name = file.name.toLowerCase();
-      if (name.endsWith('.zip')) {
+      if (name.endsWith(".zip")) {
         const buf = new Uint8Array(await file.arrayBuffer());
         const entries = unzipSync(buf);
         for (const [entryName, data] of Object.entries(entries)) {
           const lower = entryName.toLowerCase();
-          if (/\.(opt|oet|adl|adls|xml)$/.test(lower) && !lower.includes('__macosx')) {
+          if (
+            /\.(opt|oet|adl|adls|xml)$/.test(lower) &&
+            !lower.includes("__macosx")
+          ) {
             texts.push(strFromU8(data));
           }
         }
         if (!texts.length) {
-          texts.push(`# ZIP "${file.name}" contained no .opt/.oet/.adl files.\n`);
+          texts.push(
+            `# ZIP "${file.name}" contained no .opt/.oet/.adl files.\n`,
+          );
         }
         continue;
       }
@@ -467,11 +549,11 @@ function setupTemplateFileUpload() {
     }
 
     if (texts.length) {
-      textarea.value = texts.join('\n\n');
-      activateInputTab('template');
-      handleInputChange('template');
+      textarea.value = texts.join("\n\n");
+      activateInputTab("template");
+      handleInputChange("template");
     }
-    fileInput.value = '';
+    fileInput.value = "";
   });
 }
 
@@ -479,10 +561,12 @@ function setupTemplateFileUpload() {
  * Input column tabs: Instance (current) vs Template (schema) prototype.
  */
 function setupInputTabs() {
-  const tabs = document.querySelectorAll('#input-tabs .tab');
+  const tabs = document.querySelectorAll("#input-tabs .tab");
   tabs.forEach((tab) => {
-    tab.addEventListener('click', (e) => {
-      const name = (e.currentTarget as HTMLElement).getAttribute('data-input-tab');
+    tab.addEventListener("click", (e) => {
+      const name = (e.currentTarget as HTMLElement).getAttribute(
+        "data-input-tab",
+      );
       if (!name) return;
       activateInputTab(name as InputMode);
     });
@@ -490,15 +574,15 @@ function setupInputTabs() {
 }
 
 function activateInputTab(mode: InputMode) {
-  const tabs = document.querySelectorAll('#input-tabs .tab');
+  const tabs = document.querySelectorAll("#input-tabs .tab");
   tabs.forEach((t) => {
     const el = t as HTMLElement;
-    const active = el.getAttribute('data-input-tab') === mode;
-    el.classList.toggle('active', active);
-    el.setAttribute('aria-selected', active ? 'true' : 'false');
+    const active = el.getAttribute("data-input-tab") === mode;
+    el.classList.toggle("active", active);
+    el.setAttribute("aria-selected", active ? "true" : "false");
   });
-  document.querySelectorAll('.input-tab-pane').forEach((pane) => {
-    pane.classList.toggle('active', pane.id === `input-tab-${mode}`);
+  document.querySelectorAll(".input-tab-pane").forEach((pane) => {
+    pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
   });
   currentInputTab = mode;
   validateInput();
@@ -509,10 +593,10 @@ function activateInputTab(mode: InputMode) {
  * Set up output tab switching
  */
 function setupOutputTabs() {
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      const tabName = (e.target as HTMLElement).getAttribute('data-tab');
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      const tabName = (e.target as HTMLElement).getAttribute("data-tab");
       if (tabName) {
         switchOutputTab(tabName);
       }
@@ -524,15 +608,21 @@ function setupOutputTabs() {
  * Set up copy and download button handlers
  */
 function setupCopyDownloadButtons() {
-  const copyBtn = document.getElementById('copy-output');
-  const downloadBtn = document.getElementById('download-output');
+  const copyBtn = document.getElementById("copy-output");
+  const downloadBtn = document.getElementById("download-output");
 
   if (copyBtn) {
-    copyBtn.addEventListener('click', () => copyToClipboard(getActiveOutputFormat()));
+    copyBtn.addEventListener(
+      "click",
+      () => copyToClipboard(getActiveOutputFormat()),
+    );
   }
 
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => downloadOutput(getActiveOutputFormat()));
+    downloadBtn.addEventListener(
+      "click",
+      () => downloadOutput(getActiveOutputFormat()),
+    );
   }
 }
 
@@ -551,22 +641,27 @@ function handleInputFormatChange(e: Event) {
 function loadExample(exampleKey: string) {
   const example = EXAMPLES[exampleKey as keyof typeof EXAMPLES];
   if (!example) {
-    console.error('Example not found:', exampleKey);
+    console.error("Example not found:", exampleKey);
     return;
   }
 
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
-  const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
+  const inputTextarea = document.getElementById(
+    "input-text",
+  ) as HTMLTextAreaElement;
+  const formatSelect = document.getElementById(
+    "input-format",
+  ) as HTMLSelectElement;
 
   if (inputTextarea && formatSelect) {
-    activateInputTab('instance');
+    activateInputTab("instance");
     // Load the appropriate format
     const format = formatSelect.value;
-    inputTextarea.value = example[format as keyof typeof example] as string || example.json;
+    inputTextarea.value = example[format as keyof typeof example] as string ||
+      example.json;
     currentInputFormat = format;
 
     // Update character count and validation
-    handleInputChange('instance');
+    handleInputChange("instance");
   }
 }
 
@@ -579,25 +674,29 @@ async function handleFileUpload(e: Event) {
 
   try {
     const text = await file.text();
-    const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+    const inputTextarea = document.getElementById(
+      "input-text",
+    ) as HTMLTextAreaElement;
     if (inputTextarea) {
-      activateInputTab('instance');
+      activateInputTab("instance");
       inputTextarea.value = text;
-      handleInputChange('instance');
+      handleInputChange("instance");
 
       // Try to detect format from file extension
-      const ext = file.name.split('.').pop()?.toLowerCase();
-      if (ext === 'xml' || ext === 'json' || ext === 'yaml' || ext === 'yml') {
-        const formatSelect = document.getElementById('input-format') as HTMLSelectElement;
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
+        const formatSelect = document.getElementById(
+          "input-format",
+        ) as HTMLSelectElement;
         if (formatSelect) {
-          formatSelect.value = ext === 'yml' ? 'yaml' : ext;
+          formatSelect.value = ext === "yml" ? "yaml" : ext;
           currentInputFormat = formatSelect.value;
         }
       }
     }
   } catch (error) {
-    console.error('Error reading file:', error);
-    showError('Failed to read file: ' + (error as Error).message);
+    console.error("Error reading file:", error);
+    showError("Failed to read file: " + (error as Error).message);
   }
 }
 
@@ -607,13 +706,13 @@ async function handleFileUpload(e: Event) {
 function clearInput() {
   const textarea = getCurrentInputTextarea();
   if (textarea) {
-    textarea.value = '';
+    textarea.value = "";
     handleInputChange(currentInputTab);
   }
 }
 
 function getInputTextarea(mode: InputMode): HTMLTextAreaElement | null {
-  const id = mode === 'template' ? 'template-input-text' : 'input-text';
+  const id = mode === "template" ? "template-input-text" : "input-text";
   return document.getElementById(id) as HTMLTextAreaElement | null;
 }
 
@@ -630,14 +729,18 @@ function handleInputChange(tab: InputMode = currentInputTab) {
 
   const text = inputTextarea.value;
 
-  const charCount = document.getElementById(tab === 'template' ? 'template-char-count' : 'char-count');
+  const charCount = document.getElementById(
+    tab === "template" ? "template-char-count" : "char-count",
+  );
   if (charCount) {
     charCount.textContent = text.length.toString();
   }
 
-  const lineCount = document.getElementById(tab === 'template' ? 'template-line-count' : 'line-count');
+  const lineCount = document.getElementById(
+    tab === "template" ? "template-line-count" : "line-count",
+  );
   if (lineCount) {
-    lineCount.textContent = (text.split('\n').length).toString();
+    lineCount.textContent = text.split("\n").length.toString();
   }
 
   validateInput();
@@ -650,61 +753,65 @@ function handleInputChange(tab: InputMode = currentInputTab) {
 function validateInput() {
   const inputTextarea = getCurrentInputTextarea();
   const validationIcon = document.getElementById(
-    currentInputTab === 'template' ? 'template-validation-icon' : 'validation-icon',
+    currentInputTab === "template"
+      ? "template-validation-icon"
+      : "validation-icon",
   );
   const validationText = document.getElementById(
-    currentInputTab === 'template' ? 'template-validation-text' : 'validation-text',
+    currentInputTab === "template"
+      ? "template-validation-text"
+      : "validation-text",
   );
 
   if (!inputTextarea || !validationIcon || !validationText) return;
 
   const text = inputTextarea.value.trim();
   if (!text) {
-    validationIcon.textContent = 'radio_button_unchecked';
-    validationIcon.className = 'material-icons status-icon';
-    validationText.textContent = 'Empty';
+    validationIcon.textContent = "radio_button_unchecked";
+    validationIcon.className = "material-icons status-icon";
+    validationText.textContent = "Empty";
     return;
   }
 
   // Simple format validation
   try {
-    if (currentInputTab === 'template') {
+    if (currentInputTab === "template") {
       const templateValidation = validateTemplateInput(text);
       if (!templateValidation.valid) {
         throw new Error(templateValidation.message);
       }
-      validationIcon.textContent = 'check';
-      validationIcon.className = 'material-icons status-icon valid';
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = templateValidation.message;
       return;
     }
 
-    if (currentInputFormat === 'json') {
+    if (currentInputFormat === "json") {
       JSON.parse(text);
-      validationIcon.textContent = 'check';
-      validationIcon.className = 'material-icons status-icon valid';
-      validationText.textContent = 'Valid JSON';
-    } else if (currentInputFormat === 'xml') {
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      validationText.textContent = "Valid JSON";
+    } else if (currentInputFormat === "xml") {
       // Basic XML check
       const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/xml');
-      const parseError = doc.querySelector('parsererror');
+      const doc = parser.parseFromString(text, "text/xml");
+      const parseError = doc.querySelector("parsererror");
       if (parseError) {
-        throw new Error('XML parse error');
+        throw new Error("XML parse error");
       }
-      validationIcon.textContent = 'check';
-      validationIcon.className = 'material-icons status-icon valid';
-      validationText.textContent = 'Valid XML';
-    } else if (currentInputFormat === 'yaml') {
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      validationText.textContent = "Valid XML";
+    } else if (currentInputFormat === "yaml") {
       // YAML validation will be done during conversion
-      validationIcon.textContent = 'check';
-      validationIcon.className = 'material-icons status-icon valid';
-      validationText.textContent = 'Assumed valid YAML';
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      validationText.textContent = "Assumed valid YAML";
     }
   } catch (error) {
-    validationIcon.textContent = 'error';
-    validationIcon.className = 'material-icons status-icon invalid';
-    validationText.textContent = currentInputTab === 'template'
+    validationIcon.textContent = "error";
+    validationIcon.className = "material-icons status-icon invalid";
+    validationText.textContent = currentInputTab === "template"
       ? (error as Error).message
       : `Invalid ${currentInputFormat.toUpperCase()}`;
   }
@@ -725,27 +832,27 @@ function toggleAutoConvert() {
 }
 
 function updateAutoConvertButtonUi() {
-  const btn = document.getElementById('auto-convert-btn');
-  const icon = document.getElementById('auto-convert-icon');
-  const label = document.getElementById('auto-convert-label');
+  const btn = document.getElementById("auto-convert-btn");
+  const icon = document.getElementById("auto-convert-icon");
+  const label = document.getElementById("auto-convert-label");
   if (!btn || !icon) return;
 
   if (autoConvertEnabled) {
-    icon.textContent = 'pause';
-    btn.classList.add('is-active');
-    btn.classList.remove('btn-secondary');
-    btn.classList.add('btn-primary');
-    btn.setAttribute('aria-pressed', 'true');
-    btn.title = 'Pause auto-convert';
-    if (label) label.textContent = 'Auto-convert';
+    icon.textContent = "pause";
+    btn.classList.add("is-active");
+    btn.classList.remove("btn-secondary");
+    btn.classList.add("btn-primary");
+    btn.setAttribute("aria-pressed", "true");
+    btn.title = "Pause auto-convert";
+    if (label) label.textContent = "Auto-convert";
   } else {
-    icon.textContent = 'play_arrow';
-    btn.classList.remove('is-active');
-    btn.classList.remove('btn-primary');
-    btn.classList.add('btn-secondary');
-    btn.setAttribute('aria-pressed', 'false');
-    btn.title = 'Resume auto-convert';
-    if (label) label.textContent = 'Paused';
+    icon.textContent = "play_arrow";
+    btn.classList.remove("is-active");
+    btn.classList.remove("btn-primary");
+    btn.classList.add("btn-secondary");
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = "Resume auto-convert";
+    if (label) label.textContent = "Paused";
   }
 }
 
@@ -764,16 +871,16 @@ function scheduleAutoConvert() {
  * Run conversion (debounced when auto-convert is on).
  */
 async function handleConvert() {
-  console.log('🔄 Converting...');
+  console.log("🔄 Converting...");
   showLoading();
   hideError();
 
   try {
     const inputTextarea = getCurrentInputTextarea();
-    if (!inputTextarea) throw new Error('Input textarea not found');
+    if (!inputTextarea) throw new Error("Input textarea not found");
 
     const inputText = inputTextarea.value.trim();
-    if (!inputText) throw new Error('Input is empty');
+    if (!inputText) throw new Error("Input is empty");
 
     // Gather conversion options from UI
     const options = gatherConversionOptions();
@@ -784,7 +891,7 @@ async function handleConvert() {
     hideLoading();
 
     if (!result.success) {
-      showError(result.error || 'Conversion failed');
+      showError(result.error || "Conversion failed");
       return;
     }
 
@@ -793,11 +900,10 @@ async function handleConvert() {
       updateOutputs(result.outputs);
     }
 
-    console.log('✅ Conversion successful');
-
+    console.log("✅ Conversion successful");
   } catch (error) {
     hideLoading();
-    console.error('Conversion error:', error);
+    console.error("Conversion error:", error);
     showError((error as Error).message);
   }
 }
@@ -809,100 +915,257 @@ function gatherConversionOptions(): ConversionOptions {
   const inputMode = currentInputTab;
 
   // Input format
-  const inputFormatSelect = document.getElementById('input-format') as HTMLSelectElement;
-  const inputFormat = (inputFormatSelect?.value || 'json') as InputFormat;
+  const inputFormatSelect = document.getElementById(
+    "input-format",
+  ) as HTMLSelectElement;
+  const inputFormat = (inputFormatSelect?.value || "json") as InputFormat;
 
   // Input deserializer config
-  const inputDeserializerPreset = (document.getElementById('input-deserializer-preset') as HTMLSelectElement)?.value || 'default';
-  const inputDeserializerConfig = getJsonDeserializeConfigPreset(inputDeserializerPreset);
+  const inputDeserializerPreset =
+    (document.getElementById("input-deserializer-preset") as HTMLSelectElement)
+      ?.value || "default";
+  const inputDeserializerConfig = getJsonDeserializeConfigPreset(
+    inputDeserializerPreset,
+  );
 
   const templateGenerationMode = (
-    (document.getElementById('template-generation-mode') as HTMLSelectElement)?.value || 'example'
+    (document.getElementById("template-generation-mode") as HTMLSelectElement)
+      ?.value || "example"
   ) as TemplateGenerationMode;
 
   // Output formats
   const outputFormats: OutputFormat[] = [];
-  if ((document.getElementById('output-xml') as HTMLInputElement)?.checked) {
-    outputFormats.push('xml');
+  if ((document.getElementById("output-xml") as HTMLInputElement)?.checked) {
+    outputFormats.push("xml");
   }
-  if ((document.getElementById('output-json') as HTMLInputElement)?.checked) {
-    outputFormats.push('json');
+  if ((document.getElementById("output-json") as HTMLInputElement)?.checked) {
+    outputFormats.push("json");
   }
-  if ((document.getElementById('output-yaml') as HTMLInputElement)?.checked) {
-    outputFormats.push('yaml');
+  if ((document.getElementById("output-yaml") as HTMLInputElement)?.checked) {
+    outputFormats.push("yaml");
   }
-  if ((document.getElementById('output-typescript') as HTMLInputElement)?.checked) {
-    outputFormats.push('typescript');
+  if (
+    (document.getElementById("output-markdown") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("markdown");
   }
-  if ((document.getElementById('output-flat') as HTMLInputElement)?.checked) {
-    outputFormats.push('flat');
+  if (
+    (document.getElementById("output-asciidoc") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("asciidoc");
   }
-  if ((document.getElementById('output-structured') as HTMLInputElement)?.checked) {
-    outputFormats.push('structured');
+  if (
+    (document.getElementById("output-typescript") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("typescript");
   }
-  if ((document.getElementById('output-webtemplate') as HTMLInputElement)?.checked) {
-    outputFormats.push('webtemplate');
+  if ((document.getElementById("output-flat") as HTMLInputElement)?.checked) {
+    outputFormats.push("flat");
+  }
+  if (
+    (document.getElementById("output-structured") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("structured");
+  }
+  if (
+    (document.getElementById("output-webtemplate") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("webtemplate");
   }
 
   // JSON serializer type and config
-  const jsonSerializerType = ((document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable') as 'canonical' | 'configurable';
-  const jsonConfigPreset = (document.getElementById('json-config-preset') as HTMLSelectElement)?.value || 'canonical';
+  const jsonSerializerType =
+    ((document.getElementById("json-serializer-type") as HTMLSelectElement)
+      ?.value || "configurable") as "canonical" | "configurable";
+  const jsonConfigPreset =
+    (document.getElementById("json-config-preset") as HTMLSelectElement)
+      ?.value || "canonical";
   const jsonConfig = getJsonConfigPreset(jsonConfigPreset);
-  const jsonArchIdLoc = (document.getElementById('json-arch-id-location') as HTMLSelectElement)?.value as any;
+  const jsonArchIdLoc =
+    (document.getElementById("json-arch-id-location") as HTMLSelectElement)
+      ?.value as any;
   if (jsonArchIdLoc) jsonConfig.archetypeNodeIdLocation = jsonArchIdLoc;
 
   // Apply custom JSON settings if preset is 'custom'
-  if (jsonConfigPreset === 'custom') {
-    const indent = parseInt((document.getElementById('json-indent') as HTMLInputElement)?.value || '2');
+  if (jsonConfigPreset === "custom") {
+    const indent = parseInt(
+      (document.getElementById("json-indent") as HTMLInputElement)?.value ||
+        "2",
+    );
     jsonConfig.indent = indent;
-    jsonConfig.useTerseFormat = (document.getElementById('json-terse') as HTMLInputElement)?.checked || false;
-    jsonConfig.useHybridStyle = (document.getElementById('json-hybrid') as HTMLInputElement)?.checked || false;
+    jsonConfig.useTerseFormat =
+      (document.getElementById("json-terse") as HTMLInputElement)?.checked ||
+      false;
+    jsonConfig.useHybridStyle =
+      (document.getElementById("json-hybrid") as HTMLInputElement)?.checked ||
+      false;
     // jsonConfig.useTypeInference = (document.getElementById('json-type-inference') as HTMLInputElement)?.checked || false;
   }
 
   // YAML config
-  const yamlConfigPreset = (document.getElementById('yaml-config-preset') as HTMLSelectElement)?.value || 'default';
+  const yamlConfigPreset =
+    (document.getElementById("yaml-config-preset") as HTMLSelectElement)
+      ?.value || "default";
   const yamlConfig = getYamlConfigPreset(yamlConfigPreset);
-  const yamlArchIdLoc = (document.getElementById('yaml-arch-id-location') as HTMLSelectElement)?.value as any;
+  const yamlArchIdLoc =
+    (document.getElementById("yaml-arch-id-location") as HTMLSelectElement)
+      ?.value as any;
   if (yamlArchIdLoc) yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
 
   // Apply custom YAML settings if preset is 'custom'
-  if (yamlConfigPreset === 'custom') {
-    const indent = parseInt((document.getElementById('yaml-indent') as HTMLInputElement)?.value || '2');
-    const maxInlineProps = parseInt((document.getElementById('yaml-max-inline-props') as HTMLInputElement)?.value || '3');
-    const mainStyle = (document.getElementById('yaml-main-style') as HTMLSelectElement)?.value as 'block' | 'flow' | 'hybrid';
+  if (yamlConfigPreset === "custom") {
+    const indent = parseInt(
+      (document.getElementById("yaml-indent") as HTMLInputElement)?.value ||
+        "2",
+    );
+    const maxInlineProps = parseInt(
+      (document.getElementById("yaml-max-inline-props") as HTMLInputElement)
+        ?.value || "3",
+    );
+    const mainStyle =
+      (document.getElementById("yaml-main-style") as HTMLSelectElement)
+        ?.value as "block" | "flow" | "hybrid";
     yamlConfig.indent = indent;
     yamlConfig.maxInlineProperties = maxInlineProps;
-    yamlConfig.mainStyle = mainStyle || 'hybrid';
-    yamlConfig.useTerseFormat = (document.getElementById('yaml-terse') as HTMLInputElement)?.checked !== false;
-    yamlConfig.useTypeInference = (document.getElementById('yaml-type-inference') as HTMLInputElement)?.checked !== false;
+    yamlConfig.mainStyle = mainStyle || "hybrid";
+    yamlConfig.useTerseFormat =
+      (document.getElementById("yaml-terse") as HTMLInputElement)?.checked !==
+        false;
+    yamlConfig.useTypeInference =
+      (document.getElementById("yaml-type-inference") as HTMLInputElement)
+        ?.checked !== false;
     // Only apply keepArchetypeDetailsInline if flow style
-    if (mainStyle === 'flow') {
-      yamlConfig.keepArchetypeDetailsInline = (document.getElementById('yaml-archetype-inline') as HTMLInputElement)?.checked !== false;
+    if (mainStyle === "flow") {
+      yamlConfig.keepArchetypeDetailsInline =
+        (document.getElementById("yaml-archetype-inline") as HTMLInputElement)
+          ?.checked !== false;
     } else {
       yamlConfig.keepArchetypeDetailsInline = false;
     }
   }
 
+  const markdownConfigPreset =
+    (document.getElementById("markdown-config-preset") as HTMLSelectElement)
+      ?.value || "structural";
+  const markdownConfig: MarkdownSerializationConfig = getMarkdownConfigPreset(
+    markdownConfigPreset,
+  );
+  if (markdownConfigPreset === "custom") {
+    markdownConfig.style =
+      ((document.getElementById("markdown-style") as HTMLSelectElement)
+        ?.value || "structural") as MarkdownSerializationConfig["style"];
+    markdownConfig.codeRendering =
+      ((document.getElementById("markdown-code-rendering") as HTMLSelectElement)
+        ?.value || "inline_bracket") as MarkdownSerializationConfig[
+          "codeRendering"
+        ];
+    markdownConfig.dataValueRendering =
+      ((document.getElementById("markdown-data-rendering") as HTMLSelectElement)
+        ?.value || "list") as MarkdownSerializationConfig["dataValueRendering"];
+    markdownConfig.includeFrontmatter =
+      (document.getElementById("markdown-frontmatter") as HTMLInputElement)
+        ?.checked !== false;
+    markdownConfig.includeArchetypeNodeIds =
+      !!(document.getElementById("markdown-node-ids") as HTMLInputElement)
+        ?.checked;
+    markdownConfig.includeTypeAnnotations = !!(document.getElementById(
+      "markdown-type-annotations",
+    ) as HTMLInputElement)?.checked;
+    markdownConfig.useOpenehrUrnWikilinks =
+      !!(document.getElementById("markdown-urn-wikilinks") as HTMLInputElement)
+        ?.checked;
+    markdownConfig.hideTypeAnnotationsForDisplay = !!(document.getElementById(
+      "markdown-hide-type-annotations",
+    ) as HTMLInputElement)?.checked;
+    markdownConfig.maxHeadingDepth = parseInt(
+      (document.getElementById(
+        "markdown-max-heading-depth",
+      ) as HTMLInputElement)?.value || "4",
+    );
+  }
+
+  const asciidocConfigPreset =
+    (document.getElementById("asciidoc-config-preset") as HTMLSelectElement)
+      ?.value || "lossless";
+  const asciidocConfig: AsciidocSerializationConfig = getAsciidocConfigPreset(
+    asciidocConfigPreset,
+  );
+  if (asciidocConfigPreset === "custom") {
+    asciidocConfig.style =
+      ((document.getElementById("asciidoc-style") as HTMLSelectElement)
+        ?.value || "lossless") as AsciidocSerializationConfig["style"];
+    asciidocConfig.nodeIdRendering = ((document.getElementById(
+      "asciidoc-node-id-rendering",
+    ) as HTMLSelectElement)?.value ||
+      "comment") as AsciidocSerializationConfig["nodeIdRendering"];
+    asciidocConfig.codeRendering =
+      ((document.getElementById("asciidoc-code-rendering") as HTMLSelectElement)
+        ?.value || "inline_bracket") as AsciidocSerializationConfig[
+          "codeRendering"
+        ];
+    asciidocConfig.dataValueRendering =
+      ((document.getElementById("asciidoc-data-rendering") as HTMLSelectElement)
+        ?.value || "list") as AsciidocSerializationConfig["dataValueRendering"];
+    asciidocConfig.includeHeader =
+      (document.getElementById("asciidoc-header") as HTMLInputElement)
+        ?.checked !== false;
+    asciidocConfig.includeArchetypeNodeIds =
+      !!(document.getElementById("asciidoc-node-ids") as HTMLInputElement)
+        ?.checked;
+    asciidocConfig.includeTypeAnnotations = !!(document.getElementById(
+      "asciidoc-type-annotations",
+    ) as HTMLInputElement)?.checked;
+    asciidocConfig.useOpenehrUrnLinks =
+      !!(document.getElementById("asciidoc-urn-links") as HTMLInputElement)
+        ?.checked;
+    asciidocConfig.maxHeadingDepth = parseInt(
+      (document.getElementById(
+        "asciidoc-max-heading-depth",
+      ) as HTMLInputElement)?.value || "5",
+    );
+  }
+
   // XML config
-  const xmlConfigPreset = (document.getElementById('xml-config-preset') as HTMLSelectElement)?.value || 'default';
-  const xmlIndent = parseInt((document.getElementById('xml-indent') as HTMLInputElement)?.value || '2');
+  const xmlConfigPreset =
+    (document.getElementById("xml-config-preset") as HTMLSelectElement)
+      ?.value || "default";
+  const xmlIndent = parseInt(
+    (document.getElementById("xml-indent") as HTMLInputElement)?.value || "2",
+  );
   const xmlConfig = {
-    prettyPrint: (document.getElementById('xml-pretty') as HTMLInputElement)?.checked !== false,
+    prettyPrint:
+      (document.getElementById("xml-pretty") as HTMLInputElement)?.checked !==
+        false,
     indent: xmlIndent,
-    includeDeclaration: (document.getElementById('xml-declaration') as HTMLInputElement)?.checked !== false,
-    includeNamespaces: (document.getElementById('xml-namespaces') as HTMLInputElement)?.checked !== false,
+    includeDeclaration:
+      (document.getElementById("xml-declaration") as HTMLInputElement)
+        ?.checked !== false,
+    includeNamespaces:
+      (document.getElementById("xml-namespaces") as HTMLInputElement)
+        ?.checked !== false,
   };
 
   // TypeScript config
-  const tsIndent = parseInt((document.getElementById('ts-indent') as HTMLInputElement)?.value || '2');
+  const tsIndent = parseInt(
+    (document.getElementById("ts-indent") as HTMLInputElement)?.value || "2",
+  );
   const typescriptConfig = {
-    useTerseFormat: (document.getElementById('ts-terse') as HTMLInputElement)?.checked !== false,
-    usePrimitiveConstructors: (document.getElementById('ts-compact') as HTMLInputElement)?.checked !== false,
-    includeComments: (document.getElementById('ts-comments') as HTMLInputElement)?.checked || false,
+    useTerseFormat:
+      (document.getElementById("ts-terse") as HTMLInputElement)?.checked !==
+        false,
+    usePrimitiveConstructors:
+      (document.getElementById("ts-compact") as HTMLInputElement)?.checked !==
+        false,
+    includeComments:
+      (document.getElementById("ts-comments") as HTMLInputElement)?.checked ||
+      false,
     indent: tsIndent,
-    includeUndefinedAttributes: (document.getElementById('ts-include-undefined') as HTMLInputElement)?.checked || false,
-    archetypeNodeIdLocation: (document.getElementById('ts-arch-id-location') as HTMLSelectElement)?.value as 'beginning' | 'after_name' | 'end' || 'after_name',
+    includeUndefinedAttributes:
+      (document.getElementById("ts-include-undefined") as HTMLInputElement)
+        ?.checked || false,
+    archetypeNodeIdLocation:
+      (document.getElementById("ts-arch-id-location") as HTMLSelectElement)
+        ?.value as "beginning" | "after_name" | "end" || "after_name",
   };
 
   return {
@@ -914,6 +1177,8 @@ function gatherConversionOptions(): ConversionOptions {
     jsonSerializerType,
     jsonConfig,
     yamlConfig,
+    markdownConfig,
+    asciidocConfig,
     xmlConfig,
     typescriptConfig,
   };
@@ -924,45 +1189,61 @@ function gatherConversionOptions(): ConversionOptions {
  */
 function updateOutputs(outputs: Record<string, string>) {
   if (outputs.xml) {
-    const xmlContent = document.getElementById('output-xml-content');
+    const xmlContent = document.getElementById("output-xml-content");
     if (xmlContent) {
       xmlContent.textContent = outputs.xml;
     }
   }
 
   if (outputs.json) {
-    const jsonContent = document.getElementById('output-json-content');
+    const jsonContent = document.getElementById("output-json-content");
     if (jsonContent) {
       jsonContent.textContent = outputs.json;
     }
   }
 
   if (outputs.yaml) {
-    const yamlContent = document.getElementById('output-yaml-content');
+    const yamlContent = document.getElementById("output-yaml-content");
     if (yamlContent) {
       yamlContent.textContent = outputs.yaml;
     }
   }
 
+  if (outputs.markdown) {
+    const markdownContent = document.getElementById("output-markdown-content");
+    if (markdownContent) {
+      markdownContent.textContent = outputs.markdown;
+    }
+  }
+
+  if (outputs.asciidoc) {
+    const asciidocContent = document.getElementById("output-asciidoc-content");
+    if (asciidocContent) {
+      asciidocContent.textContent = outputs.asciidoc;
+    }
+  }
+
   if (outputs.typescript) {
-    const tsContent = document.getElementById('output-typescript-content');
+    const tsContent = document.getElementById("output-typescript-content");
     if (tsContent) {
       tsContent.textContent = outputs.typescript;
     }
   }
 
   if (outputs.flat) {
-    const flatContent = document.getElementById('output-flat-content');
+    const flatContent = document.getElementById("output-flat-content");
     if (flatContent) flatContent.textContent = outputs.flat;
   }
 
   if (outputs.structured) {
-    const structuredContent = document.getElementById('output-structured-content');
+    const structuredContent = document.getElementById(
+      "output-structured-content",
+    );
     if (structuredContent) structuredContent.textContent = outputs.structured;
   }
 
   if (outputs.webtemplate) {
-    const wtContent = document.getElementById('output-webtemplate-content');
+    const wtContent = document.getElementById("output-webtemplate-content");
     if (wtContent) wtContent.textContent = outputs.webtemplate;
   }
   // Refresh output info (counts and styles) for current active tab
@@ -973,30 +1254,36 @@ function updateOutputs(outputs: Record<string, string>) {
  * Update input deserializer options based on preset
  */
 function updateInputDeserializerOptions(preset: string) {
-  const strictCheckbox = document.getElementById('input-strict') as HTMLInputElement;
-  const terseCheckbox = document.getElementById('input-parse-terse') as HTMLInputElement;
-  const incompleteCheckbox = document.getElementById('input-allow-incomplete') as HTMLInputElement;
+  const strictCheckbox = document.getElementById(
+    "input-strict",
+  ) as HTMLInputElement;
+  const terseCheckbox = document.getElementById(
+    "input-parse-terse",
+  ) as HTMLInputElement;
+  const incompleteCheckbox = document.getElementById(
+    "input-allow-incomplete",
+  ) as HTMLInputElement;
 
-  const isCustom = preset === 'custom';
+  const isCustom = preset === "custom";
 
-  [strictCheckbox, terseCheckbox, incompleteCheckbox].forEach(checkbox => {
+  [strictCheckbox, terseCheckbox, incompleteCheckbox].forEach((checkbox) => {
     if (checkbox) checkbox.disabled = !isCustom;
   });
 
   if (!isCustom && strictCheckbox && terseCheckbox && incompleteCheckbox) {
     // Set values based on preset
     switch (preset) {
-      case 'canonical':
+      case "canonical":
         strictCheckbox.checked = true;
         terseCheckbox.checked = false;
         incompleteCheckbox.checked = false;
         break;
-      case 'compact':
+      case "compact":
         strictCheckbox.checked = false;
         terseCheckbox.checked = true;
         incompleteCheckbox.checked = false;
         break;
-      case 'hybrid':
+      case "hybrid":
         strictCheckbox.checked = false;
         terseCheckbox.checked = true;
         incompleteCheckbox.checked = true;
@@ -1014,18 +1301,38 @@ function updateInputDeserializerOptions(preset: string) {
  */
 function updateJsonOptions(preset: string) {
   // Get all JSON option checkboxes and inputs
-  const prettyCheckbox = document.getElementById('json-pretty') as HTMLInputElement;
-  const indentInput = document.getElementById('json-indent') as HTMLInputElement;
-  const terseCheckbox = document.getElementById('json-terse') as HTMLInputElement;
-  const hybridCheckbox = document.getElementById('json-hybrid') as HTMLInputElement;
-  const typeInferenceCheckbox = document.getElementById('json-type-inference') as HTMLInputElement;
-  const includeNullCheckbox = document.getElementById('json-include-null') as HTMLInputElement;
-  const includeEmptyCheckbox = document.getElementById('json-include-empty') as HTMLInputElement;
-  const configPresetSelect = document.getElementById('json-config-preset') as HTMLSelectElement;
-  const archIdLocSelect = document.getElementById('json-arch-id-location') as HTMLSelectElement;
+  const prettyCheckbox = document.getElementById(
+    "json-pretty",
+  ) as HTMLInputElement;
+  const indentInput = document.getElementById(
+    "json-indent",
+  ) as HTMLInputElement;
+  const terseCheckbox = document.getElementById(
+    "json-terse",
+  ) as HTMLInputElement;
+  const hybridCheckbox = document.getElementById(
+    "json-hybrid",
+  ) as HTMLInputElement;
+  const typeInferenceCheckbox = document.getElementById(
+    "json-type-inference",
+  ) as HTMLInputElement;
+  const includeNullCheckbox = document.getElementById(
+    "json-include-null",
+  ) as HTMLInputElement;
+  const includeEmptyCheckbox = document.getElementById(
+    "json-include-empty",
+  ) as HTMLInputElement;
+  const configPresetSelect = document.getElementById(
+    "json-config-preset",
+  ) as HTMLSelectElement;
+  const archIdLocSelect = document.getElementById(
+    "json-arch-id-location",
+  ) as HTMLSelectElement;
 
-  const serializerType = (document.getElementById('json-serializer-type') as HTMLSelectElement)?.value || 'configurable';
-  const isCanonicalSerializer = serializerType === 'canonical';
+  const serializerType =
+    (document.getElementById("json-serializer-type") as HTMLSelectElement)
+      ?.value || "configurable";
+  const isCanonicalSerializer = serializerType === "canonical";
 
   if (isCanonicalSerializer) {
     // If Canonical Serializer is selected:
@@ -1039,46 +1346,60 @@ function updateJsonOptions(preset: string) {
     if (archIdLocSelect) archIdLocSelect.disabled = false;
 
     // Disable irrelevant options
-    [terseCheckbox, hybridCheckbox, typeInferenceCheckbox, includeNullCheckbox, includeEmptyCheckbox].forEach(elem => {
+    [
+      terseCheckbox,
+      hybridCheckbox,
+      typeInferenceCheckbox,
+      includeNullCheckbox,
+      includeEmptyCheckbox,
+    ].forEach((elem) => {
       if (elem) elem.disabled = true;
     });
-
   } else {
     // Configurable Serializer
     if (configPresetSelect) configPresetSelect.disabled = false;
 
-    const isCustom = preset === 'custom';
+    const isCustom = preset === "custom";
 
     // Enable/disable based on custom
-    [prettyCheckbox, indentInput, terseCheckbox, hybridCheckbox, typeInferenceCheckbox, includeNullCheckbox, includeEmptyCheckbox, archIdLocSelect].forEach(elem => {
+    [
+      prettyCheckbox,
+      indentInput,
+      terseCheckbox,
+      hybridCheckbox,
+      typeInferenceCheckbox,
+      includeNullCheckbox,
+      includeEmptyCheckbox,
+      archIdLocSelect,
+    ].forEach((elem) => {
       if (elem) elem.disabled = !isCustom;
     });
 
     if (!isCustom) {
       // Apply preset values
       switch (preset) {
-        case 'canonical':
+        case "canonical":
           if (prettyCheckbox) prettyCheckbox.checked = true;
           if (terseCheckbox) terseCheckbox.checked = false;
           if (hybridCheckbox) hybridCheckbox.checked = false;
           if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
           if (includeEmptyCheckbox) includeEmptyCheckbox.checked = true;
           break;
-        case 'compact':
+        case "compact":
           if (prettyCheckbox) prettyCheckbox.checked = true;
           if (terseCheckbox) terseCheckbox.checked = false;
           if (hybridCheckbox) hybridCheckbox.checked = false;
           if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
           if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
           break;
-        case 'hybrid':
+        case "hybrid":
           if (prettyCheckbox) prettyCheckbox.checked = true;
           if (terseCheckbox) terseCheckbox.checked = true;
           if (hybridCheckbox) hybridCheckbox.checked = true;
           if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
           if (includeEmptyCheckbox) includeEmptyCheckbox.checked = false;
           break;
-        case 'very-compact':
+        case "very-compact":
           if (prettyCheckbox) prettyCheckbox.checked = true;
           if (terseCheckbox) terseCheckbox.checked = true;
           if (hybridCheckbox) hybridCheckbox.checked = false;
@@ -1094,62 +1415,86 @@ function updateJsonOptions(preset: string) {
  * Update YAML options based on preset
  */
 function updateYamlOptions(preset: string) {
-  const mainStyleSelect = document.getElementById('yaml-main-style') as HTMLSelectElement;
-  const terseCheckbox = document.getElementById('yaml-terse') as HTMLInputElement;
-  const typeInferenceCheckbox = document.getElementById('yaml-type-inference') as HTMLInputElement;
-  const indentInput = document.getElementById('yaml-indent') as HTMLInputElement;
-  const maxInlinePropsInput = document.getElementById('yaml-max-inline-props') as HTMLInputElement;
-  const archetypeInlineCheckbox = document.getElementById('yaml-archetype-inline') as HTMLInputElement;
-  const archIdLocSelect = document.getElementById('yaml-arch-id-location') as HTMLSelectElement;
+  const mainStyleSelect = document.getElementById(
+    "yaml-main-style",
+  ) as HTMLSelectElement;
+  const terseCheckbox = document.getElementById(
+    "yaml-terse",
+  ) as HTMLInputElement;
+  const typeInferenceCheckbox = document.getElementById(
+    "yaml-type-inference",
+  ) as HTMLInputElement;
+  const indentInput = document.getElementById(
+    "yaml-indent",
+  ) as HTMLInputElement;
+  const maxInlinePropsInput = document.getElementById(
+    "yaml-max-inline-props",
+  ) as HTMLInputElement;
+  const archetypeInlineCheckbox = document.getElementById(
+    "yaml-archetype-inline",
+  ) as HTMLInputElement;
+  const archIdLocSelect = document.getElementById(
+    "yaml-arch-id-location",
+  ) as HTMLSelectElement;
 
-  const isCustom = preset === 'custom';
+  const isCustom = preset === "custom";
 
-  [mainStyleSelect, terseCheckbox, typeInferenceCheckbox, indentInput, maxInlinePropsInput, archetypeInlineCheckbox, archIdLocSelect].forEach(elem => {
+  [
+    mainStyleSelect,
+    terseCheckbox,
+    typeInferenceCheckbox,
+    indentInput,
+    maxInlinePropsInput,
+    archetypeInlineCheckbox,
+    archIdLocSelect,
+  ].forEach((elem) => {
     if (elem) elem.disabled = !isCustom;
   });
 
   // Update archetype inline visibility based on main style
   const updateArchetypeInlineVisibility = () => {
-    const mainStyle = mainStyleSelect?.value || 'hybrid';
-    const archetypeInlineGroup = document.getElementById('yaml-archetype-inline-group');
+    const mainStyle = mainStyleSelect?.value || "hybrid";
+    const archetypeInlineGroup = document.getElementById(
+      "yaml-archetype-inline-group",
+    );
     if (archetypeInlineGroup) {
       // Only show for flow style
-      if (mainStyle === 'flow') {
-        archetypeInlineGroup.style.display = '';
+      if (mainStyle === "flow") {
+        archetypeInlineGroup.style.display = "";
       } else {
-        archetypeInlineGroup.style.display = 'none';
+        archetypeInlineGroup.style.display = "none";
       }
     }
   };
 
   if (!isCustom) {
     switch (preset) {
-      case 'default':
-        if (mainStyleSelect) mainStyleSelect.value = 'hybrid';
+      case "default":
+        if (mainStyleSelect) mainStyleSelect.value = "hybrid";
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
-      case 'verbose':
-        if (mainStyleSelect) mainStyleSelect.value = 'block';
+      case "verbose":
+        if (mainStyleSelect) mainStyleSelect.value = "block";
         if (terseCheckbox) terseCheckbox.checked = false;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = false;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
-      case 'hybrid':
-        if (mainStyleSelect) mainStyleSelect.value = 'hybrid';
+      case "hybrid":
+        if (mainStyleSelect) mainStyleSelect.value = "hybrid";
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
         break;
-      case 'flow':
-        if (mainStyleSelect) mainStyleSelect.value = 'flow';
+      case "flow":
+        if (mainStyleSelect) mainStyleSelect.value = "flow";
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = true;
         break;
-      case 'block':
-        if (mainStyleSelect) mainStyleSelect.value = 'block';
+      case "block":
+        if (mainStyleSelect) mainStyleSelect.value = "block";
         if (terseCheckbox) terseCheckbox.checked = true;
         if (typeInferenceCheckbox) typeInferenceCheckbox.checked = true;
         if (archetypeInlineCheckbox) archetypeInlineCheckbox.checked = false;
@@ -1162,8 +1507,8 @@ function updateYamlOptions(preset: string) {
   // Add event listener only if not already attached
   // Use a data attribute to track if listener is attached
   if (mainStyleSelect && !mainStyleSelect.dataset.listenerAttached) {
-    mainStyleSelect.addEventListener('change', updateArchetypeInlineVisibility);
-    mainStyleSelect.dataset.listenerAttached = 'true';
+    mainStyleSelect.addEventListener("change", updateArchetypeInlineVisibility);
+    mainStyleSelect.dataset.listenerAttached = "true";
   }
 }
 
@@ -1171,18 +1516,27 @@ function updateYamlOptions(preset: string) {
  * Update XML options based on preset
  */
 function updateXmlOptions(preset: string) {
-  const prettyCheckbox = document.getElementById('xml-pretty') as HTMLInputElement;
-  const namespacesCheckbox = document.getElementById('xml-namespaces') as HTMLInputElement;
-  const declarationCheckbox = document.getElementById('xml-declaration') as HTMLInputElement;
-  const indentInput = document.getElementById('xml-indent') as HTMLInputElement;
+  const prettyCheckbox = document.getElementById(
+    "xml-pretty",
+  ) as HTMLInputElement;
+  const namespacesCheckbox = document.getElementById(
+    "xml-namespaces",
+  ) as HTMLInputElement;
+  const declarationCheckbox = document.getElementById(
+    "xml-declaration",
+  ) as HTMLInputElement;
+  const indentInput = document.getElementById("xml-indent") as HTMLInputElement;
 
-  const isCustom = preset === 'custom';
+  const isCustom = preset === "custom";
 
-  [prettyCheckbox, namespacesCheckbox, declarationCheckbox, indentInput].forEach(elem => {
-    if (elem) elem.disabled = !isCustom;
-  });
+  [prettyCheckbox, namespacesCheckbox, declarationCheckbox, indentInput]
+    .forEach((elem) => {
+      if (elem) elem.disabled = !isCustom;
+    });
 
-  if (!isCustom && prettyCheckbox && namespacesCheckbox && declarationCheckbox) {
+  if (
+    !isCustom && prettyCheckbox && namespacesCheckbox && declarationCheckbox
+  ) {
     // Default preset
     prettyCheckbox.checked = true;
     namespacesCheckbox.checked = true;
@@ -1191,26 +1545,179 @@ function updateXmlOptions(preset: string) {
 }
 
 /**
+ * Update Markdown options based on preset
+ */
+function updateMarkdownOptions(preset: string) {
+  const styleSelect = document.getElementById(
+    "markdown-style",
+  ) as HTMLSelectElement;
+  const codeRenderingSelect = document.getElementById(
+    "markdown-code-rendering",
+  ) as HTMLSelectElement;
+  const dataRenderingSelect = document.getElementById(
+    "markdown-data-rendering",
+  ) as HTMLSelectElement;
+  const frontmatterCheckbox = document.getElementById(
+    "markdown-frontmatter",
+  ) as HTMLInputElement;
+  const nodeIdsCheckbox = document.getElementById(
+    "markdown-node-ids",
+  ) as HTMLInputElement;
+  const typeAnnotationsCheckbox = document.getElementById(
+    "markdown-type-annotations",
+  ) as HTMLInputElement;
+  const urnWikilinksCheckbox = document.getElementById(
+    "markdown-urn-wikilinks",
+  ) as HTMLInputElement;
+  const hideTypeAnnotationsCheckbox = document.getElementById(
+    "markdown-hide-type-annotations",
+  ) as HTMLInputElement;
+  const maxHeadingDepthInput = document.getElementById(
+    "markdown-max-heading-depth",
+  ) as HTMLInputElement;
+
+  const isCustom = preset === "custom";
+  [
+    styleSelect,
+    codeRenderingSelect,
+    dataRenderingSelect,
+    frontmatterCheckbox,
+    nodeIdsCheckbox,
+    typeAnnotationsCheckbox,
+    urnWikilinksCheckbox,
+    hideTypeAnnotationsCheckbox,
+    maxHeadingDepthInput,
+  ].forEach((elem) => {
+    if (elem) elem.disabled = !isCustom;
+  });
+
+  if (!isCustom) {
+    const config = getMarkdownConfigPreset(preset);
+    if (styleSelect && config.style) styleSelect.value = config.style;
+    if (codeRenderingSelect && config.codeRendering) {
+      codeRenderingSelect.value = config.codeRendering;
+    }
+    if (dataRenderingSelect && config.dataValueRendering) {
+      dataRenderingSelect.value = config.dataValueRendering;
+    }
+    if (frontmatterCheckbox) {
+      frontmatterCheckbox.checked = config.includeFrontmatter !== false;
+    }
+    if (nodeIdsCheckbox) {
+      nodeIdsCheckbox.checked = !!config.includeArchetypeNodeIds;
+    }
+    if (typeAnnotationsCheckbox) {
+      typeAnnotationsCheckbox.checked = !!config.includeTypeAnnotations;
+    }
+    if (urnWikilinksCheckbox) {
+      urnWikilinksCheckbox.checked = !!config.useOpenehrUrnWikilinks;
+    }
+    if (hideTypeAnnotationsCheckbox) {
+      hideTypeAnnotationsCheckbox.checked = !!config
+        .hideTypeAnnotationsForDisplay;
+    }
+    if (maxHeadingDepthInput && config.maxHeadingDepth) {
+      maxHeadingDepthInput.value = String(config.maxHeadingDepth);
+    }
+  }
+}
+
+/**
+ * Update AsciiDoc options based on preset
+ */
+function updateAsciidocOptions(preset: string) {
+  const styleSelect = document.getElementById(
+    "asciidoc-style",
+  ) as HTMLSelectElement;
+  const nodeIdRenderingSelect = document.getElementById(
+    "asciidoc-node-id-rendering",
+  ) as HTMLSelectElement;
+  const codeRenderingSelect = document.getElementById(
+    "asciidoc-code-rendering",
+  ) as HTMLSelectElement;
+  const dataRenderingSelect = document.getElementById(
+    "asciidoc-data-rendering",
+  ) as HTMLSelectElement;
+  const headerCheckbox = document.getElementById(
+    "asciidoc-header",
+  ) as HTMLInputElement;
+  const nodeIdsCheckbox = document.getElementById(
+    "asciidoc-node-ids",
+  ) as HTMLInputElement;
+  const typeAnnotationsCheckbox = document.getElementById(
+    "asciidoc-type-annotations",
+  ) as HTMLInputElement;
+  const urnLinksCheckbox = document.getElementById(
+    "asciidoc-urn-links",
+  ) as HTMLInputElement;
+  const maxHeadingDepthInput = document.getElementById(
+    "asciidoc-max-heading-depth",
+  ) as HTMLInputElement;
+
+  const isCustom = preset === "custom";
+  [
+    styleSelect,
+    nodeIdRenderingSelect,
+    codeRenderingSelect,
+    dataRenderingSelect,
+    headerCheckbox,
+    nodeIdsCheckbox,
+    typeAnnotationsCheckbox,
+    urnLinksCheckbox,
+    maxHeadingDepthInput,
+  ].forEach((elem) => {
+    if (elem) elem.disabled = !isCustom;
+  });
+
+  if (!isCustom) {
+    const config = getAsciidocConfigPreset(preset);
+    if (styleSelect && config.style) styleSelect.value = config.style;
+    if (nodeIdRenderingSelect && config.nodeIdRendering) {
+      nodeIdRenderingSelect.value = config.nodeIdRendering;
+    }
+    if (codeRenderingSelect && config.codeRendering) {
+      codeRenderingSelect.value = config.codeRendering;
+    }
+    if (dataRenderingSelect && config.dataValueRendering) {
+      dataRenderingSelect.value = config.dataValueRendering;
+    }
+    if (headerCheckbox) headerCheckbox.checked = config.includeHeader !== false;
+    if (nodeIdsCheckbox) {
+      nodeIdsCheckbox.checked = !!config.includeArchetypeNodeIds;
+    }
+    if (typeAnnotationsCheckbox) {
+      typeAnnotationsCheckbox.checked = !!config.includeTypeAnnotations;
+    }
+    if (urnLinksCheckbox) {
+      urnLinksCheckbox.checked = !!config.useOpenehrUrnLinks;
+    }
+    if (maxHeadingDepthInput && config.maxHeadingDepth) {
+      maxHeadingDepthInput.value = String(config.maxHeadingDepth);
+    }
+  }
+}
+
+/**
  * Switch to a different output tab
  */
 function switchOutputTab(tabName: string) {
   // Update tab buttons
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
-    if (tab.getAttribute('data-tab') === tabName) {
-      tab.classList.add('active');
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach((tab) => {
+    if (tab.getAttribute("data-tab") === tabName) {
+      tab.classList.add("active");
     } else {
-      tab.classList.remove('active');
+      tab.classList.remove("active");
     }
   });
 
   // Update tab panes
-  const panes = document.querySelectorAll('.tab-pane');
-  panes.forEach(pane => {
+  const panes = document.querySelectorAll(".tab-pane");
+  panes.forEach((pane) => {
     if (pane.id === `tab-${tabName}`) {
-      pane.classList.add('active');
+      pane.classList.add("active");
     } else {
-      pane.classList.remove('active');
+      pane.classList.remove("active");
     }
   });
 
@@ -1222,16 +1729,18 @@ function switchOutputTab(tabName: string) {
  * Apply or remove input textarea line-wrapping disabling
  */
 function applyInputLineWrap(disable: boolean) {
-  const inputTextarea = document.getElementById('input-text') as HTMLTextAreaElement;
+  const inputTextarea = document.getElementById(
+    "input-text",
+  ) as HTMLTextAreaElement;
   if (!inputTextarea) return;
   if (disable) {
-    inputTextarea.classList.add('no-linebreak');
-    inputTextarea.setAttribute('wrap', 'off');
-    inputTextarea.style.whiteSpace = 'pre';
+    inputTextarea.classList.add("no-linebreak");
+    inputTextarea.setAttribute("wrap", "off");
+    inputTextarea.style.whiteSpace = "pre";
   } else {
-    inputTextarea.classList.remove('no-linebreak');
-    inputTextarea.setAttribute('wrap', 'soft');
-    inputTextarea.style.whiteSpace = '';
+    inputTextarea.classList.remove("no-linebreak");
+    inputTextarea.setAttribute("wrap", "soft");
+    inputTextarea.style.whiteSpace = "";
   }
 }
 
@@ -1239,17 +1748,17 @@ function applyInputLineWrap(disable: boolean) {
  * Apply or remove output pre elements line-wrapping disabling
  */
 function applyOutputLineWrap(disable: boolean) {
-  const outputs = document.querySelectorAll('.output-content');
-  outputs.forEach(o => {
+  const outputs = document.querySelectorAll(".output-content");
+  outputs.forEach((o) => {
     const el = o as HTMLElement;
     if (disable) {
-      el.classList.add('no-linebreak');
-      el.style.whiteSpace = 'pre';
-      el.style.wordWrap = 'normal';
+      el.classList.add("no-linebreak");
+      el.style.whiteSpace = "pre";
+      el.style.wordWrap = "normal";
     } else {
-      el.classList.remove('no-linebreak');
-      el.style.whiteSpace = '';
-      el.style.wordWrap = '';
+      el.classList.remove("no-linebreak");
+      el.style.whiteSpace = "";
+      el.style.wordWrap = "";
     }
   });
 }
@@ -1260,25 +1769,29 @@ function applyOutputLineWrap(disable: boolean) {
 function updateOutputInfo() {
   const tabName = getActiveOutputFormat();
   const pane = document.getElementById(`tab-${tabName}`);
-  const outputChar = pane?.querySelector('.output-char-count');
-  const outputLine = pane?.querySelector('.output-line-count');
-  const outputDisable = pane?.querySelector('.output-disable-linebreaks') as HTMLInputElement | null;
+  const outputChar = pane?.querySelector(".output-char-count");
+  const outputLine = pane?.querySelector(".output-line-count");
+  const outputDisable = pane?.querySelector(".output-disable-linebreaks") as
+    | HTMLInputElement
+    | null;
 
   if (!pane || !outputChar || !outputLine) return;
 
   const contentElem = document.getElementById(`output-${tabName}-content`);
   if (!contentElem) return;
 
-  const text = contentElem.textContent || '';
+  const text = contentElem.textContent || "";
   outputChar.textContent = String(text.length);
-  outputLine.textContent = String(text.split('\n').length);
+  outputLine.textContent = String(text.split("\n").length);
 
   if (outputDisable) {
     applyOutputLineWrap(!!outputDisable.checked);
   }
 }
 
-const outputDisableCheckbox = document.getElementById('output-disable-linebreaks') as HTMLInputElement | null;
+const outputDisableCheckbox = document.getElementById(
+  "output-disable-linebreaks",
+) as HTMLInputElement | null;
 if (outputDisableCheckbox) {
   applyOutputLineWrap(!!outputDisableCheckbox.checked);
 }
@@ -1289,18 +1802,18 @@ if (outputDisableCheckbox) {
 async function copyToClipboard(format: string) {
   const outputElement = document.getElementById(`output-${format}-content`);
   if (!outputElement) {
-    console.error('Output element not found:', format);
+    console.error("Output element not found:", format);
     return;
   }
 
-  const text = outputElement.textContent || '';
+  const text = outputElement.textContent || "";
 
   try {
     await navigator.clipboard.writeText(text);
     showSuccessMessage(format);
   } catch (error) {
-    console.error('Failed to copy:', error);
-    showError('Failed to copy to clipboard');
+    console.error("Failed to copy:", error);
+    showError("Failed to copy to clipboard");
   }
 }
 
@@ -1310,25 +1823,27 @@ async function copyToClipboard(format: string) {
 function downloadOutput(format: string) {
   const outputElement = document.getElementById(`output-${format}-content`);
   if (!outputElement) {
-    console.error('Output element not found:', format);
+    console.error("Output element not found:", format);
     return;
   }
 
-  const text = outputElement.textContent || '';
+  const text = outputElement.textContent || "";
   const extensions: Record<string, string> = {
-    xml: 'xml',
-    json: 'json',
-    yaml: 'yaml',
-    typescript: 'ts'
+    xml: "xml",
+    json: "json",
+    yaml: "yaml",
+    markdown: "md",
+    asciidoc: "adoc",
+    typescript: "ts",
   };
 
-  const ext = extensions[format] || 'txt';
+  const ext = extensions[format] || "txt";
   const filename = `openehr_output.${ext}`;
 
-  const blob = new Blob([text], { type: 'text/plain' });
+  const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
@@ -1343,9 +1858,9 @@ function downloadOutput(format: string) {
 function showSuccessMessage(format: string) {
   const successElement = document.getElementById(`success-${format}`);
   if (successElement) {
-    successElement.classList.remove('hidden');
+    successElement.classList.remove("hidden");
     setTimeout(() => {
-      successElement.classList.add('hidden');
+      successElement.classList.add("hidden");
     }, 2000);
   }
 }
@@ -1354,9 +1869,9 @@ function showSuccessMessage(format: string) {
  * Show loading state
  */
 function showLoading() {
-  const loadingState = document.getElementById('loading-state');
+  const loadingState = document.getElementById("loading-state");
   if (loadingState) {
-    loadingState.classList.remove('hidden');
+    loadingState.classList.remove("hidden");
   }
 }
 
@@ -1364,9 +1879,9 @@ function showLoading() {
  * Hide loading state
  */
 function hideLoading() {
-  const loadingState = document.getElementById('loading-state');
+  const loadingState = document.getElementById("loading-state");
   if (loadingState) {
-    loadingState.classList.add('hidden');
+    loadingState.classList.add("hidden");
   }
 }
 
@@ -1374,12 +1889,12 @@ function hideLoading() {
  * Show error message
  */
 function showError(message: string) {
-  const errorState = document.getElementById('error-state');
-  const errorText = document.getElementById('error-text');
+  const errorState = document.getElementById("error-state");
+  const errorText = document.getElementById("error-text");
 
   if (errorState && errorText) {
     errorText.textContent = message;
-    errorState.classList.remove('hidden');
+    errorState.classList.remove("hidden");
   }
 }
 
@@ -1387,9 +1902,9 @@ function showError(message: string) {
  * Hide error message
  */
 function hideError() {
-  const errorState = document.getElementById('error-state');
+  const errorState = document.getElementById("error-state");
   if (errorState) {
-    errorState.classList.add('hidden');
+    errorState.classList.add("hidden");
   }
 }
 
@@ -1397,13 +1912,15 @@ function hideError() {
  * Set up collapsible option sections
  */
 function setupCollapsibleSections() {
-  const collapsibleSections = document.querySelectorAll('.option-section.collapsible');
+  const collapsibleSections = document.querySelectorAll(
+    ".option-section.collapsible",
+  );
 
-  collapsibleSections.forEach(section => {
-    const header = section.querySelector('.section-header');
+  collapsibleSections.forEach((section) => {
+    const header = section.querySelector(".section-header");
     if (header) {
-      header.addEventListener('click', () => {
-        section.classList.toggle('collapsed');
+      header.addEventListener("click", () => {
+        section.classList.toggle("collapsed");
       });
     }
   });
@@ -1413,18 +1930,19 @@ function setupCollapsibleSections() {
  * Display build information in the footer
  */
 function displayBuildInfo() {
-  const buildInfoElem = document.getElementById('build-info');
-  if (buildInfoElem && typeof __BUILD_INFO__ !== 'undefined') {
+  const buildInfoElem = document.getElementById("build-info");
+  if (buildInfoElem && typeof __BUILD_INFO__ !== "undefined") {
     const date = new Date(__BUILD_INFO__.timestamp);
     const dateStr = date.toLocaleDateString();
     const timeStr = date.toLocaleTimeString();
-    buildInfoElem.textContent = `Build: ${__BUILD_INFO__.buildId} (${dateStr} ${timeStr})`;
+    buildInfoElem.textContent =
+      `Build: ${__BUILD_INFO__.buildId} (${dateStr} ${timeStr})`;
   }
 }
 
 // Initialize app when DOM is loaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
