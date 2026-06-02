@@ -57,7 +57,9 @@ export {
 } from "./github_repo_loader.ts";
 export {
   loadGitHubTemplateClosure,
+  loadGitHubClinicalModelClosure,
   parseGitHubTemplateFileUrl,
+  parseGitHubClinicalModelFileUrl,
   buildClinicalModelPathIndex,
   resolveClinicalModelRef,
   type GitHubFileRef,
@@ -66,6 +68,24 @@ export {
   type GitHubTemplateLoadProgress,
   type ClinicalModelPathIndex,
 } from "./github_template_closure.ts";
+export {
+  buildDefinitionTree,
+  ensureResourceAnnotations,
+  getResourceDocumentation,
+  getPathAnnotations,
+  setPathAnnotation,
+  removePathAnnotation,
+  removeAllPathAnnotations,
+  listAnnotatedPaths,
+  pathHasAnnotations,
+  countAnnotationKeysAtPath,
+  joinConstraintPath,
+  resolveAnnotatedResource,
+  serializeAnnotatedResource,
+  type AnnotationDocumentation,
+  type DefinitionTreeNode,
+  type AnnotatedResource,
+} from "./clinical_model_annotations.ts";
 export {
   collectTemplateJsonOverlayIds,
   collectTemplateJsonExternalRefs,

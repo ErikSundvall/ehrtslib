@@ -74,8 +74,11 @@ function githubApiHeaders(token?: string): HeadersInit {
   return headers;
 }
 
+const CLINICAL_MODEL_URL_SUFFIX =
+  /\.(t\.json|adl|adls|opt|oet)$/i;
+
 /** Parse a GitHub blob or raw URL to a repo file reference. */
-export function parseGitHubTemplateFileUrl(input: string): GitHubFileRef {
+export function parseGitHubClinicalModelFileUrl(input: string): GitHubFileRef {
   const trimmed = input.trim();
   const raw = trimmed.match(
     /raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/i,
@@ -100,8 +103,13 @@ export function parseGitHubTemplateFileUrl(input: string): GitHubFileRef {
     };
   }
   throw new Error(
-    `Invalid GitHub template URL. Paste a blob or raw link to a .t.json file.`,
+    `Invalid GitHub clinical model URL. Paste a blob or raw link to a .t.json, .adl, or .adls file.`,
   );
+}
+
+/** @deprecated Use {@link parseGitHubClinicalModelFileUrl} */
+export function parseGitHubTemplateFileUrl(input: string): GitHubFileRef {
+  return parseGitHubClinicalModelFileUrl(input);
 }
 
 export interface ClinicalModelPathIndex {
@@ -255,10 +263,11 @@ function collectDependenciesFromContent(
 }
 
 /**
- * Fetch a root `.t.json` from GitHub and all reachable dependencies in the same repo branch.
+ * Fetch a clinical model file from GitHub and all reachable dependencies in the same branch.
+ * Root may be `.t.json`, `.adl`, or `.adls`.
  */
-export async function loadGitHubTemplateClosure(
-  templateUrl: string,
+export async function loadGitHubClinicalModelClosure(
+  fileUrl: string,
   options?: GitHubTemplateClosureOptions,
 ): Promise<GitHubTemplateClosureResult> {
   const fetchFn = options?.fetch ?? globalThis.fetch;
@@ -267,10 +276,12 @@ export async function loadGitHubTemplateClosure(
   const maxFiles = options?.maxFiles ?? 200;
   const warnings: string[] = [];
 
-  emit(options, { phase: "parse-url", message: templateUrl });
-  const fileRef = parseGitHubTemplateFileUrl(templateUrl);
-  if (!/\.t\.json$/i.test(fileRef.path)) {
-    throw new Error(`Expected a .t.json file path, got: ${fileRef.path}`);
+  emit(options, { phase: "parse-url", message: fileUrl });
+  const fileRef = parseGitHubClinicalModelFileUrl(fileUrl);
+  if (!CLINICAL_MODEL_URL_SUFFIX.test(fileRef.path)) {
+    throw new Error(
+      `Expected a clinical model file (.t.json, .adl, .adls), got: ${fileRef.path}`,
+    );
   }
 
   emit(options, {
@@ -353,7 +364,7 @@ export async function loadGitHubTemplateClosure(
   }
 
   if (!entries.has(fileRef.path)) {
-    throw new Error(`Could not load root template: ${fileRef.path}`);
+    throw new Error(`Could not load root file: ${fileRef.path}`);
   }
 
   emit(options, {
@@ -368,4 +379,14 @@ export async function loadGitHubTemplateClosure(
     fetched: entries.size,
     skipped,
   };
+}
+
+/**
+ * Fetch a root `.t.json` from GitHub and all reachable dependencies in the same repo branch.
+ */
+export async function loadGitHubTemplateClosure(
+  templateUrl: string,
+  options?: GitHubTemplateClosureOptions,
+): Promise<GitHubTemplateClosureResult> {
+  return loadGitHubClinicalModelClosure(templateUrl, options);
 }
