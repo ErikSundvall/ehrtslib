@@ -1,0 +1,400 @@
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --accent: #f59e0b;
+  --ok: #059669;
+  --error: #dc2626;
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --muted: #64748b;
+  --text: #0f172a;
+  --border: #dbe3ef;
+  --code: #172033;
+  --shadow: 0 10px 24px rgb(15 23 42 / 0.09);
+  --mono: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--sans);
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #764ba2);
+}
+
+.app-header h1,
+.app-header p {
+  margin: 0;
+}
+
+.app-header h1 {
+  letter-spacing: 0.04em;
+}
+
+.app-header p {
+  opacity: 0.9;
+}
+
+.app-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.app-header a {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-header a:hover {
+  text-decoration: underline;
+}
+
+.app-shell {
+  padding: 1rem;
+}
+
+.load-panel,
+.left-pane,
+.editor-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+.load-panel {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mode-row {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea,
+button,
+.upload-chip {
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  padding: 0.45rem 0.55rem;
+  background: #fff;
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+  font-family: var(--mono);
+}
+
+.github-field {
+  flex: 1 1 28rem;
+}
+
+button,
+.upload-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.8rem;
+  color: #fff;
+  background: var(--primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:hover,
+.upload-chip:hover {
+  background: var(--primary-dark);
+}
+
+button.secondary,
+.upload-chip {
+  color: var(--text);
+  background: #eef2f7;
+}
+
+button.secondary:hover,
+.upload-chip:hover {
+  background: #e2e8f0;
+}
+
+.file-upload input,
+.upload-chip input {
+  max-width: 12rem;
+  padding: 0;
+  border: none;
+}
+
+.status {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.45rem;
+  background: #eef2ff;
+  color: var(--primary-dark);
+}
+
+.status[data-kind="ok"] {
+  background: #ecfdf5;
+  color: var(--ok);
+}
+
+.status[data-kind="error"] {
+  background: #fef2f2;
+  color: var(--error);
+}
+
+.progress-log {
+  max-height: 7rem;
+  overflow: auto;
+  margin: 0.6rem 0 0;
+  padding-left: 1.5rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(24rem, 42%) minmax(26rem, 1fr);
+  gap: 1rem;
+  min-height: calc(100vh - 15rem);
+}
+
+.left-pane,
+.editor-pane {
+  min-height: 0;
+}
+
+.left-pane {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pane-header h2,
+.editor-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tree-header {
+  margin-top: 1rem;
+}
+
+.hint {
+  margin: 0.35rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.file-list,
+.palette-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.file-pill,
+.palette-chip,
+.summary-row {
+  color: var(--text);
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.file-pill.active {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: #eff6ff;
+}
+
+.file-kind {
+  margin-left: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.model-tree {
+  flex: 1;
+  min-height: 24rem;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fbfdff;
+}
+
+.tree-links path {
+  stroke: #9aa9bd;
+  stroke-width: 1.2;
+}
+
+.tree-node {
+  cursor: pointer;
+}
+
+.tree-node circle:first-child {
+  fill: #fff;
+  stroke: var(--primary);
+  stroke-width: 1.5;
+}
+
+.tree-node.selected circle:first-child {
+  fill: var(--primary);
+}
+
+.tree-node .annotation-dot {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.tree-node text {
+  font-size: 0.72rem;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+
+.tree-empty {
+  fill: var(--muted);
+}
+
+.editor-card {
+  padding: 1rem;
+}
+
+.annotation-form {
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.4fr) minmax(14rem, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.annotation-form .value-field {
+  grid-column: 1 / -1;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+.button-row.compact {
+  grid-column: auto;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.annotation-list,
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 16rem;
+  overflow: auto;
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.annotation-row {
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.35fr) 1fr;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.annotation-row span {
+  font-family: var(--mono);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.summary-row {
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 980px) {
+  .workspace,
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+}

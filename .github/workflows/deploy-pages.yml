@@ -41,6 +41,10 @@ jobs:
       - name: Build demo app
         run: deno task build:demo
         working-directory: .
+
+      - name: Build TAAAT app
+        run: deno task build:taaat
+        working-directory: .
         
       - name: Setup Pages
         uses: actions/configure-pages@v5

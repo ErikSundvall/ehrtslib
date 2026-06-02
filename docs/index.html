@@ -104,6 +104,13 @@
             margin-bottom: var(--spacing-lg);
         }
 
+        .demo-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
         .btn {
             display: inline-block;
             padding: var(--spacing-md) var(--spacing-xl);
@@ -306,12 +313,17 @@
         <div class="demo-section">
             <h2>🚀 Live Interactive Demo</h2>
             <p>Try ehrtslib with an interactive format converter running locally in your web browser</p>
-            <a href="demo/" class="btn btn-primary" style="margin-right: 1rem;">
-                Launch Demo App →
-            </a>
-            <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener" class="btn btn-secondary">
-                View project on GitHub →
-            </a>
+            <div class="demo-actions">
+                <a href="demo/" class="btn btn-primary">
+                    Launch Format Converter →
+                </a>
+                <a href="taaat/" class="btn btn-primary">
+                    Launch TAAAT →
+                </a>
+                <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener" class="btn btn-secondary">
+                    View project on GitHub →
+                </a>
+            </div>
         </div>
 
         <div class="features">
@@ -480,7 +492,8 @@ const json = serializer.serialize(composition);
 
         <div class="footer">
             <div class="footer-links">
-                <a href="demo/">Interactive Demo</a>
+                <a href="demo/">Format Converter</a>
+                <a href="taaat/">TAAAT</a>
                 <a href="https://github.com/ErikSundvall/ehrtslib" target="_blank" rel="noopener">GitHub Repository</a>
                 <a href="https://specifications.openehr.org/" target="_blank" rel="noopener">openEHR Specifications</a>
             </div>

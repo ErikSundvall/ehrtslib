@@ -5,25 +5,32 @@
 
 import type { LoadFileResult } from "./legacy/archetype_repository.ts";
 import {
-  TemplateWorkspace,
-  type TemplateWorkspaceFile,
   type ResolveOperationalOptions,
   type ResolveOperationalResult,
+  TemplateWorkspace,
+  type TemplateWorkspaceFile,
 } from "./template_workspace.ts";
 import {
-  loadGitHubRepoTree,
-  parseGitHubRepoSpec,
   type GitHubRepoRef,
   type GitHubTreeLoadResult,
+  loadGitHubRepoTree,
+  parseGitHubRepoSpec,
 } from "./github_repo_loader.ts";
 import {
-  loadGitHubTemplateClosure,
-  type GitHubTemplateClosureResult,
   type GitHubTemplateClosureOptions,
+  type GitHubTemplateClosureResult,
+  loadGitHubTemplateClosure,
 } from "./github_template_closure.ts";
-import { isClinicalModelPath, normalizeClinicalModelPath } from "./clinical_model_paths.ts";
+import {
+  isClinicalModelPath,
+  normalizeClinicalModelPath,
+} from "./clinical_model_paths.ts";
 
-export type { TemplateWorkspaceFile, ResolveOperationalOptions, ResolveOperationalResult };
+export type {
+  ResolveOperationalOptions,
+  ResolveOperationalResult,
+  TemplateWorkspaceFile,
+};
 export { canBeGenerationRoot } from "./template_workspace.ts";
 
 export interface ClinicalModelFile extends TemplateWorkspaceFile {
@@ -92,7 +99,9 @@ export class ClinicalModelWorkspace {
     return result;
   }
 
-  addFiles(entries: Array<{ path: string; content: string }>): LoadFileResult[] {
+  addFiles(
+    entries: Array<{ path: string; content: string }>,
+  ): LoadFileResult[] {
     const results = entries.map((e) => this.addFile(e.path, e.content));
     return results;
   }
@@ -163,8 +172,9 @@ export class ClinicalModelWorkspace {
   }
 
   /**
-   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
-   * nested templates, archetypes, and parent archetype chains from the same branch.
+   * Load a single clinical model file from a GitHub blob/raw URL and recursively
+   * fetch nested templates, archetypes, and parent archetype chains from the same
+   * branch. Kept under the historical template name for converter-demo callers.
    */
   async loadFromGitHubTemplateUrl(
     templateUrl: string,
@@ -177,11 +187,20 @@ export class ClinicalModelWorkspace {
     return { ...closure, loadResults };
   }
 
+  async loadFromGitHubClinicalModelUrl(
+    url: string,
+    options?: GitHubTemplateClosureOptions,
+  ): Promise<GitHubTemplateClosureResult & { loadResults: LoadFileResult[] }> {
+    return await this.loadFromGitHubTemplateUrl(url, options);
+  }
+
   /** Load entries extracted from a ZIP (same filter as GitHub loader). */
   loadFromZipEntries(
     entries: Array<{ path: string; content: string }>,
   ): LoadFileResult[] {
-    const batch = entries.filter((e) => isClinicalModelPath(e.path)).map((e) => ({
+    const batch = entries.filter((e) => isClinicalModelPath(e.path)).map((
+      e,
+    ) => ({
       path: normalizeClinicalModelPath(e.path),
       content: e.content,
     }));

@@ -4,12 +4,7 @@
 
 import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../openehr_base.ts";
-import {
-  asArray,
-  parseAttribute,
-  parseCObject,
-  textValue,
-} from "./xml_aom_mapper.ts";
+import { asArray, parseCObject } from "./xml_aom_mapper.ts";
 import {
   jsonType,
   normalizeJsonNode,
@@ -17,6 +12,7 @@ import {
   parseCodePhrase,
 } from "./json_aom_util.ts";
 import { applyTerminologyOdin } from "../odin_aom_mapper.ts";
+import { applyAnnotationsOdin } from "../aom_odin_sections.ts";
 import {
   collectBetterJsonLintWarnings,
   normalizeBetterTemplateJson,
@@ -48,7 +44,9 @@ export function parseTemplateJson(source: string): TemplateJsonParseResult {
   const type = jsonType(root);
 
   if (type === "OPERATIONAL_TEMPLATE") {
-    warnings.push("JSON operational template treated as template for flattening");
+    warnings.push(
+      "JSON operational template treated as template for flattening",
+    );
   }
 
   const template = parseTemplateObject(root, warnings);
@@ -57,7 +55,9 @@ export function parseTemplateJson(source: string): TemplateJsonParseResult {
     if (!raw || typeof raw !== "object") continue;
     const rec = raw as Record<string, unknown>;
     if (jsonType(rec) !== "TEMPLATE_OVERLAY") {
-      warnings.push(`Skipped non-overlay in templateOverlays: ${jsonType(rec)}`);
+      warnings.push(
+        `Skipped non-overlay in templateOverlays: ${jsonType(rec)}`,
+      );
       continue;
     }
     overlays.push(parseTemplateOverlay(rec, warnings));
@@ -102,8 +102,12 @@ function applyAuthoredArchetypeFields(
   target.archetype_id = parseArchetypeIdField(root.archetypeId);
   target.parent_archetype_id = parseArchetypeIdField(root.parentArchetypeId);
 
-  if (root.adlVersion !== undefined) target.adl_version = String(root.adlVersion);
-  if (root.adl_version !== undefined) target.adl_version = String(root.adl_version);
+  if (root.adlVersion !== undefined) {
+    target.adl_version = String(root.adlVersion);
+  }
+  if (root.adl_version !== undefined) {
+    target.adl_version = String(root.adl_version);
+  }
 
   const def = root.definition;
   if (def && typeof def === "object") {
@@ -114,7 +118,15 @@ function applyAuthoredArchetypeFields(
 
   const term = root.terminology;
   if (term && typeof term === "object") {
-    target.ontology = parseJsonOntology(term as Record<string, unknown>, warnings);
+    target.ontology = parseJsonOntology(
+      term as Record<string, unknown>,
+      warnings,
+    );
+  }
+
+  const annotations = root.annotations;
+  if (annotations && typeof annotations === "object") {
+    parseJsonAnnotations(target, annotations as Record<string, unknown>);
   }
 
   if (root.originalLanguage && typeof root.originalLanguage === "object") {
@@ -139,4 +151,16 @@ function parseJsonOntology(
     (onto as Record<string, unknown>).concept_code = String(node.conceptCode);
   }
   return onto;
+}
+
+function parseJsonAnnotations(
+  target: openehr_am.ARCHETYPE,
+  node: Record<string, unknown>,
+): void {
+  const documentation = node.documentation;
+  if (documentation && typeof documentation === "object") {
+    applyAnnotationsOdin(target, {
+      documentation: documentation as Record<string, unknown>,
+    });
+  }
 }

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      name="description"
+      content="TAAAT: template and archetype annotation tool for openEHR clinical model files"
+    >
+    <title>TAAAT - Template and Archetype Annotation Tool</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>TAAAT</h1>
+        <p>Template and Archetype Annotation Tool for openEHR models</p>
+      </div>
+      <nav aria-label="Demo navigation">
+        <a href="../">Index</a>
+        <a href="../demo/">Format converter</a>
+        <a
+          href="https://github.com/ErikSundvall/ehrtslib"
+          target="_blank"
+          rel="noopener"
+        >GitHub</a>
+      </nav>
+    </header>
+
+    <main class="app-shell">
+      <section class="load-panel" aria-label="Load clinical model files">
+        <div class="mode-row">
+          <label>
+            Mode
+            <select id="load-mode">
+              <option value="template">Template mode</option>
+              <option value="archetype">Archetype mode</option>
+            </select>
+          </label>
+          <label class="github-field">
+            GitHub blob/raw URL
+            <input
+              id="github-url"
+              type="url"
+              placeholder="https://github.com/.../blob/main/openEHR-EHR-....adl or MyTemplate.t.json"
+              spellcheck="false"
+            >
+          </label>
+          <button id="load-github" type="button">Load recursively</button>
+          <label class="file-upload">
+            Upload files
+            <input
+              id="file-input"
+              type="file"
+              accept=".adl, .adls, .t.json, .opt, .oet, .xml"
+              multiple
+            >
+          </label>
+        </div>
+        <div id="status" class="status" data-kind="idle">
+          Paste a GitHub template or archetype link, or upload local files.
+        </div>
+        <ol id="progress-log" class="progress-log" aria-live="polite"></ol>
+      </section>
+
+      <section class="workspace">
+        <aside class="left-pane">
+          <div class="pane-header">
+            <h2>Loaded files</h2>
+            <button id="clear-workspace" type="button">Clear</button>
+          </div>
+          <div id="file-list" class="file-list"></div>
+          <div class="pane-header tree-header">
+            <h2>Model tree</h2>
+            <button id="download-current" type="button">
+              Download selected
+            </button>
+          </div>
+          <p class="hint">
+            Nodes with annotation entries show an amber marker. Click a node to
+            edit annotations for its AOM path.
+          </p>
+          <svg
+            id="model-tree"
+            class="model-tree"
+            role="img"
+            aria-label="Compact openEHR model tree"
+          >
+          </svg>
+        </aside>
+
+        <section class="editor-pane" aria-label="Annotation editor">
+          <div class="editor-card">
+            <h2 id="selected-node-title">No editable node selected</h2>
+            <div class="annotation-form">
+              <label>
+                Language
+                <input id="annotation-language" value="en" spellcheck="false">
+              </label>
+              <label>
+                AOM path
+                <input id="annotation-path" value="/" spellcheck="false">
+              </label>
+              <label>
+                Key
+                <input
+                  id="annotation-key"
+                  placeholder="ui, FHIR, L10n.en, implementation note..."
+                  spellcheck="false"
+                >
+              </label>
+              <label class="value-field">
+                Value
+                <textarea
+                  id="annotation-value"
+                  rows="4"
+                  placeholder="Optional annotation value"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+              <div class="button-row">
+                <button id="save-annotation" type="button">
+                  Save annotation
+                </button>
+                <button id="remove-annotation" type="button" class="secondary">
+                  Remove key
+                </button>
+                <button id="add-palette" type="button" class="secondary">
+                  Add to palette
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <div class="pane-header">
+              <h2>Favourite annotation palette</h2>
+              <div class="button-row compact">
+                <button id="download-palette" type="button" class="secondary">
+                  Download
+                </button>
+                <label class="upload-chip">
+                  Upload
+                  <input id="palette-upload" type="file" accept=".json">
+                </label>
+              </div>
+            </div>
+            <div id="palette-list" class="palette-list"></div>
+          </div>
+
+          <div class="editor-grid">
+            <div class="editor-card">
+              <h2>Selected node annotations</h2>
+              <div id="annotation-list" class="annotation-list"></div>
+            </div>
+            <div class="editor-card">
+              <h2>All annotations in selected artefact</h2>
+              <div id="all-annotations" class="summary-list"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <span id="build-info"></span>
+      <span>Uses ehrtslib parser/workspace APIs and D3 tree layout.</span>
+    </footer>
+
+    <script type="module" src="bundle.js"></script>
+  </body>
+</html>

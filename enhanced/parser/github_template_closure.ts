@@ -1,10 +1,13 @@
 /**
- * Load a single Better `.t.json` from GitHub and recursively fetch dependencies
- * (nested templates, archetypes, parent archetype chains).
+ * Load a clinical model file from GitHub and recursively fetch dependencies
+ * (nested Better `.t.json` templates, archetypes, parent archetype chains).
  */
 
 import { parseAdl } from "./parse_adl.ts";
-import { isClinicalModelPath, normalizeClinicalModelPath } from "./clinical_model_paths.ts";
+import {
+  isClinicalModelPath,
+  normalizeClinicalModelPath,
+} from "./clinical_model_paths.ts";
 import {
   collectTemplateJsonExternalRefsFromText,
 } from "./template_json_dependencies.ts";
@@ -100,7 +103,7 @@ export function parseGitHubTemplateFileUrl(input: string): GitHubFileRef {
     };
   }
   throw new Error(
-    `Invalid GitHub template URL. Paste a blob or raw link to a .t.json file.`,
+    `Invalid GitHub clinical model URL. Paste a blob or raw link to a template or archetype file.`,
   );
 }
 
@@ -182,7 +185,9 @@ async function fetchGitHubTreePaths(
   headers: HeadersInit,
 ): Promise<string[]> {
   const branchRes = await fetchFn(
-    `https://api.github.com/repos/${fileRef.owner}/${fileRef.repo}/branches/${encodeURIComponent(fileRef.ref)}`,
+    `https://api.github.com/repos/${fileRef.owner}/${fileRef.repo}/branches/${
+      encodeURIComponent(fileRef.ref)
+    }`,
     { headers },
   );
   if (!branchRes.ok) {
@@ -236,14 +241,18 @@ function collectDependenciesFromContent(
   const trimmed = content.trim();
   if (!trimmed) return [];
 
-  if (trimmed.startsWith("{") && (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))) {
+  if (
+    trimmed.startsWith("{") &&
+    (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))
+  ) {
     return collectTemplateJsonExternalRefsFromText(trimmed);
   }
 
   if (/\.(adl|adls)$/i.test(path) || trimmed.includes("archetype")) {
     try {
       const parsed = parseAdl(content, { convertAdl14: true });
-      const arch = parsed.archetype ?? parsed.template ?? parsed.operationalTemplate;
+      const arch = parsed.archetype ?? parsed.template ??
+        parsed.operationalTemplate;
       const parent = arch?.parent_archetype_id?.value;
       return parent ? [parent] : [];
     } catch {
@@ -255,7 +264,8 @@ function collectDependenciesFromContent(
 }
 
 /**
- * Fetch a root `.t.json` from GitHub and all reachable dependencies in the same repo branch.
+ * Fetch a root clinical model file from GitHub and all reachable dependencies
+ * in the same repo branch.
  */
 export async function loadGitHubTemplateClosure(
   templateUrl: string,
@@ -269,8 +279,10 @@ export async function loadGitHubTemplateClosure(
 
   emit(options, { phase: "parse-url", message: templateUrl });
   const fileRef = parseGitHubTemplateFileUrl(templateUrl);
-  if (!/\.t\.json$/i.test(fileRef.path)) {
-    throw new Error(`Expected a .t.json file path, got: ${fileRef.path}`);
+  if (!isClinicalModelPath(fileRef.path)) {
+    throw new Error(
+      `Expected a clinical model file path, got: ${fileRef.path}`,
+    );
   }
 
   emit(options, {
@@ -306,7 +318,11 @@ export async function loadGitHubTemplateClosure(
     const trimmed = ref.trim();
     if (!trimmed || pendingRefs.has(trimmed)) return;
     pendingRefs.add(trimmed);
-    emit(options, { phase: "resolve", message: `Resolving ${trimmed}`, ref: trimmed });
+    emit(options, {
+      phase: "resolve",
+      message: `Resolving ${trimmed}`,
+      ref: trimmed,
+    });
     const resolved = resolveClinicalModelRef(trimmed, index, contextDir);
     if (!resolved) {
       warnings.push(`Unresolved reference: ${trimmed}`);
