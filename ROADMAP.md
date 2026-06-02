@@ -94,8 +94,10 @@ Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/
 
 ## Phase 7d Better `.t.json` + GitHub file sets — done
 - `parseTemplateJson` / `template_json` repository kind (Archetype Designer JSON AOM)
-- `ClinicalModelWorkspace`: export/update API, ZIP + read-only GitHub branch load
-- Demo: `.t.json` in ZIP upload, GitHub spec field (`owner/repo@branch:path`)
+- `normalizeBetterTemplateJson` — Better/AD export dialect (camelCase AM fields, occurrences, terminology codes, intervals; see [Discourse #4389](https://discourse.openehr.org/t/incompatibility-issues-when-using-archetype-designer-s-export-fileset-t-json-files/4389))
+- `ClinicalModelWorkspace`: `updateFileContent` / `exportFile` / `exportEntries` (dirty flag for future annotation editor), ZIP + read-only GitHub (`owner/repo@branch:path`, optional `GITHUB_TOKEN`)
+- Docs: `docs/CLINICAL_MODEL_FILESETS.md`; fixture `test_data/tjson/Care unit v2.t.json`
+- Demo: `.t.json` in ZIP upload, GitHub toolbar, blue `t.json` tab badge, validation labels for `template_json`
 
 ## Phase 7c Refining UI + debugging OPT — done
 - File-set hint moved to info icon + tooltip (`examples/demo-app`)
