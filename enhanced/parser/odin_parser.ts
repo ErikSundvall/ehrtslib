@@ -266,6 +266,13 @@ export class OdinParser {
         this.advance();
         this.skipWhitespace();
       }
+
+      // Truncated list marker (`...` or `..` + `.`) in archetype metadata
+      if (this.check(TokenType.ELLIPSIS)) {
+        this.advance();
+        if (this.check(TokenType.DOT)) this.advance();
+        break;
+      }
     }
 
     this.consume(TokenType.RANGLE, "Expected '>' to close primitive list");

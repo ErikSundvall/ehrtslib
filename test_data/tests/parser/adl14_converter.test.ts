@@ -4,6 +4,7 @@
 
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
+  collapseMultilineQuotedStrings,
   convertAdl14ToAdl2,
   detectAdlVersion,
   parseAdl,
@@ -33,6 +34,12 @@ Deno.test("convertAdl14ToAdl2 - normalises header and terminology", async () => 
   assert(!adl2Text.includes("\nontology\n"));
   assert(adl2Text.includes("WHOLE[id1]"));
   assert(!adl2Text.includes("[at0001]"));
+});
+
+Deno.test("collapseMultilineQuotedStrings - folds physical newlines", () => {
+  const input = 'purpose = <"line one\nline two">';
+  const out = collapseMultilineQuotedStrings(input);
+  assertEquals(out, 'purpose = <"line one\\nline two">');
 });
 
 Deno.test("parseAdl - ADL 1.4 fixture end-to-end", async () => {

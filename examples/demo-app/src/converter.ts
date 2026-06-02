@@ -72,9 +72,11 @@ import {
 import {
   getOperationalTemplateFromInput,
   parseTemplateInput,
+  type TemplateInputFormat,
   type TemplateWorkspace,
   type ClinicalModelWorkspace,
 } from "../../../enhanced/parser/mod.ts";
+import type { RepositoryFileKind } from "../../../enhanced/parser/legacy/archetype_repository.ts";
 import {
   type GenerationMode,
   RMInstanceGenerator,
@@ -362,6 +364,59 @@ function convertTemplateInput(
   }
 
   return { success: true, outputs };
+}
+
+function formatLabelForFormat(format: TemplateInputFormat): string {
+  switch (format) {
+    case "adl14":
+      return "ADL 1.4 operational template";
+    case "adl2":
+      return "ADL2 operational template";
+    case "opt_xml":
+      return "OPT";
+    case "oet_xml":
+      return "OET";
+    case "template_json":
+      return "t.json template";
+    default:
+      return "template";
+  }
+}
+
+function formatLabelForLoadKind(
+  loadKind?: RepositoryFileKind,
+  resolvedKind?: string,
+): string {
+  switch (loadKind) {
+    case "template_json":
+      return "t.json template";
+    case "opt_xml":
+      return "OPT";
+    case "oet_xml":
+      return "OET";
+    case "operational_template":
+      return "operational template";
+    case "template":
+      return "template";
+    case "archetype":
+      return "archetype (file set)";
+    default:
+      break;
+  }
+  switch (resolvedKind) {
+    case "adl2_template":
+      return "ADL2 template";
+    case "adl14_operational":
+      return "ADL 1.4 operational template";
+    case "operational_template":
+      return "operational template";
+    case "opt_xml":
+      return "OPT";
+    case "oet_compiled":
+      return "OET (compiled)";
+    default:
+      return "template";
+  }
 }
 
 export function validateTemplateInput(

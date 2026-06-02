@@ -6,6 +6,7 @@ export { ADL2Tokenizer, TokenType, type Token } from "./adl2_tokenizer.ts";
 export { ADL2Parser, type ADL2ParseResult } from "./adl2_parser.ts";
 export { parseAdl, type ParseAdlOptions, type ParseAdlResult } from "./parse_adl.ts";
 export {
+  collapseMultilineQuotedStrings,
   convertAdl14ToAdl2,
   type Adl14ConversionOptions,
   type Adl14ConversionResult,

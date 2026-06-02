@@ -66,8 +66,59 @@ export function convertAdl14ToAdl2(
   text = convertDefinitionNodeIds(text);
   text = stripDeprecatedMatchesAny(text);
   text = normalizeArchetypeHridVersion(text, warnings);
+  const beforeCollapse = text;
+  text = collapseMultilineQuotedStrings(text);
+  if (text !== beforeCollapse) {
+    warnings.push(
+      "Collapsed multiline double-quoted strings for ODIN compatibility.",
+    );
+  }
 
   return { adl2Text: text, converted: true, warnings };
+}
+
+/**
+ * ADL 1.4 allows physical newlines inside `"..."` strings; ODIN tokenization expects
+ * `\n` escapes on one line. Used for description/details metadata in CKM archetypes.
+ */
+export function collapseMultilineQuotedStrings(text: string): string {
+  let result = "";
+  let inString = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (!inString) {
+      if (ch === '"') inString = true;
+      result += ch;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      if (i + 1 < text.length) {
+        result += text[i + 1];
+        i++;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = false;
+      result += ch;
+      continue;
+    }
+
+    if (ch === "\r" || ch === "\n") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      result += "\\n";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
 }
 
 function normalizeArchetypeHeader(
