@@ -104,6 +104,15 @@
               >
                 Template (schema)
               </button>
+              <button
+                type="button"
+                class="tab"
+                data-input-tab="template-adgit"
+                role="tab"
+                aria-selected="false"
+              >
+                Template from AD@git
+              </button>
             </div>
             <div
               class="input-toolbar active"
@@ -177,23 +186,6 @@
                 </select>
               </div>
               <input
-                type="text"
-                class="github-repo-spec-input"
-                id="github-repo-spec"
-                placeholder="owner/repo@branch:local"
-                title="GitHub read-only file set, e.g. regionstockholm/CKM-mirror-via-modellbibliotek@MultiDiciplinery_Tumor_meetings:local"
-                spellcheck="false"
-              />
-              <button
-                class="btn btn-secondary btn-sm"
-                id="load-github-fileset"
-                title="Load archetypes and .t.json templates from a public GitHub branch"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >cloud_download</span>
-                GitHub
-              </button>
-              <input
                 type="file"
                 id="template-file-input"
                 accept=".opt,.oet,.adl,.adls,.t.json,.xml,.zip"
@@ -216,6 +208,29 @@
                 <span class="material-icons btn-icon" aria-hidden="true"
                 >delete</span>
                 Clear
+              </button>
+            </div>
+            <div
+              class="input-toolbar"
+              data-input-toolbar="template-adgit"
+              aria-label="Template from Archetype Designer on GitHub"
+            >
+              <input
+                type="url"
+                class="github-template-url-input"
+                id="github-template-url"
+                placeholder="https://github.com/…/blob/…/MyTemplate.t.json"
+                title="Paste a GitHub blob or raw URL to a Better Archetype Designer .t.json file"
+                spellcheck="false"
+              />
+              <button
+                class="btn btn-secondary btn-sm"
+                id="load-github-template"
+                title="Download this template and dependencies into a file set"
+              >
+                <span class="material-icons btn-icon" aria-hidden="true"
+                >cloud_download</span>
+                Load
               </button>
             </div>
           </div>
@@ -318,6 +333,27 @@
     ]
   }]
 }</textarea>
+              </div>
+            </div>
+
+            <div class="input-tab-pane" id="input-tab-template-adgit">
+              <p class="adgit-intro">
+                Paste a GitHub <strong>blob</strong> or <strong>raw</strong> link to a
+                Better Archetype Designer <code>.t.json</code> file. The loader
+                downloads that template and recursively fetches nested templates and
+                archetypes from the same branch.
+              </p>
+              <div
+                class="adgit-progress"
+                id="adgit-progress"
+                role="log"
+                aria-live="polite"
+                aria-label="Download and parse progress"
+              >
+                <div class="adgit-progress-empty" id="adgit-progress-empty">
+                  No load in progress.
+                </div>
+                <ol class="adgit-progress-list hidden" id="adgit-progress-list"></ol>
               </div>
             </div>
 

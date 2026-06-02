@@ -56,6 +56,22 @@ export {
   type GitHubTreeLoadResult,
 } from "./github_repo_loader.ts";
 export {
+  loadGitHubTemplateClosure,
+  parseGitHubTemplateFileUrl,
+  buildClinicalModelPathIndex,
+  resolveClinicalModelRef,
+  type GitHubFileRef,
+  type GitHubTemplateClosureResult,
+  type GitHubTemplateClosureOptions,
+  type GitHubTemplateLoadProgress,
+  type ClinicalModelPathIndex,
+} from "./github_template_closure.ts";
+export {
+  collectTemplateJsonOverlayIds,
+  collectTemplateJsonExternalRefs,
+  collectTemplateJsonExternalRefsFromText,
+} from "./template_json_dependencies.ts";
+export {
   CLINICAL_MODEL_EXTENSIONS,
   isClinicalModelPath,
   normalizeClinicalModelPath,

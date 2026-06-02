@@ -140,7 +140,7 @@ function setupEventListeners() {
   }
 
   setupTemplateFileUpload();
-  setupTemplateGitHubLoad();
+  setupTemplateAdGitLoad();
 
   // Input textarea
   const inputTextarea = document.getElementById(
@@ -617,44 +617,81 @@ function setupTemplateFileUpload() {
   });
 }
 
-function setupTemplateGitHubLoad() {
-  const loadBtn = document.getElementById("load-github-fileset");
-  const specInput = document.getElementById("github-repo-spec") as
+function setupTemplateAdGitLoad() {
+  const loadBtn = document.getElementById("load-github-template");
+  const urlInput = document.getElementById("github-template-url") as
     | HTMLInputElement
     | null;
-  if (!loadBtn || !specInput) return;
+  if (!loadBtn || !urlInput) return;
+
+  const defaultUrl =
+    "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
+  if (!urlInput.value.trim()) urlInput.value = defaultUrl;
 
   loadBtn.addEventListener("click", async () => {
-    const spec = specInput.value.trim();
-    if (!spec) {
-      alert("Enter a GitHub spec, e.g. owner/repo@branch:local");
+    const url = urlInput.value.trim();
+    if (!url) {
+      alert("Paste a GitHub blob or raw URL to a .t.json template file.");
       return;
     }
     loadBtn.setAttribute("disabled", "true");
+    clearAdGitProgress();
+    appendAdGitProgress("Starting…", "parse-url");
     try {
-      const result = await clinicalWorkspace.loadFromGitHub(spec);
-      if (result.warnings.length) {
-        console.warn("GitHub load warnings:", result.warnings);
+      const result = await clinicalWorkspace.loadFromGitHubTemplateUrl(url, {
+        onProgress: (e) => {
+          appendAdGitProgress(e.message, e.phase, e.path);
+        },
+        maxFiles: 200,
+      });
+      for (const w of result.warnings) {
+        appendAdGitProgress(w, "resolve");
       }
-      if (!result.entries.length) {
-        alert("No clinical model files matched in that repo path.");
-        return;
-      }
-      const root = ClinicalModelWorkspace.suggestGenerationRoot(
-        clinicalWorkspace.listFiles(),
+      appendAdGitProgress(
+        `Done — ${result.fetched} files loaded (root: ${result.rootPath})`,
+        "complete",
       );
-      if (root) clinicalWorkspace.setGenerationRootPath(root);
-      const active = root ?? result.entries[0]?.path;
-      if (active) selectTemplateFileTab(active);
+      if (result.rootPath) selectTemplateFileTab(result.rootPath);
+      updateTemplateFileSetUi();
       activateInputTab("template");
       handleInputChange("template");
-      updateTemplateFileSetUi();
     } catch (e) {
-      alert(`GitHub load failed: ${(e as Error).message}`);
+      appendAdGitProgress((e as Error).message, "fetch");
+      alert(`Template load failed: ${(e as Error).message}`);
     } finally {
       loadBtn.removeAttribute("disabled");
     }
   });
+}
+
+function clearAdGitProgress() {
+  const empty = document.getElementById("adgit-progress-empty");
+  const list = document.getElementById("adgit-progress-list");
+  if (empty) empty.classList.remove("hidden");
+  if (list) {
+    list.innerHTML = "";
+    list.classList.add("hidden");
+  }
+}
+
+function appendAdGitProgress(
+  message: string,
+  phase?: string,
+  _path?: string,
+) {
+  const empty = document.getElementById("adgit-progress-empty");
+  const list = document.getElementById("adgit-progress-list");
+  if (!list) return;
+  if (empty) empty.classList.add("hidden");
+  list.classList.remove("hidden");
+  const li = document.createElement("li");
+  if (phase === "complete") li.classList.add("adgit-phase-complete");
+  if (phase === "fetch" && message.startsWith("Failed")) {
+    li.classList.add("adgit-phase-error");
+  }
+  li.textContent = message;
+  list.appendChild(li);
+  list.scrollTop = list.scrollHeight;
 }
 
 function selectTemplateFileTab(path: string) {
@@ -929,6 +966,7 @@ function clearInput() {
 }
 
 function getInputTextarea(mode: InputMode): HTMLTextAreaElement | null {
+  if (mode === "template-adgit") return null;
   const id = mode === "template" ? "template-input-text" : "input-text";
   return document.getElementById(id) as HTMLTextAreaElement | null;
 }
@@ -941,6 +979,7 @@ function getCurrentInputTextarea(): HTMLTextAreaElement | null {
  * Handle input text change
  */
 function handleInputChange(tab: InputMode = currentInputTab) {
+  if (tab === "template-adgit") return;
   const inputTextarea = getInputTextarea(tab);
   if (!inputTextarea) return;
 
@@ -968,6 +1007,7 @@ function handleInputChange(tab: InputMode = currentInputTab) {
  * Validate the input text
  */
 function validateInput() {
+  if (currentInputTab === "template-adgit") return;
   const inputTextarea = getCurrentInputTextarea();
   const validationIcon = document.getElementById(
     currentInputTab === "template"
@@ -1075,6 +1115,7 @@ function updateAutoConvertButtonUi() {
 
 function scheduleAutoConvert() {
   if (!autoConvertEnabled) return;
+  if (currentInputTab === "template-adgit") return;
   if (autoConvertDebounceTimer !== undefined) {
     clearTimeout(autoConvertDebounceTimer);
   }
@@ -1088,6 +1129,7 @@ function scheduleAutoConvert() {
  * Run conversion (debounced when auto-convert is on).
  */
 async function handleConvert() {
+  if (currentInputTab === "template-adgit") return;
   console.log("🔄 Converting...");
   showLoading();
   hideError();

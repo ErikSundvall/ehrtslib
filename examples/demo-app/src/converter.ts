@@ -125,7 +125,7 @@ export function initializeTypeRegistry() {
  * Input format types
  */
 export type InputFormat = "xml" | "json" | "yaml";
-export type InputMode = "instance" | "template";
+export type InputMode = "instance" | "template" | "template-adgit";
 export type TemplateGenerationMode = GenerationMode;
 
 /**

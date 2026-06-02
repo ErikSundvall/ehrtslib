@@ -23,9 +23,17 @@ const ws = new ClinicalModelWorkspace();
 // ZIP entries (same filter as GitHub)
 ws.loadFromZipEntries([{ path: "local/foo.t.json", content: "..." }]);
 
-// Read-only GitHub branch
+// Read-only GitHub branch (whole tree under a path prefix)
 await ws.loadFromGitHub(
   "regionstockholm/CKM-mirror-via-modellbibliotek@MultiDiciplinery_Tumor_meetings:local",
+);
+
+// Single `.t.json` URL — recursive dependencies (nested templates + archetypes)
+await ws.loadFromGitHubTemplateUrl(
+  "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json",
+  {
+    onProgress: (e) => console.log(e.phase, e.message),
+  },
 );
 
 // Edit + export (annotation editor / download flows)
@@ -49,6 +57,10 @@ Uses the public GitHub API and `raw.githubusercontent.com` (no git binary).
 On **Template (schema)**:
 
 1. **Upload** — ZIP or individual files (includes `.t.json`)
-2. **GitHub** — enter spec, click **GitHub** (read-only load into the file-set tabs)
+
+On **Template from AD@git**:
+
+1. Paste a GitHub **blob** or **raw** link to a `.t.json` file
+2. Click **Load** — progress log shows fetch/parse steps; file set opens on **Template (schema)**
 
 Select the **generation root** radio on a template file to drive example / FLAT / Web Template output.

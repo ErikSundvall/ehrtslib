@@ -22,4 +22,4 @@ In-memory workspace of related archetype/template/OPT/OET/`.t.json` files used t
 
 ## Clinical model workspace
 
-Library type `ClinicalModelWorkspace` — editable file set with `updateFileContent`, `exportFile` / `exportEntries` (for future annotation tools and download), `loadFromZipEntries`, and read-only `loadFromGitHub(spec)`.
+Library type `ClinicalModelWorkspace` — editable file set with `updateFileContent`, `exportFile` / `exportEntries` (for future annotation tools and download), `loadFromZipEntries`, read-only `loadFromGitHub(spec)` (whole branch tree), and `loadFromGitHubTemplateUrl(url)` (single `.t.json` + recursive dependencies).

@@ -466,10 +466,10 @@ body {
     gap: 0.35rem;
 }
 
-.github-repo-spec-input {
-    min-width: 12rem;
-    max-width: 22rem;
-    flex: 1 1 12rem;
+.github-template-url-input {
+    min-width: 14rem;
+    max-width: 36rem;
+    flex: 1 1 16rem;
     font-size: 0.75rem;
     font-family: var(--font-mono, monospace);
     padding: 0.35rem 0.5rem;
@@ -477,6 +477,48 @@ body {
     border-radius: var(--radius-sm);
     background: var(--bg-primary);
     color: var(--text-primary);
+}
+
+.adgit-intro {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-sm);
+    line-height: 1.45;
+}
+
+.adgit-progress {
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    max-height: 14rem;
+    overflow: auto;
+    padding: var(--spacing-sm);
+    font-size: 0.75rem;
+    font-family: var(--font-mono, monospace);
+}
+
+.adgit-progress-empty {
+    color: var(--text-muted);
+}
+
+.adgit-progress-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style: decimal;
+}
+
+.adgit-progress-list li {
+    margin: 0.15rem 0;
+    word-break: break-word;
+}
+
+.adgit-progress-list li.adgit-phase-complete {
+    color: var(--color-success, #2e7d32);
+    font-weight: 600;
+}
+
+.adgit-progress-list li.adgit-phase-error {
+    color: var(--color-error, #c62828);
 }
 
 .template-file-set-header {

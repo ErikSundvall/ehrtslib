@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-06-02T15:19:18.169Z", buildId: "6PXL9U4N" };
+    define_BUILD_INFO_default = { timestamp: "2026-06-02T16:06:44.298Z", buildId: "89UOSA06" };
   }
 });
 
@@ -19010,7 +19010,7 @@ function Factory(global, Export) {
     }
     setIdentifierSyntax();
     return true;
-  }, emit = function(message, proto) {
+  }, emit2 = function(message, proto) {
     var err2;
     if (Config.VERBOSITY) {
       if (proto) {
@@ -19118,7 +19118,7 @@ function Factory(global, Export) {
           } else if (typeof match2[1] == "string" && root.prefix == match2[1]) {
             source = "if(" + N2 + '(e.namespaceURI=="' + NAMESPACE + '")){' + source + "}";
           } else {
-            emit("'" + selector_string + "'" + qsInvalid);
+            emit2("'" + selector_string + "'" + qsInvalid);
           }
           break;
         case "[":
@@ -19128,7 +19128,7 @@ function Factory(global, Export) {
           expr = name.split(":");
           expr = expr.length == 2 ? expr[1] : expr[0];
           if (match2[2] && !(test = Operators[match2[2]])) {
-            emit("'" + selector_string + "'" + qsInvalid);
+            emit2("'" + selector_string + "'" + qsInvalid);
             return "";
           }
           if (match2[4] === "") {
@@ -19192,7 +19192,7 @@ function Factory(global, Export) {
                 source = "n=e;o=e.localName;while((n=n.previousElementSibling)&&n.localName!=o);if(" + D2 + "n){" + source + "}";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.treestruct)) {
@@ -19234,11 +19234,11 @@ function Factory(global, Export) {
                   type = type ? "true" : "false";
                   source = "n=s.nth" + expr + "(e," + type + ");if(" + N2 + "(" + test + ")){" + source + "}";
                 } else {
-                  emit("'" + selector_string + "'" + qsInvalid);
+                  emit2("'" + selector_string + "'" + qsInvalid);
                 }
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.logicalsel)) {
@@ -19255,7 +19255,7 @@ function Factory(global, Export) {
                 source = 'if(!s.match("' + expr.replace(/\x22/g, '\\"') + '",e)){' + source + "}";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.linguistic)) {
@@ -19269,7 +19269,7 @@ function Factory(global, Export) {
                 source = "var p;if(" + N2 + '((e.isConnected&&(e.lang==""&&(p=s.ancestor("[lang]",e)))&&(p.lang=="' + match2[2] + '")||/' + expr + "/i.test(e.lang)))){" + source + "};";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.locationpc)) {
@@ -19288,7 +19288,7 @@ function Factory(global, Export) {
                 source = "if(" + N2 + "((s.doc.compareDocumentPosition(e)&16)&&s.doc.location.hash&&e.id==s.doc.location.hash.slice(1))){" + source + "}";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.useraction)) {
@@ -19307,7 +19307,7 @@ function Factory(global, Export) {
                 source = "hasFocus" in doc ? "n=s.doc.activeElement;while(e){if(e===n||e.parentNode===n)break;}if(" + N2 + '(e===n&&s.doc.hasFocus()&&(e.type||e.href||typeof e.tabIndex=="number"))){' + source + "}" : source;
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.inputstate)) {
@@ -19332,7 +19332,7 @@ function Factory(global, Export) {
                 source = "if(" + N2 + '("form" in e && e.form)){var x=0;n=[];if(e.type=="image")n=e.form.getElementsByTagName("input");if(e.type=="submit")n=e.form.elements;while(n[x]&&e!==n[x]){if(n[x].type=="image")break;if(n[x].type=="submit")break;x++;}}if(' + N2 + '(e.form&&(e===n[x]&&"|image|submit|".includes("|"+e.type+"|"))||((/^option$/i.test(e.localName))&&e.defaultSelected)||(("|radio|checkbox|".includes("|"+e.type+"|"))&&e.defaultChecked))){' + source + "}";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.inputvalue)) {
@@ -19363,7 +19363,7 @@ function Factory(global, Export) {
                 source = "if(" + N2 + '(/^input$/i.test(e.localName))&&(e.willValidate&&!e.formNoValidate)&&(e.validity.rangeUnderflow||e.validity.rangeOverflow)&&("|date|datetime-local|month|number|range|time|week|".includes("|"+e.type+"|"))&&("range"==e.type||e.getAttribute("min")||e.getAttribute("max"))){' + source + "}";
                 break;
               default:
-                emit("'" + selector_string + "'" + qsInvalid);
+                emit2("'" + selector_string + "'" + qsInvalid);
                 break;
             }
           } else if (match2 = selector.match(Patterns.pseudo_sng)) {
@@ -19393,21 +19393,21 @@ function Factory(global, Export) {
               }
             }
             if (!status) {
-              emit("unknown pseudo-class selector '" + selector + "'");
+              emit2("unknown pseudo-class selector '" + selector + "'");
               return "";
             }
             if (!expr) {
-              emit("unknown token in selector '" + selector + "'");
+              emit2("unknown token in selector '" + selector + "'");
               return "";
             }
           }
           break;
         default:
-          emit("'" + selector_string + "'" + qsInvalid);
+          emit2("'" + selector_string + "'" + qsInvalid);
           break;
       }
       if (!match2) {
-        emit("'" + selector_string + "'" + qsInvalid);
+        emit2("'" + selector_string + "'" + qsInvalid);
         return "";
       }
       selector = match2.pop();
@@ -19443,10 +19443,10 @@ function Factory(global, Export) {
     }
     lastMatched = selectors;
     if (arguments.length === 0) {
-      emit(qsNotArgs, TypeError);
+      emit2(qsNotArgs, TypeError);
       return Config.VERBOSITY ? void 0 : false;
     } else if (arguments[0] === "") {
-      emit("''" + qsInvalid);
+      emit2("''" + qsInvalid);
       return Config.VERBOSITY ? void 0 : false;
     }
     if (typeof selectors != "string") {
@@ -19459,18 +19459,18 @@ function Factory(global, Export) {
     if ((expressions = parsed.match(reValidator)) && expressions.join("") == parsed) {
       expressions = parsed.match(REX.SplitGroup);
       if (parsed[parsed.length - 1] == ",") {
-        emit(qsInvalid);
+        emit2(qsInvalid);
         return Config.VERBOSITY ? void 0 : false;
       }
     } else {
-      emit("'" + selectors + "'" + qsInvalid);
+      emit2("'" + selectors + "'" + qsInvalid);
       return Config.VERBOSITY ? void 0 : false;
     }
     matchResolvers[selectors] = match_collect(expressions, callback);
     return match_assert(matchResolvers[selectors].factory, element, callback);
   }, first = function _querySelector2(selectors, context, callback) {
     if (arguments.length === 0) {
-      emit(qsNotArgs, TypeError);
+      emit2(qsNotArgs, TypeError);
     }
     return select(
       selectors,
@@ -19515,10 +19515,10 @@ function Factory(global, Export) {
     }
     lastSelected = selectors;
     if (arguments.length === 0) {
-      emit(qsNotArgs, TypeError);
+      emit2(qsNotArgs, TypeError);
       return Config.VERBOSITY ? void 0 : none;
     } else if (arguments[0] === "") {
-      emit("''" + qsInvalid);
+      emit2("''" + qsInvalid);
       return Config.VERBOSITY ? void 0 : none;
     } else if (lastContext !== context) {
       lastContext = switchContext(context);
@@ -19533,11 +19533,11 @@ function Factory(global, Export) {
     if ((expressions = parsed.match(reValidator)) && expressions.join("") == parsed) {
       expressions = parsed.match(REX.SplitGroup);
       if (parsed[parsed.length - 1] == ",") {
-        emit(qsInvalid);
+        emit2(qsInvalid);
         return Config.VERBOSITY ? void 0 : false;
       }
     } else {
-      emit("'" + selectors + "'" + qsInvalid);
+      emit2("'" + selectors + "'" + qsInvalid);
       return Config.VERBOSITY ? void 0 : false;
     }
     selectResolvers[selectors] = collect(expressions, context, callback);
@@ -19583,28 +19583,28 @@ function Factory(global, Export) {
     Element.prototype.closest = function closest() {
       var ctor = Object.getPrototypeOf(this).__proto__.__proto__.constructor.name;
       if (!("nodeType" in this)) {
-        emit("'closest' called on an object that does not implement interface " + ctor + ".", TypeError);
+        emit2("'closest' called on an object that does not implement interface " + ctor + ".", TypeError);
       }
       return arguments.length < 1 ? ancestor.apply(this, []) : arguments.length < 2 ? ancestor.apply(this, [arguments[0], this]) : ancestor.apply(this, [arguments[0], this, typeof arguments[1] == "function" ? arguments[1] : void 0]);
     };
     Element.prototype.matches = function matches() {
       var ctor = Object.getPrototypeOf(this).__proto__.__proto__.constructor.name;
       if (!("nodeType" in this)) {
-        emit("'matches' called on an object that does not implement interface " + ctor + ".", TypeError);
+        emit2("'matches' called on an object that does not implement interface " + ctor + ".", TypeError);
       }
       return arguments.length < 1 ? match.apply(this, []) : arguments.length < 2 ? match.apply(this, [arguments[0], this]) : match.apply(this, [arguments[0], this, typeof arguments[1] == "function" ? arguments[1] : void 0]);
     };
     Element.prototype.querySelector = Document.prototype.querySelector = DocumentFragment.prototype.querySelector = function querySelector() {
       var ctor = Object.getPrototypeOf(this).__proto__.__proto__.constructor.name;
       if (!("nodeType" in this)) {
-        emit("'querySelector' called on an object that does not implement interface " + ctor + ".", TypeError);
+        emit2("'querySelector' called on an object that does not implement interface " + ctor + ".", TypeError);
       }
       return arguments.length < 1 ? first.apply(this, []) : arguments.length < 2 ? first.apply(this, [arguments[0], this]) : first.apply(this, [arguments[0], this, typeof arguments[1] == "function" ? arguments[1] : void 0]);
     };
     Element.prototype.querySelectorAll = Document.prototype.querySelectorAll = DocumentFragment.prototype.querySelectorAll = function querySelectorAll() {
       var ctor = Object.getPrototypeOf(this).__proto__.__proto__.constructor.name;
       if (!("nodeType" in this)) {
-        emit("'querySelectorAll' called on an object that does not implement interface " + ctor + ".", TypeError);
+        emit2("'querySelectorAll' called on an object that does not implement interface " + ctor + ".", TypeError);
       }
       return arguments.length < 1 ? select.apply(this, []) : arguments.length < 2 ? select.apply(this, [arguments[0], this]) : select.apply(this, [arguments[0], this, typeof arguments[1] == "function" ? arguments[1] : void 0]);
     };
@@ -19661,7 +19661,7 @@ function Factory(global, Export) {
     closest: ancestor,
     compile,
     configure,
-    emit,
+    emit: emit2,
     Config,
     Snapshot,
     Version: version,
@@ -47463,6 +47463,347 @@ async function loadGitHubRepoTree(ref, options) {
   };
 }
 
+// enhanced/parser/github_template_closure.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/template_json_dependencies.ts
+init_define_BUILD_INFO();
+function archetypeIdValue(node) {
+  if (!node)
+    return void 0;
+  if (typeof node === "string")
+    return node.trim() || void 0;
+  if (typeof node === "object") {
+    return textValue(node.value) ?? textValue(node);
+  }
+  return void 0;
+}
+function collectTemplateJsonOverlayIds(root) {
+  const overlayIds = /* @__PURE__ */ new Set();
+  for (const raw of asArray(root.templateOverlays ?? root.templateOverlays)) {
+    if (!raw || typeof raw !== "object")
+      continue;
+    const ov = raw;
+    if (jsonType(ov) !== "TEMPLATE_OVERLAY")
+      continue;
+    const id = archetypeIdValue(ov.archetypeId ?? ov.archetype_id);
+    if (id)
+      overlayIds.add(id);
+  }
+  return overlayIds;
+}
+function collectTemplateJsonExternalRefs(root) {
+  const overlayIds = collectTemplateJsonOverlayIds(root);
+  const external = /* @__PURE__ */ new Set();
+  const parent = archetypeIdValue(
+    root.parentArchetypeId ?? root.parent_archetype_id
+  );
+  if (parent)
+    external.add(parent);
+  function considerRef(ref) {
+    if (!ref)
+      return;
+    const trimmed = ref.trim();
+    if (!trimmed || overlayIds.has(trimmed))
+      return;
+    external.add(trimmed);
+  }
+  function walk(node) {
+    if (!node || typeof node !== "object")
+      return;
+    if (Array.isArray(node)) {
+      for (const item of node)
+        walk(item);
+      return;
+    }
+    const rec = node;
+    const type = jsonType(rec);
+    if (type === "C_ARCHETYPE_ROOT") {
+      considerRef(
+        textValue(rec.archetypeRef) ?? textValue(rec.archetype_ref) ?? (typeof rec.archetypeRef === "string" ? rec.archetypeRef : void 0)
+      );
+    }
+    for (const v2 of Object.values(rec))
+      walk(v2);
+  }
+  walk(root.definition);
+  return [...external];
+}
+function collectTemplateJsonExternalRefsFromText(source) {
+  const trimmed = source.trim();
+  if (!trimmed.startsWith("{"))
+    return [];
+  try {
+    const root = JSON.parse(trimmed);
+    const type = jsonType(root);
+    if (type !== "TEMPLATE" && type !== "OPERATIONAL_TEMPLATE")
+      return [];
+    return collectTemplateJsonExternalRefs(root);
+  } catch {
+    return [];
+  }
+}
+
+// enhanced/parser/github_template_closure.ts
+function emit(options, event) {
+  options?.onProgress?.(event);
+}
+function readOptionalGithubToken() {
+  try {
+    return typeof Deno !== "undefined" ? Deno.env.get("GITHUB_TOKEN") ?? void 0 : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function githubApiHeaders2(token) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "ehrtslib-clinical-model-loader"
+  };
+  if (token)
+    headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+function parseGitHubTemplateFileUrl(input) {
+  const trimmed = input.trim();
+  const raw = trimmed.match(
+    /raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/i
+  );
+  if (raw) {
+    return {
+      owner: raw[1],
+      repo: raw[2].replace(/\.git$/, ""),
+      ref: decodeURIComponent(raw[3]),
+      path: normalizeClinicalModelPath(decodeURIComponent(raw[4]))
+    };
+  }
+  const blob = trimmed.match(
+    /github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+?)(?:[?#].*)?$/i
+  );
+  if (blob) {
+    return {
+      owner: blob[1],
+      repo: blob[2].replace(/\.git$/, ""),
+      ref: decodeURIComponent(blob[3]),
+      path: normalizeClinicalModelPath(decodeURIComponent(blob[4]))
+    };
+  }
+  throw new Error(
+    `Invalid GitHub template URL. Paste a blob or raw link to a .t.json file.`
+  );
+}
+function buildClinicalModelPathIndex(paths) {
+  const allPaths = [];
+  const byBasenameLower = /* @__PURE__ */ new Map();
+  const byArchetypeIdLower = /* @__PURE__ */ new Map();
+  for (const raw of paths) {
+    const path = normalizeClinicalModelPath(raw);
+    if (!isClinicalModelPath(path))
+      continue;
+    allPaths.push(path);
+    const base = path.split("/").pop() ?? path;
+    const baseLower = base.toLowerCase();
+    if (!byBasenameLower.has(baseLower))
+      byBasenameLower.set(baseLower, path);
+    const adlMatch = base.match(/^(openEHR-.+)\.adl$/i);
+    if (adlMatch) {
+      const idLower = adlMatch[1].toLowerCase();
+      if (!byArchetypeIdLower.has(idLower)) {
+        byArchetypeIdLower.set(idLower, path);
+      }
+    }
+  }
+  return { paths: allPaths, byBasenameLower, byArchetypeIdLower };
+}
+function isOpenEhrArchetypeId(ref) {
+  return /^openEHR-/i.test(ref);
+}
+function templateBasenameForRef(ref) {
+  if (/\.t\.json$/i.test(ref))
+    return ref;
+  return `${ref}.t.json`;
+}
+function resolveClinicalModelRef(ref, index, contextDir) {
+  const trimmed = ref.trim();
+  if (!trimmed)
+    return void 0;
+  if (!isOpenEhrArchetypeId(trimmed)) {
+    const base = templateBasenameForRef(trimmed);
+    const hit = index.byBasenameLower.get(base.toLowerCase());
+    if (hit)
+      return hit;
+    const ctxPath = normalizeClinicalModelPath(`${contextDir}/${base}`);
+    if (index.paths.includes(ctxPath))
+      return ctxPath;
+    const suffix2 = `/${base}`.toLowerCase();
+    return index.paths.find((p2) => p2.toLowerCase().endsWith(suffix2));
+  }
+  const idLower = trimmed.toLowerCase();
+  const direct = index.byArchetypeIdLower.get(idLower);
+  if (direct)
+    return direct;
+  const adlName = `${trimmed}.adl`;
+  const baseHit = index.byBasenameLower.get(adlName.toLowerCase());
+  if (baseHit)
+    return baseHit;
+  const suffix = `/${adlName}`.toLowerCase();
+  return index.paths.find((p2) => p2.toLowerCase().endsWith(suffix));
+}
+async function fetchGitHubTreePaths(fileRef, fetchFn, headers) {
+  const branchRes = await fetchFn(
+    `https://api.github.com/repos/${fileRef.owner}/${fileRef.repo}/branches/${encodeURIComponent(fileRef.ref)}`,
+    { headers }
+  );
+  if (!branchRes.ok) {
+    throw new Error(
+      `GitHub branch ${fileRef.owner}/${fileRef.repo}@${fileRef.ref}: ${branchRes.status} ${branchRes.statusText}`
+    );
+  }
+  const branchJson = await branchRes.json();
+  const treeSha = branchJson.commit?.sha;
+  if (!treeSha)
+    throw new Error("Could not resolve branch commit SHA");
+  const treeRes = await fetchFn(
+    `https://api.github.com/repos/${fileRef.owner}/${fileRef.repo}/git/trees/${treeSha}?recursive=1`,
+    { headers }
+  );
+  if (!treeRes.ok) {
+    throw new Error(
+      `GitHub tree API: ${treeRes.status} ${treeRes.statusText}`
+    );
+  }
+  const treeJson = await treeRes.json();
+  const paths = [];
+  for (const item of treeJson.tree ?? []) {
+    if (item.type === "blob" && item.path && isClinicalModelPath(item.path)) {
+      paths.push(normalizeClinicalModelPath(item.path));
+    }
+  }
+  return paths;
+}
+async function fetchRawFile(fileRef, path, fetchFn) {
+  const url = `https://raw.githubusercontent.com/${fileRef.owner}/${fileRef.repo}/${fileRef.ref}/${path}`;
+  const res = await fetchFn(url);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} for ${path}`);
+  }
+  return await res.text();
+}
+function collectDependenciesFromContent(path, content) {
+  const trimmed = content.trim();
+  if (!trimmed)
+    return [];
+  if (trimmed.startsWith("{") && (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))) {
+    return collectTemplateJsonExternalRefsFromText(trimmed);
+  }
+  if (/\.(adl|adls)$/i.test(path) || trimmed.includes("archetype")) {
+    try {
+      const parsed = parseAdl(content, { convertAdl14: true });
+      const arch = parsed.archetype ?? parsed.template ?? parsed.operationalTemplate;
+      const parent = arch?.parent_archetype_id?.value;
+      return parent ? [parent] : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+async function loadGitHubTemplateClosure(templateUrl, options) {
+  const fetchFn = options?.fetch ?? globalThis.fetch;
+  const token = options?.githubToken ?? readOptionalGithubToken();
+  const headers = githubApiHeaders2(token);
+  const maxFiles = options?.maxFiles ?? 200;
+  const warnings = [];
+  emit(options, { phase: "parse-url", message: templateUrl });
+  const fileRef = parseGitHubTemplateFileUrl(templateUrl);
+  if (!/\.t\.json$/i.test(fileRef.path)) {
+    throw new Error(`Expected a .t.json file path, got: ${fileRef.path}`);
+  }
+  emit(options, {
+    phase: "index-tree",
+    message: `Indexing ${fileRef.owner}/${fileRef.repo}@${fileRef.ref}\u2026`
+  });
+  const treePaths = await fetchGitHubTreePaths(fileRef, fetchFn, headers);
+  const index = buildClinicalModelPathIndex(treePaths);
+  emit(options, {
+    phase: "index-tree",
+    message: `Indexed ${index.paths.length} clinical model files`
+  });
+  const contextDir = fileRef.path.includes("/") ? fileRef.path.replace(/\/[^/]+$/, "") : "";
+  const entries = /* @__PURE__ */ new Map();
+  const pendingRefs = /* @__PURE__ */ new Set();
+  const queuedPaths = /* @__PURE__ */ new Set();
+  const pathQueue = [fileRef.path];
+  let skipped = 0;
+  const enqueuePath = (path) => {
+    const normalized = normalizeClinicalModelPath(path);
+    if (entries.has(normalized) || queuedPaths.has(normalized))
+      return;
+    queuedPaths.add(normalized);
+    pathQueue.push(normalized);
+  };
+  const enqueueRef = (ref) => {
+    const trimmed = ref.trim();
+    if (!trimmed || pendingRefs.has(trimmed))
+      return;
+    pendingRefs.add(trimmed);
+    emit(options, { phase: "resolve", message: `Resolving ${trimmed}`, ref: trimmed });
+    const resolved = resolveClinicalModelRef(trimmed, index, contextDir);
+    if (!resolved) {
+      warnings.push(`Unresolved reference: ${trimmed}`);
+      emit(options, {
+        phase: "resolve",
+        message: `Unresolved: ${trimmed}`,
+        ref: trimmed
+      });
+      return;
+    }
+    emit(options, {
+      phase: "resolve",
+      message: `${trimmed} \u2192 ${resolved}`,
+      ref: trimmed,
+      path: resolved
+    });
+    enqueuePath(resolved);
+  };
+  while (pathQueue.length > 0 && entries.size < maxFiles) {
+    const path = pathQueue.shift();
+    queuedPaths.delete(path);
+    emit(options, { phase: "fetch", message: `Downloading ${path}`, path });
+    try {
+      const content = await fetchRawFile(fileRef, path, fetchFn);
+      entries.set(path, { path, content });
+      emit(options, { phase: "fetch", message: `Downloaded ${path}`, path });
+      emit(options, { phase: "parse", message: `Parsing ${path}`, path });
+      for (const ref of collectDependenciesFromContent(path, content)) {
+        enqueueRef(ref);
+      }
+    } catch (e2) {
+      skipped++;
+      const msg = `Failed ${path}: ${e2.message}`;
+      warnings.push(msg);
+      emit(options, { phase: "fetch", message: msg, path });
+    }
+  }
+  if (entries.size >= maxFiles) {
+    warnings.push(`Stopped at maxFiles limit (${maxFiles})`);
+  }
+  if (!entries.has(fileRef.path)) {
+    throw new Error(`Could not load root template: ${fileRef.path}`);
+  }
+  emit(options, {
+    phase: "complete",
+    message: `File set complete (${entries.size} files)`
+  });
+  return {
+    rootPath: fileRef.path,
+    entries: [...entries.values()],
+    warnings,
+    fetched: entries.size,
+    skipped
+  };
+}
+
 // enhanced/parser/clinical_model_workspace.ts
 var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   workspace = new TemplateWorkspace();
@@ -47562,6 +47903,17 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
         this.setGenerationRootPath(suggested);
     }
     return { ...tree, loadResults };
+  }
+  /**
+   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
+   * nested templates, archetypes, and parent archetype chains from the same branch.
+   */
+  async loadFromGitHubTemplateUrl(templateUrl, options) {
+    const closure = await loadGitHubTemplateClosure(templateUrl, options);
+    const loadResults = this.addFiles(closure.entries);
+    this.setGenerationRootPath(closure.rootPath);
+    this.setActivePath(closure.rootPath);
+    return { ...closure, loadResults };
   }
   /** Load entries extracted from a ZIP (same filter as GitHub loader). */
   loadFromZipEntries(entries) {
@@ -48945,7 +49297,7 @@ function setupEventListeners() {
     clearTemplateBtn.addEventListener("click", clearInput);
   }
   setupTemplateFileUpload();
-  setupTemplateGitHubLoad();
+  setupTemplateAdGitLoad();
   const inputTextarea = document.getElementById(
     "input-text"
   );
@@ -49290,44 +49642,77 @@ function setupTemplateFileUpload() {
     fileInput.value = "";
   });
 }
-function setupTemplateGitHubLoad() {
-  const loadBtn = document.getElementById("load-github-fileset");
-  const specInput = document.getElementById("github-repo-spec");
-  if (!loadBtn || !specInput)
+function setupTemplateAdGitLoad() {
+  const loadBtn = document.getElementById("load-github-template");
+  const urlInput = document.getElementById("github-template-url");
+  if (!loadBtn || !urlInput)
     return;
+  const defaultUrl = "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
+  if (!urlInput.value.trim())
+    urlInput.value = defaultUrl;
   loadBtn.addEventListener("click", async () => {
-    const spec = specInput.value.trim();
-    if (!spec) {
-      alert("Enter a GitHub spec, e.g. owner/repo@branch:local");
+    const url = urlInput.value.trim();
+    if (!url) {
+      alert("Paste a GitHub blob or raw URL to a .t.json template file.");
       return;
     }
     loadBtn.setAttribute("disabled", "true");
+    clearAdGitProgress();
+    appendAdGitProgress("Starting\u2026", "parse-url");
     try {
-      const result2 = await clinicalWorkspace.loadFromGitHub(spec);
-      if (result2.warnings.length) {
-        console.warn("GitHub load warnings:", result2.warnings);
+      const result2 = await clinicalWorkspace.loadFromGitHubTemplateUrl(url, {
+        onProgress: (e2) => {
+          appendAdGitProgress(e2.message, e2.phase, e2.path);
+        },
+        maxFiles: 200
+      });
+      for (const w2 of result2.warnings) {
+        appendAdGitProgress(w2, "resolve");
       }
-      if (!result2.entries.length) {
-        alert("No clinical model files matched in that repo path.");
-        return;
-      }
-      const root = ClinicalModelWorkspace.suggestGenerationRoot(
-        clinicalWorkspace.listFiles()
+      appendAdGitProgress(
+        `Done \u2014 ${result2.fetched} files loaded (root: ${result2.rootPath})`,
+        "complete"
       );
-      if (root)
-        clinicalWorkspace.setGenerationRootPath(root);
-      const active = root ?? result2.entries[0]?.path;
-      if (active)
-        selectTemplateFileTab(active);
+      if (result2.rootPath)
+        selectTemplateFileTab(result2.rootPath);
+      updateTemplateFileSetUi();
       activateInputTab("template");
       handleInputChange("template");
-      updateTemplateFileSetUi();
     } catch (e2) {
-      alert(`GitHub load failed: ${e2.message}`);
+      appendAdGitProgress(e2.message, "fetch");
+      alert(`Template load failed: ${e2.message}`);
     } finally {
       loadBtn.removeAttribute("disabled");
     }
   });
+}
+function clearAdGitProgress() {
+  const empty = document.getElementById("adgit-progress-empty");
+  const list = document.getElementById("adgit-progress-list");
+  if (empty)
+    empty.classList.remove("hidden");
+  if (list) {
+    list.innerHTML = "";
+    list.classList.add("hidden");
+  }
+}
+function appendAdGitProgress(message, phase, _path) {
+  const empty = document.getElementById("adgit-progress-empty");
+  const list = document.getElementById("adgit-progress-list");
+  if (!list)
+    return;
+  if (empty)
+    empty.classList.add("hidden");
+  list.classList.remove("hidden");
+  const li2 = document.createElement("li");
+  if (phase === "complete")
+    li2.classList.add("adgit-phase-complete");
+  if (phase === "fetch" && message.startsWith("Failed")) {
+    li2.classList.add("adgit-phase-error");
+  }
+  li2.textContent = message;
+  list.appendChild(li2);
+  list.scrollTop = list.scrollHeight;
 }
 function selectTemplateFileTab(path) {
   if (!path)
@@ -49550,6 +49935,8 @@ function clearInput() {
   }
 }
 function getInputTextarea(mode) {
+  if (mode === "template-adgit")
+    return null;
   const id = mode === "template" ? "template-input-text" : "input-text";
   return document.getElementById(id);
 }
@@ -49557,6 +49944,8 @@ function getCurrentInputTextarea() {
   return getInputTextarea(currentInputTab);
 }
 function handleInputChange(tab = currentInputTab) {
+  if (tab === "template-adgit")
+    return;
   const inputTextarea = getInputTextarea(tab);
   if (!inputTextarea)
     return;
@@ -49577,6 +49966,8 @@ function handleInputChange(tab = currentInputTab) {
   scheduleAutoConvert();
 }
 function validateInput() {
+  if (currentInputTab === "template-adgit")
+    return;
   const inputTextarea = getCurrentInputTextarea();
   const validationIcon = document.getElementById(
     currentInputTab === "template" ? "template-validation-icon" : "validation-icon"
@@ -49669,6 +50060,8 @@ function updateAutoConvertButtonUi() {
 function scheduleAutoConvert() {
   if (!autoConvertEnabled)
     return;
+  if (currentInputTab === "template-adgit")
+    return;
   if (autoConvertDebounceTimer !== void 0) {
     clearTimeout(autoConvertDebounceTimer);
   }
@@ -49678,6 +50071,8 @@ function scheduleAutoConvert() {
   }, AUTO_CONVERT_DEBOUNCE_MS);
 }
 async function handleConvert() {
+  if (currentInputTab === "template-adgit")
+    return;
   console.log("\u{1F504} Converting...");
   showLoading();
   hideError();

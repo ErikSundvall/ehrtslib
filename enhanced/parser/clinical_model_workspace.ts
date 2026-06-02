@@ -16,6 +16,11 @@ import {
   type GitHubRepoRef,
   type GitHubTreeLoadResult,
 } from "./github_repo_loader.ts";
+import {
+  loadGitHubTemplateClosure,
+  type GitHubTemplateClosureResult,
+  type GitHubTemplateClosureOptions,
+} from "./github_template_closure.ts";
 import { isClinicalModelPath, normalizeClinicalModelPath } from "./clinical_model_paths.ts";
 
 export type { TemplateWorkspaceFile, ResolveOperationalOptions, ResolveOperationalResult };
@@ -155,6 +160,21 @@ export class ClinicalModelWorkspace {
       if (suggested) this.setGenerationRootPath(suggested);
     }
     return { ...tree, loadResults };
+  }
+
+  /**
+   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
+   * nested templates, archetypes, and parent archetype chains from the same branch.
+   */
+  async loadFromGitHubTemplateUrl(
+    templateUrl: string,
+    options?: GitHubTemplateClosureOptions,
+  ): Promise<GitHubTemplateClosureResult & { loadResults: LoadFileResult[] }> {
+    const closure = await loadGitHubTemplateClosure(templateUrl, options);
+    const loadResults = this.addFiles(closure.entries);
+    this.setGenerationRootPath(closure.rootPath);
+    this.setActivePath(closure.rootPath);
+    return { ...closure, loadResults };
   }
 
   /** Load entries extracted from a ZIP (same filter as GitHub loader). */
