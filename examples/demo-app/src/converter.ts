@@ -70,10 +70,10 @@ import {
   serializeToStructuredJson,
 } from "../../../enhanced/serialization/simplified/mod.ts";
 import {
+  type ClinicalModelWorkspace,
   getOperationalTemplateFromInput,
   parseTemplateInput,
   type TemplateWorkspace,
-  type ClinicalModelWorkspace,
 } from "../../../enhanced/parser/mod.ts";
 import {
   type GenerationMode,
@@ -280,7 +280,8 @@ function convertTemplateInput(
   let template;
   try {
     if (options.templateWorkspace?.listFiles().length) {
-      template = options.templateWorkspace.resolveOperational().operationalTemplate;
+      template =
+        options.templateWorkspace.resolveOperational().operationalTemplate;
     } else {
       template = getOperationalTemplateFromInput(input, {
         archetypeRepository: options.templateWorkspace?.repository,
@@ -422,6 +423,56 @@ export function validateTemplateInput(
       valid: false,
       message: `Invalid template: ${(error as Error).message}`,
     };
+  }
+}
+
+function formatLabelForLoadKind(
+  loadKind: string | undefined,
+  sourceKind: string,
+): string {
+  switch (loadKind) {
+    case "template_json":
+      return "Better template JSON";
+    case "template":
+      return "ADL2 template";
+    case "operational_template":
+      return "operational template";
+    case "oet_xml":
+      return "OET XML";
+    case "opt_xml":
+      return "OPT XML";
+    default:
+      switch (sourceKind) {
+        case "adl2_template":
+          return "ADL2 template";
+        case "adl14_operational":
+          return "ADL 1.4 operational template";
+        case "oet_compiled":
+          return "compiled OET";
+        case "opt_xml":
+          return "OPT XML";
+        case "operational_template":
+          return "operational template";
+        default:
+          return "template";
+      }
+  }
+}
+
+function formatLabelForFormat(format: string | undefined): string {
+  switch (format) {
+    case "template_json":
+      return "Better template JSON";
+    case "adl14":
+      return "ADL 1.4 operational template";
+    case "adl2":
+      return "ADL2";
+    case "oet_xml":
+      return "OET XML";
+    case "opt_xml":
+      return "OPT XML";
+    default:
+      return "template";
   }
 }
 
