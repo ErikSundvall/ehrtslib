@@ -177,16 +177,33 @@
                 </select>
               </div>
               <input
+                type="text"
+                class="github-repo-spec-input"
+                id="github-repo-spec"
+                placeholder="owner/repo@branch:local"
+                title="GitHub read-only file set, e.g. regionstockholm/CKM-mirror-via-modellbibliotek@MultiDiciplinery_Tumor_meetings:local"
+                spellcheck="false"
+              />
+              <button
+                class="btn btn-secondary btn-sm"
+                id="load-github-fileset"
+                title="Load archetypes and .t.json templates from a public GitHub branch"
+              >
+                <span class="material-icons btn-icon" aria-hidden="true"
+                >cloud_download</span>
+                GitHub
+              </button>
+              <input
                 type="file"
                 id="template-file-input"
-                accept=".opt,.oet,.adl,.adls,.xml,.zip"
+                accept=".opt,.oet,.adl,.adls,.t.json,.xml,.zip"
                 multiple
                 hidden
               />
               <button
                 class="btn btn-secondary btn-sm"
                 id="upload-template-files"
-                title="Upload OPT, OET, ADL, or ZIP of archetypes"
+                title="Upload OPT, OET, ADL, .t.json, or ZIP of archetypes"
               >
                 <span class="material-icons btn-icon" aria-hidden="true"
                 >upload_file</span>

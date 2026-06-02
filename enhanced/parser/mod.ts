@@ -23,11 +23,14 @@ export {
   parseOptXml,
   parseOetXml,
   parseTemplateInput,
+  isTemplateJson,
+  parseTemplateJson,
   ArchetypeRepository,
   compileOetToOperational,
   type ParseTemplateInputOptions,
   type ParseTemplateInputResult,
   type TemplateInputFormat,
+  type TemplateJsonParseResult,
 } from "./legacy/mod.ts";
 export { RulesParser } from "./rules_parser.ts";
 export { serializeRulesSection } from "./rules_serializer.ts";
@@ -40,3 +43,20 @@ export {
   type ResolveOperationalResult,
   canBeGenerationRoot,
 } from "./template_workspace.ts";
+export {
+  ClinicalModelWorkspace,
+  type ClinicalModelFile,
+  type ClinicalModelExportEntry,
+} from "./clinical_model_workspace.ts";
+export {
+  loadGitHubRepoTree,
+  parseGitHubRepoSpec,
+  type GitHubRepoRef,
+  type GitHubFileEntry,
+  type GitHubTreeLoadResult,
+} from "./github_repo_loader.ts";
+export {
+  CLINICAL_MODEL_EXTENSIONS,
+  isClinicalModelPath,
+  normalizeClinicalModelPath,
+} from "./clinical_model_paths.ts";

@@ -39,7 +39,7 @@ import type { MarkdownSerializationConfig } from "../../../enhanced/serializatio
 import type { AsciidocSerializationConfig } from "../../../enhanced/serialization/asciidoc/mod.ts";
 
 import { strFromU8, unzipSync } from "fflate";
-import { TemplateWorkspace } from "../../../enhanced/parser/template_workspace.ts";
+import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
 
 // Application state
 let currentInputFormat = "json";
@@ -50,7 +50,7 @@ let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 const AUTO_CONVERT_DEBOUNCE_MS = 350;
 
 /** In-browser template/archetype file set (ADL2 + legacy OPT/OET). */
-const templateWorkspace = new TemplateWorkspace();
+const clinicalWorkspace = new ClinicalModelWorkspace();
 
 // Declare build info injected by esbuild
 declare const __BUILD_INFO__: {
@@ -140,6 +140,7 @@ function setupEventListeners() {
   }
 
   setupTemplateFileUpload();
+  setupTemplateGitHubLoad();
 
   // Input textarea
   const inputTextarea = document.getElementById(
@@ -548,7 +549,7 @@ function setupTemplateFileUpload() {
       target.type === "radio" &&
       target.checked
     ) {
-      templateWorkspace.setGenerationRootPath(target.value);
+      clinicalWorkspace.setGenerationRootPath(target.value);
       updateTemplateFileSetUi();
       handleInputChange("template");
     }
@@ -563,9 +564,9 @@ function setupTemplateFileUpload() {
   });
 
   textarea.addEventListener("input", () => {
-    const path = templateWorkspace.getActivePath();
+    const path = clinicalWorkspace.getActivePath();
     if (path) {
-      templateWorkspace.addFile(path, textarea.value);
+      clinicalWorkspace.updateFileContent(path, textarea.value);
       updateTemplateFileSetUi();
     }
   });
@@ -582,34 +583,32 @@ function setupTemplateFileUpload() {
         const entries = unzipSync(buf);
         const batch: Array<{ path: string; content: string }> = [];
         for (const [entryName, data] of Object.entries(entries)) {
-          const lower = entryName.toLowerCase();
-          if (
-            /\.(opt|oet|adl|adls|xml)$/.test(lower) &&
-            !lower.includes("__macosx")
-          ) {
-            const path = entryName.replace(/\\/g, "/").replace(/^\/+/, "");
-            batch.push({ path, content: strFromU8(data) });
-          }
+          batch.push({
+            path: entryName.replace(/\\/g, "/").replace(/^\/+/, ""),
+            content: strFromU8(data),
+          });
         }
         if (batch.length) {
-          templateWorkspace.addFiles(batch);
-          lastPath = batch[batch.length - 1]?.path;
+          const results = clinicalWorkspace.loadFromZipEntries(batch);
+          if (results.length) {
+            lastPath = results[results.length - 1]?.path;
+          }
         }
         continue;
       }
-      if (/\.(opt|oet|adl|adls|xml)$/.test(name)) {
-        templateWorkspace.addFile(file.name, await file.text());
-        lastPath = file.name;
+      if (/\.(opt|oet|adl|adls|t\.json|xml)$/i.test(name)) {
+        const result = clinicalWorkspace.addFile(file.name, await file.text());
+        lastPath = result.path;
       }
     }
 
-    if (templateWorkspace.listFiles().length) {
-      const root = TemplateWorkspace.suggestGenerationRoot(
-        templateWorkspace.listFiles(),
+    if (clinicalWorkspace.listFiles().length) {
+      const root = ClinicalModelWorkspace.suggestGenerationRoot(
+        clinicalWorkspace.listFiles(),
       );
-      if (root) templateWorkspace.setGenerationRootPath(root);
+      if (root) clinicalWorkspace.setGenerationRootPath(root);
       selectTemplateFileTab(
-        lastPath ?? root ?? templateWorkspace.getActivePath() ?? "",
+        lastPath ?? root ?? clinicalWorkspace.getActivePath() ?? "",
       );
       activateInputTab("template");
       handleInputChange("template");
@@ -618,11 +617,51 @@ function setupTemplateFileUpload() {
   });
 }
 
+function setupTemplateGitHubLoad() {
+  const loadBtn = document.getElementById("load-github-fileset");
+  const specInput = document.getElementById("github-repo-spec") as
+    | HTMLInputElement
+    | null;
+  if (!loadBtn || !specInput) return;
+
+  loadBtn.addEventListener("click", async () => {
+    const spec = specInput.value.trim();
+    if (!spec) {
+      alert("Enter a GitHub spec, e.g. owner/repo@branch:local");
+      return;
+    }
+    loadBtn.setAttribute("disabled", "true");
+    try {
+      const result = await clinicalWorkspace.loadFromGitHub(spec);
+      if (result.warnings.length) {
+        console.warn("GitHub load warnings:", result.warnings);
+      }
+      if (!result.entries.length) {
+        alert("No clinical model files matched in that repo path.");
+        return;
+      }
+      const root = ClinicalModelWorkspace.suggestGenerationRoot(
+        clinicalWorkspace.listFiles(),
+      );
+      if (root) clinicalWorkspace.setGenerationRootPath(root);
+      const active = root ?? result.entries[0]?.path;
+      if (active) selectTemplateFileTab(active);
+      activateInputTab("template");
+      handleInputChange("template");
+      updateTemplateFileSetUi();
+    } catch (e) {
+      alert(`GitHub load failed: ${(e as Error).message}`);
+    } finally {
+      loadBtn.removeAttribute("disabled");
+    }
+  });
+}
+
 function selectTemplateFileTab(path: string) {
   if (!path) return;
   const textarea = document.getElementById('template-input-text') as HTMLTextAreaElement | null;
-  templateWorkspace.setActivePath(path);
-  const file = templateWorkspace.getFile(path);
+  clinicalWorkspace.setActivePath(path);
+  const file = clinicalWorkspace.getFile(path);
   if (textarea && file) textarea.value = file.content;
   updateTemplateFileSetUi();
   handleInputChange('template');
@@ -642,6 +681,9 @@ function fileTabBadgeInfo(
   }
   if (kind === "opt_xml") {
     return { label: "opt", className: "kind-badge kind-badge--model", title: loadResult?.message };
+  }
+  if (kind === "template_json") {
+    return { label: "t.json", className: "kind-badge kind-badge--model", title: loadResult?.message };
   }
   if (kind === "error") {
     return { label: "error", className: "kind-badge kind-badge--error", title: loadResult?.message };
@@ -664,9 +706,9 @@ function updateTemplateFileSetUi() {
   const summary = document.getElementById('template-file-set-summary');
   if (!tabsScroll) return;
 
-  const files = templateWorkspace.listFiles();
-  const active = templateWorkspace.getActivePath();
-  const generationRoot = templateWorkspace.getGenerationRootPath();
+  const files = clinicalWorkspace.listFiles();
+  const active = clinicalWorkspace.getActivePath();
+  const generationRoot = clinicalWorkspace.getGenerationRootPath();
 
   if (fileSetEl) {
     fileSetEl.hidden = files.length === 0;
@@ -712,8 +754,8 @@ function updateTemplateFileSetUi() {
   }
 
   if (summary) {
-    const nArch = templateWorkspace.repository.listIds().length;
-    const nTpl = templateWorkspace.repository.listTemplateIds().length;
+    const nArch = clinicalWorkspace.repository.listIds().length;
+    const nTpl = clinicalWorkspace.repository.listTemplateIds().length;
     const rootLabel = generationRoot ? generationRoot.split('/').pop() : '—';
     summary.textContent = files.length
       ? `${files.length} files · ${nArch} archetypes · ${nTpl} templates · root: ${rootLabel}`
@@ -879,7 +921,7 @@ function clearInput() {
   if (textarea) {
     textarea.value = "";
     if (currentInputTab === "template") {
-      templateWorkspace.clear();
+      clinicalWorkspace.clear();
       updateTemplateFileSetUi();
     }
     handleInputChange(currentInputTab);
@@ -951,7 +993,7 @@ function validateInput() {
   // Simple format validation
   try {
     if (currentInputTab === "template") {
-      const templateValidation = validateTemplateInput(text, templateWorkspace);
+      const templateValidation = validateTemplateInput(text, clinicalWorkspace);
       if (!templateValidation.valid) {
         throw new Error(templateValidation.message);
       }
@@ -1356,7 +1398,7 @@ function gatherConversionOptions(): ConversionOptions {
     asciidocConfig,
     xmlConfig,
     typescriptConfig,
-    templateWorkspace,
+    templateWorkspace: clinicalWorkspace,
   };
 }
 

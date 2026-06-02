@@ -73,6 +73,7 @@ import {
   getOperationalTemplateFromInput,
   parseTemplateInput,
   type TemplateWorkspace,
+  type ClinicalModelWorkspace,
 } from "../../../enhanced/parser/mod.ts";
 import {
   type GenerationMode,
@@ -164,8 +165,8 @@ export interface ConversionOptions {
     includeNamespaces: boolean;
   };
   typescriptConfig: TypeScriptConstructorSerializationConfig;
-  /** Loaded template/archetype file set (ADL2 differential + OPT/OET). */
-  templateWorkspace?: TemplateWorkspace;
+  /** Loaded template/archetype file set (ADL2, OPT/OET, `.t.json`). */
+  templateWorkspace?: TemplateWorkspace | ClinicalModelWorkspace;
 }
 
 /**
@@ -365,7 +366,7 @@ function convertTemplateInput(
 
 export function validateTemplateInput(
   input: string,
-  workspace?: TemplateWorkspace,
+  workspace?: TemplateWorkspace | ClinicalModelWorkspace,
 ): { valid: boolean; message: string } {
   const text = input.trim();
   if (!text && !workspace?.listFiles().length) {
@@ -380,11 +381,14 @@ export function validateTemplateInput(
       const kind = resolved.sourceKind;
       const fileCount = workspace.listFiles().length;
       const archCount = workspace.repository.listIds().length;
-      const root = workspace.getGenerationRootPath()?.split("/").pop() ?? "?";
+      const rootPath = workspace.getGenerationRootPath();
+      const root = rootPath?.split("/").pop() ?? "?";
+      const rootFile = rootPath ? workspace.getFile(rootPath) : undefined;
+      const fmt = formatLabelForLoadKind(rootFile?.loadResult?.kind, kind);
       return {
         valid: true,
         message:
-          `Valid ${kind}: ${id} (root: ${root}, ${fileCount} files, ${archCount} archetypes)`,
+          `Valid ${fmt}: ${id} (root: ${root}, ${fileCount} files, ${archCount} archetypes)`,
       };
     }
 
@@ -394,7 +398,7 @@ export function validateTemplateInput(
     if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
       const id = parsed.operationalTemplate.archetype_id?.value ??
         "operational template";
-      const fmt = parsed.format === "opt_xml" ? "OPT XML" : "ADL";
+      const fmt = formatLabelForFormat(parsed.format);
       return { valid: true, message: `Valid ${fmt}: ${id}` };
     }
     if (parsed.kind === "oet_document" && parsed.oet) {
@@ -403,9 +407,10 @@ export function validateTemplateInput(
       return { valid: true, message: `Valid OET (needs archetypes): ${id}` };
     }
     if (parsed.kind === "template") {
+      const fmt = formatLabelForFormat(parsed.format);
       return {
         valid: true,
-        message: "Valid ADL template (flatten to operational for instances)",
+        message: `Valid ${fmt} (flatten to operational for instances)`,
       };
     }
     return {

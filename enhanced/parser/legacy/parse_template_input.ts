@@ -7,6 +7,7 @@ import { detectAdlVersion } from "../adl_version.ts";
 import { isOptXml, parseOptXml } from "./opt_xml_parser.ts";
 import { isOetXml, parseOetXml, type OetParseResult } from "./oet_xml_parser.ts";
 import { compileOetToOperational } from "./oet_compiler.ts";
+import { isTemplateJson, parseTemplateJson } from "./template_json_parser.ts";
 import { flattenToOperationalTemplate } from "../../am/flattening/template_flattener.ts";
 import * as openehr_am from "../../openehr_am.ts";
 
@@ -15,6 +16,7 @@ export type TemplateInputFormat =
   | "adl2"
   | "opt_xml"
   | "oet_xml"
+  | "template_json"
   | "unknown";
 
 export interface ParseTemplateInputOptions {
@@ -35,6 +37,7 @@ export interface ParseTemplateInputResult {
 export function detectTemplateInputFormat(source: string): TemplateInputFormat {
   const t = source.trim();
   if (!t) return "unknown";
+  if (isTemplateJson(t)) return "template_json";
   if (isOetXml(t)) return "oet_xml";
   if (isOptXml(t)) return "opt_xml";
   if (t.startsWith("operational_template") || t.startsWith("template") ||
@@ -107,6 +110,37 @@ export function parseTemplateInput(
       template: oet.template,
       oet,
       warnings: oet.warnings,
+    };
+  }
+
+  if (format === "template_json") {
+    const { template, overlays, warnings: w } = parseTemplateJson(source);
+    warnings.push(...w);
+    if (options?.archetypeRepository) {
+      for (const overlay of overlays) {
+        options.archetypeRepository.add(overlay);
+      }
+      try {
+        const operationalTemplate = flattenToOperationalTemplate(
+          template,
+          options.archetypeRepository,
+        );
+        return {
+          format,
+          kind: "operational_template",
+          operationalTemplate,
+          template,
+          warnings,
+        };
+      } catch (e) {
+        warnings.push(`Flatten failed: ${(e as Error).message}`);
+      }
+    }
+    return {
+      format,
+      kind: "template",
+      template,
+      warnings,
     };
   }
 

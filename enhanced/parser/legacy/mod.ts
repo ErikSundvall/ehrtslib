@@ -26,3 +26,9 @@ export {
   type OetCompileOptions,
   type OetCompileResult,
 } from "./oet_compiler.ts";
+export {
+  isTemplateJson,
+  parseTemplateJson,
+  type TemplateJsonParseResult,
+} from "./template_json_parser.ts";
+export { normalizeBetterTemplateJson } from "./template_json_normalize.ts";

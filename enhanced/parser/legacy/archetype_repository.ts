@@ -6,6 +6,7 @@ import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
 import { flattenToOperationalTemplate, type ArchetypeResolver } from "../../am/flattening/template_flattener.ts";
 import { isOptXml } from "./opt_xml_parser.ts";
 import { isOetXml } from "./oet_xml_parser.ts";
+import { isTemplateJson, parseTemplateJson } from "./template_json_parser.ts";
 import * as openehr_am from "../../openehr_am.ts";
 
 export interface ArchetypeRepositoryOptions {
@@ -19,6 +20,7 @@ export type RepositoryFileKind =
   | "operational_template"
   | "oet_xml"
   | "opt_xml"
+  | "template_json"
   | "skipped"
   | "error";
 
@@ -94,7 +96,7 @@ export class ArchetypeRepository implements ArchetypeResolver {
         await this.loadDirectory(path);
         continue;
       }
-      if (!/\.(adl|adls|opt|oet|xml)$/i.test(entry.name)) continue;
+      if (!/\.(adl|adls|opt|oet|t\.json|xml)$/i.test(entry.name)) continue;
       try {
         const text = await Deno.readTextFile(path);
         this.loadFile(path, text);
@@ -110,6 +112,10 @@ export class ArchetypeRepository implements ArchetypeResolver {
       const trimmed = text.trim();
       if (!trimmed) {
         return { path, kind: "skipped", message: "empty file" };
+      }
+
+      if (trimmed.startsWith("{") && (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))) {
+        return this.ingestTemplateJson(path, trimmed);
       }
 
       if (trimmed.startsWith("<?xml") || trimmed.startsWith("<")) {
@@ -137,6 +143,21 @@ export class ArchetypeRepository implements ArchetypeResolver {
       this.warnings.push(`Failed ${path}: ${message}`);
       return { path, kind: "error", message };
     }
+  }
+
+  private ingestTemplateJson(path: string, text: string): LoadFileResult {
+    const { template, overlays, warnings } = parseTemplateJson(text);
+    for (const overlay of overlays) {
+      this.add(overlay);
+    }
+    const id = template.archetype_id?.value ?? path;
+    this.templates.set(id, template);
+    const base = id.replace(/\.v[\d.]+$/, "");
+    if (!this.templates.has(base)) this.templates.set(base, template);
+    for (const w of warnings) {
+      this.warnings.push(`${path}: ${w}`);
+    }
+    return { path, kind: "template_json", archetypeId: id };
   }
 
   private ingestParseResult(path: string, parsed: ParseAdlResult): LoadFileResult {

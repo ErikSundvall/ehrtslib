@@ -459,6 +459,26 @@ body {
     border-bottom: 1px solid var(--border-light);
 }
 
+.template-file-set-sources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.github-repo-spec-input {
+    min-width: 12rem;
+    max-width: 22rem;
+    flex: 1 1 12rem;
+    font-size: 0.75rem;
+    font-family: var(--font-mono, monospace);
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
 .template-file-set-header {
     display: flex;
     flex-wrap: wrap;

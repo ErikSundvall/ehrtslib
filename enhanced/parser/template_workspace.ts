@@ -37,6 +37,7 @@ export function canBeGenerationRoot(
   const kind = loadResult?.kind;
   return kind === "template" ||
     kind === "operational_template" ||
+    kind === "template_json" ||
     kind === "oet_xml" ||
     kind === "opt_xml";
 }
@@ -115,14 +116,14 @@ export class TemplateWorkspace {
     for (const f of files) {
       const k = f.loadResult?.kind;
       if (
-        k === "template" || k === "operational_template" || k === "oet_xml" ||
-        k === "opt_xml"
+        k === "template" || k === "operational_template" || k === "template_json" ||
+        k === "oet_xml" || k === "opt_xml"
       ) {
         return f.path;
       }
     }
     for (const f of files) {
-      if (/\.opt$/i.test(f.path) || /\.oet$/i.test(f.path)) return f.path;
+      if (/\.(opt|oet|t\.json)$/i.test(f.path)) return f.path;
     }
     return files[0]?.path;
   }
@@ -222,6 +223,21 @@ export class TemplateWorkspace {
         sourceKind: "opt_xml",
         warnings,
       };
+    }
+
+    if (file.loadResult?.kind === "template_json" && file.loadResult.archetypeId) {
+      const tmpl = this.repository.getTemplate(file.loadResult.archetypeId);
+      if (tmpl) {
+        return {
+          operationalTemplate: flattenToOperationalTemplate(
+            tmpl,
+            this.repository,
+          ),
+          sourcePath: path,
+          sourceKind: "adl2_template",
+          warnings,
+        };
+      }
     }
 
     if (isOetXmlContent(trimmed)) {

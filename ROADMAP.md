@@ -92,6 +92,11 @@ Create library functionality and make sure the demo tool also allows convertion 
 
 Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
 
+## Phase 7d Better `.t.json` + GitHub file sets — done
+- `parseTemplateJson` / `template_json` repository kind (Archetype Designer JSON AOM)
+- `ClinicalModelWorkspace`: export/update API, ZIP + read-only GitHub branch load
+- Demo: `.t.json` in ZIP upload, GitHub spec field (`owner/repo@branch:path`)
+
 ## Phase 7c Refining UI + debugging OPT — done
 - File-set hint moved to info icon + tooltip (`examples/demo-app`)
 - Template (schema) editor has Disable Line Wrap

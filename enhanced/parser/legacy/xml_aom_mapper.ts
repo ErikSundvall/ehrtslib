@@ -24,7 +24,8 @@ export function parseLegacyTemplateXml(xml: string): Record<string, unknown> {
     },
   });
   const doc = parser.parse(xml) as Record<string, unknown>;
-  const root = doc.template ?? doc.OPERATIONALTEMPLATE ?? doc.operationaltemplate;
+  const root = doc.template ?? doc.OPERATIONALTEMPLATE ??
+    doc.operationaltemplate;
   if (!root || typeof root !== "object") {
     throw new Error("Expected root <template> element");
   }
@@ -52,7 +53,9 @@ export function xsiType(node: Record<string, unknown>): string {
   return String(t).replace(/^.*:/, "");
 }
 
-export function parseMultiplicity(node: unknown): openehr_base.Multiplicity_interval | undefined {
+export function parseMultiplicity(
+  node: unknown,
+): openehr_base.Multiplicity_interval | undefined {
   if (!node || typeof node !== "object") return undefined;
   const n = node as Record<string, unknown>;
   const interval = (n.interval ?? n) as Record<string, unknown>;
@@ -78,7 +81,9 @@ export function parseMultiplicity(node: unknown): openehr_base.Multiplicity_inte
   return m;
 }
 
-export function parseCardinality(node: unknown): openehr_am.CARDINALITY | undefined {
+export function parseCardinality(
+  node: unknown,
+): openehr_am.CARDINALITY | undefined {
   if (!node || typeof node !== "object") return undefined;
   const n = node as Record<string, unknown>;
   const card = new openehr_am.CARDINALITY();
@@ -124,7 +129,8 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
     throw new Error("Invalid C_OBJECT node");
   }
   const n = node as Record<string, unknown>;
-  const type = xsiType(n) || String(n.rm_type_name ?? "C_COMPLEX_OBJECT");
+  const type = (xsiType(n) || amFieldString(n, "rm_type_name", "rmTypeName")) ??
+    "C_COMPLEX_OBJECT";
 
   if (type === "C_ARCHETYPE_ROOT") {
     return parseCArchetypeRoot(n);
@@ -147,30 +153,76 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   return fallback;
 }
 
-function applyOccurrence(
-  target: { occurrences?: openehr_base.Multiplicity_interval; rm_type_name?: string; node_id?: string },
-  n: Record<string, unknown>,
-): void {
-  if (n.rm_type_name) target.rm_type_name = String(n.rm_type_name);
-  const nodeId = n.node_id;
-  if (nodeId !== undefined && String(nodeId).trim() !== "") {
-    target.node_id = String(nodeId);
+export function parseOccurrencesOrMultiplicity(
+  val: unknown,
+): openehr_base.Multiplicity_interval | undefined {
+  if (typeof val === "string") {
+    const s = val.trim();
+    const star = s.match(/^(\d+|\*)\.\.(\d+|\*)$/);
+    if (star) {
+      const m = new openehr_base.Multiplicity_interval();
+      const lo = star[1];
+      const hi = star[2];
+      if (lo === "*") m.lower_unbounded = true;
+      else m.lower = Number(lo);
+      if (hi === "*") m.upper_unbounded = true;
+      else m.upper = Number(hi);
+      return m;
+    }
   }
-  target.occurrences = parseMultiplicity(n.occurrences);
+  return parseMultiplicity(val);
 }
 
-function parseCComplexObject(n: Record<string, unknown>): openehr_am.C_COMPLEX_OBJECT {
+function amFieldString(
+  n: Record<string, unknown>,
+  ...keys: string[]
+): string | undefined {
+  for (const k of keys) {
+    const v = n[k];
+    if (v !== undefined && v !== null && String(v).trim() !== "") {
+      return String(v);
+    }
+  }
+  return undefined;
+}
+
+function applyOccurrence(
+  target: {
+    occurrences?: openehr_base.Multiplicity_interval;
+    rm_type_name?: string;
+    node_id?: string;
+  },
+  n: Record<string, unknown>,
+): void {
+  const rm = amFieldString(n, "rm_type_name", "rmTypeName");
+  if (rm) target.rm_type_name = rm;
+  const nodeId = amFieldString(n, "node_id", "nodeId");
+  if (nodeId) target.node_id = nodeId;
+  target.occurrences = parseOccurrencesOrMultiplicity(n.occurrences);
+}
+
+function parseCComplexObject(
+  n: Record<string, unknown>,
+): openehr_am.C_COMPLEX_OBJECT {
   const obj = new openehr_am.C_COMPLEX_OBJECT();
   applyOccurrence(obj, n);
-  obj.attributes = asArray(n.attributes).map(parseAttribute).filter(Boolean) as openehr_am.C_ATTRIBUTE[];
+  obj.attributes = asArray(n.attributes).map(parseAttribute).filter(
+    Boolean,
+  ) as openehr_am.C_ATTRIBUTE[];
   return obj;
 }
 
-function parseCArchetypeRoot(n: Record<string, unknown>): openehr_am.C_ARCHETYPE_ROOT {
+function parseCArchetypeRoot(
+  n: Record<string, unknown>,
+): openehr_am.C_ARCHETYPE_ROOT {
   const root = new openehr_am.C_ARCHETYPE_ROOT();
   applyOccurrence(root, n);
-  root.archetype_ref = textValue(n.archetype_id) ?? textValue(n.archetype_ref);
-  root.attributes = asArray(n.attributes).map(parseAttribute).filter(Boolean) as openehr_am.C_ATTRIBUTE[];
+  root.archetype_ref = textValue(n.archetype_id) ??
+    textValue(n.archetype_ref) ??
+    textValue(n.archetypeRef);
+  root.attributes = asArray(n.attributes).map(parseAttribute).filter(
+    Boolean,
+  ) as openehr_am.C_ATTRIBUTE[];
   return root;
 }
 
@@ -182,9 +234,10 @@ export function parseAttribute(node: unknown): openehr_am.C_ATTRIBUTE | null {
     ? new openehr_am.C_MULTIPLE_ATTRIBUTE()
     : new openehr_am.C_SINGLE_ATTRIBUTE();
 
-  attr.rm_attribute_name = String(n.rm_attribute_name ?? "");
+  attr.rm_attribute_name =
+    amFieldString(n, "rm_attribute_name", "rmAttributeName") ?? "";
   (attr as { existence?: openehr_base.Multiplicity_interval }).existence =
-    parseMultiplicity(n.existence);
+    parseOccurrencesOrMultiplicity(n.existence);
 
   if (attr instanceof openehr_am.C_MULTIPLE_ATTRIBUTE) {
     attr.cardinality = parseCardinality(n.cardinality);
@@ -200,42 +253,90 @@ export function parseAttribute(node: unknown): openehr_am.C_ATTRIBUTE | null {
 function parseCString(n: Record<string, unknown>): openehr_am.C_STRING {
   const s = new openehr_am.C_STRING();
   applyOccurrence(s, n);
+  if (!s.rm_type_name) s.rm_type_name = "STRING";
   if (n.pattern) s.pattern = String(n.pattern);
-  const lists = asArray(n.list).map((x) => String((x as Record<string, unknown>).value ?? x));
+  const lists = asArray(n.list).map((x) =>
+    String((x as Record<string, unknown>).value ?? x)
+  );
   if (lists.length) (s as { list?: string[] }).list = lists;
   return s;
+}
+
+function constraintToRange(
+  n: Record<string, unknown>,
+): openehr_base.Multiplicity_interval | undefined {
+  const direct = parseOccurrencesOrMultiplicity(n.range);
+  if (direct) return direct;
+  const constraints = asArray(n.constraint);
+  if (!constraints.length) return undefined;
+  const first = constraints[0];
+  if (first && typeof first === "object") {
+    return parseOccurrencesOrMultiplicity(first);
+  }
+  return undefined;
 }
 
 function parseCInteger(n: Record<string, unknown>): openehr_am.C_INTEGER {
   const i = new openehr_am.C_INTEGER();
   applyOccurrence(i, n);
-  i.range = parseMultiplicity(n.range);
+  if (!i.rm_type_name) i.rm_type_name = "INTEGER";
+  i.range = constraintToRange(n);
   return i;
 }
 
 function parseCReal(n: Record<string, unknown>): openehr_am.C_REAL {
   const r = new openehr_am.C_REAL();
   applyOccurrence(r, n);
-  r.range = parseMultiplicity(n.range);
+  if (!r.rm_type_name) r.rm_type_name = "REAL";
+  r.range = constraintToRange(n);
   return r;
 }
 
 function parseCBoolean(n: Record<string, unknown>): openehr_am.C_BOOLEAN {
   const b = new openehr_am.C_BOOLEAN();
   applyOccurrence(b, n);
-  if (n.true_valid !== undefined) b.true_valid = n.true_valid === true || n.true_valid === "true";
+  if (n.true_valid !== undefined) {
+    b.true_valid = n.true_valid === true || n.true_valid === "true";
+  }
   if (n.false_valid !== undefined) {
     b.false_valid = n.false_valid === true || n.false_valid === "true";
   }
   return b;
 }
 
-function parseCTerminologyCode(n: Record<string, unknown>): openehr_am.C_TERMINOLOGY_CODE {
+function parseCTerminologyCode(
+  n: Record<string, unknown>,
+): openehr_am.C_TERMINOLOGY_CODE {
   const t = new openehr_am.C_TERMINOLOGY_CODE();
   applyOccurrence(t, n);
   t.rm_type_name = "CODE_PHRASE";
-  const codes = asArray(n.code_list).map(String);
+
+  const tid = n.terminology_id ?? n.terminologyId;
+  if (typeof tid === "string") {
+    (t as { terminology_id?: string }).terminology_id = tid;
+  } else if (tid && typeof tid === "object") {
+    const v = textValue(tid as Record<string, unknown>);
+    if (v) (t as { terminology_id?: string }).terminology_id = v;
+  }
+
+  const fromList = asArray(n.code_list).map(String);
+  const fromConstraint = asArray(n.constraint).filter((x) =>
+    typeof x === "string"
+  ).map(String);
+  const codes = fromList.length ? fromList : fromConstraint;
   if (codes.length === 1) t.constraint = codes[0];
+
+  if (!t.constraint) {
+    const ext = asArray(n.includedExternalTerminologyCodes);
+    for (const entry of ext) {
+      if (!entry || typeof entry !== "object") continue;
+      const code = (entry as Record<string, unknown>).code;
+      if (code !== undefined) {
+        t.constraint = String(code);
+        break;
+      }
+    }
+  }
   return t;
 }
 
