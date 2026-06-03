@@ -15128,15 +15128,15 @@ function replaceAtAomPath(root2, path, replacement) {
 }
 
 // enhanced/parser/legacy/oet_compiler.ts
-function multiplicityFromMaxMin(max2, min2) {
+function multiplicityFromMaxMin(max3, min3) {
   const m2 = new Multiplicity_interval();
-  m2.lower = min2 ?? 0;
-  m2.upper = max2 ?? 1;
+  m2.lower = min3 ?? 0;
+  m2.upper = max3 ?? 1;
   m2.lower_included = true;
   m2.upper_included = true;
   m2.lower_unbounded = false;
-  m2.upper_unbounded = max2 === void 0 || max2 < 0;
-  if (max2 === 0) {
+  m2.upper_unbounded = max3 === void 0 || max3 < 0;
+  if (max3 === 0) {
     m2.upper = 0;
     m2.lower = 0;
   }
@@ -16618,6 +16618,21 @@ function resolveAnnotatedResource(repository, loadResult) {
 
 // examples/taaat-app/src/palette.ts
 var PALETTE_STORAGE_KEY = "ehrtslib-taaat-palette-v1";
+function createPaletteEntry(key, value) {
+  return {
+    id: crypto.randomUUID(),
+    key: key.trim(),
+    value: value?.trim() || void 0
+  };
+}
+function ensurePaletteIds(entries) {
+  return entries.map((e2) => ({
+    ...e2,
+    id: e2.id?.trim() || crypto.randomUUID(),
+    key: e2.key.trim(),
+    value: e2.value?.trim() || void 0
+  })).filter((e2) => e2.key.length > 0);
+}
 function loadPalette(storage = localStorage) {
   try {
     const raw = storage.getItem(PALETTE_STORAGE_KEY);
@@ -16626,27 +16641,30 @@ function loadPalette(storage = localStorage) {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed))
       return defaultPalette();
-    return parsed.filter(
+    const entries = parsed.filter(
       (e2) => typeof e2 === "object" && e2 !== null && typeof e2.key === "string"
     ).map((e2) => ({
-      key: e2.key.trim(),
-      value: e2.value?.trim() || void 0
-    })).filter((e2) => e2.key.length > 0);
+      id: typeof e2.id === "string" ? e2.id : "",
+      key: String(e2.key).trim(),
+      value: e2.value != null ? String(e2.value).trim() : void 0
+    }));
+    const withIds = ensurePaletteIds(entries);
+    return withIds.length ? withIds : defaultPalette();
   } catch {
     return defaultPalette();
   }
 }
 function savePalette(entries, storage = localStorage) {
-  storage.setItem(PALETTE_STORAGE_KEY, JSON.stringify(entries));
+  storage.setItem(PALETTE_STORAGE_KEY, JSON.stringify(ensurePaletteIds(entries)));
 }
 function defaultPalette() {
-  return [
-    { key: "comment" },
-    { key: "design note" },
-    { key: "requirements note" },
-    { key: "ui", value: "passthrough" },
-    { key: "medline ref" }
-  ];
+  return ensurePaletteIds([
+    { id: "", key: "comment" },
+    { id: "", key: "design note" },
+    { id: "", key: "requirements note" },
+    { id: "", key: "ui", value: "passthrough" },
+    { id: "", key: "medline ref" }
+  ]);
 }
 function parsePaletteJson(text) {
   const parsed = JSON.parse(text);
@@ -16656,15 +16674,57 @@ function parsePaletteJson(text) {
   const entries = parsed.filter(
     (e2) => typeof e2 === "object" && e2 !== null && typeof e2.key === "string"
   ).map((e2) => ({
+    id: typeof e2.id === "string" ? e2.id : "",
     key: String(e2.key).trim(),
     value: e2.value != null ? String(e2.value).trim() : void 0
-  })).filter((e2) => e2.key.length > 0);
-  if (!entries.length)
+  }));
+  const withIds = ensurePaletteIds(entries);
+  if (!withIds.length)
     throw new Error("No valid palette entries");
-  return entries;
+  return withIds;
 }
 function exportPaletteJson(entries) {
-  return JSON.stringify(entries, null, 2);
+  return JSON.stringify(ensurePaletteIds(entries), null, 2);
+}
+
+// ../home/ubuntu/.cache/deno/deno_esbuild/d3-array@3.2.4/node_modules/d3-array/src/max.js
+function max(values, valueof) {
+  let max3;
+  if (valueof === void 0) {
+    for (const value of values) {
+      if (value != null && (max3 < value || max3 === void 0 && value >= value)) {
+        max3 = value;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (max3 < value || max3 === void 0 && value >= value)) {
+        max3 = value;
+      }
+    }
+  }
+  return max3;
+}
+
+// ../home/ubuntu/.cache/deno/deno_esbuild/d3-array@3.2.4/node_modules/d3-array/src/min.js
+function min(values, valueof) {
+  let min3;
+  if (valueof === void 0) {
+    for (const value of values) {
+      if (value != null && (min3 > value || min3 === void 0 && value >= value)) {
+        min3 = value;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (min3 > value || min3 === void 0 && value >= value)) {
+        min3 = value;
+      }
+    }
+  }
+  return min3;
 }
 
 // ../home/ubuntu/.cache/deno/deno_esbuild/d3-dispatch@3.0.1/node_modules/d3-dispatch/src/dispatch.js
@@ -17886,15 +17946,15 @@ function hslConvert(o2) {
   if (o2 instanceof Hsl)
     return o2;
   o2 = o2.rgb();
-  var r2 = o2.r / 255, g2 = o2.g / 255, b2 = o2.b / 255, min2 = Math.min(r2, g2, b2), max2 = Math.max(r2, g2, b2), h2 = NaN, s2 = max2 - min2, l2 = (max2 + min2) / 2;
+  var r2 = o2.r / 255, g2 = o2.g / 255, b2 = o2.b / 255, min3 = Math.min(r2, g2, b2), max3 = Math.max(r2, g2, b2), h2 = NaN, s2 = max3 - min3, l2 = (max3 + min3) / 2;
   if (s2) {
-    if (r2 === max2)
+    if (r2 === max3)
       h2 = (g2 - b2) / s2 + (g2 < b2) * 6;
-    else if (g2 === max2)
+    else if (g2 === max3)
       h2 = (b2 - r2) / s2 + 2;
     else
       h2 = (r2 - g2) / s2 + 4;
-    s2 /= l2 < 0.5 ? max2 + min2 : 2 - max2 - min2;
+    s2 /= l2 < 0.5 ? max3 + min3 : 2 - max3 - min3;
     h2 *= 60;
   } else {
     s2 = l2 > 0 && l2 < 1 ? 0 : h2;
@@ -19061,7 +19121,7 @@ selection_default.prototype.interrupt = interrupt_default2;
 selection_default.prototype.transition = transition_default2;
 
 // ../home/ubuntu/.cache/deno/deno_esbuild/d3-brush@3.0.0/node_modules/d3-brush/src/brush.js
-var { abs, max, min } = Math;
+var { abs, max: max2, min: min2 } = Math;
 function number1(e2) {
   return [+e2[0], +e2[1]];
 }
@@ -19534,23 +19594,36 @@ function transform(node) {
 }
 
 // examples/taaat-app/src/tree-view.ts
+var NODE_SIZE = [10, 42];
+var MARGIN = { top: 4, right: 8, bottom: 4, left: 4 };
+var LABEL_MAX_CHARS = 28;
+var CIRCLE_R = 2.5;
+function truncateLabelEnd(label, maxLen) {
+  if (maxLen < 4 || label.length <= maxLen)
+    return label;
+  return "\u2026" + label.slice(-(maxLen - 1));
+}
+function formatNodeLabel(label, annotationKeyCount, maxLen = LABEL_MAX_CHARS) {
+  const suffix = annotationKeyCount > 0 ? ` (${annotationKeyCount})` : "";
+  const room = Math.max(4, maxLen - suffix.length);
+  return truncateLabelEnd(label, room) + suffix;
+}
 var DefinitionTreeView = class {
   svg;
   g;
   root;
   options;
-  width = 400;
-  height = 400;
+  viewWidth = 400;
+  viewHeight = 400;
   constructor(options) {
     this.options = options;
     this.svg = select_default2(options.container).append("svg").attr("class", "definition-tree-svg");
-    this.g = this.svg.append("g").attr("transform", "translate(8,12)");
+    this.g = this.svg.append("g");
   }
   resize() {
     const rect = this.options.container.getBoundingClientRect();
-    this.width = Math.max(200, rect.width - 16);
-    this.height = Math.max(200, rect.height - 24);
-    this.svg.attr("width", this.width).attr("height", this.height);
+    this.viewWidth = Math.max(200, rect.width);
+    this.viewHeight = Math.max(200, rect.height);
     if (this.root)
       this.render();
   }
@@ -19567,15 +19640,26 @@ var DefinitionTreeView = class {
     this.options.container.querySelector(".tree-empty")?.remove();
     this.svg.style("display", null);
     const hierarchy2 = hierarchy(tree, (d2) => d2.children);
-    hierarchy2.x0 = 0;
-    hierarchy2.y0 = 0;
     this.root = hierarchy2;
-    this.root.x0 = this.height / 2;
+    this.root.x0 = 0;
     this.root.y0 = 0;
     if (this.root.children) {
-      this.root.children.forEach((c2) => this.collapse(c2));
+      this.root.children.forEach((c2) => {
+        this.collapseBelowDepth(c2, 1);
+      });
     }
     this.resize();
+  }
+  collapseBelowDepth(d2, depth) {
+    if (!d2.children)
+      return;
+    if (depth <= 0) {
+      d2._children = d2.children;
+      d2._children.forEach((c2) => this.collapseBelowDepth(c2, 0));
+      d2.children = void 0;
+      return;
+    }
+    d2.children.forEach((c2) => this.collapseBelowDepth(c2, depth - 1));
   }
   collapse(d2) {
     if (d2.children) {
@@ -19597,47 +19681,45 @@ var DefinitionTreeView = class {
     event.stopPropagation();
   }
   render() {
-    const duration = 200;
-    const treeLayout = tree_default().size([
-      this.height - 40,
-      this.width - 120
-    ]);
+    const duration = 150;
+    const treeLayout = tree_default().nodeSize(NODE_SIZE);
     const root2 = this.root;
     treeLayout(root2);
     const nodes = root2.descendants();
     const links = root2.links();
-    const node = this.g.selectAll("g.node").data(nodes, (d2) => d2.data.id);
-    const nodeEnter = node.enter().append("g").attr("class", (d2) => {
-      const classes = ["node"];
-      if (d2.data.hasAnnotations)
-        classes.push("has-annotations");
-      if (d2.data.path === this.options.selectedPath)
-        classes.push("selected");
-      return classes.join(" ");
-    }).attr("transform", (d2) => `translate(${d2.y},${d2.x})`).on("click", (event, d2) => this.click(event, d2));
-    nodeEnter.append("circle").attr("r", 4).attr("class", (d2) => d2.data.hasAnnotations ? "annotated" : "");
-    nodeEnter.append("text").attr("dy", "0.32em").attr("x", (d2) => d2.children || d2._children ? -8 : 8).attr("text-anchor", (d2) => d2.children || d2._children ? "end" : "start").text((d2) => {
-      const suffix = d2.data.annotationKeyCount > 0 ? ` (${d2.data.annotationKeyCount})` : "";
-      const short = d2.data.label.length > 36 ? d2.data.label.slice(0, 34) + "\u2026" : d2.data.label;
-      return short + suffix;
-    });
+    const x0 = min(nodes, (d2) => d2.x) ?? 0;
+    const x1 = max(nodes, (d2) => d2.x) ?? 0;
+    const y1 = max(nodes, (d2) => d2.y) ?? 0;
+    const innerHeight = x1 - x0 + NODE_SIZE[0] * 2;
+    const innerWidth = y1 + NODE_SIZE[1] + 100;
+    const svgWidth = Math.max(this.viewWidth, innerWidth + MARGIN.left + MARGIN.right);
+    const svgHeight = Math.max(this.viewHeight, innerHeight + MARGIN.top + MARGIN.bottom);
+    this.svg.attr("width", svgWidth).attr("height", svgHeight);
+    const offsetX = MARGIN.top - x0 + NODE_SIZE[0];
+    this.g.attr("transform", `translate(${MARGIN.left},${offsetX})`);
+    const node = this.g.selectAll("g.node").data(nodes, (d2) => d2.data.id + (d2.depth ?? 0));
+    const nodeEnter = node.enter().append("g").attr("class", (d2) => this.nodeClass(d2)).attr("transform", (d2) => `translate(${d2.y},${d2.x})`).on("click", (event, d2) => this.click(event, d2));
+    nodeEnter.append("circle").attr("r", CIRCLE_R).attr("class", (d2) => d2.data.hasAnnotations ? "annotated" : "");
+    nodeEnter.append("text").attr("dy", "0.32em").attr("x", (d2) => d2.children || d2._children ? -5 : 5).attr("text-anchor", (d2) => d2.children || d2._children ? "end" : "start").text((d2) => formatNodeLabel(d2.data.label, d2.data.annotationKeyCount));
     const nodeUpdate = nodeEnter.merge(node);
-    nodeUpdate.attr("class", (d2) => {
-      const classes = ["node"];
-      if (d2.data.hasAnnotations)
-        classes.push("has-annotations");
-      if (d2.data.path === this.options.selectedPath)
-        classes.push("selected");
-      return classes.join(" ");
-    }).transition().duration(duration).attr("transform", (d2) => `translate(${d2.y},${d2.x})`);
+    nodeUpdate.attr("class", (d2) => this.nodeClass(d2)).transition().duration(duration).attr("transform", (d2) => `translate(${d2.y},${d2.x})`);
+    nodeUpdate.select("text").text((d2) => formatNodeLabel(d2.data.label, d2.data.annotationKeyCount));
     node.exit().remove();
-    const link = this.g.selectAll("path.link").data(links, (d2) => d2.target.data.id);
+    const link = this.g.selectAll("path.link").data(links, (d2) => d2.target.data.id + String(d2.target.depth));
     const linkEnter = link.enter().insert("path", "g").attr("class", "link").attr("d", () => {
-      const o2 = { x: root2.x0, y: root2.y0 };
+      const o2 = { x: root2.x0 ?? 0, y: root2.y0 ?? 0 };
       return this.diagonal(o2, o2);
     });
     linkEnter.merge(link).transition().duration(duration).attr("d", (d2) => this.diagonal(d2.source, d2.target));
     link.exit().remove();
+  }
+  nodeClass(d2) {
+    const classes = ["node"];
+    if (d2.data.hasAnnotations)
+      classes.push("has-annotations");
+    if (d2.data.path === this.options.selectedPath)
+      classes.push("selected");
+    return classes.join(" ");
   }
   setSelectedPath(path) {
     this.options.selectedPath = path;
@@ -19848,7 +19930,7 @@ function refreshPaletteUi() {
       refreshAnnotationEditor();
     });
     li2.querySelector(".palette-remove")?.addEventListener("click", () => {
-      palette = palette.filter((p2) => p2.key !== entry.key);
+      palette = palette.filter((p2) => p2.id !== entry.id);
       savePalette(palette);
       refreshPaletteUi();
     });
@@ -19948,11 +20030,9 @@ function setupPaletteActions() {
       alert("Enter an annotation key.");
       return;
     }
-    if (!palette.some((p2) => p2.key === key)) {
-      palette.push({ key, value: value || void 0 });
-      savePalette(palette);
-      refreshPaletteUi();
-    }
+    palette.push(createPaletteEntry(key, value || void 0));
+    savePalette(palette);
+    refreshPaletteUi();
     const keyInp = $2("palette-key");
     const valInp = $2("palette-value");
     if (keyInp)

@@ -15,6 +15,7 @@ import {
   type DefinitionTreeNode,
 } from "../../../enhanced/parser/clinical_model_annotations.ts";
 import {
+  createPaletteEntry,
   exportPaletteJson,
   loadPalette,
   parsePaletteJson,
@@ -227,7 +228,7 @@ function refreshPaletteUi(): void {
       refreshAnnotationEditor();
     });
     li.querySelector(".palette-remove")?.addEventListener("click", () => {
-      palette = palette.filter((p) => p.key !== entry.key);
+      palette = palette.filter((p) => p.id !== entry.id);
       savePalette(palette);
       refreshPaletteUi();
     });
@@ -338,11 +339,9 @@ function setupPaletteActions(): void {
       alert("Enter an annotation key.");
       return;
     }
-    if (!palette.some((p) => p.key === key)) {
-      palette.push({ key, value: value || undefined });
-      savePalette(palette);
-      refreshPaletteUi();
-    }
+    palette.push(createPaletteEntry(key, value || undefined));
+    savePalette(palette);
+    refreshPaletteUi();
     const keyInp = $("palette-key") as HTMLInputElement | null;
     const valInp = $("palette-value") as HTMLInputElement | null;
     if (keyInp) keyInp.value = "";

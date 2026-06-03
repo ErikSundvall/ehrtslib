@@ -128,7 +128,7 @@ body {
 .workspace {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(240px, 32%) 1fr minmax(200px, 22%);
+  grid-template-columns: minmax(300px, 40%) 1fr minmax(200px, 20%);
   gap: 0;
   min-height: 0;
   overflow: hidden;
@@ -173,7 +173,8 @@ body {
 
 .definition-tree-svg {
   display: block;
-  font-size: 11px;
+  font-size: 9px;
+  min-width: 100%;
 }
 
 .definition-tree-svg .link {
@@ -184,13 +185,13 @@ body {
 
 .definition-tree-svg .node text {
   font-family: ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .definition-tree-svg .node circle {
   fill: #94a3b8;
   stroke: #64748b;
-  stroke-width: 1px;
+  stroke-width: 0.75px;
 }
 
 .definition-tree-svg .node.has-annotations circle,
