@@ -1,4 +1,7 @@
-import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
 import * as openehr_am from "../../enhanced/openehr_am.ts";
 import { RMInstanceGenerator } from "../../enhanced/generation/mod.ts";
 
@@ -22,6 +25,18 @@ function createOperationalTemplate(): openehr_am.OPERATIONAL_TEMPLATE {
   const element = new openehr_am.C_COMPLEX_OBJECT();
   element.rm_type_name = "ELEMENT";
   element.node_id = "id3";
+  const valueAttr = new openehr_am.C_SINGLE_ATTRIBUTE();
+  valueAttr.rm_attribute_name = "value";
+  const value = new openehr_am.C_COMPLEX_OBJECT();
+  value.rm_type_name = "DV_TEXT";
+  const primitiveValueAttr = new openehr_am.C_SINGLE_ATTRIBUTE();
+  primitiveValueAttr.rm_attribute_name = "value";
+  const primitiveValue = new openehr_am.C_STRING();
+  primitiveValue.rm_type_name = "STRING";
+  primitiveValueAttr.children = [primitiveValue] as any;
+  value.attributes = [primitiveValueAttr] as any;
+  valueAttr.children = [value] as any;
+  element.attributes = [valueAttr] as any;
   itemsAttr.children = [element] as any;
   section.attributes = [itemsAttr] as any;
 
@@ -50,10 +65,24 @@ Deno.test("RMInstanceGenerator maximal mode fills optional fields and cardinalit
   assertEquals(instance.content._type, "SECTION");
   assert(Array.isArray(instance.content.items));
   assertEquals(instance.content.items.length, 3);
+  assertEquals(instance.content.items[0].value._type, "DV_TEXT");
+});
+
+Deno.test("RMInstanceGenerator example mode includes every template-mentioned optional field once", () => {
+  const generator = new RMInstanceGenerator({ mode: "example" });
+  const instance = generator.generate(createOperationalTemplate());
+
+  assert(instance.content);
+  assert(Array.isArray(instance.content.items));
+  assertEquals(instance.content.items.length, 1);
+  assertEquals(instance.content.items[0].value._type, "DV_TEXT");
 });
 
 Deno.test("RMInstanceGenerator fillOptional override works independently of mode", () => {
-  const generator = new RMInstanceGenerator({ mode: "minimal", fillOptional: true });
+  const generator = new RMInstanceGenerator({
+    mode: "minimal",
+    fillOptional: true,
+  });
   const instance = generator.generate(createOperationalTemplate());
 
   assert(instance.content);
