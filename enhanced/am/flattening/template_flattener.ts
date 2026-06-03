@@ -105,6 +105,22 @@ function resolveArchetypeSlot(
   return inlined;
 }
 
+/**
+ * Resolve archetype roots / slots to inlined constraint trees for instance generation.
+ */
+export function resolveConstraintObject(
+  cObject: openehr_am.C_OBJECT,
+  resolver: ArchetypeResolver,
+): openehr_am.C_OBJECT {
+  if (cObject instanceof openehr_am.ARCHETYPE_SLOT) {
+    return resolveArchetypeSlot(cObject, resolver);
+  }
+  if (cObject instanceof openehr_am.C_ARCHETYPE_ROOT) {
+    return inlineArchetypeRoot(cObject, resolver);
+  }
+  return cObject;
+}
+
 function inlineArchetypeRoot(
   root: openehr_am.C_ARCHETYPE_ROOT,
   resolver: ArchetypeResolver,

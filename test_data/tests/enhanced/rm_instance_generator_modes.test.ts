@@ -58,3 +58,21 @@ Deno.test("RMInstanceGenerator fillOptional override works independently of mode
 
   assert(instance.content);
 });
+
+Deno.test("RMInstanceGenerator example mode includes all template-defined optional siblings", () => {
+  const generator = new RMInstanceGenerator({ mode: "example" });
+  const instance = generator.generate(createOperationalTemplate());
+
+  assert(instance.content);
+  assert(instance.content.items);
+  assertEquals(instance.content.items.length, 1);
+});
+
+Deno.test("RMInstanceGenerator example vs maximal cardinality on optional items", () => {
+  const template = createOperationalTemplate();
+  const example = new RMInstanceGenerator({ mode: "example" }).generate(template);
+  const maximal = new RMInstanceGenerator({ mode: "maximal" }).generate(template);
+
+  assertEquals(example.content.items.length, 1);
+  assertEquals(maximal.content.items.length, 3);
+});

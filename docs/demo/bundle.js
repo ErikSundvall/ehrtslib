@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-06-02T19:03:08.105Z", buildId: "7ILEIEOK" };
+    define_BUILD_INFO_default = { timestamp: "2026-06-03T07:53:40.889Z", buildId: "BZD1SQKB" };
   }
 });
 
@@ -30466,6 +30466,347 @@ var C_TERMINOLOGY_CODE = class extends C_PRIMITIVE_OBJECT {
     throw new Error("Method c_value_congruent_to not yet implemented.");
   }
 };
+var C_TIME = class extends C_PRIMITIVE {
+  /**
+   * Validity of minute in constrained time.
+   */
+  minute_validity;
+  /**
+   * Validity of second in constrained time.
+   */
+  second_validity;
+  /**
+   * Validity of millisecond in constrained time.
+   */
+  millisecond_validity;
+  /**
+   * Validity of timezone in constrained date.
+   */
+  timezone_validity;
+  /**
+   * Interval of Times specifying constraint.
+   */
+  range;
+  /**
+   * The value to assume if this item is not included in data, due to being part of an optional structure.
+   */
+  assumed_value = void 0;
+  /**
+   * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+   * @returns Result value
+   */
+  validity_is_range() {
+    throw new Error("Method validity_is_range not yet implemented.");
+  }
+};
+var C_DATE = class extends C_PRIMITIVE {
+  /**
+   * Validity of day in constrained date.
+   */
+  day_validity;
+  /**
+   * Validity of month in constrained date.
+   */
+  month_validity;
+  /**
+   * Validity of timezone in constrained date.
+   */
+  timezone_validity;
+  /**
+   * Interval of Dates specifying constraint.
+   */
+  range;
+  /**
+   * The value to assume if this item is not included in data, due to being part of an optional structure.
+   */
+  assumed_value = void 0;
+};
+var C_DATE_TIME = class extends C_PRIMITIVE {
+  /**
+   * Validity of month in constrained date.
+   */
+  month_validity;
+  /**
+   * Validity of day in constrained date.
+   */
+  day_validity;
+  /**
+   * Validity of hour in constrained time.
+   */
+  hour_validity;
+  /**
+   * Validity of minute in constrained time.
+   */
+  minute_validity;
+  /**
+   * Validity of second in constrained time.
+   */
+  second_validity;
+  /**
+   * Validity of millisecond in constrained time.
+   */
+  millisecond_valdity;
+  /**
+   * Validity of timezone in constrained date.
+   */
+  timezone_valdity;
+  /**
+   * Range of Date_times specifying constraint.
+   */
+  range;
+  /**
+   * The value to assume if this item is not included in data, due to being part of an optional structure.
+   */
+  assumed_value = void 0;
+  /**
+   * True if validity is in the form of a range; useful for developers to check which kind of constraint has been set.
+   * @returns Result value
+   */
+  validity_is_range() {
+    throw new Error("Method validity_is_range not yet implemented.");
+  }
+};
+var C_DURATION = class extends C_PRIMITIVE {
+  /**
+   * Internal storage for years_allowed
+   * @protected
+   */
+  _years_allowed;
+  get years_allowed() {
+    return this._years_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for years_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $years_allowed() {
+    return this._years_allowed;
+  }
+  /**
+   * Sets years_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set years_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._years_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._years_allowed = Boolean2.from(val);
+    } else {
+      this._years_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for months_allowed
+   * @protected
+   */
+  _months_allowed;
+  /**
+   * True if months are allowed in the constrained Duration.
+   */
+  get months_allowed() {
+    return this._months_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for months_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $months_allowed() {
+    return this._months_allowed;
+  }
+  /**
+   * Sets months_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set months_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._months_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._months_allowed = Boolean2.from(val);
+    } else {
+      this._months_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for weeks_allowed
+   * @protected
+   */
+  _weeks_allowed;
+  get weeks_allowed() {
+    return this._weeks_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for weeks_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $weeks_allowed() {
+    return this._weeks_allowed;
+  }
+  /**
+   * Sets weeks_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set weeks_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._weeks_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._weeks_allowed = Boolean2.from(val);
+    } else {
+      this._weeks_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for days_allowed
+   * @protected
+   */
+  _days_allowed;
+  /**
+   * True if days are allowed in the constrained Duration.
+   */
+  get days_allowed() {
+    return this._days_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for days_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $days_allowed() {
+    return this._days_allowed;
+  }
+  /**
+   * Sets days_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set days_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._days_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._days_allowed = Boolean2.from(val);
+    } else {
+      this._days_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for hours_allowed
+   * @protected
+   */
+  _hours_allowed;
+  /**
+   * True if hours are allowed in the constrained Duration.
+   */
+  get hours_allowed() {
+    return this._hours_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for hours_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $hours_allowed() {
+    return this._hours_allowed;
+  }
+  /**
+   * Sets hours_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set hours_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._hours_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._hours_allowed = Boolean2.from(val);
+    } else {
+      this._hours_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for minutes_allowed
+   * @protected
+   */
+  _minutes_allowed;
+  /**
+   * True if minutes are allowed in the constrained Duration.
+   */
+  get minutes_allowed() {
+    return this._minutes_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for minutes_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $minutes_allowed() {
+    return this._minutes_allowed;
+  }
+  /**
+   * Sets minutes_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set minutes_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._minutes_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._minutes_allowed = Boolean2.from(val);
+    } else {
+      this._minutes_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for seconds_allowed
+   * @protected
+   */
+  _seconds_allowed;
+  get seconds_allowed() {
+    return this._seconds_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for seconds_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $seconds_allowed() {
+    return this._seconds_allowed;
+  }
+  /**
+   * Sets seconds_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set seconds_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._seconds_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._seconds_allowed = Boolean2.from(val);
+    } else {
+      this._seconds_allowed = val;
+    }
+  }
+  /**
+   * Internal storage for fractional_seconds_allowed
+   * @protected
+   */
+  _fractional_seconds_allowed;
+  /**
+   * True if fractional seconds are allowed in the constrained Duration.
+   */
+  get fractional_seconds_allowed() {
+    return this._fractional_seconds_allowed?.value;
+  }
+  /**
+   * Gets the openehr_base.Boolean wrapper object for fractional_seconds_allowed.
+   * Use this to access openehr_base.Boolean methods.
+   */
+  get $fractional_seconds_allowed() {
+    return this._fractional_seconds_allowed;
+  }
+  /**
+   * Sets fractional_seconds_allowed from either a primitive value or openehr_base.Boolean wrapper.
+   */
+  set fractional_seconds_allowed(val) {
+    if (val === void 0 || val === null) {
+      this._fractional_seconds_allowed = void 0;
+    } else if (typeof val === "boolean") {
+      this._fractional_seconds_allowed = Boolean2.from(val);
+    } else {
+      this._fractional_seconds_allowed = val;
+    }
+  }
+  /**
+   * Range of Durations specifying constraint.
+   */
+  range;
+  /**
+   * The value to assume if this item is not included in data, due to being part of an optional structure.
+   */
+  assumed_value = void 0;
+};
 var RM_OVERLAY = class {
   /**
    * Optional structure in which visibility and aliasing of reference model elements can be specified. Key is path to an RM attribute, which is typically formed from a path to an archetyped node concatenated with a further pure RM attribute path; may also refer to a non-archetyped attribute.
@@ -46647,6 +46988,15 @@ function resolveArchetypeSlot(slot, resolver) {
     inlined.occurrences = slot.occurrences;
   return inlined;
 }
+function resolveConstraintObject(cObject, resolver) {
+  if (cObject instanceof ARCHETYPE_SLOT) {
+    return resolveArchetypeSlot(cObject, resolver);
+  }
+  if (cObject instanceof C_ARCHETYPE_ROOT) {
+    return inlineArchetypeRoot(cObject, resolver);
+  }
+  return cObject;
+}
 function inlineArchetypeRoot(root, resolver) {
   const ref = root.archetype_ref;
   if (!ref)
@@ -47999,7 +48349,8 @@ function githubApiHeaders2(token) {
     headers.Authorization = `Bearer ${token}`;
   return headers;
 }
-function parseGitHubTemplateFileUrl(input) {
+var CLINICAL_MODEL_URL_SUFFIX = /\.(t\.json|adl|adls|opt|oet)$/i;
+function parseGitHubClinicalModelFileUrl(input) {
   const trimmed = input.trim();
   const raw = trimmed.match(
     /raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/i
@@ -48024,7 +48375,7 @@ function parseGitHubTemplateFileUrl(input) {
     };
   }
   throw new Error(
-    `Invalid GitHub template URL. Paste a blob or raw link to a .t.json file.`
+    `Invalid GitHub clinical model URL. Paste a blob or raw link to a .t.json, .adl, or .adls file.`
   );
 }
 function buildClinicalModelPathIndex(paths) {
@@ -48143,16 +48494,18 @@ function collectDependenciesFromContent(path, content) {
   }
   return [];
 }
-async function loadGitHubTemplateClosure(templateUrl, options) {
+async function loadGitHubClinicalModelClosure(fileUrl, options) {
   const fetchFn = options?.fetch ?? globalThis.fetch;
   const token = options?.githubToken ?? readOptionalGithubToken();
   const headers = githubApiHeaders2(token);
   const maxFiles = options?.maxFiles ?? 200;
   const warnings = [];
-  emit(options, { phase: "parse-url", message: templateUrl });
-  const fileRef = parseGitHubTemplateFileUrl(templateUrl);
-  if (!/\.t\.json$/i.test(fileRef.path)) {
-    throw new Error(`Expected a .t.json file path, got: ${fileRef.path}`);
+  emit(options, { phase: "parse-url", message: fileUrl });
+  const fileRef = parseGitHubClinicalModelFileUrl(fileUrl);
+  if (!CLINICAL_MODEL_URL_SUFFIX.test(fileRef.path)) {
+    throw new Error(
+      `Expected a clinical model file (.t.json, .adl, .adls), got: ${fileRef.path}`
+    );
   }
   emit(options, {
     phase: "index-tree",
@@ -48224,7 +48577,7 @@ async function loadGitHubTemplateClosure(templateUrl, options) {
     warnings.push(`Stopped at maxFiles limit (${maxFiles})`);
   }
   if (!entries.has(fileRef.path)) {
-    throw new Error(`Could not load root template: ${fileRef.path}`);
+    throw new Error(`Could not load root file: ${fileRef.path}`);
   }
   emit(options, {
     phase: "complete",
@@ -48344,7 +48697,14 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
    * nested templates, archetypes, and parent archetype chains from the same branch.
    */
   async loadFromGitHubTemplateUrl(templateUrl, options) {
-    const closure = await loadGitHubTemplateClosure(templateUrl, options);
+    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
+  }
+  /**
+   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
+   * recursively fetch dependencies from the same branch.
+   */
+  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
+    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
     const loadResults = this.addFiles(closure.entries);
     this.setGenerationRootPath(closure.rootPath);
     this.setActivePath(closure.rootPath);
@@ -48360,25 +48720,297 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   }
 };
 
+// enhanced/parser/clinical_model_annotations.ts
+init_define_BUILD_INFO();
+
+// enhanced/generation/adl2_serializer.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/odin_serializer.ts
+init_define_BUILD_INFO();
+
 // enhanced/generation/mod.ts
 init_define_BUILD_INFO();
 
 // enhanced/generation/rm_instance_generator.ts
 init_define_BUILD_INFO();
+
+// enhanced/generation/constraint_utils.ts
+init_define_BUILD_INFO();
+function parseOccurrenceBounds(interval) {
+  if (!interval) {
+    return { lower: 0, upper: null };
+  }
+  if (typeof interval === "object" && "interval" in interval) {
+    const nested = interval.interval;
+    if (nested)
+      return parseOccurrenceBounds(nested);
+  }
+  if (typeof interval === "string") {
+    const s2 = interval.trim();
+    const m2 = s2.match(/^(\d+|\*)\.\.(\d+|\*)$/);
+    if (m2) {
+      const lower2 = m2[1] === "*" ? 0 : Number(m2[1]);
+      const upper2 = m2[2] === "*" ? null : Number(m2[2]);
+      return { lower: lower2, upper: upper2 };
+    }
+    return { lower: 0, upper: null };
+  }
+  const lower = interval.lower_unbounded ? 0 : typeof interval.lower === "number" ? interval.lower : 0;
+  const upper = interval.upper_unbounded ? null : typeof interval.upper === "number" ? interval.upper : null;
+  return { lower, upper };
+}
+function isProhibited(interval) {
+  const { upper } = parseOccurrenceBounds(interval);
+  return upper === 0;
+}
+function isMandatory(interval) {
+  const { lower } = parseOccurrenceBounds(interval);
+  return lower >= 1;
+}
+function isAttributeMandatory(attr, child) {
+  if (isMandatory(attr.existence)) {
+    return true;
+  }
+  if (attr instanceof C_MULTIPLE_ATTRIBUTE && attr.cardinality) {
+    if (isMandatory(attr.cardinality))
+      return true;
+  }
+  if (child && isMandatory(child.occurrences))
+    return true;
+  return false;
+}
+function arrayItemCount(mode, isRequired, attributeCardinality, childOccurrences) {
+  const attrBounds = parseOccurrenceBounds(attributeCardinality);
+  const childBounds = parseOccurrenceBounds(childOccurrences);
+  const lower = Math.max(attrBounds.lower, childBounds.lower, isRequired ? 1 : 0);
+  if (mode === "minimal" || mode === "example") {
+    if (lower > 0)
+      return lower;
+    return isRequired ? 1 : 1;
+  }
+  const upperCandidates = [attrBounds.upper, childBounds.upper].filter(
+    (u2) => typeof u2 === "number"
+  );
+  const upper = upperCandidates.length ? Math.max(...upperCandidates) : null;
+  if (upper !== null) {
+    return Math.max(lower, Math.min(upper, 10));
+  }
+  return Math.max(lower, 2);
+}
+
+// enhanced/generation/dv_value_generator.ts
+init_define_BUILD_INFO();
+var ISO_NOW = () => (/* @__PURE__ */ new Date()).toISOString();
+function readDefaultValue(cObject) {
+  const bag = cObject;
+  return bag.default_value ?? bag.defaultValue;
+}
+function rmInstanceFromDefaultValue(raw) {
+  if (!raw || typeof raw !== "object")
+    return void 0;
+  const rec = raw;
+  const type = String(rec["@type"] ?? rec._type ?? "").replace(/^@/, "");
+  if (!type)
+    return void 0;
+  const out = { _type: type };
+  for (const [key, val] of Object.entries(rec)) {
+    if (key === "@type" || key === "_type")
+      continue;
+    const snake = key.replace(/[A-Z]/g, (m2) => `_${m2.toLowerCase()}`);
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const nested = rmInstanceFromDefaultValue(val);
+      out[snake] = nested ?? val;
+    } else {
+      out[snake] = val;
+    }
+  }
+  return out;
+}
+function generatePrimitiveValue(prim) {
+  const fromDefault = readDefaultValue(prim);
+  if (fromDefault !== void 0) {
+    const converted = rmInstanceFromDefaultValue(fromDefault);
+    if (converted !== void 0)
+      return converted;
+  }
+  const item = prim.item;
+  const rmType = prim.rm_type_name ?? item?.rm_type_name ?? "DV_TEXT";
+  if (item instanceof C_TERMINOLOGY_CODE) {
+    const code = item.constraint ?? "at0001";
+    const terminology = item.terminology_id ?? "local";
+    return {
+      _type: "CODE_PHRASE",
+      terminology_id: { value: terminology },
+      code_string: code
+    };
+  }
+  if (item instanceof C_STRING) {
+    const list = item.list;
+    const value = list?.[0] ?? "example";
+    return { _type: "DV_TEXT", value };
+  }
+  if (item instanceof C_INTEGER) {
+    return { _type: "DV_COUNT", magnitude: 1 };
+  }
+  if (item instanceof C_REAL) {
+    return { _type: "DV_QUANTITY", magnitude: 1, units: "1" };
+  }
+  if (item instanceof C_QUANTITY) {
+    const list = item.list;
+    const units = list?.[0]?.units ?? "1";
+    return { _type: "DV_QUANTITY", magnitude: 1, units };
+  }
+  if (item instanceof C_BOOLEAN) {
+    return { _type: "DV_BOOLEAN", value: true };
+  }
+  if (item instanceof C_DATE_TIME) {
+    return { _type: "DV_DATE_TIME", value: ISO_NOW() };
+  }
+  if (item instanceof C_DATE) {
+    return { _type: "DV_DATE", value: ISO_NOW().slice(0, 10) };
+  }
+  if (item instanceof C_TIME) {
+    return { _type: "DV_TIME", value: ISO_NOW().slice(11, 19) };
+  }
+  if (item instanceof C_DURATION) {
+    return { _type: "DV_DURATION", value: "PT1H" };
+  }
+  return generateDvFromRmTypeName(rmType.replace(/^C_/, "DV_"), prim);
+}
+function generateDvFromRmTypeName(rmType, constraint) {
+  const fromDefault = constraint ? readDefaultValue(constraint) : void 0;
+  if (fromDefault !== void 0) {
+    const converted = rmInstanceFromDefaultValue(fromDefault);
+    if (converted !== void 0)
+      return converted;
+  }
+  switch (rmType) {
+    case "DV_TEXT":
+      return { _type: "DV_TEXT", value: "example" };
+    case "DV_CODED_TEXT":
+      return {
+        _type: "DV_CODED_TEXT",
+        value: "example",
+        defining_code: {
+          _type: "CODE_PHRASE",
+          terminology_id: { value: "local" },
+          code_string: "at0001"
+        }
+      };
+    case "DV_QUANTITY":
+      return { _type: "DV_QUANTITY", magnitude: 1, units: "1" };
+    case "DV_COUNT":
+      return { _type: "DV_COUNT", magnitude: 1 };
+    case "DV_PROPORTION":
+      return {
+        _type: "DV_PROPORTION",
+        numerator: 1,
+        denominator: 2,
+        type: 0
+      };
+    case "DV_BOOLEAN":
+      return { _type: "DV_BOOLEAN", value: true };
+    case "DV_DATE_TIME":
+      return { _type: "DV_DATE_TIME", value: ISO_NOW() };
+    case "DV_DATE":
+      return { _type: "DV_DATE", value: ISO_NOW().slice(0, 10) };
+    case "DV_TIME":
+      return { _type: "DV_TIME", value: ISO_NOW().slice(11, 19) };
+    case "DV_DURATION":
+      return { _type: "DV_DURATION", value: "PT1H" };
+    case "DV_IDENTIFIER":
+      return {
+        _type: "DV_IDENTIFIER",
+        issuer: "example",
+        assigner: "example",
+        id: "example-id",
+        type: "example"
+      };
+    case "DV_URI":
+      return { _type: "DV_URI", value: "https://example.org" };
+    case "DV_EHR_URI":
+      return { _type: "DV_EHR_URI", value: "ehr:example" };
+    case "CODE_PHRASE":
+      return {
+        _type: "CODE_PHRASE",
+        terminology_id: { value: "local" },
+        code_string: "at0001"
+      };
+    case "DV_MULTIMEDIA":
+      return {
+        _type: "DV_MULTIMEDIA",
+        media_type: { _type: "CODE_PHRASE", terminology_id: { value: "IANA_media-types" }, code_string: "text/plain" },
+        size: 0
+      };
+    case "DV_PARSABLE":
+      return {
+        _type: "DV_PARSABLE",
+        value: "example",
+        formalism: "text/plain"
+      };
+    default:
+      return { _type: rmType };
+  }
+}
+function isDataValueRmType(rmType) {
+  return !!rmType && (rmType.startsWith("DV_") || rmType === "CODE_PHRASE");
+}
+
+// enhanced/generation/rm_instance_generator.ts
 var MANDATORY_RM_ATTRIBUTES = {
-  "COMPOSITION": ["language", "territory", "category", "composer"],
-  "OBSERVATION": ["data"],
-  "INSTRUCTION": ["narrative"],
-  "ACTION": ["time"],
-  "HISTORY": ["origin"],
-  "LOCATABLE": ["archetype_node_id", "name"],
-  "EVENT": ["time"],
-  "POINT_EVENT": ["time"],
-  "INTERVAL_EVENT": ["time", "math_function"],
-  "CLUSTER": ["items"],
-  "ELEMENT": []
-  // name inherited from LOCATABLE
+  COMPOSITION: ["language", "territory", "category", "composer"],
+  OBSERVATION: ["data"],
+  INSTRUCTION: ["narrative"],
+  ACTION: ["time"],
+  HISTORY: ["origin"],
+  EVENT: ["time"],
+  POINT_EVENT: ["time"],
+  INTERVAL_EVENT: ["time", "math_function"],
+  CLUSTER: ["items"],
+  EVALUATION: ["data"],
+  ADMIN_ENTRY: ["data"],
+  SECTION: ["items"],
+  ITEM_TREE: ["items"],
+  ITEM_LIST: ["items"],
+  ITEM_TABLE: ["rows"],
+  ITEM_SINGLE: ["item"],
+  ELEMENT: []
 };
+var LOCATABLE_TYPES = /* @__PURE__ */ new Set([
+  "COMPOSITION",
+  "SECTION",
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "ADMIN_ENTRY",
+  "CLUSTER",
+  "ELEMENT",
+  "ITEM_TREE",
+  "ITEM_LIST",
+  "ITEM_TABLE",
+  "ITEM_SINGLE",
+  "HISTORY",
+  "EVENT",
+  "POINT_EVENT",
+  "INTERVAL_EVENT"
+]);
+var ARRAY_CONTAINER_ATTRIBUTES = /* @__PURE__ */ new Set([
+  "items",
+  "content",
+  "events",
+  "activities",
+  "protocol",
+  "parts",
+  "other_participations",
+  "relationships",
+  "identities",
+  "details"
+]);
+function isArrayContainerAttribute(attrName) {
+  return ARRAY_CONTAINER_ATTRIBUTES.has(attrName);
+}
 var RMInstanceGenerator = class {
   config;
   constructor(config) {
@@ -48387,13 +49019,9 @@ var RMInstanceGenerator = class {
       fillOptional: void 0,
       maxDepth: 50,
       includeMandatoryRMAttributes: true,
-      // Default: include mandatory attributes
       ...config
     };
   }
-  /**
-   * Generate RM instance from template
-   */
   generate(template) {
     if (!template.definition) {
       throw new Error("Template has no definition");
@@ -48404,99 +49032,190 @@ var RMInstanceGenerator = class {
     if (depth > (this.config.maxDepth || 50)) {
       return null;
     }
+    let node = cObject;
+    if (this.config.resolver) {
+      node = resolveConstraintObject(cObject, this.config.resolver);
+    }
+    if (isProhibited(node.occurrences)) {
+      return null;
+    }
+    const rmType = node.rm_type_name ?? "";
+    if (node instanceof C_PRIMITIVE_OBJECT) {
+      return generatePrimitiveValue(node);
+    }
+    if (isDataValueRmType(rmType) && (!(node instanceof C_COMPLEX_OBJECT) || !node.attributes?.length)) {
+      return generateDvFromRmTypeName(rmType, node);
+    }
     const instance = {
-      _type: cObject.rm_type_name
+      _type: rmType
     };
-    if (cObject instanceof C_COMPLEX_OBJECT) {
-      this.generateAttributes(instance, cObject, depth);
+    if (node instanceof C_COMPLEX_OBJECT) {
+      this.applyLocatableIdentity(instance, node);
+      this.generateAttributes(instance, node, depth);
     }
     return instance;
   }
+  applyLocatableIdentity(instance, cObject) {
+    if (!cObject.rm_type_name || !LOCATABLE_TYPES.has(cObject.rm_type_name)) {
+      return;
+    }
+    if (cObject.node_id) {
+      instance.archetype_node_id = cObject.node_id;
+    }
+    if (!instance.name) {
+      instance.name = {
+        _type: "DV_TEXT",
+        value: cObject.rm_type_name
+      };
+    }
+  }
   generateAttributes(instance, cObject, depth) {
     const generatedAttributes = /* @__PURE__ */ new Set();
+    const mode = this.config.mode ?? "example";
     if (cObject.attributes) {
       for (const cAttribute of cObject.attributes) {
         const attrName = cAttribute.rm_attribute_name;
         if (!attrName)
           continue;
-        generatedAttributes.add(attrName);
-        const isRequired = this.isAttributeRequired(cAttribute);
-        const shouldFillOptional = this.shouldFillOptional(cAttribute, depth);
-        if (!isRequired && !shouldFillOptional) {
+        const children = cAttribute.children ?? [];
+        if (!children.length)
           continue;
-        }
-        if (cAttribute.children && cAttribute.children.length > 0) {
-          const child = cAttribute.children[0];
-          if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE) {
-            const minCard = this.getArrayItemCount(cAttribute, isRequired);
-            instance[attrName] = [];
-            for (let i3 = 0; i3 < minCard; i3++) {
-              const childInstance = this.generateFromCObject(child, depth + 1);
-              if (childInstance) {
-                instance[attrName].push(childInstance);
-              }
-            }
-          } else {
-            instance[attrName] = this.generateFromCObject(child, depth + 1);
+        const viableChildren = children.filter(
+          (ch) => !isProhibited(ch.occurrences)
+        );
+        if (!viableChildren.length)
+          continue;
+        const isMultiple = cAttribute instanceof C_MULTIPLE_ATTRIBUTE;
+        const isContainerArray = isMultiple || viableChildren.length > 1 && isArrayContainerAttribute(attrName);
+        const targets = [];
+        for (const child of viableChildren) {
+          const required = isAttributeMandatory(cAttribute, child);
+          if (this.shouldIncludeChild(cAttribute, child, required, depth)) {
+            targets.push(child);
           }
         }
+        if (!targets.length)
+          continue;
+        generatedAttributes.add(attrName);
+        if (isContainerArray) {
+          const values = [];
+          for (const child of targets) {
+            const required = isAttributeMandatory(cAttribute, child);
+            const count = arrayItemCount(
+              mode,
+              required,
+              isMultiple ? cAttribute.cardinality : void 0,
+              child.occurrences
+            );
+            for (let i3 = 0; i3 < count; i3++) {
+              const childInstance = this.generateFromCObject(child, depth + 1);
+              if (childInstance != null)
+                values.push(childInstance);
+            }
+          }
+          if (values.length)
+            instance[attrName] = values;
+        } else {
+          instance[attrName] = this.generateFromCObject(targets[0], depth + 1);
+        }
       }
     }
-    if (this.config.includeMandatoryRMAttributes) {
-      this.addMandatoryRMAttributes(instance, cObject.rm_type_name || "", generatedAttributes, cObject.node_id);
+    if (this.config.includeMandatoryRMAttributes !== false) {
+      this.addMandatoryRMAttributes(
+        instance,
+        cObject.rm_type_name ?? "",
+        generatedAttributes,
+        cObject
+      );
     }
+    this.fillDataValueLeaves(instance, cObject, depth);
   }
   /**
-   * Add mandatory RM attributes that aren't in the template
-   * 
-   * Based on openEHR RM specification requirements
+   * After structural generation, ensure DV leaf attributes under constrained nodes have values.
    */
-  addMandatoryRMAttributes(instance, rmTypeName, generatedAttributes, nodeId) {
-    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES[rmTypeName] || [];
-    if (this.isLocatableDescendant(rmTypeName) && !mandatoryAttrs.includes("archetype_node_id")) {
-      mandatoryAttrs.push(...MANDATORY_RM_ATTRIBUTES["LOCATABLE"]);
-    }
-    for (const attrName of mandatoryAttrs) {
-      if (generatedAttributes.has(attrName)) {
+  fillDataValueLeaves(instance, cObject, depth) {
+    if (this.config.mode === "minimal")
+      return;
+    if (!cObject.attributes?.length)
+      return;
+    for (const cAttribute of cObject.attributes) {
+      const attrName = cAttribute.rm_attribute_name;
+      if (!attrName)
         continue;
+      const current = instance[attrName];
+      if (current === void 0 || current === null)
+        continue;
+      const children = cAttribute.children ?? [];
+      const child = children[0];
+      if (!child)
+        continue;
+      const rmType = child.rm_type_name ?? "";
+      if (!isDataValueRmType(rmType))
+        continue;
+      const needsFill = typeof current === "object" && current !== null && !Array.isArray(current) && Object.keys(current).length <= 1;
+      if (needsFill) {
+        instance[attrName] = this.generateFromCObject(child, depth + 1);
       }
-      instance[attrName] = this.generateDefaultValue(rmTypeName, attrName, nodeId);
     }
   }
-  /**
-   * Check if a type descends from LOCATABLE
-   */
-  isLocatableDescendant(rmTypeName) {
-    const locatableTypes = [
-      "COMPOSITION",
-      "SECTION",
-      "OBSERVATION",
-      "EVALUATION",
-      "INSTRUCTION",
-      "ACTION",
-      "ADMIN_ENTRY",
-      "CLUSTER",
-      "ELEMENT",
-      "ITEM_TREE",
-      "ITEM_LIST",
-      "ITEM_TABLE",
-      "ITEM_SINGLE",
-      "HISTORY",
-      "EVENT",
-      "POINT_EVENT",
-      "INTERVAL_EVENT"
-    ];
-    return locatableTypes.includes(rmTypeName);
+  shouldIncludeChild(cAttribute, child, isRequired, _depth) {
+    if (isProhibited(child.occurrences))
+      return false;
+    if (isRequired)
+      return true;
+    if (typeof this.config.fillOptional === "boolean") {
+      return this.config.fillOptional;
+    }
+    switch (this.config.mode) {
+      case "minimal":
+        return false;
+      case "maximal":
+      case "example":
+        return true;
+      default:
+        return true;
+    }
   }
-  /**
-   * Generate default value for mandatory attribute
-   */
-  generateDefaultValue(rmTypeName, attrName, nodeId) {
+  addMandatoryRMAttributes(instance, rmTypeName, generatedAttributes, cObject) {
+    const mandatory = new Set(
+      MANDATORY_RM_ATTRIBUTES[rmTypeName] ?? []
+    );
+    if (LOCATABLE_TYPES.has(rmTypeName)) {
+      mandatory.add("archetype_node_id");
+      if (!mandatory.has("name") && rmTypeName !== "ELEMENT") {
+        mandatory.add("name");
+      }
+    }
+    for (const attrName of mandatory) {
+      if (generatedAttributes.has(attrName))
+        continue;
+      const value = this.generateMandatoryRmAttribute(
+        rmTypeName,
+        attrName,
+        cObject
+      );
+      if (value !== void 0) {
+        instance[attrName] = value;
+      }
+    }
+  }
+  generateMandatoryRmAttribute(rmTypeName, attrName, cObject) {
+    if (attrName === "archetype_node_id") {
+      return cObject.node_id ?? void 0;
+    }
     switch (`${rmTypeName}.${attrName}`) {
       case "COMPOSITION.language":
-        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_639-1" }, code_string: "en" };
+        return {
+          _type: "CODE_PHRASE",
+          terminology_id: { value: "ISO_639-1" },
+          code_string: "en"
+        };
       case "COMPOSITION.territory":
-        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_3166-1" }, code_string: "US" };
+        return {
+          _type: "CODE_PHRASE",
+          terminology_id: { value: "ISO_3166-1" },
+          code_string: "US"
+        };
       case "COMPOSITION.category":
         return {
           _type: "DV_CODED_TEXT",
@@ -48508,25 +49227,15 @@ var RMInstanceGenerator = class {
           }
         };
       case "COMPOSITION.composer":
-        return {
-          _type: "PARTY_IDENTIFIED",
-          name: "Unknown"
-        };
+        return { _type: "PARTY_IDENTIFIED", name: "Example composer" };
       case "INSTRUCTION.narrative":
-        return {
-          _type: "DV_TEXT",
-          value: "Generated instruction narrative"
-        };
+        return { _type: "DV_TEXT", value: "Example instruction narrative" };
       case "ACTION.time":
-        return {
-          _type: "DV_DATE_TIME",
-          value: (/* @__PURE__ */ new Date()).toISOString()
-        };
+      case "EVENT.time":
+      case "POINT_EVENT.time":
+        return { _type: "DV_DATE_TIME", value: (/* @__PURE__ */ new Date()).toISOString() };
       case "HISTORY.origin":
-        return {
-          _type: "DV_DATE_TIME",
-          value: (/* @__PURE__ */ new Date()).toISOString()
-        };
+        return { _type: "DV_DATE_TIME", value: (/* @__PURE__ */ new Date()).toISOString() };
       case "INTERVAL_EVENT.math_function":
         return {
           _type: "DV_CODED_TEXT",
@@ -48537,82 +49246,20 @@ var RMInstanceGenerator = class {
             code_string: "640"
           }
         };
-      case "LOCATABLE.archetype_node_id":
-        if (!nodeId) {
-          throw new Error(
-            `Cannot generate archetype_node_id for ${rmTypeName}: node_id must be provided from the template/archetype C_OBJECT. This is a mandatory RM attribute that cannot be fabricated.`
-          );
-        }
-        return nodeId;
-      case "LOCATABLE.name":
-      case "EVENT.name":
-        return {
-          _type: "DV_TEXT",
-          value: rmTypeName
-        };
       case "CLUSTER.items":
+      case "SECTION.items":
+      case "ITEM_TREE.items":
+      case "ITEM_LIST.items":
         return [];
       default:
-        if (attrName === "time") {
-          return { _type: "DV_DATE_TIME", value: (/* @__PURE__ */ new Date()).toISOString() };
+        if (attrName === "name") {
+          return { _type: "DV_TEXT", value: rmTypeName };
         }
         if (attrName === "data") {
           return null;
         }
-        return null;
+        return void 0;
     }
-  }
-  isAttributeRequired(cAttribute) {
-    if (cAttribute.children) {
-      for (const child of cAttribute.children) {
-        if (child.occurrences) {
-          const lower = child.occurrences.lower || 0;
-          if (lower > 0) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-  shouldFillOptional(cAttribute, depth) {
-    if (typeof this.config.fillOptional === "boolean") {
-      return this.config.fillOptional;
-    }
-    switch (this.config.mode) {
-      case "minimal":
-        return false;
-      case "maximal":
-        return true;
-      case "example":
-      default:
-        return this.includeOptionalInExampleMode(cAttribute, depth);
-    }
-  }
-  includeOptionalInExampleMode(cAttribute, depth) {
-    const seed = `${cAttribute.rm_attribute_name || ""}:${depth}:${cAttribute.children?.length || 0}`;
-    let hash = 0;
-    for (let i3 = 0; i3 < seed.length; i3++) {
-      hash = (hash << 5) - hash + seed.charCodeAt(i3);
-      hash |= 0;
-    }
-    return Math.abs(hash) % 2 === 0;
-  }
-  getArrayItemCount(cAttribute, isRequired) {
-    const lower = cAttribute?.cardinality?.interval?.lower;
-    const upper = cAttribute?.cardinality?.interval?.upper;
-    const lowerBound = typeof lower === "number" ? lower : isRequired ? 1 : 0;
-    const safeLowerBound = Math.max(0, lowerBound);
-    if (this.config.mode === "minimal") {
-      return Math.max(1, safeLowerBound);
-    }
-    if (this.config.mode === "maximal") {
-      if (typeof upper === "number") {
-        return Math.max(Math.max(1, safeLowerBound), Math.min(upper, 3));
-      }
-      return Math.max(2, Math.max(1, safeLowerBound));
-    }
-    return Math.max(1, safeLowerBound);
   }
 };
 
@@ -48831,12 +49478,6 @@ var TypeScriptGenerator = class {
   }
 };
 
-// enhanced/generation/adl2_serializer.ts
-init_define_BUILD_INFO();
-
-// enhanced/parser/odin_serializer.ts
-init_define_BUILD_INFO();
-
 // enhanced/generation/adl14_serializer.ts
 init_define_BUILD_INFO();
 
@@ -48955,7 +49596,8 @@ function convertTemplateInput(input, options) {
     throw firstError;
   }
   const generator = new RMInstanceGenerator({
-    mode: options.templateGenerationMode
+    mode: options.templateGenerationMode,
+    resolver: options.templateWorkspace?.repository
   });
   const generatedInstance = generator.generate(template);
   const webTemplate = buildWebTemplate(template);

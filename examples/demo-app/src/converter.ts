@@ -306,6 +306,7 @@ function convertTemplateInput(
 
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
+    resolver: options.templateWorkspace?.repository,
   });
 
   const generatedInstance = generator.generate(template);
