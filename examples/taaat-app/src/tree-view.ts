@@ -3,12 +3,17 @@
  */
 
 import * as d3 from "d3";
-import type { DefinitionTreeNode } from "../../../enhanced/parser/clinical_model_annotations.ts";
+import {
+  applyTreeLabelMode,
+  type DefinitionTreeNode,
+} from "../../../enhanced/parser/clinical_model_annotations.ts";
+import type { TreeLabelMode } from "../../../enhanced/parser/archetype_terminology.ts";
 
 export interface TreeViewOptions {
   container: HTMLElement;
   onSelect: (node: DefinitionTreeNode) => void;
   selectedPath?: string;
+  labelMode?: TreeLabelMode;
 }
 
 interface HierarchyDatum extends d3.HierarchyPointNode<DefinitionTreeNode> {
@@ -44,11 +49,13 @@ export class DefinitionTreeView {
   private g!: d3.Selection<SVGGElement, unknown, null, undefined>;
   private root!: HierarchyDatum;
   private options: TreeViewOptions;
+  private labelMode: TreeLabelMode;
   private viewWidth = 400;
   private viewHeight = 400;
 
   constructor(options: TreeViewOptions) {
     this.options = options;
+    this.labelMode = options.labelMode ?? "term";
     this.svg = d3
       .select(options.container)
       .append("svg")
@@ -164,7 +171,7 @@ export class DefinitionTreeView {
       .attr("dy", "0.32em")
       .attr("x", (d) => (d.children || d._children ? -5 : 5))
       .attr("text-anchor", (d) => (d.children || d._children ? "end" : "start"))
-      .text((d) => formatNodeLabel(d.data.label, d.data.annotationKeyCount));
+      .text((d) => this.displayLabel(d.data));
 
     const nodeUpdate = nodeEnter.merge(node);
 
@@ -175,7 +182,7 @@ export class DefinitionTreeView {
       .attr("transform", (d) => `translate(${d.y},${d.x})`);
 
     nodeUpdate.select("text")
-      .text((d) => formatNodeLabel(d.data.label, d.data.annotationKeyCount));
+      .text((d) => this.displayLabel(d.data));
 
     node.exit().remove();
 
@@ -208,6 +215,19 @@ export class DefinitionTreeView {
   setSelectedPath(path: string | undefined): void {
     this.options.selectedPath = path;
     if (this.root) this.render();
+  }
+
+  setLabelMode(mode: TreeLabelMode): void {
+    this.labelMode = mode;
+    if (!this.root) return;
+    for (const d of this.root.descendants()) {
+      applyTreeLabelMode(d.data, mode);
+    }
+    this.render();
+  }
+
+  private displayLabel(node: DefinitionTreeNode): string {
+    return formatNodeLabel(node.label, node.annotationKeyCount);
   }
 
   private diagonal(

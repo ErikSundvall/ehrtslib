@@ -54,9 +54,9 @@ Deno.test("buildDefinitionTree marks annotated paths", async () => {
   const text = await readTestAdl2(path);
   const parsed = new ADL2Parser(new ADL2Tokenizer(text).tokenize()).parse();
   const archetype = parsed.archetype!;
-  const tree = buildDefinitionTree(archetype);
+  const tree = buildDefinitionTree(archetype, { labelMode: "id" });
 
-  assertEquals(tree?.label.includes("WHOLE"), true);
+  assertEquals(tree?.labelId.includes("WHOLE"), true);
   assertEquals(listAnnotatedPaths(getResourceDocumentation(archetype)).includes("/data[id2]"), true);
 
   const serialized = new ADL2Serializer().serialize(archetype);

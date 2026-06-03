@@ -69,7 +69,17 @@ export {
   type ClinicalModelPathIndex,
 } from "./github_template_closure.ts";
 export {
+  getResourceDefaultLanguage,
+  listTerminologyLanguages,
+  lookupTermText,
+  lookupNodeTermText,
+  parseLanguageCode,
+  resolveNodeDisplayLabel,
+  type TreeLabelMode,
+} from "./archetype_terminology.ts";
+export {
   buildDefinitionTree,
+  applyTreeLabelMode,
   ensureResourceAnnotations,
   getResourceDocumentation,
   getPathAnnotations,
@@ -83,6 +93,7 @@ export {
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   type AnnotationDocumentation,
+  type BuildDefinitionTreeOptions,
   type DefinitionTreeNode,
   type AnnotatedResource,
 } from "./clinical_model_annotations.ts";

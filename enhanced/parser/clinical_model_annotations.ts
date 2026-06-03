@@ -8,8 +8,25 @@ import {
   getAnnotationsDocumentation,
 } from "./aom_odin_sections.ts";
 import { ADL2Serializer } from "../generation/adl2_serializer.ts";
+import {
+  getResourceDefaultLanguage,
+  lookupNodeTermText,
+  resolveNodeDisplayLabel,
+  type AnnotatedResource,
+  type TreeLabelMode,
+} from "./archetype_terminology.ts";
 import type { ArchetypeRepository } from "./legacy/archetype_repository.ts";
 import type { LoadFileResult } from "./legacy/archetype_repository.ts";
+
+export type { TreeLabelMode, AnnotatedResource } from "./archetype_terminology.ts";
+export {
+  getResourceDefaultLanguage,
+  listTerminologyLanguages,
+  lookupTermText,
+  lookupNodeTermText,
+  parseLanguageCode,
+  resolveNodeDisplayLabel,
+} from "./archetype_terminology.ts";
 
 /** language → path → annotation key → value */
 export type AnnotationDocumentation = Record<
@@ -22,7 +39,12 @@ export interface DefinitionTreeNode {
   id: string;
   /** openEHR constraint path (empty string for definition root). */
   path: string;
+  /** Display label (depends on {@link BuildDefinitionTreeOptions.labelMode}). */
   label: string;
+  /** RM type and id-code label, e.g. `OBSERVATION[id2]`. */
+  labelId: string;
+  /** Terminology text for {@link nodeId} when available. */
+  termLabel?: string;
   rmType?: string;
   nodeId?: string;
   attributeName?: string;
@@ -33,10 +55,13 @@ export interface DefinitionTreeNode {
   children: DefinitionTreeNode[];
 }
 
-export type AnnotatedResource =
-  | openehr_am.ARCHETYPE
-  | openehr_am.TEMPLATE
-  | openehr_am.TEMPLATE_OVERLAY;
+export interface BuildDefinitionTreeOptions {
+  labelMode?: TreeLabelMode;
+  /** Language for terminology rubrics (defaults to resource original language). */
+  termLanguage?: string;
+  /** Used to resolve terms on nested archetype references. */
+  repository?: ArchetypeRepository;
+}
 
 export function asAnnotationDocumentation(
   doc: unknown,
@@ -173,35 +198,84 @@ function readAttributeChildren(
   return children ?? [];
 }
 
+interface BuildSubtreeContext {
+  resource: AnnotatedResource;
+  doc: AnnotationDocumentation | undefined;
+  labelMode: TreeLabelMode;
+  termLanguage: string;
+  repository?: ArchetypeRepository;
+}
+
+function idLabelForObject(
+  obj: openehr_am.C_OBJECT,
+  archetypeRef?: string,
+): string {
+  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
+    return archetypeRef
+      ? `use ${archetypeRef}`
+      : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
+  }
+  return `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+}
+
+function termLabelForObject(
+  ctx: BuildSubtreeContext,
+  nodeId: string | undefined,
+  archetypeRef?: string,
+): string | undefined {
+  return lookupNodeTermText(
+    {
+      resource: ctx.resource,
+      language: ctx.termLanguage,
+      repository: ctx.repository,
+      archetypeRef,
+    },
+    nodeId,
+  );
+}
+
+function finalizeNode(
+  ctx: BuildSubtreeContext,
+  base: Omit<DefinitionTreeNode, "label" | "labelId" | "termLabel"> & {
+    labelId: string;
+    termLabel?: string;
+  },
+): DefinitionTreeNode {
+  return {
+    ...base,
+    labelId: base.labelId,
+    termLabel: base.termLabel,
+    label: resolveNodeDisplayLabel(base.labelId, base.termLabel, ctx.labelMode),
+  };
+}
+
 function buildObjectSubtree(
   obj: openehr_am.C_OBJECT,
   parentPath: string,
-  doc: AnnotationDocumentation | undefined,
+  ctx: BuildSubtreeContext,
 ): DefinitionTreeNode {
   if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
     const path = parentPath;
-    const keyCount = countAnnotationKeysAtPath(doc, path);
     const ref = obj.archetype_ref;
-    const label = ref
-      ? `use ${ref}`
-      : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    return {
+    const labelId = idLabelForObject(obj, ref);
+    const termLabel = termLabelForObject(ctx, obj.node_id, ref);
+    return finalizeNode(ctx, {
       id: path || "/root",
       path,
-      label,
+      labelId,
+      termLabel,
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount > 0,
-      annotationKeyCount: keyCount,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path),
       isArchetypeRoot: true,
       archetypeRef: ref,
       children: [],
-    };
+    });
   }
 
   if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
     const path = parentPath;
-    const keyCount = countAnnotationKeysAtPath(doc, path);
     const children: DefinitionTreeNode[] = [];
     for (const attr of readAttributes(obj)) {
       const attrName = attr.rm_attribute_name ?? "attr";
@@ -211,57 +285,76 @@ function buildObjectSubtree(
           attrName,
           child.node_id ?? "?",
         );
-        children.push(buildObjectSubtree(child, childPath, doc));
+        children.push(buildObjectSubtree(child, childPath, ctx));
       }
     }
-    const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
-    return {
+    const labelId = idLabelForObject(obj);
+    return finalizeNode(ctx, {
       id: path || "/root",
       path,
-      label,
+      labelId,
+      termLabel: termLabelForObject(ctx, obj.node_id),
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount > 0,
-      annotationKeyCount: keyCount,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path),
       children,
-    };
+    });
   }
 
   if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {
     const path = parentPath;
-    const keyCount = countAnnotationKeysAtPath(doc, path);
-    return {
+    const labelId = idLabelForObject(obj);
+    return finalizeNode(ctx, {
       id: path,
       path,
-      label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
+      labelId,
+      termLabel: termLabelForObject(ctx, obj.node_id),
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount > 0,
-      annotationKeyCount: keyCount,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path),
       children: [],
-    };
+    });
   }
 
   const path = parentPath;
-  const keyCount = countAnnotationKeysAtPath(doc, path);
-  return {
+  return finalizeNode(ctx, {
     id: path || "/unknown",
     path,
-    label: "constraint",
-    hasAnnotations: keyCount > 0,
-    annotationKeyCount: keyCount,
+    labelId: "constraint",
+    hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path) > 0,
+    annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path),
     children: [],
-  };
+  });
 }
 
 /** Build a hierarchical definition tree with per-node annotation flags. */
 export function buildDefinitionTree(
   resource: AnnotatedResource,
+  options?: BuildDefinitionTreeOptions,
 ): DefinitionTreeNode | undefined {
   const definition = resource.definition;
   if (!definition) return undefined;
   const doc = getResourceDocumentation(resource);
-  return buildObjectSubtree(definition, "", doc);
+  const ctx: BuildSubtreeContext = {
+    resource,
+    doc,
+    labelMode: options?.labelMode ?? "term",
+    termLanguage: options?.termLanguage ??
+      getResourceDefaultLanguage(resource),
+    repository: options?.repository,
+  };
+  return buildObjectSubtree(definition, "", ctx);
+}
+
+/** Recompute display labels when switching ID / term mode without rebuilding structure. */
+export function applyTreeLabelMode(
+  node: DefinitionTreeNode,
+  mode: TreeLabelMode,
+): void {
+  node.label = resolveNodeDisplayLabel(node.labelId, node.termLabel, mode);
+  for (const child of node.children) applyTreeLabelMode(child, mode);
 }
 
 /** Serialize an authored resource (archetype or template) to ADL2 text. */

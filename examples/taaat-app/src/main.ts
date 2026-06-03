@@ -7,12 +7,15 @@ import {
   buildDefinitionTree,
   getPathAnnotations,
   getResourceDocumentation,
+  getResourceDefaultLanguage,
+  listTerminologyLanguages,
   removePathAnnotation,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   setPathAnnotation,
   type AnnotatedResource,
   type DefinitionTreeNode,
+  type TreeLabelMode,
 } from "../../../enhanced/parser/clinical_model_annotations.ts";
 import {
   createPaletteEntry,
@@ -31,8 +34,26 @@ let activeFilePath: string | undefined;
 let activeResource: AnnotatedResource | undefined;
 let selectedNode: DefinitionTreeNode | undefined;
 let palette: PaletteEntry[] = loadPalette();
-let language = "en";
+let annotationLanguage = "en";
+let treeLabelMode: TreeLabelMode = readTreeLabelMode();
+let treeTermLanguage = "en";
 let treeView: DefinitionTreeView | undefined;
+
+const TREE_LABEL_MODE_KEY = "ehrtslib-taaat-tree-label-mode";
+const TREE_TERM_LANG_KEY = "ehrtslib-taaat-tree-term-language";
+
+function readTreeLabelMode(): TreeLabelMode {
+  const v = sessionStorage.getItem(TREE_LABEL_MODE_KEY);
+  return v === "id" ? "id" : "term";
+}
+
+function persistTreeLabelMode(): void {
+  sessionStorage.setItem(TREE_LABEL_MODE_KEY, treeLabelMode);
+}
+
+function persistTreeTermLanguage(): void {
+  sessionStorage.setItem(TREE_TERM_LANG_KEY, treeTermLanguage);
+}
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
@@ -104,18 +125,57 @@ function persistResourceToWorkspace(): void {
   }
 }
 
+function refreshTreeTermLanguageSelect(): void {
+  const select = $("tree-term-language") as HTMLSelectElement | null;
+  const modeSelect = $("tree-label-mode") as HTMLSelectElement | null;
+  if (!select) return;
+
+  if (!activeResource) {
+    select.innerHTML = "<option value=\"en\">en</option>";
+    select.disabled = true;
+    if (modeSelect) modeSelect.value = treeLabelMode;
+    return;
+  }
+
+  const langs = listTerminologyLanguages(activeResource);
+  const def = getResourceDefaultLanguage(activeResource);
+  const stored = sessionStorage.getItem(TREE_TERM_LANG_KEY);
+  if (stored && langs.includes(stored)) {
+    treeTermLanguage = stored;
+  } else if (!langs.includes(treeTermLanguage)) {
+    treeTermLanguage = def;
+  }
+
+  select.innerHTML = "";
+  for (const lang of langs) {
+    const opt = document.createElement("option");
+    opt.value = lang;
+    opt.textContent = lang === def ? `${lang} (default)` : lang;
+    select.appendChild(opt);
+  }
+  select.value = treeTermLanguage;
+  select.disabled = treeLabelMode === "id";
+  if (modeSelect) modeSelect.value = treeLabelMode;
+}
+
 function refreshTree(): void {
   const container = $("tree-container");
   if (!container) return;
   container.innerHTML = "";
+  refreshTreeTermLanguageSelect();
   if (!activeResource) {
     container.innerHTML = "<p class=\"tree-empty\">Load a model to see the tree.</p>";
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = buildDefinitionTree(activeResource, {
+    labelMode: treeLabelMode,
+    termLanguage: treeTermLanguage,
+    repository: workspace.repository,
+  });
   treeView = new DefinitionTreeView({
     container,
     selectedPath: selectedNode?.path,
+    labelMode: treeLabelMode,
     onSelect: (node) => {
       selectedNode = node;
       treeView?.setSelectedPath(node.path);
@@ -146,7 +206,7 @@ function refreshAnnotationEditor(): void {
 
   const doc = getResourceDocumentation(activeResource);
   const path = selectedNode.path;
-  const anns = getPathAnnotations(doc, path, language);
+  const anns = getPathAnnotations(doc, path, annotationLanguage);
 
   for (const [key, value] of Object.entries(anns)) {
     tbody.appendChild(createAnnotationRow(key, value));
@@ -164,7 +224,7 @@ function createAnnotationRow(key: string, value: string): HTMLTableRowElement {
     if (!activeResource || !selectedNode) return;
     const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
     if (k) {
-      removePathAnnotation(activeResource, selectedNode.path, k, language);
+      removePathAnnotation(activeResource, selectedNode.path, k, annotationLanguage);
       persistResourceToWorkspace();
       refreshTree();
       refreshAnnotationEditor();
@@ -175,7 +235,7 @@ function createAnnotationRow(key: string, value: string): HTMLTableRowElement {
     const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
     const v = tr.querySelector<HTMLInputElement>(".ann-value")?.value ?? "";
     if (!k) return;
-    setPathAnnotation(activeResource, selectedNode.path, k, v, language);
+    setPathAnnotation(activeResource, selectedNode.path, k, v, annotationLanguage);
     persistResourceToWorkspace();
     refreshTree();
   };
@@ -193,7 +253,7 @@ function addAnnotationRow(key = "", value = ""): void {
   const tbody = $("annotation-rows");
   if (!tbody || !activeResource || !selectedNode) return;
   if (key) {
-    setPathAnnotation(activeResource, selectedNode.path, key, value, language);
+    setPathAnnotation(activeResource, selectedNode.path, key, value, annotationLanguage);
     persistResourceToWorkspace();
   }
   tbody.appendChild(createAnnotationRow(key, value));
@@ -221,7 +281,7 @@ function refreshPaletteUi(): void {
         selectedNode.path,
         entry.key,
         entry.value ?? "",
-        language,
+        annotationLanguage,
       );
       persistResourceToWorkspace();
       refreshTree();
@@ -320,9 +380,27 @@ function setupFileSelect(): void {
 
 function setupAnnotationActions(): void {
   $("add-annotation-btn")?.addEventListener("click", () => addAnnotationRow());
-  $("language-select")?.addEventListener("change", (e) => {
-    language = (e.target as HTMLSelectElement).value;
+  $("annotation-language-select")?.addEventListener("change", (e) => {
+    annotationLanguage = (e.target as HTMLSelectElement).value;
     refreshAnnotationEditor();
+  });
+
+  $("tree-label-mode")?.addEventListener("change", (e) => {
+    treeLabelMode = (e.target as HTMLSelectElement).value as TreeLabelMode;
+    persistTreeLabelMode();
+    const termLang = $("tree-term-language") as HTMLSelectElement | null;
+    if (termLang) termLang.disabled = treeLabelMode === "id";
+    if (treeView && activeResource) {
+      treeView.setLabelMode(treeLabelMode);
+    } else {
+      refreshTree();
+    }
+  });
+
+  $("tree-term-language")?.addEventListener("change", (e) => {
+    treeTermLanguage = (e.target as HTMLSelectElement).value;
+    persistTreeTermLanguage();
+    refreshTree();
   });
   $("download-adl-btn")?.addEventListener("click", () => {
     if (!activeResource || !activeFilePath) return;
@@ -382,6 +460,11 @@ function setupResize(): void {
 
 export function reloadUi(): void {
   loadActiveResource();
+  if (activeResource) {
+    const def = getResourceDefaultLanguage(activeResource);
+    const stored = sessionStorage.getItem(TREE_TERM_LANG_KEY);
+    if (!stored) treeTermLanguage = def;
+  }
   refreshFileSelect();
   refreshTree();
   refreshAnnotationEditor();

@@ -63,6 +63,17 @@
     <main class="workspace">
       <aside class="panel tree-panel" aria-label="Definition tree">
         <h2>Definition tree</h2>
+        <div class="tree-toolbar">
+          <label for="tree-label-mode">Show</label>
+          <select id="tree-label-mode" aria-label="Tree label mode">
+            <option value="term" selected>Terms</option>
+            <option value="id">IDs</option>
+          </select>
+          <label for="tree-term-language">in</label>
+          <select id="tree-term-language" aria-label="Terminology language" disabled>
+            <option value="en">en</option>
+          </select>
+        </div>
         <p class="hint">Nodes with annotations show a filled marker and count.</p>
         <div id="tree-container" class="tree-container"></div>
       </aside>
@@ -71,8 +82,8 @@
         <h2>Annotations</h2>
         <p id="selected-path" class="selected-path"></p>
         <div class="lang-row">
-          <label for="language-select">Language</label>
-          <select id="language-select">
+          <label for="annotation-language-select">Annotation language</label>
+          <select id="annotation-language-select">
             <option value="en" selected>en</option>
             <option value="sv">sv</option>
             <option value="de">de</option>

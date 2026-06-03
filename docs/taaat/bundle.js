@@ -16448,6 +16448,76 @@ var ADL2Serializer = class {
   }
 };
 
+// enhanced/parser/archetype_terminology.ts
+function parseLanguageCode(raw) {
+  if (!raw)
+    return "en";
+  if (typeof raw !== "string")
+    return "en";
+  const trimmed = raw.trim();
+  if (!trimmed)
+    return "en";
+  const m2 = trimmed.match(/::([^:]+)$/);
+  return (m2?.[1] ?? trimmed).trim().toLowerCase() || "en";
+}
+function getResourceDefaultLanguage(resource) {
+  const ol = resource.original_language;
+  if (typeof ol === "string")
+    return parseLanguageCode(ol);
+  if (ol && typeof ol === "object") {
+    const bag = ol;
+    const code = typeof bag.code_string === "string" ? bag.code_string : bag.code_string?.value;
+    if (code)
+      return parseLanguageCode(String(code));
+    if (typeof bag.value === "string")
+      return parseLanguageCode(bag.value);
+  }
+  return "en";
+}
+function getTermDefinitionsTable(resource) {
+  if (!resource?.ontology)
+    return void 0;
+  const table = resource.ontology.term_definitions;
+  if (!table || typeof table !== "object" || Array.isArray(table)) {
+    return void 0;
+  }
+  return table;
+}
+function listTerminologyLanguages(resource) {
+  const table = getTermDefinitionsTable(resource);
+  const fromTerms = table ? Object.keys(table).sort() : [];
+  const def = getResourceDefaultLanguage(resource);
+  const set3 = /* @__PURE__ */ new Set([def, ...fromTerms]);
+  return [...set3];
+}
+function lookupTermText(table, language, nodeId) {
+  if (!table || !nodeId)
+    return void 0;
+  const lang = language.trim().toLowerCase();
+  const langTable = table[lang] ?? table[lang.split("-")[0]] ?? table[Object.keys(table).find((k2) => k2.toLowerCase() === lang) ?? ""];
+  if (!langTable)
+    return void 0;
+  const term = langTable[nodeId] ?? langTable[nodeId.toLowerCase()];
+  const text = term?.text?.trim();
+  if (text)
+    return text;
+  return term?.description?.trim() || void 0;
+}
+function lookupNodeTermText(ctx, nodeId) {
+  let text = lookupTermText(getTermDefinitionsTable(ctx.resource), ctx.language, nodeId);
+  if (text || !ctx.archetypeRef || !ctx.repository || !nodeId)
+    return text;
+  const ext = ctx.repository.get(ctx.archetypeRef) ?? ctx.repository.getTemplate(ctx.archetypeRef);
+  if (!ext)
+    return void 0;
+  return lookupTermText(getTermDefinitionsTable(ext), ctx.language, nodeId);
+}
+function resolveNodeDisplayLabel(labelId, termLabel, mode) {
+  if (mode === "term" && termLabel)
+    return termLabel;
+  return labelId;
+}
+
 // enhanced/parser/clinical_model_annotations.ts
 function asAnnotationDocumentation(doc) {
   if (!doc || typeof doc !== "object")
@@ -16482,24 +16552,24 @@ function countAnnotationKeysAtPath(doc, path) {
   }
   return total;
 }
-function getPathAnnotations(doc, path, language2 = "en") {
-  return { ...doc?.[language2]?.[path] ?? {} };
+function getPathAnnotations(doc, path, language = "en") {
+  return { ...doc?.[language]?.[path] ?? {} };
 }
-function setPathAnnotation(resource, path, key, value, language2 = "en") {
+function setPathAnnotation(resource, path, key, value, language = "en") {
   const doc = ensureResourceAnnotations(resource);
-  if (!doc[language2])
-    doc[language2] = {};
-  if (!doc[language2][path])
-    doc[language2][path] = {};
-  doc[language2][path][key] = value;
+  if (!doc[language])
+    doc[language] = {};
+  if (!doc[language][path])
+    doc[language][path] = {};
+  doc[language][path][key] = value;
 }
-function removePathAnnotation(resource, path, key, language2 = "en") {
+function removePathAnnotation(resource, path, key, language = "en") {
   const doc = getResourceDocumentation(resource);
-  if (!doc?.[language2]?.[path])
+  if (!doc?.[language]?.[path])
     return;
-  delete doc[language2][path][key];
-  if (Object.keys(doc[language2][path]).length === 0) {
-    delete doc[language2][path];
+  delete doc[language][path][key];
+  if (Object.keys(doc[language][path]).length === 0) {
+    delete doc[language][path];
   }
 }
 function joinConstraintPath(parentPath, attributeName, nodeId) {
@@ -16516,28 +16586,53 @@ function readAttributeChildren(attr) {
   const children2 = attr.children;
   return children2 ?? [];
 }
-function buildObjectSubtree(obj, parentPath, doc) {
+function idLabelForObject(obj, archetypeRef) {
+  if (obj instanceof C_ARCHETYPE_ROOT) {
+    return archetypeRef ? `use ${archetypeRef}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
+  }
+  return `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+}
+function termLabelForObject(ctx, nodeId, archetypeRef) {
+  return lookupNodeTermText(
+    {
+      resource: ctx.resource,
+      language: ctx.termLanguage,
+      repository: ctx.repository,
+      archetypeRef
+    },
+    nodeId
+  );
+}
+function finalizeNode(ctx, base) {
+  return {
+    ...base,
+    labelId: base.labelId,
+    termLabel: base.termLabel,
+    label: resolveNodeDisplayLabel(base.labelId, base.termLabel, ctx.labelMode)
+  };
+}
+function buildObjectSubtree(obj, parentPath, ctx) {
   if (obj instanceof C_ARCHETYPE_ROOT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
     const ref = obj.archetype_ref;
-    const label = ref ? `use ${ref}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    return {
+    const labelId = idLabelForObject(obj, ref);
+    const termLabel = termLabelForObject(ctx, obj.node_id, ref);
+    return finalizeNode(ctx, {
       id: path2 || "/root",
       path: path2,
-      label,
+      labelId,
+      termLabel,
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount2 > 0,
-      annotationKeyCount: keyCount2,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path2) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path2),
       isArchetypeRoot: true,
       archetypeRef: ref,
       children: []
-    };
+    });
   }
   if (obj instanceof C_COMPLEX_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
     const children2 = [];
     for (const attr of readAttributes(obj)) {
       const attrName = attr.rm_attribute_name ?? "attr";
@@ -16547,52 +16642,65 @@ function buildObjectSubtree(obj, parentPath, doc) {
           attrName,
           child.node_id ?? "?"
         );
-        children2.push(buildObjectSubtree(child, childPath, doc));
+        children2.push(buildObjectSubtree(child, childPath, ctx));
       }
     }
-    const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
-    return {
+    const labelId = idLabelForObject(obj);
+    return finalizeNode(ctx, {
       id: path2 || "/root",
       path: path2,
-      label,
+      labelId,
+      termLabel: termLabelForObject(ctx, obj.node_id),
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount2 > 0,
-      annotationKeyCount: keyCount2,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path2) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path2),
       children: children2
-    };
+    });
   }
   if (obj instanceof C_PRIMITIVE_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
-    return {
+    const labelId = idLabelForObject(obj);
+    return finalizeNode(ctx, {
       id: path2,
       path: path2,
-      label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
+      labelId,
+      termLabel: termLabelForObject(ctx, obj.node_id),
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
-      hasAnnotations: keyCount2 > 0,
-      annotationKeyCount: keyCount2,
+      hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path2) > 0,
+      annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path2),
       children: []
-    };
+    });
   }
   const path = parentPath;
-  const keyCount = countAnnotationKeysAtPath(doc, path);
-  return {
+  return finalizeNode(ctx, {
     id: path || "/unknown",
     path,
-    label: "constraint",
-    hasAnnotations: keyCount > 0,
-    annotationKeyCount: keyCount,
+    labelId: "constraint",
+    hasAnnotations: countAnnotationKeysAtPath(ctx.doc, path) > 0,
+    annotationKeyCount: countAnnotationKeysAtPath(ctx.doc, path),
     children: []
-  };
+  });
 }
-function buildDefinitionTree(resource) {
+function buildDefinitionTree(resource, options) {
   const definition = resource.definition;
   if (!definition)
     return void 0;
   const doc = getResourceDocumentation(resource);
-  return buildObjectSubtree(definition, "", doc);
+  const ctx = {
+    resource,
+    doc,
+    labelMode: options?.labelMode ?? "term",
+    termLanguage: options?.termLanguage ?? getResourceDefaultLanguage(resource),
+    repository: options?.repository
+  };
+  return buildObjectSubtree(definition, "", ctx);
+}
+function applyTreeLabelMode(node, mode) {
+  node.label = resolveNodeDisplayLabel(node.labelId, node.termLabel, mode);
+  for (const child of node.children)
+    applyTreeLabelMode(child, mode);
 }
 function serializeAnnotatedResource(resource) {
   return new ADL2Serializer().serialize(resource);
@@ -19613,10 +19721,12 @@ var DefinitionTreeView = class {
   g;
   root;
   options;
+  labelMode;
   viewWidth = 400;
   viewHeight = 400;
   constructor(options) {
     this.options = options;
+    this.labelMode = options.labelMode ?? "term";
     this.svg = select_default2(options.container).append("svg").attr("class", "definition-tree-svg");
     this.g = this.svg.append("g");
   }
@@ -19700,10 +19810,10 @@ var DefinitionTreeView = class {
     const node = this.g.selectAll("g.node").data(nodes, (d2) => d2.data.id + (d2.depth ?? 0));
     const nodeEnter = node.enter().append("g").attr("class", (d2) => this.nodeClass(d2)).attr("transform", (d2) => `translate(${d2.y},${d2.x})`).on("click", (event, d2) => this.click(event, d2));
     nodeEnter.append("circle").attr("r", CIRCLE_R).attr("class", (d2) => d2.data.hasAnnotations ? "annotated" : "");
-    nodeEnter.append("text").attr("dy", "0.32em").attr("x", (d2) => d2.children || d2._children ? -5 : 5).attr("text-anchor", (d2) => d2.children || d2._children ? "end" : "start").text((d2) => formatNodeLabel(d2.data.label, d2.data.annotationKeyCount));
+    nodeEnter.append("text").attr("dy", "0.32em").attr("x", (d2) => d2.children || d2._children ? -5 : 5).attr("text-anchor", (d2) => d2.children || d2._children ? "end" : "start").text((d2) => this.displayLabel(d2.data));
     const nodeUpdate = nodeEnter.merge(node);
     nodeUpdate.attr("class", (d2) => this.nodeClass(d2)).transition().duration(duration).attr("transform", (d2) => `translate(${d2.y},${d2.x})`);
-    nodeUpdate.select("text").text((d2) => formatNodeLabel(d2.data.label, d2.data.annotationKeyCount));
+    nodeUpdate.select("text").text((d2) => this.displayLabel(d2.data));
     node.exit().remove();
     const link = this.g.selectAll("path.link").data(links, (d2) => d2.target.data.id + String(d2.target.depth));
     const linkEnter = link.enter().insert("path", "g").attr("class", "link").attr("d", () => {
@@ -19726,6 +19836,18 @@ var DefinitionTreeView = class {
     if (this.root)
       this.render();
   }
+  setLabelMode(mode) {
+    this.labelMode = mode;
+    if (!this.root)
+      return;
+    for (const d2 of this.root.descendants()) {
+      applyTreeLabelMode(d2.data, mode);
+    }
+    this.render();
+  }
+  displayLabel(node) {
+    return formatNodeLabel(node.label, node.annotationKeyCount);
+  }
   diagonal(s2, d2) {
     return `M ${s2.y} ${s2.x}
       C ${(s2.y + d2.y) / 2} ${s2.x},
@@ -19740,8 +19862,22 @@ var activeFilePath;
 var activeResource;
 var selectedNode;
 var palette = loadPalette();
-var language = "en";
+var annotationLanguage = "en";
+var treeLabelMode = readTreeLabelMode();
+var treeTermLanguage = "en";
 var treeView;
+var TREE_LABEL_MODE_KEY = "ehrtslib-taaat-tree-label-mode";
+var TREE_TERM_LANG_KEY = "ehrtslib-taaat-tree-term-language";
+function readTreeLabelMode() {
+  const v2 = sessionStorage.getItem(TREE_LABEL_MODE_KEY);
+  return v2 === "id" ? "id" : "term";
+}
+function persistTreeLabelMode() {
+  sessionStorage.setItem(TREE_LABEL_MODE_KEY, treeLabelMode);
+}
+function persistTreeTermLanguage() {
+  sessionStorage.setItem(TREE_TERM_LANG_KEY, treeTermLanguage);
+}
 var $2 = (id2) => document.getElementById(id2);
 function getLoadMode() {
   const checked = document.querySelector(
@@ -19805,19 +19941,57 @@ function persistResourceToWorkspace() {
     workspace.updateFileContent(activeFilePath, adl);
   }
 }
+function refreshTreeTermLanguageSelect() {
+  const select = $2("tree-term-language");
+  const modeSelect = $2("tree-label-mode");
+  if (!select)
+    return;
+  if (!activeResource) {
+    select.innerHTML = '<option value="en">en</option>';
+    select.disabled = true;
+    if (modeSelect)
+      modeSelect.value = treeLabelMode;
+    return;
+  }
+  const langs = listTerminologyLanguages(activeResource);
+  const def = getResourceDefaultLanguage(activeResource);
+  const stored = sessionStorage.getItem(TREE_TERM_LANG_KEY);
+  if (stored && langs.includes(stored)) {
+    treeTermLanguage = stored;
+  } else if (!langs.includes(treeTermLanguage)) {
+    treeTermLanguage = def;
+  }
+  select.innerHTML = "";
+  for (const lang of langs) {
+    const opt = document.createElement("option");
+    opt.value = lang;
+    opt.textContent = lang === def ? `${lang} (default)` : lang;
+    select.appendChild(opt);
+  }
+  select.value = treeTermLanguage;
+  select.disabled = treeLabelMode === "id";
+  if (modeSelect)
+    modeSelect.value = treeLabelMode;
+}
 function refreshTree() {
   const container = $2("tree-container");
   if (!container)
     return;
   container.innerHTML = "";
+  refreshTreeTermLanguageSelect();
   if (!activeResource) {
     container.innerHTML = '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = buildDefinitionTree(activeResource, {
+    labelMode: treeLabelMode,
+    termLanguage: treeTermLanguage,
+    repository: workspace.repository
+  });
   treeView = new DefinitionTreeView({
     container,
     selectedPath: selectedNode?.path,
+    labelMode: treeLabelMode,
     onSelect: (node) => {
       selectedNode = node;
       treeView?.setSelectedPath(node.path);
@@ -19848,7 +20022,7 @@ function refreshAnnotationEditor() {
     return;
   const doc = getResourceDocumentation(activeResource);
   const path = selectedNode.path;
-  const anns = getPathAnnotations(doc, path, language);
+  const anns = getPathAnnotations(doc, path, annotationLanguage);
   for (const [key, value] of Object.entries(anns)) {
     tbody.appendChild(createAnnotationRow(key, value));
   }
@@ -19865,7 +20039,7 @@ function createAnnotationRow(key, value) {
       return;
     const k2 = tr2.querySelector(".ann-key")?.value.trim();
     if (k2) {
-      removePathAnnotation(activeResource, selectedNode.path, k2, language);
+      removePathAnnotation(activeResource, selectedNode.path, k2, annotationLanguage);
       persistResourceToWorkspace();
       refreshTree();
       refreshAnnotationEditor();
@@ -19878,7 +20052,7 @@ function createAnnotationRow(key, value) {
     const v2 = tr2.querySelector(".ann-value")?.value ?? "";
     if (!k2)
       return;
-    setPathAnnotation(activeResource, selectedNode.path, k2, v2, language);
+    setPathAnnotation(activeResource, selectedNode.path, k2, v2, annotationLanguage);
     persistResourceToWorkspace();
     refreshTree();
   };
@@ -19895,7 +20069,7 @@ function addAnnotationRow(key = "", value = "") {
   if (!tbody || !activeResource || !selectedNode)
     return;
   if (key) {
-    setPathAnnotation(activeResource, selectedNode.path, key, value, language);
+    setPathAnnotation(activeResource, selectedNode.path, key, value, annotationLanguage);
     persistResourceToWorkspace();
   }
   tbody.appendChild(createAnnotationRow(key, value));
@@ -19923,7 +20097,7 @@ function refreshPaletteUi() {
         selectedNode.path,
         entry.key,
         entry.value ?? "",
-        language
+        annotationLanguage
       );
       persistResourceToWorkspace();
       refreshTree();
@@ -20011,9 +20185,26 @@ function setupFileSelect() {
 }
 function setupAnnotationActions() {
   $2("add-annotation-btn")?.addEventListener("click", () => addAnnotationRow());
-  $2("language-select")?.addEventListener("change", (e2) => {
-    language = e2.target.value;
+  $2("annotation-language-select")?.addEventListener("change", (e2) => {
+    annotationLanguage = e2.target.value;
     refreshAnnotationEditor();
+  });
+  $2("tree-label-mode")?.addEventListener("change", (e2) => {
+    treeLabelMode = e2.target.value;
+    persistTreeLabelMode();
+    const termLang = $2("tree-term-language");
+    if (termLang)
+      termLang.disabled = treeLabelMode === "id";
+    if (treeView && activeResource) {
+      treeView.setLabelMode(treeLabelMode);
+    } else {
+      refreshTree();
+    }
+  });
+  $2("tree-term-language")?.addEventListener("change", (e2) => {
+    treeTermLanguage = e2.target.value;
+    persistTreeTermLanguage();
+    refreshTree();
   });
   $2("download-adl-btn")?.addEventListener("click", () => {
     if (!activeResource || !activeFilePath)
@@ -20071,6 +20262,12 @@ function setupResize() {
 }
 function reloadUi() {
   loadActiveResource();
+  if (activeResource) {
+    const def = getResourceDefaultLanguage(activeResource);
+    const stored = sessionStorage.getItem(TREE_TERM_LANG_KEY);
+    if (!stored)
+      treeTermLanguage = def;
+  }
   refreshFileSelect();
   refreshTree();
   refreshAnnotationEditor();
