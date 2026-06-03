@@ -23,6 +23,11 @@ Deno.test("ODIN - string list", () => {
   assertEquals(result, ["one", "two", "three"]);
 });
 
+Deno.test("ODIN - ADL 1.4 open primitive list marker", () => {
+  const result = parseOdin('<"organisation", "provider", ...>');
+  assertEquals(result, ["organisation", "provider"]);
+});
+
 Deno.test("ODIN - integer value", () => {
   const result = parseOdin("<42>");
   assertEquals(result, 42);
@@ -36,7 +41,7 @@ Deno.test("ODIN - real value", () => {
 Deno.test("ODIN - boolean values", () => {
   const result1 = parseOdin("<True>");
   assertEquals(result1, true);
-  
+
   const result2 = parseOdin("<False>");
   assertEquals(result2, false);
 });
@@ -119,7 +124,7 @@ Deno.test("ODIN - complex nested structure", () => {
     >
   >`;
   const result = parseOdin(input);
-  
+
   // Verify structure
   assertEquals(typeof result, "object");
   assertEquals("details" in result, true);

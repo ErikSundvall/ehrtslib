@@ -2,6 +2,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { ClinicalModelWorkspace } from "../../../enhanced/parser/mod.ts";
 import {
   convert,
   getAsciidocConfigPreset,
@@ -36,6 +37,15 @@ terminology
 Deno.test("validateTemplateInput accepts operational_template input", () => {
   const result = validateTemplateInput(OPERATIONAL_TEMPLATE_ADL);
   assertEquals(result.valid, true);
+});
+
+Deno.test("validateTemplateInput accepts loaded workspace root", () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile("demo_generated.opt", OPERATIONAL_TEMPLATE_ADL);
+
+  const result = validateTemplateInput("", workspace);
+  assertEquals(result.valid, true);
+  assert(result.message.includes("Valid operational template"));
 });
 
 Deno.test("validateTemplateInput rejects plain archetype (non-template) input", () => {

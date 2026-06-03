@@ -1,6 +1,6 @@
 /**
  * ODIN (Object Data Instance Notation) Parser
- * 
+ *
  * Parses ODIN syntax used in ADL2 files for structured data representation.
  * ODIN is used in language, description, terminology sections.
  */
@@ -162,12 +162,11 @@ export class OdinParser {
       this.skipWhitespace();
 
       if (this.check(TokenType.RANGLE)) break;
-      
+
       // In ODIN context, keywords can be used as identifiers
       // So we need to accept both IDENTIFIER and keyword tokens
       const token = this.peek();
-      const isValidAttributeName = 
-        token.type === TokenType.IDENTIFIER ||
+      const isValidAttributeName = token.type === TokenType.IDENTIFIER ||
         token.type === TokenType.DESCRIPTION ||
         token.type === TokenType.LANGUAGE ||
         token.type === TokenType.DEFINITION ||
@@ -175,7 +174,7 @@ export class OdinParser {
         token.type === TokenType.ARCHETYPE ||
         token.type === TokenType.RULES ||
         token.type === TokenType.ANNOTATIONS;
-      
+
       if (!isValidAttributeName) {
         break;
       }
@@ -205,7 +204,9 @@ export class OdinParser {
 
   private looksLikeKeyedObjectBlock(): boolean {
     let i = this.position + 1;
-    while (i < this.tokens.length && this.tokens[i].type !== TokenType.RBRACKET) {
+    while (
+      i < this.tokens.length && this.tokens[i].type !== TokenType.RBRACKET
+    ) {
       i++;
     }
     if (i >= this.tokens.length) return false;
@@ -257,6 +258,7 @@ export class OdinParser {
       this.skipWhitespace();
 
       if (this.check(TokenType.RANGLE)) break;
+      if (this.skipOpenListMarker()) continue;
 
       list.push(this.parsePrimitive());
       this.skipWhitespace();
@@ -269,9 +271,22 @@ export class OdinParser {
     }
 
     this.consume(TokenType.RANGLE, "Expected '>' to close primitive list");
-    
+
     // Return single value if list has only one item
     return list.length === 1 ? list[0] : list;
+  }
+
+  private skipOpenListMarker(): boolean {
+    if (!this.check(TokenType.ELLIPSIS)) return false;
+    this.advance();
+    if (this.check(TokenType.DOT)) {
+      this.advance();
+    }
+    this.skipWhitespace();
+    if (this.check(TokenType.COMMA)) {
+      this.advance();
+    }
+    return true;
   }
 
   private parseInterval(): OdinInterval {
@@ -289,7 +304,9 @@ export class OdinParser {
       if (!this.check(TokenType.EQUALS)) {
         interval.lower = this.parsePrimitiveValue();
       }
-    } else if (this.check(TokenType.IDENTIFIER) && this.peek().value === "undefined") {
+    } else if (
+      this.check(TokenType.IDENTIFIER) && this.peek().value === "undefined"
+    ) {
       // undefined lower bound
       this.advance();
       interval.lowerUnbounded = true;
@@ -309,7 +326,9 @@ export class OdinParser {
         this.advance();
         interval.upperIncluded = false;
         interval.upper = this.parsePrimitiveValue();
-      } else if (this.check(TokenType.IDENTIFIER) && this.peek().value === "undefined") {
+      } else if (
+        this.check(TokenType.IDENTIFIER) && this.peek().value === "undefined"
+      ) {
         // undefined upper bound
         this.advance();
         interval.upperUnbounded = true;
@@ -349,7 +368,7 @@ export class OdinParser {
       if (value === "true") return true;
       if (value === "false") return false;
       if (value === "null" || value === "undefined") return null;
-      
+
       // Return as string if not recognized boolean/null
       return value;
     }
@@ -364,7 +383,7 @@ export class OdinParser {
       this.check(TokenType.REAL) ||
       (this.check(TokenType.IDENTIFIER) &&
         ["true", "false", "null", "undefined"].includes(
-          this.peek().value.toLowerCase()
+          this.peek().value.toLowerCase(),
         ))
     );
   }
@@ -415,7 +434,8 @@ export class OdinParser {
   }
 
   private isAtEnd(): boolean {
-    return this.position >= this.tokens.length || this.peek().type === TokenType.EOF;
+    return this.position >= this.tokens.length ||
+      this.peek().type === TokenType.EOF;
   }
 
   private skipWhitespace(): void {
@@ -426,7 +446,7 @@ export class OdinParser {
   private error(message: string): Error {
     const token = this.peek();
     return new Error(
-      `Parse error at line ${token.line}, column ${token.column}: ${message}`
+      `Parse error at line ${token.line}, column ${token.column}: ${message}`,
     );
   }
 }
