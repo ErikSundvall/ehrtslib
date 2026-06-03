@@ -12220,6 +12220,8 @@ var OdinParser = class {
       this.skipWhitespace();
       if (this.check("RANGLE" /* RANGLE */))
         break;
+      if (this.skipOpenListMarker())
+        continue;
       list.push(this.parsePrimitive());
       this.skipWhitespace();
       if (this.check("COMMA" /* COMMA */)) {
@@ -12229,6 +12231,19 @@ var OdinParser = class {
     }
     this.consume("RANGLE" /* RANGLE */, "Expected '>' to close primitive list");
     return list.length === 1 ? list[0] : list;
+  }
+  skipOpenListMarker() {
+    if (!this.check("ELLIPSIS" /* ELLIPSIS */))
+      return false;
+    this.advance();
+    if (this.check("DOT" /* DOT */)) {
+      this.advance();
+    }
+    this.skipWhitespace();
+    if (this.check("COMMA" /* COMMA */)) {
+      this.advance();
+    }
+    return true;
   }
   parseInterval() {
     this.consume("PIPE" /* PIPE */, "Expected '|' to start interval");
