@@ -7,6 +7,7 @@ import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
 import {
   buildClinicalModelPathIndex,
   loadGitHubTemplateClosure,
+  parseGitHubClinicalModelFileUrl,
   parseGitHubTemplateFileUrl,
   resolveClinicalModelRef,
 } from "../../../enhanced/parser/github_template_closure.ts";
@@ -17,6 +18,13 @@ import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_
 
 const BLOB_URL =
   "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
+
+Deno.test("parseGitHubClinicalModelFileUrl accepts archetype adl links", () => {
+  const adl = parseGitHubClinicalModelFileUrl(
+    "https://github.com/org/repo/blob/main/local/foo/openEHR-EHR-OBServation.v1.adl",
+  );
+  assertEquals(adl.path, "local/foo/openEHR-EHR-OBServation.v1.adl");
+});
 
 Deno.test("parseGitHubTemplateFileUrl parses blob and raw links", () => {
   const blob = parseGitHubTemplateFileUrl(BLOB_URL);

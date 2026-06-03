@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      name="description"
+      content="TAAAT — Template and Archetype Annotation Tool for openEHR models"
+    >
+    <title>TAAAT — Template &amp; Archetype Annotation Tool</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-inner">
+        <h1>TAAAT</h1>
+        <p class="tagline">Template and Archetype Annotation Tool</p>
+        <nav class="header-nav">
+          <a href="../">ehrtslib home</a>
+          <a href="../demo/">Format converter demo</a>
+          <a href="https://specifications.openehr.org/" target="_blank" rel="noopener"
+          >openEHR specs</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="load-bar" aria-label="Load model">
+      <fieldset class="mode-fieldset">
+        <legend>Mode</legend>
+        <label class="mode-option">
+          <input type="radio" name="load-mode" value="template" checked>
+          Template
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="load-mode" value="archetype">
+          Archetype
+        </label>
+      </fieldset>
+      <input
+        type="url"
+        id="github-url"
+        class="url-input"
+        spellcheck="false"
+        autocomplete="off"
+      >
+      <button type="button" id="load-github-btn" class="btn btn-primary">Load from GitHub</button>
+      <label class="btn btn-secondary upload-label" title="Load .adl, .adls, or .t.json from disk">
+        Local files
+        <input
+          type="file"
+          id="local-files"
+          accept=".adl,.adls,.t.json,application/json,text/plain"
+          multiple
+          hidden
+        >
+      </label>
+      <label class="file-label" for="file-select">File</label>
+      <select id="file-select" class="file-select" aria-label="Active file in workspace">
+        <option value="">—</option>
+      </select>
+    </section>
+
+    <main class="workspace">
+      <aside class="panel tree-panel" aria-label="Definition tree">
+        <h2>Definition tree</h2>
+        <p class="hint">Nodes with annotations show a filled marker and count.</p>
+        <div id="tree-container" class="tree-container"></div>
+      </aside>
+
+      <section class="panel detail-panel" aria-label="Annotations">
+        <h2>Annotations</h2>
+        <p id="selected-path" class="selected-path"></p>
+        <div class="lang-row">
+          <label for="language-select">Language</label>
+          <select id="language-select">
+            <option value="en" selected>en</option>
+            <option value="sv">sv</option>
+            <option value="de">de</option>
+          </select>
+          <button type="button" id="add-annotation-btn" class="btn btn-secondary btn-sm">
+            Add row
+          </button>
+          <button type="button" id="download-adl-btn" class="btn btn-secondary btn-sm">
+            Download ADL
+          </button>
+        </div>
+        <table class="annotation-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="annotation-rows"></tbody>
+        </table>
+      </section>
+
+      <aside class="panel palette-panel" aria-label="Annotation palette">
+        <h2>Favourites</h2>
+        <p class="hint">Saved in this browser. Import/export JSON lists.</p>
+        <ul id="palette-list" class="palette-list"></ul>
+        <div class="palette-add">
+          <input type="text" id="palette-key" placeholder="Key" class="palette-input">
+          <input type="text" id="palette-value" placeholder="Value (optional)" class="palette-input">
+          <button type="button" id="palette-add-btn" class="btn btn-secondary btn-sm">Add</button>
+        </div>
+        <div class="palette-io">
+          <button type="button" id="palette-download-btn" class="btn btn-secondary btn-sm">
+            Export palette
+          </button>
+          <label class="btn btn-secondary btn-sm upload-label">
+            Import palette
+            <input type="file" id="palette-upload-input" accept="application/json,.json" hidden>
+          </label>
+        </div>
+      </aside>
+    </main>
+
+    <footer id="status-bar" class="status-bar" role="status"></footer>
+
+    <script type="module" src="bundle.js"></script>
+  </body>
+</html>
