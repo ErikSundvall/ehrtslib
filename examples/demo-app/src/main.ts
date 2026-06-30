@@ -40,6 +40,14 @@ import type { AsciidocSerializationConfig } from "../../../enhanced/serializatio
 
 import { strFromU8, unzipSync } from "fflate";
 import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
+import {
+  getDemoEditor,
+  initDemoEditors,
+  type DemoEditor,
+} from "./codemirror-setup.ts";
+import { initEditorDisplaySettings } from "./editor-settings.ts";
+
+const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 
 // Application state
 let currentInputFormat = "json";
@@ -76,11 +84,15 @@ function init() {
   // Display build info
   displayBuildInfo();
 
+  initDemoEditors({
+    instanceInitial: EXAMPLES[DEFAULT_INSTANCE_EXAMPLE as keyof typeof EXAMPLES]
+      .json,
+  });
   setupEventListeners();
   updateAutoConvertButtonUi();
 
   // Load default example (triggers debounced auto-convert via handleInputChange)
-  loadExample("section");
+  loadExample(DEFAULT_INSTANCE_EXAMPLE);
   handleInputChange("template");
 
   console.log("✓ Application ready");
@@ -142,57 +154,18 @@ function setupEventListeners() {
   setupTemplateFileUpload();
   setupTemplateAdGitLoad();
 
-  // Input textarea
-  const inputTextarea = document.getElementById(
-    "input-text",
-  ) as HTMLTextAreaElement;
-  if (inputTextarea) {
-    inputTextarea.addEventListener(
-      "input",
-      () => handleInputChange("instance"),
-    );
+  // Input editors
+  const inputEditor = getDemoEditor("input-text");
+  if (inputEditor) {
+    inputEditor.onChange(() => handleInputChange("instance"));
   }
 
-  const templateTextarea = document.getElementById(
-    "template-input-text",
-  ) as HTMLTextAreaElement;
-  if (templateTextarea) {
-    templateTextarea.addEventListener(
-      "input",
-      () => handleInputChange("template"),
-    );
+  const templateEditor = getDemoEditor("template-input-text");
+  if (templateEditor) {
+    templateEditor.onChange(() => handleInputChange("template"));
   }
 
-  // Input line-wrap toggle (default: false => wrapping enabled = unchecked)
-  const inputDisableLinebreaks = document.getElementById(
-    "input-disable-linebreaks",
-  ) as HTMLInputElement;
-  if (inputDisableLinebreaks) {
-    // apply initial state
-    applyTextareaLineWrap("input-text", !!inputDisableLinebreaks.checked);
-    inputDisableLinebreaks.addEventListener("change", () => {
-      applyTextareaLineWrap("input-text", !!inputDisableLinebreaks.checked);
-      // update counts/layout as necessary
-      handleInputChange();
-    });
-  }
-
-  const templateDisableLinebreaks = document.getElementById(
-    "template-disable-linebreaks",
-  ) as HTMLInputElement;
-  if (templateDisableLinebreaks) {
-    applyTextareaLineWrap(
-      "template-input-text",
-      !!templateDisableLinebreaks.checked,
-    );
-    templateDisableLinebreaks.addEventListener("change", () => {
-      applyTextareaLineWrap(
-        "template-input-text",
-        !!templateDisableLinebreaks.checked,
-      );
-      handleInputChange("template");
-    });
-  }
+  initEditorDisplaySettings();
 
   const autoConvertBtn = document.getElementById("auto-convert-btn");
   if (autoConvertBtn) {
@@ -202,19 +175,7 @@ function setupEventListeners() {
   const outputPanelBody = document.querySelector(".output-panel .panel-body");
   const inputPanelBody = document.querySelector(".input-panel .panel-body");
   if (outputPanelBody) {
-    outputPanelBody.addEventListener("change", (e) => {
-      const target = e.target as HTMLElement;
-      if (target.classList.contains("output-disable-linebreaks")) {
-        const checked = (target as HTMLInputElement).checked;
-        document.querySelectorAll(".output-disable-linebreaks").forEach(
-          (cb) => {
-            (cb as HTMLInputElement).checked = checked;
-          },
-        );
-        applyOutputLineWrap(checked);
-      }
-      scheduleAutoConvert();
-    });
+    outputPanelBody.addEventListener("change", () => scheduleAutoConvert());
   }
   if (inputPanelBody) {
     inputPanelBody.addEventListener("change", () => scheduleAutoConvert());
@@ -534,11 +495,9 @@ function setupTemplateFileUpload() {
   const fileInput = document.getElementById("template-file-input") as
     | HTMLInputElement
     | null;
-  const textarea = document.getElementById("template-input-text") as
-    | HTMLTextAreaElement
-    | null;
+  const templateEditor = getDemoEditor("template-input-text");
   const tabsScroll = document.getElementById("template-file-tabs-scroll");
-  if (!uploadBtn || !fileInput || !textarea) return;
+  if (!uploadBtn || !fileInput || !templateEditor) return;
 
   uploadBtn.addEventListener("click", () => fileInput.click());
 
@@ -563,10 +522,10 @@ function setupTemplateFileUpload() {
     selectTemplateFileTab(btn.dataset.path);
   });
 
-  textarea.addEventListener("input", () => {
+  templateEditor.onChange(() => {
     const path = clinicalWorkspace.getActivePath();
     if (path) {
-      clinicalWorkspace.updateFileContent(path, textarea.value);
+      clinicalWorkspace.updateFileContent(path, templateEditor.value);
       updateTemplateFileSetUi();
     }
   });
@@ -696,10 +655,10 @@ function appendAdGitProgress(
 
 function selectTemplateFileTab(path: string) {
   if (!path) return;
-  const textarea = document.getElementById('template-input-text') as HTMLTextAreaElement | null;
+  const templateEditor = getDemoEditor("template-input-text");
   clinicalWorkspace.setActivePath(path);
   const file = clinicalWorkspace.getFile(path);
-  if (textarea && file) textarea.value = file.content;
+  if (templateEditor && file) templateEditor.value = file.content;
   updateTemplateFileSetUi();
   handleInputChange('template');
 }
@@ -827,13 +786,6 @@ function activateInputTab(mode: InputMode) {
   document.querySelectorAll(".input-tab-pane").forEach((pane) => {
     pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
   });
-  document.querySelectorAll(".input-toolbar").forEach((toolbar) => {
-    const el = toolbar as HTMLElement;
-    el.classList.toggle(
-      "active",
-      el.getAttribute("data-input-toolbar") === mode,
-    );
-  });
   currentInputTab = mode;
   validateInput();
   scheduleAutoConvert();
@@ -858,22 +810,21 @@ function setupOutputTabs() {
  * Set up copy and download button handlers
  */
 function setupCopyDownloadButtons() {
-  const copyBtn = document.getElementById("copy-output");
-  const downloadBtn = document.getElementById("download-output");
+  document.addEventListener("click", (e) => {
+    const target = (e.target as HTMLElement).closest(
+      ".copy-output-btn, .download-output-btn",
+    ) as HTMLElement | null;
+    if (!target) return;
 
-  if (copyBtn) {
-    copyBtn.addEventListener(
-      "click",
-      () => copyToClipboard(getActiveOutputFormat()),
-    );
-  }
+    const format = target.getAttribute("data-format");
+    if (!format) return;
 
-  if (downloadBtn) {
-    downloadBtn.addEventListener(
-      "click",
-      () => downloadOutput(getActiveOutputFormat()),
-    );
-  }
+    if (target.classList.contains("copy-output-btn")) {
+      copyToClipboard(format);
+    } else {
+      downloadOutput(format);
+    }
+  });
 }
 
 /**
@@ -895,18 +846,16 @@ function loadExample(exampleKey: string) {
     return;
   }
 
-  const inputTextarea = document.getElementById(
-    "input-text",
-  ) as HTMLTextAreaElement;
+  const inputEditor = getDemoEditor("input-text");
   const formatSelect = document.getElementById(
     "input-format",
   ) as HTMLSelectElement;
 
-  if (inputTextarea && formatSelect) {
+  if (inputEditor && formatSelect) {
     activateInputTab("instance");
     // Load the appropriate format
     const format = formatSelect.value;
-    inputTextarea.value = example[format as keyof typeof example] as string ||
+    inputEditor.value = example[format as keyof typeof example] as string ||
       example.json;
     currentInputFormat = format;
 
@@ -924,12 +873,10 @@ async function handleFileUpload(e: Event) {
 
   try {
     const text = await file.text();
-    const inputTextarea = document.getElementById(
-      "input-text",
-    ) as HTMLTextAreaElement;
-    if (inputTextarea) {
+    const inputEditor = getDemoEditor("input-text");
+    if (inputEditor) {
       activateInputTab("instance");
-      inputTextarea.value = text;
+      inputEditor.value = text;
       handleInputChange("instance");
 
       // Try to detect format from file extension
@@ -954,9 +901,9 @@ async function handleFileUpload(e: Event) {
  * Clear the input textarea
  */
 function clearInput() {
-  const textarea = getCurrentInputTextarea();
-  if (textarea) {
-    textarea.value = "";
+  const editor = getCurrentInputEditor();
+  if (editor) {
+    editor.value = "";
     if (currentInputTab === "template") {
       clinicalWorkspace.clear();
       updateTemplateFileSetUi();
@@ -965,14 +912,14 @@ function clearInput() {
   }
 }
 
-function getInputTextarea(mode: InputMode): HTMLTextAreaElement | null {
+function getInputEditor(mode: InputMode): DemoEditor | null {
   if (mode === "template-adgit") return null;
   const id = mode === "template" ? "template-input-text" : "input-text";
-  return document.getElementById(id) as HTMLTextAreaElement | null;
+  return getDemoEditor(id);
 }
 
-function getCurrentInputTextarea(): HTMLTextAreaElement | null {
-  return getInputTextarea(currentInputTab);
+function getCurrentInputEditor(): DemoEditor | null {
+  return getInputEditor(currentInputTab);
 }
 
 /**
@@ -980,10 +927,10 @@ function getCurrentInputTextarea(): HTMLTextAreaElement | null {
  */
 function handleInputChange(tab: InputMode = currentInputTab) {
   if (tab === "template-adgit") return;
-  const inputTextarea = getInputTextarea(tab);
-  if (!inputTextarea) return;
+  const inputEditor = getInputEditor(tab);
+  if (!inputEditor) return;
 
-  const text = inputTextarea.value;
+  const text = inputEditor.value;
 
   const charCount = document.getElementById(
     tab === "template" ? "template-char-count" : "char-count",
@@ -1008,7 +955,7 @@ function handleInputChange(tab: InputMode = currentInputTab) {
  */
 function validateInput() {
   if (currentInputTab === "template-adgit") return;
-  const inputTextarea = getCurrentInputTextarea();
+  const inputEditor = getCurrentInputEditor();
   const validationIcon = document.getElementById(
     currentInputTab === "template"
       ? "template-validation-icon"
@@ -1020,9 +967,9 @@ function validateInput() {
       : "validation-text",
   );
 
-  if (!inputTextarea || !validationIcon || !validationText) return;
+  if (!inputEditor || !validationIcon || !validationText) return;
 
-  const text = inputTextarea.value.trim();
+  const text = inputEditor.value.trim();
   if (!text) {
     validationIcon.textContent = "radio_button_unchecked";
     validationIcon.className = "material-icons status-icon";
@@ -1135,10 +1082,10 @@ async function handleConvert() {
   hideError();
 
   try {
-    const inputTextarea = getCurrentInputTextarea();
-    if (!inputTextarea) throw new Error("Input textarea not found");
+    const inputEditor = getCurrentInputEditor();
+    if (!inputEditor) throw new Error("Input editor not found");
 
-    const inputText = inputTextarea.value.trim();
+    const inputText = inputEditor.value.trim();
     if (!inputText) throw new Error("Input is empty");
 
     // Gather conversion options from UI
@@ -1462,9 +1409,9 @@ function updateOutputs(outputs: Record<string, string>) {
   ];
 
   outputFormats.forEach((format) => {
-    const content = document.getElementById(`output-${format}-content`);
-    if (content) {
-      content.textContent = outputs[format] ?? "";
+    const editor = getDemoEditor(`output-${format}-content`);
+    if (editor) {
+      editor.value = outputs[format] ?? "";
     }
   });
   // Refresh output info (counts and styles) for current active tab
@@ -1947,42 +1894,6 @@ function switchOutputTab(tabName: string) {
 }
 
 /**
- * Apply or remove textarea line-wrapping disabling
- */
-function applyTextareaLineWrap(textareaId: string, disable: boolean) {
-  const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
-  if (!textarea) return;
-  if (disable) {
-    textarea.classList.add("no-linebreak");
-    textarea.setAttribute("wrap", "off");
-    textarea.style.whiteSpace = "pre";
-  } else {
-    textarea.classList.remove("no-linebreak");
-    textarea.setAttribute("wrap", "soft");
-    textarea.style.whiteSpace = "";
-  }
-}
-
-/**
- * Apply or remove output pre elements line-wrapping disabling
- */
-function applyOutputLineWrap(disable: boolean) {
-  const outputs = document.querySelectorAll(".output-content");
-  outputs.forEach((o) => {
-    const el = o as HTMLElement;
-    if (disable) {
-      el.classList.add("no-linebreak");
-      el.style.whiteSpace = "pre";
-      el.style.wordWrap = "normal";
-    } else {
-      el.classList.remove("no-linebreak");
-      el.style.whiteSpace = "";
-      el.style.wordWrap = "";
-    }
-  });
-}
-
-/**
  * Update output info panel (characters and lines) for active output tab
  */
 function updateOutputInfo() {
@@ -1990,42 +1901,28 @@ function updateOutputInfo() {
   const pane = document.getElementById(`tab-${tabName}`);
   const outputChar = pane?.querySelector(".output-char-count");
   const outputLine = pane?.querySelector(".output-line-count");
-  const outputDisable = pane?.querySelector(".output-disable-linebreaks") as
-    | HTMLInputElement
-    | null;
 
   if (!pane || !outputChar || !outputLine) return;
 
-  const contentElem = document.getElementById(`output-${tabName}-content`);
-  if (!contentElem) return;
+  const editor = getDemoEditor(`output-${tabName}-content`);
+  if (!editor) return;
 
-  const text = contentElem.textContent || "";
+  const text = editor.value;
   outputChar.textContent = String(text.length);
   outputLine.textContent = String(text.split("\n").length);
-
-  if (outputDisable) {
-    applyOutputLineWrap(!!outputDisable.checked);
-  }
-}
-
-const outputDisableCheckbox = document.getElementById(
-  "output-disable-linebreaks",
-) as HTMLInputElement | null;
-if (outputDisableCheckbox) {
-  applyOutputLineWrap(!!outputDisableCheckbox.checked);
 }
 
 /**
  * Copy output to clipboard
  */
 async function copyToClipboard(format: string) {
-  const outputElement = document.getElementById(`output-${format}-content`);
-  if (!outputElement) {
-    console.error("Output element not found:", format);
+  const outputEditor = getDemoEditor(`output-${format}-content`);
+  if (!outputEditor) {
+    console.error("Output editor not found:", format);
     return;
   }
 
-  const text = outputElement.textContent || "";
+  const text = outputEditor.value;
 
   try {
     await navigator.clipboard.writeText(text);
@@ -2040,13 +1937,13 @@ async function copyToClipboard(format: string) {
  * Download output as a file
  */
 function downloadOutput(format: string) {
-  const outputElement = document.getElementById(`output-${format}-content`);
-  if (!outputElement) {
-    console.error("Output element not found:", format);
+  const outputEditor = getDemoEditor(`output-${format}-content`);
+  if (!outputEditor) {
+    console.error("Output editor not found:", format);
     return;
   }
 
-  const text = outputElement.textContent || "";
+  const text = outputEditor.value;
   const extensions: Record<string, string> = {
     xml: "xml",
     json: "json",

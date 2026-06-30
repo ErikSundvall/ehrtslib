@@ -1,6 +1,9 @@
 {
   "nodeModulesDir": "auto",
   "imports": {
+    "@codemirror/commands": "npm:@codemirror/commands@^6.8.1",
+    "@codemirror/state": "npm:@codemirror/state@^6.5.2",
+    "@codemirror/view": "npm:@codemirror/view@^6.38.0",
     "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",
     "yaml": "npm:yaml@^2.3.4",
     "fflate": "npm:fflate@^0.8.2"
@@ -8,6 +11,7 @@
   "tasks": {
     "test": "deno test --allow-read",
     "check": "deno check enhanced/*.ts",
-    "build:demo": "deno run -A examples/demo-app/scripts/build.ts"
+    "build:demo": "deno run -A examples/demo-app/scripts/build.ts",
+    "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts"
   }
 }

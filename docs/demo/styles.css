@@ -184,7 +184,8 @@ body {
     gap: 0;
 }
 
-.input-textarea {
+.input-textarea,
+.demo-editor-host.input-textarea {
     flex: 1;
     min-height: 0;
     width: 100%;
@@ -193,12 +194,12 @@ body {
     border-top: none;
 }
 
-.output-content {
+.output-content,
+.demo-editor-host.output-content {
     flex: 1;
     min-height: 0;
-    overflow: auto;
+    overflow: hidden;
     margin: 0;
-    padding: var(--spacing-md);
     background-color: var(--bg-code);
     color: var(--text-code);
     font-family: var(--font-mono);
@@ -207,8 +208,32 @@ body {
     border-radius: 0 0 var(--radius-md) var(--radius-md);
     border: 1px solid #334155;
     border-top: none;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+}
+
+.demo-editor-host .cm-editor {
+    height: 100%;
+    border-radius: inherit;
+}
+
+.demo-editor-host.input-textarea .cm-editor {
+    border: 1px solid #334155;
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.demo-editor-host.input-textarea .cm-editor.cm-focused {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.line-numbers-enabled .demo-editor-host.input-textarea .cm-editor {
+    border-left: none;
+    border-radius: 0 0 var(--radius-md) 0;
+}
+
+.line-numbers-enabled .demo-editor-host.output-content .cm-editor {
+    border-left: none;
+    border-radius: 0 0 var(--radius-md) 0;
 }
 
 /* ==========================================
@@ -337,21 +362,16 @@ body {
     background-color: var(--bg-secondary);
 }
 
-.input-textarea {
-    padding: var(--spacing-md);
-    border: 1px solid #334155;
-    background-color: var(--bg-code);
+.input-textarea,
+.demo-editor-host.input-textarea {
+    padding: 0;
+    border: none;
+    background-color: transparent;
     color: var(--text-code);
     font-family: var(--font-mono);
     font-size: 0.875rem;
     line-height: 1.6;
     transition: border-color 0.2s;
-}
-
-.input-textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .input-info,
@@ -375,6 +395,28 @@ body {
     display: flex;
     align-items: center;
     gap: 0.375rem;
+}
+
+.output-editor-actions,
+.input-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.input-editor-actions {
+    flex-wrap: wrap;
+}
+
+.input-info .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    position: relative;
 }
 
 .config-section {
@@ -405,31 +447,42 @@ body {
     display: flex;
 }
 
-.input-tabs-row {
+.input-tabs-row,
+.output-tabs-row {
     flex-shrink: 0;
     margin-bottom: var(--spacing-xs);
 }
 
-.input-tabs-row .tabs {
+.input-tabs-row .tabs,
+.output-tabs-row .tabs {
     margin-bottom: 0;
     border-bottom: 2px solid var(--border-light);
 }
 
-.input-toolbar {
-    display: none;
+.input-pane-toolbar {
+    display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: var(--spacing-sm);
     flex-shrink: 0;
-    margin-bottom: 0;
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
 }
 
-.input-toolbar.active {
+.input-pane-toolbar .toolbar-left {
     display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-right: auto;
 }
 
-.input-toolbar .toolbar-left {
-    align-items: center;
+.input-pane-toolbar--adgit {
+    justify-content: flex-start;
+}
+
+.input-pane-toolbar--adgit .github-template-url-input {
+    flex: 1 1 16rem;
 }
 
 .form-group-inline {
@@ -876,10 +929,27 @@ body {
 
 .checkbox-group-horizontal {
     display: flex;
-    flex-direction: row;
-    gap: var(--spacing-lg);
+    flex-flow: row wrap;
+    gap: var(--spacing-sm) var(--spacing-md);
     justify-content: flex-end;
     align-items: center;
+}
+
+.output-panel .panel-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm) var(--spacing-md);
+    align-items: flex-start;
+}
+
+.output-panel .panel-header h2 {
+    flex-shrink: 0;
+}
+
+#output-tab-enable-section {
+    flex: 1 1 12rem;
+    min-width: 0;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .checkbox-label,
@@ -1092,12 +1162,6 @@ body {
     border-bottom: none;
 }
 
-.tabs-row .output-toolbar,
-.tabs-row .input-toolbar {
-    margin-bottom: 0;
-    flex-shrink: 0;
-}
-
 .tabs {
     display: flex;
     gap: var(--spacing-xs);
@@ -1145,12 +1209,6 @@ body {
 
 .tab-pane.active {
     display: flex;
-}
-
-.output-toolbar {
-    display: flex;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
 }
 
 .output-panel .error-state,
@@ -1254,13 +1312,52 @@ body {
 .footer-content {
     max-width: 1400px;
     margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-sm) var(--spacing-md);
     font-size: 0.75rem;
     color: var(--text-secondary);
+}
+
+.build-info {
+    justify-self: start;
+    grid-column: 1;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.footer-settings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-sm) var(--spacing-md);
+    grid-column: 2;
+    justify-self: center;
+}
+
+.footer-settings-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.footer-setting {
+    padding: 0;
+}
+
+.footer-setting:hover {
+    background-color: transparent;
+}
+
+.copyright {
+    justify-self: end;
+    grid-column: 3;
+    margin: 0;
+    text-align: right;
+    color: var(--text-muted);
 }
 
 .footer-links {
@@ -1285,17 +1382,6 @@ body {
 .footer-info {
     color: var(--text-secondary);
     font-size: 0.875rem;
-}
-
-.build-info {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-}
-
-.copyright {
-    margin-top: var(--spacing-xs);
-    color: var(--text-muted);
 }
 
 /* ==========================================
@@ -1367,6 +1453,27 @@ body {
     .input-info-line-wrap,
     .output-info-line-wrap {
         margin-left: 0;
+    }
+
+    .output-editor-actions,
+    .input-editor-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
+
+    .build-info,
+    .copyright,
+    .footer-settings {
+        grid-column: 1;
+        justify-self: center;
+        text-align: center;
     }
 
     .config-grid {

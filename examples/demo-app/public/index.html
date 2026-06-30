@@ -114,125 +114,6 @@
                 Template from AD@git
               </button>
             </div>
-            <div
-              class="input-toolbar active"
-              data-input-toolbar="instance"
-              aria-label="Instance input actions"
-            >
-              <div class="toolbar-left">
-                <button class="btn btn-secondary btn-sm" id="load-example">
-                  <span class="material-icons btn-icon" aria-hidden="true"
-                  >folder_open</span>
-                  Load Example
-                </button>
-                <div class="example-menu hidden" id="example-menu">
-                  <button class="example-item" data-example="dv-text">
-                    Simple DV_TEXT
-                  </button>
-                  <button class="example-item" data-example="code-phrase">
-                    CODE_PHRASE
-                  </button>
-                  <button class="example-item" data-example="dv-coded-text">
-                    DV_CODED_TEXT
-                  </button>
-                  <button
-                    class="example-item"
-                    data-example="basic-composition"
-                  >
-                    Basic COMPOSITION
-                  </button>
-                  <button
-                    class="example-item"
-                    data-example="complex-composition"
-                  >
-                    Complex COMPOSITION
-                  </button>
-                  <button
-                    class="example-item"
-                    data-example="realistic-composition"
-                  >
-                    Realistic Template Composition
-                  </button>
-                </div>
-                <button class="btn btn-secondary btn-sm" id="upload-file">
-                  <span class="material-icons btn-icon" aria-hidden="true"
-                  >upload_file</span>
-                  Upload File
-                </button>
-                <input
-                  type="file"
-                  id="file-input"
-                  accept=".xml,.json,.yaml,.yml"
-                  class="hidden"
-                >
-              </div>
-              <button class="btn btn-secondary btn-sm" id="clear-input">
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >delete</span>
-                Clear
-              </button>
-            </div>
-            <div
-              class="input-toolbar"
-              data-input-toolbar="template"
-              aria-label="Template input actions"
-            >
-              <div class="form-group form-group-inline">
-                <label for="template-generation-mode">generation_mode:</label>
-                <select id="template-generation-mode" class="config-dropdown">
-                  <option value="minimal">minimal</option>
-                  <option value="example" selected>example</option>
-                  <option value="maximal">maximal</option>
-                </select>
-              </div>
-              <input
-                type="file"
-                id="template-file-input"
-                accept=".opt,.oet,.adl,.adls,.t.json,.xml,.zip"
-                multiple
-                hidden
-              />
-              <button
-                class="btn btn-secondary btn-sm"
-                id="upload-template-files"
-                title="Upload OPT, OET, ADL, .t.json, or ZIP of archetypes"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >upload_file</span>
-                Upload
-              </button>
-              <button
-                class="btn btn-secondary btn-sm"
-                id="clear-template-input"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >delete</span>
-                Clear
-              </button>
-            </div>
-            <div
-              class="input-toolbar"
-              data-input-toolbar="template-adgit"
-              aria-label="Template from Archetype Designer on GitHub"
-            >
-              <input
-                type="url"
-                class="github-template-url-input"
-                id="github-template-url"
-                placeholder="https://github.com/…/blob/…/MyTemplate.t.json"
-                title="Paste a GitHub blob or raw URL to a Better Archetype Designer .t.json file"
-                spellcheck="false"
-              />
-              <button
-                class="btn btn-secondary btn-sm"
-                id="load-github-template"
-                title="Download this template and dependencies into a file set"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >cloud_download</span>
-                Load
-              </button>
-            </div>
           </div>
 
           <div class="input-tab-content">
@@ -290,53 +171,93 @@
                     >check</span>
                     <span id="validation-text">Valid JSON</span>
                   </span>
-                  <label class="checkbox-label input-info-line-wrap">
-                    <input type="checkbox" id="input-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
-                </div><textarea
-                  class="input-textarea"
-                  id="input-text"
-                  placeholder="Paste your XML, JSON, or YAML here..."
-                  spellcheck="false"
-                >
-{
-  "_type": "COMPOSITION",
-  "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
-  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
-  "language": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_639-1"}, "code_string": "en"},
-  "territory": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "ISO_3166-1"}, "code_string": "GB"},
-  "category": {"_type": "DV_CODED_TEXT", "value": "event", "defining_code": {"_type": "CODE_PHRASE", "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "openehr"}, "code_string": "433"}},
-  "composer": {"_type": "PARTY_IDENTIFIED", "name": "Dr. Smith"},
-  "content": [{
-    "_type": "SECTION",
-    "name": {"_type": "DV_TEXT", "value": "Vital Signs"},
-    "items": [
-      {
-        "_type": "ELEMENT",
-        "name": {"_type": "DV_TEXT", "value": "Diagnosis"},
-        "value": {
-          "_type": "DV_CODED_TEXT",
-          "value": "Diabetes mellitus type 2",
-          "defining_code": {
-            "_type": "CODE_PHRASE",
-            "terminology_id": {"_type": "TERMINOLOGY_ID", "value": "SNOMED-CT"},
-            "code_string": "44054006"
-          }
-        }
-      },
-      {
-        "_type": "ELEMENT",
-        "name": {"_type": "DV_TEXT", "value": "Pulse rate"},
-        "value": {"_type": "DV_QUANTITY", "magnitude": 72, "units": "/min"}
-      }
-    ]
-  }]
-}</textarea>
+                  <span
+                    class="input-editor-actions"
+                    aria-label="Instance input actions"
+                  >
+                    <span class="toolbar-left">
+                      <button class="btn btn-secondary btn-sm" id="load-example">
+                        <span class="material-icons btn-icon" aria-hidden="true"
+                        >folder_open</span>
+                        Load Example
+                      </button>
+                      <div class="example-menu hidden" id="example-menu">
+                        <button class="example-item" data-example="dv-text">
+                          Simple DV_TEXT
+                        </button>
+                        <button class="example-item" data-example="code-phrase">
+                          CODE_PHRASE
+                        </button>
+                        <button
+                          class="example-item"
+                          data-example="dv-coded-text"
+                        >
+                          DV_CODED_TEXT
+                        </button>
+                        <button
+                          class="example-item"
+                          data-example="basic-composition"
+                        >
+                          Basic COMPOSITION
+                        </button>
+                        <button
+                          class="example-item"
+                          data-example="complex-composition"
+                        >
+                          Complex COMPOSITION
+                        </button>
+                        <button
+                          class="example-item"
+                          data-example="realistic-composition"
+                        >
+                          Realistic Template Composition
+                        </button>
+                      </div>
+                      <button class="btn btn-secondary btn-sm" id="upload-file">
+                        <span class="material-icons btn-icon" aria-hidden="true"
+                        >upload_file</span>
+                        Upload File
+                      </button>
+                      <input
+                        type="file"
+                        id="file-input"
+                        accept=".xml,.json,.yaml,.yml"
+                        class="hidden"
+                      >
+                    </span>
+                    <button class="btn btn-secondary btn-sm" id="clear-input">
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >delete</span>
+                      Clear
+                    </button>
+                  </span>
+                </div><div class="demo-editor-host input-textarea" id="input-text"></div>
               </div>
             </div>
 
             <div class="input-tab-pane" id="input-tab-template-adgit">
+              <div
+                class="input-pane-toolbar input-pane-toolbar--adgit"
+                aria-label="Template from Archetype Designer on GitHub"
+              >
+                <input
+                  type="url"
+                  class="github-template-url-input"
+                  id="github-template-url"
+                  placeholder="https://github.com/…/blob/…/MyTemplate.t.json"
+                  title="Paste a GitHub blob or raw URL to a Better Archetype Designer .t.json file"
+                  spellcheck="false"
+                />
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="load-github-template"
+                  title="Download this template and dependencies into a file set"
+                >
+                  <span class="material-icons btn-icon" aria-hidden="true"
+                  >cloud_download</span>
+                  Load
+                </button>
+              </div>
               <p class="adgit-intro">
                 Paste a GitHub <strong>blob</strong> or <strong>raw</strong> link to a
                 Better Archetype Designer <code>.t.json</code> file. The loader
@@ -358,6 +279,43 @@
             </div>
 
             <div class="input-tab-pane" id="input-tab-template">
+              <div
+                class="input-pane-toolbar"
+                aria-label="Template input actions"
+              >
+                <div class="form-group form-group-inline">
+                  <label for="template-generation-mode">generation_mode:</label>
+                  <select id="template-generation-mode" class="config-dropdown">
+                    <option value="minimal">minimal</option>
+                    <option value="example" selected>example</option>
+                    <option value="maximal">maximal</option>
+                  </select>
+                </div>
+                <input
+                  type="file"
+                  id="template-file-input"
+                  accept=".opt,.oet,.adl,.adls,.t.json,.xml,.zip"
+                  multiple
+                  hidden
+                />
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="upload-template-files"
+                  title="Upload OPT, OET, ADL, .t.json, or ZIP of archetypes"
+                >
+                  <span class="material-icons btn-icon" aria-hidden="true"
+                  >upload_file</span>
+                  Upload
+                </button>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="clear-template-input"
+                >
+                  <span class="material-icons btn-icon" aria-hidden="true"
+                  >delete</span>
+                  Clear
+                </button>
+              </div>
               <div class="template-file-set" id="template-file-set" hidden>
                 <div class="template-file-set-header">
                   <span class="template-file-set-title">File set</span>
@@ -406,37 +364,8 @@
                     <span id="template-validation-text"
                     >Valid operational template ADL</span>
                   </span>
-                  <label class="checkbox-label input-info-line-wrap">
-                    <input type="checkbox" id="template-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
                 </div>
-                <textarea
-                  class="input-textarea"
-                  id="template-input-text"
-                  placeholder="Paste operational template: ADL2/ADL1.4 operational_template, legacy OPT XML (.opt), or OET XML (.oet)..."
-                  spellcheck="false"
-                >
-operational_template (adl_version=2.0.5)
-    openEHR-EHR-COMPOSITION.demo_generated.v1.0.0
-
-language
-    original_language = <"ISO_639-1::en">
-
-definition
-    COMPOSITION[id1] matches {
-        content matches {
-            SECTION[id2]
-        }
-    }
-
-terminology
-    term_definitions = <
-        ["en"] = <
-            ["id1"] = < text = <"Demo composition"> >
-            ["id2"] = < text = <"Generated section"> >
-        >
-    ></textarea>
+                <div class="demo-editor-host input-textarea" id="template-input-text"></div>
               </div>
             </div>
           </div>
@@ -511,7 +440,7 @@ terminology
             <span>Converting...</span>
           </div>
 
-          <div class="tabs-row">
+          <div class="tabs-row output-tabs-row">
             <div class="tabs" id="output-tabs">
               <button class="tab active" data-tab="json">JSON</button>
               <button class="tab" data-tab="yaml">YAML</button>
@@ -522,26 +451,6 @@ terminology
               <button class="tab" data-tab="flat">FLAT</button>
               <button class="tab" data-tab="structured">STRUCTURED</button>
               <button class="tab" data-tab="webtemplate">Web Template</button>
-            </div>
-            <div class="output-toolbar">
-              <button
-                class="btn btn-secondary btn-sm"
-                id="copy-output"
-                type="button"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >content_copy</span>
-                Copy
-              </button>
-              <button
-                class="btn btn-secondary btn-sm"
-                id="download-output"
-                type="button"
-              >
-                <span class="material-icons btn-icon" aria-hidden="true"
-                >download</span>
-                Download
-              </button>
             </div>
           </div>
 
@@ -654,15 +563,28 @@ terminology
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" id="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="json"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="json"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre class="output-content" id="output-json-content">
-{
-  
-}</pre>
+                <div class="demo-editor-host output-content" id="output-json-content"></div>
               </div>
               <div class="success-message hidden" id="success-json">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -796,36 +718,28 @@ terminology
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" class="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="yaml"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="yaml"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre
-                  class="output-content"
-                  id="output-yaml-content"
-                >
-_type: COMPOSITION
-name: {value: Vital Signs Encounter}
-archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
-language: ISO_639-1::en
-territory: ISO_3166-1::GB
-category: openehr::433|event|
-composer:
-  name: Dr. Smith
-content:
-  - _type: SECTION
-    name: {value: Vital Signs}
-    items:
-      - _type: ELEMENT
-        name: {value: Diagnosis}
-        value:
-          _type: DV_CODED_TEXT
-          value: Diabetes mellitus type 2
-          defining_code: SNOMED-CT::44054006
-      - _type: ELEMENT
-        name: {value: Pulse rate}
-        value: {magnitude: 72, units: /min}</pre>
+                <div class="demo-editor-host output-content" id="output-yaml-content"></div>
               </div>
               <div class="success-message hidden" id="success-yaml">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -968,15 +882,28 @@ content:
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" class="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="markdown"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="markdown"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre
-                  class="output-content"
-                  id="output-markdown-content"
-                ># Markdown output will appear here</pre>
+                <div class="demo-editor-host output-content" id="output-markdown-content"></div>
               </div>
               <div class="success-message hidden" id="success-markdown">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -1120,15 +1047,28 @@ content:
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" class="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="asciidoc"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="asciidoc"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre
-                  class="output-content"
-                  id="output-asciidoc-content"
-                >= AsciiDoc output will appear here</pre>
+                <div class="demo-editor-host output-content" id="output-asciidoc-content"></div>
               </div>
               <div class="success-message hidden" id="success-asciidoc">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -1198,53 +1138,28 @@ content:
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" class="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="typescript"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="typescript"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre
-                  class="output-content"
-                  id="output-typescript-content"
-                >
-import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
-
-// Create COMPOSITION with terse format and compact constructors
-const composition = new COMPOSITION({
-  name: "Vital Signs Encounter",
-  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
-  language: "ISO_639-1::en",
-  territory: "ISO_3166-1::GB",
-  category: "openehr::433|event|",
-  composer: { name: "Dr. Smith" },
-  content: [
-    new SECTION({
-      name: "Vital Signs",
-      items: [
-        new ELEMENT({
-          name: "Diagnosis",
-          value: new DV_CODED_TEXT({
-            value: "Diabetes mellitus type 2",
-            defining_code: "SNOMED-CT::44054006"
-          })
-        }),
-        new ELEMENT({
-          name: "Pulse rate",
-          value: new DV_QUANTITY({
-            magnitude: 72,
-            units: "/min"
-          })
-        })
-      ]
-    })
-  ]
-});
-
-// Serialize to JSON
-import { JsonCanonicalSerializer } from "./enhanced/serialization/json/mod.ts";
-const serializer = new JsonCanonicalSerializer();
-const json = serializer.serialize(composition);
-console.log(json);</pre>
+                <div class="demo-editor-host output-content" id="output-typescript-content"></div>
               </div>
               <div class="success-message hidden" id="success-typescript">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -1307,74 +1222,28 @@ console.log(json);</pre>
                       class="output-line-count"
                     >0</span>
                   </span>
-                  <label class="checkbox-label output-info-line-wrap">
-                    <input type="checkbox" class="output-disable-linebreaks">
-                    <span>Disable Line Wrap</span>
-                  </label>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="xml"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="xml"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
                 </div>
-                <pre
-                  class="output-content"
-                  id="output-xml-content"
-                >
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
-  &lt;name xsi:type="DV_TEXT"&gt;
-    &lt;value&gt;Vital Signs Encounter&lt;/value&gt;
-  &lt;/name&gt;
-  &lt;archetype_node_id&gt;openEHR-EHR-COMPOSITION.encounter.v1&lt;/archetype_node_id&gt;
-  &lt;language&gt;
-    &lt;terminology_id&gt;
-      &lt;value&gt;ISO_639-1&lt;/value&gt;
-    &lt;/terminology_id&gt;
-    &lt;code_string&gt;en&lt;/code_string&gt;
-  &lt;/language&gt;
-  &lt;territory&gt;
-    &lt;terminology_id&gt;
-      &lt;value&gt;ISO_3166-1&lt;/value&gt;
-    &lt;/terminology_id&gt;
-    &lt;code_string&gt;GB&lt;/code_string&gt;
-  &lt;/territory&gt;
-  &lt;category xsi:type="DV_CODED_TEXT"&gt;
-    &lt;value&gt;event&lt;/value&gt;
-    &lt;defining_code&gt;
-      &lt;terminology_id&gt;
-        &lt;value&gt;openehr&lt;/value&gt;
-      &lt;/terminology_id&gt;
-      &lt;code_string&gt;433&lt;/code_string&gt;
-    &lt;/defining_code&gt;
-  &lt;/category&gt;
-  &lt;composer xsi:type="PARTY_IDENTIFIED"&gt;
-    &lt;name&gt;Dr. Smith&lt;/name&gt;
-  &lt;/composer&gt;
-  &lt;content xsi:type="SECTION"&gt;
-    &lt;name xsi:type="DV_TEXT"&gt;
-      &lt;value&gt;Vital Signs&lt;/value&gt;
-    &lt;/name&gt;
-    &lt;items xsi:type="ELEMENT"&gt;
-      &lt;name xsi:type="DV_TEXT"&gt;
-        &lt;value&gt;Diagnosis&lt;/value&gt;
-      &lt;/name&gt;
-      &lt;value xsi:type="DV_CODED_TEXT"&gt;
-        &lt;value&gt;Diabetes mellitus type 2&lt;/value&gt;
-        &lt;defining_code&gt;
-          &lt;terminology_id&gt;
-            &lt;value&gt;SNOMED-CT&lt;/value&gt;
-          &lt;/terminology_id&gt;
-          &lt;code_string&gt;44054006&lt;/code_string&gt;
-        &lt;/defining_code&gt;
-      &lt;/value&gt;
-    &lt;/items&gt;
-    &lt;items xsi:type="ELEMENT"&gt;
-      &lt;name xsi:type="DV_TEXT"&gt;
-        &lt;value&gt;Pulse rate&lt;/value&gt;
-      &lt;/name&gt;
-      &lt;value xsi:type="DV_QUANTITY"&gt;
-        &lt;magnitude&gt;72&lt;/magnitude&gt;
-        &lt;units&gt;/min&lt;/units&gt;
-      &lt;/value&gt;
-    &lt;/items&gt;
-  &lt;/content&gt;
-&lt;/COMPOSITION&gt;</pre>
+                <div class="demo-editor-host output-content" id="output-xml-content"></div>
               </div>
               <div class="success-message hidden" id="success-xml">
                 <span class="material-icons success-icon" aria-hidden="true"
@@ -1384,11 +1253,41 @@ console.log(json);</pre>
             </div>
 
             <div class="tab-pane" id="tab-flat">
-              <div class="output-info">
-                <span class="output-char-count">0 chars</span>
-                <span class="output-line-count">0 lines</span>
+              <div class="editor-block">
+                <div class="output-info">
+                  <span class="char-count">
+                    <span class="label">Characters:</span> <span
+                      class="output-char-count"
+                    >0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span> <span
+                      class="output-line-count"
+                    >0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="flat"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="flat"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-flat-content"></div>
               </div>
-              <pre class="output-content" id="output-flat-content">{}</pre>
               <div class="success-message hidden" id="success-flat">
                 <span class="material-icons success-icon" aria-hidden="true"
                 >check</span>
@@ -1397,14 +1296,41 @@ console.log(json);</pre>
             </div>
 
             <div class="tab-pane" id="tab-structured">
-              <div class="output-info">
-                <span class="output-char-count">0 chars</span>
-                <span class="output-line-count">0 lines</span>
+              <div class="editor-block">
+                <div class="output-info">
+                  <span class="char-count">
+                    <span class="label">Characters:</span> <span
+                      class="output-char-count"
+                    >0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span> <span
+                      class="output-line-count"
+                    >0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="structured"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="structured"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-structured-content"></div>
               </div>
-              <pre
-                class="output-content"
-                id="output-structured-content"
-              >{}</pre>
               <div class="success-message hidden" id="success-structured">
                 <span class="material-icons success-icon" aria-hidden="true"
                 >check</span>
@@ -1413,14 +1339,41 @@ console.log(json);</pre>
             </div>
 
             <div class="tab-pane" id="tab-webtemplate">
-              <div class="output-info">
-                <span class="output-char-count">0 chars</span>
-                <span class="output-line-count">0 lines</span>
+              <div class="editor-block">
+                <div class="output-info">
+                  <span class="char-count">
+                    <span class="label">Characters:</span> <span
+                      class="output-char-count"
+                    >0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span> <span
+                      class="output-line-count"
+                    >0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button
+                      class="btn btn-secondary btn-sm copy-output-btn"
+                      data-format="webtemplate"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >content_copy</span>
+                      Copy
+                    </button>
+                    <button
+                      class="btn btn-secondary btn-sm download-output-btn"
+                      data-format="webtemplate"
+                      type="button"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-webtemplate-content"></div>
               </div>
-              <pre
-                class="output-content"
-                id="output-webtemplate-content"
-              >{}</pre>
               <div class="success-message hidden" id="success-webtemplate">
                 <span class="material-icons success-icon" aria-hidden="true"
                 >check</span>
@@ -1436,6 +1389,26 @@ console.log(json);</pre>
     <footer class="app-footer">
       <div class="footer-content">
         <p id="build-info" class="build-info"></p>
+        <div class="footer-settings" aria-label="Editor settings">
+          <span class="footer-settings-label">Settings:</span>
+          <label class="checkbox-label footer-setting">
+            <input
+              type="checkbox"
+              id="editor-line-wrap"
+              class="editor-line-wrap"
+              checked
+            >
+            <span>Line Wrap</span>
+          </label>
+          <label class="checkbox-label footer-setting">
+            <input
+              type="checkbox"
+              id="editor-line-numbers"
+              class="editor-line-numbers"
+            >
+            <span>Line numbering</span>
+          </label>
+        </div>
         <p class="copyright">
           &copy; 2025 ehrtslib contributors. Licensed under Apache 2.0
         </p>
