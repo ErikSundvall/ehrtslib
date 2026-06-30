@@ -192,6 +192,8 @@ body {
     resize: none !important;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
     border-top: none;
+    display: flex;
+    flex-direction: column;
 }
 
 .output-content,
@@ -208,10 +210,16 @@ body {
     border-radius: 0 0 var(--radius-md) var(--radius-md);
     border: 1px solid #334155;
     border-top: none;
+    display: flex;
+    flex-direction: column;
 }
 
 .demo-editor-host .cm-editor {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border-radius: inherit;
 }
 
@@ -226,14 +234,14 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.line-numbers-enabled .demo-editor-host.input-textarea .cm-editor {
-    border-left: none;
-    border-radius: 0 0 var(--radius-md) 0;
+.demo-editor-host .cm-scroller {
+    flex: 1;
+    min-height: 0;
 }
 
-.line-numbers-enabled .demo-editor-host.output-content .cm-editor {
-    border-left: none;
-    border-radius: 0 0 var(--radius-md) 0;
+/* Prevent wrap + gutter width oscillation (horizontal scrollbar feedback loop) */
+.demo-editor-host .cm-lineWrapping .cm-scroller {
+    overflow-x: hidden;
 }
 
 /* ==========================================

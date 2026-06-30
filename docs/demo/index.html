@@ -35,7 +35,6 @@
               rel="noopener"
             >GitHub</a>
             <a href="../../../README.md">Docs</a>
-            <a href="../../../SIMPLIFIED-CREATION-GUIDE.md">Guide</a>
             <a href="https://openehr.org" target="_blank" rel="noopener"
             >openEHR.org</a>
           </nav>
@@ -93,7 +92,7 @@
                 role="tab"
                 aria-selected="true"
               >
-                Instance
+                Instance example
               </button>
               <button
                 type="button"
@@ -102,7 +101,7 @@
                 role="tab"
                 aria-selected="false"
               >
-                Template (schema)
+                Generate instance example from Template
               </button>
               <button
                 type="button"
@@ -111,7 +110,7 @@
                 role="tab"
                 aria-selected="false"
               >
-                Template from AD@git
+                Load template etc from AD@git
               </button>
             </div>
           </div>
@@ -262,7 +261,9 @@
                 Paste a GitHub <strong>blob</strong> or <strong>raw</strong> link to a
                 Better Archetype Designer <code>.t.json</code> file. The loader
                 downloads that template and recursively fetches nested templates and
-                archetypes from the same branch.
+                archetypes from the same branch. It will then (if successful)
+                automatically switch over to the "Generate example from Template" tab 
+                where you may find the template and files it depend on.many files.
               </p>
               <div
                 class="adgit-progress"
@@ -391,6 +392,7 @@
                 <input type="checkbox" id="output-yaml" checked>
                 <span>YAML</span>
               </label>
+              <!-- Markdown and AsciiDoc output are not finished yet
               <label class="checkbox-label">
                 <input type="checkbox" id="output-markdown">
                 <span>Markdown</span>
@@ -399,6 +401,7 @@
                 <input type="checkbox" id="output-asciidoc">
                 <span>AsciiDoc</span>
               </label>
+              -->
               <label class="checkbox-label">
                 <input type="checkbox" id="output-typescript" checked>
                 <span>TypeScript</span>
@@ -414,10 +417,6 @@
               <label class="checkbox-label">
                 <input type="checkbox" id="output-structured">
                 <span>STRUCTURED</span>
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="output-webtemplate">
-                <span>Web Template</span>
               </label>
             </div>
           </div>
@@ -450,7 +449,6 @@
               <button class="tab" data-tab="xml">XML</button>
               <button class="tab" data-tab="flat">FLAT</button>
               <button class="tab" data-tab="structured">STRUCTURED</button>
-              <button class="tab" data-tab="webtemplate">Web Template</button>
             </div>
           </div>
 
@@ -1396,7 +1394,6 @@
               type="checkbox"
               id="editor-line-wrap"
               class="editor-line-wrap"
-              checked
             >
             <span>Line Wrap</span>
           </label>
@@ -1405,6 +1402,7 @@
               type="checkbox"
               id="editor-line-numbers"
               class="editor-line-numbers"
+              checked
             >
             <span>Line numbering</span>
           </label>

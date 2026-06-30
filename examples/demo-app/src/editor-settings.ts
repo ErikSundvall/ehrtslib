@@ -14,8 +14,8 @@ interface RegisteredCodeMirror {
 
 const codeMirrorEditors = new Set<RegisteredCodeMirror>();
 
-let lineWrapEnabled = true;
-let lineNumbersEnabled = false;
+let lineWrapEnabled = false;
+let lineNumbersEnabled = true;
 
 function readCheckbox(selector: string, fallback: boolean): boolean {
   const el = document.querySelector<HTMLInputElement>(selector);
@@ -33,7 +33,6 @@ function applyLineWrapToAll(wrap: boolean): void {
 
 function applyLineNumbersToAll(show: boolean): void {
   lineNumbersEnabled = show;
-  document.body.classList.toggle("line-numbers-enabled", show);
   for (const { view, lineNumbers: lineNumbersCompartment } of codeMirrorEditors) {
     view.dispatch({
       effects: lineNumbersCompartment.reconfigure(show ? lineNumbers() : []),
@@ -42,8 +41,8 @@ function applyLineNumbersToAll(show: boolean): void {
 }
 
 function applyCurrentSettings(): void {
-  applyLineWrapToAll(readCheckbox(".editor-line-wrap", true));
-  applyLineNumbersToAll(readCheckbox(".editor-line-numbers", false));
+  applyLineWrapToAll(readCheckbox(".editor-line-wrap", false));
+  applyLineNumbersToAll(readCheckbox(".editor-line-numbers", true));
 }
 
 /**

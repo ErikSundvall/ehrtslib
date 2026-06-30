@@ -65,7 +65,6 @@ const editors = new Map<string, DemoEditor>();
 
 const demoTheme = EditorView.theme({
   "&": {
-    height: "100%",
     fontSize: "0.875rem",
     backgroundColor: "var(--bg-code)",
     color: "var(--text-code)",
@@ -77,6 +76,13 @@ const demoTheme = EditorView.theme({
     overflow: "auto",
     fontFamily: "var(--font-mono)",
     lineHeight: "1.6",
+  },
+  "&.cm-lineWrapping .cm-scroller": {
+    overflowX: "hidden",
+  },
+  "&.cm-lineWrapping .cm-content": {
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
   },
   ".cm-content": {
     padding: "var(--spacing-md)",
