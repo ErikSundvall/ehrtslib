@@ -5,7 +5,7 @@
 
 import type { WebTemplate, WebTemplateNode } from "./types.ts";
 import { templateRootId } from "./normalize.ts";
-import { resolveAtPath } from "./instance_nav.ts";
+import { resolveAllAtPath } from "./instance_nav.ts";
 import { extractContextField, extractValueFields } from "./value_extract.ts";
 
 export interface StructuredSerializerOptions {
@@ -34,7 +34,9 @@ export class StructuredSerializer {
       result.ctx = this.buildContext(ctxNodes);
     }
 
-    const contentChildren = (this.webTemplate.tree.children ?? []).filter((c) => !c.inContext);
+    const contentChildren = (this.webTemplate.tree.children ?? []).filter((c) =>
+      !c.inContext
+    );
     if (contentChildren.length) {
       result[this.rootId] = this.buildBranch(contentChildren);
     }
@@ -43,7 +45,11 @@ export class StructuredSerializer {
   }
 
   serializeJson(instance: unknown): string {
-    return JSON.stringify(this.serialize(instance), null, this.options.prettyPrint ? 2 : undefined);
+    return JSON.stringify(
+      this.serialize(instance),
+      null,
+      this.options.prettyPrint ? 2 : undefined,
+    );
   }
 
   private collectContextNodes(node: WebTemplateNode): WebTemplateNode[] {
@@ -59,7 +65,10 @@ export class StructuredSerializer {
     const ctx: StructuredValue = {};
     for (const node of nodes) {
       const fields = extractContextField(this.instance, node.id);
-      if (node.inputs?.length && (fields.code != null || fields.terminology != null)) {
+      if (
+        node.inputs?.length &&
+        (fields.code != null || fields.terminology != null)
+      ) {
         const entry: StructuredValue = {};
         for (const input of node.inputs) {
           const suffix = input.suffix ?? "value";
@@ -77,43 +86,48 @@ export class StructuredSerializer {
   private buildBranch(nodes: WebTemplateNode[]): StructuredValue {
     const out: StructuredValue = {};
     for (const node of nodes) {
-      out[node.id] = this.buildNodeArray(node);
+      const values = this.buildNodeArray(node);
+      if (values.length) out[node.id] = values;
     }
     return out;
   }
 
   private buildNodeArray(node: WebTemplateNode): unknown[] {
+    const nodeValues = node.aqlPath === "/"
+      ? [this.instance]
+      : resolveAllAtPath(this.instance, node.aqlPath);
+    if (!nodeValues.length) return [];
+
     const isLeaf = node.inputs?.length && !node.children?.length;
     if (isLeaf) {
-      const data = resolveAtPath(this.instance, node.aqlPath);
-      const fields = extractValueFields(data, node.inputs);
-      if (!Object.keys(fields).length) return [];
-      const entry: StructuredValue = {};
-      for (const [suffix, value] of Object.entries(fields)) {
-        entry[`|${suffix}`] = value;
-      }
-      return [entry];
+      return nodeValues.flatMap((data) => {
+        const fields = extractValueFields(data, node.inputs);
+        if (!Object.keys(fields).length) return [];
+        const entry: StructuredValue = {};
+        for (const [suffix, value] of Object.entries(fields)) {
+          entry[`|${suffix}`] = value;
+        }
+        return [entry];
+      });
     }
 
-    const count = this.estimateCount(node);
     const items: StructuredValue[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < nodeValues.length; i++) {
       const item: StructuredValue = {};
       for (const child of node.children ?? []) {
-        item[child.id] = this.buildNodeArray(child);
+        const childValues = this.buildNodeArray(child);
+        if (childValues.length) item[child.id] = childValues;
       }
       if (Object.keys(item).length) items.push(item);
     }
     return items;
   }
-
-  private estimateCount(node: WebTemplateNode): number {
-    if (node.max === 1 && node.min <= 1) return 1;
-    return Math.max(node.min, 1);
-  }
 }
 
-export function serializeToStructured(instance: unknown, webTemplate: WebTemplate): StructuredValue {
+export function serializeToStructured(
+  instance: unknown,
+  webTemplate: WebTemplate,
+): StructuredValue {
   return new StructuredSerializer(webTemplate).serialize(instance);
 }
 

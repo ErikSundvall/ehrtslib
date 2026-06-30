@@ -5,7 +5,7 @@
 
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import { templateRootId } from "./normalize.ts";
-import { resolveAtPath } from "./instance_nav.ts";
+import { resolveAllAtPath } from "./instance_nav.ts";
 import { extractContextField, extractValueFields } from "./value_extract.ts";
 
 export interface FlatSerializerOptions {
@@ -41,14 +41,27 @@ export class FlatSerializer {
 
   serializeJson(instance: unknown): string {
     const payload = this.serialize(instance);
-    return JSON.stringify(payload, null, this.options.prettyPrint ? 2 : undefined);
+    return JSON.stringify(
+      payload,
+      null,
+      this.options.prettyPrint ? 2 : undefined,
+    );
   }
 
-  private walkNode(node: WebTemplateNode, pathParts: string[], index: number): void {
+  private walkNode(
+    node: WebTemplateNode,
+    pathParts: string[],
+    index: number,
+  ): void {
     if (node.inContext) {
       this.emitContext(node);
       return;
     }
+
+    const nodeValues = node.aqlPath === "/"
+      ? [this.instance]
+      : resolveAllAtPath(this.instance, node.aqlPath);
+    if (!nodeValues.length) return;
 
     const max = node.max === -1 ? Math.max(node.min, 1) : node.max;
     const indexed = max !== 1;
@@ -58,7 +71,7 @@ export class FlatSerializer {
     const isLeaf = node.inputs?.length && !node.children?.length;
 
     if (isLeaf) {
-      const data = resolveAtPath(this.instance, node.aqlPath);
+      const data = nodeValues[index] ?? nodeValues[0];
       const fields = extractValueFields(data, node.inputs);
       const base = joinFlatPath(nextPath);
       for (const [suffix, value] of Object.entries(fields)) {
@@ -69,8 +82,10 @@ export class FlatSerializer {
 
     if (node.children?.length) {
       for (const child of node.children) {
-        const childMax = child.max === -1 ? 1 : Math.max(child.max, child.min, 1);
-        const repeats = childMax > 1 ? childMax : 1;
+        const childValues = child.aqlPath === "/"
+          ? [this.instance]
+          : resolveAllAtPath(this.instance, child.aqlPath);
+        const repeats = childValues.length;
         for (let i = 0; i < repeats; i++) {
           this.walkNode(child, nextPath, i);
         }
@@ -97,7 +112,10 @@ export class FlatSerializer {
   }
 }
 
-export function serializeToFlat(instance: unknown, webTemplate: WebTemplate): FlatPayload {
+export function serializeToFlat(
+  instance: unknown,
+  webTemplate: WebTemplate,
+): FlatPayload {
   return new FlatSerializer(webTemplate).serialize(instance);
 }
 

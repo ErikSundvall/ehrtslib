@@ -6,12 +6,14 @@
     "@codemirror/view": "npm:@codemirror/view@^6.38.0",
     "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",
     "yaml": "npm:yaml@^2.3.4",
-    "fflate": "npm:fflate@^0.8.2"
+    "fflate": "npm:fflate@^0.8.2",
+    "d3": "npm:d3@7.9.0"
   },
   "tasks": {
     "test": "deno test --allow-read",
     "check": "deno check enhanced/*.ts",
     "build:demo": "deno run -A examples/demo-app/scripts/build.ts",
-    "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts"
+    "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts",
+    "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts"
   }
 }

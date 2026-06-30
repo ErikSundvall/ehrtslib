@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "build": "deno run -A scripts/build.ts",
+    "dev": "deno run -A scripts/dev-server.ts",
+    "test": "deno test --no-check --allow-read src/",
+    "test:ui": "deno test -A --no-check src/ui_smoke_test.ts"
+  },
+  "imports": {
+    "d3": "npm:d3@7.9.0"
+  },
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
+  }
+}

@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-06-30T15:12:56.176Z", buildId: "RB9PBERS" };
+    define_BUILD_INFO_default = { timestamp: "2026-06-30T15:22:50.688Z", buildId: "7D4ADPGW" };
   }
 });
 
@@ -42684,42 +42684,51 @@ function nodeIdsMatch(a2, b3) {
   const sa2 = String(a2);
   return sa2 === b3 || normalizeNodeId(sa2) === normalizeNodeId(b3);
 }
-function pickByNodeId(arr, nodeId) {
-  const found = arr.find(
+function valuesByNodeId(arr, nodeId) {
+  if (!nodeId)
+    return arr;
+  const found = arr.filter(
     (item) => nodeIdsMatch(item.archetype_node_id, nodeId)
   );
-  return found ?? arr[0];
+  return found.length ? found : arr.slice(0, 1);
 }
-function resolveAtPath(instance, aqlPath) {
+function resolveAllAtPath(instance, aqlPath) {
   if (!instance || !aqlPath)
-    return null;
+    return [];
   const normalized = aqlPath.replace(/\/+/g, "/");
   const segments = normalized.match(/\/[^/]+/g);
   if (!segments?.length)
-    return instance;
-  let current = instance;
+    return [instance];
+  let current = [instance];
   for (const raw of segments) {
     const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
     if (!m2)
       continue;
     const [, attr, nodeId] = m2;
-    const obj = current;
-    if (!obj || typeof obj !== "object")
-      return null;
-    let next = obj[attr];
-    if (next == null)
-      return null;
-    if (Array.isArray(next)) {
-      current = nodeId ? pickByNodeId(next, nodeId) : next[0];
-    } else {
-      current = next;
+    const nextValues = [];
+    for (const item of current) {
+      const obj = item;
+      if (!obj || typeof obj !== "object")
+        continue;
+      const next = obj[attr];
+      if (next == null)
+        continue;
+      if (Array.isArray(next)) {
+        nextValues.push(...valuesByNodeId(next, nodeId));
+      } else if (!nodeId || nodeIdsMatch(next.archetype_node_id, nodeId)) {
+        nextValues.push(next);
+      }
     }
+    current = nextValues;
+    if (!current.length)
+      return [];
   }
-  const cur = current;
-  if (cur?._type === "ELEMENT" && cur.value != null) {
-    return cur.value;
-  }
-  return current;
+  return current.map((item) => {
+    const cur = item;
+    if (cur?._type === "ELEMENT" && cur.value != null)
+      return cur.value;
+    return item;
+  });
 }
 
 // enhanced/serialization/simplified/value_extract.ts
@@ -42845,20 +42854,27 @@ var FlatSerializer = class {
   }
   serializeJson(instance) {
     const payload = this.serialize(instance);
-    return JSON.stringify(payload, null, this.options.prettyPrint ? 2 : void 0);
+    return JSON.stringify(
+      payload,
+      null,
+      this.options.prettyPrint ? 2 : void 0
+    );
   }
   walkNode(node, pathParts, index) {
     if (node.inContext) {
       this.emitContext(node);
       return;
     }
+    const nodeValues = node.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, node.aqlPath);
+    if (!nodeValues.length)
+      return;
     const max2 = node.max === -1 ? Math.max(node.min, 1) : node.max;
     const indexed = max2 !== 1;
     const part = node.id + (indexed ? indexSuffix(max2, index) : "");
     const nextPath = [...pathParts, part];
     const isLeaf = node.inputs?.length && !node.children?.length;
     if (isLeaf) {
-      const data = resolveAtPath(this.instance, node.aqlPath);
+      const data = nodeValues[index] ?? nodeValues[0];
       const fields = extractValueFields(data, node.inputs);
       const base2 = joinFlatPath(nextPath);
       for (const [suffix, value] of Object.entries(fields)) {
@@ -42868,8 +42884,8 @@ var FlatSerializer = class {
     }
     if (node.children?.length) {
       for (const child of node.children) {
-        const childMax = child.max === -1 ? 1 : Math.max(child.max, child.min, 1);
-        const repeats = childMax > 1 ? childMax : 1;
+        const childValues = child.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, child.aqlPath);
+        const repeats = childValues.length;
         for (let i3 = 0; i3 < repeats; i3++) {
           this.walkNode(child, nextPath, i3);
         }
@@ -42922,14 +42938,20 @@ var StructuredSerializer = class {
     if (ctxNodes.length) {
       result2.ctx = this.buildContext(ctxNodes);
     }
-    const contentChildren = (this.webTemplate.tree.children ?? []).filter((c2) => !c2.inContext);
+    const contentChildren = (this.webTemplate.tree.children ?? []).filter(
+      (c2) => !c2.inContext
+    );
     if (contentChildren.length) {
       result2[this.rootId] = this.buildBranch(contentChildren);
     }
     return result2;
   }
   serializeJson(instance) {
-    return JSON.stringify(this.serialize(instance), null, this.options.prettyPrint ? 2 : void 0);
+    return JSON.stringify(
+      this.serialize(instance),
+      null,
+      this.options.prettyPrint ? 2 : void 0
+    );
   }
   collectContextNodes(node) {
     const ctx = [];
@@ -42963,39 +42985,41 @@ var StructuredSerializer = class {
   buildBranch(nodes) {
     const out = {};
     for (const node of nodes) {
-      out[node.id] = this.buildNodeArray(node);
+      const values = this.buildNodeArray(node);
+      if (values.length)
+        out[node.id] = values;
     }
     return out;
   }
   buildNodeArray(node) {
+    const nodeValues = node.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, node.aqlPath);
+    if (!nodeValues.length)
+      return [];
     const isLeaf = node.inputs?.length && !node.children?.length;
     if (isLeaf) {
-      const data = resolveAtPath(this.instance, node.aqlPath);
-      const fields = extractValueFields(data, node.inputs);
-      if (!Object.keys(fields).length)
-        return [];
-      const entry = {};
-      for (const [suffix, value] of Object.entries(fields)) {
-        entry[`|${suffix}`] = value;
-      }
-      return [entry];
+      return nodeValues.flatMap((data) => {
+        const fields = extractValueFields(data, node.inputs);
+        if (!Object.keys(fields).length)
+          return [];
+        const entry = {};
+        for (const [suffix, value] of Object.entries(fields)) {
+          entry[`|${suffix}`] = value;
+        }
+        return [entry];
+      });
     }
-    const count = this.estimateCount(node);
     const items = [];
-    for (let i3 = 0; i3 < count; i3++) {
+    for (let i3 = 0; i3 < nodeValues.length; i3++) {
       const item = {};
       for (const child of node.children ?? []) {
-        item[child.id] = this.buildNodeArray(child);
+        const childValues = this.buildNodeArray(child);
+        if (childValues.length)
+          item[child.id] = childValues;
       }
       if (Object.keys(item).length)
         items.push(item);
     }
     return items;
-  }
-  estimateCount(node) {
-    if (node.max === 1 && node.min <= 1)
-      return 1;
-    return Math.max(node.min, 1);
   }
 };
 function serializeToStructuredJson(instance, webTemplate, options) {
@@ -43646,6 +43670,8 @@ var OdinParser = class {
       this.skipWhitespace();
       if (this.check("RANGLE" /* RANGLE */))
         break;
+      if (this.skipOpenListMarker())
+        continue;
       list.push(this.parsePrimitive());
       this.skipWhitespace();
       if (this.check("COMMA" /* COMMA */)) {
@@ -43655,6 +43681,19 @@ var OdinParser = class {
     }
     this.consume("RANGLE" /* RANGLE */, "Expected '>' to close primitive list");
     return list.length === 1 ? list[0] : list;
+  }
+  skipOpenListMarker() {
+    if (!this.check("ELLIPSIS" /* ELLIPSIS */))
+      return false;
+    this.advance();
+    if (this.check("DOT" /* DOT */)) {
+      this.advance();
+    }
+    this.skipWhitespace();
+    if (this.check("COMMA" /* COMMA */)) {
+      this.advance();
+    }
+    return true;
   }
   parseInterval() {
     this.consume("PIPE" /* PIPE */, "Expected '|' to start interval");
@@ -47564,7 +47603,8 @@ function githubApiHeaders2(token) {
     headers.Authorization = `Bearer ${token}`;
   return headers;
 }
-function parseGitHubTemplateFileUrl(input) {
+var CLINICAL_MODEL_URL_SUFFIX = /\.(t\.json|adl|adls|opt|oet)$/i;
+function parseGitHubClinicalModelFileUrl(input) {
   const trimmed = input.trim();
   const raw = trimmed.match(
     /raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/i
@@ -47589,7 +47629,7 @@ function parseGitHubTemplateFileUrl(input) {
     };
   }
   throw new Error(
-    `Invalid GitHub template URL. Paste a blob or raw link to a .t.json file.`
+    `Invalid GitHub clinical model URL. Paste a blob or raw link to a .t.json, .adl, or .adls file.`
   );
 }
 function buildClinicalModelPathIndex(paths) {
@@ -47708,16 +47748,18 @@ function collectDependenciesFromContent(path, content2) {
   }
   return [];
 }
-async function loadGitHubTemplateClosure(templateUrl, options) {
+async function loadGitHubClinicalModelClosure(fileUrl, options) {
   const fetchFn = options?.fetch ?? globalThis.fetch;
   const token = options?.githubToken ?? readOptionalGithubToken();
   const headers = githubApiHeaders2(token);
   const maxFiles = options?.maxFiles ?? 200;
   const warnings = [];
-  emit(options, { phase: "parse-url", message: templateUrl });
-  const fileRef = parseGitHubTemplateFileUrl(templateUrl);
-  if (!/\.t\.json$/i.test(fileRef.path)) {
-    throw new Error(`Expected a .t.json file path, got: ${fileRef.path}`);
+  emit(options, { phase: "parse-url", message: fileUrl });
+  const fileRef = parseGitHubClinicalModelFileUrl(fileUrl);
+  if (!CLINICAL_MODEL_URL_SUFFIX.test(fileRef.path)) {
+    throw new Error(
+      `Expected a clinical model file (.t.json, .adl, .adls), got: ${fileRef.path}`
+    );
   }
   emit(options, {
     phase: "index-tree",
@@ -47789,7 +47831,7 @@ async function loadGitHubTemplateClosure(templateUrl, options) {
     warnings.push(`Stopped at maxFiles limit (${maxFiles})`);
   }
   if (!entries.has(fileRef.path)) {
-    throw new Error(`Could not load root template: ${fileRef.path}`);
+    throw new Error(`Could not load root file: ${fileRef.path}`);
   }
   emit(options, {
     phase: "complete",
@@ -47909,7 +47951,14 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
    * nested templates, archetypes, and parent archetype chains from the same branch.
    */
   async loadFromGitHubTemplateUrl(templateUrl, options) {
-    const closure = await loadGitHubTemplateClosure(templateUrl, options);
+    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
+  }
+  /**
+   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
+   * recursively fetch dependencies from the same branch.
+   */
+  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
+    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
     const loadResults = this.addFiles(closure.entries);
     this.setGenerationRootPath(closure.rootPath);
     this.setActivePath(closure.rootPath);
@@ -47925,261 +47974,517 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   }
 };
 
+// enhanced/parser/clinical_model_annotations.ts
+init_define_BUILD_INFO();
+
+// enhanced/generation/adl2_serializer.ts
+init_define_BUILD_INFO();
+
+// enhanced/parser/odin_serializer.ts
+init_define_BUILD_INFO();
+
 // enhanced/generation/mod.ts
 init_define_BUILD_INFO();
 
 // enhanced/generation/rm_instance_generator.ts
 init_define_BUILD_INFO();
 var MANDATORY_RM_ATTRIBUTES = {
-  "COMPOSITION": ["language", "territory", "category", "composer"],
-  "OBSERVATION": ["data"],
-  "INSTRUCTION": ["narrative"],
-  "ACTION": ["time"],
-  "HISTORY": ["origin"],
-  "LOCATABLE": ["archetype_node_id", "name"],
-  "EVENT": ["time"],
-  "POINT_EVENT": ["time"],
-  "INTERVAL_EVENT": ["time", "math_function"],
-  "CLUSTER": ["items"],
-  "ELEMENT": []
-  // name inherited from LOCATABLE
+  LOCATABLE: ["archetype_node_id", "name"],
+  COMPOSITION: ["language", "territory", "category", "composer"],
+  EVENT_CONTEXT: ["start_time", "setting"],
+  ENTRY: ["language", "encoding", "subject"],
+  OBSERVATION: ["data"],
+  EVALUATION: ["data"],
+  ADMIN_ENTRY: ["data"],
+  INSTRUCTION: ["narrative"],
+  ACTION: ["time", "ism_transition", "description"],
+  ACTIVITY: ["description", "action_archetype_id"],
+  HISTORY: ["origin", "events"],
+  EVENT: ["time", "data"],
+  POINT_EVENT: ["time", "data"],
+  INTERVAL_EVENT: ["time", "data", "math_function"],
+  CLUSTER: ["items"]
 };
+var LOCATABLE_TYPES = /* @__PURE__ */ new Set([
+  "COMPOSITION",
+  "SECTION",
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "ADMIN_ENTRY",
+  "CLUSTER",
+  "ELEMENT",
+  "ITEM_TREE",
+  "ITEM_LIST",
+  "ITEM_TABLE",
+  "ITEM_SINGLE",
+  "HISTORY",
+  "EVENT",
+  "POINT_EVENT",
+  "INTERVAL_EVENT",
+  "ACTIVITY"
+]);
+var ENTRY_TYPES = /* @__PURE__ */ new Set([
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "ADMIN_ENTRY"
+]);
 var RMInstanceGenerator = class {
   config;
+  terms = {};
+  language = "en";
   constructor(config) {
     this.config = {
       mode: "example",
       fillOptional: void 0,
       maxDepth: 50,
       includeMandatoryRMAttributes: true,
-      // Default: include mandatory attributes
+      maxGeneratedItems: 3,
       ...config
     };
   }
-  /**
-   * Generate RM instance from template
-   */
   generate(template) {
     if (!template.definition) {
       throw new Error("Template has no definition");
     }
-    return this.generateFromCObject(template.definition, 0);
+    this.language = typeof template.original_language === "string" ? template.original_language : "en";
+    this.terms = this.collectTerms(template);
+    return this.generateFromCObject(template.definition, 0, "root");
   }
-  generateFromCObject(cObject, depth) {
-    if (depth > (this.config.maxDepth || 50)) {
+  generateFromCObject(cObject, depth, pathHint = "value") {
+    if (depth > (this.config.maxDepth || 50))
       return null;
+    if (this.isObjectExcluded(cObject))
+      return null;
+    if (cObject instanceof C_QUANTITY) {
+      return this.generateQuantity(cObject);
     }
-    const instance = {
-      _type: cObject.rm_type_name
-    };
+    if (cObject instanceof C_CODED_TEXT) {
+      return this.generateCodedText(cObject);
+    }
+    if (cObject instanceof C_TERMINOLOGY_CODE) {
+      return this.generateCodePhrase(cObject);
+    }
+    if (cObject instanceof C_PRIMITIVE_OBJECT) {
+      return this.generatePrimitive(cObject, pathHint);
+    }
+    const rmType = cObject.rm_type_name ?? "ITEM_TREE";
+    const instance = { _type: rmType };
     if (cObject instanceof C_COMPLEX_OBJECT) {
       this.generateAttributes(instance, cObject, depth);
+    } else {
+      Object.assign(instance, this.generateDataValueByType(rmType, pathHint));
     }
     return instance;
   }
   generateAttributes(instance, cObject, depth) {
     const generatedAttributes = /* @__PURE__ */ new Set();
-    if (cObject.attributes) {
-      for (const cAttribute of cObject.attributes) {
-        const attrName = cAttribute.rm_attribute_name;
-        if (!attrName)
-          continue;
-        generatedAttributes.add(attrName);
-        const isRequired = this.isAttributeRequired(cAttribute);
-        const shouldFillOptional = this.shouldFillOptional(cAttribute, depth);
-        if (!isRequired && !shouldFillOptional) {
-          continue;
-        }
-        if (cAttribute.children && cAttribute.children.length > 0) {
-          const child = cAttribute.children[0];
-          if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE) {
-            const minCard = this.getArrayItemCount(cAttribute, isRequired);
-            instance[attrName] = [];
-            for (let i3 = 0; i3 < minCard; i3++) {
-              const childInstance = this.generateFromCObject(child, depth + 1);
-              if (childInstance) {
-                instance[attrName].push(childInstance);
-              }
-            }
-          } else {
-            instance[attrName] = this.generateFromCObject(child, depth + 1);
-          }
-        }
-      }
+    for (const cAttribute of cObject.attributes ?? []) {
+      const attrName = cAttribute.rm_attribute_name;
+      if (!attrName || this.isAttributeExcluded(cAttribute))
+        continue;
+      const value = this.generateAttributeValue(cAttribute, depth);
+      if (value === void 0)
+        continue;
+      instance[attrName] = value;
+      generatedAttributes.add(attrName);
     }
     if (this.config.includeMandatoryRMAttributes) {
-      this.addMandatoryRMAttributes(instance, cObject.rm_type_name || "", generatedAttributes, cObject.node_id);
+      this.addMandatoryRMAttributes(
+        instance,
+        cObject.rm_type_name || "",
+        generatedAttributes,
+        cObject.node_id
+      );
     }
   }
-  /**
-   * Add mandatory RM attributes that aren't in the template
-   * 
-   * Based on openEHR RM specification requirements
-   */
-  addMandatoryRMAttributes(instance, rmTypeName, generatedAttributes, nodeId) {
-    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES[rmTypeName] || [];
-    if (this.isLocatableDescendant(rmTypeName) && !mandatoryAttrs.includes("archetype_node_id")) {
-      mandatoryAttrs.push(...MANDATORY_RM_ATTRIBUTES["LOCATABLE"]);
+  generateAttributeValue(cAttribute, depth) {
+    const attrName = cAttribute.rm_attribute_name || "attribute";
+    const children = cAttribute.children ?? [];
+    const allowedChildren = children.filter(
+      (child) => !this.isObjectExcluded(child)
+    );
+    const requiredChildren = allowedChildren.filter(
+      (child) => this.isObjectRequired(child)
+    );
+    const attrBounds = this.attributeBounds(cAttribute);
+    const isRequired = attrBounds.min > 0 || requiredChildren.length > 0;
+    const shouldFillOptional = this.shouldFillOptional(cAttribute);
+    if (!isRequired && !shouldFillOptional)
+      return void 0;
+    if (!allowedChildren.length)
+      return this.generateDefaultValue("", attrName);
+    if (!(cAttribute instanceof C_MULTIPLE_ATTRIBUTE)) {
+      const child = requiredChildren[0] ?? allowedChildren[0];
+      return this.generateFromCObject(child, depth + 1, attrName);
     }
-    for (const attrName of mandatoryAttrs) {
-      if (generatedAttributes.has(attrName)) {
+    const selected = this.selectChildrenForMultipleAttribute(
+      allowedChildren,
+      requiredChildren,
+      attrBounds
+    );
+    if (!selected.length && attrBounds.min === 0)
+      return void 0;
+    const values = [];
+    for (const child of selected) {
+      const count = this.objectItemCount(child);
+      for (let i3 = 0; i3 < count; i3++) {
+        const childInstance = this.generateFromCObject(
+          child,
+          depth + 1,
+          `${attrName}[${values.length}]`
+        );
+        if (childInstance !== null && childInstance !== void 0) {
+          values.push(childInstance);
+        }
+      }
+    }
+    if (this.config.mode === "maximal" && selected.length) {
+      const targetCount = this.maxAllowedSample(attrBounds);
+      let index = 0;
+      while (values.length < targetCount) {
+        const child = selected[index % selected.length];
+        const childInstance = this.generateFromCObject(
+          child,
+          depth + 1,
+          `${attrName}[${values.length}]`
+        );
+        if (childInstance === null || childInstance === void 0)
+          break;
+        values.push(childInstance);
+        index++;
+      }
+    }
+    while (values.length < attrBounds.min && allowedChildren.length) {
+      const child = allowedChildren[values.length % allowedChildren.length];
+      const childInstance = this.generateFromCObject(
+        child,
+        depth + 1,
+        `${attrName}[${values.length}]`
+      );
+      if (childInstance === null || childInstance === void 0)
+        break;
+      values.push(childInstance);
+    }
+    return values;
+  }
+  addMandatoryRMAttributes(instance, rmTypeName, generatedAttributes, nodeId) {
+    for (const attrName of this.mandatoryAttributesFor(rmTypeName)) {
+      if (generatedAttributes.has(attrName) || instance[attrName] !== void 0) {
         continue;
       }
-      instance[attrName] = this.generateDefaultValue(rmTypeName, attrName, nodeId);
+      instance[attrName] = this.generateDefaultValue(
+        rmTypeName,
+        attrName,
+        nodeId
+      );
     }
   }
-  /**
-   * Check if a type descends from LOCATABLE
-   */
-  isLocatableDescendant(rmTypeName) {
-    const locatableTypes = [
-      "COMPOSITION",
-      "SECTION",
-      "OBSERVATION",
-      "EVALUATION",
-      "INSTRUCTION",
-      "ACTION",
-      "ADMIN_ENTRY",
-      "CLUSTER",
-      "ELEMENT",
-      "ITEM_TREE",
-      "ITEM_LIST",
-      "ITEM_TABLE",
-      "ITEM_SINGLE",
-      "HISTORY",
-      "EVENT",
-      "POINT_EVENT",
-      "INTERVAL_EVENT"
-    ];
-    return locatableTypes.includes(rmTypeName);
+  mandatoryAttributesFor(rmTypeName) {
+    const attrs = /* @__PURE__ */ new Set();
+    if (LOCATABLE_TYPES.has(rmTypeName)) {
+      for (const attr of MANDATORY_RM_ATTRIBUTES.LOCATABLE)
+        attrs.add(attr);
+    }
+    if (ENTRY_TYPES.has(rmTypeName)) {
+      for (const attr of MANDATORY_RM_ATTRIBUTES.ENTRY)
+        attrs.add(attr);
+    }
+    for (const attr of MANDATORY_RM_ATTRIBUTES[rmTypeName] ?? []) {
+      attrs.add(attr);
+    }
+    return [...attrs];
   }
-  /**
-   * Generate default value for mandatory attribute
-   */
   generateDefaultValue(rmTypeName, attrName, nodeId) {
-    switch (`${rmTypeName}.${attrName}`) {
-      case "COMPOSITION.language":
-        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_639-1" }, code_string: "en" };
-      case "COMPOSITION.territory":
-        return { _type: "CODE_PHRASE", terminology_id: { value: "ISO_3166-1" }, code_string: "US" };
-      case "COMPOSITION.category":
-        return {
-          _type: "DV_CODED_TEXT",
-          value: "event",
-          defining_code: {
-            _type: "CODE_PHRASE",
-            terminology_id: { value: "openehr" },
-            code_string: "433"
-          }
-        };
-      case "COMPOSITION.composer":
-        return {
-          _type: "PARTY_IDENTIFIED",
-          name: "Unknown"
-        };
-      case "INSTRUCTION.narrative":
-        return {
-          _type: "DV_TEXT",
-          value: "Generated instruction narrative"
-        };
-      case "ACTION.time":
-        return {
-          _type: "DV_DATE_TIME",
-          value: (/* @__PURE__ */ new Date()).toISOString()
-        };
-      case "HISTORY.origin":
-        return {
-          _type: "DV_DATE_TIME",
-          value: (/* @__PURE__ */ new Date()).toISOString()
-        };
-      case "INTERVAL_EVENT.math_function":
-        return {
-          _type: "DV_CODED_TEXT",
-          value: "actual",
-          defining_code: {
-            _type: "CODE_PHRASE",
-            terminology_id: { value: "openehr" },
-            code_string: "640"
-          }
-        };
-      case "LOCATABLE.archetype_node_id":
+    switch (attrName) {
+      case "archetype_node_id":
         if (!nodeId) {
           throw new Error(
-            `Cannot generate archetype_node_id for ${rmTypeName}: node_id must be provided from the template/archetype C_OBJECT. This is a mandatory RM attribute that cannot be fabricated.`
+            `Cannot generate archetype_node_id for ${rmTypeName}: missing template node_id`
           );
         }
         return nodeId;
-      case "LOCATABLE.name":
-      case "EVENT.name":
+      case "name":
+        return this.dvText(
+          this.termText(nodeId) ?? this.readableRmType(rmTypeName)
+        );
+      case "language":
+        return this.codePhrase("ISO_639-1", "en");
+      case "territory":
+        return this.codePhrase("ISO_3166-1", "US");
+      case "encoding":
+        return this.codePhrase("IANA_character-sets", "UTF-8");
+      case "category":
+        return this.dvCodedText("event", "openehr", "433");
+      case "composer":
+        return { _type: "PARTY_IDENTIFIED", name: "Generated example" };
+      case "subject":
+        return { _type: "PARTY_SELF" };
+      case "time":
+      case "origin":
+      case "start_time":
+        return this.dvDateTime();
+      case "setting":
+        return this.dvCodedText("other care", "openehr", "238");
+      case "math_function":
+        return this.dvCodedText("actual", "openehr", "640");
+      case "narrative":
+        return this.dvText("Generated instruction narrative");
+      case "action_archetype_id":
+        return "openEHR-EHR-ACTION.generated.v1";
+      case "ism_transition":
         return {
-          _type: "DV_TEXT",
-          value: rmTypeName
+          _type: "ISM_TRANSITION",
+          current_state: this.dvCodedText("completed", "openehr", "532")
         };
-      case "CLUSTER.items":
+      case "description":
+      case "data":
+        return {
+          _type: "ITEM_TREE",
+          archetype_node_id: "at0001",
+          name: this.dvText(this.readableRmType(attrName)),
+          items: []
+        };
+      case "content":
+      case "events":
+      case "items":
         return [];
+      case "value":
+        return this.dvText("Example value");
       default:
-        if (attrName === "time") {
-          return { _type: "DV_DATE_TIME", value: (/* @__PURE__ */ new Date()).toISOString() };
-        }
-        if (attrName === "data") {
-          return null;
-        }
+        if (attrName.endsWith("time"))
+          return this.dvDateTime();
         return null;
     }
   }
-  isAttributeRequired(cAttribute) {
-    if (cAttribute.children) {
-      for (const child of cAttribute.children) {
-        if (child.occurrences) {
-          const lower = child.occurrences.lower || 0;
-          if (lower > 0) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-  shouldFillOptional(cAttribute, depth) {
+  shouldFillOptional(_cAttribute) {
     if (typeof this.config.fillOptional === "boolean") {
       return this.config.fillOptional;
     }
-    switch (this.config.mode) {
-      case "minimal":
+    return this.config.mode !== "minimal";
+  }
+  selectChildrenForMultipleAttribute(allowedChildren, requiredChildren, attrBounds) {
+    if (this.config.mode === "minimal" && this.config.fillOptional !== true) {
+      if (requiredChildren.length)
+        return requiredChildren;
+      if (attrBounds.min > 0)
+        return allowedChildren.slice(0, attrBounds.min);
+      return [];
+    }
+    return allowedChildren;
+  }
+  objectItemCount(child) {
+    const bounds = this.objectBounds(child);
+    if (this.config.mode === "maximal")
+      return this.maxAllowedSample(bounds);
+    return Math.max(bounds.min, 1);
+  }
+  attributeBounds(cAttribute) {
+    const existence = cAttribute.existence;
+    const existenceBounds = this.boundsFromMultiplicity(existence, 0, 1);
+    if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE) {
+      const cardinality = cAttribute.cardinality;
+      const cardBounds = this.boundsFromMultiplicity(
+        cardinality?.interval,
+        0,
+        1
+      );
+      return {
+        min: Math.max(existenceBounds.min, cardBounds.min),
+        max: cardBounds.max,
+        unbounded: cardBounds.unbounded
+      };
+    }
+    return existenceBounds;
+  }
+  objectBounds(cObject) {
+    return this.boundsFromMultiplicity(
+      cObject.occurrences,
+      1,
+      1
+    );
+  }
+  boundsFromMultiplicity(multiplicity, defaultMin, defaultMax) {
+    const interval = multiplicity?.interval ?? multiplicity;
+    if (!interval) {
+      return { min: defaultMin, max: defaultMax, unbounded: false };
+    }
+    const lower = interval.lower_unbounded ? 0 : interval.lower ?? defaultMin;
+    const unbounded = interval.upper_unbounded === true;
+    const upper = unbounded ? -1 : interval.upper ?? defaultMax;
+    return {
+      min: Math.max(0, Number(lower)),
+      max: upper < 0 ? -1 : Math.max(0, Number(upper)),
+      unbounded
+    };
+  }
+  isObjectRequired(cObject) {
+    return this.objectBounds(cObject).min > 0;
+  }
+  isObjectExcluded(cObject) {
+    const bounds = this.objectBounds(cObject);
+    return !bounds.unbounded && bounds.max === 0;
+  }
+  isAttributeExcluded(cAttribute) {
+    const bounds = this.attributeBounds(cAttribute);
+    return !bounds.unbounded && bounds.max === 0;
+  }
+  maxAllowedSample(bounds) {
+    const configured = this.config.maxGeneratedItems ?? 3;
+    if (bounds.unbounded || bounds.max < 0) {
+      return Math.max(bounds.min, Math.min(2, configured));
+    }
+    return Math.max(bounds.min, Math.min(bounds.max, configured));
+  }
+  generateQuantity(cObject) {
+    const item = (cObject.list ?? [])[0];
+    return { _type: "DV_QUANTITY", magnitude: 1, units: item?.units ?? "1" };
+  }
+  generateCodedText(cObject) {
+    const code = (cObject.code_list ?? [])[0] ?? cObject.constraint ?? cObject.node_id;
+    return this.dvCodedText(
+      this.termText(code) ?? "Generated coded value",
+      cObject.terminology ?? "local",
+      code && !code.startsWith("id") ? code : "at0000"
+    );
+  }
+  generateCodePhrase(cObject) {
+    const code = cObject.default_value?.code_string ?? cObject.assumed_value?.code_string ?? cObject.constraint ?? "at0000";
+    const terminology = cObject.terminology_id ?? cObject.default_value?.terminology_id?.value ?? cObject.assumed_value?.terminology_id?.value ?? (code.startsWith("at") || code.startsWith("id") ? "local" : "openehr");
+    return this.codePhrase(terminology, code);
+  }
+  generatePrimitive(cObject, pathHint) {
+    if (cObject instanceof C_STRING) {
+      const values = cObject.list;
+      return cObject.assumed_value?.value ?? values?.[0] ?? this.exampleText(pathHint);
+    }
+    if (cObject instanceof C_BOOLEAN) {
+      if (cObject.true_valid === false && cObject.false_valid !== false) {
         return false;
-      case "maximal":
-        return true;
-      case "example":
-      default:
-        return this.includeOptionalInExampleMode(cAttribute, depth);
-    }
-  }
-  includeOptionalInExampleMode(cAttribute, depth) {
-    const seed = `${cAttribute.rm_attribute_name || ""}:${depth}:${cAttribute.children?.length || 0}`;
-    let hash = 0;
-    for (let i3 = 0; i3 < seed.length; i3++) {
-      hash = (hash << 5) - hash + seed.charCodeAt(i3);
-      hash |= 0;
-    }
-    return Math.abs(hash) % 2 === 0;
-  }
-  getArrayItemCount(cAttribute, isRequired) {
-    const lower = cAttribute?.cardinality?.interval?.lower;
-    const upper = cAttribute?.cardinality?.interval?.upper;
-    const lowerBound = typeof lower === "number" ? lower : isRequired ? 1 : 0;
-    const safeLowerBound = Math.max(0, lowerBound);
-    if (this.config.mode === "minimal") {
-      return Math.max(1, safeLowerBound);
-    }
-    if (this.config.mode === "maximal") {
-      if (typeof upper === "number") {
-        return Math.max(Math.max(1, safeLowerBound), Math.min(upper, 3));
       }
-      return Math.max(2, Math.max(1, safeLowerBound));
+      return true;
     }
-    return Math.max(1, safeLowerBound);
+    if (cObject instanceof C_INTEGER)
+      return 1;
+    if (cObject instanceof C_REAL)
+      return 1;
+    return this.generateDataValueByType(cObject.rm_type_name ?? "", pathHint);
+  }
+  generateDataValueByType(rmType, pathHint) {
+    switch (rmType) {
+      case "DV_TEXT":
+        return this.dvText(this.exampleText(pathHint));
+      case "DV_CODED_TEXT":
+        return this.dvCodedText("Generated coded value", "local", "at0000");
+      case "DV_QUANTITY":
+        return { _type: "DV_QUANTITY", magnitude: 1, units: "1" };
+      case "DV_COUNT":
+        return { _type: "DV_COUNT", magnitude: 1 };
+      case "DV_PROPORTION":
+        return {
+          _type: "DV_PROPORTION",
+          numerator: 1,
+          denominator: 1,
+          type: 1
+        };
+      case "DV_DATE":
+        return { _type: "DV_DATE", value: "2026-01-01" };
+      case "DV_TIME":
+        return { _type: "DV_TIME", value: "12:00:00" };
+      case "DV_DATE_TIME":
+        return this.dvDateTime();
+      case "DV_DURATION":
+        return { _type: "DV_DURATION", value: "PT1H" };
+      case "DV_BOOLEAN":
+        return { _type: "DV_BOOLEAN", value: true };
+      case "DV_URI":
+        return { _type: "DV_URI", value: "https://example.org" };
+      case "DV_EHR_URI":
+        return { _type: "DV_EHR_URI", value: "ehr://example" };
+      case "DV_IDENTIFIER":
+        return {
+          _type: "DV_IDENTIFIER",
+          issuer: "example",
+          assigner: "example",
+          id: "example-id",
+          type: "example"
+        };
+      case "CODE_PHRASE":
+        return this.codePhrase("local", "at0000");
+      default:
+        if (rmType === "STRING")
+          return this.exampleText(pathHint);
+        if (rmType === "INTEGER")
+          return 1;
+        if (rmType === "REAL")
+          return 1;
+        if (rmType === "BOOLEAN")
+          return true;
+        return {
+          _type: rmType || "DV_TEXT",
+          value: this.exampleText(pathHint)
+        };
+    }
+  }
+  collectTerms(template) {
+    const ontology = template.ontology;
+    const defs = ontology?.term_definitions ?? {};
+    return defs[this.language] ?? defs.en ?? Object.values(defs)[0] ?? {};
+  }
+  termText(code) {
+    if (!code)
+      return void 0;
+    const normalized = this.nodeIdToAtCode(code);
+    const term = this.terms[code] ?? this.terms[normalized];
+    return termLabel2(term?.text);
+  }
+  nodeIdToAtCode(nodeId) {
+    const m2 = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
+    if (!m2)
+      return nodeId;
+    const digits = m2[1].replace(/\./g, "");
+    return `at${digits.padStart(4, "0")}`;
+  }
+  readableRmType(rmType) {
+    return rmType.toLowerCase().split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  }
+  exampleText(pathHint) {
+    const leaf = pathHint.split(/[.[\]]/).filter(Boolean).pop() ?? "value";
+    return `Example ${leaf.replace(/_/g, " ")}`;
+  }
+  dvText(value) {
+    return { _type: "DV_TEXT", value };
+  }
+  dvCodedText(value, terminology, code) {
+    return {
+      _type: "DV_CODED_TEXT",
+      value,
+      defining_code: this.codePhrase(terminology, code)
+    };
+  }
+  codePhrase(terminology, code) {
+    return {
+      _type: "CODE_PHRASE",
+      terminology_id: { value: terminology },
+      code_string: code
+    };
+  }
+  dvDateTime() {
+    return { _type: "DV_DATE_TIME", value: "2026-01-01T12:00:00Z" };
   }
 };
+function termLabel2(val) {
+  if (typeof val === "string" && val && val !== "[object Object]")
+    return val;
+  if (val && typeof val === "object") {
+    const o2 = val;
+    return termLabel2(o2.value) ?? termLabel2(o2.text) ?? termLabel2(o2["#text"]);
+  }
+  return void 0;
+}
 
 // enhanced/generation/typescript_generator.ts
 init_define_BUILD_INFO();
@@ -48395,12 +48700,6 @@ var TypeScriptGenerator = class {
     return false;
   }
 };
-
-// enhanced/generation/adl2_serializer.ts
-init_define_BUILD_INFO();
-
-// enhanced/parser/odin_serializer.ts
-init_define_BUILD_INFO();
 
 // enhanced/generation/adl14_serializer.ts
 init_define_BUILD_INFO();
@@ -48625,6 +48924,51 @@ function validateTemplateInput(input, workspace) {
       valid: false,
       message: `Invalid template: ${error.message}`
     };
+  }
+}
+function formatLabelForLoadKind(loadKind, sourceKind) {
+  switch (loadKind) {
+    case "template_json":
+      return "Better template JSON";
+    case "template":
+      return "ADL2 template";
+    case "operational_template":
+      return "operational template";
+    case "oet_xml":
+      return "OET XML";
+    case "opt_xml":
+      return "OPT XML";
+    default:
+      switch (sourceKind) {
+        case "adl2_template":
+          return "ADL2 template";
+        case "adl14_operational":
+          return "ADL 1.4 operational template";
+        case "oet_compiled":
+          return "compiled OET";
+        case "opt_xml":
+          return "OPT XML";
+        case "operational_template":
+          return "operational template";
+        default:
+          return "template";
+      }
+  }
+}
+function formatLabelForFormat(format) {
+  switch (format) {
+    case "template_json":
+      return "Better template JSON";
+    case "adl14":
+      return "ADL 1.4 operational template";
+    case "adl2":
+      return "ADL2";
+    case "oet_xml":
+      return "OET XML";
+    case "opt_xml":
+      return "OPT XML";
+    default:
+      return "template";
   }
 }
 async function deserializeInput(input, format, config) {

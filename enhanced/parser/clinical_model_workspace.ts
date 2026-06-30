@@ -17,6 +17,7 @@ import {
   type GitHubTreeLoadResult,
 } from "./github_repo_loader.ts";
 import {
+  loadGitHubClinicalModelClosure,
   loadGitHubTemplateClosure,
   type GitHubTemplateClosureResult,
   type GitHubTemplateClosureOptions,
@@ -170,7 +171,18 @@ export class ClinicalModelWorkspace {
     templateUrl: string,
     options?: GitHubTemplateClosureOptions,
   ): Promise<GitHubTemplateClosureResult & { loadResults: LoadFileResult[] }> {
-    const closure = await loadGitHubTemplateClosure(templateUrl, options);
+    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
+  }
+
+  /**
+   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
+   * recursively fetch dependencies from the same branch.
+   */
+  async loadFromGitHubClinicalModelUrl(
+    fileUrl: string,
+    options?: GitHubTemplateClosureOptions,
+  ): Promise<GitHubTemplateClosureResult & { loadResults: LoadFileResult[] }> {
+    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
     const loadResults = this.addFiles(closure.entries);
     this.setGenerationRootPath(closure.rootPath);
     this.setActivePath(closure.rootPath);
