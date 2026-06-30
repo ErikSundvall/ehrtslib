@@ -35,7 +35,6 @@
               rel="noopener"
             >GitHub</a>
             <a href="../../../README.md">Docs</a>
-            <a href="../../../SIMPLIFIED-CREATION-GUIDE.md">Guide</a>
             <a href="https://openehr.org" target="_blank" rel="noopener"
             >openEHR.org</a>
           </nav>
@@ -93,7 +92,7 @@
                 role="tab"
                 aria-selected="true"
               >
-                Instance
+                Instance example
               </button>
               <button
                 type="button"
@@ -102,7 +101,7 @@
                 role="tab"
                 aria-selected="false"
               >
-                Template (schema)
+                Generate instance example from Template
               </button>
               <button
                 type="button"
@@ -111,7 +110,7 @@
                 role="tab"
                 aria-selected="false"
               >
-                Template from AD@git
+                Load template etc from AD@git
               </button>
             </div>
           </div>
@@ -262,7 +261,9 @@
                 Paste a GitHub <strong>blob</strong> or <strong>raw</strong> link to a
                 Better Archetype Designer <code>.t.json</code> file. The loader
                 downloads that template and recursively fetches nested templates and
-                archetypes from the same branch.
+                archetypes from the same branch. It will then (if successful)
+                automatically switch over to the "Generate example from Template" tab 
+                where you may find the template and files it depend on.many files.
               </p>
               <div
                 class="adgit-progress"
