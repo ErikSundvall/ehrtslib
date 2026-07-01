@@ -25,7 +25,7 @@ ehrtslib is organized into several packages:
 - **openehr_rm**: Reference Model classes (COMPOSITION, OBSERVATION, data types)
 - **openehr_lang**: Language model and BMM (Basic Meta-Model) classes
 - **openehr_term**: Terminology support
-- **openehr_am**: Archetype Model (future phases)
+- **openehr_am**: Archetype Model (ADL parsing, templates, validation)
 
 All classes are generated from BMM specifications and then enhanced with functional implementations.
 
@@ -93,31 +93,60 @@ When creating COMPOSITION objects, certain properties are required by the openEH
 
 ### The Dual Getter/Setter Approach
 
-ehrtslib uses a dual approach for properties:
+ehrtslib uses a dual approach for properties: assign primitives for everyday use, or use `$`-prefixed getters when you need the underlying BASE wrapper (see [DUAL-APPROACH-GUIDE.md](../DUAL-APPROACH-GUIDE.md)). Both patterns below set the same clinical text on a `DV_TEXT`:
 
 ```typescript
-// Direct value access (for primitive wrappers like String, Integer)
-const myString = new openehr_base.String();
-myString.value = "hello";
+import * as openehr_base from "./openehr_base.ts";
+import * as openehr_rm from "./openehr_rm.ts";
 
-// Getter/setter methods (for complex properties)
+// Typed path: BASE String wrapper assigned to DV_TEXT
+const textWrapper = new openehr_base.String("Patient is well");
 const dvText = new openehr_rm.DV_TEXT();
-dvText.value = "some text";  // Direct property access
+dvText.value = textWrapper;       // Setter accepts wrapper or primitive
+console.log(dvText.value);        // "Patient is well" (getter returns primitive)
+
+// Primitive path: assign a string, read wrapper via $ when needed
+const dvText2 = new openehr_rm.DV_TEXT();
+dvText2.value = "Patient is well"; // Auto-wrapped internally
+const wrapper = dvText2.$value;    // Underlying openehr_base.String
+if (wrapper && !wrapper.is_empty()) {
+  console.log(wrapper.value);      // "Patient is well"
+}
 ```
 
-Most RM classes use direct property access for simplicity.
+Most RM classes use direct property access for simplicity; use `$property` when you need wrapper methods such as `is_empty()`.
 
 ### Working with Data Types
 
-ehrtslib includes specialized data types for clinical information:
+ehrtslib includes specialized data types for clinical information. Several support [constructor initialization](../SIMPLIFIED-CREATION-GUIDE.md#constructor-initialization) (string, terse format, or nested object); others rely on direct primitive assignment via the dual pattern.
 
-**DV_TEXT** - Plain text:
+**DV_TEXT** — Plain text:
+
+Simplified (constructor):
+```typescript
+const text = new openehr_rm.DV_TEXT("Patient is well");
+// or: new openehr_rm.DV_TEXT({ value: "Patient is well", language: "ISO_639-1::en" })
+```
+
+Manual (property assignment):
 ```typescript
 const text = new openehr_rm.DV_TEXT();
 text.value = "Patient is well";
 ```
 
-**DV_CODED_TEXT** - Coded terminology:
+**DV_CODED_TEXT** — Coded terminology:
+
+Simplified (terse format or nested object):
+```typescript
+const coded = new openehr_rm.DV_CODED_TEXT("local::at0005|Male|");
+// or:
+const coded2 = new openehr_rm.DV_CODED_TEXT({
+  value: "Male",
+  defining_code: { code_string: "at0005", terminology_id: "local" }
+});
+```
+
+Manual (explicit wrapper objects):
 ```typescript
 const coded = new openehr_rm.DV_CODED_TEXT();
 coded.value = "Male";
@@ -129,17 +158,34 @@ code.code_string = "at0005";
 coded.defining_code = code;
 ```
 
-**DV_QUANTITY** - Numerical measurements:
+**DV_QUANTITY** — Numerical measurements (no constructor init yet; use direct primitives):
+
+Simplified (dual pattern):
 ```typescript
 const quantity = new openehr_rm.DV_QUANTITY();
 quantity.magnitude = 120.0;
 quantity.units = "mm[Hg]";
 ```
 
-**DV_DATE_TIME** - Date and time:
+Manual (explicit `String` wrapper for units):
+```typescript
+const quantity = new openehr_rm.DV_QUANTITY();
+quantity.magnitude = 120.0;
+quantity.units = openehr_base.String.from("mm[Hg]");
+```
+
+**DV_DATE_TIME** — Date and time (direct primitive assignment):
+
+Simplified:
 ```typescript
 const datetime = new openehr_rm.DV_DATE_TIME();
 datetime.value = "2024-12-08T14:30:00";
+```
+
+Manual (explicit `String` wrapper):
+```typescript
+const datetime = new openehr_rm.DV_DATE_TIME();
+datetime.value = openehr_base.String.from("2024-12-08T14:30:00");
 ```
 
 ### Creating Clinical Content
@@ -186,30 +232,31 @@ These examples demonstrate:
 
 ## Current Limitations
 
-**What's Available:**
-- Complete BASE, RM, and LANG package implementations
-- All core functionality for manual COMPOSITION creation
-- Support for all openEHR data types and structures
+See the full project status in [ROADMAP.md](../ROADMAP.md) ([GitHub](https://github.com/ErikSundvall/ehrtslib/blob/main/ROADMAP.md)).
 
-**What's Not Yet Available:**
-- Template validation - No automatic validation against openEHR templates yet
-- Archetype validation - No validation that structures match archetype definitions
-- AM package - Archetype Model support coming in future phases
-- Simplified creation methods - Future phases will add template-based creation helpers
-- Serialization - JSON/XML serialization/deserialization coming in Phase 4g
+**What's Available:**
+- Complete BASE, RM, LANG, and AM package implementations
+- ADL2/ADL 1.4 parsing, template flattening, and file-based archetype repository
+- Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, `InvariantEvaluator`)
+- Simplified object creation with constructor initialization and terse formats ([Simplified Creation Guide](../SIMPLIFIED-CREATION-GUIDE.md))
+- Canonical JSON serialization plus FLAT/STRUCTURED simplified formats ([SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md))
+- Demo app: template upload, conversion, and RM instance / TypeScript stub generation
+
+**What's Not Yet Available (or still maturing):**
+- Packaged `/dist` builds (minified browser bundles, web components) — Phase X
+- Full ADL 1.4 AOM round-trip parity and OPT2 round-trip — Phases 6b / 8b+
+- Constructor initialization on every RM class (e.g. `DV_QUANTITY`, `DV_DATE_TIME` still use manual property assignment)
+- Turnkey “fill a form, get a valid composition” API — complex trees still need manual assembly or template tooling
 
 **Current Approach:**
-You must manually construct COMPOSITION trees by creating each object and setting properties. While this works, it's verbose and error-prone. Future phases will add:
-- Template-based creation that guides valid structure
-- Automatic validation against templates and archetypes
-- Simplified APIs for common patterns
+You can build COMPOSITION trees manually (verbose or simplified constructors), generate instances from operational templates (`RMInstanceGenerator`), validate against templates, and serialize to canonical JSON or simplified FLAT/STRUCTURED formats. For the interactive workflow, use the demo app under `examples/demo-app/`.
 
 ## Next Steps
 
 1. Review the example files in `examples/`
 2. Understand the openEHR specifications at https://specifications.openehr.org/
 3. Start with simple COMPOSITION structures
-4. Refer to the ROADMAP.md for upcoming features
+4. Refer to [ROADMAP.md](../ROADMAP.md) for upcoming features
 5. Check the openEHR specification documentation for detailed class definitions
 
 ## Running Examples
@@ -234,4 +281,4 @@ The examples will:
 
 ## Summary
 
-ehrtslib provides complete implementations of openEHR RM, BASE, and LANG packages. While currently requiring manual construction of COMPOSITION trees, it offers a solid foundation for working with openEHR data in TypeScript/Deno. Future phases will add template support, validation, and simplified creation methods.
+ehrtslib provides complete implementations of openEHR RM, BASE, LANG, and AM packages, with template validation, simplified constructors, and FLAT/STRUCTURED serialization. Complex clinical trees can still be verbose to assemble by hand; see [ROADMAP.md](../ROADMAP.md) for distribution builds and remaining ADL/OPT round-trip work.
