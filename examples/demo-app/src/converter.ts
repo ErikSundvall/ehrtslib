@@ -189,6 +189,68 @@ export interface ConversionResult {
   errorDetails?: any;
 }
 
+const SIMPLIFIED_OUTPUT_FORMATS = new Set<OutputFormat>([
+  "flat",
+  "structured",
+  "webtemplate",
+]);
+
+function writeSimplifiedOutputs(
+  instance: unknown,
+  operationalTemplate: unknown,
+  outputFormats: OutputFormat[],
+  outputs: Record<string, string>,
+): void {
+  const webTemplate = buildWebTemplate(operationalTemplate);
+  for (const format of outputFormats) {
+    switch (format) {
+      case "flat":
+        outputs.flat = serializeToFlatJson(instance, webTemplate, {
+          prettyPrint: true,
+        });
+        break;
+      case "structured":
+        outputs.structured = serializeToStructuredJson(instance, webTemplate, {
+          prettyPrint: true,
+        });
+        break;
+      case "webtemplate":
+        outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
+        break;
+    }
+  }
+}
+
+function resolveOperationalTemplate(
+  input: string,
+  options: ConversionOptions,
+): unknown {
+  if (options.templateWorkspace?.listFiles().length) {
+    return options.templateWorkspace.resolveOperational().operationalTemplate;
+  }
+
+  try {
+    return getOperationalTemplateFromInput(input, {
+      archetypeRepository: options.templateWorkspace?.repository,
+    });
+  } catch (firstError) {
+    const parsed = parseTemplateInput(input, {
+      archetypeRepository: options.templateWorkspace?.repository,
+    });
+    if (parsed.kind === "oet_document") {
+      throw new Error(
+        "OET template loaded but requires referenced archetypes to compile. " +
+          `Base archetype: ${
+            parsed.oet?.document.definitionArchetypeId ?? "unknown"
+          }. ` +
+          "Upload archetype .adl files or a ZIP containing the full file set. " +
+          (firstError as Error).message,
+      );
+    }
+    throw firstError;
+  }
+}
+
 /**
  * Convert input data to requested output formats
  */
@@ -202,7 +264,11 @@ export async function convert(
   }
 
   try {
-    if (options.inputMode === "template") {
+    const inputMode = options.inputMode === "template-adgit"
+      ? "template"
+      : options.inputMode;
+
+    if (inputMode === "template") {
       return convertTemplateInput(input, options);
     }
 
@@ -215,8 +281,12 @@ export async function convert(
 
     // Step 2: Serialize to requested output formats
     const outputs: Record<string, string> = {};
+    const simplifiedFormats = options.outputFormats.filter((format) =>
+      SIMPLIFIED_OUTPUT_FORMATS.has(format)
+    );
 
     for (const format of options.outputFormats) {
+      if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
       try {
         switch (format) {
           case "xml":
@@ -259,6 +329,22 @@ export async function convert(
       }
     }
 
+    if (simplifiedFormats.length) {
+      if (!options.templateWorkspace?.listFiles().length) {
+        throw new Error(
+          "FLAT, STRUCTURED, and Web Template outputs require the Template input tab " +
+            "or a loaded template file set (operational template / OPT).",
+        );
+      }
+      const operationalTemplate = resolveOperationalTemplate(input, options);
+      writeSimplifiedOutputs(
+        rmObject,
+        operationalTemplate,
+        simplifiedFormats,
+        outputs,
+      );
+    }
+
     return {
       success: true,
       outputs,
@@ -277,42 +363,17 @@ function convertTemplateInput(
   input: string,
   options: ConversionOptions,
 ): ConversionResult {
-  let template;
-  try {
-    if (options.templateWorkspace?.listFiles().length) {
-      template =
-        options.templateWorkspace.resolveOperational().operationalTemplate;
-    } else {
-      template = getOperationalTemplateFromInput(input, {
-        archetypeRepository: options.templateWorkspace?.repository,
-      });
-    }
-  } catch (firstError) {
-    const parsed = parseTemplateInput(input, {
-      archetypeRepository: options.templateWorkspace?.repository,
-    });
-    if (parsed.kind === "oet_document") {
-      throw new Error(
-        "OET template loaded but requires referenced archetypes to compile. " +
-          `Base archetype: ${
-            parsed.oet?.document.definitionArchetypeId ?? "unknown"
-          }. ` +
-          "Upload archetype .adl files or a ZIP containing the full file set. " +
-          (firstError as Error).message,
-      );
-    }
-    throw firstError;
-  }
+  const template = resolveOperationalTemplate(input, options);
 
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
   });
 
   const generatedInstance = generator.generate(template);
-  const webTemplate = buildWebTemplate(template);
   const outputs: Record<string, string> = {};
 
   for (const format of options.outputFormats) {
+    if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
     switch (format) {
       case "xml":
         outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
@@ -344,23 +405,15 @@ function convertTemplateInput(
         outputs.typescript = tsGenerator.generate(template);
         break;
       }
-      case "flat":
-        outputs.flat = serializeToFlatJson(generatedInstance, webTemplate, {
-          prettyPrint: true,
-        });
-        break;
-      case "structured":
-        outputs.structured = serializeToStructuredJson(
-          generatedInstance,
-          webTemplate,
-          { prettyPrint: true },
-        );
-        break;
-      case "webtemplate":
-        outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
-        break;
     }
   }
+
+  writeSimplifiedOutputs(
+    generatedInstance,
+    template,
+    options.outputFormats,
+    outputs,
+  );
 
   return { success: true, outputs };
 }

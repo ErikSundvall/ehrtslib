@@ -10,6 +10,10 @@
  */
 
 import * as openehr_am from "../openehr_am.ts";
+import {
+  resolveTemplateLanguage,
+  termCodeCandidates,
+} from "./term_codes.ts";
 
 type MultiplicityLike = {
   lower?: number;
@@ -108,9 +112,7 @@ export class RMInstanceGenerator {
       throw new Error("Template has no definition");
     }
 
-    this.language = typeof template.original_language === "string"
-      ? template.original_language
-      : "en";
+    this.language = resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
 
     return this.generateFromCObject(template.definition, 0, "root");
@@ -133,17 +135,37 @@ export class RMInstanceGenerator {
     if (cObject instanceof openehr_am.C_TERMINOLOGY_CODE) {
       return this.generateCodePhrase(cObject);
     }
-    if (cObject instanceof openehr_am.C_PRIMITIVE_OBJECT) {
+    if (
+      cObject instanceof openehr_am.C_PRIMITIVE_OBJECT ||
+      cObject instanceof openehr_am.C_PRIMITIVE
+    ) {
       return this.generatePrimitive(cObject, pathHint);
     }
 
     const rmType = cObject.rm_type_name ?? "ITEM_TREE";
+    const isComplex = cObject instanceof openehr_am.C_COMPLEX_OBJECT ||
+      cObject instanceof openehr_am.C_ARCHETYPE_ROOT;
+    const hasAttributes = isComplex &&
+      ((cObject.attributes?.length ?? 0) > 0);
+
+    if (!hasAttributes && rmType.startsWith("DV_")) {
+      return this.generateDataValueByType(rmType, pathHint);
+    }
+
     const instance: Record<string, unknown> = { _type: rmType };
 
-    if (cObject instanceof openehr_am.C_COMPLEX_OBJECT) {
+    if (cObject.node_id && !rmType.startsWith("DV_")) {
+      instance.archetype_node_id = cObject.node_id;
+      if (LOCATABLE_TYPES.has(rmType)) {
+        const label = this.termText(cObject.node_id);
+        if (label) instance.name = this.dvText(label);
+      }
+    }
+
+    if (isComplex) {
       this.generateAttributes(instance, cObject, depth);
     } else {
-      Object.assign(instance, this.generateDataValueByType(rmType, pathHint));
+      return this.generateDataValueByType(rmType, pathHint);
     }
 
     return instance;
@@ -191,7 +213,11 @@ export class RMInstanceGenerator {
       this.isObjectRequired(child)
     );
     const attrBounds = this.attributeBounds(cAttribute);
-    const isRequired = attrBounds.min > 0 || requiredChildren.length > 0;
+    const hasMandatoryDescendant = allowedChildren.some((child) =>
+      this.hasMandatoryDescendant(child)
+    );
+    const isRequired = attrBounds.min > 0 || requiredChildren.length > 0 ||
+      hasMandatoryDescendant;
     const shouldFillOptional = this.shouldFillOptional(cAttribute);
 
     if (!isRequired && !shouldFillOptional) return undefined;
@@ -295,12 +321,7 @@ export class RMInstanceGenerator {
   ): any {
     switch (attrName) {
       case "archetype_node_id":
-        if (!nodeId) {
-          throw new Error(
-            `Cannot generate archetype_node_id for ${rmTypeName}: missing template node_id`,
-          );
-        }
-        return nodeId;
+        return nodeId ?? "at0000";
       case "name":
         return this.dvText(
           this.termText(nodeId) ?? this.readableRmType(rmTypeName),
@@ -435,6 +456,28 @@ export class RMInstanceGenerator {
     return this.objectBounds(cObject).min > 0;
   }
 
+  private hasMandatoryDescendant(cObject: openehr_am.C_OBJECT): boolean {
+    if (this.isObjectRequired(cObject)) return true;
+    if (
+      !(cObject instanceof openehr_am.C_COMPLEX_OBJECT) &&
+      !(cObject instanceof openehr_am.C_ARCHETYPE_ROOT)
+    ) {
+      return false;
+    }
+    for (const cAttribute of cObject.attributes ?? []) {
+      if (this.isAttributeExcluded(cAttribute)) continue;
+      const children = (cAttribute as { children?: openehr_am.C_OBJECT[] })
+        .children ?? [];
+      for (const child of children) {
+        if (this.isObjectExcluded(child)) continue;
+        if (this.isObjectRequired(child) || this.hasMandatoryDescendant(child)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   private isObjectExcluded(cObject: openehr_am.C_OBJECT): boolean {
     const bounds = this.objectBounds(cObject);
     return !bounds.unbounded && bounds.max === 0;
@@ -484,7 +527,7 @@ export class RMInstanceGenerator {
   }
 
   private generatePrimitive(
-    cObject: openehr_am.C_PRIMITIVE_OBJECT,
+    cObject: openehr_am.C_PRIMITIVE_OBJECT | openehr_am.C_PRIMITIVE,
     pathHint: string,
   ): any {
     if (cObject instanceof openehr_am.C_STRING) {
@@ -500,7 +543,9 @@ export class RMInstanceGenerator {
     }
     if (cObject instanceof openehr_am.C_INTEGER) return 1;
     if (cObject instanceof openehr_am.C_REAL) return 1.0;
-    return this.generateDataValueByType(cObject.rm_type_name ?? "", pathHint);
+    const rmType = "rm_type_name" in cObject ? (cObject.rm_type_name ?? "") : "";
+    if (rmType === "DURATION") return "PT1H";
+    return this.generateDataValueByType(rmType, pathHint);
   }
 
   private generateDataValueByType(rmType: string, pathHint: string): any {
@@ -568,16 +613,16 @@ export class RMInstanceGenerator {
 
   private termText(code?: string): string | undefined {
     if (!code) return undefined;
-    const normalized = this.nodeIdToAtCode(code);
-    const term = this.terms[code] ?? this.terms[normalized];
-    return termLabel(term?.text);
+    for (const candidate of termCodeCandidates(code)) {
+      const term = this.terms[candidate];
+      const text = termLabel(term?.text);
+      if (text) return text;
+    }
+    return undefined;
   }
 
   private nodeIdToAtCode(nodeId: string): string {
-    const m = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
-    if (!m) return nodeId;
-    const digits = m[1].replace(/\./g, "");
-    return `at${digits.padStart(4, "0")}`;
+    return termCodeCandidates(nodeId)[1] ?? nodeId;
   }
 
   private readableRmType(rmType: string): string {

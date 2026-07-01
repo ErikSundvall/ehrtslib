@@ -43,7 +43,9 @@ import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_
 import {
   getDemoEditor,
   initDemoEditors,
+  setDemoEditorLanguage,
   type DemoEditor,
+  type DemoLanguage,
 } from "./codemirror-setup.ts";
 import { initEditorDisplaySettings } from "./editor-settings.ts";
 
@@ -88,6 +90,7 @@ function init() {
     instanceInitial: EXAMPLES[DEFAULT_INSTANCE_EXAMPLE as keyof typeof EXAMPLES]
       .json,
   });
+  syncInputEditorLanguage();
   setupEventListeners();
   updateAutoConvertButtonUi();
 
@@ -614,6 +617,7 @@ function setupTemplateAdGitLoad() {
       updateTemplateFileSetUi();
       activateInputTab("template");
       handleInputChange("template");
+      void handleConvert();
     } catch (e) {
       appendAdGitProgress((e as Error).message, "fetch");
       alert(`Template load failed: ${(e as Error).message}`);
@@ -827,11 +831,21 @@ function setupCopyDownloadButtons() {
   });
 }
 
+function syncInputEditorLanguage(): void {
+  const language = currentInputFormat as DemoLanguage;
+  if (language === "json" || language === "xml" || language === "yaml") {
+    setDemoEditorLanguage("input-text", language);
+  } else {
+    setDemoEditorLanguage("input-text", "plain");
+  }
+}
+
 /**
  * Handle input format change
  */
 function handleInputFormatChange(e: Event) {
   currentInputFormat = (e.target as HTMLSelectElement).value;
+  syncInputEditorLanguage();
   validateInput();
   scheduleAutoConvert();
 }
@@ -859,6 +873,7 @@ function loadExample(exampleKey: string) {
       example.json;
     currentInputFormat = format;
 
+    syncInputEditorLanguage();
     // Update character count and validation
     handleInputChange("instance");
   }
@@ -918,6 +933,24 @@ function getInputEditor(mode: InputMode): DemoEditor | null {
   return getDemoEditor(id);
 }
 
+function hasTemplateWorkspace(): boolean {
+  return clinicalWorkspace.listFiles().length > 0;
+}
+
+/** Whether the active input tab can drive a conversion run. */
+function canConvertFromInputTab(tab: InputMode = currentInputTab): boolean {
+  if (tab === "template-adgit") return hasTemplateWorkspace();
+  return true;
+}
+
+/** Map AD@git tab to template conversion when a file set is loaded. */
+function effectiveInputMode(): InputMode {
+  if (currentInputTab === "template-adgit" && hasTemplateWorkspace()) {
+    return "template";
+  }
+  return currentInputTab;
+}
+
 function getCurrentInputEditor(): DemoEditor | null {
   return getInputEditor(currentInputTab);
 }
@@ -926,7 +959,11 @@ function getCurrentInputEditor(): DemoEditor | null {
  * Handle input text change
  */
 function handleInputChange(tab: InputMode = currentInputTab) {
-  if (tab === "template-adgit") return;
+  if (tab === "template-adgit") {
+    validateInput();
+    scheduleAutoConvert();
+    return;
+  }
   const inputEditor = getInputEditor(tab);
   if (!inputEditor) return;
 
@@ -954,7 +991,34 @@ function handleInputChange(tab: InputMode = currentInputTab) {
  * Validate the input text
  */
 function validateInput() {
-  if (currentInputTab === "template-adgit") return;
+  if (currentInputTab === "template-adgit") {
+    const validationIcon = document.getElementById("template-validation-icon");
+    const validationText = document.getElementById("template-validation-text");
+    if (!validationIcon || !validationText) return;
+
+    if (!hasTemplateWorkspace()) {
+      validationIcon.textContent = "radio_button_unchecked";
+      validationIcon.className = "material-icons status-icon";
+      validationText.textContent = "Load a template from GitHub";
+      return;
+    }
+
+    try {
+      const templateValidation = validateTemplateInput("", clinicalWorkspace);
+      if (!templateValidation.valid) {
+        throw new Error(templateValidation.message);
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      validationText.textContent = templateValidation.message;
+    } catch (error) {
+      validationIcon.textContent = "error";
+      validationIcon.className = "material-icons status-icon invalid";
+      validationText.textContent = (error as Error).message;
+    }
+    return;
+  }
+
   const inputEditor = getCurrentInputEditor();
   const validationIcon = document.getElementById(
     currentInputTab === "template"
@@ -1062,7 +1126,7 @@ function updateAutoConvertButtonUi() {
 
 function scheduleAutoConvert() {
   if (!autoConvertEnabled) return;
-  if (currentInputTab === "template-adgit") return;
+  if (!canConvertFromInputTab()) return;
   if (autoConvertDebounceTimer !== undefined) {
     clearTimeout(autoConvertDebounceTimer);
   }
@@ -1076,17 +1140,22 @@ function scheduleAutoConvert() {
  * Run conversion (debounced when auto-convert is on).
  */
 async function handleConvert() {
-  if (currentInputTab === "template-adgit") return;
+  if (!canConvertFromInputTab()) return;
   console.log("🔄 Converting...");
   showLoading();
   hideError();
 
   try {
-    const inputEditor = getCurrentInputEditor();
-    if (!inputEditor) throw new Error("Input editor not found");
-
-    const inputText = inputEditor.value.trim();
-    if (!inputText) throw new Error("Input is empty");
+    const inputMode = effectiveInputMode();
+    const inputEditor = getInputEditor(inputMode);
+    const inputText = inputEditor?.value.trim() ?? "";
+    const hasTemplateWorkspace = clinicalWorkspace.listFiles().length > 0;
+    if (
+      !inputText &&
+      !(inputMode === "template" && hasTemplateWorkspace)
+    ) {
+      throw new Error("Input is empty");
+    }
 
     // Gather conversion options from UI
     const options = gatherConversionOptions();
@@ -1118,7 +1187,7 @@ async function handleConvert() {
  * Gather conversion options from UI controls
  */
 function gatherConversionOptions(): ConversionOptions {
-  const inputMode = currentInputTab;
+  const inputMode = effectiveInputMode();
 
   // Input format
   const inputFormatSelect = document.getElementById(

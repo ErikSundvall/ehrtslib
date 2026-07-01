@@ -2,9 +2,22 @@
  * Extract typed attribute values from RM data-value objects for simplified formats.
  */
 
+import { TypeRegistry } from "../common/type_registry.ts";
 import type { WebTemplateInput } from "./types.ts";
 
 type RmObject = Record<string, unknown>;
+
+function rmTypeName(obj: unknown): string {
+  if (obj == null || typeof obj !== "object") return "";
+  const record = obj as RmObject;
+  if (typeof record._type === "string") return record._type;
+  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
+}
+
+function rmProp(obj: unknown, key: string): unknown {
+  if (obj == null || typeof obj !== "object") return undefined;
+  return (obj as RmObject)[key];
+}
 
 function str(v: unknown): string | undefined {
   if (v == null) return undefined;
@@ -25,7 +38,7 @@ export function extractValueFields(
   if (rmValue == null) return {};
 
   const obj = rmValue as RmObject;
-  const type = str(obj._type) ?? "";
+  const type = rmTypeName(rmValue);
   const out: Record<string, string | number | boolean> = {};
 
   const suffixes = inputs?.map((i) => i.suffix).filter(Boolean) as string[] | undefined;
@@ -84,23 +97,23 @@ export function extractContextField(
   instance: unknown,
   nodeId: string,
 ): Record<string, string | number | boolean> {
-  const comp = instance as RmObject;
-  if (!comp || comp._type !== "COMPOSITION") return {};
+  if (rmTypeName(instance) !== "COMPOSITION") return {};
 
   if (nodeId === "composer_name") {
-    const name = (comp.composer as RmObject | undefined)?.name;
-    return name != null ? { value: String(name) } : {};
+    const name = rmProp(instance, "composer") as RmObject | undefined;
+    const composerName = name?.name;
+    return composerName != null ? { value: String(composerName) } : {};
   }
 
   if (nodeId === "time") {
-    const ctx = comp.context as RmObject | undefined;
+    const ctx = rmProp(instance, "context") as RmObject | undefined;
     const t = (ctx?.start_time as RmObject | undefined)?.value;
     return t != null ? { value: String(t) } : {};
   }
 
-  const direct = comp[nodeId];
+  const direct = rmProp(instance, nodeId);
   if (direct == null) {
-    const ctx = comp.context as RmObject | undefined;
+    const ctx = rmProp(instance, "context") as RmObject | undefined;
     const ctxVal = ctx?.[nodeId];
     if (ctxVal != null) return extractValueFields(ctxVal);
     return {};

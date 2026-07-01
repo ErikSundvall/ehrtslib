@@ -1,7 +1,13 @@
 {
   "nodeModulesDir": "auto",
   "imports": {
+    "@lezer/highlight": "npm:@lezer/highlight@^1.2.1",
     "@codemirror/commands": "npm:@codemirror/commands@^6.8.1",
+    "@codemirror/lang-javascript": "npm:@codemirror/lang-javascript@^6.2.4",
+    "@codemirror/lang-json": "npm:@codemirror/lang-json@^6.0.2",
+    "@codemirror/lang-xml": "npm:@codemirror/lang-xml@^6.1.0",
+    "@codemirror/lang-yaml": "npm:@codemirror/lang-yaml@^6.1.2",
+    "@codemirror/language": "npm:@codemirror/language@^6.11.3",
     "@codemirror/state": "npm:@codemirror/state@^6.5.2",
     "@codemirror/view": "npm:@codemirror/view@^6.38.0",
     "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",

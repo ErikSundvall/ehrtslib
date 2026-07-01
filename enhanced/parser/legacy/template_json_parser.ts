@@ -6,9 +6,7 @@ import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../openehr_base.ts";
 import {
   asArray,
-  parseAttribute,
   parseCObject,
-  textValue,
 } from "./xml_aom_mapper.ts";
 import {
   jsonType,
@@ -119,8 +117,9 @@ function applyAuthoredArchetypeFields(
 
   if (root.originalLanguage && typeof root.originalLanguage === "object") {
     const lang = parseCodePhrase(root.originalLanguage);
-    if (lang && target.ontology) {
-      target.ontology.original_language = lang;
+    if (lang) {
+      if (lang.code_string) target.original_language = lang.code_string;
+      if (target.ontology) target.ontology.original_language = lang;
     }
   }
 }

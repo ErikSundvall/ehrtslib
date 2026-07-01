@@ -97,6 +97,15 @@ export function parseCardinality(
   return card;
 }
 
+function defaultContainerCardinality(): openehr_am.CARDINALITY {
+  const card = new openehr_am.CARDINALITY();
+  const interval = new openehr_base.Multiplicity_interval();
+  interval.lower = 0;
+  interval.upper_unbounded = true;
+  card.interval = interval;
+  return card;
+}
+
 function mapPrimitiveType(xsi: string): string {
   const map: Record<string, string> = {
     C_DV_QUANTITY: "C_QUANTITY",
@@ -206,7 +215,9 @@ function parseCComplexObject(
 ): openehr_am.C_COMPLEX_OBJECT {
   const obj = new openehr_am.C_COMPLEX_OBJECT();
   applyOccurrence(obj, n);
-  obj.attributes = asArray(n.attributes).map(parseAttribute).filter(
+  obj.attributes = asArray(n.attributes).map((attr) =>
+    parseAttribute(attr, obj.rm_type_name)
+  ).filter(
     Boolean,
   ) as openehr_am.C_ATTRIBUTE[];
   return obj;
@@ -220,27 +231,59 @@ function parseCArchetypeRoot(
   root.archetype_ref = textValue(n.archetype_id) ??
     textValue(n.archetype_ref) ??
     textValue(n.archetypeRef);
-  root.attributes = asArray(n.attributes).map(parseAttribute).filter(
+  root.attributes = asArray(n.attributes).map((attr) =>
+    parseAttribute(attr, root.rm_type_name)
+  ).filter(
     Boolean,
   ) as openehr_am.C_ATTRIBUTE[];
   return root;
 }
 
-export function parseAttribute(node: unknown): openehr_am.C_ATTRIBUTE | null {
+const CONTAINER_RM_ATTRIBUTES: Record<string, string[]> = {
+  COMPOSITION: ["content"],
+  SECTION: ["items"],
+  CLUSTER: ["items"],
+  ITEM_TREE: ["items"],
+  ITEM_LIST: ["items"],
+  ITEM_TABLE: ["rows"],
+  HISTORY: ["events"],
+  EVENT: ["data", "state"],
+  POINT_EVENT: ["data", "state"],
+  INTERVAL_EVENT: ["data", "state"],
+  INSTRUCTION: ["activities"],
+};
+
+function isContainerRmAttribute(
+  parentRmType: string | undefined,
+  attrName: string,
+): boolean {
+  if (!parentRmType) return false;
+  return (CONTAINER_RM_ATTRIBUTES[parentRmType] ?? []).includes(attrName);
+}
+
+export function parseAttribute(
+  node: unknown,
+  parentRmType?: string,
+): openehr_am.C_ATTRIBUTE | null {
   if (!node || typeof node !== "object") return null;
   const n = node as Record<string, unknown>;
   const type = xsiType(n);
-  const attr = type === "C_MULTIPLE_ATTRIBUTE"
+  const attrName =
+    amFieldString(n, "rm_attribute_name", "rmAttributeName") ?? "";
+  const useMultiple = type === "C_MULTIPLE_ATTRIBUTE" ||
+    ((type === "C_ATTRIBUTE" || type === "") &&
+      isContainerRmAttribute(parentRmType, attrName));
+  const attr = useMultiple
     ? new openehr_am.C_MULTIPLE_ATTRIBUTE()
     : new openehr_am.C_SINGLE_ATTRIBUTE();
 
-  attr.rm_attribute_name =
-    amFieldString(n, "rm_attribute_name", "rmAttributeName") ?? "";
+  attr.rm_attribute_name = attrName;
   (attr as { existence?: openehr_base.Multiplicity_interval }).existence =
     parseOccurrencesOrMultiplicity(n.existence);
 
   if (attr instanceof openehr_am.C_MULTIPLE_ATTRIBUTE) {
-    attr.cardinality = parseCardinality(n.cardinality);
+    attr.cardinality = parseCardinality(n.cardinality) ??
+      defaultContainerCardinality();
   }
 
   const children = asArray(n.children).map(parseCObject);

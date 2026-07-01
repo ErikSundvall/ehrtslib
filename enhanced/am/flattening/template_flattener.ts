@@ -7,11 +7,14 @@
 import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../openehr_base.ts";
 import { cloneAttribute, cloneComplexObject } from "../aom_clone.ts";
+import {
+  applyMergedTerminology,
+  buildMergedTerminology,
+} from "../ontology_merge.ts";
 import { specializeComplexObject } from "./specialize.ts";
 
-export interface ArchetypeResolver {
-  resolve(archetypeId: string): openehr_am.ARCHETYPE | undefined;
-}
+export type { ArchetypeResolver } from "../ontology_merge.ts";
+import type { ArchetypeResolver } from "../ontology_merge.ts";
 
 function archetypeIdString(arch: openehr_am.ARCHETYPE): string | undefined {
   return arch.archetype_id?.value ?? arch.archetype_id?.toString();
@@ -23,6 +26,7 @@ function archetypeIdString(arch: openehr_am.ARCHETYPE): string | undefined {
 export function flattenArchetypeDefinition(
   archetype: openehr_am.ARCHETYPE,
   resolver: ArchetypeResolver,
+  inlined: openehr_am.ARCHETYPE[] = [],
 ): openehr_am.C_COMPLEX_OBJECT | undefined {
   if (!archetype.definition) return undefined;
 
@@ -33,25 +37,26 @@ export function flattenArchetypeDefinition(
   if (parentId) {
     const parent = resolver.resolve(parentId);
     if (parent?.definition) {
-      const parentFlat = flattenArchetypeDefinition(parent, resolver) ??
+      const parentFlat = flattenArchetypeDefinition(parent, resolver, inlined) ??
         parent.definition;
       flat = specializeComplexObject(parentFlat, archetype.definition);
     }
   }
 
-  return resolveSlotsInTree(flat, resolver);
+  return resolveSlotsInTree(flat, resolver, inlined);
 }
 
 function resolveSlotsInTree(
   root: openehr_am.C_COMPLEX_OBJECT,
   resolver: ArchetypeResolver,
+  inlined: openehr_am.ARCHETYPE[],
 ): openehr_am.C_COMPLEX_OBJECT {
   const walkObject = (obj: openehr_am.C_OBJECT): openehr_am.C_OBJECT => {
     if (obj instanceof openehr_am.ARCHETYPE_SLOT) {
-      return resolveArchetypeSlot(obj, resolver);
+      return resolveArchetypeSlot(obj, resolver, inlined);
     }
     if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
-      return inlineArchetypeRoot(obj, resolver);
+      return inlineArchetypeRoot(obj, resolver, inlined);
     }
     if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
       if (!obj.attributes) return obj;
@@ -90,6 +95,7 @@ function firstIncludePattern(
 function resolveArchetypeSlot(
   slot: openehr_am.ARCHETYPE_SLOT,
   resolver: ArchetypeResolver,
+  inlined: openehr_am.ARCHETYPE[],
 ): openehr_am.C_OBJECT {
   const pattern = firstIncludePattern(slot);
   if (!pattern) return slot;
@@ -97,17 +103,20 @@ function resolveArchetypeSlot(
   const arch = resolver.resolve(pattern);
   if (!arch?.definition) return slot;
 
-  const filler = flattenArchetypeDefinition(arch, resolver) ?? arch.definition;
-  const inlined = cloneComplexObject(filler);
-  inlined.node_id = slot.node_id ?? inlined.node_id;
-  inlined.rm_type_name = slot.rm_type_name ?? inlined.rm_type_name;
-  if (slot.occurrences) inlined.occurrences = slot.occurrences;
-  return inlined;
+  inlined.push(arch);
+  const filler = flattenArchetypeDefinition(arch, resolver, inlined) ??
+    arch.definition;
+  const result = cloneComplexObject(filler);
+  result.node_id = slot.node_id ?? result.node_id;
+  result.rm_type_name = slot.rm_type_name ?? result.rm_type_name;
+  if (slot.occurrences) result.occurrences = slot.occurrences;
+  return result;
 }
 
 function inlineArchetypeRoot(
   root: openehr_am.C_ARCHETYPE_ROOT,
   resolver: ArchetypeResolver,
+  inlined: openehr_am.ARCHETYPE[],
 ): openehr_am.C_OBJECT {
   const ref = root.archetype_ref;
   if (!ref) return root;
@@ -115,15 +124,17 @@ function inlineArchetypeRoot(
   const arch = resolver.resolve(ref);
   if (!arch?.definition) return root;
 
-  const filler = flattenArchetypeDefinition(arch, resolver) ?? arch.definition;
-  const inlined = cloneComplexObject(filler);
-  inlined.node_id = root.node_id ?? inlined.node_id;
-  inlined.rm_type_name = root.rm_type_name ?? inlined.rm_type_name;
-  if (root.occurrences) inlined.occurrences = root.occurrences;
+  inlined.push(arch);
+  const filler = flattenArchetypeDefinition(arch, resolver, inlined) ??
+    arch.definition;
+  const result = cloneComplexObject(filler);
+  result.node_id = root.node_id ?? result.node_id;
+  result.rm_type_name = root.rm_type_name ?? result.rm_type_name;
+  if (root.occurrences) result.occurrences = root.occurrences;
   if (root.attributes?.length) {
-    return specializeComplexObject(inlined, root);
+    return specializeComplexObject(result, root);
   }
-  return inlined;
+  return result;
 }
 
 /**
@@ -146,13 +157,23 @@ export function flattenToOperationalTemplate(
   opt.rm_release = source.rm_release;
   opt.is_generated = true;
 
+  const inlinedArchetypes: openehr_am.ARCHETYPE[] = [];
   if (source instanceof openehr_am.TEMPLATE) {
     opt.definition = source.definition
-      ? resolveSlotsInTree(cloneComplexObject(source.definition), resolver)
+      ? resolveSlotsInTree(
+        cloneComplexObject(source.definition),
+        resolver,
+        inlinedArchetypes,
+      )
       : undefined;
   } else {
-    opt.definition = flattenArchetypeDefinition(source, resolver);
+    opt.definition = flattenArchetypeDefinition(source, resolver, inlinedArchetypes);
   }
+
+  applyMergedTerminology(
+    opt,
+    buildMergedTerminology(source, resolver, inlinedArchetypes),
+  );
 
   return opt;
 }

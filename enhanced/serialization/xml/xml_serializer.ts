@@ -2,8 +2,8 @@ import { XMLBuilder } from "fast-xml-parser";
 import { TypeRegistry } from "../common/type_registry.ts";
 import { SerializationError } from "../common/errors.ts";
 import {
+  DEFAULT_XML_SERIALIZATION_CONFIG,
   XmlSerializationConfig,
-  DEFAULT_XML_SERIALIZATION_CONFIG
 } from "./xml_config.ts";
 
 /**
@@ -20,7 +20,7 @@ export class XmlSerializer {
   constructor(config?: XmlSerializationConfig) {
     this.config = {
       ...DEFAULT_XML_SERIALIZATION_CONFIG,
-      ...config
+      ...config,
     };
   }
 
@@ -42,7 +42,7 @@ export class XmlSerializer {
   serializeWith(obj: any, config: XmlSerializationConfig): string {
     const mergedConfig = {
       ...this.config,
-      ...config
+      ...config,
     };
 
     try {
@@ -56,14 +56,15 @@ export class XmlSerializer {
         format: mergedConfig.prettyPrint,
         indentBy: mergedConfig.indent,
         suppressEmptyNode: true,
-        suppressBooleanAttributes: false
+        suppressBooleanAttributes: false,
       });
 
       let xml = builder.build(xmlObj);
 
       // Add XML declaration if requested
       if (mergedConfig.includeDeclaration) {
-        const declaration = `<?xml version="${mergedConfig.version}" encoding="${mergedConfig.encoding}"?>`;
+        const declaration =
+          `<?xml version="${mergedConfig.version}" encoding="${mergedConfig.encoding}"?>`;
         xml = mergedConfig.prettyPrint
           ? `${declaration}\n${xml}`
           : `${declaration}${xml}`;
@@ -74,7 +75,7 @@ export class XmlSerializer {
       throw new SerializationError(
         `Failed to serialize object to XML: ${error.message}`,
         obj,
-        error
+        error,
       );
     }
   }
@@ -88,20 +89,21 @@ export class XmlSerializer {
     }
 
     // Handle primitive types
-    if (typeof obj !== 'object') {
+    if (typeof obj !== "object") {
       return obj;
     }
 
     // Handle arrays
     if (Array.isArray(obj)) {
-      return obj.map(item => this.objectToXml(item, config));
+      return obj.map((item) => this.objectToXml(item, config));
     }
 
     // Get type name for this object
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
 
     // Determine root element name
-    const rootElement = config.rootElement || typeName?.toLowerCase() || 'object';
+    const rootElement = config.rootElement || typeName?.toLowerCase() ||
+      "object";
 
     // Build XML object structure
     const xmlObj: any = {};
@@ -109,19 +111,20 @@ export class XmlSerializer {
 
     // Add namespace if requested
     if (config.useNamespaces) {
-      rootContent['@_xmlns'] = config.namespace;
-      rootContent['@_xmlns:xsi'] = 'http://www.w3.org/2001/XMLSchema-instance';
+      rootContent["@_xmlns"] = config.namespace;
+      rootContent["@_xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
     }
 
     // Add xsi:type attribute for polymorphic types
     if (typeName) {
-      rootContent['@_xsi:type'] = typeName;
+      rootContent["@_xsi:type"] = typeName;
     }
 
-    // Process all properties
-    for (const [key, value] of Object.entries(obj)) {
+    // Process all serializable properties, including accessor-backed fields
+    // populated by the JSON deserializer (e.g. OBJECT_ID.value -> _value).
+    for (const [key, value] of this.getSerializableEntries(obj)) {
       // Skip internal properties
-      if (key.startsWith('_')) {
+      if (key.startsWith("_")) {
         continue;
       }
 
@@ -131,23 +134,25 @@ export class XmlSerializer {
       }
 
       // Handle archetype_node_id as attribute
-      if (key === 'archetype_node_id') {
+      if (key === "archetype_node_id") {
         rootContent[`@_${key}`] = value;
         continue;
       }
 
       // Handle nested objects and primitives
-      if (typeof value === 'object' && !Array.isArray(value)) {
+      if (typeof value === "object" && !Array.isArray(value)) {
         rootContent[key] = this.convertNestedObject(value, config);
       } else if (Array.isArray(value)) {
         // For arrays, create multiple elements with the same name
-        rootContent[key] = value.map(item =>
-          typeof item === 'object'
+        rootContent[key] = value.map((item) =>
+          typeof item === "object"
             ? this.convertNestedObject(item, config)
-            : (typeof item === 'number' ? this.formatNumber(item) : item)
+            : (typeof item === "number" ? this.formatNumber(item) : item)
         );
       } else {
-        rootContent[key] = typeof value === 'number' ? this.formatNumber(value) : value;
+        rootContent[key] = typeof value === "number"
+          ? this.formatNumber(value)
+          : value;
       }
     }
 
@@ -166,8 +171,8 @@ export class XmlSerializer {
     // If float, ensure dot separator string
     // OpenEHR specification mandates dot separator for decimals
     const str = value.toString();
-    if (str.includes(',')) {
-      return str.replace(',', '.');
+    if (str.includes(",")) {
+      return str.replace(",", ".");
     }
     return str;
   }
@@ -175,17 +180,20 @@ export class XmlSerializer {
   /**
    * Convert a nested object to XML structure
    */
-  private convertNestedObject(obj: any, config: Required<XmlSerializationConfig>): any {
+  private convertNestedObject(
+    obj: any,
+    config: Required<XmlSerializationConfig>,
+  ): any {
     if (obj === null || obj === undefined) {
       return null;
     }
 
-    if (typeof obj !== 'object') {
-      return typeof obj === 'number' ? this.formatNumber(obj) : obj;
+    if (typeof obj !== "object") {
+      return typeof obj === "number" ? this.formatNumber(obj) : obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.convertNestedObject(item, config));
+      return obj.map((item) => this.convertNestedObject(item, config));
     }
 
     const result: any = {};
@@ -193,13 +201,13 @@ export class XmlSerializer {
     // Add xsi:type for polymorphic types
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
     if (typeName) {
-      result['@_xsi:type'] = typeName;
+      result["@_xsi:type"] = typeName;
     }
 
-    // Process properties
-    for (const [key, value] of Object.entries(obj)) {
+    // Process properties, including accessor-backed fields populated via setters.
+    for (const [key, value] of this.getSerializableEntries(obj)) {
       // Skip internal properties
-      if (key.startsWith('_')) {
+      if (key.startsWith("_")) {
         continue;
       }
 
@@ -208,13 +216,73 @@ export class XmlSerializer {
         continue;
       }
 
-      if (typeof value === 'object') {
+      // Handle archetype_node_id as attribute (ITS-XML convention)
+      if (key === "archetype_node_id") {
+        result[`@_${key}`] = value;
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        result[key] = value.map((item) =>
+          typeof item === "object"
+            ? this.convertNestedObject(item, config)
+            : (typeof item === "number" ? this.formatNumber(item) : item)
+        );
+      } else if (typeof value === "object") {
         result[key] = this.convertNestedObject(value, config);
       } else {
-        result[key] = typeof value === 'number' ? this.formatNumber(value) : value;
+        result[key] = typeof value === "number"
+          ? this.formatNumber(value)
+          : value;
       }
     }
 
     return result;
+  }
+
+  /**
+   * Return public serializable properties from both enumerable own fields and
+   * prototype accessors. Many generated RM classes expose public properties via
+   * getters/setters backed by protected `_...` fields, so Object.entries() alone
+   * drops values after JSON deserialization.
+   */
+  private getSerializableEntries(obj: any): Array<[string, any]> {
+    const entries = new Map<string, any>();
+
+    for (const [key, value] of Object.entries(obj)) {
+      if (!key.startsWith("_")) {
+        entries.set(key, value);
+      }
+    }
+
+    let proto = Object.getPrototypeOf(obj);
+    while (proto && proto !== Object.prototype) {
+      for (
+        const [key, descriptor] of Object.entries(
+          Object.getOwnPropertyDescriptors(proto),
+        )
+      ) {
+        if (
+          key === "constructor" || key.startsWith("_") || key.startsWith("$")
+        ) {
+          continue;
+        }
+        if (entries.has(key) || typeof descriptor.get !== "function") {
+          continue;
+        }
+
+        try {
+          const value = descriptor.get.call(obj);
+          if (value !== undefined && value !== null) {
+            entries.set(key, value);
+          }
+        } catch {
+          // Ignore computed getters that require stronger object invariants.
+        }
+      }
+      proto = Object.getPrototypeOf(proto);
+    }
+
+    return [...entries.entries()];
   }
 }

@@ -7,6 +7,16 @@
 export { RMInstanceGenerator } from "./rm_instance_generator.ts";
 export type { GeneratorConfig, GenerationMode } from "./rm_instance_generator.ts";
 
+export {
+  assertTemplateInstanceCoverage,
+  expectedTemplateSlots,
+  templateInstanceCoverage,
+} from "./template_instance_coverage.ts";
+export type {
+  CoverageResult,
+  TemplateSlotExpectation,
+} from "./template_instance_coverage.ts";
+
 export { TypeScriptGenerator } from "./typescript_generator.ts";
 export type { TypeScriptGeneratorConfig } from "./typescript_generator.ts";
 

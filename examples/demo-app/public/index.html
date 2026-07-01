@@ -299,23 +299,6 @@
                   multiple
                   hidden
                 />
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="upload-template-files"
-                  title="Upload OPT, OET, ADL, .t.json, or ZIP of archetypes"
-                >
-                  <span class="material-icons btn-icon" aria-hidden="true"
-                  >upload_file</span>
-                  Upload
-                </button>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="clear-template-input"
-                >
-                  <span class="material-icons btn-icon" aria-hidden="true"
-                  >delete</span>
-                  Clear
-                </button>
               </div>
               <div class="template-file-set" id="template-file-set" hidden>
                 <div class="template-file-set-header">
@@ -364,6 +347,30 @@
                     >check</span>
                     <span id="template-validation-text"
                     >Valid operational template ADL</span>
+                  </span>
+                  <span
+                    class="input-editor-actions"
+                    aria-label="Template input actions"
+                  >
+                    <span class="toolbar-left">
+                      <button
+                        class="btn btn-secondary btn-sm"
+                        id="upload-template-files"
+                        title="Upload OPT, OET, ADL, .t.json, or ZIP of archetypes"
+                      >
+                        <span class="material-icons btn-icon" aria-hidden="true"
+                        >upload_file</span>
+                        Upload
+                      </button>
+                    </span>
+                    <button
+                      class="btn btn-secondary btn-sm"
+                      id="clear-template-input"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true"
+                      >delete</span>
+                      Clear
+                    </button>
                   </span>
                 </div>
                 <div class="demo-editor-host input-textarea" id="template-input-text"></div>

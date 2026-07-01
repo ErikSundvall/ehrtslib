@@ -127,6 +127,122 @@ Deno.test("convert template input generates simplified format outputs", async ()
   assert(JSON.parse(result.outputs?.webtemplate || "{}").templateId);
 });
 
+Deno.test("convert instance mode without template workspace errors on simplified outputs", async () => {
+  const templateJson = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+  assertEquals(templateJson.success, true);
+
+  const result = await convert(templateJson.outputs?.json ?? "", {
+    inputMode: "instance",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["flat"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(result.success, false);
+  assert(result.error?.includes("Template input tab"));
+});
+
+Deno.test("convert instance mode with loaded template workspace produces FLAT", async () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile("demo_generated.opt", OPERATIONAL_TEMPLATE_ADL);
+
+  const jsonResult = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+  assertEquals(jsonResult.success, true);
+
+  const flatResult = await convert(jsonResult.outputs?.json ?? "", {
+    inputMode: "instance",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["flat"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  });
+
+  assertEquals(flatResult.success, true, flatResult.error);
+  assert(JSON.parse(flatResult.outputs?.flat || "{}")["ctx/language"]);
+});
+
 Deno.test("convert template input generates markdown and asciidoc outputs", async () => {
   const result = await convert(OPERATIONAL_TEMPLATE_ADL, {
     inputMode: "template",
@@ -160,4 +276,93 @@ Deno.test("convert template input generates markdown and asciidoc outputs", asyn
   assert(result.outputs?.asciidoc);
   assert(result.outputs?.markdown?.includes("composer:"));
   assert(result.outputs?.asciidoc?.includes(":composer:"));
+});
+
+Deno.test("convert treats template-adgit like template when workspace is loaded", async () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile("demo_generated.opt", OPERATIONAL_TEMPLATE_ADL);
+
+  const result = await convert("", {
+    inputMode: "template-adgit",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json", "xml"],
+    templateGenerationMode: "example",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: false,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  });
+
+  assertEquals(result.success, true);
+  assert(result.outputs?.json?.includes("SECTION"));
+  assert(result.outputs?.xml?.includes("SECTION"));
+  assert(result.outputs?.xml?.includes('archetype_node_id="id2"'));
+});
+
+Deno.test("convert JSON instance to XML preserves accessor-backed id values", async () => {
+  const result = await convert(
+    JSON.stringify({
+      _type: "COMPOSITION",
+      archetype_details: {
+        _type: "ARCHETYPED",
+        archetype_id: {
+          _type: "ARCHETYPE_ID",
+          value: "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+        },
+        template_id: {
+          _type: "TEMPLATE_ID",
+          value: "ChemoForm-MBA.v7",
+        },
+        rm_version: "1.1.0",
+      },
+    }),
+    {
+      inputMode: "instance",
+      inputFormat: "json",
+      inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+      outputFormats: ["xml"],
+      templateGenerationMode: "minimal",
+      jsonSerializerType: "configurable",
+      jsonConfig: getJsonConfigPreset("canonical"),
+      yamlConfig: getYamlConfigPreset("default"),
+      xmlConfig: {
+        prettyPrint: true,
+        indent: 2,
+        includeDeclaration: false,
+        includeNamespaces: true,
+      },
+      typescriptConfig: {
+        useTerseFormat: true,
+        usePrimitiveConstructors: true,
+        includeComments: false,
+        indent: 2,
+        includeUndefinedAttributes: false,
+        archetypeNodeIdLocation: "after_name",
+      },
+    },
+  );
+
+  assertEquals(result.success, true, result.error);
+  assert(
+    result.outputs?.xml?.includes(
+      "<value>openEHR-EHR-COMPOSITION.self_reported_data.v1</value>",
+    ),
+  );
+  assert(result.outputs?.xml?.includes("<value>ChemoForm-MBA.v7</value>"));
+  assert(result.outputs?.xml?.includes("<rm_version>1.1.0</rm_version>"));
 });

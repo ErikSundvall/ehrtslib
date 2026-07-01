@@ -151,3 +151,23 @@ Deno.test("XmlSerializer - custom namespace", () => {
   
   assertStringIncludes(xml, "xmlns=\"http://example.com/custom\"");
 });
+
+Deno.test("XmlSerializer - nested plain objects use archetype_node_id attribute", () => {
+  const serializer = new XmlSerializer({ includeDeclaration: false });
+  const xml = serializer.serialize({
+    _type: "ITEM_TREE",
+    archetype_node_id: "at0001",
+    items: [
+      {
+        _type: "ELEMENT",
+        archetype_node_id: "at0002",
+        name: { _type: "DV_TEXT", value: "Label" },
+        value: { _type: "DV_TEXT", value: "Data" },
+      },
+    ],
+  });
+
+  assertStringIncludes(xml, 'archetype_node_id="at0001"');
+  assertStringIncludes(xml, 'archetype_node_id="at0002"');
+  assert(!xml.includes("<archetype_node_id>at0002</archetype_node_id>"));
+});
