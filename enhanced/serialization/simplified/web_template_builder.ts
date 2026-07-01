@@ -4,8 +4,17 @@
 
 import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../openehr_base.ts";
-import type { WebTemplate, WebTemplateInput, WebTemplateNode } from "./types.ts";
-import { nodeIdToAtCode, normalizeWebTemplateId, templateRootId, joinAqlPath } from "./normalize.ts";
+import type {
+  WebTemplate,
+  WebTemplateInput,
+  WebTemplateNode,
+} from "./types.ts";
+import {
+  joinAqlPath,
+  nodeIdToAtCode,
+  normalizeWebTemplateId,
+  templateRootId,
+} from "./normalize.ts";
 
 export interface WebTemplateBuilderOptions {
   defaultLanguage?: string;
@@ -81,7 +90,10 @@ function lookupTerm(
   };
 }
 
-function buildInputs(rmType: string, cObj?: openehr_am.C_OBJECT): WebTemplateInput[] {
+function buildInputs(
+  rmType: string,
+  cObj?: openehr_am.C_OBJECT,
+): WebTemplateInput[] {
   const inputs: WebTemplateInput[] = [];
   if (rmType === "DV_QUANTITY" || rmType === "C_QUANTITY") {
     inputs.push({ type: "DECIMAL", suffix: "magnitude" });
@@ -100,7 +112,11 @@ function buildInputs(rmType: string, cObj?: openehr_am.C_OBJECT): WebTemplateInp
   if (cObj instanceof openehr_am.C_STRING) {
     const list = (cObj as { list?: string[] }).list;
     if (list?.length) {
-      inputs.push({ type: "TEXT", suffix: "value", list: list.map((v) => ({ value: v })) });
+      inputs.push({
+        type: "TEXT",
+        suffix: "value",
+        list: list.map((v) => ({ value: v })),
+      });
     }
   }
 
@@ -109,6 +125,20 @@ function buildInputs(rmType: string, cObj?: openehr_am.C_OBJECT): WebTemplateInp
 
 function isDataValueType(rmType: string): boolean {
   return DV_LEAF_TYPES.has(rmType) || rmType.startsWith("C_");
+}
+
+/** Copy node metadata without inheriting `children`/`inputs` from base. */
+function nodeShell(
+  base: WebTemplateNode,
+  patch: Partial<WebTemplateNode>,
+): WebTemplateNode {
+  const {
+    children: _children,
+    inputs: _inputs,
+    inContext: _inContext,
+    ...rest
+  } = base;
+  return { ...rest, ...patch };
 }
 
 export class WebTemplateBuilder {
@@ -206,12 +236,15 @@ export class WebTemplateBuilder {
       const attrName = attr.rm_attribute_name;
       if (!attrName) continue;
 
-      if (isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName)) {
+      if (
+        isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName)
+      ) {
         node.children!.push(...this.buildContextNodes(attr));
         continue;
       }
 
-      const children = (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
+      const children =
+        (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
 
       for (const child of children) {
         const childPath = joinAqlPath(
@@ -223,22 +256,32 @@ export class WebTemplateBuilder {
           attrName;
         if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
           if (SKIP_RM_TYPES.has(child.rm_type_name ?? "")) {
-            node.children!.push(...this.flattenDataStructure(child, childPath, node).children ?? []);
+            const flattened = this.flattenDataStructure(child, childPath, node);
+            node.children!.push(...flattened.children ?? []);
           } else if (child.rm_type_name === "HISTORY") {
-            node.children!.push(this.flattenHistory(child, childPath, {
-              ...node,
-              id: normalizeWebTemplateId(attrName),
-              rmType: "HISTORY",
-              aqlPath: childPath,
-              children: [],
-            }));
+            node.children!.push(
+              this.flattenHistory(
+                child,
+                childPath,
+                nodeShell(node, {
+                  id: normalizeWebTemplateId(attrName),
+                  rmType: "HISTORY",
+                  aqlPath: childPath,
+                }),
+              ),
+            );
           } else if (child.rm_type_name === "ELEMENT") {
-            node.children!.push(this.buildElement(child, childPath, {
-              ...node,
-              id: normalizeWebTemplateId(childLabel),
-              rmType: "ELEMENT",
-              aqlPath: childPath,
-            }));
+            node.children!.push(
+              this.buildElement(
+                child,
+                childPath,
+                nodeShell(node, {
+                  id: normalizeWebTemplateId(childLabel),
+                  rmType: "ELEMENT",
+                  aqlPath: childPath,
+                }),
+              ),
+            );
           } else {
             node.children!.push(this.buildFromComplex(
               child,
@@ -265,21 +308,27 @@ export class WebTemplateBuilder {
     for (const attr of obj.attributes ?? []) {
       const attrName = attr.rm_attribute_name;
       if (!attrName) continue;
-      const children = (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
+      const children =
+        (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
       for (const child of children) {
         const childPath = joinAqlPath(
           aqlPath,
           `${attrName}[${nodeIdToAtCode(child.node_id) || "at0000"}]`,
         );
-        const itemLabel = lookupTerm(this.terms, child.node_id).text ?? attrName;
-        if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
+        const itemLabel = lookupTerm(this.terms, child.node_id).text ??
+          attrName;
+        const isComplex = child instanceof openehr_am.C_COMPLEX_OBJECT;
+        if (isComplex) {
           if (child.rm_type_name === "ELEMENT") {
-            out.push(this.buildElement(child, childPath, {
-              ...parent,
-              id: normalizeWebTemplateId(itemLabel),
-              rmType: "ELEMENT",
-              aqlPath: childPath,
-            }));
+            out.push(this.buildElement(
+              child,
+              childPath,
+              nodeShell(parent, {
+                id: normalizeWebTemplateId(itemLabel),
+                rmType: "ELEMENT",
+                aqlPath: childPath,
+              }),
+            ));
           } else {
             out.push(this.buildFromComplex(
               child,
@@ -290,7 +339,7 @@ export class WebTemplateBuilder {
         }
       }
     }
-    return { ...parent, children: out.length ? out : undefined };
+    return nodeShell(parent, { children: out.length ? out : undefined });
   }
 
   private flattenHistory(
@@ -298,13 +347,19 @@ export class WebTemplateBuilder {
     aqlPath: string,
     shell: WebTemplateNode,
   ): WebTemplateNode {
-    const eventsAttr = obj.attributes?.find((a) => a.rm_attribute_name === "events");
-    const events = (eventsAttr as { children?: openehr_am.C_OBJECT[] })?.children ?? [];
+    const eventsAttr = obj.attributes?.find((a) =>
+      a.rm_attribute_name === "events"
+    );
+    const events =
+      (eventsAttr as { children?: openehr_am.C_OBJECT[] })?.children ?? [];
     const eventNodes: WebTemplateNode[] = [];
 
     for (const ev of events) {
       if (!(ev instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
-      const evPath = joinAqlPath(aqlPath, `events[${nodeIdToAtCode(ev.node_id)}]`);
+      const evPath = joinAqlPath(
+        aqlPath,
+        `events[${nodeIdToAtCode(ev.node_id)}]`,
+      );
       const term = lookupTerm(this.terms, ev.node_id);
       const { min, max } = multiplicityBounds(ev.occurrences);
       const eventShell: WebTemplateNode = {
@@ -318,8 +373,11 @@ export class WebTemplateBuilder {
         aqlPath: evPath,
         children: [],
       };
-      const dataAttr = ev.attributes?.find((a) => a.rm_attribute_name === "data");
-      const dataChild = (dataAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+      const dataAttr = ev.attributes?.find((a) =>
+        a.rm_attribute_name === "data"
+      );
+      const dataChild = (dataAttr as { children?: openehr_am.C_OBJECT[] })
+        ?.children?.[0];
       if (dataChild instanceof openehr_am.C_COMPLEX_OBJECT) {
         eventNodes.push(this.flattenDataStructure(
           dataChild,
@@ -331,11 +389,10 @@ export class WebTemplateBuilder {
       }
     }
 
-    return {
-      ...shell,
+    return nodeShell(shell, {
       id: normalizeWebTemplateId(shell.id || "history"),
       children: eventNodes.length ? eventNodes : undefined,
-    };
+    });
   }
 
   private buildElement(
@@ -343,12 +400,15 @@ export class WebTemplateBuilder {
     aqlPath: string,
     shell: WebTemplateNode,
   ): WebTemplateNode {
-    const valueAttr = obj.attributes?.find((a) => a.rm_attribute_name === "value");
-    const valueChild = (valueAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+    const valueAttr = obj.attributes?.find((a) =>
+      a.rm_attribute_name === "value"
+    );
+    const valueChild = (valueAttr as { children?: openehr_am.C_OBJECT[] })
+      ?.children?.[0];
     if (valueChild) {
       return this.buildLeaf(valueChild, aqlPath, shell.id);
     }
-    return shell;
+    return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
   }
 
   private buildLeaf(

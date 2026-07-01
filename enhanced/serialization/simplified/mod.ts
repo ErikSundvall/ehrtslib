@@ -3,62 +3,62 @@
  */
 
 export type {
-  WebTemplate,
-  WebTemplateNode,
-  WebTemplateInput,
   FlatPayload,
   FlatValidationResult,
   SimplifiedValidationMessage,
+  WebTemplate,
+  WebTemplateInput,
+  WebTemplateNode,
 } from "./types.ts";
 
 export {
-  normalizeWebTemplateId,
-  nodeIdToAtCode,
-  templateRootId,
   joinAqlPath,
+  nodeIdToAtCode,
+  normalizeWebTemplateId,
+  templateRootId,
 } from "./normalize.ts";
 
 export {
-  WebTemplateBuilder,
   buildWebTemplate,
+  WebTemplateBuilder,
   type WebTemplateBuilderOptions,
 } from "./web_template_builder.ts";
 
 export {
   FlatSerializer,
+  type FlatSerializerOptions,
   serializeToFlat,
   serializeToFlatJson,
-  type FlatSerializerOptions,
 } from "./flat_serializer.ts";
 
 export {
-  FlatDeserializer,
   deserializeFromFlat,
   deserializeFromFlatJson,
+  FlatDeserializer,
 } from "./flat_deserializer.ts";
 
 export {
-  StructuredSerializer,
   serializeToStructured,
   serializeToStructuredJson,
+  StructuredSerializer,
   type StructuredSerializerOptions,
 } from "./structured_serializer.ts";
 
 export {
-  StructuredDeserializer,
   deserializeFromStructured,
   deserializeFromStructuredJson,
+  StructuredDeserializer,
 } from "./structured_deserializer.ts";
 
 export { structuredToFlat } from "./structured_to_flat.ts";
 
 export {
-  validateFlatPayload,
   collectExpectedFlatKeys,
   type FlatValidatorOptions,
+  validateFlatPayload,
 } from "./flat_validator.ts";
 
-export { resolveAtPath, countInstancesAtPath } from "./instance_nav.ts";
-export { extractValueFields, extractContextField } from "./value_extract.ts";
-export { buildRmValue, applyContextFromFields } from "./value_build.ts";
+export { countInstancesAtPath, resolveAtPath } from "./instance_nav.ts";
+export { extractContextField, extractValueFields } from "./value_extract.ts";
+export { applyContextFromFields, buildRmValue } from "./value_build.ts";
 export { assignAtAqlPath } from "./rm_instance_builder.ts";

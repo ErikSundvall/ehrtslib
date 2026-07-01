@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-01T08:49:11.658Z", buildId: "WTTZA0EP" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-01T11:43:13.075Z", buildId: "O6SSG42O" };
   }
 });
 
@@ -31282,12 +31282,12 @@ var RMSpecificationValidator = class {
    * @param path - Path for error reporting
    * @returns Array of validation messages
    */
-  validate(rmValue, rmTypeName2, attributeName, path) {
+  validate(rmValue, rmTypeName3, attributeName, path) {
     if (!this.enabled) {
       return [];
     }
     const messages = [];
-    const constraintKey = `${rmTypeName2}.${attributeName}`;
+    const constraintKey = `${rmTypeName3}.${attributeName}`;
     const constraint = RM_CONSTRAINTS[constraintKey];
     if (!constraint) {
       return messages;
@@ -31747,16 +31747,16 @@ var InvariantEvaluator = class {
     for (const op of [" xor ", " or ", " and "]) {
       const parts = this.splitAtOperator(expr, op.trim());
       if (parts && parts.length >= 2) {
-        const values = [
+        const values2 = [
           this.evalExpression(root, parts[0], env),
           ...parts.slice(1).map((p2) => this.evalExpression(root, p2, env))
         ];
         if (op.trim() === "or")
-          return values.some((v2) => this.toBoolean(v2));
+          return values2.some((v2) => this.toBoolean(v2));
         if (op.trim() === "xor") {
-          return values.filter((v2) => this.toBoolean(v2)).length === 1;
+          return values2.filter((v2) => this.toBoolean(v2)).length === 1;
         }
-        return values.every((v2) => this.toBoolean(v2));
+        return values2.every((v2) => this.toBoolean(v2));
       }
     }
     const cmp = this.splitComparison(expr);
@@ -42410,13 +42410,26 @@ function buildInputs(rmType, cObj) {
   if (cObj instanceof C_STRING) {
     const list = cObj.list;
     if (list?.length) {
-      inputs.push({ type: "TEXT", suffix: "value", list: list.map((v2) => ({ value: v2 })) });
+      inputs.push({
+        type: "TEXT",
+        suffix: "value",
+        list: list.map((v2) => ({ value: v2 }))
+      });
     }
   }
   return inputs;
 }
 function isDataValueType(rmType) {
   return DV_LEAF_TYPES.has(rmType) || rmType.startsWith("C_");
+}
+function nodeShell(base2, patch) {
+  const {
+    children: _children,
+    inputs: _inputs,
+    inContext: _inContext,
+    ...rest
+  } = base2;
+  return { ...rest, ...patch };
 }
 var WebTemplateBuilder = class {
   lang;
@@ -42505,22 +42518,32 @@ var WebTemplateBuilder = class {
         const childLabel = lookupTerm(this.terms, child.node_id).text ?? child.rm_type_name?.toLowerCase() ?? attrName2;
         if (child instanceof C_COMPLEX_OBJECT) {
           if (SKIP_RM_TYPES.has(child.rm_type_name ?? "")) {
-            node.children.push(...this.flattenDataStructure(child, childPath, node).children ?? []);
+            const flattened = this.flattenDataStructure(child, childPath, node);
+            node.children.push(...flattened.children ?? []);
           } else if (child.rm_type_name === "HISTORY") {
-            node.children.push(this.flattenHistory(child, childPath, {
-              ...node,
-              id: normalizeWebTemplateId(attrName2),
-              rmType: "HISTORY",
-              aqlPath: childPath,
-              children: []
-            }));
+            node.children.push(
+              this.flattenHistory(
+                child,
+                childPath,
+                nodeShell(node, {
+                  id: normalizeWebTemplateId(attrName2),
+                  rmType: "HISTORY",
+                  aqlPath: childPath
+                })
+              )
+            );
           } else if (child.rm_type_name === "ELEMENT") {
-            node.children.push(this.buildElement(child, childPath, {
-              ...node,
-              id: normalizeWebTemplateId(childLabel),
-              rmType: "ELEMENT",
-              aqlPath: childPath
-            }));
+            node.children.push(
+              this.buildElement(
+                child,
+                childPath,
+                nodeShell(node, {
+                  id: normalizeWebTemplateId(childLabel),
+                  rmType: "ELEMENT",
+                  aqlPath: childPath
+                })
+              )
+            );
           } else {
             node.children.push(this.buildFromComplex(
               child,
@@ -42550,14 +42573,18 @@ var WebTemplateBuilder = class {
           `${attrName2}[${nodeIdToAtCode(child.node_id) || "at0000"}]`
         );
         const itemLabel = lookupTerm(this.terms, child.node_id).text ?? attrName2;
-        if (child instanceof C_COMPLEX_OBJECT) {
+        const isComplex = child instanceof C_COMPLEX_OBJECT;
+        if (isComplex) {
           if (child.rm_type_name === "ELEMENT") {
-            out.push(this.buildElement(child, childPath, {
-              ...parent,
-              id: normalizeWebTemplateId(itemLabel),
-              rmType: "ELEMENT",
-              aqlPath: childPath
-            }));
+            out.push(this.buildElement(
+              child,
+              childPath,
+              nodeShell(parent, {
+                id: normalizeWebTemplateId(itemLabel),
+                rmType: "ELEMENT",
+                aqlPath: childPath
+              })
+            ));
           } else {
             out.push(this.buildFromComplex(
               child,
@@ -42568,16 +42595,21 @@ var WebTemplateBuilder = class {
         }
       }
     }
-    return { ...parent, children: out.length ? out : void 0 };
+    return nodeShell(parent, { children: out.length ? out : void 0 });
   }
   flattenHistory(obj, aqlPath, shell) {
-    const eventsAttr = obj.attributes?.find((a2) => a2.rm_attribute_name === "events");
+    const eventsAttr = obj.attributes?.find(
+      (a2) => a2.rm_attribute_name === "events"
+    );
     const events = eventsAttr?.children ?? [];
     const eventNodes = [];
     for (const ev of events) {
       if (!(ev instanceof C_COMPLEX_OBJECT))
         continue;
-      const evPath = joinAqlPath(aqlPath, `events[${nodeIdToAtCode(ev.node_id)}]`);
+      const evPath = joinAqlPath(
+        aqlPath,
+        `events[${nodeIdToAtCode(ev.node_id)}]`
+      );
       const term = lookupTerm(this.terms, ev.node_id);
       const { min, max: max2 } = multiplicityBounds(ev.occurrences);
       const eventShell = {
@@ -42591,7 +42623,9 @@ var WebTemplateBuilder = class {
         aqlPath: evPath,
         children: []
       };
-      const dataAttr = ev.attributes?.find((a2) => a2.rm_attribute_name === "data");
+      const dataAttr = ev.attributes?.find(
+        (a2) => a2.rm_attribute_name === "data"
+      );
       const dataChild = dataAttr?.children?.[0];
       if (dataChild instanceof C_COMPLEX_OBJECT) {
         eventNodes.push(this.flattenDataStructure(
@@ -42603,19 +42637,20 @@ var WebTemplateBuilder = class {
         eventNodes.push(eventShell);
       }
     }
-    return {
-      ...shell,
+    return nodeShell(shell, {
       id: normalizeWebTemplateId(shell.id || "history"),
       children: eventNodes.length ? eventNodes : void 0
-    };
+    });
   }
   buildElement(obj, aqlPath, shell) {
-    const valueAttr = obj.attributes?.find((a2) => a2.rm_attribute_name === "value");
+    const valueAttr = obj.attributes?.find(
+      (a2) => a2.rm_attribute_name === "value"
+    );
     const valueChild = valueAttr?.children?.[0];
     if (valueChild) {
       return this.buildLeaf(valueChild, aqlPath, shell.id);
     }
-    return shell;
+    return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
   }
   buildLeaf(obj, aqlPath, idHint) {
     const rmType = obj.rm_type_name ?? "DV_TEXT";
@@ -42715,6 +42750,34 @@ init_define_BUILD_INFO();
 
 // enhanced/serialization/simplified/instance_nav.ts
 init_define_BUILD_INFO();
+function rmTypeName(obj) {
+  if (obj == null || typeof obj !== "object")
+    return "";
+  const record = obj;
+  if (typeof record._type === "string")
+    return record._type;
+  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
+}
+function rmProp(obj, key) {
+  if (obj == null || typeof obj !== "object")
+    return void 0;
+  const record = obj;
+  if (key in record)
+    return record[key];
+  let proto = Object.getPrototypeOf(obj);
+  while (proto && proto !== Object.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+    if (descriptor?.get) {
+      try {
+        return descriptor.get.call(obj);
+      } catch {
+        return void 0;
+      }
+    }
+    proto = Object.getPrototypeOf(proto);
+  }
+  return void 0;
+}
 function normalizeNodeId(id2) {
   if (/^id\d/i.test(id2)) {
     const digits = id2.replace(/^id/i, "").replace(/\./g, "");
@@ -42732,9 +42795,33 @@ function valuesByNodeId(arr, nodeId) {
   if (!nodeId)
     return arr;
   const found = arr.filter(
-    (item) => nodeIdsMatch(item.archetype_node_id, nodeId)
+    (item) => nodeIdsMatch(rmProp(item, "archetype_node_id"), nodeId)
   );
   return found.length ? found : arr.slice(0, 1);
+}
+function filterByRmType(values2, rmType) {
+  if (!rmType)
+    return values2;
+  const filtered = values2.filter((item) => rmTypeName(item) === rmType);
+  return filtered.length ? filtered : values2;
+}
+function resolveChildWebTemplateNodes(rootInstance, parentInstance, parentNode, childNode) {
+  const parentPath = parentNode.aqlPath ?? "/";
+  const childPath = childNode.aqlPath ?? "/";
+  if (parentPath === "/" || parentPath === "") {
+    return resolveAllAtWebTemplateNode(rootInstance, childNode);
+  }
+  if (childPath.startsWith(parentPath)) {
+    const relative = childPath.slice(parentPath.length);
+    const relativePath = relative.startsWith("/") ? relative : `/${relative}`;
+    const values2 = resolveAllAtPath(parentInstance, relativePath);
+    return filterByRmType(values2, childNode.rmType);
+  }
+  return filterByRmType(values, childNode.rmType);
+}
+function resolveAllAtWebTemplateNode(instance, node) {
+  const values2 = node.aqlPath === "/" ? [instance] : resolveAllAtPath(instance, node.aqlPath);
+  return filterByRmType(values2, node.rmType);
 }
 function resolveAllAtPath(instance, aqlPath) {
   if (!instance || !aqlPath)
@@ -42754,12 +42841,12 @@ function resolveAllAtPath(instance, aqlPath) {
       const obj = item;
       if (!obj || typeof obj !== "object")
         continue;
-      const next = obj[attr];
+      const next = rmProp(obj, attr);
       if (next == null)
         continue;
       if (Array.isArray(next)) {
         nextValues.push(...valuesByNodeId(next, nodeId));
-      } else if (!nodeId || nodeIdsMatch(next.archetype_node_id, nodeId)) {
+      } else if (!nodeId || nodeIdsMatch(rmProp(next, "archetype_node_id"), nodeId)) {
         nextValues.push(next);
       }
     }
@@ -42768,16 +42855,16 @@ function resolveAllAtPath(instance, aqlPath) {
       return [];
   }
   return current.map((item) => {
-    const cur = item;
-    if (cur?._type === "ELEMENT" && cur.value != null)
-      return cur.value;
+    if (rmTypeName(item) === "ELEMENT" && rmProp(item, "value") != null) {
+      return rmProp(item, "value");
+    }
     return item;
   });
 }
 
 // enhanced/serialization/simplified/value_extract.ts
 init_define_BUILD_INFO();
-function rmTypeName(obj) {
+function rmTypeName2(obj) {
   if (obj == null || typeof obj !== "object")
     return "";
   const record = obj;
@@ -42785,10 +42872,25 @@ function rmTypeName(obj) {
     return record._type;
   return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
 }
-function rmProp(obj, key) {
+function rmProp2(obj, key) {
   if (obj == null || typeof obj !== "object")
     return void 0;
-  return obj[key];
+  const record = obj;
+  if (key in record)
+    return record[key];
+  let proto = Object.getPrototypeOf(obj);
+  while (proto && proto !== Object.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+    if (descriptor?.get) {
+      try {
+        return descriptor.get.call(obj);
+      } catch {
+        return void 0;
+      }
+    }
+    proto = Object.getPrototypeOf(proto);
+  }
+  return void 0;
 }
 function num(v2) {
   if (typeof v2 === "number")
@@ -42801,7 +42903,7 @@ function extractValueFields(rmValue, inputs) {
   if (rmValue == null)
     return {};
   const obj = rmValue;
-  const type = rmTypeName(rmValue);
+  const type = rmTypeName2(rmValue);
   const out = {};
   const suffixes = inputs?.map((i3) => i3.suffix).filter(Boolean);
   const add = (suffix, value) => {
@@ -42814,69 +42916,81 @@ function extractValueFields(rmValue, inputs) {
     }
   };
   if (type === "DV_QUANTITY") {
-    add("magnitude", obj.magnitude);
-    add("unit", obj.units);
+    add("magnitude", rmProp2(rmValue, "magnitude"));
+    add("unit", rmProp2(rmValue, "units"));
   } else if (type === "DV_CODED_TEXT") {
-    const code = obj.defining_code;
-    add("code", code?.code_string);
-    add("value", obj.value);
-    add("terminology", code?.terminology_id?.value);
+    const code = rmProp2(rmValue, "defining_code");
+    add("code", rmProp2(code, "code_string"));
+    add("value", rmProp2(rmValue, "value"));
+    add("terminology", rmProp2(rmProp2(code, "terminology_id"), "value"));
   } else if (type === "CODE_PHRASE") {
-    add("code", obj.code_string);
-    add("terminology", obj.terminology_id?.value);
+    add("code", rmProp2(rmValue, "code_string"));
+    add("terminology", rmProp2(rmProp2(rmValue, "terminology_id"), "value"));
   } else if (type === "DV_DATE_TIME" || type === "DV_DATE" || type === "DV_TIME" || type === "DV_DURATION") {
-    add("value", obj.value);
+    add("value", rmProp2(rmValue, "value"));
   } else if (type === "DV_BOOLEAN") {
-    add("value", obj.value);
+    add("value", rmProp2(rmValue, "value"));
   } else if (type === "DV_TEXT" || type === "DV_URI" || type === "DV_EHR_URI" || type === "DV_IDENTIFIER") {
-    add("value", obj.value ?? obj.id);
+    add("value", rmProp2(rmValue, "value") ?? rmProp2(rmValue, "id"));
   } else if (type === "DV_COUNT" || type === "DV_PROPORTION") {
-    add("magnitude", obj.magnitude ?? obj.numerator);
-    if (obj.units)
-      add("unit", obj.units);
+    add(
+      "magnitude",
+      rmProp2(rmValue, "magnitude") ?? rmProp2(rmValue, "numerator")
+    );
+    if (rmProp2(rmValue, "units") != null)
+      add("unit", rmProp2(rmValue, "units"));
   } else {
     if (suffixes?.length) {
       for (const s2 of suffixes) {
         if (s2 === "value")
-          add("value", obj.value);
-        else if (s2 === "code")
-          add("code", obj.defining_code?.code_string ?? obj.code_string);
-        else if (s2 === "terminology") {
-          add("terminology", obj.terminology_id?.value ?? obj.defining_code?.terminology_id?.value);
-        } else if (s2 === "magnitude")
-          add("magnitude", num(obj.magnitude));
-        else if (s2 === "unit")
-          add("unit", obj.units);
+          add("value", rmProp2(rmValue, "value"));
+        else if (s2 === "code") {
+          add(
+            "code",
+            rmProp2(rmProp2(rmValue, "defining_code"), "code_string") ?? rmProp2(rmValue, "code_string")
+          );
+        } else if (s2 === "terminology") {
+          add(
+            "terminology",
+            rmProp2(rmProp2(rmValue, "terminology_id"), "value") ?? rmProp2(
+              rmProp2(rmProp2(rmValue, "defining_code"), "terminology_id"),
+              "value"
+            )
+          );
+        } else if (s2 === "magnitude") {
+          add("magnitude", num(rmProp2(rmValue, "magnitude")));
+        } else if (s2 === "unit")
+          add("unit", rmProp2(rmValue, "units"));
       }
-    } else if (obj.value != null) {
-      add("value", obj.value);
+    } else if (rmProp2(rmValue, "value") != null) {
+      add("value", rmProp2(rmValue, "value"));
     }
   }
   return out;
 }
 function extractContextField(instance, nodeId) {
-  if (rmTypeName(instance) !== "COMPOSITION")
+  if (rmTypeName2(instance) !== "COMPOSITION")
     return {};
   if (nodeId === "composer_name") {
-    const name2 = rmProp(instance, "composer");
-    const composerName = name2?.name;
+    const name2 = rmProp2(instance, "composer");
+    const composerName = rmProp2(name2, "name");
     return composerName != null ? { value: String(composerName) } : {};
   }
   if (nodeId === "time") {
-    const ctx = rmProp(instance, "context");
-    const t3 = ctx?.start_time?.value;
+    const ctx = rmProp2(instance, "context");
+    const t3 = rmProp2(rmProp2(ctx, "start_time"), "value");
     return t3 != null ? { value: String(t3) } : {};
   }
-  const direct = rmProp(instance, nodeId);
+  const direct = rmProp2(instance, nodeId);
   if (direct == null) {
-    const ctx = rmProp(instance, "context");
+    const ctx = rmProp2(instance, "context");
     const ctxVal = ctx?.[nodeId];
     if (ctxVal != null)
       return extractValueFields(ctxVal);
     return {};
   }
   if (nodeId === "language" || nodeId === "territory") {
-    const code = direct.code_string;
+    const code = rmProp2(direct, "code_string");
     return code != null ? { value: String(code) } : {};
   }
   return extractValueFields(direct);
@@ -42912,12 +43026,12 @@ var FlatSerializer = class {
       this.options.prettyPrint ? 2 : void 0
     );
   }
-  walkNode(node, pathParts, index) {
+  walkNode(node, pathParts, index, scope) {
     if (node.inContext) {
       this.emitContext(node);
       return;
     }
-    const nodeValues = node.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, node.aqlPath);
+    const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
     if (!nodeValues.length)
       return;
     const max2 = node.max === -1 ? Math.max(node.min, 1) : node.max;
@@ -42934,12 +43048,18 @@ var FlatSerializer = class {
       }
       return;
     }
+    const currentData = nodeValues[index] ?? nodeValues[0];
     if (node.children?.length) {
       for (const child of node.children) {
-        const childValues = child.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, child.aqlPath);
-        const repeats = childValues.length;
+        const childValues = resolveChildWebTemplateNodes(
+          this.instance,
+          currentData,
+          node,
+          child
+        );
+        const repeats = Math.max(childValues.length, 1);
         for (let i3 = 0; i3 < repeats; i3++) {
-          this.walkNode(child, nextPath, i3);
+          this.walkNode(child, nextPath, i3, childValues[i3] ?? childValues[0]);
         }
       }
     }
@@ -43037,14 +43157,14 @@ var StructuredSerializer = class {
   buildBranch(nodes) {
     const out = {};
     for (const node of nodes) {
-      const values = this.buildNodeArray(node);
-      if (values.length)
-        out[node.id] = values;
+      const values2 = this.buildNodeArray(node);
+      if (values2.length)
+        out[node.id] = values2;
     }
     return out;
   }
-  buildNodeArray(node) {
-    const nodeValues = node.aqlPath === "/" ? [this.instance] : resolveAllAtPath(this.instance, node.aqlPath);
+  buildNodeArray(node, scope) {
+    const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
     if (!nodeValues.length)
       return [];
     const isLeaf = node.inputs?.length && !node.children?.length;
@@ -43062,11 +43182,22 @@ var StructuredSerializer = class {
     }
     const items = [];
     for (let i3 = 0; i3 < nodeValues.length; i3++) {
+      const currentData = nodeValues[i3];
       const item = {};
       for (const child of node.children ?? []) {
-        const childValues = this.buildNodeArray(child);
-        if (childValues.length)
-          item[child.id] = childValues;
+        const childValues = resolveChildWebTemplateNodes(
+          this.instance,
+          currentData,
+          node,
+          child
+        );
+        if (!childValues.length)
+          continue;
+        const built = childValues.flatMap(
+          (childData) => this.buildNodeArray(child, childData)
+        );
+        if (built.length)
+          item[child.id] = built;
       }
       if (Object.keys(item).length)
         items.push(item);
@@ -48186,6 +48317,35 @@ function resolveTemplateLanguage(template, preferred) {
     return "sv";
   return "en";
 }
+function templateOriginalLanguage(template) {
+  if (typeof template.original_language === "string" && template.original_language) {
+    return template.original_language;
+  }
+  return template.ontology?.original_language?.code_string || void 0;
+}
+function availableTemplateLanguages(template) {
+  const langs = /* @__PURE__ */ new Set();
+  const original = templateOriginalLanguage(template);
+  if (original)
+    langs.add(original);
+  const defs = template.ontology?.term_definitions;
+  if (defs) {
+    for (const [lang, table] of Object.entries(defs)) {
+      if (table && typeof table === "object" && Object.keys(table).length > 0) {
+        langs.add(lang);
+      }
+    }
+  }
+  const details = template.description?.details;
+  if (details) {
+    for (const lang of Object.keys(details))
+      langs.add(lang);
+  }
+  if (original) {
+    return [original, ...[...langs].filter((l3) => l3 !== original)];
+  }
+  return [...langs];
+}
 
 // enhanced/generation/rm_instance_generator.ts
 var MANDATORY_RM_ATTRIBUTES = {
@@ -48250,7 +48410,8 @@ var RMInstanceGenerator = class {
     if (!template.definition) {
       throw new Error("Template has no definition");
     }
-    this.language = resolveTemplateLanguage(template);
+    const override = this.config.language?.trim();
+    this.language = override ? override : resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
     return this.generateFromCObject(template.definition, 0, "root");
   }
@@ -48344,86 +48505,86 @@ var RMInstanceGenerator = class {
     );
     if (!selected.length && attrBounds.min === 0)
       return void 0;
-    const values = [];
+    const values2 = [];
     for (const child of selected) {
       const count = this.objectItemCount(child);
       for (let i3 = 0; i3 < count; i3++) {
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values.length}]`
+          `${attrName2}[${values2.length}]`
         );
         if (childInstance !== null && childInstance !== void 0) {
-          values.push(childInstance);
+          values2.push(childInstance);
         }
       }
     }
     if (this.config.mode === "maximal" && selected.length) {
       const targetCount = this.maxAllowedSample(attrBounds);
       let index = 0;
-      while (values.length < targetCount) {
+      while (values2.length < targetCount) {
         const child = selected[index % selected.length];
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values.length}]`
+          `${attrName2}[${values2.length}]`
         );
         if (childInstance === null || childInstance === void 0)
           break;
-        values.push(childInstance);
+        values2.push(childInstance);
         index++;
       }
     }
-    while (values.length < attrBounds.min && allowedChildren.length) {
-      const child = allowedChildren[values.length % allowedChildren.length];
+    while (values2.length < attrBounds.min && allowedChildren.length) {
+      const child = allowedChildren[values2.length % allowedChildren.length];
       const childInstance = this.generateFromCObject(
         child,
         depth + 1,
-        `${attrName2}[${values.length}]`
+        `${attrName2}[${values2.length}]`
       );
       if (childInstance === null || childInstance === void 0)
         break;
-      values.push(childInstance);
+      values2.push(childInstance);
     }
-    return values;
+    return values2;
   }
-  addMandatoryRMAttributes(instance, rmTypeName2, generatedAttributes, nodeId) {
-    for (const attrName2 of this.mandatoryAttributesFor(rmTypeName2)) {
+  addMandatoryRMAttributes(instance, rmTypeName3, generatedAttributes, nodeId) {
+    for (const attrName2 of this.mandatoryAttributesFor(rmTypeName3)) {
       if (generatedAttributes.has(attrName2) || instance[attrName2] !== void 0) {
         continue;
       }
       instance[attrName2] = this.generateDefaultValue(
-        rmTypeName2,
+        rmTypeName3,
         attrName2,
         nodeId
       );
     }
   }
-  mandatoryAttributesFor(rmTypeName2) {
+  mandatoryAttributesFor(rmTypeName3) {
     const attrs = /* @__PURE__ */ new Set();
-    if (LOCATABLE_TYPES.has(rmTypeName2)) {
+    if (LOCATABLE_TYPES.has(rmTypeName3)) {
       for (const attr of MANDATORY_RM_ATTRIBUTES.LOCATABLE)
         attrs.add(attr);
     }
-    if (ENTRY_TYPES.has(rmTypeName2)) {
+    if (ENTRY_TYPES.has(rmTypeName3)) {
       for (const attr of MANDATORY_RM_ATTRIBUTES.ENTRY)
         attrs.add(attr);
     }
-    for (const attr of MANDATORY_RM_ATTRIBUTES[rmTypeName2] ?? []) {
+    for (const attr of MANDATORY_RM_ATTRIBUTES[rmTypeName3] ?? []) {
       attrs.add(attr);
     }
     return [...attrs];
   }
-  generateDefaultValue(rmTypeName2, attrName2, nodeId) {
+  generateDefaultValue(rmTypeName3, attrName2, nodeId) {
     switch (attrName2) {
       case "archetype_node_id":
         return nodeId ?? "at0000";
       case "name":
         return this.dvText(
-          this.termText(nodeId) ?? this.readableRmType(rmTypeName2)
+          this.termText(nodeId) ?? this.readableRmType(rmTypeName3)
         );
       case "language":
-        return this.codePhrase("ISO_639-1", "en");
+        return this.codePhrase("ISO_639-1", this.language);
       case "territory":
         return this.codePhrase("ISO_3166-1", "US");
       case "encoding":
@@ -48589,8 +48750,8 @@ var RMInstanceGenerator = class {
   }
   generatePrimitive(cObject, pathHint) {
     if (cObject instanceof C_STRING) {
-      const values = cObject.list;
-      return cObject.assumed_value?.value ?? values?.[0] ?? this.exampleText(pathHint);
+      const values2 = cObject.list;
+      return cObject.assumed_value?.value ?? values2?.[0] ?? this.exampleText(pathHint);
     }
     if (cObject instanceof C_BOOLEAN) {
       if (cObject.true_valid === false && cObject.false_valid !== false) {
@@ -48782,7 +48943,7 @@ var TypeScriptGenerator = class {
   }
   generateInterface(cObject) {
     const typeName2 = this.getTypeName(cObject);
-    const rmTypeName2 = cObject.rm_type_name || "";
+    const rmTypeName3 = cObject.rm_type_name || "";
     let code = `/**
 `;
     code += ` * ${this.getDescription(cObject)}
@@ -48801,7 +48962,7 @@ var TypeScriptGenerator = class {
       }
     }
     if (this.config.includeMandatoryRMAttributes) {
-      code += this.generateMandatoryRMAttributes(rmTypeName2, generatedAttributes);
+      code += this.generateMandatoryRMAttributes(rmTypeName3, generatedAttributes);
     }
     code += "}\n";
     return code;
@@ -48809,10 +48970,10 @@ var TypeScriptGenerator = class {
   /**
    * Generate TypeScript properties for mandatory RM attributes not in template
    */
-  generateMandatoryRMAttributes(rmTypeName2, generatedAttributes) {
+  generateMandatoryRMAttributes(rmTypeName3, generatedAttributes) {
     let code = "";
-    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES2[rmTypeName2] || [];
-    if (this.isLocatableDescendant(rmTypeName2)) {
+    const mandatoryAttrs = MANDATORY_RM_ATTRIBUTES2[rmTypeName3] || [];
+    if (this.isLocatableDescendant(rmTypeName3)) {
       for (const attr of MANDATORY_RM_ATTRIBUTES2["LOCATABLE"] || []) {
         if (!mandatoryAttrs.some((a2) => a2.name === attr.name)) {
           mandatoryAttrs.push(attr);
@@ -48833,7 +48994,7 @@ var TypeScriptGenerator = class {
   /**
    * Check if a type descends from LOCATABLE
    */
-  isLocatableDescendant(rmTypeName2) {
+  isLocatableDescendant(rmTypeName3) {
     const locatableTypes = [
       "COMPOSITION",
       "SECTION",
@@ -48853,7 +49014,7 @@ var TypeScriptGenerator = class {
       "POINT_EVENT",
       "INTERVAL_EVENT"
     ];
-    return locatableTypes.includes(rmTypeName2);
+    return locatableTypes.includes(rmTypeName3);
   }
   generateProperty(cAttribute) {
     const propName = cAttribute.rm_attribute_name || "unknown";
@@ -49105,7 +49266,8 @@ async function convert(input, options) {
 function convertTemplateInput(input, options) {
   const template = resolveOperationalTemplate(input, options);
   const generator = new RMInstanceGenerator({
-    mode: options.templateGenerationMode
+    mode: options.templateGenerationMode,
+    language: options.templateLanguage
   });
   const generatedInstance = generator.generate(template);
   const outputs = {};
@@ -49139,7 +49301,9 @@ function convertTemplateInput(input, options) {
         );
         break;
       case "typescript": {
-        const tsGenerator = new TypeScriptGenerator({ language: "en" });
+        const tsGenerator = new TypeScriptGenerator({
+          language: options.templateLanguage || "en"
+        });
         outputs.typescript = tsGenerator.generate(template);
         break;
       }
@@ -50936,16 +51100,16 @@ function addSection(sections, len, ins, forceJoin = false) {
   } else
     sections.push(len, ins);
 }
-function addInsert(values, sections, value) {
+function addInsert(values2, sections, value) {
   if (value.length == 0)
     return;
   let index = sections.length - 2 >> 1;
-  if (index < values.length) {
-    values[values.length - 1] = values[values.length - 1].append(value);
+  if (index < values2.length) {
+    values2[values2.length - 1] = values2[values2.length - 1].append(value);
   } else {
-    while (values.length < index)
-      values.push(Text3.empty);
-    values.push(value);
+    while (values2.length < index)
+      values2.push(Text3.empty);
+    values2.push(value);
   }
 }
 function iterChanges(desc, f2, individual) {
@@ -51502,16 +51666,16 @@ function dynamicFacetSlot(addresses, facet, providers) {
   let dynamic = providerAddrs.filter((p2) => !(p2 & 1));
   let idx = addresses[facet.id] >> 1;
   function get(state) {
-    let values = [];
+    let values2 = [];
     for (let i3 = 0; i3 < providerAddrs.length; i3++) {
       let value = getAddr(state, providerAddrs[i3]);
       if (providerTypes[i3] == 2)
         for (let val of value)
-          values.push(val);
+          values2.push(val);
       else
-        values.push(value);
+        values2.push(value);
     }
-    return facet.combine(values);
+    return facet.combine(values2);
   }
   return {
     create(state) {
@@ -51815,18 +51979,18 @@ function getAddr(state, addr) {
 }
 var languageData = /* @__PURE__ */ Facet.define();
 var allowMultipleSelections = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.some((v2) => v2),
+  combine: (values2) => values2.some((v2) => v2),
   static: true
 });
 var lineSeparator = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.length ? values[0] : void 0,
+  combine: (values2) => values2.length ? values2[0] : void 0,
   static: true
 });
 var changeFilter = /* @__PURE__ */ Facet.define();
 var transactionFilter = /* @__PURE__ */ Facet.define();
 var transactionExtender = /* @__PURE__ */ Facet.define();
 var readOnly = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.length ? values[0] : false
+  combine: (values2) => values2.length ? values2[0] : false
 });
 var Annotation = class {
   /**
@@ -52155,11 +52319,11 @@ function makeCategorizer(wordChars) {
   };
 }
 var EditorState = class _EditorState {
-  constructor(config, doc2, selection, values, computeSlot, tr2) {
+  constructor(config, doc2, selection, values2, computeSlot, tr2) {
     this.config = config;
     this.doc = doc2;
     this.selection = selection;
-    this.values = values;
+    this.values = values2;
     this.status = config.statusTemplate.slice();
     this.computeSlot = computeSlot;
     if (tr2)
@@ -52425,14 +52589,14 @@ var EditorState = class _EditorState {
     bracket closing behavior.
   */
   languageDataAt(name2, pos, side = -1) {
-    let values = [];
+    let values2 = [];
     for (let provider of this.facet(languageData)) {
       for (let result2 of provider(this, pos, side)) {
         if (Object.prototype.hasOwnProperty.call(result2, name2))
-          values.push(result2[name2]);
+          values2.push(result2[name2]);
       }
     }
-    return values;
+    return values2;
   }
   /**
   Return a function that can categorize strings (expected to
@@ -52476,7 +52640,7 @@ var EditorState = class _EditorState {
 };
 EditorState.allowMultipleSelections = allowMultipleSelections;
 EditorState.tabSize = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.length ? values[0] : 4
+  combine: (values2) => values2.length ? values2[0] : 4
 });
 EditorState.lineSeparator = lineSeparator;
 EditorState.readOnly = readOnly;
@@ -54687,10 +54851,10 @@ var focusChangeEffect = /* @__PURE__ */ Facet.define();
 var clipboardInputFilter = /* @__PURE__ */ Facet.define();
 var clipboardOutputFilter = /* @__PURE__ */ Facet.define();
 var perLineTextDirection = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.some((x2) => x2)
+  combine: (values2) => values2.some((x2) => x2)
 });
 var nativeSelectionHidden = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.some((x2) => x2)
+  combine: (values2) => values2.some((x2) => x2)
 });
 var scrollHandler = /* @__PURE__ */ Facet.define();
 var ScrollTarget = class _ScrollTarget {
@@ -54722,7 +54886,7 @@ function logException(state, exception, context) {
   else
     console.error(exception);
 }
-var editable = /* @__PURE__ */ Facet.define({ combine: (values) => values.length ? values[0] : true });
+var editable = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.length ? values2[0] : true });
 var nextPluginID = 0;
 var viewPlugin = /* @__PURE__ */ Facet.define({
   combine(plugins) {
@@ -59777,7 +59941,7 @@ function scaleBlock(block, scaler) {
   return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, Array.isArray(block._content) ? block._content.map((b3) => scaleBlock(b3, scaler)) : block._content);
 }
 var theme = /* @__PURE__ */ Facet.define({ combine: (strs) => strs.join(" ") });
-var darkTheme = /* @__PURE__ */ Facet.define({ combine: (values) => values.indexOf(true) > -1 });
+var darkTheme = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.indexOf(true) > -1 });
 var baseThemeID = /* @__PURE__ */ StyleModule.newName();
 var baseLightID = /* @__PURE__ */ StyleModule.newName();
 var baseDarkID = /* @__PURE__ */ StyleModule.newName();
@@ -61687,7 +61851,7 @@ EditorView.cursorScrollMargin = /* @__PURE__ */ Facet.define({
 });
 EditorView.scrollMargins = scrollMargins;
 EditorView.darkTheme = darkTheme;
-EditorView.cspNonce = /* @__PURE__ */ Facet.define({ combine: (values) => values.length ? values[0] : "" });
+EditorView.cspNonce = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.length ? values2[0] : "" });
 EditorView.contentAttributes = contentAttributes;
 EditorView.editorAttributes = editorAttributes;
 EditorView.lineWrapping = /* @__PURE__ */ EditorView.contentAttributes.of({ "class": "cm-lineWrapping" });
@@ -62061,7 +62225,7 @@ function gutter(config) {
   return [gutters(), activeGutters.of({ ...defaults, ...config })];
 }
 var unfixGutters = /* @__PURE__ */ Facet.define({
-  combine: (values) => values.some((x2) => x2)
+  combine: (values2) => values2.some((x2) => x2)
 });
 function gutters(config) {
   let result2 = [
@@ -62400,8 +62564,8 @@ function sameMarkers(a2, b3) {
 var lineNumberMarkers = /* @__PURE__ */ Facet.define();
 var lineNumberWidgetMarker = /* @__PURE__ */ Facet.define();
 var lineNumberConfig = /* @__PURE__ */ Facet.define({
-  combine(values) {
-    return combineConfig(values, { formatNumber: String, domEventHandlers: {} }, {
+  combine(values2) {
+    return combineConfig(values2, { formatNumber: String, domEventHandlers: {} }, {
       domEventHandlers(a2, b3) {
         let result2 = Object.assign({}, a2);
         for (let event in b3) {
@@ -64878,7 +65042,7 @@ var _a3;
 var languageDataProp = /* @__PURE__ */ new NodeProp();
 function defineLanguageFacet(baseData) {
   return Facet.define({
-    combine: baseData ? (values) => values.concat(baseData) : void 0
+    combine: baseData ? (values2) => values2.concat(baseData) : void 0
   });
 }
 var sublanguageProp = /* @__PURE__ */ new NodeProp();
@@ -65408,12 +65572,12 @@ var LanguageSupport = class {
 };
 var indentService = /* @__PURE__ */ Facet.define();
 var indentUnit = /* @__PURE__ */ Facet.define({
-  combine: (values) => {
-    if (!values.length)
+  combine: (values2) => {
+    if (!values2.length)
       return "  ";
-    let unit = values[0];
+    let unit = values2[0];
     if (!unit || /\S/.test(unit) || Array.from(unit).some((e2) => e2 != unit[0]))
-      throw new Error("Invalid indent unit: " + JSON.stringify(values[0]));
+      throw new Error("Invalid indent unit: " + JSON.stringify(values2[0]));
     return unit;
   }
 });
@@ -65901,8 +66065,8 @@ var defaultConfig = {
   placeholderText: "\u2026"
 };
 var foldConfig = /* @__PURE__ */ Facet.define({
-  combine(values) {
-    return combineConfig(values, defaultConfig);
+  combine(values2) {
+    return combineConfig(values2, defaultConfig);
   }
 });
 function codeFolding(config) {
@@ -66085,8 +66249,8 @@ var HighlightStyle = class _HighlightStyle {
 };
 var highlighterFacet = /* @__PURE__ */ Facet.define();
 var fallbackHighlighter = /* @__PURE__ */ Facet.define({
-  combine(values) {
-    return values.length ? [values[0]] : null;
+  combine(values2) {
+    return values2.length ? [values2[0]] : null;
   }
 });
 function getHighlighters(state) {
@@ -69263,17 +69427,17 @@ var LRParser = class _LRParser extends Parser2 {
   @internal
   */
   parseDialect(dialect) {
-    let values = Object.keys(this.dialects), flags = values.map(() => false);
+    let values2 = Object.keys(this.dialects), flags = values2.map(() => false);
     if (dialect)
       for (let part of dialect.split(" ")) {
-        let id2 = values.indexOf(part);
+        let id2 = values2.indexOf(part);
         if (id2 >= 0)
           flags[id2] = true;
       }
     let disabled = null;
-    for (let i3 = 0; i3 < values.length; i3++)
+    for (let i3 = 0; i3 < values2.length; i3++)
       if (!flags[i3]) {
-        for (let j2 = this.dialects[values[i3]], id2; (id2 = this.data[j2++]) != 65535; )
+        for (let j2 = this.dialects[values2[i3]], id2; (id2 = this.data[j2++]) != 65535; )
           (disabled || (disabled = new Uint8Array(this.maxTerm + 1)))[id2] = 1;
       }
     return new Dialect(dialect, flags, disabled);
@@ -70583,13 +70747,13 @@ function completeFromSchema(eltSpecs, attrSpecs) {
       if (!attr)
         return null;
       let parent = byName[tagName(doc2, context)];
-      let values = ((parent === null || parent === void 0 ? void 0 : parent.attrValues) || attrValues)[attr];
-      if (!values || !values.length)
+      let values2 = ((parent === null || parent === void 0 ? void 0 : parent.attrValues) || attrValues)[attr];
+      if (!values2 || !values2.length)
         return null;
       return {
         from,
         to: cx.pos + (doc2.sliceString(cx.pos, cx.pos + 1) == '"' ? 1 : 0),
-        options: values,
+        options: values2,
         validFor: /^"[^"]*"?$/
       };
     } else if (type == "tag") {
@@ -71498,6 +71662,7 @@ function init2() {
   syncInputEditorLanguage();
   setupEventListeners();
   updateAutoConvertButtonUi();
+  updateTemplateLanguageOptions();
   loadExample(DEFAULT_INSTANCE_EXAMPLE);
   handleInputChange("template");
   console.log("\u2713 Application ready");
@@ -71570,6 +71735,12 @@ function setupEventListeners() {
   );
   if (templateModeSelect) {
     templateModeSelect.addEventListener("change", () => scheduleAutoConvert());
+  }
+  const templateLanguageSelect = document.getElementById(
+    "template-generation-language"
+  );
+  if (templateLanguageSelect) {
+    templateLanguageSelect.addEventListener("change", () => scheduleAutoConvert());
   }
   const outputFormatSection = document.getElementById(
     "output-tab-enable-section"
@@ -72006,6 +72177,38 @@ function updateTemplateFileSetUi() {
     const rootLabel = generationRoot ? generationRoot.split("/").pop() : "\u2014";
     summary.textContent = files.length ? `${files.length} files \xB7 ${nArch} archetypes \xB7 ${nTpl} templates \xB7 root: ${rootLabel}` : "";
   }
+  updateTemplateLanguageOptions();
+}
+function updateTemplateLanguageOptions() {
+  const select = document.getElementById(
+    "template-generation-language"
+  );
+  if (!select)
+    return;
+  const previous = select.value;
+  let languages = [];
+  try {
+    if (clinicalWorkspace.listFiles().length) {
+      const { operationalTemplate } = clinicalWorkspace.resolveOperational();
+      languages = availableTemplateLanguages(operationalTemplate);
+    }
+  } catch {
+  }
+  if (languages.length === 0) {
+    languages = ["en"];
+  }
+  select.replaceChildren();
+  for (const code of languages) {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = code;
+    select.appendChild(option);
+  }
+  if (previous && languages.includes(previous)) {
+    select.value = previous;
+  } else {
+    select.value = languages[0];
+  }
 }
 function setupInputTabs() {
   const tabs = document.querySelectorAll("#input-tabs .tab");
@@ -72202,6 +72405,7 @@ function validateInput() {
       validationIcon2.textContent = "check";
       validationIcon2.className = "material-icons status-icon valid";
       validationText2.textContent = templateValidation.message;
+      updateTemplateLanguageOptions();
     } catch (error) {
       validationIcon2.textContent = "error";
       validationIcon2.className = "material-icons status-icon invalid";
@@ -72234,6 +72438,7 @@ function validateInput() {
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = templateValidation.message;
+      updateTemplateLanguageOptions();
       return;
     }
     if (currentInputFormat === "json") {
@@ -72353,6 +72558,7 @@ function gatherConversionOptions() {
     inputDeserializerPreset
   );
   const templateGenerationMode = document.getElementById("template-generation-mode")?.value || "example";
+  const templateLanguage = document.getElementById("template-generation-language")?.value || void 0;
   const outputFormats = [];
   if (document.getElementById("output-xml")?.checked) {
     outputFormats.push("xml");
@@ -72492,6 +72698,7 @@ function gatherConversionOptions() {
     inputDeserializerConfig,
     outputFormats,
     templateGenerationMode,
+    templateLanguage,
     jsonSerializerType,
     jsonConfig,
     yamlConfig,

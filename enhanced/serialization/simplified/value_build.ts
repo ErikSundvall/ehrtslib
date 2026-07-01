@@ -30,14 +30,20 @@ export function buildRmValue(
         value: f.value,
         defining_code: {
           _type: "CODE_PHRASE",
-          terminology_id: { _type: "TERMINOLOGY_ID", value: f.terminology ?? "local" },
+          terminology_id: {
+            _type: "TERMINOLOGY_ID",
+            value: f.terminology ?? "local",
+          },
           code_string: f.code,
         },
       };
     case "CODE_PHRASE":
       return {
         _type: "CODE_PHRASE",
-        terminology_id: { _type: "TERMINOLOGY_ID", value: f.terminology ?? "ISO_639-1" },
+        terminology_id: {
+          _type: "TERMINOLOGY_ID",
+          value: f.terminology ?? "ISO_639-1",
+        },
         code_string: f.code ?? f.value,
       };
     default:

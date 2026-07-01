@@ -32,7 +32,9 @@ function findOrCreateInArray(
   rmType: string,
 ): RmObject {
   if (nodeId) {
-    const found = arr.find((item) => nodeIdsMatch(item.archetype_node_id, nodeId));
+    const found = arr.find((item) =>
+      nodeIdsMatch(item.archetype_node_id, nodeId)
+    );
     if (found) return found;
   }
   const item: RmObject = { _type: rmType, archetype_node_id: nodeId ?? null };
@@ -64,7 +66,9 @@ function ensureChild(
 
 function inferRmType(attr: string, leafRmType: string): string {
   if (attr === "content") {
-    if (leafRmType === "DV_QUANTITY" || leafRmType.startsWith("DV_")) return "EVALUATION";
+    if (leafRmType === "DV_QUANTITY" || leafRmType.startsWith("DV_")) {
+      return "EVALUATION";
+    }
     return "OBSERVATION";
   }
   return ATTR_RM_TYPE[attr] ?? "CLUSTER";

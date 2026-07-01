@@ -285,12 +285,19 @@
                 aria-label="Template input actions"
               >
                 <div class="form-group form-group-inline">
-                  <label for="template-generation-mode">generation_mode:</label>
+                  <label
+                    for="template-generation-mode"
+                    title="Controls populated instance depth for JSON, YAML, XML, FLAT, and STRUCTURED. TypeScript stubs follow the template shape only."
+                  >generation_mode:</label>
                   <select id="template-generation-mode" class="config-dropdown">
                     <option value="minimal">minimal</option>
                     <option value="example" selected>example</option>
                     <option value="maximal">maximal</option>
                   </select>
+                </div>
+                <div class="form-group form-group-inline">
+                  <label for="template-generation-language">language:</label>
+                  <select id="template-generation-language" class="config-dropdown"></select>
                 </div>
                 <input
                   type="file"
@@ -409,7 +416,7 @@
                 <span>AsciiDoc</span>
               </label>
               -->
-              <label class="checkbox-label">
+              <label class="checkbox-label" title="Template interface stubs from the operational template (not instance depth).">
                 <input type="checkbox" id="output-typescript" checked>
                 <span>TypeScript</span>
               </label>

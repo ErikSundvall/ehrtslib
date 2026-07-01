@@ -40,6 +40,7 @@ import type { AsciidocSerializationConfig } from "../../../enhanced/serializatio
 
 import { strFromU8, unzipSync } from "fflate";
 import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
+import { availableTemplateLanguages } from "../../../enhanced/generation/term_codes.ts";
 import {
   getDemoEditor,
   initDemoEditors,
@@ -93,6 +94,7 @@ function init() {
   syncInputEditorLanguage();
   setupEventListeners();
   updateAutoConvertButtonUi();
+  updateTemplateLanguageOptions();
 
   // Load default example (triggers debounced auto-convert via handleInputChange)
   loadExample(DEFAULT_INSTANCE_EXAMPLE);
@@ -189,6 +191,13 @@ function setupEventListeners() {
   ) as HTMLSelectElement;
   if (templateModeSelect) {
     templateModeSelect.addEventListener("change", () => scheduleAutoConvert());
+  }
+
+  const templateLanguageSelect = document.getElementById(
+    "template-generation-language",
+  ) as HTMLSelectElement;
+  if (templateLanguageSelect) {
+    templateLanguageSelect.addEventListener("change", () => scheduleAutoConvert());
   }
 
   const outputFormatSection = document.getElementById(
@@ -761,6 +770,45 @@ function updateTemplateFileSetUi() {
       ? `${files.length} files · ${nArch} archetypes · ${nTpl} templates · root: ${rootLabel}`
       : '';
   }
+
+  updateTemplateLanguageOptions();
+}
+
+function updateTemplateLanguageOptions() {
+  const select = document.getElementById(
+    "template-generation-language",
+  ) as HTMLSelectElement | null;
+  if (!select) return;
+
+  const previous = select.value;
+  let languages: string[] = [];
+
+  try {
+    if (clinicalWorkspace.listFiles().length) {
+      const { operationalTemplate } = clinicalWorkspace.resolveOperational();
+      languages = availableTemplateLanguages(operationalTemplate);
+    }
+  } catch {
+    // resolve can fail while the user is still editing
+  }
+
+  if (languages.length === 0) {
+    languages = ["en"];
+  }
+
+  select.replaceChildren();
+  for (const code of languages) {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = code;
+    select.appendChild(option);
+  }
+
+  if (previous && languages.includes(previous)) {
+    select.value = previous;
+  } else {
+    select.value = languages[0];
+  }
 }
 
 /**
@@ -1011,6 +1059,7 @@ function validateInput() {
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = templateValidation.message;
+      updateTemplateLanguageOptions();
     } catch (error) {
       validationIcon.textContent = "error";
       validationIcon.className = "material-icons status-icon invalid";
@@ -1051,6 +1100,7 @@ function validateInput() {
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = templateValidation.message;
+      updateTemplateLanguageOptions();
       return;
     }
 
@@ -1207,6 +1257,10 @@ function gatherConversionOptions(): ConversionOptions {
     (document.getElementById("template-generation-mode") as HTMLSelectElement)
       ?.value || "example"
   ) as TemplateGenerationMode;
+
+  const templateLanguage = (
+    document.getElementById("template-generation-language") as HTMLSelectElement
+  )?.value || undefined;
 
   // Output formats
   const outputFormats: OutputFormat[] = [];
@@ -1449,6 +1503,7 @@ function gatherConversionOptions(): ConversionOptions {
     inputDeserializerConfig,
     outputFormats,
     templateGenerationMode,
+    templateLanguage,
     jsonSerializerType,
     jsonConfig,
     yamlConfig,

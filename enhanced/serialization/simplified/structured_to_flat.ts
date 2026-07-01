@@ -7,7 +7,9 @@ import { templateRootId } from "./normalize.ts";
 
 type StructuredValue = Record<string, unknown>;
 
-function pipeFields(obj: StructuredValue): Record<string, string | number | boolean> {
+function pipeFields(
+  obj: StructuredValue,
+): Record<string, string | number | boolean> {
   const out: Record<string, string | number | boolean> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (k.startsWith("|") && v != null) {
@@ -71,9 +73,13 @@ export function structuredToFlat(
   }
 
   const rootBranch = structured[rootId];
-  const contentNodes = (webTemplate.tree.children ?? []).filter((c) => !c.inContext);
+  const contentNodes = (webTemplate.tree.children ?? []).filter((c) =>
+    !c.inContext
+  );
 
-  if (rootBranch && typeof rootBranch === "object" && !Array.isArray(rootBranch)) {
+  if (
+    rootBranch && typeof rootBranch === "object" && !Array.isArray(rootBranch)
+  ) {
     for (const schema of contentNodes) {
       const arr = (rootBranch as StructuredValue)[schema.id];
       if (Array.isArray(arr)) {

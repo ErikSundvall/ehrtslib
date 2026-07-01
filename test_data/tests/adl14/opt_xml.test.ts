@@ -57,3 +57,28 @@ Deno.test("parseOptXml - blood pressure template structure", async () => {
   );
   assert(content, "expected content attribute");
 });
+
+Deno.test("parseOptXml - blood pressure terminology uses archetype text not RM type names", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("ehrbase_blood_pressure_simple.de.v0.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const terms = operationalTemplate.ontology?.term_definitions?.en;
+  assert(terms?.at0005?.text, "expected parsed term text for at0005");
+  assert(
+    terms.at0005.text !== "[object Object]",
+    "term text must not be a broken object stringification",
+  );
+  assertEquals(terms.at0005.text, "Diastolic");
+
+  const instance = new RMInstanceGenerator({ mode: "example" }).generate(
+    operationalTemplate,
+  );
+  const observation = instance.content?.[0];
+  assertEquals(observation?._type, "OBSERVATION");
+  assertEquals(
+    observation?.name?.value,
+    "Blood pressure (Training sample)",
+    "observation name should come from template terminology",
+  );
+});

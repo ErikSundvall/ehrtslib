@@ -5,7 +5,10 @@
 
 import type { WebTemplate, WebTemplateNode } from "./types.ts";
 import { templateRootId } from "./normalize.ts";
-import { resolveAllAtPath } from "./instance_nav.ts";
+import {
+  resolveAllAtWebTemplateNode,
+  resolveChildWebTemplateNodes,
+} from "./instance_nav.ts";
 import { extractContextField, extractValueFields } from "./value_extract.ts";
 
 export interface StructuredSerializerOptions {
@@ -92,10 +95,13 @@ export class StructuredSerializer {
     return out;
   }
 
-  private buildNodeArray(node: WebTemplateNode): unknown[] {
-    const nodeValues = node.aqlPath === "/"
-      ? [this.instance]
-      : resolveAllAtPath(this.instance, node.aqlPath);
+  private buildNodeArray(
+    node: WebTemplateNode,
+    scope?: unknown,
+  ): unknown[] {
+    const nodeValues = scope != null
+      ? [scope]
+      : resolveAllAtWebTemplateNode(this.instance, node);
     if (!nodeValues.length) return [];
 
     const isLeaf = node.inputs?.length && !node.children?.length;
@@ -113,10 +119,20 @@ export class StructuredSerializer {
 
     const items: StructuredValue[] = [];
     for (let i = 0; i < nodeValues.length; i++) {
+      const currentData = nodeValues[i];
       const item: StructuredValue = {};
       for (const child of node.children ?? []) {
-        const childValues = this.buildNodeArray(child);
-        if (childValues.length) item[child.id] = childValues;
+        const childValues = resolveChildWebTemplateNodes(
+          this.instance,
+          currentData,
+          node,
+          child,
+        );
+        if (!childValues.length) continue;
+        const built = childValues.flatMap((childData) =>
+          this.buildNodeArray(child, childData)
+        );
+        if (built.length) item[child.id] = built;
       }
       if (Object.keys(item).length) items.push(item);
     }

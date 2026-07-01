@@ -65,3 +65,45 @@ export function resolveTemplateLanguage(
   if (details?.sv) return "sv";
   return "en";
 }
+
+type TemplateLanguageSource = {
+  original_language?: unknown;
+  ontology?: {
+    original_language?: { code_string?: string };
+    term_definitions?: Record<string, unknown>;
+  };
+  description?: { details?: Record<string, unknown> };
+};
+
+function templateOriginalLanguage(template: TemplateLanguageSource): string | undefined {
+  if (typeof template.original_language === "string" && template.original_language) {
+    return template.original_language;
+  }
+  return template.ontology?.original_language?.code_string || undefined;
+}
+
+/** Language codes present in operational template terminology. */
+export function availableTemplateLanguages(template: TemplateLanguageSource): string[] {
+  const langs = new Set<string>();
+  const original = templateOriginalLanguage(template);
+  if (original) langs.add(original);
+
+  const defs = template.ontology?.term_definitions;
+  if (defs) {
+    for (const [lang, table] of Object.entries(defs)) {
+      if (table && typeof table === "object" && Object.keys(table).length > 0) {
+        langs.add(lang);
+      }
+    }
+  }
+
+  const details = template.description?.details;
+  if (details) {
+    for (const lang of Object.keys(details)) langs.add(lang);
+  }
+
+  if (original) {
+    return [original, ...[...langs].filter((l) => l !== original)];
+  }
+  return [...langs];
+}

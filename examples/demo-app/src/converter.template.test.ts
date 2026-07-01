@@ -366,3 +366,90 @@ Deno.test("convert JSON instance to XML preserves accessor-backed id values", as
   assert(result.outputs?.xml?.includes("<value>ChemoForm-MBA.v7</value>"));
   assert(result.outputs?.xml?.includes("<rm_version>1.1.0</rm_version>"));
 });
+
+const MULTILINGUAL_TEMPLATE_ADL = `operational_template (adl_version=2.0.5)
+    openEHR-EHR-COMPOSITION.demo_multilingual.v1.0.0
+
+language
+    original_language = <"ISO_639-1::en">
+
+definition
+    COMPOSITION[id1] matches {
+        content matches {
+            SECTION[id2]
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"English composition"> >
+            ["id2"] = < text = <"English section"> >
+        >
+        ["sv"] = <
+            ["id1"] = < text = <"Svensk komposition"> >
+            ["id2"] = < text = <"Svensk sektion"> >
+        >
+    >`;
+
+Deno.test("convert templateLanguage selects terminology language for generated names", async () => {
+  const enResult = await convert(MULTILINGUAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    templateLanguage: "en",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+  const svResult = await convert(MULTILINGUAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    templateLanguage: "sv",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(enResult.success, true, enResult.error);
+  assertEquals(svResult.success, true, svResult.error);
+
+  const enJson = JSON.parse(enResult.outputs?.json || "{}");
+  const svJson = JSON.parse(svResult.outputs?.json || "{}");
+  assertEquals(enJson.name?.value, "English composition");
+  assertEquals(svJson.name?.value, "Svensk komposition");
+  assert(enJson.name?.value !== svJson.name?.value);
+});

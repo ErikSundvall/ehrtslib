@@ -5,7 +5,10 @@
 
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import { templateRootId } from "./normalize.ts";
-import { resolveAllAtPath } from "./instance_nav.ts";
+import {
+  resolveAllAtWebTemplateNode,
+  resolveChildWebTemplateNodes,
+} from "./instance_nav.ts";
 import { extractContextField, extractValueFields } from "./value_extract.ts";
 
 export interface FlatSerializerOptions {
@@ -52,15 +55,16 @@ export class FlatSerializer {
     node: WebTemplateNode,
     pathParts: string[],
     index: number,
+    scope?: unknown,
   ): void {
     if (node.inContext) {
       this.emitContext(node);
       return;
     }
 
-    const nodeValues = node.aqlPath === "/"
-      ? [this.instance]
-      : resolveAllAtPath(this.instance, node.aqlPath);
+    const nodeValues = scope != null
+      ? [scope]
+      : resolveAllAtWebTemplateNode(this.instance, node);
     if (!nodeValues.length) return;
 
     const max = node.max === -1 ? Math.max(node.min, 1) : node.max;
@@ -80,14 +84,19 @@ export class FlatSerializer {
       return;
     }
 
+    const currentData = nodeValues[index] ?? nodeValues[0];
+
     if (node.children?.length) {
       for (const child of node.children) {
-        const childValues = child.aqlPath === "/"
-          ? [this.instance]
-          : resolveAllAtPath(this.instance, child.aqlPath);
-        const repeats = childValues.length;
+        const childValues = resolveChildWebTemplateNodes(
+          this.instance,
+          currentData,
+          node,
+          child,
+        );
+        const repeats = Math.max(childValues.length, 1);
         for (let i = 0; i < repeats; i++) {
-          this.walkNode(child, nextPath, i);
+          this.walkNode(child, nextPath, i, childValues[i] ?? childValues[0]);
         }
       }
     }

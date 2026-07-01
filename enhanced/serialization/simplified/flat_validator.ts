@@ -2,7 +2,12 @@
  * Validate FLAT JSON payloads against a Web Template schema.
  */
 
-import type { FlatPayload, FlatValidationResult, WebTemplate, WebTemplateNode } from "./types.ts";
+import type {
+  FlatPayload,
+  FlatValidationResult,
+  WebTemplate,
+  WebTemplateNode,
+} from "./types.ts";
 import { templateRootId } from "./normalize.ts";
 
 function collectLeafPaths(
@@ -78,7 +83,11 @@ export function validateFlatPayload(
       key.startsWith(ctxPrefix) ||
       key.startsWith(rootPrefix);
     if (!isKnown) {
-      const msg = { path: key, message: "Unknown flat key for template", severity: "warning" as const };
+      const msg = {
+        path: key,
+        message: "Unknown flat key for template",
+        severity: "warning" as const,
+      };
       if (options.strictUnknownKeys) errors.push({ ...msg, severity: "error" });
       else warnings.push(msg);
     }

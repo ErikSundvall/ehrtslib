@@ -8,6 +8,12 @@ export { RMInstanceGenerator } from "./rm_instance_generator.ts";
 export type { GeneratorConfig, GenerationMode } from "./rm_instance_generator.ts";
 
 export {
+  availableTemplateLanguages,
+  resolveTemplateLanguage,
+  termCodeCandidates,
+} from "./term_codes.ts";
+
+export {
   assertTemplateInstanceCoverage,
   expectedTemplateSlots,
   templateInstanceCoverage,

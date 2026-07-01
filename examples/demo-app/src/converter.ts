@@ -153,6 +153,7 @@ export interface ConversionOptions {
     | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
   templateGenerationMode: TemplateGenerationMode;
+  templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
   jsonConfig: JsonSerializationConfig;
   yamlConfig: YamlSerializationConfig;
@@ -367,6 +368,7 @@ function convertTemplateInput(
 
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
+    language: options.templateLanguage,
   });
 
   const generatedInstance = generator.generate(template);
@@ -401,7 +403,9 @@ function convertTemplateInput(
         );
         break;
       case "typescript": {
-        const tsGenerator = new TypeScriptGenerator({ language: "en" });
+        const tsGenerator = new TypeScriptGenerator({
+          language: options.templateLanguage || "en",
+        });
         outputs.typescript = tsGenerator.generate(template);
         break;
       }

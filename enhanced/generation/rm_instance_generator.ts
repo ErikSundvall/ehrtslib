@@ -87,6 +87,8 @@ export interface GeneratorConfig {
   includeMandatoryRMAttributes?: boolean;
   /** Safety cap for unbounded or very high upper cardinalities in maximal mode. */
   maxGeneratedItems?: number;
+  /** When set, overrides auto-detected template language for term lookups. */
+  language?: string;
 }
 
 export class RMInstanceGenerator {
@@ -112,7 +114,10 @@ export class RMInstanceGenerator {
       throw new Error("Template has no definition");
     }
 
-    this.language = resolveTemplateLanguage(template);
+    const override = this.config.language?.trim();
+    this.language = override
+      ? override
+      : resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
 
     return this.generateFromCObject(template.definition, 0, "root");
@@ -327,7 +332,7 @@ export class RMInstanceGenerator {
           this.termText(nodeId) ?? this.readableRmType(rmTypeName),
         );
       case "language":
-        return this.codePhrase("ISO_639-1", "en");
+        return this.codePhrase("ISO_639-1", this.language);
       case "territory":
         return this.codePhrase("ISO_3166-1", "US");
       case "encoding":

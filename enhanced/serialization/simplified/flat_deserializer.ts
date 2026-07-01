@@ -34,7 +34,11 @@ function readFlatFields(
 }
 
 /** Highest :index present under parentPath for a given node id segment. */
-function maxIndexAt(flat: FlatPayload, parentPath: string, nodeId: string): number {
+function maxIndexAt(
+  flat: FlatPayload,
+  parentPath: string,
+  nodeId: string,
+): number {
   const prefix = `${parentPath}/${nodeId}:`;
   let max = -1;
   for (const key of Object.keys(flat)) {
@@ -92,7 +96,11 @@ export class FlatDeserializer {
   }
 
   /** Mirrors FlatSerializer.walkNode */
-  private walkNode(node: WebTemplateNode, pathParts: string[], index: number): void {
+  private walkNode(
+    node: WebTemplateNode,
+    pathParts: string[],
+    index: number,
+  ): void {
     const max = node.max === -1 ? Math.max(node.min, 1) : node.max;
     const indexed = max !== 1;
     const part = node.id + (indexed ? indexSuffix(max, index) : "");
@@ -117,12 +125,18 @@ export class FlatDeserializer {
     if (!node.children?.length) return;
 
     const repeats = node.max === -1
-      ? Math.max(maxIndexAt(this.flat, joinPath(pathParts), node.id) + 1, node.min > 0 ? 1 : 0)
+      ? Math.max(
+        maxIndexAt(this.flat, joinPath(pathParts), node.id) + 1,
+        node.min > 0 ? 1 : 0,
+      )
       : (max > 1 ? max : 1);
 
     for (let i = 0; i < repeats; i++) {
       const idx = node.max === -1 ? i : index;
-      const branchPart = node.id + (node.max === -1 || indexed ? indexSuffix(node.max === -1 ? 1 : max, idx) : "");
+      const branchPart = node.id +
+        (node.max === -1 || indexed
+          ? indexSuffix(node.max === -1 ? 1 : max, idx)
+          : "");
       const branchPath = [...pathParts, branchPart];
       for (const child of node.children) {
         this.walkNode(child, branchPath, node.max === -1 ? 0 : idx);
@@ -131,10 +145,16 @@ export class FlatDeserializer {
   }
 }
 
-export function deserializeFromFlat(flat: FlatPayload, webTemplate: WebTemplate): RmObject {
+export function deserializeFromFlat(
+  flat: FlatPayload,
+  webTemplate: WebTemplate,
+): RmObject {
   return new FlatDeserializer(webTemplate).deserialize(flat);
 }
 
-export function deserializeFromFlatJson(json: string, webTemplate: WebTemplate): RmObject {
+export function deserializeFromFlatJson(
+  json: string,
+  webTemplate: WebTemplate,
+): RmObject {
   return new FlatDeserializer(webTemplate).deserializeJson(json);
 }

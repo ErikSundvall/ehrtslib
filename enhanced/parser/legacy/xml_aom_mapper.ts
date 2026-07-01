@@ -44,6 +44,19 @@ export function textValue(node: unknown, key = "value"): string | undefined {
     const rec = node as Record<string, unknown>;
     if (rec[key] !== undefined) return textValue(rec[key], key);
     if (rec.code_string !== undefined) return String(rec.code_string);
+    const text = rec["#text"];
+    if (text !== undefined && text !== null) {
+      if (typeof text === "string" || typeof text === "number") return String(text);
+      if (Array.isArray(text)) {
+        const joined = text
+          .map((part) => (typeof part === "string" || typeof part === "number"
+            ? String(part)
+            : ""))
+          .join("")
+          .trim();
+        if (joined) return joined;
+      }
+    }
   }
   return undefined;
 }
@@ -422,7 +435,8 @@ export function collectTermDefinitions(
     for (const it of items) {
       const item = it as Record<string, unknown>;
       const id = String(item["@_id"] ?? item.id ?? "");
-      const val = textValue(item) ?? String(item.value ?? item);
+      const val = textValue(item);
+      if (!val) continue;
       if (id === "text") entry.text = val;
       if (id === "description") entry.description = val;
     }
