@@ -49,67 +49,24 @@ import * as openehr_base from "./enhanced/openehr_base.ts";
 
 ## "Hello World" - Simplest Possible COMPOSITION
 
-Here's the minimal code to create a COMPOSITION:
+Here's the minimal code to create a COMPOSITION using [constructor initialization with nested objects](../SIMPLIFIED-CREATION-GUIDE.md#constructor-initialization) (see the [Simplified Object Creation Guide](../SIMPLIFIED-CREATION-GUIDE.md) for terse formats and more patterns):
 
 ```typescript
 import * as openehr_rm from "./openehr_rm.ts";
-import * as openehr_base from "./openehr_base.ts";
 
-// Create a COMPOSITION
-const composition = new openehr_rm.COMPOSITION();
-composition.archetype_node_id = "openEHR-EHR-COMPOSITION.encounter.v1";
-
-// Set name
-const name = new openehr_rm.DV_TEXT();
-name.value = "My First Composition";
-composition.name = name;
-
-// Set UID (required)
-const uid = new openehr_base.OBJECT_VERSION_ID();
-uid.value = "12345678-1234-1234-1234-123456789012::uk.nhs.example::1";
-composition.uid = uid;
-
-// Set language (required)
-const language = new openehr_base.CODE_PHRASE();
-const languageTermId = new openehr_base.TERMINOLOGY_ID();
-languageTermId.value = "ISO_639-1";
-language.terminology_id = languageTermId;
-language.code_string = "en";
-composition.language = language;
-
-// Set territory (required)
-const territory = new openehr_base.CODE_PHRASE();
-const territoryTermId = new openehr_base.TERMINOLOGY_ID();
-territoryTermId.value = "ISO_3166-1";
-territory.terminology_id = territoryTermId;
-territory.code_string = "GB";
-composition.territory = territory;
-
-// Set category (required) - "event" category
-const category = new openehr_rm.DV_CODED_TEXT();
-category.value = "event";
-const categoryCode = new openehr_base.CODE_PHRASE();
-const categoryTermId = new openehr_base.TERMINOLOGY_ID();
-categoryTermId.value = "openehr";
-categoryCode.terminology_id = categoryTermId;
-categoryCode.code_string = "433"; // event category code
-category.defining_code = categoryCode;
-composition.category = category;
-
-// Set composer (required) - who created this
-const composer = new openehr_rm.PARTY_IDENTIFIED();
-const composerName = new openehr_rm.DV_TEXT();
-composerName.value = "Dr. Example";
-composer.name = composerName;
-composition.composer = composer;
-
-// Set archetype details (required)
-const archetypeDetails = new openehr_rm.ARCHETYPED();
-const archetypeId = new openehr_base.ARCHETYPE_ID();
-archetypeId.value = "openEHR-EHR-COMPOSITION.encounter.v1";
-archetypeDetails.archetype_id = archetypeId;
-archetypeDetails.rm_version = "1.1.0";
-composition.archetype_details = archetypeDetails;
+const composition = new openehr_rm.COMPOSITION({
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  name: "My First Composition",
+  uid: "12345678-1234-1234-1234-123456789012::uk.nhs.example::1",
+  language: "ISO_639-1::en",
+  territory: "ISO_3166-1::GB",
+  category: "openehr::433|event|",
+  composer: { name: "Dr. Example" },
+  archetype_details: {
+    archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+    rm_version: "1.1.0"
+  }
+});
 
 console.log("Created COMPOSITION:", composition.name?.value);
 ```
