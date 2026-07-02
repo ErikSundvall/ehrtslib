@@ -1,4 +1,4 @@
-import table3Text from "./table3.yaml" with { type: "text" };
+import table3Text from "./table3_text.ts";
 import { loadSymbolMapFromText } from "./shared.ts";
 
 let cachedSymbolMap: Record<string, string> | null = null;

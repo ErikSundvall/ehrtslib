@@ -69,9 +69,11 @@
             <div class="format-selector">
               <label for="input-format">Format:</label>
               <select id="input-format" class="format-dropdown">
+                <option value="auto" selected>Auto (detect)</option>
                 <option value="xml">XML</option>
-                <option value="json" selected>JSON</option>
+                <option value="json">JSON</option>
                 <option value="yaml">YAML</option>
+                <option value="zipehr">ZipEHR (j/y)</option>
               </select>
             </div>
           </div>
@@ -402,6 +404,14 @@
                 <input type="checkbox" id="output-yaml" checked>
                 <span>YAML</span>
               </label>
+              <label class="checkbox-label" title="ZipEHR flow JSON with emoji type symbols (canonical _type path)">
+                <input type="checkbox" id="output-j-zipehr">
+                <span>j-ZipEHR</span>
+              </label>
+              <label class="checkbox-label" title="ZipEHR YAML with terse format, type inference, and emoji symbols">
+                <input type="checkbox" id="output-y-zipehr">
+                <span>y-ZipEHR</span>
+              </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="output-json" checked>
                 <span>JSON</span>
@@ -456,6 +466,8 @@
           <div class="tabs-row output-tabs-row">
             <div class="tabs" id="output-tabs">
               <button class="tab active" data-tab="yaml">YAML</button>
+              <button class="tab hidden" data-tab="j-zipehr">j-ZipEHR</button>
+              <button class="tab hidden" data-tab="y-zipehr">y-ZipEHR</button>
               <button class="tab" data-tab="json">JSON</button>
               <button class="tab hidden" data-tab="markdown">Markdown</button>
               <button class="tab hidden" data-tab="asciidoc">AsciiDoc</button>
@@ -776,6 +788,60 @@
                 >check</span>
                 <span>Copied to clipboard!</span>
               </div>
+            </div>
+
+            <div class="tab-pane hidden" id="tab-j-zipehr">
+              <div class="output-toolbar">
+                <span class="output-info" id="output-info-j-zipehr"></span>
+                <span class="output-actions">
+                  <button
+                    class="btn btn-secondary btn-sm copy-output-btn"
+                    data-format="j-zipehr"
+                    type="button"
+                  >
+                    <span class="material-icons btn-icon" aria-hidden="true"
+                    >content_copy</span>
+                    Copy
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-sm download-output-btn"
+                    data-format="j-zipehr"
+                    type="button"
+                  >
+                    <span class="material-icons btn-icon" aria-hidden="true"
+                    >download</span>
+                    Download
+                  </button>
+                </span>
+              </div>
+              <div class="demo-editor-host output-content" id="output-j-zipehr-content"></div>
+            </div>
+
+            <div class="tab-pane hidden" id="tab-y-zipehr">
+              <div class="output-toolbar">
+                <span class="output-info" id="output-info-y-zipehr"></span>
+                <span class="output-actions">
+                  <button
+                    class="btn btn-secondary btn-sm copy-output-btn"
+                    data-format="y-zipehr"
+                    type="button"
+                  >
+                    <span class="material-icons btn-icon" aria-hidden="true"
+                    >content_copy</span>
+                    Copy
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-sm download-output-btn"
+                    data-format="y-zipehr"
+                    type="button"
+                  >
+                    <span class="material-icons btn-icon" aria-hidden="true"
+                    >download</span>
+                    Download
+                  </button>
+                </span>
+              </div>
+              <div class="demo-editor-host output-content" id="output-y-zipehr-content"></div>
             </div>
 
             <div class="tab-pane" id="tab-markdown">

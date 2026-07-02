@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-02T11:27:44.918Z", buildId: "6C82QFV1" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-02T12:49:13.942Z", buildId: "RRMHVWDM" };
   }
 });
 
@@ -7174,6 +7174,100 @@ var TypeInferenceEngine = class {
 
 // enhanced/serialization/common/hybrid_formatter.ts
 init_define_BUILD_INFO();
+var DEFAULT_OPTIONS = {
+  maxInlineProperties: 3,
+  maxInlineLength: 80,
+  maxInlineDepth: 1
+};
+var HybridStyleFormatter = class {
+  /**
+   * Determine if an object should be formatted inline
+   * 
+   * @param obj - The object to check
+   * @param options - Formatting options
+   * @returns true if the object should be formatted inline
+   */
+  static shouldFormatInline(obj, options = {}) {
+    const opts = { ...DEFAULT_OPTIONS, ...options };
+    if (!obj || typeof obj !== "object") {
+      return true;
+    }
+    if (Array.isArray(obj)) {
+      if (obj.length === 0)
+        return true;
+      if (obj.length > opts.maxInlineProperties)
+        return false;
+      return obj.every((item) => !this.isComplexValue(item));
+    }
+    const properties = Object.keys(obj);
+    if (properties.length > opts.maxInlineProperties) {
+      return false;
+    }
+    const hasComplexValue = properties.some(
+      (key) => this.isComplexValue(obj[key])
+    );
+    if (hasComplexValue) {
+      return false;
+    }
+    const estimatedLength = this.estimateInlineLength(obj);
+    if (estimatedLength > opts.maxInlineLength) {
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Check if a value is complex (object or array with items)
+   * 
+   * @param value - The value to check
+   * @returns true if the value is complex
+   */
+  static isComplexValue(value) {
+    if (value === null || value === void 0) {
+      return false;
+    }
+    if (Array.isArray(value)) {
+      return value.length > 0 && value.some((item) => typeof item === "object");
+    }
+    if (typeof value === "object") {
+      return Object.keys(value).length > 0;
+    }
+    return false;
+  }
+  /**
+   * Estimate the inline length of an object when formatted
+   * 
+   * @param obj - The object to measure
+   * @returns Estimated character length
+   */
+  static estimateInlineLength(obj) {
+    if (obj === null || obj === void 0) {
+      return 4;
+    }
+    if (typeof obj === "string") {
+      return obj.length + 2;
+    }
+    if (typeof obj === "number" || typeof obj === "boolean") {
+      return String(obj).length;
+    }
+    if (Array.isArray(obj)) {
+      return 2 + obj.reduce((sum, item) => sum + this.estimateInlineLength(item) + 2, 0);
+    }
+    if (typeof obj === "object") {
+      return 2 + Object.entries(obj).reduce((sum, [key, value]) => sum + key.length + 3 + this.estimateInlineLength(value) + 2, 0);
+    }
+    return 0;
+  }
+  /**
+   * Determine formatting style for a property value
+   * 
+   * @param value - The property value
+   * @param options - Formatting options
+   * @returns 'inline' | 'block'
+   */
+  static getFormattingStyle(value, options = {}) {
+    return this.shouldFormatInline(value, options) ? "inline" : "block";
+  }
+};
 
 // enhanced/serialization/common/property_order.ts
 init_define_BUILD_INFO();
@@ -49316,6 +49410,1151 @@ init_define_BUILD_INFO();
 init_define_BUILD_INFO();
 var import_fast_xml_parser5 = __toESM(require_fxp());
 
+// enhanced/serialization/zipehr/mod.ts
+init_define_BUILD_INFO();
+
+// enhanced/serialization/zipehr/shared.ts
+init_define_BUILD_INFO();
+var TERMINOLOGY_SHORTCUTS = Object.freeze([
+  { prefix: "openehr::", emoji: "\u{1FA9F}" },
+  { prefix: "ISO_639-1::", emoji: "\u{1F4AC}" },
+  { prefix: "ISO_3166-1::", emoji: "\u{1F310}" },
+  { prefix: "IANA_character-sets::", emoji: "\u{1F524}" }
+]);
+var TERMINOLOGY_FIELD_PROMOTIONS = Object.freeze([
+  { field: "language", prefix: "ISO_639-1::", emoji: "\u{1F4AC}" },
+  { field: "territory", prefix: "ISO_3166-1::", emoji: "\u{1F310}" },
+  { field: "encoding", prefix: "IANA_character-sets::", emoji: "\u{1F524}" }
+]);
+var ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({
+  template_id: "\u24C9",
+  archetype_id: "\u24B6",
+  rm_version: "\u2699\uFE0F"
+});
+var POLYMORPHIC_TYPES = /* @__PURE__ */ new Set([
+  "DATA_VALUE",
+  "DV_ORDERED",
+  "DV_TEXT",
+  "ITEM",
+  "ITEM_STRUCTURE",
+  "EVENT",
+  "LOCATABLE",
+  "CONTENT_ITEM",
+  "CARE_ENTRY",
+  "ENTRY",
+  "SECTION",
+  "PATHABLE",
+  "PARTY_IDENTIFIED",
+  "PARTY_PROXY"
+]);
+var PROPERTY_TYPE_MAP = {
+  COMPOSITION: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    category: "DV_CODED_TEXT",
+    territory: "CODE_PHRASE",
+    context: "EVENT_CONTEXT",
+    content: "CONTENT_ITEM"
+  },
+  DV_CODED_TEXT: { defining_code: "CODE_PHRASE" },
+  CODE_PHRASE: { terminology_id: "TERMINOLOGY_ID" },
+  OBSERVATION: { name: "DV_TEXT", language: "CODE_PHRASE", data: "HISTORY" },
+  ELEMENT: { name: "DV_TEXT", value: "DATA_VALUE" },
+  HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME" },
+  POINT_EVENT: {
+    name: "DV_TEXT",
+    time: "DV_DATE_TIME",
+    data: "ITEM_STRUCTURE"
+  },
+  EVENT_CONTEXT: { start_time: "DV_DATE_TIME", setting: "DV_CODED_TEXT" },
+  ITEM_TREE: { name: "DV_TEXT", items: "ITEM" }
+};
+function loadSymbolMapFromText(text) {
+  const lines = text.split(/\r?\n/).filter((l3) => !/^\s*#/.test(l3));
+  const cleaned = lines.join("\n");
+  const map2 = /* @__PURE__ */ Object.create(null);
+  const re2 = /([A-Za-z0-9_]+)\s*:\s*\[\s*["']([^"']+)["']/g;
+  let m2;
+  while ((m2 = re2.exec(cleaned)) !== null) {
+    const key = m2[1];
+    const firstSymbol = m2[2];
+    map2[key] = firstSymbol;
+    map2[key.toUpperCase()] = firstSymbol;
+    map2[key.toLowerCase()] = firstSymbol;
+  }
+  return map2;
+}
+function getSymbolFor(map2, className) {
+  if (!className)
+    return void 0;
+  if (map2[className])
+    return map2[className];
+  if (map2[className.toUpperCase()])
+    return map2[className.toUpperCase()];
+  if (map2[className.toLowerCase()])
+    return map2[className.toLowerCase()];
+  return void 0;
+}
+function shortenTerseString(str) {
+  if (typeof str !== "string")
+    return str;
+  for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
+    if (str.startsWith(prefix)) {
+      return emoji + str.slice(prefix.length);
+    }
+  }
+  return str;
+}
+function expandTerseString(str) {
+  if (typeof str !== "string")
+    return str;
+  for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
+    if (str.startsWith(emoji)) {
+      return prefix + str.slice(emoji.length);
+    }
+  }
+  return str;
+}
+function inferFromStructure(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return void 0;
+  }
+  const props = Object.keys(data);
+  const obj = data;
+  if (props.includes("value") && props.includes("defining_code")) {
+    return "DV_CODED_TEXT";
+  }
+  if (props.includes("terminology_id") && props.includes("code_string")) {
+    return "CODE_PHRASE";
+  }
+  if (props.includes("magnitude") && props.includes("units")) {
+    return "DV_QUANTITY";
+  }
+  if (props.includes("magnitude") && !props.includes("units")) {
+    return "DV_COUNT";
+  }
+  if (props.includes("value") && typeof obj.value === "boolean")
+    return "DV_BOOLEAN";
+  if (props.includes("value") && typeof obj.value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(obj.value))
+    return "DV_DATE_TIME";
+  if (props.includes("value") && !props.includes("defining_code") && !props.includes("magnitude"))
+    return "DV_TEXT";
+  if (props.length === 1 && props.includes("value") && typeof obj.value === "string")
+    return "TERMINOLOGY_ID";
+  if (props.includes("category") && props.includes("archetype_node_id")) {
+    return "COMPOSITION";
+  }
+  if (props.includes("data") && props.includes("archetype_node_id")) {
+    return "OBSERVATION";
+  }
+  return void 0;
+}
+function inferType(propertyName2, parentType, data) {
+  const parentMap = parentType && PROPERTY_TYPE_MAP[parentType];
+  const defaultType = parentMap && parentMap[propertyName2];
+  if (defaultType && !POLYMORPHIC_TYPES.has(defaultType))
+    return defaultType;
+  const fromStructure = inferFromStructure(data);
+  if (fromStructure)
+    return fromStructure;
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const typed = data;
+    if (typed._type)
+      return typed._type;
+  }
+  return defaultType;
+}
+function resolveType(obj, parentType, propertyName2) {
+  if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+    const typed = obj;
+    if (typed._type)
+      return typed._type;
+  }
+  return inferType(propertyName2 ?? "", parentType, obj);
+}
+function isTerseCodePhrase2(str) {
+  return typeof str === "string" && /^[^:]+::[^|]+$/.test(str);
+}
+function isTerseDvCodedText2(str) {
+  return typeof str === "string" && /^[^:]+::[^|]+\|[^|]*\|$/.test(str);
+}
+function parseTerseDvCodedText2(terse) {
+  const match = terse.match(/^([^:]+)::([^|]+)\|([^|]*)\|$/);
+  if (!match)
+    return null;
+  return { termId: match[1], code: match[2], value: match[3] };
+}
+function extractWrappedTerseString(v2) {
+  if (v2 == null)
+    return null;
+  if (typeof v2 === "string")
+    return v2;
+  if (typeof v2 !== "object" || Array.isArray(v2))
+    return null;
+  const obj = v2;
+  if (Object.prototype.hasOwnProperty.call(obj, "value") && Object.keys(obj).length === 1) {
+    return obj.value == null ? null : String(obj.value);
+  }
+  const keys = Object.keys(obj);
+  if (keys.length === 1) {
+    const inner = obj[keys[0]];
+    if (typeof inner === "string")
+      return inner;
+  }
+  return null;
+}
+function stripKnownTerminologyCode(terseStr, prefix, emoji) {
+  if (typeof terseStr !== "string")
+    return null;
+  if (terseStr.startsWith(prefix))
+    return terseStr.slice(prefix.length);
+  if (emoji && terseStr.startsWith(emoji))
+    return terseStr.slice(emoji.length);
+  return null;
+}
+function extractTerminologyFieldCode(fieldValue, prefix, emoji) {
+  const terse = extractWrappedTerseString(fieldValue);
+  if (terse == null)
+    return null;
+  return stripKnownTerminologyCode(shortenTerseString(terse), prefix, emoji);
+}
+function compactArchetypeDetails(details) {
+  if (!details || typeof details !== "object" || Array.isArray(details)) {
+    return details;
+  }
+  const src = details;
+  const out = {};
+  const templateId = extractWrappedTerseString(src.template_id);
+  const archetypeId = extractWrappedTerseString(src.archetype_id);
+  const rmVersion = src.rm_version;
+  if (templateId != null) {
+    out[ARCHETYPE_DETAIL_SYMBOLS.template_id] = templateId;
+  }
+  if (archetypeId != null) {
+    out[ARCHETYPE_DETAIL_SYMBOLS.archetype_id] = archetypeId;
+  }
+  if (rmVersion != null && rmVersion !== "") {
+    out[ARCHETYPE_DETAIL_SYMBOLS.rm_version] = rmVersion;
+  }
+  return Object.keys(out).length > 0 ? out : details;
+}
+function extractFirstScalar(n2) {
+  if (n2 === null)
+    return null;
+  if (typeof n2 === "string" || typeof n2 === "number" || typeof n2 === "boolean") {
+    return String(n2);
+  }
+  if (Array.isArray(n2)) {
+    for (const e2 of n2) {
+      const s2 = extractFirstScalar(e2);
+      if (s2 != null)
+        return s2;
+    }
+    return null;
+  }
+  if (typeof n2 === "object") {
+    for (const k2 of Object.keys(n2)) {
+      const s2 = extractFirstScalar(n2[k2]);
+      if (s2 != null)
+        return s2;
+    }
+  }
+  return null;
+}
+function isSymbolKey(key) {
+  return /[^\x00-\x7F]/.test(key) || key === "_";
+}
+
+// enhanced/serialization/zipehr/symbol_map.ts
+init_define_BUILD_INFO();
+
+// enhanced/serialization/zipehr/table3_text.ts
+init_define_BUILD_INFO();
+var table3_text_default = '{ data_types: {\r\n  attributes: {\r\n    archetype_node_id: ["\u{1F194}"]\r\n  },\r\n  # DATA_VALUE (abstract): ["\u2753","\u{1F4E6}","\u{1F9E9}","\u{1F538}","\u{1F537}","\u{1F539}","\u{1F50D}","\u{1F4E6}","\u2699\uFE0F","\u{1F523}","\u2754","\u{1F517}"],\r\n  DV_BOOLEAN: ["\u2705","\u274C","\u2714\uFE0F","\u2716\uFE0F","\u{1F44D}","\u{1F44E}","\u2B55","\u2733\uFE0F","\u2611\uFE0F","\u{1F518}","\u{1F501}","\u2757"],\r\n  DV_IDENTIFIER: ["\u{1FAAA}","\u{1F194}","\u{1F511}","\u{1F3F7}\uFE0F","\u{1F517}","\u{1F9FE}","#\uFE0F\u20E3","\u{1F52C}","\u{1F516}","\u{1F510}","\u{1F9FE}","\u{1F4C7}"],\r\n  DV_STATE: ["\u2691","\u{1F3C1}","\u{1F534}","\u{1F7E2}","\u26AA","\u{1F538}","\u{1F514}","\u{1F4CC}","\u{1F53B}","\u{1F53A}"],\r\n  DV_TEXT: ["\u{1F5C9}","\u{1F5B9}"],\r\n  DV_CODED_TEXT: ["\u{1F5C8}","\u{1F5CE}"],\r\n  DV_PARAGRAPH: ["\u{1F4C3}","\xB6","\u{1F5D2}\uFE0F","\u{1F4DA}","\u{1F4DD}","\u{1F4C4}","\u{1F4D6}","\u{1F9FE}"],\r\n  CODE_PHRASE: ["\u{1F3F7}\uFE0F","\u{1F524}","\u{1F521}","\u{1F523}","\u{1F9FE}","\u{1F4DB}","\u{1FAAA}","\u{1F516}","\u{1F50E}","\u{1F517}","\u2733\uFE0F","\u{1F522}"],\r\n  TERM_MAPPING: ["\u{1F500}","\u{1F517}","\u{1F501}","\u{1F504}","\u{1F9ED}","\u{1F5FA}\uFE0F","\u{1F516}","\u{1F9E9}","\u{1F4CC}"],\r\n\r\n  # DV_ORDERED (abstract): ["\u{1F522}","\u{1F4CA}","\u{1F53C}","\u{1F53D}","\u{1F4C8}","\u{1F4C9}","\u{1F9ED}"],\r\n  DV_QUANTITY: ["\u2696\uFE0F","\u{1F4CF}","\u{1F522}","\u{1F4D0}","\u{1F321}\uFE0F","\u{1F4CA}","\u{1F52C}","\u{1F9EA}","\u{1F9FE}","#","\u2211"],\r\n  DV_COUNT: ["\u{1F522}","\u{1F9EE}","\u{1F51F}","\u{1F522}","#","\u2460\u2461\u2462","\u{1F522}","\u{1F522}"],\r\n  DV_PROPORTION: ["\xF7","\u2339","\u2A38","%","\u2797","\u2236","\u215F","\u{1F522}","\u{1F4C8}","\u{1F4C9}"],\r\n  DV_ORDINAL: ["\u{1F522}","\u{1F947}","\u{1F948}","\u{1F949}","\u{1F4F6}","\u{1F51D}","\u{1F51C}"],\r\n  DV_INTERVAL: ["\u2194\uFE0F","\u27F7","\u2013","\u2014","\u{1F501}","\u{1F4CF}","\u{1F4C8}"],\r\n  REFERENCE_RANGE: ["\u{1F4CF}","\u{1F4CB}","\u{1F52C}","\u{1F4CA}","\u{1F9ED}"],\r\n\r\n  # DV_TEMPORAL (abstract): ["\u{1F570}\uFE0F","\u{1F4C5}","\u23F0","\u{1F5D3}\uFE0F","\u{1F552}","\u23F3","\u231B","\u{1F558}","\u{1F55B}"],\r\n  DV_DATE: ["\u{1F4C5}","\u{1F4C6}","\u{1F5D3}\uFE0F","\u{1F4C7}","\u{1F4C5}","\u{1F570}\uFE0F"],\r\n  DV_TIME: ["\u23F0","\u{1F552}","\u231A","\u23F1\uFE0F","\u{1F553}"],\r\n  DV_DATE_TIME: ["\u{1F4C5}\u23F0","\u{1F570}\uFE0F","\u{1F4C6}\u{1F552}","\u{1F5D3}\uFE0F\u{1F552}","\u{1F558}"],\r\n  DV_DURATION: ["\u23F3","\u231B","\u23F1\uFE0F","\u2194\uFE0F","\u{1F501}"],\r\n\r\n  # DV_ENCAPSULATED (abstract): ["\u{1F4E6}","\u{1F5C3}\uFE0F","\u{1F4E6}","\u{1F5C4}\uFE0F","\u{1F4E5}","\u{1F4E4}","\u{1F9FE}"],\r\n  DV_MULTIMEDIA: ["\u{1F5BC}\uFE0F","\u{1F3A5}","\u{1F3A7}","\u{1F4F7}","\u{1F4F9}","\u{1F39E}\uFE0F","\u{1F4FA}","\u{1F50A}"],\r\n  DV_PARSABLE: ["\u{1F523}","\u{1F4C4}","\u{1F9FE}","\u{1F4BE}","\u{1F5C2}\uFE0F","\u{1F50D}"],\r\n  DV_URI: ["\u{1F517}","\u{1F310}","\u{1F50D}","\u{1F4CE}","\u{1F4C1}","\u{1F9ED}","\u{1F30D}"],\r\n  DV_EHR_URI: ["\u2928","\u{1FA7A}\u{1F517}","\u{1F9FE}\u{1F517}","\u{1F3E5}\u{1F517}"],\r\n\r\n  DV_SCALE: ["\u2195\uFE0F","\u{1F4CA}","\u2696\uFE0F","\u{1F4C8}","\u{1F4C9}","\u{1F522}","\u{1F52C}"]\r\n}, data_structures: {\r\n  # DATA_STRUCTURE (abstract): ["\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F4E6}","\u{1F4C1}","\u{1F9FE}","\u{1F517}","\u{1F9ED}","\u{1F4CB}","\u{1F4D1}","\u{1F9E9}","\u{1F537}","\u{1F538}"],\r\n  # ITEM_STRUCTURE (abstract): ["\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F9FE}","\u{1F4C1}","\u{1F4D1}","\u{1F9E9}","\u{1F517}","\u{1F4CB}","\u{1F9F1}","\u{1F9ED}","\u{1F9F0}","\u{1F4E6}"],\r\n  ITEM_SINGLE: ["\u{1F538}","\u26AA","\u{1F539}","\u{1F7E2}","\u{1F518}","\u{1F4CC}","\u{1F50E}","\u{1F9FE}","\u{1F4CD}","\u{1F53A}","\u{1F539}","\u{1F50E}"],\r\n  ITEM_LIST: ["\u{1F4DC}","\u{1F4CB}","\u{1F4D1}","\u{1F522}","\u{1F501}","\u{1F4DA}","\u{1F9FE}","\u{1F9EE}","\u{1F522}","\u{1F4DA}","\u{1F53B}","\u{1F53A}"],\r\n  ITEM_TABLE: ["\u{1F4CA}","\u{1F4C8}","\u{1F4C9}","\u{1F4CB}","\u{1F5C2}\uFE0F","\u{1F9FE}","\u{1F4D1}","\u{1F9FE}","\u{1F9F1}","\u{1F522}","\u{1F5C3}\uFE0F","\u{1F4CC}"],\r\n  ITEM_TREE: ["\u{1F333}","\u{1F33F}","\u{1F332}","\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F334}","\u{1F9ED}","\u{1F517}","\u{1F9E9}","\u{1F9F1}","\u{1FAB5}","\u{1F53B}","\u{1F53A}"],\r\n  # ITEM (abstract): ["\u{1F4E6}","\u{1F9E9}","\u{1F539}","\u{1F4CC}","\u{1F9FE}","\u{1F517}","\u26AA","\u{1F7E3}","\u{1F50E}","\u{1F4C4}","\u{1FAAA}","\u{1F9ED}"],\r\n  CLUSTER: ["\u{1F4C1}","\u{1F4E6}","\u{1F9F1}","\u{1F5C2}\uFE0F","\u{1F517}","\u{1F4C2}","\u{1F9E9}","\u{1F4D1}","\u{1F4CB}","\u{1F9F0}","\u{1F9FE}","\u{1F512}"],\r\n  ELEMENT: ["\u{1F539}","\u{1F343}","\u26AA","\u{1F538}","\u{1F9E9}","\u{1F4CD}","\u{1F50E}","\u{1F9FE}","\u{1F52C}","\u{1F4A1}","\u{1F516}","\u{1F4CC}","\u{1F4DD}"],\r\n  HISTORY: ["\u{1F4C8}","\u{1F570}\uFE0F","\u{1F4C5}","\u{1F4C9}","\u{1F4DC}","\u23F3","\u{1F4DA}","\u{1F4C6}","\u{1F5D3}\uFE0F","\u{1F9ED}","\u{1F501}","\u{1F9FE}"],\r\n  # EVENT (abstract): ["\u{1F4CD}","\u{1F534}","\u{1F514}","\u{1F570}\uFE0F","\u23F1\uFE0F","\u{1F4C5}","\u{1F4CC}","\u{1F9ED}","\u{1F501}","\u{1F9FE}","\u{1F50E}","\u{1F4E3}"],\r\n  POINT_EVENT: ["\u{1F78B}","\u{1F4CD}","\u{1F534}","\u{1F4CC}","\u{1F570}\uFE0F","\u{1F552}","\u{1F50E}","\u{1F9FE}","\u26AA","\u{1F539}","\u{1F4C5}","\u23F1\uFE0F","\u2705"],\r\n  INTERVAL_EVENT: ["\u27F7","\u2194\uFE0F","\u23F3","\u231B","\u{1F4CF}","\u{1F4C8}","\u{1F4CA}","\u{1F501}","\u{1F9FE}","\u{1F52C}","\u{1F570}\uFE0F","\u{1F4C6}"],\r\n}, ehr_components: {\r\n  EHR: ["\u{1F3E5}","\u{1F4C1}","\u{1F5C2}\uFE0F","\u{1FA7A}","\u{1F9FE}","\u{1F464}","\u{1F9ED}","\u{1F510}","\u{1F9FE}","\u{1F517}","\u{1F4E6}","\u{1F4D1}"],\r\n  EHR_STATUS: ["\u{1F4CA}","\u2699\uFE0F","\u{1F512}","\u{1F465}","\u{1F4DB}","\u{1F9ED}","\u{1F4CC}","\u{1F4CB}","\u{1F9FE}","\u{1F514}","\u{1F50D}","\u{1F4C8}"],\r\n  EHR_ACCESS: ["\u{1F510}","\u{1F6E1}\uFE0F","\u{1F511}","\u{1F512}","\u{1F9FE}","\u{1F464}","\u{1F9ED}","\u{1F9FE}","\u{1F517}","\u{1F6C2}","\u{1F4DC}","\u{1F9FE}"],\r\n  COMPOSITION: ["\u{1F582}","\u{1F4C4}","\u{1F9FE}","\u{1F4C1}","\u{1F4DC}","\u{1F5C2}\uFE0F","\u{1F4DD}","\u{1F4D1}","\u{1FA7A}","\u{1F4E6}","\u{1F516}","\u{1F4CB}","\u{1F9FE}"],\r\n  EVENT_CONTEXT: ["\u{1F570}\uFE0F","\u{1F4CD}","\u{1F4C5}","\u{1F4CC}","\u{1F9ED}","\u{1F3E5}","\u{1F4CD}","\u{1F5FA}\uFE0F","\u{1F9FE}","\u{1F4CD}","\u{1F50D}","\u{1F9FE}"],\r\n  # CONTENT_ITEM (assumed abstract): ["\u{1F4CE}","\u{1F4CC}","\u{1F4C2}","\u{1F9E9}","\u{1F4C1}","\u{1F9FE}","\u{1F4D1}","\u{1F5C2}\uFE0F","\u{1F4CB}","\u{1F516}","\u{1F9ED}","\u{1F50E}"],\r\n  SECTION: ["\u{1F4DA}","\u{1F5C2}\uFE0F","\u{1F4D1}","\u{1F4CB}","\u{1F516}","\u{1F4C2}","\u{1F4C1}","\u{1F9ED}","\u{1F9FE}","\u{1F4CC}","\u{1F9E9}","\u{1F4DA}"],\r\n  ENTRY: ["\u{1F4DD}","\u{1F9FE}","\u{1F4C4}","\u{1FA7A}","\u{1F4CC}","\u{1F4CB}","\u{1F5C2}\uFE0F","\u{1F9ED}","\u{1F9FE}","\u{1F52C}","\u{1F4D1}","\u{1F4C2}"],\r\n  ADMIN_ENTRY: ["\u{1F3F7}\uFE0F","\u{1F5C2}\uFE0F","\u{1F4CB}","\u{1F9FE}","\u{1F6C2}","\u{1F4D1}","\u{1F510}","\u{1F4CC}","\u{1F9FE}","\u{1F4C1}","\u{1F9FE}","\u{1F4DA}"],\r\n  CARE_ENTRY: ["\u{1FA7A}","\u{1F9FE}","\u{1F4C4}","\u{1F4DD}","\u{1F4CC}","\u{1F4CB}","\u{1F9ED}","\u{1F9FE}","\u{1F4D1}","\u{1F4C2}","\u{1F52C}","\u{1F4CA}"],\r\n  OBSERVATION: ["\u{1F440}","\u{1F52D}","\u{1FA7A}","\u{1F4C8}","\u{1F4CA}","\u{1F9EA}","\u{1F4CD}","\u{1F4CB}","\u{1F9FE}","\u{1F4D1}","\u{1F4CC}","\u{1F4F7}","\u{1FA7B}"],\r\n  EVALUATION: ["\u{1F9E0}","\u{1F4DD}","\u{1F4CB}","\u{1F50D}","\u{1F4CA}","\u{1F9FE}","\u{1F4D1}","\u{1F4CC}","\u2696\uFE0F","\u{1F4DB}","\u{1F9ED}","\u{1F516}"],\r\n  INSTRUCTION: ["\u{1F4CB}","\u{1F4DC}","\u{1F4DD}","\u{1F4C5}","\u{1F9ED}","\u{1F4CC}","\u{1F9FE}","\u{1F4D1}","\u{1F4CB}","\u{1F6CE}\uFE0F","\u{1F514}","\u2699\uFE0F","\u{1F9E9}"],\r\n  ACTION: ["\u{1F5F9}","\u2705","\u{1F6E0}\uFE0F","\u{1F527}","\u{1F9FE}","\u{1F4CC}","\u{1F4CB}","\u{1F9ED}","\u{1FA7A}","\u{1F4C5}","\u{1F4D1}","\u{1F9FE}","\u{1F501}"],\r\n  VERSIONED_OBJECT: ["\u{1F501}","\u{1F4E6}","\u{1F9FE}","\u{1F4D1}","\u{1F570}\uFE0F","\u{1F9FE}","\u{1F516}","\u{1F4C2}","\u{1F5F3}\uFE0F","\u{1F9ED}","\u{1F4DA}","\u{1F4DD}"],\r\n  CONTRIBUTION: ["\u270D\uFE0F","\u{1F9FE}","\u{1F4D1}","\u{1F4C5}","\u{1F9ED}","\u{1F4CC}","\u{1F517}","\u{1F9FE}","\u{1F4DD}","\u{1F9FE}","\u{1F9FE}","\u{1F50D}"]\r\n}, foundation_types: {\r\n  # Any (abstract): ["\u2753","\u{1F536}","\u{1F537}","\u{1F538}","\u26AA","\u{1F539}"],\r\n  # Ordered (abstract): ["\u2195\uFE0F","\u{1F522}","\u{1F4C8}","\u{1F4C9}"],\r\n  # Numeric (abstract): ["\u{1F522}","#","\u2211","\u2795","\u2796"],\r\n  # Ordered_Numeric (abstract): ["\u{1F522}","\u2195\uFE0F","\u{1F4C8}","\u{1F4C9}"],\r\n\r\n  Boolean: ["\u2705","\u274C","\u2714\uFE0F","\u2716\uFE0F","\u{1F44D}","\u{1F44E}"],\r\n  Integer: ["\u{1F522}","#","\u2795","\u2796","\u{1F51F}","\u{1F523}"],\r\n  Integer64: ["\u{1F522}","\u{1F512}","\u{1F523}","#","\u{1F51F}","\u{1F9EE}"],\r\n  Real: ["\u{1F522}","\u2797","\u{1F4D0}","\u{1F4CA}","\u{1F52C}","\u{1F523}"],\r\n  Double: ["\u{1F522}","\u{1F52C}","\u{1F4C8}","\u{1F4C9}","\u{1F523}","\u{1F50E}"],\r\n  Byte: ["\u{1F4E6}","\u{1F522}","\u{1F538}","\u{1F537}"],\r\n  Octet: ["\u{1F39B}\uFE0F","\u{1F522}","\u{1F538}","\u{1F537}"],\r\n  Character: ["\u{1F524}","\u{1F521}","\u{1F520}","\u{1F523}","\u2733\uFE0F"],\r\n\r\n  String: ["\u{1F524}","\u{1F4DD}","\u{1F4C4}","\u{1F4DC}","\u{1F5D2}\uFE0F","\u{1F50E}"],\r\n  Uri: ["\u{1F517}","\u{1F310}","\u{1F4CE}","\u{1F50D}","\u{1F4C1}","\u{1F9ED}"],\r\n\r\n  # Aggregate<T> (abstract): ["\u{1F5C3}\uFE0F","\u{1F4E6}","\u{1F4DA}","\u{1F4D1}","\u{1F9E9}"],\r\n  List: ["\u{1F4DC}","\u{1F4CB}","\u{1F4D1}","\u{1F522}","\u{1F4DA}","\u{1F9FE}"],\r\n  Array: ["\u{1F522}","\u{1F4E6}","\u{1F4DA}","\u{1F4CA}","\u{1F9FE}","\u{1F4D1}"],\r\n  Set: ["\u{1F522}","\u{1F9E9}","\u{1F4DA}","\u{1F4D1}","\u2705","\u{1F501}"],\r\n  Hash: ["\u{1F510}","\u{1F4C7}","\u{1F5C2}\uFE0F","\u{1F4C1}","\u{1F50E}","\u{1F9FE}"],\r\n\r\n  Interval: ["\u2194\uFE0F","\u27F7","\u2013","\u2014","\u{1F4CF}","\u{1F522}"]\r\n} }\r\n# good sources for icons:\r\n# http://xahlee.info/comp/unicode_index.html?q=\r\n# http://emojipedia.org/\r\n';
+
+// enhanced/serialization/zipehr/symbol_map.ts
+var cachedSymbolMap = null;
+async function loadDefaultSymbolMap() {
+  if (cachedSymbolMap)
+    return cachedSymbolMap;
+  cachedSymbolMap = loadSymbolMapFromText(table3_text_default);
+  return cachedSymbolMap;
+}
+function buildReverseSymbolMap(map2) {
+  const reverse = /* @__PURE__ */ new Map();
+  const seenTypes = /* @__PURE__ */ new Set();
+  for (const [typeName2, symbol] of Object.entries(map2)) {
+    if (typeName2 !== typeName2.toUpperCase())
+      continue;
+    if (seenTypes.has(typeName2))
+      continue;
+    seenTypes.add(typeName2);
+    if (!reverse.has(symbol)) {
+      reverse.set(symbol, typeName2);
+    }
+  }
+  return reverse;
+}
+
+// enhanced/serialization/zipehr/compact.ts
+init_define_BUILD_INFO();
+var FLOW_YAML_CONFIG2 = Object.freeze({
+  mainStyle: "flow",
+  includeType: false,
+  useTypeInference: true,
+  useTerseFormat: true,
+  includeNullValues: false,
+  includeEmptyCollections: false,
+  archetypeNodeIdLocation: "after_name",
+  keepArchetypeDetailsInline: true
+});
+function getTermId(obj) {
+  const tid = obj.terminology_id;
+  if (!tid)
+    return "";
+  if (typeof tid === "object" && tid !== null) {
+    const t3 = tid;
+    return String(t3.value ?? t3._value ?? "");
+  }
+  return String(tid);
+}
+function toTerseCodePhrase2(obj) {
+  return `${getTermId(obj)}::${obj.code_string ?? obj.code ?? ""}`;
+}
+function toTerseDvCodedText2(obj) {
+  const dc = obj.defining_code ?? {};
+  const termId = getTermId(dc);
+  const code = dc.code_string ?? dc.code ?? "";
+  const value = obj.value ?? "";
+  return `${termId}::${code}|${value}|`;
+}
+function canUseTerseFormat(typeName2) {
+  return typeName2 === "CODE_PHRASE" || typeName2 === "DV_CODED_TEXT" || typeName2 === "DV_TEXT" || typeName2 === "ARCHETYPE_ID" || typeName2 === "TEMPLATE_ID" || typeName2 === "TERMINOLOGY_ID" || typeName2 === "OBJECT_VERSION_ID";
+}
+function toTerseValue(obj, typeName2) {
+  if (typeName2 === "CODE_PHRASE")
+    return toTerseCodePhrase2(obj);
+  if (typeName2 === "DV_CODED_TEXT")
+    return toTerseDvCodedText2(obj);
+  if (typeName2 === "DV_TEXT" || typeName2 === "TERMINOLOGY_ID" || typeName2 === "ARCHETYPE_ID" || typeName2 === "TEMPLATE_ID" || typeName2 === "OBJECT_VERSION_ID") {
+    return obj.value;
+  }
+  return void 0;
+}
+function shouldIncludeType(typeName2, parentType, propertyName2, config) {
+  if (config.includeType) {
+    if (!config.useTypeInference)
+      return true;
+    if (!parentType || !propertyName2 || !typeName2)
+      return true;
+    const expected = inferType(propertyName2, parentType, { _type: typeName2 });
+    if (!expected)
+      return true;
+    if (POLYMORPHIC_TYPES.has(expected))
+      return true;
+    return typeName2 !== expected;
+  }
+  return false;
+}
+function reorderKeys(keys, config) {
+  if (config.archetypeNodeIdLocation !== "after_name" || !keys.includes("archetype_node_id")) {
+    return keys;
+  }
+  const rest = keys.filter((k2) => k2 !== "archetype_node_id");
+  if (!rest.includes("name"))
+    return keys;
+  const ordered = [];
+  for (const k2 of rest) {
+    ordered.push(k2);
+    if (k2 === "name")
+      ordered.push("archetype_node_id");
+  }
+  return ordered;
+}
+function toPlainObjectCompact(obj, parentType, propertyName2, config = FLOW_YAML_CONFIG2) {
+  if (obj === null || obj === void 0) {
+    return config.includeNullValues ? null : void 0;
+  }
+  if (typeof obj !== "object")
+    return obj;
+  if (Array.isArray(obj)) {
+    const result3 = obj.map((item) => toPlainObjectCompact(item, parentType, propertyName2, config)).filter((item) => item !== void 0);
+    if (result3.length === 0 && !config.includeEmptyCollections) {
+      return void 0;
+    }
+    return result3;
+  }
+  const typed = obj;
+  const typeName2 = resolveType(obj, parentType, propertyName2);
+  if (config.useTerseFormat && typeName2 && canUseTerseFormat(typeName2)) {
+    const terse = toTerseValue(typed, typeName2);
+    if (terse !== void 0)
+      return terse;
+  }
+  const result2 = {};
+  if (config.includeType && shouldIncludeType(typeName2, parentType, propertyName2, config) && typeName2) {
+    result2._type = typeName2;
+  }
+  let keys = Object.keys(typed).filter((k2) => {
+    if (k2 === "_type")
+      return false;
+    const v2 = typed[k2];
+    if ((v2 === null || v2 === void 0) && !config.includeNullValues) {
+      return false;
+    }
+    return true;
+  });
+  keys = reorderKeys(keys, config);
+  for (const key of keys) {
+    const plainValue2 = toPlainObjectCompact(
+      typed[key],
+      typeName2,
+      key,
+      config
+    );
+    if (plainValue2 !== void 0)
+      result2[key] = plainValue2;
+  }
+  const hasProps = Object.keys(result2).some((k2) => k2 !== "_type");
+  if (!hasProps && typeName2) {
+    return { _type: typeName2 };
+  }
+  if (!hasProps && !config.includeEmptyCollections)
+    return void 0;
+  return result2;
+}
+function jsonToCompactPlain(json2) {
+  return toPlainObjectCompact(json2, void 0, void 0, FLOW_YAML_CONFIG2);
+}
+
+// enhanced/serialization/zipehr/convert.ts
+init_define_BUILD_INFO();
+var STRUCTURAL_TYPES = /* @__PURE__ */ new Set(["ARCHETYPE_DETAILS"]);
+function promoteTerminologyFields(obj) {
+  for (const { field, prefix, emoji } of TERMINOLOGY_FIELD_PROMOTIONS) {
+    if (!Object.prototype.hasOwnProperty.call(obj, field))
+      continue;
+    const code = extractTerminologyFieldCode(obj[field], prefix, emoji);
+    if (code == null)
+      continue;
+    delete obj[field];
+    obj[emoji] = code;
+  }
+}
+function foldCompositionName(obj, symbolMap) {
+  const compositionSym = getSymbolFor(symbolMap, "COMPOSITION");
+  const isComposition = compositionSym && obj._ === compositionSym || obj._ === "COMPOSITION";
+  if (!isComposition || !Object.prototype.hasOwnProperty.call(obj, "name")) {
+    return obj;
+  }
+  const nameStr = extractFirstScalar(obj.name);
+  if (nameStr == null)
+    return obj;
+  const sym = compositionSym || "\u{1F582}";
+  const out = { [sym]: nameStr };
+  for (const k2 of Object.keys(obj)) {
+    if (k2 === "_" || k2 === "name")
+      continue;
+    out[k2] = obj[k2];
+  }
+  return out;
+}
+function applyZipehrShorthands(node, symbolMap) {
+  if (node === null)
+    return null;
+  if (Array.isArray(node)) {
+    return node.map((item) => applyZipehrShorthands(item, symbolMap));
+  }
+  if (typeof node !== "object")
+    return node;
+  let obj = node;
+  if (Object.prototype.hasOwnProperty.call(obj, "archetype_details")) {
+    const compacted = compactArchetypeDetails(obj.archetype_details);
+    if (compacted !== obj.archetype_details) {
+      obj = { ...obj, archetype_details: compacted };
+    }
+  }
+  obj = foldCompositionName(obj, symbolMap);
+  promoteTerminologyFields(obj);
+  const out = {};
+  for (const k2 of Object.keys(obj)) {
+    out[k2] = applyZipehrShorthands(obj[k2], symbolMap);
+  }
+  return out;
+}
+function formatCodePhraseValue(obj) {
+  let termId;
+  const tid = obj.terminology_id;
+  if (tid) {
+    if (typeof tid === "object" && tid !== null) {
+      const t3 = tid;
+      termId = String(t3.value ?? t3._value ?? "");
+    } else {
+      termId = String(tid);
+    }
+  }
+  const code = obj.code_string ?? obj.code ?? "";
+  const preferred = obj.preferred_term ?? obj.preferred;
+  let valueStr = "";
+  if (termId)
+    valueStr += termId + "::";
+  valueStr += String(code);
+  if (preferred)
+    valueStr += "|" + preferred + "|";
+  return shortenTerseString(valueStr);
+}
+function convertObjectDirectInner(obj, symbolMap) {
+  if (obj === null)
+    return null;
+  if (Array.isArray(obj)) {
+    return obj.map((e2) => convertObjectDirectInner(e2, symbolMap));
+  }
+  if (typeof obj !== "object")
+    return obj;
+  const typed = obj;
+  if (Object.prototype.hasOwnProperty.call(typed, "_type")) {
+    const t3 = String(typed._type);
+    if (t3 === "CODE_PHRASE") {
+      const symbol = getSymbolFor(symbolMap, "CODE_PHRASE") || "\u{1F3F7}\uFE0F";
+      return { [symbol]: formatCodePhraseValue(typed) };
+    }
+    if (t3.startsWith("DV_")) {
+      const symbol = getSymbolFor(symbolMap, t3) || t3;
+      const out3 = {};
+      if (Object.prototype.hasOwnProperty.call(typed, "value")) {
+        out3[symbol] = convertObjectDirectInner(typed.value, symbolMap);
+        for (const k2 of Object.keys(typed)) {
+          if (k2 === "_type" || k2 === "value")
+            continue;
+          out3[k2] = convertObjectDirectInner(typed[k2], symbolMap);
+        }
+        return out3;
+      }
+      const inner = {};
+      for (const k2 of Object.keys(typed)) {
+        if (k2 === "_type")
+          continue;
+        inner[k2] = convertObjectDirectInner(typed[k2], symbolMap);
+      }
+      out3[symbol] = Object.keys(inner).length === 0 ? null : inner;
+      return out3;
+    }
+    const sym = getSymbolFor(symbolMap, t3) || t3;
+    if (Object.prototype.hasOwnProperty.call(typed, "name") && Object.prototype.hasOwnProperty.call(typed, "archetype_node_id")) {
+      const convName = convertObjectDirectInner(typed.name, symbolMap);
+      const convArch = convertObjectDirectInner(
+        typed.archetype_node_id,
+        symbolMap
+      );
+      const nameStr = extractFirstScalar(convName) || "";
+      const archStr = extractFirstScalar(convArch) || "";
+      const out3 = { [sym]: `${nameStr}[${archStr}]` };
+      for (const k2 of Object.keys(typed)) {
+        if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id") {
+          continue;
+        }
+        out3[k2] = convertObjectDirectInner(typed[k2], symbolMap);
+      }
+      return out3;
+    }
+    const out2 = { _: sym };
+    for (const k2 of Object.keys(typed)) {
+      if (k2 === "_type")
+        continue;
+      out2[k2] = convertObjectDirectInner(typed[k2], symbolMap);
+    }
+    return out2;
+  }
+  const out = {};
+  for (const k2 of Object.keys(typed)) {
+    out[k2] = convertObjectDirectInner(typed[k2], symbolMap);
+  }
+  return out;
+}
+function convertObjectDirect(obj, symbolMap) {
+  return applyZipehrShorthands(
+    convertObjectDirectInner(obj, symbolMap),
+    symbolMap
+  );
+}
+function wrapCodePhraseString(terseStr, symbolMap) {
+  const symbol = getSymbolFor(symbolMap, "CODE_PHRASE") || "\u{1F3F7}\uFE0F";
+  return { [symbol]: shortenTerseString(terseStr) };
+}
+function wrapDvCodedTextString(terseStr, symbolMap) {
+  const parsed = parseTerseDvCodedText2(terseStr);
+  if (!parsed) {
+    const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "\u{1F5C8}";
+    return { [symbol]: shortenTerseString(terseStr) };
+  }
+  const dvSym = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "\u{1F5C8}";
+  const cpSym = getSymbolFor(symbolMap, "CODE_PHRASE") || "\u{1F3F7}\uFE0F";
+  const codeStr = shortenTerseString(`${parsed.termId}::${parsed.code}`);
+  return {
+    [dvSym]: parsed.value,
+    defining_code: { [cpSym]: codeStr }
+  };
+}
+function wrapDvScalar(typeName2, scalar, symbolMap) {
+  const symbol = getSymbolFor(symbolMap, typeName2) || typeName2;
+  return { [symbol]: scalar };
+}
+function isTerseCodePhraseCompat(str, original) {
+  if (typeof str !== "string")
+    return false;
+  if (/^[^:]+::[^|]+$/.test(str))
+    return true;
+  return !!(original && typeof original === "object" && !Array.isArray(original) && original._type === "CODE_PHRASE");
+}
+function applyEmojiToCompact(compact, original, symbolMap, parentType, propertyName2) {
+  if (compact === void 0) {
+    if (original && typeof original === "object" && !Array.isArray(original)) {
+      const typed = original;
+      if (typed._type) {
+        const sym2 = getSymbolFor(symbolMap, typed._type) || typed._type;
+        return { _: sym2 };
+      }
+    }
+    return void 0;
+  }
+  if (compact === null)
+    return null;
+  if (Array.isArray(compact)) {
+    const origArr = Array.isArray(original) ? original : [];
+    return compact.map(
+      (item, i3) => applyEmojiToCompact(
+        item,
+        origArr[i3],
+        symbolMap,
+        parentType,
+        propertyName2
+      )
+    );
+  }
+  if (typeof compact !== "object") {
+    const typeName3 = resolveType(original, parentType, propertyName2);
+    if (propertyName2 === "archetype_id" || propertyName2 === "template_id") {
+      return { value: compact };
+    }
+    if (typeof compact === "string") {
+      if (typeName3 === "CODE_PHRASE" || isTerseCodePhraseCompat(compact, original)) {
+        return wrapCodePhraseString(compact, symbolMap);
+      }
+      if (typeName3 === "DV_CODED_TEXT" || isTerseDvCodedText2(compact)) {
+        return wrapDvCodedTextString(compact, symbolMap);
+      }
+      if (typeName3 && typeName3.startsWith("DV_")) {
+        return wrapDvScalar(typeName3, compact, symbolMap);
+      }
+    }
+    return compact;
+  }
+  const compactObj = compact;
+  const origObj = original && typeof original === "object" && !Array.isArray(original) ? original : void 0;
+  if (compactObj._type && Object.keys(compactObj).length === 1) {
+    const sym2 = getSymbolFor(symbolMap, String(compactObj._type)) || String(compactObj._type);
+    return { _: sym2 };
+  }
+  const typeName2 = origObj && origObj._type || compactObj._type || resolveType(original, parentType, propertyName2);
+  if (Object.keys(compactObj).length === 1 && Object.prototype.hasOwnProperty.call(compactObj, "value") && !Object.prototype.hasOwnProperty.call(compactObj, "_type")) {
+    const dvType = resolveType(original, parentType, propertyName2);
+    if (dvType && dvType.startsWith("DV_")) {
+      return wrapDvScalar(dvType, compactObj.value, symbolMap);
+    }
+  }
+  if (origObj && Object.prototype.hasOwnProperty.call(origObj, "name") && Object.prototype.hasOwnProperty.call(origObj, "archetype_node_id")) {
+    const sym2 = getSymbolFor(symbolMap, String(typeName2 ?? "")) || String(typeName2 ?? "LOCATABLE");
+    const nameStr = typeof compactObj.name === "string" ? compactObj.name : extractFirstScalar(compactObj.name) || extractFirstScalar(origObj.name) || "";
+    const archStr = compactObj.archetype_node_id != null ? String(compactObj.archetype_node_id) : String(origObj.archetype_node_id || "");
+    const out2 = { [String(sym2)]: `${nameStr}[${archStr}]` };
+    for (const k2 of Object.keys(compactObj)) {
+      if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id")
+        continue;
+      out2[k2] = applyEmojiToCompact(
+        compactObj[k2],
+        origObj[k2],
+        symbolMap,
+        String(typeName2),
+        k2
+      );
+    }
+    return out2;
+  }
+  if (typeName2 && String(typeName2).startsWith("DV_") && !Object.prototype.hasOwnProperty.call(compactObj, "value")) {
+    const symbol = getSymbolFor(symbolMap, String(typeName2)) || typeName2;
+    const inner = {};
+    for (const k2 of Object.keys(compactObj)) {
+      if (k2 === "_type")
+        continue;
+      inner[k2] = applyEmojiToCompact(
+        compactObj[k2],
+        origObj && origObj[k2],
+        symbolMap,
+        String(typeName2),
+        k2
+      );
+    }
+    return {
+      [String(symbol)]: Object.keys(inner).length === 0 ? null : inner
+    };
+  }
+  if (STRUCTURAL_TYPES.has(String(typeName2))) {
+    const out2 = {};
+    for (const k2 of Object.keys(compactObj)) {
+      if (k2 === "_type")
+        continue;
+      out2[k2] = applyEmojiToCompact(
+        compactObj[k2],
+        origObj && origObj[k2],
+        symbolMap,
+        String(typeName2),
+        k2
+      );
+    }
+    return out2;
+  }
+  const sym = getSymbolFor(symbolMap, String(typeName2));
+  const out = {};
+  if (sym || typeName2 && typeName2 !== "Object") {
+    out._ = sym || typeName2;
+  }
+  for (const k2 of Object.keys(compactObj)) {
+    if (k2 === "_type")
+      continue;
+    out[k2] = applyEmojiToCompact(
+      compactObj[k2],
+      origObj && origObj[k2],
+      symbolMap,
+      String(typeName2),
+      k2
+    );
+  }
+  return out;
+}
+function convertObjectEhrtslib(obj, symbolMap) {
+  const compact = jsonToCompactPlain(obj);
+  return applyZipehrShorthands(
+    applyEmojiToCompact(compact, obj, symbolMap, void 0, void 0),
+    symbolMap
+  );
+}
+
+// enhanced/serialization/zipehr/deserialize.ts
+init_define_BUILD_INFO();
+function expandCodePhraseTerse(terse) {
+  const expanded = expandTerseString(terse);
+  const parts = expanded.split("::");
+  const termId = parts[0] ?? "";
+  const rest = parts.slice(1).join("::");
+  const pipeIdx = rest.indexOf("|");
+  const code = pipeIdx >= 0 ? rest.slice(0, pipeIdx) : rest;
+  const result2 = {
+    _type: "CODE_PHRASE",
+    terminology_id: { _type: "TERMINOLOGY_ID", value: termId },
+    code_string: code
+  };
+  if (pipeIdx >= 0) {
+    const preferred = rest.slice(pipeIdx + 1).replace(/\|$/, "");
+    if (preferred)
+      result2.preferred_term = preferred;
+  }
+  return result2;
+}
+function expandDvCodedTextTerse(terse) {
+  const expanded = expandTerseString(terse);
+  const parsed = parseTerseDvCodedText2(expanded);
+  if (!parsed) {
+    return { _type: "DV_CODED_TEXT", value: expanded };
+  }
+  return {
+    _type: "DV_CODED_TEXT",
+    value: parsed.value,
+    defining_code: expandCodePhraseTerse(
+      `${parsed.termId}::${parsed.code}`
+    )
+  };
+}
+function expandTerseScalar(value, expectedType) {
+  const expanded = expandTerseString(value);
+  if (isTerseDvCodedText2(expanded))
+    return expandDvCodedTextTerse(expanded);
+  if (isTerseCodePhrase2(expanded))
+    return expandCodePhraseTerse(expanded);
+  if (expectedType === "DV_TEXT" || expectedType === "TERMINOLOGY_ID") {
+    return { _type: expectedType, value: expanded };
+  }
+  return expanded;
+}
+function parseLocatableFolded(value) {
+  const match = value.match(/^(.+)\[(.+)\]$/);
+  if (!match)
+    return null;
+  return { name: match[1], arch: match[2] };
+}
+function expandArchetypeDetails(details) {
+  const out = { _type: "ARCHETYPE_DETAILS" };
+  const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
+  const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
+  const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
+  if (details[tSym] != null) {
+    out.template_id = { value: details[tSym] };
+  }
+  if (details[aSym] != null) {
+    out.archetype_id = { value: details[aSym] };
+  }
+  if (details[rSym] != null) {
+    out.rm_version = details[rSym];
+  }
+  for (const k2 of Object.keys(details)) {
+    if (k2 === tSym || k2 === aSym || k2 === rSym)
+      continue;
+    out[k2] = details[k2];
+  }
+  return out;
+}
+function expandPromotedTerminology(obj) {
+  const out = { ...obj };
+  for (const { field, prefix, emoji } of TERMINOLOGY_FIELD_PROMOTIONS) {
+    if (!Object.prototype.hasOwnProperty.call(out, emoji))
+      continue;
+    const code = String(out[emoji]);
+    delete out[emoji];
+    out[field] = expandCodePhraseTerse(`${prefix}${code}`);
+  }
+  return out;
+}
+function typeFromSymbolKey(key, reverseMap, symbolMap) {
+  if (key === "_")
+    return void 0;
+  if (reverseMap.has(key))
+    return reverseMap.get(key);
+  if (key.startsWith("DV_"))
+    return key;
+  const fromMap = getSymbolFor(symbolMap, key);
+  if (fromMap === key)
+    return key;
+  return reverseMap.get(key);
+}
+function expandNode(node, parentType, propertyName2, reverseMap, symbolMap) {
+  if (node === null || node === void 0)
+    return node;
+  if (typeof node !== "object")
+    return node;
+  if (Array.isArray(node)) {
+    const itemType = parentType && propertyName2 ? PROPERTY_TYPE_MAP[parentType]?.[propertyName2] : void 0;
+    return node.map(
+      (item) => expandNode(item, parentType, propertyName2, reverseMap, symbolMap)
+    );
+  }
+  const obj = expandPromotedTerminology(node);
+  if (obj.archetype_details && typeof obj.archetype_details === "object") {
+    obj.archetype_details = expandArchetypeDetails(
+      obj.archetype_details
+    );
+  }
+  if (!reverseMap || !symbolMap) {
+    return obj;
+  }
+  const compositionSym = getSymbolFor(symbolMap, "COMPOSITION");
+  if (compositionSym && Object.prototype.hasOwnProperty.call(obj, compositionSym) && typeof obj[compositionSym] === "string") {
+    const name2 = String(obj[compositionSym]);
+    const out2 = {
+      _type: "COMPOSITION",
+      name: { _type: "DV_TEXT", value: name2 }
+    };
+    for (const k2 of Object.keys(obj)) {
+      if (k2 === compositionSym)
+        continue;
+      out2[k2] = expandNode(obj[k2], "COMPOSITION", k2, reverseMap, symbolMap);
+    }
+    return out2;
+  }
+  const symbolKeys = Object.keys(obj).filter((k2) => isSymbolKey(k2) && k2 !== "_");
+  const typeMarker = obj._;
+  if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "string") {
+    const symKey = symbolKeys[0];
+    const strVal = String(obj[symKey]);
+    const typeName2 = typeFromSymbolKey(symKey, reverseMap, symbolMap);
+    if (symKey === getSymbolFor(symbolMap, "CODE_PHRASE") || symKey === "\u{1F3F7}\uFE0F") {
+      return expandCodePhraseTerse(strVal);
+    }
+    const locatable = parseLocatableFolded(strVal);
+    if (locatable && typeName2) {
+      const out2 = {
+        _type: typeName2,
+        name: { _type: "DV_TEXT", value: locatable.name },
+        archetype_node_id: locatable.arch
+      };
+      for (const k2 of Object.keys(obj)) {
+        if (k2 === symKey)
+          continue;
+        out2[k2] = expandNode(obj[k2], typeName2, k2, reverseMap, symbolMap);
+      }
+      return out2;
+    }
+    if (typeName2 && typeName2.startsWith("DV_")) {
+      const expanded = expandTerseScalar(strVal, typeName2);
+      if (typeof expanded === "object")
+        return expanded;
+      const out2 = {
+        _type: typeName2,
+        value: expanded
+      };
+      for (const k2 of Object.keys(obj)) {
+        if (k2 === symKey)
+          continue;
+        out2[k2] = expandNode(obj[k2], typeName2, k2, reverseMap, symbolMap);
+      }
+      return out2;
+    }
+  }
+  if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "object") {
+    const symKey = symbolKeys[0];
+    const typeName2 = typeFromSymbolKey(symKey, reverseMap, symbolMap);
+    if (typeName2 && typeName2.startsWith("DV_")) {
+      const inner = expandNode(
+        obj[symKey],
+        typeName2,
+        void 0,
+        reverseMap,
+        symbolMap
+      );
+      const out2 = { _type: typeName2 };
+      if (inner && typeof inner === "object" && !Array.isArray(inner)) {
+        Object.assign(out2, inner);
+      } else {
+        out2.value = inner;
+      }
+      for (const k2 of Object.keys(obj)) {
+        if (k2 === symKey)
+          continue;
+        out2[k2] = expandNode(obj[k2], typeName2, k2, reverseMap, symbolMap);
+      }
+      return out2;
+    }
+  }
+  let nodeType;
+  if (typeof typeMarker === "string") {
+    nodeType = reverseMap.get(typeMarker) ?? typeMarker;
+  }
+  const out = {};
+  if (nodeType)
+    out._type = nodeType;
+  for (const k2 of Object.keys(obj)) {
+    if (k2 === "_")
+      continue;
+    const v2 = obj[k2];
+    if (typeof v2 === "string" && isTerseCodePhrase2(expandTerseString(v2))) {
+      out[k2] = expandCodePhraseTerse(v2);
+      continue;
+    }
+    if (typeof v2 === "string" && isTerseDvCodedText2(expandTerseString(v2))) {
+      out[k2] = expandDvCodedTextTerse(v2);
+      continue;
+    }
+    out[k2] = expandNode(v2, nodeType, k2, reverseMap, symbolMap);
+  }
+  if (!out._type && nodeType)
+    out._type = nodeType;
+  return out;
+}
+function expandZipehrToCanonical(zipehrObj, symbolMap) {
+  const reverseMap = buildReverseSymbolMap(symbolMap);
+  return expandNode(zipehrObj, void 0, void 0, reverseMap, symbolMap);
+}
+
+// enhanced/serialization/zipehr/detect.ts
+init_define_BUILD_INFO();
+function hasZipehrMarkers(obj) {
+  if (obj === null || typeof obj !== "object")
+    return false;
+  if (Array.isArray(obj))
+    return obj.some(hasZipehrMarkers);
+  const record = obj;
+  for (const k2 of Object.keys(record)) {
+    if (isSymbolKey(k2))
+      return true;
+    if (k2 === "_" && typeof record[k2] === "string" && isSymbolKey(record[k2])) {
+      return true;
+    }
+    if (hasZipehrMarkers(record[k2]))
+      return true;
+  }
+  return false;
+}
+function hasCanonicalTypeMarker(obj) {
+  if (obj === null || typeof obj !== "object" || Array.isArray(obj))
+    return false;
+  return Object.prototype.hasOwnProperty.call(obj, "_type");
+}
+function looksLikeYaml(text) {
+  const trimmed = text.trim();
+  if (!trimmed)
+    return false;
+  if (trimmed.startsWith("{") || trimmed.startsWith("["))
+    return false;
+  return /^[\w#>-]/.test(trimmed) || trimmed.includes(":\n") || /^[\s]*[\w\p{Emoji}]/u.test(trimmed);
+}
+function looksLikeXml(text) {
+  return text.trim().startsWith("<");
+}
+function detectInputFormat(text) {
+  const trimmed = text.trim();
+  if (!trimmed)
+    return { kind: "unknown" };
+  if (looksLikeXml(trimmed)) {
+    return { kind: "canonical", format: "xml" };
+  }
+  if (looksLikeYaml(trimmed) || trimmed.startsWith("{")) {
+    try {
+      const parsed = parse3(trimmed);
+      if (parsed && typeof parsed === "object") {
+        if (hasZipehrMarkers(parsed)) {
+          const variant = looksLikeYaml(trimmed) && !trimmed.startsWith("{") ? "y-zipehr" : "j-zipehr";
+          return { kind: "zipehr", variant };
+        }
+        if (hasCanonicalTypeMarker(parsed)) {
+          return {
+            kind: "canonical",
+            format: looksLikeYaml(trimmed) && !trimmed.startsWith("{") ? "yaml" : "json"
+          };
+        }
+      }
+    } catch {
+    }
+  }
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object") {
+      if (hasZipehrMarkers(parsed)) {
+        return { kind: "zipehr", variant: "j-zipehr" };
+      }
+      if (hasCanonicalTypeMarker(parsed)) {
+        return { kind: "canonical", format: "json" };
+      }
+    }
+  } catch {
+  }
+  if (/[\u{1F300}-\u{1FAFF}]/u.test(trimmed)) {
+    const variant = looksLikeYaml(trimmed) && !trimmed.startsWith("{") ? "y-zipehr" : "j-zipehr";
+    return { kind: "zipehr", variant };
+  }
+  return { kind: "unknown" };
+}
+function parseZipehrText(text) {
+  const trimmed = text.trim();
+  const attempts = [
+    trimmed,
+    quoteSymbolKeysForJson(trimmed)
+  ];
+  for (const candidate of attempts) {
+    try {
+      const parsed = parse3(candidate);
+      if (parsed !== null && parsed !== void 0)
+        return parsed;
+    } catch {
+    }
+    try {
+      return JSON.parse(candidate);
+    } catch {
+    }
+  }
+  throw new Error("Unable to parse ZipEHR input as YAML or JSON");
+}
+function quoteSymbolKeysForJson(text) {
+  return text.replace(
+    /(^|[{\[,]\s*)([^\s"'{}\[\],:][^:]*?):/g,
+    (match, prefix, key) => {
+      const k2 = String(key).trim();
+      if (!k2 || k2.startsWith('"') || k2.startsWith("'"))
+        return match;
+      if (/^[\w$-]+$/.test(k2))
+        return match;
+      return `${prefix}"${k2}":`;
+    }
+  );
+}
+
+// enhanced/serialization/zipehr/flow_format.ts
+init_define_BUILD_INFO();
+
+// enhanced/serialization/zipehr/serializer.ts
+init_define_BUILD_INFO();
+function rmToCanonicalPlain(obj) {
+  const serializer = new JsonCanonicalSerializer();
+  const json2 = serializer.serialize(obj, { prettyPrint: false });
+  return JSON.parse(json2);
+}
+async function serializeToJZipehr(obj) {
+  const symbolMap = await loadDefaultSymbolMap();
+  const canonical = rmToCanonicalPlain(obj);
+  const converted = convertObjectDirect(canonical, symbolMap);
+  return JSON.stringify(converted, null, 2);
+}
+async function serializeToYZipehr(obj) {
+  const symbolMap = await loadDefaultSymbolMap();
+  const canonical = rmToCanonicalPlain(obj);
+  const converted = convertObjectEhrtslib(canonical, symbolMap);
+  return serializeZipehrPlainToYaml(converted);
+}
+function serializeZipehrPlainToYaml(obj) {
+  const doc2 = new Document3(obj);
+  applyHybridFormatting(doc2.contents, 0);
+  return doc2.toString({
+    indent: 2,
+    lineWidth: 120,
+    defaultStringType: "QUOTE_DOUBLE",
+    defaultKeyType: "PLAIN"
+  });
+}
+function applyHybridFormatting(node, depth) {
+  if (!node || typeof node !== "object")
+    return;
+  if (isMap(node)) {
+    const obj = {};
+    for (const item of node.items) {
+      const keyNode = item.key;
+      if (keyNode && typeof keyNode === "object" && "value" in keyNode && item.value !== void 0) {
+        obj[String(keyNode.value)] = item.value;
+      }
+    }
+    const inline = HybridStyleFormatter.shouldFormatInline(obj, {
+      maxInlineDepth: 1,
+      maxInlineProperties: 4,
+      maxInlineLength: 120
+    });
+    if (!inline) {
+      node.flow = false;
+    } else {
+      node.flow = true;
+    }
+    for (const item of node.items) {
+      if (item.value)
+        applyHybridFormatting(item.value, depth + 1);
+    }
+    return;
+  }
+  if (isSeq(node)) {
+    const arr = [];
+    for (const item of node.items) {
+      arr.push(item);
+    }
+    const inline = HybridStyleFormatter.shouldFormatInline(arr, {
+      maxInlineDepth: 1,
+      maxInlineProperties: 4
+    });
+    node.flow = inline;
+    for (const item of node.items) {
+      applyHybridFormatting(item, depth + 1);
+    }
+  }
+}
+async function zipehrTextToCanonical(text) {
+  const symbolMap = await loadDefaultSymbolMap();
+  const parsed = parseZipehrText(text);
+  return expandZipehrToCanonical(parsed, symbolMap);
+}
+
 // examples/demo-app/src/converter.ts
 var typeRegistryInitialized = false;
 function initializeTypeRegistry() {
@@ -49388,7 +50627,7 @@ async function convert(input, options) {
   try {
     const inputMode = options.inputMode === "template-adgit" ? "template" : options.inputMode;
     if (inputMode === "template") {
-      return convertTemplateInput(input, options);
+      return await convertTemplateInput(input, options);
     }
     const rmObject = await deserializeInput(
       input,
@@ -49416,6 +50655,12 @@ async function convert(input, options) {
             break;
           case "yaml":
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
+            break;
+          case "j-zipehr":
+            outputs["j-zipehr"] = await serializeToJZipehr(rmObject);
+            break;
+          case "y-zipehr":
+            outputs["y-zipehr"] = await serializeToYZipehr(rmObject);
             break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
@@ -49470,7 +50715,7 @@ async function convert(input, options) {
     };
   }
 }
-function convertTemplateInput(input, options) {
+async function convertTemplateInput(input, options) {
   const template = resolveOperationalTemplate(input, options);
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
@@ -49494,6 +50739,12 @@ function convertTemplateInput(input, options) {
         break;
       case "yaml":
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
+        break;
+      case "j-zipehr":
+        outputs["j-zipehr"] = await serializeToJZipehr(generatedInstance);
+        break;
+      case "y-zipehr":
+        outputs["y-zipehr"] = await serializeToYZipehr(generatedInstance);
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(
@@ -49620,8 +50871,51 @@ function formatLabelForFormat(format) {
       return "template";
   }
 }
+function resolveInputFormat(input, requested) {
+  if (requested === "zipehr") {
+    const detected2 = detectInputFormat(input);
+    if (detected2.kind === "zipehr") {
+      return {
+        format: detected2.variant === "y-zipehr" ? "yaml" : "json",
+        isZipehr: true,
+        zipehrVariant: detected2.variant
+      };
+    }
+    throw new Error(
+      "Input format set to ZipEHR but content does not look like j-zipehr or y-zipehr."
+    );
+  }
+  if (requested !== "auto") {
+    return { format: requested, isZipehr: false };
+  }
+  const detected = detectInputFormat(input);
+  if (detected.kind === "zipehr") {
+    return {
+      format: detected.variant === "y-zipehr" ? "yaml" : "json",
+      isZipehr: true,
+      zipehrVariant: detected.variant
+    };
+  }
+  if (detected.kind === "canonical") {
+    return { format: detected.format, isZipehr: false };
+  }
+  try {
+    JSON.parse(input.trim());
+    return { format: "json", isZipehr: false };
+  } catch {
+    return { format: "yaml", isZipehr: false };
+  }
+}
 async function deserializeInput(input, format, config) {
-  switch (format) {
+  const resolved = resolveInputFormat(input, format);
+  if (resolved.isZipehr) {
+    const canonical = await zipehrTextToCanonical(input);
+    const deserializer = new JsonConfigurableDeserializer(
+      config
+    );
+    return deserializer.deserialize(JSON.stringify(canonical));
+  }
+  switch (resolved.format) {
     case "json": {
       const deserializer = new JsonConfigurableDeserializer(
         config
@@ -49639,7 +50933,7 @@ async function deserializeInput(input, format, config) {
       return deserializer.deserialize(input);
     }
     default:
-      throw new Error(`Unsupported input format: ${format}`);
+      throw new Error(`Unsupported input format: ${resolved.format}`);
   }
 }
 function serializeToJson(obj, serializerType, config) {
@@ -71596,6 +72890,8 @@ var INPUT_EDITOR_IDS = ["input-text", "template-input-text"];
 var OUTPUT_EDITOR_IDS = [
   "output-json-content",
   "output-yaml-content",
+  "output-j-zipehr-content",
+  "output-y-zipehr-content",
   "output-markdown-content",
   "output-asciidoc-content",
   "output-typescript-content",
@@ -71607,6 +72903,8 @@ var OUTPUT_EDITOR_IDS = [
 var OUTPUT_EDITOR_LANGUAGES = {
   "output-json-content": "json",
   "output-yaml-content": "yaml",
+  "output-j-zipehr-content": "yaml",
+  "output-y-zipehr-content": "yaml",
   "output-typescript-content": "typescript",
   "output-xml-content": "xml",
   "output-flat-content": "json",
@@ -71847,7 +73145,7 @@ function initDemoEditors(options) {
 
 // examples/demo-app/src/main.ts
 var DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
-var currentInputFormat = "json";
+var currentInputFormat = "auto";
 var currentInputTab = "instance";
 var currentOutputs = {};
 var autoConvertEnabled = true;
@@ -71973,6 +73271,8 @@ function setupOutputVisibilityListeners() {
     "xml",
     "json",
     "yaml",
+    "j-zipehr",
+    "y-zipehr",
     "markdown",
     "asciidoc",
     "typescript",
@@ -72650,7 +73950,16 @@ function validateInput() {
       updateTemplateLanguageOptions();
       return;
     }
-    if (currentInputFormat === "json") {
+    if (currentInputFormat === "auto" || currentInputFormat === "zipehr") {
+      const resolved = resolveInputFormat(text, currentInputFormat);
+      if (resolved.isZipehr) {
+        validationText.textContent = `ZipEHR ${resolved.zipehrVariant ?? "detected"}`;
+      } else {
+        validationText.textContent = `Auto: ${resolved.format.toUpperCase()}`;
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+    } else if (currentInputFormat === "json") {
       JSON.parse(text);
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
@@ -72772,11 +74081,17 @@ function gatherConversionOptions() {
   if (document.getElementById("output-xml")?.checked) {
     outputFormats.push("xml");
   }
-  if (document.getElementById("output-json")?.checked) {
-    outputFormats.push("json");
-  }
   if (document.getElementById("output-yaml")?.checked) {
     outputFormats.push("yaml");
+  }
+  if (document.getElementById("output-j-zipehr")?.checked) {
+    outputFormats.push("j-zipehr");
+  }
+  if (document.getElementById("output-y-zipehr")?.checked) {
+    outputFormats.push("y-zipehr");
+  }
+  if (document.getElementById("output-json")?.checked) {
+    outputFormats.push("json");
   }
   if (document.getElementById("output-markdown")?.checked) {
     outputFormats.push("markdown");
@@ -72931,6 +74246,8 @@ function updateOutputs(outputs) {
     "xml",
     "json",
     "yaml",
+    "j-zipehr",
+    "y-zipehr",
     "markdown",
     "asciidoc",
     "typescript",
@@ -73449,6 +74766,8 @@ function downloadOutput(format) {
     xml: "xml",
     json: "json",
     yaml: "yaml",
+    "j-zipehr": "zipehr.json",
+    "y-zipehr": "zipehr.yaml",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts"
