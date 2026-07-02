@@ -92,7 +92,22 @@ Create library functionality and make sure the demo tool also allows convertion 
 
 Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
 
-## Phase 7d Better `.t.json` + GitHub file sets — done
+## Phase 7e — Simplified formats bidirectional (in progress)
+
+Library support for all six conversion directions:
+
+| Direction | API | Status |
+|-----------|-----|--------|
+| OPT → Web Template | `buildWebTemplate` | ✅ |
+| Web Template → OPT | `webTemplateToOpt`, `parseWebTemplate` | ✅ (approximate) |
+| RM → FLAT | `serializeToFlat` | ✅ |
+| FLAT → RM | `deserializeFromFlat` | ✅ |
+| RM → STRUCTURED | `serializeToStructured` | ✅ |
+| STRUCTURED → RM | `deserializeFromStructured` | ✅ |
+
+Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_field_maps.ts` aligned with `docs/reference_for_llms/simplified_formats.md`. Tests in `test_data/tests/serialization/simplified/`.
+
+## Phase 7d Better `.t.json` + GitHub file sets — partly done (likely not fully tested)
 - `parseTemplateJson` / `template_json` repository kind (Archetype Designer JSON AOM)
 - `normalizeBetterTemplateJson` — Better/AD export dialect (camelCase AM fields, occurrences, terminology codes, intervals; see [Discourse #4389](https://discourse.openehr.org/t/incompatibility-issues-when-using-archetype-designer-s-export-fileset-t-json-files/4389))
 - `ClinicalModelWorkspace`: `updateFileContent` / `exportFile` / `exportEntries` (dirty flag for future annotation editor), ZIP + read-only GitHub (`owner/repo@branch:path`, optional `GITHUB_TOKEN`)
@@ -107,7 +122,7 @@ Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/
 
 ## Remaining (Phase 8b+)
 - OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
-- More OET test compile with CKM archetype bank (needs larger fixture download)
+- More OET tests, compile with CKM archetype bank (needs larger fixture download)
 
 ## Phase X - dist and docs
 
@@ -115,7 +130,7 @@ Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/
   eficiently inside form engines etc.
 - Also make a (less lightweight) version that can be synchronously multiuser
   updated using Y.js or
-- Create build step to genenrate minivfed and web component versions
+- Create build step to genenrate minified and web component versions
 
 
 Create /dist directory and subdirectories with different distributions for
@@ -124,9 +139,4 @@ targeted purposes for example
 - simultaneous multi-user editing
 - complete release e.g. for making advanced tooling
 
-create end user docs using same format as openEHR specs include static website app for conversion and example generation
-
-## Phase Y - inspire future work
-- semi automated generation of python impl. - dont do myself
-= UI/form impl - started pencil-in project
-- ...
+create/update end user docs 

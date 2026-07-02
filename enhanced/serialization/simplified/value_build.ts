@@ -1,108 +1,130 @@
 /**
  * Build RM data-value objects from simplified format pipe-suffix fields.
+ *
+ * Value construction is driven by the declarative per-type maps in
+ * `dv_field_maps.ts`. Fields are keyed by pipe suffix; the empty-string key
+ * "" denotes the bare path key (no `|suffix`), with `value` accepted as an
+ * alias for compatibility with older payloads.
  */
 
+import { buildDvValue } from "./dv_field_maps.ts";
+
 type RmObject = Record<string, unknown>;
+type Fields = Record<string, string | number | boolean | null | undefined>;
 
-export function buildRmValue(
-  rmType: string,
-  fields: Record<string, string | number | boolean | null | undefined>,
-): RmObject {
-  const f = fields;
+export function buildRmValue(rmType: string, fields: Fields): RmObject {
+  return buildDvValue(rmType, fields);
+}
 
-  switch (rmType) {
-    case "DV_TEXT":
-      return { _type: "DV_TEXT", value: f.value };
-    case "DV_BOOLEAN":
-      return { _type: "DV_BOOLEAN", value: f.value };
-    case "DV_DATE_TIME":
-    case "DV_DATE":
-    case "DV_TIME":
-    case "DV_DURATION":
-      return { _type: rmType, value: f.value };
-    case "DV_QUANTITY":
-      return { _type: "DV_QUANTITY", magnitude: f.magnitude, units: f.unit };
-    case "DV_COUNT":
-      return { _type: "DV_COUNT", magnitude: f.magnitude };
-    case "DV_CODED_TEXT":
-      return {
-        _type: "DV_CODED_TEXT",
-        value: f.value,
-        defining_code: {
-          _type: "CODE_PHRASE",
-          terminology_id: {
-            _type: "TERMINOLOGY_ID",
-            value: f.terminology ?? "local",
-          },
-          code_string: f.code,
-        },
-      };
-    case "CODE_PHRASE":
-      return {
-        _type: "CODE_PHRASE",
-        terminology_id: {
-          _type: "TERMINOLOGY_ID",
-          value: f.terminology ?? "ISO_639-1",
-        },
-        code_string: f.code ?? f.value,
-      };
-    default:
-      if (f.value != null) return { _type: rmType, value: f.value };
-      if (f.magnitude != null) {
-        return { _type: rmType, magnitude: f.magnitude, units: f.unit };
-      }
-      return { _type: rmType };
-  }
+function bare(fields: Fields): string | number | boolean | undefined {
+  return fields[""] ?? fields.value ?? undefined;
 }
 
 export function applyContextFromFields(
   comp: RmObject,
   nodeId: string,
-  fields: Record<string, string | number | boolean | null | undefined>,
+  fields: Fields,
 ): void {
-  if (nodeId === "composer_name") {
-    if (fields.value != null) {
-      comp.composer = { _type: "PARTY_IDENTIFIED", name: String(fields.value) };
+  const ensureContext = (): RmObject => {
+    if (!comp.context || typeof comp.context !== "object") {
+      comp.context = { _type: "EVENT_CONTEXT" };
     }
-    return;
-  }
+    return comp.context as RmObject;
+  };
 
-  if (nodeId === "language") {
-    comp.language = {
-      _type: "CODE_PHRASE",
-      terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
-      code_string: String(fields.value ?? "en"),
-    };
-    return;
-  }
-
-  if (nodeId === "territory") {
-    comp.territory = {
-      _type: "CODE_PHRASE",
-      terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_3166-1" },
-      code_string: String(fields.value ?? "US"),
-    };
-    return;
-  }
-
-  if (nodeId === "time") {
-    if (fields.value != null) {
-      comp.context = comp.context ?? { _type: "EVENT_CONTEXT" };
-      (comp.context as RmObject).start_time = {
-        _type: "DV_DATE_TIME",
-        value: String(fields.value),
+  switch (nodeId) {
+    case "composer_name": {
+      const name = bare(fields);
+      if (name != null) {
+        comp.composer = { _type: "PARTY_IDENTIFIED", name: String(name) };
+      }
+      return;
+    }
+    case "composer_id": {
+      const id = bare(fields);
+      if (id == null) return;
+      const composer = (comp.composer ?? {
+        _type: "PARTY_IDENTIFIED",
+      }) as RmObject;
+      composer.external_ref = {
+        _type: "PARTY_REF",
+        id: { _type: "GENERIC_ID", value: String(id) },
+        type: "PARTY",
       };
+      comp.composer = composer;
+      return;
     }
-    return;
+    case "language": {
+      comp.language = {
+        _type: "CODE_PHRASE",
+        terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+        code_string: String(bare(fields) ?? "en"),
+      };
+      return;
+    }
+    case "territory": {
+      comp.territory = {
+        _type: "CODE_PHRASE",
+        terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_3166-1" },
+        code_string: String(bare(fields) ?? "US"),
+      };
+      return;
+    }
+    case "time": {
+      const t = bare(fields);
+      if (t != null) {
+        ensureContext().start_time = {
+          _type: "DV_DATE_TIME",
+          value: String(t),
+        };
+      }
+      return;
+    }
+    case "end_time": {
+      const t = bare(fields);
+      if (t != null) {
+        ensureContext().end_time = { _type: "DV_DATE_TIME", value: String(t) };
+      }
+      return;
+    }
+    case "location": {
+      const loc = bare(fields);
+      if (loc != null) ensureContext().location = String(loc);
+      return;
+    }
+    case "category": {
+      comp.category = buildRmValue("DV_CODED_TEXT", normalizeCoded(fields));
+      return;
+    }
+    case "setting": {
+      ensureContext().setting = buildRmValue(
+        "DV_CODED_TEXT",
+        normalizeCoded(fields),
+      );
+      return;
+    }
+    case "health_care_facility": {
+      const name = fields.name ?? bare(fields);
+      const id = fields.id;
+      if (name == null && id == null) return;
+      const facility: RmObject = { _type: "PARTY_IDENTIFIED" };
+      if (name != null) facility.name = String(name);
+      if (id != null) {
+        facility.external_ref = {
+          _type: "PARTY_REF",
+          id: { _type: "GENERIC_ID", value: String(id) },
+          type: "ORGANISATION",
+        };
+      }
+      ensureContext().health_care_facility = facility;
+      return;
+    }
   }
+}
 
-  if (nodeId === "category") {
-    comp.category = buildRmValue("DV_CODED_TEXT", fields);
-    return;
-  }
-
-  if (nodeId === "setting") {
-    comp.context = comp.context ?? { _type: "EVENT_CONTEXT" };
-    (comp.context as RmObject).setting = buildRmValue("DV_CODED_TEXT", fields);
-  }
+/** Accept `ctx/setting: "other care"` (bare value only) as coded-text value. */
+function normalizeCoded(fields: Fields): Fields {
+  if (fields.code != null || fields.value != null) return fields;
+  const b = bare(fields);
+  return b != null ? { ...fields, value: b } : fields;
 }

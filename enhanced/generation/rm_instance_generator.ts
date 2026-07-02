@@ -187,8 +187,12 @@ export class RMInstanceGenerator {
 
     const instance: Record<string, unknown> = { _type: rmType };
 
-    if (cObject.node_id && !rmType.startsWith("DV_")) {
-      instance.archetype_node_id = cObject.node_id;
+    // Archetype roots carry the archetype id as their node id in RM instances
+    const archetypeRef = cObject instanceof openehr_am.C_ARCHETYPE_ROOT
+      ? cObject.archetype_ref
+      : undefined;
+    if ((archetypeRef || cObject.node_id) && !rmType.startsWith("DV_")) {
+      instance.archetype_node_id = archetypeRef ?? cObject.node_id;
       if (LOCATABLE_TYPES.has(rmType)) {
         const label = this.locatableLabel(cObject, ctx);
         if (label) instance.name = this.dvText(label);

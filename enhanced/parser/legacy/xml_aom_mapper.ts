@@ -66,6 +66,15 @@ export function xsiType(node: Record<string, unknown>): string {
   return String(t).replace(/^.*:/, "");
 }
 
+/** Store a plain number bound on a Multiplicity_interval (typed Integer). */
+function setBound(
+  m: openehr_base.Multiplicity_interval,
+  key: "lower" | "upper",
+  value: number,
+): void {
+  (m as unknown as Record<string, unknown>)[key] = value;
+}
+
 export function parseMultiplicity(
   node: unknown,
 ): openehr_base.Multiplicity_interval | undefined {
@@ -73,8 +82,9 @@ export function parseMultiplicity(
   const n = node as Record<string, unknown>;
   const interval = (n.interval ?? n) as Record<string, unknown>;
   const m = new openehr_base.Multiplicity_interval();
-  if (interval.lower !== undefined) m.lower = Number(interval.lower);
-  if (interval.upper !== undefined) m.upper = Number(interval.upper);
+  // Runtime convention: plain numbers in lower/upper (declared as Integer)
+  if (interval.lower !== undefined) setBound(m, "lower", Number(interval.lower));
+  if (interval.upper !== undefined) setBound(m, "upper", Number(interval.upper));
   if (interval.lower_unbounded !== undefined) {
     m.lower_unbounded = interval.lower_unbounded === true ||
       interval.lower_unbounded === "true";
@@ -113,7 +123,7 @@ export function parseCardinality(
 function defaultContainerCardinality(): openehr_am.CARDINALITY {
   const card = new openehr_am.CARDINALITY();
   const interval = new openehr_base.Multiplicity_interval();
-  interval.lower = 0;
+  setBound(interval, "lower", 0);
   interval.upper_unbounded = true;
   card.interval = interval;
   return card;
@@ -165,10 +175,20 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   if (mapped === "C_QUANTITY") return parseCQuantity(n);
   if (mapped === "C_TERMINOLOGY_CODE") return parseCTerminologyCode(n);
   if (mapped === "C_CODED_TEXT") return parseCCodedText(n);
-  if (mapped === "C_STRING") return parseCString(n);
-  if (mapped === "C_INTEGER") return parseCInteger(n);
-  if (mapped === "C_REAL") return parseCReal(n);
-  if (mapped === "C_BOOLEAN") return parseCBoolean(n);
+  // The primitive constraint classes do not extend C_OBJECT in the generated
+  // model but carry equivalent runtime metadata (see ConstraintMeta).
+  if (mapped === "C_STRING") {
+    return parseCString(n) as unknown as openehr_am.C_OBJECT;
+  }
+  if (mapped === "C_INTEGER") {
+    return parseCInteger(n) as unknown as openehr_am.C_OBJECT;
+  }
+  if (mapped === "C_REAL") {
+    return parseCReal(n) as unknown as openehr_am.C_OBJECT;
+  }
+  if (mapped === "C_BOOLEAN") {
+    return parseCBoolean(n) as unknown as openehr_am.C_OBJECT;
+  }
 
   const fallback = new openehr_am.C_PRIMITIVE_OBJECT();
   fallback.rm_type_name = String(n.rm_type_name ?? type.replace(/^C_/, "DV_"));
@@ -186,9 +206,9 @@ export function parseOccurrencesOrMultiplicity(
       const lo = star[1];
       const hi = star[2];
       if (lo === "*") m.lower_unbounded = true;
-      else m.lower = Number(lo);
+      else setBound(m, "lower", Number(lo));
       if (hi === "*") m.upper_unbounded = true;
-      else m.upper = Number(hi);
+      else setBound(m, "upper", Number(hi));
       return m;
     }
   }
@@ -208,12 +228,25 @@ function amFieldString(
   return undefined;
 }
 
+/**
+ * Structural view of constraint-node metadata. The AM primitive constraint
+ * classes (C_STRING, C_INTEGER, …) do not extend C_OBJECT in the generated
+ * model, but the legacy OPT mapper decorates them with the same metadata at
+ * runtime so downstream consumers can treat them uniformly.
+ */
+type ConstraintMeta = {
+  occurrences?: openehr_base.Multiplicity_interval;
+  rm_type_name?: string;
+  node_id?: string;
+  range?: openehr_base.Multiplicity_interval;
+};
+
+function meta(target: unknown): ConstraintMeta {
+  return target as ConstraintMeta;
+}
+
 function applyOccurrence(
-  target: {
-    occurrences?: openehr_base.Multiplicity_interval;
-    rm_type_name?: string;
-    node_id?: string;
-  },
+  target: ConstraintMeta,
   n: Record<string, unknown>,
 ): void {
   const rm = amFieldString(n, "rm_type_name", "rmTypeName");
@@ -308,8 +341,8 @@ export function parseAttribute(
 
 function parseCString(n: Record<string, unknown>): openehr_am.C_STRING {
   const s = new openehr_am.C_STRING();
-  applyOccurrence(s, n);
-  if (!s.rm_type_name) s.rm_type_name = "STRING";
+  applyOccurrence(meta(s), n);
+  if (!meta(s).rm_type_name) meta(s).rm_type_name = "STRING";
   if (n.pattern) s.pattern = String(n.pattern);
   const lists = asArray(n.list).map((x) =>
     String((x as Record<string, unknown>).value ?? x)
@@ -334,23 +367,23 @@ function constraintToRange(
 
 function parseCInteger(n: Record<string, unknown>): openehr_am.C_INTEGER {
   const i = new openehr_am.C_INTEGER();
-  applyOccurrence(i, n);
-  if (!i.rm_type_name) i.rm_type_name = "INTEGER";
-  i.range = constraintToRange(n);
+  applyOccurrence(meta(i), n);
+  if (!meta(i).rm_type_name) meta(i).rm_type_name = "INTEGER";
+  meta(i).range = constraintToRange(n);
   return i;
 }
 
 function parseCReal(n: Record<string, unknown>): openehr_am.C_REAL {
   const r = new openehr_am.C_REAL();
-  applyOccurrence(r, n);
-  if (!r.rm_type_name) r.rm_type_name = "REAL";
-  r.range = constraintToRange(n);
+  applyOccurrence(meta(r), n);
+  if (!meta(r).rm_type_name) meta(r).rm_type_name = "REAL";
+  meta(r).range = constraintToRange(n);
   return r;
 }
 
 function parseCBoolean(n: Record<string, unknown>): openehr_am.C_BOOLEAN {
   const b = new openehr_am.C_BOOLEAN();
-  applyOccurrence(b, n);
+  applyOccurrence(meta(b), n);
   if (n.true_valid !== undefined) {
     b.true_valid = n.true_valid === true || n.true_valid === "true";
   }

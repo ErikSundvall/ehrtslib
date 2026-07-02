@@ -17,6 +17,13 @@ export interface StructuredSerializerOptions {
 
 type StructuredValue = Record<string, unknown>;
 
+/** Drop trailing entries matching `isEmpty` (keeps inner gaps as null). */
+function trimTrailing<T>(arr: T[], isEmpty: (e: T) => boolean): T[] {
+  let end = arr.length;
+  while (end > 0 && isEmpty(arr[end - 1])) end--;
+  return arr.slice(0, end);
+}
+
 export class StructuredSerializer {
   private rootId: string;
   private instance: unknown;
@@ -68,19 +75,17 @@ export class StructuredSerializer {
     const ctx: StructuredValue = {};
     for (const node of nodes) {
       const fields = extractContextField(this.instance, node.id);
-      if (
-        node.inputs?.length &&
-        (fields.code != null || fields.terminology != null)
-      ) {
+      const bare = fields[""] ?? fields.value;
+      const suffixed = Object.entries(fields).filter(
+        ([suffix]) => suffix !== "" && suffix !== "value",
+      );
+      if (suffixed.length) {
         const entry: StructuredValue = {};
-        for (const input of node.inputs) {
-          const suffix = input.suffix ?? "value";
-          const val = fields[suffix];
-          if (val != null) entry[`|${suffix}`] = val;
-        }
+        if (bare != null) entry["|value"] = bare;
+        for (const [suffix, val] of suffixed) entry[`|${suffix}`] = val;
         ctx[node.id] = [entry];
-      } else if (fields.value != null) {
-        ctx[node.id] = fields.value;
+      } else if (bare != null) {
+        ctx[node.id] = bare;
       }
     }
     return ctx;
@@ -106,18 +111,27 @@ export class StructuredSerializer {
 
     const isLeaf = node.inputs?.length && !node.children?.length;
     if (isLeaf) {
-      return nodeValues.flatMap((data) => {
+      // Preserve instance positions (null placeholders) so array indices
+      // stay aligned with FLAT `:n` occurrence indices; trim trailing gaps.
+      const entries0 = nodeValues.map((data): unknown => {
         const fields = extractValueFields(data, node.inputs);
-        if (!Object.keys(fields).length) return [];
-        const entry: StructuredValue = {};
-        for (const [suffix, value] of Object.entries(fields)) {
-          entry[`|${suffix}`] = value;
+        const entries = Object.entries(fields);
+        if (!entries.length) return null;
+        // Single bare field → primitive array entry (per spec examples,
+        // e.g. "time": ["2024-01-15T10:30:00Z"]).
+        if (entries.length === 1 && entries[0][0] === "") {
+          return entries[0][1];
         }
-        return [entry];
+        const entry: StructuredValue = {};
+        for (const [suffix, value] of entries) {
+          entry[suffix === "" ? "|value" : `|${suffix}`] = value;
+        }
+        return entry;
       });
+      return trimTrailing(entries0, (e) => e == null);
     }
 
-    const items: StructuredValue[] = [];
+    const items: (StructuredValue | null)[] = [];
     for (let i = 0; i < nodeValues.length; i++) {
       const currentData = nodeValues[i];
       const item: StructuredValue = {};
@@ -134,9 +148,9 @@ export class StructuredSerializer {
         );
         if (built.length) item[child.id] = built;
       }
-      if (Object.keys(item).length) items.push(item);
+      items.push(Object.keys(item).length ? item : null);
     }
-    return items;
+    return trimTrailing(items, (e) => e == null);
   }
 }
 

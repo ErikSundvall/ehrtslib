@@ -52,7 +52,9 @@ export function parseOptXml(source: string): OptXmlParseResult {
       root.language,
   );
   if (langCode) {
-    opt.original_language = langCode;
+    // Runtime convention across the codebase: plain language code string
+    // (the generated type declares Terminology_code).
+    opt.original_language = langCode as unknown as openehr_base.Terminology_code;
   }
 
   const defNode = root.definition;
@@ -74,12 +76,12 @@ export function parseOptXml(source: string): OptXmlParseResult {
   const termBag: Record<string, Record<string, { text?: string; description?: string }>> = {};
   collectTermDefinitions(defNode, termBag);
   if (Object.keys(termBag).length) {
-    opt.ontology = {
-      term_definitions: termBag,
-      term_bindings: {},
-      constraint_bindings: {},
-      value_sets: {},
-    };
+    const ontology = new openehr_am.ARCHETYPE_ONTOLOGY();
+    ontology.term_definitions = termBag;
+    ontology.term_bindings = {};
+    ontology.constraint_bindings = {};
+    ontology.value_sets = {};
+    opt.ontology = ontology;
   }
 
   if (root.concept) {

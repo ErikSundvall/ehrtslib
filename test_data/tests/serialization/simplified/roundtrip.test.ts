@@ -24,7 +24,7 @@ import {
 TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);
 
-const OPT_DIR = new URL("../../../test_data/opt14/", import.meta.url);
+const OPT_DIR = new URL("../../../opt14/", import.meta.url);
 
 function ctxCode(instance: Record<string, unknown>, field: "language" | "territory"): string | undefined {
   const obj = instance[field] as Record<string, unknown> | undefined;

@@ -13,7 +13,7 @@ import {
   validateFlatPayload,
 } from "../../../enhanced/serialization/simplified/mod.ts";
 
-const OPT_DIR = new URL("../../../test_data/opt14/", import.meta.url);
+const OPT_DIR = new URL("../../../opt14/", import.meta.url);
 
 Deno.test("buildWebTemplate - minimal_evaluation", async () => {
   const xml = await Deno.readTextFile(new URL("minimal_evaluation.opt", OPT_DIR));

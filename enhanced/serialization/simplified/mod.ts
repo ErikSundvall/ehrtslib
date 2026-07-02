@@ -58,6 +58,27 @@ export {
   validateFlatPayload,
 } from "./flat_validator.ts";
 
+export {
+  isWebTemplateJson,
+  parseWebTemplate,
+} from "./web_template_parser.ts";
+
+export {
+  WebTemplateToOptConverter,
+  webTemplateToOpt,
+} from "./web_template_to_opt.ts";
+
+export { toTypedRm } from "./typed_rm.ts";
+
+export {
+  buildDvValue,
+  extractFields,
+  fallbackFieldMap,
+  getFieldMap,
+  inputsForRmType,
+  resolveDvType,
+} from "./dv_field_maps.ts";
+
 export { countInstancesAtPath, resolveAtPath } from "./instance_nav.ts";
 export { extractContextField, extractValueFields } from "./value_extract.ts";
 export { applyContextFromFields, buildRmValue } from "./value_build.ts";

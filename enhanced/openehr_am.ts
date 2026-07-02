@@ -774,7 +774,7 @@ export abstract class C_OBJECT extends ARCHETYPE_CONSTRAINT {
   /**
    * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1).
    */
-  occurrences?: undefined;
+  occurrences?: openehr_base.Multiplicity_interval;
   /**
    * Internal storage for node_id
    * @protected
@@ -852,11 +852,11 @@ export abstract class C_ATTRIBUTE extends ARCHETYPE_CONSTRAINT {
   /**
    * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
    */
-  existence?: undefined;
+  existence?: openehr_base.Multiplicity_interval;
   /**
    * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes.
    */
-  children?: undefined;
+  children?: C_OBJECT[];
   /**
    * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
    * @returns Result value
@@ -1222,7 +1222,7 @@ export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
   /**
    * List of constraints on attributes of the reference model type represented by this object.
    */
-  attributes?: undefined;
+  attributes?: C_ATTRIBUTE[];
   /**
    * True if any value of the reference model type being constrained is allowed.
    * @returns Result value
@@ -5237,7 +5237,7 @@ export class CARDINALITY {
   /**
    * The interval of this cardinality.
    */
-  interval?: undefined;
+  interval?: openehr_base.Multiplicity_interval;
   /**
    * Internal storage for is_ordered
    * @protected
@@ -5456,6 +5456,29 @@ export class C_MULTIPLE_ATTRIBUTE extends C_ATTRIBUTE {
  * Local ontology of an archetype.
  */
 export class ARCHETYPE_ONTOLOGY {
+  /**
+   * Directory of term definitions as a two-level table. The outer hash keys
+   * are language codes, e.g. `"en"`, while the inner hash keys are term codes,
+   * e.g. `"at0004"`, mapping to term attribute records (text, description, …).
+   */
+  term_definitions?: Record<
+    string,
+    Record<string, { text?: string; description?: string }>
+  >;
+  /**
+   * Directory of bindings to external terminology codes, keyed by terminology
+   * id then term code.
+   */
+  term_bindings?: Record<string, Record<string, unknown>>;
+  /**
+   * Directory of constraint bindings, keyed by terminology id then constraint
+   * code.
+   */
+  constraint_bindings?: Record<string, Record<string, unknown>>;
+  /**
+   * Directory of locally defined value sets, keyed by value-set (ac) code.
+   */
+  value_sets?: Record<string, unknown>;
   /**
    * List of all term codes in the ontology. Most of these correspond to “at” codes in an ADL archetype, which are the node_ids on C_OBJECT descendants. There may be an extra one, if a different term is used as the overall archetype concept from that used as the node_id of the outermost C_OBJECT in the definition part.
    */

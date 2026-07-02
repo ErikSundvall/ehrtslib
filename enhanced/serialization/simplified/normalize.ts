@@ -1,15 +1,20 @@
 /**
- * Web Template node id normalisation (ITS-REST simplified formats).
+ * Web Template node id normalisation, following the "Node ID Generation
+ * Rules" of the ITS-REST simplified formats specification:
+ * 1. replace chars that are not Unicode-alphabetic, digit, `_`, `.` or `-`
+ *    with `_`; 2. collapse repeated `_`; 3. lowercase; 4. trim `_`;
+ * 5. empty → "id"; 6. leading digit → prepend "a".
  */
-
-/** Lowercase; non-alphanumeric → underscore; collapse repeats. */
 export function normalizeWebTemplateId(text: string): string {
-  return text
+  let id = text
     .trim()
+    .replace(/[^\p{L}\p{N}_.\-]+/gu, "_")
+    .replace(/_+/g, "_")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .replace(/_+/g, "_") || "node";
+    .replace(/^_+|_+$/g, "");
+  if (!id) id = "id";
+  if (/^\d/.test(id)) id = `a${id}`;
+  return id;
 }
 
 export function nodeIdToAtCode(nodeId?: string): string {
@@ -22,9 +27,12 @@ export function nodeIdToAtCode(nodeId?: string): string {
   return nodeId;
 }
 
+/**
+ * Root path segment for FLAT/STRUCTURED keys: the normalised template id
+ * (dots and dashes retained, e.g. "conformance-ehrbase.de.v0").
+ */
 export function templateRootId(templateId: string): string {
-  const base = templateId.split(".")[0] ?? templateId;
-  return normalizeWebTemplateId(base);
+  return normalizeWebTemplateId(templateId);
 }
 
 /** Join AQL path segments without duplicate slashes. */

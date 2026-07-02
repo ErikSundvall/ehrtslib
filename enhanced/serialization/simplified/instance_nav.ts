@@ -60,7 +60,15 @@ function valuesByNodeId(arr: unknown[], nodeId?: string): unknown[] {
   const found = arr.filter((item) =>
     nodeIdsMatch(rmProp(item, "archetype_node_id"), nodeId)
   );
-  return found.length ? found : arr.slice(0, 1);
+  if (found.length) return found;
+  // Fall back to unmatched items only when none of them carry a node id at
+  // all (e.g. hand-built instances); otherwise a wrong-node match would
+  // silently return another sibling's data.
+  const anyIds = arr.some((item) => {
+    const id = rmProp(item, "archetype_node_id");
+    return id != null && id !== "";
+  });
+  return anyIds ? [] : arr.slice(0, 1);
 }
 
 function filterByRmType(values: unknown[], rmType?: string): unknown[] {
@@ -90,7 +98,9 @@ export function resolveChildWebTemplateNodes(
     return filterByRmType(values, childNode.rmType);
   }
 
-  return filterByRmType(values, childNode.rmType);
+  // Child path is not under the parent path (e.g. sibling attribute);
+  // resolve it absolutely from the root instance.
+  return resolveAllAtWebTemplateNode(rootInstance, childNode);
 }
 
 /** Resolve instance data for a Web Template node, filtering by rmType when needed. */

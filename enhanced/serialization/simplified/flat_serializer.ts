@@ -23,6 +23,7 @@ function indexSuffix(max: number, index: number): string {
   return max !== 1 || index > 0 ? `:${index}` : "";
 }
 
+
 export class FlatSerializer {
   private out: FlatPayload = {};
   private rootId: string;
@@ -38,7 +39,18 @@ export class FlatSerializer {
   serialize(instance: unknown): FlatPayload {
     this.out = {};
     this.instance = instance;
-    this.walkNode(this.webTemplate.tree, [this.rootId], 0);
+    // FLAT keys carry a single root segment (the normalised template id);
+    // the tree root node itself contributes no extra path segment.
+    for (const child of this.webTemplate.tree.children ?? []) {
+      if (child.inContext) {
+        this.walkNode(child, [this.rootId], 0);
+        continue;
+      }
+      const values = resolveAllAtWebTemplateNode(instance, child);
+      for (let i = 0; i < values.length; i++) {
+        this.walkNode(child, [this.rootId], i, values[i]);
+      }
+    }
     return { ...this.out };
   }
 
@@ -67,24 +79,20 @@ export class FlatSerializer {
       : resolveAllAtWebTemplateNode(this.instance, node);
     if (!nodeValues.length) return;
 
-    const max = node.max === -1 ? Math.max(node.min, 1) : node.max;
-    const indexed = max !== 1;
-    const part = node.id + (indexed ? indexSuffix(max, index) : "");
+    const part = node.id + indexSuffix(node.max, index);
     const nextPath = [...pathParts, part];
 
     const isLeaf = node.inputs?.length && !node.children?.length;
+    const currentData = scope ?? nodeValues[index] ?? nodeValues[0];
 
     if (isLeaf) {
-      const data = nodeValues[index] ?? nodeValues[0];
-      const fields = extractValueFields(data, node.inputs);
+      const fields = extractValueFields(currentData, node.inputs);
       const base = joinFlatPath(nextPath);
       for (const [suffix, value] of Object.entries(fields)) {
-        this.out[`${base}|${suffix}`] = value;
+        this.out[suffix === "" ? base : `${base}|${suffix}`] = value;
       }
       return;
     }
-
-    const currentData = nodeValues[index] ?? nodeValues[0];
 
     if (node.children?.length) {
       for (const child of node.children) {
@@ -94,9 +102,8 @@ export class FlatSerializer {
           node,
           child,
         );
-        const repeats = Math.max(childValues.length, 1);
-        for (let i = 0; i < repeats; i++) {
-          this.walkNode(child, nextPath, i, childValues[i] ?? childValues[0]);
+        for (let i = 0; i < childValues.length; i++) {
+          this.walkNode(child, nextPath, i, childValues[i]);
         }
       }
     }
@@ -106,17 +113,22 @@ export class FlatSerializer {
     const fields = extractContextField(this.instance, node.id);
     if (node.inputs?.length) {
       for (const input of node.inputs) {
-        const suffix = input.suffix ?? "value";
-        const val = fields[suffix] ?? fields.value;
+        const suffix = input.suffix ?? "";
+        // "value" remains a legacy alias for the bare field
+        const val = fields[suffix] ??
+          (suffix === "" || suffix === "value"
+            ? fields[""] ?? fields.value
+            : undefined);
         if (val != null) {
-          const key = suffix === "value"
+          const key = suffix === "" || suffix === "value"
             ? `ctx/${node.id}`
             : `ctx/${node.id}|${suffix}`;
           this.out[key] = val;
         }
       }
-    } else if (fields.value != null) {
-      this.out[`ctx/${node.id}`] = fields.value;
+    } else {
+      const val = fields[""] ?? fields.value;
+      if (val != null) this.out[`ctx/${node.id}`] = val;
     }
   }
 }

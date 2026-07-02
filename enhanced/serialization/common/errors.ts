@@ -11,8 +11,8 @@ export class SerializationError extends Error {
     this.name = "SerializationError";
     
     // Maintain proper stack trace in V8 environments
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, SerializationError);
+    if ((Error as ErrorConstructor & { captureStackTrace?: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace) {
+      (Error as ErrorConstructor & { captureStackTrace: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace(this, SerializationError);
     }
   }
 }
@@ -30,8 +30,8 @@ export class DeserializationError extends Error {
     this.name = "DeserializationError";
     
     // Maintain proper stack trace in V8 environments
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, DeserializationError);
+    if ((Error as ErrorConstructor & { captureStackTrace?: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace) {
+      (Error as ErrorConstructor & { captureStackTrace: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace(this, DeserializationError);
     }
   }
 }
@@ -48,8 +48,8 @@ export class TypeNotFoundError extends DeserializationError {
     this.name = "TypeNotFoundError";
     
     // Maintain proper stack trace in V8 environments
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, TypeNotFoundError);
+    if ((Error as ErrorConstructor & { captureStackTrace?: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace) {
+      (Error as ErrorConstructor & { captureStackTrace: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace(this, TypeNotFoundError);
     }
   }
 }
@@ -67,8 +67,8 @@ export class InvalidFormatError extends DeserializationError {
     this.name = "InvalidFormatError";
     
     // Maintain proper stack trace in V8 environments
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, InvalidFormatError);
+    if ((Error as ErrorConstructor & { captureStackTrace?: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace) {
+      (Error as ErrorConstructor & { captureStackTrace: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace(this, InvalidFormatError);
     }
   }
 }

@@ -15,6 +15,15 @@ const ATTR_RM_TYPE: Record<string, string> = {
   other_participations: "PARTICIPATION",
 };
 
+/** Attributes that are containers (arrays) in the RM. */
+const ARRAY_ATTRS = new Set([
+  "content",
+  "items",
+  "events",
+  "activities",
+  "rows",
+]);
+
 function nodeIdsMatch(a: unknown, b: string): boolean {
   if (a == null) return false;
   const sa = String(a);
@@ -30,14 +39,23 @@ function findOrCreateInArray(
   arr: RmObject[],
   nodeId: string | undefined,
   rmType: string,
+  occurrence: number,
 ): RmObject {
   if (nodeId) {
-    const found = arr.find((item) =>
+    const matches = arr.filter((item) =>
       nodeIdsMatch(item.archetype_node_id, nodeId)
     );
-    if (found) return found;
+    if (occurrence < matches.length) return matches[occurrence];
+    // Create missing instances up to the requested occurrence
+    let created: RmObject | undefined;
+    for (let i = matches.length; i <= occurrence; i++) {
+      created = { _type: rmType, archetype_node_id: nodeId };
+      arr.push(created);
+    }
+    return created!;
   }
-  const item: RmObject = { _type: rmType, archetype_node_id: nodeId ?? null };
+  if (occurrence < arr.length) return arr[occurrence];
+  const item: RmObject = { _type: rmType, archetype_node_id: null };
   arr.push(item);
   return item;
 }
@@ -47,32 +65,44 @@ function ensureChild(
   attr: string,
   nodeId: string | undefined,
   rmType: string,
+  occurrence: number,
 ): RmObject {
   const existing = parent[attr];
   if (Array.isArray(existing)) {
-    return findOrCreateInArray(existing as RmObject[], nodeId, rmType);
+    return findOrCreateInArray(existing as RmObject[], nodeId, rmType, occurrence);
   }
-  if (existing && typeof existing === "object") {
+  if (existing && typeof existing === "object" && occurrence === 0) {
     return existing as RmObject;
   }
   const child: RmObject = { _type: rmType, archetype_node_id: nodeId ?? null };
-  if (attr === "content" || attr === "items" || attr === "events") {
-    parent[attr] = [child];
+  if (ARRAY_ATTRS.has(attr) || occurrence > 0) {
+    const arr: RmObject[] = existing && typeof existing === "object"
+      ? [existing as RmObject]
+      : [];
+    arr.push(child);
+    parent[attr] = arr;
   } else {
     parent[attr] = child;
   }
   return child;
 }
 
-function inferRmType(attr: string, leafRmType: string): string {
-  if (attr === "content") {
-    if (leafRmType === "DV_QUANTITY" || leafRmType.startsWith("DV_")) {
-      return "EVALUATION";
-    }
-    return "OBSERVATION";
-  }
+function inferRmType(attr: string): string {
+  if (attr === "content") return "OBSERVATION";
   return ATTR_RM_TYPE[attr] ?? "CLUSTER";
 }
+
+/**
+ * Occurrence hints for repeated ancestors: maps the number of AQL segments
+ * of the ancestor's path to the instance index to use at that depth.
+ */
+export type OccurrenceHints = Record<number, number>;
+
+/**
+ * RM type hints for intermediate nodes: maps the number of AQL segments of
+ * the ancestor's path to its RM type (known from the Web Template lineage).
+ */
+export type RmTypeHints = Record<number, string>;
 
 /**
  * Assign a data value at an AQL path, creating intermediate RM objects as needed.
@@ -83,6 +113,8 @@ export function assignAtAqlPath(
   leafValue: unknown,
   leafRmType: string,
   elementNodeId?: string,
+  occurrences?: OccurrenceHints,
+  rmTypes?: RmTypeHints,
 ): void {
   const normalized = aqlPath.replace(/\/+/g, "/");
   const segments = normalized.match(/\/[^/]+/g);
@@ -96,29 +128,55 @@ export function assignAtAqlPath(
     if (!m) continue;
     const [, attr, nodeId] = m;
     const isLast = si === segments.length - 1;
+    const occurrence = occurrences?.[si + 1] ?? 0;
 
     if (isLast) {
       const isDataValue = leafRmType.startsWith("DV_") ||
         leafRmType.startsWith("C_") ||
-        leafRmType === "CODE_PHRASE";
+        leafRmType === "CODE_PHRASE" ||
+        leafRmType.startsWith("PARTY_");
 
       if (isDataValue && attr === "items") {
-        const element: RmObject = {
-          _type: "ELEMENT",
-          archetype_node_id: elementNodeId ?? nodeId ?? null,
-          value: leafValue,
-        };
+        const elemNodeId = elementNodeId || nodeId || null;
         if (!Array.isArray(current.items)) current.items = [];
-        (current.items as RmObject[]).push(element);
+        const items = current.items as RmObject[];
+        // Idempotent per (node id, occurrence): alternative template nodes
+        // addressing the same RM node must not create duplicate elements.
+        const matches = elemNodeId
+          ? items.filter((it) =>
+            it._type === "ELEMENT" &&
+            nodeIdsMatch(it.archetype_node_id, elemNodeId)
+          )
+          : [];
+        if (occurrence < matches.length) {
+          matches[occurrence].value = leafValue;
+        } else {
+          items.push({
+            _type: "ELEMENT",
+            archetype_node_id: elemNodeId,
+            value: leafValue,
+          });
+        }
       } else if (isDataValue) {
         current[attr] = leafValue;
+      } else if (
+        leafValue != null && typeof leafValue === "object" &&
+        (leafValue as RmObject)._type
+      ) {
+        // Raw canonical JSON object for a non-data-value node
+        if (ARRAY_ATTRS.has(attr)) {
+          if (!Array.isArray(current[attr])) current[attr] = [];
+          (current[attr] as unknown[]).push(leafValue);
+        } else {
+          current[attr] = leafValue;
+        }
       } else {
-        ensureChild(current, attr, nodeId, leafRmType);
+        ensureChild(current, attr, nodeId, leafRmType, occurrence);
       }
       return;
     }
 
-    const rmType = inferRmType(attr, leafRmType);
-    current = ensureChild(current, attr, nodeId, rmType);
+    const rmType = rmTypes?.[si + 1] ?? inferRmType(attr);
+    current = ensureChild(current, attr, nodeId, rmType, occurrence);
   }
 }

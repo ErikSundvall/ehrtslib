@@ -106,6 +106,7 @@ export {
 // Simplified formats (Web Template, FLAT, STRUCTURED)
 export {
   buildWebTemplate,
+  WebTemplateBuilder,
   serializeToFlat,
   serializeToFlatJson,
   deserializeFromFlat,
@@ -116,7 +117,13 @@ export {
   deserializeFromStructuredJson,
   structuredToFlat,
   validateFlatPayload,
+  isWebTemplateJson,
+  parseWebTemplate,
+  webTemplateToOpt,
+  WebTemplateToOptConverter,
+  toTypedRm,
   type WebTemplate,
+  type WebTemplateNode,
   type FlatPayload,
   type FlatSerializerOptions,
   type StructuredSerializerOptions,

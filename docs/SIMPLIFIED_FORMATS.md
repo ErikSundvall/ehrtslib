@@ -11,15 +11,19 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 | Export | Purpose |
 |--------|---------|
 | `buildWebTemplate(opt)` | Build Web Template JSON from an operational template |
+| `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
+| `isWebTemplateJson(value)` | Detect Web Template JSON documents |
+| `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
 | `serializeToFlat(instance, wt)` | RM instance → FLAT key/value map |
 | `serializeToFlatJson(instance, wt)` | Same, JSON string |
-| `deserializeFromFlat(flat, wt)` | FLAT → RM instance (plain object) |
+| `deserializeFromFlat(flat, wt)` | FLAT → RM instance (plain object with `_type`) |
 | `deserializeFromFlatJson(json, wt)` | Same, from JSON string |
 | `serializeToStructured(instance, wt)` | RM instance → STRUCTURED nested object |
 | `serializeToStructuredJson(instance, wt)` | Same, JSON string |
 | `deserializeFromStructured(structured, wt)` | STRUCTURED → RM instance |
 | `structuredToFlat(structured, wt)` | STRUCTURED → FLAT (shared path) |
 | `validateFlatPayload(flat, wt)` | Validate FLAT keys against template schema |
+| `toTypedRm(plain)` | Plain `_type` tree → typed RM class instances |
 
 Re-exported from `enhanced/serialization/mod.ts`.
 
@@ -28,8 +32,11 @@ Re-exported from `enhanced/serialization/mod.ts`.
 ```
 OPT / ADL template  →  buildWebTemplate()  →  Web Template JSON
                               ↓
+Web Template JSON  →  webTemplateToOpt()  →  OPERATIONAL_TEMPLATE (approx.)
+                              ↓
 RM instance  ←→  serializeToFlat / deserializeFromFlat
               ←→  serializeToStructured / deserializeFromStructured
+              ←→  toTypedRm() for typed RM classes
 ```
 
 1. Parse template input to an `OPERATIONAL_TEMPLATE` (`parseTemplateInput`, `getOperationalTemplateFromInput`).
@@ -83,12 +90,14 @@ Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollab
 ## Limitations
 
 - Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal); terminology rubrics from OPT XML may be incomplete when term text is nested XML objects.
+- `webTemplateToOpt()` reconstructs an approximate operational template from a derived Web Template; constraint detail (value sets, invariants) is not preserved — sufficient for structural round-trip, instance generation, and FLAT/STRUCTURED (de)serialization.
 - Example instances from `RMInstanceGenerator` may omit primitive values on optional DV types; FLAT/STRUCTURED leaf keys appear only when RM values are populated.
-- Deserialization rebuilds plain RM object trees (not typed class instances); use `JsonCanonicalDeserializer` for typed RM objects when needed.
+- Deserialization returns plain RM object trees by default; use `toTypedRm()` (or `JsonCanonicalDeserializer`) for typed class instances.
 - Only template-scoped paths round-trip; extraneous RM metadata outside the Web Template is dropped.
+- DV field maps follow `docs/reference_for_llms/simplified_formats.md` (ITS-REST); bare-path keys for single-field types (`DV_TEXT`, `DV_DATE_TIME`, …) and `|suffix` for multi-field types.
 
 ## Tests
 
 ```bash
-deno test tests/serialization/simplified/ examples/demo-app/src/converter.template.test.ts --allow-read --no-check
+deno test test_data/tests/serialization/simplified/ examples/demo-app/src/converter.template.test.ts --allow-read --no-check
 ```

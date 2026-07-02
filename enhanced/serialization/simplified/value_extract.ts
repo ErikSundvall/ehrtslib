@@ -1,9 +1,15 @@
 /**
  * Extract typed attribute values from RM data-value objects for simplified formats.
+ *
+ * Field extraction is driven by the declarative per-type maps in
+ * `dv_field_maps.ts` (derived from the ITS-REST simplified formats spec).
+ * The returned record is keyed by pipe suffix; the empty-string key ""
+ * denotes the bare path key (no `|suffix`).
  */
 
 import { TypeRegistry } from "../common/type_registry.ts";
 import type { WebTemplateInput } from "./types.ts";
+import { extractFields, getFieldMap, rmProp } from "./dv_field_maps.ts";
 
 type RmObject = Record<string, unknown>;
 
@@ -14,120 +20,54 @@ function rmTypeName(obj: unknown): string {
   return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
 }
 
-function rmProp(obj: unknown, key: string): unknown {
-  if (obj == null || typeof obj !== "object") return undefined;
-  const record = obj as RmObject;
-  if (key in record) return record[key];
-
-  let proto = Object.getPrototypeOf(obj);
-  while (proto && proto !== Object.prototype) {
-    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-    if (descriptor?.get) {
-      try {
-        return descriptor.get.call(obj);
-      } catch {
-        return undefined;
-      }
-    }
-    proto = Object.getPrototypeOf(proto);
-  }
-  return undefined;
-}
-
-function str(v: unknown): string | undefined {
-  if (v == null) return undefined;
-  return String(v);
-}
-
-function num(v: unknown): number | undefined {
-  if (typeof v === "number") return v;
-  if (typeof v === "string" && v !== "") return Number(v);
-  return undefined;
-}
-
-/** Map RM data value object to pipe-suffix keyed fields. */
+/**
+ * Map RM data value object to pipe-suffix keyed fields ("" = bare key).
+ *
+ * When `inputs` are provided, extraction is limited to the declared suffixes
+ * (a declared input without `suffix` selects the bare field).
+ */
 export function extractValueFields(
   rmValue: unknown,
   inputs?: WebTemplateInput[],
 ): Record<string, string | number | boolean> {
   if (rmValue == null) return {};
 
-  const obj = rmValue as RmObject;
   const type = rmTypeName(rmValue);
-  const out: Record<string, string | number | boolean> = {};
+  let fields: Record<string, string | number | boolean>;
 
-  const suffixes = inputs?.map((i) => i.suffix).filter(Boolean) as
-    | string[]
-    | undefined;
-
-  const add = (suffix: string, value: unknown) => {
-    if (value == null) return;
-    if (typeof value === "boolean" || typeof value === "number") {
-      out[suffix] = value;
-    } else {
-      out[suffix] = String(value);
-    }
-  };
-
-  if (type === "DV_QUANTITY") {
-    add("magnitude", rmProp(rmValue, "magnitude"));
-    add("unit", rmProp(rmValue, "units"));
-  } else if (type === "DV_CODED_TEXT") {
-    const code = rmProp(rmValue, "defining_code") as RmObject | undefined;
-    add("code", rmProp(code, "code_string"));
-    add("value", rmProp(rmValue, "value"));
-    add("terminology", rmProp(rmProp(code, "terminology_id"), "value"));
-  } else if (type === "CODE_PHRASE") {
-    add("code", rmProp(rmValue, "code_string"));
-    add("terminology", rmProp(rmProp(rmValue, "terminology_id"), "value"));
-  } else if (
-    type === "DV_DATE_TIME" || type === "DV_DATE" || type === "DV_TIME" ||
-    type === "DV_DURATION"
-  ) {
-    add("value", rmProp(rmValue, "value"));
-  } else if (type === "DV_BOOLEAN") {
-    add("value", rmProp(rmValue, "value"));
-  } else if (
-    type === "DV_TEXT" || type === "DV_URI" || type === "DV_EHR_URI" ||
-    type === "DV_IDENTIFIER"
-  ) {
-    add("value", rmProp(rmValue, "value") ?? rmProp(rmValue, "id"));
-  } else if (type === "DV_COUNT" || type === "DV_PROPORTION") {
-    add(
-      "magnitude",
-      rmProp(rmValue, "magnitude") ?? rmProp(rmValue, "numerator"),
-    );
-    if (rmProp(rmValue, "units") != null) add("unit", rmProp(rmValue, "units"));
+  if (getFieldMap(type)) {
+    fields = extractFields(type, rmValue);
   } else {
-    // Fallback: honour declared inputs or generic value
-    if (suffixes?.length) {
-      for (const s of suffixes) {
-        if (s === "value") add("value", rmProp(rmValue, "value"));
-        else if (s === "code") {
-          add(
-            "code",
-            rmProp(rmProp(rmValue, "defining_code"), "code_string") ??
-              rmProp(rmValue, "code_string"),
-          );
-        } else if (s === "terminology") {
-          add(
-            "terminology",
-            rmProp(rmProp(rmValue, "terminology_id"), "value") ??
-              rmProp(
-                rmProp(rmProp(rmValue, "defining_code"), "terminology_id"),
-                "value",
-              ),
-          );
-        } else if (s === "magnitude") {
-          add("magnitude", num(rmProp(rmValue, "magnitude")));
-        } else if (s === "unit") add("unit", rmProp(rmValue, "units"));
-      }
-    } else if (rmProp(rmValue, "value") != null) {
-      add("value", rmProp(rmValue, "value"));
+    // Unknown type: try generic accessors guided by declared inputs.
+    fields = {};
+    const value = rmProp(rmValue, "value") ?? rmProp(rmValue, "id");
+    if (
+      value != null &&
+      (typeof value === "string" || typeof value === "number" ||
+        typeof value === "boolean")
+    ) {
+      fields[""] = value;
     }
+    const magnitude = rmProp(rmValue, "magnitude");
+    if (typeof magnitude === "number") fields.magnitude = magnitude;
+    const units = rmProp(rmValue, "units");
+    if (units != null) fields.unit = String(units);
   }
 
-  return out;
+  if (!inputs?.length) return fields;
+
+  const wanted = new Set(inputs.map((i) => i.suffix ?? ""));
+  const out: Record<string, string | number | boolean> = {};
+  for (const [suffix, v] of Object.entries(fields)) {
+    if (wanted.has(suffix)) {
+      out[suffix] = v;
+    } else if (suffix === "" && wanted.has("value")) {
+      // Legacy web templates declare an explicit "value" suffix for bare fields
+      out.value = v;
+    }
+  }
+  // Fall back to full extraction when the declared inputs matched nothing
+  return Object.keys(out).length ? out : fields;
 }
 
 /** Extract ctx/composition-level scalar or coded value. */
@@ -138,15 +78,34 @@ export function extractContextField(
   if (rmTypeName(instance) !== "COMPOSITION") return {};
 
   if (nodeId === "composer_name") {
-    const name = rmProp(instance, "composer") as RmObject | undefined;
-    const composerName = rmProp(name, "name");
-    return composerName != null ? { value: String(composerName) } : {};
+    const composer = rmProp(instance, "composer") as RmObject | undefined;
+    const composerName = rmProp(composer, "name");
+    return composerName != null ? { "": String(composerName) } : {};
   }
 
   if (nodeId === "time") {
     const ctx = rmProp(instance, "context") as RmObject | undefined;
     const t = rmProp(rmProp(ctx, "start_time"), "value");
-    return t != null ? { value: String(t) } : {};
+    return t != null ? { "": String(t) } : {};
+  }
+
+  if (nodeId === "end_time") {
+    const ctx = rmProp(instance, "context") as RmObject | undefined;
+    const t = rmProp(rmProp(ctx, "end_time"), "value");
+    return t != null ? { "": String(t) } : {};
+  }
+
+  if (nodeId === "location") {
+    const ctx = rmProp(instance, "context") as RmObject | undefined;
+    const loc = rmProp(ctx, "location");
+    return loc != null ? { "": String(loc) } : {};
+  }
+
+  if (nodeId === "setting") {
+    const ctx = rmProp(instance, "context") as RmObject | undefined;
+    const setting = rmProp(ctx, "setting");
+    if (setting == null) return {};
+    return extractValueFields(setting);
   }
 
   const direct = rmProp(instance, nodeId);
@@ -159,7 +118,7 @@ export function extractContextField(
 
   if (nodeId === "language" || nodeId === "territory") {
     const code = rmProp(direct, "code_string");
-    return code != null ? { value: String(code) } : {};
+    return code != null ? { "": String(code) } : {};
   }
 
   return extractValueFields(direct);
