@@ -9,6 +9,7 @@
 
 import { EXAMPLES } from "./examples.ts";
 import {
+  resolveInputFormat,
   type ConversionOptions,
   convert,
   getAsciidocConfigPreset,
@@ -53,7 +54,7 @@ import { initEditorDisplaySettings } from "./editor-settings.ts";
 const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 
 // Application state
-let currentInputFormat = "json";
+let currentInputFormat = "auto";
 let currentInputTab: InputMode = "instance";
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
@@ -242,6 +243,8 @@ function setupOutputVisibilityListeners() {
     "xml",
     "json",
     "yaml",
+    "j-zipehr",
+    "y-zipehr",
     "markdown",
     "asciidoc",
     "typescript",
@@ -1105,7 +1108,18 @@ function validateInput() {
       return;
     }
 
-    if (currentInputFormat === "json") {
+    if (
+      currentInputFormat === "auto" || currentInputFormat === "zipehr"
+    ) {
+      const resolved = resolveInputFormat(text, currentInputFormat as InputFormat);
+      if (resolved.isZipehr) {
+        validationText.textContent = `ZipEHR ${resolved.zipehrVariant ?? "detected"}`;
+      } else {
+        validationText.textContent = `Auto: ${resolved.format.toUpperCase()}`;
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+    } else if (currentInputFormat === "json") {
       JSON.parse(text);
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
@@ -1268,11 +1282,21 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById("output-xml") as HTMLInputElement)?.checked) {
     outputFormats.push("xml");
   }
-  if ((document.getElementById("output-json") as HTMLInputElement)?.checked) {
-    outputFormats.push("json");
-  }
   if ((document.getElementById("output-yaml") as HTMLInputElement)?.checked) {
     outputFormats.push("yaml");
+  }
+  if (
+    (document.getElementById("output-j-zipehr") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("j-zipehr");
+  }
+  if (
+    (document.getElementById("output-y-zipehr") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("y-zipehr");
+  }
+  if ((document.getElementById("output-json") as HTMLInputElement)?.checked) {
+    outputFormats.push("json");
   }
   if (
     (document.getElementById("output-markdown") as HTMLInputElement)?.checked
@@ -1536,6 +1560,8 @@ function updateOutputs(outputs: Record<string, string>) {
     "xml",
     "json",
     "yaml",
+    "j-zipehr",
+    "y-zipehr",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2096,6 +2122,8 @@ function downloadOutput(format: string) {
     xml: "xml",
     json: "json",
     yaml: "yaml",
+    "j-zipehr": "zipehr.json",
+    "y-zipehr": "zipehr.yaml",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",

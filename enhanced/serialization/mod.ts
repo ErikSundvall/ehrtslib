@@ -76,6 +76,21 @@ export {
   LOSSLESS_ASCIIDOC_CONFIG,
 } from './asciidoc/mod.ts';
 
+// ZipEHR exports
+export {
+  serializeToJZipehr,
+  serializeToYZipehr,
+  zipehrTextToCanonical,
+  detectInputFormat,
+  convertObjectDirect,
+  convertObjectEhrtslib,
+  expandZipehrToCanonical,
+  loadDefaultSymbolMap,
+  type ZipehrVariant,
+  type ZipehrOutputVariant,
+  type InputDetectionResult,
+} from './zipehr/mod.ts';
+
 // Common utilities
 export {
   TypeRegistry,

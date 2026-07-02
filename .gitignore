@@ -10,3 +10,11 @@ tasks/prd-phase4f1-simplified-object-creation.md.backup
 # Demo app build output
 examples/demo-app/dist/
 .pencil-export-test/DqEd3.png
+
+# Local test symlinks/junctions and hardlinks — recreate per machine (see AGENTS.md)
+test_data/enhanced
+test_data/openehr_am.ts
+test_data/openehr_base.ts
+test_data/openehr_lang.ts
+test_data/openehr_rm.ts
+test_data/openehr_term.ts

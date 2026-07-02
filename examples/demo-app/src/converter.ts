@@ -87,6 +87,13 @@ import {
   TypeRegistry,
 } from "../../../enhanced/serialization/common/mod.ts";
 
+import {
+  detectInputFormat,
+  serializeToJZipehr,
+  serializeToYZipehr,
+  zipehrTextToCanonical,
+} from "../../../enhanced/serialization/zipehr/mod.ts";
+
 // Import RM and Base modules for type registration
 import * as openehr_rm from "../../../enhanced/openehr_rm.ts";
 import * as openehr_base from "../../../enhanced/openehr_base.ts";
@@ -124,7 +131,7 @@ export function initializeTypeRegistry() {
 /**
  * Input format types
  */
-export type InputFormat = "xml" | "json" | "yaml";
+export type InputFormat = "auto" | "xml" | "json" | "yaml" | "zipehr";
 export type InputMode = "instance" | "template" | "template-adgit";
 export type TemplateGenerationMode = GenerationMode;
 
@@ -135,6 +142,8 @@ export type OutputFormat =
   | "xml"
   | "json"
   | "yaml"
+  | "j-zipehr"
+  | "y-zipehr"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -179,6 +188,8 @@ export interface ConversionResult {
     xml?: string;
     json?: string;
     yaml?: string;
+    "j-zipehr"?: string;
+    "y-zipehr"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -270,7 +281,7 @@ export async function convert(
       : options.inputMode;
 
     if (inputMode === "template") {
-      return convertTemplateInput(input, options);
+      return await convertTemplateInput(input, options);
     }
 
     // Step 1: Deserialize input to RM object
@@ -302,6 +313,12 @@ export async function convert(
             break;
           case "yaml":
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
+            break;
+          case "j-zipehr":
+            outputs["j-zipehr"] = await serializeToJZipehr(rmObject);
+            break;
+          case "y-zipehr":
+            outputs["y-zipehr"] = await serializeToYZipehr(rmObject);
             break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
@@ -360,10 +377,10 @@ export async function convert(
   }
 }
 
-function convertTemplateInput(
+async function convertTemplateInput(
   input: string,
   options: ConversionOptions,
-): ConversionResult {
+): Promise<ConversionResult> {
   const template = resolveOperationalTemplate(input, options);
 
   const generator = new RMInstanceGenerator({
@@ -389,6 +406,12 @@ function convertTemplateInput(
         break;
       case "yaml":
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
+        break;
+      case "j-zipehr":
+        outputs["j-zipehr"] = await serializeToJZipehr(generatedInstance);
+        break;
+      case "y-zipehr":
+        outputs["y-zipehr"] = await serializeToYZipehr(generatedInstance);
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(
@@ -534,6 +557,52 @@ function formatLabelForFormat(format: string | undefined): string {
 }
 
 /**
+ * Resolve effective input format (auto-detect zipehr j/y vs canonical).
+ */
+export function resolveInputFormat(
+  input: string,
+  requested: InputFormat,
+): { format: "xml" | "json" | "yaml"; isZipehr: boolean; zipehrVariant?: string } {
+  if (requested === "zipehr") {
+    const detected = detectInputFormat(input);
+    if (detected.kind === "zipehr") {
+      return {
+        format: detected.variant === "y-zipehr" ? "yaml" : "json",
+        isZipehr: true,
+        zipehrVariant: detected.variant,
+      };
+    }
+    throw new Error(
+      "Input format set to ZipEHR but content does not look like j-zipehr or y-zipehr.",
+    );
+  }
+
+  if (requested !== "auto") {
+    return { format: requested, isZipehr: false };
+  }
+
+  const detected = detectInputFormat(input);
+  if (detected.kind === "zipehr") {
+    return {
+      format: detected.variant === "y-zipehr" ? "yaml" : "json",
+      isZipehr: true,
+      zipehrVariant: detected.variant,
+    };
+  }
+  if (detected.kind === "canonical") {
+    return { format: detected.format, isZipehr: false };
+  }
+
+  // Fallback: try JSON then YAML
+  try {
+    JSON.parse(input.trim());
+    return { format: "json", isZipehr: false };
+  } catch {
+    return { format: "yaml", isZipehr: false };
+  }
+}
+
+/**
  * Deserialize input based on format
  */
 async function deserializeInput(
@@ -541,7 +610,17 @@ async function deserializeInput(
   format: InputFormat,
   config: JsonDeserializationConfig | YamlDeserializationConfig,
 ): Promise<any> {
-  switch (format) {
+  const resolved = resolveInputFormat(input, format);
+
+  if (resolved.isZipehr) {
+    const canonical = await zipehrTextToCanonical(input);
+    const deserializer = new JsonConfigurableDeserializer(
+      config as JsonDeserializationConfig,
+    );
+    return deserializer.deserialize(JSON.stringify(canonical));
+  }
+
+  switch (resolved.format) {
     case "json": {
       const deserializer = new JsonConfigurableDeserializer(
         config as JsonDeserializationConfig,
@@ -559,7 +638,7 @@ async function deserializeInput(
       return deserializer.deserialize(input);
     }
     default:
-      throw new Error(`Unsupported input format: ${format}`);
+      throw new Error(`Unsupported input format: ${resolved.format}`);
   }
 }
 

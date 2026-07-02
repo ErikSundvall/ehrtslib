@@ -40,6 +40,8 @@ const INPUT_EDITOR_IDS = ["input-text", "template-input-text"] as const;
 const OUTPUT_EDITOR_IDS = [
   "output-json-content",
   "output-yaml-content",
+  "output-j-zipehr-content",
+  "output-y-zipehr-content",
   "output-markdown-content",
   "output-asciidoc-content",
   "output-typescript-content",
@@ -55,6 +57,8 @@ const OUTPUT_EDITOR_LANGUAGES: Partial<Record<
 >> = {
   "output-json-content": "json",
   "output-yaml-content": "yaml",
+  "output-j-zipehr-content": "yaml",
+  "output-y-zipehr-content": "yaml",
   "output-typescript-content": "typescript",
   "output-xml-content": "xml",
   "output-flat-content": "json",
