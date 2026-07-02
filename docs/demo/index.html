@@ -69,11 +69,11 @@
             <div class="format-selector">
               <label for="input-format">Format:</label>
               <select id="input-format" class="format-dropdown">
-                <option value="auto" selected>Auto (detect)</option>
+                <option value="json" selected>JSON</option>
                 <option value="xml">XML</option>
-                <option value="json">JSON</option>
                 <option value="yaml">YAML</option>
                 <option value="zipehr">ZipEHR (j/y)</option>
+                <option value="auto">Auto detect (experimental)</option>
               </select>
             </div>
           </div>
@@ -404,13 +404,9 @@
                 <input type="checkbox" id="output-yaml" checked>
                 <span>YAML</span>
               </label>
-              <label class="checkbox-label" title="ZipEHR flow JSON with emoji type symbols (canonical _type path)">
-                <input type="checkbox" id="output-j-zipehr">
-                <span>j-ZipEHR</span>
-              </label>
-              <label class="checkbox-label" title="ZipEHR YAML with terse format, type inference, and emoji symbols">
-                <input type="checkbox" id="output-y-zipehr">
-                <span>y-ZipEHR</span>
+              <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
+                <input type="checkbox" id="output-zipehr">
+                <span>ZipEHR</span>
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="output-json" checked>
@@ -434,13 +430,9 @@
                 <input type="checkbox" id="output-xml" checked>
                 <span>XML</span>
               </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="output-flat">
-                <span>FLAT</span>
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="output-structured">
-                <span>STRUCTURED</span>
+              <label class="checkbox-label" title="FLAT or STRUCTURED simplified openEHR format (requires operational template)">
+                <input type="checkbox" id="output-simplified">
+                <span>Simplified</span>
               </label>
             </div>
           </div>
@@ -466,15 +458,13 @@
           <div class="tabs-row output-tabs-row">
             <div class="tabs" id="output-tabs">
               <button class="tab active" data-tab="yaml">YAML</button>
-              <button class="tab hidden" data-tab="j-zipehr">j-ZipEHR</button>
-              <button class="tab hidden" data-tab="y-zipehr">y-ZipEHR</button>
+              <button class="tab hidden" data-tab="zipehr">ZipEHR</button>
               <button class="tab" data-tab="json">JSON</button>
               <button class="tab hidden" data-tab="markdown">Markdown</button>
               <button class="tab hidden" data-tab="asciidoc">AsciiDoc</button>
               <button class="tab" data-tab="typescript">TypeScript</button>
               <button class="tab" data-tab="xml">XML</button>
-              <button class="tab" data-tab="flat">FLAT</button>
-              <button class="tab" data-tab="structured">STRUCTURED</button>
+              <button class="tab hidden" data-tab="simplified">Simplified</button>
             </div>
           </div>
 
@@ -790,58 +780,52 @@
               </div>
             </div>
 
-            <div class="tab-pane hidden" id="tab-j-zipehr">
-              <div class="output-toolbar">
-                <span class="output-info" id="output-info-j-zipehr"></span>
-                <span class="output-actions">
-                  <button
-                    class="btn btn-secondary btn-sm copy-output-btn"
-                    data-format="j-zipehr"
-                    type="button"
-                  >
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >content_copy</span>
-                    Copy
-                  </button>
-                  <button
-                    class="btn btn-secondary btn-sm download-output-btn"
-                    data-format="j-zipehr"
-                    type="button"
-                  >
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >download</span>
-                    Download
-                  </button>
-                </span>
+            <div class="tab-pane hidden" id="tab-zipehr">
+              <div class="config-section" id="zipehr-options">
+                <div class="config-grid">
+                  <div class="config-col">
+                    <div class="form-group">
+                      <label for="zipehr-variant">ZipEHR variant:</label>
+                      <select id="zipehr-variant" class="config-dropdown">
+                        <option value="j-zipehr">j-ZipEHR (JSON, canonical _type path)</option>
+                        <option value="y-zipehr" selected>y-ZipEHR (YAML, terse + type inference)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="demo-editor-host output-content" id="output-j-zipehr-content"></div>
-            </div>
-
-            <div class="tab-pane hidden" id="tab-y-zipehr">
-              <div class="output-toolbar">
-                <span class="output-info" id="output-info-y-zipehr"></span>
-                <span class="output-actions">
-                  <button
-                    class="btn btn-secondary btn-sm copy-output-btn"
-                    data-format="y-zipehr"
-                    type="button"
-                  >
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >content_copy</span>
-                    Copy
-                  </button>
-                  <button
-                    class="btn btn-secondary btn-sm download-output-btn"
-                    data-format="y-zipehr"
-                    type="button"
-                  >
-                    <span class="material-icons btn-icon" aria-hidden="true"
-                    >download</span>
-                    Download
-                  </button>
-                </span>
+              <div class="zipehr-variant-pane" data-zipehr-variant="j-zipehr">
+                <div class="output-toolbar">
+                  <span class="output-info"></span>
+                  <span class="output-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="j-zipehr" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="j-zipehr" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-j-zipehr-content"></div>
               </div>
-              <div class="demo-editor-host output-content" id="output-y-zipehr-content"></div>
+              <div class="zipehr-variant-pane hidden" data-zipehr-variant="y-zipehr">
+                <div class="output-toolbar">
+                  <span class="output-info"></span>
+                  <span class="output-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="y-zipehr" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="y-zipehr" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-y-zipehr-content"></div>
+              </div>
             </div>
 
             <div class="tab-pane" id="tab-markdown">
@@ -1357,88 +1341,87 @@
               </div>
             </div>
 
-            <div class="tab-pane" id="tab-flat">
-              <div class="editor-block">
-                <div class="output-info">
-                  <span class="char-count">
-                    <span class="label">Characters:</span> <span
-                      class="output-char-count"
-                    >0</span>
-                  </span>
-                  <span class="line-count">
-                    <span class="label">Lines:</span> <span
-                      class="output-line-count"
-                    >0</span>
-                  </span>
-                  <span class="output-editor-actions">
-                    <button
-                      class="btn btn-secondary btn-sm copy-output-btn"
-                      data-format="flat"
-                      type="button"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true"
-                      >content_copy</span>
-                      Copy
-                    </button>
-                    <button
-                      class="btn btn-secondary btn-sm download-output-btn"
-                      data-format="flat"
-                      type="button"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true"
-                      >download</span>
-                      Download
-                    </button>
-                  </span>
+            <div class="tab-pane hidden" id="tab-simplified">
+              <div class="config-section" id="simplified-options">
+                <div class="config-grid">
+                  <div class="config-col">
+                    <div class="form-group">
+                      <label for="simplified-variant">Simplified variant:</label>
+                      <select id="simplified-variant" class="config-dropdown">
+                        <option value="flat">FLAT</option>
+                        <option value="structured" selected>STRUCTURED</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="simplified-opt-upload">Operational template (OPT):</label>
+                      <div class="simplified-template-row">
+                        <span class="simplified-template-info" id="simplified-template-info"
+                        >Upload an OPT or load a template in the input tab</span>
+                        <input type="file" id="simplified-opt-upload" class="hidden" accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json">
+                        <button class="btn btn-secondary btn-sm" id="simplified-opt-upload-btn" type="button">
+                          <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                          Upload OPT
+                        </button>
+                        <button class="btn btn-secondary btn-sm hidden" id="simplified-opt-clear-btn" type="button">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="demo-editor-host output-content" id="output-flat-content"></div>
               </div>
-              <div class="success-message hidden" id="success-flat">
-                <span class="material-icons success-icon" aria-hidden="true"
-                >check</span>
-                <span>Copied to clipboard!</span>
-              </div>
-            </div>
-
-            <div class="tab-pane" id="tab-structured">
-              <div class="editor-block">
-                <div class="output-info">
-                  <span class="char-count">
-                    <span class="label">Characters:</span> <span
-                      class="output-char-count"
-                    >0</span>
-                  </span>
-                  <span class="line-count">
-                    <span class="label">Lines:</span> <span
-                      class="output-line-count"
-                    >0</span>
-                  </span>
-                  <span class="output-editor-actions">
-                    <button
-                      class="btn btn-secondary btn-sm copy-output-btn"
-                      data-format="structured"
-                      type="button"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true"
-                      >content_copy</span>
-                      Copy
-                    </button>
-                    <button
-                      class="btn btn-secondary btn-sm download-output-btn"
-                      data-format="structured"
-                      type="button"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true"
-                      >download</span>
-                      Download
-                    </button>
-                  </span>
+              <div class="simplified-variant-pane" data-simplified-variant="flat">
+                <div class="editor-block">
+                  <div class="output-info">
+                    <span class="char-count">
+                      <span class="label">Characters:</span>
+                      <span class="output-char-count">0</span>
+                    </span>
+                    <span class="line-count">
+                      <span class="label">Lines:</span>
+                      <span class="output-line-count">0</span>
+                    </span>
+                    <span class="output-editor-actions">
+                      <button class="btn btn-secondary btn-sm copy-output-btn" data-format="flat" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                        Copy
+                      </button>
+                      <button class="btn btn-secondary btn-sm download-output-btn" data-format="flat" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                        Download
+                      </button>
+                    </span>
+                  </div>
+                  <div class="demo-editor-host output-content" id="output-flat-content"></div>
                 </div>
-                <div class="demo-editor-host output-content" id="output-structured-content"></div>
               </div>
-              <div class="success-message hidden" id="success-structured">
-                <span class="material-icons success-icon" aria-hidden="true"
-                >check</span>
+              <div class="simplified-variant-pane hidden" data-simplified-variant="structured">
+                <div class="editor-block">
+                  <div class="output-info">
+                    <span class="char-count">
+                      <span class="label">Characters:</span>
+                      <span class="output-char-count">0</span>
+                    </span>
+                    <span class="line-count">
+                      <span class="label">Lines:</span>
+                      <span class="output-line-count">0</span>
+                    </span>
+                    <span class="output-editor-actions">
+                      <button class="btn btn-secondary btn-sm copy-output-btn" data-format="structured" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                        Copy
+                      </button>
+                      <button class="btn btn-secondary btn-sm download-output-btn" data-format="structured" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                        Download
+                      </button>
+                    </span>
+                  </div>
+                  <div class="demo-editor-host output-content" id="output-structured-content"></div>
+                </div>
+              </div>
+              <div class="success-message hidden" id="success-simplified">
+                <span class="material-icons success-icon" aria-hidden="true">check</span>
                 <span>Copied to clipboard!</span>
               </div>
             </div>

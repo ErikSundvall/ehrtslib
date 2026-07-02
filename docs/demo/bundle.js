@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-02T12:49:13.942Z", buildId: "RRMHVWDM" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-02T14:38:01.854Z", buildId: "VJHCANF0" };
   }
 });
 
@@ -73145,13 +73145,14 @@ function initDemoEditors(options) {
 
 // examples/demo-app/src/main.ts
 var DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
-var currentInputFormat = "auto";
+var currentInputFormat = "json";
 var currentInputTab = "instance";
 var currentOutputs = {};
 var autoConvertEnabled = true;
 var autoConvertDebounceTimer;
 var AUTO_CONVERT_DEBOUNCE_MS = 350;
 var clinicalWorkspace = new ClinicalModelWorkspace();
+var simplifiedWorkspace = new ClinicalModelWorkspace();
 function init2() {
   console.log("\u{1F680} ehrtslib Format Converter initialized");
   try {
@@ -73264,6 +73265,9 @@ function setupEventListeners() {
     dismissErrorBtn.addEventListener("click", hideError);
   }
   setupOutputVisibilityListeners();
+  setupZipehrVariantListener();
+  setupSimplifiedVariantListener();
+  setupSimplifiedOptUpload();
   setupCollapsibleSections();
 }
 function setupOutputVisibilityListeners() {
@@ -73271,13 +73275,11 @@ function setupOutputVisibilityListeners() {
     "xml",
     "json",
     "yaml",
-    "j-zipehr",
-    "y-zipehr",
+    "zipehr",
     "markdown",
     "asciidoc",
     "typescript",
-    "flat",
-    "structured",
+    "simplified",
     "webtemplate"
   ];
   formats.forEach((format) => {
@@ -73291,6 +73293,143 @@ function setupOutputVisibilityListeners() {
       });
     }
   });
+}
+function getActiveZipehrVariant() {
+  const select = document.getElementById("zipehr-variant");
+  const value = select?.value;
+  return value === "j-zipehr" ? "j-zipehr" : "y-zipehr";
+}
+function getActiveSimplifiedVariant() {
+  const select = document.getElementById(
+    "simplified-variant"
+  );
+  return select?.value === "flat" ? "flat" : "structured";
+}
+function switchZipehrVariantPane() {
+  const variant = getActiveZipehrVariant();
+  document.querySelectorAll(".zipehr-variant-pane").forEach((pane) => {
+    pane.classList.toggle(
+      "hidden",
+      pane.getAttribute("data-zipehr-variant") !== variant
+    );
+  });
+  if (getActiveOutputFormat() === variant) {
+    updateOutputInfo();
+  }
+}
+function switchSimplifiedVariantPane() {
+  const variant = getActiveSimplifiedVariant();
+  document.querySelectorAll(".simplified-variant-pane").forEach((pane) => {
+    pane.classList.toggle(
+      "hidden",
+      pane.getAttribute("data-simplified-variant") !== variant
+    );
+  });
+  if (document.querySelector("#output-tabs .tab.active")?.getAttribute(
+    "data-tab"
+  ) === "simplified") {
+    updateOutputInfo();
+  }
+}
+function setupZipehrVariantListener() {
+  const select = document.getElementById("zipehr-variant");
+  select?.addEventListener("change", () => {
+    switchZipehrVariantPane();
+    scheduleAutoConvert();
+  });
+  switchZipehrVariantPane();
+}
+function setupSimplifiedVariantListener() {
+  const select = document.getElementById("simplified-variant");
+  select?.addEventListener("change", () => {
+    switchSimplifiedVariantPane();
+    scheduleAutoConvert();
+  });
+  switchSimplifiedVariantPane();
+}
+function getEffectiveTemplateWorkspace() {
+  if (simplifiedWorkspace.listFiles().length > 0) {
+    return simplifiedWorkspace;
+  }
+  return clinicalWorkspace;
+}
+function syncSimplifiedTemplateUi() {
+  const info = document.getElementById("simplified-template-info");
+  const clearBtn = document.getElementById("simplified-opt-clear-btn");
+  if (!info)
+    return;
+  if (simplifiedWorkspace.listFiles().length > 0) {
+    const path = simplifiedWorkspace.getGenerationRootPath() ?? simplifiedWorkspace.getActivePath() ?? simplifiedWorkspace.listFiles()[0]?.path;
+    info.textContent = path ? `Uploaded: ${path.split("/").pop()}` : "Custom template loaded";
+    clearBtn?.classList.remove("hidden");
+    return;
+  }
+  clearBtn?.classList.add("hidden");
+  if (currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0) {
+    const path = clinicalWorkspace.getActivePath() ?? clinicalWorkspace.getGenerationRootPath() ?? clinicalWorkspace.listFiles()[0]?.path;
+    info.textContent = path ? `Linked from template tab: ${path.split("/").pop()}` : "Linked from template tab";
+    return;
+  }
+  if (clinicalWorkspace.listFiles().length > 0) {
+    const path = clinicalWorkspace.getGenerationRootPath();
+    info.textContent = path ? `Available from input: ${path.split("/").pop()}` : "Template available from input tab";
+    return;
+  }
+  info.textContent = "Upload an OPT or load a template in the input tab";
+}
+async function loadFileIntoSimplifiedWorkspace(file) {
+  const name2 = file.name.toLowerCase();
+  if (name2.endsWith(".zip")) {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const entries = unzipSync(buf);
+    const batch = [];
+    for (const [entryName, data] of Object.entries(entries)) {
+      batch.push({
+        path: entryName.replace(/\\/g, "/").replace(/^\/+/, ""),
+        content: strFromU8(data)
+      });
+    }
+    if (batch.length) {
+      simplifiedWorkspace.clear();
+      simplifiedWorkspace.loadFromZipEntries(batch);
+      const root = ClinicalModelWorkspace.suggestGenerationRoot(
+        simplifiedWorkspace.listFiles()
+      );
+      if (root)
+        simplifiedWorkspace.setGenerationRootPath(root);
+    }
+  } else if (/\.(opt|oet|adl|adls|t\.json|xml)$/i.test(name2)) {
+    simplifiedWorkspace.clear();
+    simplifiedWorkspace.addFile(file.name, await file.text());
+    const root = ClinicalModelWorkspace.suggestGenerationRoot(
+      simplifiedWorkspace.listFiles()
+    );
+    if (root)
+      simplifiedWorkspace.setGenerationRootPath(root);
+  }
+  syncSimplifiedTemplateUi();
+  scheduleAutoConvert();
+}
+function setupSimplifiedOptUpload() {
+  const uploadBtn = document.getElementById("simplified-opt-upload-btn");
+  const fileInput = document.getElementById(
+    "simplified-opt-upload"
+  );
+  const clearBtn = document.getElementById("simplified-opt-clear-btn");
+  uploadBtn?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file)
+      return;
+    await loadFileIntoSimplifiedWorkspace(file);
+    fileInput.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    simplifiedWorkspace.clear();
+    syncSimplifiedTemplateUi();
+    scheduleAutoConvert();
+  });
+  syncSimplifiedTemplateUi();
 }
 function toggleOutputTab(format, visible) {
   const tabs = document.querySelectorAll("#output-tabs .tab");
@@ -73334,7 +73473,12 @@ function setupSplitters() {
 }
 function getActiveOutputFormat() {
   const activeTab = document.querySelector("#output-tabs .tab.active");
-  return activeTab?.getAttribute("data-tab") || "yaml";
+  const tab = activeTab?.getAttribute("data-tab") || "yaml";
+  if (tab === "zipehr")
+    return getActiveZipehrVariant();
+  if (tab === "simplified")
+    return getActiveSimplifiedVariant();
+  return tab;
 }
 function setupSplitter(splitter, leftClass, rightClass) {
   let isDragging = false;
@@ -73603,6 +73747,7 @@ function selectTemplateFileTab(path) {
   if (templateEditor && file)
     templateEditor.value = file.content;
   updateTemplateFileSetUi();
+  syncSimplifiedTemplateUi();
   handleInputChange("template");
 }
 function fileTabBadgeInfo(path, loadResult) {
@@ -73687,6 +73832,7 @@ function updateTemplateFileSetUi() {
     summary.textContent = files.length ? `${files.length} files \xB7 ${nArch} archetypes \xB7 ${nTpl} templates \xB7 root: ${rootLabel}` : "";
   }
   updateTemplateLanguageOptions();
+  syncSimplifiedTemplateUi();
 }
 function updateTemplateLanguageOptions() {
   const select = document.getElementById(
@@ -73744,6 +73890,7 @@ function activateInputTab(mode) {
     pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
   });
   currentInputTab = mode;
+  syncSimplifiedTemplateUi();
   validateInput();
   scheduleAutoConvert();
 }
@@ -74084,11 +74231,8 @@ function gatherConversionOptions() {
   if (document.getElementById("output-yaml")?.checked) {
     outputFormats.push("yaml");
   }
-  if (document.getElementById("output-j-zipehr")?.checked) {
-    outputFormats.push("j-zipehr");
-  }
-  if (document.getElementById("output-y-zipehr")?.checked) {
-    outputFormats.push("y-zipehr");
+  if (document.getElementById("output-zipehr")?.checked) {
+    outputFormats.push(getActiveZipehrVariant());
   }
   if (document.getElementById("output-json")?.checked) {
     outputFormats.push("json");
@@ -74102,11 +74246,8 @@ function gatherConversionOptions() {
   if (document.getElementById("output-typescript")?.checked) {
     outputFormats.push("typescript");
   }
-  if (document.getElementById("output-flat")?.checked) {
-    outputFormats.push("flat");
-  }
-  if (document.getElementById("output-structured")?.checked) {
-    outputFormats.push("structured");
+  if (document.getElementById("output-simplified")?.checked) {
+    outputFormats.push(getActiveSimplifiedVariant());
   }
   if (document.getElementById("output-webtemplate")?.checked) {
     outputFormats.push("webtemplate");
@@ -74237,7 +74378,7 @@ function gatherConversionOptions() {
     asciidocConfig,
     xmlConfig,
     typescriptConfig,
-    templateWorkspace: clinicalWorkspace
+    templateWorkspace: getEffectiveTemplateWorkspace()
   };
 }
 function updateOutputs(outputs) {
@@ -74724,6 +74865,10 @@ function switchOutputTab(tabName) {
       pane.classList.remove("active");
     }
   });
+  if (tabName === "zipehr")
+    switchZipehrVariantPane();
+  if (tabName === "simplified")
+    switchSimplifiedVariantPane();
   updateOutputInfo();
 }
 function updateOutputInfo() {

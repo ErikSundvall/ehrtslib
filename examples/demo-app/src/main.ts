@@ -54,7 +54,7 @@ import { initEditorDisplaySettings } from "./editor-settings.ts";
 const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 
 // Application state
-let currentInputFormat = "auto";
+let currentInputFormat = "json";
 let currentInputTab: InputMode = "instance";
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
@@ -63,6 +63,8 @@ const AUTO_CONVERT_DEBOUNCE_MS = 350;
 
 /** In-browser template/archetype file set (ADL2 + legacy OPT/OET). */
 const clinicalWorkspace = new ClinicalModelWorkspace();
+/** Optional OPT/template uploaded directly in the Simplified output tab. */
+const simplifiedWorkspace = new ClinicalModelWorkspace();
 
 // Declare build info injected by esbuild
 declare const __BUILD_INFO__: {
@@ -230,6 +232,9 @@ function setupEventListeners() {
 
   // Output visibility
   setupOutputVisibilityListeners();
+  setupZipehrVariantListener();
+  setupSimplifiedVariantListener();
+  setupSimplifiedOptUpload();
 
   // Collapsible sections
   setupCollapsibleSections();
@@ -243,13 +248,11 @@ function setupOutputVisibilityListeners() {
     "xml",
     "json",
     "yaml",
-    "j-zipehr",
-    "y-zipehr",
+    "zipehr",
     "markdown",
     "asciidoc",
     "typescript",
-    "flat",
-    "structured",
+    "simplified",
     "webtemplate",
   ];
 
@@ -267,6 +270,167 @@ function setupOutputVisibilityListeners() {
       });
     }
   });
+}
+
+function getActiveZipehrVariant(): "j-zipehr" | "y-zipehr" {
+  const select = document.getElementById("zipehr-variant") as HTMLSelectElement;
+  const value = select?.value;
+  return value === "j-zipehr" ? "j-zipehr" : "y-zipehr";
+}
+
+function getActiveSimplifiedVariant(): "flat" | "structured" {
+  const select = document.getElementById(
+    "simplified-variant",
+  ) as HTMLSelectElement;
+  return select?.value === "flat" ? "flat" : "structured";
+}
+
+function switchZipehrVariantPane(): void {
+  const variant = getActiveZipehrVariant();
+  document.querySelectorAll(".zipehr-variant-pane").forEach((pane) => {
+    pane.classList.toggle(
+      "hidden",
+      pane.getAttribute("data-zipehr-variant") !== variant,
+    );
+  });
+  if (getActiveOutputFormat() === variant) {
+    updateOutputInfo();
+  }
+}
+
+function switchSimplifiedVariantPane(): void {
+  const variant = getActiveSimplifiedVariant();
+  document.querySelectorAll(".simplified-variant-pane").forEach((pane) => {
+    pane.classList.toggle(
+      "hidden",
+      pane.getAttribute("data-simplified-variant") !== variant,
+    );
+  });
+  if (
+    document.querySelector("#output-tabs .tab.active")?.getAttribute(
+      "data-tab",
+    ) === "simplified"
+  ) {
+    updateOutputInfo();
+  }
+}
+
+function setupZipehrVariantListener(): void {
+  const select = document.getElementById("zipehr-variant");
+  select?.addEventListener("change", () => {
+    switchZipehrVariantPane();
+    scheduleAutoConvert();
+  });
+  switchZipehrVariantPane();
+}
+
+function setupSimplifiedVariantListener(): void {
+  const select = document.getElementById("simplified-variant");
+  select?.addEventListener("change", () => {
+    switchSimplifiedVariantPane();
+    scheduleAutoConvert();
+  });
+  switchSimplifiedVariantPane();
+}
+
+function getEffectiveTemplateWorkspace(): ClinicalModelWorkspace {
+  if (simplifiedWorkspace.listFiles().length > 0) {
+    return simplifiedWorkspace;
+  }
+  return clinicalWorkspace;
+}
+
+function syncSimplifiedTemplateUi(): void {
+  const info = document.getElementById("simplified-template-info");
+  const clearBtn = document.getElementById("simplified-opt-clear-btn");
+  if (!info) return;
+
+  if (simplifiedWorkspace.listFiles().length > 0) {
+    const path = simplifiedWorkspace.getGenerationRootPath() ??
+      simplifiedWorkspace.getActivePath() ??
+      simplifiedWorkspace.listFiles()[0]?.path;
+    info.textContent = path
+      ? `Uploaded: ${path.split("/").pop()}`
+      : "Custom template loaded";
+    clearBtn?.classList.remove("hidden");
+    return;
+  }
+
+  clearBtn?.classList.add("hidden");
+
+  if (currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0) {
+    const path = clinicalWorkspace.getActivePath() ??
+      clinicalWorkspace.getGenerationRootPath() ??
+      clinicalWorkspace.listFiles()[0]?.path;
+    info.textContent = path
+      ? `Linked from template tab: ${path.split("/").pop()}`
+      : "Linked from template tab";
+    return;
+  }
+
+  if (clinicalWorkspace.listFiles().length > 0) {
+    const path = clinicalWorkspace.getGenerationRootPath();
+    info.textContent = path
+      ? `Available from input: ${path.split("/").pop()}`
+      : "Template available from input tab";
+    return;
+  }
+
+  info.textContent = "Upload an OPT or load a template in the input tab";
+}
+
+async function loadFileIntoSimplifiedWorkspace(file: File): Promise<void> {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".zip")) {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const entries = unzipSync(buf);
+    const batch: Array<{ path: string; content: string }> = [];
+    for (const [entryName, data] of Object.entries(entries)) {
+      batch.push({
+        path: entryName.replace(/\\/g, "/").replace(/^\/+/, ""),
+        content: strFromU8(data),
+      });
+    }
+    if (batch.length) {
+      simplifiedWorkspace.clear();
+      simplifiedWorkspace.loadFromZipEntries(batch);
+      const root = ClinicalModelWorkspace.suggestGenerationRoot(
+        simplifiedWorkspace.listFiles(),
+      );
+      if (root) simplifiedWorkspace.setGenerationRootPath(root);
+    }
+  } else if (/\.(opt|oet|adl|adls|t\.json|xml)$/i.test(name)) {
+    simplifiedWorkspace.clear();
+    simplifiedWorkspace.addFile(file.name, await file.text());
+    const root = ClinicalModelWorkspace.suggestGenerationRoot(
+      simplifiedWorkspace.listFiles(),
+    );
+    if (root) simplifiedWorkspace.setGenerationRootPath(root);
+  }
+  syncSimplifiedTemplateUi();
+  scheduleAutoConvert();
+}
+
+function setupSimplifiedOptUpload(): void {
+  const uploadBtn = document.getElementById("simplified-opt-upload-btn");
+  const fileInput = document.getElementById(
+    "simplified-opt-upload",
+  ) as HTMLInputElement;
+  const clearBtn = document.getElementById("simplified-opt-clear-btn");
+
+  uploadBtn?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    await loadFileIntoSimplifiedWorkspace(file);
+    fileInput.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    simplifiedWorkspace.clear();
+    syncSimplifiedTemplateUi();
+    scheduleAutoConvert();
+  });
+  syncSimplifiedTemplateUi();
 }
 
 /**
@@ -329,7 +493,10 @@ function setupSplitters() {
 
 function getActiveOutputFormat(): string {
   const activeTab = document.querySelector("#output-tabs .tab.active");
-  return activeTab?.getAttribute("data-tab") || "yaml";
+  const tab = activeTab?.getAttribute("data-tab") || "yaml";
+  if (tab === "zipehr") return getActiveZipehrVariant();
+  if (tab === "simplified") return getActiveSimplifiedVariant();
+  return tab;
 }
 
 /**
@@ -677,6 +844,7 @@ function selectTemplateFileTab(path: string) {
   const file = clinicalWorkspace.getFile(path);
   if (templateEditor && file) templateEditor.value = file.content;
   updateTemplateFileSetUi();
+  syncSimplifiedTemplateUi();
   handleInputChange('template');
 }
 
@@ -776,6 +944,7 @@ function updateTemplateFileSetUi() {
   }
 
   updateTemplateLanguageOptions();
+  syncSimplifiedTemplateUi();
 }
 
 function updateTemplateLanguageOptions() {
@@ -843,6 +1012,7 @@ function activateInputTab(mode: InputMode) {
     pane.classList.toggle("active", pane.id === `input-tab-${mode}`);
   });
   currentInputTab = mode;
+  syncSimplifiedTemplateUi();
   validateInput();
   scheduleAutoConvert();
 }
@@ -1285,15 +1455,8 @@ function gatherConversionOptions(): ConversionOptions {
   if ((document.getElementById("output-yaml") as HTMLInputElement)?.checked) {
     outputFormats.push("yaml");
   }
-  if (
-    (document.getElementById("output-j-zipehr") as HTMLInputElement)?.checked
-  ) {
-    outputFormats.push("j-zipehr");
-  }
-  if (
-    (document.getElementById("output-y-zipehr") as HTMLInputElement)?.checked
-  ) {
-    outputFormats.push("y-zipehr");
+  if ((document.getElementById("output-zipehr") as HTMLInputElement)?.checked) {
+    outputFormats.push(getActiveZipehrVariant());
   }
   if ((document.getElementById("output-json") as HTMLInputElement)?.checked) {
     outputFormats.push("json");
@@ -1313,13 +1476,10 @@ function gatherConversionOptions(): ConversionOptions {
   ) {
     outputFormats.push("typescript");
   }
-  if ((document.getElementById("output-flat") as HTMLInputElement)?.checked) {
-    outputFormats.push("flat");
-  }
   if (
-    (document.getElementById("output-structured") as HTMLInputElement)?.checked
+    (document.getElementById("output-simplified") as HTMLInputElement)?.checked
   ) {
-    outputFormats.push("structured");
+    outputFormats.push(getActiveSimplifiedVariant());
   }
   if (
     (document.getElementById("output-webtemplate") as HTMLInputElement)?.checked
@@ -1547,7 +1707,7 @@ function gatherConversionOptions(): ConversionOptions {
     asciidocConfig,
     xmlConfig,
     typescriptConfig,
-    templateWorkspace: clinicalWorkspace,
+    templateWorkspace: getEffectiveTemplateWorkspace(),
   };
 }
 
@@ -2064,6 +2224,8 @@ function switchOutputTab(tabName: string) {
   });
 
   // Update counts/info for newly selected tab
+  if (tabName === "zipehr") switchZipehrVariantPane();
+  if (tabName === "simplified") switchSimplifiedVariantPane();
   updateOutputInfo();
 }
 

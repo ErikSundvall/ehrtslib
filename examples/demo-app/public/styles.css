@@ -943,6 +943,20 @@ body {
     align-items: center;
 }
 
+.simplified-template-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.simplified-template-info {
+    flex: 1 1 12rem;
+    font-size: 0.85rem;
+    color: var(--text-muted, #9aa0a6);
+    word-break: break-word;
+}
+
 .output-panel .panel-header {
     flex-wrap: wrap;
     gap: var(--spacing-sm) var(--spacing-md);
