@@ -399,12 +399,12 @@
           <div id="output-tab-enable-section">
             <div class="checkbox-group-horizontal">
               <label class="checkbox-label">
-                <input type="checkbox" id="output-json" checked>
-                <span>JSON</span>
-              </label>
-              <label class="checkbox-label">
                 <input type="checkbox" id="output-yaml" checked>
                 <span>YAML</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="output-json" checked>
+                <span>JSON</span>
               </label>
               <!-- Markdown and AsciiDoc output are not finished yet
               <label class="checkbox-label">
@@ -455,8 +455,8 @@
 
           <div class="tabs-row output-tabs-row">
             <div class="tabs" id="output-tabs">
-              <button class="tab active" data-tab="json">JSON</button>
-              <button class="tab" data-tab="yaml">YAML</button>
+              <button class="tab active" data-tab="yaml">YAML</button>
+              <button class="tab" data-tab="json">JSON</button>
               <button class="tab hidden" data-tab="markdown">Markdown</button>
               <button class="tab hidden" data-tab="asciidoc">AsciiDoc</button>
               <button class="tab" data-tab="typescript">TypeScript</button>
@@ -467,7 +467,7 @@
           </div>
 
           <div class="tab-content">
-            <div class="tab-pane active" id="tab-json">
+            <div class="tab-pane" id="tab-json">
               <div class="config-section" id="json-options">
                 <div class="config-grid">
                   <div class="config-col">
@@ -614,7 +614,7 @@
               </div>
             </div>
 
-            <div class="tab-pane" id="tab-yaml">
+            <div class="tab-pane active" id="tab-yaml">
               <div class="config-section" id="yaml-options">
                 <div class="config-grid">
                   <div class="config-col">
@@ -627,7 +627,7 @@
                         <option value="hybrid">Hybrid (zipehr-like)</option>
                         <option value="flow">Flow Style</option>
                         <option value="block">Block Style</option>
-                        <option value="custom">Custom...</option>
+                        <option value="custom" selected>Custom...</option>
                       </select>
                     </div>
                     <div class="form-group">

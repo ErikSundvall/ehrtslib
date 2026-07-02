@@ -67,8 +67,8 @@ const tabContentEnd = html.indexOf("</div>\n            </div>\n        </sectio
 let tabContent = html.slice(tabContentStart, tabContentEnd);
 
 for (const [id, active] of [
-  ["tab-json", true],
-  ["tab-yaml", false],
+  ["tab-yaml", true],
+  ["tab-json", false],
   ["tab-typescript", false],
   ["tab-xml", false],
 ] as const) {

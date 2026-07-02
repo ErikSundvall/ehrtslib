@@ -326,7 +326,7 @@ function setupSplitters() {
 
 function getActiveOutputFormat(): string {
   const activeTab = document.querySelector("#output-tabs .tab.active");
-  return activeTab?.getAttribute("data-tab") || "json";
+  return activeTab?.getAttribute("data-tab") || "yaml";
 }
 
 /**
@@ -465,6 +465,7 @@ function setupPresetListeners() {
       const preset = (e.target as HTMLSelectElement).value;
       updateYamlOptions(preset);
     });
+    updateYamlOptions(yamlConfigPreset.value || "custom");
   }
 
   // XML config preset
@@ -1338,7 +1339,7 @@ function gatherConversionOptions(): ConversionOptions {
   // YAML config
   const yamlConfigPreset =
     (document.getElementById("yaml-config-preset") as HTMLSelectElement)
-      ?.value || "default";
+      ?.value || "custom";
   const yamlConfig = getYamlConfigPreset(yamlConfigPreset);
   const yamlArchIdLoc =
     (document.getElementById("yaml-arch-id-location") as HTMLSelectElement)

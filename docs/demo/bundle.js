@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-01T21:49:17.161Z", buildId: "A2ISXA5S" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-02T11:27:44.918Z", buildId: "6C82QFV1" };
   }
 });
 
@@ -72034,7 +72034,7 @@ function setupSplitters() {
 }
 function getActiveOutputFormat() {
   const activeTab = document.querySelector("#output-tabs .tab.active");
-  return activeTab?.getAttribute("data-tab") || "json";
+  return activeTab?.getAttribute("data-tab") || "yaml";
 }
 function setupSplitter(splitter, leftClass, rightClass) {
   let isDragging = false;
@@ -72115,6 +72115,7 @@ function setupPresetListeners() {
       const preset = e2.target.value;
       updateYamlOptions(preset);
     });
+    updateYamlOptions(yamlConfigPreset.value || "custom");
   }
   const xmlConfigPreset = document.getElementById(
     "xml-config-preset"
@@ -72812,7 +72813,7 @@ function gatherConversionOptions() {
     jsonConfig.useTerseFormat = document.getElementById("json-terse")?.checked || false;
     jsonConfig.useHybridStyle = document.getElementById("json-hybrid")?.checked || false;
   }
-  const yamlConfigPreset = document.getElementById("yaml-config-preset")?.value || "default";
+  const yamlConfigPreset = document.getElementById("yaml-config-preset")?.value || "custom";
   const yamlConfig = getYamlConfigPreset(yamlConfigPreset);
   const yamlArchIdLoc = document.getElementById("yaml-arch-id-location")?.value;
   if (yamlArchIdLoc)
