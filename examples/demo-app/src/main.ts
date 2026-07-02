@@ -1314,6 +1314,10 @@ function gatherConversionOptions(): ConversionOptions {
     (document.getElementById("json-arch-id-location") as HTMLSelectElement)
       ?.value as any;
   if (jsonArchIdLoc) jsonConfig.archetypeNodeIdLocation = jsonArchIdLoc;
+  const jsonNameLoc =
+    (document.getElementById("json-name-location") as HTMLSelectElement)
+      ?.value as "default" | "beginning" | undefined;
+  if (jsonNameLoc) jsonConfig.nameLocation = jsonNameLoc;
 
   // Apply custom JSON settings if preset is 'custom'
   if (jsonConfigPreset === "custom") {
@@ -1340,6 +1344,10 @@ function gatherConversionOptions(): ConversionOptions {
     (document.getElementById("yaml-arch-id-location") as HTMLSelectElement)
       ?.value as any;
   if (yamlArchIdLoc) yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
+  const yamlNameLoc =
+    (document.getElementById("yaml-name-location") as HTMLSelectElement)
+      ?.value as "default" | "beginning" | undefined;
+  if (yamlNameLoc) yamlConfig.nameLocation = yamlNameLoc;
 
   // Apply custom YAML settings if preset is 'custom'
   if (yamlConfigPreset === "custom") {
@@ -1495,6 +1503,9 @@ function gatherConversionOptions(): ConversionOptions {
     archetypeNodeIdLocation:
       (document.getElementById("ts-arch-id-location") as HTMLSelectElement)
         ?.value as "beginning" | "after_name" | "end" || "after_name",
+    nameLocation:
+      (document.getElementById("ts-name-location") as HTMLSelectElement)
+        ?.value as "default" | "beginning" || "beginning",
   };
 
   return {
@@ -1620,6 +1631,12 @@ function updateJsonOptions(preset: string) {
   const archIdLocSelect = document.getElementById(
     "json-arch-id-location",
   ) as HTMLSelectElement;
+  const nameLocSelect = document.getElementById(
+    "json-name-location",
+  ) as HTMLSelectElement;
+
+  // Name location is a readability-only toggle that applies to every preset.
+  if (nameLocSelect) nameLocSelect.disabled = false;
 
   const serializerType =
     (document.getElementById("json-serializer-type") as HTMLSelectElement)
@@ -1728,6 +1745,9 @@ function updateYamlOptions(preset: string) {
   const archIdLocSelect = document.getElementById(
     "yaml-arch-id-location",
   ) as HTMLSelectElement;
+  const nameLocSelect = document.getElementById(
+    "yaml-name-location",
+  ) as HTMLSelectElement;
 
   const isCustom = preset === "custom";
 
@@ -1742,6 +1762,9 @@ function updateYamlOptions(preset: string) {
   ].forEach((elem) => {
     if (elem) elem.disabled = !isCustom;
   });
+
+  // Name location is a readability-only toggle that applies to every preset.
+  if (nameLocSelect) nameLocSelect.disabled = false;
 
   // Update archetype inline visibility based on main style
   const updateArchetypeInlineVisibility = () => {

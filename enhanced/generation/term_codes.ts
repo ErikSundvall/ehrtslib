@@ -10,11 +10,7 @@ export function termCodeCandidates(nodeId: string): string[] {
   out.add(nodeId);
   out.add(nodeIdToAtCode(nodeId));
 
-  const shortDot = /^at0\.(\d+)$/i.exec(nodeId);
-  if (shortDot) {
-    out.add(`at${shortDot[1].padStart(4, "0")}`);
-  }
-
+  // Template slot ids (at0.2) are not archetype at-codes (at0002).
   const dotted = /^at(\d+)\.(\d+(?:\.\d+)*)$/i.exec(nodeId);
   if (dotted && dotted[1].length < 4) {
     const padded = dotted[1].padStart(4, "0");

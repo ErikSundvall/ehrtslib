@@ -1,6 +1,6 @@
-import { ArchetypeNodeIdLocation } from '../common/mod.ts';
+import { ArchetypeNodeIdLocation, NameLocation } from '../common/mod.ts';
 import type * as openehr_am from '../../openehr_am.ts';
-export type { ArchetypeNodeIdLocation };
+export type { ArchetypeNodeIdLocation, NameLocation };
 
 /**
  * Configuration options for JSON serialization
@@ -76,6 +76,13 @@ export interface JsonSerializationConfig {
    * @default 'after_name' (recommended for readability)
    */
   archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
+
+  /**
+   * Place `name` first on locatable objects for readability.
+   * Ignored when `archetypeNodeIdLocation` is `beginning` (archetype_node_id is first).
+   * @default 'default'
+   */
+  nameLocation?: NameLocation;
 }
 
 /**
@@ -129,6 +136,7 @@ export const DEFAULT_JSON_SERIALIZATION_CONFIG: Required<JsonSerializationConfig
   useHybridStyle: false,
   maxInlineProperties: 3,
   archetypeNodeIdLocation: 'after_name',
+  nameLocation: 'default',
 };
 
 /**
@@ -158,6 +166,7 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
   useTerseFormat: false,
   useHybridStyle: false,
   archetypeNodeIdLocation: 'after_name',
+  nameLocation: 'default',
 };
 
 /**

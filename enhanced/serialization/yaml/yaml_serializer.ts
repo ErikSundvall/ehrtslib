@@ -17,6 +17,7 @@ import { stringify, Document, isMap, isSeq, isScalar } from 'yaml';
 import { TypeRegistry } from '../common/type_registry.ts';
 import { TypeInferenceEngine } from '../common/type_inference.ts';
 import { SerializationError } from '../common/errors.ts';
+import { orderSerializationKeys } from '../common/property_order.ts';
 import {
   toTerseCodePhrase,
   toTerseDvCodedText,
@@ -486,30 +487,10 @@ export class YamlSerializer {
       return true;
     });
 
-    // Reorder properties if archetype_node_id is present
-    let orderedKeys: string[] = [];
-    const archIdLocation = this.config.archetypeNodeIdLocation;
-    const hasArchId = props.includes('archetype_node_id');
-    const hasName = props.includes('name');
-
-    if (hasArchId) {
-      const rest = props.filter(k => k !== 'archetype_node_id');
-      if (archIdLocation === 'beginning') {
-        orderedKeys = ['archetype_node_id', ...rest];
-      } else if (archIdLocation === 'after_name' && hasName) {
-        for (const key of rest) {
-          orderedKeys.push(key);
-          if (key === 'name') orderedKeys.push('archetype_node_id');
-        }
-      } else if (archIdLocation === 'end') {
-        orderedKeys = [...rest, 'archetype_node_id'];
-      } else {
-        // Fallback for 'after_name' if name not found, or any other case
-        orderedKeys = [...rest, 'archetype_node_id'];
-      }
-    } else {
-      orderedKeys = props;
-    }
+    const orderedKeys = orderSerializationKeys(props, {
+      archetypeNodeIdLocation: this.config.archetypeNodeIdLocation,
+      nameLocation: this.config.nameLocation,
+    });
 
     // Serialize properties in order
     for (const key of orderedKeys) {

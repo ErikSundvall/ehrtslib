@@ -56,6 +56,35 @@ export function mergeParentArchetypeTerms(
   }
 }
 
+export function termTableForArchetype(
+  archetype: openehr_am.ARCHETYPE,
+  resolver: ArchetypeResolver,
+): TermDefinitionTable {
+  const merged: TermDefinitionTable = {};
+  mergeParentArchetypeTerms(merged, archetype, resolver);
+  mergeArchetypeTerms(merged, archetype);
+  return merged;
+}
+
+/** Per-archetype terminology (parent chain + archetype) for scoped lookup during generation. */
+export function buildArchetypeTermIndex(
+  resolver: ArchetypeResolver,
+  inlinedArchetypes: Iterable<openehr_am.ARCHETYPE | undefined>,
+): Record<string, TermDefinitionTable> {
+  const index: Record<string, TermDefinitionTable> = {};
+  for (const arch of inlinedArchetypes) {
+    if (!arch) continue;
+    const id = archetypeIdString(arch);
+    if (!id || index[id]) continue;
+    index[id] = termTableForArchetype(arch, resolver);
+  }
+  return index;
+}
+
+function archetypeIdString(arch: openehr_am.ARCHETYPE): string | undefined {
+  return arch.archetype_id?.value ?? arch.archetype_id?.toString();
+}
+
 export function buildMergedTerminology(
   source: openehr_am.TEMPLATE | openehr_am.ARCHETYPE,
   resolver: ArchetypeResolver,

@@ -25,7 +25,8 @@
  */
 
 import { TypeRegistry } from '../common/type_registry.ts';
-import { SerializationError, ArchetypeNodeIdLocation } from '../common/mod.ts';
+import { SerializationError, ArchetypeNodeIdLocation, NameLocation } from '../common/mod.ts';
+import { orderSerializationKeys, type PropertyOrderOptions } from '../common/property_order.ts';
 
 /**
  * Canonical JSON Serializer - Canonical openEHR JSON only
@@ -41,11 +42,18 @@ export class JsonCanonicalSerializer {
    * @returns Canonical JSON string with pretty printing
    * @throws SerializationError if serialization fails
    */
-  serialize(obj: any, options?: { prettyPrint?: boolean; indent?: number; archetypeNodeIdLocation?: ArchetypeNodeIdLocation }): string {
+  serialize(obj: any, options?: {
+    prettyPrint?: boolean;
+    indent?: number;
+    archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
+    nameLocation?: NameLocation;
+  }): string {
     const space = (options?.prettyPrint ?? true) ? (options?.indent ?? this.INDENT) : undefined;
-    const archIdLocation = options?.archetypeNodeIdLocation ?? 'after_name';
     try {
-      const jsonObj = this.toJsonObject(obj, archIdLocation);
+      const jsonObj = this.toJsonObject(obj, {
+        archetypeNodeIdLocation: options?.archetypeNodeIdLocation,
+        nameLocation: options?.nameLocation,
+      });
       return JSON.stringify(jsonObj, null, space);
     } catch (error) {
       throw new SerializationError(
@@ -63,7 +71,7 @@ export class JsonCanonicalSerializer {
    * @param archIdLocation - Where to place archetype_node_id
    * @returns Plain JSON object
    */
-  private toJsonObject(obj: any, archIdLocation: ArchetypeNodeIdLocation = 'after_name'): any {
+  private toJsonObject(obj: any, order: PropertyOrderOptions = {}): any {
     // Handle primitives
     if (obj === null || obj === undefined) {
       return null;
@@ -75,7 +83,7 @@ export class JsonCanonicalSerializer {
 
     // Handle arrays
     if (Array.isArray(obj)) {
-      return obj.map(item => this.toJsonObject(item, archIdLocation));
+      return obj.map(item => this.toJsonObject(item, order));
     }
 
     // Get type information - always include in canonical format
@@ -120,36 +128,14 @@ export class JsonCanonicalSerializer {
       return true;
     });
 
-    // Reorder properties if archetype_node_id is present
-    let orderedKeys: string[] = [];
-    const hasArchId = props.includes('archetype_node_id');
-    const hasName = props.includes('name');
-
-    if (hasArchId) {
-      const rest = props.filter(k => k !== 'archetype_node_id');
-      if (archIdLocation === 'beginning') {
-        orderedKeys = ['archetype_node_id', ...rest];
-      } else if (archIdLocation === 'after_name' && hasName) {
-        for (const key of rest) {
-          orderedKeys.push(key);
-          if (key === 'name') orderedKeys.push('archetype_node_id');
-        }
-      } else if (archIdLocation === 'end') {
-        orderedKeys = [...rest, 'archetype_node_id'];
-      } else {
-        // Fallback for 'after_name' if name not found, or any other case
-        orderedKeys = [...rest, 'archetype_node_id'];
-      }
-    } else {
-      orderedKeys = props;
-    }
+    const orderedKeys = orderSerializationKeys(props, order);
 
     // Serialize properties in order
     for (const key of orderedKeys) {
       const value = obj[key];
 
       // Recursively convert
-      const jsonValue = this.toJsonObject(value, archIdLocation);
+      const jsonValue = this.toJsonObject(value, order);
 
       // Skip undefined values
       if (jsonValue !== undefined) {

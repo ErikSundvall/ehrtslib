@@ -12,8 +12,15 @@
 import * as openehr_am from "../openehr_am.ts";
 import {
   resolveTemplateLanguage,
-  termCodeCandidates,
 } from "./term_codes.ts";
+import {
+  lookupTermInBag,
+  resolveLocatableLabel,
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+  type OperationalTemplateWithTermScopes,
+  type TermScopeMeta,
+} from "./term_scope.ts";
 
 type MultiplicityLike = {
   lower?: number;
@@ -24,6 +31,11 @@ type MultiplicityLike = {
 };
 
 type TermBag = Record<string, { text?: unknown; description?: unknown }>;
+
+type TermContext = {
+  scope?: string;
+  nameFallback?: string;
+};
 
 interface Bounds {
   min: number;
@@ -94,6 +106,7 @@ export interface GeneratorConfig {
 export class RMInstanceGenerator {
   private config: GeneratorConfig;
   private terms: TermBag = {};
+  private archetypeTerms: Record<string, TermBag> = {};
   private language = "en";
 
   constructor(config?: GeneratorConfig) {
@@ -119,17 +132,32 @@ export class RMInstanceGenerator {
       ? override
       : resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
+    this.archetypeTerms = this.collectArchetypeTerms(template);
 
-    return this.generateFromCObject(template.definition, 0, "root");
+    return this.generateFromCObject(template.definition, 0, "root", {});
+  }
+
+  private termContextFrom(cObject: openehr_am.C_OBJECT, parent?: TermContext): TermContext {
+    const meta = cObject as TermScopeMeta;
+    return {
+      scope: meta[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
+      // The fallback is only for the inlined archetype root whose template slot
+      // node id (for example at0.2) has no local term. It must not leak to
+      // descendants, otherwise every unresolved child inherits the parent name.
+      nameFallback: meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+    };
   }
 
   private generateFromCObject(
     cObject: openehr_am.C_OBJECT,
     depth: number,
     pathHint = "value",
+    termContext: TermContext = {},
   ): any {
     if (depth > (this.config.maxDepth || 50)) return null;
     if (this.isObjectExcluded(cObject)) return null;
+
+    const ctx = this.termContextFrom(cObject, termContext);
 
     if (cObject instanceof openehr_am.C_QUANTITY) {
       return this.generateQuantity(cObject);
@@ -162,13 +190,13 @@ export class RMInstanceGenerator {
     if (cObject.node_id && !rmType.startsWith("DV_")) {
       instance.archetype_node_id = cObject.node_id;
       if (LOCATABLE_TYPES.has(rmType)) {
-        const label = this.termText(cObject.node_id);
+        const label = this.locatableLabel(cObject, ctx);
         if (label) instance.name = this.dvText(label);
       }
     }
 
     if (isComplex) {
-      this.generateAttributes(instance, cObject, depth);
+      this.generateAttributes(instance, cObject, depth, ctx);
     } else {
       return this.generateDataValueByType(rmType, pathHint);
     }
@@ -180,6 +208,7 @@ export class RMInstanceGenerator {
     instance: Record<string, unknown>,
     cObject: openehr_am.C_COMPLEX_OBJECT,
     depth: number,
+    termContext: TermContext,
   ): void {
     const generatedAttributes = new Set<string>();
 
@@ -187,7 +216,7 @@ export class RMInstanceGenerator {
       const attrName = cAttribute.rm_attribute_name;
       if (!attrName || this.isAttributeExcluded(cAttribute)) continue;
 
-      const value = this.generateAttributeValue(cAttribute, depth);
+      const value = this.generateAttributeValue(cAttribute, depth, termContext);
       if (value === undefined) continue;
 
       instance[attrName] = value;
@@ -200,6 +229,7 @@ export class RMInstanceGenerator {
         cObject.rm_type_name || "",
         generatedAttributes,
         cObject.node_id,
+        termContext,
       );
     }
   }
@@ -207,6 +237,7 @@ export class RMInstanceGenerator {
   private generateAttributeValue(
     cAttribute: openehr_am.C_ATTRIBUTE,
     depth: number,
+    termContext: TermContext,
   ): any {
     const attrName = cAttribute.rm_attribute_name || "attribute";
     const children = (cAttribute as { children?: openehr_am.C_OBJECT[] })
@@ -226,11 +257,13 @@ export class RMInstanceGenerator {
     const shouldFillOptional = this.shouldFillOptional(cAttribute);
 
     if (!isRequired && !shouldFillOptional) return undefined;
-    if (!allowedChildren.length) return this.generateDefaultValue("", attrName);
+    if (!allowedChildren.length) {
+      return this.generateDefaultValue("", attrName, undefined, termContext);
+    }
 
     if (!(cAttribute instanceof openehr_am.C_MULTIPLE_ATTRIBUTE)) {
       const child = requiredChildren[0] ?? allowedChildren[0];
-      return this.generateFromCObject(child, depth + 1, attrName);
+      return this.generateFromCObject(child, depth + 1, attrName, termContext);
     }
 
     const selected = this.selectChildrenForMultipleAttribute(
@@ -248,6 +281,7 @@ export class RMInstanceGenerator {
           child,
           depth + 1,
           `${attrName}[${values.length}]`,
+          termContext,
         );
         if (childInstance !== null && childInstance !== undefined) {
           values.push(childInstance);
@@ -264,6 +298,7 @@ export class RMInstanceGenerator {
           child,
           depth + 1,
           `${attrName}[${values.length}]`,
+          termContext,
         );
         if (childInstance === null || childInstance === undefined) break;
         values.push(childInstance);
@@ -277,6 +312,7 @@ export class RMInstanceGenerator {
         child,
         depth + 1,
         `${attrName}[${values.length}]`,
+        termContext,
       );
       if (childInstance === null || childInstance === undefined) break;
       values.push(childInstance);
@@ -289,7 +325,8 @@ export class RMInstanceGenerator {
     instance: Record<string, unknown>,
     rmTypeName: string,
     generatedAttributes: Set<string>,
-    nodeId?: string,
+    nodeId: string | undefined,
+    termContext: TermContext,
   ): void {
     for (const attrName of this.mandatoryAttributesFor(rmTypeName)) {
       if (
@@ -301,6 +338,7 @@ export class RMInstanceGenerator {
         rmTypeName,
         attrName,
         nodeId,
+        termContext,
       );
     }
   }
@@ -323,13 +361,19 @@ export class RMInstanceGenerator {
     rmTypeName: string,
     attrName: string,
     nodeId?: string,
+    termContext: TermContext = {},
   ): any {
     switch (attrName) {
       case "archetype_node_id":
         return nodeId ?? "at0000";
       case "name":
         return this.dvText(
-          this.termText(nodeId) ?? this.readableRmType(rmTypeName),
+          this.locatableLabelFromIds(
+            nodeId,
+            termContext.nameFallback,
+            rmTypeName,
+            termContext.scope,
+          ),
         );
       case "language":
         return this.codePhrase("ISO_639-1", this.language);
@@ -365,7 +409,14 @@ export class RMInstanceGenerator {
         return {
           _type: "ITEM_TREE",
           archetype_node_id: "at0001",
-          name: this.dvText(this.readableRmType(attrName)),
+          name: this.dvText(
+            this.locatableLabelFromIds(
+              "at0001",
+              undefined,
+              "ITEM_TREE",
+              termContext.scope,
+            ),
+          ),
           items: [],
         };
       case "content":
@@ -511,8 +562,9 @@ export class RMInstanceGenerator {
     const code = ((cObject as { code_list?: string[] }).code_list ?? [])[0] ??
       (cObject as { constraint?: string }).constraint ??
       cObject.node_id;
+    const scope = (cObject as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY];
     return this.dvCodedText(
-      this.termText(code) ?? "Generated coded value",
+      this.termText(code, scope) ?? "Generated coded value",
       (cObject as { terminology?: string }).terminology ?? "local",
       code && !code.startsWith("id") ? code : "at0000",
     );
@@ -616,18 +668,59 @@ export class RMInstanceGenerator {
     return defs[this.language] ?? defs.en ?? Object.values(defs)[0] ?? {};
   }
 
-  private termText(code?: string): string | undefined {
+  private collectArchetypeTerms(
+    template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+  ): Record<string, TermBag> {
+    const index = (template as OperationalTemplateWithTermScopes)
+      .archetype_term_definitions ?? {};
+    const out: Record<string, TermBag> = {};
+    for (const [archId, table] of Object.entries(index)) {
+      out[archId] = table[this.language] ?? table.en ??
+        Object.values(table)[0] ?? {};
+    }
+    return out;
+  }
+
+  private locatableLabel(
+    cObject: openehr_am.C_OBJECT,
+    termContext: TermContext = {},
+  ): string {
+    const meta = cObject as TermScopeMeta;
+    return this.locatableLabelFromIds(
+      cObject.node_id,
+      meta[TERM_NAME_FALLBACK_NODE_ID_KEY] ?? termContext.nameFallback,
+      cObject.rm_type_name ?? "",
+      meta[TERM_ARCHETYPE_SCOPE_KEY] ?? termContext.scope,
+    );
+  }
+
+  private locatableLabelFromIds(
+    nodeId: string | undefined,
+    nameFallbackNodeId: string | undefined,
+    rmTypeName: string,
+    archetypeScope?: string,
+  ): string {
+    return resolveLocatableLabel(
+      nodeId,
+      nameFallbackNodeId,
+      this.terms,
+      this.archetypeTerms,
+      archetypeScope,
+    ) ?? this.readableRmType(rmTypeName);
+  }
+
+  private termText(code?: string, archetypeScope?: string): string | undefined {
     if (!code) return undefined;
-    for (const candidate of termCodeCandidates(code)) {
-      const term = this.terms[candidate];
-      const text = termLabel(term?.text);
+    const bags: TermBag[] = [];
+    if (archetypeScope && this.archetypeTerms[archetypeScope]) {
+      bags.push(this.archetypeTerms[archetypeScope]);
+    }
+    bags.push(this.terms);
+    for (const bag of bags) {
+      const text = lookupTermInBag(bag, code);
       if (text) return text;
     }
     return undefined;
-  }
-
-  private nodeIdToAtCode(nodeId: string): string {
-    return termCodeCandidates(nodeId)[1] ?? nodeId;
   }
 
   private readableRmType(rmType: string): string {

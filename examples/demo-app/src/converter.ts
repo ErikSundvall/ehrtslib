@@ -577,6 +577,7 @@ function serializeToJson(
       prettyPrint: config.prettyPrint,
       indent: config.indent,
       archetypeNodeIdLocation: config.archetypeNodeIdLocation,
+      nameLocation: config.nameLocation,
     });
   } else {
     const serializer = new JsonConfigurableSerializer(config);

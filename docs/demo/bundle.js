@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-01T11:43:13.075Z", buildId: "O6SSG42O" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-01T21:49:17.161Z", buildId: "A2ISXA5S" };
   }
 });
 
@@ -7175,6 +7175,51 @@ var TypeInferenceEngine = class {
 // enhanced/serialization/common/hybrid_formatter.ts
 init_define_BUILD_INFO();
 
+// enhanced/serialization/common/property_order.ts
+init_define_BUILD_INFO();
+function orderSerializationKeys(props, options = {}) {
+  const archIdLocation = options.archetypeNodeIdLocation ?? "after_name";
+  const nameLocation = options.nameLocation ?? "default";
+  const hasArchId = props.includes("archetype_node_id");
+  const hasName = props.includes("name");
+  const others = props.filter((k2) => k2 !== "archetype_node_id" && k2 !== "name");
+  if (!hasArchId) {
+    if (nameLocation === "beginning" && hasName) {
+      return ["name", ...others];
+    }
+    return [...props];
+  }
+  if (archIdLocation === "beginning") {
+    const head = ["archetype_node_id"];
+    if (hasName)
+      head.push("name");
+    return [...head, ...others];
+  }
+  if (archIdLocation === "after_name") {
+    if (nameLocation === "beginning" && hasName) {
+      return ["name", "archetype_node_id", ...others];
+    }
+    const rest2 = props.filter((k2) => k2 !== "archetype_node_id");
+    const ordered = [];
+    let archPlaced = false;
+    for (const key of rest2) {
+      ordered.push(key);
+      if (key === "name") {
+        ordered.push("archetype_node_id");
+        archPlaced = true;
+      }
+    }
+    if (!archPlaced)
+      ordered.push("archetype_node_id");
+    return ordered;
+  }
+  if (nameLocation === "beginning" && hasName) {
+    return ["name", ...others, "archetype_node_id"];
+  }
+  const rest = props.filter((k2) => k2 !== "archetype_node_id");
+  return [...rest, "archetype_node_id"];
+}
+
 // enhanced/serialization/common/errors.ts
 init_define_BUILD_INFO();
 var SerializationError = class _SerializationError extends Error {
@@ -7223,9 +7268,11 @@ var JsonCanonicalSerializer = class {
    */
   serialize(obj, options) {
     const space2 = options?.prettyPrint ?? true ? options?.indent ?? this.INDENT : void 0;
-    const archIdLocation = options?.archetypeNodeIdLocation ?? "after_name";
     try {
-      const jsonObj = this.toJsonObject(obj, archIdLocation);
+      const jsonObj = this.toJsonObject(obj, {
+        archetypeNodeIdLocation: options?.archetypeNodeIdLocation,
+        nameLocation: options?.nameLocation
+      });
       return JSON.stringify(jsonObj, null, space2);
     } catch (error) {
       throw new SerializationError(
@@ -7242,7 +7289,7 @@ var JsonCanonicalSerializer = class {
    * @param archIdLocation - Where to place archetype_node_id
    * @returns Plain JSON object
    */
-  toJsonObject(obj, archIdLocation = "after_name") {
+  toJsonObject(obj, order = {}) {
     if (obj === null || obj === void 0) {
       return null;
     }
@@ -7250,7 +7297,7 @@ var JsonCanonicalSerializer = class {
       return obj;
     }
     if (Array.isArray(obj)) {
-      return obj.map((item) => this.toJsonObject(item, archIdLocation));
+      return obj.map((item) => this.toJsonObject(item, order));
     }
     const typeName2 = TypeRegistry.getTypeNameFromInstance(obj);
     const result2 = {};
@@ -7280,30 +7327,10 @@ var JsonCanonicalSerializer = class {
         return false;
       return true;
     });
-    let orderedKeys = [];
-    const hasArchId = props.includes("archetype_node_id");
-    const hasName = props.includes("name");
-    if (hasArchId) {
-      const rest = props.filter((k2) => k2 !== "archetype_node_id");
-      if (archIdLocation === "beginning") {
-        orderedKeys = ["archetype_node_id", ...rest];
-      } else if (archIdLocation === "after_name" && hasName) {
-        for (const key of rest) {
-          orderedKeys.push(key);
-          if (key === "name")
-            orderedKeys.push("archetype_node_id");
-        }
-      } else if (archIdLocation === "end") {
-        orderedKeys = [...rest, "archetype_node_id"];
-      } else {
-        orderedKeys = [...rest, "archetype_node_id"];
-      }
-    } else {
-      orderedKeys = props;
-    }
+    const orderedKeys = orderSerializationKeys(props, order);
     for (const key of orderedKeys) {
       const value = obj[key];
-      const jsonValue = this.toJsonObject(value, archIdLocation);
+      const jsonValue = this.toJsonObject(value, order);
       if (jsonValue !== void 0) {
         result2[key] = jsonValue;
       }
@@ -28929,7 +28956,8 @@ var DEFAULT_JSON_SERIALIZATION_CONFIG = {
   useTerseFormat: false,
   useHybridStyle: false,
   maxInlineProperties: 3,
-  archetypeNodeIdLocation: "after_name"
+  archetypeNodeIdLocation: "after_name",
+  nameLocation: "default"
 };
 var DEFAULT_JSON_DESERIALIZATION_CONFIG = {
   typePropertyName: "_type",
@@ -28947,7 +28975,8 @@ var CANONICAL_JSON_CONFIG = {
   indent: 2,
   useTerseFormat: false,
   useHybridStyle: false,
-  archetypeNodeIdLocation: "after_name"
+  archetypeNodeIdLocation: "after_name",
+  nameLocation: "default"
 };
 var CANONICAL_JSON_DESERIALIZE_CONFIG = {
   typePropertyName: "_type",
@@ -29088,28 +29117,10 @@ var JsonConfigurableSerializer = class _JsonConfigurableSerializer {
         return false;
       return true;
     });
-    let orderedKeys = [];
-    const archIdLocation = this.config.archetypeNodeIdLocation;
-    const hasArchId = props.includes("archetype_node_id");
-    const hasName = props.includes("name");
-    if (hasArchId) {
-      const rest = props.filter((k2) => k2 !== "archetype_node_id");
-      if (archIdLocation === "beginning") {
-        orderedKeys = ["archetype_node_id", ...rest];
-      } else if (archIdLocation === "after_name" && hasName) {
-        for (const key of rest) {
-          orderedKeys.push(key);
-          if (key === "name")
-            orderedKeys.push("archetype_node_id");
-        }
-      } else if (archIdLocation === "end") {
-        orderedKeys = [...rest, "archetype_node_id"];
-      } else {
-        orderedKeys = [...rest, "archetype_node_id"];
-      }
-    } else {
-      orderedKeys = props;
-    }
+    const orderedKeys = orderSerializationKeys(props, {
+      archetypeNodeIdLocation: this.config.archetypeNodeIdLocation,
+      nameLocation: this.config.nameLocation
+    });
     for (const key of orderedKeys) {
       const value = obj[key];
       const jsonValue = this.toJsonObject(value, typeName2, key);
@@ -39043,6 +39054,7 @@ var DEFAULT_YAML_SERIALIZATION_CONFIG = {
   // Changed to false for more compact output
   maxInlineProperties: 3,
   archetypeNodeIdLocation: "after_name",
+  nameLocation: "default",
   keepArchetypeDetailsInline: false
   // Only works with flow style
 };
@@ -39460,28 +39472,10 @@ var YamlSerializer = class _YamlSerializer {
         return false;
       return true;
     });
-    let orderedKeys = [];
-    const archIdLocation = this.config.archetypeNodeIdLocation;
-    const hasArchId = props.includes("archetype_node_id");
-    const hasName = props.includes("name");
-    if (hasArchId) {
-      const rest = props.filter((k2) => k2 !== "archetype_node_id");
-      if (archIdLocation === "beginning") {
-        orderedKeys = ["archetype_node_id", ...rest];
-      } else if (archIdLocation === "after_name" && hasName) {
-        for (const key of rest) {
-          orderedKeys.push(key);
-          if (key === "name")
-            orderedKeys.push("archetype_node_id");
-        }
-      } else if (archIdLocation === "end") {
-        orderedKeys = [...rest, "archetype_node_id"];
-      } else {
-        orderedKeys = [...rest, "archetype_node_id"];
-      }
-    } else {
-      orderedKeys = props;
-    }
+    const orderedKeys = orderSerializationKeys(props, {
+      archetypeNodeIdLocation: this.config.archetypeNodeIdLocation,
+      nameLocation: this.config.nameLocation
+    });
     for (const key of orderedKeys) {
       const value = obj[key];
       const plainValue2 = this.toPlainObject(value, typeName2, key);
@@ -41991,7 +41985,8 @@ var DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG = {
   includeComments: false,
   includeUndefinedAttributes: false,
   indent: 2,
-  archetypeNodeIdLocation: "after_name"
+  archetypeNodeIdLocation: "after_name",
+  nameLocation: "beginning"
 };
 var TypeScriptConstructorSerializer = class {
   config;
@@ -42134,22 +42129,10 @@ ${" ".repeat(this.config.indent * depth)}}`;
     if (this.config.includeUndefinedAttributes && typeName2) {
       keys = this.getAllPossibleKeys(typeName2, keys);
     }
-    const hasArchetypeNodeId = keys.includes("archetype_node_id");
-    const hasName = keys.includes("name");
-    let orderedKeys = [];
-    if (hasArchetypeNodeId && hasName) {
-      const location = this.config.archetypeNodeIdLocation;
-      const otherKeys = keys.filter((k2) => k2 !== "archetype_node_id" && k2 !== "name");
-      if (location === "beginning") {
-        orderedKeys = ["archetype_node_id", "name", ...otherKeys];
-      } else if (location === "after_name") {
-        orderedKeys = ["name", "archetype_node_id", ...otherKeys];
-      } else {
-        orderedKeys = ["name", ...otherKeys, "archetype_node_id"];
-      }
-    } else {
-      orderedKeys = keys;
-    }
+    const orderedKeys = orderSerializationKeys(keys, {
+      archetypeNodeIdLocation: this.config.archetypeNodeIdLocation,
+      nameLocation: this.config.nameLocation
+    });
     for (const key of orderedKeys) {
       if (key.startsWith("_") || key === "constructor") {
         continue;
@@ -45721,6 +45704,16 @@ function textValue(node, key = "value") {
       return textValue(rec[key], key);
     if (rec.code_string !== void 0)
       return String(rec.code_string);
+    const text = rec["#text"];
+    if (text !== void 0 && text !== null) {
+      if (typeof text === "string" || typeof text === "number")
+        return String(text);
+      if (Array.isArray(text)) {
+        const joined = text.map((part) => typeof part === "string" || typeof part === "number" ? String(part) : "").join("").trim();
+        if (joined)
+          return joined;
+      }
+    }
   }
   return void 0;
 }
@@ -46052,7 +46045,9 @@ function collectTermDefinitions(node, bag) {
     for (const it2 of items) {
       const item = it2;
       const id2 = String(item["@_id"] ?? item.id ?? "");
-      const val = textValue(item) ?? String(item.value ?? item);
+      const val = textValue(item);
+      if (!val)
+        continue;
       if (id2 === "text")
         entry.text = val;
       if (id2 === "description")
@@ -46222,6 +46217,180 @@ init_define_BUILD_INFO();
 
 // enhanced/am/aom_clone.ts
 init_define_BUILD_INFO();
+
+// enhanced/generation/term_scope.ts
+init_define_BUILD_INFO();
+
+// enhanced/generation/term_codes.ts
+init_define_BUILD_INFO();
+function termCodeCandidates(nodeId) {
+  const out = /* @__PURE__ */ new Set();
+  out.add(nodeId);
+  out.add(nodeIdToAtCode(nodeId));
+  const dotted = /^at(\d+)\.(\d+(?:\.\d+)*)$/i.exec(nodeId);
+  if (dotted && dotted[1].length < 4) {
+    const padded = dotted[1].padStart(4, "0");
+    out.add(`at${padded}`);
+    out.add(`at${padded}.${dotted[2]}`);
+  }
+  const base2 = nodeId.replace(/\.\d+(?:\.\d+)*$/, "");
+  if (base2 !== nodeId)
+    out.add(base2);
+  return [...out];
+}
+function resolveTemplateLanguage(template, preferred) {
+  if (preferred)
+    return preferred;
+  if (typeof template.original_language === "string" && template.original_language) {
+    return template.original_language;
+  }
+  const fromOntology = template.ontology?.original_language?.code_string;
+  if (fromOntology)
+    return fromOntology;
+  const defs = template.ontology?.term_definitions;
+  if (defs) {
+    const svCount = Object.keys(defs.sv ?? {}).length;
+    const enCount = Object.keys(defs.en ?? {}).length;
+    if (svCount > enCount && svCount > 0)
+      return "sv";
+    let bestLang = "en";
+    let bestCount = -1;
+    for (const [lang, table] of Object.entries(defs)) {
+      const count = table && typeof table === "object" ? Object.keys(table).length : 0;
+      if (count > bestCount) {
+        bestCount = count;
+        bestLang = lang;
+      }
+    }
+    if (bestCount > 0)
+      return bestLang;
+  }
+  const details = template.description?.details;
+  if (details?.sv)
+    return "sv";
+  return "en";
+}
+function templateOriginalLanguage(template) {
+  if (typeof template.original_language === "string" && template.original_language) {
+    return template.original_language;
+  }
+  return template.ontology?.original_language?.code_string || void 0;
+}
+function availableTemplateLanguages(template) {
+  const langs = /* @__PURE__ */ new Set();
+  const original = templateOriginalLanguage(template);
+  if (original)
+    langs.add(original);
+  const defs = template.ontology?.term_definitions;
+  if (defs) {
+    for (const [lang, table] of Object.entries(defs)) {
+      if (table && typeof table === "object" && Object.keys(table).length > 0) {
+        langs.add(lang);
+      }
+    }
+  }
+  const details = template.description?.details;
+  if (details) {
+    for (const lang of Object.keys(details))
+      langs.add(lang);
+  }
+  if (original) {
+    return [original, ...[...langs].filter((l3) => l3 !== original)];
+  }
+  return [...langs];
+}
+
+// enhanced/generation/term_scope.ts
+var TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
+var TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
+function termLabel2(val) {
+  if (typeof val === "string" && val && val !== "[object Object]")
+    return val;
+  if (val && typeof val === "object") {
+    const o2 = val;
+    return termLabel2(o2.value) ?? termLabel2(o2.text) ?? termLabel2(o2["#text"]);
+  }
+  return void 0;
+}
+function lookupTermInBag(bag, code) {
+  if (!code)
+    return void 0;
+  for (const candidate of termCodeCandidates(code)) {
+    const text = termLabel2(bag[candidate]?.text);
+    if (text)
+      return text;
+  }
+  const bases = new Set(termCodeCandidates(code));
+  for (const base2 of bases) {
+    const dotted = Object.keys(bag).filter((k2) => k2.startsWith(`${base2}.`)).sort((a2, b3) => a2.length - b3.length);
+    if (dotted.length === 1) {
+      if (base2 === "at0002")
+        continue;
+      const text = termLabel2(bag[dotted[0]]?.text);
+      if (text)
+        return text;
+    }
+  }
+  return void 0;
+}
+function lookupExactTermInBag(bag, code) {
+  if (!code)
+    return void 0;
+  return termLabel2(bag[code]?.text);
+}
+function resolveLocatableLabel(nodeId, nameFallbackNodeId, templateTerms, archetypeTerms, archetypeScope) {
+  if (nodeId && isTemplateSlotId(nodeId)) {
+    const slotLabel = lookupExactTermInBag(templateTerms, nodeId);
+    if (slotLabel)
+      return slotLabel;
+  }
+  const codes = [nodeId, nameFallbackNodeId].filter(
+    (c2) => typeof c2 === "string" && c2.length > 0
+  );
+  if (archetypeScope && archetypeTerms[archetypeScope]) {
+    const scopedBag = archetypeTerms[archetypeScope];
+    for (const code of codes) {
+      const text = lookupTermInBag(scopedBag, code);
+      if (text)
+        return text;
+    }
+    for (const code of codes) {
+      if (isSpecialisedAtCode(code)) {
+        const text = lookupExactTermInBag(templateTerms, code);
+        if (text)
+          return text;
+      }
+    }
+    const localId = nodeId ?? nameFallbackNodeId;
+    if (localId && isArchetypeLocalCode(localId))
+      return void 0;
+  }
+  for (const code of codes) {
+    if (isTemplateSlotId(code)) {
+      const text2 = lookupExactTermInBag(templateTerms, code);
+      if (text2)
+        return text2;
+      continue;
+    }
+    const text = lookupTermInBag(templateTerms, code);
+    if (text)
+      return text;
+  }
+  return void 0;
+}
+function isArchetypeLocalCode(code) {
+  if (/^at0\.\d/i.test(code))
+    return false;
+  return /^at\d/i.test(code);
+}
+function isSpecialisedAtCode(code) {
+  return /^at\d{4,}\.\d+(?:\.\d+)*$/i.test(code);
+}
+function isTemplateSlotId(code) {
+  return /^at0\.\d/i.test(code);
+}
+
+// enhanced/am/aom_clone.ts
 function cloneMultiplicity(src) {
   if (!src)
     return void 0;
@@ -46276,6 +46445,14 @@ function copyObjectFields(src, dest) {
   dest.node_id = src.node_id;
   if (src.occurrences) {
     dest.occurrences = cloneMultiplicity(src.occurrences);
+  }
+  const srcMeta = src;
+  const destMeta = dest;
+  if (srcMeta[TERM_ARCHETYPE_SCOPE_KEY]) {
+    destMeta[TERM_ARCHETYPE_SCOPE_KEY] = srcMeta[TERM_ARCHETYPE_SCOPE_KEY];
+  }
+  if (srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY]) {
+    destMeta[TERM_NAME_FALLBACK_NODE_ID_KEY] = srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY];
   }
 }
 function copyComplexFields(src, dest) {
@@ -46353,6 +46530,27 @@ function mergeParentArchetypeTerms(target, source, resolver) {
     mergeArchetypeTerms(target, parent);
     parentId = parent.parent_archetype_id?.value ?? parent.parent_archetype_id?.toString();
   }
+}
+function termTableForArchetype(archetype, resolver) {
+  const merged = {};
+  mergeParentArchetypeTerms(merged, archetype, resolver);
+  mergeArchetypeTerms(merged, archetype);
+  return merged;
+}
+function buildArchetypeTermIndex(resolver, inlinedArchetypes) {
+  const index = {};
+  for (const arch of inlinedArchetypes) {
+    if (!arch)
+      continue;
+    const id2 = archetypeIdString(arch);
+    if (!id2 || index[id2])
+      continue;
+    index[id2] = termTableForArchetype(arch, resolver);
+  }
+  return index;
+}
+function archetypeIdString(arch) {
+  return arch.archetype_id?.value ?? arch.archetype_id?.toString();
 }
 function buildMergedTerminology(source, resolver, inlinedArchetypes = []) {
   const merged = {};
@@ -46444,6 +46642,9 @@ function specializeComplexObject(parentFlat, differential) {
 }
 
 // enhanced/am/flattening/template_flattener.ts
+function archetypeIdString2(arch) {
+  return arch.archetype_id?.value ?? arch.archetype_id?.toString();
+}
 function flattenArchetypeDefinition(archetype, resolver, inlined = []) {
   if (!archetype.definition)
     return void 0;
@@ -46492,6 +46693,34 @@ function resolveSlotsInTree(root, resolver, inlined) {
   }
   return root;
 }
+function archetypeIdFromRef(ref) {
+  return ref?.trim() || void 0;
+}
+function tagTermScopeRoot(obj, archetypeId, nameFallbackNodeId) {
+  const meta2 = obj;
+  meta2[TERM_ARCHETYPE_SCOPE_KEY] = archetypeId;
+  if (nameFallbackNodeId && /^at0\./i.test(obj.node_id ?? "")) {
+    meta2[TERM_NAME_FALLBACK_NODE_ID_KEY] = nameFallbackNodeId;
+  }
+}
+function tagTermScopeDescendants(obj, archetypeId) {
+  if (!(obj instanceof C_COMPLEX_OBJECT))
+    return;
+  for (const attr of obj.attributes ?? []) {
+    const children = attr.children;
+    if (!children)
+      continue;
+    for (const child of children) {
+      const meta2 = child;
+      meta2[TERM_ARCHETYPE_SCOPE_KEY] ??= archetypeId;
+      tagTermScopeDescendants(child, archetypeId);
+    }
+  }
+}
+function tagInlinedArchetype(obj, archetypeId, nameFallbackNodeId) {
+  tagTermScopeRoot(obj, archetypeId, nameFallbackNodeId);
+  tagTermScopeDescendants(obj, archetypeId);
+}
 function firstIncludePattern(slot) {
   const includes = slot.includes;
   const first = includes?.[0];
@@ -46511,6 +46740,8 @@ function resolveArchetypeSlot(slot, resolver, inlined) {
   result2.rm_type_name = slot.rm_type_name ?? result2.rm_type_name;
   if (slot.occurrences)
     result2.occurrences = slot.occurrences;
+  const archId = archetypeIdString2(arch) ?? pattern;
+  tagInlinedArchetype(result2, archId, arch.definition?.node_id);
   return result2;
 }
 function inlineArchetypeRoot(root, resolver, inlined) {
@@ -46528,8 +46759,15 @@ function inlineArchetypeRoot(root, resolver, inlined) {
   if (root.occurrences)
     result2.occurrences = root.occurrences;
   if (root.attributes?.length) {
-    return specializeComplexObject(result2, root);
+    const specialized = specializeComplexObject(result2, root);
+    const archId2 = archetypeIdFromRef(ref) ?? archetypeIdString2(arch);
+    if (archId2)
+      tagInlinedArchetype(specialized, archId2, arch.definition?.node_id);
+    return specialized;
   }
+  const archId = archetypeIdFromRef(ref) ?? archetypeIdString2(arch);
+  if (archId)
+    tagInlinedArchetype(result2, archId, arch.definition?.node_id);
   return result2;
 }
 function flattenToOperationalTemplate(source, resolver) {
@@ -46557,6 +46795,10 @@ function flattenToOperationalTemplate(source, resolver) {
   applyMergedTerminology(
     opt,
     buildMergedTerminology(source, resolver, inlinedArchetypes)
+  );
+  opt.archetype_term_definitions = buildArchetypeTermIndex(
+    resolver,
+    inlinedArchetypes
   );
   return opt;
 }
@@ -48263,91 +48505,6 @@ init_define_BUILD_INFO();
 
 // enhanced/generation/rm_instance_generator.ts
 init_define_BUILD_INFO();
-
-// enhanced/generation/term_codes.ts
-init_define_BUILD_INFO();
-function termCodeCandidates(nodeId) {
-  const out = /* @__PURE__ */ new Set();
-  out.add(nodeId);
-  out.add(nodeIdToAtCode(nodeId));
-  const shortDot = /^at0\.(\d+)$/i.exec(nodeId);
-  if (shortDot) {
-    out.add(`at${shortDot[1].padStart(4, "0")}`);
-  }
-  const dotted = /^at(\d+)\.(\d+(?:\.\d+)*)$/i.exec(nodeId);
-  if (dotted && dotted[1].length < 4) {
-    const padded = dotted[1].padStart(4, "0");
-    out.add(`at${padded}`);
-    out.add(`at${padded}.${dotted[2]}`);
-  }
-  const base2 = nodeId.replace(/\.\d+(?:\.\d+)*$/, "");
-  if (base2 !== nodeId)
-    out.add(base2);
-  return [...out];
-}
-function resolveTemplateLanguage(template, preferred) {
-  if (preferred)
-    return preferred;
-  if (typeof template.original_language === "string" && template.original_language) {
-    return template.original_language;
-  }
-  const fromOntology = template.ontology?.original_language?.code_string;
-  if (fromOntology)
-    return fromOntology;
-  const defs = template.ontology?.term_definitions;
-  if (defs) {
-    const svCount = Object.keys(defs.sv ?? {}).length;
-    const enCount = Object.keys(defs.en ?? {}).length;
-    if (svCount > enCount && svCount > 0)
-      return "sv";
-    let bestLang = "en";
-    let bestCount = -1;
-    for (const [lang, table] of Object.entries(defs)) {
-      const count = table && typeof table === "object" ? Object.keys(table).length : 0;
-      if (count > bestCount) {
-        bestCount = count;
-        bestLang = lang;
-      }
-    }
-    if (bestCount > 0)
-      return bestLang;
-  }
-  const details = template.description?.details;
-  if (details?.sv)
-    return "sv";
-  return "en";
-}
-function templateOriginalLanguage(template) {
-  if (typeof template.original_language === "string" && template.original_language) {
-    return template.original_language;
-  }
-  return template.ontology?.original_language?.code_string || void 0;
-}
-function availableTemplateLanguages(template) {
-  const langs = /* @__PURE__ */ new Set();
-  const original = templateOriginalLanguage(template);
-  if (original)
-    langs.add(original);
-  const defs = template.ontology?.term_definitions;
-  if (defs) {
-    for (const [lang, table] of Object.entries(defs)) {
-      if (table && typeof table === "object" && Object.keys(table).length > 0) {
-        langs.add(lang);
-      }
-    }
-  }
-  const details = template.description?.details;
-  if (details) {
-    for (const lang of Object.keys(details))
-      langs.add(lang);
-  }
-  if (original) {
-    return [original, ...[...langs].filter((l3) => l3 !== original)];
-  }
-  return [...langs];
-}
-
-// enhanced/generation/rm_instance_generator.ts
 var MANDATORY_RM_ATTRIBUTES = {
   LOCATABLE: ["archetype_node_id", "name"],
   COMPOSITION: ["language", "territory", "category", "composer"],
@@ -48395,6 +48552,7 @@ var ENTRY_TYPES = /* @__PURE__ */ new Set([
 var RMInstanceGenerator = class {
   config;
   terms = {};
+  archetypeTerms = {};
   language = "en";
   constructor(config) {
     this.config = {
@@ -48413,13 +48571,25 @@ var RMInstanceGenerator = class {
     const override = this.config.language?.trim();
     this.language = override ? override : resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
-    return this.generateFromCObject(template.definition, 0, "root");
+    this.archetypeTerms = this.collectArchetypeTerms(template);
+    return this.generateFromCObject(template.definition, 0, "root", {});
   }
-  generateFromCObject(cObject, depth, pathHint = "value") {
+  termContextFrom(cObject, parent) {
+    const meta2 = cObject;
+    return {
+      scope: meta2[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
+      // The fallback is only for the inlined archetype root whose template slot
+      // node id (for example at0.2) has no local term. It must not leak to
+      // descendants, otherwise every unresolved child inherits the parent name.
+      nameFallback: meta2[TERM_NAME_FALLBACK_NODE_ID_KEY]
+    };
+  }
+  generateFromCObject(cObject, depth, pathHint = "value", termContext = {}) {
     if (depth > (this.config.maxDepth || 50))
       return null;
     if (this.isObjectExcluded(cObject))
       return null;
+    const ctx = this.termContextFrom(cObject, termContext);
     if (cObject instanceof C_QUANTITY) {
       return this.generateQuantity(cObject);
     }
@@ -48442,25 +48612,25 @@ var RMInstanceGenerator = class {
     if (cObject.node_id && !rmType.startsWith("DV_")) {
       instance.archetype_node_id = cObject.node_id;
       if (LOCATABLE_TYPES.has(rmType)) {
-        const label = this.termText(cObject.node_id);
+        const label = this.locatableLabel(cObject, ctx);
         if (label)
           instance.name = this.dvText(label);
       }
     }
     if (isComplex) {
-      this.generateAttributes(instance, cObject, depth);
+      this.generateAttributes(instance, cObject, depth, ctx);
     } else {
       return this.generateDataValueByType(rmType, pathHint);
     }
     return instance;
   }
-  generateAttributes(instance, cObject, depth) {
+  generateAttributes(instance, cObject, depth, termContext) {
     const generatedAttributes = /* @__PURE__ */ new Set();
     for (const cAttribute of cObject.attributes ?? []) {
       const attrName2 = cAttribute.rm_attribute_name;
       if (!attrName2 || this.isAttributeExcluded(cAttribute))
         continue;
-      const value = this.generateAttributeValue(cAttribute, depth);
+      const value = this.generateAttributeValue(cAttribute, depth, termContext);
       if (value === void 0)
         continue;
       instance[attrName2] = value;
@@ -48471,11 +48641,12 @@ var RMInstanceGenerator = class {
         instance,
         cObject.rm_type_name || "",
         generatedAttributes,
-        cObject.node_id
+        cObject.node_id,
+        termContext
       );
     }
   }
-  generateAttributeValue(cAttribute, depth) {
+  generateAttributeValue(cAttribute, depth, termContext) {
     const attrName2 = cAttribute.rm_attribute_name || "attribute";
     const children = cAttribute.children ?? [];
     const allowedChildren = children.filter(
@@ -48492,11 +48663,12 @@ var RMInstanceGenerator = class {
     const shouldFillOptional = this.shouldFillOptional(cAttribute);
     if (!isRequired && !shouldFillOptional)
       return void 0;
-    if (!allowedChildren.length)
-      return this.generateDefaultValue("", attrName2);
+    if (!allowedChildren.length) {
+      return this.generateDefaultValue("", attrName2, void 0, termContext);
+    }
     if (!(cAttribute instanceof C_MULTIPLE_ATTRIBUTE)) {
       const child = requiredChildren[0] ?? allowedChildren[0];
-      return this.generateFromCObject(child, depth + 1, attrName2);
+      return this.generateFromCObject(child, depth + 1, attrName2, termContext);
     }
     const selected = this.selectChildrenForMultipleAttribute(
       allowedChildren,
@@ -48512,7 +48684,8 @@ var RMInstanceGenerator = class {
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values2.length}]`
+          `${attrName2}[${values2.length}]`,
+          termContext
         );
         if (childInstance !== null && childInstance !== void 0) {
           values2.push(childInstance);
@@ -48527,7 +48700,8 @@ var RMInstanceGenerator = class {
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values2.length}]`
+          `${attrName2}[${values2.length}]`,
+          termContext
         );
         if (childInstance === null || childInstance === void 0)
           break;
@@ -48540,7 +48714,8 @@ var RMInstanceGenerator = class {
       const childInstance = this.generateFromCObject(
         child,
         depth + 1,
-        `${attrName2}[${values2.length}]`
+        `${attrName2}[${values2.length}]`,
+        termContext
       );
       if (childInstance === null || childInstance === void 0)
         break;
@@ -48548,7 +48723,7 @@ var RMInstanceGenerator = class {
     }
     return values2;
   }
-  addMandatoryRMAttributes(instance, rmTypeName3, generatedAttributes, nodeId) {
+  addMandatoryRMAttributes(instance, rmTypeName3, generatedAttributes, nodeId, termContext) {
     for (const attrName2 of this.mandatoryAttributesFor(rmTypeName3)) {
       if (generatedAttributes.has(attrName2) || instance[attrName2] !== void 0) {
         continue;
@@ -48556,7 +48731,8 @@ var RMInstanceGenerator = class {
       instance[attrName2] = this.generateDefaultValue(
         rmTypeName3,
         attrName2,
-        nodeId
+        nodeId,
+        termContext
       );
     }
   }
@@ -48575,13 +48751,18 @@ var RMInstanceGenerator = class {
     }
     return [...attrs];
   }
-  generateDefaultValue(rmTypeName3, attrName2, nodeId) {
+  generateDefaultValue(rmTypeName3, attrName2, nodeId, termContext = {}) {
     switch (attrName2) {
       case "archetype_node_id":
         return nodeId ?? "at0000";
       case "name":
         return this.dvText(
-          this.termText(nodeId) ?? this.readableRmType(rmTypeName3)
+          this.locatableLabelFromIds(
+            nodeId,
+            termContext.nameFallback,
+            rmTypeName3,
+            termContext.scope
+          )
         );
       case "language":
         return this.codePhrase("ISO_639-1", this.language);
@@ -48617,7 +48798,14 @@ var RMInstanceGenerator = class {
         return {
           _type: "ITEM_TREE",
           archetype_node_id: "at0001",
-          name: this.dvText(this.readableRmType(attrName2)),
+          name: this.dvText(
+            this.locatableLabelFromIds(
+              "at0001",
+              void 0,
+              "ITEM_TREE",
+              termContext.scope
+            )
+          ),
           items: []
         };
       case "content":
@@ -48737,8 +48925,9 @@ var RMInstanceGenerator = class {
   }
   generateCodedText(cObject) {
     const code = (cObject.code_list ?? [])[0] ?? cObject.constraint ?? cObject.node_id;
+    const scope = cObject[TERM_ARCHETYPE_SCOPE_KEY];
     return this.dvCodedText(
-      this.termText(code) ?? "Generated coded value",
+      this.termText(code, scope) ?? "Generated coded value",
       cObject.terminology ?? "local",
       code && !code.startsWith("id") ? code : "at0000"
     );
@@ -48829,19 +49018,46 @@ var RMInstanceGenerator = class {
     const defs = ontology?.term_definitions ?? {};
     return defs[this.language] ?? defs.en ?? Object.values(defs)[0] ?? {};
   }
-  termText(code) {
+  collectArchetypeTerms(template) {
+    const index = template.archetype_term_definitions ?? {};
+    const out = {};
+    for (const [archId, table] of Object.entries(index)) {
+      out[archId] = table[this.language] ?? table.en ?? Object.values(table)[0] ?? {};
+    }
+    return out;
+  }
+  locatableLabel(cObject, termContext = {}) {
+    const meta2 = cObject;
+    return this.locatableLabelFromIds(
+      cObject.node_id,
+      meta2[TERM_NAME_FALLBACK_NODE_ID_KEY] ?? termContext.nameFallback,
+      cObject.rm_type_name ?? "",
+      meta2[TERM_ARCHETYPE_SCOPE_KEY] ?? termContext.scope
+    );
+  }
+  locatableLabelFromIds(nodeId, nameFallbackNodeId, rmTypeName3, archetypeScope) {
+    return resolveLocatableLabel(
+      nodeId,
+      nameFallbackNodeId,
+      this.terms,
+      this.archetypeTerms,
+      archetypeScope
+    ) ?? this.readableRmType(rmTypeName3);
+  }
+  termText(code, archetypeScope) {
     if (!code)
       return void 0;
-    for (const candidate of termCodeCandidates(code)) {
-      const term = this.terms[candidate];
-      const text = termLabel2(term?.text);
+    const bags = [];
+    if (archetypeScope && this.archetypeTerms[archetypeScope]) {
+      bags.push(this.archetypeTerms[archetypeScope]);
+    }
+    bags.push(this.terms);
+    for (const bag of bags) {
+      const text = lookupTermInBag(bag, code);
       if (text)
         return text;
     }
     return void 0;
-  }
-  nodeIdToAtCode(nodeId) {
-    return termCodeCandidates(nodeId)[1] ?? nodeId;
   }
   readableRmType(rmType) {
     return rmType.toLowerCase().split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
@@ -48871,15 +49087,6 @@ var RMInstanceGenerator = class {
     return { _type: "DV_DATE_TIME", value: "2026-01-01T12:00:00Z" };
   }
 };
-function termLabel2(val) {
-  if (typeof val === "string" && val && val !== "[object Object]")
-    return val;
-  if (val && typeof val === "object") {
-    const o2 = val;
-    return termLabel2(o2.value) ?? termLabel2(o2.text) ?? termLabel2(o2["#text"]);
-  }
-  return void 0;
-}
 
 // enhanced/generation/template_instance_coverage.ts
 init_define_BUILD_INFO();
@@ -49441,7 +49648,8 @@ function serializeToJson(obj, serializerType, config) {
     return serializer.serialize(obj, {
       prettyPrint: config.prettyPrint,
       indent: config.indent,
-      archetypeNodeIdLocation: config.archetypeNodeIdLocation
+      archetypeNodeIdLocation: config.archetypeNodeIdLocation,
+      nameLocation: config.nameLocation
     });
   } else {
     const serializer = new JsonConfigurableSerializer(config);
@@ -72593,6 +72801,9 @@ function gatherConversionOptions() {
   const jsonArchIdLoc = document.getElementById("json-arch-id-location")?.value;
   if (jsonArchIdLoc)
     jsonConfig.archetypeNodeIdLocation = jsonArchIdLoc;
+  const jsonNameLoc = document.getElementById("json-name-location")?.value;
+  if (jsonNameLoc)
+    jsonConfig.nameLocation = jsonNameLoc;
   if (jsonConfigPreset === "custom") {
     const indent = parseInt(
       document.getElementById("json-indent")?.value || "2"
@@ -72606,6 +72817,9 @@ function gatherConversionOptions() {
   const yamlArchIdLoc = document.getElementById("yaml-arch-id-location")?.value;
   if (yamlArchIdLoc)
     yamlConfig.archetypeNodeIdLocation = yamlArchIdLoc;
+  const yamlNameLoc = document.getElementById("yaml-name-location")?.value;
+  if (yamlNameLoc)
+    yamlConfig.nameLocation = yamlNameLoc;
   if (yamlConfigPreset === "custom") {
     const indent = parseInt(
       document.getElementById("yaml-indent")?.value || "2"
@@ -72690,7 +72904,8 @@ function gatherConversionOptions() {
     includeComments: document.getElementById("ts-comments")?.checked || false,
     indent: tsIndent,
     includeUndefinedAttributes: document.getElementById("ts-include-undefined")?.checked || false,
-    archetypeNodeIdLocation: document.getElementById("ts-arch-id-location")?.value || "after_name"
+    archetypeNodeIdLocation: document.getElementById("ts-arch-id-location")?.value || "after_name",
+    nameLocation: document.getElementById("ts-name-location")?.value || "beginning"
   };
   return {
     inputMode,
@@ -72797,6 +73012,11 @@ function updateJsonOptions(preset) {
   const archIdLocSelect = document.getElementById(
     "json-arch-id-location"
   );
+  const nameLocSelect = document.getElementById(
+    "json-name-location"
+  );
+  if (nameLocSelect)
+    nameLocSelect.disabled = false;
   const serializerType = document.getElementById("json-serializer-type")?.value || "configurable";
   const isCanonicalSerializer = serializerType === "canonical";
   if (isCanonicalSerializer) {
@@ -72911,6 +73131,9 @@ function updateYamlOptions(preset) {
   const archIdLocSelect = document.getElementById(
     "yaml-arch-id-location"
   );
+  const nameLocSelect = document.getElementById(
+    "yaml-name-location"
+  );
   const isCustom = preset === "custom";
   [
     mainStyleSelect,
@@ -72924,6 +73147,8 @@ function updateYamlOptions(preset) {
     if (elem)
       elem.disabled = !isCustom;
   });
+  if (nameLocSelect)
+    nameLocSelect.disabled = false;
   const updateArchetypeInlineVisibility = () => {
     const mainStyle = mainStyleSelect?.value || "hybrid";
     const archetypeInlineGroup = document.getElementById(

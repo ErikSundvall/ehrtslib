@@ -61,9 +61,46 @@ Deno.test({
     const joined = names.join("\n");
     assert(joined.includes("Granskning"));
     assert(joined.includes("signeringsansvarig") || joined.includes("HSAID"));
-    assert(joined.includes("Journaltext") || joined.includes("Överföringsformat"));
+    assert(
+      joined.includes("Deltagare") || joined.includes("Nuvarande situation") ||
+        joined.includes("Gemensam bedömning") || joined.includes("Komorbiditet") ||
+        joined.includes("Multifokalitet"),
+    );
+    assert(
+      !joined.includes("at0089.1:Nuvarande situation och bakgrund"),
+      "child element name leaked from parent section",
+    );
+    assert(
+      !joined.includes("at0004.1:Utredning/Undersökning"),
+      "child element name leaked from parent section",
+    );
+    assert(
+      !joined.includes("at0006.1:Gemensamt beslut"),
+      "child element name leaked from parent section",
+    );
+    const sectionSiblingSlots = names.filter((n) =>
+      /^at0\.(2|4|6|10|12|18|27|34):/.test(n)
+    );
+    const repeatsSectionTitle = sectionSiblingSlots.filter((n) =>
+      /:(Current situation and background|Nuvarande situation och bakgrund|Investigations and examinations|Utredning\/Undersökning)$/
+        .test(n)
+    );
+    assert(
+      repeatsSectionTitle.length < sectionSiblingSlots.length,
+      `inlined archetype slots should not all copy section title: ${repeatsSectionTitle.join(", ")}`,
+    );
+    const icd10 = names.filter((n) => n.endsWith(":ICD-10"));
+    const icd10Mislabeled = icd10.filter(
+      (n) => /^at0\.\d+:ICD-10$/.test(n) || n === "at0002:ICD-10",
+    );
+    assertEquals(
+      icd10Mislabeled,
+      [],
+      `template slots and history events must not be named ICD-10: ${icd10Mislabeled.join(", ")}`,
+    );
     const genericCount = names.filter((n) =>
-      /:(Cluster|Section|Admin Entry|Item Tree)$/.test(n)
+      /:(Cluster|Section|Admin Entry|Item Tree|Observation|Evaluation|History|Event|Point Event|Activity|Element)$/
+        .test(n),
     ).length;
     assert(
       genericCount < names.length / 2,

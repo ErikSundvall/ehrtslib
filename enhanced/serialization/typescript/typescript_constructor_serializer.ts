@@ -9,7 +9,8 @@
 
 import { TypeRegistry } from '../common/type_registry.ts';
 import { SerializationError } from '../common/errors.ts';
-import type { ArchetypeNodeIdLocation } from '../common/mod.ts';
+import type { ArchetypeNodeIdLocation, NameLocation } from '../common/mod.ts';
+import { orderSerializationKeys } from '../common/property_order.ts';
 
 /**
  * Configuration options for TypeScript constructor serialization
@@ -54,6 +55,13 @@ export interface TypeScriptConstructorSerializationConfig {
    * @default 'after_name'
    */
   archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
+
+  /**
+   * Place `name` first in generated object literals.
+   * Ignored when `archetypeNodeIdLocation` is `beginning`.
+   * @default 'beginning'
+   */
+  nameLocation?: NameLocation;
 }
 
 /**
@@ -66,6 +74,7 @@ export const DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG: Required<TypeScriptConstruct
   includeUndefinedAttributes: false,
   indent: 2,
   archetypeNodeIdLocation: 'after_name',
+  nameLocation: 'beginning',
 };
 
 /**
@@ -252,26 +261,10 @@ export class TypeScriptConstructorSerializer {
       keys = this.getAllPossibleKeys(typeName, keys);
     }
 
-    // Handle archetype_node_id ordering
-    const hasArchetypeNodeId = keys.includes('archetype_node_id');
-    const hasName = keys.includes('name');
-
-    // Build ordered keys based on archetypeNodeIdLocation
-    let orderedKeys: string[] = [];
-    if (hasArchetypeNodeId && hasName) {
-      const location = this.config.archetypeNodeIdLocation;
-      const otherKeys = keys.filter(k => k !== 'archetype_node_id' && k !== 'name');
-
-      if (location === 'beginning') {
-        orderedKeys = ['archetype_node_id', 'name', ...otherKeys];
-      } else if (location === 'after_name') {
-        orderedKeys = ['name', 'archetype_node_id', ...otherKeys];
-      } else { // 'end'
-        orderedKeys = ['name', ...otherKeys, 'archetype_node_id'];
-      }
-    } else {
-      orderedKeys = keys;
-    }
+    const orderedKeys = orderSerializationKeys(keys, {
+      archetypeNodeIdLocation: this.config.archetypeNodeIdLocation,
+      nameLocation: this.config.nameLocation,
+    });
 
     for (const key of orderedKeys) {
       // Skip internal properties

@@ -9,12 +9,18 @@ import * as openehr_base from "../../openehr_base.ts";
 import { cloneAttribute, cloneComplexObject } from "../aom_clone.ts";
 import {
   applyMergedTerminology,
+  buildArchetypeTermIndex,
   buildMergedTerminology,
 } from "../ontology_merge.ts";
 import { specializeComplexObject } from "./specialize.ts";
 
 export type { ArchetypeResolver } from "../ontology_merge.ts";
 import type { ArchetypeResolver } from "../ontology_merge.ts";
+import {
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+  type TermScopeMeta,
+} from "../../generation/term_scope.ts";
 
 function archetypeIdString(arch: openehr_am.ARCHETYPE): string | undefined {
   return arch.archetype_id?.value ?? arch.archetype_id?.toString();
@@ -82,6 +88,57 @@ function resolveSlotsInTree(
   return root;
 }
 
+function archetypeIdFromRef(ref: string | undefined): string | undefined {
+  return ref?.trim() || undefined;
+}
+
+function tagTermScopeRoot(
+  obj: openehr_am.C_OBJECT,
+  archetypeId: string,
+  nameFallbackNodeId?: string,
+): void {
+  const meta = obj as TermScopeMeta & openehr_am.C_OBJECT;
+  meta[TERM_ARCHETYPE_SCOPE_KEY] = archetypeId;
+  if (nameFallbackNodeId && /^at0\./i.test(obj.node_id ?? "")) {
+    meta[TERM_NAME_FALLBACK_NODE_ID_KEY] = nameFallbackNodeId;
+  }
+}
+
+function tagTermScopeDescendants(
+  obj: openehr_am.C_OBJECT,
+  archetypeId: string,
+): void {
+  if (!(obj instanceof openehr_am.C_COMPLEX_OBJECT)) return;
+  for (const attr of obj.attributes ?? []) {
+    const children = (attr as { children?: openehr_am.C_OBJECT[] }).children;
+    if (!children) continue;
+    for (const child of children) {
+      const meta = child as TermScopeMeta & openehr_am.C_OBJECT;
+      meta[TERM_ARCHETYPE_SCOPE_KEY] ??= archetypeId;
+      tagTermScopeDescendants(child, archetypeId);
+    }
+  }
+}
+
+/** Tag an inlined archetype: force root scope, inherit-safe scope on descendants. */
+function tagInlinedArchetype(
+  obj: openehr_am.C_OBJECT,
+  archetypeId: string,
+  nameFallbackNodeId?: string,
+): void {
+  tagTermScopeRoot(obj, archetypeId, nameFallbackNodeId);
+  tagTermScopeDescendants(obj, archetypeId);
+}
+
+function tagTermScopeSubtree(
+  obj: openehr_am.C_OBJECT,
+  archetypeId: string,
+  nameFallbackNodeId?: string,
+): void {
+  tagTermScopeRoot(obj, archetypeId, nameFallbackNodeId);
+  tagTermScopeDescendants(obj, archetypeId);
+}
+
 function firstIncludePattern(
   slot: openehr_am.ARCHETYPE_SLOT,
 ): string | undefined {
@@ -110,6 +167,8 @@ function resolveArchetypeSlot(
   result.node_id = slot.node_id ?? result.node_id;
   result.rm_type_name = slot.rm_type_name ?? result.rm_type_name;
   if (slot.occurrences) result.occurrences = slot.occurrences;
+  const archId = archetypeIdString(arch) ?? pattern;
+  tagInlinedArchetype(result, archId, arch.definition?.node_id);
   return result;
 }
 
@@ -132,8 +191,13 @@ function inlineArchetypeRoot(
   result.rm_type_name = root.rm_type_name ?? result.rm_type_name;
   if (root.occurrences) result.occurrences = root.occurrences;
   if (root.attributes?.length) {
-    return specializeComplexObject(result, root);
+    const specialized = specializeComplexObject(result, root);
+    const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
+    if (archId) tagInlinedArchetype(specialized, archId, arch.definition?.node_id);
+    return specialized;
   }
+  const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
+  if (archId) tagInlinedArchetype(result, archId, arch.definition?.node_id);
   return result;
 }
 
@@ -174,6 +238,11 @@ export function flattenToOperationalTemplate(
     opt,
     buildMergedTerminology(source, resolver, inlinedArchetypes),
   );
+  (opt as { archetype_term_definitions?: ReturnType<typeof buildArchetypeTermIndex> })
+    .archetype_term_definitions = buildArchetypeTermIndex(
+      resolver,
+      inlinedArchetypes,
+    );
 
   return opt;
 }

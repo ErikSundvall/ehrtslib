@@ -1,5 +1,5 @@
-import { ArchetypeNodeIdLocation } from '../common/mod.ts';
-export type { ArchetypeNodeIdLocation };
+import { ArchetypeNodeIdLocation, NameLocation } from '../common/mod.ts';
+export type { ArchetypeNodeIdLocation, NameLocation };
 
 /**
  * YAML main style options
@@ -77,6 +77,13 @@ export interface YamlSerializationConfig {
   archetypeNodeIdLocation?: ArchetypeNodeIdLocation;
 
   /**
+   * Place `name` first on locatable objects for readability.
+   * Ignored when `archetypeNodeIdLocation` is `beginning`.
+   * @default 'default'
+   */
+  nameLocation?: NameLocation;
+
+  /**
    * Keep archetype metadata (name, archetype_node_id, archetype_details) inline.
    * ONLY works with mainStyle: 'flow'. When enabled in flow style, archetype metadata
    * is formatted on one line with strategic line breaks, while other properties 
@@ -131,6 +138,7 @@ export const DEFAULT_YAML_SERIALIZATION_CONFIG: Required<YamlSerializationConfig
   includeEmptyCollections: false,  // Changed to false for more compact output
   maxInlineProperties: 3,
   archetypeNodeIdLocation: 'after_name',
+  nameLocation: 'default',
   keepArchetypeDetailsInline: false,  // Only works with flow style
 };
 

@@ -4,6 +4,11 @@
 
 import * as openehr_am from "../openehr_am.ts";
 import * as openehr_base from "../openehr_base.ts";
+import {
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+  type TermScopeMeta,
+} from "../generation/term_scope.ts";
 
 function cloneMultiplicity(
   src: openehr_base.Multiplicity_interval | undefined,
@@ -72,6 +77,15 @@ function copyObjectFields(
   dest.node_id = src.node_id;
   if (src.occurrences) {
     dest.occurrences = cloneMultiplicity(src.occurrences);
+  }
+  const srcMeta = src as TermScopeMeta;
+  const destMeta = dest as TermScopeMeta;
+  if (srcMeta[TERM_ARCHETYPE_SCOPE_KEY]) {
+    destMeta[TERM_ARCHETYPE_SCOPE_KEY] = srcMeta[TERM_ARCHETYPE_SCOPE_KEY];
+  }
+  if (srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY]) {
+    destMeta[TERM_NAME_FALLBACK_NODE_ID_KEY] =
+      srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY];
   }
 }
 

@@ -23,6 +23,17 @@ export type {
   TemplateSlotExpectation,
 } from "./template_instance_coverage.ts";
 
+export {
+  lookupTermInBag,
+  resolveLocatableLabel,
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+} from "./term_scope.ts";
+export type {
+  OperationalTemplateWithTermScopes,
+  TermScopeMeta,
+} from "./term_scope.ts";
+
 export { TypeScriptGenerator } from "./typescript_generator.ts";
 export type { TypeScriptGeneratorConfig } from "./typescript_generator.ts";
 
