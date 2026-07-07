@@ -36,7 +36,10839 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-02T16:26:31.624Z", buildId: "BPD8AB91" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-07T08:41:20.199Z", buildId: "PYR6PRAS" };
+  }
+});
+
+// enhanced/serialization/common/type_registry.ts
+var TypeRegistry;
+var init_type_registry = __esm({
+  "enhanced/serialization/common/type_registry.ts"() {
+    init_define_BUILD_INFO();
+    TypeRegistry = class {
+      static typeNameToConstructor = /* @__PURE__ */ new Map();
+      static constructorToTypeName = /* @__PURE__ */ new Map();
+      static instanceToTypeName = /* @__PURE__ */ new WeakMap();
+      /**
+       * Register a class with its openEHR type name
+       * @param typeName - The openEHR type name (e.g., "COMPOSITION", "DV_TEXT")
+       * @param constructor - The class constructor
+       */
+      static register(typeName2, constructor) {
+        this.typeNameToConstructor.set(typeName2, constructor);
+        this.constructorToTypeName.set(constructor, typeName2);
+      }
+      /**
+       * Get constructor for a type name
+       * @param typeName - The openEHR type name
+       * @returns The constructor function or undefined if not found
+       */
+      static getConstructor(typeName2) {
+        return this.typeNameToConstructor.get(typeName2);
+      }
+      /**
+       * Get type name for a constructor
+       * @param constructor - The class constructor
+       * @returns The type name or undefined if not found
+       */
+      static getTypeName(constructor) {
+        return this.constructorToTypeName.get(constructor);
+      }
+      /**
+       * Get type name from an object instance
+       * @param obj - The object instance
+       * @returns The type name or undefined if not found
+       */
+      static getTypeNameFromInstance(obj) {
+        if (!obj || typeof obj !== "object") {
+          return void 0;
+        }
+        const cached = this.instanceToTypeName.get(obj);
+        if (cached) {
+          return cached;
+        }
+        const typeName2 = this.constructorToTypeName.get(obj.constructor);
+        if (typeName2) {
+          this.instanceToTypeName.set(obj, typeName2);
+          return typeName2;
+        }
+        if (obj._type && typeof obj._type === "string") {
+          return obj._type;
+        }
+        if (obj.constructor && obj.constructor.name) {
+          const name2 = obj.constructor.name.toUpperCase();
+          if (name2 !== "OBJECT" && name2 !== "ARRAY") {
+            return name2;
+          }
+        }
+        return void 0;
+      }
+      /**
+       * Check if a type is registered
+       * @param typeName - The openEHR type name
+       * @returns true if the type is registered
+       */
+      static hasType(typeName2) {
+        return this.typeNameToConstructor.has(typeName2);
+      }
+      /**
+       * Get all registered type names
+       * @returns Array of all registered type names
+       */
+      static getAllTypeNames() {
+        return Array.from(this.typeNameToConstructor.keys());
+      }
+      /**
+       * Clear all registrations (useful for testing)
+       */
+      static clear() {
+        this.typeNameToConstructor.clear();
+        this.constructorToTypeName.clear();
+      }
+      /**
+       * Register all classes from a module
+       * Scans the module exports and registers all classes that appear to be RM types
+       * @param moduleExports - The module exports object (e.g., import * as rm from './openehr_rm.ts')
+       * @throws Error if moduleExports contains values that are not functions with prototypes (class constructors)
+       */
+      static registerModule(moduleExports) {
+        for (const [name2, value] of Object.entries(moduleExports)) {
+          if (typeof value === "function" && value.prototype) {
+            this.register(name2, value);
+          } else {
+            throw new Error(
+              `Cannot register '${name2}': expected a class constructor but got ${typeof value}. Only class constructors can be registered. If importing from a module, ensure it exports only class definitions. Example: import * as rm from './openehr_rm.ts' where openehr_rm.ts exports only classes.`
+            );
+          }
+        }
+      }
+    };
+  }
+});
+
+// enhanced/serialization/common/errors.ts
+var SerializationError, DeserializationError, TypeNotFoundError;
+var init_errors = __esm({
+  "enhanced/serialization/common/errors.ts"() {
+    init_define_BUILD_INFO();
+    SerializationError = class _SerializationError extends Error {
+      constructor(message, object, cause) {
+        super(message);
+        this.object = object;
+        this.cause = cause;
+        this.name = "SerializationError";
+        if (Error.captureStackTrace) {
+          Error.captureStackTrace(this, _SerializationError);
+        }
+      }
+    };
+    DeserializationError = class _DeserializationError extends Error {
+      constructor(message, data, cause) {
+        super(message);
+        this.data = data;
+        this.cause = cause;
+        this.name = "DeserializationError";
+        if (Error.captureStackTrace) {
+          Error.captureStackTrace(this, _DeserializationError);
+        }
+      }
+    };
+    TypeNotFoundError = class _TypeNotFoundError extends DeserializationError {
+      constructor(typeName2, data) {
+        super(`Type not found in registry: ${typeName2}`, data);
+        this.typeName = typeName2;
+        this.name = "TypeNotFoundError";
+        if (Error.captureStackTrace) {
+          Error.captureStackTrace(this, _TypeNotFoundError);
+        }
+      }
+    };
+  }
+});
+
+// enhanced/serialization/json/json_canonical_deserializer.ts
+var JsonCanonicalDeserializer;
+var init_json_canonical_deserializer = __esm({
+  "enhanced/serialization/json/json_canonical_deserializer.ts"() {
+    init_define_BUILD_INFO();
+    init_type_registry();
+    init_errors();
+    JsonCanonicalDeserializer = class {
+      TYPE_PROPERTY = "_type";
+      /**
+       * Deserialize a canonical JSON string to an RM object
+       * 
+       * @param json - JSON string to deserialize
+       * @returns Deserialized object
+       * @throws DeserializationError if deserialization fails
+       * @throws TypeNotFoundError if type is not registered
+       */
+      deserialize(json2) {
+        try {
+          const parsed = JSON.parse(json2);
+          return this.fromJsonObject(parsed);
+        } catch (error) {
+          if (error instanceof DeserializationError || error instanceof TypeNotFoundError) {
+            throw error;
+          }
+          throw new DeserializationError(
+            `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`,
+            json2,
+            error instanceof Error ? error : void 0
+          );
+        }
+      }
+      /**
+       * Convert a plain JSON object to an RM object
+       * 
+       * @param obj - Plain JSON object
+       * @returns Deserialized RM object
+       * @throws DeserializationError if type cannot be determined
+       * @throws TypeNotFoundError if type is not registered
+       */
+      fromJsonObject(obj) {
+        if (obj === null || obj === void 0) {
+          return obj;
+        }
+        if (typeof obj !== "object") {
+          return obj;
+        }
+        if (Array.isArray(obj)) {
+          return obj.map((item) => this.fromJsonObject(item));
+        }
+        const typeName2 = obj[this.TYPE_PROPERTY];
+        if (!typeName2) {
+          throw new DeserializationError(
+            "Cannot determine type for object: _type field is required in canonical JSON (canonical deserializer, strict mode). Note: The openEHR spec allows _type to be omitted in some cases, but this deserializer requires it.",
+            JSON.stringify(obj)
+          );
+        }
+        const constructor = TypeRegistry.getConstructor(typeName2);
+        if (!constructor) {
+          throw new TypeNotFoundError(
+            typeName2,
+            JSON.stringify(obj) + " (canonical deserializer, strict mode)"
+          );
+        }
+        const instance = new constructor();
+        for (const [key, value] of Object.entries(obj)) {
+          if (key === this.TYPE_PROPERTY) {
+            continue;
+          }
+          try {
+            instance[key] = this.fromJsonObject(value);
+          } catch (error) {
+            throw new DeserializationError(
+              `Failed to deserialize property '${key}' of ${typeName2}: ${error instanceof Error ? error.message : String(error)} (canonical deserializer, strict mode)`,
+              JSON.stringify(obj),
+              error instanceof Error ? error : void 0
+            );
+          }
+        }
+        return instance;
+      }
+    };
+  }
+});
+
+// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
+function clampProp(e2, n2, t3, o2, r2) {
+  return clampEntity(n2, getDefinedProp(e2, n2), t3, o2, r2);
+}
+function clampEntity(e2, n2, t3, o2, r2, i3) {
+  const a2 = clampNumber(n2, t3, o2);
+  if (r2 && n2 !== a2) {
+    throw new RangeError(numberOutOfRange(e2, n2, t3, o2, i3));
+  }
+  return a2;
+}
+function getDefinedProp(e2, n2) {
+  const t3 = e2[n2];
+  if (void 0 === t3) {
+    throw new TypeError(missingField(n2));
+  }
+  return t3;
+}
+function z(e2) {
+  return null !== e2 && /object|function/.test(typeof e2);
+}
+function Jn(e2, n2 = Map) {
+  const t3 = new n2();
+  return (n3, ...o2) => {
+    if (t3.has(n3)) {
+      return t3.get(n3);
+    }
+    const r2 = e2(n3, ...o2);
+    return t3.set(n3, r2), r2;
+  };
+}
+function D(e2) {
+  return p({
+    name: e2
+  }, 1);
+}
+function p(e2, n2) {
+  return T((e3) => ({
+    value: e3,
+    configurable: 1,
+    writable: !n2
+  }), e2);
+}
+function O(e2) {
+  return T((e3) => ({
+    get: e3,
+    configurable: 1
+  }), e2);
+}
+function h(e2) {
+  return {
+    [Symbol.toStringTag]: {
+      value: e2,
+      configurable: 1
+    }
+  };
+}
+function zipProps(e2, n2) {
+  const t3 = {};
+  let o2 = e2.length;
+  for (const r2 of n2) {
+    t3[e2[--o2]] = r2;
+  }
+  return t3;
+}
+function T(e2, n2, t3) {
+  const o2 = {};
+  for (const r2 in n2) {
+    o2[r2] = e2(n2[r2], r2, t3);
+  }
+  return o2;
+}
+function b(e2, n2, t3) {
+  const o2 = {};
+  for (let r2 = 0; r2 < n2.length; r2++) {
+    const i3 = n2[r2];
+    o2[i3] = e2(i3, r2, t3);
+  }
+  return o2;
+}
+function remapProps(e2, n2, t3) {
+  const o2 = {};
+  for (let r2 = 0; r2 < e2.length; r2++) {
+    o2[n2[r2]] = t3[e2[r2]];
+  }
+  return o2;
+}
+function Vn(e2, n2) {
+  const t3 = {};
+  for (const o2 of e2) {
+    t3[o2] = n2[o2];
+  }
+  return t3;
+}
+function V(e2, n2) {
+  const t3 = {};
+  for (const o2 in n2) {
+    e2.has(o2) || (t3[o2] = n2[o2]);
+  }
+  return t3;
+}
+function nn(e2) {
+  e2 = {
+    ...e2
+  };
+  const n2 = Object.keys(e2);
+  for (const t3 of n2) {
+    void 0 === e2[t3] && delete e2[t3];
+  }
+  return e2;
+}
+function C(e2, n2) {
+  for (const t3 of n2) {
+    if (!(t3 in e2)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+function allPropsEqual(e2, n2, t3) {
+  for (const o2 of e2) {
+    if (n2[o2] !== t3[o2]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+function zeroOutProps(e2, n2, t3) {
+  const o2 = {
+    ...t3
+  };
+  for (let t4 = 0; t4 < n2; t4++) {
+    o2[e2[t4]] = 0;
+  }
+  return o2;
+}
+function E(e2, ...n2) {
+  return (...t3) => e2(...n2, ...t3);
+}
+function capitalize(e2) {
+  return e2[0].toUpperCase() + e2.substring(1);
+}
+function sortStrings(e2) {
+  return e2.slice().sort();
+}
+function padNumber(e2, n2) {
+  return String(n2).padStart(e2, "0");
+}
+function compareNumbers(e2, n2) {
+  return Math.sign(e2 - n2);
+}
+function clampNumber(e2, n2, t3) {
+  return Math.min(Math.max(e2, n2), t3);
+}
+function divModFloor(e2, n2) {
+  return [Math.floor(e2 / n2), modFloor(e2, n2)];
+}
+function modFloor(e2, n2) {
+  return (e2 % n2 + n2) % n2;
+}
+function divModTrunc(e2, n2) {
+  return [divTrunc(e2, n2), modTrunc(e2, n2)];
+}
+function divTrunc(e2, n2) {
+  return Math.trunc(e2 / n2) || 0;
+}
+function modTrunc(e2, n2) {
+  return e2 % n2 || 0;
+}
+function hasHalf(e2) {
+  return 0.5 === Math.abs(e2 % 1);
+}
+function givenFieldsToBigNano(e2, n2, t3) {
+  let o2 = 0, r2 = 0;
+  for (let i4 = 0; i4 <= n2; i4++) {
+    const n3 = e2[t3[i4]], a3 = Xr[i4], s2 = Qr / a3, [c2, u2] = divModTrunc(n3, s2);
+    o2 += u2 * a3, r2 += c2;
+  }
+  const [i3, a2] = divModTrunc(o2, Qr);
+  return [r2 + i3, a2];
+}
+function nanoToGivenFields(e2, n2, t3) {
+  const o2 = {};
+  for (let r2 = n2; r2 >= 0; r2--) {
+    const n3 = Xr[r2];
+    o2[t3[r2]] = divTrunc(e2, n3), e2 = modTrunc(e2, n3);
+  }
+  return o2;
+}
+function un(e2) {
+  return e2 === X ? si : [];
+}
+function cn(e2) {
+  return e2 === X ? li : [];
+}
+function ln(e2) {
+  return e2 === X ? ["year", "day"] : [];
+}
+function l2(e2) {
+  if (void 0 !== e2) {
+    return m(e2);
+  }
+}
+function S(e2) {
+  if (void 0 !== e2) {
+    return d(e2);
+  }
+}
+function c(e2) {
+  if (void 0 !== e2) {
+    return u(e2);
+  }
+}
+function d(e2) {
+  return requireNumberIsPositive(u(e2));
+}
+function u(e2) {
+  return requireNumberIsInteger(Mi(e2));
+}
+function on(e2) {
+  if (null == e2) {
+    throw new TypeError("Cannot be null or undefined");
+  }
+  return e2;
+}
+function requirePropDefined(e2, n2) {
+  if (null == n2) {
+    throw new RangeError(missingField(e2));
+  }
+  return n2;
+}
+function de(e2) {
+  if (!z(e2)) {
+    throw new TypeError(hr);
+  }
+  return e2;
+}
+function requireType(e2, n2, t3 = e2) {
+  if (typeof n2 !== e2) {
+    throw new TypeError(invalidEntity(t3, n2));
+  }
+  return n2;
+}
+function requireNumberIsInteger(e2, n2 = "number") {
+  if (!Number.isInteger(e2)) {
+    throw new RangeError(expectedInteger(n2, e2));
+  }
+  return e2 || 0;
+}
+function requireNumberIsPositive(e2, n2 = "number") {
+  if (e2 <= 0) {
+    throw new RangeError(expectedPositive(n2, e2));
+  }
+  return e2;
+}
+function toString(e2) {
+  if ("symbol" == typeof e2) {
+    throw new TypeError(pr);
+  }
+  return String(e2);
+}
+function toStringViaPrimitive(e2, n2) {
+  return z(e2) ? String(e2) : m(e2, n2);
+}
+function toBigInt(e2) {
+  if ("string" == typeof e2) {
+    return BigInt(e2);
+  }
+  if ("bigint" != typeof e2) {
+    throw new TypeError(invalidBigInt(e2));
+  }
+  return e2;
+}
+function toNumber(e2, n2 = "number") {
+  if ("bigint" == typeof e2) {
+    throw new TypeError(forbiddenBigIntToNumber(n2));
+  }
+  if (e2 = Number(e2), !Number.isFinite(e2)) {
+    throw new RangeError(expectedFinite(n2, e2));
+  }
+  return e2;
+}
+function toInteger(e2, n2) {
+  return Math.trunc(toNumber(e2, n2)) || 0;
+}
+function toStrictInteger(e2, n2) {
+  return requireNumberIsInteger(toNumber(e2, n2), n2);
+}
+function toPositiveInteger(e2, n2) {
+  return requireNumberIsPositive(toInteger(e2, n2), n2);
+}
+function createBigNano(e2, n2) {
+  let [t3, o2] = divModTrunc(n2, Qr), r2 = e2 + t3;
+  const i3 = Math.sign(r2);
+  return i3 && i3 === -Math.sign(o2) && (r2 -= i3, o2 += i3 * Qr), [r2, o2];
+}
+function addBigNanos(e2, n2, t3 = 1) {
+  return createBigNano(e2[0] + n2[0] * t3, e2[1] + n2[1] * t3);
+}
+function moveBigNano(e2, n2) {
+  return createBigNano(e2[0], e2[1] + n2);
+}
+function re(e2, n2) {
+  return addBigNanos(n2, e2, -1);
+}
+function te(e2, n2) {
+  return compareNumbers(e2[0], n2[0]) || compareNumbers(e2[1], n2[1]);
+}
+function bigNanoOutside(e2, n2, t3) {
+  return -1 === te(e2, n2) || 1 === te(e2, t3);
+}
+function bigIntToBigNano(e2, n2 = 1) {
+  const t3 = BigInt(Qr / n2);
+  return [Number(e2 / t3), Number(e2 % t3) * n2];
+}
+function he(e2, n2 = 1) {
+  const t3 = Qr / n2, [o2, r2] = divModTrunc(e2, t3);
+  return [o2, r2 * n2];
+}
+function bigNanoToBigInt(e2, n2 = 1) {
+  const [t3, o2] = e2, r2 = Math.floor(o2 / n2), i3 = Qr / n2;
+  return BigInt(t3) * BigInt(i3) + BigInt(r2);
+}
+function oe(e2, n2 = 1, t3) {
+  const [o2, r2] = e2, [i3, a2] = divModTrunc(r2, n2);
+  return o2 * (Qr / n2) + (i3 + (t3 ? a2 / n2 : 0));
+}
+function divModBigNano(e2, n2, t3 = divModFloor) {
+  const [o2, r2] = e2, [i3, a2] = t3(r2, n2);
+  return [o2 * (Qr / n2) + i3, a2];
+}
+function hashIntlFormatParts(e2, n2) {
+  const t3 = e2.formatToParts(n2), o2 = {};
+  for (const e3 of t3) {
+    o2[e3.type] = e3.value;
+  }
+  return o2;
+}
+function checkIsoYearMonthInBounds(e2) {
+  return clampProp(e2, "isoYear", Li, Ai, 1), e2.isoYear === Li ? clampProp(e2, "isoMonth", 4, 12, 1) : e2.isoYear === Ai && clampProp(e2, "isoMonth", 1, 9, 1), e2;
+}
+function checkIsoDateInBounds(e2) {
+  return checkIsoDateTimeInBounds({
+    ...e2,
+    ...Dt,
+    isoHour: 12
+  }), e2;
+}
+function checkIsoDateTimeInBounds(e2) {
+  const n2 = clampProp(e2, "isoYear", Li, Ai, 1), t3 = n2 === Li ? 1 : n2 === Ai ? -1 : 0;
+  return t3 && checkEpochNanoInBounds(isoToEpochNano({
+    ...e2,
+    isoDay: e2.isoDay + t3,
+    isoNanosecond: e2.isoNanosecond - t3
+  })), e2;
+}
+function checkEpochNanoInBounds(e2) {
+  if (!e2 || bigNanoOutside(e2, Ui, qi)) {
+    throw new RangeError(Cr);
+  }
+  return e2;
+}
+function isoTimeFieldsToNano(e2) {
+  return givenFieldsToBigNano(e2, 5, j)[1];
+}
+function nanoToIsoTimeAndDay(e2) {
+  const [n2, t3] = divModFloor(e2, Qr);
+  return [nanoToGivenFields(t3, 5, j), n2];
+}
+function epochNanoToSec(e2) {
+  return epochNanoToSecMod(e2)[0];
+}
+function epochNanoToSecMod(e2) {
+  return divModBigNano(e2, _r);
+}
+function isoToEpochMilli(e2) {
+  return isoArgsToEpochMilli(e2.isoYear, e2.isoMonth, e2.isoDay, e2.isoHour, e2.isoMinute, e2.isoSecond, e2.isoMillisecond);
+}
+function isoToEpochNano(e2) {
+  const n2 = isoToEpochMilli(e2);
+  if (void 0 !== n2) {
+    const [t3, o2] = divModTrunc(n2, Gr);
+    return [t3, o2 * be + (e2.isoMicrosecond || 0) * Vr + (e2.isoNanosecond || 0)];
+  }
+}
+function isoToEpochNanoWithOffset(e2, n2) {
+  const [t3, o2] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) - n2);
+  return checkEpochNanoInBounds(isoToEpochNano({
+    ...e2,
+    isoDay: e2.isoDay + o2,
+    ...t3
+  }));
+}
+function isoArgsToEpochSec(...e2) {
+  return isoArgsToEpochMilli(...e2) / Hr;
+}
+function isoArgsToEpochMilli(...e2) {
+  const [n2, t3] = isoToLegacyDate(...e2), o2 = n2.valueOf();
+  if (!isNaN(o2)) {
+    return o2 - t3 * Gr;
+  }
+}
+function isoToLegacyDate(e2, n2 = 1, t3 = 1, o2 = 0, r2 = 0, i3 = 0, a2 = 0) {
+  const s2 = e2 === Li ? 1 : e2 === Ai ? -1 : 0, c2 = /* @__PURE__ */ new Date();
+  return c2.setUTCHours(o2, r2, i3, a2), c2.setUTCFullYear(e2, n2 - 1, t3 + s2), [c2, s2];
+}
+function Ie(e2, n2) {
+  let [t3, o2] = moveBigNano(e2, n2);
+  o2 < 0 && (o2 += Qr, t3 -= 1);
+  const [r2, i3] = divModFloor(o2, be), [a2, s2] = divModFloor(i3, Vr);
+  return epochMilliToIso(t3 * Gr + r2, a2, s2);
+}
+function epochMilliToIso(e2, n2 = 0, t3 = 0) {
+  const o2 = Math.ceil(Math.max(0, Math.abs(e2) - zi) / Gr) * Math.sign(e2), r2 = new Date(e2 - o2 * Gr);
+  return zipProps(wi, [r2.getUTCFullYear(), r2.getUTCMonth() + 1, r2.getUTCDate() + o2, r2.getUTCHours(), r2.getUTCMinutes(), r2.getUTCSeconds(), r2.getUTCMilliseconds(), n2, t3]);
+}
+function computeIsoDateParts(e2) {
+  return [e2.isoYear, e2.isoMonth, e2.isoDay];
+}
+function computeIsoMonthsInYear() {
+  return xi;
+}
+function computeIsoDaysInMonth(e2, n2) {
+  switch (n2) {
+    case 2:
+      return computeIsoInLeapYear(e2) ? 29 : 28;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+      return 30;
+  }
+  return 31;
+}
+function computeIsoDaysInYear(e2) {
+  return computeIsoInLeapYear(e2) ? 366 : 365;
+}
+function computeIsoInLeapYear(e2) {
+  return e2 % 4 == 0 && (e2 % 100 != 0 || e2 % 400 == 0);
+}
+function computeIsoDayOfWeek(e2) {
+  const [n2, t3] = isoToLegacyDate(e2.isoYear, e2.isoMonth, e2.isoDay);
+  return modFloor(n2.getUTCDay() - t3, 7) || 7;
+}
+function computeGregoryEraParts({ isoYear: e2 }) {
+  return e2 < 1 ? ["bce", 1 - e2] : ["ce", e2];
+}
+function computeJapaneseEraParts(e2) {
+  const n2 = isoToEpochMilli(e2);
+  if (n2 < $i) {
+    return computeGregoryEraParts(e2);
+  }
+  const t3 = hashIntlFormatParts(La(Ti), n2), { era: o2, eraYear: r2 } = parseIntlYear(t3, Ti);
+  return [o2, r2];
+}
+function checkIsoDateTimeFields(e2) {
+  return checkIsoDateFields(e2), constrainIsoTimeFields(e2, 1), e2;
+}
+function checkIsoDateFields(e2) {
+  return constrainIsoDateFields(e2, 1), e2;
+}
+function isIsoDateFieldsValid(e2) {
+  return allPropsEqual(Oi, e2, constrainIsoDateFields(e2));
+}
+function constrainIsoDateFields(e2, n2) {
+  const { isoYear: t3 } = e2, o2 = clampProp(e2, "isoMonth", 1, computeIsoMonthsInYear(), n2);
+  return {
+    isoYear: t3,
+    isoMonth: o2,
+    isoDay: clampProp(e2, "isoDay", 1, computeIsoDaysInMonth(t3, o2), n2)
+  };
+}
+function constrainIsoTimeFields(e2, n2) {
+  return zipProps(j, [clampProp(e2, "isoHour", 0, 23, n2), clampProp(e2, "isoMinute", 0, 59, n2), clampProp(e2, "isoSecond", 0, 59, n2), clampProp(e2, "isoMillisecond", 0, 999, n2), clampProp(e2, "isoMicrosecond", 0, 999, n2), clampProp(e2, "isoNanosecond", 0, 999, n2)]);
+}
+function H(e2) {
+  return void 0 === e2 ? 0 : ua(de(e2));
+}
+function wn(e2, n2 = 0) {
+  e2 = normalizeOptions(e2);
+  const t3 = la(e2), o2 = fa(e2, n2);
+  return [ua(e2), o2, t3];
+}
+function ve(e2) {
+  return la(normalizeOptions(e2));
+}
+function _t(e2) {
+  return e2 = normalizeOptions(e2), sa(e2, 9, 6, 1);
+}
+function refineDiffOptions(e2, n2, t3, o2 = 9, r2 = 0, i3 = 4) {
+  n2 = normalizeOptions(n2);
+  let a2 = sa(n2, o2, r2), s2 = parseRoundingIncInteger(n2), c2 = ha(n2, i3);
+  const u2 = aa(n2, o2, r2, 1);
+  return null == a2 ? a2 = Math.max(t3, u2) : checkLargestSmallestUnit(a2, u2), s2 = refineRoundingInc(s2, u2, 1), e2 && (c2 = ((e3) => e3 < 4 ? (e3 + 2) % 4 : e3)(c2)), [a2, u2, s2, c2];
+}
+function refineRoundingOptions(e2, n2 = 6, t3) {
+  let o2 = parseRoundingIncInteger(e2 = normalizeOptionsOrString(e2, Hi));
+  const r2 = ha(e2, 7);
+  let i3 = aa(e2, n2);
+  return i3 = requirePropDefined(Hi, i3), o2 = refineRoundingInc(o2, i3, void 0, t3), [i3, o2, r2];
+}
+function refineDateDisplayOptions(e2) {
+  return da(normalizeOptions(e2));
+}
+function refineTimeDisplayOptions(e2, n2) {
+  return refineTimeDisplayTuple(normalizeOptions(e2), n2);
+}
+function refineTimeDisplayTuple(e2, n2 = 4) {
+  const t3 = refineSubsecDigits(e2);
+  return [ha(e2, 4), ...refineSmallestUnitAndSubsecDigits(aa(e2, n2), t3)];
+}
+function refineSmallestUnitAndSubsecDigits(e2, n2) {
+  return null != e2 ? [Xr[e2], e2 < 4 ? 9 - 3 * e2 : -1] : [void 0 === n2 ? 1 : 10 ** (9 - n2), n2];
+}
+function parseRoundingIncInteger(e2) {
+  const n2 = e2[_i];
+  return void 0 === n2 ? 1 : toInteger(n2, _i);
+}
+function refineRoundingInc(e2, n2, t3, o2) {
+  const r2 = o2 ? Qr : Xr[n2 + 1];
+  if (r2) {
+    const t4 = Xr[n2];
+    if (r2 % ((e2 = clampEntity(_i, e2, 1, r2 / t4 - (o2 ? 0 : 1), 1)) * t4)) {
+      throw new RangeError(invalidEntity(_i, e2));
+    }
+  } else {
+    e2 = clampEntity(_i, e2, 1, t3 ? 10 ** 9 : 1, 1);
+  }
+  return e2;
+}
+function refineSubsecDigits(e2) {
+  let n2 = e2[Ji];
+  if (void 0 !== n2) {
+    if ("number" != typeof n2) {
+      if ("auto" === toString(n2)) {
+        return;
+      }
+      throw new RangeError(invalidEntity(Ji, n2));
+    }
+    n2 = clampEntity(Ji, Math.floor(n2), 0, 9, 1);
+  }
+  return n2;
+}
+function normalizeOptions(e2) {
+  return void 0 === e2 ? {} : de(e2);
+}
+function normalizeOptionsOrString(e2, n2) {
+  return "string" == typeof e2 ? {
+    [n2]: e2
+  } : de(e2);
+}
+function U(e2) {
+  if (void 0 !== e2) {
+    if (z(e2)) {
+      return Object.assign(/* @__PURE__ */ Object.create(null), e2);
+    }
+    throw new TypeError(hr);
+  }
+}
+function overrideOverflowOptions(e2, n2) {
+  return e2 && Object.assign(/* @__PURE__ */ Object.create(null), e2, {
+    overflow: Xi[n2]
+  });
+}
+function refineUnitOption(e2, n2, t3 = 9, o2 = 0, r2) {
+  let i3 = n2[e2];
+  if (void 0 === i3) {
+    return r2 ? o2 : void 0;
+  }
+  if (i3 = toString(i3), "auto" === i3) {
+    return r2 ? o2 : null;
+  }
+  let a2 = $r[i3];
+  if (void 0 === a2 && (a2 = Ei[i3]), void 0 === a2) {
+    throw new RangeError(invalidChoice(e2, i3, $r));
+  }
+  return clampEntity(e2, a2, o2, t3, 1, Et), a2;
+}
+function refineChoiceOption(e2, n2, t3, o2 = 0) {
+  const r2 = t3[e2];
+  if (void 0 === r2) {
+    return o2;
+  }
+  const i3 = toString(r2), a2 = n2[i3];
+  if (void 0 === a2) {
+    throw new RangeError(invalidChoice(e2, i3, n2));
+  }
+  return a2;
+}
+function checkLargestSmallestUnit(e2, n2) {
+  if (n2 > e2) {
+    throw new RangeError(Ar);
+  }
+}
+function _(e2) {
+  return {
+    branding: Oe,
+    epochNanoseconds: e2
+  };
+}
+function Yn(e2, n2, t3) {
+  return {
+    branding: Te,
+    calendar: t3,
+    timeZone: n2,
+    epochNanoseconds: e2
+  };
+}
+function ee(e2, n2 = e2.calendar) {
+  return {
+    branding: We,
+    calendar: n2,
+    ...Vn(Yi, e2)
+  };
+}
+function v(e2, n2 = e2.calendar) {
+  return {
+    branding: J,
+    calendar: n2,
+    ...Vn(Bi, e2)
+  };
+}
+function createPlainYearMonthSlots(e2, n2 = e2.calendar) {
+  return {
+    branding: L,
+    calendar: n2,
+    ...Vn(Bi, e2)
+  };
+}
+function createPlainMonthDaySlots(e2, n2 = e2.calendar) {
+  return {
+    branding: q,
+    calendar: n2,
+    ...Vn(Bi, e2)
+  };
+}
+function Ge(e2) {
+  return {
+    branding: xe,
+    ...Vn(ki, e2)
+  };
+}
+function Vt(e2) {
+  return {
+    branding: qt,
+    sign: computeDurationSign(e2),
+    ...Vn(Ni, e2)
+  };
+}
+function M(e2) {
+  return epochNanoToSec(e2.epochNanoseconds);
+}
+function y(e2) {
+  return divModBigNano(e2.epochNanoseconds, be)[0];
+}
+function N(e2) {
+  return bigNanoToBigInt(e2.epochNanoseconds, Vr);
+}
+function B(e2) {
+  return bigNanoToBigInt(e2.epochNanoseconds);
+}
+function extractEpochNano(e2) {
+  return e2.epochNanoseconds;
+}
+function I(e2) {
+  return "string" == typeof e2 ? e2 : m(e2.id);
+}
+function isIdLikeEqual(e2, n2) {
+  return e2 === n2 || I(e2) === I(n2);
+}
+function Ut(e2, n2, t3, o2, r2) {
+  const i3 = getMaxDurationUnit(o2), [a2, s2] = ((e3, n3) => {
+    const t4 = n3((e3 = normalizeOptionsOrString(e3, Vi))[Ki]);
+    let o3 = ca(e3);
+    return o3 = requirePropDefined(Vi, o3), [o3, t4];
+  })(r2, e2);
+  if (isUniformUnit(Math.max(a2, i3), s2)) {
+    return totalDayTimeDuration(o2, a2);
+  }
+  if (!s2) {
+    throw new RangeError(zr);
+  }
+  const [c2, u2, l3] = createMarkerSystem(n2, t3, s2), f2 = createMarkerToEpochNano(l3), d2 = createMoveMarker(l3), m2 = createDiffMarkers(l3), p2 = d2(u2, c2, o2), h2 = m2(u2, c2, p2, a2);
+  return isUniformUnit(a2, s2) ? totalDayTimeDuration(h2, a2) : ((e3, n3, t4, o3, r3, i4, a3) => {
+    const s3 = computeDurationSign(e3), [c3, u3] = clampRelativeDuration(o3, bi(t4, e3), t4, s3, r3, i4, a3), l4 = computeEpochNanoFrac(n3, c3, u3);
+    return e3[F[t4]] + l4 * s3;
+  })(h2, f2(p2), a2, u2, c2, f2, d2);
+}
+function totalDayTimeDuration(e2, n2) {
+  return oe(durationFieldsToBigNano(e2), Xr[n2], 1);
+}
+function clampRelativeDuration(e2, n2, t3, o2, r2, i3, a2) {
+  const s2 = F[t3], c2 = {
+    ...n2,
+    [s2]: n2[s2] + o2
+  }, u2 = a2(e2, r2, n2), l3 = a2(e2, r2, c2);
+  return [i3(u2), i3(l3)];
+}
+function computeEpochNanoFrac(e2, n2, t3) {
+  const o2 = oe(re(n2, t3));
+  if (!o2) {
+    throw new RangeError(vr);
+  }
+  return oe(re(n2, e2)) / o2;
+}
+function ce(e2, n2) {
+  const [t3, o2, r2] = refineRoundingOptions(n2, 5, 1);
+  return _(roundBigNano(e2.epochNanoseconds, t3, o2, r2, 1));
+}
+function Pn(e2, n2, t3) {
+  let { epochNanoseconds: o2, timeZone: r2, calendar: i3 } = n2;
+  const [a2, s2, c2] = refineRoundingOptions(t3);
+  if (0 === a2 && 1 === s2) {
+    return n2;
+  }
+  const u2 = e2(r2);
+  if (6 === a2) {
+    o2 = ((e3, n3, t4, o3) => {
+      const r3 = fn(t4, n3), [i4, a3] = e3(r3), s3 = t4.epochNanoseconds, c3 = we(n3, i4), u3 = we(n3, a3);
+      if (bigNanoOutside(s3, c3, u3)) {
+        throw new RangeError(vr);
+      }
+      return roundWithMode(computeEpochNanoFrac(s3, c3, u3), o3) ? u3 : c3;
+    })(computeDayInterval, u2, n2, c2);
+  } else {
+    const e3 = u2.getOffsetNanosecondsFor(o2);
+    o2 = getMatchingInstantFor(u2, roundDateTime(Ie(o2, e3), a2, s2, c2), e3, 2, 0, 1);
+  }
+  return Yn(o2, r2, i3);
+}
+function dt(e2, n2) {
+  return ee(roundDateTime(e2, ...refineRoundingOptions(n2)), e2.calendar);
+}
+function Ee(e2, n2) {
+  const [t3, o2, r2] = refineRoundingOptions(n2, 5);
+  var i3;
+  return Ge((i3 = r2, roundTimeToNano(e2, computeNanoInc(t3, o2), i3)[0]));
+}
+function dn(e2, n2) {
+  const t3 = e2(n2.timeZone), o2 = fn(n2, t3), [r2, i3] = computeDayInterval(o2), a2 = oe(re(we(t3, r2), we(t3, i3)), Kr, 1);
+  if (a2 <= 0) {
+    throw new RangeError(vr);
+  }
+  return a2;
+}
+function Cn(e2, n2) {
+  const { timeZone: t3, calendar: o2 } = n2, r2 = ((e3, n3, t4) => we(n3, e3(fn(t4, n3))))(computeDayFloor, e2(t3), n2);
+  return Yn(r2, t3, o2);
+}
+function roundDateTime(e2, n2, t3, o2) {
+  return roundDateTimeToNano(e2, computeNanoInc(n2, t3), o2);
+}
+function roundDateTimeToNano(e2, n2, t3) {
+  const [o2, r2] = roundTimeToNano(e2, n2, t3);
+  return checkIsoDateTimeInBounds({
+    ...moveByDays(e2, r2),
+    ...o2
+  });
+}
+function roundTimeToNano(e2, n2, t3) {
+  return nanoToIsoTimeAndDay(roundByInc(isoTimeFieldsToNano(e2), n2, t3));
+}
+function roundToMinute(e2) {
+  return roundByInc(e2, Jr, 7);
+}
+function computeNanoInc(e2, n2) {
+  return Xr[e2] * n2;
+}
+function computeDayInterval(e2) {
+  const n2 = computeDayFloor(e2);
+  return [n2, moveByDays(n2, 1)];
+}
+function computeDayFloor(e2) {
+  return Ci(6, e2);
+}
+function roundDayTimeDurationByInc(e2, n2, t3) {
+  const o2 = Math.min(getMaxDurationUnit(e2), 6);
+  return nanoToDurationDayTimeFields(roundBigNanoByInc(durationFieldsToBigNano(e2, o2), n2, t3), o2);
+}
+function roundRelativeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
+  if (0 === o2 && 1 === r2) {
+    return e2;
+  }
+  const l3 = isUniformUnit(o2, s2) ? isZonedEpochSlots(s2) && o2 < 6 && t3 >= 6 ? nudgeZonedTimeDuration : nudgeDayTimeDuration : nudgeRelativeDuration;
+  let [f2, d2, m2] = l3(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2);
+  return m2 && 7 !== o2 && (f2 = ((e3, n3, t4, o3, r3, i4, a3, s3) => {
+    const c3 = computeDurationSign(e3);
+    for (let u3 = o3 + 1; u3 <= t4; u3++) {
+      if (7 === u3 && 7 !== t4) {
+        continue;
+      }
+      const o4 = bi(u3, e3);
+      o4[F[u3]] += c3;
+      const l4 = oe(re(a3(s3(r3, i4, o4)), n3));
+      if (l4 && Math.sign(l4) !== c3) {
+        break;
+      }
+      e3 = o4;
+    }
+    return e3;
+  })(f2, d2, t3, Math.max(6, o2), a2, s2, c2, u2)), f2;
+}
+function roundBigNano(e2, n2, t3, o2, r2) {
+  if (6 === n2) {
+    const n3 = ((e3) => e3[0] + e3[1] / Qr)(e2);
+    return [roundByInc(n3, t3, o2), 0];
+  }
+  return roundBigNanoByInc(e2, computeNanoInc(n2, t3), o2, r2);
+}
+function roundBigNanoByInc(e2, n2, t3, o2) {
+  let [r2, i3] = e2;
+  o2 && i3 < 0 && (i3 += Qr, r2 -= 1);
+  const [a2, s2] = divModFloor(roundByInc(i3, n2, t3), Qr);
+  return createBigNano(r2 + a2, s2);
+}
+function roundByInc(e2, n2, t3) {
+  return roundWithMode(e2 / n2, t3) * n2;
+}
+function roundWithMode(e2, n2) {
+  return ga[n2](e2);
+}
+function nudgeDayTimeDuration(e2, n2, t3, o2, r2, i3) {
+  const a2 = computeDurationSign(e2), s2 = durationFieldsToBigNano(e2), c2 = roundBigNano(s2, o2, r2, i3), u2 = re(s2, c2), l3 = Math.sign(c2[0] - s2[0]) === a2, f2 = nanoToDurationDayTimeFields(c2, Math.min(t3, 6));
+  return [{
+    ...e2,
+    ...f2
+  }, addBigNanos(n2, u2), l3];
+}
+function nudgeZonedTimeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
+  const l3 = computeDurationSign(e2), f2 = oe(durationFieldsToBigNano(e2, 5)), d2 = computeNanoInc(o2, r2);
+  let m2 = roundByInc(f2, d2, i3);
+  const [p2, h2] = clampRelativeDuration(a2, {
+    ...e2,
+    ...Fi
+  }, 6, l3, s2, c2, u2), g2 = m2 - oe(re(p2, h2));
+  let T2 = 0;
+  g2 && Math.sign(g2) !== l3 ? n2 = moveBigNano(p2, m2) : (T2 += l3, m2 = roundByInc(g2, d2, i3), n2 = moveBigNano(h2, m2));
+  const D2 = nanoToDurationTimeFields(m2);
+  return [{
+    ...e2,
+    ...D2,
+    days: e2.days + T2
+  }, n2, Boolean(T2)];
+}
+function nudgeRelativeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
+  const l3 = computeDurationSign(e2), f2 = F[o2], d2 = bi(o2, e2);
+  7 === o2 && (e2 = {
+    ...e2,
+    weeks: e2.weeks + Math.trunc(e2.days / 7)
+  });
+  const m2 = divTrunc(e2[f2], r2) * r2;
+  d2[f2] = m2;
+  const [p2, h2] = clampRelativeDuration(a2, d2, o2, r2 * l3, s2, c2, u2), g2 = m2 + computeEpochNanoFrac(n2, p2, h2) * l3 * r2, T2 = roundByInc(g2, r2, i3), D2 = Math.sign(T2 - g2) === l3;
+  return d2[f2] = T2, [d2, D2 ? h2 : p2, D2];
+}
+function me(e2, n2, t3, o2) {
+  const [r2, i3, a2, s2] = ((e3) => {
+    const n3 = refineTimeDisplayTuple(e3 = normalizeOptions(e3));
+    return [e3.timeZone, ...n3];
+  })(o2), c2 = void 0 !== r2;
+  return ((e3, n3, t4, o3, r3, i4) => {
+    t4 = roundBigNanoByInc(t4, r3, o3, 1);
+    const a3 = n3.getOffsetNanosecondsFor(t4);
+    return formatIsoDateTimeFields(Ie(t4, a3), i4) + (e3 ? Fe(roundToMinute(a3)) : "Z");
+  })(c2, n2(c2 ? e2(r2) : Ta), t3.epochNanoseconds, i3, a2, s2);
+}
+function In(e2, n2, t3) {
+  const [o2, r2, i3, a2, s2, c2] = ((e3) => {
+    e3 = normalizeOptions(e3);
+    const n3 = da(e3), t4 = refineSubsecDigits(e3), o3 = pa(e3), r3 = ha(e3, 4), i4 = aa(e3, 4);
+    return [n3, ma(e3), o3, r3, ...refineSmallestUnitAndSubsecDigits(i4, t4)];
+  })(t3);
+  return ((e3, n3, t4, o3, r3, i4, a3, s3, c3, u2) => {
+    o3 = roundBigNanoByInc(o3, c3, s3, 1);
+    const l3 = e3(t4).getOffsetNanosecondsFor(o3);
+    return formatIsoDateTimeFields(Ie(o3, l3), u2) + Fe(roundToMinute(l3), a3) + ((e4, n4) => 1 !== n4 ? "[" + (2 === n4 ? "!" : "") + I(e4) + "]" : "")(t4, i4) + formatCalendar(n3, r3);
+  })(e2, n2.calendar, n2.timeZone, n2.epochNanoseconds, o2, r2, i3, a2, s2, c2);
+}
+function Tt(e2, n2) {
+  const [t3, o2, r2, i3] = ((e3) => (e3 = normalizeOptions(e3), [da(e3), ...refineTimeDisplayTuple(e3)]))(n2);
+  return a2 = e2.calendar, s2 = t3, c2 = i3, formatIsoDateTimeFields(roundDateTimeToNano(e2, r2, o2), c2) + formatCalendar(a2, s2);
+  var a2, s2, c2;
+}
+function yt(e2, n2) {
+  return t3 = e2.calendar, o2 = e2, r2 = refineDateDisplayOptions(n2), formatIsoDateFields(o2) + formatCalendar(t3, r2);
+  var t3, o2, r2;
+}
+function et(e2, n2) {
+  return formatDateLikeIso(e2.calendar, formatIsoYearMonthFields, e2, refineDateDisplayOptions(n2));
+}
+function W(e2, n2) {
+  return formatDateLikeIso(e2.calendar, formatIsoMonthDayFields, e2, refineDateDisplayOptions(n2));
+}
+function qe(e2, n2) {
+  const [t3, o2, r2] = refineTimeDisplayOptions(n2);
+  return i3 = r2, formatIsoTimeFields(roundTimeToNano(e2, o2, t3)[0], i3);
+  var i3;
+}
+function zt(e2, n2) {
+  const [t3, o2, r2] = refineTimeDisplayOptions(n2, 3);
+  return o2 > 1 && (e2 = {
+    ...e2,
+    ...roundDayTimeDurationByInc(e2, o2, t3)
+  }), ((e3, n3) => {
+    const { sign: t4 } = e3, o3 = -1 === t4 ? negateDurationFields(e3) : e3, { hours: r3, minutes: i3 } = o3, [a2, s2] = divModBigNano(durationFieldsToBigNano(o3, 3), _r, divModTrunc);
+    checkDurationTimeUnit(a2);
+    const c2 = formatSubsecNano(s2, n3), u2 = n3 >= 0 || !t4 || c2;
+    return (t4 < 0 ? "-" : "") + "P" + formatDurationFragments({
+      Y: formatDurationNumber(o3.years),
+      M: formatDurationNumber(o3.months),
+      W: formatDurationNumber(o3.weeks),
+      D: formatDurationNumber(o3.days)
+    }) + (r3 || i3 || a2 || u2 ? "T" + formatDurationFragments({
+      H: formatDurationNumber(r3),
+      M: formatDurationNumber(i3),
+      S: formatDurationNumber(a2, u2) + c2
+    }) : "");
+  })(e2, r2);
+}
+function formatDateLikeIso(e2, n2, t3, o2) {
+  const r2 = I(e2), i3 = o2 > 1 || 0 === o2 && r2 !== X;
+  return 1 === o2 ? r2 === X ? n2(t3) : formatIsoDateFields(t3) : i3 ? formatIsoDateFields(t3) + formatCalendarId(r2, 2 === o2) : n2(t3);
+}
+function formatDurationFragments(e2) {
+  const n2 = [];
+  for (const t3 in e2) {
+    const o2 = e2[t3];
+    o2 && n2.push(o2, t3);
+  }
+  return n2.join("");
+}
+function formatIsoDateTimeFields(e2, n2) {
+  return formatIsoDateFields(e2) + "T" + formatIsoTimeFields(e2, n2);
+}
+function formatIsoDateFields(e2) {
+  return formatIsoYearMonthFields(e2) + "-" + xr(e2.isoDay);
+}
+function formatIsoYearMonthFields(e2) {
+  const { isoYear: n2 } = e2;
+  return (n2 < 0 || n2 > 9999 ? getSignStr(n2) + padNumber(6, Math.abs(n2)) : padNumber(4, n2)) + "-" + xr(e2.isoMonth);
+}
+function formatIsoMonthDayFields(e2) {
+  return xr(e2.isoMonth) + "-" + xr(e2.isoDay);
+}
+function formatIsoTimeFields(e2, n2) {
+  const t3 = [xr(e2.isoHour), xr(e2.isoMinute)];
+  return -1 !== n2 && t3.push(xr(e2.isoSecond) + ((e3, n3, t4, o2) => formatSubsecNano(e3 * be + n3 * Vr + t4, o2))(e2.isoMillisecond, e2.isoMicrosecond, e2.isoNanosecond, n2)), t3.join(":");
+}
+function Fe(e2, n2 = 0) {
+  if (1 === n2) {
+    return "";
+  }
+  const [t3, o2] = divModFloor(Math.abs(e2), Kr), [r2, i3] = divModFloor(o2, Jr), [a2, s2] = divModFloor(i3, _r);
+  return getSignStr(e2) + xr(t3) + ":" + xr(r2) + (a2 || s2 ? ":" + xr(a2) + formatSubsecNano(s2) : "");
+}
+function formatCalendar(e2, n2) {
+  if (1 !== n2) {
+    const t3 = I(e2);
+    if (n2 > 1 || 0 === n2 && t3 !== X) {
+      return formatCalendarId(t3, 2 === n2);
+    }
+  }
+  return "";
+}
+function formatCalendarId(e2, n2) {
+  return "[" + (n2 ? "!" : "") + "u-ca=" + e2 + "]";
+}
+function formatSubsecNano(e2, n2) {
+  let t3 = padNumber(9, e2);
+  return t3 = void 0 === n2 ? t3.replace(Na, "") : t3.slice(0, n2), t3 ? "." + t3 : "";
+}
+function getSignStr(e2) {
+  return e2 < 0 ? "-" : "+";
+}
+function formatDurationNumber(e2, n2) {
+  return e2 || n2 ? e2.toLocaleString("fullwide", {
+    useGrouping: 0
+  }) : "";
+}
+function _zonedEpochSlotsToIso(e2, n2) {
+  const { epochNanoseconds: t3 } = e2, o2 = (n2.getOffsetNanosecondsFor ? n2 : n2(e2.timeZone)).getOffsetNanosecondsFor(t3), r2 = Ie(t3, o2);
+  return {
+    calendar: e2.calendar,
+    ...r2,
+    offsetNanoseconds: o2
+  };
+}
+function mn(e2, n2) {
+  const t3 = fn(n2, e2);
+  return {
+    calendar: n2.calendar,
+    ...Vn(Yi, t3),
+    offset: Fe(t3.offsetNanoseconds),
+    timeZone: n2.timeZone
+  };
+}
+function getMatchingInstantFor(e2, n2, t3, o2 = 0, r2 = 0, i3, a2) {
+  if (void 0 !== t3 && 1 === o2 && (1 === o2 || a2)) {
+    return isoToEpochNanoWithOffset(n2, t3);
+  }
+  const s2 = e2.getPossibleInstantsFor(n2);
+  if (void 0 !== t3 && 3 !== o2) {
+    const e3 = ((e4, n3, t4, o3) => {
+      const r3 = isoToEpochNano(n3);
+      o3 && (t4 = roundToMinute(t4));
+      for (const n4 of e4) {
+        let e5 = oe(re(n4, r3));
+        if (o3 && (e5 = roundToMinute(e5)), e5 === t4) {
+          return n4;
+        }
+      }
+    })(s2, n2, t3, i3);
+    if (void 0 !== e3) {
+      return e3;
+    }
+    if (0 === o2) {
+      throw new RangeError(kr);
+    }
+  }
+  return a2 ? isoToEpochNano(n2) : we(e2, n2, r2, s2);
+}
+function we(e2, n2, t3 = 0, o2 = e2.getPossibleInstantsFor(n2)) {
+  if (1 === o2.length) {
+    return o2[0];
+  }
+  if (1 === t3) {
+    throw new RangeError(Yr);
+  }
+  if (o2.length) {
+    return o2[3 === t3 ? 1 : 0];
+  }
+  const r2 = isoToEpochNano(n2), i3 = ((e3, n3) => {
+    const t4 = e3.getOffsetNanosecondsFor(moveBigNano(n3, -Qr));
+    return ne(e3.getOffsetNanosecondsFor(moveBigNano(n3, Qr)) - t4);
+  })(e2, r2), a2 = i3 * (2 === t3 ? -1 : 1);
+  return (o2 = e2.getPossibleInstantsFor(Ie(r2, a2)))[2 === t3 ? 0 : o2.length - 1];
+}
+function ae(e2) {
+  if (Math.abs(e2) >= Qr) {
+    throw new RangeError(wr);
+  }
+  return e2;
+}
+function ne(e2) {
+  if (e2 > Qr) {
+    throw new RangeError(Br);
+  }
+  return e2;
+}
+function se(e2, n2, t3) {
+  return _(checkEpochNanoInBounds(addBigNanos(n2.epochNanoseconds, ((e3) => {
+    if (durationHasDateParts(e3)) {
+      throw new RangeError(qr);
+    }
+    return durationFieldsToBigNano(e3, 5);
+  })(e2 ? negateDurationFields(t3) : t3))));
+}
+function hn(e2, n2, t3, o2, r2, i3 = /* @__PURE__ */ Object.create(null)) {
+  const a2 = n2(o2.timeZone), s2 = e2(o2.calendar);
+  return {
+    ...o2,
+    ...moveZonedEpochs(a2, s2, o2, t3 ? negateDurationFields(r2) : r2, i3)
+  };
+}
+function ct(e2, n2, t3, o2, r2 = /* @__PURE__ */ Object.create(null)) {
+  const { calendar: i3 } = t3;
+  return ee(moveDateTime(e2(i3), t3, n2 ? negateDurationFields(o2) : o2, r2), i3);
+}
+function bt(e2, n2, t3, o2, r2) {
+  const { calendar: i3 } = t3;
+  return v(moveDate(e2(i3), t3, n2 ? negateDurationFields(o2) : o2, r2), i3);
+}
+function Qe(e2, n2, t3, o2, r2 = /* @__PURE__ */ Object.create(null)) {
+  const i3 = t3.calendar, a2 = e2(i3);
+  let s2 = moveToDayOfMonthUnsafe(a2, t3);
+  n2 && (o2 = xt(o2)), o2.sign < 0 && (s2 = a2.dateAdd(s2, {
+    ...Si,
+    months: 1
+  }), s2 = moveByDays(s2, -1));
+  const c2 = a2.dateAdd(s2, o2, r2);
+  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(a2, c2), i3);
+}
+function Ye(e2, n2, t3) {
+  return Ge(moveTime(n2, e2 ? negateDurationFields(t3) : t3)[0]);
+}
+function moveZonedEpochs(e2, n2, t3, o2, r2) {
+  const i3 = durationFieldsToBigNano(o2, 5);
+  let a2 = t3.epochNanoseconds;
+  if (durationHasDateParts(o2)) {
+    const s2 = fn(t3, e2);
+    a2 = addBigNanos(we(e2, {
+      ...moveDate(n2, s2, {
+        ...o2,
+        ...Fi
+      }, r2),
+      ...Vn(j, s2)
+    }), i3);
+  } else {
+    a2 = addBigNanos(a2, i3), H(r2);
+  }
+  return {
+    epochNanoseconds: checkEpochNanoInBounds(a2)
+  };
+}
+function moveDateTime(e2, n2, t3, o2) {
+  const [r2, i3] = moveTime(n2, t3);
+  return checkIsoDateTimeInBounds({
+    ...moveDate(e2, n2, {
+      ...t3,
+      ...Fi,
+      days: t3.days + i3
+    }, o2),
+    ...r2
+  });
+}
+function moveDate(e2, n2, t3, o2) {
+  if (t3.years || t3.months || t3.weeks) {
+    return e2.dateAdd(n2, t3, o2);
+  }
+  H(o2);
+  const r2 = t3.days + durationFieldsToBigNano(t3, 5)[0];
+  return r2 ? checkIsoDateInBounds(moveByDays(n2, r2)) : n2;
+}
+function moveToDayOfMonthUnsafe(e2, n2, t3 = 1) {
+  return moveByDays(n2, t3 - e2.day(n2));
+}
+function moveTime(e2, n2) {
+  const [t3, o2] = durationFieldsToBigNano(n2, 5), [r2, i3] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) + o2);
+  return [r2, t3 + i3];
+}
+function moveByDays(e2, n2) {
+  return n2 ? {
+    ...e2,
+    ...epochMilliToIso(isoToEpochMilli(e2) + n2 * Gr)
+  } : e2;
+}
+function createMarkerSystem(e2, n2, t3) {
+  const o2 = e2(t3.calendar);
+  return isZonedEpochSlots(t3) ? [t3, o2, n2(t3.timeZone)] : [{
+    ...t3,
+    ...Dt
+  }, o2];
+}
+function createMarkerToEpochNano(e2) {
+  return e2 ? extractEpochNano : isoToEpochNano;
+}
+function createMoveMarker(e2) {
+  return e2 ? E(moveZonedEpochs, e2) : moveDateTime;
+}
+function createDiffMarkers(e2) {
+  return e2 ? E(diffZonedEpochsExact, e2) : diffDateTimesExact;
+}
+function isZonedEpochSlots(e2) {
+  return e2 && e2.epochNanoseconds;
+}
+function isUniformUnit(e2, n2) {
+  return e2 <= 6 - (isZonedEpochSlots(n2) ? 1 : 0);
+}
+function Wt(e2, n2, t3, o2, r2, i3, a2) {
+  const s2 = e2(normalizeOptions(a2).relativeTo), c2 = Math.max(getMaxDurationUnit(r2), getMaxDurationUnit(i3));
+  if (isUniformUnit(c2, s2)) {
+    return Vt(checkDurationUnits(((e3, n3, t4, o3) => {
+      const r3 = addBigNanos(durationFieldsToBigNano(e3), durationFieldsToBigNano(n3), o3 ? -1 : 1);
+      if (!Number.isFinite(r3[0])) {
+        throw new RangeError(Cr);
+      }
+      return {
+        ...Si,
+        ...nanoToDurationDayTimeFields(r3, t4)
+      };
+    })(r2, i3, c2, o2)));
+  }
+  if (!s2) {
+    throw new RangeError(zr);
+  }
+  o2 && (i3 = negateDurationFields(i3));
+  const [u2, l3, f2] = createMarkerSystem(n2, t3, s2), d2 = createMoveMarker(f2), m2 = createDiffMarkers(f2), p2 = d2(l3, u2, r2);
+  return Vt(m2(l3, u2, d2(l3, p2, i3), c2));
+}
+function Gt(e2, n2, t3, o2, r2) {
+  const i3 = getMaxDurationUnit(o2), [a2, s2, c2, u2, l3] = ((e3, n3, t4) => {
+    e3 = normalizeOptionsOrString(e3, Hi);
+    let o3 = sa(e3);
+    const r3 = t4(e3[Ki]);
+    let i4 = parseRoundingIncInteger(e3);
+    const a3 = ha(e3, 7);
+    let s3 = aa(e3);
+    if (void 0 === o3 && void 0 === s3) {
+      throw new RangeError(Ur);
+    }
+    return null == s3 && (s3 = 0), null == o3 && (o3 = Math.max(s3, n3)), checkLargestSmallestUnit(o3, s3), i4 = refineRoundingInc(i4, s3, 1), [o3, s3, i4, a3, r3];
+  })(r2, i3, e2), f2 = Math.max(i3, a2);
+  if (!isZonedEpochSlots(l3) && f2 <= 6) {
+    return Vt(checkDurationUnits(((e3, n3, t4, o3, r3) => {
+      const i4 = roundBigNano(durationFieldsToBigNano(e3), t4, o3, r3);
+      return {
+        ...Si,
+        ...nanoToDurationDayTimeFields(i4, n3)
+      };
+    })(o2, a2, s2, c2, u2)));
+  }
+  if (!l3) {
+    throw new RangeError(zr);
+  }
+  const [d2, m2, p2] = createMarkerSystem(n2, t3, l3), h2 = createMarkerToEpochNano(p2), g2 = createMoveMarker(p2), T2 = createDiffMarkers(p2), D2 = g2(m2, d2, o2);
+  let I2 = T2(m2, d2, D2, a2);
+  const M2 = o2.sign, N2 = computeDurationSign(I2);
+  if (M2 && N2 && M2 !== N2) {
+    throw new RangeError(vr);
+  }
+  return N2 && (I2 = roundRelativeDuration(I2, h2(D2), a2, s2, c2, u2, m2, d2, h2, g2)), Vt(I2);
+}
+function Rt(e2) {
+  return -1 === e2.sign ? xt(e2) : e2;
+}
+function xt(e2) {
+  return Vt(negateDurationFields(e2));
+}
+function negateDurationFields(e2) {
+  const n2 = {};
+  for (const t3 of F) {
+    n2[t3] = -1 * e2[t3] || 0;
+  }
+  return n2;
+}
+function Jt(e2) {
+  return !e2.sign;
+}
+function computeDurationSign(e2, n2 = F) {
+  let t3 = 0;
+  for (const o2 of n2) {
+    const n3 = Math.sign(e2[o2]);
+    if (n3) {
+      if (t3 && t3 !== n3) {
+        throw new RangeError(Rr);
+      }
+      t3 = n3;
+    }
+  }
+  return t3;
+}
+function checkDurationUnits(e2) {
+  for (const n2 of vi) {
+    clampEntity(n2, e2[n2], -ya, ya, 1);
+  }
+  return checkDurationTimeUnit(oe(durationFieldsToBigNano(e2), _r)), e2;
+}
+function checkDurationTimeUnit(e2) {
+  if (!Number.isSafeInteger(e2)) {
+    throw new RangeError(Zr);
+  }
+}
+function durationFieldsToBigNano(e2, n2 = 6) {
+  return givenFieldsToBigNano(e2, n2, F);
+}
+function nanoToDurationDayTimeFields(e2, n2 = 6) {
+  const [t3, o2] = e2, r2 = nanoToGivenFields(o2, n2, F);
+  if (r2[F[n2]] += t3 * (Qr / Xr[n2]), !Number.isFinite(r2[F[n2]])) {
+    throw new RangeError(Cr);
+  }
+  return r2;
+}
+function nanoToDurationTimeFields(e2, n2 = 5) {
+  return nanoToGivenFields(e2, n2, F);
+}
+function durationHasDateParts(e2) {
+  return Boolean(computeDurationSign(e2, Pi));
+}
+function getMaxDurationUnit(e2) {
+  let n2 = 9;
+  for (; n2 > 0 && !e2[F[n2]]; n2--) {
+  }
+  return n2;
+}
+function createSplitTuple(e2, n2) {
+  return [e2, n2];
+}
+function computePeriod(e2) {
+  const n2 = Math.floor(e2 / Da) * Da;
+  return [n2, n2 + Da];
+}
+function pe(e2) {
+  const n2 = parseDateTimeLike(e2 = toStringViaPrimitive(e2));
+  if (!n2) {
+    throw new RangeError(failedParse(e2));
+  }
+  let t3;
+  if (n2.m) {
+    t3 = 0;
+  } else {
+    if (!n2.offset) {
+      throw new RangeError(failedParse(e2));
+    }
+    t3 = parseOffsetNano(n2.offset);
+  }
+  return n2.timeZone && parseOffsetNanoMaybe(n2.timeZone, 1), _(isoToEpochNanoWithOffset(checkIsoDateTimeFields(n2), t3));
+}
+function Xt(e2) {
+  const n2 = parseDateTimeLike(m(e2));
+  if (!n2) {
+    throw new RangeError(failedParse(e2));
+  }
+  if (n2.timeZone) {
+    return finalizeZonedDateTime(n2, n2.offset ? parseOffsetNano(n2.offset) : void 0);
+  }
+  if (n2.m) {
+    throw new RangeError(failedParse(e2));
+  }
+  return finalizeDate(n2);
+}
+function Mn(e2, n2) {
+  const t3 = parseDateTimeLike(m(e2));
+  if (!t3 || !t3.timeZone) {
+    throw new RangeError(failedParse(e2));
+  }
+  const { offset: o2 } = t3, r2 = o2 ? parseOffsetNano(o2) : void 0, [, i3, a2] = wn(n2);
+  return finalizeZonedDateTime(t3, r2, i3, a2);
+}
+function parseOffsetNano(e2) {
+  const n2 = parseOffsetNanoMaybe(e2);
+  if (void 0 === n2) {
+    throw new RangeError(failedParse(e2));
+  }
+  return n2;
+}
+function Ct(e2) {
+  const n2 = parseDateTimeLike(m(e2));
+  if (!n2 || n2.m) {
+    throw new RangeError(failedParse(e2));
+  }
+  return ee(finalizeDateTime(n2));
+}
+function At(e2) {
+  const n2 = parseDateTimeLike(m(e2));
+  if (!n2 || n2.m) {
+    throw new RangeError(failedParse(e2));
+  }
+  return v(n2.p ? finalizeDateTime(n2) : finalizeDate(n2));
+}
+function ot(e2, n2) {
+  const t3 = parseYearMonthOnly(m(n2));
+  if (t3) {
+    return requireIsoCalendar(t3), createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields(t3)));
+  }
+  const o2 = At(n2);
+  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(e2(o2.calendar), o2));
+}
+function requireIsoCalendar(e2) {
+  if (e2.calendar !== X) {
+    throw new RangeError(invalidSubstring(e2.calendar));
+  }
+}
+function Q(e2, n2) {
+  const t3 = parseMonthDayOnly(m(n2));
+  if (t3) {
+    return requireIsoCalendar(t3), createPlainMonthDaySlots(checkIsoDateFields(t3));
+  }
+  const o2 = At(n2), { calendar: r2 } = o2, i3 = e2(r2), [a2, s2, c2] = i3.h(o2), [u2, l3] = i3.I(a2, s2), [f2, d2] = i3.N(u2, l3, c2);
+  return createPlainMonthDaySlots(checkIsoDateInBounds(i3.P(f2, d2, c2)), r2);
+}
+function ze(e2) {
+  let n2, t3 = ((e3) => {
+    const n3 = Ca.exec(e3);
+    return n3 ? (organizeAnnotationParts(n3[10]), organizeTimeParts(n3)) : void 0;
+  })(m(e2));
+  if (!t3) {
+    if (t3 = parseDateTimeLike(e2), !t3) {
+      throw new RangeError(failedParse(e2));
+    }
+    if (!t3.p) {
+      throw new RangeError(failedParse(e2));
+    }
+    if (t3.m) {
+      throw new RangeError(invalidSubstring("Z"));
+    }
+    requireIsoCalendar(t3);
+  }
+  if ((n2 = parseYearMonthOnly(e2)) && isIsoDateFieldsValid(n2)) {
+    throw new RangeError(failedParse(e2));
+  }
+  if ((n2 = parseMonthDayOnly(e2)) && isIsoDateFieldsValid(n2)) {
+    throw new RangeError(failedParse(e2));
+  }
+  return Ge(constrainIsoTimeFields(t3, 1));
+}
+function Kt(e2) {
+  const n2 = ((e3) => {
+    const n3 = za.exec(e3);
+    return n3 ? ((e4) => {
+      function parseUnit(e5, r3, i3) {
+        let a2 = 0, s2 = 0;
+        if (i3 && ([a2, o2] = divModFloor(o2, Xr[i3])), void 0 !== e5) {
+          if (t3) {
+            throw new RangeError(invalidSubstring(e5));
+          }
+          s2 = ((e6) => {
+            const n5 = parseInt(e6);
+            if (!Number.isFinite(n5)) {
+              throw new RangeError(invalidSubstring(e6));
+            }
+            return n5;
+          })(e5), n4 = 1, r3 && (o2 = parseSubsecNano(r3) * (Xr[i3] / _r), t3 = 1);
+        }
+        return a2 + s2;
+      }
+      let n4 = 0, t3 = 0, o2 = 0, r2 = {
+        ...zipProps(F, [parseUnit(e4[2]), parseUnit(e4[3]), parseUnit(e4[4]), parseUnit(e4[5]), parseUnit(e4[6], e4[7], 5), parseUnit(e4[8], e4[9], 4), parseUnit(e4[10], e4[11], 3)]),
+        ...nanoToGivenFields(o2, 2, F)
+      };
+      if (!n4) {
+        throw new RangeError(noValidFields(F));
+      }
+      return parseSign(e4[1]) < 0 && (r2 = negateDurationFields(r2)), r2;
+    })(n3) : void 0;
+  })(m(e2));
+  if (!n2) {
+    throw new RangeError(failedParse(e2));
+  }
+  return Vt(checkDurationUnits(n2));
+}
+function sn(e2) {
+  const n2 = parseDateTimeLike(e2) || parseYearMonthOnly(e2) || parseMonthDayOnly(e2);
+  return n2 ? n2.calendar : e2;
+}
+function Ne(e2) {
+  const n2 = parseDateTimeLike(e2);
+  return n2 && (n2.timeZone || n2.m && Ta || n2.offset) || e2;
+}
+function finalizeZonedDateTime(e2, n2, t3 = 0, o2 = 0) {
+  const r2 = ye(e2.timeZone), i3 = ie(r2);
+  return Yn(getMatchingInstantFor(i3, checkIsoDateTimeFields(e2), n2, t3, o2, !i3.v, e2.m), r2, an(e2.calendar));
+}
+function finalizeDateTime(e2) {
+  return resolveSlotsCalendar(checkIsoDateTimeInBounds(checkIsoDateTimeFields(e2)));
+}
+function finalizeDate(e2) {
+  return resolveSlotsCalendar(checkIsoDateInBounds(checkIsoDateFields(e2)));
+}
+function resolveSlotsCalendar(e2) {
+  return {
+    ...e2,
+    calendar: an(e2.calendar)
+  };
+}
+function parseDateTimeLike(e2) {
+  const n2 = Ya.exec(e2);
+  return n2 ? ((e3) => {
+    const n3 = e3[10], t3 = "Z" === (n3 || "").toUpperCase();
+    return {
+      isoYear: organizeIsoYearParts(e3),
+      isoMonth: parseInt(e3[4]),
+      isoDay: parseInt(e3[5]),
+      ...organizeTimeParts(e3.slice(5)),
+      ...organizeAnnotationParts(e3[16]),
+      p: Boolean(e3[6]),
+      m: t3,
+      offset: t3 ? void 0 : n3
+    };
+  })(n2) : void 0;
+}
+function parseYearMonthOnly(e2) {
+  const n2 = Ba.exec(e2);
+  return n2 ? ((e3) => ({
+    isoYear: organizeIsoYearParts(e3),
+    isoMonth: parseInt(e3[4]),
+    isoDay: 1,
+    ...organizeAnnotationParts(e3[5])
+  }))(n2) : void 0;
+}
+function parseMonthDayOnly(e2) {
+  const n2 = ka.exec(e2);
+  return n2 ? ((e3) => ({
+    isoYear: ji,
+    isoMonth: parseInt(e3[1]),
+    isoDay: parseInt(e3[2]),
+    ...organizeAnnotationParts(e3[3])
+  }))(n2) : void 0;
+}
+function parseOffsetNanoMaybe(e2, n2) {
+  const t3 = Za.exec(e2);
+  return t3 ? ((e3, n3) => {
+    const t4 = e3[4] || e3[5];
+    if (n3 && t4) {
+      throw new RangeError(invalidSubstring(t4));
+    }
+    return ae((parseInt0(e3[2]) * Kr + parseInt0(e3[3]) * Jr + parseInt0(e3[4]) * _r + parseSubsecNano(e3[5] || "")) * parseSign(e3[1]));
+  })(t3, n2) : void 0;
+}
+function organizeIsoYearParts(e2) {
+  const n2 = parseSign(e2[1]), t3 = parseInt(e2[2] || e2[3]);
+  if (n2 < 0 && !t3) {
+    throw new RangeError(invalidSubstring(-0));
+  }
+  return n2 * t3;
+}
+function organizeTimeParts(e2) {
+  const n2 = parseInt0(e2[3]);
+  return {
+    ...nanoToIsoTimeAndDay(parseSubsecNano(e2[4] || ""))[0],
+    isoHour: parseInt0(e2[1]),
+    isoMinute: parseInt0(e2[2]),
+    isoSecond: 60 === n2 ? 59 : n2
+  };
+}
+function organizeAnnotationParts(e2) {
+  let n2, t3;
+  const o2 = [];
+  if (e2.replace(Ra, (e3, r2, i3) => {
+    const a2 = Boolean(r2), [s2, c2] = i3.split("=").reverse();
+    if (c2) {
+      if ("u-ca" === c2) {
+        o2.push(s2), n2 || (n2 = a2);
+      } else if (a2 || /[A-Z]/.test(c2)) {
+        throw new RangeError(invalidSubstring(e3));
+      }
+    } else {
+      if (t3) {
+        throw new RangeError(invalidSubstring(e3));
+      }
+      t3 = s2;
+    }
+    return "";
+  }), o2.length > 1 && n2) {
+    throw new RangeError(invalidSubstring(e2));
+  }
+  return {
+    timeZone: t3,
+    calendar: o2[0] || X
+  };
+}
+function parseSubsecNano(e2) {
+  return parseInt(e2.padEnd(9, "0"));
+}
+function createRegExp(e2) {
+  return new RegExp(`^${e2}$`, "i");
+}
+function parseSign(e2) {
+  return e2 && "+" !== e2 ? -1 : 1;
+}
+function parseInt0(e2) {
+  return void 0 === e2 ? 0 : parseInt(e2);
+}
+function Me(e2) {
+  return ye(m(e2));
+}
+function ye(e2) {
+  const n2 = getTimeZoneEssence(e2);
+  return "number" == typeof n2 ? Fe(n2) : n2 ? ((e3) => {
+    if (Ua.test(e3)) {
+      throw new RangeError(br);
+    }
+    return e3.toLowerCase().split("/").map((e4, n3) => (e4.length <= 3 || /\d/.test(e4)) && !/etc|yap/.test(e4) ? e4.toUpperCase() : e4.replace(/baja|dumont|[a-z]+/g, (e5, t3) => e5.length <= 2 && !n3 || "in" === e5 || "chat" === e5 ? e5.toUpperCase() : e5.length > 2 || !t3 ? capitalize(e5).replace(/island|noronha|murdo|rivadavia|urville/, capitalize) : e5)).join("/");
+  })(e2) : Ta;
+}
+function getTimeZoneAtomic(e2) {
+  const n2 = getTimeZoneEssence(e2);
+  return "number" == typeof n2 ? n2 : n2 ? n2.resolvedOptions().timeZone : Ta;
+}
+function getTimeZoneEssence(e2) {
+  const n2 = parseOffsetNanoMaybe(e2 = e2.toUpperCase(), 1);
+  return void 0 !== n2 ? n2 : e2 !== Ta ? qa(e2) : void 0;
+}
+function Ze(e2, n2) {
+  return te(e2.epochNanoseconds, n2.epochNanoseconds);
+}
+function yn(e2, n2) {
+  return te(e2.epochNanoseconds, n2.epochNanoseconds);
+}
+function $t(e2, n2, t3, o2, r2, i3) {
+  const a2 = e2(normalizeOptions(i3).relativeTo), s2 = Math.max(getMaxDurationUnit(o2), getMaxDurationUnit(r2));
+  if (allPropsEqual(F, o2, r2)) {
+    return 0;
+  }
+  if (isUniformUnit(s2, a2)) {
+    return te(durationFieldsToBigNano(o2), durationFieldsToBigNano(r2));
+  }
+  if (!a2) {
+    throw new RangeError(zr);
+  }
+  const [c2, u2, l3] = createMarkerSystem(n2, t3, a2), f2 = createMarkerToEpochNano(l3), d2 = createMoveMarker(l3);
+  return te(f2(d2(u2, c2, o2)), f2(d2(u2, c2, r2)));
+}
+function gt(e2, n2) {
+  return rt(e2, n2) || He(e2, n2);
+}
+function rt(e2, n2) {
+  return compareNumbers(isoToEpochMilli(e2), isoToEpochMilli(n2));
+}
+function He(e2, n2) {
+  return compareNumbers(isoTimeFieldsToNano(e2), isoTimeFieldsToNano(n2));
+}
+function ue(e2, n2) {
+  return !Ze(e2, n2);
+}
+function gn(e2, n2) {
+  return !yn(e2, n2) && !!je(e2.timeZone, n2.timeZone) && isIdLikeEqual(e2.calendar, n2.calendar);
+}
+function ft(e2, n2) {
+  return !gt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
+}
+function It(e2, n2) {
+  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
+}
+function $e(e2, n2) {
+  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
+}
+function x(e2, n2) {
+  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
+}
+function Ve(e2, n2) {
+  return !He(e2, n2);
+}
+function je(e2, n2) {
+  if (e2 === n2) {
+    return 1;
+  }
+  const t3 = I(e2), o2 = I(n2);
+  if (t3 === o2) {
+    return 1;
+  }
+  try {
+    return getTimeZoneAtomic(t3) === getTimeZoneAtomic(o2);
+  } catch (e3) {
+  }
+}
+function le(e2, n2, t3, o2) {
+  const r2 = refineDiffOptions(e2, U(o2), 3, 5), i3 = diffEpochNanos(n2.epochNanoseconds, t3.epochNanoseconds, ...r2);
+  return Vt(e2 ? negateDurationFields(i3) : i3);
+}
+function Dn(e2, n2, t3, o2, r2, i3) {
+  const a2 = getCommonCalendarSlot(o2.calendar, r2.calendar), s2 = U(i3), [c2, u2, l3, f2] = refineDiffOptions(t3, s2, 5), d2 = o2.epochNanoseconds, m2 = r2.epochNanoseconds, p2 = te(m2, d2);
+  let h2;
+  if (p2) {
+    if (c2 < 6) {
+      h2 = diffEpochNanos(d2, m2, c2, u2, l3, f2);
+    } else {
+      const t4 = n2(((e3, n3) => {
+        if (!je(e3, n3)) {
+          throw new RangeError(Fr);
+        }
+        return e3;
+      })(o2.timeZone, r2.timeZone)), i4 = e2(a2);
+      h2 = diffZonedEpochsBig(i4, t4, o2, r2, p2, c2, s2), h2 = roundRelativeDuration(h2, m2, c2, u2, l3, f2, i4, o2, extractEpochNano, E(moveZonedEpochs, t4));
+    }
+  } else {
+    h2 = Si;
+  }
+  return Vt(t3 ? negateDurationFields(h2) : h2);
+}
+function ut(e2, n2, t3, o2, r2) {
+  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2), [s2, c2, u2, l3] = refineDiffOptions(n2, a2, 6), f2 = isoToEpochNano(t3), d2 = isoToEpochNano(o2), m2 = te(d2, f2);
+  let p2;
+  if (m2) {
+    if (s2 <= 6) {
+      p2 = diffEpochNanos(f2, d2, s2, c2, u2, l3);
+    } else {
+      const n3 = e2(i3);
+      p2 = diffDateTimesBig(n3, t3, o2, m2, s2, a2), p2 = roundRelativeDuration(p2, d2, s2, c2, u2, l3, n3, t3, isoToEpochNano, moveDateTime);
+    }
+  } else {
+    p2 = Si;
+  }
+  return Vt(n2 ? negateDurationFields(p2) : p2);
+}
+function Ft(e2, n2, t3, o2, r2) {
+  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2);
+  return diffDateLike(n2, () => e2(i3), t3, o2, ...refineDiffOptions(n2, a2, 6, 9, 6), a2);
+}
+function Xe(e2, n2, t3, o2, r2) {
+  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2), s2 = refineDiffOptions(n2, a2, 9, 9, 8), c2 = e2(i3);
+  return diffDateLike(n2, () => c2, moveToDayOfMonthUnsafe(c2, t3), moveToDayOfMonthUnsafe(c2, o2), ...s2, a2);
+}
+function diffDateLike(e2, n2, t3, o2, r2, i3, a2, s2, c2) {
+  const u2 = isoToEpochNano(t3), l3 = isoToEpochNano(o2);
+  let f2;
+  if (te(l3, u2)) {
+    if (6 === r2) {
+      f2 = diffEpochNanos(u2, l3, r2, i3, a2, s2);
+    } else {
+      const e3 = n2();
+      f2 = e3.dateUntil(t3, o2, r2, c2), 6 === i3 && 1 === a2 || (f2 = roundRelativeDuration(f2, l3, r2, i3, a2, s2, e3, t3, isoToEpochNano, moveDate));
+    }
+  } else {
+    f2 = Si;
+  }
+  return Vt(e2 ? negateDurationFields(f2) : f2);
+}
+function Ae(e2, n2, t3, o2) {
+  const r2 = U(o2), [i3, a2, s2, c2] = refineDiffOptions(e2, r2, 5, 5), u2 = roundByInc(diffTimes(n2, t3), computeNanoInc(a2, s2), c2), l3 = {
+    ...Si,
+    ...nanoToDurationTimeFields(u2, i3)
+  };
+  return Vt(e2 ? negateDurationFields(l3) : l3);
+}
+function diffZonedEpochsExact(e2, n2, t3, o2, r2, i3) {
+  const a2 = te(o2.epochNanoseconds, t3.epochNanoseconds);
+  return a2 ? r2 < 6 ? diffEpochNanosExact(t3.epochNanoseconds, o2.epochNanoseconds, r2) : diffZonedEpochsBig(n2, e2, t3, o2, a2, r2, i3) : Si;
+}
+function diffDateTimesExact(e2, n2, t3, o2, r2) {
+  const i3 = isoToEpochNano(n2), a2 = isoToEpochNano(t3), s2 = te(a2, i3);
+  return s2 ? o2 <= 6 ? diffEpochNanosExact(i3, a2, o2) : diffDateTimesBig(e2, n2, t3, s2, o2, r2) : Si;
+}
+function diffZonedEpochsBig(e2, n2, t3, o2, r2, i3, a2) {
+  const [s2, c2, u2] = ((e3, n3, t4, o3) => {
+    function updateMid() {
+      return l4 = {
+        ...moveByDays(a3, c3++ * -o3),
+        ...i4
+      }, f3 = we(e3, l4), te(s3, f3) === -o3;
+    }
+    const r3 = fn(n3, e3), i4 = Vn(j, r3), a3 = fn(t4, e3), s3 = t4.epochNanoseconds;
+    let c3 = 0;
+    const u3 = diffTimes(r3, a3);
+    let l4, f3;
+    if (Math.sign(u3) === -o3 && c3++, updateMid() && (-1 === o3 || updateMid())) {
+      throw new RangeError(vr);
+    }
+    const d2 = oe(re(f3, s3));
+    return [r3, l4, d2];
+  })(n2, t3, o2, r2);
+  var l3, f2;
+  return {
+    ...6 === i3 ? (l3 = s2, f2 = c2, {
+      ...Si,
+      days: diffDays(l3, f2)
+    }) : e2.dateUntil(s2, c2, i3, a2),
+    ...nanoToDurationTimeFields(u2)
+  };
+}
+function diffDateTimesBig(e2, n2, t3, o2, r2, i3) {
+  const [a2, s2, c2] = ((e3, n3, t4) => {
+    let o3 = n3, r3 = diffTimes(e3, n3);
+    return Math.sign(r3) === -t4 && (o3 = moveByDays(n3, -t4), r3 += Qr * t4), [e3, o3, r3];
+  })(n2, t3, o2);
+  return {
+    ...e2.dateUntil(a2, s2, r2, i3),
+    ...nanoToDurationTimeFields(c2)
+  };
+}
+function diffEpochNanos(e2, n2, t3, o2, r2, i3) {
+  return {
+    ...Si,
+    ...nanoToDurationDayTimeFields(roundBigNano(re(e2, n2), o2, r2, i3), t3)
+  };
+}
+function diffEpochNanosExact(e2, n2, t3) {
+  return {
+    ...Si,
+    ...nanoToDurationDayTimeFields(re(e2, n2), t3)
+  };
+}
+function diffDays(e2, n2) {
+  return diffEpochMilliByDay(isoToEpochMilli(e2), isoToEpochMilli(n2));
+}
+function diffEpochMilliByDay(e2, n2) {
+  return Math.trunc((n2 - e2) / Gr);
+}
+function diffTimes(e2, n2) {
+  return isoTimeFieldsToNano(n2) - isoTimeFieldsToNano(e2);
+}
+function getCommonCalendarSlot(e2, n2) {
+  if (!isIdLikeEqual(e2, n2)) {
+    throw new RangeError(Er);
+  }
+  return e2;
+}
+function createIntlCalendar(e2) {
+  function epochMilliToIntlFields(e3) {
+    return ((e4, n3) => ({
+      ...parseIntlYear(e4, n3),
+      F: e4.month,
+      day: parseInt(e4.day)
+    }))(hashIntlFormatParts(n2, e3), t3);
+  }
+  const n2 = La(e2), t3 = computeCalendarIdBase(e2);
+  return {
+    id: e2,
+    O: createIntlFieldCache(epochMilliToIntlFields),
+    B: createIntlYearDataCache(epochMilliToIntlFields)
+  };
+}
+function createIntlFieldCache(e2) {
+  return Jn((n2) => {
+    const t3 = isoToEpochMilli(n2);
+    return e2(t3);
+  }, WeakMap);
+}
+function createIntlYearDataCache(e2) {
+  const n2 = e2(0).year - Wi;
+  return Jn((t3) => {
+    let o2, r2 = isoArgsToEpochMilli(t3 - n2);
+    const i3 = [], a2 = [];
+    do {
+      r2 += 400 * Gr;
+    } while ((o2 = e2(r2)).year <= t3);
+    do {
+      r2 += (1 - o2.day) * Gr, o2.year === t3 && (i3.push(r2), a2.push(o2.F)), r2 -= Gr;
+    } while ((o2 = e2(r2)).year >= t3);
+    return {
+      k: i3.reverse(),
+      C: Wr(a2.reverse())
+    };
+  });
+}
+function parseIntlYear(e2, n2) {
+  let t3, o2, r2 = parseIntlPartsYear(e2);
+  if (e2.era) {
+    const i3 = Di[n2];
+    void 0 !== i3 && (t3 = "islamic" === n2 ? "ah" : e2.era.normalize("NFD").toLowerCase().replace(/[^a-z0-9]/g, ""), "bc" === t3 || "b" === t3 ? t3 = "bce" : "ad" !== t3 && "a" !== t3 || (t3 = "ce"), o2 = r2, r2 = eraYearToYear(o2, i3[t3] || 0));
+  }
+  return {
+    era: t3,
+    eraYear: o2,
+    year: r2
+  };
+}
+function parseIntlPartsYear(e2) {
+  return parseInt(e2.relatedYear || e2.year);
+}
+function computeIntlDateParts(e2) {
+  const { year: n2, F: t3, day: o2 } = this.O(e2), { C: r2 } = this.B(n2);
+  return [n2, r2[t3] + 1, o2];
+}
+function computeIntlEpochMilli(e2, n2 = 1, t3 = 1) {
+  return this.B(e2).k[n2 - 1] + (t3 - 1) * Gr;
+}
+function computeIntlLeapMonth(e2) {
+  const n2 = queryMonthStrings(this, e2), t3 = queryMonthStrings(this, e2 - 1), o2 = n2.length;
+  if (o2 > t3.length) {
+    const e3 = getCalendarLeapMonthMeta(this);
+    if (e3 < 0) {
+      return -e3;
+    }
+    for (let e4 = 0; e4 < o2; e4++) {
+      if (n2[e4] !== t3[e4]) {
+        return e4 + 1;
+      }
+    }
+  }
+}
+function computeIntlDaysInYear(e2) {
+  return diffEpochMilliByDay(computeIntlEpochMilli.call(this, e2), computeIntlEpochMilli.call(this, e2 + 1));
+}
+function computeIntlDaysInMonth(e2, n2) {
+  const { k: t3 } = this.B(e2);
+  let o2 = n2 + 1, r2 = t3;
+  return o2 > t3.length && (o2 = 1, r2 = this.B(e2 + 1).k), diffEpochMilliByDay(t3[n2 - 1], r2[o2 - 1]);
+}
+function computeIntlMonthsInYear(e2) {
+  return this.B(e2).k.length;
+}
+function queryMonthStrings(e2, n2) {
+  return Object.keys(e2.B(n2).C);
+}
+function rn(e2) {
+  return an(m(e2));
+}
+function an(e2) {
+  if ((e2 = e2.toLowerCase()) !== X && e2 !== gi && computeCalendarIdBase(e2) !== computeCalendarIdBase(La(e2).resolvedOptions().calendar)) {
+    throw new RangeError(invalidCalendar(e2));
+  }
+  return e2;
+}
+function computeCalendarIdBase(e2) {
+  return "islamicc" === e2 && (e2 = "islamic"), e2.split("-")[0];
+}
+function computeNativeWeekOfYear(e2) {
+  return this.R(e2)[0];
+}
+function computeNativeYearOfWeek(e2) {
+  return this.R(e2)[1];
+}
+function computeNativeDayOfYear(e2) {
+  const [n2] = this.h(e2);
+  return diffEpochMilliByDay(this.q(n2), isoToEpochMilli(e2)) + 1;
+}
+function parseMonthCode(e2) {
+  const n2 = Wa.exec(e2);
+  if (!n2) {
+    throw new RangeError(invalidMonthCode(e2));
+  }
+  return [parseInt(n2[1]), Boolean(n2[2])];
+}
+function monthCodeNumberToMonth(e2, n2, t3) {
+  return e2 + (n2 || t3 && e2 >= t3 ? 1 : 0);
+}
+function monthToMonthCodeNumber(e2, n2) {
+  return e2 - (n2 && e2 >= n2 ? 1 : 0);
+}
+function eraYearToYear(e2, n2) {
+  return (n2 + e2) * (Math.sign(n2) || 1) || 0;
+}
+function getCalendarEraOrigins(e2) {
+  return Di[getCalendarIdBase(e2)];
+}
+function getCalendarLeapMonthMeta(e2) {
+  return Ii[getCalendarIdBase(e2)];
+}
+function getCalendarIdBase(e2) {
+  return computeCalendarIdBase(e2.id || X);
+}
+function Qt(e2, n2, t3, o2) {
+  const r2 = refineCalendarFields(t3, o2, en, [], ri);
+  if (void 0 !== r2.timeZone) {
+    const o3 = t3.dateFromFields(r2), i3 = refineTimeBag(r2), a2 = e2(r2.timeZone);
+    return {
+      epochNanoseconds: getMatchingInstantFor(n2(a2), {
+        ...o3,
+        ...i3
+      }, void 0 !== r2.offset ? parseOffsetNano(r2.offset) : void 0),
+      timeZone: a2
+    };
+  }
+  return {
+    ...t3.dateFromFields(r2),
+    ...Dt
+  };
+}
+function jn(e2, n2, t3, o2, r2, i3) {
+  const a2 = refineCalendarFields(t3, r2, en, ti, ri), s2 = e2(a2.timeZone), [c2, u2, l3] = wn(i3), f2 = t3.dateFromFields(a2, overrideOverflowOptions(i3, c2)), d2 = refineTimeBag(a2, c2);
+  return Yn(getMatchingInstantFor(n2(s2), {
+    ...f2,
+    ...d2
+  }, void 0 !== a2.offset ? parseOffsetNano(a2.offset) : void 0, u2, l3), s2, o2);
+}
+function Pt(e2, n2, t3) {
+  const o2 = refineCalendarFields(e2, n2, en, [], w), r2 = H(t3);
+  return ee(checkIsoDateTimeInBounds({
+    ...e2.dateFromFields(o2, overrideOverflowOptions(t3, r2)),
+    ...refineTimeBag(o2, r2)
+  }));
+}
+function Yt(e2, n2, t3, o2 = []) {
+  const r2 = refineCalendarFields(e2, n2, en, o2);
+  return e2.dateFromFields(r2, t3);
+}
+function nt(e2, n2, t3, o2) {
+  const r2 = refineCalendarFields(e2, n2, fi, o2);
+  return e2.yearMonthFromFields(r2, t3);
+}
+function K(e2, n2, t3, o2, r2 = []) {
+  const i3 = refineCalendarFields(e2, t3, en, r2);
+  return n2 && void 0 !== i3.month && void 0 === i3.monthCode && void 0 === i3.year && (i3.year = ji), e2.monthDayFromFields(i3, o2);
+}
+function Ue(e2, n2) {
+  const t3 = H(n2);
+  return Ge(refineTimeBag(refineFields(e2, ei, [], 1), t3));
+}
+function Ht(e2) {
+  const n2 = refineFields(e2, Ni);
+  return Vt(checkDurationUnits({
+    ...Si,
+    ...n2
+  }));
+}
+function refineCalendarFields(e2, n2, t3, o2 = [], r2 = []) {
+  return refineFields(n2, [...e2.fields(t3), ...r2].sort(), o2);
+}
+function refineFields(e2, n2, t3, o2 = !t3) {
+  const r2 = {};
+  let i3, a2 = 0;
+  for (const o3 of n2) {
+    if (o3 === i3) {
+      throw new RangeError(duplicateFields(o3));
+    }
+    if ("constructor" === o3 || "__proto__" === o3) {
+      throw new RangeError(tn(o3));
+    }
+    let n3 = e2[o3];
+    if (void 0 !== n3) {
+      a2 = 1, Ga[o3] && (n3 = Ga[o3](n3, o3)), r2[o3] = n3;
+    } else if (t3) {
+      if (t3.includes(o3)) {
+        throw new TypeError(missingField(o3));
+      }
+      r2[o3] = hi[o3];
+    }
+    i3 = o3;
+  }
+  if (o2 && !a2) {
+    throw new TypeError(noValidFields(n2));
+  }
+  return r2;
+}
+function refineTimeBag(e2, n2) {
+  return constrainIsoTimeFields(Ha({
+    ...hi,
+    ...e2
+  }), n2);
+}
+function Sn(e2, n2, t3, o2, r2, i3) {
+  const a2 = U(i3), { calendar: s2, timeZone: c2 } = t3;
+  return Yn(((e3, n3, t4, o3, r3) => {
+    const i4 = mergeCalendarFields(e3, t4, o3, en, oi, ni), [a3, s3, c3] = wn(r3, 2);
+    return getMatchingInstantFor(n3, {
+      ...e3.dateFromFields(i4, overrideOverflowOptions(r3, a3)),
+      ...refineTimeBag(i4, a3)
+    }, parseOffsetNano(i4.offset), s3, c3);
+  })(e2(s2), n2(c2), o2, r2, a2), c2, s2);
+}
+function at(e2, n2, t3, o2, r2) {
+  const i3 = U(r2);
+  return ee(((e3, n3, t4, o3) => {
+    const r3 = mergeCalendarFields(e3, n3, t4, en, w), i4 = H(o3);
+    return checkIsoDateTimeInBounds({
+      ...e3.dateFromFields(r3, overrideOverflowOptions(o3, i4)),
+      ...refineTimeBag(r3, i4)
+    });
+  })(e2(n2.calendar), t3, o2, i3));
+}
+function Zt(e2, n2, t3, o2, r2) {
+  const i3 = U(r2);
+  return ((e3, n3, t4, o3) => {
+    const r3 = mergeCalendarFields(e3, n3, t4, en);
+    return e3.dateFromFields(r3, o3);
+  })(e2(n2.calendar), t3, o2, i3);
+}
+function Ke(e2, n2, t3, o2, r2) {
+  const i3 = U(r2);
+  return createPlainYearMonthSlots(((e3, n3, t4, o3) => {
+    const r3 = mergeCalendarFields(e3, n3, t4, fi);
+    return e3.yearMonthFromFields(r3, o3);
+  })(e2(n2.calendar), t3, o2, i3));
+}
+function k(e2, n2, t3, o2, r2) {
+  const i3 = U(r2);
+  return ((e3, n3, t4, o3) => {
+    const r3 = mergeCalendarFields(e3, n3, t4, en);
+    return e3.monthDayFromFields(r3, o3);
+  })(e2(n2.calendar), t3, o2, i3);
+}
+function Be(e2, n2, t3) {
+  return Ge(((e3, n3, t4) => {
+    const o2 = H(t4);
+    return refineTimeBag({
+      ...Vn(ei, e3),
+      ...refineFields(n3, ei)
+    }, o2);
+  })(e2, n2, t3));
+}
+function kt(e2, n2) {
+  return Vt((t3 = e2, o2 = n2, checkDurationUnits({
+    ...t3,
+    ...refineFields(o2, Ni)
+  })));
+  var t3, o2;
+}
+function mergeCalendarFields(e2, n2, t3, o2, r2 = [], i3 = []) {
+  const a2 = [...e2.fields(o2), ...r2].sort();
+  let s2 = refineFields(n2, a2, i3);
+  const c2 = refineFields(t3, a2);
+  return s2 = e2.mergeFields(s2, c2), refineFields(s2, a2, []);
+}
+function convertToPlainMonthDay(e2, n2) {
+  const t3 = refineCalendarFields(e2, n2, pi);
+  return e2.monthDayFromFields(t3);
+}
+function convertToPlainYearMonth(e2, n2, t3) {
+  const o2 = refineCalendarFields(e2, n2, di);
+  return e2.yearMonthFromFields(o2, t3);
+}
+function convertToIso(e2, n2, t3, o2, r2) {
+  n2 = Vn(t3 = e2.fields(t3), n2), o2 = refineFields(o2, r2 = e2.fields(r2), []);
+  let i3 = e2.mergeFields(n2, o2);
+  return i3 = refineFields(i3, [...t3, ...r2].sort(), []), e2.dateFromFields(i3);
+}
+function refineYear(e2, n2) {
+  let { era: t3, eraYear: o2, year: r2 } = n2;
+  const i3 = getCalendarEraOrigins(e2);
+  if (void 0 !== t3 || void 0 !== o2) {
+    if (void 0 === t3 || void 0 === o2) {
+      throw new TypeError(Dr);
+    }
+    if (!i3) {
+      throw new RangeError(gr);
+    }
+    const e3 = i3[t3];
+    if (void 0 === e3) {
+      throw new RangeError(invalidEra(t3));
+    }
+    const n3 = eraYearToYear(o2, e3);
+    if (void 0 !== r2 && r2 !== n3) {
+      throw new RangeError(Ir);
+    }
+    r2 = n3;
+  } else if (void 0 === r2) {
+    throw new TypeError(missingYear(i3));
+  }
+  return r2;
+}
+function refineMonth(e2, n2, t3, o2) {
+  let { month: r2, monthCode: i3 } = n2;
+  if (void 0 !== i3) {
+    const n3 = ((e3, n4, t4, o3) => {
+      const r3 = e3.U(t4), [i4, a2] = parseMonthCode(n4);
+      let s2 = monthCodeNumberToMonth(i4, a2, r3);
+      if (a2) {
+        const n5 = getCalendarLeapMonthMeta(e3);
+        if (void 0 === n5) {
+          throw new RangeError(Pr);
+        }
+        if (n5 > 0) {
+          if (s2 > n5) {
+            throw new RangeError(Pr);
+          }
+          if (void 0 === r3) {
+            if (1 === o3) {
+              throw new RangeError(Pr);
+            }
+            s2--;
+          }
+        } else {
+          if (s2 !== -n5) {
+            throw new RangeError(Pr);
+          }
+          if (void 0 === r3 && 1 === o3) {
+            throw new RangeError(Pr);
+          }
+        }
+      }
+      return s2;
+    })(e2, i3, t3, o2);
+    if (void 0 !== r2 && r2 !== n3) {
+      throw new RangeError(Mr);
+    }
+    r2 = n3, o2 = 1;
+  } else if (void 0 === r2) {
+    throw new TypeError(Nr);
+  }
+  return clampEntity("month", r2, 1, e2.L(t3), o2);
+}
+function refineDay(e2, n2, t3, o2, r2) {
+  return clampProp(n2, "day", 1, e2.j(o2, t3), r2);
+}
+function spliceFields(e2, n2, t3, o2) {
+  let r2 = 0;
+  const i3 = [];
+  for (const e3 of t3) {
+    void 0 !== n2[e3] ? r2 = 1 : i3.push(e3);
+  }
+  if (Object.assign(e2, n2), r2) {
+    for (const n3 of o2 || i3) {
+      delete e2[n3];
+    }
+  }
+}
+function Se(e2) {
+  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
+}
+function vn(e2, n2, t3, o2, r2 = X) {
+  return Yn(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(t3))), n2(o2), e2(r2));
+}
+function pt(e2, n2, t3, o2, r2 = 0, i3 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0, l3 = X) {
+  return ee(checkIsoDateTimeInBounds(checkIsoDateTimeFields(T(toInteger, zipProps(wi, [n2, t3, o2, r2, i3, a2, s2, c2, u2])))), e2(l3));
+}
+function Nt(e2, n2, t3, o2, r2 = X) {
+  return v(checkIsoDateInBounds(checkIsoDateFields(T(toInteger, {
+    isoYear: n2,
+    isoMonth: t3,
+    isoDay: o2
+  }))), e2(r2));
+}
+function tt(e2, n2, t3, o2 = X, r2 = 1) {
+  const i3 = toInteger(n2), a2 = toInteger(t3), s2 = e2(o2);
+  return createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields({
+    isoYear: i3,
+    isoMonth: a2,
+    isoDay: toInteger(r2)
+  })), s2);
+}
+function G(e2, n2, t3, o2 = X, r2 = ji) {
+  const i3 = toInteger(n2), a2 = toInteger(t3), s2 = e2(o2);
+  return createPlainMonthDaySlots(checkIsoDateInBounds(checkIsoDateFields({
+    isoYear: toInteger(r2),
+    isoMonth: i3,
+    isoDay: a2
+  })), s2);
+}
+function ke(e2 = 0, n2 = 0, t3 = 0, o2 = 0, r2 = 0, i3 = 0) {
+  return Ge(constrainIsoTimeFields(T(toInteger, zipProps(j, [e2, n2, t3, o2, r2, i3])), 1));
+}
+function Lt(e2 = 0, n2 = 0, t3 = 0, o2 = 0, r2 = 0, i3 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0) {
+  return Vt(checkDurationUnits(T(toStrictInteger, zipProps(F, [e2, n2, t3, o2, r2, i3, a2, s2, c2, u2]))));
+}
+function fe(e2, n2, t3 = X) {
+  return Yn(e2.epochNanoseconds, n2, t3);
+}
+function Zn(e2) {
+  return _(e2.epochNanoseconds);
+}
+function ht(e2, n2) {
+  return ee(fn(n2, e2));
+}
+function Bt(e2, n2) {
+  return v(fn(n2, e2));
+}
+function bn(e2, n2, t3) {
+  return convertToPlainYearMonth(e2(n2.calendar), t3);
+}
+function Fn(e2, n2, t3) {
+  return convertToPlainMonthDay(e2(n2.calendar), t3);
+}
+function Re(e2, n2) {
+  return Ge(fn(n2, e2));
+}
+function mt(e2, n2, t3, o2) {
+  const r2 = ((e3, n3, t4, o3) => {
+    const r3 = ve(o3);
+    return we(e3(n3), t4, r3);
+  })(e2, t3, n2, o2);
+  return Yn(checkEpochNanoInBounds(r2), t3, n2.calendar);
+}
+function St(e2, n2, t3) {
+  const o2 = e2(n2.calendar);
+  return createPlainYearMonthSlots({
+    ...n2,
+    ...convertToPlainYearMonth(o2, t3)
+  });
+}
+function Ot(e2, n2, t3) {
+  return convertToPlainMonthDay(e2(n2.calendar), t3);
+}
+function vt(e2, n2, t3, o2, r2) {
+  const i3 = e2(r2.timeZone), a2 = r2.plainTime, s2 = void 0 !== a2 ? n2(a2) : Dt;
+  return Yn(we(t3(i3), {
+    ...o2,
+    ...s2
+  }), i3, o2.calendar);
+}
+function wt(e2, n2 = Dt) {
+  return ee(checkIsoDateTimeInBounds({
+    ...e2,
+    ...n2
+  }));
+}
+function jt(e2, n2, t3) {
+  return convertToPlainYearMonth(e2(n2.calendar), t3);
+}
+function Mt(e2, n2, t3) {
+  return convertToPlainMonthDay(e2(n2.calendar), t3);
+}
+function _e(e2, n2, t3, o2) {
+  return ((e3, n3, t4) => convertToIso(e3, n3, di, de(t4), li))(e2(n2.calendar), t3, o2);
+}
+function R(e2, n2, t3, o2) {
+  return ((e3, n3, t4) => convertToIso(e3, n3, pi, de(t4), si))(e2(n2.calendar), t3, o2);
+}
+function Je(e2, n2, t3, o2, r2) {
+  const i3 = de(r2), a2 = n2(i3.plainDate), s2 = e2(i3.timeZone);
+  return Yn(we(t3(s2), {
+    ...a2,
+    ...o2
+  }), s2, a2.calendar);
+}
+function Le(e2, n2) {
+  return ee(checkIsoDateTimeInBounds({
+    ...e2,
+    ...n2
+  }));
+}
+function De(e2) {
+  return _(checkEpochNanoInBounds(he(e2, _r)));
+}
+function Pe(e2) {
+  return _(checkEpochNanoInBounds(he(e2, be)));
+}
+function Ce(e2) {
+  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2), Vr)));
+}
+function ge(e2) {
+  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
+}
+function pn(e2, n2, t3 = Dt) {
+  const o2 = n2.timeZone, r2 = e2(o2), i3 = {
+    ...fn(n2, r2),
+    ...t3
+  };
+  return Yn(getMatchingInstantFor(r2, i3, i3.offsetNanoseconds, 2), o2, n2.calendar);
+}
+function Tn(e2, n2, t3) {
+  const o2 = n2.timeZone, r2 = e2(o2), i3 = {
+    ...fn(n2, r2),
+    ...t3
+  }, a2 = getPreferredCalendarSlot(n2.calendar, t3.calendar);
+  return Yn(getMatchingInstantFor(r2, i3, i3.offsetNanoseconds, 2), o2, a2);
+}
+function lt(e2, n2 = Dt) {
+  return ee({
+    ...e2,
+    ...n2
+  });
+}
+function st(e2, n2) {
+  return ee({
+    ...e2,
+    ...n2
+  }, getPreferredCalendarSlot(e2.calendar, n2.calendar));
+}
+function it(e2, n2) {
+  return {
+    ...e2,
+    calendar: n2
+  };
+}
+function On(e2, n2) {
+  return {
+    ...e2,
+    timeZone: n2
+  };
+}
+function getPreferredCalendarSlot(e2, n2) {
+  if (e2 === n2) {
+    return e2;
+  }
+  const t3 = I(e2), o2 = I(n2);
+  if (t3 === o2 || t3 === X) {
+    return n2;
+  }
+  if (o2 === X) {
+    return e2;
+  }
+  throw new RangeError(Er);
+}
+function createNativeOpsCreator(e2, n2) {
+  return (t3) => t3 === X ? e2 : t3 === gi || t3 === Ti ? Object.assign(Object.create(e2), {
+    id: t3
+  }) : Object.assign(Object.create(n2), Aa(t3));
+}
+function createOptionsTransformer(e2, n2, t3) {
+  const o2 = new Set(t3);
+  return (r2) => (((e3, n3) => {
+    for (const t4 of n3) {
+      if (t4 in e3) {
+        return 1;
+      }
+    }
+    return 0;
+  })(r2 = V(o2, r2), e2) || Object.assign(r2, n2), t3 && (r2.timeZone = Ta, ["full", "long"].includes(r2.timeStyle) && (r2.timeStyle = "medium")), r2);
+}
+function e(e2, n2 = qn) {
+  const [t3, , , o2] = e2;
+  return (r2, i3 = Ns, ...a2) => {
+    const s2 = n2(o2 && o2(...a2), r2, i3, t3), c2 = s2.resolvedOptions();
+    return [s2, ...toEpochMillis(e2, c2, a2)];
+  };
+}
+function qn(e2, n2, t3, o2) {
+  if (t3 = o2(t3), e2) {
+    if (void 0 !== t3.timeZone) {
+      throw new TypeError(Lr);
+    }
+    t3.timeZone = e2;
+  }
+  return new En(n2, t3);
+}
+function toEpochMillis(e2, n2, t3) {
+  const [, o2, r2] = e2;
+  return t3.map((e3) => (e3.calendar && ((e4, n3, t4) => {
+    if ((t4 || e4 !== X) && e4 !== n3) {
+      throw new RangeError(Er);
+    }
+  })(I(e3.calendar), n2.calendar, r2), o2(e3, n2)));
+}
+function An(e2) {
+  const n2 = Bn();
+  return Ie(n2, e2.getOffsetNanosecondsFor(n2));
+}
+function Bn() {
+  return he(Date.now(), be);
+}
+function Nn() {
+  return ys || (ys = new En().resolvedOptions().timeZone);
+}
+var expectedInteger, expectedPositive, expectedFinite, forbiddenBigIntToNumber, invalidBigInt, pr, hr, numberOutOfRange, invalidEntity, missingField, tn, duplicateFields, noValidFields, Z, invalidChoice, A, P, gr, Dr, Ir, invalidEra, missingYear, invalidMonthCode, Mr, Nr, yr, Pr, g, vr, Er, invalidCalendar, Fr, br, wr, Br, kr, Yr, Cr, Zr, Rr, zr, qr, Ur, Ar, failedParse, invalidSubstring, Ln, kn, Lr, Wr, jr, xr, $r, Et, Gr, Hr, Vr, be, _r, Jr, Kr, Qr, Xr, w, ei, ni, ti, oi, ri, ii, ai, si, ci, ui, li, fi, di, en, mi, pi, hi, X, gi, Ti, Di, Ii, m, f, Mi, $, F, Ni, yi, Pi, vi, Ei, Si, Fi, bi, j, Oi, wi, Bi, ki, Yi, Dt, Ci, En, Zi, Ri, zi, qi, Ui, Ai, Li, Wi, ji, xi, $i, Gi, Hi, Vi, _i, Ji, Ki, Qi, Xi, ea, na, ta, oa, ra, ia, aa, sa, ca, ua, la, fa, da, ma, pa, ha, L, q, J, We, xe, Te, Oe, qt, ga, Ta, Da, Ia, Ma, Na, fn, ya, ie, FixedTimeZone, IntlTimeZone, Pa, va, Ea, Sa, Fa, ba, Oa, wa, Ba, ka, Ya, Ca, Za, Ra, za, qa, Ua, Aa, La, Wa, ja, xa, $a, Ga, Ha, Va, _a, Ja, Ka, Y, Qa, Xa, es, ns, ts, os, rs, is, as, ss, cs, us, ls, fs, ds, ms, ps, hs, gs, Ts, Ds, Is, Ms, Ns, t, s, n, o, r, a, i2, ys;
+var init_internal = __esm({
+  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js"() {
+    init_define_BUILD_INFO();
+    expectedInteger = (e2, n2) => `Non-integer ${e2}: ${n2}`;
+    expectedPositive = (e2, n2) => `Non-positive ${e2}: ${n2}`;
+    expectedFinite = (e2, n2) => `Non-finite ${e2}: ${n2}`;
+    forbiddenBigIntToNumber = (e2) => `Cannot convert bigint to ${e2}`;
+    invalidBigInt = (e2) => `Invalid bigint: ${e2}`;
+    pr = "Cannot convert Symbol to string";
+    hr = "Invalid object";
+    numberOutOfRange = (e2, n2, t3, o2, r2) => r2 ? numberOutOfRange(e2, r2[n2], r2[t3], r2[o2]) : invalidEntity(e2, n2) + `; must be between ${t3}-${o2}`;
+    invalidEntity = (e2, n2) => `Invalid ${e2}: ${n2}`;
+    missingField = (e2) => `Missing ${e2}`;
+    tn = (e2) => `Invalid field ${e2}`;
+    duplicateFields = (e2) => `Duplicate field ${e2}`;
+    noValidFields = (e2) => "No valid fields: " + e2.join();
+    Z = "Invalid bag";
+    invalidChoice = (e2, n2, t3) => invalidEntity(e2, n2) + "; must be " + Object.keys(t3).join();
+    A = "Cannot use valueOf";
+    P = "Invalid calling context";
+    gr = "Forbidden era/eraYear";
+    Dr = "Mismatching era/eraYear";
+    Ir = "Mismatching year/eraYear";
+    invalidEra = (e2) => `Invalid era: ${e2}`;
+    missingYear = (e2) => "Missing year" + (e2 ? "/era/eraYear" : "");
+    invalidMonthCode = (e2) => `Invalid monthCode: ${e2}`;
+    Mr = "Mismatching month/monthCode";
+    Nr = "Missing month/monthCode";
+    yr = "Cannot guess year";
+    Pr = "Invalid leap month";
+    g = "Invalid protocol";
+    vr = "Invalid protocol results";
+    Er = "Mismatching Calendars";
+    invalidCalendar = (e2) => `Invalid Calendar: ${e2}`;
+    Fr = "Mismatching TimeZones";
+    br = "Forbidden ICU TimeZone";
+    wr = "Out-of-bounds offset";
+    Br = "Out-of-bounds TimeZone gap";
+    kr = "Invalid TimeZone offset";
+    Yr = "Ambiguous offset";
+    Cr = "Out-of-bounds date";
+    Zr = "Out-of-bounds duration";
+    Rr = "Cannot mix duration signs";
+    zr = "Missing relativeTo";
+    qr = "Cannot use large units";
+    Ur = "Required smallestUnit or largestUnit";
+    Ar = "smallestUnit > largestUnit";
+    failedParse = (e2) => `Cannot parse: ${e2}`;
+    invalidSubstring = (e2) => `Invalid substring: ${e2}`;
+    Ln = (e2) => `Cannot format ${e2}`;
+    kn = "Mismatching types for formatting";
+    Lr = "Cannot specify TimeZone";
+    Wr = /* @__PURE__ */ E(b, (e2, n2) => n2);
+    jr = /* @__PURE__ */ E(b, (e2, n2, t3) => t3);
+    xr = /* @__PURE__ */ E(padNumber, 2);
+    $r = {
+      nanosecond: 0,
+      microsecond: 1,
+      millisecond: 2,
+      second: 3,
+      minute: 4,
+      hour: 5,
+      day: 6,
+      week: 7,
+      month: 8,
+      year: 9
+    };
+    Et = /* @__PURE__ */ Object.keys($r);
+    Gr = 864e5;
+    Hr = 1e3;
+    Vr = 1e3;
+    be = 1e6;
+    _r = 1e9;
+    Jr = 6e10;
+    Kr = 36e11;
+    Qr = 864e11;
+    Xr = [1, Vr, be, _r, Jr, Kr, Qr];
+    w = /* @__PURE__ */ Et.slice(0, 6);
+    ei = /* @__PURE__ */ sortStrings(w);
+    ni = ["offset"];
+    ti = ["timeZone"];
+    oi = /* @__PURE__ */ w.concat(ni);
+    ri = /* @__PURE__ */ oi.concat(ti);
+    ii = ["era", "eraYear"];
+    ai = /* @__PURE__ */ ii.concat(["year"]);
+    si = ["year"];
+    ci = ["monthCode"];
+    ui = /* @__PURE__ */ ["month"].concat(ci);
+    li = ["day"];
+    fi = /* @__PURE__ */ ui.concat(si);
+    di = /* @__PURE__ */ ci.concat(si);
+    en = /* @__PURE__ */ li.concat(fi);
+    mi = /* @__PURE__ */ li.concat(ui);
+    pi = /* @__PURE__ */ li.concat(ci);
+    hi = /* @__PURE__ */ jr(w, 0);
+    X = "iso8601";
+    gi = "gregory";
+    Ti = "japanese";
+    Di = {
+      [gi]: {
+        bce: -1,
+        ce: 0
+      },
+      [Ti]: {
+        bce: -1,
+        ce: 0,
+        meiji: 1867,
+        taisho: 1911,
+        showa: 1925,
+        heisei: 1988,
+        reiwa: 2018
+      },
+      ethioaa: {
+        era0: 0
+      },
+      ethiopic: {
+        era0: 0,
+        era1: 5500
+      },
+      coptic: {
+        era0: -1,
+        era1: 0
+      },
+      roc: {
+        beforeroc: -1,
+        minguo: 0
+      },
+      buddhist: {
+        be: 0
+      },
+      islamic: {
+        ah: 0
+      },
+      indian: {
+        saka: 0
+      },
+      persian: {
+        ap: 0
+      }
+    };
+    Ii = {
+      chinese: 13,
+      dangi: 13,
+      hebrew: -6
+    };
+    m = /* @__PURE__ */ E(requireType, "string");
+    f = /* @__PURE__ */ E(requireType, "boolean");
+    Mi = /* @__PURE__ */ E(requireType, "number");
+    $ = /* @__PURE__ */ E(requireType, "function");
+    F = /* @__PURE__ */ Et.map((e2) => e2 + "s");
+    Ni = /* @__PURE__ */ sortStrings(F);
+    yi = /* @__PURE__ */ F.slice(0, 6);
+    Pi = /* @__PURE__ */ F.slice(6);
+    vi = /* @__PURE__ */ Pi.slice(1);
+    Ei = /* @__PURE__ */ Wr(F);
+    Si = /* @__PURE__ */ jr(F, 0);
+    Fi = /* @__PURE__ */ jr(yi, 0);
+    bi = /* @__PURE__ */ E(zeroOutProps, F);
+    j = ["isoNanosecond", "isoMicrosecond", "isoMillisecond", "isoSecond", "isoMinute", "isoHour"];
+    Oi = ["isoDay", "isoMonth", "isoYear"];
+    wi = /* @__PURE__ */ j.concat(Oi);
+    Bi = /* @__PURE__ */ sortStrings(Oi);
+    ki = /* @__PURE__ */ sortStrings(j);
+    Yi = /* @__PURE__ */ sortStrings(wi);
+    Dt = /* @__PURE__ */ jr(ki, 0);
+    Ci = /* @__PURE__ */ E(zeroOutProps, wi);
+    En = Intl.DateTimeFormat;
+    Zi = "en-GB";
+    Ri = 1e8;
+    zi = Ri * Gr;
+    qi = [Ri, 0];
+    Ui = [-Ri, 0];
+    Ai = 275760;
+    Li = -271821;
+    Wi = 1970;
+    ji = 1972;
+    xi = 12;
+    $i = /* @__PURE__ */ isoArgsToEpochMilli(1868, 9, 8);
+    Gi = /* @__PURE__ */ Jn(computeJapaneseEraParts, WeakMap);
+    Hi = "smallestUnit";
+    Vi = "unit";
+    _i = "roundingIncrement";
+    Ji = "fractionalSecondDigits";
+    Ki = "relativeTo";
+    Qi = {
+      constrain: 0,
+      reject: 1
+    };
+    Xi = /* @__PURE__ */ Object.keys(Qi);
+    ea = {
+      compatible: 0,
+      reject: 1,
+      earlier: 2,
+      later: 3
+    };
+    na = {
+      reject: 0,
+      use: 1,
+      prefer: 2,
+      ignore: 3
+    };
+    ta = {
+      auto: 0,
+      never: 1,
+      critical: 2,
+      always: 3
+    };
+    oa = {
+      auto: 0,
+      never: 1,
+      critical: 2
+    };
+    ra = {
+      auto: 0,
+      never: 1
+    };
+    ia = {
+      floor: 0,
+      halfFloor: 1,
+      ceil: 2,
+      halfCeil: 3,
+      trunc: 4,
+      halfTrunc: 5,
+      expand: 6,
+      halfExpand: 7,
+      halfEven: 8
+    };
+    aa = /* @__PURE__ */ E(refineUnitOption, Hi);
+    sa = /* @__PURE__ */ E(refineUnitOption, "largestUnit");
+    ca = /* @__PURE__ */ E(refineUnitOption, Vi);
+    ua = /* @__PURE__ */ E(refineChoiceOption, "overflow", Qi);
+    la = /* @__PURE__ */ E(refineChoiceOption, "disambiguation", ea);
+    fa = /* @__PURE__ */ E(refineChoiceOption, "offset", na);
+    da = /* @__PURE__ */ E(refineChoiceOption, "calendarName", ta);
+    ma = /* @__PURE__ */ E(refineChoiceOption, "timeZoneName", oa);
+    pa = /* @__PURE__ */ E(refineChoiceOption, "offset", ra);
+    ha = /* @__PURE__ */ E(refineChoiceOption, "roundingMode", ia);
+    L = "PlainYearMonth";
+    q = "PlainMonthDay";
+    J = "PlainDate";
+    We = "PlainDateTime";
+    xe = "PlainTime";
+    Te = "ZonedDateTime";
+    Oe = "Instant";
+    qt = "Duration";
+    ga = [Math.floor, (e2) => hasHalf(e2) ? Math.floor(e2) : Math.round(e2), Math.ceil, (e2) => hasHalf(e2) ? Math.ceil(e2) : Math.round(e2), Math.trunc, (e2) => hasHalf(e2) ? Math.trunc(e2) || 0 : Math.round(e2), (e2) => e2 < 0 ? Math.floor(e2) : Math.ceil(e2), (e2) => Math.sign(e2) * Math.round(Math.abs(e2)) || 0, (e2) => hasHalf(e2) ? (e2 = Math.trunc(e2) || 0) + e2 % 2 : Math.round(e2)];
+    Ta = "UTC";
+    Da = 5184e3;
+    Ia = /* @__PURE__ */ isoArgsToEpochSec(1847);
+    Ma = /* @__PURE__ */ isoArgsToEpochSec(/* @__PURE__ */ (/* @__PURE__ */ new Date()).getUTCFullYear() + 10);
+    Na = /0+$/;
+    fn = /* @__PURE__ */ Jn(_zonedEpochSlotsToIso, WeakMap);
+    ya = 2 ** 32 - 1;
+    ie = /* @__PURE__ */ Jn((e2) => {
+      const n2 = getTimeZoneEssence(e2);
+      return "object" == typeof n2 ? new IntlTimeZone(n2) : new FixedTimeZone(n2 || 0);
+    });
+    FixedTimeZone = class {
+      constructor(e2) {
+        this.v = e2;
+      }
+      getOffsetNanosecondsFor() {
+        return this.v;
+      }
+      getPossibleInstantsFor(e2) {
+        return [isoToEpochNanoWithOffset(e2, this.v)];
+      }
+      l() {
+      }
+    };
+    IntlTimeZone = class {
+      constructor(e2) {
+        this.$ = ((e3) => {
+          function getOffsetSec(e4) {
+            const i3 = clampNumber(e4, o2, r2), [a2, s2] = computePeriod(i3), c2 = n2(a2), u2 = n2(s2);
+            return c2 === u2 ? c2 : pinch(t3(a2, s2), c2, u2, e4);
+          }
+          function pinch(n3, t4, o3, r3) {
+            let i3, a2;
+            for (; (void 0 === r3 || void 0 === (i3 = r3 < n3[0] ? t4 : r3 >= n3[1] ? o3 : void 0)) && (a2 = n3[1] - n3[0]); ) {
+              const t5 = n3[0] + Math.floor(a2 / 2);
+              e3(t5) === o3 ? n3[1] = t5 : n3[0] = t5 + 1;
+            }
+            return i3;
+          }
+          const n2 = Jn(e3), t3 = Jn(createSplitTuple);
+          let o2 = Ia, r2 = Ma;
+          return {
+            G(e4) {
+              const n3 = getOffsetSec(e4 - 86400), t4 = getOffsetSec(e4 + 86400), o3 = e4 - n3, r3 = e4 - t4;
+              if (n3 === t4) {
+                return [o3];
+              }
+              const i3 = getOffsetSec(o3);
+              return i3 === getOffsetSec(r3) ? [e4 - i3] : n3 > t4 ? [o3, r3] : [];
+            },
+            V: getOffsetSec,
+            l(e4, i3) {
+              const a2 = clampNumber(e4, o2, r2);
+              let [s2, c2] = computePeriod(a2);
+              const u2 = Da * i3, l3 = i3 < 0 ? () => c2 > o2 || (o2 = a2, 0) : () => s2 < r2 || (r2 = a2, 0);
+              for (; l3(); ) {
+                const o3 = n2(s2), r3 = n2(c2);
+                if (o3 !== r3) {
+                  const n3 = t3(s2, c2);
+                  pinch(n3, o3, r3);
+                  const a3 = n3[0];
+                  if ((compareNumbers(a3, e4) || 1) === i3) {
+                    return a3;
+                  }
+                }
+                s2 += u2, c2 += u2;
+              }
+            }
+          };
+        })(/* @__PURE__ */ ((e3) => (n2) => {
+          const t3 = hashIntlFormatParts(e3, n2 * Hr);
+          return isoArgsToEpochSec(parseIntlPartsYear(t3), parseInt(t3.month), parseInt(t3.day), parseInt(t3.hour), parseInt(t3.minute), parseInt(t3.second)) - n2;
+        })(e2));
+      }
+      getOffsetNanosecondsFor(e2) {
+        return this.$.V(epochNanoToSec(e2)) * _r;
+      }
+      getPossibleInstantsFor(e2) {
+        const [n2, t3] = [isoArgsToEpochSec((o2 = e2).isoYear, o2.isoMonth, o2.isoDay, o2.isoHour, o2.isoMinute, o2.isoSecond), o2.isoMillisecond * be + o2.isoMicrosecond * Vr + o2.isoNanosecond];
+        var o2;
+        return this.$.G(n2).map((e3) => checkEpochNanoInBounds(moveBigNano(he(e3, _r), t3)));
+      }
+      l(e2, n2) {
+        const [t3, o2] = epochNanoToSecMod(e2), r2 = this.$.l(t3 + (n2 > 0 || o2 ? 1 : 0), n2);
+        if (void 0 !== r2) {
+          return he(r2, _r);
+        }
+      }
+    };
+    Pa = "([+\u2212-])";
+    va = "(?:[.,](\\d{1,9}))?";
+    Ea = `(?:(?:${Pa}(\\d{6}))|(\\d{4}))-?(\\d{2})`;
+    Sa = "(\\d{2})(?::?(\\d{2})(?::?(\\d{2})" + va + ")?)?";
+    Fa = Pa + Sa;
+    ba = Ea + "-?(\\d{2})(?:[T ]" + Sa + "(Z|" + Fa + ")?)?";
+    Oa = "\\[(!?)([^\\]]*)\\]";
+    wa = `((?:${Oa}){0,9})`;
+    Ba = /* @__PURE__ */ createRegExp(Ea + wa);
+    ka = /* @__PURE__ */ createRegExp("(?:--)?(\\d{2})-?(\\d{2})" + wa);
+    Ya = /* @__PURE__ */ createRegExp(ba + wa);
+    Ca = /* @__PURE__ */ createRegExp("T?" + Sa + "(?:" + Fa + ")?" + wa);
+    Za = /* @__PURE__ */ createRegExp(Fa);
+    Ra = /* @__PURE__ */ new RegExp(Oa, "g");
+    za = /* @__PURE__ */ createRegExp(`${Pa}?P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(?:T(?:(\\d+)${va}H)?(?:(\\d+)${va}M)?(?:(\\d+)${va}S)?)?`);
+    qa = /* @__PURE__ */ Jn((e2) => new En(Zi, {
+      timeZone: e2,
+      era: "short",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric"
+    }));
+    Ua = /^(AC|AE|AG|AR|AS|BE|BS|CA|CN|CS|CT|EA|EC|IE|IS|JS|MI|NE|NS|PL|PN|PR|PS|SS|VS)T$/;
+    Aa = /* @__PURE__ */ Jn(createIntlCalendar);
+    La = /* @__PURE__ */ Jn((e2) => new En(Zi, {
+      calendar: e2,
+      timeZone: Ta,
+      era: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    }));
+    Wa = /^M(\d{2})(L?)$/;
+    ja = {
+      era: toStringViaPrimitive,
+      eraYear: toInteger,
+      year: toInteger,
+      month: toPositiveInteger,
+      monthCode: toStringViaPrimitive,
+      day: toPositiveInteger
+    };
+    xa = /* @__PURE__ */ jr(w, toInteger);
+    $a = /* @__PURE__ */ jr(F, toStrictInteger);
+    Ga = /* @__PURE__ */ Object.assign({}, ja, xa, $a, {
+      offset: toStringViaPrimitive
+    });
+    Ha = /* @__PURE__ */ E(remapProps, w, j);
+    Va = {
+      dateAdd(e2, n2, t3) {
+        const o2 = H(t3);
+        let r2, { years: i3, months: a2, weeks: s2, days: c2 } = n2;
+        if (c2 += durationFieldsToBigNano(n2, 5)[0], i3 || a2) {
+          r2 = ((e3, n3, t4, o3, r3) => {
+            let [i4, a3, s3] = e3.h(n3);
+            if (t4) {
+              const [n4, o4] = e3.I(i4, a3);
+              i4 += t4, a3 = monthCodeNumberToMonth(n4, o4, e3.U(i4)), a3 = clampEntity("month", a3, 1, e3.L(i4), r3);
+            }
+            return o3 && ([i4, a3] = e3._(i4, a3, o3)), s3 = clampEntity("day", s3, 1, e3.j(i4, a3), r3), e3.q(i4, a3, s3);
+          })(this, e2, i3, a2, o2);
+        } else {
+          if (!s2 && !c2) {
+            return e2;
+          }
+          r2 = isoToEpochMilli(e2);
+        }
+        return r2 += (7 * s2 + c2) * Gr, checkIsoDateInBounds(epochMilliToIso(r2));
+      },
+      dateUntil(e2, n2, t3) {
+        if (t3 <= 7) {
+          let o3 = 0, r3 = diffDays({
+            ...e2,
+            ...Dt
+          }, {
+            ...n2,
+            ...Dt
+          });
+          return 7 === t3 && ([o3, r3] = divModTrunc(r3, 7)), {
+            ...Si,
+            weeks: o3,
+            days: r3
+          };
+        }
+        const o2 = this.h(e2), r2 = this.h(n2);
+        let [i3, a2, s2] = ((e3, n3, t4, o3, r3, i4, a3) => {
+          let s3 = r3 - n3, c2 = i4 - t4, u2 = a3 - o3;
+          if (s3 || c2) {
+            const l3 = Math.sign(s3 || c2);
+            let f2 = e3.j(r3, i4), d2 = 0;
+            if (Math.sign(u2) === -l3) {
+              const o4 = f2;
+              [r3, i4] = e3._(r3, i4, -l3), s3 = r3 - n3, c2 = i4 - t4, f2 = e3.j(r3, i4), d2 = l3 < 0 ? -o4 : f2;
+            }
+            if (u2 = a3 - Math.min(o3, f2) + d2, s3) {
+              const [o4, a4] = e3.I(n3, t4), [u3, f3] = e3.I(r3, i4);
+              if (c2 = u3 - o4 || Number(f3) - Number(a4), Math.sign(c2) === -l3) {
+                const t5 = l3 < 0 && -e3.L(r3);
+                s3 = (r3 -= l3) - n3, c2 = i4 - monthCodeNumberToMonth(o4, a4, e3.U(r3)) + (t5 || e3.L(r3));
+              }
+            }
+          }
+          return [s3, c2, u2];
+        })(this, ...o2, ...r2);
+        return 8 === t3 && (a2 += this.J(i3, o2[0]), i3 = 0), {
+          ...Si,
+          years: i3,
+          months: a2,
+          days: s2
+        };
+      },
+      dateFromFields(e2, n2) {
+        const t3 = H(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t3), i3 = refineDay(this, e2, r2, o2, t3);
+        return v(checkIsoDateInBounds(this.P(o2, r2, i3)), this.id || X);
+      },
+      yearMonthFromFields(e2, n2) {
+        const t3 = H(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t3);
+        return createPlainYearMonthSlots(checkIsoYearMonthInBounds(this.P(o2, r2, 1)), this.id || X);
+      },
+      monthDayFromFields(e2, n2) {
+        const t3 = H(n2), o2 = !this.id, { monthCode: r2, year: i3, month: a2 } = e2;
+        let s2, c2, u2, l3, f2;
+        if (void 0 !== r2) {
+          [s2, c2] = parseMonthCode(r2), f2 = getDefinedProp(e2, "day");
+          const n3 = this.N(s2, c2, f2);
+          if (!n3) {
+            throw new RangeError(yr);
+          }
+          if ([u2, l3] = n3, void 0 !== a2 && a2 !== l3) {
+            throw new RangeError(Mr);
+          }
+          o2 && (l3 = clampEntity("month", l3, 1, xi, 1), f2 = clampEntity("day", f2, 1, computeIsoDaysInMonth(void 0 !== i3 ? i3 : u2, l3), t3));
+        } else {
+          u2 = void 0 === i3 && o2 ? ji : refineYear(this, e2), l3 = refineMonth(this, e2, u2, t3), f2 = refineDay(this, e2, l3, u2, t3);
+          const n3 = this.U(u2);
+          c2 = l3 === n3, s2 = monthToMonthCodeNumber(l3, n3);
+          const r3 = this.N(s2, c2, f2);
+          if (!r3) {
+            throw new RangeError(yr);
+          }
+          [u2, l3] = r3;
+        }
+        return createPlainMonthDaySlots(checkIsoDateInBounds(this.P(u2, l3, f2)), this.id || X);
+      },
+      fields(e2) {
+        return getCalendarEraOrigins(this) && e2.includes("year") ? [...e2, ...ii] : e2;
+      },
+      mergeFields(e2, n2) {
+        const t3 = Object.assign(/* @__PURE__ */ Object.create(null), e2);
+        return spliceFields(t3, n2, ui), getCalendarEraOrigins(this) && (spliceFields(t3, n2, ai), this.id === Ti && spliceFields(t3, n2, mi, ii)), t3;
+      },
+      inLeapYear(e2) {
+        const [n2] = this.h(e2);
+        return this.K(n2);
+      },
+      monthsInYear(e2) {
+        const [n2] = this.h(e2);
+        return this.L(n2);
+      },
+      daysInMonth(e2) {
+        const [n2, t3] = this.h(e2);
+        return this.j(n2, t3);
+      },
+      daysInYear(e2) {
+        const [n2] = this.h(e2);
+        return this.X(n2);
+      },
+      dayOfYear: computeNativeDayOfYear,
+      era(e2) {
+        return this.ee(e2)[0];
+      },
+      eraYear(e2) {
+        return this.ee(e2)[1];
+      },
+      monthCode(e2) {
+        const [n2, t3] = this.h(e2), [o2, r2] = this.I(n2, t3);
+        return ((e3, n3) => "M" + xr(e3) + (n3 ? "L" : ""))(o2, r2);
+      },
+      dayOfWeek: computeIsoDayOfWeek,
+      daysInWeek() {
+        return 7;
+      }
+    };
+    _a = {
+      dayOfYear: computeNativeDayOfYear,
+      h: computeIsoDateParts,
+      q: isoArgsToEpochMilli
+    };
+    Ja = /* @__PURE__ */ Object.assign({}, _a, {
+      weekOfYear: computeNativeWeekOfYear,
+      yearOfWeek: computeNativeYearOfWeek,
+      R(e2) {
+        function computeWeekShift(e3) {
+          return (7 - e3 < n2 ? 7 : 0) - e3;
+        }
+        function computeWeeksInYear(e3) {
+          const n3 = computeIsoDaysInYear(l3 + e3), t4 = e3 || 1, o3 = computeWeekShift(modFloor(a2 + n3 * t4, 7));
+          return c2 = (n3 + (o3 - s2) * t4) / 7;
+        }
+        const n2 = this.id ? 1 : 4, t3 = computeIsoDayOfWeek(e2), o2 = this.dayOfYear(e2), r2 = modFloor(t3 - 1, 7), i3 = o2 - 1, a2 = modFloor(r2 - i3, 7), s2 = computeWeekShift(a2);
+        let c2, u2 = Math.floor((i3 - s2) / 7) + 1, l3 = e2.isoYear;
+        return u2 ? u2 > computeWeeksInYear(0) && (u2 = 1, l3++) : (u2 = computeWeeksInYear(-1), l3--), [u2, l3, c2];
+      }
+    });
+    Ka = {
+      dayOfYear: computeNativeDayOfYear,
+      h: computeIntlDateParts,
+      q: computeIntlEpochMilli,
+      weekOfYear: computeNativeWeekOfYear,
+      yearOfWeek: computeNativeYearOfWeek,
+      R() {
+        return [];
+      }
+    };
+    Y = /* @__PURE__ */ createNativeOpsCreator(/* @__PURE__ */ Object.assign({}, Va, Ja, {
+      h: computeIsoDateParts,
+      ee(e2) {
+        return this.id === gi ? computeGregoryEraParts(e2) : this.id === Ti ? Gi(e2) : [];
+      },
+      I: (e2, n2) => [n2, 0],
+      N(e2, n2) {
+        if (!n2) {
+          return [ji, e2];
+        }
+      },
+      K: computeIsoInLeapYear,
+      U() {
+      },
+      L: computeIsoMonthsInYear,
+      J: (e2) => e2 * xi,
+      j: computeIsoDaysInMonth,
+      X: computeIsoDaysInYear,
+      P: (e2, n2, t3) => ({
+        isoYear: e2,
+        isoMonth: n2,
+        isoDay: t3
+      }),
+      q: isoArgsToEpochMilli,
+      _: (e2, n2, t3) => (e2 += divTrunc(t3, xi), (n2 += modTrunc(t3, xi)) < 1 ? (e2--, n2 += xi) : n2 > xi && (e2++, n2 -= xi), [e2, n2]),
+      year(e2) {
+        return e2.isoYear;
+      },
+      month(e2) {
+        return e2.isoMonth;
+      },
+      day: (e2) => e2.isoDay
+    }), /* @__PURE__ */ Object.assign({}, Va, Ka, {
+      h: computeIntlDateParts,
+      ee(e2) {
+        const n2 = this.O(e2);
+        return [n2.era, n2.eraYear];
+      },
+      I(e2, n2) {
+        const t3 = computeIntlLeapMonth.call(this, e2);
+        return [monthToMonthCodeNumber(n2, t3), t3 === n2];
+      },
+      N(e2, n2, t3) {
+        let [o2, r2, i3] = computeIntlDateParts.call(this, {
+          isoYear: ji,
+          isoMonth: xi,
+          isoDay: 31
+        });
+        const a2 = computeIntlLeapMonth.call(this, o2), s2 = r2 === a2;
+        1 === (compareNumbers(e2, monthToMonthCodeNumber(r2, a2)) || compareNumbers(Number(n2), Number(s2)) || compareNumbers(t3, i3)) && o2--;
+        for (let r3 = 0; r3 < 100; r3++) {
+          const i4 = o2 - r3, a3 = computeIntlLeapMonth.call(this, i4), s3 = monthCodeNumberToMonth(e2, n2, a3);
+          if (n2 === (s3 === a3) && t3 <= computeIntlDaysInMonth.call(this, i4, s3)) {
+            return [i4, s3];
+          }
+        }
+      },
+      K(e2) {
+        const n2 = computeIntlDaysInYear.call(this, e2);
+        return n2 > computeIntlDaysInYear.call(this, e2 - 1) && n2 > computeIntlDaysInYear.call(this, e2 + 1);
+      },
+      U: computeIntlLeapMonth,
+      L: computeIntlMonthsInYear,
+      J(e2, n2) {
+        const t3 = n2 + e2, o2 = Math.sign(e2), r2 = o2 < 0 ? -1 : 0;
+        let i3 = 0;
+        for (let e3 = n2; e3 !== t3; e3 += o2) {
+          i3 += computeIntlMonthsInYear.call(this, e3 + r2);
+        }
+        return i3;
+      },
+      j: computeIntlDaysInMonth,
+      X: computeIntlDaysInYear,
+      P(e2, n2, t3) {
+        return epochMilliToIso(computeIntlEpochMilli.call(this, e2, n2, t3));
+      },
+      q: computeIntlEpochMilli,
+      _(e2, n2, t3) {
+        if (t3) {
+          if (n2 += t3, !Number.isSafeInteger(n2)) {
+            throw new RangeError(Cr);
+          }
+          if (t3 < 0) {
+            for (; n2 < 1; ) {
+              n2 += computeIntlMonthsInYear.call(this, --e2);
+            }
+          } else {
+            let t4;
+            for (; n2 > (t4 = computeIntlMonthsInYear.call(this, e2)); ) {
+              n2 -= t4, e2++;
+            }
+          }
+        }
+        return [e2, n2];
+      },
+      year(e2) {
+        return this.O(e2).year;
+      },
+      month(e2) {
+        const { year: n2, F: t3 } = this.O(e2), { C: o2 } = this.B(n2);
+        return o2[t3] + 1;
+      },
+      day(e2) {
+        return this.O(e2).day;
+      }
+    }));
+    Qa = "numeric";
+    Xa = ["timeZoneName"];
+    es = {
+      month: Qa,
+      day: Qa
+    };
+    ns = {
+      year: Qa,
+      month: Qa
+    };
+    ts = /* @__PURE__ */ Object.assign({}, ns, {
+      day: Qa
+    });
+    os = {
+      hour: Qa,
+      minute: Qa,
+      second: Qa
+    };
+    rs = /* @__PURE__ */ Object.assign({}, ts, os);
+    is = /* @__PURE__ */ Object.assign({}, rs, {
+      timeZoneName: "short"
+    });
+    as = /* @__PURE__ */ Object.keys(ns);
+    ss = /* @__PURE__ */ Object.keys(es);
+    cs = /* @__PURE__ */ Object.keys(ts);
+    us = /* @__PURE__ */ Object.keys(os);
+    ls = ["dateStyle"];
+    fs = /* @__PURE__ */ as.concat(ls);
+    ds = /* @__PURE__ */ ss.concat(ls);
+    ms = /* @__PURE__ */ cs.concat(ls, ["weekday"]);
+    ps = /* @__PURE__ */ us.concat(["dayPeriod", "timeStyle"]);
+    hs = /* @__PURE__ */ ms.concat(ps);
+    gs = /* @__PURE__ */ hs.concat(Xa);
+    Ts = /* @__PURE__ */ Xa.concat(ps);
+    Ds = /* @__PURE__ */ Xa.concat(ms);
+    Is = /* @__PURE__ */ Xa.concat(["day", "weekday"], ps);
+    Ms = /* @__PURE__ */ Xa.concat(["year", "weekday"], ps);
+    Ns = {};
+    t = [/* @__PURE__ */ createOptionsTransformer(hs, rs), y];
+    s = [/* @__PURE__ */ createOptionsTransformer(gs, is), y, 0, (e2, n2) => {
+      const t3 = I(e2.timeZone);
+      if (n2 && I(n2.timeZone) !== t3) {
+        throw new RangeError(Fr);
+      }
+      return t3;
+    }];
+    n = [/* @__PURE__ */ createOptionsTransformer(hs, rs, Xa), isoToEpochMilli];
+    o = [/* @__PURE__ */ createOptionsTransformer(ms, ts, Ts), isoToEpochMilli];
+    r = [/* @__PURE__ */ createOptionsTransformer(ps, os, Ds), (e2) => isoTimeFieldsToNano(e2) / be];
+    a = [/* @__PURE__ */ createOptionsTransformer(fs, ns, Is), isoToEpochMilli, 1];
+    i2 = [/* @__PURE__ */ createOptionsTransformer(ds, es, Ms), isoToEpochMilli, 1];
+  }
+});
+
+// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+function createSlotClass(e2, t3, n2, o2, r2) {
+  function Class(...e3) {
+    if (!(this instanceof Class)) {
+      throw new TypeError(P);
+    }
+    oo(this, t3(...e3));
+  }
+  function bindMethod(e3, t4) {
+    return Object.defineProperties(function(...t5) {
+      return e3.call(this, getSpecificSlots(this), ...t5);
+    }, D(t4));
+  }
+  function getSpecificSlots(t4) {
+    const n3 = no(t4);
+    if (!n3 || n3.branding !== e2) {
+      throw new TypeError(P);
+    }
+    return n3;
+  }
+  return Object.defineProperties(Class.prototype, {
+    ...O(T(bindMethod, n2)),
+    ...p(T(bindMethod, o2)),
+    ...h("Temporal." + e2)
+  }), Object.defineProperties(Class, {
+    ...p(r2),
+    ...D(e2)
+  }), [Class, (e3) => {
+    const t4 = Object.create(Class.prototype);
+    return oo(t4, e3), t4;
+  }, getSpecificSlots];
+}
+function createProtocolValidator(e2) {
+  return e2 = e2.concat("id").sort(), (t3) => {
+    if (!C(t3, e2)) {
+      throw new TypeError(g);
+    }
+    return t3;
+  };
+}
+function rejectInvalidBag(e2) {
+  if (no(e2) || void 0 !== e2.calendar || void 0 !== e2.timeZone) {
+    throw new TypeError(Z);
+  }
+  return e2;
+}
+function createCalendarFieldMethods(e2, t3) {
+  const n2 = {};
+  for (const o2 in e2) {
+    n2[o2] = ({ o: e3 }, n3) => {
+      const r2 = no(n3) || {}, { branding: a2 } = r2, i3 = a2 === J || t3.includes(a2) ? r2 : toPlainDateSlots(n3);
+      return e3[o2](i3);
+    };
+  }
+  return n2;
+}
+function createCalendarGetters(e2) {
+  const t3 = {};
+  for (const n2 in e2) {
+    t3[n2] = (e3) => {
+      const { calendar: t4 } = e3;
+      return (o2 = t4, "string" == typeof o2 ? Y(o2) : (r2 = o2, Object.assign(Object.create(co), {
+        i: r2
+      })))[n2](e3);
+      var o2, r2;
+    };
+  }
+  return t3;
+}
+function neverValueOf() {
+  throw new TypeError(A);
+}
+function createCalendarFromSlots({ calendar: e2 }) {
+  return "string" == typeof e2 ? new lr(e2) : e2;
+}
+function toPlainMonthDaySlots(e2, t3) {
+  if (t3 = U(t3), z(e2)) {
+    const n3 = no(e2);
+    if (n3 && n3.branding === q) {
+      return H(t3), n3;
+    }
+    const o2 = extractCalendarSlotFromBag(e2);
+    return K(Qo(o2 || X), !o2, e2, t3);
+  }
+  const n2 = Q(Y, e2);
+  return H(t3), n2;
+}
+function getOffsetNanosecondsForAdapter(e2, t3, n2) {
+  return o2 = t3.call(e2, Co(_(n2))), ae(u(o2));
+  var o2;
+}
+function createAdapterOps(e2, t3 = ho) {
+  const n2 = Object.keys(t3).sort(), o2 = {};
+  for (const r2 of n2) {
+    o2[r2] = E(t3[r2], e2, $(e2[r2]));
+  }
+  return o2;
+}
+function createTimeZoneOps(e2, t3) {
+  return "string" == typeof e2 ? ie(e2) : createAdapterOps(e2, t3);
+}
+function createTimeZoneOffsetOps(e2) {
+  return createTimeZoneOps(e2, Do);
+}
+function toInstantSlots(e2) {
+  if (z(e2)) {
+    const t3 = no(e2);
+    if (t3) {
+      switch (t3.branding) {
+        case Oe:
+          return t3;
+        case Te:
+          return _(t3.epochNanoseconds);
+      }
+    }
+  }
+  return pe(e2);
+}
+function getImplTransition(e2, t3, n2) {
+  const o2 = t3.l(toInstantSlots(n2).epochNanoseconds, e2);
+  return o2 ? Co(_(o2)) : null;
+}
+function refineTimeZoneSlot(e2) {
+  return z(e2) ? (no(e2) || {}).timeZone || Fo(e2) : ((e3) => ye(Ne(m(e3))))(e2);
+}
+function toPlainTimeSlots(e2, t3) {
+  if (z(e2)) {
+    const n2 = no(e2) || {};
+    switch (n2.branding) {
+      case xe:
+        return H(t3), n2;
+      case We:
+        return H(t3), Ge(n2);
+      case Te:
+        return H(t3), Re(createTimeZoneOffsetOps, n2);
+    }
+    return Ue(e2, t3);
+  }
+  return H(t3), ze(e2);
+}
+function optionalToPlainTimeFields(e2) {
+  return void 0 === e2 ? void 0 : toPlainTimeSlots(e2);
+}
+function toPlainYearMonthSlots(e2, t3) {
+  if (t3 = U(t3), z(e2)) {
+    const n3 = no(e2);
+    return n3 && n3.branding === L ? (H(t3), n3) : nt(Ho(getCalendarSlotFromBag(e2)), e2, t3);
+  }
+  const n2 = ot(Y, e2);
+  return H(t3), n2;
+}
+function toPlainDateTimeSlots(e2, t3) {
+  if (t3 = U(t3), z(e2)) {
+    const n3 = no(e2) || {};
+    switch (n3.branding) {
+      case We:
+        return H(t3), n3;
+      case J:
+        return H(t3), ee({
+          ...n3,
+          ...Dt
+        });
+      case Te:
+        return H(t3), ht(createTimeZoneOffsetOps, n3);
+    }
+    return Pt(Ko(getCalendarSlotFromBag(e2)), e2, t3);
+  }
+  const n2 = Ct(e2);
+  return H(t3), n2;
+}
+function toPlainDateSlots(e2, t3) {
+  if (t3 = U(t3), z(e2)) {
+    const n3 = no(e2) || {};
+    switch (n3.branding) {
+      case J:
+        return H(t3), n3;
+      case We:
+        return H(t3), v(n3);
+      case Te:
+        return H(t3), Bt(createTimeZoneOffsetOps, n3);
+    }
+    return Yt(Ko(getCalendarSlotFromBag(e2)), e2, t3);
+  }
+  const n2 = At(e2);
+  return H(t3), n2;
+}
+function dayAdapter(e2, t3, n2) {
+  return d(t3.call(e2, Yo(v(n2, e2))));
+}
+function createCompoundOpsCreator(e2) {
+  return (t3) => "string" == typeof t3 ? Y(t3) : ((e3, t4) => {
+    const n2 = Object.keys(t4).sort(), o2 = {};
+    for (const r2 of n2) {
+      o2[r2] = E(t4[r2], e3, e3[r2]);
+    }
+    return o2;
+  })(t3, e2);
+}
+function toDurationSlots(e2) {
+  if (z(e2)) {
+    const t3 = no(e2);
+    return t3 && t3.branding === qt ? t3 : Ht(e2);
+  }
+  return Kt(e2);
+}
+function refinePublicRelativeTo(e2) {
+  if (void 0 !== e2) {
+    if (z(e2)) {
+      const t3 = no(e2) || {};
+      switch (t3.branding) {
+        case Te:
+        case J:
+          return t3;
+        case We:
+          return v(t3);
+      }
+      const n2 = getCalendarSlotFromBag(e2);
+      return {
+        ...Qt(refineTimeZoneSlot, createTimeZoneOps, Ko(n2), e2),
+        calendar: n2
+      };
+    }
+    return Xt(e2);
+  }
+}
+function getCalendarSlotFromBag(e2) {
+  return extractCalendarSlotFromBag(e2) || X;
+}
+function extractCalendarSlotFromBag(e2) {
+  const { calendar: t3 } = e2;
+  if (void 0 !== t3) {
+    return refineCalendarSlot(t3);
+  }
+}
+function refineCalendarSlot(e2) {
+  return z(e2) ? (no(e2) || {}).calendar || cr(e2) : ((e3) => an(sn(m(e3))))(e2);
+}
+function toZonedDateTimeSlots(e2, t3) {
+  if (t3 = U(t3), z(e2)) {
+    const n2 = no(e2);
+    if (n2 && n2.branding === Te) {
+      return wn(t3), n2;
+    }
+    const o2 = getCalendarSlotFromBag(e2);
+    return jn(refineTimeZoneSlot, createTimeZoneOps, Ko(o2), o2, e2, t3);
+  }
+  return Mn(e2, t3);
+}
+function adaptDateMethods(e2) {
+  return T((e3) => (t3) => e3(slotsToIso(t3)), e2);
+}
+function slotsToIso(e2) {
+  return fn(e2, createTimeZoneOffsetOps);
+}
+function createDateTimeFormatClass() {
+  const e2 = En.prototype, t3 = Object.getOwnPropertyDescriptors(e2), n2 = Object.getOwnPropertyDescriptors(En), DateTimeFormat = function(e3, t4 = {}) {
+    if (!(this instanceof DateTimeFormat)) {
+      return new DateTimeFormat(e3, t4);
+    }
+    Or.set(this, ((e4, t5 = {}) => {
+      const n3 = new En(e4, t5), o2 = n3.resolvedOptions(), r2 = o2.locale, a2 = Vn(Object.keys(t5), o2), i3 = Jn(createFormatPrepperForBranding), prepFormat = (...e5) => {
+        let t6;
+        const o3 = e5.map((e6, n4) => {
+          const o4 = no(e6), r3 = (o4 || {}).branding;
+          if (n4 && t6 && t6 !== r3) {
+            throw new TypeError(kn);
+          }
+          return t6 = r3, o4;
+        });
+        return t6 ? i3(t6)(r2, a2, ...o3) : [n3, ...e5];
+      };
+      return prepFormat.u = n3, prepFormat;
+    })(e3, t4));
+  };
+  for (const e3 in t3) {
+    const n3 = t3[e3], o2 = e3.startsWith("format") && createFormatMethod(e3);
+    "function" == typeof n3.value ? n3.value = "constructor" === e3 ? DateTimeFormat : o2 || createProxiedMethod(e3) : o2 && (n3.get = function() {
+      return o2.bind(this);
+    });
+  }
+  return n2.prototype.value = Object.create(e2, t3), Object.defineProperties(DateTimeFormat, n2), DateTimeFormat;
+}
+function createFormatMethod(e2) {
+  return function(...t3) {
+    const n2 = Or.get(this), [o2, ...r2] = n2(...t3);
+    return o2[e2](...r2);
+  };
+}
+function createProxiedMethod(e2) {
+  return function(...t3) {
+    return Or.get(this).u[e2](...t3);
+  };
+}
+function createFormatPrepperForBranding(t3) {
+  const n2 = xn[t3];
+  if (!n2) {
+    throw new TypeError(Ln(t3));
+  }
+  return e(n2, Jn(qn));
+}
+var xn, Rn, Wn, Gn, Un, zn, Hn, Kn, Qn, Xn, $n, _n, eo, to, no, oo, ro, ao, io, so, lo, co, uo, fo, mo, So, Oo, To, po, ho, Do, Po, Co, go, Zo, bo, Fo, Io, vo, wo, jo, Mo, yo, No, Bo, Yo, Ao, Eo, Vo, Jo, Lo, qo, ko, xo, Ro, Wo, Go, Uo, zo, Ho, Ko, Qo, Xo, $o, _o, er, tr, nr, or, rr, ar, ir, sr, lr, cr, ur, dr, fr, mr, Sr, Or, Tr;
+var init_classApi = __esm({
+  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js"() {
+    init_define_BUILD_INFO();
+    init_internal();
+    xn = {
+      Instant: t,
+      PlainDateTime: n,
+      PlainDate: o,
+      PlainTime: r,
+      PlainYearMonth: a,
+      PlainMonthDay: i2
+    };
+    Rn = /* @__PURE__ */ e(t);
+    Wn = /* @__PURE__ */ e(s);
+    Gn = /* @__PURE__ */ e(n);
+    Un = /* @__PURE__ */ e(o);
+    zn = /* @__PURE__ */ e(r);
+    Hn = /* @__PURE__ */ e(a);
+    Kn = /* @__PURE__ */ e(i2);
+    Qn = {
+      era: l2,
+      eraYear: c,
+      year: u,
+      month: d,
+      daysInMonth: d,
+      daysInYear: d,
+      inLeapYear: f,
+      monthsInYear: d
+    };
+    Xn = {
+      monthCode: m
+    };
+    $n = {
+      day: d
+    };
+    _n = {
+      dayOfWeek: d,
+      dayOfYear: d,
+      weekOfYear: S,
+      yearOfWeek: c,
+      daysInWeek: d
+    };
+    eo = /* @__PURE__ */ Object.assign({}, Qn, Xn, $n, _n);
+    to = /* @__PURE__ */ new WeakMap();
+    no = /* @__PURE__ */ to.get.bind(to);
+    oo = /* @__PURE__ */ to.set.bind(to);
+    ro = {
+      ...createCalendarFieldMethods(Qn, [L]),
+      ...createCalendarFieldMethods(_n, []),
+      ...createCalendarFieldMethods(Xn, [L, q]),
+      ...createCalendarFieldMethods($n, [q])
+    };
+    ao = /* @__PURE__ */ createCalendarGetters(eo);
+    io = /* @__PURE__ */ createCalendarGetters({
+      ...Qn,
+      ...Xn
+    });
+    so = /* @__PURE__ */ createCalendarGetters({
+      ...Xn,
+      ...$n
+    });
+    lo = {
+      calendarId: (e2) => I(e2.calendar)
+    };
+    co = /* @__PURE__ */ T((e2, t3) => function(n2) {
+      const { i: o2 } = this;
+      return e2(o2[t3](Yo(v(n2, o2))));
+    }, eo);
+    uo = /* @__PURE__ */ b((e2) => (t3) => t3[e2], F.concat("sign"));
+    fo = /* @__PURE__ */ b((e2, t3) => (e3) => e3[j[t3]], w);
+    mo = {
+      epochSeconds: M,
+      epochMilliseconds: y,
+      epochMicroseconds: N,
+      epochNanoseconds: B
+    };
+    So = /* @__PURE__ */ E(V, /* @__PURE__ */ new Set(["branding"]));
+    [Oo, To, po] = createSlotClass(q, E(G, refineCalendarSlot), {
+      ...lo,
+      ...so
+    }, {
+      getISOFields: So,
+      getCalendar: createCalendarFromSlots,
+      with(e2, t3, n2) {
+        return To(k(_o, e2, this, rejectInvalidBag(t3), n2));
+      },
+      equals: (e2, t3) => x(e2, toPlainMonthDaySlots(t3)),
+      toPlainDate(e2, t3) {
+        return Yo(R($o, e2, this, t3));
+      },
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = Kn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: W,
+      toJSON: (e2) => W(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => To(toPlainMonthDaySlots(e2, t3))
+    });
+    ho = {
+      getOffsetNanosecondsFor: getOffsetNanosecondsForAdapter,
+      getPossibleInstantsFor(e2, t3, n2) {
+        const o2 = [...t3.call(e2, No(ee(n2, X)))].map((e3) => go(e3).epochNanoseconds), r2 = o2.length;
+        return r2 > 1 && (o2.sort(te), ne(oe(re(o2[0], o2[r2 - 1])))), o2;
+      }
+    };
+    Do = {
+      getOffsetNanosecondsFor: getOffsetNanosecondsForAdapter
+    };
+    [Po, Co, go] = createSlotClass(Oe, Se, mo, {
+      add: (e2, t3) => Co(se(0, e2, toDurationSlots(t3))),
+      subtract: (e2, t3) => Co(se(1, e2, toDurationSlots(t3))),
+      until: (e2, t3, n2) => ar(le(0, e2, toInstantSlots(t3), n2)),
+      since: (e2, t3, n2) => ar(le(1, e2, toInstantSlots(t3), n2)),
+      round: (e2, t3) => Co(ce(e2, t3)),
+      equals: (e2, t3) => ue(e2, toInstantSlots(t3)),
+      toZonedDateTime(e2, t3) {
+        const n2 = de(t3);
+        return dr(fe(e2, refineTimeZoneSlot(n2.timeZone), refineCalendarSlot(n2.calendar)));
+      },
+      toZonedDateTimeISO: (e2, t3) => dr(fe(e2, refineTimeZoneSlot(t3))),
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = Rn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: (e2, t3) => me(refineTimeZoneSlot, createTimeZoneOffsetOps, e2, t3),
+      toJSON: (e2) => me(refineTimeZoneSlot, createTimeZoneOffsetOps, e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2) => Co(toInstantSlots(e2)),
+      fromEpochSeconds: (e2) => Co(De(e2)),
+      fromEpochMilliseconds: (e2) => Co(Pe(e2)),
+      fromEpochMicroseconds: (e2) => Co(Ce(e2)),
+      fromEpochNanoseconds: (e2) => Co(ge(e2)),
+      compare: (e2, t3) => Ze(toInstantSlots(e2), toInstantSlots(t3))
+    });
+    [Zo, bo] = createSlotClass("TimeZone", (e2) => {
+      const t3 = Me(e2);
+      return {
+        branding: "TimeZone",
+        id: t3,
+        o: ie(t3)
+      };
+    }, {
+      id: (e2) => e2.id
+    }, {
+      getPossibleInstantsFor: ({ o: e2 }, t3) => e2.getPossibleInstantsFor(toPlainDateTimeSlots(t3)).map((e3) => Co(_(e3))),
+      getOffsetNanosecondsFor: ({ o: e2 }, t3) => e2.getOffsetNanosecondsFor(toInstantSlots(t3).epochNanoseconds),
+      getOffsetStringFor(e2, t3) {
+        const n2 = toInstantSlots(t3).epochNanoseconds, o2 = createAdapterOps(this, Do).getOffsetNanosecondsFor(n2);
+        return Fe(o2);
+      },
+      getPlainDateTimeFor(e2, t3, n2 = X) {
+        const o2 = toInstantSlots(t3).epochNanoseconds, r2 = createAdapterOps(this, Do).getOffsetNanosecondsFor(o2);
+        return No(ee(Ie(o2, r2), refineCalendarSlot(n2)));
+      },
+      getInstantFor(e2, t3, n2) {
+        const o2 = toPlainDateTimeSlots(t3), r2 = ve(n2), a2 = createAdapterOps(this);
+        return Co(_(we(a2, o2, r2)));
+      },
+      getNextTransition: ({ o: e2 }, t3) => getImplTransition(1, e2, t3),
+      getPreviousTransition: ({ o: e2 }, t3) => getImplTransition(-1, e2, t3),
+      equals(e2, t3) {
+        return !!je(this, refineTimeZoneSlot(t3));
+      },
+      toString: (e2) => e2.id,
+      toJSON: (e2) => e2.id
+    }, {
+      from(e2) {
+        const t3 = refineTimeZoneSlot(e2);
+        return "string" == typeof t3 ? new Zo(t3) : t3;
+      }
+    });
+    Fo = /* @__PURE__ */ createProtocolValidator(Object.keys(ho));
+    [Io, vo] = createSlotClass(xe, ke, fo, {
+      getISOFields: So,
+      with(e2, t3, n2) {
+        return vo(Be(this, rejectInvalidBag(t3), n2));
+      },
+      add: (e2, t3) => vo(Ye(0, e2, toDurationSlots(t3))),
+      subtract: (e2, t3) => vo(Ye(1, e2, toDurationSlots(t3))),
+      until: (e2, t3, n2) => ar(Ae(0, e2, toPlainTimeSlots(t3), n2)),
+      since: (e2, t3, n2) => ar(Ae(1, e2, toPlainTimeSlots(t3), n2)),
+      round: (e2, t3) => vo(Ee(e2, t3)),
+      equals: (e2, t3) => Ve(e2, toPlainTimeSlots(t3)),
+      toZonedDateTime: (e2, t3) => dr(Je(refineTimeZoneSlot, toPlainDateSlots, createTimeZoneOps, e2, t3)),
+      toPlainDateTime: (e2, t3) => No(Le(e2, toPlainDateSlots(t3))),
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = zn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: qe,
+      toJSON: (e2) => qe(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => vo(toPlainTimeSlots(e2, t3)),
+      compare: (e2, t3) => He(toPlainTimeSlots(e2), toPlainTimeSlots(t3))
+    });
+    [wo, jo, Mo] = createSlotClass(L, E(tt, refineCalendarSlot), {
+      ...lo,
+      ...io
+    }, {
+      getISOFields: So,
+      getCalendar: createCalendarFromSlots,
+      with(e2, t3, n2) {
+        return jo(Ke(Xo, e2, this, rejectInvalidBag(t3), n2));
+      },
+      add: (e2, t3, n2) => jo(Qe(nr, 0, e2, toDurationSlots(t3), n2)),
+      subtract: (e2, t3, n2) => jo(Qe(nr, 1, e2, toDurationSlots(t3), n2)),
+      until: (e2, t3, n2) => ar(Xe(or, 0, e2, toPlainYearMonthSlots(t3), n2)),
+      since: (e2, t3, n2) => ar(Xe(or, 1, e2, toPlainYearMonthSlots(t3), n2)),
+      equals: (e2, t3) => $e(e2, toPlainYearMonthSlots(t3)),
+      toPlainDate(e2, t3) {
+        return Yo(_e($o, e2, this, t3));
+      },
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = Hn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: et,
+      toJSON: (e2) => et(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => jo(toPlainYearMonthSlots(e2, t3)),
+      compare: (e2, t3) => rt(toPlainYearMonthSlots(e2), toPlainYearMonthSlots(t3))
+    });
+    [yo, No] = createSlotClass(We, E(pt, refineCalendarSlot), {
+      ...lo,
+      ...ao,
+      ...fo
+    }, {
+      getISOFields: So,
+      getCalendar: createCalendarFromSlots,
+      with(e2, t3, n2) {
+        return No(at($o, e2, this, rejectInvalidBag(t3), n2));
+      },
+      withCalendar: (e2, t3) => No(it(e2, refineCalendarSlot(t3))),
+      withPlainDate: (e2, t3) => No(st(e2, toPlainDateSlots(t3))),
+      withPlainTime: (e2, t3) => No(lt(e2, optionalToPlainTimeFields(t3))),
+      add: (e2, t3, n2) => No(ct(er, 0, e2, toDurationSlots(t3), n2)),
+      subtract: (e2, t3, n2) => No(ct(er, 1, e2, toDurationSlots(t3), n2)),
+      until: (e2, t3, n2) => ar(ut(tr, 0, e2, toPlainDateTimeSlots(t3), n2)),
+      since: (e2, t3, n2) => ar(ut(tr, 1, e2, toPlainDateTimeSlots(t3), n2)),
+      round: (e2, t3) => No(dt(e2, t3)),
+      equals: (e2, t3) => ft(e2, toPlainDateTimeSlots(t3)),
+      toZonedDateTime: (e2, t3, n2) => dr(mt(createTimeZoneOps, e2, refineTimeZoneSlot(t3), n2)),
+      toPlainDate: (e2) => Yo(v(e2)),
+      toPlainTime: (e2) => vo(Ge(e2)),
+      toPlainYearMonth(e2) {
+        return jo(St(Ho, e2, this));
+      },
+      toPlainMonthDay(e2) {
+        return To(Ot(Qo, e2, this));
+      },
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = Gn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: Tt,
+      toJSON: (e2) => Tt(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => No(toPlainDateTimeSlots(e2, t3)),
+      compare: (e2, t3) => gt(toPlainDateTimeSlots(e2), toPlainDateTimeSlots(t3))
+    });
+    [Bo, Yo, Ao] = createSlotClass(J, E(Nt, refineCalendarSlot), {
+      ...lo,
+      ...ao
+    }, {
+      getISOFields: So,
+      getCalendar: createCalendarFromSlots,
+      with(e2, t3, n2) {
+        return Yo(Zt($o, e2, this, rejectInvalidBag(t3), n2));
+      },
+      withCalendar: (e2, t3) => Yo(it(e2, refineCalendarSlot(t3))),
+      add: (e2, t3, n2) => Yo(bt(er, 0, e2, toDurationSlots(t3), n2)),
+      subtract: (e2, t3, n2) => Yo(bt(er, 1, e2, toDurationSlots(t3), n2)),
+      until: (e2, t3, n2) => ar(Ft(tr, 0, e2, toPlainDateSlots(t3), n2)),
+      since: (e2, t3, n2) => ar(Ft(tr, 1, e2, toPlainDateSlots(t3), n2)),
+      equals: (e2, t3) => It(e2, toPlainDateSlots(t3)),
+      toZonedDateTime(e2, t3) {
+        const n2 = !z(t3) || t3 instanceof Zo ? {
+          timeZone: t3
+        } : t3;
+        return dr(vt(refineTimeZoneSlot, toPlainTimeSlots, createTimeZoneOps, e2, n2));
+      },
+      toPlainDateTime: (e2, t3) => No(wt(e2, optionalToPlainTimeFields(t3))),
+      toPlainYearMonth(e2) {
+        return jo(jt(Ho, e2, this));
+      },
+      toPlainMonthDay(e2) {
+        return To(Mt(Qo, e2, this));
+      },
+      toLocaleString(e2, t3, n2) {
+        const [o2, r2] = Un(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: yt,
+      toJSON: (e2) => yt(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => Yo(toPlainDateSlots(e2, t3)),
+      compare: (e2, t3) => rt(toPlainDateSlots(e2), toPlainDateSlots(t3))
+    });
+    Eo = {
+      fields(e2, t3, n2) {
+        return [...t3.call(e2, n2)];
+      }
+    };
+    Vo = /* @__PURE__ */ Object.assign({
+      dateFromFields(e2, t3, n2, o2) {
+        return Ao(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
+      }
+    }, Eo);
+    Jo = /* @__PURE__ */ Object.assign({
+      yearMonthFromFields(e2, t3, n2, o2) {
+        return Mo(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
+      }
+    }, Eo);
+    Lo = /* @__PURE__ */ Object.assign({
+      monthDayFromFields(e2, t3, n2, o2) {
+        return po(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
+      }
+    }, Eo);
+    qo = {
+      mergeFields(e2, t3, n2, o2) {
+        return de(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), Object.assign(/* @__PURE__ */ Object.create(null), o2)));
+      }
+    };
+    ko = /* @__PURE__ */ Object.assign({}, Vo, qo);
+    xo = /* @__PURE__ */ Object.assign({}, Jo, qo);
+    Ro = /* @__PURE__ */ Object.assign({}, Lo, qo);
+    Wo = {
+      dateAdd(e2, t3, n2, o2, r2) {
+        return Ao(t3.call(e2, Yo(v(n2, e2)), ar(Vt(o2)), r2));
+      }
+    };
+    Go = /* @__PURE__ */ Object.assign({}, Wo, {
+      dateUntil(e2, t3, n2, o2, r2, a2) {
+        return ir(t3.call(e2, Yo(v(n2, e2)), Yo(v(o2, e2)), Object.assign(/* @__PURE__ */ Object.create(null), a2, {
+          largestUnit: Et[r2]
+        })));
+      }
+    });
+    Uo = /* @__PURE__ */ Object.assign({}, Wo, {
+      day: dayAdapter
+    });
+    zo = /* @__PURE__ */ Object.assign({}, Go, {
+      day: dayAdapter
+    });
+    Ho = /* @__PURE__ */ createCompoundOpsCreator(Jo);
+    Ko = /* @__PURE__ */ createCompoundOpsCreator(Vo);
+    Qo = /* @__PURE__ */ createCompoundOpsCreator(Lo);
+    Xo = /* @__PURE__ */ createCompoundOpsCreator(xo);
+    $o = /* @__PURE__ */ createCompoundOpsCreator(ko);
+    _o = /* @__PURE__ */ createCompoundOpsCreator(Ro);
+    er = /* @__PURE__ */ createCompoundOpsCreator(Wo);
+    tr = /* @__PURE__ */ createCompoundOpsCreator(Go);
+    nr = /* @__PURE__ */ createCompoundOpsCreator(Uo);
+    or = /* @__PURE__ */ createCompoundOpsCreator(zo);
+    [rr, ar, ir] = createSlotClass(qt, Lt, {
+      ...uo,
+      blank: Jt
+    }, {
+      with: (e2, t3) => ar(kt(e2, t3)),
+      negated: (e2) => ar(xt(e2)),
+      abs: (e2) => ar(Rt(e2)),
+      add: (e2, t3, n2) => ar(Wt(refinePublicRelativeTo, tr, createTimeZoneOps, 0, e2, toDurationSlots(t3), n2)),
+      subtract: (e2, t3, n2) => ar(Wt(refinePublicRelativeTo, tr, createTimeZoneOps, 1, e2, toDurationSlots(t3), n2)),
+      round: (e2, t3) => ar(Gt(refinePublicRelativeTo, tr, createTimeZoneOps, e2, t3)),
+      total: (e2, t3) => Ut(refinePublicRelativeTo, tr, createTimeZoneOps, e2, t3),
+      toLocaleString(e2, t3, n2) {
+        return Intl.DurationFormat ? new Intl.DurationFormat(t3, n2).format(this) : zt(e2);
+      },
+      toString: zt,
+      toJSON: (e2) => zt(e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2) => ar(toDurationSlots(e2)),
+      compare: (e2, t3, n2) => $t(refinePublicRelativeTo, er, createTimeZoneOps, toDurationSlots(e2), toDurationSlots(t3), n2)
+    });
+    sr = {
+      toString: (e2) => e2.id,
+      toJSON: (e2) => e2.id,
+      ...ro,
+      dateAdd: ({ id: e2, o: t3 }, n2, o2, r2) => Yo(v(t3.dateAdd(toPlainDateSlots(n2), toDurationSlots(o2), r2), e2)),
+      dateUntil: ({ o: e2 }, t3, n2, o2) => ar(Vt(e2.dateUntil(toPlainDateSlots(t3), toPlainDateSlots(n2), _t(o2)))),
+      dateFromFields: ({ id: e2, o: t3 }, n2, o2) => Yo(Yt(t3, n2, o2, ln(e2))),
+      yearMonthFromFields: ({ id: e2, o: t3 }, n2, o2) => jo(nt(t3, n2, o2, un(e2))),
+      monthDayFromFields: ({ id: e2, o: t3 }, n2, o2) => To(K(t3, 0, n2, o2, cn(e2))),
+      fields({ o: e2 }, t3) {
+        const n2 = new Set(en), o2 = [];
+        for (const e3 of t3) {
+          if (m(e3), !n2.has(e3)) {
+            throw new RangeError(tn(e3));
+          }
+          n2.delete(e3), o2.push(e3);
+        }
+        return e2.fields(o2);
+      },
+      mergeFields: ({ o: e2 }, t3, n2) => e2.mergeFields(nn(on(t3)), nn(on(n2)))
+    };
+    [lr] = createSlotClass("Calendar", (e2) => {
+      const t3 = rn(e2);
+      return {
+        branding: "Calendar",
+        id: t3,
+        o: Y(t3)
+      };
+    }, {
+      id: (e2) => e2.id
+    }, sr, {
+      from(e2) {
+        const t3 = refineCalendarSlot(e2);
+        return "string" == typeof t3 ? new lr(t3) : t3;
+      }
+    });
+    cr = /* @__PURE__ */ createProtocolValidator(Object.keys(sr).slice(4));
+    [ur, dr] = createSlotClass(Te, E(vn, refineCalendarSlot, refineTimeZoneSlot), {
+      ...mo,
+      ...lo,
+      ...adaptDateMethods(ao),
+      ...adaptDateMethods(fo),
+      offset: (e2) => Fe(slotsToIso(e2).offsetNanoseconds),
+      offsetNanoseconds: (e2) => slotsToIso(e2).offsetNanoseconds,
+      timeZoneId: (e2) => I(e2.timeZone),
+      hoursInDay: (e2) => dn(createTimeZoneOps, e2)
+    }, {
+      getISOFields: (e2) => mn(createTimeZoneOffsetOps, e2),
+      getCalendar: createCalendarFromSlots,
+      getTimeZone: ({ timeZone: e2 }) => "string" == typeof e2 ? new Zo(e2) : e2,
+      with(e2, t3, n2) {
+        return dr(Sn($o, createTimeZoneOps, e2, this, rejectInvalidBag(t3), n2));
+      },
+      withCalendar: (e2, t3) => dr(it(e2, refineCalendarSlot(t3))),
+      withTimeZone: (e2, t3) => dr(On(e2, refineTimeZoneSlot(t3))),
+      withPlainDate: (e2, t3) => dr(Tn(createTimeZoneOps, e2, toPlainDateSlots(t3))),
+      withPlainTime: (e2, t3) => dr(pn(createTimeZoneOps, e2, optionalToPlainTimeFields(t3))),
+      add: (e2, t3, n2) => dr(hn(er, createTimeZoneOps, 0, e2, toDurationSlots(t3), n2)),
+      subtract: (e2, t3, n2) => dr(hn(er, createTimeZoneOps, 1, e2, toDurationSlots(t3), n2)),
+      until: (e2, t3, n2) => ar(Vt(Dn(tr, createTimeZoneOps, 0, e2, toZonedDateTimeSlots(t3), n2))),
+      since: (e2, t3, n2) => ar(Vt(Dn(tr, createTimeZoneOps, 1, e2, toZonedDateTimeSlots(t3), n2))),
+      round: (e2, t3) => dr(Pn(createTimeZoneOps, e2, t3)),
+      startOfDay: (e2) => dr(Cn(createTimeZoneOps, e2)),
+      equals: (e2, t3) => gn(e2, toZonedDateTimeSlots(t3)),
+      toInstant: (e2) => Co(Zn(e2)),
+      toPlainDateTime: (e2) => No(ht(createTimeZoneOffsetOps, e2)),
+      toPlainDate: (e2) => Yo(Bt(createTimeZoneOffsetOps, e2)),
+      toPlainTime: (e2) => vo(Re(createTimeZoneOffsetOps, e2)),
+      toPlainYearMonth(e2) {
+        return jo(bn(Ho, e2, this));
+      },
+      toPlainMonthDay(e2) {
+        return To(Fn(Qo, e2, this));
+      },
+      toLocaleString(e2, t3, n2 = {}) {
+        const [o2, r2] = Wn(t3, n2, e2);
+        return o2.format(r2);
+      },
+      toString: (e2, t3) => In(createTimeZoneOffsetOps, e2, t3),
+      toJSON: (e2) => In(createTimeZoneOffsetOps, e2),
+      valueOf: neverValueOf
+    }, {
+      from: (e2, t3) => dr(toZonedDateTimeSlots(e2, t3)),
+      compare: (e2, t3) => yn(toZonedDateTimeSlots(e2), toZonedDateTimeSlots(t3))
+    });
+    fr = /* @__PURE__ */ Object.defineProperties({}, {
+      ...h("Temporal.Now"),
+      ...p({
+        timeZoneId: () => Nn(),
+        instant: () => Co(_(Bn())),
+        zonedDateTime: (e2, t3 = Nn()) => dr(Yn(Bn(), refineTimeZoneSlot(t3), refineCalendarSlot(e2))),
+        zonedDateTimeISO: (e2 = Nn()) => dr(Yn(Bn(), refineTimeZoneSlot(e2), X)),
+        plainDateTime: (e2, t3 = Nn()) => No(ee(An(createTimeZoneOffsetOps(refineTimeZoneSlot(t3))), refineCalendarSlot(e2))),
+        plainDateTimeISO: (e2 = Nn()) => No(ee(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2))), X)),
+        plainDate: (e2, t3 = Nn()) => Yo(v(An(createTimeZoneOffsetOps(refineTimeZoneSlot(t3))), refineCalendarSlot(e2))),
+        plainDateISO: (e2 = Nn()) => Yo(v(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2))), X)),
+        plainTimeISO: (e2 = Nn()) => vo(Ge(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2)))))
+      })
+    });
+    mr = /* @__PURE__ */ Object.defineProperties({}, {
+      ...h("Temporal"),
+      ...p({
+        PlainYearMonth: wo,
+        PlainMonthDay: Oo,
+        PlainDate: Bo,
+        PlainTime: Io,
+        PlainDateTime: yo,
+        ZonedDateTime: ur,
+        Instant: Po,
+        Calendar: lr,
+        TimeZone: Zo,
+        Duration: rr,
+        Now: fr
+      })
+    });
+    Sr = /* @__PURE__ */ createDateTimeFormatClass();
+    Or = /* @__PURE__ */ new WeakMap();
+    Tr = /* @__PURE__ */ Object.defineProperties(Object.create(Intl), p({
+      DateTimeFormat: Sr
+    }));
+  }
+});
+
+// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
+var init_temporal_polyfill = __esm({
+  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js"() {
+    init_define_BUILD_INFO();
+    init_classApi();
+  }
+});
+
+// enhanced/temporal_polyfill.ts
+var init_temporal_polyfill2 = __esm({
+  "enhanced/temporal_polyfill.ts"() {
+    init_define_BUILD_INFO();
+    init_temporal_polyfill();
+  }
+});
+
+// enhanced/openehr_base.ts
+var openehr_base_exports = {};
+__export(openehr_base_exports, {
+  ACCESS_GROUP_REF: () => ACCESS_GROUP_REF,
+  ARCHETYPE_ID: () => ARCHETYPE_ID,
+  AUTHORED_RESOURCE: () => AUTHORED_RESOURCE,
+  Any: () => Any,
+  Array: () => Array2,
+  BASIC_DEFINITIONS: () => BASIC_DEFINITIONS,
+  Boolean: () => Boolean2,
+  Byte: () => Byte,
+  CODE_PHRASE: () => CODE_PHRASE,
+  Cardinality: () => Cardinality,
+  Character: () => Character,
+  Comparable: () => Comparable,
+  Container: () => Container,
+  Double: () => Double,
+  GENERIC_ID: () => GENERIC_ID,
+  HIER_OBJECT_ID: () => HIER_OBJECT_ID,
+  Hash: () => Hash,
+  INTERNET_ID: () => INTERNET_ID,
+  ISO_OID: () => ISO_OID,
+  Integer: () => Integer,
+  Integer64: () => Integer64,
+  Interval: () => Interval,
+  Iso8601_date: () => Iso8601_date,
+  Iso8601_date_time: () => Iso8601_date_time,
+  Iso8601_duration: () => Iso8601_duration,
+  Iso8601_time: () => Iso8601_time,
+  Iso8601_timezone: () => Iso8601_timezone,
+  Iso8601_type: () => Iso8601_type,
+  LOCATABLE_REF: () => LOCATABLE_REF,
+  List: () => List,
+  Multiplicity_interval: () => Multiplicity_interval,
+  Numeric: () => Numeric,
+  OBJECT_ID: () => OBJECT_ID,
+  OBJECT_REF: () => OBJECT_REF,
+  OBJECT_VERSION_ID: () => OBJECT_VERSION_ID,
+  OPENEHR_DEFINITIONS: () => OPENEHR_DEFINITIONS,
+  Octet: () => Octet,
+  Ordered: () => Ordered,
+  Ordered_Numeric: () => Ordered_Numeric,
+  PARTY_REF: () => PARTY_REF,
+  Point_interval: () => Point_interval,
+  Proper_interval: () => Proper_interval,
+  RESOURCE_ANNOTATIONS: () => RESOURCE_ANNOTATIONS,
+  RESOURCE_DESCRIPTION: () => RESOURCE_DESCRIPTION,
+  RESOURCE_DESCRIPTION_ITEM: () => RESOURCE_DESCRIPTION_ITEM,
+  Real: () => Real,
+  Set: () => Set2,
+  String: () => String2,
+  TEMPLATE_ID: () => TEMPLATE_ID,
+  TERMINOLOGY_ID: () => TERMINOLOGY_ID,
+  TRANSLATION_DETAILS: () => TRANSLATION_DETAILS,
+  Temporal: () => Temporal,
+  Terminology_code: () => Terminology_code,
+  Terminology_term: () => Terminology_term,
+  Time_Definitions: () => Time_Definitions,
+  UID: () => UID,
+  UID_BASED_ID: () => UID_BASED_ID,
+  UUID: () => UUID,
+  Uri: () => Uri,
+  VALIDITY_KIND: () => VALIDITY_KIND,
+  VERSION_STATUS: () => VERSION_STATUS,
+  VERSION_TREE_ID: () => VERSION_TREE_ID,
+  getRegisteredTypes: () => getRegisteredTypes,
+  isTypeRegistered: () => isTypeRegistered,
+  registerType: () => registerType
+});
+function registerType(name2, constructor) {
+  TYPE_REGISTRY.set(name2.toUpperCase(), constructor);
+}
+function isTypeRegistered(name2) {
+  return TYPE_REGISTRY.has(name2.toUpperCase());
+}
+function getRegisteredTypes() {
+  return [...TYPE_REGISTRY.keys()];
+}
+var TYPE_REGISTRY, Any, Container, Hash, List, Set2, Array2, Ordered, String2, Uri, Numeric, Ordered_Numeric, Integer, Double, Octet, Character, Boolean2, Real, Integer64, Byte, Temporal, Time_Definitions, Iso8601_type, Iso8601_date_time, Iso8601_duration, Iso8601_time, Iso8601_date, Interval, Proper_interval, Multiplicity_interval, Cardinality, Terminology_code, Terminology_term, OBJECT_ID, ARCHETYPE_ID, GENERIC_ID, UID_BASED_ID, HIER_OBJECT_ID, OBJECT_REF, LOCATABLE_REF, OBJECT_VERSION_ID, PARTY_REF, TERMINOLOGY_ID, VERSION_TREE_ID, UID, UUID, INTERNET_ID, ISO_OID, TEMPLATE_ID, ACCESS_GROUP_REF, BASIC_DEFINITIONS, OPENEHR_DEFINITIONS, VALIDITY_KIND, VERSION_STATUS, Comparable, Iso8601_timezone, Point_interval, CODE_PHRASE, AUTHORED_RESOURCE, RESOURCE_DESCRIPTION, TRANSLATION_DETAILS, RESOURCE_DESCRIPTION_ITEM, RESOURCE_ANNOTATIONS;
+var init_openehr_base = __esm({
+  "enhanced/openehr_base.ts"() {
+    init_define_BUILD_INFO();
+    init_temporal_polyfill2();
+    TYPE_REGISTRY = /* @__PURE__ */ new Map();
+    Any = class {
+      /**
+       * Reference equality for reference types, value equality for value types.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      equal(other) {
+        return new Boolean2(this === other);
+      }
+      /**
+       * Create new instance of a type.
+       * Uses the type registry to look up constructors by name.
+       * Types must be registered using registerType() before they can be instantiated.
+       * 
+       * **Security Note:** This method creates instances dynamically based on type name.
+       * Do not use with untrusted input as it could instantiate arbitrary registered types.
+       * Only use with type names from trusted sources (e.g., parsed from validated openEHR data).
+       * 
+       * @param a_type - The type name as a String
+       * @returns A new instance of the specified type
+       * @throws Error if the type is not registered
+       */
+      instance_of(a_type) {
+        const typeName2 = a_type?.value?.toUpperCase() || "";
+        const constructor = TYPE_REGISTRY.get(typeName2);
+        if (!constructor) {
+          throw new Error(`Unknown type: ${a_type?.value}. Type must be registered using registerType() first.`);
+        }
+        return new constructor();
+      }
+      /**
+       * Type name of an object as a string. May include generic parameters, as in \`"Interval<Time>"\`.
+       * @param an_object - Parameter
+       * @returns Result value
+       */
+      type_of(an_object) {
+        const typeName2 = an_object.constructor.name;
+        return String2.from(typeName2);
+      }
+      /**
+       * True if current object not equal to \`_other_\`. Returns not \`_equal_()\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      not_equal(other) {
+        return new Boolean2(!this.equal(other).value);
+      }
+    };
+    Container = class extends Any {
+    };
+    Hash = class _Hash extends Container {
+      _map = /* @__PURE__ */ new Map();
+      /**
+       * Constructor that optionally accepts initial entries.
+       * @param entries - Optional array of [key, value] pairs
+       */
+      constructor(entries) {
+        super();
+        if (entries) {
+          for (const [key, value] of entries) {
+            this.put(key, value);
+          }
+        }
+      }
+      /**
+       * Test for presence of \`_a_key_\`.
+       * @param a_key - Parameter
+       * @returns Result value
+       */
+      has_key(a_key) {
+        const keyStr = this._keyToString(a_key);
+        return new Boolean2(this._map.has(keyStr));
+      }
+      /**
+       * Return item for key \`_a_key_\`.
+       * @param a_key - Parameter
+       * @returns Result value
+       */
+      item(a_key) {
+        const keyStr = this._keyToString(a_key);
+        const entry = this._map.get(keyStr);
+        if (!entry) {
+          throw new Error(`Key not found: ${keyStr}`);
+        }
+        return entry.value;
+      }
+      /**
+       * Test for membership of a value (key in this case).
+       */
+      has(v2) {
+        return this.has_key(v2);
+      }
+      /**
+       * Return the number of items in the hash.
+       */
+      count() {
+        const int3 = new Integer();
+        int3.value = this._map.size;
+        return int3;
+      }
+      /**
+       * Check if the hash is empty.
+       */
+      is_empty() {
+        return new Boolean2(this._map.size === 0);
+      }
+      /**
+       * Test if all items satisfy a condition.
+       */
+      for_all(test) {
+        for (const entry of this._map.values()) {
+          if (!test(entry.key).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Test if any item satisfies a condition.
+       */
+      there_exists(test) {
+        for (const entry of this._map.values()) {
+          if (test(entry.key).value) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Check value equality with another object.
+       */
+      is_equal(other) {
+        if (!(other instanceof _Hash)) {
+          return new Boolean2(false);
+        }
+        if (this._map.size !== other._map.size) {
+          return new Boolean2(false);
+        }
+        for (const [keyStr, entry] of this._map.entries()) {
+          const otherEntry = other._map.get(keyStr);
+          if (!otherEntry) {
+            return new Boolean2(false);
+          }
+          if (!entry.key.is_equal(otherEntry.key).value) {
+            return new Boolean2(false);
+          }
+          if (entry.value instanceof Any) {
+            if (!entry.value.is_equal(otherEntry.value).value) {
+              return new Boolean2(false);
+            }
+          } else if (entry.value !== otherEntry.value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Put a key-value pair into the hash.
+       */
+      put(key, value) {
+        const keyStr = this._keyToString(key);
+        this._map.set(keyStr, { key, value });
+      }
+      /**
+       * Return a List of all keys matching the predicate function.
+       * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so matching operates on keys.
+       * To search values, use item() to retrieve values for matched keys.
+       * @param test - Predicate function with signature (v: K) => Boolean
+       * @returns List of matching keys, empty list if no matches
+       */
+      matching(test) {
+        const results = new List();
+        for (const entry of this._map.values()) {
+          const testResult = test(entry.key);
+          if (testResult?.value === true) {
+            results.append(entry.key);
+          }
+        }
+        return results;
+      }
+      /**
+       * Return first key matching the predicate function, or undefined if no match.
+       * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so select operates on keys.
+       * To retrieve the value, call item() with the returned key.
+       * @param test - Predicate function with signature (v: K) => Boolean
+       * @returns First matching key or undefined
+       */
+      select(test) {
+        for (const entry of this._map.values()) {
+          const testResult = test(entry.key);
+          if (testResult?.value === true) {
+            return entry.key;
+          }
+        }
+        return void 0;
+      }
+      /**
+       * Helper to convert key to string for Map storage.
+       */
+      _keyToString(key) {
+        if (key instanceof String2) {
+          return key.value || "";
+        }
+        return JSON.stringify(key);
+      }
+    };
+    List = class _List extends Container {
+      _items = [];
+      /**
+       * Test for membership of a value.
+       */
+      has(v2) {
+        for (const item of this._items) {
+          if (item.is_equal(v2).value === true) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Return the number of items in the list.
+       */
+      count() {
+        const int3 = new Integer();
+        int3.value = this._items.length;
+        return int3;
+      }
+      /**
+       * Check if the list is empty.
+       */
+      is_empty() {
+        return new Boolean2(this._items.length === 0);
+      }
+      /**
+       * Test if all items satisfy a condition.
+       */
+      for_all(test) {
+        for (const item of this._items) {
+          if (!test(item).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Test if any item satisfies a condition.
+       */
+      there_exists(test) {
+        for (const item of this._items) {
+          if (test(item).value) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Get the item at index i (0-based).
+       */
+      item(i3) {
+        const idx = i3.value;
+        if (idx === void 0 || idx < 0 || idx >= this._items.length) {
+          throw new Error(`Index out of bounds: ${idx}`);
+        }
+        return this._items[idx];
+      }
+      /**
+       * Return first element.
+       * @returns Result value
+       */
+      first() {
+        if (this._items.length === 0) {
+          throw new Error("Cannot get first item of empty list");
+        }
+        return this._items[0];
+      }
+      /**
+       * Return last element.
+       * @returns Result value
+       */
+      last() {
+        if (this._items.length === 0) {
+          throw new Error("Cannot get last item of empty list");
+        }
+        return this._items[this._items.length - 1];
+      }
+      /**
+       * Add an item to the end of the list.
+       */
+      append(v2) {
+        this._items.push(v2);
+      }
+      /**
+       * Add an item to the beginning of the list.
+       */
+      prepend(v2) {
+        this._items.unshift(v2);
+      }
+      /**
+       * Append all items from another list.
+       */
+      extend(other) {
+        const otherCount = other.count().value;
+        if (otherCount !== void 0) {
+          for (let i3 = 0; i3 < otherCount; i3++) {
+            const idx = new Integer();
+            idx.value = i3;
+            this._items.push(other.item(idx));
+          }
+        }
+      }
+      /**
+       * Remove the item at index i.
+       */
+      remove(i3) {
+        const idx = i3.value;
+        if (idx === void 0 || idx < 0 || idx >= this._items.length) {
+          throw new Error(`Index out of bounds: ${idx}`);
+        }
+        this._items.splice(idx, 1);
+      }
+      /**
+       * Find the index of the first occurrence of a value.
+       * Returns -1 if not found.
+       */
+      index_of(v2) {
+        for (let i3 = 0; i3 < this._items.length; i3++) {
+          if (this._items[i3].is_equal(v2).value === true) {
+            const idx2 = new Integer();
+            idx2.value = i3;
+            return idx2;
+          }
+        }
+        const idx = new Integer();
+        idx.value = -1;
+        return idx;
+      }
+      /**
+       * Check value equality with another object.
+       */
+      is_equal(other) {
+        if (!(other instanceof _List)) {
+          return new Boolean2(false);
+        }
+        if (this._items.length !== other._items.length) {
+          return new Boolean2(false);
+        }
+        for (let i3 = 0; i3 < this._items.length; i3++) {
+          if (!this._items[i3].is_equal(other._items[i3]).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Return a List of all items matching the predicate function.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns List of matching items, empty list if no matches
+       */
+      matching(test) {
+        const results = new _List();
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            results.append(item);
+          }
+        }
+        return results;
+      }
+      /**
+       * Return first item matching the predicate function, or undefined if no match.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns First matching item or undefined
+       */
+      select(test) {
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            return item;
+          }
+        }
+        return void 0;
+      }
+    };
+    Set2 = class _Set extends Container {
+      _items = [];
+      /**
+       * Test for membership of a value.
+       */
+      has(v2) {
+        for (const item of this._items) {
+          if (item.is_equal(v2).value === true) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Return the number of items in the set.
+       */
+      count() {
+        const int3 = new Integer();
+        int3.value = this._items.length;
+        return int3;
+      }
+      /**
+       * Check if the set is empty.
+       */
+      is_empty() {
+        return new Boolean2(this._items.length === 0);
+      }
+      /**
+       * Test if all items satisfy a condition.
+       */
+      for_all(test) {
+        for (const item of this._items) {
+          if (!test(item).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Test if any item satisfies a condition.
+       */
+      there_exists(test) {
+        for (const item of this._items) {
+          if (test(item).value) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Add an item to the set if it doesn't already exist.
+       */
+      add(v2) {
+        if (!this.has(v2).value) {
+          this._items.push(v2);
+        }
+      }
+      /**
+       * Remove an item from the set.
+       */
+      remove(v2) {
+        for (let i3 = 0; i3 < this._items.length; i3++) {
+          if (this._items[i3].is_equal(v2).value === true) {
+            this._items.splice(i3, 1);
+            return;
+          }
+        }
+      }
+      /**
+       * Check value equality with another object.
+       */
+      is_equal(other) {
+        if (!(other instanceof _Set)) {
+          return new Boolean2(false);
+        }
+        if (this._items.length !== other._items.length) {
+          return new Boolean2(false);
+        }
+        for (const item of this._items) {
+          if (!other.has(item).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Return a List of all items matching the predicate function.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns List of matching items, empty list if no matches
+       */
+      matching(test) {
+        const results = new List();
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            results.append(item);
+          }
+        }
+        return results;
+      }
+      /**
+       * Return first item matching the predicate function, or undefined if no match.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns First matching item or undefined
+       */
+      select(test) {
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            return item;
+          }
+        }
+        return void 0;
+      }
+    };
+    Array2 = class _Array extends Container {
+      _items = [];
+      /**
+       * Test for membership of a value.
+       */
+      has(v2) {
+        for (const item of this._items) {
+          if (item.is_equal(v2).value === true) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Return the number of items in the array.
+       */
+      count() {
+        const int3 = new Integer();
+        int3.value = this._items.length;
+        return int3;
+      }
+      /**
+       * Check if the array is empty.
+       */
+      is_empty() {
+        return new Boolean2(this._items.length === 0);
+      }
+      /**
+       * Test if all items satisfy a condition.
+       */
+      for_all(test) {
+        for (const item of this._items) {
+          if (!test(item).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Test if any item satisfies a condition.
+       */
+      there_exists(test) {
+        for (const item of this._items) {
+          if (test(item).value) {
+            return new Boolean2(true);
+          }
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Return item for key  \`_a_key_\`.
+       * @param a_key - Parameter
+       * @returns Result value
+       */
+      item(a_key) {
+        const idx = a_key.value;
+        if (idx === void 0 || idx < 0 || idx >= this._items.length) {
+          throw new Error(`Index out of bounds: ${idx}`);
+        }
+        return this._items[idx];
+      }
+      /**
+       * Check value equality with another object.
+       */
+      is_equal(other) {
+        if (!(other instanceof _Array)) {
+          return new Boolean2(false);
+        }
+        if (this._items.length !== other._items.length) {
+          return new Boolean2(false);
+        }
+        for (let i3 = 0; i3 < this._items.length; i3++) {
+          if (!this._items[i3].is_equal(other._items[i3]).value) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * Set the item at index i.
+       */
+      put(i3, v2) {
+        const idx = i3.value;
+        if (idx === void 0 || idx < 0 || idx >= this._items.length) {
+          throw new Error(`Index out of bounds: ${idx}`);
+        }
+        this._items[idx] = v2;
+      }
+      /**
+       * Append an item to the array.
+       */
+      append(v2) {
+        this._items.push(v2);
+      }
+      /**
+       * Return a List of all items matching the predicate function.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns List of matching items, empty list if no matches
+       */
+      matching(test) {
+        const results = new List();
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            results.append(item);
+          }
+        }
+        return results;
+      }
+      /**
+       * Return first item matching the predicate function, or undefined if no match.
+       * @param test - Predicate function with signature (v: T) => Boolean
+       * @returns First matching item or undefined
+       */
+      select(test) {
+        for (const item of this._items) {
+          const testResult = test(item);
+          if (testResult?.value === true) {
+            return item;
+          }
+        }
+        return void 0;
+      }
+    };
+    Ordered = class extends Any {
+      /**
+       * True if current object less than or equal to \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than_or_equal(other) {
+        return new Boolean2(
+          this.less_than(other).value || this.is_equal(other).value
+        );
+      }
+      /**
+       * True if current object greater than \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      greater_than(other) {
+        return new Boolean2(
+          !this.less_than(other).value && !this.is_equal(other).value
+        );
+      }
+      /**
+       * True if current object greater than or equal to \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      greater_than_or_equal(other) {
+        return new Boolean2(!this.less_than(other).value);
+      }
+    };
+    String2 = class _String extends Ordered {
+      static {
+        TYPE_REGISTRY.set("STRING", _String);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new String instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        this.value = val;
+      }
+      /**
+       * Creates a String instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new String instance
+       */
+      static from(val) {
+        return new _String(val);
+      }
+      /**
+       * Compares this String with another for value equality.
+       * @param other - The object to compare with
+       * @returns true if the values are equal
+       */
+      is_equal(other) {
+        if (other instanceof _String) {
+          return new Boolean2(this.value === other.value);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * True if string is empty, i.e. equal to "".
+       * @returns Result value
+       */
+      is_empty() {
+        return new Boolean2((this.value || "").length === 0);
+      }
+      /**
+       * Number of characters in string.
+       * @returns Result value
+       */
+      count() {
+        const int3 = new Integer();
+        int3.value = (this.value || "").length;
+        return int3;
+      }
+      /**
+       * True if string can be parsed as an integer.
+       * @returns Result value
+       */
+      is_integer() {
+        const val = this.value || "";
+        const num = Number(val);
+        return new Boolean2(
+          !isNaN(num) && Number.isInteger(num) && val.trim() !== ""
+        );
+      }
+      /**
+       * Return the integer corresponding to the integer value represented in this string.
+       * @returns Result value
+       */
+      as_integer() {
+        const num = parseInt(this.value || "", 10);
+        if (isNaN(num)) {
+          throw new Error(`Cannot parse "${this.value}" as integer`);
+        }
+        return Integer.from(num);
+      }
+      /**
+       * Concatenation operator - causes \`_other_\` to be appended to this string.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      append(other) {
+        return _String.from((this.value || "") + (other.value || ""));
+      }
+      /**
+       * Convert string to lowercase.
+       * @returns Result value
+       */
+      as_lower() {
+        return _String.from((this.value || "").toLowerCase());
+      }
+      /**
+       * Convert string to uppercase.
+       * @returns Result value
+       */
+      as_upper() {
+        return _String.from((this.value || "").toUpperCase());
+      }
+      /**
+       * Lexical comparison of string content based on ordering in relevant character set.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (!(other instanceof _String)) {
+          throw new Error("Cannot compare String with non-String");
+        }
+        return new Boolean2((this.value || "") < (other.value || ""));
+      }
+      /**
+       * Return True if this String contains \`_other_\` (case-sensitive).
+       * @param other - Parameter
+       * @returns Result value
+       */
+      contains(other) {
+        return new Boolean2((this.value || "").includes(other.value || ""));
+      }
+      /**
+       * Extract a substring (1-based indexing in openEHR).
+       * @param start - Start index (1-based)
+       * @param end - End index (1-based)
+       * @returns Result value
+       */
+      substring(start, end) {
+        const startIdx = (start.value || 1) - 1;
+        const endIdx = end.value || (this.value || "").length;
+        return _String.from((this.value || "").substring(startIdx, endIdx));
+      }
+      /**
+       * Find the index of a substring (1-based indexing in openEHR).
+       * @param pattern - Pattern to find
+       * @param from - Start index (1-based)
+       * @returns Result value (1-based index or -1 if not found)
+       */
+      index_of(pattern, from) {
+        const startIdx = (from.value || 1) - 1;
+        const foundIdx = (this.value || "").indexOf(pattern.value || "", startIdx);
+        const result2 = new Integer();
+        result2.value = foundIdx === -1 ? -1 : foundIdx + 1;
+        return result2;
+      }
+      /**
+       * Split string by delimiter.
+       * @param delimiter - Delimiter to split by
+       * @returns Result value
+       */
+      split(delimiter) {
+        const parts = (this.value || "").split(delimiter.value || "");
+        const list = new List();
+        for (const part of parts) {
+          list.append(_String.from(part));
+        }
+        return list;
+      }
+    };
+    Uri = class extends String2 {
+    };
+    Numeric = class extends Any {
+    };
+    Ordered_Numeric = class extends Ordered {
+    };
+    Integer = class _Integer extends Ordered_Numeric {
+      static {
+        TYPE_REGISTRY.set("INTEGER", _Integer);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Integer instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        if (val !== void 0 && val !== null && !Number.isInteger(val)) {
+          throw new Error(`Integer value must be an integer, got: ${val}`);
+        }
+        this.value = val;
+      }
+      /**
+       * Creates a Integer instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Integer instance
+       */
+      static from(val) {
+        return new _Integer(val);
+      }
+      /**
+       * Compares this Integer with another for value equality.
+       * @param other - The object to compare with
+       * @returns true if the values are equal
+       */
+      is_equal(other) {
+        if (other instanceof _Integer) {
+          return new Boolean2(this.value === other.value);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Lexical comparison for integers.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (!(other instanceof _Integer)) {
+          throw new Error("Cannot compare Integer with non-Integer");
+        }
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return new Boolean2(thisVal < otherVal);
+      }
+      /**
+       * Integer addition.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      add(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer.from(thisVal + otherVal);
+      }
+      /**
+       * Integer subtraction.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      subtract(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer.from(thisVal - otherVal);
+      }
+      /**
+       * Integer multiplication.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      multiply(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer.from(thisVal * otherVal);
+      }
+      /**
+       * Integer division.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      divide(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 1;
+        if (otherVal === 0) {
+          throw new Error("Division by zero");
+        }
+        return thisVal / otherVal;
+      }
+      /**
+       * Integer modulo.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      modulo(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 1;
+        if (otherVal === 0) {
+          throw new Error("Modulo by zero");
+        }
+        return _Integer.from(thisVal % otherVal);
+      }
+      /**
+       * Generate negative of current value.
+       * @returns Result value
+       */
+      negative() {
+        return _Integer.from(-(this.value || 0));
+      }
+      /**
+       * Integer exponentiation.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      exponent(other) {
+        const thisVal = this.value || 0;
+        return Math.pow(thisVal, other);
+      }
+      // modulo, less_than, negative, and is_equal are implemented above
+      /**
+       * Reference equality for reference types, value equality for value types.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      equal(other) {
+        return new Boolean2(this === other);
+      }
+    };
+    Double = class _Double extends Ordered_Numeric {
+      static {
+        TYPE_REGISTRY.set("DOUBLE", _Double);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Double instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        this.value = val;
+      }
+      /**
+       * Creates a Double instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Double instance
+       */
+      static from(val) {
+        return new _Double(val);
+      }
+      /**
+       * Return the greatest integer no greater than the value of this object.
+       * @returns Result value
+       */
+      floor() {
+        const thisVal = this.value || 0;
+        return Integer.from(Math.floor(thisVal));
+      }
+      /**
+       * Double-precision real number addition.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      add(other) {
+        const thisVal = this.value || 0;
+        return thisVal + other;
+      }
+      /**
+       * Double-precision real number subtraction.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      subtract(other) {
+        const thisVal = this.value || 0;
+        return thisVal - other;
+      }
+      /**
+       * Double-precision real number multiplication.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      multiply(other) {
+        const thisVal = this.value || 0;
+        return thisVal * other;
+      }
+      /**
+       * Double-precision real number division.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      divide(other) {
+        const thisVal = this.value || 0;
+        if (other === 0) {
+          throw new Error("Division by zero");
+        }
+        return thisVal / other;
+      }
+      /**
+       * Double-precision real number exponentiation.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      exponent(other) {
+        const thisVal = this.value || 0;
+        return Math.pow(thisVal, other);
+      }
+      /**
+       * Returns True if current Double is less than \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (other instanceof _Double) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal < otherVal);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Generate negative of current Double value.
+       * @returns Result value
+       */
+      negative() {
+        const thisVal = this.value || 0;
+        return -thisVal;
+      }
+      /**
+       * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (other instanceof _Double) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal === otherVal);
+        }
+        return new Boolean2(false);
+      }
+    };
+    Octet = class _Octet extends Ordered {
+      static {
+        TYPE_REGISTRY.set("OCTET", _Octet);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Octet instance.
+       * @param val - The primitive value to wrap (0-255)
+       */
+      constructor(val) {
+        super();
+        if (val !== void 0 && val !== null && (!Number.isInteger(val) || val < 0 || val > 255)) {
+          throw new Error(`Octet value must be an integer between 0 and 255, got: ${val}`);
+        }
+        this.value = val;
+      }
+      /**
+       * Creates an Octet instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Octet instance
+       */
+      static from(val) {
+        return new _Octet(val);
+      }
+      /**
+       * Returns True if current Octet is less than other.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (other instanceof _Octet) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal < otherVal);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (other instanceof _Octet) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal === otherVal);
+        }
+        return new Boolean2(false);
+      }
+    };
+    Character = class _Character extends Ordered {
+      static {
+        TYPE_REGISTRY.set("CHARACTER", _Character);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Character instance.
+       * @param val - The primitive value to wrap (single character)
+       */
+      constructor(val) {
+        super();
+        if (val !== void 0 && val !== null && val.length !== 1) {
+          throw new Error(`Character value must be a single character, got: ${val}`);
+        }
+        this.value = val;
+      }
+      /**
+       * Creates a Character instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Character instance
+       */
+      static from(val) {
+        return new _Character(val);
+      }
+      /**
+       * Returns True if current Character is less than other.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (other instanceof _Character) {
+          const thisVal = this.value || "";
+          const otherVal = other.value || "";
+          return new Boolean2(thisVal < otherVal);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (other instanceof _Character) {
+          const thisVal = this.value || "";
+          const otherVal = other.value || "";
+          return new Boolean2(thisVal === otherVal);
+        }
+        return new Boolean2(false);
+      }
+    };
+    Boolean2 = class _Boolean extends Any {
+      static {
+        TYPE_REGISTRY.set("BOOLEAN", _Boolean);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Boolean instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        this.value = val;
+      }
+      /**
+       * Creates a Boolean instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Boolean instance
+       */
+      static from(val) {
+        return new _Boolean(val);
+      }
+      /**
+       * Compares this Boolean with another for value equality.
+       * @param other - The object to compare with
+       * @returns true if the values are equal
+       */
+      is_equal(other) {
+        if (other instanceof _Boolean) {
+          return new _Boolean(this.value === other.value);
+        }
+        return new _Boolean(false);
+      }
+      /**
+       * Logical conjunction of this with \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      conjunction(other) {
+        return new _Boolean(this.value === true && other.value === true);
+      }
+      /**
+       * Boolean semi-strict conjunction with \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      semistrict_conjunction(other) {
+        if (this.value !== true) {
+          return new _Boolean(false);
+        }
+        return new _Boolean(other.value === true);
+      }
+      /**
+       * Boolean disjunction with \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      disjunction(other) {
+        return new _Boolean(this.value === true || other.value === true);
+      }
+      /**
+       * Boolean semi-strict disjunction with \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      semistrict_disjunction(other) {
+        if (this.value === true) {
+          return new _Boolean(true);
+        }
+        return new _Boolean(other.value === true);
+      }
+      /**
+       * Boolean exclusive or with \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      exclusive_disjunction(other) {
+        return new _Boolean(this.value === true !== (other.value === true));
+      }
+      /**
+       * Boolean implication of \`_other_\` (semi-strict)
+       * @param other - Parameter
+       * @returns Result value
+       */
+      implication(other) {
+        if (this.value !== true) {
+          return new _Boolean(true);
+        }
+        return new _Boolean(other.value === true);
+      }
+      /**
+       * Boolean negation of the current value.
+       * @returns Result value
+       */
+      negation() {
+        return new _Boolean(this.value !== true);
+      }
+    };
+    Real = class _Real extends Ordered_Numeric {
+      static {
+        TYPE_REGISTRY.set("REAL", _Real);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Real instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        this.value = val;
+      }
+      /**
+       * Creates a Real instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Real instance
+       */
+      static from(val) {
+        return new _Real(val);
+      }
+      /**
+       * Return the greatest integer no greater than the value of this object.
+       * @returns Result value
+       */
+      floor() {
+        const thisVal = this.value || 0;
+        return Integer.from(Math.floor(thisVal));
+      }
+      /**
+       * Real number addition.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      add(other) {
+        const thisVal = this.value || 0;
+        return thisVal + other;
+      }
+      /**
+       * Real number subtraction.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      subtract(other) {
+        const thisVal = this.value || 0;
+        return thisVal - other;
+      }
+      /**
+       * Real number multiplication.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      multiply(other) {
+        const thisVal = this.value || 0;
+        return thisVal * other;
+      }
+      /**
+       * Real number division.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      divide(other) {
+        const thisVal = this.value || 0;
+        if (other === 0) {
+          throw new Error("Division by zero");
+        }
+        return thisVal / other;
+      }
+      /**
+       * Real number exponentiation.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      exponent(other) {
+        const thisVal = this.value || 0;
+        return Math.pow(thisVal, other);
+      }
+      /**
+       * Returns True if current Real is less than \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (other instanceof _Real) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal < otherVal);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Generate negative of current Real value.
+       * @returns Result value
+       */
+      negative() {
+        const thisVal = this.value || 0;
+        return -thisVal;
+      }
+      /**
+       * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (other instanceof _Real) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal === otherVal);
+        }
+        return new Boolean2(false);
+      }
+    };
+    Integer64 = class _Integer64 extends Ordered_Numeric {
+      static {
+        TYPE_REGISTRY.set("INTEGER64", _Integer64);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Integer64 instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        if (val !== void 0 && val !== null && !Number.isInteger(val)) {
+          throw new Error(`Integer64 value must be an integer, got: ${val}`);
+        }
+        this.value = val;
+      }
+      /**
+       * Creates a Integer64 instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Integer64 instance
+       */
+      static from(val) {
+        return new _Integer64(val);
+      }
+      /**
+       * Compares this Integer64 with another for value equality.
+       * @param other - The object to compare with
+       * @returns true if the values are equal
+       */
+      is_equal(other) {
+        if (other instanceof _Integer64) {
+          return new Boolean2(this.value === other.value);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Lexical comparison for large integers.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (!(other instanceof _Integer64)) {
+          throw new Error("Cannot compare Integer64 with non-Integer64");
+        }
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return new Boolean2(thisVal < otherVal);
+      }
+      /**
+       * Large integer addition.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      add(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer64.from(thisVal + otherVal);
+      }
+      /**
+       * Large integer subtraction.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      subtract(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer64.from(thisVal - otherVal);
+      }
+      /**
+       * Large integer multiplication.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      multiply(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 0;
+        return _Integer64.from(thisVal * otherVal);
+      }
+      /**
+       * Large integer division.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      divide(other) {
+        const thisVal = this.value || 0;
+        const otherVal = other.value || 1;
+        if (otherVal === 0) {
+          throw new Error("Division by zero");
+        }
+        return thisVal / otherVal;
+      }
+      /**
+       * Large integer exponentiation.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      exponent(other) {
+        const thisVal = this.value || 0;
+        return Math.pow(thisVal, other);
+      }
+      /**
+       * Large integer modulus.
+       * @param mod - Parameter
+       * @returns Result value
+       */
+      modulo(mod) {
+        const thisVal = this.value || 0;
+        const modVal = mod.value || 1;
+        if (modVal === 0) {
+          throw new Error("Modulo by zero");
+        }
+        return _Integer64.from(thisVal % modVal);
+      }
+      /**
+       * Generate negative of current Integer value.
+       * @returns Result value
+       */
+      negative() {
+        return _Integer64.from(-(this.value || 0));
+      }
+      /**
+       * Reference equality for reference types, value equality for value types.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      equal(other) {
+        return new Boolean2(this === other);
+      }
+    };
+    Byte = class _Byte extends Ordered {
+      static {
+        TYPE_REGISTRY.set("BYTE", _Byte);
+      }
+      /**
+       * The underlying primitive value.
+       */
+      value;
+      /**
+       * Creates a new Byte instance.
+       * @param val - The primitive value to wrap
+       */
+      constructor(val) {
+        super();
+        if (val !== void 0 && val !== null && (!Number.isInteger(val) || val < 0 || val > 255)) {
+          throw new Error(
+            `Byte value must be an integer between 0 and 255, got: ${val}`
+          );
+        }
+        this.value = val;
+      }
+      /**
+       * Creates a Byte instance from a primitive value.
+       * @param val - The primitive value to wrap
+       * @returns A new Byte instance
+       */
+      static from(val) {
+        return new _Byte(val);
+      }
+      /**
+       * Returns True if current Byte is less than other.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      less_than(other) {
+        if (other instanceof _Byte) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal < otherVal);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Compares this Byte with another for value equality.
+       * @param other - The object to compare with
+       * @returns true if the values are equal
+       */
+      is_equal(other) {
+        if (other instanceof _Byte) {
+          const thisVal = this.value || 0;
+          const otherVal = other.value || 0;
+          return new Boolean2(thisVal === otherVal);
+        }
+        return new Boolean2(false);
+      }
+    };
+    Temporal = class extends Ordered {
+    };
+    Time_Definitions = class {
+      /**
+       * True if \`y >= 0\`.
+       *
+       * TODO: Verify if this validation is sufficient. The openEHR specification
+       * states y >= 0 is correct (no negative years, only 4-digit years assumed),
+       * but this may need additional validation for:
+       * - Maximum year value (e.g., 9999 for 4-digit constraint)
+       * - Whether year 0 is historically/calendrically valid
+       * See corresponding TODO in tasks/instructions/base/Time_Definitions.md
+       *
+       * @param y - Parameter
+       * @returns Result value
+       */
+      valid_year(y2) {
+        const val = y2.value || 0;
+        return new Boolean2(val >= 0);
+      }
+      /**
+       * True if \`m >= 1 and m <= months_in_year\`.
+       * @param m - Parameter
+       * @returns Result value
+       */
+      valid_month(m2) {
+        const val = m2.value || 0;
+        return new Boolean2(val >= 1 && val <= 12);
+      }
+      /**
+       * True if \`d >= 1 and d <= days_in_month (m, y)\`.
+       * @param y - Parameter
+       * @param m - Parameter
+       * @param d - Parameter
+       * @returns Result value
+       */
+      valid_day(y2, m2, d2) {
+        const dVal = d2.value || 0;
+        const mVal = m2.value || 1;
+        const yVal = y2.value || 0;
+        if (dVal < 1)
+          return new Boolean2(false);
+        const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const isLeapYear = yVal % 4 === 0 && yVal % 100 !== 0 || yVal % 400 === 0;
+        if (isLeapYear && mVal === 2) {
+          return new Boolean2(dVal <= 29);
+        }
+        return new Boolean2(dVal <= (daysInMonth[mVal - 1] || 31));
+      }
+      /**
+       * True if \`(h >= 0 and h < Hours_in_day) or (h = Hours_in_day and m = 0 and s = 0)\` .
+       * @param h - Parameter
+       * @param m - Parameter
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_hour(h2, m2, s2) {
+        const hVal = h2.value || 0;
+        const mVal = m2.value || 0;
+        const sVal = s2.value || 0;
+        if (hVal >= 0 && hVal < 24)
+          return new Boolean2(true);
+        if (hVal === 24 && mVal === 0 && sVal === 0)
+          return new Boolean2(true);
+        return new Boolean2(false);
+      }
+      /**
+       * True if \`m >= 0 and m < Minutes_in_hour\`.
+       * @param m - Parameter
+       * @returns Result value
+       */
+      valid_minute(m2) {
+        const val = m2.value || 0;
+        return new Boolean2(val >= 0 && val < 60);
+      }
+      /**
+       * True if \`s >= 0 and s < Seconds_in_minute\` .
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_second(s2) {
+        const val = s2.value || 0;
+        return new Boolean2(val >= 0 && val < 60);
+      }
+      /**
+       * True if \`fs >= 0.0\` and \`fs < 1.0\` .
+       * @param fs - Parameter
+       * @returns Result value
+       */
+      valid_fractional_second(fs2) {
+        return new Boolean2(fs2 >= 0 && fs2 < 1);
+      }
+      /**
+       * String is a valid ISO 8601 date, i.e. takes the complete form:
+       *
+       * * \`YYYY-MM-DD\` (extended, preferred) or one of the partial forms \`YYYY-MM\` or \`YYYY\`
+       * * \`YYYYMMDD\` (compact) or a partial variant \`YYYYMM\`.
+       *
+       * Where:
+       *
+       * * \`YYYY\` is the string form of any positive number in the range \`0000\` - \`9999\` (zero-filled to four digits)
+       * * \`MM\` is \`01\` - \`12\` (zero-filled to two digits)
+       * * \`DD\` is \`01\` - \`31\` (zero-filled to two digits)
+       *
+       * The combinations of \`YYYY\`, \`MM\`, \`DD\` numbers must be correct with respect to the Gregorian calendar.
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_iso8601_date(s2) {
+        const val = s2.value || "";
+        const extendedPattern = /^(\d{4})(-((0[1-9]|1[0-2])(-([0-2]\d|3[01]))?)?)?$/;
+        const compactPattern = /^(\d{4})((0[1-9]|1[0-2])([0-2]\d|3[01])?)?$/;
+        return new Boolean2(
+          extendedPattern.test(val) || compactPattern.test(val)
+        );
+      }
+      /**
+       * String is a valid ISO 8601 date, i.e. takes the form:
+       *
+       * * \`hh:mm:ss[(,|.)s+][Z|±hh[:mm]]\` (extended)
+       * * \`hhmmss[(,|.)s+][Z|±hh[mm]]\` (compact)
+       * * or one of the partial forms:
+       * ** \`hh:mm\` (extended)
+       * ** \`hhmm\` or \`hh\` (compact)
+       *
+       * with an additional optional timezone indicator of:
+       *
+       * * \`Z\` or \`±hh[:mm]\` (extended)  \`±hh[mm]\` (compact)
+       *
+       * Where:
+       *
+       * * \`hh\` is "00" - "23" (0-filled to two digits)
+       * * \`mm\` is "00" - "59" (0-filled to two digits)
+       * * \`ss\` is "00" - "60" (0-filled to two digits)
+       * * \`[(,|.)s+]\` is an optional string consisting of a comma or decimal point followed by numeric string of 1 or more digits, representing a fractional second
+       * * \`Z\` is a literal meaning UTC (modern replacement for GMT), i.e. timezone \`+0000\`
+       *
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_iso8601_time(s2) {
+        const val = s2.value || "";
+        const timePattern = /^([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+        return new Boolean2(timePattern.test(val));
+      }
+      /**
+       * String is a valid ISO 8601 date-time, i.e. takes the form:
+       *
+       * * \`YYYY-MM-DDThh:mm:ss[(,|.)s+][Z|±hh[:mm]]\` (extended)
+       * * \`YYYYMMDDThhmmss[(,|.)s+][Z|±hh[mm]]\` (compact)
+       * * or one of the partial forms:
+       * ** \`YYYY-MM-DDThh:mm\` or \`YYYY-MM-DDThh\` (extended)
+       * ** \`YYYYMMDDThhmm\` or \`YYYYMMDDThh\` (compact)
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_iso8601_date_time(s2) {
+        const val = s2.value || "";
+        const dateTimePattern = /^(\d{4})-?(0[1-9]|1[0-2])-?([0-2]\d|3[01])T([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
+        return new Boolean2(dateTimePattern.test(val));
+      }
+      /**
+       * String is a valid ISO 8601 duration, i.e. takes the form:
+       *
+       * * \`P[nnY][nnM][nnW][nnD][T[nnH][nnM][nnS]]\`
+       *
+       * Where each nn represents a number of years, months, etc. \`nnW\` represents a number of 7-day weeks.
+       *
+       * Note: allowing the \`W\` designator in the same expression as other designators is an exception to the published standard, but necessary in clinical information (typically for representing pregnancy duration).
+       * @param s - Parameter
+       * @returns Result value
+       */
+      valid_iso8601_duration(s2) {
+        const val = s2.value || "";
+        const durationPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
+        return new Boolean2(durationPattern.test(val) && val.length > 1);
+      }
+    };
+    Iso8601_type = class extends Temporal {
+      /**
+       * Internal storage for value
+       * @protected
+       */
+      _value;
+      /**
+       * Representation of all descendants is a single String.
+       */
+      get value() {
+        return this._value?.value;
+      }
+      /**
+       * Gets the String wrapper object for value.
+       * Use this to access String methods.
+       */
+      get $value() {
+        return this._value;
+      }
+      /**
+       * Sets value from either a primitive value or String wrapper.
+       */
+      set value(val) {
+        if (val === void 0 || val === null) {
+          this._value = void 0;
+        } else if (typeof val === "string") {
+          this._value = String2.from(val);
+        } else {
+          this._value = val;
+        }
+      }
+    };
+    Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
+      static {
+        TYPE_REGISTRY.set("ISO8601_DATE_TIME", _Iso8601_date_time);
+      }
+      /**
+       * Extract the year part of the date as an Integer.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      year() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.year);
+        } catch {
+          try {
+            const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+            if (match && match[1]) {
+              return Integer.from(parseInt(match[1], 10));
+            }
+          } catch {
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the month part of the date/time as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      month() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.month);
+        } catch {
+          try {
+            const match = val.match(/^(\d{4})-?(\d{2})?/);
+            if (match && match[2]) {
+              return Integer.from(parseInt(match[2], 10));
+            }
+          } catch {
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the day part of the date/time as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      day() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.day);
+        } catch {
+          try {
+            const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
+            if (match && match[3]) {
+              return Integer.from(parseInt(match[3], 10));
+            }
+          } catch {
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the hour part of the date/time as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      hour() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.hour);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the minute part of the date/time as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      minute() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.minute);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the integral seconds part of the date/time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      second() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return Integer.from(dt2.second);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the fractional seconds part of the date/time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 parsing.
+       * @returns Result value
+       */
+      fractional_second() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return dt2.millisecond / 1e3 + dt2.microsecond / 1e6 + dt2.nanosecond / 1e9;
+        } catch {
+        }
+        return 0;
+      }
+      /**
+       * Timezone; may be Void.
+       *
+       * Uses Temporal API to extract timezone information.
+       * @returns Result value
+       */
+      timezone() {
+        const val = this.value || "";
+        const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+        if (match) {
+          const tz = new Iso8601_timezone();
+          tz.value = match[1];
+          return tz;
+        }
+        throw new Error("No timezone present in date-time");
+      }
+      /**
+       * Indicates whether month in year is unknown.
+       * @returns Result value
+       */
+      month_unknown() {
+        return new Boolean2(this.month().value === 0);
+      }
+      /**
+       * Indicates whether day in month is unknown.
+       * @returns Result value
+       */
+      day_unknown() {
+        return new Boolean2(this.day().value === 0);
+      }
+      /**
+       * Indicates whether minute in hour is known.
+       * @returns Result value
+       */
+      minute_unknown() {
+        const val = this.value || "";
+        return new Boolean2(!val.includes("T") || this.minute().value === 0);
+      }
+      /**
+       * Indicates whether minute in hour is known.
+       * @returns Result value
+       */
+      second_unknown() {
+        const val = this.value || "";
+        const hasSeconds = /T\d{2}:?\d{2}:?\d{2}/.test(val);
+        return new Boolean2(!hasSeconds);
+      }
+      /**
+       * True if this time has a decimal part indicated by \`','\` (comma) rather than \`'.'\` (period).
+       * @returns Result value
+       */
+      is_decimal_sign_comma() {
+        const val = this.value || "";
+        return new Boolean2(val.includes(","));
+      }
+      /**
+       * True if this date time is partial, i.e. if seconds or more is missing.
+       * @returns Result value
+       */
+      is_partial() {
+        return this.second_unknown();
+      }
+      /**
+       * True if this date/time uses \`'-'\`, \`':'\` separators.
+       * @returns Result value
+       */
+      is_extended() {
+        const val = this.value || "";
+        return new Boolean2(val.includes("-") || val.includes(":"));
+      }
+      /**
+       * True if the \`_fractional_second_\` part is significant (i.e. even if = 0.0).
+       * @returns Result value
+       */
+      has_fractional_second() {
+        const val = this.value || "";
+        return new Boolean2(/T\d{2}:?\d{2}:?\d{2}[,.]/.test(val));
+      }
+      /**
+       * Return the string value in extended format.
+       *
+       * Uses Temporal API to parse and format in extended ISO 8601 format.
+       * @returns Result value
+       */
+      as_string() {
+        const val = this.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          return String2.from(dt2.toString());
+        } catch {
+          return String2.from(val);
+        }
+      }
+      /**
+       * Arithmetic addition of a duration to a date/time.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      add(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = dt2.add(dur);
+          const newDateTime = new _Iso8601_date_time();
+          newDateTime.value = result2.toString();
+          return newDateTime;
+        } catch (e2) {
+          throw new Error(`Failed to add duration to date_time: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic subtraction of a duration from a date/time.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      subtract(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = dt2.subtract(dur);
+          const newDateTime = new _Iso8601_date_time();
+          newDateTime.value = result2.toString();
+          return newDateTime;
+        } catch (e2) {
+          throw new Error(`Failed to subtract duration from date_time: ${e2}`);
+        }
+      }
+      /**
+       * Difference of two date/times.
+       * @param a_date_time - Parameter
+       * @returns Result value
+       */
+      diff(a_date_time) {
+        const val = this.value || "";
+        const otherVal = a_date_time.value || "";
+        try {
+          const dt1 = mr.PlainDateTime.from(val);
+          const dt2 = mr.PlainDateTime.from(otherVal);
+          const diff = dt1.since(dt2);
+          const duration = new Iso8601_duration();
+          duration.value = diff.toString();
+          return duration;
+        } catch (e2) {
+          throw new Error(`Failed to calculate difference: ${e2}`);
+        }
+      }
+      /**
+       * Addition of nominal duration represented by \`_a_diff_\`. See \`Iso8601_date._add_nominal_()\` for semantics.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      add_nominal(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = dt2.add(dur);
+          const newDateTime = new Iso8601_date();
+          newDateTime.value = result2.toPlainDate().toString();
+          return newDateTime;
+        } catch (e2) {
+          throw new Error(`Failed to add nominal duration: ${e2}`);
+        }
+      }
+      /**
+       * Subtraction of nominal duration represented by \`_a_diff_\`. See \`_add_nominal_()\` for semantics.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      subtract_nominal(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const dt2 = mr.PlainDateTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = dt2.subtract(dur);
+          const newDateTime = new Iso8601_date();
+          newDateTime.value = result2.toPlainDate().toString();
+          return newDateTime;
+        } catch (e2) {
+          throw new Error(`Failed to subtract nominal duration: ${e2}`);
+        }
+      }
+      /**
+       * Compares this date-time with another for ordering.
+       * @param other - The object to compare with
+       * @returns true if this date-time is less than the other
+       */
+      less_than(other) {
+        if (!(other instanceof _Iso8601_date_time)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const dt1 = mr.PlainDateTime.from(val);
+          const dt2 = mr.PlainDateTime.from(otherVal);
+          return new Boolean2(mr.PlainDateTime.compare(dt1, dt2) < 0);
+        } catch {
+          return new Boolean2(val < otherVal);
+        }
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Iso8601_date_time)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const dt1 = mr.PlainDateTime.from(val);
+          const dt2 = mr.PlainDateTime.from(otherVal);
+          return new Boolean2(mr.PlainDateTime.compare(dt1, dt2) === 0);
+        } catch {
+          return new Boolean2(val === otherVal);
+        }
+      }
+    };
+    Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
+      static {
+        TYPE_REGISTRY.set("ISO8601_DURATION", _Iso8601_duration);
+      }
+      /**
+       * Helper method to convert openEHR duration with weeks to standard ISO 8601.
+       * OpenEHR allows weeks to be mixed with other designators, but Temporal API doesn't.
+       * This converts weeks to days (1W = 7D).
+       * @param value - Duration string that may contain weeks
+       * @returns Duration string with weeks converted to days
+       */
+      static normalizeWeeks(value) {
+        const weeksMatch = value.match(/(\d+(?:\.\d+)?)W/);
+        if (!weeksMatch)
+          return value;
+        const weeks = parseFloat(weeksMatch[1]);
+        const days = weeks * 7;
+        let normalized = value.replace(/\d+(?:\.\d+)?W/, "");
+        const daysMatch = normalized.match(/(\d+(?:\.\d+)?)D/);
+        if (daysMatch) {
+          const existingDays = parseFloat(daysMatch[1]);
+          const totalDays = existingDays + days;
+          normalized = normalized.replace(/\d+(?:\.\d+)?D/, `${totalDays}D`);
+        } else {
+          if (normalized.includes("T")) {
+            normalized = normalized.replace("T", `${days}DT`);
+          } else {
+            normalized = normalized.replace(/P(.*)$/, `P$1${days}D`);
+          }
+        }
+        return normalized;
+      }
+      /**
+       * Returns True.
+       * @returns Result value
+       */
+      is_extended() {
+        return new Boolean2(true);
+      }
+      /**
+       * Returns False.
+       * @returns Result value
+       */
+      is_partial() {
+        return new Boolean2(false);
+      }
+      /**
+       * Number of years in the \`_value_\`, i.e. the number preceding the \`'Y'\` in the \`'YMD'\` part, if one exists.
+       * @returns Result value
+       */
+      years() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return Integer.from(dur.years || 0);
+        } catch {
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Number of months in the \`_value_\`, i.e. the value preceding the \`'M'\` in the \`'YMD'\` part, if one exists.
+       * @returns Result value
+       */
+      months() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return Integer.from(dur.months || 0);
+        } catch {
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Number of days in the \`_value_\`, i.e. the number preceding the \`'D'\` in the \`'YMD'\` part, if one exists.
+       * Note: This returns only the D component, not converted weeks.
+       * @returns Result value
+       */
+      days() {
+        const val = this.value || "";
+        try {
+          const normalized = _Iso8601_duration.normalizeWeeks(val);
+          const dur = mr.Duration.from(normalized);
+          return Integer.from(dur.days || 0);
+        } catch {
+          const daysMatch = val.match(/(\d+(?:\.\d+)?)D/);
+          if (daysMatch) {
+            return Integer.from(Math.floor(parseFloat(daysMatch[1])));
+          }
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Number of hours in the \`_value_\`, i.e. the number preceding the \`'H'\` in the \`'HMS'\` part, if one exists.
+       * @returns Result value
+       */
+      hours() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return Integer.from(dur.hours || 0);
+        } catch {
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Number of minutes in the \`_value_\`, i.e. the number preceding the \`'M'\` in the \`'HMS'\` part, if one exists.
+       * @returns Result value
+       */
+      minutes() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return Integer.from(dur.minutes || 0);
+        } catch {
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Number of seconds in the \`_value_\`, i.e. the integer number preceding the \`'S'\` in the \`'HMS'\` part, if one exists.
+       * @returns Result value
+       */
+      seconds() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return Integer.from(dur.seconds || 0);
+        } catch {
+          return Integer.from(0);
+        }
+      }
+      /**
+       * Fractional seconds in the \`_value_\`, i.e. the decimal part of the number preceding the \`'S'\` in the \`'HMS'\` part, if one exists.
+       * @returns Result value
+       */
+      fractional_seconds() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          return (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
+        } catch {
+          return 0;
+        }
+      }
+      /**
+       * Number of weeks in the \`_value_\`, i.e. the value preceding the \`W\`, if one exists.
+       * @returns Result value
+       */
+      weeks() {
+        const val = this.value || "";
+        const weeksMatch = val.match(/(\d+(?:\.\d+)?)W/);
+        if (weeksMatch) {
+          return Integer.from(Math.floor(parseFloat(weeksMatch[1])));
+        }
+        return Integer.from(0);
+      }
+      /**
+       * True if this time has a decimal part indicated by ',' (comma) rather than '.' (period).
+       * @returns Result value
+       */
+      is_decimal_sign_comma() {
+        const val = this.value || "";
+        return new Boolean2(val.includes(","));
+      }
+      /**
+       * Total number of seconds equivalent (including fractional) of entire duration. Where non-definite elements such as year and month (i.e. 'Y' and 'M') are included, the corresponding 'average' durations from \`Time_definitions\` are used to compute the result.
+       * @returns Result value
+       */
+      to_seconds() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(val);
+          const totalSeconds = (dur.years || 0) * 31536e3 + (dur.months || 0) * 2592e3 + (dur.weeks || 0) * 604800 + (dur.days || 0) * 86400 + (dur.hours || 0) * 3600 + (dur.minutes || 0) * 60 + (dur.seconds || 0) + (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
+          return totalSeconds;
+        } catch {
+          return 0;
+        }
+      }
+      /**
+       * Return the duration string value.
+       * @returns Result value
+       */
+      as_string() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          return String2.from(dur.toString());
+        } catch {
+          return String2.from(val);
+        }
+      }
+      /**
+       * Arithmetic addition of a duration to a duration, via conversion to seconds, using \`Time_definitions._Average_days_in_year_\` and \`Time_definitions._Average_days_in_month_\`
+       * @param a_val - Parameter
+       * @returns Result value
+       */
+      add(a_val) {
+        const val = this.value || "";
+        const otherVal = a_val.value || "";
+        try {
+          const dur1 = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          const dur2 = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(otherVal)
+          );
+          const result2 = dur1.add(dur2);
+          const newDuration = new _Iso8601_duration();
+          newDuration.value = result2.toString();
+          return newDuration;
+        } catch (e2) {
+          throw new Error(`Failed to add durations: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic subtraction of a duration from a duration, via conversion to seconds, using \`Time_definitions._Average_days_in_year_\` and \`Time_definitions._Average_days_in_month_\`
+       * @param a_val - Parameter
+       * @returns Result value
+       */
+      subtract(a_val) {
+        const val = this.value || "";
+        const otherVal = a_val.value || "";
+        try {
+          const dur1 = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          const dur2 = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(otherVal)
+          );
+          const result2 = dur1.subtract(dur2);
+          const newDuration = new _Iso8601_duration();
+          newDuration.value = result2.toString();
+          return newDuration;
+        } catch (e2) {
+          throw new Error(`Failed to subtract durations: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic multiplication a duration by a number.
+       * @param a_val - Parameter
+       * @returns Result value
+       */
+      multiply(a_val) {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          const result2 = dur.add(dur.negated()).add({
+            years: dur.years * a_val,
+            months: dur.months * a_val,
+            weeks: dur.weeks * a_val,
+            days: dur.days * a_val,
+            hours: dur.hours * a_val,
+            minutes: dur.minutes * a_val,
+            seconds: dur.seconds * a_val,
+            milliseconds: dur.milliseconds * a_val,
+            microseconds: dur.microseconds * a_val,
+            nanoseconds: dur.nanoseconds * a_val
+          });
+          const newDuration = new _Iso8601_duration();
+          newDuration.value = result2.toString();
+          return newDuration;
+        } catch (e2) {
+          throw new Error(`Failed to multiply duration: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic division of a duration by a number.
+       * @param a_val - Parameter
+       * @returns Result value
+       */
+      divide(a_val) {
+        if (a_val === 0) {
+          throw new Error("Division by zero");
+        }
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          const result2 = dur.add(dur.negated()).add({
+            years: dur.years / a_val,
+            months: dur.months / a_val,
+            weeks: dur.weeks / a_val,
+            days: dur.days / a_val,
+            hours: dur.hours / a_val,
+            minutes: dur.minutes / a_val,
+            seconds: dur.seconds / a_val,
+            milliseconds: dur.milliseconds / a_val,
+            microseconds: dur.microseconds / a_val,
+            nanoseconds: dur.nanoseconds / a_val
+          });
+          const newDuration = new _Iso8601_duration();
+          newDuration.value = result2.toString();
+          return newDuration;
+        } catch (e2) {
+          throw new Error(`Failed to divide duration: ${e2}`);
+        }
+      }
+      /**
+       * Generate negative of current duration value.
+       * @returns Result value
+       */
+      negative() {
+        const val = this.value || "";
+        try {
+          const dur = mr.Duration.from(
+            _Iso8601_duration.normalizeWeeks(val)
+          );
+          const result2 = dur.negated();
+          const newDuration = new _Iso8601_duration();
+          newDuration.value = result2.toString();
+          return newDuration;
+        } catch (e2) {
+          throw new Error(`Failed to negate duration: ${e2}`);
+        }
+      }
+      /**
+       * Compares this duration with another for ordering.
+       * @param other - The object to compare with
+       * @returns true if this duration is less than the other
+       */
+      less_than(other) {
+        if (!(other instanceof _Iso8601_duration)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const dur1 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(val));
+          const dur2 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
+          const total1 = dur1.total({ unit: "seconds" });
+          const total2 = dur2.total({ unit: "seconds" });
+          return new Boolean2(total1 < total2);
+        } catch {
+          return new Boolean2(val < otherVal);
+        }
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Iso8601_duration)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const dur1 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(val));
+          const dur2 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
+          const total1 = dur1.total({ unit: "seconds" });
+          const total2 = dur2.total({ unit: "seconds" });
+          return new Boolean2(total1 === total2);
+        } catch {
+          return new Boolean2(val === otherVal);
+        }
+      }
+    };
+    Iso8601_time = class _Iso8601_time extends Iso8601_type {
+      static {
+        TYPE_REGISTRY.set("ISO8601_TIME", _Iso8601_time);
+      }
+      /**
+       * Extract the hour part of the date/time as an Integer.
+       * @returns Result value
+       */
+      hour() {
+        const val = this.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          return Integer.from(time.hour);
+        } catch {
+          const match = val.match(/^(\d{2})/);
+          if (match) {
+            return Integer.from(parseInt(match[1], 10));
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the minute part of the time as an Integer, or return 0 if not present.
+       * @returns Result value
+       */
+      minute() {
+        const val = this.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          return Integer.from(time.minute);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the integral seconds part of the time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
+       * @returns Result value
+       */
+      second() {
+        const val = this.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          return Integer.from(time.second);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the fractional seconds part of the time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
+       * @returns Result value
+       */
+      fractional_second() {
+        const val = this.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          return time.millisecond / 1e3 + time.microsecond / 1e6 + time.nanosecond / 1e9;
+        } catch {
+        }
+        return 0;
+      }
+      /**
+       * Timezone; may be Void.
+       * @returns Result value
+       */
+      timezone() {
+        const val = this.value || "";
+        const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+        if (match) {
+          const tz = new Iso8601_timezone();
+          tz.value = match[1];
+          return tz;
+        }
+        throw new Error("No timezone present in time");
+      }
+      /**
+       * Indicates whether minute is unknown. If so, the time is of the form “hh”.
+       * @returns Result value
+       */
+      minute_unknown() {
+        const val = this.value || "";
+        const hasMinutes = /^\d{2}:?\d{2}/.test(val);
+        return new Boolean2(!hasMinutes);
+      }
+      /**
+       * Indicates whether second is unknown. If so and month is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
+       * @returns Result value
+       */
+      second_unknown() {
+        const val = this.value || "";
+        const hasSeconds = /^\d{2}:?\d{2}:?\d{2}/.test(val);
+        return new Boolean2(!hasSeconds);
+      }
+      /**
+       * True if this time has a decimal part indicated by \`','\` (comma) rather than \`'.'\` (period).
+       * @returns Result value
+       */
+      is_decimal_sign_comma() {
+        const val = this.value || "";
+        return new Boolean2(val.includes(","));
+      }
+      /**
+       * True if this time is partial, i.e. if seconds or more is missing.
+       * @returns Result value
+       */
+      is_partial() {
+        return this.second_unknown();
+      }
+      /**
+       * True if this time uses \`'-'\`, \`':'\` separators.
+       * @returns Result value
+       */
+      is_extended() {
+        const val = this.value || "";
+        return new Boolean2(val.includes(":"));
+      }
+      /**
+       * True if the \`_fractional_second_\` part is significant (i.e. even if = 0.0).
+       * @returns Result value
+       */
+      has_fractional_second() {
+        const val = this.value || "";
+        return new Boolean2(/\d{2}[,.]/.test(val));
+      }
+      /**
+       * Return string value in extended format.
+       * @returns Result value
+       */
+      as_string() {
+        const val = this.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          return String2.from(time.toString());
+        } catch {
+          return String2.from(val);
+        }
+      }
+      /**
+       * Arithmetic addition of a duration to a time.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      add(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = time.add(dur);
+          const newTime = new _Iso8601_time();
+          newTime.value = result2.toString();
+          return newTime;
+        } catch (e2) {
+          throw new Error(`Failed to add duration to time: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic subtraction of a duration from a time.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      subtract(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const time = mr.PlainTime.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = time.subtract(dur);
+          const newTime = new _Iso8601_time();
+          newTime.value = result2.toString();
+          return newTime;
+        } catch (e2) {
+          throw new Error(`Failed to subtract duration from time: ${e2}`);
+        }
+      }
+      /**
+       * Difference of two times.
+       * @param a_time - Parameter
+       * @returns Result value
+       */
+      diff(a_time) {
+        const val = this.value || "";
+        const otherVal = a_time.value || "";
+        try {
+          const time1 = mr.PlainTime.from(val);
+          const time2 = mr.PlainTime.from(otherVal);
+          const diff = time1.since(time2);
+          const duration = new Iso8601_duration();
+          duration.value = diff.toString();
+          return duration;
+        } catch (e2) {
+          throw new Error(`Failed to calculate time difference: ${e2}`);
+        }
+      }
+      /**
+       * Compares this time with another for ordering.
+       * @param other - The object to compare with
+       * @returns true if this time is less than the other
+       */
+      less_than(other) {
+        if (!(other instanceof _Iso8601_time)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const time1 = mr.PlainTime.from(val);
+          const time2 = mr.PlainTime.from(otherVal);
+          return new Boolean2(mr.PlainTime.compare(time1, time2) < 0);
+        } catch {
+          return new Boolean2(val < otherVal);
+        }
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Iso8601_time)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const time1 = mr.PlainTime.from(val);
+          const time2 = mr.PlainTime.from(otherVal);
+          return new Boolean2(mr.PlainTime.compare(time1, time2) === 0);
+        } catch {
+          return new Boolean2(val === otherVal);
+        }
+      }
+    };
+    Iso8601_date = class _Iso8601_date extends Iso8601_type {
+      static {
+        TYPE_REGISTRY.set("ISO8601_DATE", _Iso8601_date);
+      }
+      /**
+       * Extract the year part of the date as an Integer.
+       *
+       * Uses Temporal API for robust ISO 8601 date parsing.
+       * @returns Result value
+       */
+      year() {
+        const val = this.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          return Integer.from(date.year);
+        } catch {
+          const match = val.match(/^(\d{4})/);
+          if (match) {
+            return Integer.from(parseInt(match[1], 10));
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the month part of the date as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 date parsing.
+       * @returns Result value
+       */
+      month() {
+        const val = this.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          return Integer.from(date.month);
+        } catch {
+          try {
+            const ym = mr.PlainYearMonth.from(val);
+            return Integer.from(ym.month);
+          } catch {
+          }
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the day part of the date as an Integer, or return 0 if not present.
+       *
+       * Uses Temporal API for robust ISO 8601 date parsing.
+       * @returns Result value
+       */
+      day() {
+        const val = this.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          return Integer.from(date.day);
+        } catch {
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Timezone; may be Void.
+       *
+       * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
+       * @returns Result value
+       */
+      timezone() {
+        const val = this.value || "";
+        const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
+        if (match) {
+          const tz = new Iso8601_timezone();
+          tz.value = match[1];
+          return tz;
+        }
+        throw new Error("No timezone present in date");
+      }
+      /**
+       * Indicates whether month in year is unknown. If so, the date is of the form \`"YYYY"\`.
+       * @returns Result value
+       */
+      month_unknown() {
+        return new Boolean2(this.month().value === 0);
+      }
+      /**
+       * Indicates whether day in month is unknown. If so, and month is known, the date is of the form \`"YYYY-MM"\` or \`"YYYYMM"\`.
+       * @returns Result value
+       */
+      day_unknown() {
+        return new Boolean2(this.day().value === 0);
+      }
+      /**
+       * True if this date is partial, i.e. if days or more is missing.
+       * @returns Result value
+       */
+      is_partial() {
+        return this.day_unknown();
+      }
+      /**
+       * True if this date uses \`'-'\` separators.
+       * @returns Result value
+       */
+      is_extended() {
+        const val = this.value || "";
+        return new Boolean2(val.includes("-"));
+      }
+      /**
+       * Return string value in extended format.
+       *
+       * Uses Temporal API to parse and format in extended ISO 8601 format.
+       * @returns Result value
+       */
+      as_string() {
+        const val = this.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          return String2.from(date.toString());
+        } catch {
+          try {
+            const ym = mr.PlainYearMonth.from(val);
+            return String2.from(ym.toString());
+          } catch {
+            return String2.from(val);
+          }
+        }
+      }
+      /**
+       * Arithmetic addition of a duration to a date.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      add(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = date.add(dur);
+          const newDate = new _Iso8601_date();
+          newDate.value = result2.toString();
+          return newDate;
+        } catch (e2) {
+          throw new Error(`Failed to add duration to date: ${e2}`);
+        }
+      }
+      /**
+       * Arithmetic subtraction of a duration from a date.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      subtract(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = date.subtract(dur);
+          const newDate = new _Iso8601_date();
+          newDate.value = result2.toString();
+          return newDate;
+        } catch (e2) {
+          throw new Error(`Failed to subtract duration from date: ${e2}`);
+        }
+      }
+      /**
+       * Difference of two dates.
+       * @param a_date - Parameter
+       * @returns Result value
+       */
+      diff(a_date) {
+        const val = this.value || "";
+        const otherVal = a_date.value || "";
+        try {
+          const date1 = mr.PlainDate.from(val);
+          const date2 = mr.PlainDate.from(otherVal);
+          const diff = date1.since(date2);
+          const duration = new Iso8601_duration();
+          duration.value = diff.toString();
+          return duration;
+        } catch (e2) {
+          throw new Error(`Failed to calculate date difference: ${e2}`);
+        }
+      }
+      /**
+       * Addition of nominal duration represented by \`_a_diff_\`. For example, a duration of \`'P1Y'\` means advance to the same date next year, with the exception of the date 29 February in a leap year, to which the addition of a nominal year will result in 28 February of the following year. Similarly, \`'P1M'\` is understood here as a nominal month, the addition of which will result in one of:
+       *
+       * * the same day in the following month, if it exists, or;
+       * * one or two days less where the following month is shorter, or;
+       * * in the case of adding a month to the date 31 Jan, the result will be 28 Feb in a non-leap year (i.e. three less) and 29 Feb in a leap year (i.e. two less).
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      add_nominal(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = date.add(dur, { overflow: "constrain" });
+          const newDate = new _Iso8601_date();
+          newDate.value = result2.toString();
+          return newDate;
+        } catch (e2) {
+          throw new Error(`Failed to add nominal duration to date: ${e2}`);
+        }
+      }
+      /**
+       * Subtraction of nominal duration represented by \`_a_diff_\`. See \`_add_nominal_()\` for semantics.
+       * @param a_diff - Parameter
+       * @returns Result value
+       */
+      subtract_nominal(a_diff) {
+        const val = this.value || "";
+        const diffVal = a_diff.value || "";
+        try {
+          const date = mr.PlainDate.from(val);
+          const dur = mr.Duration.from(
+            Iso8601_duration.normalizeWeeks(diffVal)
+          );
+          const result2 = date.subtract(dur, { overflow: "constrain" });
+          const newDate = new _Iso8601_date();
+          newDate.value = result2.toString();
+          return newDate;
+        } catch (e2) {
+          throw new Error(`Failed to subtract nominal duration from date: ${e2}`);
+        }
+      }
+      /**
+       * Compares this date with another for ordering.
+       * @param other - The object to compare with
+       * @returns true if this date is less than the other
+       */
+      less_than(other) {
+        if (!(other instanceof _Iso8601_date)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const date1 = mr.PlainDate.from(val);
+          const date2 = mr.PlainDate.from(otherVal);
+          return new Boolean2(mr.PlainDate.compare(date1, date2) < 0);
+        } catch {
+          return new Boolean2(val < otherVal);
+        }
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Iso8601_date)) {
+          return new Boolean2(false);
+        }
+        const val = this.value || "";
+        const otherVal = other.value || "";
+        try {
+          const date1 = mr.PlainDate.from(val);
+          const date2 = mr.PlainDate.from(otherVal);
+          return new Boolean2(mr.PlainDate.compare(date1, date2) === 0);
+        } catch {
+          return new Boolean2(val === otherVal);
+        }
+      }
+    };
+    Interval = class _Interval extends Any {
+      /**
+       * Lower bound.
+       */
+      lower;
+      /**
+       * Upper bound.
+       */
+      upper;
+      /**
+       * Internal storage for lower_unbounded
+       * @protected
+       */
+      _lower_unbounded;
+      /**
+       * True if \`_lower_\` boundary open (i.e. = \`-infinity\`).
+       */
+      get lower_unbounded() {
+        return this._lower_unbounded?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for lower_unbounded.
+       * Use this to access Boolean methods.
+       */
+      get $lower_unbounded() {
+        return this._lower_unbounded;
+      }
+      /**
+       * Sets lower_unbounded from either a primitive value or Boolean wrapper.
+       */
+      set lower_unbounded(val) {
+        if (val === void 0 || val === null) {
+          this._lower_unbounded = void 0;
+        } else if (typeof val === "boolean") {
+          this._lower_unbounded = Boolean2.from(val);
+        } else {
+          this._lower_unbounded = val;
+        }
+      }
+      /**
+       * Internal storage for upper_unbounded
+       * @protected
+       */
+      _upper_unbounded;
+      /**
+       * True if \`_upper_\` boundary open (i.e. = \`+infinity\`).
+       */
+      get upper_unbounded() {
+        return this._upper_unbounded?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for upper_unbounded.
+       * Use this to access Boolean methods.
+       */
+      get $upper_unbounded() {
+        return this._upper_unbounded;
+      }
+      /**
+       * Sets upper_unbounded from either a primitive value or Boolean wrapper.
+       */
+      set upper_unbounded(val) {
+        if (val === void 0 || val === null) {
+          this._upper_unbounded = void 0;
+        } else if (typeof val === "boolean") {
+          this._upper_unbounded = Boolean2.from(val);
+        } else {
+          this._upper_unbounded = val;
+        }
+      }
+      /**
+       * Internal storage for lower_included
+       * @protected
+       */
+      _lower_included;
+      /**
+       * True if \`_lower_\` boundary value included in range, if \`not _lower_unbounded_\`.
+       */
+      get lower_included() {
+        return this._lower_included?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for lower_included.
+       * Use this to access Boolean methods.
+       */
+      get $lower_included() {
+        return this._lower_included;
+      }
+      /**
+       * Sets lower_included from either a primitive value or Boolean wrapper.
+       */
+      set lower_included(val) {
+        if (val === void 0 || val === null) {
+          this._lower_included = void 0;
+        } else if (typeof val === "boolean") {
+          this._lower_included = Boolean2.from(val);
+        } else {
+          this._lower_included = val;
+        }
+      }
+      /**
+       * Internal storage for upper_included
+       * @protected
+       */
+      _upper_included;
+      /**
+       * True if \`_upper_\` boundary value included in range if \`not _upper_unbounded_\`.
+       */
+      get upper_included() {
+        return this._upper_included?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for upper_included.
+       * Use this to access Boolean methods.
+       */
+      get $upper_included() {
+        return this._upper_included;
+      }
+      /**
+       * Sets upper_included from either a primitive value or Boolean wrapper.
+       */
+      set upper_included(val) {
+        if (val === void 0 || val === null) {
+          this._upper_included = void 0;
+        } else if (typeof val === "boolean") {
+          this._upper_included = Boolean2.from(val);
+        } else {
+          this._upper_included = val;
+        }
+      }
+      /**
+       * True if current object's interval is semantically same as \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Interval)) {
+          return new Boolean2(false);
+        }
+        const otherInterval = other;
+        if (this.lower_unbounded !== otherInterval.lower_unbounded) {
+          return new Boolean2(false);
+        }
+        if (!this.lower_unbounded) {
+          if (this.lower === void 0 || otherInterval.lower === void 0) {
+            return new Boolean2(false);
+          }
+          if (!this.lower.is_equal(otherInterval.lower).value) {
+            return new Boolean2(false);
+          }
+          if (this.lower_included !== otherInterval.lower_included) {
+            return new Boolean2(false);
+          }
+        }
+        if (this.upper_unbounded !== otherInterval.upper_unbounded) {
+          return new Boolean2(false);
+        }
+        if (!this.upper_unbounded) {
+          if (this.upper === void 0 || otherInterval.upper === void 0) {
+            return new Boolean2(false);
+          }
+          if (!this.upper.is_equal(otherInterval.upper).value) {
+            return new Boolean2(false);
+          }
+          if (this.upper_included !== otherInterval.upper_included) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+    };
+    Proper_interval = class extends Interval {
+      /**
+       * True if the value \`e\` is properly contained in this Interval.
+       * @param e - Parameter
+       * @returns Result value
+       */
+      has(e2) {
+        if (!this.lower_unbounded && this.lower !== void 0) {
+          const cmp = e2.less_than(this.lower);
+          if (cmp.value === true)
+            return new Boolean2(false);
+          if (!this.lower_included) {
+            const eq = e2.is_equal(this.lower);
+            if (eq.value === true)
+              return new Boolean2(false);
+          }
+        }
+        if (!this.upper_unbounded && this.upper !== void 0) {
+          const cmp = this.upper.less_than(e2);
+          if (cmp.value === true)
+            return new Boolean2(false);
+          if (!this.upper_included) {
+            const eq = e2.is_equal(this.upper);
+            if (eq.value === true)
+              return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * True if there is any overlap between intervals represented by Current and \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      intersects(other) {
+        if (!this.upper_unbounded && this.upper !== void 0 && !other.lower_unbounded && other.lower !== void 0) {
+          if (this.upper.less_than(other.lower).value) {
+            return new Boolean2(false);
+          }
+          if (this.upper.is_equal(other.lower).value && (!this.upper_included || !other.lower_included)) {
+            return new Boolean2(false);
+          }
+        }
+        if (!other.upper_unbounded && other.upper !== void 0 && !this.lower_unbounded && this.lower !== void 0) {
+          if (other.upper.less_than(this.lower).value) {
+            return new Boolean2(false);
+          }
+          if (other.upper.is_equal(this.lower).value && (!other.upper_included || !this.lower_included)) {
+            return new Boolean2(false);
+          }
+        }
+        return new Boolean2(true);
+      }
+      /**
+       * True if current interval properly contains \`_other_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      contains(other) {
+        if (!other.lower_unbounded && other.lower !== void 0) {
+          if (this.lower_unbounded) {
+          } else if (this.lower === void 0) {
+            return new Boolean2(false);
+          } else {
+            if (this.lower.less_than(other.lower).value) {
+            } else if (this.lower.is_equal(other.lower).value) {
+              if (!this.lower_included && other.lower_included) {
+                return new Boolean2(false);
+              }
+            } else {
+              return new Boolean2(false);
+            }
+          }
+        }
+        if (!other.upper_unbounded && other.upper !== void 0) {
+          if (this.upper_unbounded) {
+          } else if (this.upper === void 0) {
+            return new Boolean2(false);
+          } else {
+            if (other.upper.less_than(this.upper).value) {
+            } else if (this.upper.is_equal(other.upper).value) {
+              if (!this.upper_included && other.upper_included) {
+                return new Boolean2(false);
+              }
+            } else {
+              return new Boolean2(false);
+            }
+          }
+        }
+        return new Boolean2(true);
+      }
+    };
+    Multiplicity_interval = class _Multiplicity_interval extends Proper_interval {
+      static {
+        TYPE_REGISTRY.set("MULTIPLICITY_INTERVAL", _Multiplicity_interval);
+      }
+      /**
+       * True if this interval imposes no constraints, i.e. is set to `0..*`.
+       * @returns Result value
+       */
+      is_open() {
+        const lowerVal = this.lower?.value || 0;
+        return new Boolean2(
+          lowerVal === 0 && this.upper_unbounded === true
+        );
+      }
+      /**
+       * True if this interval expresses optionality, i.e. \`0..1\`.
+       * @returns Result value
+       */
+      is_optional() {
+        const lowerVal = this.lower?.value || 0;
+        const upperVal = this.upper?.value || 0;
+        return new Boolean2(
+          lowerVal === 0 && upperVal === 1
+        );
+      }
+      /**
+       * True if this interval expresses mandation, i.e. \`1..1\`.
+       * @returns Result value
+       */
+      is_mandatory() {
+        const lowerVal = this.lower?.value || 0;
+        const upperVal = this.upper?.value || 0;
+        return new Boolean2(
+          lowerVal === 1 && upperVal === 1
+        );
+      }
+      /**
+       * True if this interval is set to \`0..0\`.
+       * @returns Result value
+       */
+      is_prohibited() {
+        const lowerVal = this.lower?.value || 0;
+        const upperVal = this.upper?.value || 0;
+        return new Boolean2(
+          lowerVal === 0 && upperVal === 0
+        );
+      }
+    };
+    Cardinality = class {
+      /**
+       * The interval of this cardinality.
+       */
+      interval;
+      /**
+       * Internal storage for is_ordered
+       * @protected
+       */
+      _is_ordered;
+      /**
+       * True if the members of the container attribute to which this cardinality refers are ordered.
+       */
+      get is_ordered() {
+        return this._is_ordered?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for is_ordered.
+       * Use this to access Boolean methods.
+       */
+      get $is_ordered() {
+        return this._is_ordered;
+      }
+      /**
+       * Sets is_ordered from either a primitive value or Boolean wrapper.
+       */
+      set is_ordered(val) {
+        if (val === void 0 || val === null) {
+          this._is_ordered = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_ordered = Boolean2.from(val);
+        } else {
+          this._is_ordered = val;
+        }
+      }
+      /**
+       * Internal storage for is_unique
+       * @protected
+       */
+      _is_unique;
+      /**
+       * True if the members of the container attribute to which this cardinality refers are unique.
+       */
+      get is_unique() {
+        return this._is_unique?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for is_unique.
+       * Use this to access Boolean methods.
+       */
+      get $is_unique() {
+        return this._is_unique;
+      }
+      /**
+       * Sets is_unique from either a primitive value or Boolean wrapper.
+       */
+      set is_unique(val) {
+        if (val === void 0 || val === null) {
+          this._is_unique = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_unique = Boolean2.from(val);
+        } else {
+          this._is_unique = val;
+        }
+      }
+      /**
+       * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+       * @returns Result value
+       */
+      is_bag() {
+        return new Boolean2(
+          this.is_ordered !== true && this.is_unique !== true
+        );
+      }
+      /**
+       * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
+       * @returns Result value
+       */
+      is_list() {
+        return new Boolean2(
+          this.is_ordered === true && this.is_unique !== true
+        );
+      }
+      /**
+       * True if the semantics of this cardinality represent a set, i.e. unordered, unique membership.
+       * @returns Result value
+       */
+      is_set() {
+        return new Boolean2(
+          this.is_ordered !== true && this.is_unique === true
+        );
+      }
+    };
+    Terminology_code = class _Terminology_code extends Any {
+      static {
+        TYPE_REGISTRY.set("TERMINOLOGY_CODE", _Terminology_code);
+      }
+      /**
+       * Internal storage for terminology_id
+       * @protected
+       */
+      _terminology_id;
+      /**
+       * The archetype environment namespace identifier used to identify a terminology. Typically a value like \`"snomed_ct"\` that is mapped elsewhere to the full URI identifying the terminology.
+       */
+      get terminology_id() {
+        return this._terminology_id?.value;
+      }
+      /**
+       * Gets the String wrapper object for terminology_id.
+       * Use this to access String methods.
+       */
+      get $terminology_id() {
+        return this._terminology_id;
+      }
+      /**
+       * Sets terminology_id from either a primitive value or String wrapper.
+       */
+      set terminology_id(val) {
+        if (val === void 0 || val === null) {
+          this._terminology_id = void 0;
+        } else if (typeof val === "string") {
+          this._terminology_id = String2.from(val);
+        } else {
+          this._terminology_id = val;
+        }
+      }
+      /**
+       * Internal storage for terminology_version
+       * @protected
+       */
+      _terminology_version;
+      /**
+       * Optional string value representing terminology version, typically a date or dotted numeric.
+       */
+      get terminology_version() {
+        return this._terminology_version?.value;
+      }
+      /**
+       * Gets the String wrapper object for terminology_version.
+       * Use this to access String methods.
+       */
+      get $terminology_version() {
+        return this._terminology_version;
+      }
+      /**
+       * Sets terminology_version from either a primitive value or String wrapper.
+       */
+      set terminology_version(val) {
+        if (val === void 0 || val === null) {
+          this._terminology_version = void 0;
+        } else if (typeof val === "string") {
+          this._terminology_version = String2.from(val);
+        } else {
+          this._terminology_version = val;
+        }
+      }
+      /**
+       * Internal storage for code_string
+       * @protected
+       */
+      _code_string;
+      /**
+       * A terminology code or post-coordinated code expression, if supported by the terminology. The code may refer to a single term, a value set consisting of multiple terms, or some other entity representable within the terminology.
+       */
+      get code_string() {
+        return this._code_string?.value;
+      }
+      /**
+       * Gets the String wrapper object for code_string.
+       * Use this to access String methods.
+       */
+      get $code_string() {
+        return this._code_string;
+      }
+      /**
+       * Sets code_string from either a primitive value or String wrapper.
+       */
+      set code_string(val) {
+        if (val === void 0 || val === null) {
+          this._code_string = void 0;
+        } else if (typeof val === "string") {
+          this._code_string = String2.from(val);
+        } else {
+          this._code_string = val;
+        }
+      }
+      /**
+       * The URI reference that may be used as a concrete key into a notional terminology service for queries that can obtain the term text, definition, and other associated elements.
+       */
+      uri;
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Terminology_code)) {
+          return new Boolean2(false);
+        }
+        const termIdMatch = this.terminology_id === other.terminology_id || this._terminology_id !== void 0 && other._terminology_id !== void 0 && this._terminology_id.is_equal(other._terminology_id).value;
+        const codeMatch = this.code_string === other.code_string || this._code_string !== void 0 && other._code_string !== void 0 && this._code_string.is_equal(other._code_string).value;
+        const versionMatch = this.terminology_version === other.terminology_version || this._terminology_version === void 0 && other._terminology_version === void 0 || this._terminology_version !== void 0 && other._terminology_version !== void 0 && this._terminology_version.is_equal(other._terminology_version).value;
+        return new Boolean2(termIdMatch && codeMatch && versionMatch);
+      }
+    };
+    Terminology_term = class _Terminology_term extends Any {
+      static {
+        TYPE_REGISTRY.set("TERMINOLOGY_TERM", _Terminology_term);
+      }
+      /**
+       * Reference to the terminology concept formally representing this term.
+       */
+      concept;
+      /**
+       * Internal storage for text
+       * @protected
+       */
+      _text;
+      /**
+       * Text of term.
+       */
+      get text() {
+        return this._text?.value;
+      }
+      /**
+       * Gets the String wrapper object for text.
+       * Use this to access String methods.
+       */
+      get $text() {
+        return this._text;
+      }
+      /**
+       * Sets text from either a primitive value or String wrapper.
+       */
+      set text(val) {
+        if (val === void 0 || val === null) {
+          this._text = void 0;
+        } else if (typeof val === "string") {
+          this._text = String2.from(val);
+        } else {
+          this._text = val;
+        }
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Terminology_term)) {
+          return new Boolean2(false);
+        }
+        const textMatch = this.text === other.text || this._text !== void 0 && other._text !== void 0 && this._text.is_equal(other._text).value;
+        const conceptMatch = this.concept === void 0 && other.concept === void 0 || this.concept !== void 0 && other.concept !== void 0 && this.concept.is_equal(other.concept).value;
+        return new Boolean2(textMatch && conceptMatch);
+      }
+    };
+    OBJECT_ID = class {
+      /**
+       * Internal storage for value
+       * @protected
+       */
+      _value;
+      /**
+       * The value of the id in the form defined below.
+       */
+      get value() {
+        return this._value?.value;
+      }
+      /**
+       * Gets the String wrapper object for value.
+       * Use this to access String methods.
+       */
+      get $value() {
+        return this._value;
+      }
+      /**
+       * Sets value from either a primitive value or String wrapper.
+       */
+      set value(val) {
+        if (val === void 0 || val === null) {
+          this._value = void 0;
+        } else if (typeof val === "string") {
+          this._value = String2.from(val);
+        } else {
+          this._value = val;
+        }
+      }
+    };
+    ARCHETYPE_ID = class extends OBJECT_ID {
+      /**
+       * Globally qualified reference model entity, e.g.  \`"openehr-EHR-OBSERVATION"\`.
+       * @returns Result value
+       */
+      qualified_rm_entity() {
+        const val = this.value || "";
+        const dotIndex = val.indexOf(".");
+        if (dotIndex === -1) {
+          throw new Error("Invalid ARCHETYPE_ID format: no '.' found");
+        }
+        return String2.from(val.substring(0, dotIndex));
+      }
+      /**
+       * Name of the concept represented by this archetype, including specialisation, e.g. \`"Biochemistry_result-cholesterol"\`.
+       * @returns Result value
+       */
+      domain_concept() {
+        const val = this.value || "";
+        const dotIndex = val.indexOf(".");
+        const vIndex = val.lastIndexOf(".v");
+        if (dotIndex === -1 || vIndex === -1 || vIndex <= dotIndex) {
+          throw new Error("Invalid ARCHETYPE_ID format");
+        }
+        return String2.from(val.substring(dotIndex + 1, vIndex));
+      }
+      /**
+       * Organisation originating the reference model on which this archetype is based, e.g. \`"openEHR"\`, \`"CEN"\`, \`"HL7"\`.
+       * @returns Result value
+       */
+      rm_originator() {
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split("-");
+        if (parts.length < 3) {
+          throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String2.from(parts[0]);
+      }
+      /**
+       * Name of the reference model, e.g. \`"RIM"\`,  \`"EHR"\`,  \`"EN13606"\`.
+       * @returns Result value
+       */
+      rm_name() {
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split("-");
+        if (parts.length < 3) {
+          throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String2.from(parts[1]);
+      }
+      /**
+       * Name of the ontological level within the reference model to which this archetype is targeted, e.g. for openEHR:  \`"FOLDER"\`, \`"COMPOSITION"\`, \`"SECTION"\`, \`"OBSERVATION"\`.
+       * @returns Result value
+       */
+      rm_entity() {
+        const qualified = this.qualified_rm_entity().value || "";
+        const parts = qualified.split("-");
+        if (parts.length < 3) {
+          throw new Error("Invalid qualified_rm_entity format");
+        }
+        return String2.from(parts[2]);
+      }
+      /**
+       * Name of specialisation of concept, if this archetype is a specialisation of another archetype, e.g. \`"cholesterol"\`.
+       * @returns Result value
+       */
+      specialisation() {
+        const concept = this.domain_concept().value || "";
+        const hyphenIndex = concept.indexOf("-");
+        if (hyphenIndex === -1) {
+          return String2.from("");
+        }
+        return String2.from(concept.substring(hyphenIndex + 1));
+      }
+      /**
+       * Version of this archetype.
+       *
+       * @returns Result value
+       */
+      version_id() {
+        const val = this.value || "";
+        const vIndex = val.lastIndexOf(".v");
+        if (vIndex === -1) {
+          throw new Error("Invalid ARCHETYPE_ID format: no '.v' found");
+        }
+        return String2.from(val.substring(vIndex + 2));
+      }
+    };
+    GENERIC_ID = class extends OBJECT_ID {
+      /**
+       * Internal storage for scheme
+       * @protected
+       */
+      _scheme;
+      /**
+       * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way.
+       */
+      get scheme() {
+        return this._scheme?.value;
+      }
+      /**
+       * Gets the String wrapper object for scheme.
+       * Use this to access String methods.
+       */
+      get $scheme() {
+        return this._scheme;
+      }
+      /**
+       * Sets scheme from either a primitive value or String wrapper.
+       */
+      set scheme(val) {
+        if (val === void 0 || val === null) {
+          this._scheme = void 0;
+        } else if (typeof val === "string") {
+          this._scheme = String2.from(val);
+        } else {
+          this._scheme = val;
+        }
+      }
+    };
+    UID_BASED_ID = class extends OBJECT_ID {
+      /**
+       * The identifier of the conceptual namespace in which the object exists, within the identification scheme. Returns the part to the left of the first '::' separator, if any, or else the whole string.
+       * @returns Result value
+       */
+      root() {
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        const rootValue = separatorIndex === -1 ? val : val.substring(0, separatorIndex);
+        if (rootValue.includes("-")) {
+          const uuid = new UUID();
+          uuid.value = rootValue;
+          return uuid;
+        } else if (rootValue.match(/^\d+(\.\d+)*$/)) {
+          const oid = new ISO_OID();
+          oid.value = rootValue;
+          return oid;
+        } else {
+          const internetId = new INTERNET_ID();
+          internetId.value = rootValue;
+          return internetId;
+        }
+      }
+      /**
+       * Optional local identifier of the object within the context of the root identifier. Returns the part to the right of the first '::' separator if any, or else any empty String.
+       * @returns Result value
+       */
+      extension() {
+        const val = this.value || "";
+        const separatorIndex = val.indexOf("::");
+        if (separatorIndex === -1) {
+          return String2.from("");
+        }
+        return String2.from(val.substring(separatorIndex + 2));
+      }
+      /**
+       * True if not \`_extension_.is_empty()\`.
+       * @returns Result value
+       */
+      has_extension() {
+        return new Boolean2(!this.extension().is_empty().value);
+      }
+    };
+    HIER_OBJECT_ID = class extends UID_BASED_ID {
+    };
+    OBJECT_REF = class _OBJECT_REF {
+      /**
+       * Internal storage for namespace
+       * @protected
+       */
+      _namespace;
+      /**
+       * Namespace to which this identifier belongs in the local system context (and possibly in any other openEHR compliant environment) e.g.  terminology ,  demographic . These names are not yet standardised. Legal values for \`_namespace_\` are:
+       *
+       * * \`"local"\`
+       * * \`"unknown"\`
+       * * a string matching the standard regex \`[a-zA-Z][a-zA-Z0-9_.:\/&?=+-]*\`.
+       *
+       * Note that the first two are just special values of the regex, and will be matched by it.
+       */
+      get namespace() {
+        return this._namespace?.value;
+      }
+      /**
+       * Gets the String wrapper object for namespace.
+       * Use this to access String methods.
+       */
+      get $namespace() {
+        return this._namespace;
+      }
+      /**
+       * Sets namespace from either a primitive value or String wrapper.
+       */
+      set namespace(val) {
+        if (val === void 0 || val === null) {
+          this._namespace = void 0;
+        } else if (typeof val === "string") {
+          this._namespace = String2.from(val);
+        } else {
+          this._namespace = val;
+        }
+      }
+      /**
+       * Internal storage for type
+       * @protected
+       */
+      _type;
+      /**
+       * Name of the  class (concrete or abstract) of object to which this identifier type refers, e.g. \`PARTY\`, \`PERSON\`,  \`GUIDELINE\`  etc. These class names are from the relevant reference model. The type name \`ANY\` can be used to indicate that any type is accepted (e.g. if the type is unknown).
+       */
+      get type() {
+        return this._type?.value;
+      }
+      /**
+       * Gets the String wrapper object for type.
+       * Use this to access String methods.
+       */
+      get $type() {
+        return this._type;
+      }
+      /**
+       * Sets type from either a primitive value or String wrapper.
+       */
+      set type(val) {
+        if (val === void 0 || val === null) {
+          this._type = void 0;
+        } else if (typeof val === "string") {
+          this._type = String2.from(val);
+        } else {
+          this._type = val;
+        }
+      }
+      /**
+       * Globally unique id of an object, regardless of where it is stored.
+       */
+      id;
+      /**
+       * Compare two OBJECT_REF instances for equality.
+       * @param other - The other OBJECT_REF to compare with
+       * @returns Boolean indicating if they are equal
+       */
+      is_equal(other) {
+        if (!(other instanceof _OBJECT_REF)) {
+          return new Boolean2(false);
+        }
+        if (this.namespace !== other.namespace) {
+          return new Boolean2(false);
+        }
+        if (this.type !== other.type) {
+          return new Boolean2(false);
+        }
+        if (this.id && other.id) {
+          if (this.id instanceof Any && other.id instanceof Any) {
+            return this.id.is_equal(other.id);
+          }
+        } else if (!this.id && !other.id) {
+          return new Boolean2(true);
+        } else {
+          return new Boolean2(false);
+        }
+        return new Boolean2(true);
+      }
+    };
+    LOCATABLE_REF = class extends OBJECT_REF {
+      /**
+       * Internal storage for path
+       * @protected
+       */
+      _path;
+      /**
+       * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified.
+       */
+      get path() {
+        return this._path?.value;
+      }
+      /**
+       * Gets the String wrapper object for path.
+       * Use this to access String methods.
+       */
+      get $path() {
+        return this._path;
+      }
+      /**
+       * Sets path from either a primitive value or String wrapper.
+       */
+      set path(val) {
+        if (val === void 0 || val === null) {
+          this._path = void 0;
+        } else if (typeof val === "string") {
+          this._path = String2.from(val);
+        } else {
+          this._path = val;
+        }
+      }
+      /**
+       * Globally unique id of an object, regardless of where it is stored.
+       */
+      id = void 0;
+      /**
+       * A URI form of the reference, created by concatenating the following:
+       *
+       * * scheme, e.g. \`ehr:\`, derived from \`_namespace_\`
+       * * \`_id.value_\`
+       * * \`/\` + \`_path_\`, where \`_path_\` is non-empty
+       *
+       * @returns Result value
+       */
+      as_uri() {
+        const namespace = this.namespace || "";
+        const idValue = this.id?.value || "";
+        const path = this.path || "";
+        let uri = `${namespace}:${idValue}`;
+        if (path && path.length > 0) {
+          uri += `/${path}`;
+        }
+        return String2.from(uri);
+      }
+    };
+    OBJECT_VERSION_ID = class extends UID_BASED_ID {
+      /**
+       * Unique identifier for logical object of which this identifier identifies one version; normally the \`_object_id_\` will be the unique identifier of the version container containing the version referred to by this \`OBJECT_VERSION_ID\` instance.
+       * @returns Result value
+       */
+      object_id() {
+        const val = this.value || "";
+        const parts = val.split("::");
+        if (parts.length !== 3) {
+          throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+        }
+        const uid = new UUID();
+        uid.value = parts[0];
+        return uid;
+      }
+      /**
+       * Identifier of the system that created the Version corresponding to this Object version id.
+       * @returns Result value
+       */
+      creating_system_id() {
+        const val = this.value || "";
+        const parts = val.split("::");
+        if (parts.length !== 3) {
+          throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+        }
+        const uid = new INTERNET_ID();
+        uid.value = parts[1];
+        return uid;
+      }
+      /**
+       * Tree identifier of this version with respect to other versions in the same version tree, as either 1 or 3 part dot-separated numbers, e.g.  1 ,  2.1.4 .
+       * @returns Result value
+       */
+      version_tree_id() {
+        const val = this.value || "";
+        const parts = val.split("::");
+        if (parts.length !== 3) {
+          throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
+        }
+        const versionTreeId = new VERSION_TREE_ID();
+        versionTreeId.value = parts[2];
+        return versionTreeId;
+      }
+      /**
+       * True if this version identifier represents a branch.
+       * @returns Result value
+       */
+      is_branch() {
+        return this.version_tree_id().is_branch();
+      }
+    };
+    PARTY_REF = class extends OBJECT_REF {
+    };
+    TERMINOLOGY_ID = class extends OBJECT_ID {
+      /**
+       * Return the terminology id (which includes the  version  in some cases). Distinct names correspond to distinct (i.e. non-compatible) terminologies. Thus the names  \`"ICD10AM"\` and \`"ICD10"\` refer to distinct terminologies.
+       * @returns Result value
+       */
+      name() {
+        const val = this.value || "";
+        const parenIndex = val.indexOf("(");
+        if (parenIndex > 0) {
+          return String2.from(val.substring(0, parenIndex));
+        }
+        return String2.from(val);
+      }
+      /**
+       * Version of this terminology, if versioning supported, else the empty string.
+       * @returns Result value
+       */
+      version_id() {
+        const val = this.value || "";
+        const parenIndex = val.indexOf("(");
+        if (parenIndex > 0) {
+          const closeParenIndex = val.indexOf(")");
+          if (closeParenIndex > parenIndex) {
+            return String2.from(val.substring(parenIndex + 1, closeParenIndex));
+          }
+        }
+        return String2.from("");
+      }
+    };
+    VERSION_TREE_ID = class {
+      /**
+       * Internal storage for value
+       * @protected
+       */
+      _value;
+      /**
+       * String form of this identifier.
+       */
+      get value() {
+        return this._value?.value;
+      }
+      /**
+       * Gets the String wrapper object for value.
+       * Use this to access String methods.
+       */
+      get $value() {
+        return this._value;
+      }
+      /**
+       * Sets value from either a primitive value or String wrapper.
+       */
+      set value(val) {
+        if (val === void 0 || val === null) {
+          this._value = void 0;
+        } else if (typeof val === "string") {
+          this._value = String2.from(val);
+        } else {
+          this._value = val;
+        }
+      }
+      /**
+       * Trunk version number; numbering starts at 1.
+       * @returns Result value
+       */
+      trunk_version() {
+        const val = this.value || "";
+        const parts = val.split(".");
+        return String2.from(parts[0]);
+      }
+      /**
+       * True if this version identifier represents a branch, i.e. has \`_branch_number()_\` and \`_branch_version()_\` parts.
+       * @returns Result value
+       */
+      is_branch() {
+        const val = this.value || "";
+        const parts = val.split(".");
+        return new Boolean2(parts.length === 3);
+      }
+      /**
+       * Number of branch from the trunk point; numbering starts at 1.
+       * @returns Result value
+       */
+      branch_number() {
+        const val = this.value || "";
+        const parts = val.split(".");
+        if (parts.length === 3) {
+          return String2.from(parts[1]);
+        }
+        throw new Error("Not a branch version");
+      }
+      /**
+       * Version of the branch; numbering starts at 1.
+       * @returns Result value
+       */
+      branch_version() {
+        const val = this.value || "";
+        const parts = val.split(".");
+        if (parts.length === 3) {
+          return String2.from(parts[2]);
+        }
+        throw new Error("Not a branch version");
+      }
+    };
+    UID = class {
+      /**
+       * Internal storage for value
+       * @protected
+       */
+      _value;
+      /**
+       * The value of the id.
+       */
+      get value() {
+        return this._value?.value;
+      }
+      /**
+       * Gets the String wrapper object for value.
+       * Use this to access String methods.
+       */
+      get $value() {
+        return this._value;
+      }
+      /**
+       * Sets value from either a primitive value or String wrapper.
+       */
+      set value(val) {
+        if (val === void 0 || val === null) {
+          this._value = void 0;
+        } else if (typeof val === "string") {
+          this._value = String2.from(val);
+        } else {
+          this._value = val;
+        }
+      }
+    };
+    UUID = class extends UID {
+    };
+    INTERNET_ID = class extends UID {
+    };
+    ISO_OID = class extends UID {
+    };
+    TEMPLATE_ID = class extends OBJECT_ID {
+    };
+    ACCESS_GROUP_REF = class extends OBJECT_REF {
+    };
+    BASIC_DEFINITIONS = class {
+    };
+    OPENEHR_DEFINITIONS = class extends BASIC_DEFINITIONS {
+    };
+    VALIDITY_KIND = class extends String2 {
+    };
+    VERSION_STATUS = class extends String2 {
+    };
+    Comparable = class {
+    };
+    Iso8601_timezone = class _Iso8601_timezone extends Iso8601_type {
+      static {
+        TYPE_REGISTRY.set("ISO8601_TIMEZONE", _Iso8601_timezone);
+      }
+      /**
+       * Extract the hour part of timezone, as an Integer in the range `00 - 14`.
+       * @returns Result value
+       */
+      hour() {
+        const val = this.value || "";
+        if (val === "Z")
+          return Integer.from(0);
+        const match = val.match(/([+-])(\d{2}):?(\d{2})/);
+        if (match) {
+          return Integer.from(parseInt(match[2], 10));
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Extract the minute part of timezone, as an Integer, usually either 0 or 30.
+       * @returns Result value
+       */
+      minute() {
+        const val = this.value || "";
+        if (val === "Z")
+          return Integer.from(0);
+        const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+        if (match && match[3]) {
+          return Integer.from(parseInt(match[3], 10));
+        }
+        return Integer.from(0);
+      }
+      /**
+       * Direction of timezone expresssed as +1 or -1.
+       * @returns Result value
+       */
+      sign() {
+        const val = this.value || "";
+        if (val === "Z")
+          return Integer.from(1);
+        const match = val.match(/([+-])/);
+        if (match) {
+          return Integer.from(match[1] === "+" ? 1 : -1);
+        }
+        return Integer.from(1);
+      }
+      /**
+       * Indicates whether minute part known.
+       * @returns Result value
+       */
+      minute_unknown() {
+        const val = this.value || "";
+        if (val === "Z")
+          return new Boolean2(false);
+        const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+        return new Boolean2(!match || !match[3]);
+      }
+      /**
+       * True if this time zone is partial, i.e. if minutes is missing.
+       * @returns Result value
+       */
+      is_partial() {
+        return this.minute_unknown();
+      }
+      /**
+       * True if this time-zone uses ‘:’ separators.
+       * @returns Result value
+       */
+      is_extended() {
+        const val = this.value || "";
+        return new Boolean2(val.includes(":"));
+      }
+      /**
+       * True if timezone is UTC, i.e. \`+0000\` or \`Z\`.
+       * @returns Result value
+       */
+      is_gmt() {
+        const val = this.value || "";
+        if (val === "Z")
+          return new Boolean2(true);
+        const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+        if (match) {
+          const hours = parseInt(match[2], 10);
+          const minutes = match[3] ? parseInt(match[3], 10) : 0;
+          return new Boolean2(hours === 0 && minutes === 0);
+        }
+        return new Boolean2(false);
+      }
+      /**
+       * Return timezone string in extended format.
+       * @returns Result value
+       */
+      as_string() {
+        const val = this.value || "";
+        if (val === "Z")
+          return String2.from("Z");
+        const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
+        if (match) {
+          const sign = match[1];
+          const hours = match[2];
+          const minutes = match[3] || "00";
+          return String2.from(`${sign}${hours}:${minutes}`);
+        }
+        return String2.from(val);
+      }
+      /**
+       * Compares this timezone with another for ordering.
+       * Timezones are ordered by their offset from UTC in minutes.
+       * @param other - The object to compare with
+       * @returns true if this timezone is less than the other
+       */
+      less_than(other) {
+        if (!(other instanceof _Iso8601_timezone)) {
+          return new Boolean2(false);
+        }
+        const thisSign = this.sign().value || 1;
+        const thisHour = this.hour().value || 0;
+        const thisMinute = this.minute().value || 0;
+        const thisOffset = thisSign * (thisHour * 60 + thisMinute);
+        const otherSign = other.sign().value || 1;
+        const otherHour = other.hour().value || 0;
+        const otherMinute = other.minute().value || 0;
+        const otherOffset = otherSign * (otherHour * 60 + otherMinute);
+        return new Boolean2(thisOffset < otherOffset);
+      }
+      /**
+       * Value equality: return True if this and other are equal in value.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_equal(other) {
+        if (!(other instanceof _Iso8601_timezone)) {
+          return new Boolean2(false);
+        }
+        const thisSign = this.sign().value || 1;
+        const thisHour = this.hour().value || 0;
+        const thisMinute = this.minute().value || 0;
+        const thisOffset = thisSign * (thisHour * 60 + thisMinute);
+        const otherSign = other.sign().value || 1;
+        const otherHour = other.hour().value || 0;
+        const otherMinute = other.minute().value || 0;
+        const otherOffset = otherSign * (otherHour * 60 + otherMinute);
+        return new Boolean2(thisOffset === otherOffset);
+      }
+    };
+    Point_interval = class _Point_interval extends Interval {
+      /**
+       * Lower boundary open (i.e. = -infinity).
+       */
+      get lower_unbounded() {
+        return this._lower_unbounded?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for lower_unbounded.
+       * Use this to access Boolean methods.
+       */
+      get $lower_unbounded() {
+        return this._lower_unbounded;
+      }
+      /**
+       * Sets lower_unbounded from either a primitive value or Boolean wrapper.
+       */
+      set lower_unbounded(val) {
+        if (val === void 0 || val === null) {
+          this._lower_unbounded = void 0;
+        } else if (typeof val === "boolean") {
+          this._lower_unbounded = Boolean2.from(val);
+        } else {
+          this._lower_unbounded = val;
+        }
+      }
+      /**
+       * Upper boundary open (i.e. = +infinity).
+       */
+      get upper_unbounded() {
+        return this._upper_unbounded?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for upper_unbounded.
+       * Use this to access Boolean methods.
+       */
+      get $upper_unbounded() {
+        return this._upper_unbounded;
+      }
+      /**
+       * Sets upper_unbounded from either a primitive value or Boolean wrapper.
+       */
+      set upper_unbounded(val) {
+        if (val === void 0 || val === null) {
+          this._upper_unbounded = void 0;
+        } else if (typeof val === "boolean") {
+          this._upper_unbounded = Boolean2.from(val);
+        } else {
+          this._upper_unbounded = val;
+        }
+      }
+      /**
+       * Lower boundary value included in range if not \`_lower_unbounded_\`.
+       */
+      get lower_included() {
+        return this._lower_included?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for lower_included.
+       * Use this to access Boolean methods.
+       */
+      get $lower_included() {
+        return this._lower_included;
+      }
+      /**
+       * Sets lower_included from either a primitive value or Boolean wrapper.
+       */
+      set lower_included(val) {
+        if (val === void 0 || val === null) {
+          this._lower_included = void 0;
+        } else if (typeof val === "boolean") {
+          this._lower_included = Boolean2.from(val);
+        } else {
+          this._lower_included = val;
+        }
+      }
+      /**
+       * Upper boundary value included in range if not \`_upper_unbounded_\`.
+       */
+      get upper_included() {
+        return this._upper_included?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for upper_included.
+       * Use this to access Boolean methods.
+       */
+      get $upper_included() {
+        return this._upper_included;
+      }
+      /**
+       * Sets upper_included from either a primitive value or Boolean wrapper.
+       */
+      set upper_included(val) {
+        if (val === void 0 || val === null) {
+          this._upper_included = void 0;
+        } else if (typeof val === "boolean") {
+          this._upper_included = Boolean2.from(val);
+        } else {
+          this._upper_included = val;
+        }
+      }
+      /**
+       * True if the value \`v\` equals this point value.
+       * @param v - Parameter
+       * @returns Result value
+       */
+      has(v2) {
+        if (this.lower === void 0) {
+          return new Boolean2(false);
+        }
+        return this.lower.is_equal(v2);
+      }
+      /**
+       * A point interval never intersects with any other interval (it's a single point).
+       * @param other - Parameter
+       * @returns Result value
+       */
+      intersects(other) {
+        if (this.lower === void 0) {
+          return new Boolean2(false);
+        }
+        return other.has(this.lower);
+      }
+      /**
+       * A point interval can only contain another interval if that interval is also the same point.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      contains(other) {
+        if (this.lower === void 0) {
+          return new Boolean2(false);
+        }
+        if (other instanceof _Point_interval) {
+          return this.is_equal(other);
+        }
+        return new Boolean2(false);
+      }
+    };
+    CODE_PHRASE = class _CODE_PHRASE {
+      /**
+       * Identifier of the distinct terminology from which the code_string (or its elements) was extracted.
+       */
+      terminology_id;
+      /**
+       * Internal storage for code_string
+       * @protected
+       */
+      _code_string;
+      /**
+       * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context.
+       */
+      get code_string() {
+        return this._code_string?.value;
+      }
+      /**
+       * Gets the String wrapper object for code_string.
+       * Use this to access String methods.
+       */
+      get $code_string() {
+        return this._code_string;
+      }
+      /**
+       * Sets code_string from either a primitive value or String wrapper.
+       */
+      set code_string(val) {
+        if (val === void 0 || val === null) {
+          this._code_string = void 0;
+        } else if (typeof val === "string") {
+          this._code_string = String2.from(val);
+        } else {
+          this._code_string = val;
+        }
+      }
+      /**
+       * Internal storage for preferred_term
+       * @protected
+       */
+      _preferred_term;
+      /**
+       * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
+       */
+      get preferred_term() {
+        return this._preferred_term?.value;
+      }
+      /**
+       * Gets the String wrapper object for preferred_term.
+       * Use this to access String methods.
+       */
+      get $preferred_term() {
+        return this._preferred_term;
+      }
+      /**
+       * Sets preferred_term from either a primitive value or String wrapper.
+       */
+      set preferred_term(val) {
+        if (val === void 0 || val === null) {
+          this._preferred_term = void 0;
+        } else if (typeof val === "string") {
+          this._preferred_term = String2.from(val);
+        } else {
+          this._preferred_term = val;
+        }
+      }
+      /**
+       * Factory method to create a CODE_PHRASE.
+       * @param terminologyId - The terminology identifier
+       * @param codeString - The code string
+       * @returns A new CODE_PHRASE instance
+       */
+      static from(terminologyId, codeString) {
+        const codePhrase = new _CODE_PHRASE();
+        const termId = new TERMINOLOGY_ID();
+        termId.value = terminologyId;
+        codePhrase.terminology_id = termId;
+        codePhrase.code_string = codeString;
+        return codePhrase;
+      }
+      /**
+       * Compare two CODE_PHRASE objects for equality.
+       * @param other - The other object to compare with
+       * @returns Boolean indicating if they are equal
+       */
+      is_equal(other) {
+        if (!(other instanceof _CODE_PHRASE)) {
+          return new Boolean2(false);
+        }
+        if (!this.terminology_id || !other.terminology_id) {
+          return new Boolean2(this.terminology_id === other.terminology_id);
+        }
+        if (this.terminology_id.value !== other.terminology_id.value) {
+          return new Boolean2(false);
+        }
+        if (this.code_string !== other.code_string) {
+          return new Boolean2(false);
+        }
+        return new Boolean2(true);
+      }
+    };
+    AUTHORED_RESOURCE = class {
+      /**
+       * Unique identifier of the family of archetypes having the same interface identifier (same major version).
+       */
+      uid;
+      /**
+       * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections.
+       */
+      original_language;
+      /**
+       * Description and lifecycle information of the resource.
+       */
+      description;
+      /**
+       * Internal storage for is_controlled
+       * @protected
+       */
+      _is_controlled;
+      /**
+       * True if this resource is under any kind of change control (even file copying), in which case revision history is created.
+       */
+      get is_controlled() {
+        return this._is_controlled?.value;
+      }
+      /**
+       * Gets the Boolean wrapper object for is_controlled.
+       * Use this to access Boolean methods.
+       */
+      get $is_controlled() {
+        return this._is_controlled;
+      }
+      /**
+       * Sets is_controlled from either a primitive value or Boolean wrapper.
+       */
+      set is_controlled(val) {
+        if (val === void 0 || val === null) {
+          this._is_controlled = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_controlled = Boolean2.from(val);
+        } else {
+          this._is_controlled = val;
+        }
+      }
+      /**
+       * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
+       */
+      annotations;
+      /**
+       * List of details for each natural translation made of this resource, keyed by language code. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
+       */
+      translations;
+      /**
+       * Most recent revision in revision_history if is_controlled else  (uncontrolled) .
+       * @returns Result value
+       */
+      current_revision() {
+        if (!this.is_controlled) {
+          return String2.from("(uncontrolled)");
+        }
+        return String2.from("1.0.0");
+      }
+      /**
+       * Total list of languages available in this resource, derived from original_language and translations.
+       * @returns Result value
+       */
+      languages_available() {
+        if (this.original_language?.code_string) {
+          return String2.from(this.original_language.code_string);
+        }
+        return String2.from("");
+      }
+    };
+    RESOURCE_DESCRIPTION = class {
+      /**
+       * Original author of this resource, with all relevant details, including organisation.
+       */
+      original_author;
+      /**
+       * Internal storage for original_namespace
+       * @protected
+       */
+      _original_namespace;
+      /**
+       * Namespace of original author's organisation, in reverse internet form, if applicable.
+       */
+      get original_namespace() {
+        return this._original_namespace?.value;
+      }
+      /**
+       * Gets the String wrapper object for original_namespace.
+       * Use this to access String methods.
+       */
+      get $original_namespace() {
+        return this._original_namespace;
+      }
+      /**
+       * Sets original_namespace from either a primitive value or String wrapper.
+       */
+      set original_namespace(val) {
+        if (val === void 0 || val === null) {
+          this._original_namespace = void 0;
+        } else if (typeof val === "string") {
+          this._original_namespace = String2.from(val);
+        } else {
+          this._original_namespace = val;
+        }
+      }
+      /**
+       * Internal storage for original_publisher
+       * @protected
+       */
+      _original_publisher;
+      /**
+       * Plain text name of organisation that originally published this artefact, if any.
+       */
+      get original_publisher() {
+        return this._original_publisher?.value;
+      }
+      /**
+       * Gets the String wrapper object for original_publisher.
+       * Use this to access String methods.
+       */
+      get $original_publisher() {
+        return this._original_publisher;
+      }
+      /**
+       * Sets original_publisher from either a primitive value or String wrapper.
+       */
+      set original_publisher(val) {
+        if (val === void 0 || val === null) {
+          this._original_publisher = void 0;
+        } else if (typeof val === "string") {
+          this._original_publisher = String2.from(val);
+        } else {
+          this._original_publisher = val;
+        }
+      }
+      /**
+       * Other contributors to the resource, each listed in "name <email>"  form.
+       */
+      other_contributors;
+      /**
+       * Lifecycle state of the resource, typically including states such as: initial, in_development, in_review, published, superseded, obsolete.
+       */
+      lifecycle_state;
+      /**
+       * Reference to owning resource.
+       */
+      parent_resource;
+      /**
+       * Internal storage for custodian_namespace
+       * @protected
+       */
+      _custodian_namespace;
+      /**
+       * Namespace in reverse internet id form, of current custodian organisation.
+       */
+      get custodian_namespace() {
+        return this._custodian_namespace?.value;
+      }
+      /**
+       * Gets the String wrapper object for custodian_namespace.
+       * Use this to access String methods.
+       */
+      get $custodian_namespace() {
+        return this._custodian_namespace;
+      }
+      /**
+       * Sets custodian_namespace from either a primitive value or String wrapper.
+       */
+      set custodian_namespace(val) {
+        if (val === void 0 || val === null) {
+          this._custodian_namespace = void 0;
+        } else if (typeof val === "string") {
+          this._custodian_namespace = String2.from(val);
+        } else {
+          this._custodian_namespace = val;
+        }
+      }
+      /**
+       * Internal storage for custodian_organisation
+       * @protected
+       */
+      _custodian_organisation;
+      /**
+       * Plain text name of current custodian organisation.
+       */
+      get custodian_organisation() {
+        return this._custodian_organisation?.value;
+      }
+      /**
+       * Gets the String wrapper object for custodian_organisation.
+       * Use this to access String methods.
+       */
+      get $custodian_organisation() {
+        return this._custodian_organisation;
+      }
+      /**
+       * Sets custodian_organisation from either a primitive value or String wrapper.
+       */
+      set custodian_organisation(val) {
+        if (val === void 0 || val === null) {
+          this._custodian_organisation = void 0;
+        } else if (typeof val === "string") {
+          this._custodian_organisation = String2.from(val);
+        } else {
+          this._custodian_organisation = val;
+        }
+      }
+      /**
+       * Internal storage for copyright
+       * @protected
+       */
+      _copyright;
+      /**
+       * Optional copyright statement for the resource as a knowledge resource.
+       */
+      get copyright() {
+        return this._copyright?.value;
+      }
+      /**
+       * Gets the String wrapper object for copyright.
+       * Use this to access String methods.
+       */
+      get $copyright() {
+        return this._copyright;
+      }
+      /**
+       * Sets copyright from either a primitive value or String wrapper.
+       */
+      set copyright(val) {
+        if (val === void 0 || val === null) {
+          this._copyright = void 0;
+        } else if (typeof val === "string") {
+          this._copyright = String2.from(val);
+        } else {
+          this._copyright = val;
+        }
+      }
+      /**
+       * Internal storage for licence
+       * @protected
+       */
+      _licence;
+      /**
+       * Licence of current artefact, in format "short licence name <URL of licence>", e.g. "Apache 2.0 License <http://www.apache.org/licenses/LICENSE-2.0.html>"
+       */
+      get licence() {
+        return this._licence?.value;
+      }
+      /**
+       * Gets the String wrapper object for licence.
+       * Use this to access String methods.
+       */
+      get $licence() {
+        return this._licence;
+      }
+      /**
+       * Sets licence from either a primitive value or String wrapper.
+       */
+      set licence(val) {
+        if (val === void 0 || val === null) {
+          this._licence = void 0;
+        } else if (typeof val === "string") {
+          this._licence = String2.from(val);
+        } else {
+          this._licence = val;
+        }
+      }
+      /**
+       * List of acknowledgements of other IP directly referenced in this archetype, typically terminology codes, ontology ids etc. Recommended keys are the widely known name or namespace for the IP source, as shown in the following example:
+       *
+       * ----
+       * ip_acknowledgements = <
+       *     ["loinc"] = <"This content from LOINC® is copyright © 1995 Regenstrief Institute, Inc. and the LOINC Committee, and available at no cost under the license at http://loinc.org/terms-of-use">
+       *     ["snomedct"] = <"Content from SNOMED CT® is copyright © 2007 IHTSDO <ihtsdo.org>">
+       * >
+       * ----
+       */
+      ip_acknowledgements;
+      /**
+       * List of references of material on which this artefact is based, as a keyed list of strings. The keys should be in a standard citation format.
+       */
+      references;
+      /**
+       * Internal storage for resource_package_uri
+       * @protected
+       */
+      _resource_package_uri;
+      /**
+       * URI of package to which this resource belongs.
+       */
+      get resource_package_uri() {
+        return this._resource_package_uri?.value;
+      }
+      /**
+       * Gets the String wrapper object for resource_package_uri.
+       * Use this to access String methods.
+       */
+      get $resource_package_uri() {
+        return this._resource_package_uri;
+      }
+      /**
+       * Sets resource_package_uri from either a primitive value or String wrapper.
+       */
+      set resource_package_uri(val) {
+        if (val === void 0 || val === null) {
+          this._resource_package_uri = void 0;
+        } else if (typeof val === "string") {
+          this._resource_package_uri = String2.from(val);
+        } else {
+          this._resource_package_uri = val;
+        }
+      }
+      /**
+       * Details related to conversion process that generated this model from an original, if relevant, as a list of name/value pairs. Typical example with recommended tags:
+       *
+       * ----
+       * conversion_details = <
+       *     ["source_model"] = <"CEM model xyz <http://location.in.clinicalelementmodels.com>">
+       *     ["tool"] = <"cem2adl v6.3.0">
+       *     ["time"] = <"2014-11-03T09:05:00">
+       * >
+       * ----
+       */
+      conversion_details;
+      /**
+       * Additional non-language-sensitive resource meta-data, as a list of name/value pairs.
+       */
+      other_details;
+      /**
+       * Details of all parts of resource description that are natural language-dependent, keyed by language code.
+       */
+      details;
+    };
+    TRANSLATION_DETAILS = class {
+      /**
+       * Language of the translation, coded using ISO 639-1 (2 character) language codes.
+       */
+      language;
+      /**
+       * Primary translator name and other demographic details.
+       */
+      author;
+      /**
+       * Internal storage for accreditation
+       * @protected
+       */
+      _accreditation;
+      /**
+       * Accreditation of primary translator or group, usually a national translator's registration or association membership id.
+       */
+      get accreditation() {
+        return this._accreditation?.value;
+      }
+      /**
+       * Gets the String wrapper object for accreditation.
+       * Use this to access String methods.
+       */
+      get $accreditation() {
+        return this._accreditation;
+      }
+      /**
+       * Sets accreditation from either a primitive value or String wrapper.
+       */
+      set accreditation(val) {
+        if (val === void 0 || val === null) {
+          this._accreditation = void 0;
+        } else if (typeof val === "string") {
+          this._accreditation = String2.from(val);
+        } else {
+          this._accreditation = val;
+        }
+      }
+      /**
+       * Any other meta-data.
+       */
+      other_details;
+      /**
+       * Internal storage for version_last_translated
+       * @protected
+       */
+      _version_last_translated;
+      /**
+       * Version of this resource last time it was translated into the language represented by this \`TRANSLATION_DETAILS\` object.
+       */
+      get version_last_translated() {
+        return this._version_last_translated?.value;
+      }
+      /**
+       * Gets the String wrapper object for version_last_translated.
+       * Use this to access String methods.
+       */
+      get $version_last_translated() {
+        return this._version_last_translated;
+      }
+      /**
+       * Sets version_last_translated from either a primitive value or String wrapper.
+       */
+      set version_last_translated(val) {
+        if (val === void 0 || val === null) {
+          this._version_last_translated = void 0;
+        } else if (typeof val === "string") {
+          this._version_last_translated = String2.from(val);
+        } else {
+          this._version_last_translated = val;
+        }
+      }
+      /**
+       * Additional contributors to this translation, each listed in the preferred format of the relevant organisation for the artefacts in question. A typical default is \`"name <email>"\` if nothing else is specified.
+       */
+      other_contributors;
+    };
+    RESOURCE_DESCRIPTION_ITEM = class {
+      /**
+       * The localised language in which the items in this description item are written. Coded using ISO 639-1 (2 character) language codes.
+       */
+      language;
+      /**
+       * Internal storage for purpose
+       * @protected
+       */
+      _purpose;
+      /**
+       * Purpose of the resource.
+       */
+      get purpose() {
+        return this._purpose?.value;
+      }
+      /**
+       * Gets the String wrapper object for purpose.
+       * Use this to access String methods.
+       */
+      get $purpose() {
+        return this._purpose;
+      }
+      /**
+       * Sets purpose from either a primitive value or String wrapper.
+       */
+      set purpose(val) {
+        if (val === void 0 || val === null) {
+          this._purpose = void 0;
+        } else if (typeof val === "string") {
+          this._purpose = String2.from(val);
+        } else {
+          this._purpose = val;
+        }
+      }
+      /**
+       * Keywords which characterise this resource, used e.g. for indexing and searching.
+       */
+      keywords;
+      /**
+       * Internal storage for use
+       * @protected
+       */
+      _use;
+      /**
+       * Description of the uses of the resource, i.e. contexts in which it could be used.
+       */
+      get use() {
+        return this._use?.value;
+      }
+      /**
+       * Gets the String wrapper object for use.
+       * Use this to access String methods.
+       */
+      get $use() {
+        return this._use;
+      }
+      /**
+       * Sets use from either a primitive value or String wrapper.
+       */
+      set use(val) {
+        if (val === void 0 || val === null) {
+          this._use = void 0;
+        } else if (typeof val === "string") {
+          this._use = String2.from(val);
+        } else {
+          this._use = val;
+        }
+      }
+      /**
+       * Internal storage for misuse
+       * @protected
+       */
+      _misuse;
+      /**
+       * Description of any misuses of the resource, i.e. contexts in which it should not be used.
+       */
+      get misuse() {
+        return this._misuse?.value;
+      }
+      /**
+       * Gets the String wrapper object for misuse.
+       * Use this to access String methods.
+       */
+      get $misuse() {
+        return this._misuse;
+      }
+      /**
+       * Sets misuse from either a primitive value or String wrapper.
+       */
+      set misuse(val) {
+        if (val === void 0 || val === null) {
+          this._misuse = void 0;
+        } else if (typeof val === "string") {
+          this._misuse = String2.from(val);
+        } else {
+          this._misuse = val;
+        }
+      }
+      /**
+       * URIs of original clinical document(s) or description of which resource is a formalisation, in the language of this description item; keyed by meaning.
+       */
+      original_resource_uri;
+      /**
+       * Additional language-senstive resource metadata, as a list of name/value pairs.
+       */
+      other_details;
+    };
+    RESOURCE_ANNOTATIONS = class {
+      /**
+       * Documentary annotations in a multi-level keyed structure.
+       */
+      documentation;
+    };
+  }
+});
+
+// enhanced/openehr_lang.ts
+var EXPR_VALUE, EXPRESSION, EXPR_LEAF, EXPR_VALUE_REF;
+var init_openehr_lang = __esm({
+  "enhanced/openehr_lang.ts"() {
+    init_define_BUILD_INFO();
+    init_openehr_base();
+    EXPR_VALUE = class {
+      /**
+       * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
+       * @returns Result value
+       */
+      value() {
+        throw new Error("Method value not yet implemented.");
+      }
+    };
+    EXPRESSION = class extends EXPR_VALUE {
+      /**
+       * The primitive type of this node, which must be determined by redefinitions in concrete classes.
+       * @returns Result value
+       */
+      type() {
+        throw new Error("Method type not yet implemented.");
+      }
+    };
+    EXPR_LEAF = class extends EXPRESSION {
+      /**
+       * The reference item from which the value of this node can be computed.
+       */
+      item;
+    };
+    EXPR_VALUE_REF = class extends EXPR_LEAF {
+    };
+  }
+});
+
+// enhanced/openehr_am.ts
+var ARCHETYPE, AUTHORED_ARCHETYPE, TEMPLATE, OPERATIONAL_TEMPLATE, TEMPLATE_OVERLAY, ARCHETYPE_CONSTRAINT, C_OBJECT, C_ATTRIBUTE, C_DEFINED_OBJECT, C_REFERENCE_OBJECT, ARCHETYPE_SLOT, C_PRIMITIVE_OBJECT, C_COMPLEX_OBJECT, C_ARCHETYPE_ROOT, ARCHETYPE_ID_CONSTRAINT, C_PRIMITIVE, C_BOOLEAN, C_STRING, C_INTEGER, C_REAL, C_TERMINOLOGY_CODE, RM_OVERLAY, EXPR_ITEM, EXPR_ARCHETYPE_REF, C_DOMAIN_TYPE, C_CODED_TEXT, C_QUANTITY, C_QUANTITY_ITEM, ASSERTION, ASSERTION_VARIABLE, EXPR_OPERATOR, EXPR_UNARY_OPERATOR, EXPR_BINARY_OPERATOR, OPERATOR_KIND, CARDINALITY, C_SINGLE_ATTRIBUTE, C_MULTIPLE_ATTRIBUTE, ARCHETYPE_ONTOLOGY;
+var init_openehr_am = __esm({
+  "enhanced/openehr_am.ts"() {
+    init_define_BUILD_INFO();
+    init_openehr_base();
+    init_openehr_lang();
+    ARCHETYPE = class extends AUTHORED_RESOURCE {
+      /**
+       * Root node of the definition of this archetype.
+       */
+      definition;
+      /**
+       * The ontology of the archetype.
+       */
+      ontology;
+      /**
+       * Internal storage for adl_version
+       * @protected
+       */
+      _adl_version;
+      /**
+       * ADL version if archetype was read in from an ADL sharable archetype.
+       */
+      get adl_version() {
+        return this._adl_version?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for adl_version.
+       * Use this to access openehr_base.String methods.
+       */
+      get $adl_version() {
+        return this._adl_version;
+      }
+      /**
+       * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+       */
+      set adl_version(val) {
+        if (val === void 0 || val === null) {
+          this._adl_version = void 0;
+        } else if (typeof val === "string") {
+          this._adl_version = String2.from(val);
+        } else {
+          this._adl_version = val;
+        }
+      }
+      /**
+       * Multi-axial identifier of this archetype in archetype space.
+       */
+      archetype_id;
+      /**
+       * Archetype OID (HIER_OBJECT_ID). Distinct from AUTHORED_RESOURCE.uid (UUID) in the BASE model.
+       */
+      archetype_hier_uid;
+      /**
+       * Internal storage for concept
+       * @protected
+       */
+      _concept;
+      /**
+       * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
+       */
+      get concept() {
+        return this._concept?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for concept.
+       * Use this to access openehr_base.String methods.
+       */
+      get $concept() {
+        return this._concept;
+      }
+      /**
+       * Sets concept from either a primitive value or openehr_base.String wrapper.
+       */
+      set concept(val) {
+        if (val === void 0 || val === null) {
+          this._concept = void 0;
+        } else if (typeof val === "string") {
+          this._concept = String2.from(val);
+        } else {
+          this._concept = val;
+        }
+      }
+      /**
+       * Identifier of the specialisation parent of this archetype.
+       */
+      parent_archetype_id;
+      /**
+       * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
+       */
+      invariants;
+      /**
+       * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
+       * @param a_lang - Parameter
+       * @returns Result value
+       */
+      concept_name(a_lang) {
+        throw new Error("Method concept_name not yet implemented.");
+      }
+      /**
+       * Set of language-independent paths extracted from archetype. Paths obey Xpath-like syntax and are formed from alternations of C_OBJECT.node_id and C_ATTRIBUTE.rm_attribute_name values.
+       * @returns Result value
+       */
+      physical_paths() {
+        throw new Error("Method physical_paths not yet implemented.");
+      }
+      /**
+       * Set of language-dependent paths extracted from archetype. Paths obey the same syntax as physical_paths, but with node_ids replaced by their meanings from the ontology.
+       * @param lang - Parameter
+       * @returns Result value
+       */
+      logical_paths(lang) {
+        throw new Error("Method logical_paths not yet implemented.");
+      }
+      /**
+       * Specialisation depth of this archetype; larger than 0 if this archetype has a parent. Derived from terminology.specialisation_depth.
+       * @returns Result value
+       */
+      specialisation_depth() {
+        throw new Error("Method specialisation_depth not yet implemented.");
+      }
+      /**
+       * True if this archetype is a specialisation of another.
+       * @returns Result value
+       */
+      is_specialised() {
+        throw new Error("Method is_specialised not yet implemented.");
+      }
+      /**
+       * True if the archetype is valid overall; various tests should be used, including checks on node_ids, internal references, and constraint references.
+       * @returns Result value
+       */
+      is_valid() {
+        throw new Error("Method is_valid not yet implemented.");
+      }
+      /**
+       * True if every node_id found on a C_OBJECT node is found in ontology.term_codes.
+       * @returns Result value
+       */
+      node_ids_valid() {
+        throw new Error("Method node_ids_valid not yet implemented.");
+      }
+      /**
+       * Version of predecessor archetype of this archetype, if any.
+       * @returns Result value
+       */
+      previous_version() {
+        throw new Error("Method previous_version not yet implemented.");
+      }
+      /**
+       * True if every ARCHETYPE_INTERNAL_REF. target_path refers to a legitimate node in the archetype definition.
+       * @returns Result value
+       */
+      internal_references_valid() {
+        throw new Error("Method internal_references_valid not yet implemented.");
+      }
+      /**
+       * True if every CONSTRAINT_REF.reference found on a C_OBJECT node in the archetype definition is found in ontology.constraint_codes.
+       * @returns Result value
+       */
+      constraint_references_valid() {
+        throw new Error("Method constraint_references_valid not yet implemented.");
+      }
+      /**
+       * The short concept name of the archetype extracted from the archetype_id.
+       * @returns Result value
+       */
+      short_concept_name() {
+        throw new Error("Method short_concept_name not yet implemented.");
+      }
+      version() {
+        throw new Error("Method version not yet implemented.");
+      }
+    };
+    AUTHORED_ARCHETYPE = class extends ARCHETYPE {
+      /**
+       * ADL version if archetype was read in from an ADL sharable archetype.
+       */
+      get adl_version() {
+        return this._adl_version?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for adl_version.
+       * Use this to access openehr_base.String methods.
+       */
+      get $adl_version() {
+        return this._adl_version;
+      }
+      /**
+       * Sets adl_version from either a primitive value or openehr_base.String wrapper.
+       */
+      set adl_version(val) {
+        if (val === void 0 || val === null) {
+          this._adl_version = void 0;
+        } else if (typeof val === "string") {
+          this._adl_version = String2.from(val);
+        } else {
+          this._adl_version = val;
+        }
+      }
+      /**
+       * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
+       */
+      build_uid;
+      /**
+       * Internal storage for rm_release
+       * @protected
+       */
+      _rm_release;
+      /**
+       * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
+       */
+      get rm_release() {
+        return this._rm_release?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for rm_release.
+       * Use this to access openehr_base.String methods.
+       */
+      get $rm_release() {
+        return this._rm_release;
+      }
+      /**
+       * Sets rm_release from either a primitive value or openehr_base.String wrapper.
+       */
+      set rm_release(val) {
+        if (val === void 0 || val === null) {
+          this._rm_release = void 0;
+        } else if (typeof val === "string") {
+          this._rm_release = String2.from(val);
+        } else {
+          this._rm_release = val;
+        }
+      }
+      /**
+       * Internal storage for is_generated
+       * @protected
+       */
+      _is_generated;
+      /**
+       * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
+       */
+      get is_generated() {
+        return this._is_generated?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for is_generated.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $is_generated() {
+        return this._is_generated;
+      }
+      /**
+       * Sets is_generated from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set is_generated(val) {
+        if (val === void 0 || val === null) {
+          this._is_generated = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_generated = Boolean2.from(val);
+        } else {
+          this._is_generated = val;
+        }
+      }
+      other_meta_data;
+    };
+    TEMPLATE = class extends AUTHORED_ARCHETYPE {
+      /**
+       * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
+       */
+      overlays;
+    };
+    OPERATIONAL_TEMPLATE = class extends AUTHORED_ARCHETYPE {
+      /**
+       * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
+       */
+      component_terminologies;
+      /**
+       * Compendium of flattened terminology extracts (i.e. from external terminologies) from archetypes referenced from this template, keyed by archetype identifier.
+       */
+      terminology_extracts;
+      component_terminology(an_id) {
+        throw new Error("Method component_terminology not yet implemented.");
+      }
+    };
+    TEMPLATE_OVERLAY = class extends ARCHETYPE {
+    };
+    ARCHETYPE_CONSTRAINT = class {
+      /**
+       * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other.
+       * Typically used during validation of special-ised archetype nodes.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      is_subset_of(_other) {
+        return Boolean2.from(false);
+      }
+      is_valid() {
+        return Boolean2.from(true);
+      }
+      /**
+       * Path of this node relative to root of archetype.
+       * @returns Result value
+       */
+      path() {
+        throw new Error("Method path not yet implemented.");
+      }
+      /**
+       * True if the relative path a_path exists at this node.
+       * @param a_path - Parameter
+       * @returns Result value
+       */
+      has_path(a_path) {
+        throw new Error("Method has_path not yet implemented.");
+      }
+    };
+    C_OBJECT = class extends ARCHETYPE_CONSTRAINT {
+      /**
+       * Internal storage for rm_type_name
+       * @protected
+       */
+      _rm_type_name;
+      /**
+       * Reference model type that this node corresponds to.
+       */
+      get rm_type_name() {
+        return this._rm_type_name?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for rm_type_name.
+       * Use this to access openehr_base.String methods.
+       */
+      get $rm_type_name() {
+        return this._rm_type_name;
+      }
+      /**
+       * Sets rm_type_name from either a primitive value or openehr_base.String wrapper.
+       */
+      set rm_type_name(val) {
+        if (val === void 0 || val === null) {
+          this._rm_type_name = void 0;
+        } else if (typeof val === "string") {
+          this._rm_type_name = String2.from(val);
+        } else {
+          this._rm_type_name = val;
+        }
+      }
+      /**
+       * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1).
+       */
+      occurrences;
+      /**
+       * Internal storage for node_id
+       * @protected
+       */
+      _node_id;
+      /**
+       * Semantic identifier of this node, used to dis-tinguish sibling nodes. All nodes must have a node_id; for nodes under a container C_ATTRIBUTE, the id must be an id-code must be defined in the archetype terminolo-gy. For valid structures, all node ids are id-codes.
+       * For C_PRIMITIVE_OBJECTs, it will have the special value Primitive_node_id.
+       */
+      get node_id() {
+        return this._node_id?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for node_id.
+       * Use this to access openehr_base.String methods.
+       */
+      get $node_id() {
+        return this._node_id;
+      }
+      /**
+       * Sets node_id from either a primitive value or openehr_base.String wrapper.
+       */
+      set node_id(val) {
+        if (val === void 0 || val === null) {
+          this._node_id = void 0;
+        } else if (typeof val === "string") {
+          this._node_id = String2.from(val);
+        } else {
+          this._node_id = val;
+        }
+      }
+    };
+    C_ATTRIBUTE = class extends ARCHETYPE_CONSTRAINT {
+      /**
+       * Internal storage for rm_attribute_name
+       * @protected
+       */
+      _rm_attribute_name;
+      /**
+       * Reference model attribute within the enclosing type represented by a C_OBJECT.
+       */
+      get rm_attribute_name() {
+        return this._rm_attribute_name?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for rm_attribute_name.
+       * Use this to access openehr_base.String methods.
+       */
+      get $rm_attribute_name() {
+        return this._rm_attribute_name;
+      }
+      /**
+       * Sets rm_attribute_name from either a primitive value or openehr_base.String wrapper.
+       */
+      set rm_attribute_name(val) {
+        if (val === void 0 || val === null) {
+          this._rm_attribute_name = void 0;
+        } else if (typeof val === "string") {
+          this._rm_attribute_name = String2.from(val);
+        } else {
+          this._rm_attribute_name = val;
+        }
+      }
+      /**
+       * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
+       */
+      existence;
+      /**
+       * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes.
+       */
+      children;
+      /**
+       * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
+       * @returns Result value
+       */
+      any_allowed() {
+        throw new Error("Method any_allowed not yet implemented.");
+      }
+    };
+    C_DEFINED_OBJECT = class extends C_OBJECT {
+      /**
+       * Value to be assumed if none sent in data.
+       */
+      assumed_value;
+      /**
+       * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+       * @param a_value - Parameter
+       * @returns Result value
+       */
+      valid_value(_a_value) {
+        return Boolean2.from(true);
+      }
+      /**
+       * Generate a prototype value from this constraint object.
+       * @returns Result value
+       */
+      prototype_value() {
+        if (this.assumed_value !== void 0) {
+          return this.assumed_value;
+        }
+        throw new Error("Method prototype_value not yet implemented.");
+      }
+      /**
+       * True if there is an assumed value.
+       *
+       * @returns Result value
+       */
+      has_assumed_value() {
+        throw new Error("Method has_assumed_value not yet implemented.");
+      }
+      /**
+       * Generate a default value from this constraint object (runtime computation).
+       * @returns Result value
+       */
+      compute_default_value() {
+        if (this.assumed_value !== void 0) {
+          return this.assumed_value;
+        }
+        throw new Error("No assumed value for compute_default_value.");
+      }
+      /**
+       * True if any value of the reference model type being constrained is allowed. Redefine in descendants.
+       * @returns Result value
+       */
+      any_allowed() {
+        return Boolean2.from(false);
+      }
+    };
+    C_REFERENCE_OBJECT = class extends C_OBJECT {
+    };
+    ARCHETYPE_SLOT = class extends C_REFERENCE_OBJECT {
+      /**
+       * List of constraints defining other archetypes that could be included at this point.
+       */
+      includes;
+      /**
+       * List of constraints defining other archetypes that cannot be included at this point.
+       */
+      excludes;
+    };
+    C_PRIMITIVE_OBJECT = class extends C_DEFINED_OBJECT {
+      /**
+       * Object actually defining the constraint.
+       */
+      item;
+      /**
+       * True if any value of the type being constrained in item is allowed.
+       * @returns Result value
+       */
+      any_allowed() {
+        throw new Error("Method any_allowed not yet implemented.");
+      }
+    };
+    C_COMPLEX_OBJECT = class extends C_DEFINED_OBJECT {
+      /**
+       * List of constraints on attributes of the reference model type represented by this object.
+       */
+      attributes;
+      /**
+       * True if any value of the reference model type being constrained is allowed.
+       * @returns Result value
+       */
+      any_allowed() {
+        throw new Error("Method any_allowed not yet implemented.");
+      }
+    };
+    C_ARCHETYPE_ROOT = class extends C_COMPLEX_OBJECT {
+      /**
+       * Internal storage for archetype_ref
+       * @protected
+       */
+      _archetype_ref;
+      /**
+       * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
+       */
+      get archetype_ref() {
+        return this._archetype_ref?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for archetype_ref.
+       * Use this to access openehr_base.String methods.
+       */
+      get $archetype_ref() {
+        return this._archetype_ref;
+      }
+      /**
+       * Sets archetype_ref from either a primitive value or openehr_base.String wrapper.
+       */
+      set archetype_ref(val) {
+        if (val === void 0 || val === null) {
+          this._archetype_ref = void 0;
+        } else if (typeof val === "string") {
+          this._archetype_ref = String2.from(val);
+        } else {
+          this._archetype_ref = val;
+        }
+      }
+    };
+    ARCHETYPE_ID_CONSTRAINT = class {
+      /**
+       * Right hand side of the constraint expression, in the form of a \`C_STRING\`, i.e. string value constrainer.
+       */
+      constraint;
+    };
+    C_PRIMITIVE = class {
+      /**
+       * Value to be assumed if none sent in data.
+       */
+      assumed_value;
+      /**
+       * Generate a default value from this constraint object.
+       * @returns Result value
+       */
+      compute_default_value() {
+        if (this.assumed_value !== void 0) {
+          return this.assumed_value;
+        }
+        throw new Error("No assumed value for compute_default_value.");
+      }
+      has_assumed_value() {
+        return Boolean2.from(this.assumed_value !== void 0);
+      }
+      valid_value(_a_value) {
+        return Boolean2.from(true);
+      }
+    };
+    C_BOOLEAN = class extends C_PRIMITIVE {
+      /**
+       * Internal storage for true_valid
+       * @protected
+       */
+      _true_valid;
+      /**
+       * True if the value True is allowed.
+       */
+      get true_valid() {
+        return this._true_valid?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for true_valid.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $true_valid() {
+        return this._true_valid;
+      }
+      /**
+       * Sets true_valid from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set true_valid(val) {
+        if (val === void 0 || val === null) {
+          this._true_valid = void 0;
+        } else if (typeof val === "boolean") {
+          this._true_valid = Boolean2.from(val);
+        } else {
+          this._true_valid = val;
+        }
+      }
+      /**
+       * Internal storage for false_valid
+       * @protected
+       */
+      _false_valid;
+      /**
+       * True if the value False is allowed.
+       */
+      get false_valid() {
+        return this._false_valid?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for false_valid.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $false_valid() {
+        return this._false_valid;
+      }
+      /**
+       * Sets false_valid from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set false_valid(val) {
+        if (val === void 0 || val === null) {
+          this._false_valid = void 0;
+        } else if (typeof val === "boolean") {
+          this._false_valid = Boolean2.from(val);
+        } else {
+          this._false_valid = val;
+        }
+      }
+      /**
+       * The value to assume if this item is not included in data, due to being part of an optional structure.
+       */
+      assumed_value = void 0;
+    };
+    C_STRING = class extends C_PRIMITIVE {
+      /**
+       * Internal storage for pattern
+       * @protected
+       */
+      _pattern;
+      /**
+       * Regular expression pattern for proposed instances of String to match.
+       */
+      get pattern() {
+        return this._pattern?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for pattern.
+       * Use this to access openehr_base.String methods.
+       */
+      get $pattern() {
+        return this._pattern;
+      }
+      /**
+       * Sets pattern from either a primitive value or openehr_base.String wrapper.
+       */
+      set pattern(val) {
+        if (val === void 0 || val === null) {
+          this._pattern = void 0;
+        } else if (typeof val === "string") {
+          this._pattern = String2.from(val);
+        } else {
+          this._pattern = val;
+        }
+      }
+      /**
+       * Set of Strings specifying constraint.
+       */
+      list;
+      /**
+       * Internal storage for list_open
+       * @protected
+       */
+      _list_open;
+      /**
+       * True if the list is being used to specify the constraint but is not considered exhaustive.
+       */
+      get list_open() {
+        return this._list_open?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for list_open.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $list_open() {
+        return this._list_open;
+      }
+      /**
+       * Sets list_open from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set list_open(val) {
+        if (val === void 0 || val === null) {
+          this._list_open = void 0;
+        } else if (typeof val === "boolean") {
+          this._list_open = Boolean2.from(val);
+        } else {
+          this._list_open = val;
+        }
+      }
+      /**
+       * The value to assume if this item is not included in data, due to being part of an optional structure.
+       */
+      assumed_value = void 0;
+      /**
+       * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
+       * @param a_value - Parameter
+       * @returns Result value
+       */
+      valid_value(a_value) {
+        throw new Error("Method valid_value not yet implemented.");
+      }
+    };
+    C_INTEGER = class extends C_PRIMITIVE {
+      /**
+       * Set of Integers specifying constraint.
+       */
+      list;
+      /**
+       * Range of Integers specifying constraint.
+       */
+      range;
+      /**
+       * The value to assume if this item is not included in data, due to being part of an optional structure.
+       */
+      assumed_value = void 0;
+    };
+    C_REAL = class extends C_PRIMITIVE {
+      /**
+       * Set of Reals specifying constraint.
+       */
+      list;
+      /**
+       * Range of Real specifying constraint.
+       */
+      range;
+      /**
+       * The value to assume if this item is not included in data, due to being part of an optional structure.
+       */
+      assumed_value = void 0;
+    };
+    C_TERMINOLOGY_CODE = class extends C_PRIMITIVE_OBJECT {
+      /**
+       * Internal storage for constraint
+       * @protected
+       */
+      _constraint;
+      /**
+       * Type of individual constraint - a single string that can either be a local at-code, or a local ac-code signifying a locally defined value set. If an ac-code, assumed_value may contain an at-code from the value set of the ac-code.
+       *
+       * Use an empty string for no constraint.
+       */
+      get constraint() {
+        return this._constraint?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for constraint.
+       * Use this to access openehr_base.String methods.
+       */
+      get $constraint() {
+        return this._constraint;
+      }
+      /**
+       * Sets constraint from either a primitive value or openehr_base.String wrapper.
+       */
+      set constraint(val) {
+        if (val === void 0 || val === null) {
+          this._constraint = void 0;
+        } else if (typeof val === "string") {
+          this._constraint = String2.from(val);
+        } else {
+          this._constraint = val;
+        }
+      }
+      /**
+       * Assumed Terminology code value.
+       */
+      assumed_value = void 0;
+      default_value;
+      /**
+       * Constraint status of this terminology constraint. If Void, the meaning is as follows:
+       *
+       * * in a top-level  archetype, equivalent to \`required\`;
+       * * in a specialised (source) archetype, the meaning is to inherit the value from the corresponding node in the parent.
+       *
+       * In the case of a specialised archetype generated by flattening, the value of this field will be:
+       *
+       * * Void if it was Void in the parent;
+       * * otherwise, it will carry the same value as in the parent.
+       */
+      constraint_status;
+      /**
+       * True if \`_constraint_status_\` is defined and equals \`required\` OR if Void. I.e. in archetypes where \`C_TERMINOLOGY_CODE\` instances have no \`_constraint_status_\`, the \`required\` status is assumed, which applies to all legacy archetypes.
+       * @returns Result value
+       */
+      constraint_required() {
+        throw new Error("Method constraint_required not yet implemented.");
+      }
+      /**
+       * Return the effective integer value of the \`_constraint_status_\` field if it exists. If it is null, return 0, i.e. \`required\`.
+       *
+       * NOTE: the above logic applies to any \`C_TERMINOLOGY_NODE\` instance in a specialised archetype that redefines another such instance in the flat parent. I.e. no stated \`_constraint_status_\` means \`required\`.
+       * @returns Result value
+       */
+      effective_constraint_status() {
+        throw new Error("Method effective_constraint_status not yet implemented.");
+      }
+      /**
+       * Effective set of at-code values corresponding to an ac-code for a locally defined value set. Not defined for ac-codes that have no local value set.
+       * @returns Result value
+       */
+      value_set_expanded() {
+        throw new Error("Method value_set_expanded not yet implemented.");
+      }
+      /**
+       * For locally defined value sets within individual code bindings: return the term URI(s) substituted from bindings for local at-codes in \`_value_set_expanded_\`.
+       * @returns Result value
+       */
+      value_set_substituted() {
+        throw new Error("Method value_set_substituted not yet implemented.");
+      }
+      /**
+       * For locally defined value sets within individual code bindings: final set of external codes to which value set is resolved.
+       * @returns Result value
+       */
+      value_set_resolved() {
+        throw new Error("Method value_set_resolved not yet implemented.");
+      }
+      /**
+       * True if a \`_value_\` is valid with respect to constraint expressed in concrete instance of this type.
+       * @param a_value - Parameter
+       * @returns Result value
+       */
+      valid_value(a_value) {
+        throw new Error("Method valid_value not yet implemented.");
+      }
+      /**
+       * A generated prototype value from this constraint object.
+       * @returns Result value
+       */
+      prototype_value() {
+        throw new Error("Method prototype_value not yet implemented.");
+      }
+      /**
+       * True if \`_constraint_\` is empty.
+       * @returns Result value
+       */
+      any_allowed() {
+        throw new Error("Method any_allowed not yet implemented.");
+      }
+      /**
+       * True if \`_other.any_allowed_\` or else every constraint in the \`_constraint_\` list exists in the \`_other.constraint_\`, and \`_effective_constraint_status()_\` is <= \`_other.effective_constraint_status()_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      c_value_conforms_to(other) {
+        throw new Error("Method c_value_conforms_to not yet implemented.");
+      }
+      /**
+       * True if \`_constraint_\` and \`_other.constraint_\` are both value-set ids, and expand to identical value sets, or else are identical value codes; and \`_effective_constraint_status()_\` = \`_other.effective_constraint_status()_\`.
+       * @param other - Parameter
+       * @returns Result value
+       */
+      c_value_congruent_to(other) {
+        throw new Error("Method c_value_congruent_to not yet implemented.");
+      }
+    };
+    RM_OVERLAY = class {
+      /**
+       * Optional structure in which visibility and aliasing of reference model elements can be specified. Key is path to an RM attribute, which is typically formed from a path to an archetyped node concatenated with a further pure RM attribute path; may also refer to a non-archetyped attribute.
+       */
+      rm_visibility;
+    };
+    EXPR_ITEM = class {
+      /**
+       * Internal storage for type
+       * @protected
+       */
+      _type;
+      /**
+       * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
+       */
+      get type() {
+        return this._type?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for type.
+       * Use this to access openehr_base.String methods.
+       */
+      get $type() {
+        return this._type;
+      }
+      /**
+       * Sets type from either a primitive value or openehr_base.String wrapper.
+       */
+      set type(val) {
+        if (val === void 0 || val === null) {
+          this._type = void 0;
+        } else if (typeof val === "string") {
+          this._type = String2.from(val);
+        } else {
+          this._type = val;
+        }
+      }
+    };
+    EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
+      /**
+       * Internal storage for path
+       * @protected
+       */
+      _path;
+      /**
+       * The path to the archetype node.
+       */
+      get path() {
+        return this._path?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for path.
+       * Use this to access openehr_base.String methods.
+       */
+      get $path() {
+        return this._path;
+      }
+      /**
+       * Sets path from either a primitive value or openehr_base.String wrapper.
+       */
+      set path(val) {
+        if (val === void 0 || val === null) {
+          this._path = void 0;
+        } else if (typeof val === "string") {
+          this._path = String2.from(val);
+        } else {
+          this._path = val;
+        }
+      }
+    };
+    C_DOMAIN_TYPE = class extends C_DEFINED_OBJECT {
+      /**
+       * Standard (i.e. C_OBJECT) form of constraint.
+       * @returns Result value
+       */
+      standard_equivalent() {
+        return new C_COMPLEX_OBJECT();
+      }
+    };
+    C_CODED_TEXT = class extends C_DOMAIN_TYPE {
+      /**
+       * Internal storage for terminology
+       * @protected
+       */
+      _terminology;
+      /**
+       * Terminology identifier.
+       */
+      get terminology() {
+        return this._terminology?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for terminology.
+       * Use this to access openehr_base.String methods.
+       */
+      get $terminology() {
+        return this._terminology;
+      }
+      /**
+       * Sets terminology from either a primitive value or openehr_base.String wrapper.
+       */
+      set terminology(val) {
+        if (val === void 0 || val === null) {
+          this._terminology = void 0;
+        } else if (typeof val === "string") {
+          this._terminology = String2.from(val);
+        } else {
+          this._terminology = val;
+        }
+      }
+      /**
+       * Optional list of codes from the terminology. No list means any code from the terminology is allowed.
+       */
+      code_list;
+      /**
+       * Internal storage for reference
+       * @protected
+       */
+      _reference;
+      get reference() {
+        return this._reference?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for reference.
+       * Use this to access openehr_base.String methods.
+       */
+      get $reference() {
+        return this._reference;
+      }
+      /**
+       * Sets reference from either a primitive value or openehr_base.String wrapper.
+       */
+      set reference(val) {
+        if (val === void 0 || val === null) {
+          this._reference = void 0;
+        } else if (typeof val === "string") {
+          this._reference = String2.from(val);
+        } else {
+          this._reference = val;
+        }
+      }
+    };
+    C_QUANTITY = class extends C_DOMAIN_TYPE {
+      /**
+       * Internal storage for property
+       * @protected
+       */
+      _property;
+      /**
+       * Name of physical property for Quantities being constrained.
+       */
+      get property() {
+        return this._property?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for property.
+       * Use this to access openehr_base.String methods.
+       */
+      get $property() {
+        return this._property;
+      }
+      /**
+       * Sets property from either a primitive value or openehr_base.String wrapper.
+       */
+      set property(val) {
+        if (val === void 0 || val === null) {
+          this._property = void 0;
+        } else if (typeof val === "string") {
+          this._property = String2.from(val);
+        } else {
+          this._property = val;
+        }
+      }
+      /**
+       * Value set of allowed individual Quantity item constraints in this Quantity constraint.
+       */
+      list;
+    };
+    C_QUANTITY_ITEM = class {
+      /**
+       * Quantity magnitude constraint.
+       */
+      magnitude;
+      /**
+       * Internal storage for units
+       * @protected
+       */
+      _units;
+      /**
+       * Optional units constraint.
+       */
+      get units() {
+        return this._units?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for units.
+       * Use this to access openehr_base.String methods.
+       */
+      get $units() {
+        return this._units;
+      }
+      /**
+       * Sets units from either a primitive value or openehr_base.String wrapper.
+       */
+      set units(val) {
+        if (val === void 0 || val === null) {
+          this._units = void 0;
+        } else if (typeof val === "string") {
+          this._units = String2.from(val);
+        } else {
+          this._units = val;
+        }
+      }
+    };
+    ASSERTION = class {
+      /**
+       * Internal storage for tag
+       * @protected
+       */
+      _tag;
+      /**
+       * Expression tag, used for differentiating multiple assertions.
+       */
+      get tag() {
+        return this._tag?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for tag.
+       * Use this to access openehr_base.String methods.
+       */
+      get $tag() {
+        return this._tag;
+      }
+      /**
+       * Sets tag from either a primitive value or openehr_base.String wrapper.
+       */
+      set tag(val) {
+        if (val === void 0 || val === null) {
+          this._tag = void 0;
+        } else if (typeof val === "string") {
+          this._tag = String2.from(val);
+        } else {
+          this._tag = val;
+        }
+      }
+      /**
+       * Internal storage for string_expression
+       * @protected
+       */
+      _string_expression;
+      /**
+       * String form of expression, in case an expression evaluator taking String expressions is used for evaluation.
+       */
+      get string_expression() {
+        return this._string_expression?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for string_expression.
+       * Use this to access openehr_base.String methods.
+       */
+      get $string_expression() {
+        return this._string_expression;
+      }
+      /**
+       * Sets string_expression from either a primitive value or openehr_base.String wrapper.
+       */
+      set string_expression(val) {
+        if (val === void 0 || val === null) {
+          this._string_expression = void 0;
+        } else if (typeof val === "string") {
+          this._string_expression = String2.from(val);
+        } else {
+          this._string_expression = val;
+        }
+      }
+      /**
+       * Root of expression tree.
+       */
+      expression;
+      /**
+       * Definitions of variables used in the assertion expression.
+       */
+      variables;
+    };
+    ASSERTION_VARIABLE = class {
+      /**
+       * Internal storage for name
+       * @protected
+       */
+      _name;
+      /**
+       * Name of variable.
+       */
+      get name() {
+        return this._name?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for name.
+       * Use this to access openehr_base.String methods.
+       */
+      get $name() {
+        return this._name;
+      }
+      /**
+       * Sets name from either a primitive value or openehr_base.String wrapper.
+       */
+      set name(val) {
+        if (val === void 0 || val === null) {
+          this._name = void 0;
+        } else if (typeof val === "string") {
+          this._name = String2.from(val);
+        } else {
+          this._name = val;
+        }
+      }
+      /**
+       * Internal storage for definition
+       * @protected
+       */
+      _definition;
+      /**
+       * Formal definition of the variable.
+       */
+      get definition() {
+        return this._definition?.value;
+      }
+      /**
+       * Gets the openehr_base.String wrapper object for definition.
+       * Use this to access openehr_base.String methods.
+       */
+      get $definition() {
+        return this._definition;
+      }
+      /**
+       * Sets definition from either a primitive value or openehr_base.String wrapper.
+       */
+      set definition(val) {
+        if (val === void 0 || val === null) {
+          this._definition = void 0;
+        } else if (typeof val === "string") {
+          this._definition = String2.from(val);
+        } else {
+          this._definition = val;
+        }
+      }
+    };
+    EXPR_OPERATOR = class extends EXPR_ITEM {
+      /**
+       * Internal storage for precedence_overridden
+       * @protected
+       */
+      _precedence_overridden;
+      /**
+       * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
+       */
+      get precedence_overridden() {
+        return this._precedence_overridden?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for precedence_overridden.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $precedence_overridden() {
+        return this._precedence_overridden;
+      }
+      /**
+       * Sets precedence_overridden from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set precedence_overridden(val) {
+        if (val === void 0 || val === null) {
+          this._precedence_overridden = void 0;
+        } else if (typeof val === "boolean") {
+          this._precedence_overridden = Boolean2.from(val);
+        } else {
+          this._precedence_overridden = val;
+        }
+      }
+      /**
+       * Code of operator.
+       */
+      operator;
+    };
+    EXPR_UNARY_OPERATOR = class extends EXPR_OPERATOR {
+      /**
+       * Operand node.
+       */
+      operand;
+    };
+    EXPR_BINARY_OPERATOR = class extends EXPR_OPERATOR {
+      /**
+       * Left operand node.
+       */
+      left_operand;
+      /**
+       * Right operand node.
+       */
+      right_operand;
+    };
+    OPERATOR_KIND = class extends String2 {
+    };
+    CARDINALITY = class {
+      /**
+       * The interval of this cardinality.
+       */
+      interval;
+      /**
+       * Internal storage for is_ordered
+       * @protected
+       */
+      _is_ordered;
+      /**
+       * True if the members of the container attribute to which this cardinality refers are ordered.
+       */
+      get is_ordered() {
+        return this._is_ordered?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for is_ordered.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $is_ordered() {
+        return this._is_ordered;
+      }
+      /**
+       * Sets is_ordered from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set is_ordered(val) {
+        if (val === void 0 || val === null) {
+          this._is_ordered = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_ordered = Boolean2.from(val);
+        } else {
+          this._is_ordered = val;
+        }
+      }
+      /**
+       * Internal storage for is_unique
+       * @protected
+       */
+      _is_unique;
+      /**
+       * True if the members of the container attribute to which this cardinality refers are unique.
+       */
+      get is_unique() {
+        return this._is_unique?.value;
+      }
+      /**
+       * Gets the openehr_base.Boolean wrapper object for is_unique.
+       * Use this to access openehr_base.Boolean methods.
+       */
+      get $is_unique() {
+        return this._is_unique;
+      }
+      /**
+       * Sets is_unique from either a primitive value or openehr_base.Boolean wrapper.
+       */
+      set is_unique(val) {
+        if (val === void 0 || val === null) {
+          this._is_unique = void 0;
+        } else if (typeof val === "boolean") {
+          this._is_unique = Boolean2.from(val);
+        } else {
+          this._is_unique = val;
+        }
+      }
+      /**
+       * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+       * @returns Result value
+       */
+      is_bag() {
+        throw new Error("Method is_bag not yet implemented.");
+      }
+      /**
+       * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
+       * @returns Result value
+       */
+      is_list() {
+        throw new Error("Method is_list not yet implemented.");
+      }
+      /**
+       * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
+       * @returns Result value
+       */
+      is_set() {
+        throw new Error("Method is_set not yet implemented.");
+      }
+    };
+    C_SINGLE_ATTRIBUTE = class extends C_ATTRIBUTE {
+      /**
+       * List of alternative constraints for the single child of this attribute within the data.
+       * @returns Result value
+       */
+      alternatives() {
+        throw new Error("Method alternatives not yet implemented.");
+      }
+    };
+    C_MULTIPLE_ATTRIBUTE = class extends C_ATTRIBUTE {
+      /**
+       * Cardinality of this attribute constraint, if it constraints a container attribute.
+       */
+      cardinality;
+      /**
+       * List of constraints representing members of the container value of this attribute within the data. Semantics of the uniqueness and ordering of items in the container are given by the cardinality.
+       * @returns Result value
+       */
+      members() {
+        throw new Error("Method members not yet implemented.");
+      }
+    };
+    ARCHETYPE_ONTOLOGY = class {
+      /**
+       * Directory of term definitions as a two-level table. The outer hash keys
+       * are language codes, e.g. `"en"`, while the inner hash keys are term codes,
+       * e.g. `"at0004"`, mapping to term attribute records (text, description, …).
+       */
+      term_definitions;
+      /**
+       * Directory of bindings to external terminology codes, keyed by terminology
+       * id then term code.
+       */
+      term_bindings;
+      /**
+       * Directory of constraint bindings, keyed by terminology id then constraint
+       * code.
+       */
+      constraint_bindings;
+      /**
+       * Directory of locally defined value sets, keyed by value-set (ac) code.
+       */
+      value_sets;
+      /**
+       * List of all term codes in the ontology. Most of these correspond to “at” codes in an ADL archetype, which are the node_ids on C_OBJECT descendants. There may be an extra one, if a different term is used as the overall archetype concept from that used as the node_id of the outermost C_OBJECT in the definition part.
+       */
+      term_codes;
+      /**
+       * List of all term codes in the ontology. These correspond to the “ac” codes in an ADL archetype, or equivalently, the CONSTRAINT_REF.reference values in the archetype definition.
+       */
+      constraint_codes;
+      /**
+       * Archetype which owns this terminology.
+       */
+      parent_archetype;
+      /**
+       * List of terminologies to which term or constraint bindings exist in this terminology.
+       */
+      terminologies_available;
+      /**
+       * Internal storage for specialisation_depth
+       * @protected
+       */
+      _specialisation_depth;
+      /**
+       * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
+       */
+      get specialisation_depth() {
+        return this._specialisation_depth?.value;
+      }
+      /**
+       * Gets the openehr_base.Integer wrapper object for specialisation_depth.
+       * Use this to access openehr_base.Integer methods.
+       */
+      get $specialisation_depth() {
+        return this._specialisation_depth;
+      }
+      /**
+       * Sets specialisation_depth from either a primitive value or openehr_base.Integer wrapper.
+       */
+      set specialisation_depth(val) {
+        if (val === void 0 || val === null) {
+          this._specialisation_depth = void 0;
+        } else if (typeof val === "number") {
+          this._specialisation_depth = Integer.from(val);
+        } else {
+          this._specialisation_depth = val;
+        }
+      }
+      term_attribute_names;
+      /**
+       * True if terminology ‘a_terminology’ is present in archetype ontology.
+       * @param a_lang - Parameter
+       * @returns Result value
+       */
+      has_language(a_lang) {
+        throw new Error("Method has_language not yet implemented.");
+      }
+      /**
+       * True if terminology \`a_terminology' is present in archetype ontology.
+       * @param a_terminology_id - Parameter
+       * @returns Result value
+       */
+      has_terminology(a_terminology_id) {
+        throw new Error("Method has_terminology not yet implemented.");
+      }
+      /**
+       * True if term_codes has a_code.
+       * @param a_code - Parameter
+       * @returns Result value
+       */
+      has_term_code(a_code) {
+        throw new Error("Method has_term_code not yet implemented.");
+      }
+      /**
+       * True if constraint_codes has a_code.
+       * @param a_code - Parameter
+       * @returns Result value
+       */
+      has_constraint_code(a_code) {
+        throw new Error("Method has_constraint_code not yet implemented.");
+      }
+      /**
+       * Term definition for a code, in a specified language.
+       * @param a_lang - Parameter
+       * @param a_code - Parameter
+       * @returns Result value
+       */
+      term_definition(a_lang, a_code) {
+        throw new Error("Method term_definition not yet implemented.");
+      }
+      /**
+       * Constraint definition for a code, in a specified language.
+       * @param a_code - Parameter
+       * @param a_lang - Parameter
+       * @returns Result value
+       */
+      constraint_definition(a_code, a_lang) {
+        throw new Error("Method constraint_definition not yet implemented.");
+      }
+      /**
+       * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+       * @param a_terminology - Parameter
+       * @param a_code - Parameter
+       * @returns Result value
+       */
+      term_binding(a_terminology, a_code) {
+        throw new Error("Method term_binding not yet implemented.");
+      }
+      /**
+       * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
+       * @param a_terminology_id - Parameter
+       * @param a_code - Parameter
+       * @returns Result value
+       */
+      constraint_binding(a_terminology_id, a_code) {
+        throw new Error("Method constraint_binding not yet implemented.");
+      }
+    };
   }
 });
 
@@ -1157,8 +11989,8 @@ var require_ucumInternalUtils = __commonJS({
     exports.getSynonyms = getSynonyms;
     var UnitTables = require_unitTables().UnitTables;
     function isNumericString(theString) {
-      let num2 = "" + theString;
-      return !isNaN(num2) && !isNaN(parseFloat(num2));
+      let num = "" + theString;
+      return !isNaN(num) && !isNaN(parseFloat(num));
     }
     function isIntegerUnit(str) {
       return /^\d+$/.test(str);
@@ -1749,7 +12581,7 @@ var require_unit = __commonJS({
        * @throws an error if the dimension of the fromUnit differs from this unit's
        * dimension
        */
-      convertFrom(num2, fromUnit) {
+      convertFrom(num, fromUnit) {
         let newNum = 0;
         if (this.isArbitrary_)
           throw new Error(`Attempt to convert to arbitrary unit "${this.csCode_}"`);
@@ -1773,9 +12605,9 @@ var require_unit = __commonJS({
         let x2;
         if (fromCnv != null) {
           let fromFunc = _ucumFunctions.default.forName(fromCnv);
-          x2 = fromFunc.cnvFrom(num2 * fromUnit.cnvPfx_) * fromMag;
+          x2 = fromFunc.cnvFrom(num * fromUnit.cnvPfx_) * fromMag;
         } else {
-          x2 = num2 * fromMag;
+          x2 = num * fromMag;
         }
         if (this.cnv_ != null) {
           let toFunc = _ucumFunctions.default.forName(this.cnv_);
@@ -1802,8 +12634,8 @@ var require_unit = __commonJS({
        * @throws an error if the dimension of the toUnit differs from this unit's
        *   dimension
        */
-      convertTo(num2, toUnit) {
-        return toUnit.convertFrom(num2, this);
+      convertTo(num, toUnit) {
+        return toUnit.convertFrom(num, this);
       }
       // end convertTo
       /**
@@ -1816,10 +12648,10 @@ var require_unit = __commonJS({
        * @param num the number for the coherent version of this unit
        * @return the number for the coherent version of this unit
        */
-      convertCoherent(num2) {
+      convertCoherent(num) {
         if (this.cnv_ !== null)
-          num2 = this.cnv_.f_from(num2 / this.cnvPfx_) * this.magnitude_;
-        return num2;
+          num = this.cnv_.f_from(num / this.cnvPfx_) * this.magnitude_;
+        return num;
       }
       // end convertCoherent
       /**
@@ -1830,8 +12662,8 @@ var require_unit = __commonJS({
        * @return the number of this unit after conversion
        * @throws an error if the dimensions differ
        */
-      mutateCoherent(num2) {
-        num2 = this.convertCoherent(num2);
+      mutateCoherent(num) {
+        num = this.convertCoherent(num);
         this.magnitude_ = 1;
         this.cnv_ = null;
         this.cnvPfx_ = 1;
@@ -1844,7 +12676,7 @@ var require_unit = __commonJS({
             throw new Error(`Can't find base unit for dimension ${i3}`);
           this.name_ = uA.name + elem;
         }
-        return num2;
+        return num;
       }
       // end mutateCoherent
       /**
@@ -1960,11 +12792,11 @@ var require_unit = __commonJS({
        * @return the magnitude of this unit after it's converted
        * @throw an error if the dimensions differ
        */
-      mutateRatio(num2) {
+      mutateRatio(num) {
         if (this.cnv_ == null)
-          return this.mutateCoherent(num2);
+          return this.mutateCoherent(num);
         else
-          return num2;
+          return num;
       }
       // end mutateRatio
       /**
@@ -2381,12 +13213,12 @@ var require_jsonArrayPack = __commonJS({
     exports.packArray = packArray;
     exports.unpackArray = unpackArray;
     var pushFn = Array.prototype.push;
-    function isObject(value) {
+    function isObject2(value) {
       return Object.prototype.toString.call(value) === "[object Object]";
     }
     function createConfig(refObj) {
       return Object.keys(refObj).reduce((config, key) => {
-        if (isObject(refObj[key])) {
+        if (isObject2(refObj[key])) {
           pushFn.apply(config, createConfig(refObj[key]).map((keyTail) => [key, ...[].concat(keyTail)]));
         } else {
           config.push(key);
@@ -4934,27 +15766,27 @@ var require_strnum = __commonJS({
           else if (options.leadingZeros && leadingZeros === str)
             return 0;
           else {
-            const num2 = Number(trimmedStr);
-            const numStr = "" + num2;
+            const num = Number(trimmedStr);
+            const numStr = "" + num;
             if (numStr.search(/[eE]/) !== -1) {
               if (options.eNotation)
-                return num2;
+                return num;
               else
                 return str;
             } else if (trimmedStr.indexOf(".") !== -1) {
               if (numStr === "0" && numTrimmedByZeros === "")
-                return num2;
+                return num;
               else if (numStr === numTrimmedByZeros)
-                return num2;
+                return num;
               else if (sign && numStr === "-" + numTrimmedByZeros)
-                return num2;
+                return num;
               else
                 return str;
             }
             if (leadingZeros) {
-              return numTrimmedByZeros === numStr || sign + numTrimmedByZeros === numStr ? num2 : str;
+              return numTrimmedByZeros === numStr || sign + numTrimmedByZeros === numStr ? num : str;
             } else {
-              return trimmedStr === numStr || trimmedStr === sign + numStr ? num2 : str;
+              return trimmedStr === numStr || trimmedStr === sign + numStr ? num : str;
             }
           }
         } else {
@@ -6086,6 +16918,2612 @@ var require_fxp = __commonJS({
   }
 });
 
+// enhanced/serialization/simplified/normalize.ts
+function normalizeWebTemplateId(text) {
+  let id2 = text.trim().replace(/[^\p{L}\p{N}_.\-]+/gu, "_").replace(/_+/g, "_").toLowerCase().replace(/^_+|_+$/g, "");
+  if (!id2)
+    id2 = "id";
+  if (/^\d/.test(id2))
+    id2 = `a${id2}`;
+  return id2;
+}
+function nodeIdToAtCode(nodeId) {
+  if (!nodeId)
+    return "";
+  const m2 = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
+  if (m2) {
+    const digits = m2[1].replace(/\./g, "");
+    return `at${digits.padStart(4, "0")}`;
+  }
+  return nodeId;
+}
+function templateRootId(templateId) {
+  return normalizeWebTemplateId(templateId);
+}
+function joinAqlPath(base2, segment) {
+  const seg = segment.startsWith("/") ? segment.slice(1) : segment;
+  if (!base2 || base2 === "/")
+    return `/${seg}`;
+  return `${base2.replace(/\/$/, "")}/${seg}`;
+}
+var init_normalize = __esm({
+  "enhanced/serialization/simplified/normalize.ts"() {
+    init_define_BUILD_INFO();
+  }
+});
+
+// enhanced/serialization/simplified/dv_field_maps.ts
+function def(rmType, fields) {
+  MAPS[rmType] = { rmType, fields };
+}
+function resolveDvType(rmType) {
+  return RM_TYPE_ALIASES[rmType] ?? rmType;
+}
+function getFieldMap(rmType) {
+  return MAPS[resolveDvType(rmType)];
+}
+function fallbackFieldMap(rmType) {
+  return {
+    rmType,
+    fields: [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TEXT" }
+    ]
+  };
+}
+function rmProp(obj, key) {
+  if (obj == null || typeof obj !== "object")
+    return void 0;
+  const record = obj;
+  if (key in record)
+    return record[key];
+  let proto = Object.getPrototypeOf(obj);
+  while (proto && proto !== Object.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+    if (descriptor?.get) {
+      try {
+        return descriptor.get.call(obj);
+      } catch {
+        return void 0;
+      }
+    }
+    proto = Object.getPrototypeOf(proto);
+  }
+  return void 0;
+}
+function rmPropAtPath(obj, path) {
+  let current = obj;
+  for (const key of path) {
+    current = rmProp(current, key);
+    if (current == null)
+      return void 0;
+  }
+  if (current != null && typeof current === "object" && !Array.isArray(current)) {
+    const inner = rmProp(current, "value");
+    if (inner != null && (typeof inner === "string" || typeof inner === "number" || typeof inner === "boolean")) {
+      return inner;
+    }
+  }
+  return current;
+}
+function coerce(value, kind) {
+  if (value == null)
+    return void 0;
+  switch (kind) {
+    case "boolean":
+      if (typeof value === "boolean")
+        return value;
+      if (value === "true")
+        return true;
+      if (value === "false")
+        return false;
+      return void 0;
+    case "number":
+      if (typeof value === "number")
+        return value;
+      if (typeof value === "string" && value !== "")
+        return Number(value);
+      return void 0;
+    case "integer": {
+      const n2 = typeof value === "number" ? value : typeof value === "string" && value !== "" ? Number(value) : void 0;
+      return n2 != null && Number.isFinite(n2) ? Math.trunc(n2) : void 0;
+    }
+    default:
+      return typeof value === "boolean" || typeof value === "number" ? value : String(value);
+  }
+}
+function extractFields(rmType, rmValue) {
+  const map2 = getFieldMap(rmType) ?? fallbackFieldMap(rmType);
+  const out = {};
+  for (const field of map2.fields) {
+    const raw = rmPropAtPath(rmValue, field.path);
+    const v2 = coerce(raw, field.kind);
+    if (v2 !== void 0)
+      out[field.suffix] = v2;
+  }
+  return out;
+}
+function buildDvValue(rmType, fields) {
+  const resolved = resolveDvType(rmType);
+  const map2 = getFieldMap(resolved) ?? fallbackFieldMap(resolved);
+  const root = { _type: resolved };
+  for (const field of map2.fields) {
+    let value = fields[field.suffix];
+    if (value == null && field.suffix === "")
+      value = fields.value;
+    if (value == null)
+      continue;
+    const coerced = coerce(value, field.kind);
+    if (coerced === void 0)
+      continue;
+    let current = root;
+    for (let i3 = 0; i3 < field.path.length - 1; i3++) {
+      const key = field.path[i3];
+      let next = current[key];
+      if (!next || typeof next !== "object") {
+        next = { _type: field.intermediates?.[key] ?? "OBJECT" };
+        current[key] = next;
+      }
+      current = next;
+    }
+    current[field.path[field.path.length - 1]] = coerced;
+  }
+  applyBuildDefaults(resolved, root, map2);
+  return root;
+}
+function applyBuildDefaults(rmType, root, map2) {
+  if (rmType === "DV_CODED_TEXT") {
+    const dc = root.defining_code;
+    if (dc && dc.code_string != null && dc.terminology_id == null) {
+      dc.terminology_id = { _type: "TERMINOLOGY_ID", value: "local" };
+    }
+  } else if (rmType === "CODE_PHRASE") {
+    if (root.code_string != null && root.terminology_id == null) {
+      root.terminology_id = { _type: "TERMINOLOGY_ID", value: "local" };
+    }
+  } else if (rmType === "DV_ORDINAL") {
+    const symbol = root.symbol;
+    const dc = symbol?.defining_code;
+    if (dc && dc.code_string != null && dc.terminology_id == null) {
+      dc.terminology_id = { _type: "TERMINOLOGY_ID", value: "local" };
+    }
+  } else if (rmType === "DV_MULTIMEDIA") {
+    const mt2 = root.media_type;
+    if (mt2 && mt2.code_string != null && mt2.terminology_id == null) {
+      mt2.terminology_id = { _type: "TERMINOLOGY_ID", value: "IANA_media-types" };
+    }
+  } else if (rmType === "PARTY_IDENTIFIED" || rmType === "PARTY_PROXY") {
+    root._type = "PARTY_IDENTIFIED";
+    const ref = root.external_ref;
+    if (ref && ref.type == null)
+      ref.type = "PARTY";
+  }
+}
+function inputsForRmType(rmType) {
+  const map2 = getFieldMap(rmType);
+  if (!map2)
+    return [{ type: "TEXT" }];
+  const primary = map2.fields.filter((f2) => f2.required || isPrimary(map2, f2));
+  const chosen = primary.length ? primary : map2.fields.slice(0, 1);
+  return chosen.map(
+    (f2) => f2.suffix === "" ? { type: f2.inputType } : { type: f2.inputType, suffix: f2.suffix }
+  );
+}
+function isPrimary(map2, f2) {
+  if (map2.rmType === "DV_CODED_TEXT") {
+    return f2.suffix === "code" || f2.suffix === "value" || f2.suffix === "terminology";
+  }
+  if (map2.rmType === "CODE_PHRASE") {
+    return f2.suffix === "code" || f2.suffix === "terminology";
+  }
+  if (map2.rmType === "DV_ORDINAL") {
+    return f2.suffix === "code" || f2.suffix === "value" || f2.suffix === "ordinal";
+  }
+  if (map2.rmType === "PARTY_PROXY" || map2.rmType === "PARTY_IDENTIFIED" || map2.rmType === "PARTY_RELATED") {
+    return true;
+  }
+  return f2.suffix === "";
+}
+var MAPS, PARTY_FIELDS, RM_TYPE_ALIASES;
+var init_dv_field_maps = __esm({
+  "enhanced/serialization/simplified/dv_field_maps.ts"() {
+    init_define_BUILD_INFO();
+    MAPS = {};
+    def("DV_TEXT", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TEXT", required: true },
+      { suffix: "formatting", path: ["formatting"], kind: "string", inputType: "TEXT" }
+    ]);
+    def("DV_CODED_TEXT", [
+      {
+        suffix: "code",
+        path: ["defining_code", "code_string"],
+        kind: "string",
+        inputType: "CODED_TEXT",
+        required: true,
+        intermediates: { defining_code: "CODE_PHRASE" }
+      },
+      { suffix: "value", path: ["value"], kind: "string", inputType: "TEXT" },
+      {
+        suffix: "terminology",
+        path: ["defining_code", "terminology_id", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: {
+          defining_code: "CODE_PHRASE",
+          terminology_id: "TERMINOLOGY_ID"
+        },
+        buildDefaults: { value: "local" }
+      },
+      {
+        suffix: "preferred_term",
+        path: ["defining_code", "preferred_term"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { defining_code: "CODE_PHRASE" }
+      }
+    ]);
+    def("CODE_PHRASE", [
+      { suffix: "code", path: ["code_string"], kind: "string", inputType: "TEXT", required: true },
+      {
+        suffix: "terminology",
+        path: ["terminology_id", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { terminology_id: "TERMINOLOGY_ID" }
+      },
+      { suffix: "preferred_term", path: ["preferred_term"], kind: "string", inputType: "TEXT" }
+    ]);
+    def("DV_ORDINAL", [
+      {
+        suffix: "code",
+        path: ["symbol", "defining_code", "code_string"],
+        kind: "string",
+        inputType: "CODED_TEXT",
+        required: true,
+        intermediates: { symbol: "DV_CODED_TEXT", defining_code: "CODE_PHRASE" }
+      },
+      {
+        suffix: "value",
+        path: ["symbol", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { symbol: "DV_CODED_TEXT" }
+      },
+      { suffix: "ordinal", path: ["value"], kind: "integer", inputType: "INTEGER" },
+      {
+        suffix: "terminology",
+        path: ["symbol", "defining_code", "terminology_id", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: {
+          symbol: "DV_CODED_TEXT",
+          defining_code: "CODE_PHRASE",
+          terminology_id: "TERMINOLOGY_ID"
+        },
+        buildDefaults: { value: "local" }
+      }
+    ]);
+    def("DV_QUANTITY", [
+      { suffix: "magnitude", path: ["magnitude"], kind: "number", inputType: "DECIMAL", required: true },
+      { suffix: "unit", path: ["units"], kind: "string", inputType: "TEXT", required: true },
+      { suffix: "precision", path: ["precision"], kind: "integer", inputType: "INTEGER" },
+      { suffix: "magnitude_status", path: ["magnitude_status"], kind: "string", inputType: "TEXT" },
+      { suffix: "accuracy", path: ["accuracy"], kind: "number", inputType: "DECIMAL" },
+      { suffix: "accuracy_is_percent", path: ["accuracy_is_percent"], kind: "boolean", inputType: "BOOLEAN" },
+      { suffix: "units_system", path: ["units_system"], kind: "string", inputType: "TEXT" },
+      { suffix: "units_display_name", path: ["units_display_name"], kind: "string", inputType: "TEXT" }
+    ]);
+    def("DV_COUNT", [
+      { suffix: "", path: ["magnitude"], kind: "integer", inputType: "INTEGER", required: true },
+      { suffix: "magnitude_status", path: ["magnitude_status"], kind: "string", inputType: "TEXT" },
+      { suffix: "accuracy", path: ["accuracy"], kind: "number", inputType: "DECIMAL" },
+      { suffix: "accuracy_is_percent", path: ["accuracy_is_percent"], kind: "boolean", inputType: "BOOLEAN" }
+    ]);
+    def("DV_PROPORTION", [
+      { suffix: "numerator", path: ["numerator"], kind: "number", inputType: "DECIMAL", required: true },
+      { suffix: "denominator", path: ["denominator"], kind: "number", inputType: "DECIMAL", required: true },
+      { suffix: "type", path: ["type"], kind: "integer", inputType: "INTEGER", required: true },
+      { suffix: "precision", path: ["precision"], kind: "integer", inputType: "INTEGER" }
+    ]);
+    def("DV_BOOLEAN", [
+      { suffix: "", path: ["value"], kind: "boolean", inputType: "BOOLEAN", required: true }
+    ]);
+    def("DV_DATE", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "DATE", required: true }
+    ]);
+    def("DV_DATE_TIME", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "DATETIME", required: true }
+    ]);
+    def("DV_TIME", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TIME", required: true }
+    ]);
+    def("DV_DURATION", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "DURATION", required: true }
+    ]);
+    def("DV_URI", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TEXT", required: true }
+    ]);
+    def("DV_EHR_URI", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TEXT", required: true }
+    ]);
+    def("DV_IDENTIFIER", [
+      { suffix: "id", path: ["id"], kind: "string", inputType: "TEXT", required: true },
+      { suffix: "issuer", path: ["issuer"], kind: "string", inputType: "TEXT" },
+      { suffix: "assigner", path: ["assigner"], kind: "string", inputType: "TEXT" },
+      { suffix: "type", path: ["type"], kind: "string", inputType: "TEXT" }
+    ]);
+    def("DV_PARSABLE", [
+      { suffix: "", path: ["value"], kind: "string", inputType: "TEXT", required: true },
+      { suffix: "formalism", path: ["formalism"], kind: "string", inputType: "TEXT", required: true }
+    ]);
+    def("DV_MULTIMEDIA", [
+      {
+        suffix: "",
+        path: ["uri", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { uri: "DV_URI" }
+      },
+      {
+        suffix: "mediatype",
+        path: ["media_type", "code_string"],
+        kind: "string",
+        inputType: "TEXT",
+        required: true,
+        intermediates: { media_type: "CODE_PHRASE" },
+        buildDefaults: { terminology: "IANA_media-types" }
+      },
+      { suffix: "size", path: ["size"], kind: "integer", inputType: "INTEGER", required: true },
+      { suffix: "data", path: ["data"], kind: "string", inputType: "TEXT" },
+      { suffix: "alternatetext", path: ["alternate_text"], kind: "string", inputType: "TEXT" },
+      {
+        suffix: "compression_algorithm",
+        path: ["compression_algorithm", "code_string"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { compression_algorithm: "CODE_PHRASE" }
+      },
+      { suffix: "integrity_check", path: ["integrity_check"], kind: "string", inputType: "TEXT" },
+      {
+        suffix: "integrity_check_algorithm",
+        path: ["integrity_check_algorithm", "code_string"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { integrity_check_algorithm: "CODE_PHRASE" }
+      }
+    ]);
+    PARTY_FIELDS = [
+      { suffix: "name", path: ["name"], kind: "string", inputType: "TEXT" },
+      {
+        suffix: "id",
+        path: ["external_ref", "id", "value"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { external_ref: "PARTY_REF", id: "GENERIC_ID" }
+      },
+      {
+        suffix: "id_scheme",
+        path: ["external_ref", "id", "scheme"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { external_ref: "PARTY_REF", id: "GENERIC_ID" }
+      },
+      {
+        suffix: "id_namespace",
+        path: ["external_ref", "namespace"],
+        kind: "string",
+        inputType: "TEXT",
+        intermediates: { external_ref: "PARTY_REF" }
+      }
+    ];
+    def("PARTY_PROXY", PARTY_FIELDS);
+    def("PARTY_IDENTIFIED", PARTY_FIELDS);
+    def("PARTY_RELATED", PARTY_FIELDS);
+    RM_TYPE_ALIASES = {
+      C_QUANTITY: "DV_QUANTITY",
+      C_CODED_TEXT: "DV_CODED_TEXT",
+      C_TERMINOLOGY_CODE: "CODE_PHRASE",
+      C_CODE_PHRASE: "CODE_PHRASE",
+      C_STRING: "DV_TEXT",
+      C_ORDINAL: "DV_ORDINAL"
+    };
+  }
+});
+
+// enhanced/serialization/simplified/web_template_builder.ts
+function termLabel(val) {
+  if (typeof val === "string" && val && val !== "[object Object]")
+    return val;
+  if (val && typeof val === "object") {
+    const o2 = val;
+    return termLabel(o2.value) ?? termLabel(o2.text) ?? termLabel(o2["#text"]);
+  }
+  return void 0;
+}
+function boundValue(v2) {
+  if (typeof v2 === "number")
+    return v2;
+  if (v2 && typeof v2 === "object") {
+    const inner = v2.value;
+    if (typeof inner === "number")
+      return inner;
+  }
+  return void 0;
+}
+function multiplicityBounds(m2) {
+  if (!m2)
+    return { min: 0, max: 1 };
+  const min = boundValue(m2.lower) ?? 0;
+  const max2 = m2.upper_unbounded ? -1 : boundValue(m2.upper) ?? 1;
+  return { min, max: max2 };
+}
+function lookupTerm(terms, nodeId) {
+  if (!nodeId)
+    return {};
+  const at2 = nodeIdToAtCode(nodeId);
+  const raw = terms[nodeId] ?? terms[at2];
+  if (!raw)
+    return {};
+  return {
+    text: termLabel(raw.text),
+    description: termLabel(raw.description)
+  };
+}
+function buildInputs(rmType, cObj) {
+  const resolved = resolveDvType(rmType);
+  const inputs = resolved.startsWith("DV_") || resolved === "CODE_PHRASE" || resolved.startsWith("PARTY_") || rmType.startsWith("C_") ? inputsForRmType(resolved) : [];
+  if (cObj instanceof C_STRING) {
+    const list = cObj.list;
+    if (list?.length) {
+      const target = inputs.find((i3) => !i3.suffix) ?? inputs[0];
+      if (target) {
+        target.list = list.map((v2) => ({ value: v2 }));
+      } else {
+        inputs.push({ type: "TEXT", list: list.map((v2) => ({ value: v2 })) });
+      }
+    }
+  }
+  return inputs;
+}
+function isDataValueType(rmType) {
+  return DV_LEAF_TYPES.has(rmType) || rmType.startsWith("C_");
+}
+function constraintNodeId(obj) {
+  const ref = obj.archetype_ref;
+  if (obj instanceof C_ARCHETYPE_ROOT && ref)
+    return ref;
+  return nodeIdToAtCode(obj.node_id) || void 0;
+}
+function nodeShell(base2, patch) {
+  const {
+    children: _children,
+    inputs: _inputs,
+    inContext: _inContext,
+    ...rest
+  } = base2;
+  return { ...rest, ...patch };
+}
+function dedupeSiblingIds(node) {
+  if (!node.children?.length)
+    return;
+  const seen = /* @__PURE__ */ new Map();
+  for (const child of node.children) {
+    const count = seen.get(child.id) ?? 0;
+    seen.set(child.id, count + 1);
+    if (count > 0)
+      child.id = `${child.id}_${count}`;
+  }
+  for (const child of node.children)
+    dedupeSiblingIds(child);
+}
+function buildWebTemplate(opt, options) {
+  return new WebTemplateBuilder(options).build(opt);
+}
+var SKIP_RM_TYPES, DV_LEAF_TYPES, CONTEXT_ATTRS, WebTemplateBuilder;
+var init_web_template_builder = __esm({
+  "enhanced/serialization/simplified/web_template_builder.ts"() {
+    init_define_BUILD_INFO();
+    init_openehr_am();
+    init_normalize();
+    init_dv_field_maps();
+    SKIP_RM_TYPES = /* @__PURE__ */ new Set([
+      "ITEM_TREE",
+      "ITEM_LIST",
+      "ITEM_SINGLE",
+      "ITEM_TABLE"
+    ]);
+    DV_LEAF_TYPES = /* @__PURE__ */ new Set([
+      "DV_TEXT",
+      "DV_CODED_TEXT",
+      "DV_QUANTITY",
+      "DV_COUNT",
+      "DV_PROPORTION",
+      "DV_DATE",
+      "DV_TIME",
+      "DV_DATE_TIME",
+      "DV_DURATION",
+      "DV_BOOLEAN",
+      "DV_IDENTIFIER",
+      "DV_URI",
+      "DV_EHR_URI",
+      "DV_MULTIMEDIA",
+      "DV_PARSABLE",
+      "CODE_PHRASE"
+    ]);
+    CONTEXT_ATTRS = /* @__PURE__ */ new Set([
+      "category",
+      "composer",
+      "language",
+      "territory",
+      "context"
+    ]);
+    WebTemplateBuilder = class {
+      lang;
+      requestedLang;
+      includeContext;
+      terms = {};
+      constructor(options) {
+        this.requestedLang = options?.defaultLanguage;
+        this.lang = options?.defaultLanguage ?? "en";
+        this.includeContext = options?.includeContextNodes ?? true;
+      }
+      build(opt) {
+        const templateId = opt.archetype_id?.value ?? "template.en.v1";
+        const origLang = opt.original_language;
+        const defaultLanguage = (typeof origLang === "string" ? origLang : origLang?.code_string) ?? this.requestedLang ?? "en";
+        const termDefs = opt.ontology?.term_definitions ?? {};
+        const available = Object.keys(termDefs);
+        this.lang = [this.requestedLang, defaultLanguage, ...available].find(
+          (l3) => !!l3 && !!termDefs[l3]
+        ) ?? this.requestedLang ?? defaultLanguage;
+        this.terms = termDefs[this.lang] ?? {};
+        if (!opt.definition) {
+          throw new Error("Operational template has no definition");
+        }
+        const rootId = templateRootId(templateId);
+        const isComposition = opt.definition.rm_type_name === "COMPOSITION";
+        const tree = this.buildFromComplex(
+          opt.definition,
+          "/",
+          rootId,
+          isComposition
+        );
+        const ctxNodes = isComposition && this.includeContext ? this.defaultCompositionContextNodes() : [];
+        const existingCtxIds = new Set(
+          (tree.children ?? []).filter((c2) => c2.inContext).map((c2) => c2.id)
+        );
+        const mergedCtx = [
+          ...ctxNodes.filter((n2) => !existingCtxIds.has(n2.id)),
+          ...(tree.children ?? []).filter((c2) => c2.inContext)
+        ];
+        const contentChildren = (tree.children ?? []).filter((c2) => !c2.inContext);
+        const fullTree = {
+          ...tree,
+          id: rootId,
+          rmType: opt.definition.rm_type_name ?? "COMPOSITION",
+          aqlPath: "/",
+          children: [...mergedCtx, ...contentChildren]
+        };
+        dedupeSiblingIds(fullTree);
+        return {
+          templateId,
+          version: "1.0.0",
+          defaultLanguage,
+          tree: fullTree
+        };
+      }
+      buildFromComplex(obj, aqlPath, idHint, isCompositionRoot = false) {
+        const term = lookupTerm(this.terms, obj.node_id);
+        const { min, max: max2 } = multiplicityBounds(obj.occurrences);
+        const rmType = obj.rm_type_name ?? "COMPLEX";
+        const node = {
+          id: normalizeWebTemplateId(term.text ?? idHint ?? rmType),
+          name: term.text ?? idHint,
+          localizedName: term.text,
+          rmType,
+          nodeId: constraintNodeId(obj),
+          min,
+          max: max2,
+          aqlPath,
+          localizedNames: term.text ? { [this.lang]: term.text } : void 0,
+          localizedDescriptions: term.description ? { [this.lang]: term.description } : void 0,
+          children: []
+        };
+        if (SKIP_RM_TYPES.has(rmType)) {
+          return this.flattenDataStructure(obj, aqlPath, node);
+        }
+        if (rmType === "HISTORY") {
+          return this.flattenHistory(obj, aqlPath, node);
+        }
+        if (rmType === "ELEMENT") {
+          return this.buildElement(obj, aqlPath, node);
+        }
+        for (const attr of obj.attributes ?? []) {
+          const attrName2 = attr.rm_attribute_name;
+          if (!attrName2)
+            continue;
+          if (isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName2)) {
+            node.children.push(...this.buildContextNodes(attr));
+            continue;
+          }
+          const children = attr.children ?? [];
+          for (const child of children) {
+            const childId = constraintNodeId(child);
+            const childPath = joinAqlPath(
+              aqlPath,
+              childId ? `${attrName2}[${childId}]` : attrName2
+            );
+            const childLabel = lookupTerm(this.terms, child.node_id).text ?? child.rm_type_name?.toLowerCase() ?? attrName2;
+            if (child instanceof C_COMPLEX_OBJECT) {
+              if (SKIP_RM_TYPES.has(child.rm_type_name ?? "")) {
+                const flattened = this.flattenDataStructure(child, childPath, node);
+                node.children.push(...flattened.children ?? []);
+              } else if (child.rm_type_name === "HISTORY") {
+                node.children.push(
+                  this.flattenHistory(
+                    child,
+                    childPath,
+                    nodeShell(node, {
+                      id: normalizeWebTemplateId(attrName2),
+                      rmType: "HISTORY",
+                      aqlPath: childPath
+                    })
+                  )
+                );
+              } else if (child.rm_type_name === "ELEMENT") {
+                node.children.push(
+                  this.buildElement(
+                    child,
+                    childPath,
+                    nodeShell(node, {
+                      id: normalizeWebTemplateId(childLabel),
+                      rmType: "ELEMENT",
+                      aqlPath: childPath
+                    })
+                  )
+                );
+              } else {
+                node.children.push(this.buildFromComplex(
+                  child,
+                  childPath,
+                  childLabel
+                ));
+              }
+            } else if (isDataValueType(child.rm_type_name ?? "")) {
+              node.children.push(this.buildLeaf(child, childPath, childLabel));
+            }
+          }
+        }
+        if (!node.children?.length)
+          delete node.children;
+        return node;
+      }
+      flattenDataStructure(obj, aqlPath, parent) {
+        const out = [];
+        for (const attr of obj.attributes ?? []) {
+          const attrName2 = attr.rm_attribute_name;
+          if (!attrName2)
+            continue;
+          const children = attr.children ?? [];
+          for (const child of children) {
+            const childId = constraintNodeId(child);
+            const childPath = joinAqlPath(
+              aqlPath,
+              childId ? `${attrName2}[${childId}]` : attrName2
+            );
+            const itemLabel = lookupTerm(this.terms, child.node_id).text ?? attrName2;
+            const isComplex = child instanceof C_COMPLEX_OBJECT;
+            if (isComplex) {
+              if (child.rm_type_name === "ELEMENT") {
+                out.push(this.buildElement(
+                  child,
+                  childPath,
+                  nodeShell(parent, {
+                    id: normalizeWebTemplateId(itemLabel),
+                    rmType: "ELEMENT",
+                    aqlPath: childPath
+                  })
+                ));
+              } else {
+                out.push(this.buildFromComplex(
+                  child,
+                  childPath,
+                  itemLabel
+                ));
+              }
+            }
+          }
+        }
+        return nodeShell(parent, { children: out.length ? out : void 0 });
+      }
+      flattenHistory(obj, aqlPath, shell) {
+        const eventsAttr = obj.attributes?.find(
+          (a2) => a2.rm_attribute_name === "events"
+        );
+        const events = eventsAttr?.children ?? [];
+        const eventNodes = [];
+        for (const ev of events) {
+          if (!(ev instanceof C_COMPLEX_OBJECT))
+            continue;
+          const evPath = joinAqlPath(
+            aqlPath,
+            `events[${nodeIdToAtCode(ev.node_id)}]`
+          );
+          const term = lookupTerm(this.terms, ev.node_id);
+          const { min, max: max2 } = multiplicityBounds(ev.occurrences);
+          const eventShell = {
+            id: normalizeWebTemplateId(term.text ?? "event"),
+            name: term.text,
+            localizedName: term.text,
+            rmType: ev.rm_type_name ?? "EVENT",
+            nodeId: constraintNodeId(ev),
+            min,
+            max: max2,
+            aqlPath: evPath,
+            localizedNames: term.text ? { [this.lang]: term.text } : void 0,
+            localizedDescriptions: term.description ? { [this.lang]: term.description } : void 0,
+            children: []
+          };
+          const dataAttr = ev.attributes?.find(
+            (a2) => a2.rm_attribute_name === "data"
+          );
+          const dataChild = dataAttr?.children?.[0];
+          if (dataChild instanceof C_COMPLEX_OBJECT) {
+            eventNodes.push(this.flattenDataStructure(
+              dataChild,
+              joinAqlPath(evPath, `data[${nodeIdToAtCode(dataChild.node_id)}]`),
+              eventShell
+            ));
+          } else {
+            eventNodes.push(eventShell);
+          }
+        }
+        return nodeShell(shell, {
+          id: normalizeWebTemplateId(shell.id || "history"),
+          children: eventNodes.length ? eventNodes : void 0
+        });
+      }
+      buildElement(obj, aqlPath, shell) {
+        const valueAttr = obj.attributes?.find(
+          (a2) => a2.rm_attribute_name === "value"
+        );
+        const valueChild = valueAttr?.children?.[0];
+        if (valueChild) {
+          const leaf = this.buildLeaf(valueChild, aqlPath, shell.id);
+          const elementNodeId = nodeIdToAtCode(obj.node_id);
+          if (!leaf.nodeId && elementNodeId) {
+            leaf.nodeId = elementNodeId;
+            const term = lookupTerm(this.terms, obj.node_id);
+            if (term.text && !leaf.localizedName) {
+              leaf.name = term.text;
+              leaf.localizedName = term.text;
+              leaf.id = normalizeWebTemplateId(term.text);
+              leaf.localizedNames = { [this.lang]: term.text };
+            }
+            if (term.description && !leaf.localizedDescriptions) {
+              leaf.localizedDescriptions = { [this.lang]: term.description };
+            }
+          }
+          return leaf;
+        }
+        return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
+      }
+      buildLeaf(obj, aqlPath, idHint) {
+        const rmType = obj.rm_type_name ?? "DV_TEXT";
+        const term = lookupTerm(this.terms, obj.node_id);
+        const { min, max: max2 } = multiplicityBounds(obj.occurrences);
+        return {
+          id: normalizeWebTemplateId(term.text ?? idHint),
+          name: term.text ?? idHint,
+          localizedName: term.text,
+          rmType,
+          nodeId: constraintNodeId(obj),
+          min,
+          max: max2,
+          aqlPath,
+          localizedNames: term.text ? { [this.lang]: term.text } : void 0,
+          localizedDescriptions: term.description ? { [this.lang]: term.description } : void 0,
+          inputs: buildInputs(rmType, obj)
+        };
+      }
+      defaultCompositionContextNodes() {
+        return [
+          {
+            id: "language",
+            rmType: "CODE_PHRASE",
+            min: 1,
+            max: 1,
+            aqlPath: "/language",
+            inContext: true,
+            inputs: [{ type: "TEXT" }]
+          },
+          {
+            id: "territory",
+            rmType: "CODE_PHRASE",
+            min: 1,
+            max: 1,
+            aqlPath: "/territory",
+            inContext: true,
+            inputs: [{ type: "TEXT" }]
+          },
+          {
+            id: "composer_name",
+            rmType: "DV_TEXT",
+            min: 0,
+            max: 1,
+            aqlPath: "/composer",
+            inContext: true,
+            inputs: [{ type: "TEXT" }]
+          },
+          {
+            id: "time",
+            rmType: "DV_DATE_TIME",
+            min: 0,
+            max: 1,
+            aqlPath: "/context/start_time",
+            inContext: true,
+            inputs: [{ type: "DATETIME" }]
+          }
+        ];
+      }
+      buildContextNodes(attr) {
+        const name2 = attr.rm_attribute_name ?? "context";
+        const child = attr.children?.[0];
+        const rmType = child?.rm_type_name ?? name2.toUpperCase();
+        if (name2 === "context" && child instanceof C_COMPLEX_OBJECT) {
+          const nodes = [];
+          for (const ctxAttr of child.attributes ?? []) {
+            const ctxName = ctxAttr.rm_attribute_name;
+            if (!ctxName)
+              continue;
+            nodes.push({
+              id: ctxName,
+              rmType: "DV_TEXT",
+              min: 0,
+              max: 1,
+              aqlPath: `/context/${ctxName}`,
+              inContext: true,
+              inputs: [{ type: "TEXT" }]
+            });
+          }
+          return nodes;
+        }
+        return [{
+          id: name2,
+          rmType,
+          min: 1,
+          max: 1,
+          aqlPath: `/${name2}`,
+          inContext: true,
+          inputs: buildInputs(rmType, child)
+        }];
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/instance_nav.ts
+function rmTypeName(obj) {
+  if (obj == null || typeof obj !== "object")
+    return "";
+  const record = obj;
+  if (typeof record._type === "string")
+    return record._type;
+  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
+}
+function rmProp2(obj, key) {
+  if (obj == null || typeof obj !== "object")
+    return void 0;
+  const record = obj;
+  if (key in record)
+    return record[key];
+  let proto = Object.getPrototypeOf(obj);
+  while (proto && proto !== Object.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+    if (descriptor?.get) {
+      try {
+        return descriptor.get.call(obj);
+      } catch {
+        return void 0;
+      }
+    }
+    proto = Object.getPrototypeOf(proto);
+  }
+  return void 0;
+}
+function normalizeNodeId(id2) {
+  if (/^id\d/i.test(id2)) {
+    const digits = id2.replace(/^id/i, "").replace(/\./g, "");
+    return `at${digits.padStart(4, "0")}`;
+  }
+  return id2;
+}
+function nodeIdsMatch(a2, b3) {
+  if (a2 == null)
+    return false;
+  const sa2 = String(a2);
+  return sa2 === b3 || normalizeNodeId(sa2) === normalizeNodeId(b3);
+}
+function pickByNodeId(arr, nodeId) {
+  const found = arr.find(
+    (item) => nodeIdsMatch(rmProp2(item, "archetype_node_id"), nodeId)
+  );
+  return found ?? arr[0];
+}
+function valuesByNodeId(arr, nodeId) {
+  if (!nodeId)
+    return arr;
+  const found = arr.filter(
+    (item) => nodeIdsMatch(rmProp2(item, "archetype_node_id"), nodeId)
+  );
+  if (found.length)
+    return found;
+  const anyIds = arr.some((item) => {
+    const id2 = rmProp2(item, "archetype_node_id");
+    return id2 != null && id2 !== "";
+  });
+  return anyIds ? [] : arr.slice(0, 1);
+}
+function filterByRmType(values, rmType) {
+  if (!rmType)
+    return values;
+  const filtered = values.filter((item) => rmTypeName(item) === rmType);
+  return filtered.length ? filtered : values;
+}
+function resolveChildWebTemplateNodes(rootInstance, parentInstance, parentNode, childNode) {
+  const parentPath = parentNode.aqlPath ?? "/";
+  const childPath = childNode.aqlPath ?? "/";
+  if (parentPath === "/" || parentPath === "") {
+    return resolveAllAtWebTemplateNode(rootInstance, childNode);
+  }
+  if (childPath.startsWith(parentPath)) {
+    const relative = childPath.slice(parentPath.length);
+    const relativePath = relative.startsWith("/") ? relative : `/${relative}`;
+    const values = resolveAllAtPath(parentInstance, relativePath);
+    return filterByRmType(values, childNode.rmType);
+  }
+  return resolveAllAtWebTemplateNode(rootInstance, childNode);
+}
+function resolveAllAtWebTemplateNode(instance, node) {
+  const values = node.aqlPath === "/" ? [instance] : resolveAllAtPath(instance, node.aqlPath);
+  return filterByRmType(values, node.rmType);
+}
+function resolveAtPath(instance, aqlPath) {
+  if (!instance || !aqlPath)
+    return null;
+  const normalized = aqlPath.replace(/\/+/g, "/");
+  const segments = normalized.match(/\/[^/]+/g);
+  if (!segments?.length)
+    return instance;
+  let current = instance;
+  for (const raw of segments) {
+    const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
+    if (!m2)
+      continue;
+    const [, attr, nodeId] = m2;
+    const obj = current;
+    if (!obj || typeof obj !== "object")
+      return null;
+    let next = rmProp2(obj, attr);
+    if (next == null)
+      return null;
+    if (Array.isArray(next)) {
+      current = nodeId ? pickByNodeId(next, nodeId) : next[0];
+    } else {
+      current = next;
+    }
+  }
+  if (rmTypeName(current) === "ELEMENT" && rmProp2(current, "value") != null) {
+    return rmProp2(current, "value");
+  }
+  return current;
+}
+function resolveAllAtPath(instance, aqlPath) {
+  if (!instance || !aqlPath)
+    return [];
+  const normalized = aqlPath.replace(/\/+/g, "/");
+  const segments = normalized.match(/\/[^/]+/g);
+  if (!segments?.length)
+    return [instance];
+  let current = [instance];
+  for (const raw of segments) {
+    const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
+    if (!m2)
+      continue;
+    const [, attr, nodeId] = m2;
+    const nextValues = [];
+    for (const item of current) {
+      const obj = item;
+      if (!obj || typeof obj !== "object")
+        continue;
+      const next = rmProp2(obj, attr);
+      if (next == null)
+        continue;
+      if (Array.isArray(next)) {
+        nextValues.push(...valuesByNodeId(next, nodeId));
+      } else if (!nodeId || nodeIdsMatch(rmProp2(next, "archetype_node_id"), nodeId)) {
+        nextValues.push(next);
+      }
+    }
+    current = nextValues;
+    if (!current.length)
+      return [];
+  }
+  return current.map((item) => {
+    if (rmTypeName(item) === "ELEMENT" && rmProp2(item, "value") != null) {
+      return rmProp2(item, "value");
+    }
+    return item;
+  });
+}
+function countInstancesAtPath(instance, parentPath, attr) {
+  const parent = parentPath ? resolveAtPath(instance, parentPath) : instance;
+  if (!parent)
+    return 0;
+  const val = rmProp2(parent, attr);
+  if (Array.isArray(val))
+    return val.length;
+  return val != null ? 1 : 0;
+}
+var init_instance_nav = __esm({
+  "enhanced/serialization/simplified/instance_nav.ts"() {
+    init_define_BUILD_INFO();
+    init_type_registry();
+  }
+});
+
+// enhanced/serialization/simplified/value_extract.ts
+function rmTypeName2(obj) {
+  if (obj == null || typeof obj !== "object")
+    return "";
+  const record = obj;
+  if (typeof record._type === "string")
+    return record._type;
+  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
+}
+function extractValueFields(rmValue, inputs) {
+  if (rmValue == null)
+    return {};
+  const type = rmTypeName2(rmValue);
+  let fields;
+  if (getFieldMap(type)) {
+    fields = extractFields(type, rmValue);
+  } else {
+    fields = {};
+    const value = rmProp(rmValue, "value") ?? rmProp(rmValue, "id");
+    if (value != null && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")) {
+      fields[""] = value;
+    }
+    const magnitude = rmProp(rmValue, "magnitude");
+    if (typeof magnitude === "number")
+      fields.magnitude = magnitude;
+    const units = rmProp(rmValue, "units");
+    if (units != null)
+      fields.unit = String(units);
+  }
+  if (!inputs?.length)
+    return fields;
+  const wanted = new Set(inputs.map((i3) => i3.suffix ?? ""));
+  const out = {};
+  for (const [suffix, v2] of Object.entries(fields)) {
+    if (wanted.has(suffix)) {
+      out[suffix] = v2;
+    } else if (suffix === "" && wanted.has("value")) {
+      out.value = v2;
+    }
+  }
+  return Object.keys(out).length ? out : fields;
+}
+function extractContextField(instance, nodeId) {
+  if (rmTypeName2(instance) !== "COMPOSITION")
+    return {};
+  if (nodeId === "composer_name") {
+    const composer = rmProp(instance, "composer");
+    const composerName = rmProp(composer, "name");
+    return composerName != null ? { "": String(composerName) } : {};
+  }
+  if (nodeId === "time") {
+    const ctx = rmProp(instance, "context");
+    const t3 = rmProp(rmProp(ctx, "start_time"), "value");
+    return t3 != null ? { "": String(t3) } : {};
+  }
+  if (nodeId === "end_time") {
+    const ctx = rmProp(instance, "context");
+    const t3 = rmProp(rmProp(ctx, "end_time"), "value");
+    return t3 != null ? { "": String(t3) } : {};
+  }
+  if (nodeId === "location") {
+    const ctx = rmProp(instance, "context");
+    const loc = rmProp(ctx, "location");
+    return loc != null ? { "": String(loc) } : {};
+  }
+  if (nodeId === "setting") {
+    const ctx = rmProp(instance, "context");
+    const setting = rmProp(ctx, "setting");
+    if (setting == null)
+      return {};
+    return extractValueFields(setting);
+  }
+  const direct = rmProp(instance, nodeId);
+  if (direct == null) {
+    const ctx = rmProp(instance, "context");
+    const ctxVal = ctx?.[nodeId];
+    if (ctxVal != null)
+      return extractValueFields(ctxVal);
+    return {};
+  }
+  if (nodeId === "language" || nodeId === "territory") {
+    const code = rmProp(direct, "code_string");
+    return code != null ? { "": String(code) } : {};
+  }
+  return extractValueFields(direct);
+}
+var init_value_extract = __esm({
+  "enhanced/serialization/simplified/value_extract.ts"() {
+    init_define_BUILD_INFO();
+    init_type_registry();
+    init_dv_field_maps();
+  }
+});
+
+// enhanced/serialization/simplified/flat_serializer.ts
+function joinFlatPath(parts) {
+  return parts.join("/");
+}
+function indexSuffix(max2, index) {
+  return max2 !== 1 || index > 0 ? `:${index}` : "";
+}
+function serializeToFlat(instance, webTemplate) {
+  return new FlatSerializer(webTemplate).serialize(instance);
+}
+function serializeToFlatJson(instance, webTemplate, options) {
+  return new FlatSerializer(webTemplate, options).serializeJson(instance);
+}
+var FlatSerializer;
+var init_flat_serializer = __esm({
+  "enhanced/serialization/simplified/flat_serializer.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_instance_nav();
+    init_value_extract();
+    FlatSerializer = class {
+      constructor(webTemplate, options = {}) {
+        this.webTemplate = webTemplate;
+        this.options = options;
+        this.rootId = templateRootId(webTemplate.templateId);
+      }
+      out = {};
+      rootId;
+      instance;
+      serialize(instance) {
+        this.out = {};
+        this.instance = instance;
+        for (const child of this.webTemplate.tree.children ?? []) {
+          if (child.inContext) {
+            this.walkNode(child, [this.rootId], 0);
+            continue;
+          }
+          const values = resolveAllAtWebTemplateNode(instance, child);
+          for (let i3 = 0; i3 < values.length; i3++) {
+            this.walkNode(child, [this.rootId], i3, values[i3]);
+          }
+        }
+        return { ...this.out };
+      }
+      serializeJson(instance) {
+        const payload = this.serialize(instance);
+        return JSON.stringify(
+          payload,
+          null,
+          this.options.prettyPrint ? 2 : void 0
+        );
+      }
+      walkNode(node, pathParts, index, scope) {
+        if (node.inContext) {
+          this.emitContext(node);
+          return;
+        }
+        const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
+        if (!nodeValues.length)
+          return;
+        const part = node.id + indexSuffix(node.max, index);
+        const nextPath = [...pathParts, part];
+        const isLeaf = node.inputs?.length && !node.children?.length;
+        const currentData = scope ?? nodeValues[index] ?? nodeValues[0];
+        if (isLeaf) {
+          const fields = extractValueFields(currentData, node.inputs);
+          const base2 = joinFlatPath(nextPath);
+          for (const [suffix, value] of Object.entries(fields)) {
+            this.out[suffix === "" ? base2 : `${base2}|${suffix}`] = value;
+          }
+          return;
+        }
+        if (node.children?.length) {
+          for (const child of node.children) {
+            const childValues = resolveChildWebTemplateNodes(
+              this.instance,
+              currentData,
+              node,
+              child
+            );
+            for (let i3 = 0; i3 < childValues.length; i3++) {
+              this.walkNode(child, nextPath, i3, childValues[i3]);
+            }
+          }
+        }
+      }
+      emitContext(node) {
+        const fields = extractContextField(this.instance, node.id);
+        if (node.inputs?.length) {
+          for (const input of node.inputs) {
+            const suffix = input.suffix ?? "";
+            const val = fields[suffix] ?? (suffix === "" || suffix === "value" ? fields[""] ?? fields.value : void 0);
+            if (val != null) {
+              const key = suffix === "" || suffix === "value" ? `ctx/${node.id}` : `ctx/${node.id}|${suffix}`;
+              this.out[key] = val;
+            }
+          }
+        } else {
+          const val = fields[""] ?? fields.value;
+          if (val != null)
+            this.out[`ctx/${node.id}`] = val;
+        }
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/rm_instance_builder.ts
+function nodeIdsMatch2(a2, b3) {
+  if (a2 == null)
+    return false;
+  const sa2 = String(a2);
+  if (sa2 === b3)
+    return true;
+  if (/^id\d/i.test(sa2)) {
+    const digits = sa2.replace(/^id/i, "").replace(/\./g, "");
+    return `at${digits.padStart(4, "0")}` === b3;
+  }
+  return false;
+}
+function findOrCreateInArray(arr, nodeId, rmType, occurrence) {
+  if (nodeId) {
+    const matches = arr.filter(
+      (item2) => nodeIdsMatch2(item2.archetype_node_id, nodeId)
+    );
+    if (occurrence < matches.length)
+      return matches[occurrence];
+    let created;
+    for (let i3 = matches.length; i3 <= occurrence; i3++) {
+      created = { _type: rmType, archetype_node_id: nodeId };
+      arr.push(created);
+    }
+    return created;
+  }
+  if (occurrence < arr.length)
+    return arr[occurrence];
+  const item = { _type: rmType, archetype_node_id: null };
+  arr.push(item);
+  return item;
+}
+function ensureChild(parent, attr, nodeId, rmType, occurrence) {
+  const existing = parent[attr];
+  if (Array.isArray(existing)) {
+    return findOrCreateInArray(existing, nodeId, rmType, occurrence);
+  }
+  if (existing && typeof existing === "object" && occurrence === 0) {
+    return existing;
+  }
+  const child = { _type: rmType, archetype_node_id: nodeId ?? null };
+  if (ARRAY_ATTRS.has(attr) || occurrence > 0) {
+    const arr = existing && typeof existing === "object" ? [existing] : [];
+    arr.push(child);
+    parent[attr] = arr;
+  } else {
+    parent[attr] = child;
+  }
+  return child;
+}
+function inferRmType(attr) {
+  if (attr === "content")
+    return "OBSERVATION";
+  return ATTR_RM_TYPE[attr] ?? "CLUSTER";
+}
+function assignAtAqlPath(root, aqlPath, leafValue, leafRmType, elementNodeId, occurrences, rmTypes) {
+  const normalized = aqlPath.replace(/\/+/g, "/");
+  const segments = normalized.match(/\/[^/]+/g);
+  if (!segments?.length)
+    return;
+  let current = root;
+  for (let si2 = 0; si2 < segments.length; si2++) {
+    const raw = segments[si2];
+    const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
+    if (!m2)
+      continue;
+    const [, attr, nodeId] = m2;
+    const isLast = si2 === segments.length - 1;
+    const occurrence = occurrences?.[si2 + 1] ?? 0;
+    if (isLast) {
+      const isDataValue = leafRmType.startsWith("DV_") || leafRmType.startsWith("C_") || leafRmType === "CODE_PHRASE" || leafRmType.startsWith("PARTY_");
+      if (isDataValue && attr === "items") {
+        const elemNodeId = elementNodeId || nodeId || null;
+        if (!Array.isArray(current.items))
+          current.items = [];
+        const items = current.items;
+        const matches = elemNodeId ? items.filter(
+          (it2) => it2._type === "ELEMENT" && nodeIdsMatch2(it2.archetype_node_id, elemNodeId)
+        ) : [];
+        if (occurrence < matches.length) {
+          matches[occurrence].value = leafValue;
+        } else {
+          items.push({
+            _type: "ELEMENT",
+            archetype_node_id: elemNodeId,
+            value: leafValue
+          });
+        }
+      } else if (isDataValue) {
+        current[attr] = leafValue;
+      } else if (leafValue != null && typeof leafValue === "object" && leafValue._type) {
+        if (ARRAY_ATTRS.has(attr)) {
+          if (!Array.isArray(current[attr]))
+            current[attr] = [];
+          current[attr].push(leafValue);
+        } else {
+          current[attr] = leafValue;
+        }
+      } else {
+        ensureChild(current, attr, nodeId, leafRmType, occurrence);
+      }
+      return;
+    }
+    const rmType = rmTypes?.[si2 + 1] ?? inferRmType(attr);
+    current = ensureChild(current, attr, nodeId, rmType, occurrence);
+  }
+}
+var ATTR_RM_TYPE, ARRAY_ATTRS;
+var init_rm_instance_builder = __esm({
+  "enhanced/serialization/simplified/rm_instance_builder.ts"() {
+    init_define_BUILD_INFO();
+    ATTR_RM_TYPE = {
+      content: "SECTION",
+      data: "ITEM_TREE",
+      items: "ELEMENT",
+      events: "EVENT",
+      protocol: "ITEM_TREE",
+      state: "ITEM_TREE",
+      description: "ITEM_TREE",
+      other_participations: "PARTICIPATION"
+    };
+    ARRAY_ATTRS = /* @__PURE__ */ new Set([
+      "content",
+      "items",
+      "events",
+      "activities",
+      "rows"
+    ]);
+  }
+});
+
+// enhanced/serialization/simplified/value_build.ts
+function buildRmValue(rmType, fields) {
+  return buildDvValue(rmType, fields);
+}
+function bare(fields) {
+  return fields[""] ?? fields.value ?? void 0;
+}
+function applyContextFromFields(comp, nodeId, fields) {
+  const ensureContext = () => {
+    if (!comp.context || typeof comp.context !== "object") {
+      comp.context = { _type: "EVENT_CONTEXT" };
+    }
+    return comp.context;
+  };
+  switch (nodeId) {
+    case "composer_name": {
+      const name2 = bare(fields);
+      if (name2 != null) {
+        comp.composer = { _type: "PARTY_IDENTIFIED", name: String(name2) };
+      }
+      return;
+    }
+    case "composer_id": {
+      const id2 = bare(fields);
+      if (id2 == null)
+        return;
+      const composer = comp.composer ?? {
+        _type: "PARTY_IDENTIFIED"
+      };
+      composer.external_ref = {
+        _type: "PARTY_REF",
+        id: { _type: "GENERIC_ID", value: String(id2) },
+        type: "PARTY"
+      };
+      comp.composer = composer;
+      return;
+    }
+    case "language": {
+      comp.language = {
+        _type: "CODE_PHRASE",
+        terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+        code_string: String(bare(fields) ?? "en")
+      };
+      return;
+    }
+    case "territory": {
+      comp.territory = {
+        _type: "CODE_PHRASE",
+        terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_3166-1" },
+        code_string: String(bare(fields) ?? "US")
+      };
+      return;
+    }
+    case "time": {
+      const t3 = bare(fields);
+      if (t3 != null) {
+        ensureContext().start_time = {
+          _type: "DV_DATE_TIME",
+          value: String(t3)
+        };
+      }
+      return;
+    }
+    case "end_time": {
+      const t3 = bare(fields);
+      if (t3 != null) {
+        ensureContext().end_time = { _type: "DV_DATE_TIME", value: String(t3) };
+      }
+      return;
+    }
+    case "location": {
+      const loc = bare(fields);
+      if (loc != null)
+        ensureContext().location = String(loc);
+      return;
+    }
+    case "category": {
+      comp.category = buildRmValue("DV_CODED_TEXT", normalizeCoded(fields));
+      return;
+    }
+    case "setting": {
+      ensureContext().setting = buildRmValue(
+        "DV_CODED_TEXT",
+        normalizeCoded(fields)
+      );
+      return;
+    }
+    case "health_care_facility": {
+      const name2 = fields.name ?? bare(fields);
+      const id2 = fields.id;
+      if (name2 == null && id2 == null)
+        return;
+      const facility = { _type: "PARTY_IDENTIFIED" };
+      if (name2 != null)
+        facility.name = String(name2);
+      if (id2 != null) {
+        facility.external_ref = {
+          _type: "PARTY_REF",
+          id: { _type: "GENERIC_ID", value: String(id2) },
+          type: "ORGANISATION"
+        };
+      }
+      ensureContext().health_care_facility = facility;
+      return;
+    }
+  }
+}
+function normalizeCoded(fields) {
+  if (fields.code != null || fields.value != null)
+    return fields;
+  const b3 = bare(fields);
+  return b3 != null ? { ...fields, value: b3 } : fields;
+}
+var init_value_build = __esm({
+  "enhanced/serialization/simplified/value_build.ts"() {
+    init_define_BUILD_INFO();
+    init_dv_field_maps();
+  }
+});
+
+// enhanced/serialization/simplified/flat_deserializer.ts
+function parseSegments(basePath) {
+  return basePath.split("/").map((seg) => {
+    const m2 = /^(.*?)(?::(\d+))?$/.exec(seg);
+    return { id: m2[1], index: m2[2] ? parseInt(m2[2], 10) : 0 };
+  });
+}
+function aqlSegmentCount(aqlPath) {
+  return aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g)?.length ?? 0;
+}
+function deserializeFromFlat(flat, webTemplate) {
+  return new FlatDeserializer(webTemplate).deserialize(flat);
+}
+function deserializeFromFlatJson(json2, webTemplate) {
+  return new FlatDeserializer(webTemplate).deserializeJson(json2);
+}
+var FlatDeserializer;
+var init_flat_deserializer = __esm({
+  "enhanced/serialization/simplified/flat_deserializer.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_rm_instance_builder();
+    init_value_build();
+    FlatDeserializer = class {
+      constructor(webTemplate) {
+        this.webTemplate = webTemplate;
+        this.rootId = templateRootId(webTemplate.templateId);
+        this.indexNodes(webTemplate.tree.children ?? [], "", []);
+      }
+      rootId;
+      /** id-chain (indices stripped, without root) → node */
+      nodeByChain = /* @__PURE__ */ new Map();
+      /** id-chain → chain of nodes from tree root (exclusive) to node (inclusive) */
+      pathNodes = /* @__PURE__ */ new Map();
+      indexNodes(nodes, prefix, ancestors) {
+        for (const node of nodes) {
+          const chain = prefix ? `${prefix}/${node.id}` : node.id;
+          const lineage = [...ancestors, node];
+          this.nodeByChain.set(chain, node);
+          this.pathNodes.set(chain, lineage);
+          if (node.children?.length) {
+            this.indexNodes(node.children, chain, lineage);
+          }
+        }
+      }
+      deserialize(flat) {
+        const comp = { _type: "COMPOSITION" };
+        const groups = /* @__PURE__ */ new Map();
+        for (const [key, value] of Object.entries(flat)) {
+          if (value == null)
+            continue;
+          if (key.startsWith("ctx/"))
+            continue;
+          const pipeIdx = key.indexOf("|");
+          const basePath = pipeIdx === -1 ? key : key.slice(0, pipeIdx);
+          const suffix = pipeIdx === -1 ? "" : key.slice(pipeIdx + 1);
+          const segments = parseSegments(basePath);
+          if (!segments.length)
+            continue;
+          if (segments[0].id === this.rootId)
+            segments.shift();
+          if (!segments.length)
+            continue;
+          if (segments.length === 1 && segments[0].id === "_uid") {
+            if (typeof value !== "object") {
+              comp.uid = { _type: "OBJECT_VERSION_ID", value: String(value) };
+            }
+            continue;
+          }
+          const chain = segments.map((s2) => s2.id).join("/");
+          const node = this.nodeByChain.get(chain);
+          if (!node)
+            continue;
+          const groupKey = segments.map((s2) => `${s2.id}:${s2.index}`).join("/");
+          let group = groups.get(groupKey);
+          if (!group) {
+            group = { node, segments, fields: {} };
+            groups.set(groupKey, group);
+          }
+          if (suffix === "raw" && typeof value === "object") {
+            group.raw = value;
+          } else if (suffix === "other" && typeof value !== "object") {
+            group.other = value;
+          } else if (typeof value !== "object") {
+            group.fields[suffix] = value;
+          }
+        }
+        for (const group of groups.values()) {
+          this.assignGroup(comp, group);
+        }
+        this.applyContext(comp, flat);
+        return comp;
+      }
+      deserializeJson(json2) {
+        return this.deserialize(JSON.parse(json2));
+      }
+      applyContext(comp, flat) {
+        const byField = /* @__PURE__ */ new Map();
+        for (const [key, value] of Object.entries(flat)) {
+          if (!key.startsWith("ctx/") || value == null || typeof value === "object") {
+            continue;
+          }
+          const rest = key.slice(4);
+          const pipeIdx = rest.indexOf("|");
+          const base2 = pipeIdx === -1 ? rest : rest.slice(0, pipeIdx);
+          const suffix = pipeIdx === -1 ? "" : rest.slice(pipeIdx + 1);
+          const fieldId = base2.replace(/:\d+$/, "");
+          let fields = byField.get(fieldId);
+          if (!fields) {
+            fields = {};
+            byField.set(fieldId, fields);
+          }
+          fields[suffix] = value;
+        }
+        for (const [fieldId, fields] of byField) {
+          applyContextFromFields(comp, fieldId, fields);
+        }
+      }
+      occurrenceHints(group) {
+        const hints = {};
+        const chainIds = [];
+        for (const seg of group.segments) {
+          chainIds.push(seg.id);
+          if (seg.index === 0)
+            continue;
+          const node = this.nodeByChain.get(chainIds.join("/"));
+          if (!node?.aqlPath)
+            continue;
+          const depth = aqlSegmentCount(node.aqlPath);
+          hints[depth] = seg.index;
+          if (/\/value$/.test(node.aqlPath))
+            hints[depth - 1] = seg.index;
+        }
+        return hints;
+      }
+      /** RM types of ancestor template nodes, keyed by AQL path depth. */
+      rmTypeHints(group) {
+        const hints = {};
+        const chain = group.segments.map((s2) => s2.id).join("/");
+        for (const node of this.pathNodes.get(chain) ?? []) {
+          if (!node.aqlPath || node.aqlPath === "/")
+            continue;
+          hints[aqlSegmentCount(node.aqlPath)] = node.rmType;
+        }
+        return hints;
+      }
+      assignGroup(comp, group) {
+        const { node } = group;
+        const hints = this.occurrenceHints(group);
+        const typeHints = this.rmTypeHints(group);
+        if (group.raw) {
+          assignAtAqlPath(
+            comp,
+            node.aqlPath,
+            group.raw,
+            group.raw._type ?? node.rmType,
+            node.nodeId,
+            hints,
+            typeHints
+          );
+          return;
+        }
+        if (group.other !== void 0) {
+          assignAtAqlPath(
+            comp,
+            node.aqlPath,
+            { _type: "DV_TEXT", value: String(group.other) },
+            "DV_TEXT",
+            node.nodeId,
+            hints,
+            typeHints
+          );
+          return;
+        }
+        if (!Object.keys(group.fields).length)
+          return;
+        assignAtAqlPath(
+          comp,
+          node.aqlPath,
+          buildRmValue(node.rmType, group.fields),
+          node.rmType,
+          node.nodeId,
+          hints,
+          typeHints
+        );
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/structured_serializer.ts
+function trimTrailing(arr, isEmpty2) {
+  let end = arr.length;
+  while (end > 0 && isEmpty2(arr[end - 1]))
+    end--;
+  return arr.slice(0, end);
+}
+function serializeToStructured(instance, webTemplate) {
+  return new StructuredSerializer(webTemplate).serialize(instance);
+}
+function serializeToStructuredJson(instance, webTemplate, options) {
+  return new StructuredSerializer(webTemplate, options).serializeJson(instance);
+}
+var StructuredSerializer;
+var init_structured_serializer = __esm({
+  "enhanced/serialization/simplified/structured_serializer.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_instance_nav();
+    init_value_extract();
+    StructuredSerializer = class {
+      constructor(webTemplate, options = {}) {
+        this.webTemplate = webTemplate;
+        this.options = options;
+        this.rootId = templateRootId(webTemplate.templateId);
+      }
+      rootId;
+      instance;
+      serialize(instance) {
+        this.instance = instance;
+        const result2 = {};
+        const ctxNodes = this.collectContextNodes(this.webTemplate.tree);
+        if (ctxNodes.length) {
+          result2.ctx = this.buildContext(ctxNodes);
+        }
+        const contentChildren = (this.webTemplate.tree.children ?? []).filter(
+          (c2) => !c2.inContext
+        );
+        if (contentChildren.length) {
+          result2[this.rootId] = this.buildBranch(contentChildren);
+        }
+        return result2;
+      }
+      serializeJson(instance) {
+        return JSON.stringify(
+          this.serialize(instance),
+          null,
+          this.options.prettyPrint ? 2 : void 0
+        );
+      }
+      collectContextNodes(node) {
+        const ctx = [];
+        if (node.inContext)
+          ctx.push(node);
+        for (const child of node.children ?? []) {
+          if (child.inContext)
+            ctx.push(child);
+        }
+        return ctx;
+      }
+      buildContext(nodes) {
+        const ctx = {};
+        for (const node of nodes) {
+          const fields = extractContextField(this.instance, node.id);
+          const bare2 = fields[""] ?? fields.value;
+          const suffixed = Object.entries(fields).filter(
+            ([suffix]) => suffix !== "" && suffix !== "value"
+          );
+          if (suffixed.length) {
+            const entry = {};
+            if (bare2 != null)
+              entry["|value"] = bare2;
+            for (const [suffix, val] of suffixed)
+              entry[`|${suffix}`] = val;
+            ctx[node.id] = [entry];
+          } else if (bare2 != null) {
+            ctx[node.id] = bare2;
+          }
+        }
+        return ctx;
+      }
+      buildBranch(nodes) {
+        const out = {};
+        for (const node of nodes) {
+          const values = this.buildNodeArray(node);
+          if (values.length)
+            out[node.id] = values;
+        }
+        return out;
+      }
+      buildNodeArray(node, scope) {
+        const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
+        if (!nodeValues.length)
+          return [];
+        const isLeaf = node.inputs?.length && !node.children?.length;
+        if (isLeaf) {
+          const entries0 = nodeValues.map((data) => {
+            const fields = extractValueFields(data, node.inputs);
+            const entries = Object.entries(fields);
+            if (!entries.length)
+              return null;
+            if (entries.length === 1 && entries[0][0] === "") {
+              return entries[0][1];
+            }
+            const entry = {};
+            for (const [suffix, value] of entries) {
+              entry[suffix === "" ? "|value" : `|${suffix}`] = value;
+            }
+            return entry;
+          });
+          return trimTrailing(entries0, (e2) => e2 == null);
+        }
+        const items = [];
+        for (let i3 = 0; i3 < nodeValues.length; i3++) {
+          const currentData = nodeValues[i3];
+          const item = {};
+          for (const child of node.children ?? []) {
+            const childValues = resolveChildWebTemplateNodes(
+              this.instance,
+              currentData,
+              node,
+              child
+            );
+            if (!childValues.length)
+              continue;
+            const built = childValues.flatMap(
+              (childData) => this.buildNodeArray(child, childData)
+            );
+            if (built.length)
+              item[child.id] = built;
+          }
+          items.push(Object.keys(item).length ? item : null);
+        }
+        return trimTrailing(items, (e2) => e2 == null);
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/structured_to_flat.ts
+function isPlainObject(v2) {
+  return v2 != null && typeof v2 === "object" && !Array.isArray(v2);
+}
+function valueIsRealSuffix(rmType) {
+  if (!rmType)
+    return false;
+  const map2 = getFieldMap(resolveDvType(rmType));
+  return !!map2?.fields.some((f2) => f2.suffix === "value");
+}
+function setLeaf(flat, base2, suffix, v2, keepValueSuffix = false) {
+  if (v2 == null)
+    return;
+  const collapse = suffix === "" || suffix === "value" && !keepValueSuffix;
+  const key = collapse ? base2 : `${base2}|${suffix}`;
+  flat[key] = v2;
+}
+function emitPipeFields(flat, base2, obj, keepValueSuffix = false) {
+  let any = false;
+  for (const [k2, v2] of Object.entries(obj)) {
+    if (!k2.startsWith("|") || v2 == null)
+      continue;
+    const suffix = k2.slice(1);
+    if (suffix === "raw") {
+      flat[`${base2}|raw`] = v2;
+    } else {
+      setLeaf(flat, base2, suffix, v2, keepValueSuffix);
+    }
+    any = true;
+  }
+  return any;
+}
+function flattenCtx(ctx, flat) {
+  for (const [field, val] of Object.entries(ctx)) {
+    if (Array.isArray(val)) {
+      for (let i3 = 0; i3 < val.length; i3++) {
+        const entry = val[i3];
+        const indexed = val.length > 1 ? `${field}:${i3}` : field;
+        if (isPlainObject(entry)) {
+          emitPipeFields(flat, `ctx/${indexed}`, entry);
+        } else if (entry != null) {
+          flat[`ctx/${indexed}`] = entry;
+        }
+      }
+    } else if (isPlainObject(val)) {
+      emitPipeFields(flat, `ctx/${field}`, val);
+    } else if (val != null) {
+      flat[`ctx/${field}`] = val;
+    }
+  }
+}
+function structuredToFlat(structured, webTemplate) {
+  return new StructuredToFlatConverter(webTemplate).convert(structured);
+}
+var StructuredToFlatConverter;
+var init_structured_to_flat = __esm({
+  "enhanced/serialization/simplified/structured_to_flat.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_dv_field_maps();
+    StructuredToFlatConverter = class {
+      constructor(webTemplate) {
+        this.webTemplate = webTemplate;
+        this.indexNodes(webTemplate.tree.children ?? [], "");
+      }
+      /** id-chain (without root) → template node */
+      nodeByChain = /* @__PURE__ */ new Map();
+      flat = {};
+      indexNodes(nodes, prefix) {
+        for (const node of nodes) {
+          const chain = prefix ? `${prefix}/${node.id}` : node.id;
+          this.nodeByChain.set(chain, node);
+          if (node.children?.length)
+            this.indexNodes(node.children, chain);
+        }
+      }
+      convert(structured) {
+        this.flat = {};
+        const rootId = templateRootId(this.webTemplate.templateId);
+        if (isPlainObject(structured.ctx)) {
+          flattenCtx(structured.ctx, this.flat);
+        }
+        const rootBranch = structured[rootId];
+        if (isPlainObject(rootBranch)) {
+          for (const [k2, v2] of Object.entries(rootBranch)) {
+            if (k2.startsWith("|"))
+              continue;
+            this.flattenValue(`${rootId}/${k2}`, k2, v2);
+          }
+        }
+        return this.flat;
+      }
+      /** Same index policy as the FLAT serializer's `indexSuffix`. */
+      indexSuffix(chain, i3, arrayLen) {
+        const node = this.nodeByChain.get(chain);
+        if (node)
+          return node.max !== 1 || i3 > 0 ? `:${i3}` : "";
+        return arrayLen > 1 || i3 > 0 ? `:${i3}` : "";
+      }
+      /**
+       * Recursively flatten a structured node value.
+       *
+       * `base` is the flat path accumulated so far (with root and instance
+       * indices); `chain` is the same path with indices stripped and without
+       * the root segment, used to look up template nodes.
+       */
+      flattenValue(base2, chain, value) {
+        if (value == null)
+          return;
+        if (Array.isArray(value)) {
+          for (let i3 = 0; i3 < value.length; i3++) {
+            const suffix = /:\d+$/.test(base2) ? "" : this.indexSuffix(chain, i3, value.length);
+            this.flattenValue(`${base2}${suffix}`, chain, value[i3]);
+          }
+          return;
+        }
+        if (isPlainObject(value)) {
+          const node = this.nodeByChain.get(chain);
+          emitPipeFields(this.flat, base2, value, valueIsRealSuffix(node?.rmType));
+          for (const [k2, v2] of Object.entries(value)) {
+            if (k2.startsWith("|"))
+              continue;
+            this.flattenValue(`${base2}/${k2}`, `${chain}/${k2}`, v2);
+          }
+          return;
+        }
+        this.flat[base2] = value;
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/structured_deserializer.ts
+function deserializeFromStructured(structured, webTemplate) {
+  return new StructuredDeserializer(webTemplate).deserialize(structured);
+}
+function deserializeFromStructuredJson(json2, webTemplate) {
+  return new StructuredDeserializer(webTemplate).deserializeJson(json2);
+}
+var StructuredDeserializer;
+var init_structured_deserializer = __esm({
+  "enhanced/serialization/simplified/structured_deserializer.ts"() {
+    init_define_BUILD_INFO();
+    init_flat_deserializer();
+    init_structured_to_flat();
+    StructuredDeserializer = class {
+      constructor(webTemplate) {
+        this.webTemplate = webTemplate;
+      }
+      deserialize(structured) {
+        const flat = structuredToFlat(structured, this.webTemplate);
+        return deserializeFromFlat(flat, this.webTemplate);
+      }
+      deserializeJson(json2) {
+        return this.deserialize(JSON.parse(json2));
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/flat_validator.ts
+function stripIndex(segment) {
+  return segment.replace(/:\d+$/, "");
+}
+function buildChainSet(webTemplate) {
+  const map2 = /* @__PURE__ */ new Map();
+  const walk = (nodes, prefix) => {
+    for (const node of nodes) {
+      const chain = prefix ? `${prefix}/${node.id}` : node.id;
+      map2.set(chain, node);
+      if (node.children?.length)
+        walk(node.children, chain);
+    }
+  };
+  walk(webTemplate.tree.children ?? [], "");
+  return map2;
+}
+function knownSuffixes(node) {
+  const suffixes = /* @__PURE__ */ new Set(["raw"]);
+  for (const input of node.inputs ?? []) {
+    suffixes.add(input.suffix ?? "");
+  }
+  const map2 = getFieldMap(node.rmType);
+  if (map2)
+    for (const f2 of map2.fields)
+      suffixes.add(f2.suffix);
+  if (suffixes.has(""))
+    suffixes.add("value");
+  if (node.rmType === "DV_CODED_TEXT")
+    suffixes.add("other");
+  return suffixes;
+}
+function validateFlatPayload(payload, webTemplate, options = {}) {
+  const errors = [];
+  const warnings = [];
+  const rootId = templateRootId(webTemplate.templateId);
+  const chains = buildChainSet(webTemplate);
+  const report = (path, message) => {
+    if (options.strictUnknownKeys) {
+      errors.push({ path, message, severity: "error" });
+    } else {
+      warnings.push({ path, message, severity: "warning" });
+    }
+  };
+  const seenChains = /* @__PURE__ */ new Set();
+  for (const key of Object.keys(payload)) {
+    if (key.startsWith("ctx/")) {
+      const rest = key.slice(4);
+      const field = stripIndex(rest.split("|")[0]).replace(/:\d+.*$/, "");
+      const base2 = field.split("/")[0].replace(/:\d+$/, "");
+      if (!CTX_FIELDS.has(base2) && !base2.startsWith("participation")) {
+        report(key, "Unknown ctx field");
+      }
+      continue;
+    }
+    const pipeIdx = key.indexOf("|");
+    const basePath = pipeIdx === -1 ? key : key.slice(0, pipeIdx);
+    const suffix = pipeIdx === -1 ? "" : key.slice(pipeIdx + 1);
+    const segments = basePath.split("/").map(stripIndex);
+    if (segments[0] !== rootId) {
+      report(key, `Key does not start with template root "${rootId}"`);
+      continue;
+    }
+    const rmAttrIdx = segments.findIndex((s2) => s2.startsWith("_"));
+    const chainSegs = rmAttrIdx === -1 ? segments.slice(1) : segments.slice(1, rmAttrIdx);
+    if (!chainSegs.length)
+      continue;
+    const chain = chainSegs.join("/");
+    const node = chains.get(chain);
+    if (!node) {
+      report(key, "Unknown flat key for template");
+      continue;
+    }
+    seenChains.add(chain);
+    if (rmAttrIdx === -1 && suffix && !knownSuffixes(node).has(suffix)) {
+      warnings.push({
+        path: key,
+        message: `Unknown suffix "|${suffix}" for rmType ${node.rmType}`,
+        severity: "warning"
+      });
+    }
+  }
+  if (!("ctx/language" in payload)) {
+    warnings.push({
+      path: "ctx/language",
+      message: "Mandatory context field missing",
+      severity: "warning"
+    });
+  }
+  if (!("ctx/territory" in payload)) {
+    warnings.push({
+      path: "ctx/territory",
+      message: "Mandatory context field missing",
+      severity: "warning"
+    });
+  }
+  const requireChains = (nodes, prefix, ancestorsRequired) => {
+    for (const node of nodes) {
+      if (node.inContext)
+        continue;
+      const chain = prefix ? `${prefix}/${node.id}` : node.id;
+      const required = ancestorsRequired && node.min > 0;
+      const isLeaf = !!node.inputs?.length && !node.children?.length;
+      if (isLeaf && required && !seenChains.has(chain)) {
+        warnings.push({
+          path: `${rootId}/${chain}`,
+          message: "Mandatory field missing from payload",
+          severity: "warning"
+        });
+      }
+      if (node.children?.length) {
+        requireChains(node.children, chain, required);
+      }
+    }
+  };
+  requireChains(webTemplate.tree.children ?? [], "", true);
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+function collectExpectedFlatKeys(webTemplate) {
+  const keys = /* @__PURE__ */ new Set();
+  const rootId = templateRootId(webTemplate.templateId);
+  const walk = (node, parts) => {
+    if (node.inContext) {
+      for (const input of node.inputs ?? [{ type: "TEXT" }]) {
+        const suffix = input.suffix ?? "";
+        keys.add(
+          suffix === "" || suffix === "value" ? `ctx/${node.id}` : `ctx/${node.id}|${suffix}`
+        );
+      }
+      return;
+    }
+    const next = [...parts, node.id];
+    const isLeaf = !!node.inputs?.length && !node.children?.length;
+    if (isLeaf) {
+      for (const input of node.inputs ?? []) {
+        const suffix = input.suffix ?? "";
+        keys.add(
+          suffix === "" ? next.join("/") : `${next.join("/")}|${suffix}`
+        );
+      }
+      return;
+    }
+    for (const child of node.children ?? [])
+      walk(child, next);
+  };
+  for (const child of webTemplate.tree.children ?? [])
+    walk(child, [rootId]);
+  return keys;
+}
+var CTX_FIELDS;
+var init_flat_validator = __esm({
+  "enhanced/serialization/simplified/flat_validator.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_dv_field_maps();
+    CTX_FIELDS = /* @__PURE__ */ new Set([
+      "language",
+      "territory",
+      "composer_name",
+      "composer_id",
+      "composer_self",
+      "id_namespace",
+      "id_scheme",
+      "time",
+      "end_time",
+      "history_origin",
+      "action_time",
+      "activity_timing",
+      "instruction_narrative",
+      "action_ism_transition_current_state",
+      "location",
+      "setting",
+      "category",
+      "work_flow_id",
+      "health_care_facility",
+      "provider_name",
+      "provider_id"
+    ]);
+  }
+});
+
+// enhanced/serialization/simplified/web_template_parser.ts
+function isObject(v2) {
+  return v2 != null && typeof v2 === "object" && !Array.isArray(v2);
+}
+function asString(v2) {
+  return typeof v2 === "string" ? v2 : void 0;
+}
+function asNumber(v2, fallback) {
+  if (typeof v2 === "number" && Number.isFinite(v2))
+    return v2;
+  if (typeof v2 === "string" && v2 !== "") {
+    const n2 = Number(v2);
+    if (Number.isFinite(n2))
+      return n2;
+  }
+  return fallback;
+}
+function parseInput(raw) {
+  const input = {
+    type: asString(raw.type) ?? "TEXT"
+  };
+  const suffix = asString(raw.suffix);
+  if (suffix)
+    input.suffix = suffix;
+  if (isObject(raw.validation))
+    input.validation = raw.validation;
+  if (Array.isArray(raw.list)) {
+    input.list = raw.list.filter(isObject).map((item) => ({
+      ...item,
+      value: String(item.value ?? "")
+    }));
+  }
+  if (typeof raw.listOpen === "boolean")
+    input.listOpen = raw.listOpen;
+  const terminology = asString(raw.terminology);
+  if (terminology)
+    input.terminology = terminology;
+  if (raw.defaultValue !== void 0)
+    input.defaultValue = raw.defaultValue;
+  return input;
+}
+function parseNode(raw) {
+  const node = {
+    id: asString(raw.id) ?? "id",
+    rmType: asString(raw.rmType) ?? asString(raw.rm_type) ?? "UNKNOWN",
+    min: asNumber(raw.min, 0),
+    max: asNumber(raw.max, 1),
+    aqlPath: asString(raw.aqlPath) ?? asString(raw.aql_path) ?? ""
+  };
+  const name2 = asString(raw.name);
+  if (name2)
+    node.name = name2;
+  const localizedName = asString(raw.localizedName);
+  if (localizedName)
+    node.localizedName = localizedName;
+  const nodeId = asString(raw.nodeId) ?? asString(raw.node_id);
+  if (nodeId)
+    node.nodeId = nodeId;
+  if (raw.inContext === true)
+    node.inContext = true;
+  if (Array.isArray(raw.dependsOn)) {
+    node.dependsOn = raw.dependsOn.filter(
+      (d2) => typeof d2 === "string"
+    );
+  }
+  if (isObject(raw.localizedNames)) {
+    node.localizedNames = raw.localizedNames;
+  }
+  if (isObject(raw.localizedDescriptions)) {
+    node.localizedDescriptions = raw.localizedDescriptions;
+  }
+  if (isObject(raw.annotations))
+    node.annotations = raw.annotations;
+  if (isObject(raw.termBindings)) {
+    node.termBindings = raw.termBindings;
+  }
+  if (Array.isArray(raw.inputs)) {
+    node.inputs = raw.inputs.filter(isObject).map(parseInput);
+  }
+  if (Array.isArray(raw.children)) {
+    node.children = raw.children.filter(isObject).map(parseNode);
+  }
+  return node;
+}
+function isWebTemplateJson(value) {
+  if (!isObject(value))
+    return false;
+  const doc2 = isObject(value.webTemplate) ? value.webTemplate : value;
+  return isObject(doc2.tree) && (typeof doc2.templateId === "string" || typeof doc2.template_id === "string");
+}
+function parseWebTemplate(source) {
+  const parsed = typeof source === "string" ? JSON.parse(source) : source;
+  if (!isObject(parsed)) {
+    throw new Error("Web template must be a JSON object");
+  }
+  const doc2 = isObject(parsed.webTemplate) ? parsed.webTemplate : parsed;
+  const templateId = asString(doc2.templateId) ?? asString(doc2.template_id);
+  if (!templateId)
+    throw new Error("Web template missing templateId");
+  if (!isObject(doc2.tree))
+    throw new Error("Web template missing tree");
+  const webTemplate = {
+    templateId,
+    defaultLanguage: asString(doc2.defaultLanguage) ?? asString(doc2.default_language) ?? "en",
+    tree: parseNode(doc2.tree)
+  };
+  const semVer = asString(doc2.semVer) ?? asString(doc2.semver);
+  if (semVer)
+    webTemplate.semVer = semVer;
+  const version = asString(doc2.version);
+  if (version)
+    webTemplate.version = version;
+  if (Array.isArray(doc2.languages)) {
+    webTemplate.languages = doc2.languages.filter(
+      (l3) => typeof l3 === "string"
+    );
+  }
+  return webTemplate;
+}
+var init_web_template_parser = __esm({
+  "enhanced/serialization/simplified/web_template_parser.ts"() {
+    init_define_BUILD_INFO();
+  }
+});
+
+// enhanced/serialization/simplified/web_template_to_opt.ts
+function parseAqlPath(aqlPath) {
+  const segments = aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g) ?? [];
+  return segments.map((raw) => {
+    const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
+    return { attr: m2[1], nodeId: m2[2] };
+  });
+}
+function isArchetypeId(nodeId) {
+  return !!nodeId && /^openEHR-/i.test(nodeId);
+}
+function multiplicity(min, max2) {
+  const m2 = new Multiplicity_interval();
+  m2.lower = Math.max(min, 0);
+  m2.lower_unbounded = false;
+  if (max2 === -1) {
+    m2.upper_unbounded = true;
+  } else {
+    m2.upper = max2;
+    m2.upper_unbounded = false;
+  }
+  return m2;
+}
+function wrapperRmType(parentRmType, attr) {
+  if (attr === "data" && parentRmType === "OBSERVATION")
+    return "HISTORY";
+  if (attr === "events")
+    return "POINT_EVENT";
+  if (attr === "data" || attr === "state" || attr === "protocol" || attr === "description")
+    return "ITEM_TREE";
+  if (attr === "items")
+    return "CLUSTER";
+  if (attr === "content")
+    return "OBSERVATION";
+  if (attr === "activities")
+    return "ACTIVITY";
+  if (attr === "context")
+    return "EVENT_CONTEXT";
+  return "CLUSTER";
+}
+function webTemplateToOpt(webTemplate) {
+  return new WebTemplateToOptConverter().convert(webTemplate);
+}
+var MULTIPLE_ATTRS, DEFAULT_CTX_PATHS, WebTemplateToOptConverter;
+var init_web_template_to_opt = __esm({
+  "enhanced/serialization/simplified/web_template_to_opt.ts"() {
+    init_define_BUILD_INFO();
+    init_openehr_am();
+    init_openehr_base();
+    MULTIPLE_ATTRS = /* @__PURE__ */ new Set([
+      "content",
+      "items",
+      "events",
+      "activities",
+      "rows",
+      "other_participations"
+    ]);
+    DEFAULT_CTX_PATHS = /* @__PURE__ */ new Set([
+      "/language",
+      "/territory",
+      "/composer",
+      "/context/start_time"
+    ]);
+    WebTemplateToOptConverter = class {
+      terms = {};
+      defaultLang = "en";
+      /**
+       * Constraint objects already claimed by a Web Template node. Sibling WT
+       * nodes with identical node ids (e.g. the same archetype slotted several
+       * times, disambiguated by name) must map to *separate* constraint objects.
+       */
+      claimed = /* @__PURE__ */ new Set();
+      convert(webTemplate) {
+        this.terms = {};
+        this.claimed = /* @__PURE__ */ new Set();
+        this.defaultLang = webTemplate.defaultLanguage || "en";
+        const opt = new OPERATIONAL_TEMPLATE();
+        opt.adl_version = "1.4";
+        opt.rm_release = "1.0.4";
+        opt.original_language = this.defaultLang;
+        const archetypeId = new ARCHETYPE_ID();
+        archetypeId.value = webTemplate.templateId;
+        opt.archetype_id = archetypeId;
+        const tree = webTemplate.tree;
+        const root = new C_ARCHETYPE_ROOT();
+        root.rm_type_name = tree.rmType || "COMPOSITION";
+        if (tree.nodeId) {
+          root.node_id = tree.nodeId;
+          if (isArchetypeId(tree.nodeId))
+            root.archetype_ref = tree.nodeId;
+        }
+        root.occurrences = multiplicity(tree.min ?? 1, tree.max ?? 1);
+        this.recordTerms(tree);
+        for (const child of tree.children ?? []) {
+          if (child.inContext && DEFAULT_CTX_PATHS.has(child.aqlPath))
+            continue;
+          this.insertNode(root, child, 0);
+        }
+        opt.definition = root;
+        const ontology = new ARCHETYPE_ONTOLOGY();
+        ontology.term_definitions = this.terms;
+        ontology.term_bindings = {};
+        ontology.constraint_bindings = {};
+        ontology.value_sets = {};
+        opt.ontology = ontology;
+        return opt;
+      }
+      recordTerms(node) {
+        const code = node.nodeId;
+        if (!code)
+          return;
+        const languages = node.localizedNames && Object.keys(node.localizedNames).length ? Object.keys(node.localizedNames) : [this.defaultLang];
+        for (const lang of languages) {
+          const text = node.localizedNames?.[lang] ?? node.name ?? node.localizedName;
+          const description = node.localizedDescriptions?.[lang];
+          if (text == null && description == null)
+            continue;
+          this.terms[lang] ??= {};
+          this.terms[lang][code] ??= {};
+          if (text != null)
+            this.terms[lang][code].text = text;
+          if (description != null) {
+            this.terms[lang][code].description = description;
+          }
+        }
+      }
+      /**
+       * Insert a web template node into the constraint tree by re-expanding the
+       * relative AQL path between its parent constraint and itself.
+       */
+      insertNode(parent, node, parentAqlDepth) {
+        const allSegments = parseAqlPath(node.aqlPath);
+        const segments = allSegments.slice(parentAqlDepth);
+        if (!segments.length)
+          return;
+        this.recordTerms(node);
+        const isLeaf = !!node.inputs?.length && !node.children?.length;
+        const leafValueStyle = isLeaf && segments[segments.length - 1].attr === "value" && !segments[segments.length - 1].nodeId && segments.length >= 2;
+        const walkSegments = leafValueStyle ? segments.slice(0, -1) : segments;
+        let current = parent;
+        for (let i3 = 0; i3 < walkSegments.length; i3++) {
+          const seg = walkSegments[i3];
+          const isLast = i3 === walkSegments.length - 1;
+          const attr = this.ensureAttribute(current, seg.attr);
+          if (!isLast) {
+            current = this.ensureObject(
+              attr,
+              seg.nodeId,
+              wrapperRmType(current.rm_type_name ?? "", seg.attr)
+            );
+            continue;
+          }
+          if (isLeaf) {
+            const elementLike = leafValueStyle || seg.attr === "items";
+            if (elementLike) {
+              const element = this.ensureObject(
+                attr,
+                seg.nodeId ?? node.nodeId,
+                "ELEMENT"
+              );
+              element.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
+              const valueAttr = this.ensureAttribute(element, "value");
+              const dv = this.ensureObject(valueAttr, void 0, node.rmType);
+              dv.occurrences = multiplicity(1, 1);
+            } else {
+              const dv = this.ensureObject(
+                attr,
+                seg.nodeId ?? node.nodeId,
+                node.rmType
+              );
+              dv.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
+            }
+            return;
+          }
+          const obj = this.ensureObject(
+            attr,
+            seg.nodeId ?? node.nodeId,
+            node.rmType,
+            /* forceUnclaimed */
+            true
+          );
+          this.claimed.add(obj);
+          obj.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
+          for (const child of node.children ?? []) {
+            if (child.inContext)
+              continue;
+            this.insertNode(obj, child, allSegments.length);
+          }
+          return;
+        }
+      }
+      ensureAttribute(obj, attrName2) {
+        obj.attributes ??= [];
+        const existing = obj.attributes.find(
+          (a2) => a2.rm_attribute_name === attrName2
+        );
+        if (existing)
+          return existing;
+        const attr = MULTIPLE_ATTRS.has(attrName2) ? new C_MULTIPLE_ATTRIBUTE() : new C_SINGLE_ATTRIBUTE();
+        attr.rm_attribute_name = attrName2;
+        obj.attributes.push(attr);
+        return attr;
+      }
+      ensureObject(attr, nodeId, rmType, forceUnclaimed = false) {
+        attr.children ??= [];
+        const existing = attr.children.find(
+          (c2) => (nodeId ? c2.node_id === nodeId : c2.rm_type_name === rmType) && !(forceUnclaimed && this.claimed.has(c2))
+        );
+        if (existing instanceof C_COMPLEX_OBJECT)
+          return existing;
+        const obj = isArchetypeId(nodeId) ? new C_ARCHETYPE_ROOT() : new C_COMPLEX_OBJECT();
+        if (obj instanceof C_ARCHETYPE_ROOT && nodeId) {
+          obj.archetype_ref = nodeId;
+        }
+        obj.rm_type_name = rmType;
+        if (nodeId)
+          obj.node_id = nodeId;
+        attr.children.push(obj);
+        return obj;
+      }
+    };
+  }
+});
+
+// enhanced/serialization/simplified/typed_rm.ts
+function toTypedRm(plain) {
+  const deserializer = new JsonCanonicalDeserializer();
+  return deserializer.deserialize(JSON.stringify(plain));
+}
+var init_typed_rm = __esm({
+  "enhanced/serialization/simplified/typed_rm.ts"() {
+    init_define_BUILD_INFO();
+    init_json_canonical_deserializer();
+  }
+});
+
+// enhanced/serialization/simplified/mod.ts
+var mod_exports = {};
+__export(mod_exports, {
+  FlatDeserializer: () => FlatDeserializer,
+  FlatSerializer: () => FlatSerializer,
+  StructuredDeserializer: () => StructuredDeserializer,
+  StructuredSerializer: () => StructuredSerializer,
+  WebTemplateBuilder: () => WebTemplateBuilder,
+  WebTemplateToOptConverter: () => WebTemplateToOptConverter,
+  applyContextFromFields: () => applyContextFromFields,
+  assignAtAqlPath: () => assignAtAqlPath,
+  buildDvValue: () => buildDvValue,
+  buildRmValue: () => buildRmValue,
+  buildWebTemplate: () => buildWebTemplate,
+  collectExpectedFlatKeys: () => collectExpectedFlatKeys,
+  countInstancesAtPath: () => countInstancesAtPath,
+  deserializeFromFlat: () => deserializeFromFlat,
+  deserializeFromFlatJson: () => deserializeFromFlatJson,
+  deserializeFromStructured: () => deserializeFromStructured,
+  deserializeFromStructuredJson: () => deserializeFromStructuredJson,
+  extractContextField: () => extractContextField,
+  extractFields: () => extractFields,
+  extractValueFields: () => extractValueFields,
+  fallbackFieldMap: () => fallbackFieldMap,
+  getFieldMap: () => getFieldMap,
+  inputsForRmType: () => inputsForRmType,
+  isWebTemplateJson: () => isWebTemplateJson,
+  joinAqlPath: () => joinAqlPath,
+  nodeIdToAtCode: () => nodeIdToAtCode,
+  normalizeWebTemplateId: () => normalizeWebTemplateId,
+  parseWebTemplate: () => parseWebTemplate,
+  resolveAtPath: () => resolveAtPath,
+  resolveDvType: () => resolveDvType,
+  serializeToFlat: () => serializeToFlat,
+  serializeToFlatJson: () => serializeToFlatJson,
+  serializeToStructured: () => serializeToStructured,
+  serializeToStructuredJson: () => serializeToStructuredJson,
+  structuredToFlat: () => structuredToFlat,
+  templateRootId: () => templateRootId,
+  toTypedRm: () => toTypedRm,
+  validateFlatPayload: () => validateFlatPayload,
+  webTemplateToOpt: () => webTemplateToOpt
+});
+var init_mod = __esm({
+  "enhanced/serialization/simplified/mod.ts"() {
+    init_define_BUILD_INFO();
+    init_normalize();
+    init_web_template_builder();
+    init_flat_serializer();
+    init_flat_deserializer();
+    init_structured_serializer();
+    init_structured_deserializer();
+    init_structured_to_flat();
+    init_flat_validator();
+    init_web_template_parser();
+    init_web_template_to_opt();
+    init_typed_rm();
+    init_dv_field_maps();
+    init_instance_nav();
+    init_value_extract();
+    init_value_build();
+    init_rm_instance_builder();
+  }
+});
+
 // examples/demo-app/src/main.ts
 init_define_BUILD_INFO();
 
@@ -6832,113 +20270,15 @@ init_define_BUILD_INFO();
 
 // enhanced/serialization/json/json_canonical_serializer.ts
 init_define_BUILD_INFO();
-
-// enhanced/serialization/common/type_registry.ts
-init_define_BUILD_INFO();
-var TypeRegistry = class {
-  static typeNameToConstructor = /* @__PURE__ */ new Map();
-  static constructorToTypeName = /* @__PURE__ */ new Map();
-  static instanceToTypeName = /* @__PURE__ */ new WeakMap();
-  /**
-   * Register a class with its openEHR type name
-   * @param typeName - The openEHR type name (e.g., "COMPOSITION", "DV_TEXT")
-   * @param constructor - The class constructor
-   */
-  static register(typeName2, constructor) {
-    this.typeNameToConstructor.set(typeName2, constructor);
-    this.constructorToTypeName.set(constructor, typeName2);
-  }
-  /**
-   * Get constructor for a type name
-   * @param typeName - The openEHR type name
-   * @returns The constructor function or undefined if not found
-   */
-  static getConstructor(typeName2) {
-    return this.typeNameToConstructor.get(typeName2);
-  }
-  /**
-   * Get type name for a constructor
-   * @param constructor - The class constructor
-   * @returns The type name or undefined if not found
-   */
-  static getTypeName(constructor) {
-    return this.constructorToTypeName.get(constructor);
-  }
-  /**
-   * Get type name from an object instance
-   * @param obj - The object instance
-   * @returns The type name or undefined if not found
-   */
-  static getTypeNameFromInstance(obj) {
-    if (!obj || typeof obj !== "object") {
-      return void 0;
-    }
-    const cached = this.instanceToTypeName.get(obj);
-    if (cached) {
-      return cached;
-    }
-    const typeName2 = this.constructorToTypeName.get(obj.constructor);
-    if (typeName2) {
-      this.instanceToTypeName.set(obj, typeName2);
-      return typeName2;
-    }
-    if (obj._type && typeof obj._type === "string") {
-      return obj._type;
-    }
-    if (obj.constructor && obj.constructor.name) {
-      const name2 = obj.constructor.name.toUpperCase();
-      if (name2 !== "OBJECT" && name2 !== "ARRAY") {
-        return name2;
-      }
-    }
-    return void 0;
-  }
-  /**
-   * Check if a type is registered
-   * @param typeName - The openEHR type name
-   * @returns true if the type is registered
-   */
-  static hasType(typeName2) {
-    return this.typeNameToConstructor.has(typeName2);
-  }
-  /**
-   * Get all registered type names
-   * @returns Array of all registered type names
-   */
-  static getAllTypeNames() {
-    return Array.from(this.typeNameToConstructor.keys());
-  }
-  /**
-   * Clear all registrations (useful for testing)
-   */
-  static clear() {
-    this.typeNameToConstructor.clear();
-    this.constructorToTypeName.clear();
-  }
-  /**
-   * Register all classes from a module
-   * Scans the module exports and registers all classes that appear to be RM types
-   * @param moduleExports - The module exports object (e.g., import * as rm from './openehr_rm.ts')
-   * @throws Error if moduleExports contains values that are not functions with prototypes (class constructors)
-   */
-  static registerModule(moduleExports) {
-    for (const [name2, value] of Object.entries(moduleExports)) {
-      if (typeof value === "function" && value.prototype) {
-        this.register(name2, value);
-      } else {
-        throw new Error(
-          `Cannot register '${name2}': expected a class constructor but got ${typeof value}. Only class constructors can be registered. If importing from a module, ensure it exports only class definitions. Example: import * as rm from './openehr_rm.ts' where openehr_rm.ts exports only classes.`
-        );
-      }
-    }
-  }
-};
+init_type_registry();
 
 // enhanced/serialization/common/mod.ts
 init_define_BUILD_INFO();
+init_type_registry();
 
 // enhanced/serialization/common/type_inference.ts
 init_define_BUILD_INFO();
+init_type_registry();
 var TypeInferenceEngine = class {
   // Cache for property type mappings
   static propertyTypeMap = /* @__PURE__ */ new Map();
@@ -7314,40 +20654,8 @@ function orderSerializationKeys(props, options = {}) {
   return [...rest, "archetype_node_id"];
 }
 
-// enhanced/serialization/common/errors.ts
-init_define_BUILD_INFO();
-var SerializationError = class _SerializationError extends Error {
-  constructor(message, object, cause) {
-    super(message);
-    this.object = object;
-    this.cause = cause;
-    this.name = "SerializationError";
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, _SerializationError);
-    }
-  }
-};
-var DeserializationError = class _DeserializationError extends Error {
-  constructor(message, data, cause) {
-    super(message);
-    this.data = data;
-    this.cause = cause;
-    this.name = "DeserializationError";
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, _DeserializationError);
-    }
-  }
-};
-var TypeNotFoundError = class _TypeNotFoundError extends DeserializationError {
-  constructor(typeName2, data) {
-    super(`Type not found in registry: ${typeName2}`, data);
-    this.typeName = typeName2;
-    this.name = "TypeNotFoundError";
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, _TypeNotFoundError);
-    }
-  }
-};
+// enhanced/serialization/common/mod.ts
+init_errors();
 
 // enhanced/serialization/json/json_canonical_serializer.ts
 var JsonCanonicalSerializer = class {
@@ -7433,9033 +20741,17 @@ var JsonCanonicalSerializer = class {
   }
 };
 
-// enhanced/serialization/json/json_canonical_deserializer.ts
-init_define_BUILD_INFO();
+// enhanced/serialization/json/mod.ts
+init_json_canonical_deserializer();
 
 // enhanced/serialization/json/json_configurable_serializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 
 // enhanced/terse_format.ts
 init_define_BUILD_INFO();
-
-// enhanced/openehr_base.ts
-var openehr_base_exports = {};
-__export(openehr_base_exports, {
-  ACCESS_GROUP_REF: () => ACCESS_GROUP_REF,
-  ARCHETYPE_ID: () => ARCHETYPE_ID,
-  AUTHORED_RESOURCE: () => AUTHORED_RESOURCE,
-  Any: () => Any,
-  Array: () => Array2,
-  BASIC_DEFINITIONS: () => BASIC_DEFINITIONS,
-  Boolean: () => Boolean2,
-  Byte: () => Byte,
-  CODE_PHRASE: () => CODE_PHRASE,
-  Cardinality: () => Cardinality,
-  Character: () => Character,
-  Comparable: () => Comparable,
-  Container: () => Container,
-  Double: () => Double,
-  GENERIC_ID: () => GENERIC_ID,
-  HIER_OBJECT_ID: () => HIER_OBJECT_ID,
-  Hash: () => Hash,
-  INTERNET_ID: () => INTERNET_ID,
-  ISO_OID: () => ISO_OID,
-  Integer: () => Integer,
-  Integer64: () => Integer64,
-  Interval: () => Interval,
-  Iso8601_date: () => Iso8601_date,
-  Iso8601_date_time: () => Iso8601_date_time,
-  Iso8601_duration: () => Iso8601_duration,
-  Iso8601_time: () => Iso8601_time,
-  Iso8601_timezone: () => Iso8601_timezone,
-  Iso8601_type: () => Iso8601_type,
-  LOCATABLE_REF: () => LOCATABLE_REF,
-  List: () => List,
-  Multiplicity_interval: () => Multiplicity_interval,
-  Numeric: () => Numeric,
-  OBJECT_ID: () => OBJECT_ID,
-  OBJECT_REF: () => OBJECT_REF,
-  OBJECT_VERSION_ID: () => OBJECT_VERSION_ID,
-  OPENEHR_DEFINITIONS: () => OPENEHR_DEFINITIONS,
-  Octet: () => Octet,
-  Ordered: () => Ordered,
-  Ordered_Numeric: () => Ordered_Numeric,
-  PARTY_REF: () => PARTY_REF,
-  Point_interval: () => Point_interval,
-  Proper_interval: () => Proper_interval,
-  RESOURCE_ANNOTATIONS: () => RESOURCE_ANNOTATIONS,
-  RESOURCE_DESCRIPTION: () => RESOURCE_DESCRIPTION,
-  RESOURCE_DESCRIPTION_ITEM: () => RESOURCE_DESCRIPTION_ITEM,
-  Real: () => Real,
-  Set: () => Set2,
-  String: () => String2,
-  TEMPLATE_ID: () => TEMPLATE_ID,
-  TERMINOLOGY_ID: () => TERMINOLOGY_ID,
-  TRANSLATION_DETAILS: () => TRANSLATION_DETAILS,
-  Temporal: () => Temporal,
-  Terminology_code: () => Terminology_code,
-  Terminology_term: () => Terminology_term,
-  Time_Definitions: () => Time_Definitions,
-  UID: () => UID,
-  UID_BASED_ID: () => UID_BASED_ID,
-  UUID: () => UUID,
-  Uri: () => Uri,
-  VALIDITY_KIND: () => VALIDITY_KIND,
-  VERSION_STATUS: () => VERSION_STATUS,
-  VERSION_TREE_ID: () => VERSION_TREE_ID,
-  getRegisteredTypes: () => getRegisteredTypes,
-  isTypeRegistered: () => isTypeRegistered,
-  registerType: () => registerType
-});
-init_define_BUILD_INFO();
-
-// enhanced/temporal_polyfill.ts
-init_define_BUILD_INFO();
-
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
-init_define_BUILD_INFO();
-
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
-init_define_BUILD_INFO();
-
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
-init_define_BUILD_INFO();
-function clampProp(e2, n2, t3, o2, r2) {
-  return clampEntity(n2, getDefinedProp(e2, n2), t3, o2, r2);
-}
-function clampEntity(e2, n2, t3, o2, r2, i3) {
-  const a2 = clampNumber(n2, t3, o2);
-  if (r2 && n2 !== a2) {
-    throw new RangeError(numberOutOfRange(e2, n2, t3, o2, i3));
-  }
-  return a2;
-}
-function getDefinedProp(e2, n2) {
-  const t3 = e2[n2];
-  if (void 0 === t3) {
-    throw new TypeError(missingField(n2));
-  }
-  return t3;
-}
-function z(e2) {
-  return null !== e2 && /object|function/.test(typeof e2);
-}
-function Jn(e2, n2 = Map) {
-  const t3 = new n2();
-  return (n3, ...o2) => {
-    if (t3.has(n3)) {
-      return t3.get(n3);
-    }
-    const r2 = e2(n3, ...o2);
-    return t3.set(n3, r2), r2;
-  };
-}
-function D(e2) {
-  return p({
-    name: e2
-  }, 1);
-}
-function p(e2, n2) {
-  return T((e3) => ({
-    value: e3,
-    configurable: 1,
-    writable: !n2
-  }), e2);
-}
-function O(e2) {
-  return T((e3) => ({
-    get: e3,
-    configurable: 1
-  }), e2);
-}
-function h(e2) {
-  return {
-    [Symbol.toStringTag]: {
-      value: e2,
-      configurable: 1
-    }
-  };
-}
-function zipProps(e2, n2) {
-  const t3 = {};
-  let o2 = e2.length;
-  for (const r2 of n2) {
-    t3[e2[--o2]] = r2;
-  }
-  return t3;
-}
-function T(e2, n2, t3) {
-  const o2 = {};
-  for (const r2 in n2) {
-    o2[r2] = e2(n2[r2], r2, t3);
-  }
-  return o2;
-}
-function b(e2, n2, t3) {
-  const o2 = {};
-  for (let r2 = 0; r2 < n2.length; r2++) {
-    const i3 = n2[r2];
-    o2[i3] = e2(i3, r2, t3);
-  }
-  return o2;
-}
-function remapProps(e2, n2, t3) {
-  const o2 = {};
-  for (let r2 = 0; r2 < e2.length; r2++) {
-    o2[n2[r2]] = t3[e2[r2]];
-  }
-  return o2;
-}
-function Vn(e2, n2) {
-  const t3 = {};
-  for (const o2 of e2) {
-    t3[o2] = n2[o2];
-  }
-  return t3;
-}
-function V(e2, n2) {
-  const t3 = {};
-  for (const o2 in n2) {
-    e2.has(o2) || (t3[o2] = n2[o2]);
-  }
-  return t3;
-}
-function nn(e2) {
-  e2 = {
-    ...e2
-  };
-  const n2 = Object.keys(e2);
-  for (const t3 of n2) {
-    void 0 === e2[t3] && delete e2[t3];
-  }
-  return e2;
-}
-function C(e2, n2) {
-  for (const t3 of n2) {
-    if (!(t3 in e2)) {
-      return 0;
-    }
-  }
-  return 1;
-}
-function allPropsEqual(e2, n2, t3) {
-  for (const o2 of e2) {
-    if (n2[o2] !== t3[o2]) {
-      return 0;
-    }
-  }
-  return 1;
-}
-function zeroOutProps(e2, n2, t3) {
-  const o2 = {
-    ...t3
-  };
-  for (let t4 = 0; t4 < n2; t4++) {
-    o2[e2[t4]] = 0;
-  }
-  return o2;
-}
-function E(e2, ...n2) {
-  return (...t3) => e2(...n2, ...t3);
-}
-function capitalize(e2) {
-  return e2[0].toUpperCase() + e2.substring(1);
-}
-function sortStrings(e2) {
-  return e2.slice().sort();
-}
-function padNumber(e2, n2) {
-  return String(n2).padStart(e2, "0");
-}
-function compareNumbers(e2, n2) {
-  return Math.sign(e2 - n2);
-}
-function clampNumber(e2, n2, t3) {
-  return Math.min(Math.max(e2, n2), t3);
-}
-function divModFloor(e2, n2) {
-  return [Math.floor(e2 / n2), modFloor(e2, n2)];
-}
-function modFloor(e2, n2) {
-  return (e2 % n2 + n2) % n2;
-}
-function divModTrunc(e2, n2) {
-  return [divTrunc(e2, n2), modTrunc(e2, n2)];
-}
-function divTrunc(e2, n2) {
-  return Math.trunc(e2 / n2) || 0;
-}
-function modTrunc(e2, n2) {
-  return e2 % n2 || 0;
-}
-function hasHalf(e2) {
-  return 0.5 === Math.abs(e2 % 1);
-}
-function givenFieldsToBigNano(e2, n2, t3) {
-  let o2 = 0, r2 = 0;
-  for (let i4 = 0; i4 <= n2; i4++) {
-    const n3 = e2[t3[i4]], a3 = Xr[i4], s2 = Qr / a3, [c2, u2] = divModTrunc(n3, s2);
-    o2 += u2 * a3, r2 += c2;
-  }
-  const [i3, a2] = divModTrunc(o2, Qr);
-  return [r2 + i3, a2];
-}
-function nanoToGivenFields(e2, n2, t3) {
-  const o2 = {};
-  for (let r2 = n2; r2 >= 0; r2--) {
-    const n3 = Xr[r2];
-    o2[t3[r2]] = divTrunc(e2, n3), e2 = modTrunc(e2, n3);
-  }
-  return o2;
-}
-function un(e2) {
-  return e2 === X ? si : [];
-}
-function cn(e2) {
-  return e2 === X ? li : [];
-}
-function ln(e2) {
-  return e2 === X ? ["year", "day"] : [];
-}
-function l2(e2) {
-  if (void 0 !== e2) {
-    return m(e2);
-  }
-}
-function S(e2) {
-  if (void 0 !== e2) {
-    return d(e2);
-  }
-}
-function c(e2) {
-  if (void 0 !== e2) {
-    return u(e2);
-  }
-}
-function d(e2) {
-  return requireNumberIsPositive(u(e2));
-}
-function u(e2) {
-  return requireNumberIsInteger(Mi(e2));
-}
-function on(e2) {
-  if (null == e2) {
-    throw new TypeError("Cannot be null or undefined");
-  }
-  return e2;
-}
-function requirePropDefined(e2, n2) {
-  if (null == n2) {
-    throw new RangeError(missingField(e2));
-  }
-  return n2;
-}
-function de(e2) {
-  if (!z(e2)) {
-    throw new TypeError(hr);
-  }
-  return e2;
-}
-function requireType(e2, n2, t3 = e2) {
-  if (typeof n2 !== e2) {
-    throw new TypeError(invalidEntity(t3, n2));
-  }
-  return n2;
-}
-function requireNumberIsInteger(e2, n2 = "number") {
-  if (!Number.isInteger(e2)) {
-    throw new RangeError(expectedInteger(n2, e2));
-  }
-  return e2 || 0;
-}
-function requireNumberIsPositive(e2, n2 = "number") {
-  if (e2 <= 0) {
-    throw new RangeError(expectedPositive(n2, e2));
-  }
-  return e2;
-}
-function toString(e2) {
-  if ("symbol" == typeof e2) {
-    throw new TypeError(pr);
-  }
-  return String(e2);
-}
-function toStringViaPrimitive(e2, n2) {
-  return z(e2) ? String(e2) : m(e2, n2);
-}
-function toBigInt(e2) {
-  if ("string" == typeof e2) {
-    return BigInt(e2);
-  }
-  if ("bigint" != typeof e2) {
-    throw new TypeError(invalidBigInt(e2));
-  }
-  return e2;
-}
-function toNumber(e2, n2 = "number") {
-  if ("bigint" == typeof e2) {
-    throw new TypeError(forbiddenBigIntToNumber(n2));
-  }
-  if (e2 = Number(e2), !Number.isFinite(e2)) {
-    throw new RangeError(expectedFinite(n2, e2));
-  }
-  return e2;
-}
-function toInteger(e2, n2) {
-  return Math.trunc(toNumber(e2, n2)) || 0;
-}
-function toStrictInteger(e2, n2) {
-  return requireNumberIsInteger(toNumber(e2, n2), n2);
-}
-function toPositiveInteger(e2, n2) {
-  return requireNumberIsPositive(toInteger(e2, n2), n2);
-}
-function createBigNano(e2, n2) {
-  let [t3, o2] = divModTrunc(n2, Qr), r2 = e2 + t3;
-  const i3 = Math.sign(r2);
-  return i3 && i3 === -Math.sign(o2) && (r2 -= i3, o2 += i3 * Qr), [r2, o2];
-}
-function addBigNanos(e2, n2, t3 = 1) {
-  return createBigNano(e2[0] + n2[0] * t3, e2[1] + n2[1] * t3);
-}
-function moveBigNano(e2, n2) {
-  return createBigNano(e2[0], e2[1] + n2);
-}
-function re(e2, n2) {
-  return addBigNanos(n2, e2, -1);
-}
-function te(e2, n2) {
-  return compareNumbers(e2[0], n2[0]) || compareNumbers(e2[1], n2[1]);
-}
-function bigNanoOutside(e2, n2, t3) {
-  return -1 === te(e2, n2) || 1 === te(e2, t3);
-}
-function bigIntToBigNano(e2, n2 = 1) {
-  const t3 = BigInt(Qr / n2);
-  return [Number(e2 / t3), Number(e2 % t3) * n2];
-}
-function he(e2, n2 = 1) {
-  const t3 = Qr / n2, [o2, r2] = divModTrunc(e2, t3);
-  return [o2, r2 * n2];
-}
-function bigNanoToBigInt(e2, n2 = 1) {
-  const [t3, o2] = e2, r2 = Math.floor(o2 / n2), i3 = Qr / n2;
-  return BigInt(t3) * BigInt(i3) + BigInt(r2);
-}
-function oe(e2, n2 = 1, t3) {
-  const [o2, r2] = e2, [i3, a2] = divModTrunc(r2, n2);
-  return o2 * (Qr / n2) + (i3 + (t3 ? a2 / n2 : 0));
-}
-function divModBigNano(e2, n2, t3 = divModFloor) {
-  const [o2, r2] = e2, [i3, a2] = t3(r2, n2);
-  return [o2 * (Qr / n2) + i3, a2];
-}
-function hashIntlFormatParts(e2, n2) {
-  const t3 = e2.formatToParts(n2), o2 = {};
-  for (const e3 of t3) {
-    o2[e3.type] = e3.value;
-  }
-  return o2;
-}
-function checkIsoYearMonthInBounds(e2) {
-  return clampProp(e2, "isoYear", Li, Ai, 1), e2.isoYear === Li ? clampProp(e2, "isoMonth", 4, 12, 1) : e2.isoYear === Ai && clampProp(e2, "isoMonth", 1, 9, 1), e2;
-}
-function checkIsoDateInBounds(e2) {
-  return checkIsoDateTimeInBounds({
-    ...e2,
-    ...Dt,
-    isoHour: 12
-  }), e2;
-}
-function checkIsoDateTimeInBounds(e2) {
-  const n2 = clampProp(e2, "isoYear", Li, Ai, 1), t3 = n2 === Li ? 1 : n2 === Ai ? -1 : 0;
-  return t3 && checkEpochNanoInBounds(isoToEpochNano({
-    ...e2,
-    isoDay: e2.isoDay + t3,
-    isoNanosecond: e2.isoNanosecond - t3
-  })), e2;
-}
-function checkEpochNanoInBounds(e2) {
-  if (!e2 || bigNanoOutside(e2, Ui, qi)) {
-    throw new RangeError(Cr);
-  }
-  return e2;
-}
-function isoTimeFieldsToNano(e2) {
-  return givenFieldsToBigNano(e2, 5, j)[1];
-}
-function nanoToIsoTimeAndDay(e2) {
-  const [n2, t3] = divModFloor(e2, Qr);
-  return [nanoToGivenFields(t3, 5, j), n2];
-}
-function epochNanoToSec(e2) {
-  return epochNanoToSecMod(e2)[0];
-}
-function epochNanoToSecMod(e2) {
-  return divModBigNano(e2, _r);
-}
-function isoToEpochMilli(e2) {
-  return isoArgsToEpochMilli(e2.isoYear, e2.isoMonth, e2.isoDay, e2.isoHour, e2.isoMinute, e2.isoSecond, e2.isoMillisecond);
-}
-function isoToEpochNano(e2) {
-  const n2 = isoToEpochMilli(e2);
-  if (void 0 !== n2) {
-    const [t3, o2] = divModTrunc(n2, Gr);
-    return [t3, o2 * be + (e2.isoMicrosecond || 0) * Vr + (e2.isoNanosecond || 0)];
-  }
-}
-function isoToEpochNanoWithOffset(e2, n2) {
-  const [t3, o2] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) - n2);
-  return checkEpochNanoInBounds(isoToEpochNano({
-    ...e2,
-    isoDay: e2.isoDay + o2,
-    ...t3
-  }));
-}
-function isoArgsToEpochSec(...e2) {
-  return isoArgsToEpochMilli(...e2) / Hr;
-}
-function isoArgsToEpochMilli(...e2) {
-  const [n2, t3] = isoToLegacyDate(...e2), o2 = n2.valueOf();
-  if (!isNaN(o2)) {
-    return o2 - t3 * Gr;
-  }
-}
-function isoToLegacyDate(e2, n2 = 1, t3 = 1, o2 = 0, r2 = 0, i3 = 0, a2 = 0) {
-  const s2 = e2 === Li ? 1 : e2 === Ai ? -1 : 0, c2 = /* @__PURE__ */ new Date();
-  return c2.setUTCHours(o2, r2, i3, a2), c2.setUTCFullYear(e2, n2 - 1, t3 + s2), [c2, s2];
-}
-function Ie(e2, n2) {
-  let [t3, o2] = moveBigNano(e2, n2);
-  o2 < 0 && (o2 += Qr, t3 -= 1);
-  const [r2, i3] = divModFloor(o2, be), [a2, s2] = divModFloor(i3, Vr);
-  return epochMilliToIso(t3 * Gr + r2, a2, s2);
-}
-function epochMilliToIso(e2, n2 = 0, t3 = 0) {
-  const o2 = Math.ceil(Math.max(0, Math.abs(e2) - zi) / Gr) * Math.sign(e2), r2 = new Date(e2 - o2 * Gr);
-  return zipProps(wi, [r2.getUTCFullYear(), r2.getUTCMonth() + 1, r2.getUTCDate() + o2, r2.getUTCHours(), r2.getUTCMinutes(), r2.getUTCSeconds(), r2.getUTCMilliseconds(), n2, t3]);
-}
-function computeIsoDateParts(e2) {
-  return [e2.isoYear, e2.isoMonth, e2.isoDay];
-}
-function computeIsoMonthsInYear() {
-  return xi;
-}
-function computeIsoDaysInMonth(e2, n2) {
-  switch (n2) {
-    case 2:
-      return computeIsoInLeapYear(e2) ? 29 : 28;
-    case 4:
-    case 6:
-    case 9:
-    case 11:
-      return 30;
-  }
-  return 31;
-}
-function computeIsoDaysInYear(e2) {
-  return computeIsoInLeapYear(e2) ? 366 : 365;
-}
-function computeIsoInLeapYear(e2) {
-  return e2 % 4 == 0 && (e2 % 100 != 0 || e2 % 400 == 0);
-}
-function computeIsoDayOfWeek(e2) {
-  const [n2, t3] = isoToLegacyDate(e2.isoYear, e2.isoMonth, e2.isoDay);
-  return modFloor(n2.getUTCDay() - t3, 7) || 7;
-}
-function computeGregoryEraParts({ isoYear: e2 }) {
-  return e2 < 1 ? ["bce", 1 - e2] : ["ce", e2];
-}
-function computeJapaneseEraParts(e2) {
-  const n2 = isoToEpochMilli(e2);
-  if (n2 < $i) {
-    return computeGregoryEraParts(e2);
-  }
-  const t3 = hashIntlFormatParts(La(Ti), n2), { era: o2, eraYear: r2 } = parseIntlYear(t3, Ti);
-  return [o2, r2];
-}
-function checkIsoDateTimeFields(e2) {
-  return checkIsoDateFields(e2), constrainIsoTimeFields(e2, 1), e2;
-}
-function checkIsoDateFields(e2) {
-  return constrainIsoDateFields(e2, 1), e2;
-}
-function isIsoDateFieldsValid(e2) {
-  return allPropsEqual(Oi, e2, constrainIsoDateFields(e2));
-}
-function constrainIsoDateFields(e2, n2) {
-  const { isoYear: t3 } = e2, o2 = clampProp(e2, "isoMonth", 1, computeIsoMonthsInYear(), n2);
-  return {
-    isoYear: t3,
-    isoMonth: o2,
-    isoDay: clampProp(e2, "isoDay", 1, computeIsoDaysInMonth(t3, o2), n2)
-  };
-}
-function constrainIsoTimeFields(e2, n2) {
-  return zipProps(j, [clampProp(e2, "isoHour", 0, 23, n2), clampProp(e2, "isoMinute", 0, 59, n2), clampProp(e2, "isoSecond", 0, 59, n2), clampProp(e2, "isoMillisecond", 0, 999, n2), clampProp(e2, "isoMicrosecond", 0, 999, n2), clampProp(e2, "isoNanosecond", 0, 999, n2)]);
-}
-function H(e2) {
-  return void 0 === e2 ? 0 : ua(de(e2));
-}
-function wn(e2, n2 = 0) {
-  e2 = normalizeOptions(e2);
-  const t3 = la(e2), o2 = fa(e2, n2);
-  return [ua(e2), o2, t3];
-}
-function ve(e2) {
-  return la(normalizeOptions(e2));
-}
-function _t(e2) {
-  return e2 = normalizeOptions(e2), sa(e2, 9, 6, 1);
-}
-function refineDiffOptions(e2, n2, t3, o2 = 9, r2 = 0, i3 = 4) {
-  n2 = normalizeOptions(n2);
-  let a2 = sa(n2, o2, r2), s2 = parseRoundingIncInteger(n2), c2 = ha(n2, i3);
-  const u2 = aa(n2, o2, r2, 1);
-  return null == a2 ? a2 = Math.max(t3, u2) : checkLargestSmallestUnit(a2, u2), s2 = refineRoundingInc(s2, u2, 1), e2 && (c2 = ((e3) => e3 < 4 ? (e3 + 2) % 4 : e3)(c2)), [a2, u2, s2, c2];
-}
-function refineRoundingOptions(e2, n2 = 6, t3) {
-  let o2 = parseRoundingIncInteger(e2 = normalizeOptionsOrString(e2, Hi));
-  const r2 = ha(e2, 7);
-  let i3 = aa(e2, n2);
-  return i3 = requirePropDefined(Hi, i3), o2 = refineRoundingInc(o2, i3, void 0, t3), [i3, o2, r2];
-}
-function refineDateDisplayOptions(e2) {
-  return da(normalizeOptions(e2));
-}
-function refineTimeDisplayOptions(e2, n2) {
-  return refineTimeDisplayTuple(normalizeOptions(e2), n2);
-}
-function refineTimeDisplayTuple(e2, n2 = 4) {
-  const t3 = refineSubsecDigits(e2);
-  return [ha(e2, 4), ...refineSmallestUnitAndSubsecDigits(aa(e2, n2), t3)];
-}
-function refineSmallestUnitAndSubsecDigits(e2, n2) {
-  return null != e2 ? [Xr[e2], e2 < 4 ? 9 - 3 * e2 : -1] : [void 0 === n2 ? 1 : 10 ** (9 - n2), n2];
-}
-function parseRoundingIncInteger(e2) {
-  const n2 = e2[_i];
-  return void 0 === n2 ? 1 : toInteger(n2, _i);
-}
-function refineRoundingInc(e2, n2, t3, o2) {
-  const r2 = o2 ? Qr : Xr[n2 + 1];
-  if (r2) {
-    const t4 = Xr[n2];
-    if (r2 % ((e2 = clampEntity(_i, e2, 1, r2 / t4 - (o2 ? 0 : 1), 1)) * t4)) {
-      throw new RangeError(invalidEntity(_i, e2));
-    }
-  } else {
-    e2 = clampEntity(_i, e2, 1, t3 ? 10 ** 9 : 1, 1);
-  }
-  return e2;
-}
-function refineSubsecDigits(e2) {
-  let n2 = e2[Ji];
-  if (void 0 !== n2) {
-    if ("number" != typeof n2) {
-      if ("auto" === toString(n2)) {
-        return;
-      }
-      throw new RangeError(invalidEntity(Ji, n2));
-    }
-    n2 = clampEntity(Ji, Math.floor(n2), 0, 9, 1);
-  }
-  return n2;
-}
-function normalizeOptions(e2) {
-  return void 0 === e2 ? {} : de(e2);
-}
-function normalizeOptionsOrString(e2, n2) {
-  return "string" == typeof e2 ? {
-    [n2]: e2
-  } : de(e2);
-}
-function U(e2) {
-  if (void 0 !== e2) {
-    if (z(e2)) {
-      return Object.assign(/* @__PURE__ */ Object.create(null), e2);
-    }
-    throw new TypeError(hr);
-  }
-}
-function overrideOverflowOptions(e2, n2) {
-  return e2 && Object.assign(/* @__PURE__ */ Object.create(null), e2, {
-    overflow: Xi[n2]
-  });
-}
-function refineUnitOption(e2, n2, t3 = 9, o2 = 0, r2) {
-  let i3 = n2[e2];
-  if (void 0 === i3) {
-    return r2 ? o2 : void 0;
-  }
-  if (i3 = toString(i3), "auto" === i3) {
-    return r2 ? o2 : null;
-  }
-  let a2 = $r[i3];
-  if (void 0 === a2 && (a2 = Ei[i3]), void 0 === a2) {
-    throw new RangeError(invalidChoice(e2, i3, $r));
-  }
-  return clampEntity(e2, a2, o2, t3, 1, Et), a2;
-}
-function refineChoiceOption(e2, n2, t3, o2 = 0) {
-  const r2 = t3[e2];
-  if (void 0 === r2) {
-    return o2;
-  }
-  const i3 = toString(r2), a2 = n2[i3];
-  if (void 0 === a2) {
-    throw new RangeError(invalidChoice(e2, i3, n2));
-  }
-  return a2;
-}
-function checkLargestSmallestUnit(e2, n2) {
-  if (n2 > e2) {
-    throw new RangeError(Ar);
-  }
-}
-function _(e2) {
-  return {
-    branding: Oe,
-    epochNanoseconds: e2
-  };
-}
-function Yn(e2, n2, t3) {
-  return {
-    branding: Te,
-    calendar: t3,
-    timeZone: n2,
-    epochNanoseconds: e2
-  };
-}
-function ee(e2, n2 = e2.calendar) {
-  return {
-    branding: We,
-    calendar: n2,
-    ...Vn(Yi, e2)
-  };
-}
-function v(e2, n2 = e2.calendar) {
-  return {
-    branding: J,
-    calendar: n2,
-    ...Vn(Bi, e2)
-  };
-}
-function createPlainYearMonthSlots(e2, n2 = e2.calendar) {
-  return {
-    branding: L,
-    calendar: n2,
-    ...Vn(Bi, e2)
-  };
-}
-function createPlainMonthDaySlots(e2, n2 = e2.calendar) {
-  return {
-    branding: q,
-    calendar: n2,
-    ...Vn(Bi, e2)
-  };
-}
-function Ge(e2) {
-  return {
-    branding: xe,
-    ...Vn(ki, e2)
-  };
-}
-function Vt(e2) {
-  return {
-    branding: qt,
-    sign: computeDurationSign(e2),
-    ...Vn(Ni, e2)
-  };
-}
-function M(e2) {
-  return epochNanoToSec(e2.epochNanoseconds);
-}
-function y(e2) {
-  return divModBigNano(e2.epochNanoseconds, be)[0];
-}
-function N(e2) {
-  return bigNanoToBigInt(e2.epochNanoseconds, Vr);
-}
-function B(e2) {
-  return bigNanoToBigInt(e2.epochNanoseconds);
-}
-function extractEpochNano(e2) {
-  return e2.epochNanoseconds;
-}
-function I(e2) {
-  return "string" == typeof e2 ? e2 : m(e2.id);
-}
-function isIdLikeEqual(e2, n2) {
-  return e2 === n2 || I(e2) === I(n2);
-}
-function Ut(e2, n2, t3, o2, r2) {
-  const i3 = getMaxDurationUnit(o2), [a2, s2] = ((e3, n3) => {
-    const t4 = n3((e3 = normalizeOptionsOrString(e3, Vi))[Ki]);
-    let o3 = ca(e3);
-    return o3 = requirePropDefined(Vi, o3), [o3, t4];
-  })(r2, e2);
-  if (isUniformUnit(Math.max(a2, i3), s2)) {
-    return totalDayTimeDuration(o2, a2);
-  }
-  if (!s2) {
-    throw new RangeError(zr);
-  }
-  const [c2, u2, l3] = createMarkerSystem(n2, t3, s2), f2 = createMarkerToEpochNano(l3), d2 = createMoveMarker(l3), m2 = createDiffMarkers(l3), p2 = d2(u2, c2, o2), h2 = m2(u2, c2, p2, a2);
-  return isUniformUnit(a2, s2) ? totalDayTimeDuration(h2, a2) : ((e3, n3, t4, o3, r3, i4, a3) => {
-    const s3 = computeDurationSign(e3), [c3, u3] = clampRelativeDuration(o3, bi(t4, e3), t4, s3, r3, i4, a3), l4 = computeEpochNanoFrac(n3, c3, u3);
-    return e3[F[t4]] + l4 * s3;
-  })(h2, f2(p2), a2, u2, c2, f2, d2);
-}
-function totalDayTimeDuration(e2, n2) {
-  return oe(durationFieldsToBigNano(e2), Xr[n2], 1);
-}
-function clampRelativeDuration(e2, n2, t3, o2, r2, i3, a2) {
-  const s2 = F[t3], c2 = {
-    ...n2,
-    [s2]: n2[s2] + o2
-  }, u2 = a2(e2, r2, n2), l3 = a2(e2, r2, c2);
-  return [i3(u2), i3(l3)];
-}
-function computeEpochNanoFrac(e2, n2, t3) {
-  const o2 = oe(re(n2, t3));
-  if (!o2) {
-    throw new RangeError(vr);
-  }
-  return oe(re(n2, e2)) / o2;
-}
-function ce(e2, n2) {
-  const [t3, o2, r2] = refineRoundingOptions(n2, 5, 1);
-  return _(roundBigNano(e2.epochNanoseconds, t3, o2, r2, 1));
-}
-function Pn(e2, n2, t3) {
-  let { epochNanoseconds: o2, timeZone: r2, calendar: i3 } = n2;
-  const [a2, s2, c2] = refineRoundingOptions(t3);
-  if (0 === a2 && 1 === s2) {
-    return n2;
-  }
-  const u2 = e2(r2);
-  if (6 === a2) {
-    o2 = ((e3, n3, t4, o3) => {
-      const r3 = fn(t4, n3), [i4, a3] = e3(r3), s3 = t4.epochNanoseconds, c3 = we(n3, i4), u3 = we(n3, a3);
-      if (bigNanoOutside(s3, c3, u3)) {
-        throw new RangeError(vr);
-      }
-      return roundWithMode(computeEpochNanoFrac(s3, c3, u3), o3) ? u3 : c3;
-    })(computeDayInterval, u2, n2, c2);
-  } else {
-    const e3 = u2.getOffsetNanosecondsFor(o2);
-    o2 = getMatchingInstantFor(u2, roundDateTime(Ie(o2, e3), a2, s2, c2), e3, 2, 0, 1);
-  }
-  return Yn(o2, r2, i3);
-}
-function dt(e2, n2) {
-  return ee(roundDateTime(e2, ...refineRoundingOptions(n2)), e2.calendar);
-}
-function Ee(e2, n2) {
-  const [t3, o2, r2] = refineRoundingOptions(n2, 5);
-  var i3;
-  return Ge((i3 = r2, roundTimeToNano(e2, computeNanoInc(t3, o2), i3)[0]));
-}
-function dn(e2, n2) {
-  const t3 = e2(n2.timeZone), o2 = fn(n2, t3), [r2, i3] = computeDayInterval(o2), a2 = oe(re(we(t3, r2), we(t3, i3)), Kr, 1);
-  if (a2 <= 0) {
-    throw new RangeError(vr);
-  }
-  return a2;
-}
-function Cn(e2, n2) {
-  const { timeZone: t3, calendar: o2 } = n2, r2 = ((e3, n3, t4) => we(n3, e3(fn(t4, n3))))(computeDayFloor, e2(t3), n2);
-  return Yn(r2, t3, o2);
-}
-function roundDateTime(e2, n2, t3, o2) {
-  return roundDateTimeToNano(e2, computeNanoInc(n2, t3), o2);
-}
-function roundDateTimeToNano(e2, n2, t3) {
-  const [o2, r2] = roundTimeToNano(e2, n2, t3);
-  return checkIsoDateTimeInBounds({
-    ...moveByDays(e2, r2),
-    ...o2
-  });
-}
-function roundTimeToNano(e2, n2, t3) {
-  return nanoToIsoTimeAndDay(roundByInc(isoTimeFieldsToNano(e2), n2, t3));
-}
-function roundToMinute(e2) {
-  return roundByInc(e2, Jr, 7);
-}
-function computeNanoInc(e2, n2) {
-  return Xr[e2] * n2;
-}
-function computeDayInterval(e2) {
-  const n2 = computeDayFloor(e2);
-  return [n2, moveByDays(n2, 1)];
-}
-function computeDayFloor(e2) {
-  return Ci(6, e2);
-}
-function roundDayTimeDurationByInc(e2, n2, t3) {
-  const o2 = Math.min(getMaxDurationUnit(e2), 6);
-  return nanoToDurationDayTimeFields(roundBigNanoByInc(durationFieldsToBigNano(e2, o2), n2, t3), o2);
-}
-function roundRelativeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
-  if (0 === o2 && 1 === r2) {
-    return e2;
-  }
-  const l3 = isUniformUnit(o2, s2) ? isZonedEpochSlots(s2) && o2 < 6 && t3 >= 6 ? nudgeZonedTimeDuration : nudgeDayTimeDuration : nudgeRelativeDuration;
-  let [f2, d2, m2] = l3(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2);
-  return m2 && 7 !== o2 && (f2 = ((e3, n3, t4, o3, r3, i4, a3, s3) => {
-    const c3 = computeDurationSign(e3);
-    for (let u3 = o3 + 1; u3 <= t4; u3++) {
-      if (7 === u3 && 7 !== t4) {
-        continue;
-      }
-      const o4 = bi(u3, e3);
-      o4[F[u3]] += c3;
-      const l4 = oe(re(a3(s3(r3, i4, o4)), n3));
-      if (l4 && Math.sign(l4) !== c3) {
-        break;
-      }
-      e3 = o4;
-    }
-    return e3;
-  })(f2, d2, t3, Math.max(6, o2), a2, s2, c2, u2)), f2;
-}
-function roundBigNano(e2, n2, t3, o2, r2) {
-  if (6 === n2) {
-    const n3 = ((e3) => e3[0] + e3[1] / Qr)(e2);
-    return [roundByInc(n3, t3, o2), 0];
-  }
-  return roundBigNanoByInc(e2, computeNanoInc(n2, t3), o2, r2);
-}
-function roundBigNanoByInc(e2, n2, t3, o2) {
-  let [r2, i3] = e2;
-  o2 && i3 < 0 && (i3 += Qr, r2 -= 1);
-  const [a2, s2] = divModFloor(roundByInc(i3, n2, t3), Qr);
-  return createBigNano(r2 + a2, s2);
-}
-function roundByInc(e2, n2, t3) {
-  return roundWithMode(e2 / n2, t3) * n2;
-}
-function roundWithMode(e2, n2) {
-  return ga[n2](e2);
-}
-function nudgeDayTimeDuration(e2, n2, t3, o2, r2, i3) {
-  const a2 = computeDurationSign(e2), s2 = durationFieldsToBigNano(e2), c2 = roundBigNano(s2, o2, r2, i3), u2 = re(s2, c2), l3 = Math.sign(c2[0] - s2[0]) === a2, f2 = nanoToDurationDayTimeFields(c2, Math.min(t3, 6));
-  return [{
-    ...e2,
-    ...f2
-  }, addBigNanos(n2, u2), l3];
-}
-function nudgeZonedTimeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
-  const l3 = computeDurationSign(e2), f2 = oe(durationFieldsToBigNano(e2, 5)), d2 = computeNanoInc(o2, r2);
-  let m2 = roundByInc(f2, d2, i3);
-  const [p2, h2] = clampRelativeDuration(a2, {
-    ...e2,
-    ...Fi
-  }, 6, l3, s2, c2, u2), g2 = m2 - oe(re(p2, h2));
-  let T2 = 0;
-  g2 && Math.sign(g2) !== l3 ? n2 = moveBigNano(p2, m2) : (T2 += l3, m2 = roundByInc(g2, d2, i3), n2 = moveBigNano(h2, m2));
-  const D2 = nanoToDurationTimeFields(m2);
-  return [{
-    ...e2,
-    ...D2,
-    days: e2.days + T2
-  }, n2, Boolean(T2)];
-}
-function nudgeRelativeDuration(e2, n2, t3, o2, r2, i3, a2, s2, c2, u2) {
-  const l3 = computeDurationSign(e2), f2 = F[o2], d2 = bi(o2, e2);
-  7 === o2 && (e2 = {
-    ...e2,
-    weeks: e2.weeks + Math.trunc(e2.days / 7)
-  });
-  const m2 = divTrunc(e2[f2], r2) * r2;
-  d2[f2] = m2;
-  const [p2, h2] = clampRelativeDuration(a2, d2, o2, r2 * l3, s2, c2, u2), g2 = m2 + computeEpochNanoFrac(n2, p2, h2) * l3 * r2, T2 = roundByInc(g2, r2, i3), D2 = Math.sign(T2 - g2) === l3;
-  return d2[f2] = T2, [d2, D2 ? h2 : p2, D2];
-}
-function me(e2, n2, t3, o2) {
-  const [r2, i3, a2, s2] = ((e3) => {
-    const n3 = refineTimeDisplayTuple(e3 = normalizeOptions(e3));
-    return [e3.timeZone, ...n3];
-  })(o2), c2 = void 0 !== r2;
-  return ((e3, n3, t4, o3, r3, i4) => {
-    t4 = roundBigNanoByInc(t4, r3, o3, 1);
-    const a3 = n3.getOffsetNanosecondsFor(t4);
-    return formatIsoDateTimeFields(Ie(t4, a3), i4) + (e3 ? Fe(roundToMinute(a3)) : "Z");
-  })(c2, n2(c2 ? e2(r2) : Ta), t3.epochNanoseconds, i3, a2, s2);
-}
-function In(e2, n2, t3) {
-  const [o2, r2, i3, a2, s2, c2] = ((e3) => {
-    e3 = normalizeOptions(e3);
-    const n3 = da(e3), t4 = refineSubsecDigits(e3), o3 = pa(e3), r3 = ha(e3, 4), i4 = aa(e3, 4);
-    return [n3, ma(e3), o3, r3, ...refineSmallestUnitAndSubsecDigits(i4, t4)];
-  })(t3);
-  return ((e3, n3, t4, o3, r3, i4, a3, s3, c3, u2) => {
-    o3 = roundBigNanoByInc(o3, c3, s3, 1);
-    const l3 = e3(t4).getOffsetNanosecondsFor(o3);
-    return formatIsoDateTimeFields(Ie(o3, l3), u2) + Fe(roundToMinute(l3), a3) + ((e4, n4) => 1 !== n4 ? "[" + (2 === n4 ? "!" : "") + I(e4) + "]" : "")(t4, i4) + formatCalendar(n3, r3);
-  })(e2, n2.calendar, n2.timeZone, n2.epochNanoseconds, o2, r2, i3, a2, s2, c2);
-}
-function Tt(e2, n2) {
-  const [t3, o2, r2, i3] = ((e3) => (e3 = normalizeOptions(e3), [da(e3), ...refineTimeDisplayTuple(e3)]))(n2);
-  return a2 = e2.calendar, s2 = t3, c2 = i3, formatIsoDateTimeFields(roundDateTimeToNano(e2, r2, o2), c2) + formatCalendar(a2, s2);
-  var a2, s2, c2;
-}
-function yt(e2, n2) {
-  return t3 = e2.calendar, o2 = e2, r2 = refineDateDisplayOptions(n2), formatIsoDateFields(o2) + formatCalendar(t3, r2);
-  var t3, o2, r2;
-}
-function et(e2, n2) {
-  return formatDateLikeIso(e2.calendar, formatIsoYearMonthFields, e2, refineDateDisplayOptions(n2));
-}
-function W(e2, n2) {
-  return formatDateLikeIso(e2.calendar, formatIsoMonthDayFields, e2, refineDateDisplayOptions(n2));
-}
-function qe(e2, n2) {
-  const [t3, o2, r2] = refineTimeDisplayOptions(n2);
-  return i3 = r2, formatIsoTimeFields(roundTimeToNano(e2, o2, t3)[0], i3);
-  var i3;
-}
-function zt(e2, n2) {
-  const [t3, o2, r2] = refineTimeDisplayOptions(n2, 3);
-  return o2 > 1 && (e2 = {
-    ...e2,
-    ...roundDayTimeDurationByInc(e2, o2, t3)
-  }), ((e3, n3) => {
-    const { sign: t4 } = e3, o3 = -1 === t4 ? negateDurationFields(e3) : e3, { hours: r3, minutes: i3 } = o3, [a2, s2] = divModBigNano(durationFieldsToBigNano(o3, 3), _r, divModTrunc);
-    checkDurationTimeUnit(a2);
-    const c2 = formatSubsecNano(s2, n3), u2 = n3 >= 0 || !t4 || c2;
-    return (t4 < 0 ? "-" : "") + "P" + formatDurationFragments({
-      Y: formatDurationNumber(o3.years),
-      M: formatDurationNumber(o3.months),
-      W: formatDurationNumber(o3.weeks),
-      D: formatDurationNumber(o3.days)
-    }) + (r3 || i3 || a2 || u2 ? "T" + formatDurationFragments({
-      H: formatDurationNumber(r3),
-      M: formatDurationNumber(i3),
-      S: formatDurationNumber(a2, u2) + c2
-    }) : "");
-  })(e2, r2);
-}
-function formatDateLikeIso(e2, n2, t3, o2) {
-  const r2 = I(e2), i3 = o2 > 1 || 0 === o2 && r2 !== X;
-  return 1 === o2 ? r2 === X ? n2(t3) : formatIsoDateFields(t3) : i3 ? formatIsoDateFields(t3) + formatCalendarId(r2, 2 === o2) : n2(t3);
-}
-function formatDurationFragments(e2) {
-  const n2 = [];
-  for (const t3 in e2) {
-    const o2 = e2[t3];
-    o2 && n2.push(o2, t3);
-  }
-  return n2.join("");
-}
-function formatIsoDateTimeFields(e2, n2) {
-  return formatIsoDateFields(e2) + "T" + formatIsoTimeFields(e2, n2);
-}
-function formatIsoDateFields(e2) {
-  return formatIsoYearMonthFields(e2) + "-" + xr(e2.isoDay);
-}
-function formatIsoYearMonthFields(e2) {
-  const { isoYear: n2 } = e2;
-  return (n2 < 0 || n2 > 9999 ? getSignStr(n2) + padNumber(6, Math.abs(n2)) : padNumber(4, n2)) + "-" + xr(e2.isoMonth);
-}
-function formatIsoMonthDayFields(e2) {
-  return xr(e2.isoMonth) + "-" + xr(e2.isoDay);
-}
-function formatIsoTimeFields(e2, n2) {
-  const t3 = [xr(e2.isoHour), xr(e2.isoMinute)];
-  return -1 !== n2 && t3.push(xr(e2.isoSecond) + ((e3, n3, t4, o2) => formatSubsecNano(e3 * be + n3 * Vr + t4, o2))(e2.isoMillisecond, e2.isoMicrosecond, e2.isoNanosecond, n2)), t3.join(":");
-}
-function Fe(e2, n2 = 0) {
-  if (1 === n2) {
-    return "";
-  }
-  const [t3, o2] = divModFloor(Math.abs(e2), Kr), [r2, i3] = divModFloor(o2, Jr), [a2, s2] = divModFloor(i3, _r);
-  return getSignStr(e2) + xr(t3) + ":" + xr(r2) + (a2 || s2 ? ":" + xr(a2) + formatSubsecNano(s2) : "");
-}
-function formatCalendar(e2, n2) {
-  if (1 !== n2) {
-    const t3 = I(e2);
-    if (n2 > 1 || 0 === n2 && t3 !== X) {
-      return formatCalendarId(t3, 2 === n2);
-    }
-  }
-  return "";
-}
-function formatCalendarId(e2, n2) {
-  return "[" + (n2 ? "!" : "") + "u-ca=" + e2 + "]";
-}
-function formatSubsecNano(e2, n2) {
-  let t3 = padNumber(9, e2);
-  return t3 = void 0 === n2 ? t3.replace(Na, "") : t3.slice(0, n2), t3 ? "." + t3 : "";
-}
-function getSignStr(e2) {
-  return e2 < 0 ? "-" : "+";
-}
-function formatDurationNumber(e2, n2) {
-  return e2 || n2 ? e2.toLocaleString("fullwide", {
-    useGrouping: 0
-  }) : "";
-}
-function _zonedEpochSlotsToIso(e2, n2) {
-  const { epochNanoseconds: t3 } = e2, o2 = (n2.getOffsetNanosecondsFor ? n2 : n2(e2.timeZone)).getOffsetNanosecondsFor(t3), r2 = Ie(t3, o2);
-  return {
-    calendar: e2.calendar,
-    ...r2,
-    offsetNanoseconds: o2
-  };
-}
-function mn(e2, n2) {
-  const t3 = fn(n2, e2);
-  return {
-    calendar: n2.calendar,
-    ...Vn(Yi, t3),
-    offset: Fe(t3.offsetNanoseconds),
-    timeZone: n2.timeZone
-  };
-}
-function getMatchingInstantFor(e2, n2, t3, o2 = 0, r2 = 0, i3, a2) {
-  if (void 0 !== t3 && 1 === o2 && (1 === o2 || a2)) {
-    return isoToEpochNanoWithOffset(n2, t3);
-  }
-  const s2 = e2.getPossibleInstantsFor(n2);
-  if (void 0 !== t3 && 3 !== o2) {
-    const e3 = ((e4, n3, t4, o3) => {
-      const r3 = isoToEpochNano(n3);
-      o3 && (t4 = roundToMinute(t4));
-      for (const n4 of e4) {
-        let e5 = oe(re(n4, r3));
-        if (o3 && (e5 = roundToMinute(e5)), e5 === t4) {
-          return n4;
-        }
-      }
-    })(s2, n2, t3, i3);
-    if (void 0 !== e3) {
-      return e3;
-    }
-    if (0 === o2) {
-      throw new RangeError(kr);
-    }
-  }
-  return a2 ? isoToEpochNano(n2) : we(e2, n2, r2, s2);
-}
-function we(e2, n2, t3 = 0, o2 = e2.getPossibleInstantsFor(n2)) {
-  if (1 === o2.length) {
-    return o2[0];
-  }
-  if (1 === t3) {
-    throw new RangeError(Yr);
-  }
-  if (o2.length) {
-    return o2[3 === t3 ? 1 : 0];
-  }
-  const r2 = isoToEpochNano(n2), i3 = ((e3, n3) => {
-    const t4 = e3.getOffsetNanosecondsFor(moveBigNano(n3, -Qr));
-    return ne(e3.getOffsetNanosecondsFor(moveBigNano(n3, Qr)) - t4);
-  })(e2, r2), a2 = i3 * (2 === t3 ? -1 : 1);
-  return (o2 = e2.getPossibleInstantsFor(Ie(r2, a2)))[2 === t3 ? 0 : o2.length - 1];
-}
-function ae(e2) {
-  if (Math.abs(e2) >= Qr) {
-    throw new RangeError(wr);
-  }
-  return e2;
-}
-function ne(e2) {
-  if (e2 > Qr) {
-    throw new RangeError(Br);
-  }
-  return e2;
-}
-function se(e2, n2, t3) {
-  return _(checkEpochNanoInBounds(addBigNanos(n2.epochNanoseconds, ((e3) => {
-    if (durationHasDateParts(e3)) {
-      throw new RangeError(qr);
-    }
-    return durationFieldsToBigNano(e3, 5);
-  })(e2 ? negateDurationFields(t3) : t3))));
-}
-function hn(e2, n2, t3, o2, r2, i3 = /* @__PURE__ */ Object.create(null)) {
-  const a2 = n2(o2.timeZone), s2 = e2(o2.calendar);
-  return {
-    ...o2,
-    ...moveZonedEpochs(a2, s2, o2, t3 ? negateDurationFields(r2) : r2, i3)
-  };
-}
-function ct(e2, n2, t3, o2, r2 = /* @__PURE__ */ Object.create(null)) {
-  const { calendar: i3 } = t3;
-  return ee(moveDateTime(e2(i3), t3, n2 ? negateDurationFields(o2) : o2, r2), i3);
-}
-function bt(e2, n2, t3, o2, r2) {
-  const { calendar: i3 } = t3;
-  return v(moveDate(e2(i3), t3, n2 ? negateDurationFields(o2) : o2, r2), i3);
-}
-function Qe(e2, n2, t3, o2, r2 = /* @__PURE__ */ Object.create(null)) {
-  const i3 = t3.calendar, a2 = e2(i3);
-  let s2 = moveToDayOfMonthUnsafe(a2, t3);
-  n2 && (o2 = xt(o2)), o2.sign < 0 && (s2 = a2.dateAdd(s2, {
-    ...Si,
-    months: 1
-  }), s2 = moveByDays(s2, -1));
-  const c2 = a2.dateAdd(s2, o2, r2);
-  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(a2, c2), i3);
-}
-function Ye(e2, n2, t3) {
-  return Ge(moveTime(n2, e2 ? negateDurationFields(t3) : t3)[0]);
-}
-function moveZonedEpochs(e2, n2, t3, o2, r2) {
-  const i3 = durationFieldsToBigNano(o2, 5);
-  let a2 = t3.epochNanoseconds;
-  if (durationHasDateParts(o2)) {
-    const s2 = fn(t3, e2);
-    a2 = addBigNanos(we(e2, {
-      ...moveDate(n2, s2, {
-        ...o2,
-        ...Fi
-      }, r2),
-      ...Vn(j, s2)
-    }), i3);
-  } else {
-    a2 = addBigNanos(a2, i3), H(r2);
-  }
-  return {
-    epochNanoseconds: checkEpochNanoInBounds(a2)
-  };
-}
-function moveDateTime(e2, n2, t3, o2) {
-  const [r2, i3] = moveTime(n2, t3);
-  return checkIsoDateTimeInBounds({
-    ...moveDate(e2, n2, {
-      ...t3,
-      ...Fi,
-      days: t3.days + i3
-    }, o2),
-    ...r2
-  });
-}
-function moveDate(e2, n2, t3, o2) {
-  if (t3.years || t3.months || t3.weeks) {
-    return e2.dateAdd(n2, t3, o2);
-  }
-  H(o2);
-  const r2 = t3.days + durationFieldsToBigNano(t3, 5)[0];
-  return r2 ? checkIsoDateInBounds(moveByDays(n2, r2)) : n2;
-}
-function moveToDayOfMonthUnsafe(e2, n2, t3 = 1) {
-  return moveByDays(n2, t3 - e2.day(n2));
-}
-function moveTime(e2, n2) {
-  const [t3, o2] = durationFieldsToBigNano(n2, 5), [r2, i3] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) + o2);
-  return [r2, t3 + i3];
-}
-function moveByDays(e2, n2) {
-  return n2 ? {
-    ...e2,
-    ...epochMilliToIso(isoToEpochMilli(e2) + n2 * Gr)
-  } : e2;
-}
-function createMarkerSystem(e2, n2, t3) {
-  const o2 = e2(t3.calendar);
-  return isZonedEpochSlots(t3) ? [t3, o2, n2(t3.timeZone)] : [{
-    ...t3,
-    ...Dt
-  }, o2];
-}
-function createMarkerToEpochNano(e2) {
-  return e2 ? extractEpochNano : isoToEpochNano;
-}
-function createMoveMarker(e2) {
-  return e2 ? E(moveZonedEpochs, e2) : moveDateTime;
-}
-function createDiffMarkers(e2) {
-  return e2 ? E(diffZonedEpochsExact, e2) : diffDateTimesExact;
-}
-function isZonedEpochSlots(e2) {
-  return e2 && e2.epochNanoseconds;
-}
-function isUniformUnit(e2, n2) {
-  return e2 <= 6 - (isZonedEpochSlots(n2) ? 1 : 0);
-}
-function Wt(e2, n2, t3, o2, r2, i3, a2) {
-  const s2 = e2(normalizeOptions(a2).relativeTo), c2 = Math.max(getMaxDurationUnit(r2), getMaxDurationUnit(i3));
-  if (isUniformUnit(c2, s2)) {
-    return Vt(checkDurationUnits(((e3, n3, t4, o3) => {
-      const r3 = addBigNanos(durationFieldsToBigNano(e3), durationFieldsToBigNano(n3), o3 ? -1 : 1);
-      if (!Number.isFinite(r3[0])) {
-        throw new RangeError(Cr);
-      }
-      return {
-        ...Si,
-        ...nanoToDurationDayTimeFields(r3, t4)
-      };
-    })(r2, i3, c2, o2)));
-  }
-  if (!s2) {
-    throw new RangeError(zr);
-  }
-  o2 && (i3 = negateDurationFields(i3));
-  const [u2, l3, f2] = createMarkerSystem(n2, t3, s2), d2 = createMoveMarker(f2), m2 = createDiffMarkers(f2), p2 = d2(l3, u2, r2);
-  return Vt(m2(l3, u2, d2(l3, p2, i3), c2));
-}
-function Gt(e2, n2, t3, o2, r2) {
-  const i3 = getMaxDurationUnit(o2), [a2, s2, c2, u2, l3] = ((e3, n3, t4) => {
-    e3 = normalizeOptionsOrString(e3, Hi);
-    let o3 = sa(e3);
-    const r3 = t4(e3[Ki]);
-    let i4 = parseRoundingIncInteger(e3);
-    const a3 = ha(e3, 7);
-    let s3 = aa(e3);
-    if (void 0 === o3 && void 0 === s3) {
-      throw new RangeError(Ur);
-    }
-    return null == s3 && (s3 = 0), null == o3 && (o3 = Math.max(s3, n3)), checkLargestSmallestUnit(o3, s3), i4 = refineRoundingInc(i4, s3, 1), [o3, s3, i4, a3, r3];
-  })(r2, i3, e2), f2 = Math.max(i3, a2);
-  if (!isZonedEpochSlots(l3) && f2 <= 6) {
-    return Vt(checkDurationUnits(((e3, n3, t4, o3, r3) => {
-      const i4 = roundBigNano(durationFieldsToBigNano(e3), t4, o3, r3);
-      return {
-        ...Si,
-        ...nanoToDurationDayTimeFields(i4, n3)
-      };
-    })(o2, a2, s2, c2, u2)));
-  }
-  if (!l3) {
-    throw new RangeError(zr);
-  }
-  const [d2, m2, p2] = createMarkerSystem(n2, t3, l3), h2 = createMarkerToEpochNano(p2), g2 = createMoveMarker(p2), T2 = createDiffMarkers(p2), D2 = g2(m2, d2, o2);
-  let I2 = T2(m2, d2, D2, a2);
-  const M2 = o2.sign, N2 = computeDurationSign(I2);
-  if (M2 && N2 && M2 !== N2) {
-    throw new RangeError(vr);
-  }
-  return N2 && (I2 = roundRelativeDuration(I2, h2(D2), a2, s2, c2, u2, m2, d2, h2, g2)), Vt(I2);
-}
-function Rt(e2) {
-  return -1 === e2.sign ? xt(e2) : e2;
-}
-function xt(e2) {
-  return Vt(negateDurationFields(e2));
-}
-function negateDurationFields(e2) {
-  const n2 = {};
-  for (const t3 of F) {
-    n2[t3] = -1 * e2[t3] || 0;
-  }
-  return n2;
-}
-function Jt(e2) {
-  return !e2.sign;
-}
-function computeDurationSign(e2, n2 = F) {
-  let t3 = 0;
-  for (const o2 of n2) {
-    const n3 = Math.sign(e2[o2]);
-    if (n3) {
-      if (t3 && t3 !== n3) {
-        throw new RangeError(Rr);
-      }
-      t3 = n3;
-    }
-  }
-  return t3;
-}
-function checkDurationUnits(e2) {
-  for (const n2 of vi) {
-    clampEntity(n2, e2[n2], -ya, ya, 1);
-  }
-  return checkDurationTimeUnit(oe(durationFieldsToBigNano(e2), _r)), e2;
-}
-function checkDurationTimeUnit(e2) {
-  if (!Number.isSafeInteger(e2)) {
-    throw new RangeError(Zr);
-  }
-}
-function durationFieldsToBigNano(e2, n2 = 6) {
-  return givenFieldsToBigNano(e2, n2, F);
-}
-function nanoToDurationDayTimeFields(e2, n2 = 6) {
-  const [t3, o2] = e2, r2 = nanoToGivenFields(o2, n2, F);
-  if (r2[F[n2]] += t3 * (Qr / Xr[n2]), !Number.isFinite(r2[F[n2]])) {
-    throw new RangeError(Cr);
-  }
-  return r2;
-}
-function nanoToDurationTimeFields(e2, n2 = 5) {
-  return nanoToGivenFields(e2, n2, F);
-}
-function durationHasDateParts(e2) {
-  return Boolean(computeDurationSign(e2, Pi));
-}
-function getMaxDurationUnit(e2) {
-  let n2 = 9;
-  for (; n2 > 0 && !e2[F[n2]]; n2--) {
-  }
-  return n2;
-}
-function createSplitTuple(e2, n2) {
-  return [e2, n2];
-}
-function computePeriod(e2) {
-  const n2 = Math.floor(e2 / Da) * Da;
-  return [n2, n2 + Da];
-}
-function pe(e2) {
-  const n2 = parseDateTimeLike(e2 = toStringViaPrimitive(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  let t3;
-  if (n2.m) {
-    t3 = 0;
-  } else {
-    if (!n2.offset) {
-      throw new RangeError(failedParse(e2));
-    }
-    t3 = parseOffsetNano(n2.offset);
-  }
-  return n2.timeZone && parseOffsetNanoMaybe(n2.timeZone, 1), _(isoToEpochNanoWithOffset(checkIsoDateTimeFields(n2), t3));
-}
-function Xt(e2) {
-  const n2 = parseDateTimeLike(m(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  if (n2.timeZone) {
-    return finalizeZonedDateTime(n2, n2.offset ? parseOffsetNano(n2.offset) : void 0);
-  }
-  if (n2.m) {
-    throw new RangeError(failedParse(e2));
-  }
-  return finalizeDate(n2);
-}
-function Mn(e2, n2) {
-  const t3 = parseDateTimeLike(m(e2));
-  if (!t3 || !t3.timeZone) {
-    throw new RangeError(failedParse(e2));
-  }
-  const { offset: o2 } = t3, r2 = o2 ? parseOffsetNano(o2) : void 0, [, i3, a2] = wn(n2);
-  return finalizeZonedDateTime(t3, r2, i3, a2);
-}
-function parseOffsetNano(e2) {
-  const n2 = parseOffsetNanoMaybe(e2);
-  if (void 0 === n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  return n2;
-}
-function Ct(e2) {
-  const n2 = parseDateTimeLike(m(e2));
-  if (!n2 || n2.m) {
-    throw new RangeError(failedParse(e2));
-  }
-  return ee(finalizeDateTime(n2));
-}
-function At(e2) {
-  const n2 = parseDateTimeLike(m(e2));
-  if (!n2 || n2.m) {
-    throw new RangeError(failedParse(e2));
-  }
-  return v(n2.p ? finalizeDateTime(n2) : finalizeDate(n2));
-}
-function ot(e2, n2) {
-  const t3 = parseYearMonthOnly(m(n2));
-  if (t3) {
-    return requireIsoCalendar(t3), createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields(t3)));
-  }
-  const o2 = At(n2);
-  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(e2(o2.calendar), o2));
-}
-function requireIsoCalendar(e2) {
-  if (e2.calendar !== X) {
-    throw new RangeError(invalidSubstring(e2.calendar));
-  }
-}
-function Q(e2, n2) {
-  const t3 = parseMonthDayOnly(m(n2));
-  if (t3) {
-    return requireIsoCalendar(t3), createPlainMonthDaySlots(checkIsoDateFields(t3));
-  }
-  const o2 = At(n2), { calendar: r2 } = o2, i3 = e2(r2), [a2, s2, c2] = i3.h(o2), [u2, l3] = i3.I(a2, s2), [f2, d2] = i3.N(u2, l3, c2);
-  return createPlainMonthDaySlots(checkIsoDateInBounds(i3.P(f2, d2, c2)), r2);
-}
-function ze(e2) {
-  let n2, t3 = ((e3) => {
-    const n3 = Ca.exec(e3);
-    return n3 ? (organizeAnnotationParts(n3[10]), organizeTimeParts(n3)) : void 0;
-  })(m(e2));
-  if (!t3) {
-    if (t3 = parseDateTimeLike(e2), !t3) {
-      throw new RangeError(failedParse(e2));
-    }
-    if (!t3.p) {
-      throw new RangeError(failedParse(e2));
-    }
-    if (t3.m) {
-      throw new RangeError(invalidSubstring("Z"));
-    }
-    requireIsoCalendar(t3);
-  }
-  if ((n2 = parseYearMonthOnly(e2)) && isIsoDateFieldsValid(n2)) {
-    throw new RangeError(failedParse(e2));
-  }
-  if ((n2 = parseMonthDayOnly(e2)) && isIsoDateFieldsValid(n2)) {
-    throw new RangeError(failedParse(e2));
-  }
-  return Ge(constrainIsoTimeFields(t3, 1));
-}
-function Kt(e2) {
-  const n2 = ((e3) => {
-    const n3 = za.exec(e3);
-    return n3 ? ((e4) => {
-      function parseUnit(e5, r3, i3) {
-        let a2 = 0, s2 = 0;
-        if (i3 && ([a2, o2] = divModFloor(o2, Xr[i3])), void 0 !== e5) {
-          if (t3) {
-            throw new RangeError(invalidSubstring(e5));
-          }
-          s2 = ((e6) => {
-            const n5 = parseInt(e6);
-            if (!Number.isFinite(n5)) {
-              throw new RangeError(invalidSubstring(e6));
-            }
-            return n5;
-          })(e5), n4 = 1, r3 && (o2 = parseSubsecNano(r3) * (Xr[i3] / _r), t3 = 1);
-        }
-        return a2 + s2;
-      }
-      let n4 = 0, t3 = 0, o2 = 0, r2 = {
-        ...zipProps(F, [parseUnit(e4[2]), parseUnit(e4[3]), parseUnit(e4[4]), parseUnit(e4[5]), parseUnit(e4[6], e4[7], 5), parseUnit(e4[8], e4[9], 4), parseUnit(e4[10], e4[11], 3)]),
-        ...nanoToGivenFields(o2, 2, F)
-      };
-      if (!n4) {
-        throw new RangeError(noValidFields(F));
-      }
-      return parseSign(e4[1]) < 0 && (r2 = negateDurationFields(r2)), r2;
-    })(n3) : void 0;
-  })(m(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  return Vt(checkDurationUnits(n2));
-}
-function sn(e2) {
-  const n2 = parseDateTimeLike(e2) || parseYearMonthOnly(e2) || parseMonthDayOnly(e2);
-  return n2 ? n2.calendar : e2;
-}
-function Ne(e2) {
-  const n2 = parseDateTimeLike(e2);
-  return n2 && (n2.timeZone || n2.m && Ta || n2.offset) || e2;
-}
-function finalizeZonedDateTime(e2, n2, t3 = 0, o2 = 0) {
-  const r2 = ye(e2.timeZone), i3 = ie(r2);
-  return Yn(getMatchingInstantFor(i3, checkIsoDateTimeFields(e2), n2, t3, o2, !i3.v, e2.m), r2, an(e2.calendar));
-}
-function finalizeDateTime(e2) {
-  return resolveSlotsCalendar(checkIsoDateTimeInBounds(checkIsoDateTimeFields(e2)));
-}
-function finalizeDate(e2) {
-  return resolveSlotsCalendar(checkIsoDateInBounds(checkIsoDateFields(e2)));
-}
-function resolveSlotsCalendar(e2) {
-  return {
-    ...e2,
-    calendar: an(e2.calendar)
-  };
-}
-function parseDateTimeLike(e2) {
-  const n2 = Ya.exec(e2);
-  return n2 ? ((e3) => {
-    const n3 = e3[10], t3 = "Z" === (n3 || "").toUpperCase();
-    return {
-      isoYear: organizeIsoYearParts(e3),
-      isoMonth: parseInt(e3[4]),
-      isoDay: parseInt(e3[5]),
-      ...organizeTimeParts(e3.slice(5)),
-      ...organizeAnnotationParts(e3[16]),
-      p: Boolean(e3[6]),
-      m: t3,
-      offset: t3 ? void 0 : n3
-    };
-  })(n2) : void 0;
-}
-function parseYearMonthOnly(e2) {
-  const n2 = Ba.exec(e2);
-  return n2 ? ((e3) => ({
-    isoYear: organizeIsoYearParts(e3),
-    isoMonth: parseInt(e3[4]),
-    isoDay: 1,
-    ...organizeAnnotationParts(e3[5])
-  }))(n2) : void 0;
-}
-function parseMonthDayOnly(e2) {
-  const n2 = ka.exec(e2);
-  return n2 ? ((e3) => ({
-    isoYear: ji,
-    isoMonth: parseInt(e3[1]),
-    isoDay: parseInt(e3[2]),
-    ...organizeAnnotationParts(e3[3])
-  }))(n2) : void 0;
-}
-function parseOffsetNanoMaybe(e2, n2) {
-  const t3 = Za.exec(e2);
-  return t3 ? ((e3, n3) => {
-    const t4 = e3[4] || e3[5];
-    if (n3 && t4) {
-      throw new RangeError(invalidSubstring(t4));
-    }
-    return ae((parseInt0(e3[2]) * Kr + parseInt0(e3[3]) * Jr + parseInt0(e3[4]) * _r + parseSubsecNano(e3[5] || "")) * parseSign(e3[1]));
-  })(t3, n2) : void 0;
-}
-function organizeIsoYearParts(e2) {
-  const n2 = parseSign(e2[1]), t3 = parseInt(e2[2] || e2[3]);
-  if (n2 < 0 && !t3) {
-    throw new RangeError(invalidSubstring(-0));
-  }
-  return n2 * t3;
-}
-function organizeTimeParts(e2) {
-  const n2 = parseInt0(e2[3]);
-  return {
-    ...nanoToIsoTimeAndDay(parseSubsecNano(e2[4] || ""))[0],
-    isoHour: parseInt0(e2[1]),
-    isoMinute: parseInt0(e2[2]),
-    isoSecond: 60 === n2 ? 59 : n2
-  };
-}
-function organizeAnnotationParts(e2) {
-  let n2, t3;
-  const o2 = [];
-  if (e2.replace(Ra, (e3, r2, i3) => {
-    const a2 = Boolean(r2), [s2, c2] = i3.split("=").reverse();
-    if (c2) {
-      if ("u-ca" === c2) {
-        o2.push(s2), n2 || (n2 = a2);
-      } else if (a2 || /[A-Z]/.test(c2)) {
-        throw new RangeError(invalidSubstring(e3));
-      }
-    } else {
-      if (t3) {
-        throw new RangeError(invalidSubstring(e3));
-      }
-      t3 = s2;
-    }
-    return "";
-  }), o2.length > 1 && n2) {
-    throw new RangeError(invalidSubstring(e2));
-  }
-  return {
-    timeZone: t3,
-    calendar: o2[0] || X
-  };
-}
-function parseSubsecNano(e2) {
-  return parseInt(e2.padEnd(9, "0"));
-}
-function createRegExp(e2) {
-  return new RegExp(`^${e2}$`, "i");
-}
-function parseSign(e2) {
-  return e2 && "+" !== e2 ? -1 : 1;
-}
-function parseInt0(e2) {
-  return void 0 === e2 ? 0 : parseInt(e2);
-}
-function Me(e2) {
-  return ye(m(e2));
-}
-function ye(e2) {
-  const n2 = getTimeZoneEssence(e2);
-  return "number" == typeof n2 ? Fe(n2) : n2 ? ((e3) => {
-    if (Ua.test(e3)) {
-      throw new RangeError(br);
-    }
-    return e3.toLowerCase().split("/").map((e4, n3) => (e4.length <= 3 || /\d/.test(e4)) && !/etc|yap/.test(e4) ? e4.toUpperCase() : e4.replace(/baja|dumont|[a-z]+/g, (e5, t3) => e5.length <= 2 && !n3 || "in" === e5 || "chat" === e5 ? e5.toUpperCase() : e5.length > 2 || !t3 ? capitalize(e5).replace(/island|noronha|murdo|rivadavia|urville/, capitalize) : e5)).join("/");
-  })(e2) : Ta;
-}
-function getTimeZoneAtomic(e2) {
-  const n2 = getTimeZoneEssence(e2);
-  return "number" == typeof n2 ? n2 : n2 ? n2.resolvedOptions().timeZone : Ta;
-}
-function getTimeZoneEssence(e2) {
-  const n2 = parseOffsetNanoMaybe(e2 = e2.toUpperCase(), 1);
-  return void 0 !== n2 ? n2 : e2 !== Ta ? qa(e2) : void 0;
-}
-function Ze(e2, n2) {
-  return te(e2.epochNanoseconds, n2.epochNanoseconds);
-}
-function yn(e2, n2) {
-  return te(e2.epochNanoseconds, n2.epochNanoseconds);
-}
-function $t(e2, n2, t3, o2, r2, i3) {
-  const a2 = e2(normalizeOptions(i3).relativeTo), s2 = Math.max(getMaxDurationUnit(o2), getMaxDurationUnit(r2));
-  if (allPropsEqual(F, o2, r2)) {
-    return 0;
-  }
-  if (isUniformUnit(s2, a2)) {
-    return te(durationFieldsToBigNano(o2), durationFieldsToBigNano(r2));
-  }
-  if (!a2) {
-    throw new RangeError(zr);
-  }
-  const [c2, u2, l3] = createMarkerSystem(n2, t3, a2), f2 = createMarkerToEpochNano(l3), d2 = createMoveMarker(l3);
-  return te(f2(d2(u2, c2, o2)), f2(d2(u2, c2, r2)));
-}
-function gt(e2, n2) {
-  return rt(e2, n2) || He(e2, n2);
-}
-function rt(e2, n2) {
-  return compareNumbers(isoToEpochMilli(e2), isoToEpochMilli(n2));
-}
-function He(e2, n2) {
-  return compareNumbers(isoTimeFieldsToNano(e2), isoTimeFieldsToNano(n2));
-}
-function ue(e2, n2) {
-  return !Ze(e2, n2);
-}
-function gn(e2, n2) {
-  return !yn(e2, n2) && !!je(e2.timeZone, n2.timeZone) && isIdLikeEqual(e2.calendar, n2.calendar);
-}
-function ft(e2, n2) {
-  return !gt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
-}
-function It(e2, n2) {
-  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
-}
-function $e(e2, n2) {
-  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
-}
-function x(e2, n2) {
-  return !rt(e2, n2) && isIdLikeEqual(e2.calendar, n2.calendar);
-}
-function Ve(e2, n2) {
-  return !He(e2, n2);
-}
-function je(e2, n2) {
-  if (e2 === n2) {
-    return 1;
-  }
-  const t3 = I(e2), o2 = I(n2);
-  if (t3 === o2) {
-    return 1;
-  }
-  try {
-    return getTimeZoneAtomic(t3) === getTimeZoneAtomic(o2);
-  } catch (e3) {
-  }
-}
-function le(e2, n2, t3, o2) {
-  const r2 = refineDiffOptions(e2, U(o2), 3, 5), i3 = diffEpochNanos(n2.epochNanoseconds, t3.epochNanoseconds, ...r2);
-  return Vt(e2 ? negateDurationFields(i3) : i3);
-}
-function Dn(e2, n2, t3, o2, r2, i3) {
-  const a2 = getCommonCalendarSlot(o2.calendar, r2.calendar), s2 = U(i3), [c2, u2, l3, f2] = refineDiffOptions(t3, s2, 5), d2 = o2.epochNanoseconds, m2 = r2.epochNanoseconds, p2 = te(m2, d2);
-  let h2;
-  if (p2) {
-    if (c2 < 6) {
-      h2 = diffEpochNanos(d2, m2, c2, u2, l3, f2);
-    } else {
-      const t4 = n2(((e3, n3) => {
-        if (!je(e3, n3)) {
-          throw new RangeError(Fr);
-        }
-        return e3;
-      })(o2.timeZone, r2.timeZone)), i4 = e2(a2);
-      h2 = diffZonedEpochsBig(i4, t4, o2, r2, p2, c2, s2), h2 = roundRelativeDuration(h2, m2, c2, u2, l3, f2, i4, o2, extractEpochNano, E(moveZonedEpochs, t4));
-    }
-  } else {
-    h2 = Si;
-  }
-  return Vt(t3 ? negateDurationFields(h2) : h2);
-}
-function ut(e2, n2, t3, o2, r2) {
-  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2), [s2, c2, u2, l3] = refineDiffOptions(n2, a2, 6), f2 = isoToEpochNano(t3), d2 = isoToEpochNano(o2), m2 = te(d2, f2);
-  let p2;
-  if (m2) {
-    if (s2 <= 6) {
-      p2 = diffEpochNanos(f2, d2, s2, c2, u2, l3);
-    } else {
-      const n3 = e2(i3);
-      p2 = diffDateTimesBig(n3, t3, o2, m2, s2, a2), p2 = roundRelativeDuration(p2, d2, s2, c2, u2, l3, n3, t3, isoToEpochNano, moveDateTime);
-    }
-  } else {
-    p2 = Si;
-  }
-  return Vt(n2 ? negateDurationFields(p2) : p2);
-}
-function Ft(e2, n2, t3, o2, r2) {
-  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2);
-  return diffDateLike(n2, () => e2(i3), t3, o2, ...refineDiffOptions(n2, a2, 6, 9, 6), a2);
-}
-function Xe(e2, n2, t3, o2, r2) {
-  const i3 = getCommonCalendarSlot(t3.calendar, o2.calendar), a2 = U(r2), s2 = refineDiffOptions(n2, a2, 9, 9, 8), c2 = e2(i3);
-  return diffDateLike(n2, () => c2, moveToDayOfMonthUnsafe(c2, t3), moveToDayOfMonthUnsafe(c2, o2), ...s2, a2);
-}
-function diffDateLike(e2, n2, t3, o2, r2, i3, a2, s2, c2) {
-  const u2 = isoToEpochNano(t3), l3 = isoToEpochNano(o2);
-  let f2;
-  if (te(l3, u2)) {
-    if (6 === r2) {
-      f2 = diffEpochNanos(u2, l3, r2, i3, a2, s2);
-    } else {
-      const e3 = n2();
-      f2 = e3.dateUntil(t3, o2, r2, c2), 6 === i3 && 1 === a2 || (f2 = roundRelativeDuration(f2, l3, r2, i3, a2, s2, e3, t3, isoToEpochNano, moveDate));
-    }
-  } else {
-    f2 = Si;
-  }
-  return Vt(e2 ? negateDurationFields(f2) : f2);
-}
-function Ae(e2, n2, t3, o2) {
-  const r2 = U(o2), [i3, a2, s2, c2] = refineDiffOptions(e2, r2, 5, 5), u2 = roundByInc(diffTimes(n2, t3), computeNanoInc(a2, s2), c2), l3 = {
-    ...Si,
-    ...nanoToDurationTimeFields(u2, i3)
-  };
-  return Vt(e2 ? negateDurationFields(l3) : l3);
-}
-function diffZonedEpochsExact(e2, n2, t3, o2, r2, i3) {
-  const a2 = te(o2.epochNanoseconds, t3.epochNanoseconds);
-  return a2 ? r2 < 6 ? diffEpochNanosExact(t3.epochNanoseconds, o2.epochNanoseconds, r2) : diffZonedEpochsBig(n2, e2, t3, o2, a2, r2, i3) : Si;
-}
-function diffDateTimesExact(e2, n2, t3, o2, r2) {
-  const i3 = isoToEpochNano(n2), a2 = isoToEpochNano(t3), s2 = te(a2, i3);
-  return s2 ? o2 <= 6 ? diffEpochNanosExact(i3, a2, o2) : diffDateTimesBig(e2, n2, t3, s2, o2, r2) : Si;
-}
-function diffZonedEpochsBig(e2, n2, t3, o2, r2, i3, a2) {
-  const [s2, c2, u2] = ((e3, n3, t4, o3) => {
-    function updateMid() {
-      return l4 = {
-        ...moveByDays(a3, c3++ * -o3),
-        ...i4
-      }, f3 = we(e3, l4), te(s3, f3) === -o3;
-    }
-    const r3 = fn(n3, e3), i4 = Vn(j, r3), a3 = fn(t4, e3), s3 = t4.epochNanoseconds;
-    let c3 = 0;
-    const u3 = diffTimes(r3, a3);
-    let l4, f3;
-    if (Math.sign(u3) === -o3 && c3++, updateMid() && (-1 === o3 || updateMid())) {
-      throw new RangeError(vr);
-    }
-    const d2 = oe(re(f3, s3));
-    return [r3, l4, d2];
-  })(n2, t3, o2, r2);
-  var l3, f2;
-  return {
-    ...6 === i3 ? (l3 = s2, f2 = c2, {
-      ...Si,
-      days: diffDays(l3, f2)
-    }) : e2.dateUntil(s2, c2, i3, a2),
-    ...nanoToDurationTimeFields(u2)
-  };
-}
-function diffDateTimesBig(e2, n2, t3, o2, r2, i3) {
-  const [a2, s2, c2] = ((e3, n3, t4) => {
-    let o3 = n3, r3 = diffTimes(e3, n3);
-    return Math.sign(r3) === -t4 && (o3 = moveByDays(n3, -t4), r3 += Qr * t4), [e3, o3, r3];
-  })(n2, t3, o2);
-  return {
-    ...e2.dateUntil(a2, s2, r2, i3),
-    ...nanoToDurationTimeFields(c2)
-  };
-}
-function diffEpochNanos(e2, n2, t3, o2, r2, i3) {
-  return {
-    ...Si,
-    ...nanoToDurationDayTimeFields(roundBigNano(re(e2, n2), o2, r2, i3), t3)
-  };
-}
-function diffEpochNanosExact(e2, n2, t3) {
-  return {
-    ...Si,
-    ...nanoToDurationDayTimeFields(re(e2, n2), t3)
-  };
-}
-function diffDays(e2, n2) {
-  return diffEpochMilliByDay(isoToEpochMilli(e2), isoToEpochMilli(n2));
-}
-function diffEpochMilliByDay(e2, n2) {
-  return Math.trunc((n2 - e2) / Gr);
-}
-function diffTimes(e2, n2) {
-  return isoTimeFieldsToNano(n2) - isoTimeFieldsToNano(e2);
-}
-function getCommonCalendarSlot(e2, n2) {
-  if (!isIdLikeEqual(e2, n2)) {
-    throw new RangeError(Er);
-  }
-  return e2;
-}
-function createIntlCalendar(e2) {
-  function epochMilliToIntlFields(e3) {
-    return ((e4, n3) => ({
-      ...parseIntlYear(e4, n3),
-      F: e4.month,
-      day: parseInt(e4.day)
-    }))(hashIntlFormatParts(n2, e3), t3);
-  }
-  const n2 = La(e2), t3 = computeCalendarIdBase(e2);
-  return {
-    id: e2,
-    O: createIntlFieldCache(epochMilliToIntlFields),
-    B: createIntlYearDataCache(epochMilliToIntlFields)
-  };
-}
-function createIntlFieldCache(e2) {
-  return Jn((n2) => {
-    const t3 = isoToEpochMilli(n2);
-    return e2(t3);
-  }, WeakMap);
-}
-function createIntlYearDataCache(e2) {
-  const n2 = e2(0).year - Wi;
-  return Jn((t3) => {
-    let o2, r2 = isoArgsToEpochMilli(t3 - n2);
-    const i3 = [], a2 = [];
-    do {
-      r2 += 400 * Gr;
-    } while ((o2 = e2(r2)).year <= t3);
-    do {
-      r2 += (1 - o2.day) * Gr, o2.year === t3 && (i3.push(r2), a2.push(o2.F)), r2 -= Gr;
-    } while ((o2 = e2(r2)).year >= t3);
-    return {
-      k: i3.reverse(),
-      C: Wr(a2.reverse())
-    };
-  });
-}
-function parseIntlYear(e2, n2) {
-  let t3, o2, r2 = parseIntlPartsYear(e2);
-  if (e2.era) {
-    const i3 = Di[n2];
-    void 0 !== i3 && (t3 = "islamic" === n2 ? "ah" : e2.era.normalize("NFD").toLowerCase().replace(/[^a-z0-9]/g, ""), "bc" === t3 || "b" === t3 ? t3 = "bce" : "ad" !== t3 && "a" !== t3 || (t3 = "ce"), o2 = r2, r2 = eraYearToYear(o2, i3[t3] || 0));
-  }
-  return {
-    era: t3,
-    eraYear: o2,
-    year: r2
-  };
-}
-function parseIntlPartsYear(e2) {
-  return parseInt(e2.relatedYear || e2.year);
-}
-function computeIntlDateParts(e2) {
-  const { year: n2, F: t3, day: o2 } = this.O(e2), { C: r2 } = this.B(n2);
-  return [n2, r2[t3] + 1, o2];
-}
-function computeIntlEpochMilli(e2, n2 = 1, t3 = 1) {
-  return this.B(e2).k[n2 - 1] + (t3 - 1) * Gr;
-}
-function computeIntlLeapMonth(e2) {
-  const n2 = queryMonthStrings(this, e2), t3 = queryMonthStrings(this, e2 - 1), o2 = n2.length;
-  if (o2 > t3.length) {
-    const e3 = getCalendarLeapMonthMeta(this);
-    if (e3 < 0) {
-      return -e3;
-    }
-    for (let e4 = 0; e4 < o2; e4++) {
-      if (n2[e4] !== t3[e4]) {
-        return e4 + 1;
-      }
-    }
-  }
-}
-function computeIntlDaysInYear(e2) {
-  return diffEpochMilliByDay(computeIntlEpochMilli.call(this, e2), computeIntlEpochMilli.call(this, e2 + 1));
-}
-function computeIntlDaysInMonth(e2, n2) {
-  const { k: t3 } = this.B(e2);
-  let o2 = n2 + 1, r2 = t3;
-  return o2 > t3.length && (o2 = 1, r2 = this.B(e2 + 1).k), diffEpochMilliByDay(t3[n2 - 1], r2[o2 - 1]);
-}
-function computeIntlMonthsInYear(e2) {
-  return this.B(e2).k.length;
-}
-function queryMonthStrings(e2, n2) {
-  return Object.keys(e2.B(n2).C);
-}
-function rn(e2) {
-  return an(m(e2));
-}
-function an(e2) {
-  if ((e2 = e2.toLowerCase()) !== X && e2 !== gi && computeCalendarIdBase(e2) !== computeCalendarIdBase(La(e2).resolvedOptions().calendar)) {
-    throw new RangeError(invalidCalendar(e2));
-  }
-  return e2;
-}
-function computeCalendarIdBase(e2) {
-  return "islamicc" === e2 && (e2 = "islamic"), e2.split("-")[0];
-}
-function computeNativeWeekOfYear(e2) {
-  return this.R(e2)[0];
-}
-function computeNativeYearOfWeek(e2) {
-  return this.R(e2)[1];
-}
-function computeNativeDayOfYear(e2) {
-  const [n2] = this.h(e2);
-  return diffEpochMilliByDay(this.q(n2), isoToEpochMilli(e2)) + 1;
-}
-function parseMonthCode(e2) {
-  const n2 = Wa.exec(e2);
-  if (!n2) {
-    throw new RangeError(invalidMonthCode(e2));
-  }
-  return [parseInt(n2[1]), Boolean(n2[2])];
-}
-function monthCodeNumberToMonth(e2, n2, t3) {
-  return e2 + (n2 || t3 && e2 >= t3 ? 1 : 0);
-}
-function monthToMonthCodeNumber(e2, n2) {
-  return e2 - (n2 && e2 >= n2 ? 1 : 0);
-}
-function eraYearToYear(e2, n2) {
-  return (n2 + e2) * (Math.sign(n2) || 1) || 0;
-}
-function getCalendarEraOrigins(e2) {
-  return Di[getCalendarIdBase(e2)];
-}
-function getCalendarLeapMonthMeta(e2) {
-  return Ii[getCalendarIdBase(e2)];
-}
-function getCalendarIdBase(e2) {
-  return computeCalendarIdBase(e2.id || X);
-}
-function Qt(e2, n2, t3, o2) {
-  const r2 = refineCalendarFields(t3, o2, en, [], ri);
-  if (void 0 !== r2.timeZone) {
-    const o3 = t3.dateFromFields(r2), i3 = refineTimeBag(r2), a2 = e2(r2.timeZone);
-    return {
-      epochNanoseconds: getMatchingInstantFor(n2(a2), {
-        ...o3,
-        ...i3
-      }, void 0 !== r2.offset ? parseOffsetNano(r2.offset) : void 0),
-      timeZone: a2
-    };
-  }
-  return {
-    ...t3.dateFromFields(r2),
-    ...Dt
-  };
-}
-function jn(e2, n2, t3, o2, r2, i3) {
-  const a2 = refineCalendarFields(t3, r2, en, ti, ri), s2 = e2(a2.timeZone), [c2, u2, l3] = wn(i3), f2 = t3.dateFromFields(a2, overrideOverflowOptions(i3, c2)), d2 = refineTimeBag(a2, c2);
-  return Yn(getMatchingInstantFor(n2(s2), {
-    ...f2,
-    ...d2
-  }, void 0 !== a2.offset ? parseOffsetNano(a2.offset) : void 0, u2, l3), s2, o2);
-}
-function Pt(e2, n2, t3) {
-  const o2 = refineCalendarFields(e2, n2, en, [], w), r2 = H(t3);
-  return ee(checkIsoDateTimeInBounds({
-    ...e2.dateFromFields(o2, overrideOverflowOptions(t3, r2)),
-    ...refineTimeBag(o2, r2)
-  }));
-}
-function Yt(e2, n2, t3, o2 = []) {
-  const r2 = refineCalendarFields(e2, n2, en, o2);
-  return e2.dateFromFields(r2, t3);
-}
-function nt(e2, n2, t3, o2) {
-  const r2 = refineCalendarFields(e2, n2, fi, o2);
-  return e2.yearMonthFromFields(r2, t3);
-}
-function K(e2, n2, t3, o2, r2 = []) {
-  const i3 = refineCalendarFields(e2, t3, en, r2);
-  return n2 && void 0 !== i3.month && void 0 === i3.monthCode && void 0 === i3.year && (i3.year = ji), e2.monthDayFromFields(i3, o2);
-}
-function Ue(e2, n2) {
-  const t3 = H(n2);
-  return Ge(refineTimeBag(refineFields(e2, ei, [], 1), t3));
-}
-function Ht(e2) {
-  const n2 = refineFields(e2, Ni);
-  return Vt(checkDurationUnits({
-    ...Si,
-    ...n2
-  }));
-}
-function refineCalendarFields(e2, n2, t3, o2 = [], r2 = []) {
-  return refineFields(n2, [...e2.fields(t3), ...r2].sort(), o2);
-}
-function refineFields(e2, n2, t3, o2 = !t3) {
-  const r2 = {};
-  let i3, a2 = 0;
-  for (const o3 of n2) {
-    if (o3 === i3) {
-      throw new RangeError(duplicateFields(o3));
-    }
-    if ("constructor" === o3 || "__proto__" === o3) {
-      throw new RangeError(tn(o3));
-    }
-    let n3 = e2[o3];
-    if (void 0 !== n3) {
-      a2 = 1, Ga[o3] && (n3 = Ga[o3](n3, o3)), r2[o3] = n3;
-    } else if (t3) {
-      if (t3.includes(o3)) {
-        throw new TypeError(missingField(o3));
-      }
-      r2[o3] = hi[o3];
-    }
-    i3 = o3;
-  }
-  if (o2 && !a2) {
-    throw new TypeError(noValidFields(n2));
-  }
-  return r2;
-}
-function refineTimeBag(e2, n2) {
-  return constrainIsoTimeFields(Ha({
-    ...hi,
-    ...e2
-  }), n2);
-}
-function Sn(e2, n2, t3, o2, r2, i3) {
-  const a2 = U(i3), { calendar: s2, timeZone: c2 } = t3;
-  return Yn(((e3, n3, t4, o3, r3) => {
-    const i4 = mergeCalendarFields(e3, t4, o3, en, oi, ni), [a3, s3, c3] = wn(r3, 2);
-    return getMatchingInstantFor(n3, {
-      ...e3.dateFromFields(i4, overrideOverflowOptions(r3, a3)),
-      ...refineTimeBag(i4, a3)
-    }, parseOffsetNano(i4.offset), s3, c3);
-  })(e2(s2), n2(c2), o2, r2, a2), c2, s2);
-}
-function at(e2, n2, t3, o2, r2) {
-  const i3 = U(r2);
-  return ee(((e3, n3, t4, o3) => {
-    const r3 = mergeCalendarFields(e3, n3, t4, en, w), i4 = H(o3);
-    return checkIsoDateTimeInBounds({
-      ...e3.dateFromFields(r3, overrideOverflowOptions(o3, i4)),
-      ...refineTimeBag(r3, i4)
-    });
-  })(e2(n2.calendar), t3, o2, i3));
-}
-function Zt(e2, n2, t3, o2, r2) {
-  const i3 = U(r2);
-  return ((e3, n3, t4, o3) => {
-    const r3 = mergeCalendarFields(e3, n3, t4, en);
-    return e3.dateFromFields(r3, o3);
-  })(e2(n2.calendar), t3, o2, i3);
-}
-function Ke(e2, n2, t3, o2, r2) {
-  const i3 = U(r2);
-  return createPlainYearMonthSlots(((e3, n3, t4, o3) => {
-    const r3 = mergeCalendarFields(e3, n3, t4, fi);
-    return e3.yearMonthFromFields(r3, o3);
-  })(e2(n2.calendar), t3, o2, i3));
-}
-function k(e2, n2, t3, o2, r2) {
-  const i3 = U(r2);
-  return ((e3, n3, t4, o3) => {
-    const r3 = mergeCalendarFields(e3, n3, t4, en);
-    return e3.monthDayFromFields(r3, o3);
-  })(e2(n2.calendar), t3, o2, i3);
-}
-function Be(e2, n2, t3) {
-  return Ge(((e3, n3, t4) => {
-    const o2 = H(t4);
-    return refineTimeBag({
-      ...Vn(ei, e3),
-      ...refineFields(n3, ei)
-    }, o2);
-  })(e2, n2, t3));
-}
-function kt(e2, n2) {
-  return Vt((t3 = e2, o2 = n2, checkDurationUnits({
-    ...t3,
-    ...refineFields(o2, Ni)
-  })));
-  var t3, o2;
-}
-function mergeCalendarFields(e2, n2, t3, o2, r2 = [], i3 = []) {
-  const a2 = [...e2.fields(o2), ...r2].sort();
-  let s2 = refineFields(n2, a2, i3);
-  const c2 = refineFields(t3, a2);
-  return s2 = e2.mergeFields(s2, c2), refineFields(s2, a2, []);
-}
-function convertToPlainMonthDay(e2, n2) {
-  const t3 = refineCalendarFields(e2, n2, pi);
-  return e2.monthDayFromFields(t3);
-}
-function convertToPlainYearMonth(e2, n2, t3) {
-  const o2 = refineCalendarFields(e2, n2, di);
-  return e2.yearMonthFromFields(o2, t3);
-}
-function convertToIso(e2, n2, t3, o2, r2) {
-  n2 = Vn(t3 = e2.fields(t3), n2), o2 = refineFields(o2, r2 = e2.fields(r2), []);
-  let i3 = e2.mergeFields(n2, o2);
-  return i3 = refineFields(i3, [...t3, ...r2].sort(), []), e2.dateFromFields(i3);
-}
-function refineYear(e2, n2) {
-  let { era: t3, eraYear: o2, year: r2 } = n2;
-  const i3 = getCalendarEraOrigins(e2);
-  if (void 0 !== t3 || void 0 !== o2) {
-    if (void 0 === t3 || void 0 === o2) {
-      throw new TypeError(Dr);
-    }
-    if (!i3) {
-      throw new RangeError(gr);
-    }
-    const e3 = i3[t3];
-    if (void 0 === e3) {
-      throw new RangeError(invalidEra(t3));
-    }
-    const n3 = eraYearToYear(o2, e3);
-    if (void 0 !== r2 && r2 !== n3) {
-      throw new RangeError(Ir);
-    }
-    r2 = n3;
-  } else if (void 0 === r2) {
-    throw new TypeError(missingYear(i3));
-  }
-  return r2;
-}
-function refineMonth(e2, n2, t3, o2) {
-  let { month: r2, monthCode: i3 } = n2;
-  if (void 0 !== i3) {
-    const n3 = ((e3, n4, t4, o3) => {
-      const r3 = e3.U(t4), [i4, a2] = parseMonthCode(n4);
-      let s2 = monthCodeNumberToMonth(i4, a2, r3);
-      if (a2) {
-        const n5 = getCalendarLeapMonthMeta(e3);
-        if (void 0 === n5) {
-          throw new RangeError(Pr);
-        }
-        if (n5 > 0) {
-          if (s2 > n5) {
-            throw new RangeError(Pr);
-          }
-          if (void 0 === r3) {
-            if (1 === o3) {
-              throw new RangeError(Pr);
-            }
-            s2--;
-          }
-        } else {
-          if (s2 !== -n5) {
-            throw new RangeError(Pr);
-          }
-          if (void 0 === r3 && 1 === o3) {
-            throw new RangeError(Pr);
-          }
-        }
-      }
-      return s2;
-    })(e2, i3, t3, o2);
-    if (void 0 !== r2 && r2 !== n3) {
-      throw new RangeError(Mr);
-    }
-    r2 = n3, o2 = 1;
-  } else if (void 0 === r2) {
-    throw new TypeError(Nr);
-  }
-  return clampEntity("month", r2, 1, e2.L(t3), o2);
-}
-function refineDay(e2, n2, t3, o2, r2) {
-  return clampProp(n2, "day", 1, e2.j(o2, t3), r2);
-}
-function spliceFields(e2, n2, t3, o2) {
-  let r2 = 0;
-  const i3 = [];
-  for (const e3 of t3) {
-    void 0 !== n2[e3] ? r2 = 1 : i3.push(e3);
-  }
-  if (Object.assign(e2, n2), r2) {
-    for (const n3 of o2 || i3) {
-      delete e2[n3];
-    }
-  }
-}
-function Se(e2) {
-  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
-}
-function vn(e2, n2, t3, o2, r2 = X) {
-  return Yn(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(t3))), n2(o2), e2(r2));
-}
-function pt(e2, n2, t3, o2, r2 = 0, i3 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0, l3 = X) {
-  return ee(checkIsoDateTimeInBounds(checkIsoDateTimeFields(T(toInteger, zipProps(wi, [n2, t3, o2, r2, i3, a2, s2, c2, u2])))), e2(l3));
-}
-function Nt(e2, n2, t3, o2, r2 = X) {
-  return v(checkIsoDateInBounds(checkIsoDateFields(T(toInteger, {
-    isoYear: n2,
-    isoMonth: t3,
-    isoDay: o2
-  }))), e2(r2));
-}
-function tt(e2, n2, t3, o2 = X, r2 = 1) {
-  const i3 = toInteger(n2), a2 = toInteger(t3), s2 = e2(o2);
-  return createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields({
-    isoYear: i3,
-    isoMonth: a2,
-    isoDay: toInteger(r2)
-  })), s2);
-}
-function G(e2, n2, t3, o2 = X, r2 = ji) {
-  const i3 = toInteger(n2), a2 = toInteger(t3), s2 = e2(o2);
-  return createPlainMonthDaySlots(checkIsoDateInBounds(checkIsoDateFields({
-    isoYear: toInteger(r2),
-    isoMonth: i3,
-    isoDay: a2
-  })), s2);
-}
-function ke(e2 = 0, n2 = 0, t3 = 0, o2 = 0, r2 = 0, i3 = 0) {
-  return Ge(constrainIsoTimeFields(T(toInteger, zipProps(j, [e2, n2, t3, o2, r2, i3])), 1));
-}
-function Lt(e2 = 0, n2 = 0, t3 = 0, o2 = 0, r2 = 0, i3 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0) {
-  return Vt(checkDurationUnits(T(toStrictInteger, zipProps(F, [e2, n2, t3, o2, r2, i3, a2, s2, c2, u2]))));
-}
-function fe(e2, n2, t3 = X) {
-  return Yn(e2.epochNanoseconds, n2, t3);
-}
-function Zn(e2) {
-  return _(e2.epochNanoseconds);
-}
-function ht(e2, n2) {
-  return ee(fn(n2, e2));
-}
-function Bt(e2, n2) {
-  return v(fn(n2, e2));
-}
-function bn(e2, n2, t3) {
-  return convertToPlainYearMonth(e2(n2.calendar), t3);
-}
-function Fn(e2, n2, t3) {
-  return convertToPlainMonthDay(e2(n2.calendar), t3);
-}
-function Re(e2, n2) {
-  return Ge(fn(n2, e2));
-}
-function mt(e2, n2, t3, o2) {
-  const r2 = ((e3, n3, t4, o3) => {
-    const r3 = ve(o3);
-    return we(e3(n3), t4, r3);
-  })(e2, t3, n2, o2);
-  return Yn(checkEpochNanoInBounds(r2), t3, n2.calendar);
-}
-function St(e2, n2, t3) {
-  const o2 = e2(n2.calendar);
-  return createPlainYearMonthSlots({
-    ...n2,
-    ...convertToPlainYearMonth(o2, t3)
-  });
-}
-function Ot(e2, n2, t3) {
-  return convertToPlainMonthDay(e2(n2.calendar), t3);
-}
-function vt(e2, n2, t3, o2, r2) {
-  const i3 = e2(r2.timeZone), a2 = r2.plainTime, s2 = void 0 !== a2 ? n2(a2) : Dt;
-  return Yn(we(t3(i3), {
-    ...o2,
-    ...s2
-  }), i3, o2.calendar);
-}
-function wt(e2, n2 = Dt) {
-  return ee(checkIsoDateTimeInBounds({
-    ...e2,
-    ...n2
-  }));
-}
-function jt(e2, n2, t3) {
-  return convertToPlainYearMonth(e2(n2.calendar), t3);
-}
-function Mt(e2, n2, t3) {
-  return convertToPlainMonthDay(e2(n2.calendar), t3);
-}
-function _e(e2, n2, t3, o2) {
-  return ((e3, n3, t4) => convertToIso(e3, n3, di, de(t4), li))(e2(n2.calendar), t3, o2);
-}
-function R(e2, n2, t3, o2) {
-  return ((e3, n3, t4) => convertToIso(e3, n3, pi, de(t4), si))(e2(n2.calendar), t3, o2);
-}
-function Je(e2, n2, t3, o2, r2) {
-  const i3 = de(r2), a2 = n2(i3.plainDate), s2 = e2(i3.timeZone);
-  return Yn(we(t3(s2), {
-    ...a2,
-    ...o2
-  }), s2, a2.calendar);
-}
-function Le(e2, n2) {
-  return ee(checkIsoDateTimeInBounds({
-    ...e2,
-    ...n2
-  }));
-}
-function De(e2) {
-  return _(checkEpochNanoInBounds(he(e2, _r)));
-}
-function Pe(e2) {
-  return _(checkEpochNanoInBounds(he(e2, be)));
-}
-function Ce(e2) {
-  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2), Vr)));
-}
-function ge(e2) {
-  return _(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
-}
-function pn(e2, n2, t3 = Dt) {
-  const o2 = n2.timeZone, r2 = e2(o2), i3 = {
-    ...fn(n2, r2),
-    ...t3
-  };
-  return Yn(getMatchingInstantFor(r2, i3, i3.offsetNanoseconds, 2), o2, n2.calendar);
-}
-function Tn(e2, n2, t3) {
-  const o2 = n2.timeZone, r2 = e2(o2), i3 = {
-    ...fn(n2, r2),
-    ...t3
-  }, a2 = getPreferredCalendarSlot(n2.calendar, t3.calendar);
-  return Yn(getMatchingInstantFor(r2, i3, i3.offsetNanoseconds, 2), o2, a2);
-}
-function lt(e2, n2 = Dt) {
-  return ee({
-    ...e2,
-    ...n2
-  });
-}
-function st(e2, n2) {
-  return ee({
-    ...e2,
-    ...n2
-  }, getPreferredCalendarSlot(e2.calendar, n2.calendar));
-}
-function it(e2, n2) {
-  return {
-    ...e2,
-    calendar: n2
-  };
-}
-function On(e2, n2) {
-  return {
-    ...e2,
-    timeZone: n2
-  };
-}
-function getPreferredCalendarSlot(e2, n2) {
-  if (e2 === n2) {
-    return e2;
-  }
-  const t3 = I(e2), o2 = I(n2);
-  if (t3 === o2 || t3 === X) {
-    return n2;
-  }
-  if (o2 === X) {
-    return e2;
-  }
-  throw new RangeError(Er);
-}
-function createNativeOpsCreator(e2, n2) {
-  return (t3) => t3 === X ? e2 : t3 === gi || t3 === Ti ? Object.assign(Object.create(e2), {
-    id: t3
-  }) : Object.assign(Object.create(n2), Aa(t3));
-}
-function createOptionsTransformer(e2, n2, t3) {
-  const o2 = new Set(t3);
-  return (r2) => (((e3, n3) => {
-    for (const t4 of n3) {
-      if (t4 in e3) {
-        return 1;
-      }
-    }
-    return 0;
-  })(r2 = V(o2, r2), e2) || Object.assign(r2, n2), t3 && (r2.timeZone = Ta, ["full", "long"].includes(r2.timeStyle) && (r2.timeStyle = "medium")), r2);
-}
-function e(e2, n2 = qn) {
-  const [t3, , , o2] = e2;
-  return (r2, i3 = Ns, ...a2) => {
-    const s2 = n2(o2 && o2(...a2), r2, i3, t3), c2 = s2.resolvedOptions();
-    return [s2, ...toEpochMillis(e2, c2, a2)];
-  };
-}
-function qn(e2, n2, t3, o2) {
-  if (t3 = o2(t3), e2) {
-    if (void 0 !== t3.timeZone) {
-      throw new TypeError(Lr);
-    }
-    t3.timeZone = e2;
-  }
-  return new En(n2, t3);
-}
-function toEpochMillis(e2, n2, t3) {
-  const [, o2, r2] = e2;
-  return t3.map((e3) => (e3.calendar && ((e4, n3, t4) => {
-    if ((t4 || e4 !== X) && e4 !== n3) {
-      throw new RangeError(Er);
-    }
-  })(I(e3.calendar), n2.calendar, r2), o2(e3, n2)));
-}
-function An(e2) {
-  const n2 = Bn();
-  return Ie(n2, e2.getOffsetNanosecondsFor(n2));
-}
-function Bn() {
-  return he(Date.now(), be);
-}
-function Nn() {
-  return ys || (ys = new En().resolvedOptions().timeZone);
-}
-var expectedInteger = (e2, n2) => `Non-integer ${e2}: ${n2}`;
-var expectedPositive = (e2, n2) => `Non-positive ${e2}: ${n2}`;
-var expectedFinite = (e2, n2) => `Non-finite ${e2}: ${n2}`;
-var forbiddenBigIntToNumber = (e2) => `Cannot convert bigint to ${e2}`;
-var invalidBigInt = (e2) => `Invalid bigint: ${e2}`;
-var pr = "Cannot convert Symbol to string";
-var hr = "Invalid object";
-var numberOutOfRange = (e2, n2, t3, o2, r2) => r2 ? numberOutOfRange(e2, r2[n2], r2[t3], r2[o2]) : invalidEntity(e2, n2) + `; must be between ${t3}-${o2}`;
-var invalidEntity = (e2, n2) => `Invalid ${e2}: ${n2}`;
-var missingField = (e2) => `Missing ${e2}`;
-var tn = (e2) => `Invalid field ${e2}`;
-var duplicateFields = (e2) => `Duplicate field ${e2}`;
-var noValidFields = (e2) => "No valid fields: " + e2.join();
-var Z = "Invalid bag";
-var invalidChoice = (e2, n2, t3) => invalidEntity(e2, n2) + "; must be " + Object.keys(t3).join();
-var A = "Cannot use valueOf";
-var P = "Invalid calling context";
-var gr = "Forbidden era/eraYear";
-var Dr = "Mismatching era/eraYear";
-var Ir = "Mismatching year/eraYear";
-var invalidEra = (e2) => `Invalid era: ${e2}`;
-var missingYear = (e2) => "Missing year" + (e2 ? "/era/eraYear" : "");
-var invalidMonthCode = (e2) => `Invalid monthCode: ${e2}`;
-var Mr = "Mismatching month/monthCode";
-var Nr = "Missing month/monthCode";
-var yr = "Cannot guess year";
-var Pr = "Invalid leap month";
-var g = "Invalid protocol";
-var vr = "Invalid protocol results";
-var Er = "Mismatching Calendars";
-var invalidCalendar = (e2) => `Invalid Calendar: ${e2}`;
-var Fr = "Mismatching TimeZones";
-var br = "Forbidden ICU TimeZone";
-var wr = "Out-of-bounds offset";
-var Br = "Out-of-bounds TimeZone gap";
-var kr = "Invalid TimeZone offset";
-var Yr = "Ambiguous offset";
-var Cr = "Out-of-bounds date";
-var Zr = "Out-of-bounds duration";
-var Rr = "Cannot mix duration signs";
-var zr = "Missing relativeTo";
-var qr = "Cannot use large units";
-var Ur = "Required smallestUnit or largestUnit";
-var Ar = "smallestUnit > largestUnit";
-var failedParse = (e2) => `Cannot parse: ${e2}`;
-var invalidSubstring = (e2) => `Invalid substring: ${e2}`;
-var Ln = (e2) => `Cannot format ${e2}`;
-var kn = "Mismatching types for formatting";
-var Lr = "Cannot specify TimeZone";
-var Wr = /* @__PURE__ */ E(b, (e2, n2) => n2);
-var jr = /* @__PURE__ */ E(b, (e2, n2, t3) => t3);
-var xr = /* @__PURE__ */ E(padNumber, 2);
-var $r = {
-  nanosecond: 0,
-  microsecond: 1,
-  millisecond: 2,
-  second: 3,
-  minute: 4,
-  hour: 5,
-  day: 6,
-  week: 7,
-  month: 8,
-  year: 9
-};
-var Et = /* @__PURE__ */ Object.keys($r);
-var Gr = 864e5;
-var Hr = 1e3;
-var Vr = 1e3;
-var be = 1e6;
-var _r = 1e9;
-var Jr = 6e10;
-var Kr = 36e11;
-var Qr = 864e11;
-var Xr = [1, Vr, be, _r, Jr, Kr, Qr];
-var w = /* @__PURE__ */ Et.slice(0, 6);
-var ei = /* @__PURE__ */ sortStrings(w);
-var ni = ["offset"];
-var ti = ["timeZone"];
-var oi = /* @__PURE__ */ w.concat(ni);
-var ri = /* @__PURE__ */ oi.concat(ti);
-var ii = ["era", "eraYear"];
-var ai = /* @__PURE__ */ ii.concat(["year"]);
-var si = ["year"];
-var ci = ["monthCode"];
-var ui = /* @__PURE__ */ ["month"].concat(ci);
-var li = ["day"];
-var fi = /* @__PURE__ */ ui.concat(si);
-var di = /* @__PURE__ */ ci.concat(si);
-var en = /* @__PURE__ */ li.concat(fi);
-var mi = /* @__PURE__ */ li.concat(ui);
-var pi = /* @__PURE__ */ li.concat(ci);
-var hi = /* @__PURE__ */ jr(w, 0);
-var X = "iso8601";
-var gi = "gregory";
-var Ti = "japanese";
-var Di = {
-  [gi]: {
-    bce: -1,
-    ce: 0
-  },
-  [Ti]: {
-    bce: -1,
-    ce: 0,
-    meiji: 1867,
-    taisho: 1911,
-    showa: 1925,
-    heisei: 1988,
-    reiwa: 2018
-  },
-  ethioaa: {
-    era0: 0
-  },
-  ethiopic: {
-    era0: 0,
-    era1: 5500
-  },
-  coptic: {
-    era0: -1,
-    era1: 0
-  },
-  roc: {
-    beforeroc: -1,
-    minguo: 0
-  },
-  buddhist: {
-    be: 0
-  },
-  islamic: {
-    ah: 0
-  },
-  indian: {
-    saka: 0
-  },
-  persian: {
-    ap: 0
-  }
-};
-var Ii = {
-  chinese: 13,
-  dangi: 13,
-  hebrew: -6
-};
-var m = /* @__PURE__ */ E(requireType, "string");
-var f = /* @__PURE__ */ E(requireType, "boolean");
-var Mi = /* @__PURE__ */ E(requireType, "number");
-var $ = /* @__PURE__ */ E(requireType, "function");
-var F = /* @__PURE__ */ Et.map((e2) => e2 + "s");
-var Ni = /* @__PURE__ */ sortStrings(F);
-var yi = /* @__PURE__ */ F.slice(0, 6);
-var Pi = /* @__PURE__ */ F.slice(6);
-var vi = /* @__PURE__ */ Pi.slice(1);
-var Ei = /* @__PURE__ */ Wr(F);
-var Si = /* @__PURE__ */ jr(F, 0);
-var Fi = /* @__PURE__ */ jr(yi, 0);
-var bi = /* @__PURE__ */ E(zeroOutProps, F);
-var j = ["isoNanosecond", "isoMicrosecond", "isoMillisecond", "isoSecond", "isoMinute", "isoHour"];
-var Oi = ["isoDay", "isoMonth", "isoYear"];
-var wi = /* @__PURE__ */ j.concat(Oi);
-var Bi = /* @__PURE__ */ sortStrings(Oi);
-var ki = /* @__PURE__ */ sortStrings(j);
-var Yi = /* @__PURE__ */ sortStrings(wi);
-var Dt = /* @__PURE__ */ jr(ki, 0);
-var Ci = /* @__PURE__ */ E(zeroOutProps, wi);
-var En = Intl.DateTimeFormat;
-var Zi = "en-GB";
-var Ri = 1e8;
-var zi = Ri * Gr;
-var qi = [Ri, 0];
-var Ui = [-Ri, 0];
-var Ai = 275760;
-var Li = -271821;
-var Wi = 1970;
-var ji = 1972;
-var xi = 12;
-var $i = /* @__PURE__ */ isoArgsToEpochMilli(1868, 9, 8);
-var Gi = /* @__PURE__ */ Jn(computeJapaneseEraParts, WeakMap);
-var Hi = "smallestUnit";
-var Vi = "unit";
-var _i = "roundingIncrement";
-var Ji = "fractionalSecondDigits";
-var Ki = "relativeTo";
-var Qi = {
-  constrain: 0,
-  reject: 1
-};
-var Xi = /* @__PURE__ */ Object.keys(Qi);
-var ea = {
-  compatible: 0,
-  reject: 1,
-  earlier: 2,
-  later: 3
-};
-var na = {
-  reject: 0,
-  use: 1,
-  prefer: 2,
-  ignore: 3
-};
-var ta = {
-  auto: 0,
-  never: 1,
-  critical: 2,
-  always: 3
-};
-var oa = {
-  auto: 0,
-  never: 1,
-  critical: 2
-};
-var ra = {
-  auto: 0,
-  never: 1
-};
-var ia = {
-  floor: 0,
-  halfFloor: 1,
-  ceil: 2,
-  halfCeil: 3,
-  trunc: 4,
-  halfTrunc: 5,
-  expand: 6,
-  halfExpand: 7,
-  halfEven: 8
-};
-var aa = /* @__PURE__ */ E(refineUnitOption, Hi);
-var sa = /* @__PURE__ */ E(refineUnitOption, "largestUnit");
-var ca = /* @__PURE__ */ E(refineUnitOption, Vi);
-var ua = /* @__PURE__ */ E(refineChoiceOption, "overflow", Qi);
-var la = /* @__PURE__ */ E(refineChoiceOption, "disambiguation", ea);
-var fa = /* @__PURE__ */ E(refineChoiceOption, "offset", na);
-var da = /* @__PURE__ */ E(refineChoiceOption, "calendarName", ta);
-var ma = /* @__PURE__ */ E(refineChoiceOption, "timeZoneName", oa);
-var pa = /* @__PURE__ */ E(refineChoiceOption, "offset", ra);
-var ha = /* @__PURE__ */ E(refineChoiceOption, "roundingMode", ia);
-var L = "PlainYearMonth";
-var q = "PlainMonthDay";
-var J = "PlainDate";
-var We = "PlainDateTime";
-var xe = "PlainTime";
-var Te = "ZonedDateTime";
-var Oe = "Instant";
-var qt = "Duration";
-var ga = [Math.floor, (e2) => hasHalf(e2) ? Math.floor(e2) : Math.round(e2), Math.ceil, (e2) => hasHalf(e2) ? Math.ceil(e2) : Math.round(e2), Math.trunc, (e2) => hasHalf(e2) ? Math.trunc(e2) || 0 : Math.round(e2), (e2) => e2 < 0 ? Math.floor(e2) : Math.ceil(e2), (e2) => Math.sign(e2) * Math.round(Math.abs(e2)) || 0, (e2) => hasHalf(e2) ? (e2 = Math.trunc(e2) || 0) + e2 % 2 : Math.round(e2)];
-var Ta = "UTC";
-var Da = 5184e3;
-var Ia = /* @__PURE__ */ isoArgsToEpochSec(1847);
-var Ma = /* @__PURE__ */ isoArgsToEpochSec(/* @__PURE__ */ (/* @__PURE__ */ new Date()).getUTCFullYear() + 10);
-var Na = /0+$/;
-var fn = /* @__PURE__ */ Jn(_zonedEpochSlotsToIso, WeakMap);
-var ya = 2 ** 32 - 1;
-var ie = /* @__PURE__ */ Jn((e2) => {
-  const n2 = getTimeZoneEssence(e2);
-  return "object" == typeof n2 ? new IntlTimeZone(n2) : new FixedTimeZone(n2 || 0);
-});
-var FixedTimeZone = class {
-  constructor(e2) {
-    this.v = e2;
-  }
-  getOffsetNanosecondsFor() {
-    return this.v;
-  }
-  getPossibleInstantsFor(e2) {
-    return [isoToEpochNanoWithOffset(e2, this.v)];
-  }
-  l() {
-  }
-};
-var IntlTimeZone = class {
-  constructor(e2) {
-    this.$ = ((e3) => {
-      function getOffsetSec(e4) {
-        const i3 = clampNumber(e4, o2, r2), [a2, s2] = computePeriod(i3), c2 = n2(a2), u2 = n2(s2);
-        return c2 === u2 ? c2 : pinch(t3(a2, s2), c2, u2, e4);
-      }
-      function pinch(n3, t4, o3, r3) {
-        let i3, a2;
-        for (; (void 0 === r3 || void 0 === (i3 = r3 < n3[0] ? t4 : r3 >= n3[1] ? o3 : void 0)) && (a2 = n3[1] - n3[0]); ) {
-          const t5 = n3[0] + Math.floor(a2 / 2);
-          e3(t5) === o3 ? n3[1] = t5 : n3[0] = t5 + 1;
-        }
-        return i3;
-      }
-      const n2 = Jn(e3), t3 = Jn(createSplitTuple);
-      let o2 = Ia, r2 = Ma;
-      return {
-        G(e4) {
-          const n3 = getOffsetSec(e4 - 86400), t4 = getOffsetSec(e4 + 86400), o3 = e4 - n3, r3 = e4 - t4;
-          if (n3 === t4) {
-            return [o3];
-          }
-          const i3 = getOffsetSec(o3);
-          return i3 === getOffsetSec(r3) ? [e4 - i3] : n3 > t4 ? [o3, r3] : [];
-        },
-        V: getOffsetSec,
-        l(e4, i3) {
-          const a2 = clampNumber(e4, o2, r2);
-          let [s2, c2] = computePeriod(a2);
-          const u2 = Da * i3, l3 = i3 < 0 ? () => c2 > o2 || (o2 = a2, 0) : () => s2 < r2 || (r2 = a2, 0);
-          for (; l3(); ) {
-            const o3 = n2(s2), r3 = n2(c2);
-            if (o3 !== r3) {
-              const n3 = t3(s2, c2);
-              pinch(n3, o3, r3);
-              const a3 = n3[0];
-              if ((compareNumbers(a3, e4) || 1) === i3) {
-                return a3;
-              }
-            }
-            s2 += u2, c2 += u2;
-          }
-        }
-      };
-    })(/* @__PURE__ */ ((e3) => (n2) => {
-      const t3 = hashIntlFormatParts(e3, n2 * Hr);
-      return isoArgsToEpochSec(parseIntlPartsYear(t3), parseInt(t3.month), parseInt(t3.day), parseInt(t3.hour), parseInt(t3.minute), parseInt(t3.second)) - n2;
-    })(e2));
-  }
-  getOffsetNanosecondsFor(e2) {
-    return this.$.V(epochNanoToSec(e2)) * _r;
-  }
-  getPossibleInstantsFor(e2) {
-    const [n2, t3] = [isoArgsToEpochSec((o2 = e2).isoYear, o2.isoMonth, o2.isoDay, o2.isoHour, o2.isoMinute, o2.isoSecond), o2.isoMillisecond * be + o2.isoMicrosecond * Vr + o2.isoNanosecond];
-    var o2;
-    return this.$.G(n2).map((e3) => checkEpochNanoInBounds(moveBigNano(he(e3, _r), t3)));
-  }
-  l(e2, n2) {
-    const [t3, o2] = epochNanoToSecMod(e2), r2 = this.$.l(t3 + (n2 > 0 || o2 ? 1 : 0), n2);
-    if (void 0 !== r2) {
-      return he(r2, _r);
-    }
-  }
-};
-var Pa = "([+\u2212-])";
-var va = "(?:[.,](\\d{1,9}))?";
-var Ea = `(?:(?:${Pa}(\\d{6}))|(\\d{4}))-?(\\d{2})`;
-var Sa = "(\\d{2})(?::?(\\d{2})(?::?(\\d{2})" + va + ")?)?";
-var Fa = Pa + Sa;
-var ba = Ea + "-?(\\d{2})(?:[T ]" + Sa + "(Z|" + Fa + ")?)?";
-var Oa = "\\[(!?)([^\\]]*)\\]";
-var wa = `((?:${Oa}){0,9})`;
-var Ba = /* @__PURE__ */ createRegExp(Ea + wa);
-var ka = /* @__PURE__ */ createRegExp("(?:--)?(\\d{2})-?(\\d{2})" + wa);
-var Ya = /* @__PURE__ */ createRegExp(ba + wa);
-var Ca = /* @__PURE__ */ createRegExp("T?" + Sa + "(?:" + Fa + ")?" + wa);
-var Za = /* @__PURE__ */ createRegExp(Fa);
-var Ra = /* @__PURE__ */ new RegExp(Oa, "g");
-var za = /* @__PURE__ */ createRegExp(`${Pa}?P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(?:T(?:(\\d+)${va}H)?(?:(\\d+)${va}M)?(?:(\\d+)${va}S)?)?`);
-var qa = /* @__PURE__ */ Jn((e2) => new En(Zi, {
-  timeZone: e2,
-  era: "short",
-  year: "numeric",
-  month: "numeric",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
-  second: "numeric"
-}));
-var Ua = /^(AC|AE|AG|AR|AS|BE|BS|CA|CN|CS|CT|EA|EC|IE|IS|JS|MI|NE|NS|PL|PN|PR|PS|SS|VS)T$/;
-var Aa = /* @__PURE__ */ Jn(createIntlCalendar);
-var La = /* @__PURE__ */ Jn((e2) => new En(Zi, {
-  calendar: e2,
-  timeZone: Ta,
-  era: "short",
-  year: "numeric",
-  month: "short",
-  day: "numeric"
-}));
-var Wa = /^M(\d{2})(L?)$/;
-var ja = {
-  era: toStringViaPrimitive,
-  eraYear: toInteger,
-  year: toInteger,
-  month: toPositiveInteger,
-  monthCode: toStringViaPrimitive,
-  day: toPositiveInteger
-};
-var xa = /* @__PURE__ */ jr(w, toInteger);
-var $a = /* @__PURE__ */ jr(F, toStrictInteger);
-var Ga = /* @__PURE__ */ Object.assign({}, ja, xa, $a, {
-  offset: toStringViaPrimitive
-});
-var Ha = /* @__PURE__ */ E(remapProps, w, j);
-var Va = {
-  dateAdd(e2, n2, t3) {
-    const o2 = H(t3);
-    let r2, { years: i3, months: a2, weeks: s2, days: c2 } = n2;
-    if (c2 += durationFieldsToBigNano(n2, 5)[0], i3 || a2) {
-      r2 = ((e3, n3, t4, o3, r3) => {
-        let [i4, a3, s3] = e3.h(n3);
-        if (t4) {
-          const [n4, o4] = e3.I(i4, a3);
-          i4 += t4, a3 = monthCodeNumberToMonth(n4, o4, e3.U(i4)), a3 = clampEntity("month", a3, 1, e3.L(i4), r3);
-        }
-        return o3 && ([i4, a3] = e3._(i4, a3, o3)), s3 = clampEntity("day", s3, 1, e3.j(i4, a3), r3), e3.q(i4, a3, s3);
-      })(this, e2, i3, a2, o2);
-    } else {
-      if (!s2 && !c2) {
-        return e2;
-      }
-      r2 = isoToEpochMilli(e2);
-    }
-    return r2 += (7 * s2 + c2) * Gr, checkIsoDateInBounds(epochMilliToIso(r2));
-  },
-  dateUntil(e2, n2, t3) {
-    if (t3 <= 7) {
-      let o3 = 0, r3 = diffDays({
-        ...e2,
-        ...Dt
-      }, {
-        ...n2,
-        ...Dt
-      });
-      return 7 === t3 && ([o3, r3] = divModTrunc(r3, 7)), {
-        ...Si,
-        weeks: o3,
-        days: r3
-      };
-    }
-    const o2 = this.h(e2), r2 = this.h(n2);
-    let [i3, a2, s2] = ((e3, n3, t4, o3, r3, i4, a3) => {
-      let s3 = r3 - n3, c2 = i4 - t4, u2 = a3 - o3;
-      if (s3 || c2) {
-        const l3 = Math.sign(s3 || c2);
-        let f2 = e3.j(r3, i4), d2 = 0;
-        if (Math.sign(u2) === -l3) {
-          const o4 = f2;
-          [r3, i4] = e3._(r3, i4, -l3), s3 = r3 - n3, c2 = i4 - t4, f2 = e3.j(r3, i4), d2 = l3 < 0 ? -o4 : f2;
-        }
-        if (u2 = a3 - Math.min(o3, f2) + d2, s3) {
-          const [o4, a4] = e3.I(n3, t4), [u3, f3] = e3.I(r3, i4);
-          if (c2 = u3 - o4 || Number(f3) - Number(a4), Math.sign(c2) === -l3) {
-            const t5 = l3 < 0 && -e3.L(r3);
-            s3 = (r3 -= l3) - n3, c2 = i4 - monthCodeNumberToMonth(o4, a4, e3.U(r3)) + (t5 || e3.L(r3));
-          }
-        }
-      }
-      return [s3, c2, u2];
-    })(this, ...o2, ...r2);
-    return 8 === t3 && (a2 += this.J(i3, o2[0]), i3 = 0), {
-      ...Si,
-      years: i3,
-      months: a2,
-      days: s2
-    };
-  },
-  dateFromFields(e2, n2) {
-    const t3 = H(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t3), i3 = refineDay(this, e2, r2, o2, t3);
-    return v(checkIsoDateInBounds(this.P(o2, r2, i3)), this.id || X);
-  },
-  yearMonthFromFields(e2, n2) {
-    const t3 = H(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t3);
-    return createPlainYearMonthSlots(checkIsoYearMonthInBounds(this.P(o2, r2, 1)), this.id || X);
-  },
-  monthDayFromFields(e2, n2) {
-    const t3 = H(n2), o2 = !this.id, { monthCode: r2, year: i3, month: a2 } = e2;
-    let s2, c2, u2, l3, f2;
-    if (void 0 !== r2) {
-      [s2, c2] = parseMonthCode(r2), f2 = getDefinedProp(e2, "day");
-      const n3 = this.N(s2, c2, f2);
-      if (!n3) {
-        throw new RangeError(yr);
-      }
-      if ([u2, l3] = n3, void 0 !== a2 && a2 !== l3) {
-        throw new RangeError(Mr);
-      }
-      o2 && (l3 = clampEntity("month", l3, 1, xi, 1), f2 = clampEntity("day", f2, 1, computeIsoDaysInMonth(void 0 !== i3 ? i3 : u2, l3), t3));
-    } else {
-      u2 = void 0 === i3 && o2 ? ji : refineYear(this, e2), l3 = refineMonth(this, e2, u2, t3), f2 = refineDay(this, e2, l3, u2, t3);
-      const n3 = this.U(u2);
-      c2 = l3 === n3, s2 = monthToMonthCodeNumber(l3, n3);
-      const r3 = this.N(s2, c2, f2);
-      if (!r3) {
-        throw new RangeError(yr);
-      }
-      [u2, l3] = r3;
-    }
-    return createPlainMonthDaySlots(checkIsoDateInBounds(this.P(u2, l3, f2)), this.id || X);
-  },
-  fields(e2) {
-    return getCalendarEraOrigins(this) && e2.includes("year") ? [...e2, ...ii] : e2;
-  },
-  mergeFields(e2, n2) {
-    const t3 = Object.assign(/* @__PURE__ */ Object.create(null), e2);
-    return spliceFields(t3, n2, ui), getCalendarEraOrigins(this) && (spliceFields(t3, n2, ai), this.id === Ti && spliceFields(t3, n2, mi, ii)), t3;
-  },
-  inLeapYear(e2) {
-    const [n2] = this.h(e2);
-    return this.K(n2);
-  },
-  monthsInYear(e2) {
-    const [n2] = this.h(e2);
-    return this.L(n2);
-  },
-  daysInMonth(e2) {
-    const [n2, t3] = this.h(e2);
-    return this.j(n2, t3);
-  },
-  daysInYear(e2) {
-    const [n2] = this.h(e2);
-    return this.X(n2);
-  },
-  dayOfYear: computeNativeDayOfYear,
-  era(e2) {
-    return this.ee(e2)[0];
-  },
-  eraYear(e2) {
-    return this.ee(e2)[1];
-  },
-  monthCode(e2) {
-    const [n2, t3] = this.h(e2), [o2, r2] = this.I(n2, t3);
-    return ((e3, n3) => "M" + xr(e3) + (n3 ? "L" : ""))(o2, r2);
-  },
-  dayOfWeek: computeIsoDayOfWeek,
-  daysInWeek() {
-    return 7;
-  }
-};
-var _a = {
-  dayOfYear: computeNativeDayOfYear,
-  h: computeIsoDateParts,
-  q: isoArgsToEpochMilli
-};
-var Ja = /* @__PURE__ */ Object.assign({}, _a, {
-  weekOfYear: computeNativeWeekOfYear,
-  yearOfWeek: computeNativeYearOfWeek,
-  R(e2) {
-    function computeWeekShift(e3) {
-      return (7 - e3 < n2 ? 7 : 0) - e3;
-    }
-    function computeWeeksInYear(e3) {
-      const n3 = computeIsoDaysInYear(l3 + e3), t4 = e3 || 1, o3 = computeWeekShift(modFloor(a2 + n3 * t4, 7));
-      return c2 = (n3 + (o3 - s2) * t4) / 7;
-    }
-    const n2 = this.id ? 1 : 4, t3 = computeIsoDayOfWeek(e2), o2 = this.dayOfYear(e2), r2 = modFloor(t3 - 1, 7), i3 = o2 - 1, a2 = modFloor(r2 - i3, 7), s2 = computeWeekShift(a2);
-    let c2, u2 = Math.floor((i3 - s2) / 7) + 1, l3 = e2.isoYear;
-    return u2 ? u2 > computeWeeksInYear(0) && (u2 = 1, l3++) : (u2 = computeWeeksInYear(-1), l3--), [u2, l3, c2];
-  }
-});
-var Ka = {
-  dayOfYear: computeNativeDayOfYear,
-  h: computeIntlDateParts,
-  q: computeIntlEpochMilli,
-  weekOfYear: computeNativeWeekOfYear,
-  yearOfWeek: computeNativeYearOfWeek,
-  R() {
-    return [];
-  }
-};
-var Y = /* @__PURE__ */ createNativeOpsCreator(/* @__PURE__ */ Object.assign({}, Va, Ja, {
-  h: computeIsoDateParts,
-  ee(e2) {
-    return this.id === gi ? computeGregoryEraParts(e2) : this.id === Ti ? Gi(e2) : [];
-  },
-  I: (e2, n2) => [n2, 0],
-  N(e2, n2) {
-    if (!n2) {
-      return [ji, e2];
-    }
-  },
-  K: computeIsoInLeapYear,
-  U() {
-  },
-  L: computeIsoMonthsInYear,
-  J: (e2) => e2 * xi,
-  j: computeIsoDaysInMonth,
-  X: computeIsoDaysInYear,
-  P: (e2, n2, t3) => ({
-    isoYear: e2,
-    isoMonth: n2,
-    isoDay: t3
-  }),
-  q: isoArgsToEpochMilli,
-  _: (e2, n2, t3) => (e2 += divTrunc(t3, xi), (n2 += modTrunc(t3, xi)) < 1 ? (e2--, n2 += xi) : n2 > xi && (e2++, n2 -= xi), [e2, n2]),
-  year(e2) {
-    return e2.isoYear;
-  },
-  month(e2) {
-    return e2.isoMonth;
-  },
-  day: (e2) => e2.isoDay
-}), /* @__PURE__ */ Object.assign({}, Va, Ka, {
-  h: computeIntlDateParts,
-  ee(e2) {
-    const n2 = this.O(e2);
-    return [n2.era, n2.eraYear];
-  },
-  I(e2, n2) {
-    const t3 = computeIntlLeapMonth.call(this, e2);
-    return [monthToMonthCodeNumber(n2, t3), t3 === n2];
-  },
-  N(e2, n2, t3) {
-    let [o2, r2, i3] = computeIntlDateParts.call(this, {
-      isoYear: ji,
-      isoMonth: xi,
-      isoDay: 31
-    });
-    const a2 = computeIntlLeapMonth.call(this, o2), s2 = r2 === a2;
-    1 === (compareNumbers(e2, monthToMonthCodeNumber(r2, a2)) || compareNumbers(Number(n2), Number(s2)) || compareNumbers(t3, i3)) && o2--;
-    for (let r3 = 0; r3 < 100; r3++) {
-      const i4 = o2 - r3, a3 = computeIntlLeapMonth.call(this, i4), s3 = monthCodeNumberToMonth(e2, n2, a3);
-      if (n2 === (s3 === a3) && t3 <= computeIntlDaysInMonth.call(this, i4, s3)) {
-        return [i4, s3];
-      }
-    }
-  },
-  K(e2) {
-    const n2 = computeIntlDaysInYear.call(this, e2);
-    return n2 > computeIntlDaysInYear.call(this, e2 - 1) && n2 > computeIntlDaysInYear.call(this, e2 + 1);
-  },
-  U: computeIntlLeapMonth,
-  L: computeIntlMonthsInYear,
-  J(e2, n2) {
-    const t3 = n2 + e2, o2 = Math.sign(e2), r2 = o2 < 0 ? -1 : 0;
-    let i3 = 0;
-    for (let e3 = n2; e3 !== t3; e3 += o2) {
-      i3 += computeIntlMonthsInYear.call(this, e3 + r2);
-    }
-    return i3;
-  },
-  j: computeIntlDaysInMonth,
-  X: computeIntlDaysInYear,
-  P(e2, n2, t3) {
-    return epochMilliToIso(computeIntlEpochMilli.call(this, e2, n2, t3));
-  },
-  q: computeIntlEpochMilli,
-  _(e2, n2, t3) {
-    if (t3) {
-      if (n2 += t3, !Number.isSafeInteger(n2)) {
-        throw new RangeError(Cr);
-      }
-      if (t3 < 0) {
-        for (; n2 < 1; ) {
-          n2 += computeIntlMonthsInYear.call(this, --e2);
-        }
-      } else {
-        let t4;
-        for (; n2 > (t4 = computeIntlMonthsInYear.call(this, e2)); ) {
-          n2 -= t4, e2++;
-        }
-      }
-    }
-    return [e2, n2];
-  },
-  year(e2) {
-    return this.O(e2).year;
-  },
-  month(e2) {
-    const { year: n2, F: t3 } = this.O(e2), { C: o2 } = this.B(n2);
-    return o2[t3] + 1;
-  },
-  day(e2) {
-    return this.O(e2).day;
-  }
-}));
-var Qa = "numeric";
-var Xa = ["timeZoneName"];
-var es = {
-  month: Qa,
-  day: Qa
-};
-var ns = {
-  year: Qa,
-  month: Qa
-};
-var ts = /* @__PURE__ */ Object.assign({}, ns, {
-  day: Qa
-});
-var os = {
-  hour: Qa,
-  minute: Qa,
-  second: Qa
-};
-var rs = /* @__PURE__ */ Object.assign({}, ts, os);
-var is = /* @__PURE__ */ Object.assign({}, rs, {
-  timeZoneName: "short"
-});
-var as = /* @__PURE__ */ Object.keys(ns);
-var ss = /* @__PURE__ */ Object.keys(es);
-var cs = /* @__PURE__ */ Object.keys(ts);
-var us = /* @__PURE__ */ Object.keys(os);
-var ls = ["dateStyle"];
-var fs = /* @__PURE__ */ as.concat(ls);
-var ds = /* @__PURE__ */ ss.concat(ls);
-var ms = /* @__PURE__ */ cs.concat(ls, ["weekday"]);
-var ps = /* @__PURE__ */ us.concat(["dayPeriod", "timeStyle"]);
-var hs = /* @__PURE__ */ ms.concat(ps);
-var gs = /* @__PURE__ */ hs.concat(Xa);
-var Ts = /* @__PURE__ */ Xa.concat(ps);
-var Ds = /* @__PURE__ */ Xa.concat(ms);
-var Is = /* @__PURE__ */ Xa.concat(["day", "weekday"], ps);
-var Ms = /* @__PURE__ */ Xa.concat(["year", "weekday"], ps);
-var Ns = {};
-var t = [/* @__PURE__ */ createOptionsTransformer(hs, rs), y];
-var s = [/* @__PURE__ */ createOptionsTransformer(gs, is), y, 0, (e2, n2) => {
-  const t3 = I(e2.timeZone);
-  if (n2 && I(n2.timeZone) !== t3) {
-    throw new RangeError(Fr);
-  }
-  return t3;
-}];
-var n = [/* @__PURE__ */ createOptionsTransformer(hs, rs, Xa), isoToEpochMilli];
-var o = [/* @__PURE__ */ createOptionsTransformer(ms, ts, Ts), isoToEpochMilli];
-var r = [/* @__PURE__ */ createOptionsTransformer(ps, os, Ds), (e2) => isoTimeFieldsToNano(e2) / be];
-var a = [/* @__PURE__ */ createOptionsTransformer(fs, ns, Is), isoToEpochMilli, 1];
-var i2 = [/* @__PURE__ */ createOptionsTransformer(ds, es, Ms), isoToEpochMilli, 1];
-var ys;
-
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
-function createSlotClass(e2, t3, n2, o2, r2) {
-  function Class(...e3) {
-    if (!(this instanceof Class)) {
-      throw new TypeError(P);
-    }
-    oo(this, t3(...e3));
-  }
-  function bindMethod(e3, t4) {
-    return Object.defineProperties(function(...t5) {
-      return e3.call(this, getSpecificSlots(this), ...t5);
-    }, D(t4));
-  }
-  function getSpecificSlots(t4) {
-    const n3 = no(t4);
-    if (!n3 || n3.branding !== e2) {
-      throw new TypeError(P);
-    }
-    return n3;
-  }
-  return Object.defineProperties(Class.prototype, {
-    ...O(T(bindMethod, n2)),
-    ...p(T(bindMethod, o2)),
-    ...h("Temporal." + e2)
-  }), Object.defineProperties(Class, {
-    ...p(r2),
-    ...D(e2)
-  }), [Class, (e3) => {
-    const t4 = Object.create(Class.prototype);
-    return oo(t4, e3), t4;
-  }, getSpecificSlots];
-}
-function createProtocolValidator(e2) {
-  return e2 = e2.concat("id").sort(), (t3) => {
-    if (!C(t3, e2)) {
-      throw new TypeError(g);
-    }
-    return t3;
-  };
-}
-function rejectInvalidBag(e2) {
-  if (no(e2) || void 0 !== e2.calendar || void 0 !== e2.timeZone) {
-    throw new TypeError(Z);
-  }
-  return e2;
-}
-function createCalendarFieldMethods(e2, t3) {
-  const n2 = {};
-  for (const o2 in e2) {
-    n2[o2] = ({ o: e3 }, n3) => {
-      const r2 = no(n3) || {}, { branding: a2 } = r2, i3 = a2 === J || t3.includes(a2) ? r2 : toPlainDateSlots(n3);
-      return e3[o2](i3);
-    };
-  }
-  return n2;
-}
-function createCalendarGetters(e2) {
-  const t3 = {};
-  for (const n2 in e2) {
-    t3[n2] = (e3) => {
-      const { calendar: t4 } = e3;
-      return (o2 = t4, "string" == typeof o2 ? Y(o2) : (r2 = o2, Object.assign(Object.create(co), {
-        i: r2
-      })))[n2](e3);
-      var o2, r2;
-    };
-  }
-  return t3;
-}
-function neverValueOf() {
-  throw new TypeError(A);
-}
-function createCalendarFromSlots({ calendar: e2 }) {
-  return "string" == typeof e2 ? new lr(e2) : e2;
-}
-function toPlainMonthDaySlots(e2, t3) {
-  if (t3 = U(t3), z(e2)) {
-    const n3 = no(e2);
-    if (n3 && n3.branding === q) {
-      return H(t3), n3;
-    }
-    const o2 = extractCalendarSlotFromBag(e2);
-    return K(Qo(o2 || X), !o2, e2, t3);
-  }
-  const n2 = Q(Y, e2);
-  return H(t3), n2;
-}
-function getOffsetNanosecondsForAdapter(e2, t3, n2) {
-  return o2 = t3.call(e2, Co(_(n2))), ae(u(o2));
-  var o2;
-}
-function createAdapterOps(e2, t3 = ho) {
-  const n2 = Object.keys(t3).sort(), o2 = {};
-  for (const r2 of n2) {
-    o2[r2] = E(t3[r2], e2, $(e2[r2]));
-  }
-  return o2;
-}
-function createTimeZoneOps(e2, t3) {
-  return "string" == typeof e2 ? ie(e2) : createAdapterOps(e2, t3);
-}
-function createTimeZoneOffsetOps(e2) {
-  return createTimeZoneOps(e2, Do);
-}
-function toInstantSlots(e2) {
-  if (z(e2)) {
-    const t3 = no(e2);
-    if (t3) {
-      switch (t3.branding) {
-        case Oe:
-          return t3;
-        case Te:
-          return _(t3.epochNanoseconds);
-      }
-    }
-  }
-  return pe(e2);
-}
-function getImplTransition(e2, t3, n2) {
-  const o2 = t3.l(toInstantSlots(n2).epochNanoseconds, e2);
-  return o2 ? Co(_(o2)) : null;
-}
-function refineTimeZoneSlot(e2) {
-  return z(e2) ? (no(e2) || {}).timeZone || Fo(e2) : ((e3) => ye(Ne(m(e3))))(e2);
-}
-function toPlainTimeSlots(e2, t3) {
-  if (z(e2)) {
-    const n2 = no(e2) || {};
-    switch (n2.branding) {
-      case xe:
-        return H(t3), n2;
-      case We:
-        return H(t3), Ge(n2);
-      case Te:
-        return H(t3), Re(createTimeZoneOffsetOps, n2);
-    }
-    return Ue(e2, t3);
-  }
-  return H(t3), ze(e2);
-}
-function optionalToPlainTimeFields(e2) {
-  return void 0 === e2 ? void 0 : toPlainTimeSlots(e2);
-}
-function toPlainYearMonthSlots(e2, t3) {
-  if (t3 = U(t3), z(e2)) {
-    const n3 = no(e2);
-    return n3 && n3.branding === L ? (H(t3), n3) : nt(Ho(getCalendarSlotFromBag(e2)), e2, t3);
-  }
-  const n2 = ot(Y, e2);
-  return H(t3), n2;
-}
-function toPlainDateTimeSlots(e2, t3) {
-  if (t3 = U(t3), z(e2)) {
-    const n3 = no(e2) || {};
-    switch (n3.branding) {
-      case We:
-        return H(t3), n3;
-      case J:
-        return H(t3), ee({
-          ...n3,
-          ...Dt
-        });
-      case Te:
-        return H(t3), ht(createTimeZoneOffsetOps, n3);
-    }
-    return Pt(Ko(getCalendarSlotFromBag(e2)), e2, t3);
-  }
-  const n2 = Ct(e2);
-  return H(t3), n2;
-}
-function toPlainDateSlots(e2, t3) {
-  if (t3 = U(t3), z(e2)) {
-    const n3 = no(e2) || {};
-    switch (n3.branding) {
-      case J:
-        return H(t3), n3;
-      case We:
-        return H(t3), v(n3);
-      case Te:
-        return H(t3), Bt(createTimeZoneOffsetOps, n3);
-    }
-    return Yt(Ko(getCalendarSlotFromBag(e2)), e2, t3);
-  }
-  const n2 = At(e2);
-  return H(t3), n2;
-}
-function dayAdapter(e2, t3, n2) {
-  return d(t3.call(e2, Yo(v(n2, e2))));
-}
-function createCompoundOpsCreator(e2) {
-  return (t3) => "string" == typeof t3 ? Y(t3) : ((e3, t4) => {
-    const n2 = Object.keys(t4).sort(), o2 = {};
-    for (const r2 of n2) {
-      o2[r2] = E(t4[r2], e3, e3[r2]);
-    }
-    return o2;
-  })(t3, e2);
-}
-function toDurationSlots(e2) {
-  if (z(e2)) {
-    const t3 = no(e2);
-    return t3 && t3.branding === qt ? t3 : Ht(e2);
-  }
-  return Kt(e2);
-}
-function refinePublicRelativeTo(e2) {
-  if (void 0 !== e2) {
-    if (z(e2)) {
-      const t3 = no(e2) || {};
-      switch (t3.branding) {
-        case Te:
-        case J:
-          return t3;
-        case We:
-          return v(t3);
-      }
-      const n2 = getCalendarSlotFromBag(e2);
-      return {
-        ...Qt(refineTimeZoneSlot, createTimeZoneOps, Ko(n2), e2),
-        calendar: n2
-      };
-    }
-    return Xt(e2);
-  }
-}
-function getCalendarSlotFromBag(e2) {
-  return extractCalendarSlotFromBag(e2) || X;
-}
-function extractCalendarSlotFromBag(e2) {
-  const { calendar: t3 } = e2;
-  if (void 0 !== t3) {
-    return refineCalendarSlot(t3);
-  }
-}
-function refineCalendarSlot(e2) {
-  return z(e2) ? (no(e2) || {}).calendar || cr(e2) : ((e3) => an(sn(m(e3))))(e2);
-}
-function toZonedDateTimeSlots(e2, t3) {
-  if (t3 = U(t3), z(e2)) {
-    const n2 = no(e2);
-    if (n2 && n2.branding === Te) {
-      return wn(t3), n2;
-    }
-    const o2 = getCalendarSlotFromBag(e2);
-    return jn(refineTimeZoneSlot, createTimeZoneOps, Ko(o2), o2, e2, t3);
-  }
-  return Mn(e2, t3);
-}
-function adaptDateMethods(e2) {
-  return T((e3) => (t3) => e3(slotsToIso(t3)), e2);
-}
-function slotsToIso(e2) {
-  return fn(e2, createTimeZoneOffsetOps);
-}
-function createDateTimeFormatClass() {
-  const e2 = En.prototype, t3 = Object.getOwnPropertyDescriptors(e2), n2 = Object.getOwnPropertyDescriptors(En), DateTimeFormat = function(e3, t4 = {}) {
-    if (!(this instanceof DateTimeFormat)) {
-      return new DateTimeFormat(e3, t4);
-    }
-    Or.set(this, ((e4, t5 = {}) => {
-      const n3 = new En(e4, t5), o2 = n3.resolvedOptions(), r2 = o2.locale, a2 = Vn(Object.keys(t5), o2), i3 = Jn(createFormatPrepperForBranding), prepFormat = (...e5) => {
-        let t6;
-        const o3 = e5.map((e6, n4) => {
-          const o4 = no(e6), r3 = (o4 || {}).branding;
-          if (n4 && t6 && t6 !== r3) {
-            throw new TypeError(kn);
-          }
-          return t6 = r3, o4;
-        });
-        return t6 ? i3(t6)(r2, a2, ...o3) : [n3, ...e5];
-      };
-      return prepFormat.u = n3, prepFormat;
-    })(e3, t4));
-  };
-  for (const e3 in t3) {
-    const n3 = t3[e3], o2 = e3.startsWith("format") && createFormatMethod(e3);
-    "function" == typeof n3.value ? n3.value = "constructor" === e3 ? DateTimeFormat : o2 || createProxiedMethod(e3) : o2 && (n3.get = function() {
-      return o2.bind(this);
-    });
-  }
-  return n2.prototype.value = Object.create(e2, t3), Object.defineProperties(DateTimeFormat, n2), DateTimeFormat;
-}
-function createFormatMethod(e2) {
-  return function(...t3) {
-    const n2 = Or.get(this), [o2, ...r2] = n2(...t3);
-    return o2[e2](...r2);
-  };
-}
-function createProxiedMethod(e2) {
-  return function(...t3) {
-    return Or.get(this).u[e2](...t3);
-  };
-}
-function createFormatPrepperForBranding(t3) {
-  const n2 = xn[t3];
-  if (!n2) {
-    throw new TypeError(Ln(t3));
-  }
-  return e(n2, Jn(qn));
-}
-var xn = {
-  Instant: t,
-  PlainDateTime: n,
-  PlainDate: o,
-  PlainTime: r,
-  PlainYearMonth: a,
-  PlainMonthDay: i2
-};
-var Rn = /* @__PURE__ */ e(t);
-var Wn = /* @__PURE__ */ e(s);
-var Gn = /* @__PURE__ */ e(n);
-var Un = /* @__PURE__ */ e(o);
-var zn = /* @__PURE__ */ e(r);
-var Hn = /* @__PURE__ */ e(a);
-var Kn = /* @__PURE__ */ e(i2);
-var Qn = {
-  era: l2,
-  eraYear: c,
-  year: u,
-  month: d,
-  daysInMonth: d,
-  daysInYear: d,
-  inLeapYear: f,
-  monthsInYear: d
-};
-var Xn = {
-  monthCode: m
-};
-var $n = {
-  day: d
-};
-var _n = {
-  dayOfWeek: d,
-  dayOfYear: d,
-  weekOfYear: S,
-  yearOfWeek: c,
-  daysInWeek: d
-};
-var eo = /* @__PURE__ */ Object.assign({}, Qn, Xn, $n, _n);
-var to = /* @__PURE__ */ new WeakMap();
-var no = /* @__PURE__ */ to.get.bind(to);
-var oo = /* @__PURE__ */ to.set.bind(to);
-var ro = {
-  ...createCalendarFieldMethods(Qn, [L]),
-  ...createCalendarFieldMethods(_n, []),
-  ...createCalendarFieldMethods(Xn, [L, q]),
-  ...createCalendarFieldMethods($n, [q])
-};
-var ao = /* @__PURE__ */ createCalendarGetters(eo);
-var io = /* @__PURE__ */ createCalendarGetters({
-  ...Qn,
-  ...Xn
-});
-var so = /* @__PURE__ */ createCalendarGetters({
-  ...Xn,
-  ...$n
-});
-var lo = {
-  calendarId: (e2) => I(e2.calendar)
-};
-var co = /* @__PURE__ */ T((e2, t3) => function(n2) {
-  const { i: o2 } = this;
-  return e2(o2[t3](Yo(v(n2, o2))));
-}, eo);
-var uo = /* @__PURE__ */ b((e2) => (t3) => t3[e2], F.concat("sign"));
-var fo = /* @__PURE__ */ b((e2, t3) => (e3) => e3[j[t3]], w);
-var mo = {
-  epochSeconds: M,
-  epochMilliseconds: y,
-  epochMicroseconds: N,
-  epochNanoseconds: B
-};
-var So = /* @__PURE__ */ E(V, /* @__PURE__ */ new Set(["branding"]));
-var [Oo, To, po] = createSlotClass(q, E(G, refineCalendarSlot), {
-  ...lo,
-  ...so
-}, {
-  getISOFields: So,
-  getCalendar: createCalendarFromSlots,
-  with(e2, t3, n2) {
-    return To(k(_o, e2, this, rejectInvalidBag(t3), n2));
-  },
-  equals: (e2, t3) => x(e2, toPlainMonthDaySlots(t3)),
-  toPlainDate(e2, t3) {
-    return Yo(R($o, e2, this, t3));
-  },
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = Kn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: W,
-  toJSON: (e2) => W(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => To(toPlainMonthDaySlots(e2, t3))
-});
-var ho = {
-  getOffsetNanosecondsFor: getOffsetNanosecondsForAdapter,
-  getPossibleInstantsFor(e2, t3, n2) {
-    const o2 = [...t3.call(e2, No(ee(n2, X)))].map((e3) => go(e3).epochNanoseconds), r2 = o2.length;
-    return r2 > 1 && (o2.sort(te), ne(oe(re(o2[0], o2[r2 - 1])))), o2;
-  }
-};
-var Do = {
-  getOffsetNanosecondsFor: getOffsetNanosecondsForAdapter
-};
-var [Po, Co, go] = createSlotClass(Oe, Se, mo, {
-  add: (e2, t3) => Co(se(0, e2, toDurationSlots(t3))),
-  subtract: (e2, t3) => Co(se(1, e2, toDurationSlots(t3))),
-  until: (e2, t3, n2) => ar(le(0, e2, toInstantSlots(t3), n2)),
-  since: (e2, t3, n2) => ar(le(1, e2, toInstantSlots(t3), n2)),
-  round: (e2, t3) => Co(ce(e2, t3)),
-  equals: (e2, t3) => ue(e2, toInstantSlots(t3)),
-  toZonedDateTime(e2, t3) {
-    const n2 = de(t3);
-    return dr(fe(e2, refineTimeZoneSlot(n2.timeZone), refineCalendarSlot(n2.calendar)));
-  },
-  toZonedDateTimeISO: (e2, t3) => dr(fe(e2, refineTimeZoneSlot(t3))),
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = Rn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: (e2, t3) => me(refineTimeZoneSlot, createTimeZoneOffsetOps, e2, t3),
-  toJSON: (e2) => me(refineTimeZoneSlot, createTimeZoneOffsetOps, e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2) => Co(toInstantSlots(e2)),
-  fromEpochSeconds: (e2) => Co(De(e2)),
-  fromEpochMilliseconds: (e2) => Co(Pe(e2)),
-  fromEpochMicroseconds: (e2) => Co(Ce(e2)),
-  fromEpochNanoseconds: (e2) => Co(ge(e2)),
-  compare: (e2, t3) => Ze(toInstantSlots(e2), toInstantSlots(t3))
-});
-var [Zo, bo] = createSlotClass("TimeZone", (e2) => {
-  const t3 = Me(e2);
-  return {
-    branding: "TimeZone",
-    id: t3,
-    o: ie(t3)
-  };
-}, {
-  id: (e2) => e2.id
-}, {
-  getPossibleInstantsFor: ({ o: e2 }, t3) => e2.getPossibleInstantsFor(toPlainDateTimeSlots(t3)).map((e3) => Co(_(e3))),
-  getOffsetNanosecondsFor: ({ o: e2 }, t3) => e2.getOffsetNanosecondsFor(toInstantSlots(t3).epochNanoseconds),
-  getOffsetStringFor(e2, t3) {
-    const n2 = toInstantSlots(t3).epochNanoseconds, o2 = createAdapterOps(this, Do).getOffsetNanosecondsFor(n2);
-    return Fe(o2);
-  },
-  getPlainDateTimeFor(e2, t3, n2 = X) {
-    const o2 = toInstantSlots(t3).epochNanoseconds, r2 = createAdapterOps(this, Do).getOffsetNanosecondsFor(o2);
-    return No(ee(Ie(o2, r2), refineCalendarSlot(n2)));
-  },
-  getInstantFor(e2, t3, n2) {
-    const o2 = toPlainDateTimeSlots(t3), r2 = ve(n2), a2 = createAdapterOps(this);
-    return Co(_(we(a2, o2, r2)));
-  },
-  getNextTransition: ({ o: e2 }, t3) => getImplTransition(1, e2, t3),
-  getPreviousTransition: ({ o: e2 }, t3) => getImplTransition(-1, e2, t3),
-  equals(e2, t3) {
-    return !!je(this, refineTimeZoneSlot(t3));
-  },
-  toString: (e2) => e2.id,
-  toJSON: (e2) => e2.id
-}, {
-  from(e2) {
-    const t3 = refineTimeZoneSlot(e2);
-    return "string" == typeof t3 ? new Zo(t3) : t3;
-  }
-});
-var Fo = /* @__PURE__ */ createProtocolValidator(Object.keys(ho));
-var [Io, vo] = createSlotClass(xe, ke, fo, {
-  getISOFields: So,
-  with(e2, t3, n2) {
-    return vo(Be(this, rejectInvalidBag(t3), n2));
-  },
-  add: (e2, t3) => vo(Ye(0, e2, toDurationSlots(t3))),
-  subtract: (e2, t3) => vo(Ye(1, e2, toDurationSlots(t3))),
-  until: (e2, t3, n2) => ar(Ae(0, e2, toPlainTimeSlots(t3), n2)),
-  since: (e2, t3, n2) => ar(Ae(1, e2, toPlainTimeSlots(t3), n2)),
-  round: (e2, t3) => vo(Ee(e2, t3)),
-  equals: (e2, t3) => Ve(e2, toPlainTimeSlots(t3)),
-  toZonedDateTime: (e2, t3) => dr(Je(refineTimeZoneSlot, toPlainDateSlots, createTimeZoneOps, e2, t3)),
-  toPlainDateTime: (e2, t3) => No(Le(e2, toPlainDateSlots(t3))),
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = zn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: qe,
-  toJSON: (e2) => qe(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => vo(toPlainTimeSlots(e2, t3)),
-  compare: (e2, t3) => He(toPlainTimeSlots(e2), toPlainTimeSlots(t3))
-});
-var [wo, jo, Mo] = createSlotClass(L, E(tt, refineCalendarSlot), {
-  ...lo,
-  ...io
-}, {
-  getISOFields: So,
-  getCalendar: createCalendarFromSlots,
-  with(e2, t3, n2) {
-    return jo(Ke(Xo, e2, this, rejectInvalidBag(t3), n2));
-  },
-  add: (e2, t3, n2) => jo(Qe(nr, 0, e2, toDurationSlots(t3), n2)),
-  subtract: (e2, t3, n2) => jo(Qe(nr, 1, e2, toDurationSlots(t3), n2)),
-  until: (e2, t3, n2) => ar(Xe(or, 0, e2, toPlainYearMonthSlots(t3), n2)),
-  since: (e2, t3, n2) => ar(Xe(or, 1, e2, toPlainYearMonthSlots(t3), n2)),
-  equals: (e2, t3) => $e(e2, toPlainYearMonthSlots(t3)),
-  toPlainDate(e2, t3) {
-    return Yo(_e($o, e2, this, t3));
-  },
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = Hn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: et,
-  toJSON: (e2) => et(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => jo(toPlainYearMonthSlots(e2, t3)),
-  compare: (e2, t3) => rt(toPlainYearMonthSlots(e2), toPlainYearMonthSlots(t3))
-});
-var [yo, No] = createSlotClass(We, E(pt, refineCalendarSlot), {
-  ...lo,
-  ...ao,
-  ...fo
-}, {
-  getISOFields: So,
-  getCalendar: createCalendarFromSlots,
-  with(e2, t3, n2) {
-    return No(at($o, e2, this, rejectInvalidBag(t3), n2));
-  },
-  withCalendar: (e2, t3) => No(it(e2, refineCalendarSlot(t3))),
-  withPlainDate: (e2, t3) => No(st(e2, toPlainDateSlots(t3))),
-  withPlainTime: (e2, t3) => No(lt(e2, optionalToPlainTimeFields(t3))),
-  add: (e2, t3, n2) => No(ct(er, 0, e2, toDurationSlots(t3), n2)),
-  subtract: (e2, t3, n2) => No(ct(er, 1, e2, toDurationSlots(t3), n2)),
-  until: (e2, t3, n2) => ar(ut(tr, 0, e2, toPlainDateTimeSlots(t3), n2)),
-  since: (e2, t3, n2) => ar(ut(tr, 1, e2, toPlainDateTimeSlots(t3), n2)),
-  round: (e2, t3) => No(dt(e2, t3)),
-  equals: (e2, t3) => ft(e2, toPlainDateTimeSlots(t3)),
-  toZonedDateTime: (e2, t3, n2) => dr(mt(createTimeZoneOps, e2, refineTimeZoneSlot(t3), n2)),
-  toPlainDate: (e2) => Yo(v(e2)),
-  toPlainTime: (e2) => vo(Ge(e2)),
-  toPlainYearMonth(e2) {
-    return jo(St(Ho, e2, this));
-  },
-  toPlainMonthDay(e2) {
-    return To(Ot(Qo, e2, this));
-  },
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = Gn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: Tt,
-  toJSON: (e2) => Tt(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => No(toPlainDateTimeSlots(e2, t3)),
-  compare: (e2, t3) => gt(toPlainDateTimeSlots(e2), toPlainDateTimeSlots(t3))
-});
-var [Bo, Yo, Ao] = createSlotClass(J, E(Nt, refineCalendarSlot), {
-  ...lo,
-  ...ao
-}, {
-  getISOFields: So,
-  getCalendar: createCalendarFromSlots,
-  with(e2, t3, n2) {
-    return Yo(Zt($o, e2, this, rejectInvalidBag(t3), n2));
-  },
-  withCalendar: (e2, t3) => Yo(it(e2, refineCalendarSlot(t3))),
-  add: (e2, t3, n2) => Yo(bt(er, 0, e2, toDurationSlots(t3), n2)),
-  subtract: (e2, t3, n2) => Yo(bt(er, 1, e2, toDurationSlots(t3), n2)),
-  until: (e2, t3, n2) => ar(Ft(tr, 0, e2, toPlainDateSlots(t3), n2)),
-  since: (e2, t3, n2) => ar(Ft(tr, 1, e2, toPlainDateSlots(t3), n2)),
-  equals: (e2, t3) => It(e2, toPlainDateSlots(t3)),
-  toZonedDateTime(e2, t3) {
-    const n2 = !z(t3) || t3 instanceof Zo ? {
-      timeZone: t3
-    } : t3;
-    return dr(vt(refineTimeZoneSlot, toPlainTimeSlots, createTimeZoneOps, e2, n2));
-  },
-  toPlainDateTime: (e2, t3) => No(wt(e2, optionalToPlainTimeFields(t3))),
-  toPlainYearMonth(e2) {
-    return jo(jt(Ho, e2, this));
-  },
-  toPlainMonthDay(e2) {
-    return To(Mt(Qo, e2, this));
-  },
-  toLocaleString(e2, t3, n2) {
-    const [o2, r2] = Un(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: yt,
-  toJSON: (e2) => yt(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => Yo(toPlainDateSlots(e2, t3)),
-  compare: (e2, t3) => rt(toPlainDateSlots(e2), toPlainDateSlots(t3))
-});
-var Eo = {
-  fields(e2, t3, n2) {
-    return [...t3.call(e2, n2)];
-  }
-};
-var Vo = /* @__PURE__ */ Object.assign({
-  dateFromFields(e2, t3, n2, o2) {
-    return Ao(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
-  }
-}, Eo);
-var Jo = /* @__PURE__ */ Object.assign({
-  yearMonthFromFields(e2, t3, n2, o2) {
-    return Mo(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
-  }
-}, Eo);
-var Lo = /* @__PURE__ */ Object.assign({
-  monthDayFromFields(e2, t3, n2, o2) {
-    return po(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), o2));
-  }
-}, Eo);
-var qo = {
-  mergeFields(e2, t3, n2, o2) {
-    return de(t3.call(e2, Object.assign(/* @__PURE__ */ Object.create(null), n2), Object.assign(/* @__PURE__ */ Object.create(null), o2)));
-  }
-};
-var ko = /* @__PURE__ */ Object.assign({}, Vo, qo);
-var xo = /* @__PURE__ */ Object.assign({}, Jo, qo);
-var Ro = /* @__PURE__ */ Object.assign({}, Lo, qo);
-var Wo = {
-  dateAdd(e2, t3, n2, o2, r2) {
-    return Ao(t3.call(e2, Yo(v(n2, e2)), ar(Vt(o2)), r2));
-  }
-};
-var Go = /* @__PURE__ */ Object.assign({}, Wo, {
-  dateUntil(e2, t3, n2, o2, r2, a2) {
-    return ir(t3.call(e2, Yo(v(n2, e2)), Yo(v(o2, e2)), Object.assign(/* @__PURE__ */ Object.create(null), a2, {
-      largestUnit: Et[r2]
-    })));
-  }
-});
-var Uo = /* @__PURE__ */ Object.assign({}, Wo, {
-  day: dayAdapter
-});
-var zo = /* @__PURE__ */ Object.assign({}, Go, {
-  day: dayAdapter
-});
-var Ho = /* @__PURE__ */ createCompoundOpsCreator(Jo);
-var Ko = /* @__PURE__ */ createCompoundOpsCreator(Vo);
-var Qo = /* @__PURE__ */ createCompoundOpsCreator(Lo);
-var Xo = /* @__PURE__ */ createCompoundOpsCreator(xo);
-var $o = /* @__PURE__ */ createCompoundOpsCreator(ko);
-var _o = /* @__PURE__ */ createCompoundOpsCreator(Ro);
-var er = /* @__PURE__ */ createCompoundOpsCreator(Wo);
-var tr = /* @__PURE__ */ createCompoundOpsCreator(Go);
-var nr = /* @__PURE__ */ createCompoundOpsCreator(Uo);
-var or = /* @__PURE__ */ createCompoundOpsCreator(zo);
-var [rr, ar, ir] = createSlotClass(qt, Lt, {
-  ...uo,
-  blank: Jt
-}, {
-  with: (e2, t3) => ar(kt(e2, t3)),
-  negated: (e2) => ar(xt(e2)),
-  abs: (e2) => ar(Rt(e2)),
-  add: (e2, t3, n2) => ar(Wt(refinePublicRelativeTo, tr, createTimeZoneOps, 0, e2, toDurationSlots(t3), n2)),
-  subtract: (e2, t3, n2) => ar(Wt(refinePublicRelativeTo, tr, createTimeZoneOps, 1, e2, toDurationSlots(t3), n2)),
-  round: (e2, t3) => ar(Gt(refinePublicRelativeTo, tr, createTimeZoneOps, e2, t3)),
-  total: (e2, t3) => Ut(refinePublicRelativeTo, tr, createTimeZoneOps, e2, t3),
-  toLocaleString(e2, t3, n2) {
-    return Intl.DurationFormat ? new Intl.DurationFormat(t3, n2).format(this) : zt(e2);
-  },
-  toString: zt,
-  toJSON: (e2) => zt(e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2) => ar(toDurationSlots(e2)),
-  compare: (e2, t3, n2) => $t(refinePublicRelativeTo, er, createTimeZoneOps, toDurationSlots(e2), toDurationSlots(t3), n2)
-});
-var sr = {
-  toString: (e2) => e2.id,
-  toJSON: (e2) => e2.id,
-  ...ro,
-  dateAdd: ({ id: e2, o: t3 }, n2, o2, r2) => Yo(v(t3.dateAdd(toPlainDateSlots(n2), toDurationSlots(o2), r2), e2)),
-  dateUntil: ({ o: e2 }, t3, n2, o2) => ar(Vt(e2.dateUntil(toPlainDateSlots(t3), toPlainDateSlots(n2), _t(o2)))),
-  dateFromFields: ({ id: e2, o: t3 }, n2, o2) => Yo(Yt(t3, n2, o2, ln(e2))),
-  yearMonthFromFields: ({ id: e2, o: t3 }, n2, o2) => jo(nt(t3, n2, o2, un(e2))),
-  monthDayFromFields: ({ id: e2, o: t3 }, n2, o2) => To(K(t3, 0, n2, o2, cn(e2))),
-  fields({ o: e2 }, t3) {
-    const n2 = new Set(en), o2 = [];
-    for (const e3 of t3) {
-      if (m(e3), !n2.has(e3)) {
-        throw new RangeError(tn(e3));
-      }
-      n2.delete(e3), o2.push(e3);
-    }
-    return e2.fields(o2);
-  },
-  mergeFields: ({ o: e2 }, t3, n2) => e2.mergeFields(nn(on(t3)), nn(on(n2)))
-};
-var [lr] = createSlotClass("Calendar", (e2) => {
-  const t3 = rn(e2);
-  return {
-    branding: "Calendar",
-    id: t3,
-    o: Y(t3)
-  };
-}, {
-  id: (e2) => e2.id
-}, sr, {
-  from(e2) {
-    const t3 = refineCalendarSlot(e2);
-    return "string" == typeof t3 ? new lr(t3) : t3;
-  }
-});
-var cr = /* @__PURE__ */ createProtocolValidator(Object.keys(sr).slice(4));
-var [ur, dr] = createSlotClass(Te, E(vn, refineCalendarSlot, refineTimeZoneSlot), {
-  ...mo,
-  ...lo,
-  ...adaptDateMethods(ao),
-  ...adaptDateMethods(fo),
-  offset: (e2) => Fe(slotsToIso(e2).offsetNanoseconds),
-  offsetNanoseconds: (e2) => slotsToIso(e2).offsetNanoseconds,
-  timeZoneId: (e2) => I(e2.timeZone),
-  hoursInDay: (e2) => dn(createTimeZoneOps, e2)
-}, {
-  getISOFields: (e2) => mn(createTimeZoneOffsetOps, e2),
-  getCalendar: createCalendarFromSlots,
-  getTimeZone: ({ timeZone: e2 }) => "string" == typeof e2 ? new Zo(e2) : e2,
-  with(e2, t3, n2) {
-    return dr(Sn($o, createTimeZoneOps, e2, this, rejectInvalidBag(t3), n2));
-  },
-  withCalendar: (e2, t3) => dr(it(e2, refineCalendarSlot(t3))),
-  withTimeZone: (e2, t3) => dr(On(e2, refineTimeZoneSlot(t3))),
-  withPlainDate: (e2, t3) => dr(Tn(createTimeZoneOps, e2, toPlainDateSlots(t3))),
-  withPlainTime: (e2, t3) => dr(pn(createTimeZoneOps, e2, optionalToPlainTimeFields(t3))),
-  add: (e2, t3, n2) => dr(hn(er, createTimeZoneOps, 0, e2, toDurationSlots(t3), n2)),
-  subtract: (e2, t3, n2) => dr(hn(er, createTimeZoneOps, 1, e2, toDurationSlots(t3), n2)),
-  until: (e2, t3, n2) => ar(Vt(Dn(tr, createTimeZoneOps, 0, e2, toZonedDateTimeSlots(t3), n2))),
-  since: (e2, t3, n2) => ar(Vt(Dn(tr, createTimeZoneOps, 1, e2, toZonedDateTimeSlots(t3), n2))),
-  round: (e2, t3) => dr(Pn(createTimeZoneOps, e2, t3)),
-  startOfDay: (e2) => dr(Cn(createTimeZoneOps, e2)),
-  equals: (e2, t3) => gn(e2, toZonedDateTimeSlots(t3)),
-  toInstant: (e2) => Co(Zn(e2)),
-  toPlainDateTime: (e2) => No(ht(createTimeZoneOffsetOps, e2)),
-  toPlainDate: (e2) => Yo(Bt(createTimeZoneOffsetOps, e2)),
-  toPlainTime: (e2) => vo(Re(createTimeZoneOffsetOps, e2)),
-  toPlainYearMonth(e2) {
-    return jo(bn(Ho, e2, this));
-  },
-  toPlainMonthDay(e2) {
-    return To(Fn(Qo, e2, this));
-  },
-  toLocaleString(e2, t3, n2 = {}) {
-    const [o2, r2] = Wn(t3, n2, e2);
-    return o2.format(r2);
-  },
-  toString: (e2, t3) => In(createTimeZoneOffsetOps, e2, t3),
-  toJSON: (e2) => In(createTimeZoneOffsetOps, e2),
-  valueOf: neverValueOf
-}, {
-  from: (e2, t3) => dr(toZonedDateTimeSlots(e2, t3)),
-  compare: (e2, t3) => yn(toZonedDateTimeSlots(e2), toZonedDateTimeSlots(t3))
-});
-var fr = /* @__PURE__ */ Object.defineProperties({}, {
-  ...h("Temporal.Now"),
-  ...p({
-    timeZoneId: () => Nn(),
-    instant: () => Co(_(Bn())),
-    zonedDateTime: (e2, t3 = Nn()) => dr(Yn(Bn(), refineTimeZoneSlot(t3), refineCalendarSlot(e2))),
-    zonedDateTimeISO: (e2 = Nn()) => dr(Yn(Bn(), refineTimeZoneSlot(e2), X)),
-    plainDateTime: (e2, t3 = Nn()) => No(ee(An(createTimeZoneOffsetOps(refineTimeZoneSlot(t3))), refineCalendarSlot(e2))),
-    plainDateTimeISO: (e2 = Nn()) => No(ee(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2))), X)),
-    plainDate: (e2, t3 = Nn()) => Yo(v(An(createTimeZoneOffsetOps(refineTimeZoneSlot(t3))), refineCalendarSlot(e2))),
-    plainDateISO: (e2 = Nn()) => Yo(v(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2))), X)),
-    plainTimeISO: (e2 = Nn()) => vo(Ge(An(createTimeZoneOffsetOps(refineTimeZoneSlot(e2)))))
-  })
-});
-var mr = /* @__PURE__ */ Object.defineProperties({}, {
-  ...h("Temporal"),
-  ...p({
-    PlainYearMonth: wo,
-    PlainMonthDay: Oo,
-    PlainDate: Bo,
-    PlainTime: Io,
-    PlainDateTime: yo,
-    ZonedDateTime: ur,
-    Instant: Po,
-    Calendar: lr,
-    TimeZone: Zo,
-    Duration: rr,
-    Now: fr
-  })
-});
-var Sr = /* @__PURE__ */ createDateTimeFormatClass();
-var Or = /* @__PURE__ */ new WeakMap();
-var Tr = /* @__PURE__ */ Object.defineProperties(Object.create(Intl), p({
-  DateTimeFormat: Sr
-}));
-
-// enhanced/openehr_base.ts
-var TYPE_REGISTRY = /* @__PURE__ */ new Map();
-function registerType(name2, constructor) {
-  TYPE_REGISTRY.set(name2.toUpperCase(), constructor);
-}
-function isTypeRegistered(name2) {
-  return TYPE_REGISTRY.has(name2.toUpperCase());
-}
-function getRegisteredTypes() {
-  return [...TYPE_REGISTRY.keys()];
-}
-var Any = class {
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  equal(other) {
-    return new Boolean2(this === other);
-  }
-  /**
-   * Create new instance of a type.
-   * Uses the type registry to look up constructors by name.
-   * Types must be registered using registerType() before they can be instantiated.
-   * 
-   * **Security Note:** This method creates instances dynamically based on type name.
-   * Do not use with untrusted input as it could instantiate arbitrary registered types.
-   * Only use with type names from trusted sources (e.g., parsed from validated openEHR data).
-   * 
-   * @param a_type - The type name as a String
-   * @returns A new instance of the specified type
-   * @throws Error if the type is not registered
-   */
-  instance_of(a_type) {
-    const typeName2 = a_type?.value?.toUpperCase() || "";
-    const constructor = TYPE_REGISTRY.get(typeName2);
-    if (!constructor) {
-      throw new Error(`Unknown type: ${a_type?.value}. Type must be registered using registerType() first.`);
-    }
-    return new constructor();
-  }
-  /**
-   * Type name of an object as a string. May include generic parameters, as in \`"Interval<Time>"\`.
-   * @param an_object - Parameter
-   * @returns Result value
-   */
-  type_of(an_object) {
-    const typeName2 = an_object.constructor.name;
-    return String2.from(typeName2);
-  }
-  /**
-   * True if current object not equal to \`_other_\`. Returns not \`_equal_()\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  not_equal(other) {
-    return new Boolean2(!this.equal(other).value);
-  }
-};
-var Container = class extends Any {
-};
-var Hash = class _Hash extends Container {
-  _map = /* @__PURE__ */ new Map();
-  /**
-   * Constructor that optionally accepts initial entries.
-   * @param entries - Optional array of [key, value] pairs
-   */
-  constructor(entries) {
-    super();
-    if (entries) {
-      for (const [key, value] of entries) {
-        this.put(key, value);
-      }
-    }
-  }
-  /**
-   * Test for presence of \`_a_key_\`.
-   * @param a_key - Parameter
-   * @returns Result value
-   */
-  has_key(a_key) {
-    const keyStr = this._keyToString(a_key);
-    return new Boolean2(this._map.has(keyStr));
-  }
-  /**
-   * Return item for key \`_a_key_\`.
-   * @param a_key - Parameter
-   * @returns Result value
-   */
-  item(a_key) {
-    const keyStr = this._keyToString(a_key);
-    const entry = this._map.get(keyStr);
-    if (!entry) {
-      throw new Error(`Key not found: ${keyStr}`);
-    }
-    return entry.value;
-  }
-  /**
-   * Test for membership of a value (key in this case).
-   */
-  has(v2) {
-    return this.has_key(v2);
-  }
-  /**
-   * Return the number of items in the hash.
-   */
-  count() {
-    const int3 = new Integer();
-    int3.value = this._map.size;
-    return int3;
-  }
-  /**
-   * Check if the hash is empty.
-   */
-  is_empty() {
-    return new Boolean2(this._map.size === 0);
-  }
-  /**
-   * Test if all items satisfy a condition.
-   */
-  for_all(test) {
-    for (const entry of this._map.values()) {
-      if (!test(entry.key).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Test if any item satisfies a condition.
-   */
-  there_exists(test) {
-    for (const entry of this._map.values()) {
-      if (test(entry.key).value) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Check value equality with another object.
-   */
-  is_equal(other) {
-    if (!(other instanceof _Hash)) {
-      return new Boolean2(false);
-    }
-    if (this._map.size !== other._map.size) {
-      return new Boolean2(false);
-    }
-    for (const [keyStr, entry] of this._map.entries()) {
-      const otherEntry = other._map.get(keyStr);
-      if (!otherEntry) {
-        return new Boolean2(false);
-      }
-      if (!entry.key.is_equal(otherEntry.key).value) {
-        return new Boolean2(false);
-      }
-      if (entry.value instanceof Any) {
-        if (!entry.value.is_equal(otherEntry.value).value) {
-          return new Boolean2(false);
-        }
-      } else if (entry.value !== otherEntry.value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Put a key-value pair into the hash.
-   */
-  put(key, value) {
-    const keyStr = this._keyToString(key);
-    this._map.set(keyStr, { key, value });
-  }
-  /**
-   * Return a List of all keys matching the predicate function.
-   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so matching operates on keys.
-   * To search values, use item() to retrieve values for matched keys.
-   * @param test - Predicate function with signature (v: K) => Boolean
-   * @returns List of matching keys, empty list if no matches
-   */
-  matching(test) {
-    const results = new List();
-    for (const entry of this._map.values()) {
-      const testResult = test(entry.key);
-      if (testResult?.value === true) {
-        results.append(entry.key);
-      }
-    }
-    return results;
-  }
-  /**
-   * Return first key matching the predicate function, or undefined if no match.
-   * Note: Per openEHR specification, Hash<K,V> extends Container<K>, so select operates on keys.
-   * To retrieve the value, call item() with the returned key.
-   * @param test - Predicate function with signature (v: K) => Boolean
-   * @returns First matching key or undefined
-   */
-  select(test) {
-    for (const entry of this._map.values()) {
-      const testResult = test(entry.key);
-      if (testResult?.value === true) {
-        return entry.key;
-      }
-    }
-    return void 0;
-  }
-  /**
-   * Helper to convert key to string for Map storage.
-   */
-  _keyToString(key) {
-    if (key instanceof String2) {
-      return key.value || "";
-    }
-    return JSON.stringify(key);
-  }
-};
-var List = class _List extends Container {
-  _items = [];
-  /**
-   * Test for membership of a value.
-   */
-  has(v2) {
-    for (const item of this._items) {
-      if (item.is_equal(v2).value === true) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Return the number of items in the list.
-   */
-  count() {
-    const int3 = new Integer();
-    int3.value = this._items.length;
-    return int3;
-  }
-  /**
-   * Check if the list is empty.
-   */
-  is_empty() {
-    return new Boolean2(this._items.length === 0);
-  }
-  /**
-   * Test if all items satisfy a condition.
-   */
-  for_all(test) {
-    for (const item of this._items) {
-      if (!test(item).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Test if any item satisfies a condition.
-   */
-  there_exists(test) {
-    for (const item of this._items) {
-      if (test(item).value) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Get the item at index i (0-based).
-   */
-  item(i3) {
-    const idx = i3.value;
-    if (idx === void 0 || idx < 0 || idx >= this._items.length) {
-      throw new Error(`Index out of bounds: ${idx}`);
-    }
-    return this._items[idx];
-  }
-  /**
-   * Return first element.
-   * @returns Result value
-   */
-  first() {
-    if (this._items.length === 0) {
-      throw new Error("Cannot get first item of empty list");
-    }
-    return this._items[0];
-  }
-  /**
-   * Return last element.
-   * @returns Result value
-   */
-  last() {
-    if (this._items.length === 0) {
-      throw new Error("Cannot get last item of empty list");
-    }
-    return this._items[this._items.length - 1];
-  }
-  /**
-   * Add an item to the end of the list.
-   */
-  append(v2) {
-    this._items.push(v2);
-  }
-  /**
-   * Add an item to the beginning of the list.
-   */
-  prepend(v2) {
-    this._items.unshift(v2);
-  }
-  /**
-   * Append all items from another list.
-   */
-  extend(other) {
-    const otherCount = other.count().value;
-    if (otherCount !== void 0) {
-      for (let i3 = 0; i3 < otherCount; i3++) {
-        const idx = new Integer();
-        idx.value = i3;
-        this._items.push(other.item(idx));
-      }
-    }
-  }
-  /**
-   * Remove the item at index i.
-   */
-  remove(i3) {
-    const idx = i3.value;
-    if (idx === void 0 || idx < 0 || idx >= this._items.length) {
-      throw new Error(`Index out of bounds: ${idx}`);
-    }
-    this._items.splice(idx, 1);
-  }
-  /**
-   * Find the index of the first occurrence of a value.
-   * Returns -1 if not found.
-   */
-  index_of(v2) {
-    for (let i3 = 0; i3 < this._items.length; i3++) {
-      if (this._items[i3].is_equal(v2).value === true) {
-        const idx2 = new Integer();
-        idx2.value = i3;
-        return idx2;
-      }
-    }
-    const idx = new Integer();
-    idx.value = -1;
-    return idx;
-  }
-  /**
-   * Check value equality with another object.
-   */
-  is_equal(other) {
-    if (!(other instanceof _List)) {
-      return new Boolean2(false);
-    }
-    if (this._items.length !== other._items.length) {
-      return new Boolean2(false);
-    }
-    for (let i3 = 0; i3 < this._items.length; i3++) {
-      if (!this._items[i3].is_equal(other._items[i3]).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Return a List of all items matching the predicate function.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns List of matching items, empty list if no matches
-   */
-  matching(test) {
-    const results = new _List();
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        results.append(item);
-      }
-    }
-    return results;
-  }
-  /**
-   * Return first item matching the predicate function, or undefined if no match.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns First matching item or undefined
-   */
-  select(test) {
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        return item;
-      }
-    }
-    return void 0;
-  }
-};
-var Set2 = class _Set extends Container {
-  _items = [];
-  /**
-   * Test for membership of a value.
-   */
-  has(v2) {
-    for (const item of this._items) {
-      if (item.is_equal(v2).value === true) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Return the number of items in the set.
-   */
-  count() {
-    const int3 = new Integer();
-    int3.value = this._items.length;
-    return int3;
-  }
-  /**
-   * Check if the set is empty.
-   */
-  is_empty() {
-    return new Boolean2(this._items.length === 0);
-  }
-  /**
-   * Test if all items satisfy a condition.
-   */
-  for_all(test) {
-    for (const item of this._items) {
-      if (!test(item).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Test if any item satisfies a condition.
-   */
-  there_exists(test) {
-    for (const item of this._items) {
-      if (test(item).value) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Add an item to the set if it doesn't already exist.
-   */
-  add(v2) {
-    if (!this.has(v2).value) {
-      this._items.push(v2);
-    }
-  }
-  /**
-   * Remove an item from the set.
-   */
-  remove(v2) {
-    for (let i3 = 0; i3 < this._items.length; i3++) {
-      if (this._items[i3].is_equal(v2).value === true) {
-        this._items.splice(i3, 1);
-        return;
-      }
-    }
-  }
-  /**
-   * Check value equality with another object.
-   */
-  is_equal(other) {
-    if (!(other instanceof _Set)) {
-      return new Boolean2(false);
-    }
-    if (this._items.length !== other._items.length) {
-      return new Boolean2(false);
-    }
-    for (const item of this._items) {
-      if (!other.has(item).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Return a List of all items matching the predicate function.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns List of matching items, empty list if no matches
-   */
-  matching(test) {
-    const results = new List();
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        results.append(item);
-      }
-    }
-    return results;
-  }
-  /**
-   * Return first item matching the predicate function, or undefined if no match.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns First matching item or undefined
-   */
-  select(test) {
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        return item;
-      }
-    }
-    return void 0;
-  }
-};
-var Array2 = class _Array extends Container {
-  _items = [];
-  /**
-   * Test for membership of a value.
-   */
-  has(v2) {
-    for (const item of this._items) {
-      if (item.is_equal(v2).value === true) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Return the number of items in the array.
-   */
-  count() {
-    const int3 = new Integer();
-    int3.value = this._items.length;
-    return int3;
-  }
-  /**
-   * Check if the array is empty.
-   */
-  is_empty() {
-    return new Boolean2(this._items.length === 0);
-  }
-  /**
-   * Test if all items satisfy a condition.
-   */
-  for_all(test) {
-    for (const item of this._items) {
-      if (!test(item).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Test if any item satisfies a condition.
-   */
-  there_exists(test) {
-    for (const item of this._items) {
-      if (test(item).value) {
-        return new Boolean2(true);
-      }
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Return item for key  \`_a_key_\`.
-   * @param a_key - Parameter
-   * @returns Result value
-   */
-  item(a_key) {
-    const idx = a_key.value;
-    if (idx === void 0 || idx < 0 || idx >= this._items.length) {
-      throw new Error(`Index out of bounds: ${idx}`);
-    }
-    return this._items[idx];
-  }
-  /**
-   * Check value equality with another object.
-   */
-  is_equal(other) {
-    if (!(other instanceof _Array)) {
-      return new Boolean2(false);
-    }
-    if (this._items.length !== other._items.length) {
-      return new Boolean2(false);
-    }
-    for (let i3 = 0; i3 < this._items.length; i3++) {
-      if (!this._items[i3].is_equal(other._items[i3]).value) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * Set the item at index i.
-   */
-  put(i3, v2) {
-    const idx = i3.value;
-    if (idx === void 0 || idx < 0 || idx >= this._items.length) {
-      throw new Error(`Index out of bounds: ${idx}`);
-    }
-    this._items[idx] = v2;
-  }
-  /**
-   * Append an item to the array.
-   */
-  append(v2) {
-    this._items.push(v2);
-  }
-  /**
-   * Return a List of all items matching the predicate function.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns List of matching items, empty list if no matches
-   */
-  matching(test) {
-    const results = new List();
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        results.append(item);
-      }
-    }
-    return results;
-  }
-  /**
-   * Return first item matching the predicate function, or undefined if no match.
-   * @param test - Predicate function with signature (v: T) => Boolean
-   * @returns First matching item or undefined
-   */
-  select(test) {
-    for (const item of this._items) {
-      const testResult = test(item);
-      if (testResult?.value === true) {
-        return item;
-      }
-    }
-    return void 0;
-  }
-};
-var Ordered = class extends Any {
-  /**
-   * True if current object less than or equal to \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than_or_equal(other) {
-    return new Boolean2(
-      this.less_than(other).value || this.is_equal(other).value
-    );
-  }
-  /**
-   * True if current object greater than \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  greater_than(other) {
-    return new Boolean2(
-      !this.less_than(other).value && !this.is_equal(other).value
-    );
-  }
-  /**
-   * True if current object greater than or equal to \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  greater_than_or_equal(other) {
-    return new Boolean2(!this.less_than(other).value);
-  }
-};
-var String2 = class _String extends Ordered {
-  static {
-    TYPE_REGISTRY.set("STRING", _String);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new String instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    this.value = val;
-  }
-  /**
-   * Creates a String instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new String instance
-   */
-  static from(val) {
-    return new _String(val);
-  }
-  /**
-   * Compares this String with another for value equality.
-   * @param other - The object to compare with
-   * @returns true if the values are equal
-   */
-  is_equal(other) {
-    if (other instanceof _String) {
-      return new Boolean2(this.value === other.value);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * True if string is empty, i.e. equal to "".
-   * @returns Result value
-   */
-  is_empty() {
-    return new Boolean2((this.value || "").length === 0);
-  }
-  /**
-   * Number of characters in string.
-   * @returns Result value
-   */
-  count() {
-    const int3 = new Integer();
-    int3.value = (this.value || "").length;
-    return int3;
-  }
-  /**
-   * True if string can be parsed as an integer.
-   * @returns Result value
-   */
-  is_integer() {
-    const val = this.value || "";
-    const num2 = Number(val);
-    return new Boolean2(
-      !isNaN(num2) && Number.isInteger(num2) && val.trim() !== ""
-    );
-  }
-  /**
-   * Return the integer corresponding to the integer value represented in this string.
-   * @returns Result value
-   */
-  as_integer() {
-    const num2 = parseInt(this.value || "", 10);
-    if (isNaN(num2)) {
-      throw new Error(`Cannot parse "${this.value}" as integer`);
-    }
-    return Integer.from(num2);
-  }
-  /**
-   * Concatenation operator - causes \`_other_\` to be appended to this string.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  append(other) {
-    return _String.from((this.value || "") + (other.value || ""));
-  }
-  /**
-   * Convert string to lowercase.
-   * @returns Result value
-   */
-  as_lower() {
-    return _String.from((this.value || "").toLowerCase());
-  }
-  /**
-   * Convert string to uppercase.
-   * @returns Result value
-   */
-  as_upper() {
-    return _String.from((this.value || "").toUpperCase());
-  }
-  /**
-   * Lexical comparison of string content based on ordering in relevant character set.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (!(other instanceof _String)) {
-      throw new Error("Cannot compare String with non-String");
-    }
-    return new Boolean2((this.value || "") < (other.value || ""));
-  }
-  /**
-   * Return True if this String contains \`_other_\` (case-sensitive).
-   * @param other - Parameter
-   * @returns Result value
-   */
-  contains(other) {
-    return new Boolean2((this.value || "").includes(other.value || ""));
-  }
-  /**
-   * Extract a substring (1-based indexing in openEHR).
-   * @param start - Start index (1-based)
-   * @param end - End index (1-based)
-   * @returns Result value
-   */
-  substring(start, end) {
-    const startIdx = (start.value || 1) - 1;
-    const endIdx = end.value || (this.value || "").length;
-    return _String.from((this.value || "").substring(startIdx, endIdx));
-  }
-  /**
-   * Find the index of a substring (1-based indexing in openEHR).
-   * @param pattern - Pattern to find
-   * @param from - Start index (1-based)
-   * @returns Result value (1-based index or -1 if not found)
-   */
-  index_of(pattern, from) {
-    const startIdx = (from.value || 1) - 1;
-    const foundIdx = (this.value || "").indexOf(pattern.value || "", startIdx);
-    const result2 = new Integer();
-    result2.value = foundIdx === -1 ? -1 : foundIdx + 1;
-    return result2;
-  }
-  /**
-   * Split string by delimiter.
-   * @param delimiter - Delimiter to split by
-   * @returns Result value
-   */
-  split(delimiter) {
-    const parts = (this.value || "").split(delimiter.value || "");
-    const list = new List();
-    for (const part of parts) {
-      list.append(_String.from(part));
-    }
-    return list;
-  }
-};
-var Uri = class extends String2 {
-};
-var Numeric = class extends Any {
-};
-var Ordered_Numeric = class extends Ordered {
-};
-var Integer = class _Integer extends Ordered_Numeric {
-  static {
-    TYPE_REGISTRY.set("INTEGER", _Integer);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Integer instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    if (val !== void 0 && val !== null && !Number.isInteger(val)) {
-      throw new Error(`Integer value must be an integer, got: ${val}`);
-    }
-    this.value = val;
-  }
-  /**
-   * Creates a Integer instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Integer instance
-   */
-  static from(val) {
-    return new _Integer(val);
-  }
-  /**
-   * Compares this Integer with another for value equality.
-   * @param other - The object to compare with
-   * @returns true if the values are equal
-   */
-  is_equal(other) {
-    if (other instanceof _Integer) {
-      return new Boolean2(this.value === other.value);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Lexical comparison for integers.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (!(other instanceof _Integer)) {
-      throw new Error("Cannot compare Integer with non-Integer");
-    }
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return new Boolean2(thisVal < otherVal);
-  }
-  /**
-   * Integer addition.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  add(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer.from(thisVal + otherVal);
-  }
-  /**
-   * Integer subtraction.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  subtract(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer.from(thisVal - otherVal);
-  }
-  /**
-   * Integer multiplication.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  multiply(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer.from(thisVal * otherVal);
-  }
-  /**
-   * Integer division.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  divide(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 1;
-    if (otherVal === 0) {
-      throw new Error("Division by zero");
-    }
-    return thisVal / otherVal;
-  }
-  /**
-   * Integer modulo.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  modulo(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 1;
-    if (otherVal === 0) {
-      throw new Error("Modulo by zero");
-    }
-    return _Integer.from(thisVal % otherVal);
-  }
-  /**
-   * Generate negative of current value.
-   * @returns Result value
-   */
-  negative() {
-    return _Integer.from(-(this.value || 0));
-  }
-  /**
-   * Integer exponentiation.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  exponent(other) {
-    const thisVal = this.value || 0;
-    return Math.pow(thisVal, other);
-  }
-  // modulo, less_than, negative, and is_equal are implemented above
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  equal(other) {
-    return new Boolean2(this === other);
-  }
-};
-var Double = class _Double extends Ordered_Numeric {
-  static {
-    TYPE_REGISTRY.set("DOUBLE", _Double);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Double instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    this.value = val;
-  }
-  /**
-   * Creates a Double instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Double instance
-   */
-  static from(val) {
-    return new _Double(val);
-  }
-  /**
-   * Return the greatest integer no greater than the value of this object.
-   * @returns Result value
-   */
-  floor() {
-    const thisVal = this.value || 0;
-    return Integer.from(Math.floor(thisVal));
-  }
-  /**
-   * Double-precision real number addition.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  add(other) {
-    const thisVal = this.value || 0;
-    return thisVal + other;
-  }
-  /**
-   * Double-precision real number subtraction.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  subtract(other) {
-    const thisVal = this.value || 0;
-    return thisVal - other;
-  }
-  /**
-   * Double-precision real number multiplication.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  multiply(other) {
-    const thisVal = this.value || 0;
-    return thisVal * other;
-  }
-  /**
-   * Double-precision real number division.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  divide(other) {
-    const thisVal = this.value || 0;
-    if (other === 0) {
-      throw new Error("Division by zero");
-    }
-    return thisVal / other;
-  }
-  /**
-   * Double-precision real number exponentiation.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  exponent(other) {
-    const thisVal = this.value || 0;
-    return Math.pow(thisVal, other);
-  }
-  /**
-   * Returns True if current Double is less than \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (other instanceof _Double) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal < otherVal);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Generate negative of current Double value.
-   * @returns Result value
-   */
-  negative() {
-    const thisVal = this.value || 0;
-    return -thisVal;
-  }
-  /**
-   * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (other instanceof _Double) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal === otherVal);
-    }
-    return new Boolean2(false);
-  }
-};
-var Octet = class _Octet extends Ordered {
-  static {
-    TYPE_REGISTRY.set("OCTET", _Octet);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Octet instance.
-   * @param val - The primitive value to wrap (0-255)
-   */
-  constructor(val) {
-    super();
-    if (val !== void 0 && val !== null && (!Number.isInteger(val) || val < 0 || val > 255)) {
-      throw new Error(`Octet value must be an integer between 0 and 255, got: ${val}`);
-    }
-    this.value = val;
-  }
-  /**
-   * Creates an Octet instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Octet instance
-   */
-  static from(val) {
-    return new _Octet(val);
-  }
-  /**
-   * Returns True if current Octet is less than other.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (other instanceof _Octet) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal < otherVal);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (other instanceof _Octet) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal === otherVal);
-    }
-    return new Boolean2(false);
-  }
-};
-var Character = class _Character extends Ordered {
-  static {
-    TYPE_REGISTRY.set("CHARACTER", _Character);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Character instance.
-   * @param val - The primitive value to wrap (single character)
-   */
-  constructor(val) {
-    super();
-    if (val !== void 0 && val !== null && val.length !== 1) {
-      throw new Error(`Character value must be a single character, got: ${val}`);
-    }
-    this.value = val;
-  }
-  /**
-   * Creates a Character instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Character instance
-   */
-  static from(val) {
-    return new _Character(val);
-  }
-  /**
-   * Returns True if current Character is less than other.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (other instanceof _Character) {
-      const thisVal = this.value || "";
-      const otherVal = other.value || "";
-      return new Boolean2(thisVal < otherVal);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (other instanceof _Character) {
-      const thisVal = this.value || "";
-      const otherVal = other.value || "";
-      return new Boolean2(thisVal === otherVal);
-    }
-    return new Boolean2(false);
-  }
-};
-var Boolean2 = class _Boolean extends Any {
-  static {
-    TYPE_REGISTRY.set("BOOLEAN", _Boolean);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Boolean instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    this.value = val;
-  }
-  /**
-   * Creates a Boolean instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Boolean instance
-   */
-  static from(val) {
-    return new _Boolean(val);
-  }
-  /**
-   * Compares this Boolean with another for value equality.
-   * @param other - The object to compare with
-   * @returns true if the values are equal
-   */
-  is_equal(other) {
-    if (other instanceof _Boolean) {
-      return new _Boolean(this.value === other.value);
-    }
-    return new _Boolean(false);
-  }
-  /**
-   * Logical conjunction of this with \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  conjunction(other) {
-    return new _Boolean(this.value === true && other.value === true);
-  }
-  /**
-   * Boolean semi-strict conjunction with \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  semistrict_conjunction(other) {
-    if (this.value !== true) {
-      return new _Boolean(false);
-    }
-    return new _Boolean(other.value === true);
-  }
-  /**
-   * Boolean disjunction with \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  disjunction(other) {
-    return new _Boolean(this.value === true || other.value === true);
-  }
-  /**
-   * Boolean semi-strict disjunction with \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  semistrict_disjunction(other) {
-    if (this.value === true) {
-      return new _Boolean(true);
-    }
-    return new _Boolean(other.value === true);
-  }
-  /**
-   * Boolean exclusive or with \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  exclusive_disjunction(other) {
-    return new _Boolean(this.value === true !== (other.value === true));
-  }
-  /**
-   * Boolean implication of \`_other_\` (semi-strict)
-   * @param other - Parameter
-   * @returns Result value
-   */
-  implication(other) {
-    if (this.value !== true) {
-      return new _Boolean(true);
-    }
-    return new _Boolean(other.value === true);
-  }
-  /**
-   * Boolean negation of the current value.
-   * @returns Result value
-   */
-  negation() {
-    return new _Boolean(this.value !== true);
-  }
-};
-var Real = class _Real extends Ordered_Numeric {
-  static {
-    TYPE_REGISTRY.set("REAL", _Real);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Real instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    this.value = val;
-  }
-  /**
-   * Creates a Real instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Real instance
-   */
-  static from(val) {
-    return new _Real(val);
-  }
-  /**
-   * Return the greatest integer no greater than the value of this object.
-   * @returns Result value
-   */
-  floor() {
-    const thisVal = this.value || 0;
-    return Integer.from(Math.floor(thisVal));
-  }
-  /**
-   * Real number addition.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  add(other) {
-    const thisVal = this.value || 0;
-    return thisVal + other;
-  }
-  /**
-   * Real number subtraction.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  subtract(other) {
-    const thisVal = this.value || 0;
-    return thisVal - other;
-  }
-  /**
-   * Real number multiplication.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  multiply(other) {
-    const thisVal = this.value || 0;
-    return thisVal * other;
-  }
-  /**
-   * Real number division.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  divide(other) {
-    const thisVal = this.value || 0;
-    if (other === 0) {
-      throw new Error("Division by zero");
-    }
-    return thisVal / other;
-  }
-  /**
-   * Real number exponentiation.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  exponent(other) {
-    const thisVal = this.value || 0;
-    return Math.pow(thisVal, other);
-  }
-  /**
-   * Returns True if current Real is less than \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (other instanceof _Real) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal < otherVal);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Generate negative of current Real value.
-   * @returns Result value
-   */
-  negative() {
-    const thisVal = this.value || 0;
-    return -thisVal;
-  }
-  /**
-   * Value equality: return True if \`this\` and \`_other_\` are attached to objects considered to be equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (other instanceof _Real) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal === otherVal);
-    }
-    return new Boolean2(false);
-  }
-};
-var Integer64 = class _Integer64 extends Ordered_Numeric {
-  static {
-    TYPE_REGISTRY.set("INTEGER64", _Integer64);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Integer64 instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    if (val !== void 0 && val !== null && !Number.isInteger(val)) {
-      throw new Error(`Integer64 value must be an integer, got: ${val}`);
-    }
-    this.value = val;
-  }
-  /**
-   * Creates a Integer64 instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Integer64 instance
-   */
-  static from(val) {
-    return new _Integer64(val);
-  }
-  /**
-   * Compares this Integer64 with another for value equality.
-   * @param other - The object to compare with
-   * @returns true if the values are equal
-   */
-  is_equal(other) {
-    if (other instanceof _Integer64) {
-      return new Boolean2(this.value === other.value);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Lexical comparison for large integers.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (!(other instanceof _Integer64)) {
-      throw new Error("Cannot compare Integer64 with non-Integer64");
-    }
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return new Boolean2(thisVal < otherVal);
-  }
-  /**
-   * Large integer addition.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  add(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer64.from(thisVal + otherVal);
-  }
-  /**
-   * Large integer subtraction.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  subtract(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer64.from(thisVal - otherVal);
-  }
-  /**
-   * Large integer multiplication.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  multiply(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 0;
-    return _Integer64.from(thisVal * otherVal);
-  }
-  /**
-   * Large integer division.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  divide(other) {
-    const thisVal = this.value || 0;
-    const otherVal = other.value || 1;
-    if (otherVal === 0) {
-      throw new Error("Division by zero");
-    }
-    return thisVal / otherVal;
-  }
-  /**
-   * Large integer exponentiation.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  exponent(other) {
-    const thisVal = this.value || 0;
-    return Math.pow(thisVal, other);
-  }
-  /**
-   * Large integer modulus.
-   * @param mod - Parameter
-   * @returns Result value
-   */
-  modulo(mod) {
-    const thisVal = this.value || 0;
-    const modVal = mod.value || 1;
-    if (modVal === 0) {
-      throw new Error("Modulo by zero");
-    }
-    return _Integer64.from(thisVal % modVal);
-  }
-  /**
-   * Generate negative of current Integer value.
-   * @returns Result value
-   */
-  negative() {
-    return _Integer64.from(-(this.value || 0));
-  }
-  /**
-   * Reference equality for reference types, value equality for value types.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  equal(other) {
-    return new Boolean2(this === other);
-  }
-};
-var Byte = class _Byte extends Ordered {
-  static {
-    TYPE_REGISTRY.set("BYTE", _Byte);
-  }
-  /**
-   * The underlying primitive value.
-   */
-  value;
-  /**
-   * Creates a new Byte instance.
-   * @param val - The primitive value to wrap
-   */
-  constructor(val) {
-    super();
-    if (val !== void 0 && val !== null && (!Number.isInteger(val) || val < 0 || val > 255)) {
-      throw new Error(
-        `Byte value must be an integer between 0 and 255, got: ${val}`
-      );
-    }
-    this.value = val;
-  }
-  /**
-   * Creates a Byte instance from a primitive value.
-   * @param val - The primitive value to wrap
-   * @returns A new Byte instance
-   */
-  static from(val) {
-    return new _Byte(val);
-  }
-  /**
-   * Returns True if current Byte is less than other.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  less_than(other) {
-    if (other instanceof _Byte) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal < otherVal);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Compares this Byte with another for value equality.
-   * @param other - The object to compare with
-   * @returns true if the values are equal
-   */
-  is_equal(other) {
-    if (other instanceof _Byte) {
-      const thisVal = this.value || 0;
-      const otherVal = other.value || 0;
-      return new Boolean2(thisVal === otherVal);
-    }
-    return new Boolean2(false);
-  }
-};
-var Temporal = class extends Ordered {
-};
-var Time_Definitions = class {
-  /**
-   * True if \`y >= 0\`.
-   *
-   * TODO: Verify if this validation is sufficient. The openEHR specification
-   * states y >= 0 is correct (no negative years, only 4-digit years assumed),
-   * but this may need additional validation for:
-   * - Maximum year value (e.g., 9999 for 4-digit constraint)
-   * - Whether year 0 is historically/calendrically valid
-   * See corresponding TODO in tasks/instructions/base/Time_Definitions.md
-   *
-   * @param y - Parameter
-   * @returns Result value
-   */
-  valid_year(y2) {
-    const val = y2.value || 0;
-    return new Boolean2(val >= 0);
-  }
-  /**
-   * True if \`m >= 1 and m <= months_in_year\`.
-   * @param m - Parameter
-   * @returns Result value
-   */
-  valid_month(m2) {
-    const val = m2.value || 0;
-    return new Boolean2(val >= 1 && val <= 12);
-  }
-  /**
-   * True if \`d >= 1 and d <= days_in_month (m, y)\`.
-   * @param y - Parameter
-   * @param m - Parameter
-   * @param d - Parameter
-   * @returns Result value
-   */
-  valid_day(y2, m2, d2) {
-    const dVal = d2.value || 0;
-    const mVal = m2.value || 1;
-    const yVal = y2.value || 0;
-    if (dVal < 1)
-      return new Boolean2(false);
-    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    const isLeapYear = yVal % 4 === 0 && yVal % 100 !== 0 || yVal % 400 === 0;
-    if (isLeapYear && mVal === 2) {
-      return new Boolean2(dVal <= 29);
-    }
-    return new Boolean2(dVal <= (daysInMonth[mVal - 1] || 31));
-  }
-  /**
-   * True if \`(h >= 0 and h < Hours_in_day) or (h = Hours_in_day and m = 0 and s = 0)\` .
-   * @param h - Parameter
-   * @param m - Parameter
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_hour(h2, m2, s2) {
-    const hVal = h2.value || 0;
-    const mVal = m2.value || 0;
-    const sVal = s2.value || 0;
-    if (hVal >= 0 && hVal < 24)
-      return new Boolean2(true);
-    if (hVal === 24 && mVal === 0 && sVal === 0)
-      return new Boolean2(true);
-    return new Boolean2(false);
-  }
-  /**
-   * True if \`m >= 0 and m < Minutes_in_hour\`.
-   * @param m - Parameter
-   * @returns Result value
-   */
-  valid_minute(m2) {
-    const val = m2.value || 0;
-    return new Boolean2(val >= 0 && val < 60);
-  }
-  /**
-   * True if \`s >= 0 and s < Seconds_in_minute\` .
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_second(s2) {
-    const val = s2.value || 0;
-    return new Boolean2(val >= 0 && val < 60);
-  }
-  /**
-   * True if \`fs >= 0.0\` and \`fs < 1.0\` .
-   * @param fs - Parameter
-   * @returns Result value
-   */
-  valid_fractional_second(fs2) {
-    return new Boolean2(fs2 >= 0 && fs2 < 1);
-  }
-  /**
-   * String is a valid ISO 8601 date, i.e. takes the complete form:
-   *
-   * * \`YYYY-MM-DD\` (extended, preferred) or one of the partial forms \`YYYY-MM\` or \`YYYY\`
-   * * \`YYYYMMDD\` (compact) or a partial variant \`YYYYMM\`.
-   *
-   * Where:
-   *
-   * * \`YYYY\` is the string form of any positive number in the range \`0000\` - \`9999\` (zero-filled to four digits)
-   * * \`MM\` is \`01\` - \`12\` (zero-filled to two digits)
-   * * \`DD\` is \`01\` - \`31\` (zero-filled to two digits)
-   *
-   * The combinations of \`YYYY\`, \`MM\`, \`DD\` numbers must be correct with respect to the Gregorian calendar.
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_iso8601_date(s2) {
-    const val = s2.value || "";
-    const extendedPattern = /^(\d{4})(-((0[1-9]|1[0-2])(-([0-2]\d|3[01]))?)?)?$/;
-    const compactPattern = /^(\d{4})((0[1-9]|1[0-2])([0-2]\d|3[01])?)?$/;
-    return new Boolean2(
-      extendedPattern.test(val) || compactPattern.test(val)
-    );
-  }
-  /**
-   * String is a valid ISO 8601 date, i.e. takes the form:
-   *
-   * * \`hh:mm:ss[(,|.)s+][Z|±hh[:mm]]\` (extended)
-   * * \`hhmmss[(,|.)s+][Z|±hh[mm]]\` (compact)
-   * * or one of the partial forms:
-   * ** \`hh:mm\` (extended)
-   * ** \`hhmm\` or \`hh\` (compact)
-   *
-   * with an additional optional timezone indicator of:
-   *
-   * * \`Z\` or \`±hh[:mm]\` (extended)  \`±hh[mm]\` (compact)
-   *
-   * Where:
-   *
-   * * \`hh\` is "00" - "23" (0-filled to two digits)
-   * * \`mm\` is "00" - "59" (0-filled to two digits)
-   * * \`ss\` is "00" - "60" (0-filled to two digits)
-   * * \`[(,|.)s+]\` is an optional string consisting of a comma or decimal point followed by numeric string of 1 or more digits, representing a fractional second
-   * * \`Z\` is a literal meaning UTC (modern replacement for GMT), i.e. timezone \`+0000\`
-   *
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_iso8601_time(s2) {
-    const val = s2.value || "";
-    const timePattern = /^([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
-    return new Boolean2(timePattern.test(val));
-  }
-  /**
-   * String is a valid ISO 8601 date-time, i.e. takes the form:
-   *
-   * * \`YYYY-MM-DDThh:mm:ss[(,|.)s+][Z|±hh[:mm]]\` (extended)
-   * * \`YYYYMMDDThhmmss[(,|.)s+][Z|±hh[mm]]\` (compact)
-   * * or one of the partial forms:
-   * ** \`YYYY-MM-DDThh:mm\` or \`YYYY-MM-DDThh\` (extended)
-   * ** \`YYYYMMDDThhmm\` or \`YYYYMMDDThh\` (compact)
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_iso8601_date_time(s2) {
-    const val = s2.value || "";
-    const dateTimePattern = /^(\d{4})-?(0[1-9]|1[0-2])-?([0-2]\d|3[01])T([01]\d|2[0-3]):?([0-5]\d)?:?([0-5]\d|60)?([.,]\d+)?(Z|[+-]([01]\d|2[0-3]):?([0-5]\d)?)?$/;
-    return new Boolean2(dateTimePattern.test(val));
-  }
-  /**
-   * String is a valid ISO 8601 duration, i.e. takes the form:
-   *
-   * * \`P[nnY][nnM][nnW][nnD][T[nnH][nnM][nnS]]\`
-   *
-   * Where each nn represents a number of years, months, etc. \`nnW\` represents a number of 7-day weeks.
-   *
-   * Note: allowing the \`W\` designator in the same expression as other designators is an exception to the published standard, but necessary in clinical information (typically for representing pregnancy duration).
-   * @param s - Parameter
-   * @returns Result value
-   */
-  valid_iso8601_duration(s2) {
-    const val = s2.value || "";
-    const durationPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
-    return new Boolean2(durationPattern.test(val) && val.length > 1);
-  }
-};
-var Iso8601_type = class extends Temporal {
-  /**
-   * Internal storage for value
-   * @protected
-   */
-  _value;
-  /**
-   * Representation of all descendants is a single String.
-   */
-  get value() {
-    return this._value?.value;
-  }
-  /**
-   * Gets the String wrapper object for value.
-   * Use this to access String methods.
-   */
-  get $value() {
-    return this._value;
-  }
-  /**
-   * Sets value from either a primitive value or String wrapper.
-   */
-  set value(val) {
-    if (val === void 0 || val === null) {
-      this._value = void 0;
-    } else if (typeof val === "string") {
-      this._value = String2.from(val);
-    } else {
-      this._value = val;
-    }
-  }
-};
-var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
-  static {
-    TYPE_REGISTRY.set("ISO8601_DATE_TIME", _Iso8601_date_time);
-  }
-  /**
-   * Extract the year part of the date as an Integer.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  year() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.year);
-    } catch {
-      try {
-        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
-        if (match && match[1]) {
-          return Integer.from(parseInt(match[1], 10));
-        }
-      } catch {
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the month part of the date/time as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  month() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.month);
-    } catch {
-      try {
-        const match = val.match(/^(\d{4})-?(\d{2})?/);
-        if (match && match[2]) {
-          return Integer.from(parseInt(match[2], 10));
-        }
-      } catch {
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the day part of the date/time as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  day() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.day);
-    } catch {
-      try {
-        const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
-        if (match && match[3]) {
-          return Integer.from(parseInt(match[3], 10));
-        }
-      } catch {
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the hour part of the date/time as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  hour() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.hour);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the minute part of the date/time as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  minute() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.minute);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the integral seconds part of the date/time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  second() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return Integer.from(dt2.second);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the fractional seconds part of the date/time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 parsing.
-   * @returns Result value
-   */
-  fractional_second() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return dt2.millisecond / 1e3 + dt2.microsecond / 1e6 + dt2.nanosecond / 1e9;
-    } catch {
-    }
-    return 0;
-  }
-  /**
-   * Timezone; may be Void.
-   *
-   * Uses Temporal API to extract timezone information.
-   * @returns Result value
-   */
-  timezone() {
-    const val = this.value || "";
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in date-time");
-  }
-  /**
-   * Indicates whether month in year is unknown.
-   * @returns Result value
-   */
-  month_unknown() {
-    return new Boolean2(this.month().value === 0);
-  }
-  /**
-   * Indicates whether day in month is unknown.
-   * @returns Result value
-   */
-  day_unknown() {
-    return new Boolean2(this.day().value === 0);
-  }
-  /**
-   * Indicates whether minute in hour is known.
-   * @returns Result value
-   */
-  minute_unknown() {
-    const val = this.value || "";
-    return new Boolean2(!val.includes("T") || this.minute().value === 0);
-  }
-  /**
-   * Indicates whether minute in hour is known.
-   * @returns Result value
-   */
-  second_unknown() {
-    const val = this.value || "";
-    const hasSeconds = /T\d{2}:?\d{2}:?\d{2}/.test(val);
-    return new Boolean2(!hasSeconds);
-  }
-  /**
-   * True if this time has a decimal part indicated by \`','\` (comma) rather than \`'.'\` (period).
-   * @returns Result value
-   */
-  is_decimal_sign_comma() {
-    const val = this.value || "";
-    return new Boolean2(val.includes(","));
-  }
-  /**
-   * True if this date time is partial, i.e. if seconds or more is missing.
-   * @returns Result value
-   */
-  is_partial() {
-    return this.second_unknown();
-  }
-  /**
-   * True if this date/time uses \`'-'\`, \`':'\` separators.
-   * @returns Result value
-   */
-  is_extended() {
-    const val = this.value || "";
-    return new Boolean2(val.includes("-") || val.includes(":"));
-  }
-  /**
-   * True if the \`_fractional_second_\` part is significant (i.e. even if = 0.0).
-   * @returns Result value
-   */
-  has_fractional_second() {
-    const val = this.value || "";
-    return new Boolean2(/T\d{2}:?\d{2}:?\d{2}[,.]/.test(val));
-  }
-  /**
-   * Return the string value in extended format.
-   *
-   * Uses Temporal API to parse and format in extended ISO 8601 format.
-   * @returns Result value
-   */
-  as_string() {
-    const val = this.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      return String2.from(dt2.toString());
-    } catch {
-      return String2.from(val);
-    }
-  }
-  /**
-   * Arithmetic addition of a duration to a date/time.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  add(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = dt2.add(dur);
-      const newDateTime = new _Iso8601_date_time();
-      newDateTime.value = result2.toString();
-      return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to date_time: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic subtraction of a duration from a date/time.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  subtract(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = dt2.subtract(dur);
-      const newDateTime = new _Iso8601_date_time();
-      newDateTime.value = result2.toString();
-      return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from date_time: ${e2}`);
-    }
-  }
-  /**
-   * Difference of two date/times.
-   * @param a_date_time - Parameter
-   * @returns Result value
-   */
-  diff(a_date_time) {
-    const val = this.value || "";
-    const otherVal = a_date_time.value || "";
-    try {
-      const dt1 = mr.PlainDateTime.from(val);
-      const dt2 = mr.PlainDateTime.from(otherVal);
-      const diff = dt1.since(dt2);
-      const duration = new Iso8601_duration();
-      duration.value = diff.toString();
-      return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate difference: ${e2}`);
-    }
-  }
-  /**
-   * Addition of nominal duration represented by \`_a_diff_\`. See \`Iso8601_date._add_nominal_()\` for semantics.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  add_nominal(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = dt2.add(dur);
-      const newDateTime = new Iso8601_date();
-      newDateTime.value = result2.toPlainDate().toString();
-      return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to add nominal duration: ${e2}`);
-    }
-  }
-  /**
-   * Subtraction of nominal duration represented by \`_a_diff_\`. See \`_add_nominal_()\` for semantics.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  subtract_nominal(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const dt2 = mr.PlainDateTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = dt2.subtract(dur);
-      const newDateTime = new Iso8601_date();
-      newDateTime.value = result2.toPlainDate().toString();
-      return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract nominal duration: ${e2}`);
-    }
-  }
-  /**
-   * Compares this date-time with another for ordering.
-   * @param other - The object to compare with
-   * @returns true if this date-time is less than the other
-   */
-  less_than(other) {
-    if (!(other instanceof _Iso8601_date_time)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const dt1 = mr.PlainDateTime.from(val);
-      const dt2 = mr.PlainDateTime.from(otherVal);
-      return new Boolean2(mr.PlainDateTime.compare(dt1, dt2) < 0);
-    } catch {
-      return new Boolean2(val < otherVal);
-    }
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Iso8601_date_time)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const dt1 = mr.PlainDateTime.from(val);
-      const dt2 = mr.PlainDateTime.from(otherVal);
-      return new Boolean2(mr.PlainDateTime.compare(dt1, dt2) === 0);
-    } catch {
-      return new Boolean2(val === otherVal);
-    }
-  }
-};
-var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
-  static {
-    TYPE_REGISTRY.set("ISO8601_DURATION", _Iso8601_duration);
-  }
-  /**
-   * Helper method to convert openEHR duration with weeks to standard ISO 8601.
-   * OpenEHR allows weeks to be mixed with other designators, but Temporal API doesn't.
-   * This converts weeks to days (1W = 7D).
-   * @param value - Duration string that may contain weeks
-   * @returns Duration string with weeks converted to days
-   */
-  static normalizeWeeks(value) {
-    const weeksMatch = value.match(/(\d+(?:\.\d+)?)W/);
-    if (!weeksMatch)
-      return value;
-    const weeks = parseFloat(weeksMatch[1]);
-    const days = weeks * 7;
-    let normalized = value.replace(/\d+(?:\.\d+)?W/, "");
-    const daysMatch = normalized.match(/(\d+(?:\.\d+)?)D/);
-    if (daysMatch) {
-      const existingDays = parseFloat(daysMatch[1]);
-      const totalDays = existingDays + days;
-      normalized = normalized.replace(/\d+(?:\.\d+)?D/, `${totalDays}D`);
-    } else {
-      if (normalized.includes("T")) {
-        normalized = normalized.replace("T", `${days}DT`);
-      } else {
-        normalized = normalized.replace(/P(.*)$/, `P$1${days}D`);
-      }
-    }
-    return normalized;
-  }
-  /**
-   * Returns True.
-   * @returns Result value
-   */
-  is_extended() {
-    return new Boolean2(true);
-  }
-  /**
-   * Returns False.
-   * @returns Result value
-   */
-  is_partial() {
-    return new Boolean2(false);
-  }
-  /**
-   * Number of years in the \`_value_\`, i.e. the number preceding the \`'Y'\` in the \`'YMD'\` part, if one exists.
-   * @returns Result value
-   */
-  years() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return Integer.from(dur.years || 0);
-    } catch {
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Number of months in the \`_value_\`, i.e. the value preceding the \`'M'\` in the \`'YMD'\` part, if one exists.
-   * @returns Result value
-   */
-  months() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return Integer.from(dur.months || 0);
-    } catch {
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Number of days in the \`_value_\`, i.e. the number preceding the \`'D'\` in the \`'YMD'\` part, if one exists.
-   * Note: This returns only the D component, not converted weeks.
-   * @returns Result value
-   */
-  days() {
-    const val = this.value || "";
-    try {
-      const normalized = _Iso8601_duration.normalizeWeeks(val);
-      const dur = mr.Duration.from(normalized);
-      return Integer.from(dur.days || 0);
-    } catch {
-      const daysMatch = val.match(/(\d+(?:\.\d+)?)D/);
-      if (daysMatch) {
-        return Integer.from(Math.floor(parseFloat(daysMatch[1])));
-      }
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Number of hours in the \`_value_\`, i.e. the number preceding the \`'H'\` in the \`'HMS'\` part, if one exists.
-   * @returns Result value
-   */
-  hours() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return Integer.from(dur.hours || 0);
-    } catch {
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Number of minutes in the \`_value_\`, i.e. the number preceding the \`'M'\` in the \`'HMS'\` part, if one exists.
-   * @returns Result value
-   */
-  minutes() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return Integer.from(dur.minutes || 0);
-    } catch {
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Number of seconds in the \`_value_\`, i.e. the integer number preceding the \`'S'\` in the \`'HMS'\` part, if one exists.
-   * @returns Result value
-   */
-  seconds() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return Integer.from(dur.seconds || 0);
-    } catch {
-      return Integer.from(0);
-    }
-  }
-  /**
-   * Fractional seconds in the \`_value_\`, i.e. the decimal part of the number preceding the \`'S'\` in the \`'HMS'\` part, if one exists.
-   * @returns Result value
-   */
-  fractional_seconds() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      return (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
-    } catch {
-      return 0;
-    }
-  }
-  /**
-   * Number of weeks in the \`_value_\`, i.e. the value preceding the \`W\`, if one exists.
-   * @returns Result value
-   */
-  weeks() {
-    const val = this.value || "";
-    const weeksMatch = val.match(/(\d+(?:\.\d+)?)W/);
-    if (weeksMatch) {
-      return Integer.from(Math.floor(parseFloat(weeksMatch[1])));
-    }
-    return Integer.from(0);
-  }
-  /**
-   * True if this time has a decimal part indicated by ',' (comma) rather than '.' (period).
-   * @returns Result value
-   */
-  is_decimal_sign_comma() {
-    const val = this.value || "";
-    return new Boolean2(val.includes(","));
-  }
-  /**
-   * Total number of seconds equivalent (including fractional) of entire duration. Where non-definite elements such as year and month (i.e. 'Y' and 'M') are included, the corresponding 'average' durations from \`Time_definitions\` are used to compute the result.
-   * @returns Result value
-   */
-  to_seconds() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(val);
-      const totalSeconds = (dur.years || 0) * 31536e3 + (dur.months || 0) * 2592e3 + (dur.weeks || 0) * 604800 + (dur.days || 0) * 86400 + (dur.hours || 0) * 3600 + (dur.minutes || 0) * 60 + (dur.seconds || 0) + (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
-      return totalSeconds;
-    } catch {
-      return 0;
-    }
-  }
-  /**
-   * Return the duration string value.
-   * @returns Result value
-   */
-  as_string() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      return String2.from(dur.toString());
-    } catch {
-      return String2.from(val);
-    }
-  }
-  /**
-   * Arithmetic addition of a duration to a duration, via conversion to seconds, using \`Time_definitions._Average_days_in_year_\` and \`Time_definitions._Average_days_in_month_\`
-   * @param a_val - Parameter
-   * @returns Result value
-   */
-  add(a_val) {
-    const val = this.value || "";
-    const otherVal = a_val.value || "";
-    try {
-      const dur1 = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      const dur2 = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(otherVal)
-      );
-      const result2 = dur1.add(dur2);
-      const newDuration = new _Iso8601_duration();
-      newDuration.value = result2.toString();
-      return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to add durations: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic subtraction of a duration from a duration, via conversion to seconds, using \`Time_definitions._Average_days_in_year_\` and \`Time_definitions._Average_days_in_month_\`
-   * @param a_val - Parameter
-   * @returns Result value
-   */
-  subtract(a_val) {
-    const val = this.value || "";
-    const otherVal = a_val.value || "";
-    try {
-      const dur1 = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      const dur2 = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(otherVal)
-      );
-      const result2 = dur1.subtract(dur2);
-      const newDuration = new _Iso8601_duration();
-      newDuration.value = result2.toString();
-      return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to subtract durations: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic multiplication a duration by a number.
-   * @param a_val - Parameter
-   * @returns Result value
-   */
-  multiply(a_val) {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      const result2 = dur.add(dur.negated()).add({
-        years: dur.years * a_val,
-        months: dur.months * a_val,
-        weeks: dur.weeks * a_val,
-        days: dur.days * a_val,
-        hours: dur.hours * a_val,
-        minutes: dur.minutes * a_val,
-        seconds: dur.seconds * a_val,
-        milliseconds: dur.milliseconds * a_val,
-        microseconds: dur.microseconds * a_val,
-        nanoseconds: dur.nanoseconds * a_val
-      });
-      const newDuration = new _Iso8601_duration();
-      newDuration.value = result2.toString();
-      return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to multiply duration: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic division of a duration by a number.
-   * @param a_val - Parameter
-   * @returns Result value
-   */
-  divide(a_val) {
-    if (a_val === 0) {
-      throw new Error("Division by zero");
-    }
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      const result2 = dur.add(dur.negated()).add({
-        years: dur.years / a_val,
-        months: dur.months / a_val,
-        weeks: dur.weeks / a_val,
-        days: dur.days / a_val,
-        hours: dur.hours / a_val,
-        minutes: dur.minutes / a_val,
-        seconds: dur.seconds / a_val,
-        milliseconds: dur.milliseconds / a_val,
-        microseconds: dur.microseconds / a_val,
-        nanoseconds: dur.nanoseconds / a_val
-      });
-      const newDuration = new _Iso8601_duration();
-      newDuration.value = result2.toString();
-      return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to divide duration: ${e2}`);
-    }
-  }
-  /**
-   * Generate negative of current duration value.
-   * @returns Result value
-   */
-  negative() {
-    const val = this.value || "";
-    try {
-      const dur = mr.Duration.from(
-        _Iso8601_duration.normalizeWeeks(val)
-      );
-      const result2 = dur.negated();
-      const newDuration = new _Iso8601_duration();
-      newDuration.value = result2.toString();
-      return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to negate duration: ${e2}`);
-    }
-  }
-  /**
-   * Compares this duration with another for ordering.
-   * @param other - The object to compare with
-   * @returns true if this duration is less than the other
-   */
-  less_than(other) {
-    if (!(other instanceof _Iso8601_duration)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const dur1 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(val));
-      const dur2 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
-      const total1 = dur1.total({ unit: "seconds" });
-      const total2 = dur2.total({ unit: "seconds" });
-      return new Boolean2(total1 < total2);
-    } catch {
-      return new Boolean2(val < otherVal);
-    }
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Iso8601_duration)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const dur1 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(val));
-      const dur2 = mr.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
-      const total1 = dur1.total({ unit: "seconds" });
-      const total2 = dur2.total({ unit: "seconds" });
-      return new Boolean2(total1 === total2);
-    } catch {
-      return new Boolean2(val === otherVal);
-    }
-  }
-};
-var Iso8601_time = class _Iso8601_time extends Iso8601_type {
-  static {
-    TYPE_REGISTRY.set("ISO8601_TIME", _Iso8601_time);
-  }
-  /**
-   * Extract the hour part of the date/time as an Integer.
-   * @returns Result value
-   */
-  hour() {
-    const val = this.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      return Integer.from(time.hour);
-    } catch {
-      const match = val.match(/^(\d{2})/);
-      if (match) {
-        return Integer.from(parseInt(match[1], 10));
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the minute part of the time as an Integer, or return 0 if not present.
-   * @returns Result value
-   */
-  minute() {
-    const val = this.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      return Integer.from(time.minute);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the integral seconds part of the time (i.e. prior to any decimal sign) as an Integer, or return 0 if not present.
-   * @returns Result value
-   */
-  second() {
-    const val = this.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      return Integer.from(time.second);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the fractional seconds part of the time (i.e. following to any decimal sign) as a Real, or return 0.0 if not present.
-   * @returns Result value
-   */
-  fractional_second() {
-    const val = this.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      return time.millisecond / 1e3 + time.microsecond / 1e6 + time.nanosecond / 1e9;
-    } catch {
-    }
-    return 0;
-  }
-  /**
-   * Timezone; may be Void.
-   * @returns Result value
-   */
-  timezone() {
-    const val = this.value || "";
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in time");
-  }
-  /**
-   * Indicates whether minute is unknown. If so, the time is of the form “hh”.
-   * @returns Result value
-   */
-  minute_unknown() {
-    const val = this.value || "";
-    const hasMinutes = /^\d{2}:?\d{2}/.test(val);
-    return new Boolean2(!hasMinutes);
-  }
-  /**
-   * Indicates whether second is unknown. If so and month is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
-   * @returns Result value
-   */
-  second_unknown() {
-    const val = this.value || "";
-    const hasSeconds = /^\d{2}:?\d{2}:?\d{2}/.test(val);
-    return new Boolean2(!hasSeconds);
-  }
-  /**
-   * True if this time has a decimal part indicated by \`','\` (comma) rather than \`'.'\` (period).
-   * @returns Result value
-   */
-  is_decimal_sign_comma() {
-    const val = this.value || "";
-    return new Boolean2(val.includes(","));
-  }
-  /**
-   * True if this time is partial, i.e. if seconds or more is missing.
-   * @returns Result value
-   */
-  is_partial() {
-    return this.second_unknown();
-  }
-  /**
-   * True if this time uses \`'-'\`, \`':'\` separators.
-   * @returns Result value
-   */
-  is_extended() {
-    const val = this.value || "";
-    return new Boolean2(val.includes(":"));
-  }
-  /**
-   * True if the \`_fractional_second_\` part is significant (i.e. even if = 0.0).
-   * @returns Result value
-   */
-  has_fractional_second() {
-    const val = this.value || "";
-    return new Boolean2(/\d{2}[,.]/.test(val));
-  }
-  /**
-   * Return string value in extended format.
-   * @returns Result value
-   */
-  as_string() {
-    const val = this.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      return String2.from(time.toString());
-    } catch {
-      return String2.from(val);
-    }
-  }
-  /**
-   * Arithmetic addition of a duration to a time.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  add(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = time.add(dur);
-      const newTime = new _Iso8601_time();
-      newTime.value = result2.toString();
-      return newTime;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to time: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic subtraction of a duration from a time.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  subtract(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const time = mr.PlainTime.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = time.subtract(dur);
-      const newTime = new _Iso8601_time();
-      newTime.value = result2.toString();
-      return newTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from time: ${e2}`);
-    }
-  }
-  /**
-   * Difference of two times.
-   * @param a_time - Parameter
-   * @returns Result value
-   */
-  diff(a_time) {
-    const val = this.value || "";
-    const otherVal = a_time.value || "";
-    try {
-      const time1 = mr.PlainTime.from(val);
-      const time2 = mr.PlainTime.from(otherVal);
-      const diff = time1.since(time2);
-      const duration = new Iso8601_duration();
-      duration.value = diff.toString();
-      return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate time difference: ${e2}`);
-    }
-  }
-  /**
-   * Compares this time with another for ordering.
-   * @param other - The object to compare with
-   * @returns true if this time is less than the other
-   */
-  less_than(other) {
-    if (!(other instanceof _Iso8601_time)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const time1 = mr.PlainTime.from(val);
-      const time2 = mr.PlainTime.from(otherVal);
-      return new Boolean2(mr.PlainTime.compare(time1, time2) < 0);
-    } catch {
-      return new Boolean2(val < otherVal);
-    }
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Iso8601_time)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const time1 = mr.PlainTime.from(val);
-      const time2 = mr.PlainTime.from(otherVal);
-      return new Boolean2(mr.PlainTime.compare(time1, time2) === 0);
-    } catch {
-      return new Boolean2(val === otherVal);
-    }
-  }
-};
-var Iso8601_date = class _Iso8601_date extends Iso8601_type {
-  static {
-    TYPE_REGISTRY.set("ISO8601_DATE", _Iso8601_date);
-  }
-  /**
-   * Extract the year part of the date as an Integer.
-   *
-   * Uses Temporal API for robust ISO 8601 date parsing.
-   * @returns Result value
-   */
-  year() {
-    const val = this.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      return Integer.from(date.year);
-    } catch {
-      const match = val.match(/^(\d{4})/);
-      if (match) {
-        return Integer.from(parseInt(match[1], 10));
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the month part of the date as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 date parsing.
-   * @returns Result value
-   */
-  month() {
-    const val = this.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      return Integer.from(date.month);
-    } catch {
-      try {
-        const ym = mr.PlainYearMonth.from(val);
-        return Integer.from(ym.month);
-      } catch {
-      }
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the day part of the date as an Integer, or return 0 if not present.
-   *
-   * Uses Temporal API for robust ISO 8601 date parsing.
-   * @returns Result value
-   */
-  day() {
-    const val = this.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      return Integer.from(date.day);
-    } catch {
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Timezone; may be Void.
-   *
-   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
-   * @returns Result value
-   */
-  timezone() {
-    const val = this.value || "";
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in date");
-  }
-  /**
-   * Indicates whether month in year is unknown. If so, the date is of the form \`"YYYY"\`.
-   * @returns Result value
-   */
-  month_unknown() {
-    return new Boolean2(this.month().value === 0);
-  }
-  /**
-   * Indicates whether day in month is unknown. If so, and month is known, the date is of the form \`"YYYY-MM"\` or \`"YYYYMM"\`.
-   * @returns Result value
-   */
-  day_unknown() {
-    return new Boolean2(this.day().value === 0);
-  }
-  /**
-   * True if this date is partial, i.e. if days or more is missing.
-   * @returns Result value
-   */
-  is_partial() {
-    return this.day_unknown();
-  }
-  /**
-   * True if this date uses \`'-'\` separators.
-   * @returns Result value
-   */
-  is_extended() {
-    const val = this.value || "";
-    return new Boolean2(val.includes("-"));
-  }
-  /**
-   * Return string value in extended format.
-   *
-   * Uses Temporal API to parse and format in extended ISO 8601 format.
-   * @returns Result value
-   */
-  as_string() {
-    const val = this.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      return String2.from(date.toString());
-    } catch {
-      try {
-        const ym = mr.PlainYearMonth.from(val);
-        return String2.from(ym.toString());
-      } catch {
-        return String2.from(val);
-      }
-    }
-  }
-  /**
-   * Arithmetic addition of a duration to a date.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  add(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = date.add(dur);
-      const newDate = new _Iso8601_date();
-      newDate.value = result2.toString();
-      return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to date: ${e2}`);
-    }
-  }
-  /**
-   * Arithmetic subtraction of a duration from a date.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  subtract(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = date.subtract(dur);
-      const newDate = new _Iso8601_date();
-      newDate.value = result2.toString();
-      return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from date: ${e2}`);
-    }
-  }
-  /**
-   * Difference of two dates.
-   * @param a_date - Parameter
-   * @returns Result value
-   */
-  diff(a_date) {
-    const val = this.value || "";
-    const otherVal = a_date.value || "";
-    try {
-      const date1 = mr.PlainDate.from(val);
-      const date2 = mr.PlainDate.from(otherVal);
-      const diff = date1.since(date2);
-      const duration = new Iso8601_duration();
-      duration.value = diff.toString();
-      return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate date difference: ${e2}`);
-    }
-  }
-  /**
-   * Addition of nominal duration represented by \`_a_diff_\`. For example, a duration of \`'P1Y'\` means advance to the same date next year, with the exception of the date 29 February in a leap year, to which the addition of a nominal year will result in 28 February of the following year. Similarly, \`'P1M'\` is understood here as a nominal month, the addition of which will result in one of:
-   *
-   * * the same day in the following month, if it exists, or;
-   * * one or two days less where the following month is shorter, or;
-   * * in the case of adding a month to the date 31 Jan, the result will be 28 Feb in a non-leap year (i.e. three less) and 29 Feb in a leap year (i.e. two less).
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  add_nominal(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = date.add(dur, { overflow: "constrain" });
-      const newDate = new _Iso8601_date();
-      newDate.value = result2.toString();
-      return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to add nominal duration to date: ${e2}`);
-    }
-  }
-  /**
-   * Subtraction of nominal duration represented by \`_a_diff_\`. See \`_add_nominal_()\` for semantics.
-   * @param a_diff - Parameter
-   * @returns Result value
-   */
-  subtract_nominal(a_diff) {
-    const val = this.value || "";
-    const diffVal = a_diff.value || "";
-    try {
-      const date = mr.PlainDate.from(val);
-      const dur = mr.Duration.from(
-        Iso8601_duration.normalizeWeeks(diffVal)
-      );
-      const result2 = date.subtract(dur, { overflow: "constrain" });
-      const newDate = new _Iso8601_date();
-      newDate.value = result2.toString();
-      return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to subtract nominal duration from date: ${e2}`);
-    }
-  }
-  /**
-   * Compares this date with another for ordering.
-   * @param other - The object to compare with
-   * @returns true if this date is less than the other
-   */
-  less_than(other) {
-    if (!(other instanceof _Iso8601_date)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const date1 = mr.PlainDate.from(val);
-      const date2 = mr.PlainDate.from(otherVal);
-      return new Boolean2(mr.PlainDate.compare(date1, date2) < 0);
-    } catch {
-      return new Boolean2(val < otherVal);
-    }
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Iso8601_date)) {
-      return new Boolean2(false);
-    }
-    const val = this.value || "";
-    const otherVal = other.value || "";
-    try {
-      const date1 = mr.PlainDate.from(val);
-      const date2 = mr.PlainDate.from(otherVal);
-      return new Boolean2(mr.PlainDate.compare(date1, date2) === 0);
-    } catch {
-      return new Boolean2(val === otherVal);
-    }
-  }
-};
-var Interval = class _Interval extends Any {
-  /**
-   * Lower bound.
-   */
-  lower;
-  /**
-   * Upper bound.
-   */
-  upper;
-  /**
-   * Internal storage for lower_unbounded
-   * @protected
-   */
-  _lower_unbounded;
-  /**
-   * True if \`_lower_\` boundary open (i.e. = \`-infinity\`).
-   */
-  get lower_unbounded() {
-    return this._lower_unbounded?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for lower_unbounded.
-   * Use this to access Boolean methods.
-   */
-  get $lower_unbounded() {
-    return this._lower_unbounded;
-  }
-  /**
-   * Sets lower_unbounded from either a primitive value or Boolean wrapper.
-   */
-  set lower_unbounded(val) {
-    if (val === void 0 || val === null) {
-      this._lower_unbounded = void 0;
-    } else if (typeof val === "boolean") {
-      this._lower_unbounded = Boolean2.from(val);
-    } else {
-      this._lower_unbounded = val;
-    }
-  }
-  /**
-   * Internal storage for upper_unbounded
-   * @protected
-   */
-  _upper_unbounded;
-  /**
-   * True if \`_upper_\` boundary open (i.e. = \`+infinity\`).
-   */
-  get upper_unbounded() {
-    return this._upper_unbounded?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for upper_unbounded.
-   * Use this to access Boolean methods.
-   */
-  get $upper_unbounded() {
-    return this._upper_unbounded;
-  }
-  /**
-   * Sets upper_unbounded from either a primitive value or Boolean wrapper.
-   */
-  set upper_unbounded(val) {
-    if (val === void 0 || val === null) {
-      this._upper_unbounded = void 0;
-    } else if (typeof val === "boolean") {
-      this._upper_unbounded = Boolean2.from(val);
-    } else {
-      this._upper_unbounded = val;
-    }
-  }
-  /**
-   * Internal storage for lower_included
-   * @protected
-   */
-  _lower_included;
-  /**
-   * True if \`_lower_\` boundary value included in range, if \`not _lower_unbounded_\`.
-   */
-  get lower_included() {
-    return this._lower_included?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for lower_included.
-   * Use this to access Boolean methods.
-   */
-  get $lower_included() {
-    return this._lower_included;
-  }
-  /**
-   * Sets lower_included from either a primitive value or Boolean wrapper.
-   */
-  set lower_included(val) {
-    if (val === void 0 || val === null) {
-      this._lower_included = void 0;
-    } else if (typeof val === "boolean") {
-      this._lower_included = Boolean2.from(val);
-    } else {
-      this._lower_included = val;
-    }
-  }
-  /**
-   * Internal storage for upper_included
-   * @protected
-   */
-  _upper_included;
-  /**
-   * True if \`_upper_\` boundary value included in range if \`not _upper_unbounded_\`.
-   */
-  get upper_included() {
-    return this._upper_included?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for upper_included.
-   * Use this to access Boolean methods.
-   */
-  get $upper_included() {
-    return this._upper_included;
-  }
-  /**
-   * Sets upper_included from either a primitive value or Boolean wrapper.
-   */
-  set upper_included(val) {
-    if (val === void 0 || val === null) {
-      this._upper_included = void 0;
-    } else if (typeof val === "boolean") {
-      this._upper_included = Boolean2.from(val);
-    } else {
-      this._upper_included = val;
-    }
-  }
-  /**
-   * True if current object's interval is semantically same as \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Interval)) {
-      return new Boolean2(false);
-    }
-    const otherInterval = other;
-    if (this.lower_unbounded !== otherInterval.lower_unbounded) {
-      return new Boolean2(false);
-    }
-    if (!this.lower_unbounded) {
-      if (this.lower === void 0 || otherInterval.lower === void 0) {
-        return new Boolean2(false);
-      }
-      if (!this.lower.is_equal(otherInterval.lower).value) {
-        return new Boolean2(false);
-      }
-      if (this.lower_included !== otherInterval.lower_included) {
-        return new Boolean2(false);
-      }
-    }
-    if (this.upper_unbounded !== otherInterval.upper_unbounded) {
-      return new Boolean2(false);
-    }
-    if (!this.upper_unbounded) {
-      if (this.upper === void 0 || otherInterval.upper === void 0) {
-        return new Boolean2(false);
-      }
-      if (!this.upper.is_equal(otherInterval.upper).value) {
-        return new Boolean2(false);
-      }
-      if (this.upper_included !== otherInterval.upper_included) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-};
-var Proper_interval = class extends Interval {
-  /**
-   * True if the value \`e\` is properly contained in this Interval.
-   * @param e - Parameter
-   * @returns Result value
-   */
-  has(e2) {
-    if (!this.lower_unbounded && this.lower !== void 0) {
-      const cmp = e2.less_than(this.lower);
-      if (cmp.value === true)
-        return new Boolean2(false);
-      if (!this.lower_included) {
-        const eq = e2.is_equal(this.lower);
-        if (eq.value === true)
-          return new Boolean2(false);
-      }
-    }
-    if (!this.upper_unbounded && this.upper !== void 0) {
-      const cmp = this.upper.less_than(e2);
-      if (cmp.value === true)
-        return new Boolean2(false);
-      if (!this.upper_included) {
-        const eq = e2.is_equal(this.upper);
-        if (eq.value === true)
-          return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * True if there is any overlap between intervals represented by Current and \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  intersects(other) {
-    if (!this.upper_unbounded && this.upper !== void 0 && !other.lower_unbounded && other.lower !== void 0) {
-      if (this.upper.less_than(other.lower).value) {
-        return new Boolean2(false);
-      }
-      if (this.upper.is_equal(other.lower).value && (!this.upper_included || !other.lower_included)) {
-        return new Boolean2(false);
-      }
-    }
-    if (!other.upper_unbounded && other.upper !== void 0 && !this.lower_unbounded && this.lower !== void 0) {
-      if (other.upper.less_than(this.lower).value) {
-        return new Boolean2(false);
-      }
-      if (other.upper.is_equal(this.lower).value && (!other.upper_included || !this.lower_included)) {
-        return new Boolean2(false);
-      }
-    }
-    return new Boolean2(true);
-  }
-  /**
-   * True if current interval properly contains \`_other_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  contains(other) {
-    if (!other.lower_unbounded && other.lower !== void 0) {
-      if (this.lower_unbounded) {
-      } else if (this.lower === void 0) {
-        return new Boolean2(false);
-      } else {
-        if (this.lower.less_than(other.lower).value) {
-        } else if (this.lower.is_equal(other.lower).value) {
-          if (!this.lower_included && other.lower_included) {
-            return new Boolean2(false);
-          }
-        } else {
-          return new Boolean2(false);
-        }
-      }
-    }
-    if (!other.upper_unbounded && other.upper !== void 0) {
-      if (this.upper_unbounded) {
-      } else if (this.upper === void 0) {
-        return new Boolean2(false);
-      } else {
-        if (other.upper.less_than(this.upper).value) {
-        } else if (this.upper.is_equal(other.upper).value) {
-          if (!this.upper_included && other.upper_included) {
-            return new Boolean2(false);
-          }
-        } else {
-          return new Boolean2(false);
-        }
-      }
-    }
-    return new Boolean2(true);
-  }
-};
-var Multiplicity_interval = class _Multiplicity_interval extends Proper_interval {
-  static {
-    TYPE_REGISTRY.set("MULTIPLICITY_INTERVAL", _Multiplicity_interval);
-  }
-  /**
-   * True if this interval imposes no constraints, i.e. is set to `0..*`.
-   * @returns Result value
-   */
-  is_open() {
-    const lowerVal = this.lower?.value || 0;
-    return new Boolean2(
-      lowerVal === 0 && this.upper_unbounded === true
-    );
-  }
-  /**
-   * True if this interval expresses optionality, i.e. \`0..1\`.
-   * @returns Result value
-   */
-  is_optional() {
-    const lowerVal = this.lower?.value || 0;
-    const upperVal = this.upper?.value || 0;
-    return new Boolean2(
-      lowerVal === 0 && upperVal === 1
-    );
-  }
-  /**
-   * True if this interval expresses mandation, i.e. \`1..1\`.
-   * @returns Result value
-   */
-  is_mandatory() {
-    const lowerVal = this.lower?.value || 0;
-    const upperVal = this.upper?.value || 0;
-    return new Boolean2(
-      lowerVal === 1 && upperVal === 1
-    );
-  }
-  /**
-   * True if this interval is set to \`0..0\`.
-   * @returns Result value
-   */
-  is_prohibited() {
-    const lowerVal = this.lower?.value || 0;
-    const upperVal = this.upper?.value || 0;
-    return new Boolean2(
-      lowerVal === 0 && upperVal === 0
-    );
-  }
-};
-var Cardinality = class {
-  /**
-   * The interval of this cardinality.
-   */
-  interval;
-  /**
-   * Internal storage for is_ordered
-   * @protected
-   */
-  _is_ordered;
-  /**
-   * True if the members of the container attribute to which this cardinality refers are ordered.
-   */
-  get is_ordered() {
-    return this._is_ordered?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for is_ordered.
-   * Use this to access Boolean methods.
-   */
-  get $is_ordered() {
-    return this._is_ordered;
-  }
-  /**
-   * Sets is_ordered from either a primitive value or Boolean wrapper.
-   */
-  set is_ordered(val) {
-    if (val === void 0 || val === null) {
-      this._is_ordered = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_ordered = Boolean2.from(val);
-    } else {
-      this._is_ordered = val;
-    }
-  }
-  /**
-   * Internal storage for is_unique
-   * @protected
-   */
-  _is_unique;
-  /**
-   * True if the members of the container attribute to which this cardinality refers are unique.
-   */
-  get is_unique() {
-    return this._is_unique?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for is_unique.
-   * Use this to access Boolean methods.
-   */
-  get $is_unique() {
-    return this._is_unique;
-  }
-  /**
-   * Sets is_unique from either a primitive value or Boolean wrapper.
-   */
-  set is_unique(val) {
-    if (val === void 0 || val === null) {
-      this._is_unique = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_unique = Boolean2.from(val);
-    } else {
-      this._is_unique = val;
-    }
-  }
-  /**
-   * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
-   * @returns Result value
-   */
-  is_bag() {
-    return new Boolean2(
-      this.is_ordered !== true && this.is_unique !== true
-    );
-  }
-  /**
-   * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
-   * @returns Result value
-   */
-  is_list() {
-    return new Boolean2(
-      this.is_ordered === true && this.is_unique !== true
-    );
-  }
-  /**
-   * True if the semantics of this cardinality represent a set, i.e. unordered, unique membership.
-   * @returns Result value
-   */
-  is_set() {
-    return new Boolean2(
-      this.is_ordered !== true && this.is_unique === true
-    );
-  }
-};
-var Terminology_code = class _Terminology_code extends Any {
-  static {
-    TYPE_REGISTRY.set("TERMINOLOGY_CODE", _Terminology_code);
-  }
-  /**
-   * Internal storage for terminology_id
-   * @protected
-   */
-  _terminology_id;
-  /**
-   * The archetype environment namespace identifier used to identify a terminology. Typically a value like \`"snomed_ct"\` that is mapped elsewhere to the full URI identifying the terminology.
-   */
-  get terminology_id() {
-    return this._terminology_id?.value;
-  }
-  /**
-   * Gets the String wrapper object for terminology_id.
-   * Use this to access String methods.
-   */
-  get $terminology_id() {
-    return this._terminology_id;
-  }
-  /**
-   * Sets terminology_id from either a primitive value or String wrapper.
-   */
-  set terminology_id(val) {
-    if (val === void 0 || val === null) {
-      this._terminology_id = void 0;
-    } else if (typeof val === "string") {
-      this._terminology_id = String2.from(val);
-    } else {
-      this._terminology_id = val;
-    }
-  }
-  /**
-   * Internal storage for terminology_version
-   * @protected
-   */
-  _terminology_version;
-  /**
-   * Optional string value representing terminology version, typically a date or dotted numeric.
-   */
-  get terminology_version() {
-    return this._terminology_version?.value;
-  }
-  /**
-   * Gets the String wrapper object for terminology_version.
-   * Use this to access String methods.
-   */
-  get $terminology_version() {
-    return this._terminology_version;
-  }
-  /**
-   * Sets terminology_version from either a primitive value or String wrapper.
-   */
-  set terminology_version(val) {
-    if (val === void 0 || val === null) {
-      this._terminology_version = void 0;
-    } else if (typeof val === "string") {
-      this._terminology_version = String2.from(val);
-    } else {
-      this._terminology_version = val;
-    }
-  }
-  /**
-   * Internal storage for code_string
-   * @protected
-   */
-  _code_string;
-  /**
-   * A terminology code or post-coordinated code expression, if supported by the terminology. The code may refer to a single term, a value set consisting of multiple terms, or some other entity representable within the terminology.
-   */
-  get code_string() {
-    return this._code_string?.value;
-  }
-  /**
-   * Gets the String wrapper object for code_string.
-   * Use this to access String methods.
-   */
-  get $code_string() {
-    return this._code_string;
-  }
-  /**
-   * Sets code_string from either a primitive value or String wrapper.
-   */
-  set code_string(val) {
-    if (val === void 0 || val === null) {
-      this._code_string = void 0;
-    } else if (typeof val === "string") {
-      this._code_string = String2.from(val);
-    } else {
-      this._code_string = val;
-    }
-  }
-  /**
-   * The URI reference that may be used as a concrete key into a notional terminology service for queries that can obtain the term text, definition, and other associated elements.
-   */
-  uri;
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Terminology_code)) {
-      return new Boolean2(false);
-    }
-    const termIdMatch = this.terminology_id === other.terminology_id || this._terminology_id !== void 0 && other._terminology_id !== void 0 && this._terminology_id.is_equal(other._terminology_id).value;
-    const codeMatch = this.code_string === other.code_string || this._code_string !== void 0 && other._code_string !== void 0 && this._code_string.is_equal(other._code_string).value;
-    const versionMatch = this.terminology_version === other.terminology_version || this._terminology_version === void 0 && other._terminology_version === void 0 || this._terminology_version !== void 0 && other._terminology_version !== void 0 && this._terminology_version.is_equal(other._terminology_version).value;
-    return new Boolean2(termIdMatch && codeMatch && versionMatch);
-  }
-};
-var Terminology_term = class _Terminology_term extends Any {
-  static {
-    TYPE_REGISTRY.set("TERMINOLOGY_TERM", _Terminology_term);
-  }
-  /**
-   * Reference to the terminology concept formally representing this term.
-   */
-  concept;
-  /**
-   * Internal storage for text
-   * @protected
-   */
-  _text;
-  /**
-   * Text of term.
-   */
-  get text() {
-    return this._text?.value;
-  }
-  /**
-   * Gets the String wrapper object for text.
-   * Use this to access String methods.
-   */
-  get $text() {
-    return this._text;
-  }
-  /**
-   * Sets text from either a primitive value or String wrapper.
-   */
-  set text(val) {
-    if (val === void 0 || val === null) {
-      this._text = void 0;
-    } else if (typeof val === "string") {
-      this._text = String2.from(val);
-    } else {
-      this._text = val;
-    }
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Terminology_term)) {
-      return new Boolean2(false);
-    }
-    const textMatch = this.text === other.text || this._text !== void 0 && other._text !== void 0 && this._text.is_equal(other._text).value;
-    const conceptMatch = this.concept === void 0 && other.concept === void 0 || this.concept !== void 0 && other.concept !== void 0 && this.concept.is_equal(other.concept).value;
-    return new Boolean2(textMatch && conceptMatch);
-  }
-};
-var OBJECT_ID = class {
-  /**
-   * Internal storage for value
-   * @protected
-   */
-  _value;
-  /**
-   * The value of the id in the form defined below.
-   */
-  get value() {
-    return this._value?.value;
-  }
-  /**
-   * Gets the String wrapper object for value.
-   * Use this to access String methods.
-   */
-  get $value() {
-    return this._value;
-  }
-  /**
-   * Sets value from either a primitive value or String wrapper.
-   */
-  set value(val) {
-    if (val === void 0 || val === null) {
-      this._value = void 0;
-    } else if (typeof val === "string") {
-      this._value = String2.from(val);
-    } else {
-      this._value = val;
-    }
-  }
-};
-var ARCHETYPE_ID = class extends OBJECT_ID {
-  /**
-   * Globally qualified reference model entity, e.g.  \`"openehr-EHR-OBSERVATION"\`.
-   * @returns Result value
-   */
-  qualified_rm_entity() {
-    const val = this.value || "";
-    const dotIndex = val.indexOf(".");
-    if (dotIndex === -1) {
-      throw new Error("Invalid ARCHETYPE_ID format: no '.' found");
-    }
-    return String2.from(val.substring(0, dotIndex));
-  }
-  /**
-   * Name of the concept represented by this archetype, including specialisation, e.g. \`"Biochemistry_result-cholesterol"\`.
-   * @returns Result value
-   */
-  domain_concept() {
-    const val = this.value || "";
-    const dotIndex = val.indexOf(".");
-    const vIndex = val.lastIndexOf(".v");
-    if (dotIndex === -1 || vIndex === -1 || vIndex <= dotIndex) {
-      throw new Error("Invalid ARCHETYPE_ID format");
-    }
-    return String2.from(val.substring(dotIndex + 1, vIndex));
-  }
-  /**
-   * Organisation originating the reference model on which this archetype is based, e.g. \`"openEHR"\`, \`"CEN"\`, \`"HL7"\`.
-   * @returns Result value
-   */
-  rm_originator() {
-    const qualified = this.qualified_rm_entity().value || "";
-    const parts = qualified.split("-");
-    if (parts.length < 3) {
-      throw new Error("Invalid qualified_rm_entity format");
-    }
-    return String2.from(parts[0]);
-  }
-  /**
-   * Name of the reference model, e.g. \`"RIM"\`,  \`"EHR"\`,  \`"EN13606"\`.
-   * @returns Result value
-   */
-  rm_name() {
-    const qualified = this.qualified_rm_entity().value || "";
-    const parts = qualified.split("-");
-    if (parts.length < 3) {
-      throw new Error("Invalid qualified_rm_entity format");
-    }
-    return String2.from(parts[1]);
-  }
-  /**
-   * Name of the ontological level within the reference model to which this archetype is targeted, e.g. for openEHR:  \`"FOLDER"\`, \`"COMPOSITION"\`, \`"SECTION"\`, \`"OBSERVATION"\`.
-   * @returns Result value
-   */
-  rm_entity() {
-    const qualified = this.qualified_rm_entity().value || "";
-    const parts = qualified.split("-");
-    if (parts.length < 3) {
-      throw new Error("Invalid qualified_rm_entity format");
-    }
-    return String2.from(parts[2]);
-  }
-  /**
-   * Name of specialisation of concept, if this archetype is a specialisation of another archetype, e.g. \`"cholesterol"\`.
-   * @returns Result value
-   */
-  specialisation() {
-    const concept = this.domain_concept().value || "";
-    const hyphenIndex = concept.indexOf("-");
-    if (hyphenIndex === -1) {
-      return String2.from("");
-    }
-    return String2.from(concept.substring(hyphenIndex + 1));
-  }
-  /**
-   * Version of this archetype.
-   *
-   * @returns Result value
-   */
-  version_id() {
-    const val = this.value || "";
-    const vIndex = val.lastIndexOf(".v");
-    if (vIndex === -1) {
-      throw new Error("Invalid ARCHETYPE_ID format: no '.v' found");
-    }
-    return String2.from(val.substring(vIndex + 2));
-  }
-};
-var GENERIC_ID = class extends OBJECT_ID {
-  /**
-   * Internal storage for scheme
-   * @protected
-   */
-  _scheme;
-  /**
-   * Name of the scheme to which this identifier conforms. Ideally this name will be recognisable globally but realistically it may be a local ad hoc scheme whose name is not controlled or standardised in any way.
-   */
-  get scheme() {
-    return this._scheme?.value;
-  }
-  /**
-   * Gets the String wrapper object for scheme.
-   * Use this to access String methods.
-   */
-  get $scheme() {
-    return this._scheme;
-  }
-  /**
-   * Sets scheme from either a primitive value or String wrapper.
-   */
-  set scheme(val) {
-    if (val === void 0 || val === null) {
-      this._scheme = void 0;
-    } else if (typeof val === "string") {
-      this._scheme = String2.from(val);
-    } else {
-      this._scheme = val;
-    }
-  }
-};
-var UID_BASED_ID = class extends OBJECT_ID {
-  /**
-   * The identifier of the conceptual namespace in which the object exists, within the identification scheme. Returns the part to the left of the first '::' separator, if any, or else the whole string.
-   * @returns Result value
-   */
-  root() {
-    const val = this.value || "";
-    const separatorIndex = val.indexOf("::");
-    const rootValue = separatorIndex === -1 ? val : val.substring(0, separatorIndex);
-    if (rootValue.includes("-")) {
-      const uuid = new UUID();
-      uuid.value = rootValue;
-      return uuid;
-    } else if (rootValue.match(/^\d+(\.\d+)*$/)) {
-      const oid = new ISO_OID();
-      oid.value = rootValue;
-      return oid;
-    } else {
-      const internetId = new INTERNET_ID();
-      internetId.value = rootValue;
-      return internetId;
-    }
-  }
-  /**
-   * Optional local identifier of the object within the context of the root identifier. Returns the part to the right of the first '::' separator if any, or else any empty String.
-   * @returns Result value
-   */
-  extension() {
-    const val = this.value || "";
-    const separatorIndex = val.indexOf("::");
-    if (separatorIndex === -1) {
-      return String2.from("");
-    }
-    return String2.from(val.substring(separatorIndex + 2));
-  }
-  /**
-   * True if not \`_extension_.is_empty()\`.
-   * @returns Result value
-   */
-  has_extension() {
-    return new Boolean2(!this.extension().is_empty().value);
-  }
-};
-var HIER_OBJECT_ID = class extends UID_BASED_ID {
-};
-var OBJECT_REF = class _OBJECT_REF {
-  /**
-   * Internal storage for namespace
-   * @protected
-   */
-  _namespace;
-  /**
-   * Namespace to which this identifier belongs in the local system context (and possibly in any other openEHR compliant environment) e.g.  terminology ,  demographic . These names are not yet standardised. Legal values for \`_namespace_\` are:
-   *
-   * * \`"local"\`
-   * * \`"unknown"\`
-   * * a string matching the standard regex \`[a-zA-Z][a-zA-Z0-9_.:\/&?=+-]*\`.
-   *
-   * Note that the first two are just special values of the regex, and will be matched by it.
-   */
-  get namespace() {
-    return this._namespace?.value;
-  }
-  /**
-   * Gets the String wrapper object for namespace.
-   * Use this to access String methods.
-   */
-  get $namespace() {
-    return this._namespace;
-  }
-  /**
-   * Sets namespace from either a primitive value or String wrapper.
-   */
-  set namespace(val) {
-    if (val === void 0 || val === null) {
-      this._namespace = void 0;
-    } else if (typeof val === "string") {
-      this._namespace = String2.from(val);
-    } else {
-      this._namespace = val;
-    }
-  }
-  /**
-   * Internal storage for type
-   * @protected
-   */
-  _type;
-  /**
-   * Name of the  class (concrete or abstract) of object to which this identifier type refers, e.g. \`PARTY\`, \`PERSON\`,  \`GUIDELINE\`  etc. These class names are from the relevant reference model. The type name \`ANY\` can be used to indicate that any type is accepted (e.g. if the type is unknown).
-   */
-  get type() {
-    return this._type?.value;
-  }
-  /**
-   * Gets the String wrapper object for type.
-   * Use this to access String methods.
-   */
-  get $type() {
-    return this._type;
-  }
-  /**
-   * Sets type from either a primitive value or String wrapper.
-   */
-  set type(val) {
-    if (val === void 0 || val === null) {
-      this._type = void 0;
-    } else if (typeof val === "string") {
-      this._type = String2.from(val);
-    } else {
-      this._type = val;
-    }
-  }
-  /**
-   * Globally unique id of an object, regardless of where it is stored.
-   */
-  id;
-  /**
-   * Compare two OBJECT_REF instances for equality.
-   * @param other - The other OBJECT_REF to compare with
-   * @returns Boolean indicating if they are equal
-   */
-  is_equal(other) {
-    if (!(other instanceof _OBJECT_REF)) {
-      return new Boolean2(false);
-    }
-    if (this.namespace !== other.namespace) {
-      return new Boolean2(false);
-    }
-    if (this.type !== other.type) {
-      return new Boolean2(false);
-    }
-    if (this.id && other.id) {
-      if (this.id instanceof Any && other.id instanceof Any) {
-        return this.id.is_equal(other.id);
-      }
-    } else if (!this.id && !other.id) {
-      return new Boolean2(true);
-    } else {
-      return new Boolean2(false);
-    }
-    return new Boolean2(true);
-  }
-};
-var LOCATABLE_REF = class extends OBJECT_REF {
-  /**
-   * Internal storage for path
-   * @protected
-   */
-  _path;
-  /**
-   * The path to an instance, as an absolute path with respect to the object found at \`VERSION._data_\`. An empty path means that the object referred to by \`_id_\` is being specified.
-   */
-  get path() {
-    return this._path?.value;
-  }
-  /**
-   * Gets the String wrapper object for path.
-   * Use this to access String methods.
-   */
-  get $path() {
-    return this._path;
-  }
-  /**
-   * Sets path from either a primitive value or String wrapper.
-   */
-  set path(val) {
-    if (val === void 0 || val === null) {
-      this._path = void 0;
-    } else if (typeof val === "string") {
-      this._path = String2.from(val);
-    } else {
-      this._path = val;
-    }
-  }
-  /**
-   * Globally unique id of an object, regardless of where it is stored.
-   */
-  id = void 0;
-  /**
-   * A URI form of the reference, created by concatenating the following:
-   *
-   * * scheme, e.g. \`ehr:\`, derived from \`_namespace_\`
-   * * \`_id.value_\`
-   * * \`/\` + \`_path_\`, where \`_path_\` is non-empty
-   *
-   * @returns Result value
-   */
-  as_uri() {
-    const namespace = this.namespace || "";
-    const idValue = this.id?.value || "";
-    const path = this.path || "";
-    let uri = `${namespace}:${idValue}`;
-    if (path && path.length > 0) {
-      uri += `/${path}`;
-    }
-    return String2.from(uri);
-  }
-};
-var OBJECT_VERSION_ID = class extends UID_BASED_ID {
-  /**
-   * Unique identifier for logical object of which this identifier identifies one version; normally the \`_object_id_\` will be the unique identifier of the version container containing the version referred to by this \`OBJECT_VERSION_ID\` instance.
-   * @returns Result value
-   */
-  object_id() {
-    const val = this.value || "";
-    const parts = val.split("::");
-    if (parts.length !== 3) {
-      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
-    }
-    const uid = new UUID();
-    uid.value = parts[0];
-    return uid;
-  }
-  /**
-   * Identifier of the system that created the Version corresponding to this Object version id.
-   * @returns Result value
-   */
-  creating_system_id() {
-    const val = this.value || "";
-    const parts = val.split("::");
-    if (parts.length !== 3) {
-      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
-    }
-    const uid = new INTERNET_ID();
-    uid.value = parts[1];
-    return uid;
-  }
-  /**
-   * Tree identifier of this version with respect to other versions in the same version tree, as either 1 or 3 part dot-separated numbers, e.g.  1 ,  2.1.4 .
-   * @returns Result value
-   */
-  version_tree_id() {
-    const val = this.value || "";
-    const parts = val.split("::");
-    if (parts.length !== 3) {
-      throw new Error("OBJECT_VERSION_ID must have 3 parts separated by '::'");
-    }
-    const versionTreeId = new VERSION_TREE_ID();
-    versionTreeId.value = parts[2];
-    return versionTreeId;
-  }
-  /**
-   * True if this version identifier represents a branch.
-   * @returns Result value
-   */
-  is_branch() {
-    return this.version_tree_id().is_branch();
-  }
-};
-var PARTY_REF = class extends OBJECT_REF {
-};
-var TERMINOLOGY_ID = class extends OBJECT_ID {
-  /**
-   * Return the terminology id (which includes the  version  in some cases). Distinct names correspond to distinct (i.e. non-compatible) terminologies. Thus the names  \`"ICD10AM"\` and \`"ICD10"\` refer to distinct terminologies.
-   * @returns Result value
-   */
-  name() {
-    const val = this.value || "";
-    const parenIndex = val.indexOf("(");
-    if (parenIndex > 0) {
-      return String2.from(val.substring(0, parenIndex));
-    }
-    return String2.from(val);
-  }
-  /**
-   * Version of this terminology, if versioning supported, else the empty string.
-   * @returns Result value
-   */
-  version_id() {
-    const val = this.value || "";
-    const parenIndex = val.indexOf("(");
-    if (parenIndex > 0) {
-      const closeParenIndex = val.indexOf(")");
-      if (closeParenIndex > parenIndex) {
-        return String2.from(val.substring(parenIndex + 1, closeParenIndex));
-      }
-    }
-    return String2.from("");
-  }
-};
-var VERSION_TREE_ID = class {
-  /**
-   * Internal storage for value
-   * @protected
-   */
-  _value;
-  /**
-   * String form of this identifier.
-   */
-  get value() {
-    return this._value?.value;
-  }
-  /**
-   * Gets the String wrapper object for value.
-   * Use this to access String methods.
-   */
-  get $value() {
-    return this._value;
-  }
-  /**
-   * Sets value from either a primitive value or String wrapper.
-   */
-  set value(val) {
-    if (val === void 0 || val === null) {
-      this._value = void 0;
-    } else if (typeof val === "string") {
-      this._value = String2.from(val);
-    } else {
-      this._value = val;
-    }
-  }
-  /**
-   * Trunk version number; numbering starts at 1.
-   * @returns Result value
-   */
-  trunk_version() {
-    const val = this.value || "";
-    const parts = val.split(".");
-    return String2.from(parts[0]);
-  }
-  /**
-   * True if this version identifier represents a branch, i.e. has \`_branch_number()_\` and \`_branch_version()_\` parts.
-   * @returns Result value
-   */
-  is_branch() {
-    const val = this.value || "";
-    const parts = val.split(".");
-    return new Boolean2(parts.length === 3);
-  }
-  /**
-   * Number of branch from the trunk point; numbering starts at 1.
-   * @returns Result value
-   */
-  branch_number() {
-    const val = this.value || "";
-    const parts = val.split(".");
-    if (parts.length === 3) {
-      return String2.from(parts[1]);
-    }
-    throw new Error("Not a branch version");
-  }
-  /**
-   * Version of the branch; numbering starts at 1.
-   * @returns Result value
-   */
-  branch_version() {
-    const val = this.value || "";
-    const parts = val.split(".");
-    if (parts.length === 3) {
-      return String2.from(parts[2]);
-    }
-    throw new Error("Not a branch version");
-  }
-};
-var UID = class {
-  /**
-   * Internal storage for value
-   * @protected
-   */
-  _value;
-  /**
-   * The value of the id.
-   */
-  get value() {
-    return this._value?.value;
-  }
-  /**
-   * Gets the String wrapper object for value.
-   * Use this to access String methods.
-   */
-  get $value() {
-    return this._value;
-  }
-  /**
-   * Sets value from either a primitive value or String wrapper.
-   */
-  set value(val) {
-    if (val === void 0 || val === null) {
-      this._value = void 0;
-    } else if (typeof val === "string") {
-      this._value = String2.from(val);
-    } else {
-      this._value = val;
-    }
-  }
-};
-var UUID = class extends UID {
-};
-var INTERNET_ID = class extends UID {
-};
-var ISO_OID = class extends UID {
-};
-var TEMPLATE_ID = class extends OBJECT_ID {
-};
-var ACCESS_GROUP_REF = class extends OBJECT_REF {
-};
-var BASIC_DEFINITIONS = class {
-};
-var OPENEHR_DEFINITIONS = class extends BASIC_DEFINITIONS {
-};
-var VALIDITY_KIND = class extends String2 {
-};
-var VERSION_STATUS = class extends String2 {
-};
-var Comparable = class {
-};
-var Iso8601_timezone = class _Iso8601_timezone extends Iso8601_type {
-  static {
-    TYPE_REGISTRY.set("ISO8601_TIMEZONE", _Iso8601_timezone);
-  }
-  /**
-   * Extract the hour part of timezone, as an Integer in the range `00 - 14`.
-   * @returns Result value
-   */
-  hour() {
-    const val = this.value || "";
-    if (val === "Z")
-      return Integer.from(0);
-    const match = val.match(/([+-])(\d{2}):?(\d{2})/);
-    if (match) {
-      return Integer.from(parseInt(match[2], 10));
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Extract the minute part of timezone, as an Integer, usually either 0 or 30.
-   * @returns Result value
-   */
-  minute() {
-    const val = this.value || "";
-    if (val === "Z")
-      return Integer.from(0);
-    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
-    if (match && match[3]) {
-      return Integer.from(parseInt(match[3], 10));
-    }
-    return Integer.from(0);
-  }
-  /**
-   * Direction of timezone expresssed as +1 or -1.
-   * @returns Result value
-   */
-  sign() {
-    const val = this.value || "";
-    if (val === "Z")
-      return Integer.from(1);
-    const match = val.match(/([+-])/);
-    if (match) {
-      return Integer.from(match[1] === "+" ? 1 : -1);
-    }
-    return Integer.from(1);
-  }
-  /**
-   * Indicates whether minute part known.
-   * @returns Result value
-   */
-  minute_unknown() {
-    const val = this.value || "";
-    if (val === "Z")
-      return new Boolean2(false);
-    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
-    return new Boolean2(!match || !match[3]);
-  }
-  /**
-   * True if this time zone is partial, i.e. if minutes is missing.
-   * @returns Result value
-   */
-  is_partial() {
-    return this.minute_unknown();
-  }
-  /**
-   * True if this time-zone uses ‘:’ separators.
-   * @returns Result value
-   */
-  is_extended() {
-    const val = this.value || "";
-    return new Boolean2(val.includes(":"));
-  }
-  /**
-   * True if timezone is UTC, i.e. \`+0000\` or \`Z\`.
-   * @returns Result value
-   */
-  is_gmt() {
-    const val = this.value || "";
-    if (val === "Z")
-      return new Boolean2(true);
-    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
-    if (match) {
-      const hours = parseInt(match[2], 10);
-      const minutes = match[3] ? parseInt(match[3], 10) : 0;
-      return new Boolean2(hours === 0 && minutes === 0);
-    }
-    return new Boolean2(false);
-  }
-  /**
-   * Return timezone string in extended format.
-   * @returns Result value
-   */
-  as_string() {
-    const val = this.value || "";
-    if (val === "Z")
-      return String2.from("Z");
-    const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
-    if (match) {
-      const sign = match[1];
-      const hours = match[2];
-      const minutes = match[3] || "00";
-      return String2.from(`${sign}${hours}:${minutes}`);
-    }
-    return String2.from(val);
-  }
-  /**
-   * Compares this timezone with another for ordering.
-   * Timezones are ordered by their offset from UTC in minutes.
-   * @param other - The object to compare with
-   * @returns true if this timezone is less than the other
-   */
-  less_than(other) {
-    if (!(other instanceof _Iso8601_timezone)) {
-      return new Boolean2(false);
-    }
-    const thisSign = this.sign().value || 1;
-    const thisHour = this.hour().value || 0;
-    const thisMinute = this.minute().value || 0;
-    const thisOffset = thisSign * (thisHour * 60 + thisMinute);
-    const otherSign = other.sign().value || 1;
-    const otherHour = other.hour().value || 0;
-    const otherMinute = other.minute().value || 0;
-    const otherOffset = otherSign * (otherHour * 60 + otherMinute);
-    return new Boolean2(thisOffset < otherOffset);
-  }
-  /**
-   * Value equality: return True if this and other are equal in value.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_equal(other) {
-    if (!(other instanceof _Iso8601_timezone)) {
-      return new Boolean2(false);
-    }
-    const thisSign = this.sign().value || 1;
-    const thisHour = this.hour().value || 0;
-    const thisMinute = this.minute().value || 0;
-    const thisOffset = thisSign * (thisHour * 60 + thisMinute);
-    const otherSign = other.sign().value || 1;
-    const otherHour = other.hour().value || 0;
-    const otherMinute = other.minute().value || 0;
-    const otherOffset = otherSign * (otherHour * 60 + otherMinute);
-    return new Boolean2(thisOffset === otherOffset);
-  }
-};
-var Point_interval = class _Point_interval extends Interval {
-  /**
-   * Lower boundary open (i.e. = -infinity).
-   */
-  get lower_unbounded() {
-    return this._lower_unbounded?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for lower_unbounded.
-   * Use this to access Boolean methods.
-   */
-  get $lower_unbounded() {
-    return this._lower_unbounded;
-  }
-  /**
-   * Sets lower_unbounded from either a primitive value or Boolean wrapper.
-   */
-  set lower_unbounded(val) {
-    if (val === void 0 || val === null) {
-      this._lower_unbounded = void 0;
-    } else if (typeof val === "boolean") {
-      this._lower_unbounded = Boolean2.from(val);
-    } else {
-      this._lower_unbounded = val;
-    }
-  }
-  /**
-   * Upper boundary open (i.e. = +infinity).
-   */
-  get upper_unbounded() {
-    return this._upper_unbounded?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for upper_unbounded.
-   * Use this to access Boolean methods.
-   */
-  get $upper_unbounded() {
-    return this._upper_unbounded;
-  }
-  /**
-   * Sets upper_unbounded from either a primitive value or Boolean wrapper.
-   */
-  set upper_unbounded(val) {
-    if (val === void 0 || val === null) {
-      this._upper_unbounded = void 0;
-    } else if (typeof val === "boolean") {
-      this._upper_unbounded = Boolean2.from(val);
-    } else {
-      this._upper_unbounded = val;
-    }
-  }
-  /**
-   * Lower boundary value included in range if not \`_lower_unbounded_\`.
-   */
-  get lower_included() {
-    return this._lower_included?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for lower_included.
-   * Use this to access Boolean methods.
-   */
-  get $lower_included() {
-    return this._lower_included;
-  }
-  /**
-   * Sets lower_included from either a primitive value or Boolean wrapper.
-   */
-  set lower_included(val) {
-    if (val === void 0 || val === null) {
-      this._lower_included = void 0;
-    } else if (typeof val === "boolean") {
-      this._lower_included = Boolean2.from(val);
-    } else {
-      this._lower_included = val;
-    }
-  }
-  /**
-   * Upper boundary value included in range if not \`_upper_unbounded_\`.
-   */
-  get upper_included() {
-    return this._upper_included?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for upper_included.
-   * Use this to access Boolean methods.
-   */
-  get $upper_included() {
-    return this._upper_included;
-  }
-  /**
-   * Sets upper_included from either a primitive value or Boolean wrapper.
-   */
-  set upper_included(val) {
-    if (val === void 0 || val === null) {
-      this._upper_included = void 0;
-    } else if (typeof val === "boolean") {
-      this._upper_included = Boolean2.from(val);
-    } else {
-      this._upper_included = val;
-    }
-  }
-  /**
-   * True if the value \`v\` equals this point value.
-   * @param v - Parameter
-   * @returns Result value
-   */
-  has(v2) {
-    if (this.lower === void 0) {
-      return new Boolean2(false);
-    }
-    return this.lower.is_equal(v2);
-  }
-  /**
-   * A point interval never intersects with any other interval (it's a single point).
-   * @param other - Parameter
-   * @returns Result value
-   */
-  intersects(other) {
-    if (this.lower === void 0) {
-      return new Boolean2(false);
-    }
-    return other.has(this.lower);
-  }
-  /**
-   * A point interval can only contain another interval if that interval is also the same point.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  contains(other) {
-    if (this.lower === void 0) {
-      return new Boolean2(false);
-    }
-    if (other instanceof _Point_interval) {
-      return this.is_equal(other);
-    }
-    return new Boolean2(false);
-  }
-};
-var CODE_PHRASE = class _CODE_PHRASE {
-  /**
-   * Identifier of the distinct terminology from which the code_string (or its elements) was extracted.
-   */
-  terminology_id;
-  /**
-   * Internal storage for code_string
-   * @protected
-   */
-  _code_string;
-  /**
-   * The key used by the terminology service to identify a concept or coordination of concepts. This string is most likely parsable inside the terminology service, but nothing can be assumed about its syntax outside that context.
-   */
-  get code_string() {
-    return this._code_string?.value;
-  }
-  /**
-   * Gets the String wrapper object for code_string.
-   * Use this to access String methods.
-   */
-  get $code_string() {
-    return this._code_string;
-  }
-  /**
-   * Sets code_string from either a primitive value or String wrapper.
-   */
-  set code_string(val) {
-    if (val === void 0 || val === null) {
-      this._code_string = void 0;
-    } else if (typeof val === "string") {
-      this._code_string = String2.from(val);
-    } else {
-      this._code_string = val;
-    }
-  }
-  /**
-   * Internal storage for preferred_term
-   * @protected
-   */
-  _preferred_term;
-  /**
-   * Optional attribute to carry preferred term corresponding to the code or expression in \`_code_string_\`. Typical use in integration situations which create mappings, and representing data for which both a (non-preferred) actual term and a preferred term are both required.
-   */
-  get preferred_term() {
-    return this._preferred_term?.value;
-  }
-  /**
-   * Gets the String wrapper object for preferred_term.
-   * Use this to access String methods.
-   */
-  get $preferred_term() {
-    return this._preferred_term;
-  }
-  /**
-   * Sets preferred_term from either a primitive value or String wrapper.
-   */
-  set preferred_term(val) {
-    if (val === void 0 || val === null) {
-      this._preferred_term = void 0;
-    } else if (typeof val === "string") {
-      this._preferred_term = String2.from(val);
-    } else {
-      this._preferred_term = val;
-    }
-  }
-  /**
-   * Factory method to create a CODE_PHRASE.
-   * @param terminologyId - The terminology identifier
-   * @param codeString - The code string
-   * @returns A new CODE_PHRASE instance
-   */
-  static from(terminologyId, codeString) {
-    const codePhrase = new _CODE_PHRASE();
-    const termId = new TERMINOLOGY_ID();
-    termId.value = terminologyId;
-    codePhrase.terminology_id = termId;
-    codePhrase.code_string = codeString;
-    return codePhrase;
-  }
-  /**
-   * Compare two CODE_PHRASE objects for equality.
-   * @param other - The other object to compare with
-   * @returns Boolean indicating if they are equal
-   */
-  is_equal(other) {
-    if (!(other instanceof _CODE_PHRASE)) {
-      return new Boolean2(false);
-    }
-    if (!this.terminology_id || !other.terminology_id) {
-      return new Boolean2(this.terminology_id === other.terminology_id);
-    }
-    if (this.terminology_id.value !== other.terminology_id.value) {
-      return new Boolean2(false);
-    }
-    if (this.code_string !== other.code_string) {
-      return new Boolean2(false);
-    }
-    return new Boolean2(true);
-  }
-};
-var AUTHORED_RESOURCE = class {
-  /**
-   * Unique identifier of the family of archetypes having the same interface identifier (same major version).
-   */
-  uid;
-  /**
-   * Language in which this resource was initially authored. Although there is no language primacy of resources overall, the language of original authoring is required to ensure natural language translations can preserve quality. Language is relevant in both the description and ontology sections.
-   */
-  original_language;
-  /**
-   * Description and lifecycle information of the resource.
-   */
-  description;
-  /**
-   * Internal storage for is_controlled
-   * @protected
-   */
-  _is_controlled;
-  /**
-   * True if this resource is under any kind of change control (even file copying), in which case revision history is created.
-   */
-  get is_controlled() {
-    return this._is_controlled?.value;
-  }
-  /**
-   * Gets the Boolean wrapper object for is_controlled.
-   * Use this to access Boolean methods.
-   */
-  get $is_controlled() {
-    return this._is_controlled;
-  }
-  /**
-   * Sets is_controlled from either a primitive value or Boolean wrapper.
-   */
-  set is_controlled(val) {
-    if (val === void 0 || val === null) {
-      this._is_controlled = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_controlled = Boolean2.from(val);
-    } else {
-      this._is_controlled = val;
-    }
-  }
-  /**
-   * Annotations on individual items within the resource, keyed by path. The inner table takes the form of a Hash table of String values keyed by String tags.
-   */
-  annotations;
-  /**
-   * List of details for each natural translation made of this resource, keyed by language code. For each translation listed here, there must be corresponding sections in all language-dependent parts of the resource. The \`_original_language_\` does not appear in this list.
-   */
-  translations;
-  /**
-   * Most recent revision in revision_history if is_controlled else  (uncontrolled) .
-   * @returns Result value
-   */
-  current_revision() {
-    if (!this.is_controlled) {
-      return String2.from("(uncontrolled)");
-    }
-    return String2.from("1.0.0");
-  }
-  /**
-   * Total list of languages available in this resource, derived from original_language and translations.
-   * @returns Result value
-   */
-  languages_available() {
-    if (this.original_language?.code_string) {
-      return String2.from(this.original_language.code_string);
-    }
-    return String2.from("");
-  }
-};
-var RESOURCE_DESCRIPTION = class {
-  /**
-   * Original author of this resource, with all relevant details, including organisation.
-   */
-  original_author;
-  /**
-   * Internal storage for original_namespace
-   * @protected
-   */
-  _original_namespace;
-  /**
-   * Namespace of original author's organisation, in reverse internet form, if applicable.
-   */
-  get original_namespace() {
-    return this._original_namespace?.value;
-  }
-  /**
-   * Gets the String wrapper object for original_namespace.
-   * Use this to access String methods.
-   */
-  get $original_namespace() {
-    return this._original_namespace;
-  }
-  /**
-   * Sets original_namespace from either a primitive value or String wrapper.
-   */
-  set original_namespace(val) {
-    if (val === void 0 || val === null) {
-      this._original_namespace = void 0;
-    } else if (typeof val === "string") {
-      this._original_namespace = String2.from(val);
-    } else {
-      this._original_namespace = val;
-    }
-  }
-  /**
-   * Internal storage for original_publisher
-   * @protected
-   */
-  _original_publisher;
-  /**
-   * Plain text name of organisation that originally published this artefact, if any.
-   */
-  get original_publisher() {
-    return this._original_publisher?.value;
-  }
-  /**
-   * Gets the String wrapper object for original_publisher.
-   * Use this to access String methods.
-   */
-  get $original_publisher() {
-    return this._original_publisher;
-  }
-  /**
-   * Sets original_publisher from either a primitive value or String wrapper.
-   */
-  set original_publisher(val) {
-    if (val === void 0 || val === null) {
-      this._original_publisher = void 0;
-    } else if (typeof val === "string") {
-      this._original_publisher = String2.from(val);
-    } else {
-      this._original_publisher = val;
-    }
-  }
-  /**
-   * Other contributors to the resource, each listed in "name <email>"  form.
-   */
-  other_contributors;
-  /**
-   * Lifecycle state of the resource, typically including states such as: initial, in_development, in_review, published, superseded, obsolete.
-   */
-  lifecycle_state;
-  /**
-   * Reference to owning resource.
-   */
-  parent_resource;
-  /**
-   * Internal storage for custodian_namespace
-   * @protected
-   */
-  _custodian_namespace;
-  /**
-   * Namespace in reverse internet id form, of current custodian organisation.
-   */
-  get custodian_namespace() {
-    return this._custodian_namespace?.value;
-  }
-  /**
-   * Gets the String wrapper object for custodian_namespace.
-   * Use this to access String methods.
-   */
-  get $custodian_namespace() {
-    return this._custodian_namespace;
-  }
-  /**
-   * Sets custodian_namespace from either a primitive value or String wrapper.
-   */
-  set custodian_namespace(val) {
-    if (val === void 0 || val === null) {
-      this._custodian_namespace = void 0;
-    } else if (typeof val === "string") {
-      this._custodian_namespace = String2.from(val);
-    } else {
-      this._custodian_namespace = val;
-    }
-  }
-  /**
-   * Internal storage for custodian_organisation
-   * @protected
-   */
-  _custodian_organisation;
-  /**
-   * Plain text name of current custodian organisation.
-   */
-  get custodian_organisation() {
-    return this._custodian_organisation?.value;
-  }
-  /**
-   * Gets the String wrapper object for custodian_organisation.
-   * Use this to access String methods.
-   */
-  get $custodian_organisation() {
-    return this._custodian_organisation;
-  }
-  /**
-   * Sets custodian_organisation from either a primitive value or String wrapper.
-   */
-  set custodian_organisation(val) {
-    if (val === void 0 || val === null) {
-      this._custodian_organisation = void 0;
-    } else if (typeof val === "string") {
-      this._custodian_organisation = String2.from(val);
-    } else {
-      this._custodian_organisation = val;
-    }
-  }
-  /**
-   * Internal storage for copyright
-   * @protected
-   */
-  _copyright;
-  /**
-   * Optional copyright statement for the resource as a knowledge resource.
-   */
-  get copyright() {
-    return this._copyright?.value;
-  }
-  /**
-   * Gets the String wrapper object for copyright.
-   * Use this to access String methods.
-   */
-  get $copyright() {
-    return this._copyright;
-  }
-  /**
-   * Sets copyright from either a primitive value or String wrapper.
-   */
-  set copyright(val) {
-    if (val === void 0 || val === null) {
-      this._copyright = void 0;
-    } else if (typeof val === "string") {
-      this._copyright = String2.from(val);
-    } else {
-      this._copyright = val;
-    }
-  }
-  /**
-   * Internal storage for licence
-   * @protected
-   */
-  _licence;
-  /**
-   * Licence of current artefact, in format "short licence name <URL of licence>", e.g. "Apache 2.0 License <http://www.apache.org/licenses/LICENSE-2.0.html>"
-   */
-  get licence() {
-    return this._licence?.value;
-  }
-  /**
-   * Gets the String wrapper object for licence.
-   * Use this to access String methods.
-   */
-  get $licence() {
-    return this._licence;
-  }
-  /**
-   * Sets licence from either a primitive value or String wrapper.
-   */
-  set licence(val) {
-    if (val === void 0 || val === null) {
-      this._licence = void 0;
-    } else if (typeof val === "string") {
-      this._licence = String2.from(val);
-    } else {
-      this._licence = val;
-    }
-  }
-  /**
-   * List of acknowledgements of other IP directly referenced in this archetype, typically terminology codes, ontology ids etc. Recommended keys are the widely known name or namespace for the IP source, as shown in the following example:
-   *
-   * ----
-   * ip_acknowledgements = <
-   *     ["loinc"] = <"This content from LOINC® is copyright © 1995 Regenstrief Institute, Inc. and the LOINC Committee, and available at no cost under the license at http://loinc.org/terms-of-use">
-   *     ["snomedct"] = <"Content from SNOMED CT® is copyright © 2007 IHTSDO <ihtsdo.org>">
-   * >
-   * ----
-   */
-  ip_acknowledgements;
-  /**
-   * List of references of material on which this artefact is based, as a keyed list of strings. The keys should be in a standard citation format.
-   */
-  references;
-  /**
-   * Internal storage for resource_package_uri
-   * @protected
-   */
-  _resource_package_uri;
-  /**
-   * URI of package to which this resource belongs.
-   */
-  get resource_package_uri() {
-    return this._resource_package_uri?.value;
-  }
-  /**
-   * Gets the String wrapper object for resource_package_uri.
-   * Use this to access String methods.
-   */
-  get $resource_package_uri() {
-    return this._resource_package_uri;
-  }
-  /**
-   * Sets resource_package_uri from either a primitive value or String wrapper.
-   */
-  set resource_package_uri(val) {
-    if (val === void 0 || val === null) {
-      this._resource_package_uri = void 0;
-    } else if (typeof val === "string") {
-      this._resource_package_uri = String2.from(val);
-    } else {
-      this._resource_package_uri = val;
-    }
-  }
-  /**
-   * Details related to conversion process that generated this model from an original, if relevant, as a list of name/value pairs. Typical example with recommended tags:
-   *
-   * ----
-   * conversion_details = <
-   *     ["source_model"] = <"CEM model xyz <http://location.in.clinicalelementmodels.com>">
-   *     ["tool"] = <"cem2adl v6.3.0">
-   *     ["time"] = <"2014-11-03T09:05:00">
-   * >
-   * ----
-   */
-  conversion_details;
-  /**
-   * Additional non-language-sensitive resource meta-data, as a list of name/value pairs.
-   */
-  other_details;
-  /**
-   * Details of all parts of resource description that are natural language-dependent, keyed by language code.
-   */
-  details;
-};
-var TRANSLATION_DETAILS = class {
-  /**
-   * Language of the translation, coded using ISO 639-1 (2 character) language codes.
-   */
-  language;
-  /**
-   * Primary translator name and other demographic details.
-   */
-  author;
-  /**
-   * Internal storage for accreditation
-   * @protected
-   */
-  _accreditation;
-  /**
-   * Accreditation of primary translator or group, usually a national translator's registration or association membership id.
-   */
-  get accreditation() {
-    return this._accreditation?.value;
-  }
-  /**
-   * Gets the String wrapper object for accreditation.
-   * Use this to access String methods.
-   */
-  get $accreditation() {
-    return this._accreditation;
-  }
-  /**
-   * Sets accreditation from either a primitive value or String wrapper.
-   */
-  set accreditation(val) {
-    if (val === void 0 || val === null) {
-      this._accreditation = void 0;
-    } else if (typeof val === "string") {
-      this._accreditation = String2.from(val);
-    } else {
-      this._accreditation = val;
-    }
-  }
-  /**
-   * Any other meta-data.
-   */
-  other_details;
-  /**
-   * Internal storage for version_last_translated
-   * @protected
-   */
-  _version_last_translated;
-  /**
-   * Version of this resource last time it was translated into the language represented by this \`TRANSLATION_DETAILS\` object.
-   */
-  get version_last_translated() {
-    return this._version_last_translated?.value;
-  }
-  /**
-   * Gets the String wrapper object for version_last_translated.
-   * Use this to access String methods.
-   */
-  get $version_last_translated() {
-    return this._version_last_translated;
-  }
-  /**
-   * Sets version_last_translated from either a primitive value or String wrapper.
-   */
-  set version_last_translated(val) {
-    if (val === void 0 || val === null) {
-      this._version_last_translated = void 0;
-    } else if (typeof val === "string") {
-      this._version_last_translated = String2.from(val);
-    } else {
-      this._version_last_translated = val;
-    }
-  }
-  /**
-   * Additional contributors to this translation, each listed in the preferred format of the relevant organisation for the artefacts in question. A typical default is \`"name <email>"\` if nothing else is specified.
-   */
-  other_contributors;
-};
-var RESOURCE_DESCRIPTION_ITEM = class {
-  /**
-   * The localised language in which the items in this description item are written. Coded using ISO 639-1 (2 character) language codes.
-   */
-  language;
-  /**
-   * Internal storage for purpose
-   * @protected
-   */
-  _purpose;
-  /**
-   * Purpose of the resource.
-   */
-  get purpose() {
-    return this._purpose?.value;
-  }
-  /**
-   * Gets the String wrapper object for purpose.
-   * Use this to access String methods.
-   */
-  get $purpose() {
-    return this._purpose;
-  }
-  /**
-   * Sets purpose from either a primitive value or String wrapper.
-   */
-  set purpose(val) {
-    if (val === void 0 || val === null) {
-      this._purpose = void 0;
-    } else if (typeof val === "string") {
-      this._purpose = String2.from(val);
-    } else {
-      this._purpose = val;
-    }
-  }
-  /**
-   * Keywords which characterise this resource, used e.g. for indexing and searching.
-   */
-  keywords;
-  /**
-   * Internal storage for use
-   * @protected
-   */
-  _use;
-  /**
-   * Description of the uses of the resource, i.e. contexts in which it could be used.
-   */
-  get use() {
-    return this._use?.value;
-  }
-  /**
-   * Gets the String wrapper object for use.
-   * Use this to access String methods.
-   */
-  get $use() {
-    return this._use;
-  }
-  /**
-   * Sets use from either a primitive value or String wrapper.
-   */
-  set use(val) {
-    if (val === void 0 || val === null) {
-      this._use = void 0;
-    } else if (typeof val === "string") {
-      this._use = String2.from(val);
-    } else {
-      this._use = val;
-    }
-  }
-  /**
-   * Internal storage for misuse
-   * @protected
-   */
-  _misuse;
-  /**
-   * Description of any misuses of the resource, i.e. contexts in which it should not be used.
-   */
-  get misuse() {
-    return this._misuse?.value;
-  }
-  /**
-   * Gets the String wrapper object for misuse.
-   * Use this to access String methods.
-   */
-  get $misuse() {
-    return this._misuse;
-  }
-  /**
-   * Sets misuse from either a primitive value or String wrapper.
-   */
-  set misuse(val) {
-    if (val === void 0 || val === null) {
-      this._misuse = void 0;
-    } else if (typeof val === "string") {
-      this._misuse = String2.from(val);
-    } else {
-      this._misuse = val;
-    }
-  }
-  /**
-   * URIs of original clinical document(s) or description of which resource is a formalisation, in the language of this description item; keyed by meaning.
-   */
-  original_resource_uri;
-  /**
-   * Additional language-senstive resource metadata, as a list of name/value pairs.
-   */
-  other_details;
-};
-var RESOURCE_ANNOTATIONS = class {
-  /**
-   * Documentary annotations in a multi-level keyed structure.
-   */
-  documentation;
-};
+init_openehr_base();
 
 // enhanced/openehr_rm.ts
 var openehr_rm_exports = {};
@@ -16612,6 +20904,7 @@ __export(openehr_rm_exports, {
   X_VERSIONED_PARTY: () => X_VERSIONED_PARTY
 });
 init_define_BUILD_INFO();
+init_openehr_base();
 
 // enhanced/terminology_service.ts
 init_define_BUILD_INFO();
@@ -21891,6 +26184,7 @@ var OpenEHRTerminologyService = class _OpenEHRTerminologyService {
 
 // enhanced/init_helpers.ts
 init_define_BUILD_INFO();
+init_openehr_base();
 function initSingleValueWrapper(value, constructor) {
   if (value === void 0 || value === null) {
     return void 0;
@@ -26264,28 +30558,28 @@ var DV_PERIODIC_TIME_SPECIFICATION = class _DV_PERIODIC_TIME_SPECIFICATION exten
     if (!match) {
       return `P${duration.toUpperCase()}`;
     }
-    const num2 = match[1];
+    const num = match[1];
     const unit = match[2].toLowerCase();
     const unitMap = {
-      "s": `PT${num2}S`,
+      "s": `PT${num}S`,
       // seconds
-      "min": `PT${num2}M`,
+      "min": `PT${num}M`,
       // minutes
-      "h": `PT${num2}H`,
+      "h": `PT${num}H`,
       // hours
-      "d": `P${num2}D`,
+      "d": `P${num}D`,
       // days
-      "w": `P${num2}W`,
+      "w": `P${num}W`,
       // weeks
-      "wk": `P${num2}W`,
+      "wk": `P${num}W`,
       // weeks
-      "mo": `P${num2}M`,
+      "mo": `P${num}M`,
       // months
-      "m": `P${num2}M`,
+      "m": `P${num}M`,
       // months (when not time)
-      "y": `P${num2}Y`,
+      "y": `P${num}Y`,
       // years
-      "a": `P${num2}Y`
+      "a": `P${num}Y`
       // years (annum)
     };
     return unitMap[unit] || `P${duration.toUpperCase()}`;
@@ -29281,1541 +33575,16 @@ var JsonConfigurableSerializer = class _JsonConfigurableSerializer {
 
 // enhanced/serialization/json/json_configurable_deserializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 
 // enhanced/serialization/common/post_deserialize_validation.ts
 init_define_BUILD_INFO();
 
 // enhanced/validation/template_validator.ts
 init_define_BUILD_INFO();
-
-// enhanced/openehr_am.ts
-init_define_BUILD_INFO();
-
-// enhanced/openehr_lang.ts
-init_define_BUILD_INFO();
-var EXPR_VALUE = class {
-  /**
-   * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
-   * @returns Result value
-   */
-  value() {
-    throw new Error("Method value not yet implemented.");
-  }
-};
-var EXPRESSION = class extends EXPR_VALUE {
-  /**
-   * The primitive type of this node, which must be determined by redefinitions in concrete classes.
-   * @returns Result value
-   */
-  type() {
-    throw new Error("Method type not yet implemented.");
-  }
-};
-var EXPR_LEAF = class extends EXPRESSION {
-  /**
-   * The reference item from which the value of this node can be computed.
-   */
-  item;
-};
-var EXPR_VALUE_REF = class extends EXPR_LEAF {
-};
-
-// enhanced/openehr_am.ts
-var ARCHETYPE = class extends AUTHORED_RESOURCE {
-  /**
-   * Root node of the definition of this archetype.
-   */
-  definition;
-  /**
-   * The ontology of the archetype.
-   */
-  ontology;
-  /**
-   * Internal storage for adl_version
-   * @protected
-   */
-  _adl_version;
-  /**
-   * ADL version if archetype was read in from an ADL sharable archetype.
-   */
-  get adl_version() {
-    return this._adl_version?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for adl_version.
-   * Use this to access openehr_base.String methods.
-   */
-  get $adl_version() {
-    return this._adl_version;
-  }
-  /**
-   * Sets adl_version from either a primitive value or openehr_base.String wrapper.
-   */
-  set adl_version(val) {
-    if (val === void 0 || val === null) {
-      this._adl_version = void 0;
-    } else if (typeof val === "string") {
-      this._adl_version = String2.from(val);
-    } else {
-      this._adl_version = val;
-    }
-  }
-  /**
-   * Multi-axial identifier of this archetype in archetype space.
-   */
-  archetype_id;
-  /**
-   * Archetype OID (HIER_OBJECT_ID). Distinct from AUTHORED_RESOURCE.uid (UUID) in the BASE model.
-   */
-  archetype_hier_uid;
-  /**
-   * Internal storage for concept
-   * @protected
-   */
-  _concept;
-  /**
-   * The normative meaning of the archetype as a whole, expressed as a local archetype code, typically “at0000”.
-   */
-  get concept() {
-    return this._concept?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for concept.
-   * Use this to access openehr_base.String methods.
-   */
-  get $concept() {
-    return this._concept;
-  }
-  /**
-   * Sets concept from either a primitive value or openehr_base.String wrapper.
-   */
-  set concept(val) {
-    if (val === void 0 || val === null) {
-      this._concept = void 0;
-    } else if (typeof val === "string") {
-      this._concept = String2.from(val);
-    } else {
-      this._concept = val;
-    }
-  }
-  /**
-   * Identifier of the specialisation parent of this archetype.
-   */
-  parent_archetype_id;
-  /**
-   * Invariant statements about this object. Statements are expressed in first order predicate logic, and usually refer to at least two attributes.
-   */
-  invariants;
-  /**
-   * The concept name of the archetype in language a_lang; corresponds to the term definition of the concept attribute in the archetype ontology.
-   * @param a_lang - Parameter
-   * @returns Result value
-   */
-  concept_name(a_lang) {
-    throw new Error("Method concept_name not yet implemented.");
-  }
-  /**
-   * Set of language-independent paths extracted from archetype. Paths obey Xpath-like syntax and are formed from alternations of C_OBJECT.node_id and C_ATTRIBUTE.rm_attribute_name values.
-   * @returns Result value
-   */
-  physical_paths() {
-    throw new Error("Method physical_paths not yet implemented.");
-  }
-  /**
-   * Set of language-dependent paths extracted from archetype. Paths obey the same syntax as physical_paths, but with node_ids replaced by their meanings from the ontology.
-   * @param lang - Parameter
-   * @returns Result value
-   */
-  logical_paths(lang) {
-    throw new Error("Method logical_paths not yet implemented.");
-  }
-  /**
-   * Specialisation depth of this archetype; larger than 0 if this archetype has a parent. Derived from terminology.specialisation_depth.
-   * @returns Result value
-   */
-  specialisation_depth() {
-    throw new Error("Method specialisation_depth not yet implemented.");
-  }
-  /**
-   * True if this archetype is a specialisation of another.
-   * @returns Result value
-   */
-  is_specialised() {
-    throw new Error("Method is_specialised not yet implemented.");
-  }
-  /**
-   * True if the archetype is valid overall; various tests should be used, including checks on node_ids, internal references, and constraint references.
-   * @returns Result value
-   */
-  is_valid() {
-    throw new Error("Method is_valid not yet implemented.");
-  }
-  /**
-   * True if every node_id found on a C_OBJECT node is found in ontology.term_codes.
-   * @returns Result value
-   */
-  node_ids_valid() {
-    throw new Error("Method node_ids_valid not yet implemented.");
-  }
-  /**
-   * Version of predecessor archetype of this archetype, if any.
-   * @returns Result value
-   */
-  previous_version() {
-    throw new Error("Method previous_version not yet implemented.");
-  }
-  /**
-   * True if every ARCHETYPE_INTERNAL_REF. target_path refers to a legitimate node in the archetype definition.
-   * @returns Result value
-   */
-  internal_references_valid() {
-    throw new Error("Method internal_references_valid not yet implemented.");
-  }
-  /**
-   * True if every CONSTRAINT_REF.reference found on a C_OBJECT node in the archetype definition is found in ontology.constraint_codes.
-   * @returns Result value
-   */
-  constraint_references_valid() {
-    throw new Error("Method constraint_references_valid not yet implemented.");
-  }
-  /**
-   * The short concept name of the archetype extracted from the archetype_id.
-   * @returns Result value
-   */
-  short_concept_name() {
-    throw new Error("Method short_concept_name not yet implemented.");
-  }
-  version() {
-    throw new Error("Method version not yet implemented.");
-  }
-};
-var AUTHORED_ARCHETYPE = class extends ARCHETYPE {
-  /**
-   * ADL version if archetype was read in from an ADL sharable archetype.
-   */
-  get adl_version() {
-    return this._adl_version?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for adl_version.
-   * Use this to access openehr_base.String methods.
-   */
-  get $adl_version() {
-    return this._adl_version;
-  }
-  /**
-   * Sets adl_version from either a primitive value or openehr_base.String wrapper.
-   */
-  set adl_version(val) {
-    if (val === void 0 || val === null) {
-      this._adl_version = void 0;
-    } else if (typeof val === "string") {
-      this._adl_version = String2.from(val);
-    } else {
-      this._adl_version = val;
-    }
-  }
-  /**
-   * Unique identifier of this archetype artefact instance. A new identifier is assigned every time the content is changed by a tool. Used by tools to distinguish different revisions and/or interim snapshots of the same artefact.
-   */
-  build_uid;
-  /**
-   * Internal storage for rm_release
-   * @protected
-   */
-  _rm_release;
-  /**
-   * Semver.org compatible release of the most recent reference model release on which the archetype in its current version is based. This does not imply conformance only to this release, since an archetype may be valid with respect to multiple releases of a reference model.
-   */
-  get rm_release() {
-    return this._rm_release?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for rm_release.
-   * Use this to access openehr_base.String methods.
-   */
-  get $rm_release() {
-    return this._rm_release;
-  }
-  /**
-   * Sets rm_release from either a primitive value or openehr_base.String wrapper.
-   */
-  set rm_release(val) {
-    if (val === void 0 || val === null) {
-      this._rm_release = void 0;
-    } else if (typeof val === "string") {
-      this._rm_release = String2.from(val);
-    } else {
-      this._rm_release = val;
-    }
-  }
-  /**
-   * Internal storage for is_generated
-   * @protected
-   */
-  _is_generated;
-  /**
-   * If True, indicates that this artefact was machine-generated from some other source, in which case, tools would expect to overwrite this artefact on a new generation. Editing tools should set this value to False when a user starts to manually edit an archetype.
-   */
-  get is_generated() {
-    return this._is_generated?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for is_generated.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $is_generated() {
-    return this._is_generated;
-  }
-  /**
-   * Sets is_generated from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set is_generated(val) {
-    if (val === void 0 || val === null) {
-      this._is_generated = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_generated = Boolean2.from(val);
-    } else {
-      this._is_generated = val;
-    }
-  }
-  other_meta_data;
-};
-var TEMPLATE = class extends AUTHORED_ARCHETYPE {
-  /**
-   * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
-   */
-  overlays;
-};
-var OPERATIONAL_TEMPLATE = class extends AUTHORED_ARCHETYPE {
-  /**
-   * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
-   */
-  component_terminologies;
-  /**
-   * Compendium of flattened terminology extracts (i.e. from external terminologies) from archetypes referenced from this template, keyed by archetype identifier.
-   */
-  terminology_extracts;
-  component_terminology(an_id) {
-    throw new Error("Method component_terminology not yet implemented.");
-  }
-};
-var TEMPLATE_OVERLAY = class extends ARCHETYPE {
-};
-var ARCHETYPE_CONSTRAINT = class {
-  /**
-   * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other.
-   * Typically used during validation of special-ised archetype nodes.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  is_subset_of(_other) {
-    return Boolean2.from(false);
-  }
-  is_valid() {
-    return Boolean2.from(true);
-  }
-  /**
-   * Path of this node relative to root of archetype.
-   * @returns Result value
-   */
-  path() {
-    throw new Error("Method path not yet implemented.");
-  }
-  /**
-   * True if the relative path a_path exists at this node.
-   * @param a_path - Parameter
-   * @returns Result value
-   */
-  has_path(a_path) {
-    throw new Error("Method has_path not yet implemented.");
-  }
-};
-var C_OBJECT = class extends ARCHETYPE_CONSTRAINT {
-  /**
-   * Internal storage for rm_type_name
-   * @protected
-   */
-  _rm_type_name;
-  /**
-   * Reference model type that this node corresponds to.
-   */
-  get rm_type_name() {
-    return this._rm_type_name?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for rm_type_name.
-   * Use this to access openehr_base.String methods.
-   */
-  get $rm_type_name() {
-    return this._rm_type_name;
-  }
-  /**
-   * Sets rm_type_name from either a primitive value or openehr_base.String wrapper.
-   */
-  set rm_type_name(val) {
-    if (val === void 0 || val === null) {
-      this._rm_type_name = void 0;
-    } else if (typeof val === "string") {
-      this._rm_type_name = String2.from(val);
-    } else {
-      this._rm_type_name = val;
-    }
-  }
-  /**
-   * Occurrences of this object node in the data, under the owning attribute. Upper limit can only be greater than 1 if owning attribute has a cardinality of more than 1).
-   */
-  occurrences;
-  /**
-   * Internal storage for node_id
-   * @protected
-   */
-  _node_id;
-  /**
-   * Semantic identifier of this node, used to dis-tinguish sibling nodes. All nodes must have a node_id; for nodes under a container C_ATTRIBUTE, the id must be an id-code must be defined in the archetype terminolo-gy. For valid structures, all node ids are id-codes.
-   * For C_PRIMITIVE_OBJECTs, it will have the special value Primitive_node_id.
-   */
-  get node_id() {
-    return this._node_id?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for node_id.
-   * Use this to access openehr_base.String methods.
-   */
-  get $node_id() {
-    return this._node_id;
-  }
-  /**
-   * Sets node_id from either a primitive value or openehr_base.String wrapper.
-   */
-  set node_id(val) {
-    if (val === void 0 || val === null) {
-      this._node_id = void 0;
-    } else if (typeof val === "string") {
-      this._node_id = String2.from(val);
-    } else {
-      this._node_id = val;
-    }
-  }
-};
-var C_ATTRIBUTE = class extends ARCHETYPE_CONSTRAINT {
-  /**
-   * Internal storage for rm_attribute_name
-   * @protected
-   */
-  _rm_attribute_name;
-  /**
-   * Reference model attribute within the enclosing type represented by a C_OBJECT.
-   */
-  get rm_attribute_name() {
-    return this._rm_attribute_name?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for rm_attribute_name.
-   * Use this to access openehr_base.String methods.
-   */
-  get $rm_attribute_name() {
-    return this._rm_attribute_name;
-  }
-  /**
-   * Sets rm_attribute_name from either a primitive value or openehr_base.String wrapper.
-   */
-  set rm_attribute_name(val) {
-    if (val === void 0 || val === null) {
-      this._rm_attribute_name = void 0;
-    } else if (typeof val === "string") {
-      this._rm_attribute_name = String2.from(val);
-    } else {
-      this._rm_attribute_name = val;
-    }
-  }
-  /**
-   * Constraint on every attribute, regardless of whether it is singular or of a container type, which indicates whether its target object exists or not (i.e. is mandatory or not).
-   */
-  existence;
-  /**
-   * Child C_OBJECT nodes. Each such node represents a constraint on the type of this attribute in its reference model. Multiples occur both for multiple items in the case of container attributes, and alternatives in the case of singular attributes.
-   */
-  children;
-  /**
-   * True if any value (i.e. instance) of the reference model attribute represented by this C_ATTIRBUTE is allowed.
-   * @returns Result value
-   */
-  any_allowed() {
-    throw new Error("Method any_allowed not yet implemented.");
-  }
-};
-var C_DEFINED_OBJECT = class extends C_OBJECT {
-  /**
-   * Value to be assumed if none sent in data.
-   */
-  assumed_value;
-  /**
-   * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
-   * @param a_value - Parameter
-   * @returns Result value
-   */
-  valid_value(_a_value) {
-    return Boolean2.from(true);
-  }
-  /**
-   * Generate a prototype value from this constraint object.
-   * @returns Result value
-   */
-  prototype_value() {
-    if (this.assumed_value !== void 0) {
-      return this.assumed_value;
-    }
-    throw new Error("Method prototype_value not yet implemented.");
-  }
-  /**
-   * True if there is an assumed value.
-   *
-   * @returns Result value
-   */
-  has_assumed_value() {
-    throw new Error("Method has_assumed_value not yet implemented.");
-  }
-  /**
-   * Generate a default value from this constraint object (runtime computation).
-   * @returns Result value
-   */
-  compute_default_value() {
-    if (this.assumed_value !== void 0) {
-      return this.assumed_value;
-    }
-    throw new Error("No assumed value for compute_default_value.");
-  }
-  /**
-   * True if any value of the reference model type being constrained is allowed. Redefine in descendants.
-   * @returns Result value
-   */
-  any_allowed() {
-    return Boolean2.from(false);
-  }
-};
-var C_REFERENCE_OBJECT = class extends C_OBJECT {
-};
-var ARCHETYPE_SLOT = class extends C_REFERENCE_OBJECT {
-  /**
-   * List of constraints defining other archetypes that could be included at this point.
-   */
-  includes;
-  /**
-   * List of constraints defining other archetypes that cannot be included at this point.
-   */
-  excludes;
-};
-var C_PRIMITIVE_OBJECT = class extends C_DEFINED_OBJECT {
-  /**
-   * Object actually defining the constraint.
-   */
-  item;
-  /**
-   * True if any value of the type being constrained in item is allowed.
-   * @returns Result value
-   */
-  any_allowed() {
-    throw new Error("Method any_allowed not yet implemented.");
-  }
-};
-var C_COMPLEX_OBJECT = class extends C_DEFINED_OBJECT {
-  /**
-   * List of constraints on attributes of the reference model type represented by this object.
-   */
-  attributes;
-  /**
-   * True if any value of the reference model type being constrained is allowed.
-   * @returns Result value
-   */
-  any_allowed() {
-    throw new Error("Method any_allowed not yet implemented.");
-  }
-};
-var C_ARCHETYPE_ROOT = class extends C_COMPLEX_OBJECT {
-  /**
-   * Internal storage for archetype_ref
-   * @protected
-   */
-  _archetype_ref;
-  /**
-   * Reference to archetype is being used to fill a slot or redefine an external reference. Typically an 'interface' archetype id, i.e. identifier with partial version information.
-   */
-  get archetype_ref() {
-    return this._archetype_ref?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for archetype_ref.
-   * Use this to access openehr_base.String methods.
-   */
-  get $archetype_ref() {
-    return this._archetype_ref;
-  }
-  /**
-   * Sets archetype_ref from either a primitive value or openehr_base.String wrapper.
-   */
-  set archetype_ref(val) {
-    if (val === void 0 || val === null) {
-      this._archetype_ref = void 0;
-    } else if (typeof val === "string") {
-      this._archetype_ref = String2.from(val);
-    } else {
-      this._archetype_ref = val;
-    }
-  }
-};
-var ARCHETYPE_ID_CONSTRAINT = class {
-  /**
-   * Right hand side of the constraint expression, in the form of a \`C_STRING\`, i.e. string value constrainer.
-   */
-  constraint;
-};
-var C_PRIMITIVE = class {
-  /**
-   * Value to be assumed if none sent in data.
-   */
-  assumed_value;
-  /**
-   * Generate a default value from this constraint object.
-   * @returns Result value
-   */
-  compute_default_value() {
-    if (this.assumed_value !== void 0) {
-      return this.assumed_value;
-    }
-    throw new Error("No assumed value for compute_default_value.");
-  }
-  has_assumed_value() {
-    return Boolean2.from(this.assumed_value !== void 0);
-  }
-  valid_value(_a_value) {
-    return Boolean2.from(true);
-  }
-};
-var C_BOOLEAN = class extends C_PRIMITIVE {
-  /**
-   * Internal storage for true_valid
-   * @protected
-   */
-  _true_valid;
-  /**
-   * True if the value True is allowed.
-   */
-  get true_valid() {
-    return this._true_valid?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for true_valid.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $true_valid() {
-    return this._true_valid;
-  }
-  /**
-   * Sets true_valid from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set true_valid(val) {
-    if (val === void 0 || val === null) {
-      this._true_valid = void 0;
-    } else if (typeof val === "boolean") {
-      this._true_valid = Boolean2.from(val);
-    } else {
-      this._true_valid = val;
-    }
-  }
-  /**
-   * Internal storage for false_valid
-   * @protected
-   */
-  _false_valid;
-  /**
-   * True if the value False is allowed.
-   */
-  get false_valid() {
-    return this._false_valid?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for false_valid.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $false_valid() {
-    return this._false_valid;
-  }
-  /**
-   * Sets false_valid from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set false_valid(val) {
-    if (val === void 0 || val === null) {
-      this._false_valid = void 0;
-    } else if (typeof val === "boolean") {
-      this._false_valid = Boolean2.from(val);
-    } else {
-      this._false_valid = val;
-    }
-  }
-  /**
-   * The value to assume if this item is not included in data, due to being part of an optional structure.
-   */
-  assumed_value = void 0;
-};
-var C_STRING = class extends C_PRIMITIVE {
-  /**
-   * Internal storage for pattern
-   * @protected
-   */
-  _pattern;
-  /**
-   * Regular expression pattern for proposed instances of String to match.
-   */
-  get pattern() {
-    return this._pattern?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for pattern.
-   * Use this to access openehr_base.String methods.
-   */
-  get $pattern() {
-    return this._pattern;
-  }
-  /**
-   * Sets pattern from either a primitive value or openehr_base.String wrapper.
-   */
-  set pattern(val) {
-    if (val === void 0 || val === null) {
-      this._pattern = void 0;
-    } else if (typeof val === "string") {
-      this._pattern = String2.from(val);
-    } else {
-      this._pattern = val;
-    }
-  }
-  /**
-   * Set of Strings specifying constraint.
-   */
-  list;
-  /**
-   * Internal storage for list_open
-   * @protected
-   */
-  _list_open;
-  /**
-   * True if the list is being used to specify the constraint but is not considered exhaustive.
-   */
-  get list_open() {
-    return this._list_open?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for list_open.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $list_open() {
-    return this._list_open;
-  }
-  /**
-   * Sets list_open from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set list_open(val) {
-    if (val === void 0 || val === null) {
-      this._list_open = void 0;
-    } else if (typeof val === "boolean") {
-      this._list_open = Boolean2.from(val);
-    } else {
-      this._list_open = val;
-    }
-  }
-  /**
-   * The value to assume if this item is not included in data, due to being part of an optional structure.
-   */
-  assumed_value = void 0;
-  /**
-   * True if a_value is valid with respect to constraint expressed in concrete instance of this type.
-   * @param a_value - Parameter
-   * @returns Result value
-   */
-  valid_value(a_value) {
-    throw new Error("Method valid_value not yet implemented.");
-  }
-};
-var C_INTEGER = class extends C_PRIMITIVE {
-  /**
-   * Set of Integers specifying constraint.
-   */
-  list;
-  /**
-   * Range of Integers specifying constraint.
-   */
-  range;
-  /**
-   * The value to assume if this item is not included in data, due to being part of an optional structure.
-   */
-  assumed_value = void 0;
-};
-var C_REAL = class extends C_PRIMITIVE {
-  /**
-   * Set of Reals specifying constraint.
-   */
-  list;
-  /**
-   * Range of Real specifying constraint.
-   */
-  range;
-  /**
-   * The value to assume if this item is not included in data, due to being part of an optional structure.
-   */
-  assumed_value = void 0;
-};
-var C_TERMINOLOGY_CODE = class extends C_PRIMITIVE_OBJECT {
-  /**
-   * Internal storage for constraint
-   * @protected
-   */
-  _constraint;
-  /**
-   * Type of individual constraint - a single string that can either be a local at-code, or a local ac-code signifying a locally defined value set. If an ac-code, assumed_value may contain an at-code from the value set of the ac-code.
-   *
-   * Use an empty string for no constraint.
-   */
-  get constraint() {
-    return this._constraint?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for constraint.
-   * Use this to access openehr_base.String methods.
-   */
-  get $constraint() {
-    return this._constraint;
-  }
-  /**
-   * Sets constraint from either a primitive value or openehr_base.String wrapper.
-   */
-  set constraint(val) {
-    if (val === void 0 || val === null) {
-      this._constraint = void 0;
-    } else if (typeof val === "string") {
-      this._constraint = String2.from(val);
-    } else {
-      this._constraint = val;
-    }
-  }
-  /**
-   * Assumed Terminology code value.
-   */
-  assumed_value = void 0;
-  default_value;
-  /**
-   * Constraint status of this terminology constraint. If Void, the meaning is as follows:
-   *
-   * * in a top-level  archetype, equivalent to \`required\`;
-   * * in a specialised (source) archetype, the meaning is to inherit the value from the corresponding node in the parent.
-   *
-   * In the case of a specialised archetype generated by flattening, the value of this field will be:
-   *
-   * * Void if it was Void in the parent;
-   * * otherwise, it will carry the same value as in the parent.
-   */
-  constraint_status;
-  /**
-   * True if \`_constraint_status_\` is defined and equals \`required\` OR if Void. I.e. in archetypes where \`C_TERMINOLOGY_CODE\` instances have no \`_constraint_status_\`, the \`required\` status is assumed, which applies to all legacy archetypes.
-   * @returns Result value
-   */
-  constraint_required() {
-    throw new Error("Method constraint_required not yet implemented.");
-  }
-  /**
-   * Return the effective integer value of the \`_constraint_status_\` field if it exists. If it is null, return 0, i.e. \`required\`.
-   *
-   * NOTE: the above logic applies to any \`C_TERMINOLOGY_NODE\` instance in a specialised archetype that redefines another such instance in the flat parent. I.e. no stated \`_constraint_status_\` means \`required\`.
-   * @returns Result value
-   */
-  effective_constraint_status() {
-    throw new Error("Method effective_constraint_status not yet implemented.");
-  }
-  /**
-   * Effective set of at-code values corresponding to an ac-code for a locally defined value set. Not defined for ac-codes that have no local value set.
-   * @returns Result value
-   */
-  value_set_expanded() {
-    throw new Error("Method value_set_expanded not yet implemented.");
-  }
-  /**
-   * For locally defined value sets within individual code bindings: return the term URI(s) substituted from bindings for local at-codes in \`_value_set_expanded_\`.
-   * @returns Result value
-   */
-  value_set_substituted() {
-    throw new Error("Method value_set_substituted not yet implemented.");
-  }
-  /**
-   * For locally defined value sets within individual code bindings: final set of external codes to which value set is resolved.
-   * @returns Result value
-   */
-  value_set_resolved() {
-    throw new Error("Method value_set_resolved not yet implemented.");
-  }
-  /**
-   * True if a \`_value_\` is valid with respect to constraint expressed in concrete instance of this type.
-   * @param a_value - Parameter
-   * @returns Result value
-   */
-  valid_value(a_value) {
-    throw new Error("Method valid_value not yet implemented.");
-  }
-  /**
-   * A generated prototype value from this constraint object.
-   * @returns Result value
-   */
-  prototype_value() {
-    throw new Error("Method prototype_value not yet implemented.");
-  }
-  /**
-   * True if \`_constraint_\` is empty.
-   * @returns Result value
-   */
-  any_allowed() {
-    throw new Error("Method any_allowed not yet implemented.");
-  }
-  /**
-   * True if \`_other.any_allowed_\` or else every constraint in the \`_constraint_\` list exists in the \`_other.constraint_\`, and \`_effective_constraint_status()_\` is <= \`_other.effective_constraint_status()_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  c_value_conforms_to(other) {
-    throw new Error("Method c_value_conforms_to not yet implemented.");
-  }
-  /**
-   * True if \`_constraint_\` and \`_other.constraint_\` are both value-set ids, and expand to identical value sets, or else are identical value codes; and \`_effective_constraint_status()_\` = \`_other.effective_constraint_status()_\`.
-   * @param other - Parameter
-   * @returns Result value
-   */
-  c_value_congruent_to(other) {
-    throw new Error("Method c_value_congruent_to not yet implemented.");
-  }
-};
-var RM_OVERLAY = class {
-  /**
-   * Optional structure in which visibility and aliasing of reference model elements can be specified. Key is path to an RM attribute, which is typically formed from a path to an archetyped node concatenated with a further pure RM attribute path; may also refer to a non-archetyped attribute.
-   */
-  rm_visibility;
-};
-var EXPR_ITEM = class {
-  /**
-   * Internal storage for type
-   * @protected
-   */
-  _type;
-  /**
-   * Type name of this item in the mathematical sense. For leaf nodes, must be the name of a primitive type, or else a reference model type. The type for any relational or boolean operator will be “Boolean”, while the type for any arithmetic operator, will be “Real” or “Integer”.
-   */
-  get type() {
-    return this._type?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for type.
-   * Use this to access openehr_base.String methods.
-   */
-  get $type() {
-    return this._type;
-  }
-  /**
-   * Sets type from either a primitive value or openehr_base.String wrapper.
-   */
-  set type(val) {
-    if (val === void 0 || val === null) {
-      this._type = void 0;
-    } else if (typeof val === "string") {
-      this._type = String2.from(val);
-    } else {
-      this._type = val;
-    }
-  }
-};
-var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
-  /**
-   * Internal storage for path
-   * @protected
-   */
-  _path;
-  /**
-   * The path to the archetype node.
-   */
-  get path() {
-    return this._path?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for path.
-   * Use this to access openehr_base.String methods.
-   */
-  get $path() {
-    return this._path;
-  }
-  /**
-   * Sets path from either a primitive value or openehr_base.String wrapper.
-   */
-  set path(val) {
-    if (val === void 0 || val === null) {
-      this._path = void 0;
-    } else if (typeof val === "string") {
-      this._path = String2.from(val);
-    } else {
-      this._path = val;
-    }
-  }
-};
-var C_DOMAIN_TYPE = class extends C_DEFINED_OBJECT {
-  /**
-   * Standard (i.e. C_OBJECT) form of constraint.
-   * @returns Result value
-   */
-  standard_equivalent() {
-    return new C_COMPLEX_OBJECT();
-  }
-};
-var C_CODED_TEXT = class extends C_DOMAIN_TYPE {
-  /**
-   * Internal storage for terminology
-   * @protected
-   */
-  _terminology;
-  /**
-   * Terminology identifier.
-   */
-  get terminology() {
-    return this._terminology?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for terminology.
-   * Use this to access openehr_base.String methods.
-   */
-  get $terminology() {
-    return this._terminology;
-  }
-  /**
-   * Sets terminology from either a primitive value or openehr_base.String wrapper.
-   */
-  set terminology(val) {
-    if (val === void 0 || val === null) {
-      this._terminology = void 0;
-    } else if (typeof val === "string") {
-      this._terminology = String2.from(val);
-    } else {
-      this._terminology = val;
-    }
-  }
-  /**
-   * Optional list of codes from the terminology. No list means any code from the terminology is allowed.
-   */
-  code_list;
-  /**
-   * Internal storage for reference
-   * @protected
-   */
-  _reference;
-  get reference() {
-    return this._reference?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for reference.
-   * Use this to access openehr_base.String methods.
-   */
-  get $reference() {
-    return this._reference;
-  }
-  /**
-   * Sets reference from either a primitive value or openehr_base.String wrapper.
-   */
-  set reference(val) {
-    if (val === void 0 || val === null) {
-      this._reference = void 0;
-    } else if (typeof val === "string") {
-      this._reference = String2.from(val);
-    } else {
-      this._reference = val;
-    }
-  }
-};
-var C_QUANTITY = class extends C_DOMAIN_TYPE {
-  /**
-   * Internal storage for property
-   * @protected
-   */
-  _property;
-  /**
-   * Name of physical property for Quantities being constrained.
-   */
-  get property() {
-    return this._property?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for property.
-   * Use this to access openehr_base.String methods.
-   */
-  get $property() {
-    return this._property;
-  }
-  /**
-   * Sets property from either a primitive value or openehr_base.String wrapper.
-   */
-  set property(val) {
-    if (val === void 0 || val === null) {
-      this._property = void 0;
-    } else if (typeof val === "string") {
-      this._property = String2.from(val);
-    } else {
-      this._property = val;
-    }
-  }
-  /**
-   * Value set of allowed individual Quantity item constraints in this Quantity constraint.
-   */
-  list;
-};
-var C_QUANTITY_ITEM = class {
-  /**
-   * Quantity magnitude constraint.
-   */
-  magnitude;
-  /**
-   * Internal storage for units
-   * @protected
-   */
-  _units;
-  /**
-   * Optional units constraint.
-   */
-  get units() {
-    return this._units?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for units.
-   * Use this to access openehr_base.String methods.
-   */
-  get $units() {
-    return this._units;
-  }
-  /**
-   * Sets units from either a primitive value or openehr_base.String wrapper.
-   */
-  set units(val) {
-    if (val === void 0 || val === null) {
-      this._units = void 0;
-    } else if (typeof val === "string") {
-      this._units = String2.from(val);
-    } else {
-      this._units = val;
-    }
-  }
-};
-var ASSERTION = class {
-  /**
-   * Internal storage for tag
-   * @protected
-   */
-  _tag;
-  /**
-   * Expression tag, used for differentiating multiple assertions.
-   */
-  get tag() {
-    return this._tag?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for tag.
-   * Use this to access openehr_base.String methods.
-   */
-  get $tag() {
-    return this._tag;
-  }
-  /**
-   * Sets tag from either a primitive value or openehr_base.String wrapper.
-   */
-  set tag(val) {
-    if (val === void 0 || val === null) {
-      this._tag = void 0;
-    } else if (typeof val === "string") {
-      this._tag = String2.from(val);
-    } else {
-      this._tag = val;
-    }
-  }
-  /**
-   * Internal storage for string_expression
-   * @protected
-   */
-  _string_expression;
-  /**
-   * String form of expression, in case an expression evaluator taking String expressions is used for evaluation.
-   */
-  get string_expression() {
-    return this._string_expression?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for string_expression.
-   * Use this to access openehr_base.String methods.
-   */
-  get $string_expression() {
-    return this._string_expression;
-  }
-  /**
-   * Sets string_expression from either a primitive value or openehr_base.String wrapper.
-   */
-  set string_expression(val) {
-    if (val === void 0 || val === null) {
-      this._string_expression = void 0;
-    } else if (typeof val === "string") {
-      this._string_expression = String2.from(val);
-    } else {
-      this._string_expression = val;
-    }
-  }
-  /**
-   * Root of expression tree.
-   */
-  expression;
-  /**
-   * Definitions of variables used in the assertion expression.
-   */
-  variables;
-};
-var ASSERTION_VARIABLE = class {
-  /**
-   * Internal storage for name
-   * @protected
-   */
-  _name;
-  /**
-   * Name of variable.
-   */
-  get name() {
-    return this._name?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for name.
-   * Use this to access openehr_base.String methods.
-   */
-  get $name() {
-    return this._name;
-  }
-  /**
-   * Sets name from either a primitive value or openehr_base.String wrapper.
-   */
-  set name(val) {
-    if (val === void 0 || val === null) {
-      this._name = void 0;
-    } else if (typeof val === "string") {
-      this._name = String2.from(val);
-    } else {
-      this._name = val;
-    }
-  }
-  /**
-   * Internal storage for definition
-   * @protected
-   */
-  _definition;
-  /**
-   * Formal definition of the variable.
-   */
-  get definition() {
-    return this._definition?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for definition.
-   * Use this to access openehr_base.String methods.
-   */
-  get $definition() {
-    return this._definition;
-  }
-  /**
-   * Sets definition from either a primitive value or openehr_base.String wrapper.
-   */
-  set definition(val) {
-    if (val === void 0 || val === null) {
-      this._definition = void 0;
-    } else if (typeof val === "string") {
-      this._definition = String2.from(val);
-    } else {
-      this._definition = val;
-    }
-  }
-};
-var EXPR_OPERATOR = class extends EXPR_ITEM {
-  /**
-   * Internal storage for precedence_overridden
-   * @protected
-   */
-  _precedence_overridden;
-  /**
-   * True if the natural precedence of operators is overridden in the expression represented by this node of the expression tree. If True, parentheses should be introduced around the totality of the syntax expression corresponding to this operator node and its operands.
-   */
-  get precedence_overridden() {
-    return this._precedence_overridden?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for precedence_overridden.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $precedence_overridden() {
-    return this._precedence_overridden;
-  }
-  /**
-   * Sets precedence_overridden from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set precedence_overridden(val) {
-    if (val === void 0 || val === null) {
-      this._precedence_overridden = void 0;
-    } else if (typeof val === "boolean") {
-      this._precedence_overridden = Boolean2.from(val);
-    } else {
-      this._precedence_overridden = val;
-    }
-  }
-  /**
-   * Code of operator.
-   */
-  operator;
-};
-var EXPR_UNARY_OPERATOR = class extends EXPR_OPERATOR {
-  /**
-   * Operand node.
-   */
-  operand;
-};
-var EXPR_BINARY_OPERATOR = class extends EXPR_OPERATOR {
-  /**
-   * Left operand node.
-   */
-  left_operand;
-  /**
-   * Right operand node.
-   */
-  right_operand;
-};
-var OPERATOR_KIND = class extends String2 {
-};
-var CARDINALITY = class {
-  /**
-   * The interval of this cardinality.
-   */
-  interval;
-  /**
-   * Internal storage for is_ordered
-   * @protected
-   */
-  _is_ordered;
-  /**
-   * True if the members of the container attribute to which this cardinality refers are ordered.
-   */
-  get is_ordered() {
-    return this._is_ordered?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for is_ordered.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $is_ordered() {
-    return this._is_ordered;
-  }
-  /**
-   * Sets is_ordered from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set is_ordered(val) {
-    if (val === void 0 || val === null) {
-      this._is_ordered = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_ordered = Boolean2.from(val);
-    } else {
-      this._is_ordered = val;
-    }
-  }
-  /**
-   * Internal storage for is_unique
-   * @protected
-   */
-  _is_unique;
-  /**
-   * True if the members of the container attribute to which this cardinality refers are unique.
-   */
-  get is_unique() {
-    return this._is_unique?.value;
-  }
-  /**
-   * Gets the openehr_base.Boolean wrapper object for is_unique.
-   * Use this to access openehr_base.Boolean methods.
-   */
-  get $is_unique() {
-    return this._is_unique;
-  }
-  /**
-   * Sets is_unique from either a primitive value or openehr_base.Boolean wrapper.
-   */
-  set is_unique(val) {
-    if (val === void 0 || val === null) {
-      this._is_unique = void 0;
-    } else if (typeof val === "boolean") {
-      this._is_unique = Boolean2.from(val);
-    } else {
-      this._is_unique = val;
-    }
-  }
-  /**
-   * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
-   * @returns Result value
-   */
-  is_bag() {
-    throw new Error("Method is_bag not yet implemented.");
-  }
-  /**
-   * True if the semantics of this cardinality represent a list, i.e. ordered, non-unique membership.
-   * @returns Result value
-   */
-  is_list() {
-    throw new Error("Method is_list not yet implemented.");
-  }
-  /**
-   * True if the semantics of this cardinality represent a bag, i.e. unordered, non-unique membership.
-   * @returns Result value
-   */
-  is_set() {
-    throw new Error("Method is_set not yet implemented.");
-  }
-};
-var C_SINGLE_ATTRIBUTE = class extends C_ATTRIBUTE {
-  /**
-   * List of alternative constraints for the single child of this attribute within the data.
-   * @returns Result value
-   */
-  alternatives() {
-    throw new Error("Method alternatives not yet implemented.");
-  }
-};
-var C_MULTIPLE_ATTRIBUTE = class extends C_ATTRIBUTE {
-  /**
-   * Cardinality of this attribute constraint, if it constraints a container attribute.
-   */
-  cardinality;
-  /**
-   * List of constraints representing members of the container value of this attribute within the data. Semantics of the uniqueness and ordering of items in the container are given by the cardinality.
-   * @returns Result value
-   */
-  members() {
-    throw new Error("Method members not yet implemented.");
-  }
-};
-var ARCHETYPE_ONTOLOGY = class {
-  /**
-   * List of all term codes in the ontology. Most of these correspond to “at” codes in an ADL archetype, which are the node_ids on C_OBJECT descendants. There may be an extra one, if a different term is used as the overall archetype concept from that used as the node_id of the outermost C_OBJECT in the definition part.
-   */
-  term_codes;
-  /**
-   * List of all term codes in the ontology. These correspond to the “ac” codes in an ADL archetype, or equivalently, the CONSTRAINT_REF.reference values in the archetype definition.
-   */
-  constraint_codes;
-  /**
-   * Archetype which owns this terminology.
-   */
-  parent_archetype;
-  /**
-   * List of terminologies to which term or constraint bindings exist in this terminology.
-   */
-  terminologies_available;
-  /**
-   * Internal storage for specialisation_depth
-   * @protected
-   */
-  _specialisation_depth;
-  /**
-   * Specialisation depth of this archetype. Unspecialised archetypes have depth 0, with each additional level of specialisation adding 1 to the specialisation_depth.
-   */
-  get specialisation_depth() {
-    return this._specialisation_depth?.value;
-  }
-  /**
-   * Gets the openehr_base.Integer wrapper object for specialisation_depth.
-   * Use this to access openehr_base.Integer methods.
-   */
-  get $specialisation_depth() {
-    return this._specialisation_depth;
-  }
-  /**
-   * Sets specialisation_depth from either a primitive value or openehr_base.Integer wrapper.
-   */
-  set specialisation_depth(val) {
-    if (val === void 0 || val === null) {
-      this._specialisation_depth = void 0;
-    } else if (typeof val === "number") {
-      this._specialisation_depth = Integer.from(val);
-    } else {
-      this._specialisation_depth = val;
-    }
-  }
-  term_attribute_names;
-  /**
-   * True if terminology ‘a_terminology’ is present in archetype ontology.
-   * @param a_lang - Parameter
-   * @returns Result value
-   */
-  has_language(a_lang) {
-    throw new Error("Method has_language not yet implemented.");
-  }
-  /**
-   * True if terminology \`a_terminology' is present in archetype ontology.
-   * @param a_terminology_id - Parameter
-   * @returns Result value
-   */
-  has_terminology(a_terminology_id) {
-    throw new Error("Method has_terminology not yet implemented.");
-  }
-  /**
-   * True if term_codes has a_code.
-   * @param a_code - Parameter
-   * @returns Result value
-   */
-  has_term_code(a_code) {
-    throw new Error("Method has_term_code not yet implemented.");
-  }
-  /**
-   * True if constraint_codes has a_code.
-   * @param a_code - Parameter
-   * @returns Result value
-   */
-  has_constraint_code(a_code) {
-    throw new Error("Method has_constraint_code not yet implemented.");
-  }
-  /**
-   * Term definition for a code, in a specified language.
-   * @param a_lang - Parameter
-   * @param a_code - Parameter
-   * @returns Result value
-   */
-  term_definition(a_lang, a_code) {
-    throw new Error("Method term_definition not yet implemented.");
-  }
-  /**
-   * Constraint definition for a code, in a specified language.
-   * @param a_code - Parameter
-   * @param a_lang - Parameter
-   * @returns Result value
-   */
-  constraint_definition(a_code, a_lang) {
-    throw new Error("Method constraint_definition not yet implemented.");
-  }
-  /**
-   * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
-   * @param a_terminology - Parameter
-   * @param a_code - Parameter
-   * @returns Result value
-   */
-  term_binding(a_terminology, a_code) {
-    throw new Error("Method term_binding not yet implemented.");
-  }
-  /**
-   * Binding of constraint corresponding to a_code in target external terminology a_terminology_id, as a string, which is usually a formal query expression.
-   * @param a_terminology_id - Parameter
-   * @param a_code - Parameter
-   * @returns Result value
-   */
-  constraint_binding(a_terminology_id, a_code) {
-    throw new Error("Method constraint_binding not yet implemented.");
-  }
-};
+init_openehr_am();
+init_type_registry();
 
 // enhanced/ucum_service.ts
 init_define_BUILD_INFO();
@@ -31517,6 +34286,7 @@ var RMSpecificationValidator = class {
 
 // enhanced/validation/invariant_evaluator.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 
 // enhanced/validation/archetype_path_resolver.ts
 init_define_BUILD_INFO();
@@ -31729,8 +34499,8 @@ var InvariantEvaluator = class {
     for (const v2 of assertion.variables ?? []) {
       if (!v2.name || !v2.definition)
         continue;
-      const def = v2.definition.trim();
-      const inner = def.includes(":=") ? def.split(":=").slice(1).join(":=").trim() : def;
+      const def2 = v2.definition.trim();
+      const inner = def2.includes(":=") ? def2.split(":=").slice(1).join(":=").trim() : def2;
       env.set(v2.name, this.evalValue(root, inner, env));
     }
   }
@@ -31852,16 +34622,16 @@ var InvariantEvaluator = class {
     for (const op of [" xor ", " or ", " and "]) {
       const parts = this.splitAtOperator(expr, op.trim());
       if (parts && parts.length >= 2) {
-        const values2 = [
+        const values = [
           this.evalExpression(root, parts[0], env),
           ...parts.slice(1).map((p2) => this.evalExpression(root, p2, env))
         ];
         if (op.trim() === "or")
-          return values2.some((v2) => this.toBoolean(v2));
+          return values.some((v2) => this.toBoolean(v2));
         if (op.trim() === "xor") {
-          return values2.filter((v2) => this.toBoolean(v2)).length === 1;
+          return values.filter((v2) => this.toBoolean(v2)).length === 1;
         }
-        return values2.every((v2) => this.toBoolean(v2));
+        return values.every((v2) => this.toBoolean(v2));
       }
     }
     const cmp = this.splitComparison(expr);
@@ -31895,9 +34665,9 @@ var InvariantEvaluator = class {
     }
     if (/^(true|false)$/i.test(expr))
       return expr.toLowerCase() === "true";
-    const num2 = Number(expr);
-    if (!Number.isNaN(num2) && expr.match(/^-?\d+(\.\d+)?$/))
-      return num2;
+    const num = Number(expr);
+    if (!Number.isNaN(num) && expr.match(/^-?\d+(\.\d+)?$/))
+      return num;
     if (expr.startsWith('"') && expr.endsWith('"') || expr.startsWith("'") && expr.endsWith("'")) {
       return expr.slice(1, -1);
     }
@@ -34885,9 +37655,9 @@ init_define_BUILD_INFO();
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
   if (typeof value === "bigint")
     return String(value);
-  const num2 = typeof value === "number" ? value : Number(value);
-  if (!isFinite(num2))
-    return isNaN(num2) ? ".nan" : num2 < 0 ? "-.inf" : ".inf";
+  const num = typeof value === "number" ? value : Number(value);
+  if (!isFinite(num))
+    return isNaN(num) ? ".nan" : num < 0 ? "-.inf" : ".inf";
   let n2 = Object.is(value, -0) ? "-0" : JSON.stringify(value);
   if (!format && minFractionDigits && (!tag || tag === "tag:yaml.org,2002:float") && /^\d/.test(n2)) {
     let i3 = n2.indexOf(".");
@@ -34919,8 +37689,8 @@ var floatExp = {
   test: /^[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+$/,
   resolve: (str) => parseFloat(str),
   stringify(node) {
-    const num2 = Number(node.value);
-    return isFinite(num2) ? num2.toExponential() : stringifyNumber(node);
+    const num = Number(node.value);
+    return isFinite(num) ? num.toExponential() : stringifyNumber(node);
   }
 };
 var float = {
@@ -35286,8 +38056,8 @@ var floatExp2 = {
   test: /^[-+]?(?:[0-9][0-9_]*)?(?:\.[0-9_]*)?[eE][-+]?[0-9]+$/,
   resolve: (str) => parseFloat(str.replace(/_/g, "")),
   stringify(node) {
-    const num2 = Number(node.value);
-    return isFinite(num2) ? num2.toExponential() : stringifyNumber(node);
+    const num = Number(node.value);
+    return isFinite(num) ? num.toExponential() : stringifyNumber(node);
   }
 };
 var float2 = {
@@ -35463,23 +38233,23 @@ init_define_BUILD_INFO();
 function parseSexagesimal(str, asBigInt) {
   const sign = str[0];
   const parts = sign === "-" || sign === "+" ? str.substring(1) : str;
-  const num2 = (n2) => asBigInt ? BigInt(n2) : Number(n2);
-  const res = parts.replace(/_/g, "").split(":").reduce((res2, p2) => res2 * num2(60) + num2(p2), num2(0));
-  return sign === "-" ? num2(-1) * res : res;
+  const num = (n2) => asBigInt ? BigInt(n2) : Number(n2);
+  const res = parts.replace(/_/g, "").split(":").reduce((res2, p2) => res2 * num(60) + num(p2), num(0));
+  return sign === "-" ? num(-1) * res : res;
 }
 function stringifySexagesimal(node) {
   let { value } = node;
-  let num2 = (n2) => n2;
+  let num = (n2) => n2;
   if (typeof value === "bigint")
-    num2 = (n2) => BigInt(n2);
+    num = (n2) => BigInt(n2);
   else if (isNaN(value) || !isFinite(value))
     return stringifyNumber(node);
   let sign = "";
   if (value < 0) {
     sign = "-";
-    value *= num2(-1);
+    value *= num(-1);
   }
-  const _60 = num2(60);
+  const _60 = num(60);
   const parts = [value % _60];
   if (value < 60) {
     parts.unshift(0);
@@ -39132,6 +41902,10 @@ function stringify3(value, replacer, options) {
   return new Document3(value, _replacer, options).toString(options);
 }
 
+// enhanced/serialization/yaml/yaml_serializer.ts
+init_type_registry();
+init_errors();
+
 // enhanced/serialization/yaml/yaml_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_YAML_SERIALIZATION_CONFIG = {
@@ -39653,6 +42427,8 @@ var YamlSerializer = class _YamlSerializer {
 
 // enhanced/serialization/yaml/yaml_deserializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 var YamlDeserializer = class _YamlDeserializer {
   config;
   /**
@@ -39865,6 +42641,8 @@ init_define_BUILD_INFO();
 // enhanced/serialization/xml/xml_serializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser = __toESM(require_fxp());
+init_type_registry();
+init_errors();
 
 // enhanced/serialization/xml/xml_config.ts
 init_define_BUILD_INFO();
@@ -40085,6 +42863,8 @@ ${xml2}` : `${declaration}${xml2}`;
 // enhanced/serialization/xml/xml_deserializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser2 = __toESM(require_fxp());
+init_type_registry();
+init_errors();
 var XmlDeserializer = class {
   config;
   /**
@@ -40257,11 +43037,17 @@ var XmlDeserializer = class {
   }
 };
 
+// enhanced/serialization/xml/mod.ts
+init_type_registry();
+init_errors();
+
 // enhanced/serialization/markdown/mod.ts
 init_define_BUILD_INFO();
 
 // enhanced/serialization/markdown/markdown_serializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 
 // enhanced/serialization/markdown/markdown_config.ts
 init_define_BUILD_INFO();
@@ -40942,21 +43728,21 @@ var MarkdownSerializer = class _MarkdownSerializer {
     return "";
   }
   formatDvProportion(dv) {
-    const num2 = dv.numerator ?? "";
+    const num = dv.numerator ?? "";
     const den = dv.denominator ?? "";
     switch (dv.type) {
       case 0:
-        return `${num2}:${den}`;
+        return `${num}:${den}`;
       case 1:
-        return String(num2);
+        return String(num);
       case 2:
-        return `${num2}%`;
+        return `${num}%`;
       case 3:
-        return `${num2}/${den}`;
+        return `${num}/${den}`;
       case 4:
-        return `${num2}/${den}`;
+        return `${num}/${den}`;
       default:
-        return den ? `${num2}/${den}` : String(num2);
+        return den ? `${num}/${den}` : String(num);
     }
   }
   formatDvOrdinal(dv) {
@@ -41164,6 +43950,8 @@ init_define_BUILD_INFO();
 
 // enhanced/serialization/asciidoc/asciidoc_serializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 
 // enhanced/serialization/asciidoc/asciidoc_config.ts
 init_define_BUILD_INFO();
@@ -41815,21 +44603,21 @@ var AsciidocSerializer = class _AsciidocSerializer {
     return "";
   }
   formatDvProportion(dv) {
-    const num2 = dv.numerator ?? "";
+    const num = dv.numerator ?? "";
     const den = dv.denominator ?? "";
     switch (dv.type) {
       case 0:
-        return `${num2}:${den}`;
+        return `${num}:${den}`;
       case 1:
-        return String(num2);
+        return String(num);
       case 2:
-        return `${num2}%`;
+        return `${num}%`;
       case 3:
-        return `${num2}/${den}`;
+        return `${num}/${den}`;
       case 4:
-        return `${num2}/${den}`;
+        return `${num}/${den}`;
       default:
-        return den ? `${num2}/${den}` : String(num2);
+        return den ? `${num}/${den}` : String(num);
     }
   }
   formatDvOrdinal(dv) {
@@ -42073,6 +44861,8 @@ init_define_BUILD_INFO();
 
 // enhanced/serialization/typescript/typescript_constructor_serializer.ts
 init_define_BUILD_INFO();
+init_type_registry();
+init_errors();
 var DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG = {
   useTerseFormat: true,
   usePrimitiveConstructors: true,
@@ -42379,921 +45169,8 @@ ${" ".repeat(this.config.indent * (depth - 1))}}`;
   }
 };
 
-// enhanced/serialization/simplified/mod.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/normalize.ts
-init_define_BUILD_INFO();
-function normalizeWebTemplateId(text) {
-  return text.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/_+/g, "_") || "node";
-}
-function nodeIdToAtCode(nodeId) {
-  if (!nodeId)
-    return "";
-  const m2 = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
-  if (m2) {
-    const digits = m2[1].replace(/\./g, "");
-    return `at${digits.padStart(4, "0")}`;
-  }
-  return nodeId;
-}
-function templateRootId(templateId) {
-  const base2 = templateId.split(".")[0] ?? templateId;
-  return normalizeWebTemplateId(base2);
-}
-function joinAqlPath(base2, segment) {
-  const seg = segment.startsWith("/") ? segment.slice(1) : segment;
-  if (!base2 || base2 === "/")
-    return `/${seg}`;
-  return `${base2.replace(/\/$/, "")}/${seg}`;
-}
-
-// enhanced/serialization/simplified/web_template_builder.ts
-init_define_BUILD_INFO();
-function termLabel(val) {
-  if (typeof val === "string" && val && val !== "[object Object]")
-    return val;
-  if (val && typeof val === "object") {
-    const o2 = val;
-    return termLabel(o2.value) ?? termLabel(o2.text) ?? termLabel(o2["#text"]);
-  }
-  return void 0;
-}
-var SKIP_RM_TYPES = /* @__PURE__ */ new Set([
-  "ITEM_TREE",
-  "ITEM_LIST",
-  "ITEM_SINGLE",
-  "ITEM_TABLE"
-]);
-var DV_LEAF_TYPES = /* @__PURE__ */ new Set([
-  "DV_TEXT",
-  "DV_CODED_TEXT",
-  "DV_QUANTITY",
-  "DV_COUNT",
-  "DV_PROPORTION",
-  "DV_DATE",
-  "DV_TIME",
-  "DV_DATE_TIME",
-  "DV_DURATION",
-  "DV_BOOLEAN",
-  "DV_IDENTIFIER",
-  "DV_URI",
-  "DV_EHR_URI",
-  "DV_MULTIMEDIA",
-  "DV_PARSABLE",
-  "CODE_PHRASE"
-]);
-var CONTEXT_ATTRS = /* @__PURE__ */ new Set([
-  "category",
-  "composer",
-  "language",
-  "territory",
-  "context"
-]);
-function multiplicityBounds(m2) {
-  if (!m2)
-    return { min: 0, max: 1 };
-  const min = m2.lower ?? 0;
-  const max2 = m2.upper_unbounded ? -1 : m2.upper ?? 1;
-  return { min, max: max2 };
-}
-function lookupTerm(terms, nodeId) {
-  if (!nodeId)
-    return {};
-  const at2 = nodeIdToAtCode(nodeId);
-  const raw = terms[nodeId] ?? terms[at2];
-  if (!raw)
-    return {};
-  return {
-    text: termLabel(raw.text),
-    description: termLabel(raw.description)
-  };
-}
-function buildInputs(rmType, cObj) {
-  const inputs = [];
-  if (rmType === "DV_QUANTITY" || rmType === "C_QUANTITY") {
-    inputs.push({ type: "DECIMAL", suffix: "magnitude" });
-    inputs.push({ type: "TEXT", suffix: "unit" });
-  } else if (rmType === "DV_CODED_TEXT" || rmType === "C_CODED_TEXT") {
-    inputs.push({ type: "TEXT", suffix: "code" });
-    inputs.push({ type: "TEXT", suffix: "value" });
-    inputs.push({ type: "TEXT", suffix: "terminology" });
-  } else if (rmType.startsWith("DV_") || rmType === "C_STRING") {
-    inputs.push({ type: "TEXT", suffix: "value" });
-  } else if (rmType === "CODE_PHRASE" || rmType === "C_TERMINOLOGY_CODE") {
-    inputs.push({ type: "TEXT", suffix: "code" });
-    inputs.push({ type: "TEXT", suffix: "terminology" });
-  }
-  if (cObj instanceof C_STRING) {
-    const list = cObj.list;
-    if (list?.length) {
-      inputs.push({
-        type: "TEXT",
-        suffix: "value",
-        list: list.map((v2) => ({ value: v2 }))
-      });
-    }
-  }
-  return inputs;
-}
-function isDataValueType(rmType) {
-  return DV_LEAF_TYPES.has(rmType) || rmType.startsWith("C_");
-}
-function nodeShell(base2, patch) {
-  const {
-    children: _children,
-    inputs: _inputs,
-    inContext: _inContext,
-    ...rest
-  } = base2;
-  return { ...rest, ...patch };
-}
-var WebTemplateBuilder = class {
-  lang;
-  includeContext;
-  terms = {};
-  constructor(options) {
-    this.lang = options?.defaultLanguage ?? "en";
-    this.includeContext = options?.includeContextNodes ?? true;
-  }
-  build(opt) {
-    const templateId = opt.archetype_id?.value ?? "template.en.v1";
-    this.terms = opt.ontology?.term_definitions?.[this.lang] ?? {};
-    if (!opt.definition) {
-      throw new Error("Operational template has no definition");
-    }
-    const rootId = templateRootId(templateId);
-    const isComposition = opt.definition.rm_type_name === "COMPOSITION";
-    const tree = this.buildFromComplex(
-      opt.definition,
-      "/",
-      rootId,
-      isComposition
-    );
-    const ctxNodes = isComposition && this.includeContext ? this.defaultCompositionContextNodes() : [];
-    const existingCtxIds = new Set(
-      (tree.children ?? []).filter((c2) => c2.inContext).map((c2) => c2.id)
-    );
-    const mergedCtx = [
-      ...ctxNodes.filter((n2) => !existingCtxIds.has(n2.id)),
-      ...(tree.children ?? []).filter((c2) => c2.inContext)
-    ];
-    const contentChildren = (tree.children ?? []).filter((c2) => !c2.inContext);
-    return {
-      templateId,
-      version: "1.0.0",
-      defaultLanguage: opt.original_language ?? this.lang,
-      tree: {
-        ...tree,
-        id: rootId,
-        rmType: opt.definition.rm_type_name ?? "COMPOSITION",
-        aqlPath: "/",
-        children: [...mergedCtx, ...contentChildren]
-      }
-    };
-  }
-  buildFromComplex(obj, aqlPath, idHint, isCompositionRoot = false) {
-    const term = lookupTerm(this.terms, obj.node_id);
-    const { min, max: max2 } = multiplicityBounds(obj.occurrences);
-    const rmType = obj.rm_type_name ?? "COMPLEX";
-    const node = {
-      id: normalizeWebTemplateId(term.text ?? idHint ?? rmType),
-      name: term.text ?? idHint,
-      localizedName: term.text,
-      rmType,
-      nodeId: nodeIdToAtCode(obj.node_id),
-      min,
-      max: max2,
-      aqlPath,
-      localizedNames: term.text ? { [this.lang]: term.text } : void 0,
-      localizedDescriptions: term.description ? { [this.lang]: term.description } : void 0,
-      children: []
-    };
-    if (SKIP_RM_TYPES.has(rmType)) {
-      return this.flattenDataStructure(obj, aqlPath, node);
-    }
-    if (rmType === "HISTORY") {
-      return this.flattenHistory(obj, aqlPath, node);
-    }
-    if (rmType === "ELEMENT") {
-      return this.buildElement(obj, aqlPath, node);
-    }
-    for (const attr of obj.attributes ?? []) {
-      const attrName2 = attr.rm_attribute_name;
-      if (!attrName2)
-        continue;
-      if (isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName2)) {
-        node.children.push(...this.buildContextNodes(attr));
-        continue;
-      }
-      const children = attr.children ?? [];
-      for (const child of children) {
-        const childPath = joinAqlPath(
-          aqlPath,
-          `${attrName2}[${nodeIdToAtCode(child.node_id) || "at0000"}]`
-        );
-        const childLabel = lookupTerm(this.terms, child.node_id).text ?? child.rm_type_name?.toLowerCase() ?? attrName2;
-        if (child instanceof C_COMPLEX_OBJECT) {
-          if (SKIP_RM_TYPES.has(child.rm_type_name ?? "")) {
-            const flattened = this.flattenDataStructure(child, childPath, node);
-            node.children.push(...flattened.children ?? []);
-          } else if (child.rm_type_name === "HISTORY") {
-            node.children.push(
-              this.flattenHistory(
-                child,
-                childPath,
-                nodeShell(node, {
-                  id: normalizeWebTemplateId(attrName2),
-                  rmType: "HISTORY",
-                  aqlPath: childPath
-                })
-              )
-            );
-          } else if (child.rm_type_name === "ELEMENT") {
-            node.children.push(
-              this.buildElement(
-                child,
-                childPath,
-                nodeShell(node, {
-                  id: normalizeWebTemplateId(childLabel),
-                  rmType: "ELEMENT",
-                  aqlPath: childPath
-                })
-              )
-            );
-          } else {
-            node.children.push(this.buildFromComplex(
-              child,
-              childPath,
-              childLabel
-            ));
-          }
-        } else if (isDataValueType(child.rm_type_name ?? "")) {
-          node.children.push(this.buildLeaf(child, childPath, childLabel));
-        }
-      }
-    }
-    if (!node.children?.length)
-      delete node.children;
-    return node;
-  }
-  flattenDataStructure(obj, aqlPath, parent) {
-    const out = [];
-    for (const attr of obj.attributes ?? []) {
-      const attrName2 = attr.rm_attribute_name;
-      if (!attrName2)
-        continue;
-      const children = attr.children ?? [];
-      for (const child of children) {
-        const childPath = joinAqlPath(
-          aqlPath,
-          `${attrName2}[${nodeIdToAtCode(child.node_id) || "at0000"}]`
-        );
-        const itemLabel = lookupTerm(this.terms, child.node_id).text ?? attrName2;
-        const isComplex = child instanceof C_COMPLEX_OBJECT;
-        if (isComplex) {
-          if (child.rm_type_name === "ELEMENT") {
-            out.push(this.buildElement(
-              child,
-              childPath,
-              nodeShell(parent, {
-                id: normalizeWebTemplateId(itemLabel),
-                rmType: "ELEMENT",
-                aqlPath: childPath
-              })
-            ));
-          } else {
-            out.push(this.buildFromComplex(
-              child,
-              childPath,
-              itemLabel
-            ));
-          }
-        }
-      }
-    }
-    return nodeShell(parent, { children: out.length ? out : void 0 });
-  }
-  flattenHistory(obj, aqlPath, shell) {
-    const eventsAttr = obj.attributes?.find(
-      (a2) => a2.rm_attribute_name === "events"
-    );
-    const events = eventsAttr?.children ?? [];
-    const eventNodes = [];
-    for (const ev of events) {
-      if (!(ev instanceof C_COMPLEX_OBJECT))
-        continue;
-      const evPath = joinAqlPath(
-        aqlPath,
-        `events[${nodeIdToAtCode(ev.node_id)}]`
-      );
-      const term = lookupTerm(this.terms, ev.node_id);
-      const { min, max: max2 } = multiplicityBounds(ev.occurrences);
-      const eventShell = {
-        id: normalizeWebTemplateId(term.text ?? "event"),
-        name: term.text,
-        localizedName: term.text,
-        rmType: ev.rm_type_name ?? "EVENT",
-        nodeId: nodeIdToAtCode(ev.node_id),
-        min,
-        max: max2,
-        aqlPath: evPath,
-        children: []
-      };
-      const dataAttr = ev.attributes?.find(
-        (a2) => a2.rm_attribute_name === "data"
-      );
-      const dataChild = dataAttr?.children?.[0];
-      if (dataChild instanceof C_COMPLEX_OBJECT) {
-        eventNodes.push(this.flattenDataStructure(
-          dataChild,
-          joinAqlPath(evPath, `data[${nodeIdToAtCode(dataChild.node_id)}]`),
-          eventShell
-        ));
-      } else {
-        eventNodes.push(eventShell);
-      }
-    }
-    return nodeShell(shell, {
-      id: normalizeWebTemplateId(shell.id || "history"),
-      children: eventNodes.length ? eventNodes : void 0
-    });
-  }
-  buildElement(obj, aqlPath, shell) {
-    const valueAttr = obj.attributes?.find(
-      (a2) => a2.rm_attribute_name === "value"
-    );
-    const valueChild = valueAttr?.children?.[0];
-    if (valueChild) {
-      return this.buildLeaf(valueChild, aqlPath, shell.id);
-    }
-    return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
-  }
-  buildLeaf(obj, aqlPath, idHint) {
-    const rmType = obj.rm_type_name ?? "DV_TEXT";
-    const term = lookupTerm(this.terms, obj.node_id);
-    const { min, max: max2 } = multiplicityBounds(obj.occurrences);
-    return {
-      id: normalizeWebTemplateId(term.text ?? idHint),
-      name: term.text ?? idHint,
-      localizedName: term.text,
-      rmType,
-      nodeId: nodeIdToAtCode(obj.node_id),
-      min,
-      max: max2,
-      aqlPath,
-      inputs: buildInputs(rmType, obj)
-    };
-  }
-  defaultCompositionContextNodes() {
-    return [
-      {
-        id: "language",
-        rmType: "CODE_PHRASE",
-        min: 1,
-        max: 1,
-        aqlPath: "/language",
-        inContext: true,
-        inputs: [{ type: "TEXT", suffix: "value" }]
-      },
-      {
-        id: "territory",
-        rmType: "CODE_PHRASE",
-        min: 1,
-        max: 1,
-        aqlPath: "/territory",
-        inContext: true,
-        inputs: [{ type: "TEXT", suffix: "value" }]
-      },
-      {
-        id: "composer_name",
-        rmType: "DV_TEXT",
-        min: 0,
-        max: 1,
-        aqlPath: "/composer",
-        inContext: true,
-        inputs: [{ type: "TEXT", suffix: "value" }]
-      },
-      {
-        id: "time",
-        rmType: "DV_DATE_TIME",
-        min: 0,
-        max: 1,
-        aqlPath: "/context/start_time",
-        inContext: true,
-        inputs: [{ type: "TEXT", suffix: "value" }]
-      }
-    ];
-  }
-  buildContextNodes(attr) {
-    const name2 = attr.rm_attribute_name ?? "context";
-    const child = attr.children?.[0];
-    const rmType = child?.rm_type_name ?? name2.toUpperCase();
-    if (name2 === "context" && child instanceof C_COMPLEX_OBJECT) {
-      const nodes = [];
-      for (const ctxAttr of child.attributes ?? []) {
-        const ctxName = ctxAttr.rm_attribute_name;
-        if (!ctxName)
-          continue;
-        nodes.push({
-          id: ctxName,
-          rmType: "DV_TEXT",
-          min: 0,
-          max: 1,
-          aqlPath: `/context/${ctxName}`,
-          inContext: true,
-          inputs: [{ type: "TEXT", suffix: "value" }]
-        });
-      }
-      return nodes;
-    }
-    return [{
-      id: name2,
-      rmType,
-      min: 1,
-      max: 1,
-      aqlPath: `/${name2}`,
-      inContext: true,
-      inputs: buildInputs(rmType, child)
-    }];
-  }
-};
-function buildWebTemplate(opt, options) {
-  return new WebTemplateBuilder(options).build(opt);
-}
-
-// enhanced/serialization/simplified/flat_serializer.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/instance_nav.ts
-init_define_BUILD_INFO();
-function rmTypeName(obj) {
-  if (obj == null || typeof obj !== "object")
-    return "";
-  const record = obj;
-  if (typeof record._type === "string")
-    return record._type;
-  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
-}
-function rmProp(obj, key) {
-  if (obj == null || typeof obj !== "object")
-    return void 0;
-  const record = obj;
-  if (key in record)
-    return record[key];
-  let proto = Object.getPrototypeOf(obj);
-  while (proto && proto !== Object.prototype) {
-    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-    if (descriptor?.get) {
-      try {
-        return descriptor.get.call(obj);
-      } catch {
-        return void 0;
-      }
-    }
-    proto = Object.getPrototypeOf(proto);
-  }
-  return void 0;
-}
-function normalizeNodeId(id2) {
-  if (/^id\d/i.test(id2)) {
-    const digits = id2.replace(/^id/i, "").replace(/\./g, "");
-    return `at${digits.padStart(4, "0")}`;
-  }
-  return id2;
-}
-function nodeIdsMatch(a2, b3) {
-  if (a2 == null)
-    return false;
-  const sa2 = String(a2);
-  return sa2 === b3 || normalizeNodeId(sa2) === normalizeNodeId(b3);
-}
-function valuesByNodeId(arr, nodeId) {
-  if (!nodeId)
-    return arr;
-  const found = arr.filter(
-    (item) => nodeIdsMatch(rmProp(item, "archetype_node_id"), nodeId)
-  );
-  return found.length ? found : arr.slice(0, 1);
-}
-function filterByRmType(values2, rmType) {
-  if (!rmType)
-    return values2;
-  const filtered = values2.filter((item) => rmTypeName(item) === rmType);
-  return filtered.length ? filtered : values2;
-}
-function resolveChildWebTemplateNodes(rootInstance, parentInstance, parentNode, childNode) {
-  const parentPath = parentNode.aqlPath ?? "/";
-  const childPath = childNode.aqlPath ?? "/";
-  if (parentPath === "/" || parentPath === "") {
-    return resolveAllAtWebTemplateNode(rootInstance, childNode);
-  }
-  if (childPath.startsWith(parentPath)) {
-    const relative = childPath.slice(parentPath.length);
-    const relativePath = relative.startsWith("/") ? relative : `/${relative}`;
-    const values2 = resolveAllAtPath(parentInstance, relativePath);
-    return filterByRmType(values2, childNode.rmType);
-  }
-  return filterByRmType(values, childNode.rmType);
-}
-function resolveAllAtWebTemplateNode(instance, node) {
-  const values2 = node.aqlPath === "/" ? [instance] : resolveAllAtPath(instance, node.aqlPath);
-  return filterByRmType(values2, node.rmType);
-}
-function resolveAllAtPath(instance, aqlPath) {
-  if (!instance || !aqlPath)
-    return [];
-  const normalized = aqlPath.replace(/\/+/g, "/");
-  const segments = normalized.match(/\/[^/]+/g);
-  if (!segments?.length)
-    return [instance];
-  let current = [instance];
-  for (const raw of segments) {
-    const m2 = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(raw);
-    if (!m2)
-      continue;
-    const [, attr, nodeId] = m2;
-    const nextValues = [];
-    for (const item of current) {
-      const obj = item;
-      if (!obj || typeof obj !== "object")
-        continue;
-      const next = rmProp(obj, attr);
-      if (next == null)
-        continue;
-      if (Array.isArray(next)) {
-        nextValues.push(...valuesByNodeId(next, nodeId));
-      } else if (!nodeId || nodeIdsMatch(rmProp(next, "archetype_node_id"), nodeId)) {
-        nextValues.push(next);
-      }
-    }
-    current = nextValues;
-    if (!current.length)
-      return [];
-  }
-  return current.map((item) => {
-    if (rmTypeName(item) === "ELEMENT" && rmProp(item, "value") != null) {
-      return rmProp(item, "value");
-    }
-    return item;
-  });
-}
-
-// enhanced/serialization/simplified/value_extract.ts
-init_define_BUILD_INFO();
-function rmTypeName2(obj) {
-  if (obj == null || typeof obj !== "object")
-    return "";
-  const record = obj;
-  if (typeof record._type === "string")
-    return record._type;
-  return TypeRegistry.getTypeNameFromInstance(obj) ?? "";
-}
-function rmProp2(obj, key) {
-  if (obj == null || typeof obj !== "object")
-    return void 0;
-  const record = obj;
-  if (key in record)
-    return record[key];
-  let proto = Object.getPrototypeOf(obj);
-  while (proto && proto !== Object.prototype) {
-    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-    if (descriptor?.get) {
-      try {
-        return descriptor.get.call(obj);
-      } catch {
-        return void 0;
-      }
-    }
-    proto = Object.getPrototypeOf(proto);
-  }
-  return void 0;
-}
-function num(v2) {
-  if (typeof v2 === "number")
-    return v2;
-  if (typeof v2 === "string" && v2 !== "")
-    return Number(v2);
-  return void 0;
-}
-function extractValueFields(rmValue, inputs) {
-  if (rmValue == null)
-    return {};
-  const obj = rmValue;
-  const type = rmTypeName2(rmValue);
-  const out = {};
-  const suffixes = inputs?.map((i3) => i3.suffix).filter(Boolean);
-  const add = (suffix, value) => {
-    if (value == null)
-      return;
-    if (typeof value === "boolean" || typeof value === "number") {
-      out[suffix] = value;
-    } else {
-      out[suffix] = String(value);
-    }
-  };
-  if (type === "DV_QUANTITY") {
-    add("magnitude", rmProp2(rmValue, "magnitude"));
-    add("unit", rmProp2(rmValue, "units"));
-  } else if (type === "DV_CODED_TEXT") {
-    const code = rmProp2(rmValue, "defining_code");
-    add("code", rmProp2(code, "code_string"));
-    add("value", rmProp2(rmValue, "value"));
-    add("terminology", rmProp2(rmProp2(code, "terminology_id"), "value"));
-  } else if (type === "CODE_PHRASE") {
-    add("code", rmProp2(rmValue, "code_string"));
-    add("terminology", rmProp2(rmProp2(rmValue, "terminology_id"), "value"));
-  } else if (type === "DV_DATE_TIME" || type === "DV_DATE" || type === "DV_TIME" || type === "DV_DURATION") {
-    add("value", rmProp2(rmValue, "value"));
-  } else if (type === "DV_BOOLEAN") {
-    add("value", rmProp2(rmValue, "value"));
-  } else if (type === "DV_TEXT" || type === "DV_URI" || type === "DV_EHR_URI" || type === "DV_IDENTIFIER") {
-    add("value", rmProp2(rmValue, "value") ?? rmProp2(rmValue, "id"));
-  } else if (type === "DV_COUNT" || type === "DV_PROPORTION") {
-    add(
-      "magnitude",
-      rmProp2(rmValue, "magnitude") ?? rmProp2(rmValue, "numerator")
-    );
-    if (rmProp2(rmValue, "units") != null)
-      add("unit", rmProp2(rmValue, "units"));
-  } else {
-    if (suffixes?.length) {
-      for (const s2 of suffixes) {
-        if (s2 === "value")
-          add("value", rmProp2(rmValue, "value"));
-        else if (s2 === "code") {
-          add(
-            "code",
-            rmProp2(rmProp2(rmValue, "defining_code"), "code_string") ?? rmProp2(rmValue, "code_string")
-          );
-        } else if (s2 === "terminology") {
-          add(
-            "terminology",
-            rmProp2(rmProp2(rmValue, "terminology_id"), "value") ?? rmProp2(
-              rmProp2(rmProp2(rmValue, "defining_code"), "terminology_id"),
-              "value"
-            )
-          );
-        } else if (s2 === "magnitude") {
-          add("magnitude", num(rmProp2(rmValue, "magnitude")));
-        } else if (s2 === "unit")
-          add("unit", rmProp2(rmValue, "units"));
-      }
-    } else if (rmProp2(rmValue, "value") != null) {
-      add("value", rmProp2(rmValue, "value"));
-    }
-  }
-  return out;
-}
-function extractContextField(instance, nodeId) {
-  if (rmTypeName2(instance) !== "COMPOSITION")
-    return {};
-  if (nodeId === "composer_name") {
-    const name2 = rmProp2(instance, "composer");
-    const composerName = rmProp2(name2, "name");
-    return composerName != null ? { value: String(composerName) } : {};
-  }
-  if (nodeId === "time") {
-    const ctx = rmProp2(instance, "context");
-    const t3 = rmProp2(rmProp2(ctx, "start_time"), "value");
-    return t3 != null ? { value: String(t3) } : {};
-  }
-  const direct = rmProp2(instance, nodeId);
-  if (direct == null) {
-    const ctx = rmProp2(instance, "context");
-    const ctxVal = ctx?.[nodeId];
-    if (ctxVal != null)
-      return extractValueFields(ctxVal);
-    return {};
-  }
-  if (nodeId === "language" || nodeId === "territory") {
-    const code = rmProp2(direct, "code_string");
-    return code != null ? { value: String(code) } : {};
-  }
-  return extractValueFields(direct);
-}
-
-// enhanced/serialization/simplified/flat_serializer.ts
-function joinFlatPath(parts) {
-  return parts.join("/");
-}
-function indexSuffix(max2, index) {
-  return max2 !== 1 || index > 0 ? `:${index}` : "";
-}
-var FlatSerializer = class {
-  constructor(webTemplate, options = {}) {
-    this.webTemplate = webTemplate;
-    this.options = options;
-    this.rootId = templateRootId(webTemplate.templateId);
-  }
-  out = {};
-  rootId;
-  instance;
-  serialize(instance) {
-    this.out = {};
-    this.instance = instance;
-    this.walkNode(this.webTemplate.tree, [this.rootId], 0);
-    return { ...this.out };
-  }
-  serializeJson(instance) {
-    const payload = this.serialize(instance);
-    return JSON.stringify(
-      payload,
-      null,
-      this.options.prettyPrint ? 2 : void 0
-    );
-  }
-  walkNode(node, pathParts, index, scope) {
-    if (node.inContext) {
-      this.emitContext(node);
-      return;
-    }
-    const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
-    if (!nodeValues.length)
-      return;
-    const max2 = node.max === -1 ? Math.max(node.min, 1) : node.max;
-    const indexed = max2 !== 1;
-    const part = node.id + (indexed ? indexSuffix(max2, index) : "");
-    const nextPath = [...pathParts, part];
-    const isLeaf = node.inputs?.length && !node.children?.length;
-    if (isLeaf) {
-      const data = nodeValues[index] ?? nodeValues[0];
-      const fields = extractValueFields(data, node.inputs);
-      const base2 = joinFlatPath(nextPath);
-      for (const [suffix, value] of Object.entries(fields)) {
-        this.out[`${base2}|${suffix}`] = value;
-      }
-      return;
-    }
-    const currentData = nodeValues[index] ?? nodeValues[0];
-    if (node.children?.length) {
-      for (const child of node.children) {
-        const childValues = resolveChildWebTemplateNodes(
-          this.instance,
-          currentData,
-          node,
-          child
-        );
-        const repeats = Math.max(childValues.length, 1);
-        for (let i3 = 0; i3 < repeats; i3++) {
-          this.walkNode(child, nextPath, i3, childValues[i3] ?? childValues[0]);
-        }
-      }
-    }
-  }
-  emitContext(node) {
-    const fields = extractContextField(this.instance, node.id);
-    if (node.inputs?.length) {
-      for (const input of node.inputs) {
-        const suffix = input.suffix ?? "value";
-        const val = fields[suffix] ?? fields.value;
-        if (val != null) {
-          const key = suffix === "value" ? `ctx/${node.id}` : `ctx/${node.id}|${suffix}`;
-          this.out[key] = val;
-        }
-      }
-    } else if (fields.value != null) {
-      this.out[`ctx/${node.id}`] = fields.value;
-    }
-  }
-};
-function serializeToFlatJson(instance, webTemplate, options) {
-  return new FlatSerializer(webTemplate, options).serializeJson(instance);
-}
-
-// enhanced/serialization/simplified/flat_deserializer.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/rm_instance_builder.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/value_build.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/structured_serializer.ts
-init_define_BUILD_INFO();
-var StructuredSerializer = class {
-  constructor(webTemplate, options = {}) {
-    this.webTemplate = webTemplate;
-    this.options = options;
-    this.rootId = templateRootId(webTemplate.templateId);
-  }
-  rootId;
-  instance;
-  serialize(instance) {
-    this.instance = instance;
-    const result2 = {};
-    const ctxNodes = this.collectContextNodes(this.webTemplate.tree);
-    if (ctxNodes.length) {
-      result2.ctx = this.buildContext(ctxNodes);
-    }
-    const contentChildren = (this.webTemplate.tree.children ?? []).filter(
-      (c2) => !c2.inContext
-    );
-    if (contentChildren.length) {
-      result2[this.rootId] = this.buildBranch(contentChildren);
-    }
-    return result2;
-  }
-  serializeJson(instance) {
-    return JSON.stringify(
-      this.serialize(instance),
-      null,
-      this.options.prettyPrint ? 2 : void 0
-    );
-  }
-  collectContextNodes(node) {
-    const ctx = [];
-    if (node.inContext)
-      ctx.push(node);
-    for (const child of node.children ?? []) {
-      if (child.inContext)
-        ctx.push(child);
-    }
-    return ctx;
-  }
-  buildContext(nodes) {
-    const ctx = {};
-    for (const node of nodes) {
-      const fields = extractContextField(this.instance, node.id);
-      if (node.inputs?.length && (fields.code != null || fields.terminology != null)) {
-        const entry = {};
-        for (const input of node.inputs) {
-          const suffix = input.suffix ?? "value";
-          const val = fields[suffix];
-          if (val != null)
-            entry[`|${suffix}`] = val;
-        }
-        ctx[node.id] = [entry];
-      } else if (fields.value != null) {
-        ctx[node.id] = fields.value;
-      }
-    }
-    return ctx;
-  }
-  buildBranch(nodes) {
-    const out = {};
-    for (const node of nodes) {
-      const values2 = this.buildNodeArray(node);
-      if (values2.length)
-        out[node.id] = values2;
-    }
-    return out;
-  }
-  buildNodeArray(node, scope) {
-    const nodeValues = scope != null ? [scope] : resolveAllAtWebTemplateNode(this.instance, node);
-    if (!nodeValues.length)
-      return [];
-    const isLeaf = node.inputs?.length && !node.children?.length;
-    if (isLeaf) {
-      return nodeValues.flatMap((data) => {
-        const fields = extractValueFields(data, node.inputs);
-        if (!Object.keys(fields).length)
-          return [];
-        const entry = {};
-        for (const [suffix, value] of Object.entries(fields)) {
-          entry[`|${suffix}`] = value;
-        }
-        return [entry];
-      });
-    }
-    const items = [];
-    for (let i3 = 0; i3 < nodeValues.length; i3++) {
-      const currentData = nodeValues[i3];
-      const item = {};
-      for (const child of node.children ?? []) {
-        const childValues = resolveChildWebTemplateNodes(
-          this.instance,
-          currentData,
-          node,
-          child
-        );
-        if (!childValues.length)
-          continue;
-        const built = childValues.flatMap(
-          (childData) => this.buildNodeArray(child, childData)
-        );
-        if (built.length)
-          item[child.id] = built;
-      }
-      if (Object.keys(item).length)
-        items.push(item);
-    }
-    return items;
-  }
-};
-function serializeToStructuredJson(instance, webTemplate, options) {
-  return new StructuredSerializer(webTemplate, options).serializeJson(instance);
-}
-
-// enhanced/serialization/simplified/structured_deserializer.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/structured_to_flat.ts
-init_define_BUILD_INFO();
-
-// enhanced/serialization/simplified/flat_validator.ts
-init_define_BUILD_INFO();
+// examples/demo-app/src/converter.ts
+init_mod();
 
 // enhanced/parser/mod.ts
 init_define_BUILD_INFO();
@@ -44068,6 +45945,8 @@ var OdinParser = class {
 
 // enhanced/parser/odin_aom_mapper.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 function odinString(value) {
   if (typeof value === "string") {
     return value.replace(/^["']|["']$/g, "");
@@ -44172,6 +46051,8 @@ function applyTerminologyOdin(archetype, terminologyData) {
 
 // enhanced/parser/cadl_parser.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 var CadlParser = class {
   tokens;
   position = 0;
@@ -44588,6 +46469,7 @@ var CadlParser = class {
 
 // enhanced/parser/rules_parser.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 var RULE_TYPE_NAMES = /* @__PURE__ */ new Set([
   "Integer",
   "Real",
@@ -44945,6 +46827,8 @@ var RulesParser = class {
 
 // enhanced/parser/aom_odin_sections.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 function applyAnnotationsOdin(archetype, data) {
   const ann = new RESOURCE_ANNOTATIONS();
   const bag = ann;
@@ -44967,6 +46851,8 @@ function applyRmOverlayOdin(archetype, data) {
 }
 
 // enhanced/parser/adl2_parser.ts
+init_openehr_am();
+init_openehr_base();
 var ADL2Parser = class {
   tokens;
   position = 0;
@@ -45331,9 +47217,9 @@ function hasSectionHeader(source, section) {
 }
 function detectAdlVersion(source) {
   const head = source.slice(0, 1200);
-  const meta2 = head.match(/adl_version\s*=\s*([\d.]+)/i);
-  if (meta2) {
-    const v2 = meta2[1];
+  const meta3 = head.match(/adl_version\s*=\s*([\d.]+)/i);
+  if (meta3) {
+    const v2 = meta3[1];
     if (v2.startsWith("2"))
       return "2.x";
     if (v2.startsWith("1.4") || v2.startsWith("1.5"))
@@ -45414,13 +47300,13 @@ function normalizeArchetypeHeader(text, opts, warnings) {
         headerDone = true;
         continue;
       }
-      const meta2 = [
+      const meta3 = [
         `adl_version=${opts.targetAdlVersion}`,
         `rm_release=${opts.rmRelease}`
       ];
       if (opts.markGenerated)
-        meta2.push("generated");
-      out.push(`archetype (${meta2.join("; ")})`);
+        meta3.push("generated");
+      out.push(`archetype (${meta3.join("; ")})`);
       warnings.push("Inserted ADL 2 metadata on archetype header.");
       headerDone = true;
       continue;
@@ -45763,6 +47649,8 @@ init_define_BUILD_INFO();
 // enhanced/parser/legacy/xml_aom_mapper.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser3 = __toESM(require_fxp());
+init_openehr_am();
+init_openehr_base();
 function parseLegacyTemplateXml(xml2) {
   const parser6 = new import_fast_xml_parser3.XMLParser({
     ignoreAttributes: false,
@@ -45815,6 +47703,9 @@ function xsiType(node) {
   const t3 = node["@_type"] ?? node["@_xsi:type"] ?? "";
   return String(t3).replace(/^.*:/, "");
 }
+function setBound(m2, key, value) {
+  m2[key] = value;
+}
 function parseMultiplicity(node) {
   if (!node || typeof node !== "object")
     return void 0;
@@ -45822,9 +47713,9 @@ function parseMultiplicity(node) {
   const interval = n2.interval ?? n2;
   const m2 = new Multiplicity_interval();
   if (interval.lower !== void 0)
-    m2.lower = Number(interval.lower);
+    setBound(m2, "lower", Number(interval.lower));
   if (interval.upper !== void 0)
-    m2.upper = Number(interval.upper);
+    setBound(m2, "upper", Number(interval.upper));
   if (interval.lower_unbounded !== void 0) {
     m2.lower_unbounded = interval.lower_unbounded === true || interval.lower_unbounded === "true";
   }
@@ -45856,7 +47747,7 @@ function parseCardinality(node) {
 function defaultContainerCardinality() {
   const card = new CARDINALITY();
   const interval = new Multiplicity_interval();
-  interval.lower = 0;
+  setBound(interval, "lower", 0);
   interval.upper_unbounded = true;
   card.interval = interval;
   return card;
@@ -45906,14 +47797,18 @@ function parseCObject(node) {
     return parseCTerminologyCode(n2);
   if (mapped === "C_CODED_TEXT")
     return parseCCodedText(n2);
-  if (mapped === "C_STRING")
+  if (mapped === "C_STRING") {
     return parseCString(n2);
-  if (mapped === "C_INTEGER")
+  }
+  if (mapped === "C_INTEGER") {
     return parseCInteger(n2);
-  if (mapped === "C_REAL")
+  }
+  if (mapped === "C_REAL") {
     return parseCReal(n2);
-  if (mapped === "C_BOOLEAN")
+  }
+  if (mapped === "C_BOOLEAN") {
     return parseCBoolean(n2);
+  }
   const fallback = new C_PRIMITIVE_OBJECT();
   fallback.rm_type_name = String(n2.rm_type_name ?? type.replace(/^C_/, "DV_"));
   return fallback;
@@ -45929,11 +47824,11 @@ function parseOccurrencesOrMultiplicity(val) {
       if (lo2 === "*")
         m2.lower_unbounded = true;
       else
-        m2.lower = Number(lo2);
+        setBound(m2, "lower", Number(lo2));
       if (hi2 === "*")
         m2.upper_unbounded = true;
       else
-        m2.upper = Number(hi2);
+        setBound(m2, "upper", Number(hi2));
       return m2;
     }
   }
@@ -45947,6 +47842,9 @@ function amFieldString(n2, ...keys) {
     }
   }
   return void 0;
+}
+function meta(target) {
+  return target;
 }
 function applyOccurrence(target, n2) {
   const rm = amFieldString(n2, "rm_type_name", "rmTypeName");
@@ -46017,9 +47915,9 @@ function parseAttribute(node, parentRmType) {
 }
 function parseCString(n2) {
   const s2 = new C_STRING();
-  applyOccurrence(s2, n2);
-  if (!s2.rm_type_name)
-    s2.rm_type_name = "STRING";
+  applyOccurrence(meta(s2), n2);
+  if (!meta(s2).rm_type_name)
+    meta(s2).rm_type_name = "STRING";
   if (n2.pattern)
     s2.pattern = String(n2.pattern);
   const lists = asArray(n2.list).map(
@@ -46044,23 +47942,23 @@ function constraintToRange(n2) {
 }
 function parseCInteger(n2) {
   const i3 = new C_INTEGER();
-  applyOccurrence(i3, n2);
-  if (!i3.rm_type_name)
-    i3.rm_type_name = "INTEGER";
-  i3.range = constraintToRange(n2);
+  applyOccurrence(meta(i3), n2);
+  if (!meta(i3).rm_type_name)
+    meta(i3).rm_type_name = "INTEGER";
+  meta(i3).range = constraintToRange(n2);
   return i3;
 }
 function parseCReal(n2) {
   const r2 = new C_REAL();
-  applyOccurrence(r2, n2);
-  if (!r2.rm_type_name)
-    r2.rm_type_name = "REAL";
-  r2.range = constraintToRange(n2);
+  applyOccurrence(meta(r2), n2);
+  if (!meta(r2).rm_type_name)
+    meta(r2).rm_type_name = "REAL";
+  meta(r2).range = constraintToRange(n2);
   return r2;
 }
 function parseCBoolean(n2) {
   const b3 = new C_BOOLEAN();
-  applyOccurrence(b3, n2);
+  applyOccurrence(meta(b3), n2);
   if (n2.true_valid !== void 0) {
     b3.true_valid = n2.true_valid === true || n2.true_valid === "true";
   }
@@ -46162,6 +48060,8 @@ function collectTermDefinitions(node, bag) {
 
 // enhanced/parser/legacy/opt_xml_parser.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 function setArchetypeId(target, id2) {
   const aid = new ARCHETYPE_ID();
   aid.value = id2;
@@ -46206,12 +48106,12 @@ function parseOptXml(source) {
   const termBag = {};
   collectTermDefinitions(defNode, termBag);
   if (Object.keys(termBag).length) {
-    opt.ontology = {
-      term_definitions: termBag,
-      term_bindings: {},
-      constraint_bindings: {},
-      value_sets: {}
-    };
+    const ontology = new ARCHETYPE_ONTOLOGY();
+    ontology.term_definitions = termBag;
+    ontology.term_bindings = {};
+    ontology.constraint_bindings = {};
+    ontology.value_sets = {};
+    opt.ontology = ontology;
   }
   if (root.concept) {
     warnings.push("OPT concept metadata preserved in description only (not full round-trip).");
@@ -46222,6 +48122,8 @@ function parseOptXml(source) {
 // enhanced/parser/legacy/oet_xml_parser.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser4 = __toESM(require_fxp());
+init_openehr_am();
+init_openehr_base();
 function isOetXml(source) {
   const t3 = source.trimStart();
   return (t3.startsWith("<?xml") || t3.startsWith("<")) && /<template[\s>]/i.test(t3) && t3.includes("openEHR/v1/Template");
@@ -46273,19 +48175,19 @@ function parseItems(node) {
 function parseOetXml(source) {
   const warnings = [];
   const root = parseOetXmlDocument(source);
-  const def = root.definition;
+  const def2 = root.definition;
   const document2 = {
     id: textValue(root.id) ?? String(root.id ?? ""),
     name: String(root.name ?? ""),
     rules: [],
     items: []
   };
-  if (def) {
-    document2.definitionArchetypeId = String(def["@_archetype_id"] ?? def.archetype_id ?? "");
-    document2.conceptName = String(def["@_concept_name"] ?? def.concept_name ?? "");
-    document2.definitionName = String(def["@_name"] ?? def.name ?? "");
-    document2.rules = asArray(def.Rule).map((r2) => parseRule(r2));
-    document2.items = asArray(def.Items).map((i3) => parseItems(i3));
+  if (def2) {
+    document2.definitionArchetypeId = String(def2["@_archetype_id"] ?? def2.archetype_id ?? "");
+    document2.conceptName = String(def2["@_concept_name"] ?? def2.concept_name ?? "");
+    document2.definitionName = String(def2["@_name"] ?? def2.name ?? "");
+    document2.rules = asArray(def2.Rule).map((r2) => parseRule(r2));
+    document2.items = asArray(def2.Items).map((i3) => parseItems(i3));
   }
   const template = new TEMPLATE();
   if (document2.definitionArchetypeId) {
@@ -46308,15 +48210,19 @@ init_define_BUILD_INFO();
 
 // enhanced/am/flattening/template_flattener.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 
 // enhanced/am/aom_clone.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 
 // enhanced/generation/term_scope.ts
 init_define_BUILD_INFO();
 
 // enhanced/generation/term_codes.ts
 init_define_BUILD_INFO();
+init_normalize();
 function termCodeCandidates(nodeId) {
   const out = /* @__PURE__ */ new Set();
   out.add(nodeId);
@@ -46595,6 +48501,7 @@ function cloneAttribute(attr) {
 
 // enhanced/am/ontology_merge.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 function mergeTermDefinitionTables(target, source) {
   if (!source)
     return;
@@ -46662,6 +48569,7 @@ function applyMergedTerminology(target, merged) {
 
 // enhanced/am/flattening/specialize.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 function attributeChildren(attr) {
   return attr.children ?? [];
 }
@@ -46791,10 +48699,10 @@ function archetypeIdFromRef(ref) {
   return ref?.trim() || void 0;
 }
 function tagTermScopeRoot(obj, archetypeId, nameFallbackNodeId) {
-  const meta2 = obj;
-  meta2[TERM_ARCHETYPE_SCOPE_KEY] = archetypeId;
+  const meta3 = obj;
+  meta3[TERM_ARCHETYPE_SCOPE_KEY] = archetypeId;
   if (nameFallbackNodeId && /^at0\./i.test(obj.node_id ?? "")) {
-    meta2[TERM_NAME_FALLBACK_NODE_ID_KEY] = nameFallbackNodeId;
+    meta3[TERM_NAME_FALLBACK_NODE_ID_KEY] = nameFallbackNodeId;
   }
 }
 function tagTermScopeDescendants(obj, archetypeId) {
@@ -46805,8 +48713,8 @@ function tagTermScopeDescendants(obj, archetypeId) {
     if (!children)
       continue;
     for (const child of children) {
-      const meta2 = child;
-      meta2[TERM_ARCHETYPE_SCOPE_KEY] ??= archetypeId;
+      const meta3 = child;
+      meta3[TERM_ARCHETYPE_SCOPE_KEY] ??= archetypeId;
       tagTermScopeDescendants(child, archetypeId);
     }
   }
@@ -46899,9 +48807,12 @@ function flattenToOperationalTemplate(source, resolver) {
 
 // enhanced/parser/legacy/template_json_parser.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 
 // enhanced/parser/legacy/json_aom_util.ts
 init_define_BUILD_INFO();
+init_openehr_base();
 function jsonType(node) {
   const t3 = node["@type"] ?? node["@_type"] ?? "";
   return String(t3).replace(/^.*:/, "");
@@ -47168,10 +49079,10 @@ function applyAuthoredArchetypeFields(target, root, warnings) {
     target.adl_version = String(root.adlVersion);
   if (root.adl_version !== void 0)
     target.adl_version = String(root.adl_version);
-  const def = root.definition;
-  if (def && typeof def === "object") {
+  const def2 = root.definition;
+  if (def2 && typeof def2 === "object") {
     target.definition = parseCObject(
-      normalizeJsonNode(def)
+      normalizeJsonNode(def2)
     );
   }
   const term = root.terminology;
@@ -47367,9 +49278,12 @@ init_define_BUILD_INFO();
 
 // enhanced/parser/legacy/oet_compiler.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 
 // enhanced/am/aom_path_navigator.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 function normalizeNodeId2(nodeId) {
   const trimmed = nodeId.trim();
   const variants = /* @__PURE__ */ new Set([trimmed]);
@@ -47386,7 +49300,7 @@ function normalizeNodeId2(nodeId) {
   }
   return [...variants];
 }
-function nodeIdsMatch2(a2, b3) {
+function nodeIdsMatch3(a2, b3) {
   if (!a2 || !b3)
     return false;
   const va2 = normalizeNodeId2(a2);
@@ -47435,7 +49349,7 @@ function findChildByNodeId(attr, nodeId) {
     return void 0;
   }
   for (let i3 = 0; i3 < children.length; i3++) {
-    if (nodeIdsMatch2(children[i3].node_id, nodeId)) {
+    if (nodeIdsMatch3(children[i3].node_id, nodeId)) {
       return { child: children[i3], index: i3 };
     }
   }
@@ -48587,9 +50501,12 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
 
 // enhanced/parser/clinical_model_annotations.ts
 init_define_BUILD_INFO();
+init_openehr_am();
+init_openehr_base();
 
 // enhanced/generation/adl2_serializer.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 
 // enhanced/parser/odin_serializer.ts
 init_define_BUILD_INFO();
@@ -48599,6 +50516,7 @@ init_define_BUILD_INFO();
 
 // enhanced/generation/rm_instance_generator.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 var MANDATORY_RM_ATTRIBUTES = {
   LOCATABLE: ["archetype_node_id", "name"],
   COMPOSITION: ["language", "territory", "category", "composer"],
@@ -48669,13 +50587,13 @@ var RMInstanceGenerator = class {
     return this.generateFromCObject(template.definition, 0, "root", {});
   }
   termContextFrom(cObject, parent) {
-    const meta2 = cObject;
+    const meta3 = cObject;
     return {
-      scope: meta2[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
+      scope: meta3[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
       // The fallback is only for the inlined archetype root whose template slot
       // node id (for example at0.2) has no local term. It must not leak to
       // descendants, otherwise every unresolved child inherits the parent name.
-      nameFallback: meta2[TERM_NAME_FALLBACK_NODE_ID_KEY]
+      nameFallback: meta3[TERM_NAME_FALLBACK_NODE_ID_KEY]
     };
   }
   generateFromCObject(cObject, depth, pathHint = "value", termContext = {}) {
@@ -48703,8 +50621,9 @@ var RMInstanceGenerator = class {
       return this.generateDataValueByType(rmType, pathHint);
     }
     const instance = { _type: rmType };
-    if (cObject.node_id && !rmType.startsWith("DV_")) {
-      instance.archetype_node_id = cObject.node_id;
+    const archetypeRef = cObject instanceof C_ARCHETYPE_ROOT ? cObject.archetype_ref : void 0;
+    if ((archetypeRef || cObject.node_id) && !rmType.startsWith("DV_")) {
+      instance.archetype_node_id = archetypeRef ?? cObject.node_id;
       if (LOCATABLE_TYPES.has(rmType)) {
         const label = this.locatableLabel(cObject, ctx);
         if (label)
@@ -48771,51 +50690,51 @@ var RMInstanceGenerator = class {
     );
     if (!selected.length && attrBounds.min === 0)
       return void 0;
-    const values2 = [];
+    const values = [];
     for (const child of selected) {
       const count = this.objectItemCount(child);
       for (let i3 = 0; i3 < count; i3++) {
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values2.length}]`,
+          `${attrName2}[${values.length}]`,
           termContext
         );
         if (childInstance !== null && childInstance !== void 0) {
-          values2.push(childInstance);
+          values.push(childInstance);
         }
       }
     }
     if (this.config.mode === "maximal" && selected.length) {
       const targetCount = this.maxAllowedSample(attrBounds);
       let index = 0;
-      while (values2.length < targetCount) {
+      while (values.length < targetCount) {
         const child = selected[index % selected.length];
         const childInstance = this.generateFromCObject(
           child,
           depth + 1,
-          `${attrName2}[${values2.length}]`,
+          `${attrName2}[${values.length}]`,
           termContext
         );
         if (childInstance === null || childInstance === void 0)
           break;
-        values2.push(childInstance);
+        values.push(childInstance);
         index++;
       }
     }
-    while (values2.length < attrBounds.min && allowedChildren.length) {
-      const child = allowedChildren[values2.length % allowedChildren.length];
+    while (values.length < attrBounds.min && allowedChildren.length) {
+      const child = allowedChildren[values.length % allowedChildren.length];
       const childInstance = this.generateFromCObject(
         child,
         depth + 1,
-        `${attrName2}[${values2.length}]`,
+        `${attrName2}[${values.length}]`,
         termContext
       );
       if (childInstance === null || childInstance === void 0)
         break;
-      values2.push(childInstance);
+      values.push(childInstance);
     }
-    return values2;
+    return values;
   }
   addMandatoryRMAttributes(instance, rmTypeName3, generatedAttributes, nodeId, termContext) {
     for (const attrName2 of this.mandatoryAttributesFor(rmTypeName3)) {
@@ -48961,8 +50880,8 @@ var RMInstanceGenerator = class {
       1
     );
   }
-  boundsFromMultiplicity(multiplicity, defaultMin, defaultMax) {
-    const interval = multiplicity?.interval ?? multiplicity;
+  boundsFromMultiplicity(multiplicity2, defaultMin, defaultMax) {
+    const interval = multiplicity2?.interval ?? multiplicity2;
     if (!interval) {
       return { min: defaultMin, max: defaultMax, unbounded: false };
     }
@@ -49033,8 +50952,8 @@ var RMInstanceGenerator = class {
   }
   generatePrimitive(cObject, pathHint) {
     if (cObject instanceof C_STRING) {
-      const values2 = cObject.list;
-      return cObject.assumed_value?.value ?? values2?.[0] ?? this.exampleText(pathHint);
+      const values = cObject.list;
+      return cObject.assumed_value?.value ?? values?.[0] ?? this.exampleText(pathHint);
     }
     if (cObject instanceof C_BOOLEAN) {
       if (cObject.true_valid === false && cObject.false_valid !== false) {
@@ -49121,12 +51040,12 @@ var RMInstanceGenerator = class {
     return out;
   }
   locatableLabel(cObject, termContext = {}) {
-    const meta2 = cObject;
+    const meta3 = cObject;
     return this.locatableLabelFromIds(
       cObject.node_id,
-      meta2[TERM_NAME_FALLBACK_NODE_ID_KEY] ?? termContext.nameFallback,
+      meta3[TERM_NAME_FALLBACK_NODE_ID_KEY] ?? termContext.nameFallback,
       cObject.rm_type_name ?? "",
-      meta2[TERM_ARCHETYPE_SCOPE_KEY] ?? termContext.scope
+      meta3[TERM_ARCHETYPE_SCOPE_KEY] ?? termContext.scope
     );
   }
   locatableLabelFromIds(nodeId, nameFallbackNodeId, rmTypeName3, archetypeScope) {
@@ -49187,9 +51106,11 @@ init_define_BUILD_INFO();
 
 // openehr_am.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 
 // enhanced/generation/typescript_generator.ts
 init_define_BUILD_INFO();
+init_openehr_am();
 var MANDATORY_RM_ATTRIBUTES2 = {
   "COMPOSITION": [
     { name: "language", type: "CODE_PHRASE" },
@@ -49409,6 +51330,7 @@ init_define_BUILD_INFO();
 // enhanced/generation/opt_xml_serializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser5 = __toESM(require_fxp());
+init_openehr_am();
 
 // enhanced/serialization/zipehr/mod.ts
 init_define_BUILD_INFO();
@@ -50556,6 +52478,7 @@ async function zipehrTextToCanonical(text) {
 }
 
 // examples/demo-app/src/converter.ts
+init_openehr_base();
 var typeRegistryInitialized = false;
 function initializeTypeRegistry() {
   if (typeRegistryInitialized) {
@@ -50575,13 +52498,13 @@ function initializeTypeRegistry() {
     throw error;
   }
 }
+var MISSING_WEB_TEMPLATE_ERROR = "FLAT/STRUCTURED conversion requires a Web Template. Upload an operational template (.opt, .oet, .adl, .adls, .zip, .t.json) or a Web Template JSON file using the template upload control in the input panel (when using FLAT/STRUCTURED input) or the Simplified output tab, or load a template on the Template input tab.";
 var SIMPLIFIED_OUTPUT_FORMATS = /* @__PURE__ */ new Set([
   "flat",
   "structured",
   "webtemplate"
 ]);
-function writeSimplifiedOutputs(instance, operationalTemplate, outputFormats, outputs) {
-  const webTemplate = buildWebTemplate(operationalTemplate);
+function writeSimplifiedOutputs(instance, webTemplate, outputFormats, outputs) {
   for (const format of outputFormats) {
     switch (format) {
       case "flat":
@@ -50598,6 +52521,31 @@ function writeSimplifiedOutputs(instance, operationalTemplate, outputFormats, ou
         outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
         break;
     }
+  }
+}
+function resolveWebTemplate(options) {
+  const ws = options.templateWorkspace;
+  if (!ws?.listFiles().length) {
+    throw new Error(MISSING_WEB_TEMPLATE_ERROR);
+  }
+  for (const file of ws.listFiles()) {
+    if (!file.path.toLowerCase().endsWith(".json"))
+      continue;
+    try {
+      const parsed = JSON.parse(file.content);
+      if (isWebTemplateJson(parsed)) {
+        return parseWebTemplate(parsed);
+      }
+    } catch {
+    }
+  }
+  try {
+    const { operationalTemplate } = ws.resolveOperational();
+    return buildWebTemplate(operationalTemplate);
+  } catch (error) {
+    throw new Error(
+      `${MISSING_WEB_TEMPLATE_ERROR} (${error instanceof Error ? error.message : String(error)})`
+    );
   }
 }
 function resolveOperationalTemplate(input, options) {
@@ -50629,11 +52577,7 @@ async function convert(input, options) {
     if (inputMode === "template") {
       return await convertTemplateInput(input, options);
     }
-    const rmObject = await deserializeInput(
-      input,
-      options.inputFormat,
-      options.inputDeserializerConfig
-    );
+    const rmObject = await deserializeInput(input, options);
     const outputs = {};
     const simplifiedFormats = options.outputFormats.filter(
       (format) => SIMPLIFIED_OUTPUT_FORMATS.has(format)
@@ -50689,18 +52633,8 @@ async function convert(input, options) {
       }
     }
     if (simplifiedFormats.length) {
-      if (!options.templateWorkspace?.listFiles().length) {
-        throw new Error(
-          "FLAT, STRUCTURED, and Web Template outputs require the Template input tab or a loaded template file set (operational template / OPT)."
-        );
-      }
-      const operationalTemplate = resolveOperationalTemplate(input, options);
-      writeSimplifiedOutputs(
-        rmObject,
-        operationalTemplate,
-        simplifiedFormats,
-        outputs
-      );
+      const webTemplate = resolveWebTemplate(options);
+      writeSimplifiedOutputs(rmObject, webTemplate, simplifiedFormats, outputs);
     }
     return {
       success: true,
@@ -50769,7 +52703,7 @@ async function convertTemplateInput(input, options) {
   }
   writeSimplifiedOutputs(
     generatedInstance,
-    template,
+    buildWebTemplate(template),
     options.outputFormats,
     outputs
   );
@@ -50871,7 +52805,30 @@ function formatLabelForFormat(format) {
       return "template";
   }
 }
+function isSimplifiedInputFormat(format) {
+  return format === "flat" || format === "structured";
+}
+function detectSimplifiedJson(input) {
+  try {
+    const obj = JSON.parse(input.trim());
+    if (!obj || typeof obj !== "object" || Array.isArray(obj))
+      return null;
+    const keys = Object.keys(obj);
+    if (keys.some((k2) => k2.startsWith("ctx/")))
+      return "flat";
+    if ("ctx" in obj && typeof obj.ctx === "object" && obj.ctx != null && !Array.isArray(obj.ctx)) {
+      return "structured";
+    }
+    if (keys.some((k2) => k2.includes("|")))
+      return "flat";
+  } catch {
+  }
+  return null;
+}
 function resolveInputFormat(input, requested) {
+  if (requested === "flat" || requested === "structured") {
+    return { format: requested, isZipehr: false };
+  }
   if (requested === "zipehr") {
     const detected2 = detectInputFormat(input);
     if (detected2.kind === "zipehr") {
@@ -50899,6 +52856,10 @@ function resolveInputFormat(input, requested) {
   if (detected.kind === "canonical") {
     return { format: detected.format, isZipehr: false };
   }
+  const simplified = detectSimplifiedJson(input);
+  if (simplified) {
+    return { format: simplified, isZipehr: false };
+  }
   try {
     JSON.parse(input.trim());
     return { format: "json", isZipehr: false };
@@ -50906,8 +52867,9 @@ function resolveInputFormat(input, requested) {
     return { format: "yaml", isZipehr: false };
   }
 }
-async function deserializeInput(input, format, config) {
-  const resolved = resolveInputFormat(input, format);
+async function deserializeInput(input, options) {
+  const config = options.inputDeserializerConfig;
+  const resolved = resolveInputFormat(input, options.inputFormat);
   if (resolved.isZipehr) {
     const canonical = await zipehrTextToCanonical(input);
     const deserializer = new JsonConfigurableDeserializer(
@@ -50916,6 +52878,20 @@ async function deserializeInput(input, format, config) {
     return deserializer.deserialize(JSON.stringify(canonical));
   }
   switch (resolved.format) {
+    case "flat": {
+      const webTemplate = resolveWebTemplate(options);
+      return deserializeFromFlat(
+        JSON.parse(input),
+        webTemplate
+      );
+    }
+    case "structured": {
+      const webTemplate = resolveWebTemplate(options);
+      return deserializeFromStructured(
+        JSON.parse(input),
+        webTemplate
+      );
+    }
     case "json": {
       const deserializer = new JsonConfigurableDeserializer(
         config
@@ -52602,16 +54578,16 @@ function addSection(sections, len, ins, forceJoin = false) {
   } else
     sections.push(len, ins);
 }
-function addInsert(values2, sections, value) {
+function addInsert(values, sections, value) {
   if (value.length == 0)
     return;
   let index = sections.length - 2 >> 1;
-  if (index < values2.length) {
-    values2[values2.length - 1] = values2[values2.length - 1].append(value);
+  if (index < values.length) {
+    values[values.length - 1] = values[values.length - 1].append(value);
   } else {
-    while (values2.length < index)
-      values2.push(Text3.empty);
-    values2.push(value);
+    while (values.length < index)
+      values.push(Text3.empty);
+    values.push(value);
   }
 }
 function iterChanges(desc, f2, individual) {
@@ -53168,16 +55144,16 @@ function dynamicFacetSlot(addresses, facet, providers) {
   let dynamic = providerAddrs.filter((p2) => !(p2 & 1));
   let idx = addresses[facet.id] >> 1;
   function get(state) {
-    let values2 = [];
+    let values = [];
     for (let i3 = 0; i3 < providerAddrs.length; i3++) {
       let value = getAddr(state, providerAddrs[i3]);
       if (providerTypes[i3] == 2)
         for (let val of value)
-          values2.push(val);
+          values.push(val);
       else
-        values2.push(value);
+        values.push(value);
     }
-    return facet.combine(values2);
+    return facet.combine(values);
   }
   return {
     create(state) {
@@ -53481,18 +55457,18 @@ function getAddr(state, addr) {
 }
 var languageData = /* @__PURE__ */ Facet.define();
 var allowMultipleSelections = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.some((v2) => v2),
+  combine: (values) => values.some((v2) => v2),
   static: true
 });
 var lineSeparator = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.length ? values2[0] : void 0,
+  combine: (values) => values.length ? values[0] : void 0,
   static: true
 });
 var changeFilter = /* @__PURE__ */ Facet.define();
 var transactionFilter = /* @__PURE__ */ Facet.define();
 var transactionExtender = /* @__PURE__ */ Facet.define();
 var readOnly = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.length ? values2[0] : false
+  combine: (values) => values.length ? values[0] : false
 });
 var Annotation = class {
   /**
@@ -53821,11 +55797,11 @@ function makeCategorizer(wordChars) {
   };
 }
 var EditorState = class _EditorState {
-  constructor(config, doc2, selection, values2, computeSlot, tr2) {
+  constructor(config, doc2, selection, values, computeSlot, tr2) {
     this.config = config;
     this.doc = doc2;
     this.selection = selection;
-    this.values = values2;
+    this.values = values;
     this.status = config.statusTemplate.slice();
     this.computeSlot = computeSlot;
     if (tr2)
@@ -54091,14 +56067,14 @@ var EditorState = class _EditorState {
     bracket closing behavior.
   */
   languageDataAt(name2, pos, side = -1) {
-    let values2 = [];
+    let values = [];
     for (let provider of this.facet(languageData)) {
       for (let result2 of provider(this, pos, side)) {
         if (Object.prototype.hasOwnProperty.call(result2, name2))
-          values2.push(result2[name2]);
+          values.push(result2[name2]);
       }
     }
-    return values2;
+    return values;
   }
   /**
   Return a function that can categorize strings (expected to
@@ -54142,7 +56118,7 @@ var EditorState = class _EditorState {
 };
 EditorState.allowMultipleSelections = allowMultipleSelections;
 EditorState.tabSize = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.length ? values2[0] : 4
+  combine: (values) => values.length ? values[0] : 4
 });
 EditorState.lineSeparator = lineSeparator;
 EditorState.readOnly = readOnly;
@@ -56353,10 +58329,10 @@ var focusChangeEffect = /* @__PURE__ */ Facet.define();
 var clipboardInputFilter = /* @__PURE__ */ Facet.define();
 var clipboardOutputFilter = /* @__PURE__ */ Facet.define();
 var perLineTextDirection = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.some((x2) => x2)
+  combine: (values) => values.some((x2) => x2)
 });
 var nativeSelectionHidden = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.some((x2) => x2)
+  combine: (values) => values.some((x2) => x2)
 });
 var scrollHandler = /* @__PURE__ */ Facet.define();
 var ScrollTarget = class _ScrollTarget {
@@ -56388,7 +58364,7 @@ function logException(state, exception, context) {
   else
     console.error(exception);
 }
-var editable = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.length ? values2[0] : true });
+var editable = /* @__PURE__ */ Facet.define({ combine: (values) => values.length ? values[0] : true });
 var nextPluginID = 0;
 var viewPlugin = /* @__PURE__ */ Facet.define({
   combine(plugins) {
@@ -61443,7 +63419,7 @@ function scaleBlock(block, scaler) {
   return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, Array.isArray(block._content) ? block._content.map((b3) => scaleBlock(b3, scaler)) : block._content);
 }
 var theme = /* @__PURE__ */ Facet.define({ combine: (strs) => strs.join(" ") });
-var darkTheme = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.indexOf(true) > -1 });
+var darkTheme = /* @__PURE__ */ Facet.define({ combine: (values) => values.indexOf(true) > -1 });
 var baseThemeID = /* @__PURE__ */ StyleModule.newName();
 var baseLightID = /* @__PURE__ */ StyleModule.newName();
 var baseDarkID = /* @__PURE__ */ StyleModule.newName();
@@ -63353,7 +65329,7 @@ EditorView.cursorScrollMargin = /* @__PURE__ */ Facet.define({
 });
 EditorView.scrollMargins = scrollMargins;
 EditorView.darkTheme = darkTheme;
-EditorView.cspNonce = /* @__PURE__ */ Facet.define({ combine: (values2) => values2.length ? values2[0] : "" });
+EditorView.cspNonce = /* @__PURE__ */ Facet.define({ combine: (values) => values.length ? values[0] : "" });
 EditorView.contentAttributes = contentAttributes;
 EditorView.editorAttributes = editorAttributes;
 EditorView.lineWrapping = /* @__PURE__ */ EditorView.contentAttributes.of({ "class": "cm-lineWrapping" });
@@ -63395,11 +65371,11 @@ function normalizeKeyName(name2, platform) {
   let result2 = parts[parts.length - 1];
   if (result2 == "Space")
     result2 = " ";
-  let alt, ctrl, shift2, meta2;
+  let alt, ctrl, shift2, meta3;
   for (let i3 = 0; i3 < parts.length - 1; ++i3) {
     const mod = parts[i3];
     if (/^(cmd|meta|m)$/i.test(mod))
-      meta2 = true;
+      meta3 = true;
     else if (/^a(lt)?$/i.test(mod))
       alt = true;
     else if (/^(c|ctrl|control)$/i.test(mod))
@@ -63408,7 +65384,7 @@ function normalizeKeyName(name2, platform) {
       shift2 = true;
     else if (/^mod$/i.test(mod)) {
       if (platform == "mac")
-        meta2 = true;
+        meta3 = true;
       else
         ctrl = true;
     } else
@@ -63418,7 +65394,7 @@ function normalizeKeyName(name2, platform) {
     result2 = "Alt-" + result2;
   if (ctrl)
     result2 = "Ctrl-" + result2;
-  if (meta2)
+  if (meta3)
     result2 = "Meta-" + result2;
   if (shift2)
     result2 = "Shift-" + result2;
@@ -63727,7 +65703,7 @@ function gutter(config) {
   return [gutters(), activeGutters.of({ ...defaults, ...config })];
 }
 var unfixGutters = /* @__PURE__ */ Facet.define({
-  combine: (values2) => values2.some((x2) => x2)
+  combine: (values) => values.some((x2) => x2)
 });
 function gutters(config) {
   let result2 = [
@@ -64066,8 +66042,8 @@ function sameMarkers(a2, b3) {
 var lineNumberMarkers = /* @__PURE__ */ Facet.define();
 var lineNumberWidgetMarker = /* @__PURE__ */ Facet.define();
 var lineNumberConfig = /* @__PURE__ */ Facet.define({
-  combine(values2) {
-    return combineConfig(values2, { formatNumber: String, domEventHandlers: {} }, {
+  combine(values) {
+    return combineConfig(values, { formatNumber: String, domEventHandlers: {} }, {
       domEventHandlers(a2, b3) {
         let result2 = Object.assign({}, a2);
         for (let event in b3) {
@@ -66134,7 +68110,7 @@ var keyword = t2();
 var operator = t2();
 var punctuation = t2();
 var bracket = t2(punctuation);
-var meta = t2();
+var meta2 = t2();
 var tags = {
   /**
   A comment.
@@ -66445,22 +68421,22 @@ var tags = {
   /**
   Metadata or meta-instruction.
   */
-  meta,
+  meta: meta2,
   /**
   [Metadata](#highlight.tags.meta) that applies to the entire
   document.
   */
-  documentMeta: t2(meta),
+  documentMeta: t2(meta2),
   /**
   [Metadata](#highlight.tags.meta) that annotates or adds
   attributes to a given syntactic element.
   */
-  annotation: t2(meta),
+  annotation: t2(meta2),
   /**
   Processing instruction or preprocessor directive. Subtag of
   [meta](#highlight.tags.meta).
   */
-  processingInstruction: t2(meta),
+  processingInstruction: t2(meta2),
   /**
   [Modifier](#highlight.Tag^defineModifier) that indicates that a
   given element is being defined. Expected to be used with the
@@ -66544,7 +68520,7 @@ var _a3;
 var languageDataProp = /* @__PURE__ */ new NodeProp();
 function defineLanguageFacet(baseData) {
   return Facet.define({
-    combine: baseData ? (values2) => values2.concat(baseData) : void 0
+    combine: baseData ? (values) => values.concat(baseData) : void 0
   });
 }
 var sublanguageProp = /* @__PURE__ */ new NodeProp();
@@ -67074,12 +69050,12 @@ var LanguageSupport = class {
 };
 var indentService = /* @__PURE__ */ Facet.define();
 var indentUnit = /* @__PURE__ */ Facet.define({
-  combine: (values2) => {
-    if (!values2.length)
+  combine: (values) => {
+    if (!values.length)
       return "  ";
-    let unit = values2[0];
+    let unit = values[0];
     if (!unit || /\S/.test(unit) || Array.from(unit).some((e2) => e2 != unit[0]))
-      throw new Error("Invalid indent unit: " + JSON.stringify(values2[0]));
+      throw new Error("Invalid indent unit: " + JSON.stringify(values[0]));
     return unit;
   }
 });
@@ -67567,8 +69543,8 @@ var defaultConfig = {
   placeholderText: "\u2026"
 };
 var foldConfig = /* @__PURE__ */ Facet.define({
-  combine(values2) {
-    return combineConfig(values2, defaultConfig);
+  combine(values) {
+    return combineConfig(values, defaultConfig);
   }
 });
 function codeFolding(config) {
@@ -67713,17 +69689,17 @@ var HighlightStyle = class _HighlightStyle {
   constructor(specs, options) {
     this.specs = specs;
     let modSpec;
-    function def(spec) {
+    function def2(spec) {
       let cls = StyleModule.newName();
       (modSpec || (modSpec = /* @__PURE__ */ Object.create(null)))["." + cls] = spec;
       return cls;
     }
-    const all = typeof options.all == "string" ? options.all : options.all ? def(options.all) : void 0;
+    const all = typeof options.all == "string" ? options.all : options.all ? def2(options.all) : void 0;
     const scopeOpt = options.scope;
     this.scope = scopeOpt instanceof Language ? (type) => type.prop(languageDataProp) == scopeOpt.data : scopeOpt ? (type) => type == scopeOpt : void 0;
     this.style = tagHighlighter(specs.map((style) => ({
       tag: style.tag,
-      class: style.class || def(Object.assign({}, style, { tag: null }))
+      class: style.class || def2(Object.assign({}, style, { tag: null }))
     })), {
       all
     }).style;
@@ -67751,8 +69727,8 @@ var HighlightStyle = class _HighlightStyle {
 };
 var highlighterFacet = /* @__PURE__ */ Facet.define();
 var fallbackHighlighter = /* @__PURE__ */ Facet.define({
-  combine(values2) {
-    return values2.length ? [values2[0]] : null;
+  combine(values) {
+    return values.length ? [values[0]] : null;
   }
 });
 function getHighlighters(state) {
@@ -70929,17 +72905,17 @@ var LRParser = class _LRParser extends Parser2 {
   @internal
   */
   parseDialect(dialect) {
-    let values2 = Object.keys(this.dialects), flags = values2.map(() => false);
+    let values = Object.keys(this.dialects), flags = values.map(() => false);
     if (dialect)
       for (let part of dialect.split(" ")) {
-        let id2 = values2.indexOf(part);
+        let id2 = values.indexOf(part);
         if (id2 >= 0)
           flags[id2] = true;
       }
     let disabled = null;
-    for (let i3 = 0; i3 < values2.length; i3++)
+    for (let i3 = 0; i3 < values.length; i3++)
       if (!flags[i3]) {
-        for (let j2 = this.dialects[values2[i3]], id2; (id2 = this.data[j2++]) != 65535; )
+        for (let j2 = this.dialects[values[i3]], id2; (id2 = this.data[j2++]) != 65535; )
           (disabled || (disabled = new Uint8Array(this.maxTerm + 1)))[id2] = 1;
       }
     return new Dialect(dialect, flags, disabled);
@@ -71672,10 +73648,10 @@ var ScopeNodes = /* @__PURE__ */ new Set([
   "ForStatement"
 ]);
 function defID(type) {
-  return (node, def) => {
+  return (node, def2) => {
     let id2 = node.node.getChild("VariableDefinition");
     if (id2)
-      def(id2, type);
+      def2(id2, type);
     return true;
   };
 }
@@ -71687,12 +73663,12 @@ var gatherCompletions = {
   EnumDeclaration: /* @__PURE__ */ defID("constant"),
   TypeAliasDeclaration: /* @__PURE__ */ defID("type"),
   NamespaceDeclaration: /* @__PURE__ */ defID("namespace"),
-  VariableDefinition(node, def) {
+  VariableDefinition(node, def2) {
     if (!node.matchContext(functionContext))
-      def(node, "variable");
+      def2(node, "variable");
   },
-  TypeDefinition(node, def) {
-    def(node, "type");
+  TypeDefinition(node, def2) {
+    def2(node, "type");
   },
   __proto__: null
 };
@@ -71701,7 +73677,7 @@ function getScope(doc2, node) {
   if (cached)
     return cached;
   let completions = [], top2 = true;
-  function def(node2, type) {
+  function def2(node2, type) {
     let name2 = doc2.sliceString(node2.from, node2.to);
     completions.push({ label: name2, type });
   }
@@ -71710,7 +73686,7 @@ function getScope(doc2, node) {
       top2 = false;
     } else if (node2.name) {
       let gather = gatherCompletions[node2.name];
-      if (gather && gather(node2, def) || ScopeNodes.has(node2.name))
+      if (gather && gather(node2, def2) || ScopeNodes.has(node2.name))
         return false;
     } else if (node2.to - node2.from > 8192) {
       for (let c2 of getScope(doc2, node2.node))
@@ -72249,13 +74225,13 @@ function completeFromSchema(eltSpecs, attrSpecs) {
       if (!attr)
         return null;
       let parent = byName[tagName(doc2, context)];
-      let values2 = ((parent === null || parent === void 0 ? void 0 : parent.attrValues) || attrValues)[attr];
-      if (!values2 || !values2.length)
+      let values = ((parent === null || parent === void 0 ? void 0 : parent.attrValues) || attrValues)[attr];
+      if (!values || !values.length)
         return null;
       return {
         from,
         to: cx.pos + (doc2.sliceString(cx.pos, cx.pos + 1) == '"' ? 1 : 0),
-        options: values2,
+        options: values,
         validFor: /^"[^"]*"?$/
       };
     } else if (type == "tag") {
@@ -73268,6 +75244,8 @@ function setupEventListeners() {
   setupZipehrVariantListener();
   setupSimplifiedVariantListener();
   setupSimplifiedOptUpload();
+  setupInputSimplifiedTemplateUpload();
+  syncInputFormatUi();
   setupCollapsibleSections();
 }
 function setupOutputVisibilityListeners() {
@@ -73354,28 +75332,40 @@ function getEffectiveTemplateWorkspace() {
   return clinicalWorkspace;
 }
 function syncSimplifiedTemplateUi() {
-  const info = document.getElementById("simplified-template-info");
-  const clearBtn = document.getElementById("simplified-opt-clear-btn");
-  if (!info)
-    return;
-  if (simplifiedWorkspace.listFiles().length > 0) {
-    const path = simplifiedWorkspace.getGenerationRootPath() ?? simplifiedWorkspace.getActivePath() ?? simplifiedWorkspace.listFiles()[0]?.path;
-    info.textContent = path ? `Uploaded: ${path.split("/").pop()}` : "Custom template loaded";
-    clearBtn?.classList.remove("hidden");
-    return;
+  const outputInfo = document.getElementById("simplified-template-info");
+  const outputClearBtn = document.getElementById("simplified-opt-clear-btn");
+  const inputInfo = document.getElementById("input-simplified-template-info");
+  const inputClearBtn = document.getElementById(
+    "input-simplified-opt-clear-btn"
+  );
+  const describeWorkspace = () => {
+    if (simplifiedWorkspace.listFiles().length > 0) {
+      const path = simplifiedWorkspace.getGenerationRootPath() ?? simplifiedWorkspace.getActivePath() ?? simplifiedWorkspace.listFiles()[0]?.path;
+      return path ? `Uploaded: ${path.split("/").pop()}` : "Custom template loaded";
+    }
+    if (currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0) {
+      const path = clinicalWorkspace.getActivePath() ?? clinicalWorkspace.getGenerationRootPath() ?? clinicalWorkspace.listFiles()[0]?.path;
+      return path ? `Linked from template tab: ${path.split("/").pop()}` : "Linked from template tab";
+    }
+    if (clinicalWorkspace.listFiles().length > 0) {
+      const path = clinicalWorkspace.getGenerationRootPath();
+      return path ? `Available from input: ${path.split("/").pop()}` : "Template available from input tab";
+    }
+    return "No template loaded \u2014 upload OPT or Web Template JSON";
+  };
+  const text = describeWorkspace();
+  const hasUpload = simplifiedWorkspace.listFiles().length > 0;
+  const hasAnyTemplate = hasUpload || clinicalWorkspace.listFiles().length > 0;
+  if (outputInfo)
+    outputInfo.textContent = text;
+  if (inputInfo)
+    inputInfo.textContent = text;
+  outputClearBtn?.classList.toggle("hidden", !hasUpload);
+  inputClearBtn?.classList.toggle("hidden", !hasUpload);
+  const section = document.getElementById("input-simplified-template-section");
+  if (section && isSimplifiedInputFormat(currentInputFormat)) {
+    section.classList.toggle("needs-attention", !hasAnyTemplate);
   }
-  clearBtn?.classList.add("hidden");
-  if (currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0) {
-    const path = clinicalWorkspace.getActivePath() ?? clinicalWorkspace.getGenerationRootPath() ?? clinicalWorkspace.listFiles()[0]?.path;
-    info.textContent = path ? `Linked from template tab: ${path.split("/").pop()}` : "Linked from template tab";
-    return;
-  }
-  if (clinicalWorkspace.listFiles().length > 0) {
-    const path = clinicalWorkspace.getGenerationRootPath();
-    info.textContent = path ? `Available from input: ${path.split("/").pop()}` : "Template available from input tab";
-    return;
-  }
-  info.textContent = "Upload an OPT or load a template in the input tab";
 }
 async function loadFileIntoSimplifiedWorkspace(file) {
   const name2 = file.name.toLowerCase();
@@ -73406,8 +75396,24 @@ async function loadFileIntoSimplifiedWorkspace(file) {
     );
     if (root)
       simplifiedWorkspace.setGenerationRootPath(root);
+  } else if (name2.endsWith(".json")) {
+    const content2 = await file.text();
+    const parsed = JSON.parse(content2);
+    const { isWebTemplateJson: isWebTemplateJson2 } = await Promise.resolve().then(() => (init_mod(), mod_exports));
+    if (!isWebTemplateJson2(parsed)) {
+      throw new Error(
+        "JSON file is not a Web Template (expected templateId and tree)."
+      );
+    }
+    simplifiedWorkspace.clear();
+    simplifiedWorkspace.addFile(file.name, content2);
+  } else {
+    throw new Error(
+      "Unsupported file type. Use .opt, .oet, .adl, .zip, or Web Template JSON."
+    );
   }
   syncSimplifiedTemplateUi();
+  syncInputFormatUi();
   scheduleAutoConvert();
 }
 function setupSimplifiedOptUpload() {
@@ -73427,9 +75433,51 @@ function setupSimplifiedOptUpload() {
   clearBtn?.addEventListener("click", () => {
     simplifiedWorkspace.clear();
     syncSimplifiedTemplateUi();
+    syncInputFormatUi();
     scheduleAutoConvert();
   });
   syncSimplifiedTemplateUi();
+}
+function setupInputSimplifiedTemplateUpload() {
+  const uploadBtn = document.getElementById("input-simplified-opt-upload-btn");
+  const fileInput = document.getElementById(
+    "input-simplified-opt-upload"
+  );
+  const clearBtn = document.getElementById("input-simplified-opt-clear-btn");
+  uploadBtn?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file)
+      return;
+    try {
+      await loadFileIntoSimplifiedWorkspace(file);
+    } catch (error) {
+      showError(error.message);
+    }
+    fileInput.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    simplifiedWorkspace.clear();
+    syncSimplifiedTemplateUi();
+    syncInputFormatUi();
+    scheduleAutoConvert();
+  });
+}
+function syncInputFormatUi() {
+  const isSimplified = isSimplifiedInputFormat(currentInputFormat);
+  document.getElementById("input-deserializer-section")?.classList.toggle(
+    "hidden",
+    isSimplified
+  );
+  document.getElementById("input-simplified-template-section")?.classList.toggle("hidden", !isSimplified);
+  syncSimplifiedTemplateUi();
+}
+function highlightTemplateUploadRequired() {
+  if (!isSimplifiedInputFormat(currentInputFormat))
+    return;
+  const section = document.getElementById("input-simplified-template-section");
+  section?.classList.add("needs-attention");
+  section?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 function toggleOutputTab(format, visible) {
   const tabs = document.querySelectorAll("#output-tabs .tab");
@@ -73924,14 +75972,18 @@ function setupCopyDownloadButtons() {
 }
 function syncInputEditorLanguage() {
   const language2 = currentInputFormat;
-  if (language2 === "json" || language2 === "xml" || language2 === "yaml") {
-    setDemoEditorLanguage("input-text", language2);
+  if (language2 === "json" || language2 === "xml" || language2 === "yaml" || isSimplifiedInputFormat(currentInputFormat)) {
+    setDemoEditorLanguage(
+      "input-text",
+      isSimplifiedInputFormat(currentInputFormat) ? "json" : language2
+    );
   } else {
     setDemoEditorLanguage("input-text", "plain");
   }
 }
 function handleInputFormatChange(e2) {
   currentInputFormat = e2.target.value;
+  syncInputFormatUi();
   syncInputEditorLanguage();
   validateInput();
   scheduleAutoConvert();
@@ -73967,13 +76019,31 @@ async function handleFileUpload(e2) {
       inputEditor.value = text;
       handleInputChange("instance");
       const ext = file.name.split(".").pop()?.toLowerCase();
-      if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
-        const formatSelect = document.getElementById(
-          "input-format"
-        );
-        if (formatSelect) {
-          formatSelect.value = ext === "yml" ? "yaml" : ext;
+      const formatSelect = document.getElementById(
+        "input-format"
+      );
+      if (formatSelect) {
+        if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
+          if (ext === "json") {
+            try {
+              const parsed = JSON.parse(text);
+              const keys = Object.keys(parsed);
+              if (keys.some((k2) => k2.startsWith("ctx/"))) {
+                formatSelect.value = "flat";
+              } else if ("ctx" in parsed && typeof parsed.ctx === "object" && parsed.ctx != null) {
+                formatSelect.value = "structured";
+              } else {
+                formatSelect.value = "json";
+              }
+            } catch {
+              formatSelect.value = "json";
+            }
+          } else {
+            formatSelect.value = ext === "yml" ? "yaml" : ext;
+          }
           currentInputFormat = formatSelect.value;
+          syncInputFormatUi();
+          syncInputEditorLanguage();
         }
       }
     }
@@ -74125,6 +76195,27 @@ function validateInput() {
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = "Assumed valid YAML";
+    } else if (isSimplifiedInputFormat(currentInputFormat)) {
+      const parsed = JSON.parse(text);
+      if (currentInputFormat === "flat") {
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+          throw new Error("FLAT payload must be a JSON object");
+        }
+        validationText.textContent = "Valid FLAT JSON";
+      } else {
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed) || !("ctx" in parsed)) {
+          throw new Error("STRUCTURED payload must include a ctx object");
+        }
+        validationText.textContent = "Valid STRUCTURED JSON";
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+      const hasTemplate = getEffectiveTemplateWorkspace().listFiles().length > 0;
+      const section = document.getElementById("input-simplified-template-section");
+      section?.classList.toggle("needs-attention", !hasTemplate);
+      if (!hasTemplate) {
+        validationText.textContent += " \u2014 template required for conversion";
+      }
     }
   } catch (error) {
     validationIcon.textContent = "error";
@@ -74199,6 +76290,9 @@ async function handleConvert() {
     const result2 = await convert(inputText, options);
     hideLoading();
     if (!result2.success) {
+      if (result2.error?.includes(MISSING_WEB_TEMPLATE_ERROR)) {
+        highlightTemplateUploadRequired();
+      }
       showError(result2.error || "Conversion failed");
       return;
     }
@@ -74209,7 +76303,11 @@ async function handleConvert() {
   } catch (error) {
     hideLoading();
     console.error("Conversion error:", error);
-    showError(error.message);
+    const message = error.message;
+    if (message.includes(MISSING_WEB_TEMPLATE_ERROR)) {
+      highlightTemplateUploadRequired();
+    }
+    showError(message);
   }
 }
 function gatherConversionOptions() {

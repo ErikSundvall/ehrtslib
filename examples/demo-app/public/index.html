@@ -72,6 +72,8 @@
                 <option value="json" selected>JSON</option>
                 <option value="xml">XML</option>
                 <option value="yaml">YAML</option>
+                <option value="flat">FLAT (simplified)</option>
+                <option value="structured">STRUCTURED (simplified)</option>
                 <option value="zipehr">ZipEHR (j/y)</option>
                 <option value="auto">Auto detect (experimental)</option>
               </select>
@@ -151,6 +153,37 @@
                       <input type="checkbox" id="input-allow-incomplete">
                       <span>Allow Incomplete Objects</span>
                     </label>
+                  </div>
+                </div>
+              </div>
+              <div class="config-section hidden" id="input-simplified-template-section">
+                <div class="config-grid">
+                  <div class="config-col">
+                    <div class="form-group">
+                      <label for="input-simplified-opt-upload">Web Template schema (required):</label>
+                      <p class="form-hint">
+                        FLAT and STRUCTURED payloads are template-scoped. Upload an operational
+                        template (.opt, .oet, .adl, .zip) or a Web Template JSON file, or load a
+                        template on the Template input tab.
+                      </p>
+                      <div class="simplified-template-row">
+                        <span class="simplified-template-info" id="input-simplified-template-info"
+                        >No template loaded</span>
+                        <input
+                          type="file"
+                          id="input-simplified-opt-upload"
+                          class="hidden"
+                          accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json,.json"
+                        >
+                        <button class="btn btn-secondary btn-sm" id="input-simplified-opt-upload-btn" type="button">
+                          <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                          Upload template
+                        </button>
+                        <button class="btn btn-secondary btn-sm hidden" id="input-simplified-opt-clear-btn" type="button">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1354,10 +1387,16 @@
                     </div>
                     <div class="form-group">
                       <label for="simplified-opt-upload">Operational template (OPT):</label>
+                      <p class="form-hint">
+                        Required for FLAT/STRUCTURED output and for FLAT/STRUCTURED
+                        <strong>input</strong> on the Instance tab. Upload .opt, .oet, .adl,
+                        .zip, or Web Template JSON. See
+                        <a href="../SIMPLIFIED_FORMATS.md#limitations" target="_blank" rel="noopener">limitations</a>.
+                      </p>
                       <div class="simplified-template-row">
                         <span class="simplified-template-info" id="simplified-template-info"
                         >Upload an OPT or load a template in the input tab</span>
-                        <input type="file" id="simplified-opt-upload" class="hidden" accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json">
+                        <input type="file" id="simplified-opt-upload" class="hidden" accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json,.json">
                         <button class="btn btn-secondary btn-sm" id="simplified-opt-upload-btn" type="button">
                           <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
                           Upload OPT

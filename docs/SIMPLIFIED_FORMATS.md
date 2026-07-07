@@ -81,11 +81,25 @@ Example (from openEHR curated example `openehr://examples/flat/vital_signs_blood
 - Arrays at every data-bearing node, even cardinality 1.
 - Pipe-prefixed keys inside leaf objects (`{"|magnitude": 128, "|unit": "mm[Hg]"}`).
 
-## Demo app
+## Demo app features related to simplified formats
+
+### Template → simplified output
 
 On the **Template (schema)** input tab, enable **FLAT**, **STRUCTURED**, or **Web Template** output checkboxes. The converter builds a Web Template from the operational template, generates an example RM instance, and emits the selected simplified formats.
 
+### FLAT / STRUCTURED → RM input
+
+On the **Instance** input tab, choose **FLAT (simplified)** or **STRUCTURED (simplified)** as the input format. Paste or upload JSON in that format; the converter deserializes to an RM instance and can emit canonical JSON, XML, YAML, etc.
+
+**Template schema is required** for FLAT/STRUCTURED input (and for simplified output from instance mode). When no schema is loaded, the demo shows a **Web Template schema** upload section and highlights it if conversion fails for that reason. You can supply:
+
+- Operational template: `.opt`, `.oet`, `.adl`, `.adls`, `.zip`, `.t.json`
+- Web Template JSON (standalone `.json` with `templateId` and `tree`)
+- A template already loaded on the **Template** input tab (shared with the Simplified output tab)
+
 Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `TemplateWorkspace` for ADL2 flattening.
+
+**Auto** input format detects simplified JSON (`ctx/` keys → FLAT; top-level `ctx` object → STRUCTURED).
 
 ## Limitations
 

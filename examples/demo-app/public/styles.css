@@ -957,6 +957,19 @@ body {
     word-break: break-word;
 }
 
+.form-hint {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted, #9aa0a6);
+    line-height: 1.4;
+}
+
+#input-simplified-template-section.needs-attention {
+    outline: 2px solid var(--warning-color, #e8a317);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+}
+
 .output-panel .panel-header {
     flex-wrap: wrap;
     gap: var(--spacing-sm) var(--spacing-md);

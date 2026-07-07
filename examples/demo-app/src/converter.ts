@@ -66,8 +66,13 @@ import {
 
 import {
   buildWebTemplate,
+  deserializeFromFlat,
+  deserializeFromStructured,
+  isWebTemplateJson,
+  parseWebTemplate,
   serializeToFlatJson,
   serializeToStructuredJson,
+  type WebTemplate,
 } from "../../../enhanced/serialization/simplified/mod.ts";
 import {
   type ClinicalModelWorkspace,
@@ -131,7 +136,21 @@ export function initializeTypeRegistry() {
 /**
  * Input format types
  */
-export type InputFormat = "auto" | "xml" | "json" | "yaml" | "zipehr";
+export type InputFormat =
+  | "auto"
+  | "xml"
+  | "json"
+  | "yaml"
+  | "zipehr"
+  | "flat"
+  | "structured";
+
+/** Shown when FLAT/STRUCTURED (de)serialization needs a schema that is not loaded. */
+export const MISSING_WEB_TEMPLATE_ERROR =
+  "FLAT/STRUCTURED conversion requires a Web Template. Upload an operational template " +
+  "(.opt, .oet, .adl, .adls, .zip, .t.json) or a Web Template JSON file using the " +
+  "template upload control in the input panel (when using FLAT/STRUCTURED input) or " +
+  "the Simplified output tab, or load a template on the Template input tab.";
 export type InputMode = "instance" | "template" | "template-adgit";
 export type TemplateGenerationMode = GenerationMode;
 
@@ -209,11 +228,10 @@ const SIMPLIFIED_OUTPUT_FORMATS = new Set<OutputFormat>([
 
 function writeSimplifiedOutputs(
   instance: unknown,
-  operationalTemplate: unknown,
+  webTemplate: WebTemplate,
   outputFormats: OutputFormat[],
   outputs: Record<string, string>,
 ): void {
-  const webTemplate = buildWebTemplate(operationalTemplate);
   for (const format of outputFormats) {
     switch (format) {
       case "flat":
@@ -230,6 +248,39 @@ function writeSimplifiedOutputs(
         outputs.webtemplate = JSON.stringify(webTemplate, null, 2);
         break;
     }
+  }
+}
+
+/** Resolve a Web Template from the workspace (JSON file or OPT-derived). */
+export function resolveWebTemplate(
+  options: ConversionOptions,
+): WebTemplate {
+  const ws = options.templateWorkspace;
+  if (!ws?.listFiles().length) {
+    throw new Error(MISSING_WEB_TEMPLATE_ERROR);
+  }
+
+  for (const file of ws.listFiles()) {
+    if (!file.path.toLowerCase().endsWith(".json")) continue;
+    try {
+      const parsed = JSON.parse(file.content);
+      if (isWebTemplateJson(parsed)) {
+        return parseWebTemplate(parsed);
+      }
+    } catch {
+      // not a web template JSON file
+    }
+  }
+
+  try {
+    const { operationalTemplate } = ws.resolveOperational();
+    return buildWebTemplate(operationalTemplate);
+  } catch (error) {
+    throw new Error(
+      `${MISSING_WEB_TEMPLATE_ERROR} (${
+        error instanceof Error ? error.message : String(error)
+      })`,
+    );
   }
 }
 
@@ -285,11 +336,7 @@ export async function convert(
     }
 
     // Step 1: Deserialize input to RM object
-    const rmObject = await deserializeInput(
-      input,
-      options.inputFormat,
-      options.inputDeserializerConfig,
-    );
+    const rmObject = await deserializeInput(input, options);
 
     // Step 2: Serialize to requested output formats
     const outputs: Record<string, string> = {};
@@ -348,19 +395,8 @@ export async function convert(
     }
 
     if (simplifiedFormats.length) {
-      if (!options.templateWorkspace?.listFiles().length) {
-        throw new Error(
-          "FLAT, STRUCTURED, and Web Template outputs require the Template input tab " +
-            "or a loaded template file set (operational template / OPT).",
-        );
-      }
-      const operationalTemplate = resolveOperationalTemplate(input, options);
-      writeSimplifiedOutputs(
-        rmObject,
-        operationalTemplate,
-        simplifiedFormats,
-        outputs,
-      );
+      const webTemplate = resolveWebTemplate(options);
+      writeSimplifiedOutputs(rmObject, webTemplate, simplifiedFormats, outputs);
     }
 
     return {
@@ -437,7 +473,7 @@ async function convertTemplateInput(
 
   writeSimplifiedOutputs(
     generatedInstance,
-    template,
+    buildWebTemplate(template),
     options.outputFormats,
     outputs,
   );
@@ -556,13 +592,50 @@ function formatLabelForFormat(format: string | undefined): string {
   }
 }
 
+export function isSimplifiedInputFormat(
+  format: string,
+): format is "flat" | "structured" {
+  return format === "flat" || format === "structured";
+}
+
+function detectSimplifiedJson(
+  input: string,
+): "flat" | "structured" | null {
+  try {
+    const obj = JSON.parse(input.trim()) as Record<string, unknown>;
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return null;
+    const keys = Object.keys(obj);
+    if (keys.some((k) => k.startsWith("ctx/"))) return "flat";
+    if (
+      "ctx" in obj && typeof obj.ctx === "object" && obj.ctx != null &&
+      !Array.isArray(obj.ctx)
+    ) {
+      return "structured";
+    }
+    if (keys.some((k) => k.includes("|"))) return "flat";
+  } catch {
+    // not JSON
+  }
+  return null;
+}
+
+type ResolvedWireFormat = "xml" | "json" | "yaml" | "flat" | "structured";
+
 /**
- * Resolve effective input format (auto-detect zipehr j/y vs canonical).
+ * Resolve effective input format (auto-detect zipehr, simplified, canonical).
  */
 export function resolveInputFormat(
   input: string,
   requested: InputFormat,
-): { format: "xml" | "json" | "yaml"; isZipehr: boolean; zipehrVariant?: string } {
+): {
+  format: ResolvedWireFormat;
+  isZipehr: boolean;
+  zipehrVariant?: string;
+} {
+  if (requested === "flat" || requested === "structured") {
+    return { format: requested, isZipehr: false };
+  }
+
   if (requested === "zipehr") {
     const detected = detectInputFormat(input);
     if (detected.kind === "zipehr") {
@@ -593,6 +666,11 @@ export function resolveInputFormat(
     return { format: detected.format, isZipehr: false };
   }
 
+  const simplified = detectSimplifiedJson(input);
+  if (simplified) {
+    return { format: simplified, isZipehr: false };
+  }
+
   // Fallback: try JSON then YAML
   try {
     JSON.parse(input.trim());
@@ -607,10 +685,10 @@ export function resolveInputFormat(
  */
 async function deserializeInput(
   input: string,
-  format: InputFormat,
-  config: JsonDeserializationConfig | YamlDeserializationConfig,
+  options: ConversionOptions,
 ): Promise<any> {
-  const resolved = resolveInputFormat(input, format);
+  const config = options.inputDeserializerConfig;
+  const resolved = resolveInputFormat(input, options.inputFormat);
 
   if (resolved.isZipehr) {
     const canonical = await zipehrTextToCanonical(input);
@@ -621,6 +699,20 @@ async function deserializeInput(
   }
 
   switch (resolved.format) {
+    case "flat": {
+      const webTemplate = resolveWebTemplate(options);
+      return deserializeFromFlat(
+        JSON.parse(input) as Record<string, string | number | boolean | null>,
+        webTemplate,
+      );
+    }
+    case "structured": {
+      const webTemplate = resolveWebTemplate(options);
+      return deserializeFromStructured(
+        JSON.parse(input) as Record<string, unknown>,
+        webTemplate,
+      );
+    }
     case "json": {
       const deserializer = new JsonConfigurableDeserializer(
         config as JsonDeserializationConfig,

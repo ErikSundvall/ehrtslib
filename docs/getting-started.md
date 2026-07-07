@@ -240,7 +240,7 @@ See the full project status in [ROADMAP.md](../ROADMAP.md) ([GitHub](https://git
 - Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, `InvariantEvaluator`)
 - Simplified object creation with constructor initialization and terse formats ([Simplified Creation Guide](../SIMPLIFIED-CREATION-GUIDE.md))
 - Canonical JSON serialization plus FLAT/STRUCTURED simplified formats ([SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md))
-- Demo app: template upload, conversion, and RM instance / TypeScript stub generation
+- Demo app: template upload, conversion, RM instance / TypeScript stub generation, and **bidirectional** FLAT/STRUCTURED (see [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md#demo-app))
 
 **What's Not Yet Available (or still maturing):**
 - Packaged `/dist` builds (minified browser bundles, web components) — Phase X

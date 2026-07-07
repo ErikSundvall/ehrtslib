@@ -19,6 +19,8 @@ import {
   getYamlConfigPreset,
   getYamlDeserializeConfigPreset,
   initializeTypeRegistry,
+  isSimplifiedInputFormat,
+  MISSING_WEB_TEMPLATE_ERROR,
   type InputFormat,
   type InputMode,
   type OutputFormat,
@@ -235,6 +237,8 @@ function setupEventListeners() {
   setupZipehrVariantListener();
   setupSimplifiedVariantListener();
   setupSimplifiedOptUpload();
+  setupInputSimplifiedTemplateUpload();
+  syncInputFormatUi();
 
   // Collapsible sections
   setupCollapsibleSections();
@@ -341,42 +345,54 @@ function getEffectiveTemplateWorkspace(): ClinicalModelWorkspace {
 }
 
 function syncSimplifiedTemplateUi(): void {
-  const info = document.getElementById("simplified-template-info");
-  const clearBtn = document.getElementById("simplified-opt-clear-btn");
-  if (!info) return;
+  const outputInfo = document.getElementById("simplified-template-info");
+  const outputClearBtn = document.getElementById("simplified-opt-clear-btn");
+  const inputInfo = document.getElementById("input-simplified-template-info");
+  const inputClearBtn = document.getElementById(
+    "input-simplified-opt-clear-btn",
+  );
 
-  if (simplifiedWorkspace.listFiles().length > 0) {
-    const path = simplifiedWorkspace.getGenerationRootPath() ??
-      simplifiedWorkspace.getActivePath() ??
-      simplifiedWorkspace.listFiles()[0]?.path;
-    info.textContent = path
-      ? `Uploaded: ${path.split("/").pop()}`
-      : "Custom template loaded";
-    clearBtn?.classList.remove("hidden");
-    return;
+  const describeWorkspace = (): string => {
+    if (simplifiedWorkspace.listFiles().length > 0) {
+      const path = simplifiedWorkspace.getGenerationRootPath() ??
+        simplifiedWorkspace.getActivePath() ??
+        simplifiedWorkspace.listFiles()[0]?.path;
+      return path
+        ? `Uploaded: ${path.split("/").pop()}`
+        : "Custom template loaded";
+    }
+    if (
+      currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0
+    ) {
+      const path = clinicalWorkspace.getActivePath() ??
+        clinicalWorkspace.getGenerationRootPath() ??
+        clinicalWorkspace.listFiles()[0]?.path;
+      return path
+        ? `Linked from template tab: ${path.split("/").pop()}`
+        : "Linked from template tab";
+    }
+    if (clinicalWorkspace.listFiles().length > 0) {
+      const path = clinicalWorkspace.getGenerationRootPath();
+      return path
+        ? `Available from input: ${path.split("/").pop()}`
+        : "Template available from input tab";
+    }
+    return "No template loaded — upload OPT or Web Template JSON";
+  };
+
+  const text = describeWorkspace();
+  const hasUpload = simplifiedWorkspace.listFiles().length > 0;
+  const hasAnyTemplate = hasUpload || clinicalWorkspace.listFiles().length > 0;
+
+  if (outputInfo) outputInfo.textContent = text;
+  if (inputInfo) inputInfo.textContent = text;
+  outputClearBtn?.classList.toggle("hidden", !hasUpload);
+  inputClearBtn?.classList.toggle("hidden", !hasUpload);
+
+  const section = document.getElementById("input-simplified-template-section");
+  if (section && isSimplifiedInputFormat(currentInputFormat)) {
+    section.classList.toggle("needs-attention", !hasAnyTemplate);
   }
-
-  clearBtn?.classList.add("hidden");
-
-  if (currentInputTab === "template" && clinicalWorkspace.listFiles().length > 0) {
-    const path = clinicalWorkspace.getActivePath() ??
-      clinicalWorkspace.getGenerationRootPath() ??
-      clinicalWorkspace.listFiles()[0]?.path;
-    info.textContent = path
-      ? `Linked from template tab: ${path.split("/").pop()}`
-      : "Linked from template tab";
-    return;
-  }
-
-  if (clinicalWorkspace.listFiles().length > 0) {
-    const path = clinicalWorkspace.getGenerationRootPath();
-    info.textContent = path
-      ? `Available from input: ${path.split("/").pop()}`
-      : "Template available from input tab";
-    return;
-  }
-
-  info.textContent = "Upload an OPT or load a template in the input tab";
 }
 
 async function loadFileIntoSimplifiedWorkspace(file: File): Promise<void> {
@@ -406,8 +422,26 @@ async function loadFileIntoSimplifiedWorkspace(file: File): Promise<void> {
       simplifiedWorkspace.listFiles(),
     );
     if (root) simplifiedWorkspace.setGenerationRootPath(root);
+  } else if (name.endsWith(".json")) {
+    const content = await file.text();
+    const parsed = JSON.parse(content);
+    const { isWebTemplateJson } = await import(
+      "../../../enhanced/serialization/simplified/mod.ts"
+    );
+    if (!isWebTemplateJson(parsed)) {
+      throw new Error(
+        "JSON file is not a Web Template (expected templateId and tree).",
+      );
+    }
+    simplifiedWorkspace.clear();
+    simplifiedWorkspace.addFile(file.name, content);
+  } else {
+    throw new Error(
+      "Unsupported file type. Use .opt, .oet, .adl, .zip, or Web Template JSON.",
+    );
   }
   syncSimplifiedTemplateUi();
+  syncInputFormatUi();
   scheduleAutoConvert();
 }
 
@@ -428,9 +462,54 @@ function setupSimplifiedOptUpload(): void {
   clearBtn?.addEventListener("click", () => {
     simplifiedWorkspace.clear();
     syncSimplifiedTemplateUi();
+    syncInputFormatUi();
     scheduleAutoConvert();
   });
   syncSimplifiedTemplateUi();
+}
+
+function setupInputSimplifiedTemplateUpload(): void {
+  const uploadBtn = document.getElementById("input-simplified-opt-upload-btn");
+  const fileInput = document.getElementById(
+    "input-simplified-opt-upload",
+  ) as HTMLInputElement;
+  const clearBtn = document.getElementById("input-simplified-opt-clear-btn");
+
+  uploadBtn?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      await loadFileIntoSimplifiedWorkspace(file);
+    } catch (error) {
+      showError((error as Error).message);
+    }
+    fileInput.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    simplifiedWorkspace.clear();
+    syncSimplifiedTemplateUi();
+    syncInputFormatUi();
+    scheduleAutoConvert();
+  });
+}
+
+function syncInputFormatUi(): void {
+  const isSimplified = isSimplifiedInputFormat(currentInputFormat);
+  document.getElementById("input-deserializer-section")?.classList.toggle(
+    "hidden",
+    isSimplified,
+  );
+  document.getElementById("input-simplified-template-section")?.classList
+    .toggle("hidden", !isSimplified);
+  syncSimplifiedTemplateUi();
+}
+
+function highlightTemplateUploadRequired(): void {
+  if (!isSimplifiedInputFormat(currentInputFormat)) return;
+  const section = document.getElementById("input-simplified-template-section");
+  section?.classList.add("needs-attention");
+  section?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 /**
@@ -1055,8 +1134,14 @@ function setupCopyDownloadButtons() {
 
 function syncInputEditorLanguage(): void {
   const language = currentInputFormat as DemoLanguage;
-  if (language === "json" || language === "xml" || language === "yaml") {
-    setDemoEditorLanguage("input-text", language);
+  if (
+    language === "json" || language === "xml" || language === "yaml" ||
+    isSimplifiedInputFormat(currentInputFormat)
+  ) {
+    setDemoEditorLanguage(
+      "input-text",
+      isSimplifiedInputFormat(currentInputFormat) ? "json" : language,
+    );
   } else {
     setDemoEditorLanguage("input-text", "plain");
   }
@@ -1067,6 +1152,7 @@ function syncInputEditorLanguage(): void {
  */
 function handleInputFormatChange(e: Event) {
   currentInputFormat = (e.target as HTMLSelectElement).value;
+  syncInputFormatUi();
   syncInputEditorLanguage();
   validateInput();
   scheduleAutoConvert();
@@ -1116,15 +1202,37 @@ async function handleFileUpload(e: Event) {
       inputEditor.value = text;
       handleInputChange("instance");
 
-      // Try to detect format from file extension
+      // Try to detect format from file extension or content
       const ext = file.name.split(".").pop()?.toLowerCase();
-      if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
-        const formatSelect = document.getElementById(
-          "input-format",
-        ) as HTMLSelectElement;
-        if (formatSelect) {
-          formatSelect.value = ext === "yml" ? "yaml" : ext;
+      const formatSelect = document.getElementById(
+        "input-format",
+      ) as HTMLSelectElement;
+      if (formatSelect) {
+        if (ext === "xml" || ext === "json" || ext === "yaml" || ext === "yml") {
+          if (ext === "json") {
+            try {
+              const parsed = JSON.parse(text);
+              const keys = Object.keys(parsed);
+              if (keys.some((k) => k.startsWith("ctx/"))) {
+                formatSelect.value = "flat";
+              } else if (
+                "ctx" in parsed &&
+                typeof parsed.ctx === "object" &&
+                parsed.ctx != null
+              ) {
+                formatSelect.value = "structured";
+              } else {
+                formatSelect.value = "json";
+              }
+            } catch {
+              formatSelect.value = "json";
+            }
+          } else {
+            formatSelect.value = ext === "yml" ? "yaml" : ext;
+          }
           currentInputFormat = formatSelect.value;
+          syncInputFormatUi();
+          syncInputEditorLanguage();
         }
       }
     }
@@ -1310,6 +1418,31 @@ function validateInput() {
       validationIcon.textContent = "check";
       validationIcon.className = "material-icons status-icon valid";
       validationText.textContent = "Assumed valid YAML";
+    } else if (isSimplifiedInputFormat(currentInputFormat)) {
+      const parsed = JSON.parse(text);
+      if (currentInputFormat === "flat") {
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+          throw new Error("FLAT payload must be a JSON object");
+        }
+        validationText.textContent = "Valid FLAT JSON";
+      } else {
+        if (
+          typeof parsed !== "object" || parsed === null || Array.isArray(parsed) ||
+          !("ctx" in parsed)
+        ) {
+          throw new Error("STRUCTURED payload must include a ctx object");
+        }
+        validationText.textContent = "Valid STRUCTURED JSON";
+      }
+      validationIcon.textContent = "check";
+      validationIcon.className = "material-icons status-icon valid";
+
+      const hasTemplate = getEffectiveTemplateWorkspace().listFiles().length > 0;
+      const section = document.getElementById("input-simplified-template-section");
+      section?.classList.toggle("needs-attention", !hasTemplate);
+      if (!hasTemplate) {
+        validationText.textContent += " — template required for conversion";
+      }
     }
   } catch (error) {
     validationIcon.textContent = "error";
@@ -1401,6 +1534,9 @@ async function handleConvert() {
     hideLoading();
 
     if (!result.success) {
+      if (result.error?.includes(MISSING_WEB_TEMPLATE_ERROR)) {
+        highlightTemplateUploadRequired();
+      }
       showError(result.error || "Conversion failed");
       return;
     }
@@ -1414,7 +1550,11 @@ async function handleConvert() {
   } catch (error) {
     hideLoading();
     console.error("Conversion error:", error);
-    showError((error as Error).message);
+    const message = (error as Error).message;
+    if (message.includes(MISSING_WEB_TEMPLATE_ERROR)) {
+      highlightTemplateUploadRequired();
+    }
+    showError(message);
   }
 }
 

@@ -90,9 +90,9 @@ validation. (Take inspiration from Archie and openEHR's simplified formats using
 "web template"-based formalisms)
 Create library functionality and make sure the demo tool also allows convertion at least TO the different simplified formats
 
-Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app template tab supports FLAT, STRUCTURED, and Web Template outputs. See `docs/SIMPLIFIED_FORMATS.md`.
+Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app supports FLAT/STRUCTURED/Web Template **output** (template tab) and **input** (instance tab with template upload). See `docs/SIMPLIFIED_FORMATS.md`.
 
-## Phase 7e — Simplified formats bidirectional (in progress)
+## Phase 7e — Simplified formats bidirectional — done
 
 Library support for all six conversion directions:
 
@@ -105,7 +105,7 @@ Library support for all six conversion directions:
 | RM → STRUCTURED | `serializeToStructured` | ✅ |
 | STRUCTURED → RM | `deserializeFromStructured` | ✅ |
 
-Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_field_maps.ts` aligned with `docs/reference_for_llms/simplified_formats.md`. Tests in `test_data/tests/serialization/simplified/`.
+Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_field_maps.ts` aligned with `docs/reference_for_llms/simplified_formats.md`. Tests in `test_data/tests/serialization/simplified/` and `examples/demo-app/src/converter.template.test.ts`. Known limitations are documented in `docs/SIMPLIFIED_FORMATS.md#limitations`.
 
 ## Phase 7d Better `.t.json` + GitHub file sets — partly done (likely not fully tested)
 - `parseTemplateJson` / `template_json` repository kind (Archetype Designer JSON AOM)
@@ -140,3 +140,10 @@ targeted purposes for example
 - complete release e.g. for making advanced tooling
 
 create/update end user docs 
+
+## Phase X - Contribution builder
+Implement "contribution builder" suggestion in https://link.springer.com/article/10.1186/1472-6947-13-57 including the table https://link.springer.com/article/10.1186/1472-6947-13-57/tables/2 Ît should be possible to run a variant of this on the client side in web/mobile apps so that they can send valid entire contributions to backend openEHR REST servers. Also a variant should be runanble on server side.
+
+## Phaze X -  multiuser contribution builder
+CRDT or OT enabled multiuser contribution builder enabling collaborative editing of uncomitted contribution in a style similar to "google docs" collaboration. (Preferably P2P with continous server persistence possiblility) Include indicators of what users are editing where currently and possibility to switch on source/user coloring of enteresd inf in a way similar to https://etherpad.org/. Also allow conversion of this info to openEHR's ENTRY.provider attribute
+

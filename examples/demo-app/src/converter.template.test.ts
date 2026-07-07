@@ -243,6 +243,128 @@ Deno.test("convert instance mode with loaded template workspace produces FLAT", 
   assert(JSON.parse(flatResult.outputs?.flat || "{}")["ctx/language"]);
 });
 
+Deno.test("convert FLAT input with template workspace deserializes to RM JSON", async () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile("demo_generated.opt", OPERATIONAL_TEMPLATE_ADL);
+
+  const flatSource = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["flat"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  });
+  assertEquals(flatSource.success, true, flatSource.error);
+
+  const result = await convert(flatSource.outputs?.flat ?? "", {
+    inputMode: "instance",
+    inputFormat: "flat",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  });
+
+  assertEquals(result.success, true, result.error);
+  const json = JSON.parse(result.outputs?.json || "{}");
+  assertEquals(json._type, "COMPOSITION");
+});
+
+Deno.test("convert FLAT input without template workspace fails with guidance", async () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile("demo_generated.opt", OPERATIONAL_TEMPLATE_ADL);
+
+  const flatSource = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["flat"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  });
+  assertEquals(flatSource.success, true);
+
+  const result = await convert(flatSource.outputs?.flat ?? "", {
+    inputMode: "instance",
+    inputFormat: "flat",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(result.success, false);
+  assert(result.error?.includes("Web Template"));
+});
+
 Deno.test("convert template input generates markdown and asciidoc outputs", async () => {
   const result = await convert(OPERATIONAL_TEMPLATE_ADL, {
     inputMode: "template",
