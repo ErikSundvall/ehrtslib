@@ -9,6 +9,8 @@ import {
   isTerseCodePhrase,
   isTerseDvCodedText,
   isSymbolKey,
+  parseLocatableBracket,
+  parseLocatableFolded,
   parseTerseDvCodedText,
   PROPERTY_TYPE_MAP,
   TERMINOLOGY_FIELD_PROMOTIONS,
@@ -62,25 +64,25 @@ function expandTerseScalar(
   return expanded;
 }
 
-function parseLocatableFolded(value: string): { name: string; arch: string } | null {
-  const match = value.match(/^(.+)\[(.+)\]$/);
-  if (!match) return null;
-  return { name: match[1], arch: match[2] };
-}
-
 function expandArchetypeDetails(
   details: Record<string, unknown>,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = { _type: "ARCHETYPE_DETAILS" };
+  const out: Record<string, unknown> = { _type: "ARCHETYPED" };
   const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
   const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
   const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
 
   if (details[tSym] != null) {
-    out.template_id = { value: details[tSym] };
+    out.template_id = {
+      _type: "TEMPLATE_ID",
+      value: details[tSym],
+    };
   }
   if (details[aSym] != null) {
-    out.archetype_id = { value: details[aSym] };
+    out.archetype_id = {
+      _type: "ARCHETYPE_ID",
+      value: details[aSym],
+    };
   }
   if (details[rSym] != null) {
     out.rm_version = details[rSym];
@@ -89,6 +91,38 @@ function expandArchetypeDetails(
   for (const k of Object.keys(details)) {
     if (k === tSym || k === aSym || k === rSym) continue;
     out[k] = details[k];
+  }
+  return out;
+}
+
+function expandFoldedLocatable(
+  foldedValue: string,
+  typeName: string,
+  obj: Record<string, unknown>,
+  symKey: string,
+  reverseMap: Map<string, string>,
+  symbolMap: Record<string, string>,
+): Record<string, unknown> {
+  const parsed = parseLocatableFolded(foldedValue);
+  const name = parsed?.name ?? foldedValue;
+  const bracket = parsed?.bracket ?? "";
+  const bracketParts = parseLocatableBracket(bracket, name);
+
+  const out: Record<string, unknown> = {
+    _type: typeName,
+    name: { _type: "DV_TEXT", value: name },
+  };
+
+  if (bracketParts.archetypeNodeId) {
+    out.archetype_node_id = bracketParts.archetypeNodeId;
+  }
+  if (bracketParts.archetypeDetails) {
+    out.archetype_details = expandArchetypeDetails(bracketParts.archetypeDetails);
+  }
+
+  for (const k of Object.keys(obj)) {
+    if (k === symKey || k === "archetype_details") continue;
+    out[k] = expandNode(obj[k], typeName, k, reverseMap, symbolMap);
   }
   return out;
 }
@@ -155,16 +189,14 @@ function expandNode(
     compositionSym && Object.prototype.hasOwnProperty.call(obj, compositionSym) &&
     typeof obj[compositionSym] === "string"
   ) {
-    const name = String(obj[compositionSym]);
-    const out: Record<string, unknown> = {
-      _type: "COMPOSITION",
-      name: { _type: "DV_TEXT", value: name },
-    };
-    for (const k of Object.keys(obj)) {
-      if (k === compositionSym) continue;
-      out[k] = expandNode(obj[k], "COMPOSITION", k, reverseMap, symbolMap);
-    }
-    return out;
+    return expandFoldedLocatable(
+      String(obj[compositionSym]),
+      "COMPOSITION",
+      obj,
+      compositionSym,
+      reverseMap,
+      symbolMap,
+    );
   }
 
   const symbolKeys = Object.keys(obj).filter((k) => isSymbolKey(k) && k !== "_");
@@ -181,16 +213,14 @@ function expandNode(
 
     const locatable = parseLocatableFolded(strVal);
     if (locatable && typeName) {
-      const out: Record<string, unknown> = {
-        _type: typeName,
-        name: { _type: "DV_TEXT", value: locatable.name },
-        archetype_node_id: locatable.arch,
-      };
-      for (const k of Object.keys(obj)) {
-        if (k === symKey) continue;
-        out[k] = expandNode(obj[k], typeName, k, reverseMap, symbolMap);
-      }
-      return out;
+      return expandFoldedLocatable(
+        strVal,
+        typeName,
+        obj,
+        symKey,
+        reverseMap,
+        symbolMap,
+      );
     }
 
     if (typeName && typeName.startsWith("DV_")) {

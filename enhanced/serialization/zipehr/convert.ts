@@ -4,7 +4,7 @@
 
 import { jsonToCompactPlain } from "./compact.ts";
 import {
-  ARCHETYPE_DETAIL_SYMBOLS,
+  buildLocatableFoldedString,
   compactArchetypeDetails,
   extractFirstScalar,
   extractTerminologyFieldCode,
@@ -43,9 +43,19 @@ function foldCompositionName(
   if (nameStr == null) return obj;
 
   const sym = compositionSym || "🖂";
-  const out: Record<string, unknown> = { [sym]: nameStr };
+  const folded = buildLocatableFoldedString(
+    nameStr,
+    obj.archetype_node_id != null ? String(obj.archetype_node_id) : undefined,
+    obj.archetype_details,
+  );
+  const out: Record<string, unknown> = { [sym]: folded };
   for (const k of Object.keys(obj)) {
-    if (k === "_" || k === "name") continue;
+    if (
+      k === "_" || k === "name" || k === "archetype_node_id" ||
+      k === "archetype_details"
+    ) {
+      continue;
+    }
     out[k] = obj[k];
   }
   return out;
@@ -142,18 +152,27 @@ function convertObjectDirectInner(
 
     if (
       Object.prototype.hasOwnProperty.call(typed, "name") &&
-      Object.prototype.hasOwnProperty.call(typed, "archetype_node_id")
+      (Object.prototype.hasOwnProperty.call(typed, "archetype_node_id") ||
+        Object.prototype.hasOwnProperty.call(typed, "archetype_details"))
     ) {
       const convName = convertObjectDirectInner(typed.name, symbolMap);
-      const convArch = convertObjectDirectInner(
-        typed.archetype_node_id,
-        symbolMap,
-      );
       const nameStr = extractFirstScalar(convName) || "";
-      const archStr = extractFirstScalar(convArch) || "";
-      const out: Record<string, unknown> = { [sym]: `${nameStr}[${archStr}]` };
+      const nodeId = typed.archetype_node_id != null
+        ? extractFirstScalar(
+          convertObjectDirectInner(typed.archetype_node_id, symbolMap),
+        ) ?? String(typed.archetype_node_id)
+        : undefined;
+      const folded = buildLocatableFoldedString(
+        nameStr,
+        nodeId,
+        typed.archetype_details,
+      );
+      const out: Record<string, unknown> = { [sym]: folded };
       for (const k of Object.keys(typed)) {
-        if (k === "_type" || k === "name" || k === "archetype_node_id") {
+        if (
+          k === "_type" || k === "name" || k === "archetype_node_id" ||
+          k === "archetype_details"
+        ) {
           continue;
         }
         out[k] = convertObjectDirectInner(typed[k], symbolMap);
@@ -308,7 +327,8 @@ export function applyEmojiToCompact(
   if (
     origObj &&
     Object.prototype.hasOwnProperty.call(origObj, "name") &&
-    Object.prototype.hasOwnProperty.call(origObj, "archetype_node_id")
+    (Object.prototype.hasOwnProperty.call(origObj, "archetype_node_id") ||
+      Object.prototype.hasOwnProperty.call(origObj, "archetype_details"))
   ) {
     const sym = getSymbolFor(symbolMap, String(typeName ?? "")) ||
       String(typeName ?? "LOCATABLE");
@@ -316,12 +336,24 @@ export function applyEmojiToCompact(
       ? compactObj.name
       : (extractFirstScalar(compactObj.name) ||
         extractFirstScalar(origObj.name) || "");
-    const archStr = compactObj.archetype_node_id != null
+    const nodeId = compactObj.archetype_node_id != null
       ? String(compactObj.archetype_node_id)
-      : String(origObj.archetype_node_id || "");
-    const out: Record<string, unknown> = { [String(sym)]: `${nameStr}[${archStr}]` };
+      : (origObj.archetype_node_id != null
+        ? String(origObj.archetype_node_id)
+        : undefined);
+    const folded = buildLocatableFoldedString(
+      nameStr,
+      nodeId,
+      origObj.archetype_details,
+    );
+    const out: Record<string, unknown> = { [String(sym)]: folded };
     for (const k of Object.keys(compactObj)) {
-      if (k === "_type" || k === "name" || k === "archetype_node_id") continue;
+      if (
+        k === "_type" || k === "name" || k === "archetype_node_id" ||
+        k === "archetype_details"
+      ) {
+        continue;
+      }
       out[k] = applyEmojiToCompact(
         compactObj[k],
         origObj[k],

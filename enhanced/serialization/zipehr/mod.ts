@@ -21,6 +21,10 @@ export {
   isTerseCodePhrase,
   isTerseDvCodedText,
   compactArchetypeDetails,
+  buildLocatableBracket,
+  buildLocatableFoldedString,
+  parseLocatableBracket,
+  parseLocatableFolded,
   isSymbolKey,
 } from "./shared.ts";
 
