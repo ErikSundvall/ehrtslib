@@ -36,14 +36,14 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-07T11:46:56.448Z", buildId: "KNEP43CH" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-07T12:52:33.209Z", buildId: "59UB4JJN" };
   }
 });
 
-// enhanced/serialization/common/type_registry.ts
+// ../../enhanced/serialization/common/type_registry.ts
 var TypeRegistry;
 var init_type_registry = __esm({
-  "enhanced/serialization/common/type_registry.ts"() {
+  "../../enhanced/serialization/common/type_registry.ts"() {
     init_define_BUILD_INFO();
     TypeRegistry = class {
       static typeNameToConstructor = /* @__PURE__ */ new Map();
@@ -146,10 +146,10 @@ var init_type_registry = __esm({
   }
 });
 
-// enhanced/serialization/common/errors.ts
+// ../../enhanced/serialization/common/errors.ts
 var SerializationError, DeserializationError, TypeNotFoundError;
 var init_errors = __esm({
-  "enhanced/serialization/common/errors.ts"() {
+  "../../enhanced/serialization/common/errors.ts"() {
     init_define_BUILD_INFO();
     SerializationError = class _SerializationError extends Error {
       constructor(message, object, cause) {
@@ -186,10 +186,10 @@ var init_errors = __esm({
   }
 });
 
-// enhanced/serialization/json/json_canonical_deserializer.ts
+// ../../enhanced/serialization/json/json_canonical_deserializer.ts
 var JsonCanonicalDeserializer;
 var init_json_canonical_deserializer = __esm({
-  "enhanced/serialization/json/json_canonical_deserializer.ts"() {
+  "../../enhanced/serialization/json/json_canonical_deserializer.ts"() {
     init_define_BUILD_INFO();
     init_type_registry();
     init_errors();
@@ -271,7 +271,7 @@ var init_json_canonical_deserializer = __esm({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js
 function clampProp(e2, n2, t3, o2, r2) {
   return clampEntity(n2, getDefinedProp(e2, n2), t3, o2, r2);
 }
@@ -2646,7 +2646,7 @@ function Nn() {
 }
 var expectedInteger, expectedPositive, expectedFinite, forbiddenBigIntToNumber, invalidBigInt, pr, hr, numberOutOfRange, invalidEntity, missingField, tn, duplicateFields, noValidFields, Z, invalidChoice, A, P, gr, Dr, Ir, invalidEra, missingYear, invalidMonthCode, Mr, Nr, yr, Pr, g, vr, Er, invalidCalendar, Fr, br, wr, Br, kr, Yr, Cr, Zr, Rr, zr, qr, Ur, Ar, failedParse, invalidSubstring, Ln, kn, Lr, Wr, jr, xr, $r, Et, Gr, Hr, Vr, be, _r, Jr, Kr, Qr, Xr, w, ei, ni, ti, oi, ri, ii, ai, si, ci, ui, li, fi, di, en, mi, pi, hi, X, gi, Ti, Di, Ii, m, f, Mi, $, F, Ni, yi, Pi, vi, Ei, Si, Fi, bi, j, Oi, wi, Bi, ki, Yi, Dt, Ci, En, Zi, Ri, zi, qi, Ui, Ai, Li, Wi, ji, xi, $i, Gi, Hi, Vi, _i, Ji, Ki, Qi, Xi, ea, na, ta, oa, ra, ia, aa, sa, ca, ua, la, fa, da, ma, pa, ha, L, q, J, We, xe, Te, Oe, qt, ga, Ta, Da, Ia, Ma, Na, fn, ya, ie, FixedTimeZone, IntlTimeZone, Pa, va, Ea, Sa, Fa, ba, Oa, wa, Ba, ka, Ya, Ca, Za, Ra, za, qa, Ua, Aa, La, Wa, ja, xa, $a, Ga, Ha, Va, _a, Ja, Ka, Y, Qa, Xa, es, ns, ts, os, rs, is, as, ss, cs, us, ls, fs, ds, ms, ps, hs, gs, Ts, Ds, Is, Ms, Ns, t, s, n, o, r, a, i2, ys;
 var init_internal = __esm({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js"() {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/internal.js"() {
     init_define_BUILD_INFO();
     expectedInteger = (e2, n2) => `Non-integer ${e2}: ${n2}`;
     expectedPositive = (e2, n2) => `Non-positive ${e2}: ${n2}`;
@@ -3356,7 +3356,7 @@ var init_internal = __esm({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js
 function createSlotClass(e2, t3, n2, o2, r2) {
   function Class(...e3) {
     if (!(this instanceof Class)) {
@@ -3658,7 +3658,7 @@ function createFormatPrepperForBranding(t3) {
 }
 var xn, Rn, Wn, Gn, Un, zn, Hn, Kn, Qn, Xn, $n, _n, eo, to, no, oo, ro, ao, io, so, lo, co, uo, fo, mo, So, Oo, To, po, ho, Do, Po, Co, go, Zo, bo, Fo, Io, vo, wo, jo, Mo, yo, No, Bo, Yo, Ao, Eo, Vo, Jo, Lo, qo, ko, xo, Ro, Wo, Go, Uo, zo, Ho, Ko, Qo, Xo, $o, _o, er, tr, nr, or, rr, ar, ir, sr, lr, cr, ur, dr, fr, mr, Sr, Or, Tr;
 var init_classApi = __esm({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js"() {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/chunks/classApi.js"() {
     init_define_BUILD_INFO();
     init_internal();
     xn = {
@@ -4162,23 +4162,23 @@ var init_classApi = __esm({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js
 var init_temporal_polyfill = __esm({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js"() {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/temporal-polyfill@0.2.5/node_modules/temporal-polyfill/index.js"() {
     init_define_BUILD_INFO();
     init_classApi();
   }
 });
 
-// enhanced/temporal_polyfill.ts
+// ../../enhanced/temporal_polyfill.ts
 var init_temporal_polyfill2 = __esm({
-  "enhanced/temporal_polyfill.ts"() {
+  "../../enhanced/temporal_polyfill.ts"() {
     init_define_BUILD_INFO();
     init_temporal_polyfill();
   }
 });
 
-// enhanced/openehr_base.ts
+// ../../enhanced/openehr_base.ts
 var openehr_base_exports = {};
 __export(openehr_base_exports, {
   ACCESS_GROUP_REF: () => ACCESS_GROUP_REF,
@@ -4258,7 +4258,7 @@ function getRegisteredTypes() {
 }
 var TYPE_REGISTRY, Any, Container, Hash, List, Set2, Array2, Ordered, String2, Uri, Numeric, Ordered_Numeric, Integer, Double, Octet, Character, Boolean2, Real, Integer64, Byte, Temporal, Time_Definitions, Iso8601_type, Iso8601_date_time, Iso8601_duration, Iso8601_time, Iso8601_date, Interval, Proper_interval, Multiplicity_interval, Cardinality, Terminology_code, Terminology_term, OBJECT_ID, ARCHETYPE_ID, GENERIC_ID, UID_BASED_ID, HIER_OBJECT_ID, OBJECT_REF, LOCATABLE_REF, OBJECT_VERSION_ID, PARTY_REF, TERMINOLOGY_ID, VERSION_TREE_ID, UID, UUID, INTERNET_ID, ISO_OID, TEMPLATE_ID, ACCESS_GROUP_REF, BASIC_DEFINITIONS, OPENEHR_DEFINITIONS, VALIDITY_KIND, VERSION_STATUS, Comparable, Iso8601_timezone, Point_interval, CODE_PHRASE, AUTHORED_RESOURCE, RESOURCE_DESCRIPTION, TRANSLATION_DETAILS, RESOURCE_DESCRIPTION_ITEM, RESOURCE_ANNOTATIONS;
 var init_openehr_base = __esm({
-  "enhanced/openehr_base.ts"() {
+  "../../enhanced/openehr_base.ts"() {
     init_define_BUILD_INFO();
     init_temporal_polyfill2();
     TYPE_REGISTRY = /* @__PURE__ */ new Map();
@@ -9312,10 +9312,10 @@ var init_openehr_base = __esm({
   }
 });
 
-// enhanced/openehr_lang.ts
+// ../../enhanced/openehr_lang.ts
 var EXPR_VALUE, EXPRESSION, EXPR_LEAF, EXPR_VALUE_REF;
 var init_openehr_lang = __esm({
-  "enhanced/openehr_lang.ts"() {
+  "../../enhanced/openehr_lang.ts"() {
     init_define_BUILD_INFO();
     init_openehr_base();
     EXPR_VALUE = class {
@@ -9347,10 +9347,10 @@ var init_openehr_lang = __esm({
   }
 });
 
-// enhanced/openehr_am.ts
+// ../../enhanced/openehr_am.ts
 var ARCHETYPE, AUTHORED_ARCHETYPE, TEMPLATE, OPERATIONAL_TEMPLATE, TEMPLATE_OVERLAY, ARCHETYPE_CONSTRAINT, C_OBJECT, C_ATTRIBUTE, C_DEFINED_OBJECT, C_REFERENCE_OBJECT, ARCHETYPE_SLOT, C_PRIMITIVE_OBJECT, C_COMPLEX_OBJECT, C_ARCHETYPE_ROOT, ARCHETYPE_ID_CONSTRAINT, C_PRIMITIVE, C_BOOLEAN, C_STRING, C_INTEGER, C_REAL, C_TERMINOLOGY_CODE, RM_OVERLAY, EXPR_ITEM, EXPR_ARCHETYPE_REF, C_DOMAIN_TYPE, C_CODED_TEXT, C_QUANTITY, C_QUANTITY_ITEM, ASSERTION, ASSERTION_VARIABLE, EXPR_OPERATOR, EXPR_UNARY_OPERATOR, EXPR_BINARY_OPERATOR, OPERATOR_KIND, CARDINALITY, C_SINGLE_ATTRIBUTE, C_MULTIPLE_ATTRIBUTE, ARCHETYPE_ONTOLOGY;
 var init_openehr_am = __esm({
-  "enhanced/openehr_am.ts"() {
+  "../../enhanced/openehr_am.ts"() {
     init_define_BUILD_INFO();
     init_openehr_base();
     init_openehr_lang();
@@ -10872,9 +10872,9 @@ var init_openehr_am = __esm({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/config.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/config.js
 var require_config = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/config.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/config.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -10991,9 +10991,9 @@ var require_config = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefix.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefix.js
 var require_prefix = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefix.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefix.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -11094,9 +11094,9 @@ var require_prefix = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefixTables.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefixTables.js
 var require_prefixTables = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefixTables.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/prefixTables.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -11207,9 +11207,9 @@ var require_prefixTables = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumFunctions.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumFunctions.js
 var require_ucumFunctions = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumFunctions.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumFunctions.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -11404,9 +11404,9 @@ var require_ucumFunctions = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitTables.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitTables.js
 var require_unitTables = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitTables.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitTables.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -11976,9 +11976,9 @@ var require_unitTables = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumInternalUtils.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumInternalUtils.js
 var require_ucumInternalUtils = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumInternalUtils.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumInternalUtils.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -12021,9 +12021,9 @@ var require_ucumInternalUtils = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-finite@1.1.0/node_modules/is-finite/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-finite@1.1.0/node_modules/is-finite/index.js
 var require_is_finite = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-finite@1.1.0/node_modules/is-finite/index.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-finite@1.1.0/node_modules/is-finite/index.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     module2.exports = Number.isFinite || function(value) {
@@ -12032,9 +12032,9 @@ var require_is_finite = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-integer@1.0.7/node_modules/is-integer/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-integer@1.0.7/node_modules/is-integer/index.js
 var require_is_integer = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-integer@1.0.7/node_modules/is-integer/index.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/is-integer@1.0.7/node_modules/is-integer/index.js"(exports, module2) {
     init_define_BUILD_INFO();
     var isFinite2 = require_is_finite();
     module2.exports = Number.isInteger || function(val) {
@@ -12043,9 +12043,9 @@ var require_is_integer = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/dimension.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/dimension.js
 var require_dimension = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/dimension.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/dimension.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -12344,9 +12344,9 @@ var require_dimension = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unit.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unit.js
 var require_unit = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unit.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unit.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -13202,9 +13202,9 @@ var require_unit = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/jsonArrayPack.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/jsonArrayPack.js
 var require_jsonArrayPack = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/jsonArrayPack.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/jsonArrayPack.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -13285,22 +13285,22 @@ var require_jsonArrayPack = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/data/ucumDefs.min.json
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/data/ucumDefs.min.json
 var ucumDefs_min_exports = {};
 __export(ucumDefs_min_exports, {
   default: () => ucumDefs_min_default
 });
 var ucumDefs_min_default;
 var init_ucumDefs_min = __esm({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/data/ucumDefs.min.json"() {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/data/ucumDefs.min.json"() {
     init_define_BUILD_INFO();
     ucumDefs_min_default = { "license": "The following data (prefixes and units) was generated by the UCUM LHC code from the UCUM data and selected LOINC combinations of UCUM units.  The license for the UCUM LHC code (demo and library code as well as the combined units) is located at https://github.com/lhncbc/ucum-lhc/blob/LICENSE.md.", "prefixes": { "config": ["code_", "ciCode_", "name_", "printSymbol_", "value_", "exp_"], "data": [["E", "EX", "exa", "E", 1e18, "18"], ["G", "GA", "giga", "G", 1e9, "9"], ["Gi", "GIB", "gibi", "Gi", 1073741824, null], ["Ki", "KIB", "kibi", "Ki", 1024, null], ["M", "MA", "mega", "M", 1e6, "6"], ["Mi", "MIB", "mebi", "Mi", 1048576, null], ["P", "PT", "peta", "P", 1e15, "15"], ["T", "TR", "tera", "T", 1e12, "12"], ["Ti", "TIB", "tebi", "Ti", 1099511627776, null], ["Y", "YA", "yotta", "Y", 1e24, "24"], ["Z", "ZA", "zetta", "Z", 1e21, "21"], ["a", "A", "atto", "a", 1e-18, "-18"], ["c", "C", "centi", "c", 0.01, "-2"], ["d", "D", "deci", "d", 0.1, "-1"], ["da", "DA", "deka", "da", 10, "1"], ["f", "F", "femto", "f", 1e-15, "-15"], ["h", "H", "hecto", "h", 100, "2"], ["k", "K", "kilo", "k", 1e3, "3"], ["m", "M", "milli", "m", 1e-3, "-3"], ["n", "N", "nano", "n", 1e-9, "-9"], ["p", "P", "pico", "p", 1e-12, "-12"], ["u", "U", "micro", "\u03BC", 1e-6, "-6"], ["y", "YO", "yocto", "y", 1e-24, "-24"], ["z", "ZO", "zepto", "z", 1e-21, "-21"]] }, "units": { "config": ["isBase_", "name_", "csCode_", "ciCode_", "property_", "magnitude_", ["dim_", "dimVec_"], "printSymbol_", "class_", "isMetric_", "variable_", "cnv_", "cnvPfx_", "isSpecial_", "isArbitrary_", "moleExp_", "equivalentExp_", "synonyms_", "source_", "loincProperty_", "category_", "guidance_", "csUnitString_", "ciUnitString_", "baseFactorStr_", "baseFactor_", "defError_"], "data": [[true, "meter", "m", "M", "length", 1, [1, 0, 0, 0, 0, 0, 0], "m", null, false, "L", null, 1, false, false, 0, 0, "meters; metres; distance", "UCUM", "Len", "Clinical", "unit of length = 1.09361 yards", null, null, null, null, false], [true, "second - time", "s", "S", "time", 1, [0, 1, 0, 0, 0, 0, 0], "s", null, false, "T", null, 1, false, false, 0, 0, "seconds", "UCUM", "Time", "Clinical", "", null, null, null, null, false], [true, "gram", "g", "G", "mass", 1, [0, 0, 1, 0, 0, 0, 0], "g", null, false, "M", null, 1, false, false, 0, 0, "grams; gm", "UCUM", "Mass", "Clinical", "", null, null, null, null, false], [true, "radian", "rad", "RAD", "plane angle", 1, [0, 0, 0, 1, 0, 0, 0], "rad", null, false, "A", null, 1, false, false, 0, 0, "radians", "UCUM", "Angle", "Clinical", "unit of angular measure where 1 radian = 1/2\u03C0 turn =  57.296 degrees. ", null, null, null, null, false], [true, "degree Kelvin", "K", "K", "temperature", 1, [0, 0, 0, 0, 1, 0, 0], "K", null, false, "C", null, 1, false, false, 0, 0, "Kelvin; degrees", "UCUM", "Temp", "Clinical", "absolute, thermodynamic temperature scale ", null, null, null, null, false], [true, "coulomb", "C", "C", "electric charge", 1, [0, 0, 0, 0, 0, 1, 0], "C", null, false, "Q", null, 1, false, false, 0, 0, "coulombs", "UCUM", "", "Clinical", "defined as amount of 1 electron charge = 6.2415093\xD710^18 e, and equivalent to 1 Ampere-second", null, null, null, null, false], [true, "candela", "cd", "CD", "luminous intensity", 1, [0, 0, 0, 0, 0, 0, 1], "cd", null, false, "F", null, 1, false, false, 0, 0, "candelas", "UCUM", "", "Clinical", "SI base unit of luminous intensity", null, null, null, null, false], [false, "the number ten for arbitrary powers", "10*", "10*", "number", 10, [0, 0, 0, 0, 0, 0, 0], "10", "dimless", false, null, null, 1, false, false, 0, 0, "10^; 10 to the arbitrary powers", "UCUM", "Num", "Clinical", "10* by itself is the same as 10, but users can add digits after the *. For example, 10*3 = 1000.", "1", "1", "10", 10, false], [false, "the number ten for arbitrary powers", "10^", "10^", "number", 10, [0, 0, 0, 0, 0, 0, 0], "10", "dimless", false, null, null, 1, false, false, 0, 0, "10*; 10 to the arbitrary power", "UCUM", "Num", "Clinical", "10* by itself is the same as 10, but users can add digits after the *. For example, 10*3 = 1000.", "1", "1", "10", 10, false], [false, "the number pi", "[pi]", "[PI]", "number", 3.141592653589793, [0, 0, 0, 0, 0, 0, 0], "\u03C0", "dimless", false, null, null, 1, false, false, 0, 0, "\u03C0", "UCUM", "", "Constant", "a mathematical constant; the ratio of a circle's circumference to its diameter \u2248 3.14159", "1", "1", "3.1415926535897932384626433832795028841971693993751058209749445923", 3.141592653589793, false], [false, "", "%", "%", "fraction", 0.01, [0, 0, 0, 0, 0, 0, 0], "%", "dimless", false, null, null, 1, false, false, 0, 0, "percents", "UCUM", "FR; NFR; MFR; CFR; SFR Rto; etc. ", "Clinical", "", "10*-2", "10*-2", "1", 1, false], [false, "parts per thousand", "[ppth]", "[PPTH]", "fraction", 1e-3, [0, 0, 0, 0, 0, 0, 0], "ppth", "dimless", false, null, null, 1, false, false, 0, 0, "ppth; 10^-3", "UCUM", "MCnc; MCnt", "Clinical", "[ppth] is often used in solution concentrations as 1 g/L or 1 g/kg.\n\nCan be ambigous and would be better if the metric units was used directly. ", "10*-3", "10*-3", "1", 1, false], [false, "parts per million", "[ppm]", "[PPM]", "fraction", 1e-6, [0, 0, 0, 0, 0, 0, 0], "ppm", "dimless", false, null, null, 1, false, false, 0, 0, "ppm; 10^-6", "UCUM", "MCnt; MCnc; SFr", "Clinical", "[ppm] is often used in solution concentrations as 1 mg/L  or 1 mg/kg. Also used to express mole fractions as 1 mmol/mol.\n\n[ppm] is also used in nuclear magnetic resonance (NMR) to represent chemical shift - the difference of a measured frequency in parts per million from the reference frequency.\n\nCan be ambigous and would be better if the metric units was used directly. ", "10*-6", "10*-6", "1", 1, false], [false, "parts per billion", "[ppb]", "[PPB]", "fraction", 1e-9, [0, 0, 0, 0, 0, 0, 0], "ppb", "dimless", false, null, null, 1, false, false, 0, 0, "ppb; 10^-9", "UCUM", "MCnt; MCnc; SFr", "Clinical", "[ppb] is often used in solution concentrations as 1 ug/L  or 1 ug/kg. Also used to express mole fractions as 1 umol/mol.\n\nCan be ambigous and would be better if the metric units was used directly. ", "10*-9", "10*-9", "1", 1, false], [false, "parts per trillion", "[pptr]", "[PPTR]", "fraction", 1e-12, [0, 0, 0, 0, 0, 0, 0], "pptr", "dimless", false, null, null, 1, false, false, 0, 0, "pptr; 10^-12", "UCUM", "MCnt; MCnc; SFr", "Clinical", "[pptr] is often used in solution concentrations as 1 ng/L or 1 ng/kg. Also used to express mole fractions as 1 nmol/mol.\n\nCan be ambigous and would be better if the metric units was used directly. ", "10*-12", "10*-12", "1", 1, false], [false, "mole", "mol", "MOL", "amount of substance", 60221367e16, [0, 0, 0, 0, 0, 0, 0], "mol", "si", true, null, null, 1, false, false, 1, 0, "moles", "UCUM", "Sub", "Clinical", "Measure the number of molecules ", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "steradian - solid angle", "sr", "SR", "solid angle", 1, [0, 0, 0, 2, 0, 0, 0], "sr", "si", true, null, null, 1, false, false, 0, 0, "square radian; rad2; rad^2", "UCUM", "Angle", "Clinical", "unit of solid angle in three-dimensional geometry analagous to radian; used in photometry which measures the perceived brightness of object by human eye (e.g. radiant intensity = watt/steradian)", "rad2", "RAD2", "1", 1, false], [false, "hertz", "Hz", "HZ", "frequency", 1, [0, -1, 0, 0, 0, 0, 0], "Hz", "si", true, null, null, 1, false, false, 0, 0, "Herz; frequency; frequencies", "UCUM", "Freq; Num", "Clinical", "equal to one cycle per second", "s-1", "S-1", "1", 1, false], [false, "newton", "N", "N", "force", 1e3, [1, -2, 1, 0, 0, 0, 0], "N", "si", true, null, null, 1, false, false, 0, 0, "Newtons", "UCUM", "Force", "Clinical", "unit of force with base units kg.m/s2", "kg.m/s2", "KG.M/S2", "1", 1, false], [false, "pascal", "Pa", "PAL", "pressure", 1e3, [-1, -2, 1, 0, 0, 0, 0], "Pa", "si", true, null, null, 1, false, false, 0, 0, "pascals", "UCUM", "Pres", "Clinical", "standard unit of pressure equal to 1 newton per square meter (N/m2)", "N/m2", "N/M2", "1", 1, false], [false, "joule", "J", "J", "energy", 1e3, [2, -2, 1, 0, 0, 0, 0], "J", "si", true, null, null, 1, false, false, 0, 0, "joules", "UCUM", "Enrg", "Clinical", "unit of energy defined as the work required to move an object 1 m with a force of 1 N (N.m) or an electric charge of 1 C through 1 V (C.V), or to produce 1 W for 1 s (W.s) ", "N.m", "N.M", "1", 1, false], [false, "watt", "W", "W", "power", 1e3, [2, -3, 1, 0, 0, 0, 0], "W", "si", true, null, null, 1, false, false, 0, 0, "watts", "UCUM", "EngRat", "Clinical", "unit of power equal to 1 Joule per second (J/s) =  kg\u22C5m2\u22C5s\u22123", "J/s", "J/S", "1", 1, false], [false, "Ampere", "A", "A", "electric current", 1, [0, -1, 0, 0, 0, 1, 0], "A", "si", true, null, null, 1, false, false, 0, 0, "Amperes", "UCUM", "ElpotRat", "Clinical", "unit of electric current equal to flow rate of electrons equal to 6.2415\xD710^18 elementary charges moving past a boundary in one second or 1 Coulomb/second", "C/s", "C/S", "1", 1, false], [false, "volt", "V", "V", "electric potential", 1e3, [2, -2, 1, 0, 0, -1, 0], "V", "si", true, null, null, 1, false, false, 0, 0, "volts", "UCUM", "Elpot", "Clinical", "unit of electric potential (voltage) = 1 Joule per Coulomb (J/C)", "J/C", "J/C", "1", 1, false], [false, "farad", "F", "F", "electric capacitance", 1e-3, [-2, 2, -1, 0, 0, 2, 0], "F", "si", true, null, null, 1, false, false, 0, 0, "farads; electric capacitance", "UCUM", "", "Clinical", "CGS unit of electric capacitance with base units C/V (Coulomb per Volt)", "C/V", "C/V", "1", 1, false], [false, "ohm", "Ohm", "OHM", "electric resistance", 1e3, [2, -1, 1, 0, 0, -2, 0], "\u03A9", "si", true, null, null, 1, false, false, 0, 0, "\u03A9; resistance; ohms", "UCUM", "", "Clinical", "unit of electrical resistance with units of Volt per Ampere", "V/A", "V/A", "1", 1, false], [false, "siemens", "S", "SIE", "electric conductance", 1e-3, [-2, 1, -1, 0, 0, 2, 0], "S", "si", true, null, null, 1, false, false, 0, 0, "Reciprocal ohm; mho; \u03A9\u22121; conductance", "UCUM", "", "Clinical", "unit of electric conductance (the inverse of electrical resistance) equal to ohm^-1", "Ohm-1", "OHM-1", "1", 1, false], [false, "weber", "Wb", "WB", "magnetic flux", 1e3, [2, -1, 1, 0, 0, -1, 0], "Wb", "si", true, null, null, 1, false, false, 0, 0, "magnetic flux; webers", "UCUM", "", "Clinical", "unit of magnetic flux equal to Volt second", "V.s", "V.S", "1", 1, false], [false, "degree Celsius", "Cel", "CEL", "temperature", 1, [0, 0, 0, 0, 1, 0, 0], "\xB0C", "si", true, null, "Cel", 1, true, false, 0, 0, "\xB0C; degrees", "UCUM", "Temp", "Clinical", "", "K", null, null, 1, false], [false, "tesla", "T", "T", "magnetic flux density", 1e3, [0, -1, 1, 0, 0, -1, 0], "T", "si", true, null, null, 1, false, false, 0, 0, "Teslas; magnetic field", "UCUM", "", "Clinical", "SI unit of magnetic field strength for magnetic field B equal to 1 Weber/square meter =  1 kg/(s2*A)", "Wb/m2", "WB/M2", "1", 1, false], [false, "henry", "H", "H", "inductance", 1e3, [2, 0, 1, 0, 0, -2, 0], "H", "si", true, null, null, 1, false, false, 0, 0, "henries; inductance", "UCUM", "", "Clinical", "unit of electrical inductance; usually expressed in millihenrys (mH) or microhenrys (uH).", "Wb/A", "WB/A", "1", 1, false], [false, "lumen", "lm", "LM", "luminous flux", 1, [0, 0, 0, 2, 0, 0, 1], "lm", "si", true, null, null, 1, false, false, 0, 0, "luminous flux; lumens", "UCUM", "", "Clinical", "unit of luminous flux defined as 1 lm = 1 cd\u22C5sr (candela times sphere)", "cd.sr", "CD.SR", "1", 1, false], [false, "lux", "lx", "LX", "illuminance", 1, [-2, 0, 0, 2, 0, 0, 1], "lx", "si", true, null, null, 1, false, false, 0, 0, "illuminance; luxes", "UCUM", "", "Clinical", "unit of illuminance equal to one lumen per square meter. ", "lm/m2", "LM/M2", "1", 1, false], [false, "becquerel", "Bq", "BQ", "radioactivity", 1, [0, -1, 0, 0, 0, 0, 0], "Bq", "si", true, null, null, 1, false, false, 0, 0, "activity; radiation; becquerels", "UCUM", "", "Clinical", "measure of the atomic radiation rate with units s^-1", "s-1", "S-1", "1", 1, false], [false, "gray", "Gy", "GY", "energy dose", 1, [2, -2, 0, 0, 0, 0, 0], "Gy", "si", true, null, null, 1, false, false, 0, 0, "absorbed doses; ionizing radiation doses; kerma; grays", "UCUM", "EngCnt", "Clinical", "unit of ionizing radiation dose with base units of 1 joule of radiation energy per kilogram of matter", "J/kg", "J/KG", "1", 1, false], [false, "sievert", "Sv", "SV", "dose equivalent", 1, [2, -2, 0, 0, 0, 0, 0], "Sv", "si", true, null, null, 1, false, false, 0, 0, "sieverts; radiation dose quantities; equivalent doses; effective dose; operational dose; committed dose", "UCUM", "", "Clinical", "SI unit for radiation dose equivalent equal to 1 Joule/kilogram.", "J/kg", "J/KG", "1", 1, false], [false, "degree - plane angle", "deg", "DEG", "plane angle", 0.017453292519943295, [0, 0, 0, 1, 0, 0, 0], "\xB0", "iso1000", false, null, null, 1, false, false, 0, 0, "\xB0; degree of arc; arc degree; arcdegree; angle", "UCUM", "Angle", "Clinical", "one degree is equivalent to \u03C0/180 radians.", "[pi].rad/360", "[PI].RAD/360", "2", 2, false], [false, "gon", "gon", "GON", "plane angle", 0.015707963267948967, [0, 0, 0, 1, 0, 0, 0], "\u25A1<sup>g</sup>", "iso1000", false, null, null, 1, false, false, 0, 0, "gon (grade); gons", "UCUM", "Angle", "Nonclinical", "unit of plane angle measurement equal to 1/400 circle", "deg", "DEG", "0.9", 0.9, false], [false, "arc minute", "'", "'", "plane angle", 2908882086657216e-19, [0, 0, 0, 1, 0, 0, 0], "'", "iso1000", false, null, null, 1, false, false, 0, 0, "arcminutes; arcmin; arc minutes; arc mins", "UCUM", "Angle", "Clinical", "equal to 1/60 degree; used in optometry and opthamology (e.g. visual acuity tests)", "deg/60", "DEG/60", "1", 1, false], [false, "arc second", "''", "''", "plane angle", 484813681109536e-20, [0, 0, 0, 1, 0, 0, 0], "''", "iso1000", false, null, null, 1, false, false, 0, 0, "arcseconds; arcsecs", "UCUM", "Angle", "Clinical", "equal to 1/60 arcminute = 1/3600 degree; used in optometry and opthamology (e.g. visual acuity tests)", "'/60", "'/60", "1", 1, false], [false, "Liters", "l", "L", "volume", 1e-3, [3, 0, 0, 0, 0, 0, 0], "l", "iso1000", true, null, null, 1, false, false, 0, 0, "cubic decimeters; decimeters cubed; decimetres; dm3; dm^3; litres; liters, LT ", "UCUM", "Vol", "Clinical", 'Because lower case "l" can be read as the number "1", though this is a valid UCUM units. UCUM strongly reccomends using  "L"', "dm3", "DM3", "1", 1, false], [false, "Liters", "L", "L", "volume", 1e-3, [3, 0, 0, 0, 0, 0, 0], "L", "iso1000", true, null, null, 1, false, false, 0, 0, "cubic decimeters; decimeters cubed; decimetres; dm3; dm^3; litres; liters, LT ", "UCUM", "Vol", "Clinical", 'Because lower case "l" can be read as the number "1", though this is a valid UCUM units. UCUM strongly reccomends using  "L"', "l", null, "1", 1, false], [false, "are", "ar", "AR", "area", 100, [2, 0, 0, 0, 0, 0, 0], "a", "iso1000", true, null, null, 1, false, false, 0, 0, "100 m2; 100 m^2; 100 square meter; meters squared; metres", "UCUM", "Area", "Clinical", "metric base unit for area defined as 100 m^2", "m2", "M2", "100", 100, false], [false, "minute", "min", "MIN", "time", 60, [0, 1, 0, 0, 0, 0, 0], "min", "iso1000", false, null, null, 1, false, false, 0, 0, "minutes", "UCUM", "Time", "Clinical", "", "s", "S", "60", 60, false], [false, "hour", "h", "HR", "time", 3600, [0, 1, 0, 0, 0, 0, 0], "h", "iso1000", false, null, null, 1, false, false, 0, 0, "hours; hrs; age", "UCUM", "Time", "Clinical", "", "min", "MIN", "60", 60, false], [false, "day", "d", "D", "time", 86400, [0, 1, 0, 0, 0, 0, 0], "d", "iso1000", false, null, null, 1, false, false, 0, 0, "days; age; dy; 24 hours; 24 hrs", "UCUM", "Time", "Clinical", "", "h", "HR", "24", 24, false], [false, "tropical year", "a_t", "ANN_T", "time", 31556925216e-3, [0, 1, 0, 0, 0, 0, 0], "a<sub>t</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "solar years; a tropical; years", "UCUM", "Time", "Clinical", "has an average of 365.242181 days but is constantly changing.", "d", "D", "365.24219", 365.24219, false], [false, "mean Julian year", "a_j", "ANN_J", "time", 31557600, [0, 1, 0, 0, 0, 0, 0], "a<sub>j</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "mean Julian yr; a julian; years", "UCUM", "Time", "Clinical", "has an average of 365.25 days, and in everyday use, has been replaced by the Gregorian year. However, this unit is used in astronomy to calculate light year. ", "d", "D", "365.25", 365.25, false], [false, "mean Gregorian year", "a_g", "ANN_G", "time", 31556952, [0, 1, 0, 0, 0, 0, 0], "a<sub>g</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "mean Gregorian yr; a gregorian; years", "UCUM", "Time", "Clinical", "has an average of 365.2425 days and is the most internationally used civil calendar.", "d", "D", "365.2425", 365.2425, false], [false, "year", "a", "ANN", "time", 31557600, [0, 1, 0, 0, 0, 0, 0], "a", "iso1000", false, null, null, 1, false, false, 0, 0, "years; a; yr, yrs; annum", "UCUM", "Time", "Clinical", "", "a_j", "ANN_J", "1", 1, false], [false, "week", "wk", "WK", "time", 604800, [0, 1, 0, 0, 0, 0, 0], "wk", "iso1000", false, null, null, 1, false, false, 0, 0, "weeks; wks", "UCUM", "Time", "Clinical", "", "d", "D", "7", 7, false], [false, "synodal month", "mo_s", "MO_S", "time", 2551442976e-3, [0, 1, 0, 0, 0, 0, 0], "mo<sub>s</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "Moon; synodic month; lunar month; mo-s; mo s; months; moons", "UCUM", "Time", "Nonclinical", "has an average of 29.53 days per month, unit used in astronomy", "d", "D", "29.53059", 29.53059, false], [false, "mean Julian month", "mo_j", "MO_J", "time", 2629800, [0, 1, 0, 0, 0, 0, 0], "mo<sub>j</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "mo-julian; mo Julian; months", "UCUM", "Time", "Clinical", "has an average of 30.435 days per month", "a_j/12", "ANN_J/12", "1", 1, false], [false, "mean Gregorian month", "mo_g", "MO_G", "time", 2629746, [0, 1, 0, 0, 0, 0, 0], "mo<sub>g</sub>", "iso1000", false, null, null, 1, false, false, 0, 0, "months; month-gregorian; mo-gregorian", "UCUM", "Time", "Clinical", "has an average 30.436875 days per month and is from the most internationally used civil calendar.", "a_g/12", "ANN_G/12", "1", 1, false], [false, "month", "mo", "MO", "time", 2629800, [0, 1, 0, 0, 0, 0, 0], "mo", "iso1000", false, null, null, 1, false, false, 0, 0, "months; duration", "UCUM", "Time", "Clinical", "based on Julian calendar which has an average of 30.435 days per month (this unit is used in astronomy but not in everyday life - see mo_g)", "mo_j", "MO_J", "1", 1, false], [false, "metric ton", "t", "TNE", "mass", 1e6, [0, 0, 1, 0, 0, 0, 0], "t", "iso1000", true, null, null, 1, false, false, 0, 0, "tonnes; megagrams; tons", "UCUM", "Mass", "Nonclinical", "equal to 1000 kg used in the US (recognized by NIST as metric ton), and internationally (recognized as tonne)", "kg", "KG", "1e3", 1e3, false], [false, "bar", "bar", "BAR", "pressure", 1e8, [-1, -2, 1, 0, 0, 0, 0], "bar", "iso1000", true, null, null, 1, false, false, 0, 0, "bars", "UCUM", "Pres", "Nonclinical", "unit of pressure equal to 10^5 Pascals, primarily used by meteorologists and in weather forecasting", "Pa", "PAL", "1e5", 1e5, false], [false, "unified atomic mass unit", "u", "AMU", "mass", 16605402e-31, [0, 0, 1, 0, 0, 0, 0], "u", "iso1000", true, null, null, 1, false, false, 0, 0, "unified atomic mass units; amu; Dalton; Da", "UCUM", "Mass", "Clinical", "the mass of 1/12 of an unbound Carbon-12 atom nuclide equal to 1.6606x10^-27 kg ", "g", "G", "1.6605402e-24", 16605402e-31, false], [false, "astronomic unit", "AU", "ASU", "length", 149597870691, [1, 0, 0, 0, 0, 0, 0], "AU", "iso1000", false, null, null, 1, false, false, 0, 0, "AU; units", "UCUM", "Len", "Clinical", "unit of length used in astronomy for measuring distance in Solar system", "Mm", "MAM", "149597.870691", 149597.870691, false], [false, "parsec", "pc", "PRS", "length", 3085678e10, [1, 0, 0, 0, 0, 0, 0], "pc", "iso1000", true, null, null, 1, false, false, 0, 0, "parsecs", "UCUM", "Len", "Clinical", "unit of length equal to 3.26 light years, and used to measure large distances to objects outside our Solar System", "m", "M", "3.085678e16", 3085678e10, false], [false, "velocity of light in a vacuum", "[c]", "[C]", "velocity", 299792458, [1, -1, 0, 0, 0, 0, 0], "<i>c</i>", "const", true, null, null, 1, false, false, 0, 0, "speed of light", "UCUM", "Vel", "Constant", "equal to 299792458 m/s (approximately 3 x 10^8 m/s)", "m/s", "M/S", "299792458", 299792458, false], [false, "Planck constant", "[h]", "[H]", "action", 66260755e-38, [2, -1, 1, 0, 0, 0, 0], "<i>h</i>", "const", true, null, null, 1, false, false, 0, 0, "Planck's constant", "UCUM", "", "Constant", "constant = 6.62607004 \xD7 10-34 m2.kg/s; defined as quantum of action", "J.s", "J.S", "6.6260755e-34", 66260755e-41, false], [false, "Boltzmann constant", "[k]", "[K]", "(unclassified)", 1380658e-26, [2, -2, 1, 0, -1, 0, 0], "<i>k</i>", "const", true, null, null, 1, false, false, 0, 0, "k; kB", "UCUM", "", "Constant", "physical constant relating energy at the individual particle level with temperature = 1.38064852 \xD710^\u221223 J/K", "J/K", "J/K", "1.380658e-23", 1380658e-29, false], [false, "permittivity of vacuum - electric", "[eps_0]", "[EPS_0]", "electric permittivity", 8854187817000001e-30, [-3, 2, -1, 0, 0, 2, 0], "<i>\u03B5<sub><r>0</r></sub></i>", "const", true, null, null, 1, false, false, 0, 0, "\u03B50; Electric Constant; vacuum permittivity; permittivity of free space ", "UCUM", "", "Constant", "approximately equal to 8.854\u2009\xD7 10^\u221212 F/m (farads per meter)", "F/m", "F/M", "8.854187817e-12", 8854187817e-21, false], [false, "permeability of vacuum - magnetic", "[mu_0]", "[MU_0]", "magnetic permeability", 0.0012566370614359172, [1, 0, 1, 0, 0, -2, 0], "<i>\u03BC<sub><r>0</r></sub></i>", "const", true, null, null, 1, false, false, 0, 0, "\u03BC0; vacuum permeability; permeability of free space; magnetic constant", "UCUM", "", "Constant", "equal to 4\u03C0\xD710^\u22127 N/A2 (Newtons per square ampere) \u2248 1.2566\xD710^\u22126 H/m (Henry per meter)", "N/A2", "4.[PI].10*-7.N/A2", "1", 12566370614359173e-22, false], [false, "elementary charge", "[e]", "[E]", "electric charge", 160217733e-27, [0, 0, 0, 0, 0, 1, 0], "<i>e</i>", "const", true, null, null, 1, false, false, 0, 0, "e; q; electric charges", "UCUM", "", "Constant", "the magnitude of the electric charge carried by a single electron or proton \u2248 1.60217\xD710^-19 Coulombs", "C", "C", "1.60217733e-19", 160217733e-27, false], [false, "electronvolt", "eV", "EV", "energy", 160217733e-24, [2, -2, 1, 0, 0, 0, 0], "eV", "iso1000", true, null, null, 1, false, false, 0, 0, "Electron Volts; electronvolts", "UCUM", "Eng", "Clinical", "unit of kinetic energy = 1 V * 1.602\xD710^\u221219 C = 1.6\xD710\u221219 Joules", "[e].V", "[E].V", "1", 1, false], [false, "electron mass", "[m_e]", "[M_E]", "mass", 91093897e-35, [0, 0, 1, 0, 0, 0, 0], "<i>m<sub><r>e</r></sub></i>", "const", true, null, null, 1, false, false, 0, 0, "electron rest mass; me", "UCUM", "Mass", "Constant", "approximately equal to 9.10938356 \xD7 10-31 kg; defined as the mass of a stationary electron", "g", "g", "9.1093897e-28", 91093897e-35, false], [false, "proton mass", "[m_p]", "[M_P]", "mass", 16726231e-31, [0, 0, 1, 0, 0, 0, 0], "<i>m<sub><r>p</r></sub></i>", "const", true, null, null, 1, false, false, 0, 0, "mp; masses", "UCUM", "Mass", "Constant", "approximately equal to 1.672622\xD710\u221227 kg", "g", "g", "1.6726231e-24", 16726231e-31, false], [false, "Newtonian constant of gravitation", "[G]", "[GC]", "(unclassified)", 667259e-19, [3, -2, -1, 0, 0, 0, 0], "<i>G</i>", "const", true, null, null, 1, false, false, 0, 0, "G; gravitational constant; Newton's constant", "UCUM", "", "Constant", "gravitational constant = 6.674\xD710\u221211 N\u22C5m2/kg2", "m3.kg-1.s-2", "M3.KG-1.S-2", "6.67259e-11", 667259e-16, false], [false, "standard acceleration of free fall", "[g]", "[G]", "acceleration", 9.80665, [1, -2, 0, 0, 0, 0, 0], "<i>g<sub>n</sub></i>", "const", true, null, null, 1, false, false, 0, 0, "standard gravity; g; \u02610; \u0261n", "UCUM", "Accel", "Constant", "defined by standard = 9.80665 m/s2", "m/s2", "M/S2", "980665e-5", 9.80665, false], [false, "Torr", "Torr", "Torr", "pressure", 133322, [-1, -2, 1, 0, 0, 0, 0], "Torr", "const", false, null, null, 1, false, false, 0, 0, "torrs", "UCUM", "Pres", "Clinical", "1 torr = 1 mmHg; unit used to measure blood pressure", "Pa", "PAL", "133.322", 133.322, false], [false, "standard atmosphere", "atm", "ATM", "pressure", 101325e3, [-1, -2, 1, 0, 0, 0, 0], "atm", "const", false, null, null, 1, false, false, 0, 0, "reference pressure; atmos; std atmosphere", "UCUM", "Pres", "Clinical", "defined as being precisely equal to 101,325 Pa", "Pa", "PAL", "101325", 101325, false], [false, "light-year", "[ly]", "[LY]", "length", 9460730472580800, [1, 0, 0, 0, 0, 0, 0], "l.y.", "const", true, null, null, 1, false, false, 0, 0, "light years; ly", "UCUM", "Len", "Constant", "unit of astronomal distance = 5.88\xD710^12 mi", "[c].a_j", "[C].ANN_J", "1", 1, false], [false, "gram-force", "gf", "GF", "force", 9.80665, [1, -2, 1, 0, 0, 0, 0], "gf", "const", true, null, null, 1, false, false, 0, 0, "Newtons; gram forces", "UCUM", "Force", "Clinical", "May be specific to unit related to cardiac output", "g.[g]", "G.[G]", "1", 1, false], [false, "Kayser", "Ky", "KY", "lineic number", 100, [-1, 0, 0, 0, 0, 0, 0], "K", "cgs", true, null, null, 1, false, false, 0, 0, "wavenumbers; kaysers", "UCUM", "InvLen", "Clinical", "unit of wavelength equal to cm^-1", "cm-1", "CM-1", "1", 1, false], [false, "Gal", "Gal", "GL", "acceleration", 0.01, [1, -2, 0, 0, 0, 0, 0], "Gal", "cgs", true, null, null, 1, false, false, 0, 0, "galileos; Gals", "UCUM", "Accel", "Clinical", "unit of acceleration used in gravimetry; equivalent to cm/s2 ", "cm/s2", "CM/S2", "1", 1, false], [false, "dyne", "dyn", "DYN", "force", 0.01, [1, -2, 1, 0, 0, 0, 0], "dyn", "cgs", true, null, null, 1, false, false, 0, 0, "dynes", "UCUM", "Force", "Clinical", "unit of force equal to 10^-5 Newtons", "g.cm/s2", "G.CM/S2", "1", 1, false], [false, "erg", "erg", "ERG", "energy", 1e-4, [2, -2, 1, 0, 0, 0, 0], "erg", "cgs", true, null, null, 1, false, false, 0, 0, "10^-7 Joules, 10-7 Joules; 100 nJ; 100 nanoJoules; 1 dyne cm; 1 g.cm2/s2", "UCUM", "Eng", "Clinical", "unit of energy = 1 dyne centimeter = 10^-7 Joules", "dyn.cm", "DYN.CM", "1", 1, false], [false, "Poise", "P", "P", "dynamic viscosity", 100.00000000000001, [-1, -1, 1, 0, 0, 0, 0], "P", "cgs", true, null, null, 1, false, false, 0, 0, "dynamic viscosity; poises", "UCUM", "Visc", "Clinical", "unit of dynamic viscosity where 1 Poise = 1/10 Pascal second", "dyn.s/cm2", "DYN.S/CM2", "1", 1, false], [false, "Biot", "Bi", "BI", "electric current", 10, [0, -1, 0, 0, 0, 1, 0], "Bi", "cgs", true, null, null, 1, false, false, 0, 0, "Bi; abamperes; abA", "UCUM", "ElpotRat", "Clinical", "equal to 10 amperes", "A", "A", "10", 10, false], [false, "Stokes", "St", "ST", "kinematic viscosity", 9999999999999999e-20, [2, -1, 0, 0, 0, 0, 0], "St", "cgs", true, null, null, 1, false, false, 0, 0, "kinematic viscosity", "UCUM", "Visc", "Clinical", "unit of kimematic viscosity with units cm2/s", "cm2/s", "CM2/S", "1", 1, false], [false, "Maxwell", "Mx", "MX", "flux of magnetic induction", 1e-5, [2, -1, 1, 0, 0, -1, 0], "Mx", "cgs", true, null, null, 1, false, false, 0, 0, "magnetix flux; Maxwells", "UCUM", "", "Clinical", "unit of magnetic flux", "Wb", "WB", "1e-8", 1e-8, false], [false, "Gauss", "G", "GS", "magnetic flux density", 0.1, [0, -1, 1, 0, 0, -1, 0], "Gs", "cgs", true, null, null, 1, false, false, 0, 0, "magnetic fields; magnetic flux density; induction; B", "UCUM", "magnetic", "Clinical", "CGS unit of magnetic flux density, known as magnetic field B; defined as one maxwell unit per square centimeter (see Oersted for CGS unit for H field)", "T", "T", "1e-4", 1e-4, false], [false, "Oersted", "Oe", "OE", "magnetic field intensity", 79.57747154594767, [-1, -1, 0, 0, 0, 1, 0], "Oe", "cgs", true, null, null, 1, false, false, 0, 0, "H magnetic B field; Oersteds", "UCUM", "", "Clinical", "CGS unit of the auxiliary magnetic field H defined as 1 dyne per unit pole = 1000/4\u03C0 amperes per meter (see Gauss for CGS unit for B field)", "A/m", "/[PI].A/M", "250", 79.57747154594767, false], [false, "Gilbert", "Gb", "GB", "magnetic tension", 0.7957747154594768, [0, -1, 0, 0, 0, 1, 0], "Gb", "cgs", true, null, null, 1, false, false, 0, 0, "Gi; magnetomotive force; Gilberts", "UCUM", "", "Clinical", "unit of magnetomotive force (magnetic potential)", "Oe.cm", "OE.CM", "1", 1, false], [false, "stilb", "sb", "SB", "lum. intensity density", 1e4, [-2, 0, 0, 0, 0, 0, 1], "sb", "cgs", true, null, null, 1, false, false, 0, 0, "stilbs", "UCUM", "", "Obsolete", "unit of luminance; equal to and replaced by unit candela per square centimeter (cd/cm2)", "cd/cm2", "CD/CM2", "1", 1, false], [false, "Lambert", "Lmb", "LMB", "brightness", 3183.098861837907, [-2, 0, 0, 0, 0, 0, 1], "L", "cgs", true, null, null, 1, false, false, 0, 0, "luminance; lamberts", "UCUM", "", "Clinical", "unit of luminance defined as 1 lambert = 1/ \u03C0 candela per square meter", "cd/cm2/[pi]", "CD/CM2/[PI]", "1", 1, false], [false, "phot", "ph", "PHT", "illuminance", 1e-4, [-2, 0, 0, 2, 0, 0, 1], "ph", "cgs", true, null, null, 1, false, false, 0, 0, "phots", "UCUM", "", "Clinical", "CGS photometric unit of illuminance, or luminous flux through an area equal to 10000 lumens per square meter = 10000 lux", "lx", "LX", "1e-4", 1e-4, false], [false, "Curie", "Ci", "CI", "radioactivity", 37e9, [0, -1, 0, 0, 0, 0, 0], "Ci", "cgs", true, null, null, 1, false, false, 0, 0, "curies", "UCUM", "", "Obsolete", "unit for measuring atomic disintegration rate; replaced by the Bequerel (Bq) unit", "Bq", "BQ", "37e9", 37e9, false], [false, "Roentgen", "R", "ROE", "ion dose", 258e-9, [0, 0, -1, 0, 0, 1, 0], "R", "cgs", true, null, null, 1, false, false, 0, 0, "r\xF6ntgen; Roentgens", "UCUM", "", "Clinical", "unit of exposure of X-rays and gamma rays in air; unit used primarily in the US but strongly discouraged by NIST", "C/kg", "C/KG", "2.58e-4", 258e-6, false], [false, "radiation absorbed dose", "RAD", "[RAD]", "energy dose", 0.01, [2, -2, 0, 0, 0, 0, 0], "RAD", "cgs", true, null, null, 1, false, false, 0, 0, "doses", "UCUM", "", "Clinical", "unit of radiation absorbed dose used primarily in the US with base units 100 ergs per gram of material. Also see the SI unit Gray (Gy).", "erg/g", "ERG/G", "100", 100, false], [false, "radiation equivalent man", "REM", "[REM]", "dose equivalent", 0.01, [2, -2, 0, 0, 0, 0, 0], "REM", "cgs", true, null, null, 1, false, false, 0, 0, "Roentgen Equivalent in Man; rems; dose equivalents", "UCUM", "", "Clinical", "unit of equivalent dose which measures the effect of radiation on humans equal to 0.01 sievert. Used primarily in the US. Also see SI unit Sievert (Sv)", "RAD", "[RAD]", "1", 1, false], [false, "inch", "[in_i]", "[IN_I]", "length", 0.025400000000000002, [1, 0, 0, 0, 0, 0, 0], "in", "intcust", false, null, null, 1, false, false, 0, 0, "inches; in; international inch; body height", "UCUM", "Len", "Clinical", "standard unit for inch in the US and internationally", "cm", "CM", "254e-2", 2.54, false], [false, "foot", "[ft_i]", "[FT_I]", "length", 0.3048, [1, 0, 0, 0, 0, 0, 0], "ft", "intcust", false, null, null, 1, false, false, 0, 0, "ft; fts; foot; international foot; feet; international feet; height", "UCUM", "Len", "Clinical", "unit used in the US and internationally", "[in_i]", "[IN_I]", "12", 12, false], [false, "yard", "[yd_i]", "[YD_I]", "length", 0.9144000000000001, [1, 0, 0, 0, 0, 0, 0], "yd", "intcust", false, null, null, 1, false, false, 0, 0, "international yards; yds; distance", "UCUM", "Len", "Clinical", "standard unit used in the US and internationally", "[ft_i]", "[FT_I]", "3", 3, false], [false, "mile", "[mi_i]", "[MI_I]", "length", 1609.344, [1, 0, 0, 0, 0, 0, 0], "mi", "intcust", false, null, null, 1, false, false, 0, 0, "international miles; mi I; statute mile", "UCUM", "Len", "Clinical", "standard unit used in the US and internationally", "[ft_i]", "[FT_I]", "5280", 5280, false], [false, "fathom", "[fth_i]", "[FTH_I]", "depth of water", 1.8288000000000002, [1, 0, 0, 0, 0, 0, 0], "fth", "intcust", false, null, null, 1, false, false, 0, 0, "international fathoms", "UCUM", "Len", "Nonclinical", "unit used in the US and internationally to measure depth of water; same length as the US fathom", "[ft_i]", "[FT_I]", "6", 6, false], [false, "nautical mile", "[nmi_i]", "[NMI_I]", "length", 1852, [1, 0, 0, 0, 0, 0, 0], "n.mi", "intcust", false, null, null, 1, false, false, 0, 0, "nautical mile; nautical miles; international nautical mile; international nautical miles; nm; n.m.; nmi", "UCUM", "Len", "Nonclinical", "standard unit used in the US and internationally", "m", "M", "1852", 1852, false], [false, "knot", "[kn_i]", "[KN_I]", "velocity", 0.5144444444444445, [1, -1, 0, 0, 0, 0, 0], "knot", "intcust", false, null, null, 1, false, false, 0, 0, "kn; kt; international knots", "UCUM", "Vel", "Nonclinical", "defined as equal to one nautical mile (1.852 km) per hour", "[nmi_i]/h", "[NMI_I]/H", "1", 1, false], [false, "square inch", "[sin_i]", "[SIN_I]", "area", 6451600000000001e-19, [2, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "in2; in^2; inches squared; sq inch; inches squared; international", "UCUM", "Area", "Clinical", "standard unit used in the US and internationally", "[in_i]2", "[IN_I]2", "1", 1, false], [false, "square foot", "[sft_i]", "[SFT_I]", "area", 0.09290304, [2, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "ft2; ft^2; ft squared; sq ft; feet; international", "UCUM", "Area", "Clinical", "standard unit used in the US and internationally", "[ft_i]2", "[FT_I]2", "1", 1, false], [false, "square yard", "[syd_i]", "[SYD_I]", "area", 0.8361273600000002, [2, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "yd2; yd^2; sq. yds; yards squared; international", "UCUM", "Area", "Clinical", "standard unit used in the US and internationally", "[yd_i]2", "[YD_I]2", "1", 1, false], [false, "cubic inch", "[cin_i]", "[CIN_I]", "volume", 16387064000000006e-21, [3, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "in3; in^3; in*3; inches^3; inches*3; cu. in; cu in; cubic inches; inches cubed; cin", "UCUM", "Vol", "Clinical", "standard unit used in the US and internationally", "[in_i]3", "[IN_I]3", "1", 1, false], [false, "cubic foot", "[cft_i]", "[CFT_I]", "volume", 0.028316846592000004, [3, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "ft3; ft^3; ft*3; cu. ft; cubic feet; cubed; [ft_i]3; international", "UCUM", "Vol", "Clinical", "", "[ft_i]3", "[FT_I]3", "1", 1, false], [false, "cubic yard", "[cyd_i]", "[CYD_I]", "volume", 0.7645548579840002, [3, 0, 0, 0, 0, 0, 0], "cu.yd", "intcust", false, null, null, 1, false, false, 0, 0, "cubic yards; cubic yds; cu yards; CYs; yards^3; yd^3; yds^3; yd3; yds3", "UCUM", "Vol", "Nonclinical", "standard unit used in the US and internationally", "[yd_i]3", "[YD_I]3", "1", 1, false], [false, "board foot", "[bf_i]", "[BF_I]", "volume", 0.0023597372160000006, [3, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "BDFT; FBM; BF; board feet; international", "UCUM", "Vol", "Nonclinical", "unit of volume used to measure lumber", "[in_i]3", "[IN_I]3", "144", 144, false], [false, "cord", "[cr_i]", "[CR_I]", "volume", 3.6245563637760005, [3, 0, 0, 0, 0, 0, 0], null, "intcust", false, null, null, 1, false, false, 0, 0, "crd I; international cords", "UCUM", "Vol", "Nonclinical", "unit of measure of dry volume used to measure firewood equal 128 ft3", "[ft_i]3", "[FT_I]3", "128", 128, false], [false, "mil", "[mil_i]", "[MIL_I]", "length", 25400000000000004e-21, [1, 0, 0, 0, 0, 0, 0], "mil", "intcust", false, null, null, 1, false, false, 0, 0, "thou, thousandth; mils; international", "UCUM", "Len", "Clinical", "equal to 0.001 international inch", "[in_i]", "[IN_I]", "1e-3", 1e-3, false], [false, "circular mil", "[cml_i]", "[CML_I]", "area", 5067074790974979e-25, [2, 0, 0, 0, 0, 0, 0], "circ.mil", "intcust", false, null, null, 1, false, false, 0, 0, "circular mils; cml I; international", "UCUM", "Area", "Clinical", "", "[pi]/4.[mil_i]2", "[PI]/4.[MIL_I]2", "1", 1, false], [false, "hand", "[hd_i]", "[HD_I]", "height of horses", 0.10160000000000001, [1, 0, 0, 0, 0, 0, 0], "hd", "intcust", false, null, null, 1, false, false, 0, 0, "hands; international", "UCUM", "Len", "Nonclinical", "used to measure horse height", "[in_i]", "[IN_I]", "4", 4, false], [false, "foot - US", "[ft_us]", "[FT_US]", "length", 0.3048006096012192, [1, 0, 0, 0, 0, 0, 0], "ft<sub>us</sub>", "us-lengths", false, null, null, 1, false, false, 0, 0, "US foot; foot US; us ft; ft us; height; visual distance; feet", "UCUM", "Len", "Obsolete", "Better to use [ft_i] which refers to the length used worldwide, including in the US;  [ft_us] may be confused with land survey units. ", "m/3937", "M/3937", "1200", 1200, false], [false, "yard - US", "[yd_us]", "[YD_US]", "length", 0.9144018288036575, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "US yards; us yds; distance", "UCUM", "Len; Nrat", "Obsolete", "Better to use [yd_i] which refers to the length used worldwide, including in the US; [yd_us] refers to unit used in land surveys in the US", "[ft_us]", "[FT_US]", "3", 3, false], [false, "inch - US", "[in_us]", "[IN_US]", "length", 0.0254000508001016, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "US inches; in us; us in; inch US", "UCUM", "Len", "Obsolete", "Better to use [in_i] which refers to the length used worldwide, including in the US", "[ft_us]/12", "[FT_US]/12", "1", 1, false], [false, "rod - US", "[rd_us]", "[RD_US]", "length", 5.029210058420117, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "US rod; US rods; rd US; US rd", "UCUM", "Len", "Obsolete", "", "[ft_us]", "[FT_US]", "16.5", 16.5, false], [false, "Gunter's chain - US", "[ch_us]", "[CH_US]", "length", 20.116840233680467, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "surveyor's chain; Surveyor's chain USA; Gunter\u2019s measurement; surveyor\u2019s measurement; Gunter's Chain USA", "UCUM", "Len", "Obsolete", "historical unit used for land survey used only in the US", "[rd_us]", "[RD_US]", "4", 4, false], [false, "link for Gunter's chain - US", "[lk_us]", "[LK_US]", "length", 0.20116840233680466, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "Links for Gunter's Chain USA", "UCUM", "Len", "Obsolete", "", "[ch_us]/100", "[CH_US]/100", "1", 1, false], [false, "Ramden's chain - US", "[rch_us]", "[RCH_US]", "length", 30.480060960121918, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "Ramsden's chain; engineer's chains", "UCUM", "Len", "Obsolete", "distance measuring device used for\xA0land survey", "[ft_us]", "[FT_US]", "100", 100, false], [false, "link for Ramden's chain - US", "[rlk_us]", "[RLK_US]", "length", 0.3048006096012192, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "links for Ramsden's chain", "UCUM", "Len", "Obsolete", "", "[rch_us]/100", "[RCH_US]/100", "1", 1, false], [false, "fathom - US", "[fth_us]", "[FTH_US]", "length", 1.828803657607315, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "US fathoms; fathom USA; fth us", "UCUM", "Len", "Obsolete", "same length as the international fathom - better to use international fathom ([fth_i])", "[ft_us]", "[FT_US]", "6", 6, false], [false, "furlong - US", "[fur_us]", "[FUR_US]", "length", 201.16840233680466, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "US furlongs; fur us", "UCUM", "Len", "Nonclinical", "distance unit in horse racing", "[rd_us]", "[RD_US]", "40", 40, false], [false, "mile - US", "[mi_us]", "[MI_US]", "length", 1609.3472186944373, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "U.S. Survey Miles; US statute miles; survey mi; US mi; distance", "UCUM", "Len", "Nonclinical", "Better to use [mi_i] which refers to the length used worldwide, including in the US", "[fur_us]", "[FUR_US]", "8", 8, false], [false, "acre - US", "[acr_us]", "[ACR_US]", "area", 4046.872609874252, [2, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "Acre USA Survey; Acre USA; survey acres", "UCUM", "Area", "Nonclinical", "an older unit based on pre 1959 US statute lengths that is still sometimes used in the US only for land survey purposes. ", "[rd_us]2", "[RD_US]2", "160", 160, false], [false, "square rod - US", "[srd_us]", "[SRD_US]", "area", 25.292953811714074, [2, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "rod2; rod^2; sq. rod; rods squared", "UCUM", "Area", "Nonclinical", "Used only in the US to measure land area, based on US statute land survey length units", "[rd_us]2", "[RD_US]2", "1", 1, false], [false, "square mile - US", "[smi_us]", "[SMI_US]", "area", 2589998470319521e-9, [2, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "mi2; mi^2; sq mi; miles squared", "UCUM", "Area", "Nonclinical", "historical unit used only in the US for land survey purposes (based on the US survey mile), not the internationally recognized [mi_i]", "[mi_us]2", "[MI_US]2", "1", 1, false], [false, "section", "[sct]", "[SCT]", "area", 2589998470319521e-9, [2, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "sct; sections", "UCUM", "Area", "Nonclinical", "tract of land approximately equal to 1 mile square containing 640 acres", "[mi_us]2", "[MI_US]2", "1", 1, false], [false, "township", "[twp]", "[TWP]", "area", 9323994493150276e-8, [2, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "twp; townships", "UCUM", "Area", "Nonclinical", "land measurement equal to 6 mile square", "[sct]", "[SCT]", "36", 36, false], [false, "mil - US", "[mil_us]", "[MIL_US]", "length", 254000508001016e-19, [1, 0, 0, 0, 0, 0, 0], null, "us-lengths", false, null, null, 1, false, false, 0, 0, "thou, thousandth; mils", "UCUM", "Len", "Obsolete", "better to use [mil_i] which is based on the internationally recognized inch", "[in_us]", "[IN_US]", "1e-3", 1e-3, false], [false, "inch - British", "[in_br]", "[IN_BR]", "length", 0.025399980000000003, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "imperial inches; imp in; br in; british inches", "UCUM", "Len", "Obsolete", "", "cm", "CM", "2.539998", 2.539998, false], [false, "foot - British", "[ft_br]", "[FT_BR]", "length", 0.30479976000000003, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British Foot; Imperial Foot; feet; imp fts; br fts", "UCUM", "Len", "Obsolete", "", "[in_br]", "[IN_BR]", "12", 12, false], [false, "rod - British", "[rd_br]", "[RD_BR]", "length", 5.02919604, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British rods; br rd", "UCUM", "Len", "Obsolete", "", "[ft_br]", "[FT_BR]", "16.5", 16.5, false], [false, "Gunter's chain - British", "[ch_br]", "[CH_BR]", "length", 20.11678416, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "Gunter's Chain British; Gunters Chain British; Surveyor's Chain British", "UCUM", "Len", "Obsolete", "historical unit used for land survey used only in Great Britain", "[rd_br]", "[RD_BR]", "4", 4, false], [false, "link for Gunter's chain - British", "[lk_br]", "[LK_BR]", "length", 0.2011678416, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "Links for Gunter's Chain British", "UCUM", "Len", "Obsolete", "", "[ch_br]/100", "[CH_BR]/100", "1", 1, false], [false, "fathom - British", "[fth_br]", "[FTH_BR]", "length", 1.82879856, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British fathoms; imperial fathoms; br fth; imp fth", "UCUM", "Len", "Obsolete", "", "[ft_br]", "[FT_BR]", "6", 6, false], [false, "pace - British", "[pc_br]", "[PC_BR]", "length", 0.7619994000000001, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British paces; br pc", "UCUM", "Len", "Nonclinical", "traditional unit of length equal to 152.4 centimeters, or 1.52 meter. ", "[ft_br]", "[FT_BR]", "2.5", 2.5, false], [false, "yard - British", "[yd_br]", "[YD_BR]", "length", 0.91439928, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British yards; Br yds; distance", "UCUM", "Len", "Obsolete", "", "[ft_br]", "[FT_BR]", "3", 3, false], [false, "mile - British", "[mi_br]", "[MI_BR]", "length", 1609.3427328000002, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "imperial miles; British miles; English statute miles; imp mi, br mi", "UCUM", "Len", "Obsolete", "", "[ft_br]", "[FT_BR]", "5280", 5280, false], [false, "nautical mile - British", "[nmi_br]", "[NMI_BR]", "length", 1853.1825408000002, [1, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British nautical miles; Imperial nautical miles; Admiralty miles; n.m. br; imp nm", "UCUM", "Len", "Obsolete", "", "[ft_br]", "[FT_BR]", "6080", 6080, false], [false, "knot - British", "[kn_br]", "[KN_BR]", "velocity", 0.5147729280000001, [1, -1, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "British knots; kn br; kt", "UCUM", "Vel", "Obsolete", "based on obsolete British nautical mile ", "[nmi_br]/h", "[NMI_BR]/H", "1", 1, false], [false, "acre", "[acr_br]", "[ACR_BR]", "area", 4046.850049400269, [2, 0, 0, 0, 0, 0, 0], null, "brit-length", false, null, null, 1, false, false, 0, 0, "Imperial acres; British; a; ac; ar; acr", "UCUM", "Area", "Nonclinical", "the standard unit for acre used in the US and internationally", "[yd_br]2", "[YD_BR]2", "4840", 4840, false], [false, "gallon - US", "[gal_us]", "[GAL_US]", "fluid volume", 0.0037854117840000014, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US gallons; US liquid gallon; gal us; Queen Anne's wine gallon", "UCUM", "Vol", "Nonclinical", "only gallon unit used in the US; [gal_us] is only used in some other countries in South American and Africa to measure gasoline volume", "[in_i]3", "[IN_I]3", "231", 231, false], [false, "barrel - US", "[bbl_us]", "[BBL_US]", "fluid volume", 0.15898729492800007, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "bbl", "UCUM", "Vol", "Nonclinical", "[bbl_us] is the standard unit for oil barrel, which is a unit only used in the US to measure the volume oil. ", "[gal_us]", "[GAL_US]", "42", 42, false], [false, "quart - US", "[qt_us]", "[QT_US]", "fluid volume", 9463529460000004e-19, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US quarts; us qts", "UCUM", "Vol", "Clinical", "Used only in the US", "[gal_us]/4", "[GAL_US]/4", "1", 1, false], [false, "pint - US", "[pt_us]", "[PT_US]", "fluid volume", 4731764730000002e-19, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US pints; pint US; liquid pint; pt us; us pt", "UCUM", "Vol", "Clinical", "Used only in the US", "[qt_us]/2", "[QT_US]/2", "1", 1, false], [false, "gill - US", "[gil_us]", "[GIL_US]", "fluid volume", 11829411825000005e-20, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US gills; gil us", "UCUM", "Vol", "Nonclinical", "only used in the context of alcohol volume in the US", "[pt_us]/4", "[PT_US]/4", "1", 1, false], [false, "fluid ounce - US", "[foz_us]", "[FOZ_US]", "fluid volume", 2957352956250001e-20, [3, 0, 0, 0, 0, 0, 0], "oz fl", "us-volumes", false, null, null, 1, false, false, 0, 0, "US fluid ounces; fl ozs; FO; fl. oz.; foz us", "UCUM", "Vol", "Clinical", "unit used only in the US", "[gil_us]/4", "[GIL_US]/4", "1", 1, false], [false, "fluid dram - US", "[fdr_us]", "[FDR_US]", "fluid volume", 36966911953125014e-22, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US fluid drams; fdr us", "UCUM", "Vol", "Nonclinical", "equal to 1/8 US fluid ounce = 3.69 mL; used informally to mean small amount of liquor, especially Scotch whiskey", "[foz_us]/8", "[FOZ_US]/8", "1", 1, false], [false, "minim - US", "[min_us]", "[MIN_US]", "fluid volume", 6161151992187503e-23, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "min US; US min; \u264F US", "UCUM", "Vol", "Obsolete", "", "[fdr_us]/60", "[FDR_US]/60", "1", 1, false], [false, "cord - US", "[crd_us]", "[CRD_US]", "fluid volume", 3.6245563637760005, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US cord; US cords; crd us; us crd", "UCUM", "Vol", "Nonclinical", "unit of measure of dry volume used to measure firewood equal 128 ft3 (the same as international cord [cr_i])", "[ft_i]3", "[FT_I]3", "128", 128, false], [false, "bushel - US", "[bu_us]", "[BU_US]", "dry volume", 0.035239070166880014, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US bushels; US bsh; US bu", "UCUM", "Vol", "Obsolete", "Historical unit of dry volume that is rarely used today", "[in_i]3", "[IN_I]3", "2150.42", 2150.42, false], [false, "gallon - historical", "[gal_wi]", "[GAL_WI]", "dry volume", 0.004404883770860002, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "Corn Gallon British; Dry Gallon US; Gallons Historical; Grain Gallon British; Winchester Corn Gallon; historical winchester gallons; wi gal", "UCUM", "Vol", "Obsolete", "historical unit of dry volume no longer used", "[bu_us]/8", "[BU_US]/8", "1", 1, false], [false, "peck - US", "[pk_us]", "[PK_US]", "dry volume", 0.008809767541720004, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "US pecks; US pk", "UCUM", "Vol", "Nonclinical", "unit of dry volume rarely used today (can be used to measure volume of apples)", "[bu_us]/4", "[BU_US]/4", "1", 1, false], [false, "dry quart - US", "[dqt_us]", "[DQT_US]", "dry volume", 0.0011012209427150004, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "dry quarts; dry quart US; US dry quart; dry qt; us dry qt; dqt; dqt us", "UCUM", "Vol", "Nonclinical", "historical unit of dry volume only in the US, but is rarely used today", "[pk_us]/8", "[PK_US]/8", "1", 1, false], [false, "dry pint - US", "[dpt_us]", "[DPT_US]", "dry volume", 5506104713575002e-19, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "dry pints; dry pint US; US dry pint; dry pt; dpt; dpt us", "UCUM", "Vol", "Nonclinical", "historical unit of dry volume only in the US, but is rarely used today", "[dqt_us]/2", "[DQT_US]/2", "1", 1, false], [false, "tablespoon - US", "[tbs_us]", "[TBS_US]", "volume", 14786764781250006e-21, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "Tbs; tbsp; tbs us; US tablespoons", "UCUM", "Vol", "Clinical", "unit defined as 0.5 US fluid ounces or 3 teaspoons - used only in the US. See [tbs_m] for the unit used internationally and in the US for nutrional labelling. ", "[foz_us]/2", "[FOZ_US]/2", "1", 1, false], [false, "teaspoon - US", "[tsp_us]", "[TSP_US]", "volume", 4928921593750002e-21, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "tsp; t; US teaspoons", "UCUM", "Vol", "Nonclinical", "unit defined as 1/6 US fluid ounces - used only in the US. See [tsp_m] for the unit used internationally and in the US for nutrional labelling. ", "[tbs_us]/3", "[TBS_US]/3", "1", 1, false], [false, "cup - US customary", "[cup_us]", "[CUP_US]", "volume", 2365882365000001e-19, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "cup us; us cups", "UCUM", "Vol", "Nonclinical", "Unit defined as 1/2 US pint or 16 US tablespoons \u2248 236.59 mL, which is not the standard unit defined by the FDA of 240 mL - see [cup_m] (metric cup)", "[tbs_us]", "[TBS_US]", "16", 16, false], [false, "fluid ounce - metric", "[foz_m]", "[FOZ_M]", "fluid volume", 29999999999999997e-21, [3, 0, 0, 0, 0, 0, 0], "oz fl", "us-volumes", false, null, null, 1, false, false, 0, 0, "metric fluid ounces; fozs m; fl ozs m", "UCUM", "Vol", "Clinical", "unit used only in the US for nutritional labelling, as set by the FDA", "mL", "ML", "30", 30, false], [false, "cup - US legal", "[cup_m]", "[CUP_M]", "volume", 23999999999999998e-20, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "cup m; metric cups", "UCUM", "Vol", "Clinical", "standard unit equal to 240 mL used in the US for nutritional labelling, as defined by the FDA. Note that this is different from the US customary cup (236.59 mL) and the metric cup used in Commonwealth nations (250 mL).", "mL", "ML", "240", 240, false], [false, "teaspoon - metric", "[tsp_m]", "[TSP_M]", "volume", 49999999999999996e-22, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "tsp; t; metric teaspoons", "UCUM", "Vol", "Clinical", "standard unit used in the US and internationally", "mL", "mL", "5", 5, false], [false, "tablespoon - metric", "[tbs_m]", "[TBS_M]", "volume", 14999999999999999e-21, [3, 0, 0, 0, 0, 0, 0], null, "us-volumes", false, null, null, 1, false, false, 0, 0, "metric tablespoons; Tbs; tbsp; T; tbs m", "UCUM", "Vol", "Clinical", "standard unit used in the US and internationally", "mL", "mL", "15", 15, false], [false, "gallon- British", "[gal_br]", "[GAL_BR]", "volume", 0.004546090000000001, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "imperial gallons, UK gallons; British gallons; br gal; imp gal", "UCUM", "Vol", "Nonclinical", "Used only in Great Britain and other Commonwealth countries", "l", "L", "4.54609", 4.54609, false], [false, "peck - British", "[pk_br]", "[PK_BR]", "volume", 0.009092180000000002, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "imperial pecks; British pecks; br pk; imp pk", "UCUM", "Vol", "Nonclinical", "unit of dry volume rarely used today (can be used to measure volume of apples)", "[gal_br]", "[GAL_BR]", "2", 2, false], [false, "bushel - British", "[bu_br]", "[BU_BR]", "volume", 0.03636872000000001, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "British bushels; imperial; br bsh; br bu; imp", "UCUM", "Vol", "Obsolete", "Historical unit of dry volume that is rarely used today", "[pk_br]", "[PK_BR]", "4", 4, false], [false, "quart - British", "[qt_br]", "[QT_BR]", "volume", 0.0011365225000000002, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "British quarts; imperial quarts; br qts", "UCUM", "Vol", "Clinical", "Used only in Great Britain and other Commonwealth countries", "[gal_br]/4", "[GAL_BR]/4", "1", 1, false], [false, "pint - British", "[pt_br]", "[PT_BR]", "volume", 5682612500000001e-19, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "British pints; imperial pints; pt br; br pt; imp pt; pt imp", "UCUM", "Vol", "Clinical", "Used only in Great Britain and other Commonwealth countries", "[qt_br]/2", "[QT_BR]/2", "1", 1, false], [false, "gill - British", "[gil_br]", "[GIL_BR]", "volume", 14206531250000003e-20, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "imperial gills; British gills; imp gill, br gill", "UCUM", "Vol", "Nonclinical", "only used in the context of alcohol volume in Great Britain", "[pt_br]/4", "[PT_BR]/4", "1", 1, false], [false, "fluid ounce - British", "[foz_br]", "[FOZ_BR]", "volume", 28413062500000005e-21, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "British fluid ounces; Imperial fluid ounces; br fozs; imp fozs; br fl ozs", "UCUM", "Vol", "Clinical", "Used only in Great Britain and other Commonwealth countries", "[gil_br]/5", "[GIL_BR]/5", "1", 1, false], [false, "fluid dram - British", "[fdr_br]", "[FDR_BR]", "volume", 35516328125000006e-22, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "British fluid drams; fdr br", "UCUM", "Vol", "Nonclinical", "equal to 1/8 Imperial fluid ounce = 3.55 mL; used informally to mean small amount of liquor, especially Scotch whiskey", "[foz_br]/8", "[FOZ_BR]/8", "1", 1, false], [false, "minim - British", "[min_br]", "[MIN_BR]", "volume", 5919388020833334e-23, [3, 0, 0, 0, 0, 0, 0], null, "brit-volumes", false, null, null, 1, false, false, 0, 0, "min br; br min; \u264F br", "UCUM", "Vol", "Obsolete", "", "[fdr_br]/60", "[FDR_BR]/60", "1", 1, false], [false, "grain", "[gr]", "[GR]", "mass", 0.06479891, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "gr; grains", "UCUM", "Mass", "Nonclinical", "an apothecary measure of mass rarely used today", "mg", "MG", "64.79891", 64.79891, false], [false, "pound", "[lb_av]", "[LB_AV]", "mass", 453.59237, [0, 0, 1, 0, 0, 0, 0], "lb", "avoirdupois", false, null, null, 1, false, false, 0, 0, "avoirdupois pounds, international pounds; av lbs; pounds", "UCUM", "Mass", "Clinical", "standard unit used in the US and internationally", "[gr]", "[GR]", "7000", 7e3, false], [false, "pound force - US", "[lbf_av]", "[LBF_AV]", "force", 4448.2216152605, [1, -2, 1, 0, 0, 0, 0], "lbf", "const", false, null, null, 1, false, false, 0, 0, "lbfs; US lbf; US pound forces", "UCUM", "Force", "Clinical", "only rarely needed in health care - see [lb_av] which is the more common unit to express weight", "[lb_av].[g]", "[LB_AV].[G]", "1", 1, false], [false, "ounce", "[oz_av]", "[OZ_AV]", "mass", 28.349523125, [0, 0, 1, 0, 0, 0, 0], "oz", "avoirdupois", false, null, null, 1, false, false, 0, 0, "ounces; international ounces; avoirdupois ounces; av ozs", "UCUM", "Mass", "Clinical", "standard unit used in the US and internationally", "[lb_av]/16", "[LB_AV]/16", "1", 1, false], [false, "Dram mass unit", "[dr_av]", "[DR_AV]", "mass", 1.7718451953125, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "Dram; drams avoirdupois; avoidupois dram; international dram", "UCUM", "Mass", "Clinical", "unit from the avoirdupois system, which is used in the US and internationally", "[oz_av]/16", "[OZ_AV]/16", "1", 1, false], [false, "short hundredweight", "[scwt_av]", "[SCWT_AV]", "mass", 45359.237, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "hundredweights; s cwt; scwt; avoirdupois", "UCUM", "Mass", "Nonclinical", "Used only in the US to equal 100 pounds", "[lb_av]", "[LB_AV]", "100", 100, false], [false, "long hundredweight", "[lcwt_av]", "[LCWT_AV]", "mass", 50802.345440000005, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "imperial hundredweights; imp cwt; lcwt; avoirdupois", "UCUM", "Mass", "Obsolete", "", "[lb_av]", "[LB_AV]", "112", 112, false], [false, "short ton - US", "[ston_av]", "[STON_AV]", "mass", 907184.74, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "ton; US tons; avoirdupois tons", "UCUM", "Mass", "Clinical", "Used only in the US", "[scwt_av]", "[SCWT_AV]", "20", 20, false], [false, "long ton - British", "[lton_av]", "[LTON_AV]", "mass", 1.0160469088000001e6, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "imperial tons; weight tons; British long tons; long ton avoirdupois", "UCUM", "Mass", "Nonclinical", "Used only in Great Britain and other Commonwealth countries", "[lcwt_av]", "[LCWT_AV]", "20", 20, false], [false, "stone - British", "[stone_av]", "[STONE_AV]", "mass", 6350.293180000001, [0, 0, 1, 0, 0, 0, 0], null, "avoirdupois", false, null, null, 1, false, false, 0, 0, "British stones; avoirdupois", "UCUM", "Mass", "Nonclinical", "Used primarily in the UK and Ireland to measure body weight", "[lb_av]", "[LB_AV]", "14", 14, false], [false, "pennyweight - troy", "[pwt_tr]", "[PWT_TR]", "mass", 1.5551738400000001, [0, 0, 1, 0, 0, 0, 0], null, "troy", false, null, null, 1, false, false, 0, 0, "dwt; denarius weights", "UCUM", "Mass", "Obsolete", "historical unit used to measure mass and cost of precious metals", "[gr]", "[GR]", "24", 24, false], [false, "ounce - troy", "[oz_tr]", "[OZ_TR]", "mass", 31.103476800000003, [0, 0, 1, 0, 0, 0, 0], null, "troy", false, null, null, 1, false, false, 0, 0, "troy ounces; tr ozs", "UCUM", "Mass", "Nonclinical", "unit of mass for precious metals and gemstones only", "[pwt_tr]", "[PWT_TR]", "20", 20, false], [false, "pound - troy", "[lb_tr]", "[LB_TR]", "mass", 373.2417216, [0, 0, 1, 0, 0, 0, 0], null, "troy", false, null, null, 1, false, false, 0, 0, "troy pounds; tr lbs", "UCUM", "Mass", "Nonclinical", "only used for weighing precious metals", "[oz_tr]", "[OZ_TR]", "12", 12, false], [false, "scruple", "[sc_ap]", "[SC_AP]", "mass", 1.2959782, [0, 0, 1, 0, 0, 0, 0], null, "apoth", false, null, null, 1, false, false, 0, 0, "scruples; sc ap", "UCUM", "Mass", "Obsolete", "", "[gr]", "[GR]", "20", 20, false], [false, "dram - apothecary", "[dr_ap]", "[DR_AP]", "mass", 3.8879346, [0, 0, 1, 0, 0, 0, 0], null, "apoth", false, null, null, 1, false, false, 0, 0, "\u0292; drachm; apothecaries drams; dr ap; dram ap", "UCUM", "Mass", "Nonclinical", "unit still used in the US occasionally to measure amount of drugs in pharmacies", "[sc_ap]", "[SC_AP]", "3", 3, false], [false, "ounce - apothecary", "[oz_ap]", "[OZ_AP]", "mass", 31.1034768, [0, 0, 1, 0, 0, 0, 0], null, "apoth", false, null, null, 1, false, false, 0, 0, "apothecary ounces; oz ap; ap ozs; ozs ap", "UCUM", "Mass", "Obsolete", "", "[dr_ap]", "[DR_AP]", "8", 8, false], [false, "pound - apothecary", "[lb_ap]", "[LB_AP]", "mass", 373.2417216, [0, 0, 1, 0, 0, 0, 0], null, "apoth", false, null, null, 1, false, false, 0, 0, "apothecary pounds; apothecaries pounds; ap lb; lb ap; ap lbs; lbs ap", "UCUM", "Mass", "Obsolete", "", "[oz_ap]", "[OZ_AP]", "12", 12, false], [false, "ounce - metric", "[oz_m]", "[OZ_M]", "mass", 28, [0, 0, 1, 0, 0, 0, 0], null, "apoth", false, null, null, 1, false, false, 0, 0, "metric ounces; m ozs", "UCUM", "Mass", "Clinical", "see [oz_av] (the avoirdupois ounce) for the standard ounce used internationally; [oz_m] is equal to 28 grams and is based on the apothecaries' system of mass units which is used in some US pharmacies. ", "g", "g", "28", 28, false], [false, "line", "[lne]", "[LNE]", "length", 0.002116666666666667, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "British lines; br L; L; l", "UCUM", "Len", "Obsolete", "", "[in_i]/12", "[IN_I]/12", "1", 1, false], [false, "point (typography)", "[pnt]", "[PNT]", "length", 3527777777777778e-19, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "DTP points; desktop publishing point; pt; pnt", "UCUM", "Len", "Nonclinical", "typography unit for typesetter's length", "[lne]/6", "[LNE]/6", "1", 1, false], [false, "pica (typography)", "[pca]", "[PCA]", "length", 0.004233333333333334, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "picas", "UCUM", "Len", "Nonclinical", "typography unit for typesetter's length", "[pnt]", "[PNT]", "12", 12, false], [false, "Printer's point (typography)", "[pnt_pr]", "[PNT_PR]", "length", 35145980000000004e-20, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "pnt pr", "UCUM", "Len", "Nonclinical", "typography unit for typesetter's length", "[in_i]", "[IN_I]", "0.013837", 0.013837, false], [false, "Printer's pica  (typography)", "[pca_pr]", "[PCA_PR]", "length", 0.004217517600000001, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "pca pr; Printer's picas", "UCUM", "Len", "Nonclinical", "typography unit for typesetter's length", "[pnt_pr]", "[PNT_PR]", "12", 12, false], [false, "pied", "[pied]", "[PIED]", "length", 0.3248, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "pieds du roi; Paris foot; royal; French; feet", "UCUM", "Len", "Obsolete", "", "cm", "CM", "32.48", 32.48, false], [false, "pouce", "[pouce]", "[POUCE]", "length", 0.027066666666666666, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "historical French inches; French royal inches", "UCUM", "Len", "Obsolete", "", "[pied]/12", "[PIED]/12", "1", 1, false], [false, "ligne", "[ligne]", "[LIGNE]", "length", 0.0022555555555555554, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "Paris lines; lignes", "UCUM", "Len", "Obsolete", "", "[pouce]/12", "[POUCE]/12", "1", 1, false], [false, "didot", "[didot]", "[DIDOT]", "length", 3759259259259259e-19, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "Didot point; dd; Didots Point; didots; points", "UCUM", "Len", "Obsolete", "typography unit for typesetter's length", "[ligne]/6", "[LIGNE]/6", "1", 1, false], [false, "cicero", "[cicero]", "[CICERO]", "length", 0.004511111111111111, [1, 0, 0, 0, 0, 0, 0], null, "typeset", false, null, null, 1, false, false, 0, 0, "Didot's pica; ciceros; picas", "UCUM", "Len", "Obsolete", "typography unit for typesetter's length", "[didot]", "[DIDOT]", "12", 12, false], [false, "degrees Fahrenheit", "[degF]", "[DEGF]", "temperature", 0.5555555555555556, [0, 0, 0, 0, 1, 0, 0], "\xB0F", "heat", false, null, "degF", 1, true, false, 0, 0, "\xB0F; deg F", "UCUM", "Temp", "Clinical", "", "K", null, null, 0.5555555555555556, false], [false, "degrees Rankine", "[degR]", "[degR]", "temperature", 0.5555555555555556, [0, 0, 0, 0, 1, 0, 0], "\xB0R", "heat", false, null, null, 1, false, false, 0, 0, "\xB0R; \xB0Ra; Rankine", "UCUM", "Temp", "Obsolete", "Replaced by Kelvin", "K/9", "K/9", "5", 5, false], [false, "degrees R\xE9aumur", "[degRe]", "[degRe]", "temperature", 1.25, [0, 0, 0, 0, 1, 0, 0], "\xB0R\xE9", "heat", false, null, "degRe", 1, true, false, 0, 0, "\xB0R\xE9, \xB0Re, \xB0r; R\xE9aumur; degree Reaumur; Reaumur", "UCUM", "Temp", "Obsolete", "replaced by Celsius", "K", null, null, 1.25, false], [false, "calorie at 15\xB0C", "cal_[15]", "CAL_[15]", "energy", 4185.8, [2, -2, 1, 0, 0, 0, 0], "cal<sub>15\xB0C</sub>", "heat", true, null, null, 1, false, false, 0, 0, "calorie 15 C; cals 15 C; calories at 15 C", "UCUM", "Enrg", "Nonclinical", "equal to 4.1855 joules; calorie most often used in engineering", "J", "J", "4.18580", 4.1858, false], [false, "calorie at 20\xB0C", "cal_[20]", "CAL_[20]", "energy", 4181.9, [2, -2, 1, 0, 0, 0, 0], "cal<sub>20\xB0C</sub>", "heat", true, null, null, 1, false, false, 0, 0, "calorie 20 C; cal 20 C; calories at 20 C", "UCUM", "Enrg", "Clinical", "equal to 4.18190  joules. ", "J", "J", "4.18190", 4.1819, false], [false, "mean calorie", "cal_m", "CAL_M", "energy", 4190.0199999999995, [2, -2, 1, 0, 0, 0, 0], "cal<sub>m</sub>", "heat", true, null, null, 1, false, false, 0, 0, "mean cals; mean calories", "UCUM", "Enrg", "Clinical", "equal to 4.19002 joules. ", "J", "J", "4.19002", 4.19002, false], [false, "international table calorie", "cal_IT", "CAL_IT", "energy", 4186.8, [2, -2, 1, 0, 0, 0, 0], "cal<sub>IT</sub>", "heat", true, null, null, 1, false, false, 0, 0, "calories IT; IT cals; international steam table calories", "UCUM", "Enrg", "Nonclinical", "used in engineering steam tables and defined as 1/860 international watt-hour; equal to 4.1868 joules", "J", "J", "4.1868", 4.1868, false], [false, "thermochemical calorie", "cal_th", "CAL_TH", "energy", 4184, [2, -2, 1, 0, 0, 0, 0], "cal<sub>th</sub>", "heat", true, null, null, 1, false, false, 0, 0, "thermochemical calories; th cals", "UCUM", "Enrg", "Clinical", "equal to 4.184 joules; used as the unit in medicine and biochemistry (equal to cal)", "J", "J", "4.184", 4.184, false], [false, "calorie", "cal", "CAL", "energy", 4184, [2, -2, 1, 0, 0, 0, 0], "cal", "heat", true, null, null, 1, false, false, 0, 0, "gram calories; small calories", "UCUM", "Enrg", "Clinical", "equal to 4.184 joules (the same value as the thermochemical calorie, which is the most common calorie used in medicine and biochemistry)", "cal_th", "CAL_TH", "1", 1, false], [false, "nutrition label Calories", "[Cal]", "[CAL]", "energy", 4184e3, [2, -2, 1, 0, 0, 0, 0], "Cal", "heat", false, null, null, 1, false, false, 0, 0, "food calories; Cal; kcal", "UCUM", "Eng", "Clinical", "", "kcal_th", "KCAL_TH", "1", 1, false], [false, "British thermal unit at 39\xB0F", "[Btu_39]", "[BTU_39]", "energy", 1059670, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>39\xB0F</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU 39F; BTU 39 F; B.T.U. 39 F; B.Th.U. 39 F; BThU 39 F; British thermal units", "UCUM", "Eng", "Nonclinical", "equal to 1.05967 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.05967", 1.05967, false], [false, "British thermal unit at 59\xB0F", "[Btu_59]", "[BTU_59]", "energy", 1054800, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>59\xB0F</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU 59 F; BTU 59F; B.T.U. 59 F; B.Th.U. 59 F; BThU 59F; British thermal units", "UCUM", "Eng", "Nonclinical", "equal to  1.05480 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.05480", 1.0548, false], [false, "British thermal unit at 60\xB0F", "[Btu_60]", "[BTU_60]", "energy", 1054680, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>60\xB0F</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU 60 F; BTU 60F; B.T.U. 60 F; B.Th.U. 60 F; BThU 60 F; British thermal units 60 F", "UCUM", "Eng", "Nonclinical", "equal to 1.05468 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.05468", 1.05468, false], [false, "mean British thermal unit", "[Btu_m]", "[BTU_M]", "energy", 1055870, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>m</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU mean; B.T.U. mean; B.Th.U. mean; BThU mean; British thermal units mean; ", "UCUM", "Eng", "Nonclinical", "equal to 1.05587 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.05587", 1.05587, false], [false, "international table British thermal unit", "[Btu_IT]", "[BTU_IT]", "energy", 105505585262e-5, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>IT</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU IT; B.T.U. IT; B.Th.U. IT; BThU IT; British thermal units IT", "UCUM", "Eng", "Nonclinical", "equal to 1.055 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.05505585262", 1.05505585262, false], [false, "thermochemical British thermal unit", "[Btu_th]", "[BTU_TH]", "energy", 1054350, [2, -2, 1, 0, 0, 0, 0], "Btu<sub>th</sub>", "heat", false, null, null, 1, false, false, 0, 0, "BTU Th; B.T.U. Th; B.Th.U. Th; BThU Th; thermochemical British thermal units", "UCUM", "Eng", "Nonclinical", "equal to 1.054350 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "kJ", "kJ", "1.054350", 1.05435, false], [false, "British thermal unit", "[Btu]", "[BTU]", "energy", 1054350, [2, -2, 1, 0, 0, 0, 0], "btu", "heat", false, null, null, 1, false, false, 0, 0, "BTU; B.T.U. ; B.Th.U.; BThU; British thermal units", "UCUM", "Eng", "Nonclinical", "equal to the thermochemical British thermal unit equal to 1.054350 kJ; used as a measure of power in the electric power, steam generation, heating, and air conditioning industries", "[Btu_th]", "[BTU_TH]", "1", 1, false], [false, "horsepower - mechanical", "[HP]", "[HP]", "power", 745699.8715822703, [2, -3, 1, 0, 0, 0, 0], null, "heat", false, null, null, 1, false, false, 0, 0, "imperial horsepowers", "UCUM", "EngRat", "Nonclinical", "refers to mechanical horsepower, which is unit used to measure engine power primarily in the US. ", "[ft_i].[lbf_av]/s", "[FT_I].[LBF_AV]/S", "550", 550, false], [false, "tex", "tex", "TEX", "linear mass density (of textile thread)", 1e-3, [-1, 0, 1, 0, 0, 0, 0], "tex", "heat", true, null, null, 1, false, false, 0, 0, "linear mass density; texes", "UCUM", "", "Clinical", "unit of linear mass density for fibers equal to gram per 1000 meters", "g/km", "G/KM", "1", 1, false], [false, "Denier (linear mass density)", "[den]", "[DEN]", "linear mass density (of textile thread)", 1111111111111111e-19, [-1, 0, 1, 0, 0, 0, 0], "den", "heat", false, null, null, 1, false, false, 0, 0, "den; deniers", "UCUM", "", "Nonclinical", "equal to the mass in grams per 9000 meters of the fiber (1 denier = 1 strand of silk)", "g/9/km", "G/9/KM", "1", 1, false], [false, "meter of water column", "m[H2O]", "M[H2O]", "pressure", 9806650, [-1, -2, 1, 0, 0, 0, 0], "m\xA0HO<sub><r>2</r></sub>", "clinical", true, null, null, 1, false, false, 0, 0, "mH2O; m H2O; meters of water column; metres; pressure", "UCUM", "Pres", "Clinical", "", "kPa", "KPAL", "980665e-5", 9.80665, false], [false, "meter of mercury column", "m[Hg]", "M[HG]", "pressure", 133322e3, [-1, -2, 1, 0, 0, 0, 0], "m\xA0Hg", "clinical", true, null, null, 1, false, false, 0, 0, "mHg; m Hg; meters of mercury column; metres; pressure", "UCUM", "Pres", "Clinical", "", "kPa", "KPAL", "133.3220", 133.322, false], [false, "inch of water column", "[in_i'H2O]", "[IN_I'H2O]", "pressure", 249088.91000000003, [-1, -2, 1, 0, 0, 0, 0], "in\xA0HO<sub><r>2</r></sub>", "clinical", false, null, null, 1, false, false, 0, 0, "inches WC; inAq; in H2O; inch of water gauge; iwg; pressure", "UCUM", "Pres", "Clinical", "unit of pressure, especially in respiratory and ventilation care", "m[H2O].[in_i]/m", "M[H2O].[IN_I]/M", "1", 1, false], [false, "inch of mercury column", "[in_i'Hg]", "[IN_I'HG]", "pressure", 3.3863788000000003e6, [-1, -2, 1, 0, 0, 0, 0], "in\xA0Hg", "clinical", false, null, null, 1, false, false, 0, 0, "inHg; in Hg; pressure; inches", "UCUM", "Pres", "Clinical", "unit of pressure used in US to measure barometric pressure and occasionally blood pressure (see mm[Hg] for unit used internationally)", "m[Hg].[in_i]/m", "M[HG].[IN_I]/M", "1", 1, false], [false, "peripheral vascular resistance unit", "[PRU]", "[PRU]", "fluid resistance", 133322e6, [-4, -1, 1, 0, 0, 0, 0], "P.R.U.", "clinical", false, null, null, 1, false, false, 0, 0, "peripheral vascular resistance units; peripheral resistance unit; peripheral resistance units; PRU", "UCUM", "FldResist", "Clinical", "used to assess blood flow in the capillaries; equal to 1 mmH.min/mL = 133.3 Pa\xB7min/mL", "mm[Hg].s/ml", "MM[HG].S/ML", "1", 1, false], [false, "Wood unit", "[wood'U]", "[WOOD'U]", "fluid resistance", 799932e4, [-4, -1, 1, 0, 0, 0, 0], "Wood U.", "clinical", false, null, null, 1, false, false, 0, 0, "hybrid reference units; HRU; mmHg.min/L; vascular resistance", "UCUM", "Pres", "Clinical", "simplified unit of measurement for for measuring pulmonary vascular resistance that uses pressure; equal to mmHg.min/L", "mm[Hg].min/L", "MM[HG].MIN/L", "1", 1, false], [false, "diopter (lens)", "[diop]", "[DIOP]", "refraction of a lens", 1, [1, 0, 0, 0, 0, 0, 0], "dpt", "clinical", false, null, "inv", 1, false, false, 0, 0, "diopters; diop; dioptre; dpt; refractive power", "UCUM", "InvLen", "Clinical", "unit of optical power of lens represented by inverse meters (m^-1)", "m", "/M", "1", 1, false], [false, "prism diopter (magnifying power)", "[p'diop]", "[P'DIOP]", "refraction of a prism", 1, [0, 0, 0, 1, 0, 0, 0], "PD", "clinical", false, null, "tanTimes100", 1, true, false, 0, 0, "diopters; dioptres; p diops; pdiop; dpt; pdptr; \u0394; cm/m; centimeter per meter; centimetre; metre", "UCUM", "Angle", "Clinical", "unit for prism correction in eyeglass prescriptions", "rad", null, null, 1, false], [false, "percent of slope", "%[slope]", "%[SLOPE]", "slope", 0.017453292519943295, [0, 0, 0, 1, 0, 0, 0], "%", "clinical", false, null, "100tan", 1, true, false, 0, 0, "% slope; %slope; percents slopes", "UCUM", "VelFr; ElpotRatFr; VelRtoFr; AccelFr", "Clinical", "", "deg", null, null, 1, false], [false, "mesh", "[mesh_i]", "[MESH_I]", "lineic number", 0.025400000000000002, [1, 0, 0, 0, 0, 0, 0], null, "clinical", false, null, "inv", 1, false, false, 0, 0, "meshes", "UCUM", "NLen (lineic number)", "Clinical", "traditional unit of length defined as the number of strands or particles per inch", "[in_i]", "/[IN_I]", "1", 1, false], [false, "French (catheter gauge) ", "[Ch]", "[CH]", "gauge of catheters", 3333333333333333e-19, [1, 0, 0, 0, 0, 0, 0], "Ch", "clinical", false, null, null, 1, false, false, 0, 0, "Charri\xE8res, French scales; French gauges; Fr, Fg, Ga, FR, Ch", "UCUM", "Len; Circ; Diam", "Clinical", "", "mm/3", "MM/3", "1", 1, false], [false, "drop - metric (1/20 mL)", "[drp]", "[DRP]", "volume", 5e-8, [3, 0, 0, 0, 0, 0, 0], "drp", "clinical", false, null, null, 1, false, false, 0, 0, "drop dosing units; metric drops; gtt", "UCUM", "Vol", "Clinical", "standard unit used in the US and internationally for clinical medicine but note that although [drp] is defined as 1/20 milliliter, in practice, drop sizes will vary due to external factors", "ml/20", "ML/20", "1", 1, false], [false, "Hounsfield unit", "[hnsf'U]", "[HNSF'U]", "x-ray attenuation", 1, [0, 0, 0, 0, 0, 0, 0], "HF", "clinical", false, null, null, 1, false, false, 0, 0, "HU; units", "UCUM", "", "Clinical", "used to measure X-ray attenuation, especially in CT scans.", "1", "1", "1", 1, false], [false, "Metabolic Equivalent of Task ", "[MET]", "[MET]", "metabolic cost of physical activity", 5833333333333334e-26, [3, -1, -1, 0, 0, 0, 0], "MET", "clinical", false, null, null, 1, false, false, 0, 0, "metabolic equivalents", "UCUM", "RelEngRat", "Clinical", "unit used to measure rate of energy expenditure per power in treadmill and other functional tests", "mL/min/kg", "ML/MIN/KG", "3.5", 3.5, false], [false, "homeopathic potency of decimal series (retired)", "[hp'_X]", "[HP'_X]", "homeopathic potency (retired)", 1, [0, 0, 0, 0, 0, 0, 0], "X", "clinical", false, null, "hpX", 1, true, false, 0, 0, null, "UCUM", null, null, null, "1", null, null, 1, false], [false, "homeopathic potency of centesimal series (retired)", "[hp'_C]", "[HP'_C]", "homeopathic potency (retired)", 1, [0, 0, 0, 0, 0, 0, 0], "C", "clinical", false, null, "hpC", 1, true, false, 0, 0, null, "UCUM", null, null, null, "1", null, null, 1, false], [false, "homeopathic potency of millesimal series (retired)", "[hp'_M]", "[HP'_M]", "homeopathic potency (retired)", 1, [0, 0, 0, 0, 0, 0, 0], "M", "clinical", false, null, "hpM", 1, true, false, 0, 0, null, "UCUM", null, null, null, "1", null, null, 1, false], [false, "homeopathic potency of quintamillesimal series (retired)", "[hp'_Q]", "[HP'_Q]", "homeopathic potency (retired)", 1, [0, 0, 0, 0, 0, 0, 0], "Q", "clinical", false, null, "hpQ", 1, true, false, 0, 0, null, "UCUM", null, null, null, "1", null, null, 1, false], [false, "homeopathic potency of decimal hahnemannian series", "[hp_X]", "[HP_X]", "homeopathic potency (Hahnemann)", 1, [0, 0, 0, 0, 0, 0, 0], "X", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of centesimal hahnemannian series", "[hp_C]", "[HP_C]", "homeopathic potency (Hahnemann)", 1, [0, 0, 0, 0, 0, 0, 0], "C", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of millesimal hahnemannian series", "[hp_M]", "[HP_M]", "homeopathic potency (Hahnemann)", 1, [0, 0, 0, 0, 0, 0, 0], "M", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of quintamillesimal hahnemannian series", "[hp_Q]", "[HP_Q]", "homeopathic potency (Hahnemann)", 1, [0, 0, 0, 0, 0, 0, 0], "Q", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of decimal korsakovian series", "[kp_X]", "[KP_X]", "homeopathic potency (Korsakov)", 1, [0, 0, 0, 0, 0, 0, 0], "X", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of centesimal korsakovian series", "[kp_C]", "[KP_C]", "homeopathic potency (Korsakov)", 1, [0, 0, 0, 0, 0, 0, 0], "C", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of millesimal korsakovian series", "[kp_M]", "[KP_M]", "homeopathic potency (Korsakov)", 1, [0, 0, 0, 0, 0, 0, 0], "M", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "homeopathic potency of quintamillesimal korsakovian series", "[kp_Q]", "[KP_Q]", "homeopathic potency (Korsakov)", 1, [0, 0, 0, 0, 0, 0, 0], "Q", "clinical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "equivalent", "eq", "EQ", "amount of substance", 60221367e16, [0, 0, 0, 0, 0, 0, 0], "eq", "chemical", true, null, null, 1, false, false, 0, 1, "equivalents", "UCUM", "Sub", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "osmole", "osm", "OSM", "amount of substance (dissolved particles)", 60221367e16, [0, 0, 0, 0, 0, 0, 0], "osm", "chemical", true, null, null, 1, false, false, 1, 0, "osmoles; osmols", "UCUM", "Osmol", "Clinical", "the number of moles of solute that contribute to the osmotic pressure of a solution", "mol", "MOL", "1", 1, false], [false, "pH", "[pH]", "[PH]", "acidity", 60221366999999994e10, [-3, 0, 0, 0, 0, 0, 0], "pH", "chemical", false, null, "pH", 1, true, false, 0, 0, "pH scale", "UCUM", "LogCnc", "Clinical", "Log concentration of H+", "mol/l", null, null, 1, false], [false, "gram percent", "g%", "G%", "mass concentration", 1e4, [-3, 0, 1, 0, 0, 0, 0], "g%", "chemical", true, null, null, 1, false, false, 0, 0, "gram %; gram%; grams per deciliter; g/dL; gm per dL; gram percents", "UCUM", "MCnc", "Clinical", "equivalent to unit gram per deciliter (g/dL), a unit often used in medical tests to represent solution concentrations", "g/dl", "G/DL", "1", 1, false], [false, "Svedberg unit", "[S]", "[S]", "sedimentation coefficient", 1e-13, [0, 1, 0, 0, 0, 0, 0], "S", "chemical", false, null, null, 1, false, false, 0, 0, "Sv; 10^-13 seconds; 100 fs; 100 femtoseconds", "UCUM", "Time", "Clinical", "unit of time used in measuring particle's sedimentation rate, usually after centrifugation. ", "s", "10*-13.S", "1", 1e-13, false], [false, "high power field (microscope)", "[HPF]", "[HPF]", "view area in microscope", 1, [0, 0, 0, 0, 0, 0, 0], "HPF", "chemical", false, null, null, 1, false, false, 0, 0, "HPF", "UCUM", "Area", "Clinical", "area visible under the maximum magnification power of the objective in microscopy (usually 400x)\n", "1", "1", "1", 1, false], [false, "low power field (microscope)", "[LPF]", "[LPF]", "view area in microscope", 1, [0, 0, 0, 0, 0, 0, 0], "LPF", "chemical", false, null, null, 1, false, false, 0, 0, "LPF; fields", "UCUM", "Area", "Clinical", "area visible under the low magnification of the objective in microscopy (usually 100 x)\n", "1", "1", "100", 100, false], [false, "katal", "kat", "KAT", "catalytic activity", 60221367e16, [0, -1, 0, 0, 0, 0, 0], "kat", "chemical", true, null, null, 1, false, false, 1, 0, "mol/secs; moles per second; mol*sec-1; mol*s-1; mol.s-1; katals; catalytic activity; enzymatic; enzyme units; activities", "UCUM", "CAct", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "enzyme unit", "U", "U", "catalytic activity", 100368945e8, [0, -1, 0, 0, 0, 0, 0], "U", "chemical", true, null, null, 1, false, false, 1, 0, "micromoles per minute; umol/min; umol per minute; umol min-1; enzymatic activity; enzyme activity", "UCUM", "CAct", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "international unit - arbitrary", "[iU]", "[IU]", "arbitrary", 1, [0, 0, 0, 0, 0, 0, 0], "IU", "chemical", true, null, null, 1, false, true, 0, 0, "international units; IE; F2", "UCUM", "Arb", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "1", "1", "1", 1, false], [false, "international unit - arbitrary", "[IU]", "[IU]", "arbitrary", 1, [0, 0, 0, 0, 0, 0, 0], "i.U.", "chemical", true, null, null, 1, false, true, 0, 0, "international units; IE; F2", "UCUM", "Arb", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "arbitary unit", "[arb'U]", "[ARB'U]", "arbitrary", 1, [0, 0, 0, 0, 0, 0, 0], "arb. U", "chemical", false, null, null, 1, false, true, 0, 0, "arbitary units; arb units; arbU", "UCUM", "Arb", "Clinical", "relative unit of measurement to show the ratio of test measurement to reference measurement", "1", "1", "1", 1, false], [false, "United States Pharmacopeia unit", "[USP'U]", "[USP'U]", "arbitrary", 1, [0, 0, 0, 0, 0, 0, 0], "U.S.P.", "chemical", false, null, null, 1, false, true, 0, 0, "USP U; USP'U", "UCUM", "Arb", "Clinical", "a dose unit to express potency of drugs and vitamins defined by the United States Pharmacopoeia; usually 1 USP = 1 IU", "1", "1", "1", 1, false], [false, "GPL unit", "[GPL'U]", "[GPL'U]", "biologic activity of anticardiolipin IgG", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "GPL Units; GPL U; IgG anticardiolipin units; IgG Phospholipid", "UCUM", "ACnc; AMass", "Clinical", "Units for an antiphospholipid test", "1", "1", "1", 1, false], [false, "MPL unit", "[MPL'U]", "[MPL'U]", "biologic activity of anticardiolipin IgM", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "MPL units; MPL U; MPL'U; IgM anticardiolipin units; IgM Phospholipid Units ", "UCUM", "ACnc", "Clinical", "units for antiphospholipid test", "1", "1", "1", 1, false], [false, "APL unit", "[APL'U]", "[APL'U]", "biologic activity of anticardiolipin IgA", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "APL units; APL U; IgA anticardiolipin; IgA Phospholipid; biologic activity of", "UCUM", "AMass; ACnc", "Clinical", "Units for an anti phospholipid syndrome test", "1", "1", "1", 1, false], [false, "Bethesda unit", "[beth'U]", "[BETH'U]", "biologic activity of factor VIII inhibitor", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "BU", "UCUM", "ACnc", "Clinical", "measures of blood coagulation inhibitior for many blood factors", "1", "1", "1", 1, false], [false, "anti factor Xa unit", "[anti'Xa'U]", "[ANTI'XA'U]", "biologic activity of factor Xa inhibitor (heparin)", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "units", "UCUM", "ACnc", "Clinical", "[anti'Xa'U] unit is equivalent to and can be converted to IU/mL. ", "1", "1", "1", 1, false], [false, "Todd unit", "[todd'U]", "[TODD'U]", "biologic activity antistreptolysin O", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "units", "UCUM", "InvThres; RtoThres", "Clinical", "the unit for the results of the testing for antistreptolysin O (ASO)", "1", "1", "1", 1, false], [false, "Dye unit", "[dye'U]", "[DYE'U]", "biologic activity of amylase", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "units", "UCUM", "CCnc", "Obsolete", "equivalent to the Somogyi unit, which is an enzyme unit for amylase but better to use U, the standard enzyme unit for measuring catalytic activity", "1", "1", "1", 1, false], [false, "Somogyi unit", "[smgy'U]", "[SMGY'U]", "biologic activity of amylase", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "Somogyi units; smgy U", "UCUM", "CAct", "Clinical", "measures the enzymatic activity of amylase in blood serum - better to use base units mg/mL ", "1", "1", "1", 1, false], [false, "Bodansky unit", "[bdsk'U]", "[BDSK'U]", "biologic activity of phosphatase", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "", "UCUM", "ACnc", "Obsolete", "Enzyme unit specific to alkaline phosphatase - better to use standard enzyme unit of U", "1", "1", "1", 1, false], [false, "King-Armstrong unit", "[ka'U]", "[KA'U]", "biologic activity of phosphatase", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "King-Armstrong Units; King units", "UCUM", "AMass", "Obsolete", "enzyme units for acid phosphatase - better to use enzyme unit [U]", "1", "1", "1", 1, false], [false, "Kunkel unit", "[knk'U]", "[KNK'U]", "arbitrary biologic activity", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, null, "UCUM", null, null, null, "1", "1", "1", 1, false], [false, "Mac Lagan unit", "[mclg'U]", "[MCLG'U]", "arbitrary biologic activity", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "galactose index; galactose tolerance test; thymol turbidity test unit; mclg U; units; indexes", "UCUM", "ACnc", "Obsolete", "unit for liver tests - previously used in thymol turbidity tests for liver disease diagnoses, and now is sometimes referred to in the oral galactose tolerance test", "1", "1", "1", 1, false], [false, "tuberculin unit", "[tb'U]", "[TB'U]", "biologic activity of tuberculin", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "TU; units", "UCUM", "Arb", "Clinical", "amount of tuberculin antigen -usually in reference to a TB skin test ", "1", "1", "1", 1, false], [false, "50% cell culture infectious dose", "[CCID_50]", "[CCID_50]", "biologic activity (infectivity) of an infectious agent preparation", 1, [0, 0, 0, 0, 0, 0, 0], "CCID<sub>50</sub>", "chemical", false, null, null, 1, false, true, 0, 0, "CCID50; 50% cell culture infective doses", "UCUM", "NumThres", "Clinical", "", "1", "1", "1", 1, false], [false, "50% tissue culture infectious dose", "[TCID_50]", "[TCID_50]", "biologic activity (infectivity) of an infectious agent preparation", 1, [0, 0, 0, 0, 0, 0, 0], "TCID<sub>50</sub>", "chemical", false, null, null, 1, false, true, 0, 0, "TCID50; 50% tissue culture infective dose", "UCUM", "NumThres", "Clinical", "", "1", "1", "1", 1, false], [false, "50% embryo infectious dose", "[EID_50]", "[EID_50]", "biologic activity (infectivity) of an infectious agent preparation", 1, [0, 0, 0, 0, 0, 0, 0], "EID<sub>50</sub>", "chemical", false, null, null, 1, false, true, 0, 0, "EID50; 50% embryo infective doses; EID50 Egg Infective Dosage", "UCUM", "thresNum", "Clinical", "", "1", "1", "1", 1, false], [false, "plaque forming units", "[PFU]", "[PFU]", "amount of an infectious agent", 1, [0, 0, 0, 0, 0, 0, 0], "PFU", "chemical", false, null, null, 1, false, true, 0, 0, "PFU", "UCUM", "ACnc", "Clinical", "tests usually report unit as number of PFU per unit volume", "1", "1", "1", 1, false], [false, "focus forming units (cells)", "[FFU]", "[FFU]", "amount of an infectious agent", 1, [0, 0, 0, 0, 0, 0, 0], "FFU", "chemical", false, null, null, 1, false, true, 0, 0, "FFU", "UCUM", "EntNum", "Clinical", "", "1", "1", "1", 1, false], [false, "colony forming units", "[CFU]", "[CFU]", "amount of a proliferating organism", 1, [0, 0, 0, 0, 0, 0, 0], "CFU", "chemical", false, null, null, 1, false, true, 0, 0, "CFU", "UCUM", "Num", "Clinical", "", "1", "1", "1", 1, false], [false, "index of reactivity (allergen)", "[IR]", "[IR]", "amount of an allergen callibrated through in-vivo testing using the Stallergenes\xAE method.", 1, [0, 0, 0, 0, 0, 0, 0], "IR", "chemical", false, null, null, 1, false, true, 0, 0, "IR; indexes", "UCUM", "Acnc", "Clinical", "amount of an allergen callibrated through in-vivo testing using the Stallergenes method. Usually reported in tests as IR/mL", "1", "1", "1", 1, false], [false, "bioequivalent allergen unit", "[BAU]", "[BAU]", "amount of an allergen callibrated through in-vivo testing based on the ID50EAL method of (intradermal dilution for 50mm sum of erythema diameters", 1, [0, 0, 0, 0, 0, 0, 0], "BAU", "chemical", false, null, null, 1, false, true, 0, 0, "BAU; Bioequivalent Allergy Units; bioequivalent allergen units", "UCUM", "Arb", "Clinical", "", "1", "1", "1", 1, false], [false, "allergy unit", "[AU]", "[AU]", "procedure defined amount of an allergen using some reference standard", 1, [0, 0, 0, 0, 0, 0, 0], "AU", "chemical", false, null, null, 1, false, true, 0, 0, "allergy units; allergen units; AU", "UCUM", "Arb", "Clinical", "Most standard test allergy units are reported as [IU] or as %. ", "1", "1", "1", 1, false], [false, "allergen unit for Ambrosia artemisiifolia", "[Amb'a'1'U]", "[AMB'A'1'U]", "procedure defined amount of the major allergen of ragweed.", 1, [0, 0, 0, 0, 0, 0, 0], "Amb a 1 U", "chemical", false, null, null, 1, false, true, 0, 0, "Amb a 1 unit; Antigen E; AgE U; allergen units", "UCUM", "Arb", "Clinical", "Amb a 1 is the major allergen in short ragweed, and can be converted Bioequivalent allergen units (BAU) where 350 Amb a 1 U/mL = 100,000 BAU/mL", "1", "1", "1", 1, false], [false, "protein nitrogen unit (allergen testing)", "[PNU]", "[PNU]", "procedure defined amount of a protein substance", 1, [0, 0, 0, 0, 0, 0, 0], "PNU", "chemical", false, null, null, 1, false, true, 0, 0, "protein nitrogen units; PNU", "UCUM", "Mass", "Clinical", "defined as 0.01 ug of phosphotungstic acid-precipitable protein nitrogen. Being replaced by bioequivalent allergy units (BAU).", "1", "1", "1", 1, false], [false, "Limit of flocculation", "[Lf]", "[LF]", "procedure defined amount of an antigen substance", 1, [0, 0, 0, 0, 0, 0, 0], "Lf", "chemical", false, null, null, 1, false, true, 0, 0, "Lf doses", "UCUM", "Arb", "Clinical", "the antigen content  forming 1:1 ratio against 1 unit of antitoxin", "1", "1", "1", 1, false], [false, "D-antigen unit (polio)", "[D'ag'U]", "[D'AG'U]", "procedure defined amount of a poliomyelitis d-antigen substance", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "DAgU; units", "UCUM", "Acnc", "Clinical", "unit of potency of poliovirus vaccine used for poliomyelitis prevention reported as D antigen units/mL. The unit is poliovirus type-specific.", "1", "1", "1", 1, false], [false, "fibrinogen equivalent units", "[FEU]", "[FEU]", "amount of fibrinogen broken down into the measured d-dimers", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "FEU", "UCUM", "MCnc", "Clinical", "Note both the FEU and DDU units are used to report D-dimer measurements. 1 DDU = 1/2 FFU", "1", "1", "1", 1, false], [false, "ELISA unit", "[ELU]", "[ELU]", "arbitrary ELISA unit", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "Enzyme-Linked Immunosorbent Assay Units; ELU; EL. U", "UCUM", "ACnc", "Clinical", "", "1", "1", "1", 1, false], [false, "Ehrlich units (urobilinogen)", "[EU]", "[EU]", "Ehrlich unit", 1, [0, 0, 0, 0, 0, 0, 0], null, "chemical", false, null, null, 1, false, true, 0, 0, "EU/dL; mg{urobilinogen}/dL", "UCUM", "ACnc", "Clinical", "", "1", "1", "1", 1, false], [false, "neper", "Np", "NEP", "level", 1, [0, 0, 0, 0, 0, 0, 0], "Np", "levels", true, null, "ln", 1, true, false, 0, 0, "nepers", "UCUM", "LogRto", "Clinical", "logarithmic unit for ratios of measurements of physical field and power quantities, such as gain and loss of electronic signals", "1", null, null, 1, false], [false, "bel", "B", "B", "level", 1, [0, 0, 0, 0, 0, 0, 0], "B", "levels", true, null, "lg", 1, true, false, 0, 0, "bels", "UCUM", "LogRto", "Clinical", "Logarithm of the ratio of power- or field-type quantities; usually expressed in decibels ", "1", null, null, 1, false], [false, "bel sound pressure", "B[SPL]", "B[SPL]", "pressure level", 0.019999999999999997, [-1, -2, 1, 0, 0, 0, 0], "B(SPL)", "levels", true, null, "lgTimes2", 1, true, false, 0, 0, "bel SPL; B SPL; sound pressure bels", "UCUM", "LogRto", "Clinical", "used to measure sound level in acoustics", "Pa", null, null, 19999999999999998e-21, false], [false, "bel volt", "B[V]", "B[V]", "electric potential level", 1e3, [2, -2, 1, 0, 0, -1, 0], "B(V)", "levels", true, null, "lgTimes2", 1, true, false, 0, 0, "bel V; B V; volts bels", "UCUM", "LogRtoElp", "Clinical", "used to express power gain in electrical circuits", "V", null, null, 1, false], [false, "bel millivolt", "B[mV]", "B[MV]", "electric potential level", 1, [2, -2, 1, 0, 0, -1, 0], "B(mV)", "levels", true, null, "lgTimes2", 1, true, false, 0, 0, "bel mV; B mV; millivolt bels; 10^-3V bels; 10*-3V ", "UCUM", "LogRtoElp", "Clinical", "used to express power gain in electrical circuits", "mV", null, null, 1, false], [false, "bel microvolt", "B[uV]", "B[UV]", "electric potential level", 1e-3, [2, -2, 1, 0, 0, -1, 0], "B(\u03BCV)", "levels", true, null, "lgTimes2", 1, true, false, 0, 0, "bel uV; B uV; microvolts bels; 10^-6V bel; 10*-6V bel", "UCUM", "LogRto", "Clinical", "used to express power gain in electrical circuits", "uV", null, null, 1, false], [false, "bel 10 nanovolt", "B[10.nV]", "B[10.NV]", "electric potential level", 10000000000000003e-21, [2, -2, 1, 0, 0, -1, 0], "B(10 nV)", "levels", true, null, "lgTimes2", 1, true, false, 0, 0, "bel 10 nV; B 10 nV; 10 nanovolts bels", "UCUM", "LogRtoElp", "Clinical", "used to express power gain in electrical circuits", "nV", null, null, 10, false], [false, "bel watt", "B[W]", "B[W]", "power level", 1e3, [2, -3, 1, 0, 0, 0, 0], "B(W)", "levels", true, null, "lg", 1, true, false, 0, 0, "bel W; b W; b Watt; Watts bels", "UCUM", "LogRto", "Clinical", "used to express power", "W", null, null, 1, false], [false, "bel kilowatt", "B[kW]", "B[KW]", "power level", 1e6, [2, -3, 1, 0, 0, 0, 0], "B(kW)", "levels", true, null, "lg", 1, true, false, 0, 0, "bel kW; B kW; kilowatt bel; kW bel; kW B", "UCUM", "LogRto", "Clinical", "used to express power", "kW", null, null, 1, false], [false, "stere", "st", "STR", "volume", 1, [3, 0, 0, 0, 0, 0, 0], "st", "misc", true, null, null, 1, false, false, 0, 0, "st\xE8re; m3; cubic meter; m^3; meters cubed; metre", "UCUM", "Vol", "Nonclinical", "equal to one cubic meter, usually used for measuring firewood", "m3", "M3", "1", 1, false], [false, "\xC5ngstr\xF6m", "Ao", "AO", "length", 10000000000000002e-26, [1, 0, 0, 0, 0, 0, 0], "\xC5", "misc", false, null, null, 1, false, false, 0, 0, "\xC5; Angstroms; Ao; \xC5ngstr\xF6ms", "UCUM", "Len", "Clinical", "equal to 10^-10 meters; used to express wave lengths and atom scaled differences ", "nm", "NM", "0.1", 0.1, false], [false, "barn", "b", "BRN", "action area", 10000000000000001e-44, [2, 0, 0, 0, 0, 0, 0], "b", "misc", false, null, null, 1, false, false, 0, 0, "barns", "UCUM", "Area", "Clinical", "used in high-energy physics to express cross-sectional areas", "fm2", "FM2", "100", 100, false], [false, "technical atmosphere", "att", "ATT", "pressure", 98066500, [-1, -2, 1, 0, 0, 0, 0], "at", "misc", false, null, null, 1, false, false, 0, 0, "at; tech atm; tech atmosphere; kgf/cm2; atms; atmospheres", "UCUM", "Pres", "Obsolete", "non-SI unit of pressure equal to one kilogram-force per square centimeter", "kgf/cm2", "KGF/CM2", "1", 1, false], [false, "mho", "mho", "MHO", "electric conductance", 1e-3, [-2, 1, -1, 0, 0, 2, 0], "mho", "misc", true, null, null, 1, false, false, 0, 0, "siemens; ohm reciprocals; \u03A9^\u22121; \u03A9-1 ", "UCUM", "", "Obsolete", "unit of electric conductance (the inverse of electrical resistance) equal to ohm^-1", "S", "S", "1", 1, false], [false, "pound per square inch", "[psi]", "[PSI]", "pressure", 6894757293168359e-9, [-1, -2, 1, 0, 0, 0, 0], "psi", "misc", false, null, null, 1, false, false, 0, 0, "psi; lb/in2; lb per in2", "UCUM", "Pres", "Clinical", "", "[lbf_av]/[in_i]2", "[LBF_AV]/[IN_I]2", "1", 1, false], [false, "circle - plane angle", "circ", "CIRC", "plane angle", 6.283185307179586, [0, 0, 0, 1, 0, 0, 0], "circ", "misc", false, null, null, 1, false, false, 0, 0, "angles; circles", "UCUM", "Angle", "Clinical", "", "[pi].rad", "[PI].RAD", "2", 2, false], [false, "spere - solid angle", "sph", "SPH", "solid angle", 12.566370614359172, [0, 0, 0, 2, 0, 0, 0], "sph", "misc", false, null, null, 1, false, false, 0, 0, "speres", "UCUM", "Angle", "Clinical", "equal to the solid angle of an entire sphere = 4\u03C0sr (sr = steradian) ", "[pi].sr", "[PI].SR", "4", 4, false], [false, "metric carat", "[car_m]", "[CAR_M]", "mass", 0.2, [0, 0, 1, 0, 0, 0, 0], "ct<sub>m</sub>", "misc", false, null, null, 1, false, false, 0, 0, "carats; ct; car m", "UCUM", "Mass", "Nonclinical", "unit of mass for gemstones", "g", "G", "2e-1", 0.2, false], [false, "carat of gold alloys", "[car_Au]", "[CAR_AU]", "mass fraction", 0.041666666666666664, [0, 0, 0, 0, 0, 0, 0], "ct<sub><r>Au</r></sub>", "misc", false, null, null, 1, false, false, 0, 0, "karats; k; kt; car au; carats", "UCUM", "MFr", "Nonclinical", "unit of purity for gold alloys", "/24", "/24", "1", 1, false], [false, "Smoot", "[smoot]", "[SMOOT]", "length", 1.7018000000000002, [1, 0, 0, 0, 0, 0, 0], null, "misc", false, null, null, 1, false, false, 0, 0, "", "UCUM", "Len", "Nonclinical", "prank unit of length from MIT", "[in_i]", "[IN_I]", "67", 67, false], [false, "meter per square seconds per square root of hertz", "[m/s2/Hz^(1/2)]", "[M/S2/HZ^(1/2)]", "amplitude spectral density", 1, [2, -3, 0, 0, 0, 0, 0], null, "misc", false, null, "sqrt", 1, true, false, 0, 0, "m/s2/(Hz^.5); m/s2/(Hz^(1/2)); m per s2 per Hz^1/2", "UCUM", "", "Constant", "measures amplitude spectral density, and is equal to the square root of power spectral density\n ", "m2/s4/Hz", null, null, 1, false], [false, "bit - logarithmic", "bit_s", "BIT_S", "amount of information", 1, [0, 0, 0, 0, 0, 0, 0], "bit<sub>s</sub>", "infotech", false, null, "ld", 1, true, false, 0, 0, "bit-s; bit s; bit logarithmic", "UCUM", "LogA", "Nonclinical", "defined as the log base 2 of the number of distinct signals; cannot practically be used to express more than 1000 bits\n\nIn information theory, the definition of the amount of self-information and information entropy is often expressed with the binary logarithm (log base 2)", "1", null, null, 1, false], [false, "bit", "bit", "BIT", "amount of information", 1, [0, 0, 0, 0, 0, 0, 0], "bit", "infotech", true, null, null, 1, false, false, 0, 0, "bits", "UCUM", "", "Nonclinical", "dimensionless information unit of 1 used in computing and digital communications", "1", "1", "1", 1, false], [false, "byte", "By", "BY", "amount of information", 8, [0, 0, 0, 0, 0, 0, 0], "B", "infotech", true, null, null, 1, false, false, 0, 0, "bytes", "UCUM", "", "Nonclinical", "equal to 8 bits", "bit", "bit", "8", 8, false], [false, "baud", "Bd", "BD", "signal transmission rate", 1, [0, 1, 0, 0, 0, 0, 0], "Bd", "infotech", true, null, "inv", 1, false, false, 0, 0, "Bd; bauds", "UCUM", "Freq", "Nonclinical", "unit to express rate in symbols per second or pulses per second. ", "s", "/s", "1", 1, false], [false, "per twelve hour", "/(12.h)", "1/(12.HR)", "", 23148148148148147e-21, [0, -1, 0, 0, 0, 0, 0], "/h", null, false, null, null, 1, false, false, 0, 0, "per 12 hours; 12hrs; 12 hrs; /12hrs", "LOINC", "Rat", "Clinical", "", null, null, null, null, false], [false, "per arbitrary unit", "/[arb'U]", "1/[ARB'U]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/arb/ U", null, false, null, null, 1, false, true, 0, 0, "/arbU", "LOINC", "InvA ", "Clinical", "", null, null, null, null, false], [false, "per high power field", "/[HPF]", "1/[HPF]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/HPF", null, false, null, null, 1, false, false, 0, 0, "/HPF; per HPF", "LOINC", "Naric", "Clinical", "", null, null, null, null, false], [false, "per international unit", "/[IU]", "1/[IU]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/i/U.", null, false, null, null, 1, false, true, 0, 0, "international units; /IU; per IU", "LOINC", "InvA", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", null, null, null, null, false], [false, "per low power field", "/[LPF]", "1/[LPF]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/LPF", null, false, null, null, 1, false, false, 0, 0, "/LPF; per LPF", "LOINC", "Naric", "Clinical", "", null, null, null, null, false], [false, "per 10 billion  ", "/10*10", "1/(10*10)", "", 1e-10, [0, 0, 0, 0, 0, 0, 0], "/10<sup>10</sup>", null, false, null, null, 1, false, false, 0, 0, "/10^10; per 10*10", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per trillion ", "/10*12", "1/(10*12)", "", 1e-12, [0, 0, 0, 0, 0, 0, 0], "/10<sup>12</sup>", null, false, null, null, 1, false, false, 0, 0, "/10^12; per 10*12", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per thousand", "/10*3", "1/(10*3)", "", 1e-3, [0, 0, 0, 0, 0, 0, 0], "/10<sup>3</sup>", null, false, null, null, 1, false, false, 0, 0, "/10^3; per 10*3", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per million", "/10*6", "1/(10*6)", "", 1e-6, [0, 0, 0, 0, 0, 0, 0], "/10<sup>6</sup>", null, false, null, null, 1, false, false, 0, 0, "/10^6; per 10*6;", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per billion", "/10*9", "1/(10*9)", "", 1e-9, [0, 0, 0, 0, 0, 0, 0], "/10<sup>9</sup>", null, false, null, null, 1, false, false, 0, 0, "/10^9; per 10*9", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per 100", "/100", "1/100", "", 0.01, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "per hundred; 10^2; 10*2", "LOINC", "NFr", "Clinical", "used for counting entities, e.g. blood cells; usually these kinds of terms have numerators such as moles or milligrams, and counting that amount per the number in the denominator", null, null, null, null, false], [false, "per 100 cells", "/100{cells}", "/100{CELLS}", "", 0.01, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "/100 cells; /100cells; per hundred", "LOINC", "EntMass; EntNum; NFr", "Clinical", "", null, null, null, null, false], [false, "per 100 neutrophils", "/100{neutrophils}", "/100{NEUTROPHILS}", "", 0.01, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "/100 neutrophils; /100neutrophils; per hundred", "LOINC", "EntMass; EntNum; NFr", "Clinical", "", null, null, null, null, false], [false, "per 100 spermatozoa", "/100{spermatozoa}", "/100{SPERMATOZOA}", "", 0.01, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "/100 spermatozoa; /100spermatozoa; per hundred", "LOINC", "NFr", "Clinical", "", null, null, null, null, false], [false, "per 100 white blood cells", "/100{WBCs}", "/100{WBCS}", "", 0.01, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "/100 WBCs; /100WBCs; per hundred", "LOINC", "Ratio; NFr", "Clinical", "", null, null, null, null, false], [false, "per year", "/a", "1/ANN", "", 3168808781402895e-23, [0, -1, 0, 0, 0, 0, 0], "/a", null, false, null, null, 1, false, false, 0, 0, "/Years; /yrs; yearly", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per centimeter of water", "/cm[H2O]", "1/CM[H2O]", "", 10197162129779282e-21, [1, 2, -1, 0, 0, 0, 0], "/cm\xA0HO<sub><r>2</r></sub>", null, false, null, null, 1, false, false, 0, 0, "/cmH2O; /cm H2O; centimeters; centimetres", "LOINC", "InvPress", "Clinical", "", null, null, null, null, false], [false, "per day", "/d", "1/D", "", 11574074074074073e-21, [0, -1, 0, 0, 0, 0, 0], "/d", null, false, null, null, 1, false, false, 0, 0, "/dy; per day", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per deciliter", "/dL", "1/DL", "", 1e4, [-3, 0, 0, 0, 0, 0, 0], "/dL", null, false, null, null, 1, false, false, 0, 0, "per dL; /deciliter; decilitre", "LOINC", "NCnc", "Clinical", "", null, null, null, null, false], [false, "per gram", "/g", "1/G", "", 1, [0, 0, -1, 0, 0, 0, 0], "/g", null, false, null, null, 1, false, false, 0, 0, "/gm; /gram; per g", "LOINC", "NCnt", "Clinical", "", null, null, null, null, false], [false, "per hour", "/h", "1/HR", "", 2777777777777778e-19, [0, -1, 0, 0, 0, 0, 0], "/h", null, false, null, null, 1, false, false, 0, 0, "/hr; /hour; per hr", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per kilogram", "/kg", "1/KG", "", 1e-3, [0, 0, -1, 0, 0, 0, 0], "/kg", null, false, null, null, 1, false, false, 0, 0, "per kg; per kilogram", "LOINC", "NCnt", "Clinical", "", null, null, null, null, false], [false, "per liter", "/L", "1/L", "", 1e3, [-3, 0, 0, 0, 0, 0, 0], "/L", null, false, null, null, 1, false, false, 0, 0, "/liter; litre", "LOINC", "NCnc", "Clinical", "", null, null, null, null, false], [false, "per square meter", "/m2", "1/M2", "", 1, [-2, 0, 0, 0, 0, 0, 0], "/m<sup>2</sup>", null, false, null, null, 1, false, false, 0, 0, "/m^2; /m*2; /sq. m; per square meter; meter squared; metre", "LOINC", "Naric", "Clinical", "", null, null, null, null, false], [false, "per cubic meter", "/m3", "1/M3", "", 1, [-3, 0, 0, 0, 0, 0, 0], "/m<sup>3</sup>", null, false, null, null, 1, false, false, 0, 0, "/m^3; /m*3; /cu. m; per cubic meter; meter cubed; per m3; metre", "LOINC", "NCncn", "Clinical", "", null, null, null, null, false], [false, "per milligram", "/mg", "1/MG", "", 1e3, [0, 0, -1, 0, 0, 0, 0], "/mg", null, false, null, null, 1, false, false, 0, 0, "/milligram; per mg", "LOINC", "NCnt", "Clinical", "", null, null, null, null, false], [false, "per minute", "/min", "1/MIN", "", 0.016666666666666666, [0, -1, 0, 0, 0, 0, 0], "/min", null, false, null, null, 1, false, false, 0, 0, "/minute; per mins; breaths beats per minute", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per milliliter", "/mL", "1/ML", "", 1e6, [-3, 0, 0, 0, 0, 0, 0], "/mL", null, false, null, null, 1, false, false, 0, 0, "/milliliter; per mL; millilitre", "LOINC", "NCncn", "Clinical", "", null, null, null, null, false], [false, "per millimeter", "/mm", "1/MM", "", 1e3, [-1, 0, 0, 0, 0, 0, 0], "/mm", null, false, null, null, 1, false, false, 0, 0, "/millimeter; per mm; millimetre", "LOINC", "InvLen", "Clinical", "", null, null, null, null, false], [false, "per month", "/mo", "1/MO", "", 3802570537683474e-22, [0, -1, 0, 0, 0, 0, 0], "/mo", null, false, null, null, 1, false, false, 0, 0, "/month; per mo; monthly; month", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per second", "/s", "1/S", "", 1, [0, -1, 0, 0, 0, 0, 0], "/s", null, false, null, null, 1, false, false, 0, 0, "/second; /sec; per sec; frequency; Hertz; Herz; Hz; becquerels; Bq; s-1; s^-1", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "per enzyme unit", "/U", "1/U", "", 9963241120049633e-32, [0, 1, 0, 0, 0, 0, 0], "/U", null, false, null, null, 1, false, false, -1, 0, "/enzyme units; per U", "LOINC", "InvC; NCat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", null, null, null, null, false], [false, "per microliter", "/uL", "1/UL", "", 9999999999999999e-7, [-3, 0, 0, 0, 0, 0, 0], "/\u03BCL", null, false, null, null, 1, false, false, 0, 0, "/microliter; microlitre; /mcl; per uL", "LOINC", "ACnc", "Clinical", "", null, null, null, null, false], [false, "per week", "/wk", "1/WK", "", 16534391534391535e-22, [0, -1, 0, 0, 0, 0, 0], "/wk", null, false, null, null, 1, false, false, 0, 0, "/week; per wk; weekly, weeks", "LOINC", "NRat", "Clinical", "", null, null, null, null, false], [false, "APL unit per milliliter", "[APL'U]/mL", "[APL'U]/ML", "biologic activity of anticardiolipin IgA", 1e6, [-3, 0, 0, 0, 0, 0, 0], "/mL", "chemical", false, null, null, 1, false, true, 0, 0, "APL/mL; APL'U/mL; APL U/mL; APL/milliliter; IgA anticardiolipin units per milliliter; IgA Phospholipid Units; millilitre; biologic activity of", "LOINC", "ACnc", "Clinical", "Units for an anti phospholipid syndrome test", "1", "1", "1", 1, false], [false, "arbitrary unit per milliliter", "[arb'U]/mL", "[ARB'U]/ML", "arbitrary", 1e6, [-3, 0, 0, 0, 0, 0, 0], "(arb. U)/mL", "chemical", false, null, null, 1, false, true, 0, 0, "arb'U/mL; arbU/mL; arb U/mL; arbitrary units per milliliter; millilitre", "LOINC", "ACnc", "Clinical", "relative unit of measurement to show the ratio of test measurement to reference measurement", "1", "1", "1", 1, false], [false, "colony forming units per liter", "[CFU]/L", "[CFU]/L", "amount of a proliferating organism", 1e3, [-3, 0, 0, 0, 0, 0, 0], "CFU/L", "chemical", false, null, null, 1, false, true, 0, 0, "CFU per Liter; CFU/L", "LOINC", "NCnc", "Clinical", "", "1", "1", "1", 1, false], [false, "colony forming units per milliliter", "[CFU]/mL", "[CFU]/ML", "amount of a proliferating organism", 1e6, [-3, 0, 0, 0, 0, 0, 0], "CFU/mL", "chemical", false, null, null, 1, false, true, 0, 0, "CFU per mL; CFU/mL", "LOINC", "NCnc", "Clinical", "", "1", "1", "1", 1, false], [false, "foot per foot - US", "[ft_us]/[ft_us]", "[FT_US]/[FT_US]", "length", 1, [0, 0, 0, 0, 0, 0, 0], "(ft<sub>us</sub>)/(ft<sub>us</sub>)", "us-lengths", false, null, null, 1, false, false, 0, 0, "ft/ft; ft per ft; feet per feet; visual acuity", "", "LenRto", "Clinical", "distance ratio to measure 20:20 vision", "m/3937", "M/3937", "1200", 1200, false], [false, "GPL unit per milliliter", "[GPL'U]/mL", "[GPL'U]/ML", "biologic activity of anticardiolipin IgG", 1e6, [-3, 0, 0, 0, 0, 0, 0], "/mL", "chemical", false, null, null, 1, false, true, 0, 0, "GPL U/mL; GPL'U/mL; GPL/mL; GPL U per mL; IgG Phospholipid Units per milliliters; IgG anticardiolipin units; millilitres ", "LOINC", "ACnc; AMass", "Clinical", "Units for an antiphospholipid test", "1", "1", "1", 1, false], [false, "international unit per 2 hour", "[IU]/(2.h)", "[IU]/(2.HR)", "arbitrary", 1388888888888889e-19, [0, -1, 0, 0, 0, 0, 0], "(i.U.)/h", "chemical", true, null, null, 1, false, true, 0, 0, "IU/2hrs; IU/2 hours; IU per 2 hrs; international units per 2 hours", "LOINC", "ARat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per 24 hour", "[IU]/(24.h)", "[IU]/(24.HR)", "arbitrary", 11574074074074073e-21, [0, -1, 0, 0, 0, 0, 0], "(i.U.)/h", "chemical", true, null, null, 1, false, true, 0, 0, "IU/24hr; IU/24 hours; IU per 24 hrs; international units per 24 hours", "LOINC", "ARat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per day", "[IU]/d", "[IU]/D", "arbitrary", 11574074074074073e-21, [0, -1, 0, 0, 0, 0, 0], "(i.U.)/d", "chemical", true, null, null, 1, false, true, 0, 0, "IU/dy; IU/days; IU per dys; international units per day", "LOINC", "ARat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per deciliter", "[IU]/dL", "[IU]/DL", "arbitrary", 1e4, [-3, 0, 0, 0, 0, 0, 0], "(i.U.)/dL", "chemical", true, null, null, 1, false, true, 0, 0, "IU/dL; IU per dL; international units per deciliters; decilitres", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per gram", "[IU]/g", "[IU]/G", "arbitrary", 1, [0, 0, -1, 0, 0, 0, 0], "(i.U.)/g", "chemical", true, null, null, 1, false, true, 0, 0, "IU/gm; IU/gram; IU per gm; IU per g; international units per gram", "LOINC", "ACnt", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per hour", "[IU]/h", "[IU]/HR", "arbitrary", 2777777777777778e-19, [0, -1, 0, 0, 0, 0, 0], "(i.U.)/h", "chemical", true, null, null, 1, false, true, 0, 0, "IU/hrs; IU per hours; international units per hour", "LOINC", "ARat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per kilogram", "[IU]/kg", "[IU]/KG", "arbitrary", 1e-3, [0, 0, -1, 0, 0, 0, 0], "(i.U.)/kg", "chemical", true, null, null, 1, false, true, 0, 0, "IU/kg; IU/kilogram; IU per kg; units", "LOINC", "ACnt", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per kilogram per day", "[IU]/kg/d", "([IU]/KG)/D", "arbitrary", 11574074074074074e-24, [0, -1, -1, 0, 0, 0, 0], "((i.U.)/kg)/d", "chemical", true, null, null, 1, false, true, 0, 0, "IU/kg/dy; IU/kg/day; IU/kilogram/day; IU per kg per day; units", "LOINC", "ACntRat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per liter", "[IU]/L", "[IU]/L", "arbitrary", 1e3, [-3, 0, 0, 0, 0, 0, 0], "(i.U.)/L", "chemical", true, null, null, 1, false, true, 0, 0, "IU/L; IU/liter; IU per liter; units; litre", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per minute", "[IU]/min", "[IU]/MIN", "arbitrary", 0.016666666666666666, [0, -1, 0, 0, 0, 0, 0], "(i.U.)/min", "chemical", true, null, null, 1, false, true, 0, 0, "IU/min; IU/minute; IU per minute; international units", "LOINC", "ARat", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "international unit per milliliter", "[IU]/mL", "[IU]/ML", "arbitrary", 1e6, [-3, 0, 0, 0, 0, 0, 0], "(i.U.)/mL", "chemical", true, null, null, 1, false, true, 0, 0, "IU/mL; IU per mL; international units per milliliter; millilitre", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "MPL unit per milliliter", "[MPL'U]/mL", "[MPL'U]/ML", "biologic activity of anticardiolipin IgM", 1e6, [-3, 0, 0, 0, 0, 0, 0], "/mL", "chemical", false, null, null, 1, false, true, 0, 0, "MPL/mL; MPL U/mL; MPL'U/mL; IgM anticardiolipin units; IgM Phospholipid Units; millilitre ", "LOINC", "ACnc", "Clinical", "units for antiphospholipid test\n", "1", "1", "1", 1, false], [false, "number per high power field", "{#}/[HPF]", "{#}/[HPF]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/HPF", null, false, null, null, 1, false, false, 0, 0, "#/HPF; # per HPF; number/HPF; numbers per high power field", "LOINC", "Naric", "Clinical", "", null, null, null, null, false], [false, "number per low power field", "{#}/[LPF]", "{#}/[LPF]", "", 1, [0, 0, 0, 0, 0, 0, 0], "/LPF", null, false, null, null, 1, false, false, 0, 0, "#/LPF; # per LPF; number/LPF; numbers per low power field", "LOINC", "Naric", "Clinical", "", null, null, null, null, false], [false, "IgA antiphosphatidylserine unit ", "{APS'U}", "{APS'U}", "", 1, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "APS Unit; Phosphatidylserine Antibody IgA Units", "LOINC", "ACnc", "Clinical", "unit for antiphospholipid test", null, null, null, null, false], [false, "EIA index", "{EIA_index}", "{EIA_index}", "", 1, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "enzyme immunoassay index", "LOINC", "ACnc", "Clinical", "", null, null, null, null, false], [false, "kaolin clotting time", "{KCT'U}", "{KCT'U}", "", 1, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "KCT", "LOINC", "Time", "Clinical", "sensitive\xA0test to detect\xA0lupus anticoagulants; measured in seconds", null, null, null, null, false], [false, "IgM antiphosphatidylserine unit", "{MPS'U}", "{MPS'U}", "", 1, [0, 0, 0, 0, 0, 0, 0], null, null, false, null, null, 1, false, false, 0, 0, "Phosphatidylserine Antibody IgM Measurement ", "LOINC", "ACnc", "Clinical", "", null, null, null, null, false], [false, "trillion per liter", "10*12/L", "(10*12)/L", "number", 1e15, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>12</sup>)/L", "dimless", false, null, null, 1, false, false, 0, 0, "10^12/L; 10*12 per Liter; trillion per liter; litre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "10^3 (used for cell count)", "10*3", "10*3", "number", 1e3, [0, 0, 0, 0, 0, 0, 0], "10<sup>3</sup>", "dimless", false, null, null, 1, false, false, 0, 0, "10^3; thousand", "LOINC", "Num", "Clinical", "usually used for counting entities (e.g. blood cells) per volume", "1", "1", "10", 10, false], [false, "thousand per liter", "10*3/L", "(10*3)/L", "number", 1e6, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>3</sup>)/L", "dimless", false, null, null, 1, false, false, 0, 0, "10^3/L; 10*3 per liter; litre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "thousand per milliliter", "10*3/mL", "(10*3)/ML", "number", 1e9, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>3</sup>)/mL", "dimless", false, null, null, 1, false, false, 0, 0, "10^3/mL; 10*3 per mL; thousand per milliliter; millilitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "thousand per microliter", "10*3/uL", "(10*3)/UL", "number", 9999999999999999e-4, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>3</sup>)/\u03BCL", "dimless", false, null, null, 1, false, false, 0, 0, "10^3/uL; 10*3 per uL; thousand per microliter; microlitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "10 thousand per microliter", "10*4/uL", "(10*4)/UL", "number", 1e13, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>4</sup>)/\u03BCL", "dimless", false, null, null, 1, false, false, 0, 0, "10^4/uL; 10*4 per uL; microlitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "10^5 ", "10*5", "10*5", "number", 1e5, [0, 0, 0, 0, 0, 0, 0], "10<sup>5</sup>", "dimless", false, null, null, 1, false, false, 0, 0, "one hundred thousand", "LOINC", "Num", "Clinical", "", "1", "1", "10", 10, false], [false, "10^6", "10*6", "10*6", "number", 1e6, [0, 0, 0, 0, 0, 0, 0], "10<sup>6</sup>", "dimless", false, null, null, 1, false, false, 0, 0, "", "LOINC", "Num", "Clinical", "", "1", "1", "10", 10, false], [false, "million colony forming unit per liter", "10*6.[CFU]/L", "((10*6).[CFU])/L", "number", 1e9, [-3, 0, 0, 0, 0, 0, 0], "((10<sup>6</sup>).CFU)/L", "dimless", false, null, null, 1, false, true, 0, 0, "10*6 CFU/L; 10^6 CFU/L; 10^6CFU; 10^6 CFU per liter; million colony forming units; litre", "LOINC", "ACnc", "Clinical", "", "1", "1", "10", 10, false], [false, "million international unit", "10*6.[IU]", "(10*6).[IU]", "number", 1e6, [0, 0, 0, 0, 0, 0, 0], "(10<sup>6</sup>).(i.U.)", "dimless", false, null, null, 1, false, true, 0, 0, "10*6 IU; 10^6 IU; international units", "LOINC", "arb", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "1", "1", "10", 10, false], [false, "million per 24 hour", "10*6/(24.h)", "(10*6)/(24.HR)", "number", 11.574074074074074, [0, -1, 0, 0, 0, 0, 0], "(10<sup>6</sup>)/h", "dimless", false, null, null, 1, false, false, 0, 0, "10*6/24hrs; 10^6/24 hrs; 10*6 per 24 hrs; 10^6 per 24 hours", "LOINC", "NRat", "Clinical", "", "1", "1", "10", 10, false], [false, "million per kilogram", "10*6/kg", "(10*6)/KG", "number", 1e3, [0, 0, -1, 0, 0, 0, 0], "(10<sup>6</sup>)/kg", "dimless", false, null, null, 1, false, false, 0, 0, "10^6/kg; 10*6 per kg; 10*6 per kilogram; millions", "LOINC", "NCnt", "Clinical", "", "1", "1", "10", 10, false], [false, "million per liter", "10*6/L", "(10*6)/L", "number", 1e9, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>6</sup>)/L", "dimless", false, null, null, 1, false, false, 0, 0, "10^6/L; 10*6 per Liter; 10^6 per Liter; litre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "million per milliliter", "10*6/mL", "(10*6)/ML", "number", 1e12, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>6</sup>)/mL", "dimless", false, null, null, 1, false, false, 0, 0, "10^6/mL; 10*6 per mL; 10*6 per milliliter; millilitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "million per microliter", "10*6/uL", "(10*6)/UL", "number", 1e15, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>6</sup>)/\u03BCL", "dimless", false, null, null, 1, false, false, 0, 0, "10^6/uL; 10^6 per uL; 10^6/mcl; 10^6 per mcl; 10^6 per microliter; microlitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "10^8", "10*8", "10*8", "number", 1e8, [0, 0, 0, 0, 0, 0, 0], "10<sup>8</sup>", "dimless", false, null, null, 1, false, false, 0, 0, "100 million; one hundred million; 10^8", "LOINC", "Num", "Clinical", "", "1", "1", "10", 10, false], [false, "billion per liter", "10*9/L", "(10*9)/L", "number", 1e12, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>9</sup>)/L", "dimless", false, null, null, 1, false, false, 0, 0, "10^9/L; 10*9 per Liter; litre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "billion per milliliter", "10*9/mL", "(10*9)/ML", "number", 1e15, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>9</sup>)/mL", "dimless", false, null, null, 1, false, false, 0, 0, "10^9/mL; 10*9 per mL; 10^9 per mL; 10*9 per milliliter; millilitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "billion per microliter", "10*9/uL", "(10*9)/UL", "number", 1e18, [-3, 0, 0, 0, 0, 0, 0], "(10<sup>9</sup>)/\u03BCL", "dimless", false, null, null, 1, false, false, 0, 0, "10^9/uL; 10^9 per uL; 10^9/mcl; 10^9 per mcl; 10*9 per uL; 10*9 per mcl; 10*9/mcl; 10^9 per microliter; microlitre", "LOINC", "NCncn", "Clinical", "", "1", "1", "10", 10, false], [false, "10 liter per minute per square meter", "10.L/(min.m2)", "(10.L)/(MIN.M2)", "", 16666666666666666e-20, [1, -1, 0, 0, 0, 0, 0], "L/(min.(m<sup>2</sup>))", null, false, null, null, 1, false, false, 0, 0, "10 liters per minutes per square meter; 10 L per min per m2; m^2; 10 L/(min*m2); 10L/(min*m^2); litres; sq. meter; metre; meters squared", "LOINC", "ArVRat", "Clinical", "", null, null, null, null, false], [false, "10 liter per minute", "10.L/min", "(10.L)/MIN", "", 16666666666666666e-20, [3, -1, 0, 0, 0, 0, 0], "L/min", null, false, null, null, 1, false, false, 0, 0, "10 liters per minute; 10 L per min; 10L; 10 L/min; litre", "LOINC", "VRat", "Clinical", "", null, null, null, null, false], [false, "10 micronewton second per centimeter to the fifth power per square meter", "10.uN.s/(cm5.m2)", "((10.UN).S)/(CM5.M2)", "", 1e8, [-6, -1, 1, 0, 0, 0, 0], "(\u03BCN.s)/(cm<sup>5</sup>).(m<sup>2</sup>)", null, false, null, null, 1, false, false, 0, 0, "dyne seconds per centimeter5 and square meter; dyn.s/(cm5.m2); dyn.s/cm5/m2; cm^5; m^2", "LOINC", "", "Clinical", "unit to measure systemic vascular resistance per body surface area", null, null, null, null, false], [false, "24 hour", "24.h", "24.HR", "", 86400, [0, 1, 0, 0, 0, 0, 0], "h", null, false, null, null, 1, false, false, 0, 0, "24hrs; 24 hrs; 24 hours; days; dy", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "ampere per meter", "A/m", "A/M", "electric current", 1, [-1, -1, 0, 0, 0, 1, 0], "A/m", "si", true, null, null, 1, false, false, 0, 0, "A/m; amp/meter; magnetic field strength; H; B; amperes per meter; metre", "LOINC", "", "Clinical", "unit of magnetic field strength", "C/s", "C/S", "1", 1, false], [false, "centigram", "cg", "CG", "mass", 0.01, [0, 0, 1, 0, 0, 0, 0], "cg", null, false, "M", null, 1, false, false, 0, 0, "centigrams; cg; cgm", "LOINC", "Mass", "Clinical", "", null, null, null, null, false], [false, "centiliter", "cL", "CL", "volume", 1e-5, [3, 0, 0, 0, 0, 0, 0], "cL", "iso1000", true, null, null, 1, false, false, 0, 0, "centiliters; centilitres", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "centimeter", "cm", "CM", "length", 0.01, [1, 0, 0, 0, 0, 0, 0], "cm", null, false, "L", null, 1, false, false, 0, 0, "centimeters; centimetres", "LOINC", "Len", "Clinical", "", null, null, null, null, false], [false, "centimeter of water", "cm[H2O]", "CM[H2O]", "pressure", 98066.5, [-1, -2, 1, 0, 0, 0, 0], "cm\xA0HO<sub><r>2</r></sub>", "clinical", true, null, null, 1, false, false, 0, 0, "cm H2O; cmH2O; centimetres; pressure", "LOINC", "Pres", "Clinical", "unit of pressure mostly applies to blood pressure", "kPa", "KPAL", "980665e-5", 9.80665, false], [false, "centimeter of water per liter per second", "cm[H2O]/L/s", "(CM[H2O]/L)/S", "pressure", 98066500, [-4, -3, 1, 0, 0, 0, 0], "((cm\xA0HO<sub><r>2</r></sub>)/L)/s", "clinical", true, null, null, 1, false, false, 0, 0, "cm[H2O]/(L/s); cm[H2O].s/L; cm H2O/L/sec; cmH2O/L/sec; cmH2O/Liter; cmH2O per L per secs; centimeters of water per liters per second; centimetres; litres; cm[H2O]/(L/s)", "LOINC", "PresRat", "Clinical", "unit used to measure mean pulmonary resistance", "kPa", "KPAL", "980665e-5", 9.80665, false], [false, "centimeter of water per second per meter", "cm[H2O]/s/m", "(CM[H2O]/S)/M", "pressure", 98066.5, [-2, -3, 1, 0, 0, 0, 0], "((cm\xA0HO<sub><r>2</r></sub>)/s)/m", "clinical", true, null, null, 1, false, false, 0, 0, "cm[H2O]/(s.m); cm H2O/s/m; cmH2O; cmH2O/sec/m; cmH2O per secs per meters; centimeters of water per seconds per meter; centimetres; metre", "LOINC", "PresRat", "Clinical", "unit used to measure pulmonary pressure time product", "kPa", "KPAL", "980665e-5", 9.80665, false], [false, "centimeter of mercury", "cm[Hg]", "CM[HG]", "pressure", 1333220, [-1, -2, 1, 0, 0, 0, 0], "cm\xA0Hg", "clinical", true, null, null, 1, false, false, 0, 0, "centimeters of mercury; centimetres; cmHg; cm Hg", "LOINC", "Pres", "Clinical", "unit of pressure where 1 cmHg = 10 torr", "kPa", "KPAL", "133.3220", 133.322, false], [false, "square centimeter", "cm2", "CM2", "length", 1e-4, [2, 0, 0, 0, 0, 0, 0], "cm<sup>2</sup>", null, false, "L", null, 1, false, false, 0, 0, "cm^2; sq cm; centimeters squared; square centimeters; centimetre; area", "LOINC", "Area", "Clinical", "", null, null, null, null, false], [false, "square centimeter per second", "cm2/s", "CM2/S", "length", 1e-4, [2, -1, 0, 0, 0, 0, 0], "(cm<sup>2</sup>)/s", null, false, "L", null, 1, false, false, 0, 0, "cm^2/sec; square centimeters per second; sq cm per sec; cm2; centimeters squared; centimetres", "LOINC", "AreaRat", "Clinical", "", null, null, null, null, false], [false, "centipoise", "cP", "CP", "dynamic viscosity", 1.0000000000000002, [-1, -1, 1, 0, 0, 0, 0], "cP", "cgs", true, null, null, 1, false, false, 0, 0, "cps; centiposes", "LOINC", "Visc", "Clinical", "unit of dynamic viscosity in the CGS system with base units: 10^\u22123 Pa.s = 1 mPa\xB7.s (1 millipascal second)", "dyn.s/cm2", "DYN.S/CM2", "1", 1, false], [false, "centistoke", "cSt", "CST", "kinematic viscosity", 1e-6, [2, -1, 0, 0, 0, 0, 0], "cSt", "cgs", true, null, null, 1, false, false, 0, 0, "centistokes", "LOINC", "Visc", "Clinical", "unit for kinematic viscosity with base units of mm^2/s (square millimeter per second)", "cm2/s", "CM2/S", "1", 1, false], [false, "dekaliter per minute", "daL/min", "DAL/MIN", "volume", 16666666666666666e-20, [3, -1, 0, 0, 0, 0, 0], "daL/min", "iso1000", true, null, null, 1, false, false, 0, 0, "dekalitres; dekaliters per minute; per min", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "dekaliter per minute per square meter", "daL/min/m2", "(DAL/MIN)/M2", "volume", 16666666666666666e-20, [1, -1, 0, 0, 0, 0, 0], "(daL/min)/(m<sup>2</sup>)", "iso1000", true, null, null, 1, false, false, 0, 0, "daL/min/m^2; daL/minute/m2; sq. meter; dekaliters per minutes per square meter; meter squared; dekalitres; metre", "LOINC", "ArVRat", "Clinical", "The area usually is the body surface area used to normalize cardiovascular measures for patient's size", "l", null, "1", 1, false], [false, "decibel", "dB", "DB", "level", 1, [0, 0, 0, 0, 0, 0, 0], "dB", "levels", true, null, "lg", 0.1, true, false, 0, 0, "decibels", "LOINC", "LogRto", "Clinical", "unit most commonly used in acoustics as unit of sound pressure level. (also see B[SPL] or bel sound pressure level). ", "1", null, null, 1, false], [false, "degree per second", "deg/s", "DEG/S", "plane angle", 0.017453292519943295, [0, -1, 0, 1, 0, 0, 0], "\xB0/s", "iso1000", false, null, null, 1, false, false, 0, 0, "deg/sec; deg per sec; \xB0/sec; twist rate; angular speed; rotational speed", "LOINC", "ARat", "Clinical", "unit of angular (rotational) speed used to express turning rate", "[pi].rad/360", "[PI].RAD/360", "2", 2, false], [false, "decigram", "dg", "DG", "mass", 0.1, [0, 0, 1, 0, 0, 0, 0], "dg", null, false, "M", null, 1, false, false, 0, 0, "decigrams; dgm; 0.1 grams; 1/10 gm", "LOINC", "Mass", "Clinical", "equal to 1/10 gram", null, null, null, null, false], [false, "deciliter", "dL", "DL", "volume", 1e-4, [3, 0, 0, 0, 0, 0, 0], "dL", "iso1000", true, null, null, 1, false, false, 0, 0, "deciliters; decilitres; 0.1 liters; 1/10 L", "LOINC", "Vol", "Clinical", "equal to 1/10 liter", "l", null, "1", 1, false], [false, "decimeter", "dm", "DM", "length", 0.1, [1, 0, 0, 0, 0, 0, 0], "dm", null, false, "L", null, 1, false, false, 0, 0, "decimeters; decimetres; 0.1 meters; 1/10 m; 10 cm; centimeters", "LOINC", "Len", "Clinical", "equal to 1/10 meter or 10 centimeters", null, null, null, null, false], [false, "square decimeter per square second", "dm2/s2", "DM2/S2", "length", 0.010000000000000002, [2, -2, 0, 0, 0, 0, 0], "(dm<sup>2</sup>)/(s<sup>2</sup>)", null, false, "L", null, 1, false, false, 0, 0, "dm2 per s2; dm^2/s^2; decimeters squared per second squared; sq dm; sq sec", "LOINC", "EngMass (massic energy)", "Clinical", "units for energy per unit mass or Joules per kilogram (J/kg = kg.m2/s2/kg = m2/s2) ", null, null, null, null, false], [false, "dyne second per centimeter per square meter", "dyn.s/(cm.m2)", "(DYN.S)/(CM.M2)", "force", 1, [-2, -1, 1, 0, 0, 0, 0], "(dyn.s)/(cm.(m<sup>2</sup>))", "cgs", true, null, null, 1, false, false, 0, 0, "(dyn*s)/(cm*m2); (dyn*s)/(cm*m^2); dyn s per cm per m2; m^2; dyne seconds per centimeters per square meter; centimetres; sq. meter; squared", "LOINC", "", "Clinical", "", "g.cm/s2", "G.CM/S2", "1", 1, false], [false, "dyne second per centimeter", "dyn.s/cm", "(DYN.S)/CM", "force", 1, [0, -1, 1, 0, 0, 0, 0], "(dyn.s)/cm", "cgs", true, null, null, 1, false, false, 0, 0, "(dyn*s)/cm; dyn sec per cm; seconds; centimetre; dyne seconds", "LOINC", "", "Clinical", "", "g.cm/s2", "G.CM/S2", "1", 1, false], [false, "equivalent per liter", "eq/L", "EQ/L", "amount of substance", 60221366999999994e10, [-3, 0, 0, 0, 0, 0, 0], "eq/L", "chemical", true, null, null, 1, false, false, 0, 1, "eq/liter; eq/litre; eqs; equivalents per liter; litre", "LOINC", "SCnc", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "equivalent per milliliter", "eq/mL", "EQ/ML", "amount of substance", 60221367e22, [-3, 0, 0, 0, 0, 0, 0], "eq/mL", "chemical", true, null, null, 1, false, false, 0, 1, "equivalent/milliliter; equivalents per milliliter; eq per mL; millilitre", "LOINC", "SCnc", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "equivalent per millimole", "eq/mmol", "EQ/MMOL", "amount of substance", 1e3, [0, 0, 0, 0, 0, 0, 0], "eq/mmol", "chemical", true, null, null, 1, false, false, -1, 1, "equivalent/millimole; equivalents per millimole; eq per mmol", "LOINC", "SRto", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "equivalent per micromole", "eq/umol", "EQ/UMOL", "amount of substance", 1e6, [0, 0, 0, 0, 0, 0, 0], "eq/\u03BCmol", "chemical", true, null, null, 1, false, false, -1, 1, "equivalent/micromole; equivalents per micromole; eq per umol", "LOINC", "SRto", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "femtogram", "fg", "FG", "mass", 1e-15, [0, 0, 1, 0, 0, 0, 0], "fg", null, false, "M", null, 1, false, false, 0, 0, "fg; fgm; femtograms; weight", "LOINC", "Mass", "Clinical", "equal to 10^-15 grams", null, null, null, null, false], [false, "femtoliter", "fL", "FL", "volume", 1e-18, [3, 0, 0, 0, 0, 0, 0], "fL", "iso1000", true, null, null, 1, false, false, 0, 0, "femtolitres; femtoliters", "LOINC", "Vol; EntVol", "Clinical", "equal to 10^-15 liters", "l", null, "1", 1, false], [false, "femtometer", "fm", "FM", "length", 1e-15, [1, 0, 0, 0, 0, 0, 0], "fm", null, false, "L", null, 1, false, false, 0, 0, "femtometres; femtometers", "LOINC", "Len", "Clinical", "equal to 10^-15 meters", null, null, null, null, false], [false, "femtomole", "fmol", "FMOL", "amount of substance", 602213670, [0, 0, 0, 0, 0, 0, 0], "fmol", "si", true, null, null, 1, false, false, 1, 0, "femtomoles", "LOINC", "EntSub", "Clinical", "equal to 10^-15 moles", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "femtomole per gram", "fmol/g", "FMOL/G", "amount of substance", 602213670, [0, 0, -1, 0, 0, 0, 0], "fmol/g", "si", true, null, null, 1, false, false, 1, 0, "femtomoles; fmol/gm; fmol per gm", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "femtomole per liter", "fmol/L", "FMOL/L", "amount of substance", 60221367e4, [-3, 0, 0, 0, 0, 0, 0], "fmol/L", "si", true, null, null, 1, false, false, 1, 0, "femtomoles; fmol per liter; litre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "femtomole per milligram", "fmol/mg", "FMOL/MG", "amount of substance", 60221367e4, [0, 0, -1, 0, 0, 0, 0], "fmol/mg", "si", true, null, null, 1, false, false, 1, 0, "fmol per mg; femtomoles", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "femtomole per milliliter", "fmol/mL", "FMOL/ML", "amount of substance", 60221367e7, [-3, 0, 0, 0, 0, 0, 0], "fmol/mL", "si", true, null, null, 1, false, false, 1, 0, "femtomoles; millilitre; fmol per mL; fmol per milliliter", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "gram meter", "g.m", "G.M", "mass", 1, [1, 0, 1, 0, 0, 0, 0], "g.m", null, false, "M", null, 1, false, false, 0, 0, "g*m; gxm; meters; metres", "LOINC", "Enrg", "Clinical", "Unit for measuring stroke work (heart work)", null, null, null, null, false], [false, "gram per 100 gram", "g/(100.g)", "G/(100.G)", "mass", 0.01, [0, 0, 0, 0, 0, 0, 0], "g/g", null, false, "M", null, 1, false, false, 0, 0, "g/100 gm; 100gm; grams per 100 grams; gm per 100 gm", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "gram per 12 hour", "g/(12.h)", "G/(12.HR)", "mass", 23148148148148147e-21, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/12hrs; 12 hrs; gm per 12 hrs; 12hrs; grams per 12 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 24 hour", "g/(24.h)", "G/(24.HR)", "mass", 11574074074074073e-21, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/24hrs; gm/24 hrs; gm per 24 hrs; 24hrs; grams per 24 hours; gm/dy; gm per dy; grams per day", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 3 days", "g/(3.d)", "G/(3.D)", "mass", 3858024691358025e-21, [0, -1, 1, 0, 0, 0, 0], "g/d", null, false, "M", null, 1, false, false, 0, 0, "gm/3dy; gm/3 dy; gm per 3 days; grams", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 4 hour", "g/(4.h)", "G/(4.HR)", "mass", 6944444444444444e-20, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/4hrs; gm/4 hrs; gm per 4 hrs; 4hrs; grams per 4 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 48 hour", "g/(48.h)", "G/(48.HR)", "mass", 5787037037037037e-21, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/48hrs; gm/48 hrs; gm per 48 hrs; 48hrs; grams per 48 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 5 hour", "g/(5.h)", "G/(5.HR)", "mass", 5555555555555556e-20, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/5hrs; gm/5 hrs; gm per 5 hrs; 5hrs; grams per 5 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 6 hour", "g/(6.h)", "G/(6.HR)", "mass", 46296296296296294e-21, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/6hrs; gm/6 hrs; gm per 6 hrs; 6hrs; grams per 6 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per 72 hour", "g/(72.h)", "G/(72.HR)", "mass", 3858024691358025e-21, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/72hrs; gm/72 hrs; gm per 72 hrs; 72hrs; grams per 72 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per cubic centimeter", "g/cm3", "G/CM3", "mass", 999999.9999999999, [-3, 0, 1, 0, 0, 0, 0], "g/(cm<sup>3</sup>)", null, false, "M", null, 1, false, false, 0, 0, "g/cm^3; gm per cm3; g per cm^3; grams per centimeter cubed; cu. cm; centimetre; g/mL; gram per milliliter; millilitre", "LOINC", "MCnc", "Clinical", "g/cm3 = g/mL", null, null, null, null, false], [false, "gram per day", "g/d", "G/D", "mass", 11574074074074073e-21, [0, -1, 1, 0, 0, 0, 0], "g/d", null, false, "M", null, 1, false, false, 0, 0, "gm/dy; gm per dy; grams per day; gm/24hrs; gm/24 hrs; gm per 24 hrs; 24hrs; grams per 24 hours; serving", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per deciliter", "g/dL", "G/DL", "mass", 1e4, [-3, 0, 1, 0, 0, 0, 0], "g/dL", null, false, "M", null, 1, false, false, 0, 0, "gm/dL; gm per dL; grams per deciliter; decilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "gram per gram", "g/g", "G/G", "mass", 1, [0, 0, 0, 0, 0, 0, 0], "g/g", null, false, "M", null, 1, false, false, 0, 0, "gm; grams", "LOINC", "MRto ", "Clinical", "", null, null, null, null, false], [false, "gram per hour", "g/h", "G/HR", "mass", 2777777777777778e-19, [0, -1, 1, 0, 0, 0, 0], "g/h", null, false, "M", null, 1, false, false, 0, 0, "gm/hr; gm per hr; grams; intake; output", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per hour per square meter", "g/h/m2", "(G/HR)/M2", "mass", 2777777777777778e-19, [-2, -1, 1, 0, 0, 0, 0], "(g/h)/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "gm/hr/m2; gm/h/m2; /m^2; sq. m; g per hr per m2; grams per hours per square meter; meter squared; metre", "LOINC", "ArMRat", "Clinical", "", null, null, null, null, false], [false, "gram per kilogram", "g/kg ", "G/KG", "mass", 1e-3, [0, 0, 0, 0, 0, 0, 0], "g/kg", null, false, "M", null, 1, false, false, 0, 0, "g per kg; gram per kilograms", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "gram per kilogram per 8 hour ", "g/kg/(8.h)", "(G/KG)/(8.HR)", "mass", 3472222222222222e-23, [0, -1, 0, 0, 0, 0, 0], "(g/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "g/(8.kg.h); gm/kg/8hrs; 8 hrs; g per kg per 8 hrs; 8hrs; grams per kilograms per 8 hours; shift", "LOINC", "MCntRat; RelMRat", "Clinical", "unit often used to describe mass in grams of protein consumed in a 8 hours, divided by the subject's body weight in kilograms. Also used to measure mass dose rate per body mass", null, null, null, null, false], [false, "gram per kilogram per day", "g/kg/d", "(G/KG)/D", "mass", 11574074074074074e-24, [0, -1, 0, 0, 0, 0, 0], "(g/kg)/d", null, false, "M", null, 1, false, false, 0, 0, "g/(kg.d); gm/kg/dy; gm per kg per dy; grams per kilograms per day", "LOINC", "RelMRat", "Clinical", "unit often used to describe mass in grams of protein consumed in a day, divided by the subject's body weight in kilograms. Also used to measure mass dose rate per body mass", null, null, null, null, false], [false, "gram per kilogram per hour", "g/kg/h", "(G/KG)/HR", "mass", 27777777777777776e-23, [0, -1, 0, 0, 0, 0, 0], "(g/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "g/(kg.h); g/kg/hr; g per kg per hrs; grams per kilograms per hour", "LOINC", "MCntRat; RelMRat", "Clinical", "unit used to measure mass dose rate per body mass", null, null, null, null, false], [false, "gram per kilogram per minute", "g/kg/min", "(G/KG)/MIN", "mass", 16666666666666667e-21, [0, -1, 0, 0, 0, 0, 0], "(g/kg)/min", null, false, "M", null, 1, false, false, 0, 0, "g/(kg.min); g/kg/min; g per kg per min; grams per kilograms per minute", "LOINC", "MCntRat; RelMRat", "Clinical", "unit used to measure mass dose rate per body mass", null, null, null, null, false], [false, "gram per liter", "g/L", "G/L", "mass", 1e3, [-3, 0, 1, 0, 0, 0, 0], "g/L", null, false, "M", null, 1, false, false, 0, 0, "gm per liter; g/liter; grams per liter; litre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "gram per square meter", "g/m2", "G/M2", "mass", 1, [-2, 0, 1, 0, 0, 0, 0], "g/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "g/m^2; gram/square meter; g/sq m; g per m2; g per m^2; grams per square meter; meters squared; metre", "LOINC", "ArMass", "Clinical", "Tests measure myocardial mass (heart ventricle system) per body surface area; unit used to measure mass dose per body surface area", null, null, null, null, false], [false, "gram per milligram", "g/mg", "G/MG", "mass", 1e3, [0, 0, 0, 0, 0, 0, 0], "g/mg", null, false, "M", null, 1, false, false, 0, 0, "g per mg; grams per milligram", "LOINC", "MCnt; MRto", "Clinical", "", null, null, null, null, false], [false, "gram per minute", "g/min", "G/MIN", "mass", 0.016666666666666666, [0, -1, 1, 0, 0, 0, 0], "g/min", null, false, "M", null, 1, false, false, 0, 0, "g per min; grams per minute; gram/minute", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "gram per milliliter", "g/mL", "G/ML", "mass", 1e6, [-3, 0, 1, 0, 0, 0, 0], "g/mL", null, false, "M", null, 1, false, false, 0, 0, "g per mL; grams per milliliter; millilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "gram per millimole", "g/mmol", "G/MMOL", "mass", 16605401866749388e-37, [0, 0, 1, 0, 0, 0, 0], "g/mmol", null, false, "M", null, 1, false, false, -1, 0, "grams per millimole; g per mmol", "LOINC", "Ratio", "Clinical", "", null, null, null, null, false], [false, "joule per liter", "J/L", "J/L", "energy", 1e6, [-1, -2, 1, 0, 0, 0, 0], "J/L", "si", true, null, null, 1, false, false, 0, 0, "joules per liter; litre; J per L", "LOINC", "EngCnc", "Clinical", "", "N.m", "N.M", "1", 1, false], [false, "degree Kelvin per Watt", "K/W", "K/W", "temperature", 1e-3, [-2, 3, -1, 0, 1, 0, 0], "K/W", null, false, "C", null, 1, false, false, 0, 0, "degree Kelvin/Watt; K per W; thermal ohm; thermal resistance; degrees", "LOINC", "TempEngRat", "Clinical", "unit for absolute thermal resistance equal to the reciprocal of thermal conductance. Unit used for tests to measure work of breathing", null, null, null, null, false], [false, "kilo international unit per liter", "k[IU]/L", "K[IU]/L", "arbitrary", 1e6, [-3, 0, 0, 0, 0, 0, 0], "(ki.U.)/L", "chemical", true, null, null, 1, false, true, 0, 0, "kIU/L; kIU per L; kIU per liter; kilo international units; litre; allergens; allergy units", "LOINC", "ACnc", "Clinical", "IgE has an WHO reference standard so IgE allergen testing can be reported as k[IU]/L", "[iU]", "[IU]", "1", 1, false], [false, "kilo international unit per milliliter", "k[IU]/mL", "K[IU]/ML", "arbitrary", 1e9, [-3, 0, 0, 0, 0, 0, 0], "(ki.U.)/mL", "chemical", true, null, null, 1, false, true, 0, 0, "kIU/mL; kIU per mL; kIU per milliliter; kilo international units; millilitre; allergens; allergy units", "LOINC", "ACnc", "Clinical", "IgE has an WHO reference standard so IgE allergen testing can be reported as k[IU]/mL", "[iU]", "[IU]", "1", 1, false], [false, "katal per kilogram", "kat/kg", "KAT/KG", "catalytic activity", 60221367e13, [0, -1, -1, 0, 0, 0, 0], "kat/kg", "chemical", true, null, null, 1, false, false, 1, 0, "kat per kg; katals per kilogram; mol/s/kg; moles per seconds per kilogram", "LOINC", "CCnt", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "katal per liter", "kat/L", "KAT/L", "catalytic activity", 60221366999999994e10, [-3, -1, 0, 0, 0, 0, 0], "kat/L", "chemical", true, null, null, 1, false, false, 1, 0, "kat per L; katals per liter; litre; mol/s/L; moles per seconds per liter", "LOINC", "CCnc", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "kilocalorie", "kcal", "KCAL", "energy", 4184e3, [2, -2, 1, 0, 0, 0, 0], "kcal", "heat", true, null, null, 1, false, false, 0, 0, "kilogram calories; large calories; food calories; kcals", "LOINC", "EngRat", "Clinical", "It is equal to 1000 calories (equal to 4.184 kJ). But in practical usage, kcal refers to food calories which excludes caloric content in fiber and other constitutes that is not digestible by humans. Also see nutrition label Calories ([Cal])", "cal_th", "CAL_TH", "1", 1, false], [false, "kilocalorie per 24 hour", "kcal/(24.h)", "KCAL/(24.HR)", "energy", 48.425925925925924, [2, -3, 1, 0, 0, 0, 0], "kcal/h", "heat", true, null, null, 1, false, false, 0, 0, "kcal/24hrs; kcal/24 hrs; kcal per 24hrs; kilocalories per 24 hours; kilojoules; kJ/24hr; kJ/(24.h); kJ/dy; kilojoules per days; intake; calories burned; metabolic rate; food calories", "", "EngRat", "Clinical", "", "cal_th", "CAL_TH", "1", 1, false], [false, "kilocalorie per ounce", "kcal/[oz_av]", "KCAL/[OZ_AV]", "energy", 147586.25679704445, [2, -2, 0, 0, 0, 0, 0], "kcal/oz", "heat", true, null, null, 1, false, false, 0, 0, "kcal/oz; kcal per ozs; large calories per ounces; food calories; servings; international", "LOINC", "EngCnt", "Clinical", "used in nutrition to represent calorie of food", "cal_th", "CAL_TH", "1", 1, false], [false, "kilocalorie per day", "kcal/d", "KCAL/D", "energy", 48.425925925925924, [2, -3, 1, 0, 0, 0, 0], "kcal/d", "heat", true, null, null, 1, false, false, 0, 0, "kcal/dy; kcal per day; kilocalories per days; kilojoules; kJ/dy; kilojoules per days; intake; calories burned; metabolic rate; food calories", "LOINC", "EngRat", "Clinical", "unit in nutrition for food intake (measured in calories) in a day", "cal_th", "CAL_TH", "1", 1, false], [false, "kilocalorie per hour", "kcal/h", "KCAL/HR", "energy", 1162.2222222222222, [2, -3, 1, 0, 0, 0, 0], "kcal/h", "heat", true, null, null, 1, false, false, 0, 0, "kcal/hrs; kcals per hr; intake; kilocalories per hours; kilojoules", "LOINC", "EngRat", "Clinical", "used in nutrition to represent caloric requirement or consumption", "cal_th", "CAL_TH", "1", 1, false], [false, "kilocalorie per kilogram per 24 hour", "kcal/kg/(24.h)", "(KCAL/KG)/(24.HR)", "energy", 0.04842592592592593, [2, -3, 0, 0, 0, 0, 0], "(kcal/kg)/h", "heat", true, null, null, 1, false, false, 0, 0, "kcal/kg/24hrs; 24 hrs; kcal per kg per 24hrs; kilocalories per kilograms per 24 hours; kilojoules", "LOINC", "EngCntRat", "Clinical", "used in nutrition to represent caloric requirement per day based on subject's body weight in kilograms", "cal_th", "CAL_TH", "1", 1, false], [false, "kilogram", "kg", "KG", "mass", 1e3, [0, 0, 1, 0, 0, 0, 0], "kg", null, false, "M", null, 1, false, false, 0, 0, "kilograms; kgs", "LOINC", "Mass", "Clinical", "", null, null, null, null, false], [false, "kilogram meter per second", "kg.m/s", "(KG.M)/S", "mass", 1e3, [1, -1, 1, 0, 0, 0, 0], "(kg.m)/s", null, false, "M", null, 1, false, false, 0, 0, "kg*m/s; kg.m per sec; kg*m per sec; p; momentum", "LOINC", "", "Clinical", "unit for momentum =  mass times velocity", null, null, null, null, false], [false, "kilogram per second per square meter", "kg/(s.m2)", "KG/(S.M2)", "mass", 1e3, [-2, -1, 1, 0, 0, 0, 0], "kg/(s.(m<sup>2</sup>))", null, false, "M", null, 1, false, false, 0, 0, "kg/(s*m2); kg/(s*m^2); kg per s per m2; per sec; per m^2; kilograms per seconds per square meter; meter squared; metre", "LOINC", "ArMRat", "Clinical", "", null, null, null, null, false], [false, "kilogram per hour", "kg/h", "KG/HR", "mass", 0.2777777777777778, [0, -1, 1, 0, 0, 0, 0], "kg/h", null, false, "M", null, 1, false, false, 0, 0, "kg/hr; kg per hr; kilograms per hour", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "kilogram per liter", "kg/L", "KG/L", "mass", 1e6, [-3, 0, 1, 0, 0, 0, 0], "kg/L", null, false, "M", null, 1, false, false, 0, 0, "kg per liter; litre; kilograms", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "kilogram per square meter", "kg/m2", "KG/M2", "mass", 1e3, [-2, 0, 1, 0, 0, 0, 0], "kg/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "kg/m^2; kg/sq. m; kg per m2; per m^2; per sq. m; kilograms; meter squared; metre; BMI", "LOINC", "Ratio", "Clinical", "units for body mass index (BMI)", null, null, null, null, false], [false, "kilogram per cubic meter", "kg/m3", "KG/M3", "mass", 1e3, [-3, 0, 1, 0, 0, 0, 0], "kg/(m<sup>3</sup>)", null, false, "M", null, 1, false, false, 0, 0, "kg/m^3; kg/cu. m; kg per m3; per m^3; per cu. m; kilograms; meters cubed; metre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "kilogram per minute", "kg/min", "KG/MIN", "mass", 16.666666666666668, [0, -1, 1, 0, 0, 0, 0], "kg/min", null, false, "M", null, 1, false, false, 0, 0, "kilogram/minute; kg per min; kilograms per minute", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "kilogram per mole", "kg/mol", "KG/MOL", "mass", 16605401866749388e-37, [0, 0, 1, 0, 0, 0, 0], "kg/mol", null, false, "M", null, 1, false, false, -1, 0, "kilogram/mole; kg per mol; kilograms per mole", "LOINC", "SCnt", "Clinical", "", null, null, null, null, false], [false, "kilogram per second", "kg/s", "KG/S", "mass", 1e3, [0, -1, 1, 0, 0, 0, 0], "kg/s", null, false, "M", null, 1, false, false, 0, 0, "kg/sec; kilogram/second; kg per sec; kilograms; second", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "kiloliter", "kL", "KL", "volume", 1, [3, 0, 0, 0, 0, 0, 0], "kL", "iso1000", true, null, null, 1, false, false, 0, 0, "kiloliters; kilolitres; m3; m^3; meters cubed; metre", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "kilometer", "km", "KM", "length", 1e3, [1, 0, 0, 0, 0, 0, 0], "km", null, false, "L", null, 1, false, false, 0, 0, "kilometers; kilometres; distance", "LOINC", "Len", "Clinical", "", null, null, null, null, false], [false, "kilopascal", "kPa", "KPAL", "pressure", 1e6, [-1, -2, 1, 0, 0, 0, 0], "kPa", "si", true, null, null, 1, false, false, 0, 0, "kilopascals; pressure", "LOINC", "Pres; PPresDiff", "Clinical", "", "N/m2", "N/M2", "1", 1, false], [false, "kilosecond", "ks", "KS", "time", 1e3, [0, 1, 0, 0, 0, 0, 0], "ks", null, false, "T", null, 1, false, false, 0, 0, "kiloseconds; ksec", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "kilo enzyme unit", "kU", "KU", "catalytic activity", 100368945e11, [0, -1, 0, 0, 0, 0, 0], "kU", "chemical", true, null, null, 1, false, false, 1, 0, "units; mmol/min; millimoles per minute", "LOINC", "CAct", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 kU = 1 mmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "kilo enzyme unit per gram", "kU/g", "KU/G", "catalytic activity", 100368945e11, [0, -1, -1, 0, 0, 0, 0], "kU/g", "chemical", true, null, null, 1, false, false, 1, 0, "units per grams; kU per gm", "LOINC", "CCnt", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 kU = 1 mmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "kilo enzyme unit per liter", "kU/L", "KU/L", "catalytic activity", 100368945e14, [-3, -1, 0, 0, 0, 0, 0], "kU/L", "chemical", true, null, null, 1, false, false, 1, 0, "units per liter; litre; enzymatic activity; enzyme activity per volume; activities", "LOINC", "ACnc; CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 kU = 1 mmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "kilo enzyme unit per milliliter", "kU/mL", "KU/ML", "catalytic activity", 100368945e17, [-3, -1, 0, 0, 0, 0, 0], "kU/mL", "chemical", true, null, null, 1, false, false, 1, 0, "kU per mL; units per milliliter; millilitre; enzymatic activity per volume; enzyme activities", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 kU = 1 mmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "Liters per 24 hour", "L/(24.h)", "L/(24.HR)", "volume", 11574074074074074e-24, [3, -1, 0, 0, 0, 0, 0], "L/h", "iso1000", true, null, null, 1, false, false, 0, 0, "L/24hrs; L/24 hrs; L per 24hrs; liters per 24 hours; day; dy; litres; volume flow rate", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per 8 hour", "L/(8.h)", "L/(8.HR)", "volume", 3472222222222222e-23, [3, -1, 0, 0, 0, 0, 0], "L/h", "iso1000", true, null, null, 1, false, false, 0, 0, "L/8hrs; L/8 hrs; L per 8hrs; liters per 8 hours; litres; volume flow rate; shift", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per minute per square meter", "L/(min.m2) ", "L/(MIN.M2)", "volume", 16666666666666667e-21, [1, -1, 0, 0, 0, 0, 0], "L/(min.(m<sup>2</sup>))", "iso1000", true, null, null, 1, false, false, 0, 0, "L/(min.m2); L/min/m^2; L/min/sq. meter; L per min per m2; m^2; liters per minutes per square meter; meter squared; litres; metre ", "LOINC", "ArVRat", "Clinical", "unit for tests that measure cardiac output per body surface area (cardiac index)", "l", null, "1", 1, false], [false, "Liters per day", "L/d", "L/D", "volume", 11574074074074074e-24, [3, -1, 0, 0, 0, 0, 0], "L/d", "iso1000", true, null, null, 1, false, false, 0, 0, "L/dy; L per day; 24hrs; 24 hrs; 24 hours; liters; litres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per hour", "L/h", "L/HR", "volume", 27777777777777776e-23, [3, -1, 0, 0, 0, 0, 0], "L/h", "iso1000", true, null, null, 1, false, false, 0, 0, "L/hr; L per hr; litres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per kilogram", "L/kg", "L/KG", "volume", 1e-6, [3, 0, -1, 0, 0, 0, 0], "L/kg", "iso1000", true, null, null, 1, false, false, 0, 0, "L per kg; litre", "LOINC", "VCnt", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per liter", "L/L", "L/L", "volume", 1, [0, 0, 0, 0, 0, 0, 0], "L/L", "iso1000", true, null, null, 1, false, false, 0, 0, "L per L; liter/liter; litre", "LOINC", "VFr", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per minute", "L/min", "L/MIN", "volume", 16666666666666667e-21, [3, -1, 0, 0, 0, 0, 0], "L/min", "iso1000", true, null, null, 1, false, false, 0, 0, "liters per minute; litre", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "Liters per minute per square meter", "L/min/m2", "(L/MIN)/M2", "volume", 16666666666666667e-21, [1, -1, 0, 0, 0, 0, 0], "(L/min)/(m<sup>2</sup>)", "iso1000", true, null, null, 1, false, false, 0, 0, "L/(min.m2); L/min/m^2; L/min/sq. meter; L per min per m2; m^2; liters per minutes per square meter; meter squared; litres; metre ", "", "ArVRat", "Clinical", "unit for tests that measure cardiac output per body surface area (cardiac index)", "l", null, "1", 1, false], [false, "Liters per second", "L/s", "L/S", "volume", 1e-3, [3, -1, 0, 0, 0, 0, 0], "L/s", "iso1000", true, null, null, 1, false, false, 0, 0, "L per sec; litres", "LOINC", "VRat", "Clinical", "unit used often to measure gas flow and peak expiratory flow", "l", null, "1", 1, false], [false, "Liters per second per square second", "L/s/s2", "(L/S)/S2", "volume", 1e-3, [3, -3, 0, 0, 0, 0, 0], "(L/s)/(s<sup>2</sup>)", "iso1000", true, null, null, 1, false, false, 0, 0, "L/s/s^2; L/sec/sec2; L/sec/sec^2; L/sec/sq. sec; L per s per s2; L per sec per sec2; s^2; sec^2; liters per seconds per square second; second squared; litres ", "LOINC", "ArVRat", "Clinical", "unit for tests that measure cardiac output/body surface area", "l", null, "1", 1, false], [false, "lumen square meter", "lm.m2", "LM.M2", "luminous flux", 1, [2, 0, 0, 2, 0, 0, 1], "lm.(m<sup>2</sup>)", "si", true, null, null, 1, false, false, 0, 0, "lm*m2; lm*m^2; lumen meters squared; lumen sq. meters; metres", "LOINC", "", "Clinical", "", "cd.sr", "CD.SR", "1", 1, false], [false, "meter per second", "m/s", "M/S", "length", 1, [1, -1, 0, 0, 0, 0, 0], "m/s", null, false, "L", null, 1, false, false, 0, 0, "meter/second; m per sec; meters per second; metres; velocity; speed", "LOINC", "Vel", "Clinical", "unit of velocity", null, null, null, null, false], [false, "meter per square second", "m/s2", "M/S2", "length", 1, [1, -2, 0, 0, 0, 0, 0], "m/(s<sup>2</sup>)", null, false, "L", null, 1, false, false, 0, 0, "m/s^2; m/sq. sec; m per s2; per s^2; meters per square second; second squared; sq second; metres; acceleration", "LOINC", "Accel", "Clinical", "unit of acceleration", null, null, null, null, false], [false, "milli international unit per liter", "m[IU]/L", "M[IU]/L", "arbitrary", 1, [-3, 0, 0, 0, 0, 0, 0], "(mi.U.)/L", "chemical", true, null, null, 1, false, true, 0, 0, "mIU/L; m IU/L; mIU per liter; units; litre", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "milli  international unit per milliliter", "m[IU]/mL", "M[IU]/ML", "arbitrary", 1000.0000000000001, [-3, 0, 0, 0, 0, 0, 0], "(mi.U.)/mL", "chemical", true, null, null, 1, false, true, 0, 0, "mIU/mL; m IU/mL; mIU per mL; milli international units per milliliter; millilitre", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "square meter", "m2", "M2", "length", 1, [2, 0, 0, 0, 0, 0, 0], "m<sup>2</sup>", null, false, "L", null, 1, false, false, 0, 0, "m^2; sq m; square meters; meters squared; metres", "LOINC", "Area", "Clinical", "unit often used to represent body surface area", null, null, null, null, false], [false, "square meter per second", "m2/s", "M2/S", "length", 1, [2, -1, 0, 0, 0, 0, 0], "(m<sup>2</sup>)/s", null, false, "L", null, 1, false, false, 0, 0, "m^2/sec; m2 per sec; m^2 per sec; sq m/sec; meters squared/seconds; sq m per sec; meters squared; metres", "LOINC", "ArRat", "Clinical", "", null, null, null, null, false], [false, "cubic meter per second", "m3/s", "M3/S", "length", 1, [3, -1, 0, 0, 0, 0, 0], "(m<sup>3</sup>)/s", null, false, "L", null, 1, false, false, 0, 0, "m^3/sec; m3 per sec; m^3 per sec; cu m/sec; cubic meters per seconds; meters cubed; metres", "LOINC", "VRat", "Clinical", "", null, null, null, null, false], [false, "milliampere", "mA", "MA", "electric current", 1e-3, [0, -1, 0, 0, 0, 1, 0], "mA", "si", true, null, null, 1, false, false, 0, 0, "mamp; milliamperes", "LOINC", "ElpotRat", "Clinical", "unit of electric current", "C/s", "C/S", "1", 1, false], [false, "millibar", "mbar", "MBAR", "pressure", 1e5, [-1, -2, 1, 0, 0, 0, 0], "mbar", "iso1000", true, null, null, 1, false, false, 0, 0, "millibars", "LOINC", "Pres", "Clinical", "unit of pressure", "Pa", "PAL", "1e5", 1e5, false], [false, "millibar second per liter", "mbar.s/L", "(MBAR.S)/L", "pressure", 1e8, [-4, -1, 1, 0, 0, 0, 0], "(mbar.s)/L", "iso1000", true, null, null, 1, false, false, 0, 0, "mbar*s/L; mbar.s per L; mbar*s per L; millibar seconds per liter; millibar second per litre", "LOINC", "", "Clinical", "unit to measure expiratory resistance", "Pa", "PAL", "1e5", 1e5, false], [false, "millibar per liter per second", "mbar/L/s", "(MBAR/L)/S", "pressure", 1e8, [-4, -3, 1, 0, 0, 0, 0], "(mbar/L)/s", "iso1000", true, null, null, 1, false, false, 0, 0, "mbar/(L.s); mbar/L/sec; mbar/liter/second; mbar per L per sec; mbar per liter per second; millibars per liters per seconds; litres", "LOINC", "PresCncRat", "Clinical", "unit to measure expiratory resistance", "Pa", "PAL", "1e5", 1e5, false], [false, "milliequivalent", "meq", "MEQ", "amount of substance", 60221367e13, [0, 0, 0, 0, 0, 0, 0], "meq", "chemical", true, null, null, 1, false, false, 0, 1, "milliequivalents; meqs", "LOINC", "Sub", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per 2 hour", "meq/(2.h)", "MEQ/(2.HR)", "amount of substance", 836407875e8, [0, -1, 0, 0, 0, 0, 0], "meq/h", "chemical", true, null, null, 1, false, false, 0, 1, "meq/2hrs; meq/2 hrs; meq per 2 hrs; milliequivalents per 2 hours", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per 24 hour", "meq/(24.h)", "MEQ/(24.HR)", "amount of substance", 6970065625e6, [0, -1, 0, 0, 0, 0, 0], "meq/h", "chemical", true, null, null, 1, false, false, 0, 1, "meq/24hrs; meq/24 hrs; meq per 24 hrs; milliequivalents per 24 hours", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per 8 hour", "meq/(8.h)", "MEQ/(8.HR)", "amount of substance", 20910196875e6, [0, -1, 0, 0, 0, 0, 0], "meq/h", "chemical", true, null, null, 1, false, false, 0, 1, "meq/8hrs; meq/8 hrs; meq per 8 hrs; milliequivalents per 8 hours; shift", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per day", "meq/d", "MEQ/D", "amount of substance", 6970065625e6, [0, -1, 0, 0, 0, 0, 0], "meq/d", "chemical", true, null, null, 1, false, false, 0, 1, "meq/dy; meq per day; milliquivalents per days; meq/24hrs; meq/24 hrs; meq per 24 hrs; milliequivalents per 24 hours", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per deciliter", "meq/dL", "MEQ/DL", "amount of substance", 6022136699999999e9, [-3, 0, 0, 0, 0, 0, 0], "meq/dL", "chemical", true, null, null, 1, false, false, 0, 1, "meq per dL; milliequivalents per deciliter; decilitre", "LOINC", "SCnc", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per gram", "meq/g", "MEQ/G", "amount of substance", 60221367e13, [0, 0, -1, 0, 0, 0, 0], "meq/g", "chemical", true, null, null, 1, false, false, 0, 1, "mgq/gm; meq per gm; milliequivalents per gram", "LOINC", "MCnt", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per hour", "meq/h", "MEQ/HR", "amount of substance", 167281575e9, [0, -1, 0, 0, 0, 0, 0], "meq/h", "chemical", true, null, null, 1, false, false, 0, 1, "meq/hrs; meq per hrs; milliequivalents per hour", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per kilogram", "meq/kg", "MEQ/KG", "amount of substance", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "meq/kg", "chemical", true, null, null, 1, false, false, 0, 1, "meq per kg; milliequivalents per kilogram", "LOINC", "SCnt", "Clinical", "equivalence equals moles per valence; used to measure dose per patient body mass", "mol", "MOL", "1", 1, false], [false, "milliequivalent per kilogram per hour", "meq/kg/h", "(MEQ/KG)/HR", "amount of substance", 167281575e6, [0, -1, -1, 0, 0, 0, 0], "(meq/kg)/h", "chemical", true, null, null, 1, false, false, 0, 1, "meq/(kg.h); meq/kg/hr; meq per kg per hr; milliequivalents per kilograms per hour", "LOINC", "SCntRat", "Clinical", "equivalence equals moles per valence; unit used to measure dose rate per patient body mass", "mol", "MOL", "1", 1, false], [false, "milliequivalent per liter", "meq/L", "MEQ/L", "amount of substance", 60221367e16, [-3, 0, 0, 0, 0, 0, 0], "meq/L", "chemical", true, null, null, 1, false, false, 0, 1, "milliequivalents per liter; litre; meq per l; acidity", "LOINC", "SCnc", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per square meter", "meq/m2", "MEQ/M2", "amount of substance", 60221367e13, [-2, 0, 0, 0, 0, 0, 0], "meq/(m<sup>2</sup>)", "chemical", true, null, null, 1, false, false, 0, 1, "meq/m^2; meq/sq. m; milliequivalents per square meter; meter squared; metre", "LOINC", "ArSub", "Clinical", "equivalence equals moles per valence; note that the use of m2 in clinical units ofter refers to body surface area", "mol", "MOL", "1", 1, false], [false, "milliequivalent per minute", "meq/min", "MEQ/MIN", "amount of substance", 100368945e11, [0, -1, 0, 0, 0, 0, 0], "meq/min", "chemical", true, null, null, 1, false, false, 0, 1, "meq per min; milliequivalents per minute", "LOINC", "SRat", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milliequivalent per milliliter", "meq/mL", "MEQ/ML", "amount of substance", 60221367e19, [-3, 0, 0, 0, 0, 0, 0], "meq/mL", "chemical", true, null, null, 1, false, false, 0, 1, "meq per mL; milliequivalents per milliliter; millilitre", "LOINC", "SCnc", "Clinical", "equivalence equals moles per valence", "mol", "MOL", "1", 1, false], [false, "milligram", "mg", "MG", "mass", 1e-3, [0, 0, 1, 0, 0, 0, 0], "mg", null, false, "M", null, 1, false, false, 0, 0, "milligrams", "LOINC", "Mass", "Clinical", "", null, null, null, null, false], [false, "milligram per 10 hour", "mg/(10.h)", "MG/(10.HR)", "mass", 27777777777777777e-24, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/10hrs; mg/10 hrs; mg per 10 hrs; milligrams per 10 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per 12 hour", "mg/(12.h)", "MG/(12.HR)", "mass", 23148148148148148e-24, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/12hrs; mg/12 hrs; per 12 hrs; 12hrs; milligrams per 12 hours", "LOINC", "MRat", "Clinical", "units used for tests in urine", null, null, null, null, false], [false, "milligram per 2 hour", "mg/(2.h)", "MG/(2.HR)", "mass", 13888888888888888e-23, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/2hrs; mg/2 hrs; mg per 2 hrs; 2hrs; milligrams per 2 hours", "LOINC", "MRat", "Clinical", "units used for tests in urine", null, null, null, null, false], [false, "milligram per 24 hour", "mg/(24.h)", "MG/(24.HR)", "mass", 11574074074074074e-24, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/24hrs; mg/24 hrs; milligrams per 24 hours; mg/kg/dy; mg per kg per day; milligrams per kilograms per days", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per 6 hour", "mg/(6.h)", "MG/(6.HR)", "mass", 46296296296296295e-24, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/6hrs; mg/6 hrs; mg per 6 hrs; 6hrs; milligrams per 6 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per 72 hour", "mg/(72.h)", "MG/(72.HR)", "mass", 3858024691358025e-24, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/72hrs; mg/72 hrs; 72 hrs; 72hrs; milligrams per 72 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per 8 hour", "mg/(8.h)", "MG/(8.HR)", "mass", 3472222222222222e-23, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/8hrs; mg/8 hrs; milligrams per 8 hours; shift", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per day", "mg/d", "MG/D", "mass", 11574074074074074e-24, [0, -1, 1, 0, 0, 0, 0], "mg/d", null, false, "M", null, 1, false, false, 0, 0, "mg/24hrs; mg/24 hrs; milligrams per 24 hours; mg/dy; mg per day; milligrams", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per deciliter", "mg/dL", "MG/DL", "mass", 10, [-3, 0, 1, 0, 0, 0, 0], "mg/dL", null, false, "M", null, 1, false, false, 0, 0, "mg per dL; milligrams per deciliter; decilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "milligram per gram", "mg/g", "MG/G", "mass", 1e-3, [0, 0, 0, 0, 0, 0, 0], "mg/g", null, false, "M", null, 1, false, false, 0, 0, "mg per gm; milligrams per gram", "LOINC", "MCnt; MRto", "Clinical", "", null, null, null, null, false], [false, "milligram per hour", "mg/h", "MG/HR", "mass", 27777777777777776e-23, [0, -1, 1, 0, 0, 0, 0], "mg/h", null, false, "M", null, 1, false, false, 0, 0, "mg/hr; mg per hr; milligrams", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per kilogram", "mg/kg", "MG/KG", "mass", 1e-6, [0, 0, 0, 0, 0, 0, 0], "mg/kg", null, false, "M", null, 1, false, false, 0, 0, "mg per kg; milligrams per kilograms", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "milligram per kilogram per 8 hour", "mg/kg/(8.h)", "(MG/KG)/(8.HR)", "mass", 3472222222222222e-26, [0, -1, 0, 0, 0, 0, 0], "(mg/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "mg/(8.h.kg); mg/kg/8hrs; mg/kg/8 hrs; mg per kg per 8hrs; 8 hrs; milligrams per kilograms per 8 hours; shift", "LOINC", "RelMRat; MCntRat", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "milligram per kilogram per day", "mg/kg/d", "(MG/KG)/D", "mass", 11574074074074074e-27, [0, -1, 0, 0, 0, 0, 0], "(mg/kg)/d", null, false, "M", null, 1, false, false, 0, 0, "mg/(kg.d); mg/(kg.24.h)mg/kg/dy; mg per kg per day; milligrams per kilograms per days; mg/kg/(24.h); mg/kg/24hrs; 24 hrs; 24 hours", "LOINC", "RelMRat ", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "milligram per kilogram per hour", "mg/kg/h", "(MG/KG)/HR", "mass", 27777777777777777e-26, [0, -1, 0, 0, 0, 0, 0], "(mg/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "mg/(kg.h); mg/kg/hr; mg per kg per hr; milligrams per kilograms per hour", "LOINC", "RelMRat; MCntRat", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "milligram per kilogram per minute", "mg/kg/min", "(MG/KG)/MIN", "mass", 16666666666666667e-24, [0, -1, 0, 0, 0, 0, 0], "(mg/kg)/min", null, false, "M", null, 1, false, false, 0, 0, "mg/(kg.min); mg per kg per min; milligrams per kilograms per minute", "LOINC", "RelMRat; MCntRat", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "milligram per liter", "mg/L", "MG/L", "mass", 1, [-3, 0, 1, 0, 0, 0, 0], "mg/L", null, false, "M", null, 1, false, false, 0, 0, "mg per l; milligrams per liter; litre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "milligram per square meter", "mg/m2", "MG/M2", "mass", 1e-3, [-2, 0, 1, 0, 0, 0, 0], "mg/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "mg/m^2; mg/sq. m; mg per m2; mg per m^2; mg per sq. milligrams; meter squared; metre", "LOINC", "ArMass", "Clinical", "", null, null, null, null, false], [false, "milligram per cubic meter", "mg/m3", "MG/M3", "mass", 1e-3, [-3, 0, 1, 0, 0, 0, 0], "mg/(m<sup>3</sup>)", null, false, "M", null, 1, false, false, 0, 0, "mg/m^3; mg/cu. m; mg per m3; milligrams per cubic meter; meter cubed; metre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "milligram per milligram", "mg/mg", "MG/MG", "mass", 1, [0, 0, 0, 0, 0, 0, 0], "mg/mg", null, false, "M", null, 1, false, false, 0, 0, "mg per mg; milligrams; milligram/milligram", "LOINC", "MRto", "Clinical", "", null, null, null, null, false], [false, "milligram per minute", "mg/min", "MG/MIN", "mass", 16666666666666667e-21, [0, -1, 1, 0, 0, 0, 0], "mg/min", null, false, "M", null, 1, false, false, 0, 0, "mg per min; milligrams per minutes; milligram/minute", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "milligram per milliliter", "mg/mL", "MG/ML", "mass", 1000.0000000000001, [-3, 0, 1, 0, 0, 0, 0], "mg/mL", null, false, "M", null, 1, false, false, 0, 0, "mg per mL; milligrams per milliliters; millilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "milligram per millimole", "mg/mmol", "MG/MMOL", "mass", 1660540186674939e-39, [0, 0, 1, 0, 0, 0, 0], "mg/mmol", null, false, "M", null, 1, false, false, -1, 0, "mg per mmol; milligrams per millimole; ", "LOINC", "Ratio", "Clinical", "", null, null, null, null, false], [false, "milligram per week", "mg/wk", "MG/WK", "mass", 16534391534391535e-25, [0, -1, 1, 0, 0, 0, 0], "mg/wk", null, false, "M", null, 1, false, false, 0, 0, "mg/week; mg per wk; milligrams per weeks; milligram/week", "LOINC", "Mrat", "Clinical", "", null, null, null, null, false], [false, "milliliter", "mL", "ML", "volume", 1e-6, [3, 0, 0, 0, 0, 0, 0], "mL", "iso1000", true, null, null, 1, false, false, 0, 0, "milliliters; millilitres", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 10 hour", "mL/(10.h)", "ML/(10.HR)", "volume", 27777777777777777e-27, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/10hrs; ml/10 hrs; mL per 10hrs; 10 hrs; milliliters per 10 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 12 hour", "mL/(12.h)", "ML/(12.HR)", "volume", 23148148148148147e-27, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/12hrs; ml/12 hrs; mL per 12hrs; 12 hrs; milliliters per 12 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 2 hour", "mL/(2.h)", "ML/(2.HR)", "volume", 13888888888888888e-26, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/2hrs; ml/2 hrs; mL per 2hrs; 2 hrs; milliliters per 2 hours; millilitres ", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 24 hour", "mL/(24.h)", "ML/(24.HR)", "volume", 11574074074074074e-27, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/24hrs; ml/24 hrs; mL per 24hrs; 24 hrs; milliliters per 24 hours; millilitres; ml/dy; /day; ml per dy; days; fluid outputs; fluid inputs; flow rate", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 4 hour", "mL/(4.h)", "ML/(4.HR)", "volume", 6944444444444444e-26, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/4hrs; ml/4 hrs; mL per 4hrs; 4 hrs; milliliters per 4 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 5 hour", "mL/(5.h)", "ML/(5.HR)", "volume", 55555555555555553e-27, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/5hrs; ml/5 hrs; mL per 5hrs; 5 hrs; milliliters per 5 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 6 hour", "mL/(6.h)", "ML/(6.HR)", "volume", 46296296296296294e-27, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/6hrs; ml/6 hrs; mL per 6hrs; 6 hrs; milliliters per 6 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 72 hour", "mL/(72.h)", "ML/(72.HR)", "volume", 38580246913580245e-28, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/72hrs; ml/72 hrs; mL per 72hrs; 72 hrs; milliliters per 72 hours; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 8 hour", "mL/(8.h)", "ML/(8.HR)", "volume", 3472222222222222e-26, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/8hrs; ml/8 hrs; mL per 8hrs; 8 hrs; milliliters per 8 hours; millilitres; shift", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per 8 hour per kilogram", "mL/(8.h)/kg", "(ML/(8.HR))/KG", "volume", 3472222222222222e-29, [3, -1, -1, 0, 0, 0, 0], "(mL/h)/kg", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/kg/(8.h); ml/8h/kg; ml/8 h/kg; ml/8hr/kg; ml/8 hr/kgr; mL per 8h per kg; 8 h; 8hr; 8 hr; milliliters per 8 hours per kilogram; millilitres; shift", "LOINC", "VRatCnt", "Clinical", "unit used to measure renal excretion volume rate per body mass", "l", null, "1", 1, false], [false, "milliliter per square inch (international)", "mL/[sin_i]", "ML/[SIN_I]", "volume", 0.0015500031000061998, [1, 0, 0, 0, 0, 0, 0], "mL", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/sin; mL/in2; mL/in^2; mL per sin; in2; in^2; sq. in; milliliters per square inch; inch squared", "LOINC", "ArVol", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per centimeter of water", "mL/cm[H2O]", "ML/CM[H2O]", "volume", 10197162129779282e-27, [4, 2, -1, 0, 0, 0, 0], "mL/(cm\xA0HO<sub><r>2</r></sub>)", "iso1000", true, null, null, 1, false, false, 0, 0, "milliliters per centimeter of water; millilitre per centimetre of water; millilitres per centimetre of water; mL/cmH2O; mL/cm H2O; mL per cmH2O; mL per cm H2O", "LOINC", "Compli", "Clinical", "unit used to measure dynamic lung compliance", "l", null, "1", 1, false], [false, "milliliter per day", "mL/d", "ML/D", "volume", 11574074074074074e-27, [3, -1, 0, 0, 0, 0, 0], "mL/d", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/day; ml per day; milliliters per day; 24 hours; 24hrs; millilitre;", "LOINC", "VRat", "Clinical", "usually used to measure fluid output or input; flow rate", "l", null, "1", 1, false], [false, "milliliter per deciliter", "mL/dL", "ML/DL", "volume", 0.009999999999999998, [0, 0, 0, 0, 0, 0, 0], "mL/dL", "iso1000", true, null, null, 1, false, false, 0, 0, "mL per dL; millilitres; decilitre; milliliters", "LOINC", "VFr; VFrDiff", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per hour", "mL/h", "ML/HR", "volume", 27777777777777777e-26, [3, -1, 0, 0, 0, 0, 0], "mL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/hr; mL per hr; milliliters per hour; millilitres; fluid intake; fluid output", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per kilogram", "mL/kg", "ML/KG", "volume", 9999999999999999e-25, [3, 0, -1, 0, 0, 0, 0], "mL/kg", "iso1000", true, null, null, 1, false, false, 0, 0, "mL per kg; milliliters per kilogram; millilitres", "LOINC", "VCnt", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per kilogram per 8 hour", "mL/kg/(8.h)", "(ML/KG)/(8.HR)", "volume", 3472222222222222e-29, [3, -1, -1, 0, 0, 0, 0], "(mL/kg)/h", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/(8.h.kg); mL/kg/8hrs; mL/kg/8 hrs; mL per kg per 8hrs; 8 hrs; milliliters per kilograms per 8 hours; millilitres; shift", "LOINC", "VCntRat; RelEngRat", "Clinical", "unit used to measure renal excretion volume rate per body mass", "l", null, "1", 1, false], [false, "milliliter per kilogram per day", "mL/kg/d", "(ML/KG)/D", "volume", 11574074074074072e-30, [3, -1, -1, 0, 0, 0, 0], "(mL/kg)/d", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/(kg.d); mL/kg/dy; mL per kg per day; milliliters per kilograms per day; mg/kg/24hrs; 24 hrs; per 24 hours millilitres", "LOINC", "VCntRat; RelEngRat", "Clinical", "unit used to measure renal excretion volume rate per body mass", "l", null, "1", 1, false], [false, "milliliter per kilogram per hour", "mL/kg/h", "(ML/KG)/HR", "volume", 27777777777777774e-29, [3, -1, -1, 0, 0, 0, 0], "(mL/kg)/h", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/(kg.h); mL/kg/hr; mL per kg per hr; milliliters per kilograms per hour; millilitres", "LOINC", "VCntRat; RelEngRat", "Clinical", "unit used to measure renal excretion volume rate per body mass", "l", null, "1", 1, false], [false, "milliliter per kilogram per minute", "mL/kg/min", "(ML/KG)/MIN", "volume", 16666666666666664e-27, [3, -1, -1, 0, 0, 0, 0], "(mL/kg)/min", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/(kg.min); mL/kg/dy; mL per kg per day; milliliters per kilograms per day; millilitres", "LOINC", "RelEngRat", "Clinical", "used for tests that measure activity metabolic rate compared to standard resting metabolic rate ", "l", null, "1", 1, false], [false, "milliliter per square meter", "mL/m2", "ML/M2", "volume", 1e-6, [1, 0, 0, 0, 0, 0, 0], "mL/(m<sup>2</sup>)", "iso1000", true, null, null, 1, false, false, 0, 0, "mL/m^2; mL/sq. meter; mL per m2; m^2; sq. meter; milliliters per square meter; millilitres; meter squared", "LOINC", "ArVol", "Clinical", "used for tests that relate to heart work - e.g. ventricular stroke volume; atrial volume per body surface area", "l", null, "1", 1, false], [false, "milliliter per millibar", "mL/mbar", "ML/MBAR", "volume", 1e-11, [4, 2, -1, 0, 0, 0, 0], "mL/mbar", "iso1000", true, null, null, 1, false, false, 0, 0, "mL per mbar; milliliters per millibar; millilitres", "LOINC", "", "Clinical", "unit used to measure dynamic lung compliance", "l", null, "1", 1, false], [false, "milliliter per minute", "mL/min", "ML/MIN", "volume", 16666666666666667e-24, [3, -1, 0, 0, 0, 0, 0], "mL/min", "iso1000", true, null, null, 1, false, false, 0, 0, "mL per min; milliliters; millilitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per minute per square meter", "mL/min/m2", "(ML/MIN)/M2", "volume", 16666666666666667e-24, [1, -1, 0, 0, 0, 0, 0], "(mL/min)/(m<sup>2</sup>)", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/min/m^2; ml/min/sq. meter; mL per min per m2; m^2; sq. meter; milliliters per minutes per square meter; millilitres; metre; meter squared", "LOINC", "ArVRat", "Clinical", "unit used to measure volume per body surface area; oxygen consumption index", "l", null, "1", 1, false], [false, "milliliter per millimeter", "mL/mm", "ML/MM", "volume", 1e-3, [2, 0, 0, 0, 0, 0, 0], "mL/mm", "iso1000", true, null, null, 1, false, false, 0, 0, "mL per mm; milliliters per millimeter; millilitres; millimetre", "LOINC", "Lineic Volume", "Clinical", "", "l", null, "1", 1, false], [false, "milliliter per second", "mL/s", "ML/S", "volume", 1e-6, [3, -1, 0, 0, 0, 0, 0], "mL/s", "iso1000", true, null, null, 1, false, false, 0, 0, "ml/sec; mL per sec; milliliters per second; millilitres", "LOINC", "Vel; VelRat; VRat", "Clinical", "", "l", null, "1", 1, false], [false, "millimeter", "mm", "MM", "length", 1e-3, [1, 0, 0, 0, 0, 0, 0], "mm", null, false, "L", null, 1, false, false, 0, 0, "millimeters; millimetres; height; length; diameter; thickness; axis; curvature; size", "LOINC", "Len", "Clinical", "", null, null, null, null, false], [false, "millimeter per hour", "mm/h", "MM/HR", "length", 27777777777777776e-23, [1, -1, 0, 0, 0, 0, 0], "mm/h", null, false, "L", null, 1, false, false, 0, 0, "mm/hr; mm per hr; millimeters per hour; millimetres", "LOINC", "Vel", "Clinical", "unit to measure sedimentation rate", null, null, null, null, false], [false, "millimeter per minute", "mm/min", "MM/MIN", "length", 16666666666666667e-21, [1, -1, 0, 0, 0, 0, 0], "mm/min", null, false, "L", null, 1, false, false, 0, 0, "mm per min; millimeters per minute; millimetres", "LOINC", "Vel", "Clinical", "", null, null, null, null, false], [false, "millimeter of water", "mm[H2O]", "MM[H2O]", "pressure", 9806.65, [-1, -2, 1, 0, 0, 0, 0], "mm\xA0HO<sub><r>2</r></sub>", "clinical", true, null, null, 1, false, false, 0, 0, "mmH2O; mm H2O; millimeters of water; millimetres", "LOINC", "Pres", "Clinical", "", "kPa", "KPAL", "980665e-5", 9.80665, false], [false, "millimeter of mercury", "mm[Hg]", "MM[HG]", "pressure", 133322, [-1, -2, 1, 0, 0, 0, 0], "mm\xA0Hg", "clinical", true, null, null, 1, false, false, 0, 0, "mmHg; mm Hg; millimeters of mercury; millimetres", "LOINC", "Pres; PPres; Ratio", "Clinical", "1 mm[Hg] = 1 torr; unit to measure blood pressure", "kPa", "KPAL", "133.3220", 133.322, false], [false, "square millimeter", "mm2", "MM2", "length", 1e-6, [2, 0, 0, 0, 0, 0, 0], "mm<sup>2</sup>", null, false, "L", null, 1, false, false, 0, 0, "mm^2; sq. mm.; sq. millimeters; millimeters squared; millimetres", "LOINC", "Area", "Clinical", "", null, null, null, null, false], [false, "millimole", "mmol", "MMOL", "amount of substance", 60221367e13, [0, 0, 0, 0, 0, 0, 0], "mmol", "si", true, null, null, 1, false, false, 1, 0, "millimoles", "LOINC", "Sub", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 12 hour", "mmol/(12.h)", "MMOL/(12.HR)", "amount of substance", 1394013125e7, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/12hrs; mmol/12 hrs; mmol per 12 hrs; 12hrs; millimoles per 12 hours", "LOINC", "SRat", "Clinical", "unit for tests related to urine", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 2 hour", "mmol/(2.h)", "MMOL/(2.HR)", "amount of substance", 836407875e8, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/2hrs; mmol/2 hrs; mmol per 2 hrs; 2hrs; millimoles per 2 hours", "LOINC", "SRat", "Clinical", "unit for tests related to urine", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 24 hour", "mmol/(24.h)", "MMOL/(24.HR)", "amount of substance", 6970065625e6, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/24hrs; mmol/24 hrs; mmol per 24 hrs; 24hrs; millimoles per 24 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 5 hour", "mmol/(5.h)", "MMOL/(5.HR)", "amount of substance", 33456315e9, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/5hrs; mmol/5 hrs; mmol per 5 hrs; 5hrs; millimoles per 5 hours", "LOINC", "SRat", "Clinical", "unit for tests related to doses", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 6 hour", "mmol/(6.h)", "MMOL/(6.HR)", "amount of substance", 278802625e8, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/6hrs; mmol/6 hrs; mmol per 6 hrs; 6hrs; millimoles per 6 hours", "LOINC", "SRat", "Clinical", "unit for tests related to urine", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per 8 hour", "mmol/(8.h)", "MMOL/(8.HR)", "amount of substance", 20910196875e6, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/8hrs; mmol/8 hrs; mmol per 8 hrs; 8hrs; millimoles per 8 hours; shift", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per day", "mmol/d", "MMOL/D", "amount of substance", 6970065625e6, [0, -1, 0, 0, 0, 0, 0], "mmol/d", "si", true, null, null, 1, false, false, 1, 0, "mmol/24hrs; mmol/24 hrs; mmol per 24 hrs; 24hrs; millimoles per 24 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per deciliter", "mmol/dL", "MMOL/DL", "amount of substance", 6022136699999999e9, [-3, 0, 0, 0, 0, 0, 0], "mmol/dL", "si", true, null, null, 1, false, false, 1, 0, "mmol per dL; millimoles; decilitre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per gram", "mmol/g", "MMOL/G", "amount of substance", 60221367e13, [0, 0, -1, 0, 0, 0, 0], "mmol/g", "si", true, null, null, 1, false, false, 1, 0, "mmol per gram; millimoles", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per hour", "mmol/h", "MMOL/HR", "amount of substance", 167281575e9, [0, -1, 0, 0, 0, 0, 0], "mmol/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/hr; mmol per hr; millimoles per hour", "LOINC", "SRat", "Clinical", "unit for tests related to urine", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per kilogram", "mmol/kg", "MMOL/KG", "amount of substance", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "mmol/kg", "si", true, null, null, 1, false, false, 1, 0, "mmol per kg; millimoles per kilogram", "LOINC", "SCnt", "Clinical", "unit for tests related to stool", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per kilogram per 8 hour", "mmol/kg/(8.h)", "(MMOL/KG)/(8.HR)", "amount of substance", 20910196875e3, [0, -1, -1, 0, 0, 0, 0], "(mmol/kg)/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/(8.h.kg); mmol/kg/8hrs; mmol/kg/8 hrs; mmol per kg per 8hrs; 8 hrs; millimoles per kilograms per 8 hours; shift", "LOINC", "CCnt", "Clinical", "unit used to measure molar dose rate per patient body mass", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per kilogram per day", "mmol/kg/d", "(MMOL/KG)/D", "amount of substance", 6970065625e3, [0, -1, -1, 0, 0, 0, 0], "(mmol/kg)/d", "si", true, null, null, 1, false, false, 1, 0, "mmol/kg/dy; mmol/kg/day; mmol per kg per dy; millimoles per kilograms per day", "LOINC", "RelSRat", "Clinical", "unit used to measure molar dose rate per patient body mass", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per kilogram per hour", "mmol/kg/h", "(MMOL/KG)/HR", "amount of substance", 167281575e6, [0, -1, -1, 0, 0, 0, 0], "(mmol/kg)/h", "si", true, null, null, 1, false, false, 1, 0, "mmol/kg/hr; mmol per kg per hr; millimoles per kilograms per hour", "LOINC", "CCnt", "Clinical", "unit used to measure molar dose rate per patient body mass", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per kilogram per minute", "mmol/kg/min", "(MMOL/KG)/MIN", "amount of substance", 100368945e8, [0, -1, -1, 0, 0, 0, 0], "(mmol/kg)/min", "si", true, null, null, 1, false, false, 1, 0, "mmol/(kg.min); mmol/kg/min; mmol per kg per min; millimoles per kilograms per minute", "LOINC", "CCnt", "Clinical", "unit used to measure molar dose rate per patient body mass; note that the unit for the enzyme unit U = umol/min. mmol/kg/min = kU/kg; ", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per liter", "mmol/L", "MMOL/L", "amount of substance", 60221367e16, [-3, 0, 0, 0, 0, 0, 0], "mmol/L", "si", true, null, null, 1, false, false, 1, 0, "mmol per L; millimoles per liter; litre", "LOINC", "SCnc", "Clinical", "unit for tests related to doses", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per square meter", "mmol/m2", "MMOL/M2", "amount of substance", 60221367e13, [-2, 0, 0, 0, 0, 0, 0], "mmol/(m<sup>2</sup>)", "si", true, null, null, 1, false, false, 1, 0, "mmol/m^2; mmol/sq. meter; mmol per m2; m^2; sq. meter; millimoles; meter squared; metre", "LOINC", "ArSub", "Clinical", "unit used to measure molar dose per patient body surface area", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per minute", "mmol/min", "MMOL/MIN", "amount of substance", 100368945e11, [0, -1, 0, 0, 0, 0, 0], "mmol/min", "si", true, null, null, 1, false, false, 1, 0, "mmol per min; millimoles per minute", "LOINC", "Srat; CAct", "Clinical", "unit for the enzyme unit U = umol/min. mmol/min = kU", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per millimole", "mmol/mmol", "MMOL/MMOL", "amount of substance", 1, [0, 0, 0, 0, 0, 0, 0], "mmol/mmol", "si", true, null, null, 1, false, false, 0, 0, "mmol per mmol; millimoles per millimole", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per mole", "mmol/mol", "MMOL/MOL", "amount of substance", 1e-3, [0, 0, 0, 0, 0, 0, 0], "mmol/mol", "si", true, null, null, 1, false, false, 0, 0, "mmol per mol; millimoles per mole", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "millimole per second per liter", "mmol/s/L", "(MMOL/S)/L", "amount of substance", 60221367e16, [-3, -1, 0, 0, 0, 0, 0], "(mmol/s)/L", "si", true, null, null, 1, false, false, 1, 0, "mmol/sec/L; mmol per s per L; per sec; millimoles per seconds per liter; litre", "LOINC", "CCnc ", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per kilogram", "mol/kg", "MOL/KG", "amount of substance", 60221367e13, [0, 0, -1, 0, 0, 0, 0], "mol/kg", "si", true, null, null, 1, false, false, 1, 0, "mol per kg; moles; mols", "LOINC", "SCnt", "Clinical", "unit for tests related to stool", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per kilogram per second", "mol/kg/s", "(MOL/KG)/S", "amount of substance", 60221367e13, [0, -1, -1, 0, 0, 0, 0], "(mol/kg)/s", "si", true, null, null, 1, false, false, 1, 0, "mol/kg/sec; mol per kg per sec; moles per kilograms per second; mols", "LOINC", "CCnt", "Clinical", "unit of catalytic activity (mol/s) per mass (kg)", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per liter", "mol/L", "MOL/L", "amount of substance", 60221366999999994e10, [-3, 0, 0, 0, 0, 0, 0], "mol/L", "si", true, null, null, 1, false, false, 1, 0, "mol per L; moles per liter; litre; moles; mols", "LOINC", "SCnc", "Clinical", "unit often used in tests measuring oxygen content", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per cubic meter", "mol/m3", "MOL/M3", "amount of substance", 60221367e16, [-3, 0, 0, 0, 0, 0, 0], "mol/(m<sup>3</sup>)", "si", true, null, null, 1, false, false, 1, 0, "mol/m^3; mol/cu. m; mol per m3; m^3; cu. meter; mols; moles; meters cubed; metre; mole per kiloliter; kilolitre; mol/kL", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per milliliter", "mol/mL", "MOL/ML", "amount of substance", 60221367e22, [-3, 0, 0, 0, 0, 0, 0], "mol/mL", "si", true, null, null, 1, false, false, 1, 0, "mol per mL; moles; millilitre; mols", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per mole", "mol/mol", "MOL/MOL", "amount of substance", 1, [0, 0, 0, 0, 0, 0, 0], "mol/mol", "si", true, null, null, 1, false, false, 0, 0, "mol per mol; moles per mol; mols", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "mole per second", "mol/s", "MOL/S", "amount of substance", 60221367e16, [0, -1, 0, 0, 0, 0, 0], "mol/s", "si", true, null, null, 1, false, false, 1, 0, "mol per sec; moles per second; mols", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "milliosmole", "mosm", "MOSM", "amount of substance (dissolved particles)", 60221367e13, [0, 0, 0, 0, 0, 0, 0], "mosm", "chemical", true, null, null, 1, false, false, 1, 0, "milliosmoles", "LOINC", "Osmol", "Clinical", "equal to 1/1000 of an osmole", "mol", "MOL", "1", 1, false], [false, "milliosmole per kilogram", "mosm/kg", "MOSM/KG", "amount of substance (dissolved particles)", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "mosm/kg", "chemical", true, null, null, 1, false, false, 1, 0, "mosm per kg; milliosmoles per kilogram", "LOINC", "Osmol", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "milliosmole per liter", "mosm/L", "MOSM/L", "amount of substance (dissolved particles)", 60221367e16, [-3, 0, 0, 0, 0, 0, 0], "mosm/L", "chemical", true, null, null, 1, false, false, 1, 0, "mosm per liter; litre; milliosmoles", "LOINC", "Osmol", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "millipascal", "mPa", "MPAL", "pressure", 1, [-1, -2, 1, 0, 0, 0, 0], "mPa", "si", true, null, null, 1, false, false, 0, 0, "millipascals", "LOINC", "Pres", "Clinical", "unit of pressure", "N/m2", "N/M2", "1", 1, false], [false, "millipascal second", "mPa.s", "MPAL.S", "pressure", 1, [-1, -1, 1, 0, 0, 0, 0], "mPa.s", "si", true, null, null, 1, false, false, 0, 0, "mPa*s; millipoise; mP; dynamic viscosity", "LOINC", "Visc", "Clinical", "base units for millipoise, a measurement of dynamic viscosity", "N/m2", "N/M2", "1", 1, false], [false, "megasecond", "Ms", "MAS", "time", 1e6, [0, 1, 0, 0, 0, 0, 0], "Ms", null, false, "T", null, 1, false, false, 0, 0, "megaseconds", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "millisecond", "ms", "MS", "time", 1e-3, [0, 1, 0, 0, 0, 0, 0], "ms", null, false, "T", null, 1, false, false, 0, 0, "milliseconds; duration", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "milli enzyme unit per gram", "mU/g", "MU/G", "catalytic activity", 100368945e5, [0, -1, -1, 0, 0, 0, 0], "mU/g", "chemical", true, null, null, 1, false, false, 1, 0, "mU per gm; milli enzyme units per gram; enzyme activity; enzymatic activity per mass", "LOINC", "CCnt", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 mU = 1 nmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "milli enzyme unit per liter", "mU/L", "MU/L", "catalytic activity", 100368945e8, [-3, -1, 0, 0, 0, 0, 0], "mU/L", "chemical", true, null, null, 1, false, false, 1, 0, "mU per liter; litre; milli enzyme units enzymatic activity per volume; enzyme activity", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 mU = 1 nmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "milli enzyme unit per milligram", "mU/mg", "MU/MG", "catalytic activity", 100368945e8, [0, -1, -1, 0, 0, 0, 0], "mU/mg", "chemical", true, null, null, 1, false, false, 1, 0, "mU per mg; milli enzyme units per milligram", "LOINC", "CCnt", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 mU = 1 nmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "milli enzyme unit per milliliter", "mU/mL", "MU/ML", "catalytic activity", 100368945e11, [-3, -1, 0, 0, 0, 0, 0], "mU/mL", "chemical", true, null, null, 1, false, false, 1, 0, "mU per mL; milli enzyme units per milliliter; millilitre; enzymatic activity per volume; enzyme activity", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 mU = 1 nmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "milli enzyme unit per milliliter per minute", "mU/mL/min", "(MU/ML)/MIN", "catalytic activity", 167281575e9, [-3, -2, 0, 0, 0, 0, 0], "(mU/mL)/min", "chemical", true, null, null, 1, false, false, 1, 0, "mU per mL per min; mU per milliliters per minute; millilitres; milli enzyme units; enzymatic activity; enzyme activity", "LOINC", "CCncRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 mU = 1 nmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "millivolt", "mV", "MV", "electric potential", 1, [2, -2, 1, 0, 0, -1, 0], "mV", "si", true, null, null, 1, false, false, 0, 0, "millivolts", "LOINC", "Elpot", "Clinical", "unit of electric potential (voltage)", "J/C", "J/C", "1", 1, false], [false, "Newton centimeter", "N.cm", "N.CM", "force", 10, [2, -2, 1, 0, 0, 0, 0], "N.cm", "si", true, null, null, 1, false, false, 0, 0, "N*cm; Ncm; N cm; Newton*centimeters; Newton* centimetres; torque; work", "LOINC", "", "Clinical", "as a measurement of work, N.cm = 1/100 Joules;\nnote that N.m is the standard unit of measurement for torque (although dimensionally equivalent to Joule), and N.cm can also be thought of as a torqe unit", "kg.m/s2", "KG.M/S2", "1", 1, false], [false, "Newton second", "N.s", "N.S", "force", 1e3, [1, -1, 1, 0, 0, 0, 0], "N.s", "si", true, null, null, 1, false, false, 0, 0, "Newton*seconds; N*s; N s; Ns; impulse; imp", "LOINC", "", "Clinical", "standard unit of impulse", "kg.m/s2", "KG.M/S2", "1", 1, false], [false, "nanogram", "ng", "NG", "mass", 1e-9, [0, 0, 1, 0, 0, 0, 0], "ng", null, false, "M", null, 1, false, false, 0, 0, "nanograms", "LOINC", "Mass", "Clinical", "", null, null, null, null, false], [false, "nanogram per 24 hour", "ng/(24.h)", "NG/(24.HR)", "mass", 11574074074074075e-30, [0, -1, 1, 0, 0, 0, 0], "ng/h", null, false, "M", null, 1, false, false, 0, 0, "ng/24hrs; ng/24 hrs; nanograms per 24 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per 8 hour", "ng/(8.h)", "NG/(8.HR)", "mass", 34722222222222224e-30, [0, -1, 1, 0, 0, 0, 0], "ng/h", null, false, "M", null, 1, false, false, 0, 0, "ng/8hrs; ng/8 hrs; nanograms per 8 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per million", "ng/10*6", "NG/(10*6)", "mass", 1e-15, [0, 0, 1, 0, 0, 0, 0], "ng/(10<sup>6</sup>)", null, false, "M", null, 1, false, false, 0, 0, "ng/10^6; ng per 10*6; 10^6; nanograms", "LOINC", "MNum", "Clinical", "", null, null, null, null, false], [false, "nanogram per day", "ng/d", "NG/D", "mass", 11574074074074075e-30, [0, -1, 1, 0, 0, 0, 0], "ng/d", null, false, "M", null, 1, false, false, 0, 0, "ng/dy; ng per day; nanograms ", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per deciliter", "ng/dL", "NG/DL", "mass", 1e-5, [-3, 0, 1, 0, 0, 0, 0], "ng/dL", null, false, "M", null, 1, false, false, 0, 0, "ng per dL; nanograms per deciliter; decilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "nanogram per gram", "ng/g", "NG/G", "mass", 1e-9, [0, 0, 0, 0, 0, 0, 0], "ng/g", null, false, "M", null, 1, false, false, 0, 0, "ng/gm; ng per gm; nanograms per gram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "nanogram per hour", "ng/h", "NG/HR", "mass", 2777777777777778e-28, [0, -1, 1, 0, 0, 0, 0], "ng/h", null, false, "M", null, 1, false, false, 0, 0, "ng/hr; ng per hr; nanograms per hour", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per kilogram", "ng/kg", "NG/KG", "mass", 1e-12, [0, 0, 0, 0, 0, 0, 0], "ng/kg", null, false, "M", null, 1, false, false, 0, 0, "ng per kg; nanograms per kilogram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "nanogram per kilogram per 8 hour", "ng/kg/(8.h)", "(NG/KG)/(8.HR)", "mass", 3472222222222222e-32, [0, -1, 0, 0, 0, 0, 0], "(ng/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "ng/(8.h.kg); ng/kg/8hrs; ng/kg/8 hrs; ng per kg per 8hrs; 8 hrs; nanograms per kilograms per 8 hours; shift", "LOINC", "MRtoRat ", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "nanogram per kilogram per hour", "ng/kg/h", "(NG/KG)/HR", "mass", 27777777777777775e-32, [0, -1, 0, 0, 0, 0, 0], "(ng/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "ng/(kg.h); ng/kg/hr; ng per kg per hr; nanograms per kilograms per hour", "LOINC", "MRtoRat ", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "nanogram per kilogram per minute", "ng/kg/min", "(NG/KG)/MIN", "mass", 16666666666666667e-30, [0, -1, 0, 0, 0, 0, 0], "(ng/kg)/min", null, false, "M", null, 1, false, false, 0, 0, "ng/(kg.min); ng per kg per min; nanograms per kilograms per minute", "LOINC", "MRtoRat ", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "nanogram per liter", "ng/L", "NG/L", "mass", 1e-6, [-3, 0, 1, 0, 0, 0, 0], "ng/L", null, false, "M", null, 1, false, false, 0, 0, "ng per L; nanograms per liter; litre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "nanogram per square meter", "ng/m2", "NG/M2", "mass", 1e-9, [-2, 0, 1, 0, 0, 0, 0], "ng/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "ng/m^2; ng/sq. m; ng per m2; m^2; sq. meter; nanograms; meter squared; metre", "LOINC", "ArMass", "Clinical", "unit used to measure mass dose per patient body surface area", null, null, null, null, false], [false, "nanogram per milligram", "ng/mg", "NG/MG", "mass", 1e-6, [0, 0, 0, 0, 0, 0, 0], "ng/mg", null, false, "M", null, 1, false, false, 0, 0, "ng per mg; nanograms", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "nanogram per milligram per hour", "ng/mg/h", "(NG/MG)/HR", "mass", 27777777777777777e-26, [0, -1, 0, 0, 0, 0, 0], "(ng/mg)/h", null, false, "M", null, 1, false, false, 0, 0, "ng/mg/hr; ng per mg per hr; nanograms per milligrams per hour", "LOINC", "MRtoRat ", "Clinical", "", null, null, null, null, false], [false, "nanogram per minute", "ng/min", "NG/MIN", "mass", 16666666666666667e-27, [0, -1, 1, 0, 0, 0, 0], "ng/min", null, false, "M", null, 1, false, false, 0, 0, "ng per min; nanograms", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per millliiter", "ng/mL", "NG/ML", "mass", 1e-3, [-3, 0, 1, 0, 0, 0, 0], "ng/mL", null, false, "M", null, 1, false, false, 0, 0, "ng per mL; nanograms; millilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "nanogram per milliliter per hour", "ng/mL/h", "(NG/ML)/HR", "mass", 27777777777777776e-23, [-3, -1, 1, 0, 0, 0, 0], "(ng/mL)/h", null, false, "M", null, 1, false, false, 0, 0, "ng/mL/hr; ng per mL per mL; nanograms per milliliter per hour; nanogram per millilitre per hour; nanograms per millilitre per hour; enzymatic activity per volume; enzyme activity per milliliters", "LOINC", "CCnc", "Clinical", "tests that measure enzymatic activity", null, null, null, null, false], [false, "nanogram per second", "ng/s", "NG/S", "mass", 1e-9, [0, -1, 1, 0, 0, 0, 0], "ng/s", null, false, "M", null, 1, false, false, 0, 0, "ng/sec; ng per sec; nanograms per second", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "nanogram per enzyme unit", "ng/U", "NG/U", "mass", 9963241120049634e-41, [0, 1, 1, 0, 0, 0, 0], "ng/U", null, false, "M", null, 1, false, false, -1, 0, "ng per U; nanograms per enzyme unit", "LOINC", "CMass", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", null, null, null, null, false], [false, "nanokatal", "nkat", "NKAT", "catalytic activity", 60221367e7, [0, -1, 0, 0, 0, 0, 0], "nkat", "chemical", true, null, null, 1, false, false, 1, 0, "nanokatals", "LOINC", "CAct", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "nanoliter", "nL", "NL", "volume", 10000000000000002e-28, [3, 0, 0, 0, 0, 0, 0], "nL", "iso1000", true, null, null, 1, false, false, 0, 0, "nanoliters; nanolitres", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "nanometer", "nm", "NM", "length", 1e-9, [1, 0, 0, 0, 0, 0, 0], "nm", null, false, "L", null, 1, false, false, 0, 0, "nanometers; nanometres", "LOINC", "Len", "Clinical", "", null, null, null, null, false], [false, "nanometer per second per liter", "nm/s/L", "(NM/S)/L", "length", 1e-6, [-2, -1, 0, 0, 0, 0, 0], "(nm/s)/L", null, false, "L", null, 1, false, false, 0, 0, "nm/sec/liter; nm/sec/litre; nm per s per l; nm per sec per l; nanometers per second per liter; nanometre per second per litre; nanometres per second per litre", "LOINC", "VelCnc", "Clinical", "", null, null, null, null, false], [false, "nanomole", "nmol", "NMOL", "amount of substance", 60221367e7, [0, 0, 0, 0, 0, 0, 0], "nmol", "si", true, null, null, 1, false, false, 1, 0, "nanomoles", "LOINC", "Sub", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per 24 hour", "nmol/(24.h)", "NMOL/(24.HR)", "amount of substance", 6970065625, [0, -1, 0, 0, 0, 0, 0], "nmol/h", "si", true, null, null, 1, false, false, 1, 0, "nmol/24hr; nmol/24 hr; nanomoles per 24 hours; nmol/day; nanomoles per day; nmol per day; nanomole/day; nanomol/day", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per day", "nmol/d", "NMOL/D", "amount of substance", 6970065625, [0, -1, 0, 0, 0, 0, 0], "nmol/d", "si", true, null, null, 1, false, false, 1, 0, "nmol/day; nanomoles per day; nmol per day; nanomole/day; nanomol/day; nmol/24hr; nmol/24 hr; nanomoles per 24 hours; ", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per deciliter", "nmol/dL", "NMOL/DL", "amount of substance", 60221367e11, [-3, 0, 0, 0, 0, 0, 0], "nmol/dL", "si", true, null, null, 1, false, false, 1, 0, "nmol per dL; nanomoles per deciliter; nanomole per decilitre; nanomoles per decilitre; nanomole/deciliter; nanomole/decilitre; nanomol/deciliter; nanomol/decilitre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per gram", "nmol/g", "NMOL/G", "amount of substance", 60221367e7, [0, 0, -1, 0, 0, 0, 0], "nmol/g", "si", true, null, null, 1, false, false, 1, 0, "nmol per gram; nanomoles per gram; nanomole/gram", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per hour per liter", "nmol/h/L", "(NMOL/HR)/L", "amount of substance", 167281575e6, [-3, -1, 0, 0, 0, 0, 0], "(nmol/h)/L", "si", true, null, null, 1, false, false, 1, 0, "nmol/hrs/L; nmol per hrs per L; nanomoles per hours per liter; litre; enzymatic activity per volume; enzyme activities", "LOINC", "CCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per liter", "nmol/L", "NMOL/L", "amount of substance", 60221367e10, [-3, 0, 0, 0, 0, 0, 0], "nmol/L", "si", true, null, null, 1, false, false, 1, 0, "nmol per L; nanomoles per liter; litre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milligram", "nmol/mg", "NMOL/MG", "amount of substance", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "nmol/mg", "si", true, null, null, 1, false, false, 1, 0, "nmol per mg; nanomoles per milligram", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milligram per hour", "nmol/mg/h", "(NMOL/MG)/HR", "amount of substance", 167281575e6, [0, -1, -1, 0, 0, 0, 0], "(nmol/mg)/h", "si", true, null, null, 1, false, false, 1, 0, "nmol/mg/hr; nmol per mg per hr; nanomoles per milligrams per hour", "LOINC", "SCntRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milligram of protein", "nmol/mg{prot}", "NMOL/MG", "amount of substance", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "nmol/mg", "si", true, null, null, 1, false, false, 1, 0, "nanomoles; nmol/mg prot; nmol per mg prot", "LOINC", "Ratio; CCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per minute", "nmol/min", "NMOL/MIN", "amount of substance", 100368945e5, [0, -1, 0, 0, 0, 0, 0], "nmol/min", "si", true, null, null, 1, false, false, 1, 0, "nmol per min; nanomoles per minute; milli enzyme units; enzyme activity per volume; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. nmol/min = mU (milli enzyme unit)", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per minute per milliliter", "nmol/min/mL", "(NMOL/MIN)/ML", "amount of substance", 100368945e11, [-3, -1, 0, 0, 0, 0, 0], "(nmol/min)/mL", "si", true, null, null, 1, false, false, 1, 0, "nmol per min per mL; nanomoles per minutes per milliliter; millilitre; milli enzyme units per volume; enzyme activity; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. nmol/mL/min = mU/mL", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milliliter", "nmol/mL", "NMOL/ML", "amount of substance", 60221367e13, [-3, 0, 0, 0, 0, 0, 0], "nmol/mL", "si", true, null, null, 1, false, false, 1, 0, "nmol per mL; nanomoles per milliliter; millilitre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milliliter per hour", "nmol/mL/h", "(NMOL/ML)/HR", "amount of substance", 167281575e9, [-3, -1, 0, 0, 0, 0, 0], "(nmol/mL)/h", "si", true, null, null, 1, false, false, 1, 0, "nmol/mL/hr; nmol per mL per hr; nanomoles per milliliters per hour; millilitres; milli enzyme units per volume; enzyme activity; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min.", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per milliliter per minute", "nmol/mL/min", "(NMOL/ML)/MIN", "amount of substance", 100368945e11, [-3, -1, 0, 0, 0, 0, 0], "(nmol/mL)/min", "si", true, null, null, 1, false, false, 1, 0, "nmol per mL per min; nanomoles per milliliters per min; millilitres; milli enzyme units per volume; enzyme activity; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. nmol/mL/min = mU/mL", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per millimole", "nmol/mmol", "NMOL/MMOL", "amount of substance", 1e-6, [0, 0, 0, 0, 0, 0, 0], "nmol/mmol", "si", true, null, null, 1, false, false, 0, 0, "nmol per mmol; nanomoles per millimole", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per millimole of creatinine", "nmol/mmol{creat}", "NMOL/MMOL", "amount of substance", 1e-6, [0, 0, 0, 0, 0, 0, 0], "nmol/mmol", "si", true, null, null, 1, false, false, 0, 0, "nanomoles", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per mole", "nmol/mol", "NMOL/MOL", "amount of substance", 1e-9, [0, 0, 0, 0, 0, 0, 0], "nmol/mol", "si", true, null, null, 1, false, false, 0, 0, "nmol per mole; nanomoles", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per nanomole", "nmol/nmol", "NMOL/NMOL", "amount of substance", 1, [0, 0, 0, 0, 0, 0, 0], "nmol/nmol", "si", true, null, null, 1, false, false, 0, 0, "nmol per nmol; nanomoles", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per second", "nmol/s", "NMOL/S", "amount of substance", 60221367e7, [0, -1, 0, 0, 0, 0, 0], "nmol/s", "si", true, null, null, 1, false, false, 1, 0, "nmol/sec; nmol per sec; nanomoles per sercond; milli enzyme units; enzyme activity; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min.", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanomole per second per liter", "nmol/s/L", "(NMOL/S)/L", "amount of substance", 60221367e10, [-3, -1, 0, 0, 0, 0, 0], "(nmol/s)/L", "si", true, null, null, 1, false, false, 1, 0, "nmol/sec/L; nmol per s per L; nmol per sec per L; nanomoles per seconds per liter; litre; milli enzyme units per volume; enzyme activity; enzymatic activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min.", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "nanosecond", "ns", "NS", "time", 1e-9, [0, 1, 0, 0, 0, 0, 0], "ns", null, false, "T", null, 1, false, false, 0, 0, "nanoseconds", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "nanoenzyme unit per milliliter", "nU/mL", "NU/ML", "catalytic activity", 100368945e5, [-3, -1, 0, 0, 0, 0, 0], "nU/mL", "chemical", true, null, null, 1, false, false, 1, 0, "nU per mL; nanoenzyme units per milliliter; millilitre; enzymatic activity per volume; enzyme activity", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 fU = pmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "Ohm meter", "Ohm.m", "OHM.M", "electric resistance", 1e3, [3, -1, 1, 0, 0, -2, 0], "\u03A9.m", "si", true, null, null, 1, false, false, 0, 0, "electric resistivity; meters; metres", "LOINC", "", "Clinical", "unit of electric resistivity", "V/A", "V/A", "1", 1, false], [false, "osmole per kilogram", "osm/kg", "OSM/KG", "amount of substance (dissolved particles)", 60221367e13, [0, 0, -1, 0, 0, 0, 0], "osm/kg", "chemical", true, null, null, 1, false, false, 1, 0, "osm per kg; osmoles per kilogram; osmols", "LOINC", "Osmol", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "osmole per liter", "osm/L", "OSM/L", "amount of substance (dissolved particles)", 60221366999999994e10, [-3, 0, 0, 0, 0, 0, 0], "osm/L", "chemical", true, null, null, 1, false, false, 1, 0, "osm per L; osmoles per liter; litre; osmols", "LOINC", "Osmol", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "picoampere", "pA", "PA", "electric current", 1e-12, [0, -1, 0, 0, 0, 1, 0], "pA", "si", true, null, null, 1, false, false, 0, 0, "picoamperes", "LOINC", "", "Clinical", "equal to 10^-12 amperes", "C/s", "C/S", "1", 1, false], [false, "picogram", "pg", "PG", "mass", 1e-12, [0, 0, 1, 0, 0, 0, 0], "pg", null, false, "M", null, 1, false, false, 0, 0, "picograms", "LOINC", "Mass; EntMass", "Clinical", "", null, null, null, null, false], [false, "picogram per deciliter", "pg/dL", "PG/DL", "mass", 9999999999999999e-24, [-3, 0, 1, 0, 0, 0, 0], "pg/dL", null, false, "M", null, 1, false, false, 0, 0, "pg per dL; picograms; decilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "picogram per liter", "pg/L", "PG/L", "mass", 1e-9, [-3, 0, 1, 0, 0, 0, 0], "pg/L", null, false, "M", null, 1, false, false, 0, 0, "pg per L; picograms; litre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "picogram per milligram", "pg/mg", "PG/MG", "mass", 1e-9, [0, 0, 0, 0, 0, 0, 0], "pg/mg", null, false, "M", null, 1, false, false, 0, 0, "pg per mg; picograms", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "picogram per milliliter", "pg/mL", "PG/ML", "mass", 1e-6, [-3, 0, 1, 0, 0, 0, 0], "pg/mL", null, false, "M", null, 1, false, false, 0, 0, "pg per mL; picograms per milliliter; millilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "picogram per millimeter", "pg/mm", "PG/MM", "mass", 1e-9, [-1, 0, 1, 0, 0, 0, 0], "pg/mm", null, false, "M", null, 1, false, false, 0, 0, "pg per mm; picogram/millimeter; picogram/millimetre; picograms per millimeter; millimetre", "LOINC", "Lineic Mass", "Clinical", "", null, null, null, null, false], [false, "picokatal", "pkat", "PKAT", "catalytic activity", 60221367e4, [0, -1, 0, 0, 0, 0, 0], "pkat", "chemical", true, null, null, 1, false, false, 1, 0, "pkats; picokatals", "LOINC", "CAct", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "picoliter", "pL", "PL", "volume", 1e-15, [3, 0, 0, 0, 0, 0, 0], "pL", "iso1000", true, null, null, 1, false, false, 0, 0, "picoliters; picolitres", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "picometer", "pm", "PM", "length", 1e-12, [1, 0, 0, 0, 0, 0, 0], "pm", null, false, "L", null, 1, false, false, 0, 0, "picometers; picometres", "LOINC", "Len", "Clinical", "", null, null, null, null, false], [false, "picomole", "pmol", "PMOL", "amount of substance", 60221367e4, [0, 0, 0, 0, 0, 0, 0], "pmol", "si", true, null, null, 1, false, false, 1, 0, "picomoles; pmols", "LOINC", "Sub", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per 24 hour", "pmol/(24.h)", "PMOL/(24.HR)", "amount of substance", 6970065625e-3, [0, -1, 0, 0, 0, 0, 0], "pmol/h", "si", true, null, null, 1, false, false, 1, 0, "pmol/24hrs; pmol/24 hrs; pmol per 24 hrs; 24hrs; days; dy; picomoles per 24 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per day", "pmol/d", "PMOL/D", "amount of substance", 6970065625e-3, [0, -1, 0, 0, 0, 0, 0], "pmol/d", "si", true, null, null, 1, false, false, 1, 0, "pmol/dy; pmol per day; 24 hours; 24hrs; 24 hrs; picomoles", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per deciliter", "pmol/dL", "PMOL/DL", "amount of substance", 60221367e8, [-3, 0, 0, 0, 0, 0, 0], "pmol/dL", "si", true, null, null, 1, false, false, 1, 0, "pmol per dL; picomoles per deciliter; decilitre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per gram", "pmol/g", "PMOL/G", "amount of substance", 60221367e4, [0, 0, -1, 0, 0, 0, 0], "pmol/g", "si", true, null, null, 1, false, false, 1, 0, "pmol per gm; picomoles per gram; picomole/gram", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per hour per milliliter ", "pmol/h/mL", "(PMOL/HR)/ML", "amount of substance", 167281575e6, [-3, -1, 0, 0, 0, 0, 0], "(pmol/h)/mL", "si", true, null, null, 1, false, false, 1, 0, "pmol/hrs/mL; pmol per hrs per mL; picomoles per hour per milliliter; millilitre; micro enzyme units per volume; enzymatic activity; enzyme activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. ", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per liter", "pmol/L", "PMOL/L", "amount of substance", 60221367e7, [-3, 0, 0, 0, 0, 0, 0], "pmol/L", "si", true, null, null, 1, false, false, 1, 0, "picomole/liter; pmol per L; picomoles; litre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per minute", "pmol/min", "PMOL/MIN", "amount of substance", 10036894500, [0, -1, 0, 0, 0, 0, 0], "pmol/min", "si", true, null, null, 1, false, false, 1, 0, "picomole/minute; pmol per min; picomoles per minute; micro enzyme units; enzymatic activity; enzyme activity", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. pmol/min = uU (micro enzyme unit)", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per milliliter", "pmol/mL", "PMOL/ML", "amount of substance", 60221367e10, [-3, 0, 0, 0, 0, 0, 0], "pmol/mL", "si", true, null, null, 1, false, false, 1, 0, "picomole/milliliter; picomole/millilitre; pmol per mL; picomoles; millilitre; picomols; pmols", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picomole per micromole", "pmol/umol", "PMOL/UMOL", "amount of substance", 1e-6, [0, 0, 0, 0, 0, 0, 0], "pmol/\u03BCmol", "si", true, null, null, 1, false, false, 0, 0, "pmol/mcgmol; picomole/micromole; pmol per umol; pmol per mcgmol; picomoles ", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "picosecond", "ps", "PS", "time", 1e-12, [0, 1, 0, 0, 0, 0, 0], "ps", null, false, "T", null, 1, false, false, 0, 0, "picoseconds; psec", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "picotesla", "pT", "PT", "magnetic flux density", 1e-9, [0, -1, 1, 0, 0, -1, 0], "pT", "si", true, null, null, 1, false, false, 0, 0, "picoteslas", "LOINC", "", "Clinical", "SI unit of magnetic field strength for magnetic field B", "Wb/m2", "WB/M2", "1", 1, false], [false, "enzyme unit per 12 hour", "U/(12.h)", "U/(12.HR)", "catalytic activity", 23233552083333334e-5, [0, -2, 0, 0, 0, 0, 0], "U/h", "chemical", true, null, null, 1, false, false, 1, 0, "U/12hrs; U/ 12hrs; U per 12 hrs; 12hrs; enzyme units per 12 hours; enzyme activity; enzymatic activity per time; umol per min per 12 hours; micromoles per minute per 12 hours; umol/min/12hr", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per 2 hour", "U/(2.h)", "U/(2.HR)", "catalytic activity", 1394013125e3, [0, -2, 0, 0, 0, 0, 0], "U/h", "chemical", true, null, null, 1, false, false, 1, 0, "U/2hrs; U/ 2hrs; U per 2 hrs; 2hrs; enzyme units per 2 hours; enzyme activity; enzymatic activity per time; umol per minute per 2 hours; micromoles per minute; umol/min/2hr; umol per min per 2hr", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per 24 hour", "U/(24.h)", "U/(24.HR)", "catalytic activity", 11616776041666667e-5, [0, -2, 0, 0, 0, 0, 0], "U/h", "chemical", true, null, null, 1, false, false, 1, 0, "U/24hrs; U/ 24hrs; U per 24 hrs; 24hrs; enzyme units per 24 hours; enzyme activity; enzymatic activity per time; micromoles per minute per 24 hours; umol/min/24hr; umol per min per 24hr", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per 10", "U/10", "U/10", "catalytic activity", 100368945e7, [0, -1, 0, 0, 0, 0, 0], "U", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/10; U per 10; enzyme units per 10; enzymatic activity; enzyme activity; micromoles per minute; umol/min/10", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per 10 billion", "U/10*10", "U/(10*10)", "catalytic activity", 100368945e-2, [0, -1, 0, 0, 0, 0, 0], "U/(10<sup>10</sup>)", "chemical", true, null, null, 1, false, false, 1, 0, "U per 10*10; enzyme units per 10*10; U per 10 billion; enzyme units; enzymatic activity; micromoles per minute per 10 billion; umol/min/10*10", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per trillion", "U/10*12", "U/(10*12)", "catalytic activity", 10036.8945, [0, -1, 0, 0, 0, 0, 0], "U/(10<sup>12</sup>)", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/10*12; U per 10*12; enzyme units per 10*12; enzyme units per trillion; enzymatic activity; micromoles per minute per trillion; umol/min/10*12; umol per min per 10*12", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per million", "U/10*6", "U/(10*6)", "catalytic activity", 10036894500, [0, -1, 0, 0, 0, 0, 0], "U/(10<sup>6</sup>)", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/10*6; U per 10*6; enzyme units per 10*6; enzyme units; enzymatic activity per volume; micromoles per minute per million; umol/min/10*6; umol per min per 10*6", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per billion", "U/10*9", "U/(10*9)", "catalytic activity", 100368945e-1, [0, -1, 0, 0, 0, 0, 0], "U/(10<sup>9</sup>)", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/10*9; U per 10*9; enzyme units per 10*9; enzymatic activity per volume; micromoles per minute per billion; umol/min/10*9; umol per min per 10*9", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per day", "U/d", "U/D", "catalytic activity", 11616776041666667e-5, [0, -2, 0, 0, 0, 0, 0], "U/d", "chemical", true, null, null, 1, false, false, 1, 0, "U/dy; enzyme units per day; enzyme units; enzyme activity; enzymatic activity per time; micromoles per minute per day; umol/min/day; umol per min per day", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per deciliter", "U/dL", "U/DL", "catalytic activity", 100368945e12, [-3, -1, 0, 0, 0, 0, 0], "U/dL", "chemical", true, null, null, 1, false, false, 1, 0, "U per dL; enzyme units per deciliter; decilitre; micromoles per minute per deciliter; umol/min/dL; umol per min per dL", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per gram", "U/g", "U/G", "catalytic activity", 100368945e8, [0, -1, -1, 0, 0, 0, 0], "U/g", "chemical", true, null, null, 1, false, false, 1, 0, "U/gm; U per gm; enzyme units per gram; micromoles per minute per gram; umol/min/g; umol per min per g", "LOINC", "CCnt", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per hour", "U/h", "U/HR", "catalytic activity", 278802625e4, [0, -2, 0, 0, 0, 0, 0], "U/h", "chemical", true, null, null, 1, false, false, 1, 0, "U/hr; U per hr; enzyme units per hour; micromoles per minute per hour; umol/min/hr; umol per min per hr", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per liter", "U/L", "U/L", "catalytic activity", 100368945e11, [-3, -1, 0, 0, 0, 0, 0], "U/L", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/liter; enzyme unit/litre; U per L; enzyme units per liter; enzyme unit per litre; micromoles per minute per liter; umol/min/L; umol per min per L", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per minute", "U/min", "U/MIN", "catalytic activity", 167281575e6, [0, -2, 0, 0, 0, 0, 0], "U/min", "chemical", true, null, null, 1, false, false, 1, 0, "enzyme unit/minute; U per min; enzyme units; umol/min/min; micromoles per minute per minute; micromoles per min per min; umol", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per milliliter", "U/mL", "U/ML", "catalytic activity", 100368945e14, [-3, -1, 0, 0, 0, 0, 0], "U/mL", "chemical", true, null, null, 1, false, false, 1, 0, "U per mL; enzyme units per milliliter; millilitre; micromoles per minute per milliliter; umol/min/mL; umol per min per mL", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "enzyme unit per second", "U/s", "U/S", "catalytic activity", 100368945e8, [0, -2, 0, 0, 0, 0, 0], "U/s", "chemical", true, null, null, 1, false, false, 1, 0, "U/sec; U per second; enzyme units per second; micromoles per minute per second; umol/min/sec; umol per min per sec", "LOINC", "CRat", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min)", "umol/min", "UMOL/MIN", "1", 1, false], [false, "micro international unit", "u[IU]", "U[IU]", "arbitrary", 1e-6, [0, 0, 0, 0, 0, 0, 0], "\u03BCi.U.", "chemical", true, null, null, 1, false, true, 0, 0, "uIU; u IU; microinternational units", "LOINC", "Arb", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "micro international unit per liter", "u[IU]/L", "U[IU]/L", "arbitrary", 1e-3, [-3, 0, 0, 0, 0, 0, 0], "(\u03BCi.U.)/L", "chemical", true, null, null, 1, false, true, 0, 0, "uIU/L; u IU/L; uIU per L; microinternational units per liter; litre; ", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "micro international unit per milliliter", "u[IU]/mL", "U[IU]/ML", "arbitrary", 1, [-3, 0, 0, 0, 0, 0, 0], "(\u03BCi.U.)/mL", "chemical", true, null, null, 1, false, true, 0, 0, "uIU/mL; u IU/mL; uIU per mL; microinternational units per milliliter; millilitre", "LOINC", "ACnc", "Clinical", "International units (IU) are analyte and reference specimen  specific arbitrary units (held at WHO)", "[iU]", "[IU]", "1", 1, false], [false, "microequivalent", "ueq", "UEQ", "amount of substance", 60221367e10, [0, 0, 0, 0, 0, 0, 0], "\u03BCeq", "chemical", true, null, null, 1, false, false, 0, 1, "microequivalents; 10^-6 equivalents; 10-6 equivalents", "LOINC", "Sub", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "microequivalent per liter", "ueq/L", "UEQ/L", "amount of substance", 60221367e13, [-3, 0, 0, 0, 0, 0, 0], "\u03BCeq/L", "chemical", true, null, null, 1, false, false, 0, 1, "ueq per liter; litre; microequivalents", "LOINC", "MCnc", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "microequivalent per milliliter", "ueq/mL", "UEQ/ML", "amount of substance", 60221367000000003e7, [-3, 0, 0, 0, 0, 0, 0], "\u03BCeq/mL", "chemical", true, null, null, 1, false, false, 0, 1, "ueq per milliliter; millilitre; microequivalents", "LOINC", "MCnc", "Clinical", "", "mol", "MOL", "1", 1, false], [false, "microgram", "ug", "UG", "mass", 1e-6, [0, 0, 1, 0, 0, 0, 0], "\u03BCg", null, false, "M", null, 1, false, false, 0, 0, "mcg; micrograms; 10^-6 grams; 10-6 grams", "LOINC", "Mass", "Clinical", "", null, null, null, null, false], [false, "microgram per 100 gram", "ug/(100.g)", "UG/(100.G)", "mass", 1e-8, [0, 0, 0, 0, 0, 0, 0], "\u03BCg/g", null, false, "M", null, 1, false, false, 0, 0, "ug/100gm; ug/100 gm; mcg; ug per 100g; 100 gm; mcg per 100g; micrograms per 100 grams", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "microgram per 24 hour", "ug/(24.h)", "UG/(24.HR)", "mass", 11574074074074074e-27, [0, -1, 1, 0, 0, 0, 0], "\u03BCg/h", null, false, "M", null, 1, false, false, 0, 0, "ug/24hrs; ug/24 hrs; mcg/24hrs; ug per 24hrs; mcg per 24hrs; 24 hrs; micrograms per 24 hours", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "microgram per 8 hour", "ug/(8.h)", "UG/(8.HR)", "mass", 3472222222222222e-26, [0, -1, 1, 0, 0, 0, 0], "\u03BCg/h", null, false, "M", null, 1, false, false, 0, 0, "ug/8hrs; ug/8 hrs; mcg/8hrs; ug per 8hrs; mcg per 8hrs; 8 hrs; micrograms per 8 hours; shift", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "microgram per square foot (international)", "ug/[sft_i]", "UG/[SFT_I]", "mass", 10763910416709721e-21, [-2, 0, 1, 0, 0, 0, 0], "\u03BCg", null, false, "M", null, 1, false, false, 0, 0, "ug/sft; ug/ft2; ug/ft^2; ug/sq. ft; micrograms; sq. foot; foot squared", "LOINC", "ArMass", "Clinical", "", null, null, null, null, false], [false, "microgram per day", "ug/d", "UG/D", "mass", 11574074074074074e-27, [0, -1, 1, 0, 0, 0, 0], "\u03BCg/d", null, false, "M", null, 1, false, false, 0, 0, "ug/dy; mcg/dy; ug per day; mcg; micrograms per day", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "microgram per deciliter", "ug/dL", "UG/DL", "mass", 0.009999999999999998, [-3, 0, 1, 0, 0, 0, 0], "\u03BCg/dL", null, false, "M", null, 1, false, false, 0, 0, "ug per dL; mcg/dl; mcg per dl; micrograms per deciliter; decilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "microgram per gram", "ug/g", "UG/G", "mass", 1e-6, [0, 0, 0, 0, 0, 0, 0], "\u03BCg/g", null, false, "M", null, 1, false, false, 0, 0, "ug per gm; mcg/gm; mcg per g; micrograms per gram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "microgram per hour", "ug/h", "UG/HR", "mass", 27777777777777777e-26, [0, -1, 1, 0, 0, 0, 0], "\u03BCg/h", null, false, "M", null, 1, false, false, 0, 0, "ug/hr; mcg/hr; mcg per hr; ug per hr; ug per hour; micrograms", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "microgram per kilogram", "ug/kg", "UG/KG", "mass", 9999999999999999e-25, [0, 0, 0, 0, 0, 0, 0], "\u03BCg/kg", null, false, "M", null, 1, false, false, 0, 0, "ug per kg; mcg/kg; mcg per kg; micrograms per kilogram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "microgram per kilogram per 8 hour", "ug/kg/(8.h)", "(UG/KG)/(8.HR)", "mass", 3472222222222222e-29, [0, -1, 0, 0, 0, 0, 0], "(\u03BCg/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "ug/kg/8hrs; mcg/kg/8hrs; ug/kg/8 hrs; mcg/kg/8 hrs; ug per kg per 8hrs; 8 hrs; mcg per kg per 8hrs; micrograms per kilograms per 8 hours; shift", "LOINC", "", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "microgram per kilogram per day", "ug/kg/d", "(UG/KG)/D", "mass", 11574074074074072e-30, [0, -1, 0, 0, 0, 0, 0], "(\u03BCg/kg)/d", null, false, "M", null, 1, false, false, 0, 0, "ug/(kg.d); ug/kg/dy; mcg/kg/day; ug per kg per dy; 24 hours; 24hrs; mcg; kilograms; microgram per kilogram and day", "LOINC", "", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "microgram per kilogram per hour", "ug/kg/h", "(UG/KG)/HR", "mass", 27777777777777774e-29, [0, -1, 0, 0, 0, 0, 0], "(\u03BCg/kg)/h", null, false, "M", null, 1, false, false, 0, 0, "ug/(kg.h); ug/kg/hr; mcg/kg/hr; ug per kg per hr; mcg per kg per hr; kilograms", "LOINC", "", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "microgram per kilogram per minute", "ug/kg/min", "(UG/KG)/MIN", "mass", 16666666666666664e-27, [0, -1, 0, 0, 0, 0, 0], "(\u03BCg/kg)/min", null, false, "M", null, 1, false, false, 0, 0, "ug/kg/min; ug/kg/min; mcg/kg/min; ug per kg per min; mcg; micrograms per kilograms per minute ", "LOINC", "", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "microgram per liter", "ug/L", "UG/L", "mass", 1e-3, [-3, 0, 1, 0, 0, 0, 0], "\u03BCg/L", null, false, "M", null, 1, false, false, 0, 0, "mcg/L; ug per L; mcg; micrograms per liter; litre ", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "microgram per liter per 24 hour", "ug/L/(24.h)", "(UG/L)/(24.HR)", "mass", 11574074074074074e-24, [-3, -1, 1, 0, 0, 0, 0], "(\u03BCg/L)/h", null, false, "M", null, 1, false, false, 0, 0, "ug/L/24hrs; ug/L/24 hrs; mcg/L/24hrs; ug per L per 24hrs; 24 hrs; day; dy mcg; micrograms per liters per 24 hours; litres", "LOINC", "", "Clinical", "unit used to measure mass dose rate per patient body mass", null, null, null, null, false], [false, "microgram per square meter", "ug/m2", "UG/M2", "mass", 1e-6, [-2, 0, 1, 0, 0, 0, 0], "\u03BCg/(m<sup>2</sup>)", null, false, "M", null, 1, false, false, 0, 0, "ug/m^2; ug/sq. m; mcg/m2; mcg/m^2; mcg/sq. m; ug per m2; m^2; sq. meter; mcg; micrograms per square meter; meter squared; metre", "LOINC", "ArMass", "Clinical", "unit used to measure mass dose per patient body surface area", null, null, null, null, false], [false, "microgram per cubic meter", "ug/m3", "UG/M3", "mass", 1e-6, [-3, 0, 1, 0, 0, 0, 0], "\u03BCg/(m<sup>3</sup>)", null, false, "M", null, 1, false, false, 0, 0, "ug/m^3; ug/cu. m; mcg/m3; mcg/m^3; mcg/cu. m; ug per m3; ug per m^3; ug per cu. m; mcg; micrograms per cubic meter; meter cubed; metre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "microgram per milligram", "ug/mg", "UG/MG", "mass", 1e-3, [0, 0, 0, 0, 0, 0, 0], "\u03BCg/mg", null, false, "M", null, 1, false, false, 0, 0, "ug per mg; mcg/mg; mcg per mg; micromilligrams per milligram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "microgram per minute", "ug/min", "UG/MIN", "mass", 16666666666666667e-24, [0, -1, 1, 0, 0, 0, 0], "\u03BCg/min", null, false, "M", null, 1, false, false, 0, 0, "ug per min; mcg/min; mcg per min; microminutes per minute", "LOINC", "MRat", "Clinical", "", null, null, null, null, false], [false, "microgram per milliliter", "ug/mL", "UG/ML", "mass", 1, [-3, 0, 1, 0, 0, 0, 0], "\u03BCg/mL", null, false, "M", null, 1, false, false, 0, 0, "ug per mL; mcg/mL; mcg per mL; micrograms per milliliter; millilitre", "LOINC", "MCnc", "Clinical", "", null, null, null, null, false], [false, "microgram per millimole", "ug/mmol", "UG/MMOL", "mass", 1660540186674939e-42, [0, 0, 1, 0, 0, 0, 0], "\u03BCg/mmol", null, false, "M", null, 1, false, false, -1, 0, "ug per mmol; mcg/mmol; mcg per mmol; micrograms per millimole", "LOINC", "Ratio", "Clinical", "", null, null, null, null, false], [false, "microgram per nanogram", "ug/ng", "UG/NG", "mass", 999.9999999999999, [0, 0, 0, 0, 0, 0, 0], "\u03BCg/ng", null, false, "M", null, 1, false, false, 0, 0, "ug per ng; mcg/ng; mcg per ng; micrograms per nanogram", "LOINC", "MCnt", "Clinical", "", null, null, null, null, false], [false, "microkatal", "ukat", "UKAT", "catalytic activity", 60221367e10, [0, -1, 0, 0, 0, 0, 0], "\u03BCkat", "chemical", true, null, null, 1, false, false, 1, 0, "microkatals; ukats", "LOINC", "CAct", "Clinical", "kat is a unit of catalytic activity with base units = mol/s. Rarely used because its units are too large to practically express catalytic activity. See enzyme unit [U] which is the standard unit for catalytic activity.", "mol/s", "MOL/S", "1", 1, false], [false, "microliter", "uL", "UL", "volume", 1e-9, [3, 0, 0, 0, 0, 0, 0], "\u03BCL", "iso1000", true, null, null, 1, false, false, 0, 0, "microliters; microlitres; mcl", "LOINC", "Vol", "Clinical", "", "l", null, "1", 1, false], [false, "microliter per 2 hour", "uL/(2.h)", "UL/(2.HR)", "volume", 1388888888888889e-28, [3, -1, 0, 0, 0, 0, 0], "\u03BCL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "uL/2hrs; uL/2 hrs; mcg/2hr; mcg per 2hr; uL per 2hr; uL per 2 hrs; microliters per 2 hours; microlitres ", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "microliter per hour", "uL/h", "UL/HR", "volume", 2777777777777778e-28, [3, -1, 0, 0, 0, 0, 0], "\u03BCL/h", "iso1000", true, null, null, 1, false, false, 0, 0, "uL/hr; mcg/hr; mcg per hr; uL per hr; microliters per hour; microlitres", "LOINC", "VRat", "Clinical", "", "l", null, "1", 1, false], [false, "micrometer", "um", "UM", "length", 1e-6, [1, 0, 0, 0, 0, 0, 0], "\u03BCm", null, false, "L", null, 1, false, false, 0, 0, "micrometers; micrometres; \u03BCm; microns", "LOINC", "Len", "Clinical", "Unit of length that is usually used in tests related to the eye", null, null, null, null, false], [false, "microns per second", "um/s", "UM/S", "length", 1e-6, [1, -1, 0, 0, 0, 0, 0], "\u03BCm/s", null, false, "L", null, 1, false, false, 0, 0, "um/sec; micron/second; microns/second; um per sec; micrometers per second; micrometres", "LOINC", "Vel", "Clinical", "", null, null, null, null, false], [false, "micromole", "umol", "UMOL", "amount of substance", 60221367e10, [0, 0, 0, 0, 0, 0, 0], "\u03BCmol", "si", true, null, null, 1, false, false, 1, 0, "micromoles; umols", "LOINC", "Sub", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per 2 hour", "umol/(2.h)", "UMOL/(2.HR)", "amount of substance", 836407875e5, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/h", "si", true, null, null, 1, false, false, 1, 0, "umol/2hrs; umol/2 hrs; umol per 2 hrs; 2hrs; micromoles per 2 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per 24 hour", "umol/(24.h)", "UMOL/(24.HR)", "amount of substance", 6970065625e3, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/h", "si", true, null, null, 1, false, false, 1, 0, "umol/24hrs; umol/24 hrs; umol per 24 hrs; per 24hrs; micromoles per 24 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per 8 hour", "umol/(8.h)", "UMOL/(8.HR)", "amount of substance", 20910196875e3, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/h", "si", true, null, null, 1, false, false, 1, 0, "umol/8hr; umol/8 hr; umol per 8 hr; umol per 8hr; umols per 8hr; umol per 8 hours; micromoles per 8 hours; shift", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per day", "umol/d", "UMOL/D", "amount of substance", 6970065625e3, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/d", "si", true, null, null, 1, false, false, 1, 0, "umol/day; umol per day; umols per day; umol per days; micromoles per days; umol/24hr; umol/24 hr; umol per 24 hr; umol per 24hr; umols per 24hr; umol per 24 hours; micromoles per 24 hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per deciliter", "umol/dL", "UMOL/DL", "amount of substance", 60221367e14, [-3, 0, 0, 0, 0, 0, 0], "\u03BCmol/dL", "si", true, null, null, 1, false, false, 1, 0, "micromole/deciliter; micromole/decilitre; umol per dL; micromoles per deciliters; micromole per decilitres", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per gram", "umol/g", "UMOL/G", "amount of substance", 60221367e10, [0, 0, -1, 0, 0, 0, 0], "\u03BCmol/g", "si", true, null, null, 1, false, false, 1, 0, "micromole/gram; umol per g; micromoles per gram", "LOINC", "SCnt; Ratio", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per hour", "umol/h", "UMOL/HR", "amount of substance", 167281575e6, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/h", "si", true, null, null, 1, false, false, 1, 0, "umol/hr; umol per hr; umol per hour; micromoles per hours", "LOINC", "SRat", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per kilogram", "umol/kg", "UMOL/KG", "amount of substance", 60221367e7, [0, 0, -1, 0, 0, 0, 0], "\u03BCmol/kg", "si", true, null, null, 1, false, false, 1, 0, "umol per kg; micromoles per kilogram", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per liter", "umol/L", "UMOL/L", "amount of substance", 60221367e13, [-3, 0, 0, 0, 0, 0, 0], "\u03BCmol/L", "si", true, null, null, 1, false, false, 1, 0, "micromole/liter; micromole/litre; umol per liter; micromoles per liter; litre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per liter per hour", "umol/L/h", "(UMOL/L)/HR", "amount of substance", 167281575e9, [-3, -1, 0, 0, 0, 0, 0], "(\u03BCmol/L)/h", "si", true, null, null, 1, false, false, 1, 0, "umol/liter/hr; umol/litre/hr; umol per L per hr; umol per liter per hour; micromoles per liters per hour; litre", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min; umol/L/h is a derived unit of enzyme units", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per milligram", "umol/mg", "UMOL/MG", "amount of substance", 60221367e13, [0, 0, -1, 0, 0, 0, 0], "\u03BCmol/mg", "si", true, null, null, 1, false, false, 1, 0, "micromole/milligram; umol per mg; micromoles per milligram", "LOINC", "SCnt", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per minute", "umol/min", "UMOL/MIN", "amount of substance", 100368945e8, [0, -1, 0, 0, 0, 0, 0], "\u03BCmol/min", "si", true, null, null, 1, false, false, 1, 0, "micromole/minute; umol per min; micromoles per minute; enzyme units", "LOINC", "CAct", "Clinical", "unit for the enzyme unit U = umol/min", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per minute per gram", "umol/min/g", "(UMOL/MIN)/G", "amount of substance", 100368945e8, [0, -1, -1, 0, 0, 0, 0], "(\u03BCmol/min)/g", "si", true, null, null, 1, false, false, 1, 0, "umol/min/gm; umol per min per gm; micromoles per minutes per gram; U/g; enzyme units", "LOINC", "CCnt", "Clinical", "unit for the enzyme unit U = umol/min. umol/min/g = U/g", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per minute per liter", "umol/min/L", "(UMOL/MIN)/L", "amount of substance", 100368945e11, [-3, -1, 0, 0, 0, 0, 0], "(\u03BCmol/min)/L", "si", true, null, null, 1, false, false, 1, 0, "umol/min/liter; umol/minute/liter; micromoles per minutes per liter; litre; enzyme units; U/L", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. umol/min/L = U/L", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per milliliter", "umol/mL", "UMOL/ML", "amount of substance", 60221367000000003e7, [-3, 0, 0, 0, 0, 0, 0], "\u03BCmol/mL", "si", true, null, null, 1, false, false, 1, 0, "umol per mL; micromoles per milliliter; millilitre", "LOINC", "SCnc", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per milliliter per minute", "umol/mL/min", "(UMOL/ML)/MIN", "amount of substance", 100368945e14, [-3, -1, 0, 0, 0, 0, 0], "(\u03BCmol/mL)/min", "si", true, null, null, 1, false, false, 1, 0, "umol per mL per min; micromoles per milliliters per minute; millilitres", "LOINC", "CCnc", "Clinical", "unit for the enzyme unit U = umol/min. umol/mL/min = U/mL", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per millimole", "umol/mmol", "UMOL/MMOL", "amount of substance", 1e-3, [0, 0, 0, 0, 0, 0, 0], "\u03BCmol/mmol", "si", true, null, null, 1, false, false, 0, 0, "umol per mmol; micromoles per millimole", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per mole", "umol/mol", "UMOL/MOL", "amount of substance", 1e-6, [0, 0, 0, 0, 0, 0, 0], "\u03BCmol/mol", "si", true, null, null, 1, false, false, 0, 0, "umol per mol; micromoles per mole", "LOINC", "SRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "micromole per micromole", "umol/umol", "UMOL/UMOL", "amount of substance", 1, [0, 0, 0, 0, 0, 0, 0], "\u03BCmol/\u03BCmol", "si", true, null, null, 1, false, false, 0, 0, "umol per umol; micromoles per micromole", "LOINC", "Srto; SFr; EntSRto", "Clinical", "", "10*23", "10*23", "6.0221367", 6.0221367, false], [false, "microOhm", "uOhm", "UOHM", "electric resistance", 1e-3, [2, -1, 1, 0, 0, -2, 0], "\u03BC\u03A9", "si", true, null, null, 1, false, false, 0, 0, "microOhms; \xB5\u03A9", "LOINC", "", "Clinical", "unit of electric resistance", "V/A", "V/A", "1", 1, false], [false, "microsecond", "us", "US", "time", 1e-6, [0, 1, 0, 0, 0, 0, 0], "\u03BCs", null, false, "T", null, 1, false, false, 0, 0, "microseconds", "LOINC", "Time", "Clinical", "", null, null, null, null, false], [false, "micro enzyme unit per gram", "uU/g", "UU/G", "catalytic activity", 10036894500, [0, -1, -1, 0, 0, 0, 0], "\u03BCU/g", "chemical", true, null, null, 1, false, false, 1, 0, "uU per gm; micro enzyme units per gram; micro enzymatic activity per mass; enzyme activity", "LOINC", "CCnt", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 uU = 1pmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "micro enzyme unit per liter", "uU/L", "UU/L", "catalytic activity", 100368945e5, [-3, -1, 0, 0, 0, 0, 0], "\u03BCU/L", "chemical", true, null, null, 1, false, false, 1, 0, "uU per L; micro enzyme units per liter; litre; enzymatic activity per volume; enzyme activity ", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 uU = 1pmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "micro enzyme unit per milliliter", "uU/mL", "UU/ML", "catalytic activity", 100368945e8, [-3, -1, 0, 0, 0, 0, 0], "\u03BCU/mL", "chemical", true, null, null, 1, false, false, 1, 0, "uU per mL; micro enzyme units per milliliter; millilitre; enzymatic activity per volume; enzyme activity", "LOINC", "CCnc", "Clinical", "1 U is the standard enzyme unit which equals 1 micromole substrate catalyzed per minute (1 umol/min); 1 uU = 1pmol/min", "umol/min", "UMOL/MIN", "1", 1, false], [false, "microvolt", "uV", "UV", "electric potential", 1e-3, [2, -2, 1, 0, 0, -1, 0], "\u03BCV", "si", true, null, null, 1, false, false, 0, 0, "microvolts", "LOINC", "Elpot", "Clinical", "unit of electric potential (voltage)", "J/C", "J/C", "1", 1, false]] } };
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumJsonDefs.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumJsonDefs.js
 var require_ucumJsonDefs = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumJsonDefs.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumJsonDefs.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -13348,9 +13348,9 @@ var require_ucumJsonDefs = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitString.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitString.js
 var require_unitString = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitString.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/unitString.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -14476,9 +14476,9 @@ We are not sure how to interpret text both before and after the annotation.  Sor
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumLhcUtils.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumLhcUtils.js
 var require_ucumLhcUtils = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumLhcUtils.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumLhcUtils.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -15123,9 +15123,9 @@ var require_ucumLhcUtils = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumPkg.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumPkg.js
 var require_ucumPkg = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumPkg.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lhncbc/ucum-lhc@7.1.3/node_modules/@lhncbc/ucum-lhc/source-cjs/ucumPkg.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     Object.defineProperty(exports, "__esModule", {
@@ -15141,9 +15141,9 @@ var require_ucumPkg = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js
 var require_util = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/util.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
@@ -15201,9 +15201,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js
 var require_validator = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/validator.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -15516,9 +15516,9 @@ var require_validator = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var require_OptionsBuilder = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
     init_define_BUILD_INFO();
     var defaultOptions = {
       preserveOrder: false,
@@ -15572,9 +15572,9 @@ var require_OptionsBuilder = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js
 var require_xmlNode = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var XmlNode = class {
@@ -15602,9 +15602,9 @@ var require_xmlNode = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var require_DocTypeReader = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module2) {
     init_define_BUILD_INFO();
     var util = require_util();
     function readDocType(xmlData, i3) {
@@ -15713,9 +15713,9 @@ var require_DocTypeReader = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
 var require_strnum = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module2) {
     init_define_BUILD_INFO();
     var hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
     var numRegex = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/;
@@ -15821,9 +15821,9 @@ var require_strnum = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js
 var require_ignoreAttributes = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module2) {
     init_define_BUILD_INFO();
     function getIgnoreAttributesFn(ignoreAttributes) {
       if (typeof ignoreAttributes === "function") {
@@ -15847,9 +15847,9 @@ var require_ignoreAttributes = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js
 var require_OrderedObjParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var util = require_util();
@@ -16355,9 +16355,9 @@ var require_OrderedObjParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js
 var require_node2json = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
     init_define_BUILD_INFO();
     function prettify(node, options) {
@@ -16452,9 +16452,9 @@ var require_node2json = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var require_XMLParser = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module2) {
     init_define_BUILD_INFO();
     var { buildOptions } = require_OptionsBuilder();
     var OrderedObjParser = require_OrderedObjParser();
@@ -16514,9 +16514,9 @@ var require_XMLParser = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
 var require_orderedJs2Xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module2) {
     init_define_BUILD_INFO();
     var EOL = "\n";
     function toXml(jArray, options) {
@@ -16649,9 +16649,9 @@ var require_orderedJs2Xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js
 var require_json2xml = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var buildFromOrderedJs = require_orderedJs2Xml();
@@ -16902,9 +16902,9 @@ var require_json2xml = __commonJS({
   }
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js
 var require_fxp = __commonJS({
-  "../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
+  "../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fast-xml-parser@4.5.3/node_modules/fast-xml-parser/src/fxp.js"(exports, module2) {
     "use strict";
     init_define_BUILD_INFO();
     var validator = require_validator();
@@ -16918,7 +16918,7 @@ var require_fxp = __commonJS({
   }
 });
 
-// enhanced/serialization/simplified/normalize.ts
+// ../../enhanced/serialization/simplified/normalize.ts
 function normalizeWebTemplateId(text) {
   let id2 = text.trim().replace(/[^\p{L}\p{N}_.\-]+/gu, "_").replace(/_+/g, "_").toLowerCase().replace(/^_+|_+$/g, "");
   if (!id2)
@@ -16947,12 +16947,12 @@ function joinAqlPath(base2, segment) {
   return `${base2.replace(/\/$/, "")}/${seg}`;
 }
 var init_normalize = __esm({
-  "enhanced/serialization/simplified/normalize.ts"() {
+  "../../enhanced/serialization/simplified/normalize.ts"() {
     init_define_BUILD_INFO();
   }
 });
 
-// enhanced/serialization/simplified/dv_field_maps.ts
+// ../../enhanced/serialization/simplified/dv_field_maps.ts
 function def(rmType, fields) {
   MAPS[rmType] = { rmType, fields };
 }
@@ -17125,7 +17125,7 @@ function isPrimary(map2, f2) {
 }
 var MAPS, PARTY_FIELDS, RM_TYPE_ALIASES;
 var init_dv_field_maps = __esm({
-  "enhanced/serialization/simplified/dv_field_maps.ts"() {
+  "../../enhanced/serialization/simplified/dv_field_maps.ts"() {
     init_define_BUILD_INFO();
     MAPS = {};
     def("DV_TEXT", [
@@ -17329,7 +17329,7 @@ var init_dv_field_maps = __esm({
   }
 });
 
-// enhanced/serialization/simplified/web_template_builder.ts
+// ../../enhanced/serialization/simplified/web_template_builder.ts
 function termLabel(val) {
   if (typeof val === "string" && val && val !== "[object Object]")
     return val;
@@ -17420,7 +17420,7 @@ function buildWebTemplate(opt, options) {
 }
 var SKIP_RM_TYPES, DV_LEAF_TYPES, CONTEXT_ATTRS, WebTemplateBuilder;
 var init_web_template_builder = __esm({
-  "enhanced/serialization/simplified/web_template_builder.ts"() {
+  "../../enhanced/serialization/simplified/web_template_builder.ts"() {
     init_define_BUILD_INFO();
     init_openehr_am();
     init_normalize();
@@ -17801,7 +17801,7 @@ var init_web_template_builder = __esm({
   }
 });
 
-// enhanced/serialization/simplified/instance_nav.ts
+// ../../enhanced/serialization/simplified/instance_nav.ts
 function rmTypeName(obj) {
   if (obj == null || typeof obj !== "object")
     return "";
@@ -17965,13 +17965,13 @@ function countInstancesAtPath(instance, parentPath, attr) {
   return val != null ? 1 : 0;
 }
 var init_instance_nav = __esm({
-  "enhanced/serialization/simplified/instance_nav.ts"() {
+  "../../enhanced/serialization/simplified/instance_nav.ts"() {
     init_define_BUILD_INFO();
     init_type_registry();
   }
 });
 
-// enhanced/serialization/simplified/value_extract.ts
+// ../../enhanced/serialization/simplified/value_extract.ts
 function rmTypeName2(obj) {
   if (obj == null || typeof obj !== "object")
     return "";
@@ -18058,14 +18058,14 @@ function extractContextField(instance, nodeId) {
   return extractValueFields(direct);
 }
 var init_value_extract = __esm({
-  "enhanced/serialization/simplified/value_extract.ts"() {
+  "../../enhanced/serialization/simplified/value_extract.ts"() {
     init_define_BUILD_INFO();
     init_type_registry();
     init_dv_field_maps();
   }
 });
 
-// enhanced/serialization/simplified/flat_serializer.ts
+// ../../enhanced/serialization/simplified/flat_serializer.ts
 function joinFlatPath(parts) {
   return parts.join("/");
 }
@@ -18080,7 +18080,7 @@ function serializeToFlatJson(instance, webTemplate, options) {
 }
 var FlatSerializer;
 var init_flat_serializer = __esm({
-  "enhanced/serialization/simplified/flat_serializer.ts"() {
+  "../../enhanced/serialization/simplified/flat_serializer.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_instance_nav();
@@ -18172,7 +18172,7 @@ var init_flat_serializer = __esm({
   }
 });
 
-// enhanced/serialization/simplified/rm_instance_builder.ts
+// ../../enhanced/serialization/simplified/rm_instance_builder.ts
 function nodeIdsMatch2(a2, b3) {
   if (a2 == null)
     return false;
@@ -18282,7 +18282,7 @@ function assignAtAqlPath(root, aqlPath, leafValue, leafRmType, elementNodeId, oc
 }
 var ATTR_RM_TYPE, ARRAY_ATTRS;
 var init_rm_instance_builder = __esm({
-  "enhanced/serialization/simplified/rm_instance_builder.ts"() {
+  "../../enhanced/serialization/simplified/rm_instance_builder.ts"() {
     init_define_BUILD_INFO();
     ATTR_RM_TYPE = {
       content: "SECTION",
@@ -18304,7 +18304,7 @@ var init_rm_instance_builder = __esm({
   }
 });
 
-// enhanced/serialization/simplified/value_build.ts
+// ../../enhanced/serialization/simplified/value_build.ts
 function buildRmValue(rmType, fields) {
   return buildDvValue(rmType, fields);
 }
@@ -18418,13 +18418,13 @@ function normalizeCoded(fields) {
   return b3 != null ? { ...fields, value: b3 } : fields;
 }
 var init_value_build = __esm({
-  "enhanced/serialization/simplified/value_build.ts"() {
+  "../../enhanced/serialization/simplified/value_build.ts"() {
     init_define_BUILD_INFO();
     init_dv_field_maps();
   }
 });
 
-// enhanced/serialization/simplified/flat_deserializer.ts
+// ../../enhanced/serialization/simplified/flat_deserializer.ts
 function parseSegments(basePath) {
   return basePath.split("/").map((seg) => {
     const m2 = /^(.*?)(?::(\d+))?$/.exec(seg);
@@ -18442,7 +18442,7 @@ function deserializeFromFlatJson(json2, webTemplate) {
 }
 var FlatDeserializer;
 var init_flat_deserializer = __esm({
-  "enhanced/serialization/simplified/flat_deserializer.ts"() {
+  "../../enhanced/serialization/simplified/flat_deserializer.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_rm_instance_builder();
@@ -18614,7 +18614,7 @@ var init_flat_deserializer = __esm({
   }
 });
 
-// enhanced/serialization/simplified/structured_serializer.ts
+// ../../enhanced/serialization/simplified/structured_serializer.ts
 function trimTrailing(arr, isEmpty2) {
   let end = arr.length;
   while (end > 0 && isEmpty2(arr[end - 1]))
@@ -18629,7 +18629,7 @@ function serializeToStructuredJson(instance, webTemplate, options) {
 }
 var StructuredSerializer;
 var init_structured_serializer = __esm({
-  "enhanced/serialization/simplified/structured_serializer.ts"() {
+  "../../enhanced/serialization/simplified/structured_serializer.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_instance_nav();
@@ -18753,7 +18753,7 @@ var init_structured_serializer = __esm({
   }
 });
 
-// enhanced/serialization/simplified/structured_to_flat.ts
+// ../../enhanced/serialization/simplified/structured_to_flat.ts
 function isPlainObject(v2) {
   return v2 != null && typeof v2 === "object" && !Array.isArray(v2);
 }
@@ -18809,7 +18809,7 @@ function structuredToFlat(structured, webTemplate) {
 }
 var StructuredToFlatConverter;
 var init_structured_to_flat = __esm({
-  "enhanced/serialization/simplified/structured_to_flat.ts"() {
+  "../../enhanced/serialization/simplified/structured_to_flat.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_dv_field_maps();
@@ -18885,7 +18885,7 @@ var init_structured_to_flat = __esm({
   }
 });
 
-// enhanced/serialization/simplified/structured_deserializer.ts
+// ../../enhanced/serialization/simplified/structured_deserializer.ts
 function deserializeFromStructured(structured, webTemplate) {
   return new StructuredDeserializer(webTemplate).deserialize(structured);
 }
@@ -18894,7 +18894,7 @@ function deserializeFromStructuredJson(json2, webTemplate) {
 }
 var StructuredDeserializer;
 var init_structured_deserializer = __esm({
-  "enhanced/serialization/simplified/structured_deserializer.ts"() {
+  "../../enhanced/serialization/simplified/structured_deserializer.ts"() {
     init_define_BUILD_INFO();
     init_flat_deserializer();
     init_structured_to_flat();
@@ -18913,7 +18913,7 @@ var init_structured_deserializer = __esm({
   }
 });
 
-// enhanced/serialization/simplified/flat_validator.ts
+// ../../enhanced/serialization/simplified/flat_validator.ts
 function stripIndex(segment) {
   return segment.replace(/:\d+$/, "");
 }
@@ -19068,7 +19068,7 @@ function collectExpectedFlatKeys(webTemplate) {
 }
 var CTX_FIELDS;
 var init_flat_validator = __esm({
-  "enhanced/serialization/simplified/flat_validator.ts"() {
+  "../../enhanced/serialization/simplified/flat_validator.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_dv_field_maps();
@@ -19098,7 +19098,7 @@ var init_flat_validator = __esm({
   }
 });
 
-// enhanced/serialization/simplified/web_template_parser.ts
+// ../../enhanced/serialization/simplified/web_template_parser.ts
 function isObject(v2) {
   return v2 != null && typeof v2 === "object" && !Array.isArray(v2);
 }
@@ -19218,12 +19218,12 @@ function parseWebTemplate(source) {
   return webTemplate;
 }
 var init_web_template_parser = __esm({
-  "enhanced/serialization/simplified/web_template_parser.ts"() {
+  "../../enhanced/serialization/simplified/web_template_parser.ts"() {
     init_define_BUILD_INFO();
   }
 });
 
-// enhanced/serialization/simplified/web_template_to_opt.ts
+// ../../enhanced/serialization/simplified/web_template_to_opt.ts
 function parseAqlPath(aqlPath) {
   const segments = aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g) ?? [];
   return segments.map((raw) => {
@@ -19268,7 +19268,7 @@ function webTemplateToOpt(webTemplate) {
 }
 var MULTIPLE_ATTRS, DEFAULT_CTX_PATHS, WebTemplateToOptConverter;
 var init_web_template_to_opt = __esm({
-  "enhanced/serialization/simplified/web_template_to_opt.ts"() {
+  "../../enhanced/serialization/simplified/web_template_to_opt.ts"() {
     init_define_BUILD_INFO();
     init_openehr_am();
     init_openehr_base();
@@ -19447,19 +19447,19 @@ var init_web_template_to_opt = __esm({
   }
 });
 
-// enhanced/serialization/simplified/typed_rm.ts
+// ../../enhanced/serialization/simplified/typed_rm.ts
 function toTypedRm(plain) {
   const deserializer = new JsonCanonicalDeserializer();
   return deserializer.deserialize(JSON.stringify(plain));
 }
 var init_typed_rm = __esm({
-  "enhanced/serialization/simplified/typed_rm.ts"() {
+  "../../enhanced/serialization/simplified/typed_rm.ts"() {
     init_define_BUILD_INFO();
     init_json_canonical_deserializer();
   }
 });
 
-// enhanced/serialization/simplified/mod.ts
+// ../../enhanced/serialization/simplified/mod.ts
 var mod_exports = {};
 __export(mod_exports, {
   FlatDeserializer: () => FlatDeserializer,
@@ -19503,7 +19503,7 @@ __export(mod_exports, {
   webTemplateToOpt: () => webTemplateToOpt
 });
 var init_mod = __esm({
-  "enhanced/serialization/simplified/mod.ts"() {
+  "../../enhanced/serialization/simplified/mod.ts"() {
     init_define_BUILD_INFO();
     init_normalize();
     init_web_template_builder();
@@ -19524,10 +19524,10 @@ var init_mod = __esm({
   }
 });
 
-// examples/demo-app/src/main.ts
+// src/main.ts
 init_define_BUILD_INFO();
 
-// examples/demo-app/src/examples.ts
+// src/examples.ts
 init_define_BUILD_INFO();
 var EXAMPLES = {
   "dv-text": {
@@ -20262,21 +20262,21 @@ content:
   }
 };
 
-// examples/demo-app/src/converter.ts
+// src/converter.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/json/mod.ts
+// ../../enhanced/serialization/json/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/json/json_canonical_serializer.ts
-init_define_BUILD_INFO();
-init_type_registry();
-
-// enhanced/serialization/common/mod.ts
+// ../../enhanced/serialization/json/json_canonical_serializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 
-// enhanced/serialization/common/type_inference.ts
+// ../../enhanced/serialization/common/mod.ts
+init_define_BUILD_INFO();
+init_type_registry();
+
+// ../../enhanced/serialization/common/type_inference.ts
 init_define_BUILD_INFO();
 init_type_registry();
 var TypeInferenceEngine = class {
@@ -20512,7 +20512,7 @@ var TypeInferenceEngine = class {
   }
 };
 
-// enhanced/serialization/common/hybrid_formatter.ts
+// ../../enhanced/serialization/common/hybrid_formatter.ts
 init_define_BUILD_INFO();
 var DEFAULT_OPTIONS = {
   maxInlineProperties: 3,
@@ -20609,7 +20609,7 @@ var HybridStyleFormatter = class {
   }
 };
 
-// enhanced/serialization/common/property_order.ts
+// ../../enhanced/serialization/common/property_order.ts
 init_define_BUILD_INFO();
 function orderSerializationKeys(props, options = {}) {
   const archIdLocation = options.archetypeNodeIdLocation ?? "after_name";
@@ -20654,10 +20654,10 @@ function orderSerializationKeys(props, options = {}) {
   return [...rest, "archetype_node_id"];
 }
 
-// enhanced/serialization/common/mod.ts
+// ../../enhanced/serialization/common/mod.ts
 init_errors();
 
-// enhanced/serialization/json/json_canonical_serializer.ts
+// ../../enhanced/serialization/json/json_canonical_serializer.ts
 var JsonCanonicalSerializer = class {
   TYPE_PROPERTY = "_type";
   INDENT = 2;
@@ -20741,19 +20741,19 @@ var JsonCanonicalSerializer = class {
   }
 };
 
-// enhanced/serialization/json/mod.ts
+// ../../enhanced/serialization/json/mod.ts
 init_json_canonical_deserializer();
 
-// enhanced/serialization/json/json_configurable_serializer.ts
+// ../../enhanced/serialization/json/json_configurable_serializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
 
-// enhanced/terse_format.ts
+// ../../enhanced/terse_format.ts
 init_define_BUILD_INFO();
 init_openehr_base();
 
-// enhanced/openehr_rm.ts
+// ../../enhanced/openehr_rm.ts
 var openehr_rm_exports = {};
 __export(openehr_rm_exports, {
   ACCESS_CONTROL_SETTINGS: () => ACCESS_CONTROL_SETTINGS,
@@ -20906,7 +20906,7 @@ __export(openehr_rm_exports, {
 init_define_BUILD_INFO();
 init_openehr_base();
 
-// enhanced/terminology_service.ts
+// ../../enhanced/terminology_service.ts
 init_define_BUILD_INFO();
 
 // https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts
@@ -25947,7 +25947,7 @@ register(
   parse_frag
 );
 
-// enhanced/terminology_service.ts
+// ../../enhanced/terminology_service.ts
 var OpenEHRTerminologyService = class _OpenEHRTerminologyService {
   static instance;
   terminologies = /* @__PURE__ */ new Map();
@@ -26182,7 +26182,7 @@ var OpenEHRTerminologyService = class _OpenEHRTerminologyService {
   }
 };
 
-// enhanced/init_helpers.ts
+// ../../enhanced/init_helpers.ts
 init_define_BUILD_INFO();
 init_openehr_base();
 function initSingleValueWrapper(value, constructor) {
@@ -26343,7 +26343,7 @@ function initEventContext(value) {
   return context;
 }
 
-// enhanced/openehr_rm.ts
+// ../../enhanced/openehr_rm.ts
 var PATHABLE = class _PATHABLE extends Any {
   /**
    * Internal storage for parent reference.
@@ -33272,7 +33272,7 @@ var INSTRUCTION = class extends CARE_ENTRY {
   activities;
 };
 
-// enhanced/terse_format.ts
+// ../../enhanced/terse_format.ts
 function parseTerseCodePhrase(terse) {
   if (!terse || typeof terse !== "string") {
     return null;
@@ -33330,7 +33330,7 @@ function isTerseDvCodedText(str) {
   return /^[^:]+::[^|]+\|[^|]*\|$/.test(str);
 }
 
-// enhanced/serialization/json/json_config.ts
+// ../../enhanced/serialization/json/json_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_JSON_SERIALIZATION_CONFIG = {
   typePropertyName: "_type",
@@ -33418,7 +33418,7 @@ var NON_STANDARD_VERY_COMPACT_JSON_CONFIG = {
   useHybridStyle: false
 };
 
-// enhanced/serialization/json/json_configurable_serializer.ts
+// ../../enhanced/serialization/json/json_configurable_serializer.ts
 var JsonConfigurableSerializer = class _JsonConfigurableSerializer {
   config;
   /**
@@ -33573,20 +33573,20 @@ var JsonConfigurableSerializer = class _JsonConfigurableSerializer {
   }
 };
 
-// enhanced/serialization/json/json_configurable_deserializer.ts
+// ../../enhanced/serialization/json/json_configurable_deserializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/common/post_deserialize_validation.ts
+// ../../enhanced/serialization/common/post_deserialize_validation.ts
 init_define_BUILD_INFO();
 
-// enhanced/validation/template_validator.ts
+// ../../enhanced/validation/template_validator.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_type_registry();
 
-// enhanced/ucum_service.ts
+// ../../enhanced/ucum_service.ts
 init_define_BUILD_INFO();
 var UcumService = class _UcumService {
   ucumUtils = null;
@@ -33851,7 +33851,7 @@ var UcumService = class _UcumService {
   }
 };
 
-// enhanced/validation/interval_validator.ts
+// ../../enhanced/validation/interval_validator.ts
 init_define_BUILD_INFO();
 var IntervalValidator = class {
   /**
@@ -33969,7 +33969,7 @@ var IntervalValidator = class {
   }
 };
 
-// enhanced/validation/rm_specification_validator.ts
+// ../../enhanced/validation/rm_specification_validator.ts
 init_define_BUILD_INFO();
 var RM_CONSTRAINTS = {
   // COMPOSITION.category - RM 1.1.0 Section 5.1.2
@@ -34284,11 +34284,11 @@ var RMSpecificationValidator = class {
   }
 };
 
-// enhanced/validation/invariant_evaluator.ts
+// ../../enhanced/validation/invariant_evaluator.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 
-// enhanced/validation/archetype_path_resolver.ts
+// ../../enhanced/validation/archetype_path_resolver.ts
 init_define_BUILD_INFO();
 function adlNodeIdToAtCode(nodeId) {
   const m2 = /^id(\d+)$/i.exec(nodeId.trim());
@@ -34426,7 +34426,7 @@ var ArchetypePathResolver = class {
   }
 };
 
-// enhanced/validation/invariant_evaluator.ts
+// ../../enhanced/validation/invariant_evaluator.ts
 var InvariantEvaluator = class {
   pathResolver;
   constructor(options) {
@@ -34818,7 +34818,7 @@ var InvariantEvaluator = class {
   }
 };
 
-// enhanced/validation/template_validator.ts
+// ../../enhanced/validation/template_validator.ts
 var TemplateValidator = class {
   config;
   occurrenceValidator;
@@ -35297,7 +35297,7 @@ var TerminologyValidator = class {
   }
 };
 
-// enhanced/serialization/common/post_deserialize_validation.ts
+// ../../enhanced/serialization/common/post_deserialize_validation.ts
 function validateDeserializedInstance(instance, options) {
   const template = options?.validateAgainstTemplate;
   if (!template || instance === null || instance === void 0) {
@@ -35307,7 +35307,7 @@ function validateDeserializedInstance(instance, options) {
   return validator.validate(instance, template);
 }
 
-// enhanced/serialization/json/json_configurable_deserializer.ts
+// ../../enhanced/serialization/json/json_configurable_deserializer.ts
 var JsonConfigurableDeserializer = class {
   config;
   /**
@@ -35521,25 +35521,25 @@ var JsonConfigurableDeserializer = class {
   }
 };
 
-// enhanced/serialization/yaml/mod.ts
+// ../../enhanced/serialization/yaml/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/yaml/yaml_serializer.ts
+// ../../enhanced/serialization/yaml/yaml_serializer.ts
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/identity.js
 init_define_BUILD_INFO();
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
@@ -35576,7 +35576,7 @@ function isNode(node) {
 }
 var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/visit.js
 init_define_BUILD_INFO();
 var BREAK = Symbol("break visit");
 var SKIP = Symbol("skip children");
@@ -35727,7 +35727,7 @@ function replaceNode(key, path, node) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/directives.js
 var escapeChars = {
   "!": "%21",
   ",": "%2C",
@@ -35890,13 +35890,13 @@ var Directives = class _Directives {
 Directives.defaultYaml = { explicit: false, version: "1.2" };
 Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/anchors.js
 init_define_BUILD_INFO();
 function anchorIsValid(anchor) {
   if (/[\x00-\x19\s,[\]{}]/.test(anchor)) {
@@ -35956,10 +35956,10 @@ function createNodeAnchors(doc2, prefix) {
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/applyReviver.js
 init_define_BUILD_INFO();
 function applyReviver(reviver, obj, key, val) {
   if (val && typeof val === "object") {
@@ -36004,7 +36004,7 @@ function applyReviver(reviver, obj, key, val) {
   return reviver.call(obj, key, val);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/toJS.js
 init_define_BUILD_INFO();
 function toJS(value, arg, ctx) {
   if (Array.isArray(value))
@@ -36028,7 +36028,7 @@ function toJS(value, arg, ctx) {
   return value;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Node.js
 var NodeBase = class {
   constructor(type) {
     Object.defineProperty(this, NODE_TYPE, { value: type });
@@ -36060,7 +36060,7 @@ var NodeBase = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Alias.js
 var Alias = class extends NodeBase {
   constructor(source) {
     super(ALIAS);
@@ -36163,13 +36163,13 @@ function getAliasCount(doc2, node, anchors) {
   return 1;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Scalar.js
 init_define_BUILD_INFO();
 var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
 var Scalar = class extends NodeBase {
@@ -36190,7 +36190,7 @@ Scalar.PLAIN = "PLAIN";
 Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
 Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/createNode.js
 var defaultTagPrefix = "tag:yaml.org,2002:";
 function findTagObject(value, tagName2, tags2) {
   if (tagName2) {
@@ -36256,7 +36256,7 @@ function createNode(value, tagName2, ctx) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Collection.js
 function collectionFromPath(schema4, path, value) {
   let v2 = value;
   for (let i3 = path.length - 1; i3 >= 0; --i3) {
@@ -36388,16 +36388,16 @@ var Collection = class extends NodeBase {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyComment.js
 init_define_BUILD_INFO();
 var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
 function indentComment(comment2, indent) {
@@ -36407,10 +36407,10 @@ function indentComment(comment2, indent) {
 }
 var lineComment = (str, indent, comment2) => str.endsWith("\n") ? indentComment(comment2, indent) : comment2.includes("\n") ? "\n" + indentComment(comment2, indent) : (str.endsWith(" ") ? "" : " ") + comment2;
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
 init_define_BUILD_INFO();
 var FOLD_FLOW = "flow";
 var FOLD_BLOCK = "block";
@@ -36538,7 +36538,7 @@ function consumeMoreIndentedLines(text, i3, indent) {
   return end;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyString.js
 var getFoldOptions = (ctx, isBlock2) => ({
   indentAtStart: isBlock2 ? ctx.indent.length : ctx.indentAtStart,
   lineWidth: ctx.options.lineWidth,
@@ -36813,7 +36813,7 @@ function stringifyString(item, ctx, onComment, onChompKeep) {
   return res;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringify.js
 function createStringifyContext(doc2, options) {
   const opt = Object.assign({
     blockQuote: true,
@@ -36925,7 +36925,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 ${ctx.indent}${str}`;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
   const { allNullValues, doc: doc2, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
   let keyComment = isNode(key) && key.comment || null;
@@ -37048,10 +37048,10 @@ ${ctx.indent}`;
   return str;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/log.js
 init_define_BUILD_INFO();
 function warn(logLevel, warning) {
   if (logLevel === "debug" || logLevel === "warn") {
@@ -37059,7 +37059,7 @@ function warn(logLevel, warning) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
 init_define_BUILD_INFO();
 var MERGE_KEY = "<<";
 var merge = {
@@ -37107,7 +37107,7 @@ function mergeValue(ctx, map2, value) {
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 function addPairToJSMap(ctx, map2, { key, value }) {
   if (isNode(key) && key.addToJSMap)
     key.addToJSMap(ctx, map2, value);
@@ -37160,7 +37160,7 @@ function stringifyKey(key, jsKey, ctx) {
   return JSON.stringify(jsKey);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/Pair.js
 function createPair(key, value, ctx) {
   const k2 = createNode(key, void 0, ctx);
   const v2 = createNode(value, void 0, ctx);
@@ -37189,16 +37189,16 @@ var Pair = class _Pair {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
 init_define_BUILD_INFO();
 function stringifyCollection(collection, ctx, options) {
   const flow = ctx.inFlow ?? collection.flow;
@@ -37334,7 +37334,7 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 function findPair(items, key) {
   const k2 = isScalar(key) ? key.value : key;
   for (const it2 of items) {
@@ -37465,7 +37465,7 @@ var YAMLMap = class extends Collection {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/map.js
 var map = {
   collection: "map",
   default: true,
@@ -37479,10 +37479,10 @@ var map = {
   createNode: (schema4, obj, ctx) => YAMLMap.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
 init_define_BUILD_INFO();
 var YAMLSeq = class extends Collection {
   static get tagName() {
@@ -37587,7 +37587,7 @@ function asItemIndex(key) {
   return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/seq.js
 var seq = {
   collection: "seq",
   default: true,
@@ -37601,7 +37601,7 @@ var seq = {
   createNode: (schema4, obj, ctx) => YAMLSeq.from(schema4, obj, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/string.js
 init_define_BUILD_INFO();
 var string = {
   identify: (value) => typeof value === "string",
@@ -37614,10 +37614,10 @@ var string = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/common/null.js
 init_define_BUILD_INFO();
 var nullTag = {
   identify: (value) => value == null,
@@ -37629,7 +37629,7 @@ var nullTag = {
   stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/bool.js
 init_define_BUILD_INFO();
 var boolTag = {
   identify: (value) => typeof value === "boolean",
@@ -37647,10 +37647,10 @@ var boolTag = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
 init_define_BUILD_INFO();
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
   if (typeof value === "bigint")
@@ -37672,7 +37672,7 @@ function stringifyNumber({ format, minFractionDigits, tag, value }) {
   return n2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/float.js
 var floatNaN = {
   identify: (value) => typeof value === "number",
   default: true,
@@ -37708,7 +37708,7 @@ var float = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/int.js
 init_define_BUILD_INFO();
 var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
 var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
@@ -37745,7 +37745,7 @@ var intHex = {
   stringify: (node) => intStringify(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/core/schema.js
 init_define_BUILD_INFO();
 var schema = [
   map,
@@ -37761,7 +37761,7 @@ var schema = [
   float
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/json/schema.js
 init_define_BUILD_INFO();
 function intIdentify2(value) {
   return typeof value === "bigint" || Number.isInteger(value);
@@ -37820,7 +37820,7 @@ var jsonError = {
 };
 var schema2 = [map, seq].concat(jsonScalars, jsonError);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
 init_define_BUILD_INFO();
 var binary = {
   identify: (value) => value instanceof Uint8Array,
@@ -37874,10 +37874,10 @@ var binary = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
 init_define_BUILD_INFO();
 function resolvePairs(seq2, onError) {
   if (isSeq(seq2)) {
@@ -37944,7 +37944,7 @@ var pairs = {
   createNode: createPairs
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 var YAMLOMap = class _YAMLOMap extends YAMLSeq {
   constructor() {
     super();
@@ -38010,10 +38010,10 @@ var omap = {
   createNode: (schema4, iterable, ctx) => YAMLOMap.from(schema4, iterable, ctx)
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
 init_define_BUILD_INFO();
 function boolStringify({ value, source }, ctx) {
   const boolObj = value ? trueTag : falseTag;
@@ -38038,7 +38038,7 @@ var falseTag = {
   stringify: boolStringify
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
 init_define_BUILD_INFO();
 var floatNaN2 = {
   identify: (value) => typeof value === "number",
@@ -38078,7 +38078,7 @@ var float2 = {
   stringify: stringifyNumber
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
 init_define_BUILD_INFO();
 var intIdentify3 = (value) => typeof value === "bigint" || Number.isInteger(value);
 function intResolve2(str, offset, radix, { intAsBigInt }) {
@@ -38148,7 +38148,7 @@ var intHex2 = {
   stringify: (node) => intStringify2(node, 16, "0x")
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
 init_define_BUILD_INFO();
 var YAMLSet = class _YAMLSet extends YAMLMap {
   constructor(schema4) {
@@ -38228,7 +38228,7 @@ var set = {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
 init_define_BUILD_INFO();
 function parseSexagesimal(str, asBigInt) {
   const sign = str[0];
@@ -38308,7 +38308,7 @@ var timestamp = {
   stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 var schema3 = [
   map,
   seq,
@@ -38333,7 +38333,7 @@ var schema3 = [
   timestamp
 ];
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/tags.js
 var schemas = /* @__PURE__ */ new Map([
   ["core", schema],
   ["failsafe", [map, seq, string]],
@@ -38404,7 +38404,7 @@ function getTags(customTags, schemaName, addMergeTag) {
   }, []);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/schema/Schema.js
 var sortMapEntriesByKey = (a2, b3) => a2.key < b3.key ? -1 : a2.key > b3.key ? 1 : 0;
 var Schema = class _Schema {
   constructor({ compat, customTags, merge: merge2, resolveKnownTags, schema: schema4, sortMapEntries, toStringDefaults }) {
@@ -38425,7 +38425,7 @@ var Schema = class _Schema {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
 init_define_BUILD_INFO();
 function stringifyDocument(doc2, options) {
   const lines = [];
@@ -38497,7 +38497,7 @@ function stringifyDocument(doc2, options) {
   return lines.join("\n") + "\n";
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/doc/Document.js
 var Document3 = class _Document {
   constructor(value, replacer, options) {
     this.commentBefore = null;
@@ -38789,7 +38789,7 @@ function assertCollection(contents) {
   throw new Error("Expected a YAML collection as document contents");
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/errors.js
 init_define_BUILD_INFO();
 var YAMLError = class extends Error {
   constructor(name2, pos, code, message) {
@@ -38846,19 +38846,19 @@ ${pointer}
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-props.js
 init_define_BUILD_INFO();
 function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
   let spaceBefore = false;
@@ -38986,7 +38986,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
   };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-contains-newline.js
 init_define_BUILD_INFO();
 function containsNewline(key) {
   if (!key)
@@ -39023,7 +39023,7 @@ function containsNewline(key) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
 init_define_BUILD_INFO();
 function flowIndentCheck(indent, fc, onError) {
   if (fc?.type === "flow-collection") {
@@ -39035,7 +39035,7 @@ function flowIndentCheck(indent, fc, onError) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-map-includes.js
 init_define_BUILD_INFO();
 function mapIncludes(ctx, items, search) {
   const { uniqueKeys } = ctx.options;
@@ -39045,7 +39045,7 @@ function mapIncludes(ctx, items, search) {
   return items.some((pair2) => isEqual(pair2.key, search));
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 var startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLMap;
@@ -39141,7 +39141,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
   return map2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
 init_define_BUILD_INFO();
 function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError, tag) {
   const NodeClass = tag?.nodeClass ?? YAMLSeq;
@@ -39184,10 +39184,10 @@ function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeE
   return seq2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-end.js
 init_define_BUILD_INFO();
 function resolveEnd(end, offset, reqSpace, onError) {
   let comment2 = "";
@@ -39225,7 +39225,7 @@ function resolveEnd(end, offset, reqSpace, onError) {
   return { comment: comment2, offset };
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 var blockMsg = "Block collections are not allowed within flow collections";
 var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
 function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, fc, onError, tag) {
@@ -39406,7 +39406,7 @@ function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: co
   return coll;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-collection.js
 function resolveCollection(CN2, ctx, token, onError, tagName2, tag) {
   const coll = token.type === "block-map" ? resolveBlockMap(CN2, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq(CN2, ctx, token, onError, tag) : resolveFlowCollection(CN2, ctx, token, onError, tag);
   const Coll = coll.constructor;
@@ -39458,10 +39458,10 @@ function composeCollection(CN2, ctx, token, props, onError) {
   return node;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
 init_define_BUILD_INFO();
 function resolveBlockScalar(ctx, scalar, onError) {
   const start = scalar.offset;
@@ -39636,7 +39636,7 @@ function splitLines(source) {
   return lines;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
 init_define_BUILD_INFO();
 function resolveFlowScalar(scalar, strict, onError) {
   const { offset, type, source, end } = scalar;
@@ -39846,7 +39846,7 @@ function parseCharCode(source, offset, length, onError) {
   return String.fromCodePoint(code);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-scalar.js
 function composeScalar(ctx, token, tagToken, onError) {
   const { value, type, comment: comment2, range } = token.type === "block-scalar" ? resolveBlockScalar(ctx, token, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
   const tagName2 = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
@@ -39917,7 +39917,7 @@ function findScalarTagByTest({ atKey, directives, schema: schema4 }, value, toke
   return tag;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
 init_define_BUILD_INFO();
 function emptyScalarPosition(offset, before, pos) {
   if (before) {
@@ -39942,7 +39942,7 @@ function emptyScalarPosition(offset, before, pos) {
   return offset;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-node.js
 var CN = { composeNode, composeEmptyNode };
 function composeNode(ctx, token, props, onError) {
   const atKey = ctx.atKey;
@@ -40030,7 +40030,7 @@ function composeAlias({ options }, { offset, source, end }, onError) {
   return alias;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/compose-doc.js
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
   const opts = Object.assign({ _directives: directives }, options);
   const doc2 = new Document3(void 0, opts);
@@ -40063,7 +40063,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
   return doc2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/compose/composer.js
 function getErrorPos(src) {
   if (typeof src === "number")
     return [src, src + 1];
@@ -40254,16 +40254,16 @@ ${end.comment}` : end.comment;
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-scalar.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-stringify.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst-visit.js
 init_define_BUILD_INFO();
 var BREAK2 = Symbol("break visit");
 var SKIP2 = Symbol("skip children");
@@ -40320,7 +40320,7 @@ function _visit(path, item, visitor) {
   return typeof ctrl === "function" ? ctrl(item, path) : ctrl;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/cst.js
 var BOM = "\uFEFF";
 var DOCUMENT = "";
 var FLOW_END = "";
@@ -40385,7 +40385,7 @@ function tokenType(source) {
   return null;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/lexer.js
 init_define_BUILD_INFO();
 function isEmpty(ch) {
   switch (ch) {
@@ -40954,7 +40954,7 @@ var Lexer = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/line-counter.js
 init_define_BUILD_INFO();
 var LineCounter = class {
   constructor() {
@@ -40980,7 +40980,7 @@ var LineCounter = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/parse/parser.js
 init_define_BUILD_INFO();
 function includesToken(list, type) {
   for (let i3 = 0; i3 < list.length; ++i3)
@@ -41834,7 +41834,7 @@ var Parser = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/yaml@2.8.2/node_modules/yaml/browser/dist/public-api.js
 init_define_BUILD_INFO();
 function parseOptions(options) {
   const prettyErrors = options.prettyErrors !== false;
@@ -41902,11 +41902,11 @@ function stringify3(value, replacer, options) {
   return new Document3(value, _replacer, options).toString(options);
 }
 
-// enhanced/serialization/yaml/yaml_serializer.ts
+// ../../enhanced/serialization/yaml/yaml_serializer.ts
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/yaml/yaml_config.ts
+// ../../enhanced/serialization/yaml/yaml_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_YAML_SERIALIZATION_CONFIG = {
   mainStyle: "hybrid",
@@ -41981,7 +41981,7 @@ var BLOCK_YAML_CONFIG = {
   archetypeNodeIdLocation: "after_name"
 };
 
-// enhanced/serialization/yaml/yaml_serializer.ts
+// ../../enhanced/serialization/yaml/yaml_serializer.ts
 var YamlSerializer = class _YamlSerializer {
   config;
   /**
@@ -42425,7 +42425,7 @@ var YamlSerializer = class _YamlSerializer {
   }
 };
 
-// enhanced/serialization/yaml/yaml_deserializer.ts
+// ../../enhanced/serialization/yaml/yaml_deserializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
@@ -42635,16 +42635,16 @@ var YamlDeserializer = class _YamlDeserializer {
   }
 };
 
-// enhanced/serialization/xml/mod.ts
+// ../../enhanced/serialization/xml/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/xml/xml_serializer.ts
+// ../../enhanced/serialization/xml/xml_serializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser = __toESM(require_fxp());
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/xml/xml_config.ts
+// ../../enhanced/serialization/xml/xml_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_XML_SERIALIZATION_CONFIG = {
   rootElement: "",
@@ -42663,7 +42663,7 @@ var DEFAULT_XML_DESERIALIZATION_CONFIG = {
   validateAgainstTemplate: void 0
 };
 
-// enhanced/serialization/xml/xml_serializer.ts
+// ../../enhanced/serialization/xml/xml_serializer.ts
 var XmlSerializer = class {
   config;
   /**
@@ -42860,7 +42860,7 @@ ${xml2}` : `${declaration}${xml2}`;
   }
 };
 
-// enhanced/serialization/xml/xml_deserializer.ts
+// ../../enhanced/serialization/xml/xml_deserializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser2 = __toESM(require_fxp());
 init_type_registry();
@@ -43037,19 +43037,19 @@ var XmlDeserializer = class {
   }
 };
 
-// enhanced/serialization/xml/mod.ts
+// ../../enhanced/serialization/xml/mod.ts
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/markdown/mod.ts
+// ../../enhanced/serialization/markdown/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/markdown/markdown_serializer.ts
+// ../../enhanced/serialization/markdown/markdown_serializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/markdown/markdown_config.ts
+// ../../enhanced/serialization/markdown/markdown_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_MARKDOWN_SERIALIZATION_CONFIG = {
   style: "structural",
@@ -43138,7 +43138,7 @@ var WIKILINK_MARKDOWN_CONFIG = {
   hideTypeAnnotationsForDisplay: true
 };
 
-// enhanced/serialization/markdown/markdown_serializer.ts
+// ../../enhanced/serialization/markdown/markdown_serializer.ts
 var MarkdownSerializer = class _MarkdownSerializer {
   config;
   constructor(config = {}) {
@@ -43945,15 +43945,15 @@ var MarkdownSerializer = class _MarkdownSerializer {
   }
 };
 
-// enhanced/serialization/asciidoc/mod.ts
+// ../../enhanced/serialization/asciidoc/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/asciidoc/asciidoc_serializer.ts
+// ../../enhanced/serialization/asciidoc/asciidoc_serializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
 
-// enhanced/serialization/asciidoc/asciidoc_config.ts
+// ../../enhanced/serialization/asciidoc/asciidoc_config.ts
 init_define_BUILD_INFO();
 var DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG = {
   style: "lossless",
@@ -44004,7 +44004,7 @@ var LOSSLESS_ASCIIDOC_CONFIG = {
   useOpenehrUrnLinks: true
 };
 
-// enhanced/serialization/asciidoc/asciidoc_serializer.ts
+// ../../enhanced/serialization/asciidoc/asciidoc_serializer.ts
 var AsciidocSerializer = class _AsciidocSerializer {
   config;
   constructor(config = {}) {
@@ -44856,10 +44856,10 @@ var AsciidocSerializer = class _AsciidocSerializer {
   }
 };
 
-// enhanced/serialization/typescript/mod.ts
+// ../../enhanced/serialization/typescript/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/typescript/typescript_constructor_serializer.ts
+// ../../enhanced/serialization/typescript/typescript_constructor_serializer.ts
 init_define_BUILD_INFO();
 init_type_registry();
 init_errors();
@@ -45169,13 +45169,13 @@ ${" ".repeat(this.config.indent * (depth - 1))}}`;
   }
 };
 
-// examples/demo-app/src/converter.ts
+// src/converter.ts
 init_mod();
 
-// enhanced/parser/mod.ts
+// ../../enhanced/parser/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/adl2_tokenizer.ts
+// ../../enhanced/parser/adl2_tokenizer.ts
 init_define_BUILD_INFO();
 var ADL2Tokenizer = class {
   input;
@@ -45633,10 +45633,10 @@ var ADL2Tokenizer = class {
   }
 };
 
-// enhanced/parser/adl2_parser.ts
+// ../../enhanced/parser/adl2_parser.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/odin_parser.ts
+// ../../enhanced/parser/odin_parser.ts
 init_define_BUILD_INFO();
 var OdinParser = class {
   tokens;
@@ -45943,7 +45943,7 @@ var OdinParser = class {
   }
 };
 
-// enhanced/parser/odin_aom_mapper.ts
+// ../../enhanced/parser/odin_aom_mapper.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
@@ -46049,7 +46049,7 @@ function applyTerminologyOdin(archetype, terminologyData) {
   return terminology;
 }
 
-// enhanced/parser/cadl_parser.ts
+// ../../enhanced/parser/cadl_parser.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
@@ -46467,7 +46467,7 @@ var CadlParser = class {
   }
 };
 
-// enhanced/parser/rules_parser.ts
+// ../../enhanced/parser/rules_parser.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 var RULE_TYPE_NAMES = /* @__PURE__ */ new Set([
@@ -46825,7 +46825,7 @@ var RulesParser = class {
   }
 };
 
-// enhanced/parser/aom_odin_sections.ts
+// ../../enhanced/parser/aom_odin_sections.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
@@ -46850,7 +46850,7 @@ function applyRmOverlayOdin(archetype, data) {
   archetype.rm_overlay = overlay;
 }
 
-// enhanced/parser/adl2_parser.ts
+// ../../enhanced/parser/adl2_parser.ts
 init_openehr_am();
 init_openehr_base();
 var ADL2Parser = class {
@@ -47204,13 +47204,13 @@ var ADL2Parser = class {
   }
 };
 
-// enhanced/parser/parse_adl.ts
+// ../../enhanced/parser/parse_adl.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/adl14_to_adl2_converter.ts
+// ../../enhanced/parser/adl14_to_adl2_converter.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/adl_version.ts
+// ../../enhanced/parser/adl_version.ts
 init_define_BUILD_INFO();
 function hasSectionHeader(source, section) {
   return new RegExp(`^[ \\t]*${section}\\b`, "im").test(source);
@@ -47244,7 +47244,7 @@ function detectAdlVersion(source) {
   return "unknown";
 }
 
-// enhanced/parser/adl14_to_adl2_converter.ts
+// ../../enhanced/parser/adl14_to_adl2_converter.ts
 var DEFAULT_OPTS = {
   targetAdlVersion: "2.0.6",
   rmRelease: "1.0.4",
@@ -47615,7 +47615,7 @@ function splitTopLevelSections(text) {
   return slices;
 }
 
-// enhanced/parser/parse_adl.ts
+// ../../enhanced/parser/parse_adl.ts
 function parseAdl(source, options) {
   const convert2 = options?.convertAdl14 !== false;
   const detectedVersion = detectAdlVersion(source);
@@ -47643,10 +47643,10 @@ function parseAdl(source, options) {
   };
 }
 
-// enhanced/parser/legacy/mod.ts
+// ../../enhanced/parser/legacy/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/legacy/xml_aom_mapper.ts
+// ../../enhanced/parser/legacy/xml_aom_mapper.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser3 = __toESM(require_fxp());
 init_openehr_am();
@@ -48058,7 +48058,7 @@ function collectTermDefinitions(node, bag) {
   }
 }
 
-// enhanced/parser/legacy/opt_xml_parser.ts
+// ../../enhanced/parser/legacy/opt_xml_parser.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
@@ -48119,7 +48119,7 @@ function parseOptXml(source) {
   return { operationalTemplate: opt, warnings };
 }
 
-// enhanced/parser/legacy/oet_xml_parser.ts
+// ../../enhanced/parser/legacy/oet_xml_parser.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser4 = __toESM(require_fxp());
 init_openehr_am();
@@ -48205,22 +48205,22 @@ function parseOetXml(source) {
   return { document: document2, template, warnings };
 }
 
-// enhanced/parser/legacy/archetype_repository.ts
+// ../../enhanced/parser/legacy/archetype_repository.ts
 init_define_BUILD_INFO();
 
-// enhanced/am/flattening/template_flattener.ts
+// ../../enhanced/am/flattening/template_flattener.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 
-// enhanced/am/aom_clone.ts
+// ../../enhanced/am/aom_clone.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
 
-// enhanced/generation/term_scope.ts
+// ../../enhanced/generation/term_scope.ts
 init_define_BUILD_INFO();
 
-// enhanced/generation/term_codes.ts
+// ../../enhanced/generation/term_codes.ts
 init_define_BUILD_INFO();
 init_normalize();
 function termCodeCandidates(nodeId) {
@@ -48300,7 +48300,7 @@ function availableTemplateLanguages(template) {
   return [...langs];
 }
 
-// enhanced/generation/term_scope.ts
+// ../../enhanced/generation/term_scope.ts
 var TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
 var TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
 function termLabel2(val) {
@@ -48390,7 +48390,7 @@ function isTemplateSlotId(code) {
   return /^at0\.\d/i.test(code);
 }
 
-// enhanced/am/aom_clone.ts
+// ../../enhanced/am/aom_clone.ts
 function cloneMultiplicity(src) {
   if (!src)
     return void 0;
@@ -48499,7 +48499,7 @@ function cloneAttribute(attr) {
   return out;
 }
 
-// enhanced/am/ontology_merge.ts
+// ../../enhanced/am/ontology_merge.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 function mergeTermDefinitionTables(target, source) {
@@ -48567,7 +48567,7 @@ function applyMergedTerminology(target, merged) {
   target.ontology = ontology;
 }
 
-// enhanced/am/flattening/specialize.ts
+// ../../enhanced/am/flattening/specialize.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 function attributeChildren(attr) {
@@ -48643,7 +48643,7 @@ function specializeComplexObject(parentFlat, differential) {
   return result2;
 }
 
-// enhanced/am/flattening/template_flattener.ts
+// ../../enhanced/am/flattening/template_flattener.ts
 function archetypeIdString2(arch) {
   return arch.archetype_id?.value ?? arch.archetype_id?.toString();
 }
@@ -48805,12 +48805,12 @@ function flattenToOperationalTemplate(source, resolver) {
   return opt;
 }
 
-// enhanced/parser/legacy/template_json_parser.ts
+// ../../enhanced/parser/legacy/template_json_parser.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
 
-// enhanced/parser/legacy/json_aom_util.ts
+// ../../enhanced/parser/legacy/json_aom_util.ts
 init_define_BUILD_INFO();
 init_openehr_base();
 function jsonType(node) {
@@ -48861,7 +48861,7 @@ function parseCodePhrase(node) {
   return cp;
 }
 
-// enhanced/parser/legacy/template_json_normalize.ts
+// ../../enhanced/parser/legacy/template_json_normalize.ts
 init_define_BUILD_INFO();
 var PROPERTY_ALIASES = {
   rmTypeName: "rm_type_name",
@@ -49017,7 +49017,7 @@ function walkLint(node, path, warnings) {
   }
 }
 
-// enhanced/parser/legacy/template_json_parser.ts
+// ../../enhanced/parser/legacy/template_json_parser.ts
 function isTemplateJson(source) {
   const t3 = source.trimStart();
   if (!t3.startsWith("{"))
@@ -49112,7 +49112,7 @@ function parseJsonOntology(node, _warnings) {
   return onto;
 }
 
-// enhanced/parser/legacy/archetype_repository.ts
+// ../../enhanced/parser/legacy/archetype_repository.ts
 var ArchetypeRepository = class _ArchetypeRepository {
   byId = /* @__PURE__ */ new Map();
   templates = /* @__PURE__ */ new Map();
@@ -49273,15 +49273,15 @@ var ArchetypeRepository = class _ArchetypeRepository {
   }
 };
 
-// enhanced/parser/legacy/parse_template_input.ts
+// ../../enhanced/parser/legacy/parse_template_input.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/legacy/oet_compiler.ts
+// ../../enhanced/parser/legacy/oet_compiler.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
 
-// enhanced/am/aom_path_navigator.ts
+// ../../enhanced/am/aom_path_navigator.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 function normalizeNodeId2(nodeId) {
@@ -49399,7 +49399,7 @@ function replaceAtAomPath(root, path, replacement) {
   return true;
 }
 
-// enhanced/parser/legacy/oet_compiler.ts
+// ../../enhanced/parser/legacy/oet_compiler.ts
 function multiplicityFromMaxMin(max2, min) {
   const m2 = new Multiplicity_interval();
   m2.lower = min ?? 0;
@@ -49506,7 +49506,7 @@ function compileOetToOperational(oet, options) {
   return { operationalTemplate, warnings };
 }
 
-// enhanced/parser/legacy/parse_template_input.ts
+// ../../enhanced/parser/legacy/parse_template_input.ts
 function detectTemplateInputFormat(source) {
   const t3 = source.trim();
   if (!t3)
@@ -49670,10 +49670,10 @@ function getOperationalTemplateFromInput(source, options) {
   );
 }
 
-// enhanced/parser/rules_serializer.ts
+// ../../enhanced/parser/rules_serializer.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/template_workspace.ts
+// ../../enhanced/parser/template_workspace.ts
 init_define_BUILD_INFO();
 function canBeGenerationRoot(path, loadResult) {
   if (/\.(opt|oet)$/i.test(path))
@@ -49889,13 +49889,13 @@ function isOetXmlContent(text) {
   return /openEHR\/v1\/Template/i.test(text);
 }
 
-// enhanced/parser/clinical_model_workspace.ts
+// ../../enhanced/parser/clinical_model_workspace.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/github_repo_loader.ts
+// ../../enhanced/parser/github_repo_loader.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/clinical_model_paths.ts
+// ../../enhanced/parser/clinical_model_paths.ts
 init_define_BUILD_INFO();
 var CLINICAL_MODEL_EXTENSIONS = /\.(adl|adls|opt|oet|t\.json|xml)$/i;
 function isClinicalModelPath(path) {
@@ -49908,7 +49908,7 @@ function normalizeClinicalModelPath(path) {
   return path.replace(/\\/g, "/").replace(/^\/+/, "");
 }
 
-// enhanced/parser/github_repo_loader.ts
+// ../../enhanced/parser/github_repo_loader.ts
 function parseGitHubRepoSpec(spec) {
   const trimmed = spec.trim();
   const urlMatch = trimmed.match(
@@ -50027,10 +50027,10 @@ async function loadGitHubRepoTree(ref, options) {
   };
 }
 
-// enhanced/parser/github_template_closure.ts
+// ../../enhanced/parser/github_template_closure.ts
 init_define_BUILD_INFO();
 
-// enhanced/parser/template_json_dependencies.ts
+// ../../enhanced/parser/template_json_dependencies.ts
 init_define_BUILD_INFO();
 function archetypeIdValue(node) {
   if (!node)
@@ -50108,7 +50108,7 @@ function collectTemplateJsonExternalRefsFromText(source) {
   }
 }
 
-// enhanced/parser/github_template_closure.ts
+// ../../enhanced/parser/github_template_closure.ts
 function emit(options, event) {
   options?.onProgress?.(event);
 }
@@ -50371,7 +50371,7 @@ async function loadGitHubClinicalModelClosure(fileUrl, options) {
   };
 }
 
-// enhanced/parser/clinical_model_workspace.ts
+// ../../enhanced/parser/clinical_model_workspace.ts
 var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   workspace = new TemplateWorkspace();
   dirtyPaths = /* @__PURE__ */ new Set();
@@ -50499,22 +50499,22 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   }
 };
 
-// enhanced/parser/clinical_model_annotations.ts
+// ../../enhanced/parser/clinical_model_annotations.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 init_openehr_base();
 
-// enhanced/generation/adl2_serializer.ts
+// ../../enhanced/generation/adl2_serializer.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 
-// enhanced/parser/odin_serializer.ts
+// ../../enhanced/parser/odin_serializer.ts
 init_define_BUILD_INFO();
 
-// enhanced/generation/mod.ts
+// ../../enhanced/generation/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/generation/rm_instance_generator.ts
+// ../../enhanced/generation/rm_instance_generator.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 var MANDATORY_RM_ATTRIBUTES = {
@@ -51101,14 +51101,14 @@ var RMInstanceGenerator = class {
   }
 };
 
-// enhanced/generation/template_instance_coverage.ts
+// ../../enhanced/generation/template_instance_coverage.ts
 init_define_BUILD_INFO();
 
-// openehr_am.ts
+// ../../openehr_am.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 
-// enhanced/generation/typescript_generator.ts
+// ../../enhanced/generation/typescript_generator.ts
 init_define_BUILD_INFO();
 init_openehr_am();
 var MANDATORY_RM_ATTRIBUTES2 = {
@@ -51324,18 +51324,18 @@ var TypeScriptGenerator = class {
   }
 };
 
-// enhanced/generation/adl14_serializer.ts
+// ../../enhanced/generation/adl14_serializer.ts
 init_define_BUILD_INFO();
 
-// enhanced/generation/opt_xml_serializer.ts
+// ../../enhanced/generation/opt_xml_serializer.ts
 init_define_BUILD_INFO();
 var import_fast_xml_parser5 = __toESM(require_fxp());
 init_openehr_am();
 
-// enhanced/serialization/zipehr/mod.ts
+// ../../enhanced/serialization/zipehr/mod.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/zipehr/shared.ts
+// ../../enhanced/serialization/zipehr/shared.ts
 init_define_BUILD_INFO();
 var TERMINOLOGY_SHORTCUTS = Object.freeze([
   { prefix: "openehr::", emoji: "\u{1FA9F}" },
@@ -51565,6 +51565,114 @@ function compactArchetypeDetails(details) {
   }
   return Object.keys(out).length > 0 ? out : details;
 }
+function extractCompactArchetypeDetails(details) {
+  const compacted = compactArchetypeDetails(details);
+  if (!compacted || typeof compacted !== "object" || Array.isArray(compacted)) {
+    return {};
+  }
+  const src = compacted;
+  const out = {};
+  const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
+  const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
+  const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
+  if (src[tSym] != null)
+    out[tSym] = String(src[tSym]);
+  if (src[aSym] != null)
+    out[aSym] = String(src[aSym]);
+  if (src[rSym] != null)
+    out[rSym] = String(src[rSym]);
+  return out;
+}
+function buildLocatableBracket(nameStr, archetypeNodeId, archetypeDetails) {
+  const details = extractCompactArchetypeDetails(archetypeDetails);
+  const templateId = details[ARCHETYPE_DETAIL_SYMBOLS.template_id];
+  const archetypeId = details[ARCHETYPE_DETAIL_SYMBOLS.archetype_id];
+  const rmVersion = details[ARCHETYPE_DETAIL_SYMBOLS.rm_version];
+  const nodeId = archetypeNodeId != null && archetypeNodeId !== "" ? String(archetypeNodeId) : void 0;
+  const hasDetailSymbols = templateId != null || archetypeId != null || rmVersion != null;
+  const parts = [];
+  if (!hasDetailSymbols) {
+    if (nodeId)
+      parts.push(nodeId);
+    return parts.join(" ");
+  }
+  if (templateId != null) {
+    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.template_id} ${templateId}`);
+  }
+  if (archetypeId != null && archetypeId !== nameStr) {
+    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.archetype_id} ${archetypeId}`);
+  }
+  if (rmVersion != null) {
+    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.rm_version}${rmVersion}`);
+  }
+  if (nodeId && nodeId !== archetypeId) {
+    parts.push(nodeId);
+  }
+  return parts.join(" ");
+}
+function buildLocatableFoldedString(nameStr, archetypeNodeId, archetypeDetails) {
+  const bracket2 = buildLocatableBracket(nameStr, archetypeNodeId, archetypeDetails);
+  if (!bracket2)
+    return nameStr;
+  return `${nameStr}[${bracket2}]`;
+}
+function parseLocatableFolded(value) {
+  const match = value.match(/^(.+)\[(.+)\]$/);
+  if (!match)
+    return null;
+  return { name: match[1], bracket: match[2] };
+}
+function parseLocatableBracket(bracket2, locatableName) {
+  const trimmed = bracket2.trim();
+  if (!trimmed)
+    return {};
+  const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
+  const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
+  const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
+  const symbols = [tSym, aSym, rSym];
+  const hasAnySymbol = symbols.some((sym) => trimmed.includes(sym));
+  if (!hasAnySymbol) {
+    return { archetypeNodeId: trimmed };
+  }
+  const tokens = [];
+  for (const sym of symbols) {
+    let idx = trimmed.indexOf(sym);
+    while (idx !== -1) {
+      tokens.push({ sym, start: idx });
+      idx = trimmed.indexOf(sym, idx + sym.length);
+    }
+  }
+  tokens.sort((a2, b3) => a2.start - b3.start);
+  const details = {};
+  let archetypeNodeId;
+  if (tokens.length > 0 && tokens[0].start > 0) {
+    const prefix = trimmed.slice(0, tokens[0].start).trim();
+    if (prefix)
+      archetypeNodeId = prefix;
+  }
+  for (let i3 = 0; i3 < tokens.length; i3++) {
+    const { sym, start } = tokens[i3];
+    const valueStart = start + sym.length;
+    const valueEnd = i3 + 1 < tokens.length ? tokens[i3 + 1].start : trimmed.length;
+    const value = trimmed.slice(valueStart, valueEnd).trim();
+    if (sym === tSym)
+      details[tSym] = value;
+    else if (sym === aSym)
+      details[aSym] = value;
+    else if (sym === rSym)
+      details[rSym] = value;
+  }
+  if (details[aSym] == null && (details[tSym] != null || details[rSym] != null)) {
+    details[aSym] = locatableName;
+  }
+  if (details[aSym] != null && archetypeNodeId == null) {
+    archetypeNodeId = String(details[aSym]);
+  }
+  return {
+    archetypeNodeId,
+    archetypeDetails: Object.keys(details).length > 0 ? details : void 0
+  };
+}
 function extractFirstScalar(n2) {
   if (n2 === null)
     return null;
@@ -51592,14 +51700,14 @@ function isSymbolKey(key) {
   return /[^\x00-\x7F]/.test(key) || key === "_";
 }
 
-// enhanced/serialization/zipehr/symbol_map.ts
+// ../../enhanced/serialization/zipehr/symbol_map.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/zipehr/table3_text.ts
+// ../../enhanced/serialization/zipehr/table3_text.ts
 init_define_BUILD_INFO();
 var table3_text_default = '{ data_types: {\r\n  attributes: {\r\n    archetype_node_id: ["\u{1F194}"]\r\n  },\r\n  # DATA_VALUE (abstract): ["\u2753","\u{1F4E6}","\u{1F9E9}","\u{1F538}","\u{1F537}","\u{1F539}","\u{1F50D}","\u{1F4E6}","\u2699\uFE0F","\u{1F523}","\u2754","\u{1F517}"],\r\n  DV_BOOLEAN: ["\u2705","\u274C","\u2714\uFE0F","\u2716\uFE0F","\u{1F44D}","\u{1F44E}","\u2B55","\u2733\uFE0F","\u2611\uFE0F","\u{1F518}","\u{1F501}","\u2757"],\r\n  DV_IDENTIFIER: ["\u{1FAAA}","\u{1F194}","\u{1F511}","\u{1F3F7}\uFE0F","\u{1F517}","\u{1F9FE}","#\uFE0F\u20E3","\u{1F52C}","\u{1F516}","\u{1F510}","\u{1F9FE}","\u{1F4C7}"],\r\n  DV_STATE: ["\u2691","\u{1F3C1}","\u{1F534}","\u{1F7E2}","\u26AA","\u{1F538}","\u{1F514}","\u{1F4CC}","\u{1F53B}","\u{1F53A}"],\r\n  DV_TEXT: ["\u{1F5C9}","\u{1F5B9}"],\r\n  DV_CODED_TEXT: ["\u{1F5C8}","\u{1F5CE}"],\r\n  DV_PARAGRAPH: ["\u{1F4C3}","\xB6","\u{1F5D2}\uFE0F","\u{1F4DA}","\u{1F4DD}","\u{1F4C4}","\u{1F4D6}","\u{1F9FE}"],\r\n  CODE_PHRASE: ["\u{1F3F7}\uFE0F","\u{1F524}","\u{1F521}","\u{1F523}","\u{1F9FE}","\u{1F4DB}","\u{1FAAA}","\u{1F516}","\u{1F50E}","\u{1F517}","\u2733\uFE0F","\u{1F522}"],\r\n  TERM_MAPPING: ["\u{1F500}","\u{1F517}","\u{1F501}","\u{1F504}","\u{1F9ED}","\u{1F5FA}\uFE0F","\u{1F516}","\u{1F9E9}","\u{1F4CC}"],\r\n\r\n  # DV_ORDERED (abstract): ["\u{1F522}","\u{1F4CA}","\u{1F53C}","\u{1F53D}","\u{1F4C8}","\u{1F4C9}","\u{1F9ED}"],\r\n  DV_QUANTITY: ["\u2696\uFE0F","\u{1F4CF}","\u{1F522}","\u{1F4D0}","\u{1F321}\uFE0F","\u{1F4CA}","\u{1F52C}","\u{1F9EA}","\u{1F9FE}","#","\u2211"],\r\n  DV_COUNT: ["\u{1F522}","\u{1F9EE}","\u{1F51F}","\u{1F522}","#","\u2460\u2461\u2462","\u{1F522}","\u{1F522}"],\r\n  DV_PROPORTION: ["\xF7","\u2339","\u2A38","%","\u2797","\u2236","\u215F","\u{1F522}","\u{1F4C8}","\u{1F4C9}"],\r\n  DV_ORDINAL: ["\u{1F522}","\u{1F947}","\u{1F948}","\u{1F949}","\u{1F4F6}","\u{1F51D}","\u{1F51C}"],\r\n  DV_INTERVAL: ["\u2194\uFE0F","\u27F7","\u2013","\u2014","\u{1F501}","\u{1F4CF}","\u{1F4C8}"],\r\n  REFERENCE_RANGE: ["\u{1F4CF}","\u{1F4CB}","\u{1F52C}","\u{1F4CA}","\u{1F9ED}"],\r\n\r\n  # DV_TEMPORAL (abstract): ["\u{1F570}\uFE0F","\u{1F4C5}","\u23F0","\u{1F5D3}\uFE0F","\u{1F552}","\u23F3","\u231B","\u{1F558}","\u{1F55B}"],\r\n  DV_DATE: ["\u{1F4C5}","\u{1F4C6}","\u{1F5D3}\uFE0F","\u{1F4C7}","\u{1F4C5}","\u{1F570}\uFE0F"],\r\n  DV_TIME: ["\u23F0","\u{1F552}","\u231A","\u23F1\uFE0F","\u{1F553}"],\r\n  DV_DATE_TIME: ["\u{1F4C5}\u23F0","\u{1F570}\uFE0F","\u{1F4C6}\u{1F552}","\u{1F5D3}\uFE0F\u{1F552}","\u{1F558}"],\r\n  DV_DURATION: ["\u23F3","\u231B","\u23F1\uFE0F","\u2194\uFE0F","\u{1F501}"],\r\n\r\n  # DV_ENCAPSULATED (abstract): ["\u{1F4E6}","\u{1F5C3}\uFE0F","\u{1F4E6}","\u{1F5C4}\uFE0F","\u{1F4E5}","\u{1F4E4}","\u{1F9FE}"],\r\n  DV_MULTIMEDIA: ["\u{1F5BC}\uFE0F","\u{1F3A5}","\u{1F3A7}","\u{1F4F7}","\u{1F4F9}","\u{1F39E}\uFE0F","\u{1F4FA}","\u{1F50A}"],\r\n  DV_PARSABLE: ["\u{1F523}","\u{1F4C4}","\u{1F9FE}","\u{1F4BE}","\u{1F5C2}\uFE0F","\u{1F50D}"],\r\n  DV_URI: ["\u{1F517}","\u{1F310}","\u{1F50D}","\u{1F4CE}","\u{1F4C1}","\u{1F9ED}","\u{1F30D}"],\r\n  DV_EHR_URI: ["\u2928","\u{1FA7A}\u{1F517}","\u{1F9FE}\u{1F517}","\u{1F3E5}\u{1F517}"],\r\n\r\n  DV_SCALE: ["\u2195\uFE0F","\u{1F4CA}","\u2696\uFE0F","\u{1F4C8}","\u{1F4C9}","\u{1F522}","\u{1F52C}"]\r\n}, data_structures: {\r\n  # DATA_STRUCTURE (abstract): ["\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F4E6}","\u{1F4C1}","\u{1F9FE}","\u{1F517}","\u{1F9ED}","\u{1F4CB}","\u{1F4D1}","\u{1F9E9}","\u{1F537}","\u{1F538}"],\r\n  # ITEM_STRUCTURE (abstract): ["\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F9FE}","\u{1F4C1}","\u{1F4D1}","\u{1F9E9}","\u{1F517}","\u{1F4CB}","\u{1F9F1}","\u{1F9ED}","\u{1F9F0}","\u{1F4E6}"],\r\n  ITEM_SINGLE: ["\u{1F538}","\u26AA","\u{1F539}","\u{1F7E2}","\u{1F518}","\u{1F4CC}","\u{1F50E}","\u{1F9FE}","\u{1F4CD}","\u{1F53A}","\u{1F539}","\u{1F50E}"],\r\n  ITEM_LIST: ["\u{1F4DC}","\u{1F4CB}","\u{1F4D1}","\u{1F522}","\u{1F501}","\u{1F4DA}","\u{1F9FE}","\u{1F9EE}","\u{1F522}","\u{1F4DA}","\u{1F53B}","\u{1F53A}"],\r\n  ITEM_TABLE: ["\u{1F4CA}","\u{1F4C8}","\u{1F4C9}","\u{1F4CB}","\u{1F5C2}\uFE0F","\u{1F9FE}","\u{1F4D1}","\u{1F9FE}","\u{1F9F1}","\u{1F522}","\u{1F5C3}\uFE0F","\u{1F4CC}"],\r\n  ITEM_TREE: ["\u{1F333}","\u{1F33F}","\u{1F332}","\u{1F4C2}","\u{1F5C2}\uFE0F","\u{1F334}","\u{1F9ED}","\u{1F517}","\u{1F9E9}","\u{1F9F1}","\u{1FAB5}","\u{1F53B}","\u{1F53A}"],\r\n  # ITEM (abstract): ["\u{1F4E6}","\u{1F9E9}","\u{1F539}","\u{1F4CC}","\u{1F9FE}","\u{1F517}","\u26AA","\u{1F7E3}","\u{1F50E}","\u{1F4C4}","\u{1FAAA}","\u{1F9ED}"],\r\n  CLUSTER: ["\u{1F4C1}","\u{1F4E6}","\u{1F9F1}","\u{1F5C2}\uFE0F","\u{1F517}","\u{1F4C2}","\u{1F9E9}","\u{1F4D1}","\u{1F4CB}","\u{1F9F0}","\u{1F9FE}","\u{1F512}"],\r\n  ELEMENT: ["\u{1F539}","\u{1F343}","\u26AA","\u{1F538}","\u{1F9E9}","\u{1F4CD}","\u{1F50E}","\u{1F9FE}","\u{1F52C}","\u{1F4A1}","\u{1F516}","\u{1F4CC}","\u{1F4DD}"],\r\n  HISTORY: ["\u{1F4C8}","\u{1F570}\uFE0F","\u{1F4C5}","\u{1F4C9}","\u{1F4DC}","\u23F3","\u{1F4DA}","\u{1F4C6}","\u{1F5D3}\uFE0F","\u{1F9ED}","\u{1F501}","\u{1F9FE}"],\r\n  # EVENT (abstract): ["\u{1F4CD}","\u{1F534}","\u{1F514}","\u{1F570}\uFE0F","\u23F1\uFE0F","\u{1F4C5}","\u{1F4CC}","\u{1F9ED}","\u{1F501}","\u{1F9FE}","\u{1F50E}","\u{1F4E3}"],\r\n  POINT_EVENT: ["\u{1F78B}","\u{1F4CD}","\u{1F534}","\u{1F4CC}","\u{1F570}\uFE0F","\u{1F552}","\u{1F50E}","\u{1F9FE}","\u26AA","\u{1F539}","\u{1F4C5}","\u23F1\uFE0F","\u2705"],\r\n  INTERVAL_EVENT: ["\u27F7","\u2194\uFE0F","\u23F3","\u231B","\u{1F4CF}","\u{1F4C8}","\u{1F4CA}","\u{1F501}","\u{1F9FE}","\u{1F52C}","\u{1F570}\uFE0F","\u{1F4C6}"],\r\n}, ehr_components: {\r\n  EHR: ["\u{1F3E5}","\u{1F4C1}","\u{1F5C2}\uFE0F","\u{1FA7A}","\u{1F9FE}","\u{1F464}","\u{1F9ED}","\u{1F510}","\u{1F9FE}","\u{1F517}","\u{1F4E6}","\u{1F4D1}"],\r\n  EHR_STATUS: ["\u{1F4CA}","\u2699\uFE0F","\u{1F512}","\u{1F465}","\u{1F4DB}","\u{1F9ED}","\u{1F4CC}","\u{1F4CB}","\u{1F9FE}","\u{1F514}","\u{1F50D}","\u{1F4C8}"],\r\n  EHR_ACCESS: ["\u{1F510}","\u{1F6E1}\uFE0F","\u{1F511}","\u{1F512}","\u{1F9FE}","\u{1F464}","\u{1F9ED}","\u{1F9FE}","\u{1F517}","\u{1F6C2}","\u{1F4DC}","\u{1F9FE}"],\r\n  COMPOSITION: ["\u{1F582}","\u{1F4C4}","\u{1F9FE}","\u{1F4C1}","\u{1F4DC}","\u{1F5C2}\uFE0F","\u{1F4DD}","\u{1F4D1}","\u{1FA7A}","\u{1F4E6}","\u{1F516}","\u{1F4CB}","\u{1F9FE}"],\r\n  EVENT_CONTEXT: ["\u{1F570}\uFE0F","\u{1F4CD}","\u{1F4C5}","\u{1F4CC}","\u{1F9ED}","\u{1F3E5}","\u{1F4CD}","\u{1F5FA}\uFE0F","\u{1F9FE}","\u{1F4CD}","\u{1F50D}","\u{1F9FE}"],\r\n  # CONTENT_ITEM (assumed abstract): ["\u{1F4CE}","\u{1F4CC}","\u{1F4C2}","\u{1F9E9}","\u{1F4C1}","\u{1F9FE}","\u{1F4D1}","\u{1F5C2}\uFE0F","\u{1F4CB}","\u{1F516}","\u{1F9ED}","\u{1F50E}"],\r\n  SECTION: ["\u{1F4DA}","\u{1F5C2}\uFE0F","\u{1F4D1}","\u{1F4CB}","\u{1F516}","\u{1F4C2}","\u{1F4C1}","\u{1F9ED}","\u{1F9FE}","\u{1F4CC}","\u{1F9E9}","\u{1F4DA}"],\r\n  ENTRY: ["\u{1F4DD}","\u{1F9FE}","\u{1F4C4}","\u{1FA7A}","\u{1F4CC}","\u{1F4CB}","\u{1F5C2}\uFE0F","\u{1F9ED}","\u{1F9FE}","\u{1F52C}","\u{1F4D1}","\u{1F4C2}"],\r\n  ADMIN_ENTRY: ["\u{1F3F7}\uFE0F","\u{1F5C2}\uFE0F","\u{1F4CB}","\u{1F9FE}","\u{1F6C2}","\u{1F4D1}","\u{1F510}","\u{1F4CC}","\u{1F9FE}","\u{1F4C1}","\u{1F9FE}","\u{1F4DA}"],\r\n  CARE_ENTRY: ["\u{1FA7A}","\u{1F9FE}","\u{1F4C4}","\u{1F4DD}","\u{1F4CC}","\u{1F4CB}","\u{1F9ED}","\u{1F9FE}","\u{1F4D1}","\u{1F4C2}","\u{1F52C}","\u{1F4CA}"],\r\n  OBSERVATION: ["\u{1F440}","\u{1F52D}","\u{1FA7A}","\u{1F4C8}","\u{1F4CA}","\u{1F9EA}","\u{1F4CD}","\u{1F4CB}","\u{1F9FE}","\u{1F4D1}","\u{1F4CC}","\u{1F4F7}","\u{1FA7B}"],\r\n  EVALUATION: ["\u{1F9E0}","\u{1F4DD}","\u{1F4CB}","\u{1F50D}","\u{1F4CA}","\u{1F9FE}","\u{1F4D1}","\u{1F4CC}","\u2696\uFE0F","\u{1F4DB}","\u{1F9ED}","\u{1F516}"],\r\n  INSTRUCTION: ["\u{1F4CB}","\u{1F4DC}","\u{1F4DD}","\u{1F4C5}","\u{1F9ED}","\u{1F4CC}","\u{1F9FE}","\u{1F4D1}","\u{1F4CB}","\u{1F6CE}\uFE0F","\u{1F514}","\u2699\uFE0F","\u{1F9E9}"],\r\n  ACTION: ["\u{1F5F9}","\u2705","\u{1F6E0}\uFE0F","\u{1F527}","\u{1F9FE}","\u{1F4CC}","\u{1F4CB}","\u{1F9ED}","\u{1FA7A}","\u{1F4C5}","\u{1F4D1}","\u{1F9FE}","\u{1F501}"],\r\n  VERSIONED_OBJECT: ["\u{1F501}","\u{1F4E6}","\u{1F9FE}","\u{1F4D1}","\u{1F570}\uFE0F","\u{1F9FE}","\u{1F516}","\u{1F4C2}","\u{1F5F3}\uFE0F","\u{1F9ED}","\u{1F4DA}","\u{1F4DD}"],\r\n  CONTRIBUTION: ["\u270D\uFE0F","\u{1F9FE}","\u{1F4D1}","\u{1F4C5}","\u{1F9ED}","\u{1F4CC}","\u{1F517}","\u{1F9FE}","\u{1F4DD}","\u{1F9FE}","\u{1F9FE}","\u{1F50D}"]\r\n}, foundation_types: {\r\n  # Any (abstract): ["\u2753","\u{1F536}","\u{1F537}","\u{1F538}","\u26AA","\u{1F539}"],\r\n  # Ordered (abstract): ["\u2195\uFE0F","\u{1F522}","\u{1F4C8}","\u{1F4C9}"],\r\n  # Numeric (abstract): ["\u{1F522}","#","\u2211","\u2795","\u2796"],\r\n  # Ordered_Numeric (abstract): ["\u{1F522}","\u2195\uFE0F","\u{1F4C8}","\u{1F4C9}"],\r\n\r\n  Boolean: ["\u2705","\u274C","\u2714\uFE0F","\u2716\uFE0F","\u{1F44D}","\u{1F44E}"],\r\n  Integer: ["\u{1F522}","#","\u2795","\u2796","\u{1F51F}","\u{1F523}"],\r\n  Integer64: ["\u{1F522}","\u{1F512}","\u{1F523}","#","\u{1F51F}","\u{1F9EE}"],\r\n  Real: ["\u{1F522}","\u2797","\u{1F4D0}","\u{1F4CA}","\u{1F52C}","\u{1F523}"],\r\n  Double: ["\u{1F522}","\u{1F52C}","\u{1F4C8}","\u{1F4C9}","\u{1F523}","\u{1F50E}"],\r\n  Byte: ["\u{1F4E6}","\u{1F522}","\u{1F538}","\u{1F537}"],\r\n  Octet: ["\u{1F39B}\uFE0F","\u{1F522}","\u{1F538}","\u{1F537}"],\r\n  Character: ["\u{1F524}","\u{1F521}","\u{1F520}","\u{1F523}","\u2733\uFE0F"],\r\n\r\n  String: ["\u{1F524}","\u{1F4DD}","\u{1F4C4}","\u{1F4DC}","\u{1F5D2}\uFE0F","\u{1F50E}"],\r\n  Uri: ["\u{1F517}","\u{1F310}","\u{1F4CE}","\u{1F50D}","\u{1F4C1}","\u{1F9ED}"],\r\n\r\n  # Aggregate<T> (abstract): ["\u{1F5C3}\uFE0F","\u{1F4E6}","\u{1F4DA}","\u{1F4D1}","\u{1F9E9}"],\r\n  List: ["\u{1F4DC}","\u{1F4CB}","\u{1F4D1}","\u{1F522}","\u{1F4DA}","\u{1F9FE}"],\r\n  Array: ["\u{1F522}","\u{1F4E6}","\u{1F4DA}","\u{1F4CA}","\u{1F9FE}","\u{1F4D1}"],\r\n  Set: ["\u{1F522}","\u{1F9E9}","\u{1F4DA}","\u{1F4D1}","\u2705","\u{1F501}"],\r\n  Hash: ["\u{1F510}","\u{1F4C7}","\u{1F5C2}\uFE0F","\u{1F4C1}","\u{1F50E}","\u{1F9FE}"],\r\n\r\n  Interval: ["\u2194\uFE0F","\u27F7","\u2013","\u2014","\u{1F4CF}","\u{1F522}"]\r\n} }\r\n# good sources for icons:\r\n# http://xahlee.info/comp/unicode_index.html?q=\r\n# http://emojipedia.org/\r\n';
 
-// enhanced/serialization/zipehr/symbol_map.ts
+// ../../enhanced/serialization/zipehr/symbol_map.ts
 var cachedSymbolMap = null;
 async function loadDefaultSymbolMap() {
   if (cachedSymbolMap)
@@ -51623,7 +51731,7 @@ function buildReverseSymbolMap(map2) {
   return reverse;
 }
 
-// enhanced/serialization/zipehr/compact.ts
+// ../../enhanced/serialization/zipehr/compact.ts
 init_define_BUILD_INFO();
 var FLOW_YAML_CONFIG2 = Object.freeze({
   mainStyle: "flow",
@@ -51754,7 +51862,7 @@ function jsonToCompactPlain(json2) {
   return toPlainObjectCompact(json2, void 0, void 0, FLOW_YAML_CONFIG2);
 }
 
-// enhanced/serialization/zipehr/convert.ts
+// ../../enhanced/serialization/zipehr/convert.ts
 init_define_BUILD_INFO();
 var STRUCTURAL_TYPES = /* @__PURE__ */ new Set(["ARCHETYPE_DETAILS"]);
 function promoteTerminologyFields(obj) {
@@ -51778,10 +51886,16 @@ function foldCompositionName(obj, symbolMap) {
   if (nameStr == null)
     return obj;
   const sym = compositionSym || "\u{1F582}";
-  const out = { [sym]: nameStr };
+  const folded = buildLocatableFoldedString(
+    nameStr,
+    obj.archetype_node_id != null ? String(obj.archetype_node_id) : void 0,
+    obj.archetype_details
+  );
+  const out = { [sym]: folded };
   for (const k2 of Object.keys(obj)) {
-    if (k2 === "_" || k2 === "name")
+    if (k2 === "_" || k2 === "name" || k2 === "archetype_node_id" || k2 === "archetype_details") {
       continue;
+    }
     out[k2] = obj[k2];
   }
   return out;
@@ -51867,17 +51981,20 @@ function convertObjectDirectInner(obj, symbolMap) {
       return out3;
     }
     const sym = getSymbolFor(symbolMap, t3) || t3;
-    if (Object.prototype.hasOwnProperty.call(typed, "name") && Object.prototype.hasOwnProperty.call(typed, "archetype_node_id")) {
+    if (Object.prototype.hasOwnProperty.call(typed, "name") && (Object.prototype.hasOwnProperty.call(typed, "archetype_node_id") || Object.prototype.hasOwnProperty.call(typed, "archetype_details"))) {
       const convName = convertObjectDirectInner(typed.name, symbolMap);
-      const convArch = convertObjectDirectInner(
-        typed.archetype_node_id,
-        symbolMap
-      );
       const nameStr = extractFirstScalar(convName) || "";
-      const archStr = extractFirstScalar(convArch) || "";
-      const out3 = { [sym]: `${nameStr}[${archStr}]` };
+      const nodeId = typed.archetype_node_id != null ? extractFirstScalar(
+        convertObjectDirectInner(typed.archetype_node_id, symbolMap)
+      ) ?? String(typed.archetype_node_id) : void 0;
+      const folded = buildLocatableFoldedString(
+        nameStr,
+        nodeId,
+        typed.archetype_details
+      );
+      const out3 = { [sym]: folded };
       for (const k2 of Object.keys(typed)) {
-        if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id") {
+        if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id" || k2 === "archetype_details") {
           continue;
         }
         out3[k2] = convertObjectDirectInner(typed[k2], symbolMap);
@@ -51989,14 +52106,20 @@ function applyEmojiToCompact(compact, original, symbolMap, parentType, propertyN
       return wrapDvScalar(dvType, compactObj.value, symbolMap);
     }
   }
-  if (origObj && Object.prototype.hasOwnProperty.call(origObj, "name") && Object.prototype.hasOwnProperty.call(origObj, "archetype_node_id")) {
+  if (origObj && Object.prototype.hasOwnProperty.call(origObj, "name") && (Object.prototype.hasOwnProperty.call(origObj, "archetype_node_id") || Object.prototype.hasOwnProperty.call(origObj, "archetype_details"))) {
     const sym2 = getSymbolFor(symbolMap, String(typeName2 ?? "")) || String(typeName2 ?? "LOCATABLE");
     const nameStr = typeof compactObj.name === "string" ? compactObj.name : extractFirstScalar(compactObj.name) || extractFirstScalar(origObj.name) || "";
-    const archStr = compactObj.archetype_node_id != null ? String(compactObj.archetype_node_id) : String(origObj.archetype_node_id || "");
-    const out2 = { [String(sym2)]: `${nameStr}[${archStr}]` };
+    const nodeId = compactObj.archetype_node_id != null ? String(compactObj.archetype_node_id) : origObj.archetype_node_id != null ? String(origObj.archetype_node_id) : void 0;
+    const folded = buildLocatableFoldedString(
+      nameStr,
+      nodeId,
+      origObj.archetype_details
+    );
+    const out2 = { [String(sym2)]: folded };
     for (const k2 of Object.keys(compactObj)) {
-      if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id")
+      if (k2 === "_type" || k2 === "name" || k2 === "archetype_node_id" || k2 === "archetype_details") {
         continue;
+      }
       out2[k2] = applyEmojiToCompact(
         compactObj[k2],
         origObj[k2],
@@ -52066,7 +52189,7 @@ function convertObjectEhrtslib(obj, symbolMap) {
   );
 }
 
-// enhanced/serialization/zipehr/deserialize.ts
+// ../../enhanced/serialization/zipehr/deserialize.ts
 init_define_BUILD_INFO();
 function expandCodePhraseTerse(terse) {
   const expanded = expandTerseString(terse);
@@ -52112,22 +52235,22 @@ function expandTerseScalar(value, expectedType) {
   }
   return expanded;
 }
-function parseLocatableFolded(value) {
-  const match = value.match(/^(.+)\[(.+)\]$/);
-  if (!match)
-    return null;
-  return { name: match[1], arch: match[2] };
-}
 function expandArchetypeDetails(details) {
-  const out = { _type: "ARCHETYPE_DETAILS" };
+  const out = { _type: "ARCHETYPED" };
   const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
   const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
   const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
   if (details[tSym] != null) {
-    out.template_id = { value: details[tSym] };
+    out.template_id = {
+      _type: "TEMPLATE_ID",
+      value: details[tSym]
+    };
   }
   if (details[aSym] != null) {
-    out.archetype_id = { value: details[aSym] };
+    out.archetype_id = {
+      _type: "ARCHETYPE_ID",
+      value: details[aSym]
+    };
   }
   if (details[rSym] != null) {
     out.rm_version = details[rSym];
@@ -52136,6 +52259,28 @@ function expandArchetypeDetails(details) {
     if (k2 === tSym || k2 === aSym || k2 === rSym)
       continue;
     out[k2] = details[k2];
+  }
+  return out;
+}
+function expandFoldedLocatable(foldedValue, typeName2, obj, symKey, reverseMap, symbolMap) {
+  const parsed = parseLocatableFolded(foldedValue);
+  const name2 = parsed?.name ?? foldedValue;
+  const bracket2 = parsed?.bracket ?? "";
+  const bracketParts = parseLocatableBracket(bracket2, name2);
+  const out = {
+    _type: typeName2,
+    name: { _type: "DV_TEXT", value: name2 }
+  };
+  if (bracketParts.archetypeNodeId) {
+    out.archetype_node_id = bracketParts.archetypeNodeId;
+  }
+  if (bracketParts.archetypeDetails) {
+    out.archetype_details = expandArchetypeDetails(bracketParts.archetypeDetails);
+  }
+  for (const k2 of Object.keys(obj)) {
+    if (k2 === symKey || k2 === "archetype_details")
+      continue;
+    out[k2] = expandNode(obj[k2], typeName2, k2, reverseMap, symbolMap);
   }
   return out;
 }
@@ -52184,17 +52329,14 @@ function expandNode(node, parentType, propertyName2, reverseMap, symbolMap) {
   }
   const compositionSym = getSymbolFor(symbolMap, "COMPOSITION");
   if (compositionSym && Object.prototype.hasOwnProperty.call(obj, compositionSym) && typeof obj[compositionSym] === "string") {
-    const name2 = String(obj[compositionSym]);
-    const out2 = {
-      _type: "COMPOSITION",
-      name: { _type: "DV_TEXT", value: name2 }
-    };
-    for (const k2 of Object.keys(obj)) {
-      if (k2 === compositionSym)
-        continue;
-      out2[k2] = expandNode(obj[k2], "COMPOSITION", k2, reverseMap, symbolMap);
-    }
-    return out2;
+    return expandFoldedLocatable(
+      String(obj[compositionSym]),
+      "COMPOSITION",
+      obj,
+      compositionSym,
+      reverseMap,
+      symbolMap
+    );
   }
   const symbolKeys = Object.keys(obj).filter((k2) => isSymbolKey(k2) && k2 !== "_");
   const typeMarker = obj._;
@@ -52207,17 +52349,14 @@ function expandNode(node, parentType, propertyName2, reverseMap, symbolMap) {
     }
     const locatable = parseLocatableFolded(strVal);
     if (locatable && typeName2) {
-      const out2 = {
-        _type: typeName2,
-        name: { _type: "DV_TEXT", value: locatable.name },
-        archetype_node_id: locatable.arch
-      };
-      for (const k2 of Object.keys(obj)) {
-        if (k2 === symKey)
-          continue;
-        out2[k2] = expandNode(obj[k2], typeName2, k2, reverseMap, symbolMap);
-      }
-      return out2;
+      return expandFoldedLocatable(
+        strVal,
+        typeName2,
+        obj,
+        symKey,
+        reverseMap,
+        symbolMap
+      );
     }
     if (typeName2 && typeName2.startsWith("DV_")) {
       const expanded = expandTerseScalar(strVal, typeName2);
@@ -52290,7 +52429,7 @@ function expandZipehrToCanonical(zipehrObj, symbolMap) {
   return expandNode(zipehrObj, void 0, void 0, reverseMap, symbolMap);
 }
 
-// enhanced/serialization/zipehr/detect.ts
+// ../../enhanced/serialization/zipehr/detect.ts
 init_define_BUILD_INFO();
 function hasZipehrMarkers(obj) {
   if (obj === null || typeof obj !== "object")
@@ -52548,10 +52687,10 @@ function parseSimpleYamlScalar(text) {
   return text;
 }
 
-// enhanced/serialization/zipehr/flow_format.ts
+// ../../enhanced/serialization/zipehr/flow_format.ts
 init_define_BUILD_INFO();
 
-// enhanced/serialization/zipehr/serializer.ts
+// ../../enhanced/serialization/zipehr/serializer.ts
 init_define_BUILD_INFO();
 function rmToCanonicalPlain(obj) {
   const serializer = new JsonCanonicalSerializer();
@@ -52629,7 +52768,7 @@ async function zipehrTextToCanonical(text) {
   return expandZipehrToCanonical(parsed, symbolMap);
 }
 
-// examples/demo-app/src/converter.ts
+// src/converter.ts
 init_openehr_base();
 var typeRegistryInitialized = false;
 function initializeTypeRegistry() {
@@ -53173,7 +53312,7 @@ function getAsciidocConfigPreset(preset) {
   }
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fflate@0.8.3/node_modules/fflate/esm/browser.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/fflate@0.8.3/node_modules/fflate/esm/browser.js
 init_define_BUILD_INFO();
 var u8 = Uint8Array;
 var u16 = Uint16Array;
@@ -53648,16 +53787,16 @@ function unzipSync(data, opts) {
   return files;
 }
 
-// examples/demo-app/src/codemirror-setup.ts
+// src/codemirror-setup.ts
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/commands@6.10.4/node_modules/@codemirror/commands/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/commands@6.10.4/node_modules/@codemirror/commands/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/state@6.7.0/node_modules/@codemirror/state/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/state@6.7.0/node_modules/@codemirror/state/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@marijn/find-cluster-break@1.0.3/node_modules/@marijn/find-cluster-break/src/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@marijn/find-cluster-break@1.0.3/node_modules/@marijn/find-cluster-break/src/index.js
 init_define_BUILD_INFO();
 var rangeFrom = [];
 var rangeTo = [];
@@ -53744,7 +53883,7 @@ function codePointSize(code) {
   return code < 65536 ? 1 : 2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/state@6.7.0/node_modules/@codemirror/state/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/state@6.7.0/node_modules/@codemirror/state/dist/index.js
 var Text3 = class _Text {
   /**
   Get the line description around the given position.
@@ -57103,10 +57242,10 @@ function findColumn(string3, col, tabSize, strict) {
   return strict === true ? -1 : string3.length;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/view@6.43.4/node_modules/@codemirror/view/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/view@6.43.4/node_modules/@codemirror/view/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/style-mod@4.1.3/node_modules/style-mod/src/style-mod.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/style-mod@4.1.3/node_modules/style-mod/src/style-mod.js
 init_define_BUILD_INFO();
 var C2 = "\u037C";
 var COUNT = typeof Symbol == "undefined" ? "__" + C2 : Symbol.for(C2);
@@ -57247,7 +57386,7 @@ var StyleSet = class {
   }
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/w3c-keyname@2.2.8/node_modules/w3c-keyname/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/w3c-keyname@2.2.8/node_modules/w3c-keyname/index.js
 init_define_BUILD_INFO();
 var base = {
   8: "Backspace",
@@ -57364,10 +57503,10 @@ function keyName(event) {
   return name2;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/crelt@1.0.7/node_modules/crelt/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/crelt@1.0.7/node_modules/crelt/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/view@6.43.4/node_modules/@codemirror/view/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/view@6.43.4/node_modules/@codemirror/view/dist/index.js
 var nav = typeof navigator != "undefined" ? navigator : { userAgent: "", vendor: "", platform: "" };
 var doc = typeof document != "undefined" ? document : { documentElement: { style: {} } };
 var ie_edge = /* @__PURE__ */ /Edge\/(\d+)/.exec(nav.userAgent);
@@ -66266,10 +66405,10 @@ function maxLineNumber(lines) {
   return last;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/language@6.12.4/node_modules/@codemirror/language/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/language@6.12.4/node_modules/@codemirror/language/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/common@1.5.2/node_modules/@lezer/common/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/common@1.5.2/node_modules/@lezer/common/dist/index.js
 init_define_BUILD_INFO();
 var DefaultBufferLength = 1024;
 var nextPropID = 0;
@@ -67942,7 +68081,7 @@ var StringInput = class {
 };
 var stoppedInner = new NodeProp({ perNode: true });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/highlight@1.2.3/node_modules/@lezer/highlight/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/highlight@1.2.3/node_modules/@lezer/highlight/dist/index.js
 init_define_BUILD_INFO();
 var nextTagID = 0;
 var Tag = class _Tag {
@@ -68667,7 +68806,7 @@ var classHighlighter = tagHighlighter([
   { tag: tags.punctuation, class: "tok-punctuation" }
 ]);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/language@6.12.4/node_modules/@codemirror/language/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/language@6.12.4/node_modules/@codemirror/language/dist/index.js
 var _a3;
 var languageDataProp = /* @__PURE__ */ new NodeProp();
 function defineLanguageFacet(baseData) {
@@ -70237,7 +70376,7 @@ var marks = {
   auto: /* @__PURE__ */ Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "auto" }, bidiIsolate: null })
 };
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/commands@6.10.4/node_modules/@codemirror/commands/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/commands@6.10.4/node_modules/@codemirror/commands/dist/index.js
 var toggleComment = (target) => {
   let { state } = target, line = state.doc.lineAt(state.selection.main.from), config = getConfig(target.state, line.from);
   return config.line ? toggleLineComment(target) : config.block ? toggleBlockCommentByLine(target) : false;
@@ -71332,13 +71471,13 @@ var defaultKeymap = /* @__PURE__ */ [
   { key: "Ctrl-m", mac: "Shift-Alt-m", run: toggleTabFocusMode }
 ].concat(standardKeymap);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-javascript@6.2.5/node_modules/@codemirror/lang-javascript/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-javascript@6.2.5/node_modules/@codemirror/lang-javascript/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/javascript@1.5.4/node_modules/@lezer/javascript/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/javascript@1.5.4/node_modules/@lezer/javascript/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/lr@1.4.10/node_modules/@lezer/lr/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/lr@1.4.10/node_modules/@lezer/lr/dist/index.js
 init_define_BUILD_INFO();
 var Stack = class _Stack {
   /**
@@ -73104,7 +73243,7 @@ function getSpecializer(spec) {
   return spec.get;
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/javascript@1.5.4/node_modules/@lezer/javascript/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/javascript@1.5.4/node_modules/@lezer/javascript/dist/index.js
 var noSemi = 316;
 var noSemiType = 317;
 var incdec = 1;
@@ -73324,7 +73463,7 @@ var parser = LRParser.deserialize({
   tokenPrec: 15201
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/autocomplete@6.20.3/node_modules/@codemirror/autocomplete/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/autocomplete@6.20.3/node_modules/@codemirror/autocomplete/dist/index.js
 init_define_BUILD_INFO();
 function toSet(chars) {
   let flat = Object.keys(chars).join("");
@@ -73714,7 +73853,7 @@ closedBracket.startSide = 1;
 closedBracket.endSide = -1;
 var android = typeof navigator == "object" && /* @__PURE__ */ /Android\b/.test(navigator.userAgent);
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-javascript@6.2.5/node_modules/@codemirror/lang-javascript/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-javascript@6.2.5/node_modules/@codemirror/lang-javascript/dist/index.js
 var snippets = [
   /* @__PURE__ */ snippetCompletion("function ${name}(${params}) {\n	${}\n}", {
     label: "function",
@@ -74027,10 +74166,10 @@ var autoCloseTags = /* @__PURE__ */ EditorView.inputHandler.of((view, from, to2,
   return true;
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-json@6.0.2/node_modules/@codemirror/lang-json/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-json@6.0.2/node_modules/@codemirror/lang-json/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/json@1.0.3/node_modules/@lezer/json/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/json@1.0.3/node_modules/@lezer/json/dist/index.js
 init_define_BUILD_INFO();
 var jsonHighlighting = styleTags({
   String: tags.string,
@@ -74063,7 +74202,7 @@ var parser2 = LRParser.deserialize({
   tokenPrec: 0
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-json@6.0.2/node_modules/@codemirror/lang-json/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-json@6.0.2/node_modules/@codemirror/lang-json/dist/index.js
 var jsonLanguage = /* @__PURE__ */ LRLanguage.define({
   name: "json",
   parser: /* @__PURE__ */ parser2.configure({
@@ -74086,10 +74225,10 @@ function json() {
   return new LanguageSupport(jsonLanguage);
 }
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-xml@6.1.0/node_modules/@codemirror/lang-xml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-xml@6.1.0/node_modules/@codemirror/lang-xml/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/xml@1.0.6/node_modules/@lezer/xml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/xml@1.0.6/node_modules/@lezer/xml/dist/index.js
 init_define_BUILD_INFO();
 var StartTag = 1;
 var StartCloseTag = 2;
@@ -74222,7 +74361,7 @@ var parser3 = LRParser.deserialize({
   tokenPrec: 0
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-xml@6.1.0/node_modules/@codemirror/lang-xml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-xml@6.1.0/node_modules/@codemirror/lang-xml/dist/index.js
 function tagName(doc2, tag) {
   let name2 = tag && tag.getChild("TagName");
   return name2 ? doc2.sliceString(name2.from, name2.to) : "";
@@ -74494,10 +74633,10 @@ var autoCloseTags2 = /* @__PURE__ */ EditorView.inputHandler.of((view, from, to2
   return true;
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-yaml@6.1.3/node_modules/@codemirror/lang-yaml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-yaml@6.1.3/node_modules/@codemirror/lang-yaml/dist/index.js
 init_define_BUILD_INFO();
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/yaml@1.0.4/node_modules/@lezer/yaml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@lezer/yaml@1.0.4/node_modules/@lezer/yaml/dist/index.js
 init_define_BUILD_INFO();
 var blockEnd = 63;
 var eof = 64;
@@ -74892,7 +75031,7 @@ var parser4 = LRParser.deserialize({
   tokenPrec: 0
 });
 
-// ../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-yaml@6.1.3/node_modules/@codemirror/lang-yaml/dist/index.js
+// ../../../../../Users/fbpf/AppData/Local/deno/deno_esbuild/@codemirror/lang-yaml@6.1.3/node_modules/@codemirror/lang-yaml/dist/index.js
 var parser5 = /* @__PURE__ */ LRParser.deserialize({
   version: 14,
   states: "!vOQOPOOO]OPO'#C_OhOPO'#C^OOOO'#Cc'#CcOpOPO'#CaQOOOOOO{OPOOOOOO'#Cb'#CbO!WOPO'#C`O!`OPO,58xOOOO-E6a-E6aOOOO-E6`-E6`OOOO'#C_'#C_OOOO1G.d1G.d",
@@ -74956,7 +75095,7 @@ var frontmatterLanguage = /* @__PURE__ */ LRLanguage.define({
   })
 });
 
-// examples/demo-app/src/editor-settings.ts
+// src/editor-settings.ts
 init_define_BUILD_INFO();
 var codeMirrorEditors = /* @__PURE__ */ new Set();
 var lineWrapEnabled = false;
@@ -75013,7 +75152,7 @@ function initEditorDisplaySettings() {
   });
 }
 
-// examples/demo-app/src/codemirror-setup.ts
+// src/codemirror-setup.ts
 var INPUT_EDITOR_IDS = ["input-text", "template-input-text"];
 var OUTPUT_EDITOR_IDS = [
   "output-json-content",
@@ -75271,7 +75410,7 @@ function initDemoEditors(options) {
   }
 }
 
-// examples/demo-app/src/main.ts
+// src/main.ts
 var DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 var currentInputFormat = "json";
 var currentInputTab = "instance";

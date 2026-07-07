@@ -44,6 +44,14 @@ export function toTerseDvCodedText(obj: Record<string, unknown>): string {
   return `${termId}::${code}|${value}|`;
 }
 
+/** Canonical DV_CODED_TEXT → terse string with terminology shortcuts applied. */
+export function toTerseDvCodedTextShort(
+  obj: Record<string, unknown>,
+  shorten: (s: string) => string,
+): string {
+  return shorten(toTerseDvCodedText(obj));
+}
+
 function canUseTerseFormat(typeName: string): boolean {
   return typeName === "CODE_PHRASE" || typeName === "DV_CODED_TEXT" ||
     typeName === "DV_TEXT" || typeName === "ARCHETYPE_ID" ||

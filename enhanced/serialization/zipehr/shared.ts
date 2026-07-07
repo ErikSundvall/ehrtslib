@@ -3,6 +3,7 @@
 /** Terminology prefix → emoji (applied to terse CODE_PHRASE / DV_CODED_TEXT strings). */
 export const TERMINOLOGY_SHORTCUTS = Object.freeze([
   { prefix: "openehr::", emoji: "🪟" },
+  { prefix: "local::", emoji: "📍" },
   { prefix: "ISO_639-1::", emoji: "💬" },
   { prefix: "ISO_3166-1::", emoji: "🌐" },
   { prefix: "IANA_character-sets::", emoji: "🔤" },
@@ -436,4 +437,15 @@ export function extractFirstScalar(n: unknown): string | null {
 
 export function isSymbolKey(key: string): boolean {
   return /[^\x00-\x7F]/.test(key) || key === "_";
+}
+
+/** Property type from parent RM class when not polymorphic (y-zipehr type inference). */
+export function inferrablePropertyType(
+  parentType?: string,
+  propertyName?: string,
+): string | undefined {
+  if (!parentType || !propertyName) return undefined;
+  const expected = PROPERTY_TYPE_MAP[parentType]?.[propertyName];
+  if (!expected || POLYMORPHIC_TYPES.has(expected)) return undefined;
+  return expected;
 }

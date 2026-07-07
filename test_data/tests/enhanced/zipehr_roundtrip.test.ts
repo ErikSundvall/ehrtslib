@@ -24,6 +24,7 @@ import {
   serializeToJZipehr,
   serializeToYZipehr,
   shortenTerseString,
+  expandTerseString,
   zipehrTextToCanonical,
 } from "../../enhanced/serialization/zipehr/mod.ts";
 import {
@@ -119,6 +120,8 @@ Deno.test("zipehr: folded locatable bracket", () => {
 Deno.test("zipehr: terminology shortcuts", () => {
   assertEquals(shortenTerseString("openehr::433"), "🪟433");
   assertEquals(shortenTerseString("ISO_639-1::en"), "💬en");
+  assertEquals(shortenTerseString("local::at0023|Ja|"), "📍at0023|Ja|");
+  assertEquals(expandTerseString("📍at0023|Ja|"), "local::at0023|Ja|");
   const compacted = compactArchetypeDetails({
     archetype_id: { value: "openEHR-EHR-COMPOSITION.encounter.v1" },
     template_id: { value: "Vital Signs" },
@@ -127,6 +130,41 @@ Deno.test("zipehr: terminology shortcuts", () => {
   assertEquals(compacted["Ⓣ"], "Vital Signs");
   assertEquals(compacted["Ⓐ"], "openEHR-EHR-COMPOSITION.encounter.v1");
   assertEquals(compacted["⚙️"], "1.0.4");
+});
+
+Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
+  if (!exampleA) {
+    exampleA = JSON.parse(await Deno.readTextFile(EXAMPLE_A_PATH));
+  }
+  const map = await loadDefaultSymbolMap();
+  const jObj = convertObjectDirect(exampleA, map) as Record<string, unknown>;
+  const yObj = convertObjectEhrtslib(exampleA, map) as Record<string, unknown>;
+
+  const jContext = jObj.context as Record<string, unknown>;
+  const jSetting = jContext.setting as Record<string, unknown>;
+  assertEquals(jSetting["🗈"], "🪟238|other care|");
+  assertEquals(jSetting.defining_code, undefined);
+
+  const yContext = yObj.context as Record<string, unknown>;
+  assertEquals(yContext.setting, "🪟238|other care|");
+  assertEquals(
+    (yContext.start_time as Record<string, unknown>).value,
+    "2024-01-15T10:30:00Z",
+  );
+  assertEquals((yContext.start_time as Record<string, unknown>)["📅⏰"], undefined);
+
+  const fromJ = expandZipehrToCanonical(jObj, map) as Record<string, unknown>;
+  const fromY = expandZipehrToCanonical(yObj, map) as Record<string, unknown>;
+  const jSettingCanon = (fromJ.context as Record<string, unknown>)
+    .setting as Record<string, unknown>;
+  const ySettingCanon = (fromY.context as Record<string, unknown>)
+    .setting as Record<string, unknown>;
+  assertEquals(jSettingCanon.value, "other care");
+  assertEquals(ySettingCanon.value, "other care");
+  assertEquals(
+    (jSettingCanon.defining_code as { code_string: string }).code_string,
+    "238",
+  );
 });
 
 Deno.test("zipehr: compact plain object (y-zipehr pre-pass)", async () => {

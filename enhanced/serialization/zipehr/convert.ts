@@ -2,15 +2,15 @@
  * Emoji substitution and zipehr shorthands (ported from zipehr-convert.js).
  */
 
-import { jsonToCompactPlain } from "./compact.ts";
+import { jsonToCompactPlain, toTerseDvCodedTextShort } from "./compact.ts";
 import {
   buildLocatableFoldedString,
   compactArchetypeDetails,
   extractFirstScalar,
   extractTerminologyFieldCode,
   getSymbolFor,
+  inferrablePropertyType,
   isTerseDvCodedText,
-  parseTerseDvCodedText,
   resolveType,
   shortenTerseString,
   TERMINOLOGY_FIELD_PROMOTIONS,
@@ -128,13 +128,27 @@ function convertObjectDirectInner(
       return { [symbol]: formatCodePhraseValue(typed) };
     }
 
+    if (t === "DV_CODED_TEXT") {
+      const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
+      return {
+        [symbol]: toTerseDvCodedTextShort(typed, shortenTerseString),
+      };
+    }
+
     if (t.startsWith("DV_")) {
       const symbol = getSymbolFor(symbolMap, t) || t;
       const out: Record<string, unknown> = {};
       if (Object.prototype.hasOwnProperty.call(typed, "value")) {
+        const extraKeys = Object.keys(typed).filter((k) =>
+          k !== "_type" && k !== "value"
+        );
+        if (extraKeys.length === 0) {
+          return {
+            [symbol]: convertObjectDirectInner(typed.value, symbolMap),
+          };
+        }
         out[symbol] = convertObjectDirectInner(typed.value, symbolMap);
-        for (const k of Object.keys(typed)) {
-          if (k === "_type" || k === "value") continue;
+        for (const k of extraKeys) {
           out[k] = convertObjectDirectInner(typed[k], symbolMap);
         }
         return out;
@@ -218,18 +232,8 @@ function wrapDvCodedTextString(
   terseStr: string,
   symbolMap: Record<string, string>,
 ): Record<string, unknown> {
-  const parsed = parseTerseDvCodedText(terseStr);
-  if (!parsed) {
-    const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
-    return { [symbol]: shortenTerseString(terseStr) };
-  }
-  const dvSym = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
-  const cpSym = getSymbolFor(symbolMap, "CODE_PHRASE") || "🏷️";
-  const codeStr = shortenTerseString(`${parsed.termId}::${parsed.code}`);
-  return {
-    [dvSym]: parsed.value,
-    defining_code: { [cpSym]: codeStr },
-  };
+  const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
+  return { [symbol]: shortenTerseString(terseStr) };
 }
 
 function wrapDvScalar(
@@ -285,6 +289,9 @@ export function applyEmojiToCompact(
       return { value: compact };
     }
     if (typeof compact === "string") {
+      if (inferrablePropertyType(parentType, propertyName)) {
+        return shortenTerseString(compact);
+      }
       if (typeName === "CODE_PHRASE" || isTerseCodePhraseCompat(compact, original)) {
         return wrapCodePhraseString(compact, symbolMap);
       }
@@ -318,6 +325,9 @@ export function applyEmojiToCompact(
     Object.prototype.hasOwnProperty.call(compactObj, "value") &&
     !Object.prototype.hasOwnProperty.call(compactObj, "_type")
   ) {
+    if (inferrablePropertyType(parentType, propertyName)) {
+      return compactObj;
+    }
     const dvType = resolveType(original, parentType, propertyName);
     if (dvType && dvType.startsWith("DV_")) {
       return wrapDvScalar(dvType, compactObj.value, symbolMap);

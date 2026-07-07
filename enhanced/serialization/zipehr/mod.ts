@@ -25,6 +25,7 @@ export {
   buildLocatableFoldedString,
   parseLocatableBracket,
   parseLocatableFolded,
+  inferrablePropertyType,
   isSymbolKey,
 } from "./shared.ts";
 

@@ -2,11 +2,24 @@
 
 Compact openEHR instance serialization using emoji type symbols. Two variants:
 
-- **j-zipehr** — flow-style JSON with emoji keys (canonical `_type` path)
-- **y-zipehr** — YAML with terse values, type inference, emoji keys, hybrid layout
+- **j-zipehr** — flow-style JSON with emoji keys on every typed node (no type
+  inference). Leaf `DV_*` values use terse notation inside their emoji wrapper.
+- **y-zipehr** — YAML with terse values, type inference from parent property
+  names, emoji keys on structural/LOCATABLE nodes only, hybrid layout
+
+## Terse data values
+
+| Variant | `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) |
+|---------|---------------------------------------------|---------------------------------------------|
+| **j-zipehr** | `{ "🗈": "🪟238\|other care\|" }` | `{ "📅⏰": "2023-08-31T18:31:16+02:00" }` |
+| **y-zipehr** | `🪟238\|other care\|` (inferred type, no emoji wrapper) | `{ value: "2023-08-31T18:31:16+02:00" }` |
+
+`DV_CODED_TEXT` terse form is `term::code|value|` with terminology shortcuts
+(`openehr::` → `🪟`, `local::` → `📍`, etc.). j-zipehr always wraps in the type
+emoji; y-zipehr keeps inferrable leaf properties as bare terse scalars or
+`{ value: … }` objects.
 
 ## Folded LOCATABLE names
-
 LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, etc.) fold
 `name`, `archetype_node_id`, and `archetype_details` into a single quoted string:
 
@@ -29,8 +42,7 @@ LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, etc.) fold
    (legacy `name[node_id]` form).
 4. Omit the separate `archetype_details` property from output when folded.
 
-Many of the classes replace type with an emoji followed by name.vale the COMPOSITION for example uses the `🖂` key instead of `_` + `name`.
-
+COMPOSITION uses the `🖂` key instead of `_` + `name`.
 ### Bracket algorithm (deserialize)
 
 1. Parse `name[bracket]` when brackets are present.
