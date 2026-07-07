@@ -1,27 +1,110 @@
-# ZipEHR format
+# ZipEHR
 
-Compact openEHR instance serialization using emoji type symbols. Two variants:
+Compact openEHR instance serialization: RM types become emoji keys, values become terse
+strings. Input/output is canonical JSON with `_type` fields; ZipEHR is a reversible
+skin on top.
 
-- **j-zipehr** — flow-style JSON with emoji keys on every typed node (no type
-  inference). Leaf `DV_*` values use terse notation inside their emoji wrapper.
-- **y-zipehr** — YAML with terse values, type inference from parent property
-  names, emoji keys on structural/LOCATABLE nodes only, hybrid layout
+## Variants
+
+| | **j-zipehr** (JSON) | **y-zipehr** (YAML) |
+|---|---|---|
+| **Target runtime** | Any language; string replace + JSON parse | Libraries with RM type inference (e.g. ehrtslib) |
+| **Type marking** | Emoji key on **every** typed node | Emoji on structural / LOCATABLE nodes only |
+| **Leaf values** | Terse string inside type emoji wrapper | Bare terse scalar or `{ value: … }` when type is inferrable |
+| **Layout** | Flow-style JSON | Hybrid block/flow YAML |
+
+**j-zipehr** needs only the symbol table and substitution rules — no parent-type map, no
+property inference. A ~50-line script can round-trip clinical data.
+
+**y-zipehr** drops redundant type wrappers where the parent RM property fixes the type
+(`EVENT_CONTEXT.setting` → `DV_CODED_TEXT`, etc.). Requires `PROPERTY_TYPE_MAP` and
+polymorphic-type handling (`shared.ts`).
+
+## Symbol lookup table
+
+RM class → emoji is defined in [`table3.yaml`](table3.yaml). Each row lists alternatives;
+**only the first symbol is used** at runtime. First symbols must be unique across the whole
+table (symbol pairs like `📅⌚` count as one symbol).
+
+Embedded copy for bundles/tests: [`table3_text.ts`](table3_text.ts) (first symbol per row
+only). Regenerate after editing the YAML:
+
+```bash
+deno run --allow-read --allow-write enhanced/serialization/zipehr/gen_table3_text.ts
+```
+
+Reverse lookup (emoji → RM class) uses the same first-symbol rule for uppercase type names
+(`buildReverseSymbolMap` in `symbol_map.ts`).
+
+Foundation types are commented out in `table3.yaml` — they never appear in instance data.
+
+## Pipeline
+
+```
+Canonical JSON (_type) ─┬─ j-zipehr: convertObjectDirect → flow JSON
+                        └─ y-zipehr: jsonToCompactPlain → applyEmojiToCompact → hybrid YAML
+```
+
+Deserialize: `expandZipehrToCanonical` (both variants). Auto-detect via `detectInputFormat`.
+
+### j-zipehr substitution (serialize)
+
+1. Walk the `_type`-annotated tree.
+2. Replace `_type` with emoji from the symbol table (fallback: type name string).
+3. **CODE_PHRASE** / **DV_CODED_TEXT** → single emoji key wrapping a terse string.
+4. **DV_*** with only `value` → `{ "🗈": "…" }` (emoji wraps scalar directly).
+5. **DV_*** with extra fields → `{ "🌡️": { magnitude: …, units: … } }`.
+6. **LOCATABLE** (has `name` + `archetype_node_id` or `archetype_details`) → fold name
+   (see below); emoji key holds the folded string, not `_` + separate `name`.
+7. Other types → `{ "_": "👀", …properties }` (COMPOSITION uses `🖂` key instead of `_`).
+8. Apply shorthands: terminology field promotion, archetype-detail compaction.
+
+No step requires knowing the parent's type.
+
+### y-zipehr substitution (serialize)
+
+1. **Compact** (`jsonToCompactPlain`): strip `_type` where inferrable; emit terse scalars;
+   omit nulls/empty collections; fold archetype details to inline symbols.
+2. **Emoji pass** (`applyEmojiToCompact`): add emoji only where type is not inferrable from
+   parent property or structure; wrap remaining DV leaves when needed.
+3. **Shorthands** (same as j-zipehr): terminology promotion, composition name fold.
+4. Emit hybrid YAML (block maps for depth, flow for shallow objects).
+
+Type inference order: `PROPERTY_TYPE_MAP[parent][property]` → structure heuristic
+(`inferFromStructure`) → `_type` on object → polymorphic fallback.
 
 ## Terse data values
 
-| Variant | `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) |
-|---------|---------------------------------------------|---------------------------------------------|
-| **j-zipehr** | `{ "🗈": "🪟238\|other care\|" }` | `{ "📅⏰": "2023-08-31T18:31:16+02:00" }` |
-| **y-zipehr** | `🪟238\|other care\|` (inferred type, no emoji wrapper) | `{ value: "2023-08-31T18:31:16+02:00" }` |
+| Type | Terse form | Example |
+|------|------------|---------|
+| **CODE_PHRASE** | `terminology::code` | `openehr::433` |
+| **DV_CODED_TEXT** | `term::code\|value\|` | `openehr::433\|event\|` |
+| **DV_TEXT** etc. | plain `value` | `Vital Signs` |
 
-`DV_CODED_TEXT` terse form is `term::code|value|` with terminology shortcuts
-(`openehr::` → `🪟`, `local::` → `📍`, etc.). j-zipehr always wraps in the type
-emoji; y-zipehr keeps inferrable leaf properties as bare terse scalars or
-`{ value: … }` objects.
+Terminology shortcuts (applied on serialize, expanded on deserialize):
+
+| Prefix | Emoji |
+|--------|-------|
+| `openehr::` | `🪟` |
+| `local::` | `📍` |
+| `ISO_639-1::` | `💬` |
+| `ISO_3166-1::` | `🌐` |
+| `IANA_character-sets::` | `🔤` |
+
+**COMPOSITION** promotes `language` / `territory` / `encoding` CODE_PHRASE children to
+top-level `💬` / `🌐` / `🔤` keys with bare code strings.
+
+### Variant examples
+
+| Property | j-zipehr | y-zipehr |
+|----------|----------|----------|
+| `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `{ "🗈": "🪟238\|other care\|" }` | `🪟238\|other care\|` |
+| `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) | `{ "📅⌚": "2023-08-31T18:31:16+02:00" }` | `{ value: "2023-08-31T18:31:16+02:00" }` |
 
 ## Folded LOCATABLE names
-LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, etc.) fold
-`name`, `archetype_node_id`, and `archetype_details` into a single quoted string:
+
+LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, …) merge `name`,
+`archetype_node_id`, and `archetype_details` into one quoted string:
 
 ```yaml
 🖂: "ChemoForm-MBA.v7[Ⓣ ChemoForm-MBA.v7 Ⓐ openEHR-EHR-COMPOSITION.self_reported_data.v1 ⚙️1.1.0]"
@@ -29,28 +112,53 @@ LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, etc.) fold
 🌳: "Item tree[at0003]"
 ```
 
+Archetype-detail inline symbols (`ARCHETYPE_DETAIL_SYMBOLS` in `shared.ts`):
+
+| Field | Symbol |
+|-------|--------|
+| `template_id` | `Ⓣ` |
+| `archetype_id` | `Ⓐ` |
+| `rm_version` | `⚙️` |
+
 ### Bracket algorithm (serialize)
 
 1. Start with `name.value`.
-2. Build bracket content (space-separated), in order:
-   - `Ⓣ {template_id}` when `archetype_details.template_id` is present
-   - `Ⓐ {archetype_id}` when `archetype_details.archetype_id` is present **and**
-     differs from `name.value` (omitted when equal — saves space)
-   - `⚙️{rm_version}` when `archetype_details.rm_version` is present
-   - plain `archetype_node_id` when it differs from `archetype_id` (e.g. `at0003`)
-3. When no archetype-detail symbols apply, the bracket is just `archetype_node_id`
-   (legacy `name[node_id]` form).
-4. Omit the separate `archetype_details` property from output when folded.
+2. Build bracket (space-separated), in order:
+   - `Ⓣ {template_id}` if present
+   - `Ⓐ {archetype_id}` if present **and** differs from `name.value` (omit when equal)
+   - `⚙️{rm_version}` if present (no space after symbol)
+   - plain `archetype_node_id` when it differs from `archetype_id`
+3. If no detail symbols apply, bracket is just `archetype_node_id` (`name[node_id]` form).
+4. Drop separate `archetype_details` from output when folded.
 
-COMPOSITION uses the `🖂` key instead of `_` + `name`.
+COMPOSITION uses emoji key `🖂` (not `_` + `name`).
+
 ### Bracket algorithm (deserialize)
 
-1. Parse `name[bracket]` when brackets are present.
-2. Tokenize bracket on `Ⓣ`, `Ⓐ`, and `⚙️` symbols.
-3. Plain text without symbols becomes `archetype_node_id`.
-4. When `Ⓐ` is absent but `Ⓣ` or `⚙️` is present, restore
-   `archetype_id` from `name.value` (inverse of the omit-when-equal rule).
-5. When `Ⓐ` is present and no separate node id was parsed, set
-   `archetype_node_id` to the archetype id value.
+1. Split `name[bracket]` when brackets present.
+2. Tokenize bracket on `Ⓣ`, `Ⓐ`, `⚙️`.
+3. Plain text without symbols → `archetype_node_id`.
+4. `Ⓐ` absent but `Ⓣ` or `⚙️` present → restore `archetype_id` from `name.value`.
+5. `Ⓐ` present, no separate node id → `archetype_node_id` = archetype id.
 
-Symbols are defined in `ARCHETYPE_DETAIL_SYMBOLS` (`shared.ts`).
+## Module map
+
+| File | Role |
+|------|------|
+| `table3.yaml` / `table3_text.ts` | Symbol lookup table |
+| `shared.ts` | Terse parse/format, bracket fold, type inference maps |
+| `convert.ts` | j-zipehr direct substitution; y-zipehr compact + emoji pass |
+| `compact.ts` | y-zipehr compaction (terse values, strip inferrable types) |
+| `deserialize.ts` | Expand ZipEHR → canonical JSON |
+| `serializer.ts` | High-level serialize/deserialize API |
+| `detect.ts` | j- vs y-zipehr auto-detection |
+
+## API
+
+```ts
+import { serializeToJZipehr, serializeToYZipehr, zipehrTextToCanonical } from "./mod.ts";
+
+const j = await serializeToJZipehr(composition);   // JSON
+const y = await serializeToYZipehr(composition);   // YAML
+const back = zipehrTextToCanonical(j);               // canonical plain JSON
+```
