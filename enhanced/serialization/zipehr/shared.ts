@@ -204,9 +204,13 @@ export function extractWrappedTerseString(v: unknown): string | null {
   if (typeof v === "string") return v;
   if (typeof v !== "object" || Array.isArray(v)) return null;
   const obj = v as Record<string, unknown>;
-  if (Object.prototype.hasOwnProperty.call(obj, "value") &&
-    Object.keys(obj).length === 1) {
-    return obj.value == null ? null : String(obj.value);
+  if (Object.prototype.hasOwnProperty.call(obj, "value")) {
+    const nonTypeKeys = Object.keys(obj).filter((key) =>
+      key !== "_type" && key !== "_"
+    );
+    if (nonTypeKeys.length === 1) {
+      return obj.value == null ? null : String(obj.value);
+    }
   }
   const keys = Object.keys(obj);
   if (keys.length === 1) {
@@ -262,7 +266,9 @@ export function compactArchetypeDetails(
 
 export function extractFirstScalar(n: unknown): string | null {
   if (n === null) return null;
-  if (typeof n === "string" || typeof n === "number" || typeof n === "boolean") {
+  if (
+    typeof n === "string" || typeof n === "number" || typeof n === "boolean"
+  ) {
     return String(n);
   }
   if (Array.isArray(n)) {

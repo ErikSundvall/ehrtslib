@@ -5,10 +5,7 @@
 import { Document, isMap, isSeq } from "yaml";
 import { HybridStyleFormatter } from "../common/hybrid_formatter.ts";
 import { JsonCanonicalSerializer } from "../json/json_canonical_serializer.ts";
-import {
-  convertObjectDirect,
-  convertObjectEhrtslib,
-} from "./convert.ts";
+import { convertObjectDirect, convertObjectEhrtslib } from "./convert.ts";
 import { expandZipehrToCanonical } from "./deserialize.ts";
 import { detectInputFormat, parseZipehrText } from "./detect.ts";
 import { flowFormat } from "./flow_format.ts";
@@ -61,7 +58,8 @@ function applyHybridFormatting(node: unknown, depth: number): void {
         keyNode && typeof keyNode === "object" && "value" in keyNode &&
         item.value !== undefined
       ) {
-        obj[String((keyNode as { value: unknown }).value)] = item.value;
+        const key = String((keyNode as { value: unknown }).value);
+        obj[key] = item.value;
       }
     }
     const inline = HybridStyleFormatter.shouldFormatInline(obj, {

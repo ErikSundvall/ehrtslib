@@ -140,9 +140,19 @@ Deno.test("zipehr: RM roundtrip via j-zipehr and y-zipehr", async () => {
 
   assert(jOut.includes("🖂") || jOut.includes("Vital Signs"));
   assert(yOut.includes("🖂") || yOut.includes("Vital Signs"));
+  const jParsed = JSON.parse(jOut) as Record<string, unknown>;
+  const jDetails = jParsed.archetype_details as Record<string, unknown>;
+  assertEquals(jDetails["Ⓣ"], "Vital Signs");
+  assertEquals(jDetails["Ⓐ"], "openEHR-EHR-COMPOSITION.encounter.v1");
 
   const fromJ = await zipehrTextToCanonical(jOut);
   const fromY = await zipehrTextToCanonical(yOut);
+  const fromJDetails = (fromJ as Record<string, unknown>)
+    .archetype_details as Record<string, unknown>;
+  assertEquals(
+    (fromJDetails.template_id as { value?: string }).value,
+    "Vital Signs",
+  );
   const deser = new JsonConfigurableDeserializer(
     getJsonDeserializeConfigPreset("hybrid"),
   );

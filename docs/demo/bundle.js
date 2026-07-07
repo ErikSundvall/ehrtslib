@@ -36,7 +36,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var define_BUILD_INFO_default;
 var init_define_BUILD_INFO = __esm({
   "<define:__BUILD_INFO__>"() {
-    define_BUILD_INFO_default = { timestamp: "2026-07-07T08:41:20.199Z", buildId: "PYR6PRAS" };
+    define_BUILD_INFO_default = { timestamp: "2026-07-07T11:46:56.448Z", buildId: "KNEP43CH" };
   }
 });
 
@@ -51514,8 +51514,13 @@ function extractWrappedTerseString(v2) {
   if (typeof v2 !== "object" || Array.isArray(v2))
     return null;
   const obj = v2;
-  if (Object.prototype.hasOwnProperty.call(obj, "value") && Object.keys(obj).length === 1) {
-    return obj.value == null ? null : String(obj.value);
+  if (Object.prototype.hasOwnProperty.call(obj, "value")) {
+    const nonTypeKeys = Object.keys(obj).filter(
+      (key) => key !== "_type" && key !== "_"
+    );
+    if (nonTypeKeys.length === 1) {
+      return obj.value == null ? null : String(obj.value);
+    }
   }
   const keys = Object.keys(obj);
   if (keys.length === 1) {
@@ -52305,8 +52310,9 @@ function hasZipehrMarkers(obj) {
   return false;
 }
 function hasCanonicalTypeMarker(obj) {
-  if (obj === null || typeof obj !== "object" || Array.isArray(obj))
+  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
     return false;
+  }
   return Object.prototype.hasOwnProperty.call(obj, "_type");
 }
 function looksLikeYaml(text) {
@@ -52357,7 +52363,7 @@ function detectInputFormat(text) {
     }
   } catch {
   }
-  if (/[\u{1F300}-\u{1FAFF}]/u.test(trimmed)) {
+  if (/[^\x00-\x7F]/u.test(trimmed)) {
     const variant = looksLikeYaml(trimmed) && !trimmed.startsWith("{") ? "y-zipehr" : "j-zipehr";
     return { kind: "zipehr", variant };
   }
@@ -52369,23 +52375,35 @@ function parseZipehrText(text) {
     trimmed,
     quoteSymbolKeysForJson(trimmed)
   ];
+  let lastError;
+  let firstYamlError;
   for (const candidate of attempts) {
     try {
       const parsed = parse3(candidate);
       if (parsed !== null && parsed !== void 0)
         return parsed;
-    } catch {
+    } catch (error) {
+      firstYamlError ??= error;
+      lastError = error;
     }
     try {
       return JSON.parse(candidate);
-    } catch {
+    } catch (error) {
+      lastError = error;
     }
   }
-  throw new Error("Unable to parse ZipEHR input as YAML or JSON");
+  try {
+    return parseSimpleYamlSubset(trimmed);
+  } catch (error) {
+    lastError = error;
+  }
+  const reported = firstYamlError ?? lastError;
+  const detail = reported instanceof Error ? `: ${reported.message}` : "";
+  throw new Error(`Unable to parse ZipEHR input as YAML or JSON${detail}`);
 }
 function quoteSymbolKeysForJson(text) {
   return text.replace(
-    /(^|[{\[,]\s*)([^\s"'{}\[\],:][^:]*?):/g,
+    /(^|[{\[,]\s*|\n\s*)([^\s"'{}\[\],:][^:\n]*?):/g,
     (match, prefix, key) => {
       const k2 = String(key).trim();
       if (!k2 || k2.startsWith('"') || k2.startsWith("'"))
@@ -52395,6 +52413,139 @@ function quoteSymbolKeysForJson(text) {
       return `${prefix}"${k2}":`;
     }
   );
+}
+function parseSimpleYamlSubset(text) {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "" && !line.trimStart().startsWith("#")).map((line) => ({
+    indent: line.match(/^ */)?.[0].length ?? 0,
+    text: line.trim()
+  }));
+  if (lines.length === 0)
+    return {};
+  const [value, index] = parseSimpleYamlBlock(lines, 0, lines[0].indent);
+  if (index < lines.length) {
+    throw new Error(`Unexpected YAML content: ${lines[index].text}`);
+  }
+  return value;
+}
+function parseSimpleYamlBlock(lines, index, indent) {
+  if (lines[index]?.text.startsWith("- ")) {
+    return parseSimpleYamlSeq(lines, index, indent);
+  }
+  return parseSimpleYamlMap(lines, index, indent);
+}
+function parseSimpleYamlMap(lines, index, indent) {
+  const out = {};
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.indent < indent)
+      break;
+    if (line.indent > indent) {
+      throw new Error(`Unexpected indentation before: ${line.text}`);
+    }
+    if (line.text.startsWith("- "))
+      break;
+    const [key, rest] = splitSimpleYamlPair(line.text);
+    index++;
+    if (rest === "") {
+      if (index < lines.length && lines[index].indent > line.indent) {
+        const parsed = parseSimpleYamlBlock(lines, index, lines[index].indent);
+        out[key] = parsed[0];
+        index = parsed[1];
+      } else {
+        out[key] = {};
+      }
+    } else {
+      out[key] = parseSimpleYamlScalar(rest);
+    }
+  }
+  return [out, index];
+}
+function parseSimpleYamlSeq(lines, index, indent) {
+  const out = [];
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.indent < indent)
+      break;
+    if (line.indent !== indent || !line.text.startsWith("- "))
+      break;
+    const itemText = line.text.slice(2).trim();
+    index++;
+    let item;
+    if (itemText === "") {
+      const parsed = parseSimpleYamlBlock(lines, index, lines[index].indent);
+      item = parsed[0];
+      index = parsed[1];
+    } else if (looksLikeSimpleYamlPair(itemText)) {
+      const [key, rest] = splitSimpleYamlPair(itemText);
+      const obj = {};
+      if (rest === "" && index < lines.length && lines[index].indent > line.indent) {
+        const parsed = parseSimpleYamlBlock(lines, index, lines[index].indent);
+        obj[key] = parsed[0];
+        index = parsed[1];
+      } else {
+        obj[key] = parseSimpleYamlScalar(rest);
+      }
+      if (index < lines.length && lines[index].indent > line.indent) {
+        const parsed = parseSimpleYamlMap(lines, index, lines[index].indent);
+        Object.assign(obj, parsed[0]);
+        index = parsed[1];
+      }
+      item = obj;
+    } else {
+      item = parseSimpleYamlScalar(itemText);
+    }
+    out.push(item);
+  }
+  return [out, index];
+}
+function looksLikeSimpleYamlPair(text) {
+  return findSimpleYamlColon(text) >= 0;
+}
+function splitSimpleYamlPair(text) {
+  const colon = findSimpleYamlColon(text);
+  if (colon < 0)
+    throw new Error(`Expected YAML key/value pair: ${text}`);
+  const key = parseSimpleYamlKey(text.slice(0, colon).trim());
+  const rest = text.slice(colon + 1).trim();
+  return [key, rest];
+}
+function findSimpleYamlColon(text) {
+  let quote = null;
+  for (let i3 = 0; i3 < text.length; i3++) {
+    const ch = text[i3];
+    if ((ch === `"` || ch === "'") && text[i3 - 1] !== "\\") {
+      quote = quote === ch ? null : quote ?? ch;
+    }
+    if (ch === ":" && quote === null)
+      return i3;
+  }
+  return -1;
+}
+function parseSimpleYamlKey(text) {
+  if (text.startsWith('"') || text.startsWith("'")) {
+    return String(parseSimpleYamlScalar(text));
+  }
+  return text;
+}
+function parseSimpleYamlScalar(text) {
+  if (text === "")
+    return "";
+  if (text === "null" || text === "~")
+    return null;
+  if (text === "true")
+    return true;
+  if (text === "false")
+    return false;
+  if (text.startsWith('"'))
+    return JSON.parse(text);
+  if (text.startsWith("'") && text.endsWith("'")) {
+    return text.slice(1, -1).replace(/''/g, "'");
+  }
+  const numberValue = Number(text);
+  if (text !== "" && Number.isFinite(numberValue) && /^[-+]?\d/.test(text)) {
+    return numberValue;
+  }
+  return text;
 }
 
 // enhanced/serialization/zipehr/flow_format.ts
@@ -52437,7 +52588,8 @@ function applyHybridFormatting(node, depth) {
     for (const item of node.items) {
       const keyNode = item.key;
       if (keyNode && typeof keyNode === "object" && "value" in keyNode && item.value !== void 0) {
-        obj[String(keyNode.value)] = item.value;
+        const key = String(keyNode.value);
+        obj[key] = item.value;
       }
     }
     const inline = HybridStyleFormatter.shouldFormatInline(obj, {
