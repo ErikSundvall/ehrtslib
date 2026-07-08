@@ -202,6 +202,63 @@ function expandNode(
   const symbolKeys = Object.keys(obj).filter((k) => isSymbolKey(k) && k !== "_");
   const typeMarker = obj._;
 
+  // ZipEHR shorthand fold reverse:
+  // { "🔹": "Namn[at0001]", value: { "🗉": "Brand..." } }
+  // becomes:
+  // { "🔹": "Namn[at0001]", "🗉": "Brand..." }
+  if (
+    symbolKeys.length === 2 &&
+    !Object.prototype.hasOwnProperty.call(obj, "value")
+  ) {
+    const locatableKeys = symbolKeys.filter((k) => {
+      return typeof obj[k] === "string" && parseLocatableFolded(String(obj[k]));
+    });
+    if (locatableKeys.length === 1) {
+      const locKey = locatableKeys[0];
+      const otherKey = symbolKeys.find((k) => k !== locKey)!;
+      const typeName = typeFromSymbolKey(locKey, reverseMap, symbolMap);
+      if (typeName) {
+        const foldedValue = String(obj[locKey]);
+        const parsed = parseLocatableFolded(foldedValue);
+        const name = parsed?.name ?? foldedValue;
+        const bracket = parsed?.bracket ?? "";
+        const bracketParts = parseLocatableBracket(bracket, name);
+
+        const out: Record<string, unknown> = {
+          _type: typeName,
+          name: { _type: "DV_TEXT", value: name },
+        };
+
+        if (bracketParts.archetypeNodeId) {
+          out.archetype_node_id = bracketParts.archetypeNodeId;
+        }
+        if (bracketParts.archetypeDetails) {
+          out.archetype_details = expandArchetypeDetails(
+            bracketParts.archetypeDetails,
+          );
+        }
+
+        for (const k of Object.keys(obj)) {
+          if (k === locKey || k === otherKey) continue;
+          if (k === "archetype_details") continue;
+          out[k] = expandNode(obj[k], typeName, k, reverseMap, symbolMap);
+        }
+
+        // The promoted symbol key corresponds to the original canonical
+        // `value` property for locatable nodes.
+        const valueWrapper = { [otherKey]: obj[otherKey] };
+        out.value = expandNode(
+          valueWrapper,
+          undefined,
+          undefined,
+          reverseMap,
+          symbolMap,
+        );
+        return out;
+      }
+    }
+  }
+
   if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "string") {
     const symKey = symbolKeys[0];
     const strVal = String(obj[symKey]);

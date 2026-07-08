@@ -21,3 +21,6 @@ test_data/openehr_base.ts
 test_data/openehr_lang.ts
 test_data/openehr_rm.ts
 test_data/openehr_term.ts
+
+# temp test files
+enhanced/serialization/zipehr/examples/

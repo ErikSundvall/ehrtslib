@@ -10,6 +10,7 @@ import {
   extractTerminologyFieldCode,
   getSymbolFor,
   inferrablePropertyType,
+  isSymbolKey,
   isTerseDvCodedText,
   resolveType,
   shortenTerseString,
@@ -24,6 +25,46 @@ function promoteTerminologyFields(obj: Record<string, unknown>): void {
     delete obj[field];
     obj[emoji] = code;
   }
+}
+
+function hasLocatableFoldString(obj: Record<string, unknown>): boolean {
+  // Folded locatable strings always end with a bracket suffix: `name[at0001]`.
+  return Object.keys(obj).some((k) => {
+    if (k === "value") return false;
+    if (!isSymbolKey(k)) return false;
+    return typeof obj[k] === "string" && /\[[^\]]+\]$/.test(String(obj[k]));
+  });
+}
+
+/**
+ * Fold redundant `value: { <emoji>: ... }` wrappers on locatable-like objects.
+ *
+ * Example:
+ *   { "🔹": "Namn[at0001]", value: { "🗉": "Brand..." } }
+ * becomes:
+ *   { "🔹": "Namn[at0001]", "🗉": "Brand..." }
+ *
+ * This is a space-saving ZipEHR shorthand; `deserialize.ts` reconstructs the
+ * original canonical shape.
+ */
+function foldRedundantValueProperty(obj: Record<string, unknown>): void {
+  if (!hasLocatableFoldString(obj)) return;
+  if (!Object.prototype.hasOwnProperty.call(obj, "value")) return;
+
+  const inner = (obj as Record<string, unknown>).value as unknown;
+  if (!inner || typeof inner !== "object" || Array.isArray(inner)) return;
+
+  const innerObj = inner as Record<string, unknown>;
+  const innerKeys = Object.keys(innerObj);
+  // Only fold when the `value` wrapper contains exactly one symbol key.
+  if (innerKeys.length !== 1) return;
+
+  const symKey = innerKeys[0];
+  if (!isSymbolKey(symKey) || symKey === "_") return;
+  if (Object.prototype.hasOwnProperty.call(obj, symKey)) return;
+
+  obj[symKey] = innerObj[symKey];
+  delete obj.value;
 }
 
 function foldCompositionName(
@@ -79,6 +120,7 @@ export function applyZipehrShorthands(
 
   obj = foldCompositionName(obj, symbolMap);
   promoteTerminologyFields(obj);
+  foldRedundantValueProperty(obj);
 
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(obj)) {
