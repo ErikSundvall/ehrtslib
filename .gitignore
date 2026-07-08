@@ -11,6 +11,9 @@ tasks/prd-phase4f1-simplified-object-creation.md.backup
 examples/demo-app/dist/
 .pencil-export-test/DqEd3.png
 
+# GitHub Pages demo app build output (generated during CI via `deno task build:demo`)
+docs/demo/
+
 # Local test symlinks/junctions and hardlinks — recreate per machine (see AGENTS.md)
 test_data/enhanced
 test_data/openehr_am.ts
