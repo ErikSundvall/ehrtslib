@@ -1,5 +1,6 @@
 /**
- * High-level zipehr serialization API for j-zipehr (JSON) and y-zipehr (YAML).
+ * High-level zipehr serialization API for `zipehr.json` (JSON) and
+ * `zipehr.yaml` (YAML).
  */
 
 import { Document, isMap, isSeq } from "yaml";
@@ -10,7 +11,7 @@ import { expandZipehrToCanonical } from "./deserialize.ts";
 import { detectInputFormat, parseZipehrText } from "./detect.ts";
 import { loadDefaultSymbolMap } from "./symbol_map.ts";
 
-export type ZipehrOutputVariant = "j-zipehr" | "y-zipehr";
+export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml";
 
 /** Convert an RM instance to canonical plain JSON (with _type). */
 export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {
@@ -19,7 +20,7 @@ export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {
   return JSON.parse(json) as Record<string, unknown>;
 }
 
-/** Serialize RM object to j-zipehr JSON text (emoji keys, direct canonical path). */
+/** Serialize RM object to `zipehr.json` JSON text (emoji keys, direct canonical path). */
 export async function serializeToJZipehr(obj: unknown): Promise<string> {
   const symbolMap = await loadDefaultSymbolMap();
   const canonical = rmToCanonicalPlain(obj);
@@ -27,7 +28,7 @@ export async function serializeToJZipehr(obj: unknown): Promise<string> {
   return serializeZipehrPlainToJson(converted);
 }
 
-/** Serialize RM object to y-zipehr YAML (terse + type inference + emoji + hybrid layout). */
+/** Serialize RM object to `zipehr.yaml` YAML (terse + type inference + emoji + hybrid layout). */
 export async function serializeToYZipehr(obj: unknown): Promise<string> {
   const symbolMap = await loadDefaultSymbolMap();
   const canonical = rmToCanonicalPlain(obj);

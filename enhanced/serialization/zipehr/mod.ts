@@ -2,8 +2,8 @@
  * ZipEHR compact serialization format (emoji type symbols).
  *
  * Two output variants:
- * - **j-zipehr**: flow-style JSON text from canonical JSON (_type) via direct emoji substitution
- * - **y-zipehr**: YAML with terse format, type inference, emoji symbols, and hybrid layout
+ * - **zipehr.json**: flow-style JSON text from canonical JSON (_type) via direct emoji substitution
+ * - **zipehr.yaml**: YAML with terse format, type inference, emoji symbols, and hybrid layout
  */
 
 export {

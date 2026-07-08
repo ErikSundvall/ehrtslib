@@ -161,8 +161,8 @@ export type OutputFormat =
   | "xml"
   | "json"
   | "yaml"
-  | "j-zipehr"
-  | "y-zipehr"
+  | "zipehr.json"
+  | "zipehr.yaml"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -207,8 +207,8 @@ export interface ConversionResult {
     xml?: string;
     json?: string;
     yaml?: string;
-    "j-zipehr"?: string;
-    "y-zipehr"?: string;
+    "zipehr.json"?: string;
+    "zipehr.yaml"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -361,11 +361,11 @@ export async function convert(
           case "yaml":
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
             break;
-          case "j-zipehr":
-            outputs["j-zipehr"] = await serializeToJZipehr(rmObject);
+          case "zipehr.json":
+            outputs["zipehr.json"] = await serializeToJZipehr(rmObject);
             break;
-          case "y-zipehr":
-            outputs["y-zipehr"] = await serializeToYZipehr(rmObject);
+          case "zipehr.yaml":
+            outputs["zipehr.yaml"] = await serializeToYZipehr(rmObject);
             break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
@@ -443,11 +443,11 @@ async function convertTemplateInput(
       case "yaml":
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
         break;
-      case "j-zipehr":
-        outputs["j-zipehr"] = await serializeToJZipehr(generatedInstance);
+      case "zipehr.json":
+        outputs["zipehr.json"] = await serializeToJZipehr(generatedInstance);
         break;
-      case "y-zipehr":
-        outputs["y-zipehr"] = await serializeToYZipehr(generatedInstance);
+      case "zipehr.yaml":
+        outputs["zipehr.yaml"] = await serializeToYZipehr(generatedInstance);
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(
@@ -640,13 +640,13 @@ export function resolveInputFormat(
     const detected = detectInputFormat(input);
     if (detected.kind === "zipehr") {
       return {
-        format: detected.variant === "y-zipehr" ? "yaml" : "json",
+        format: detected.variant === "zipehr.yaml" ? "yaml" : "json",
         isZipehr: true,
         zipehrVariant: detected.variant,
       };
     }
     throw new Error(
-      "Input format set to ZipEHR but content does not look like j-zipehr or y-zipehr.",
+      "Input format set to ZipEHR but content does not look like zipehr.json or zipehr.yaml.",
     );
   }
 
@@ -657,7 +657,7 @@ export function resolveInputFormat(
   const detected = detectInputFormat(input);
   if (detected.kind === "zipehr") {
     return {
-      format: detected.variant === "y-zipehr" ? "yaml" : "json",
+      format: detected.variant === "zipehr.yaml" ? "yaml" : "json",
       isZipehr: true,
       zipehrVariant: detected.variant,
     };

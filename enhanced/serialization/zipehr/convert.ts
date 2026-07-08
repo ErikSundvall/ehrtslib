@@ -251,7 +251,7 @@ function convertObjectDirectInner(
   return out;
 }
 
-/** j-zipehr: emoji substitution on canonical JSON with _type fields. */
+/** `zipehr.json`: emoji substitution on canonical JSON with _type fields. */
 export function convertObjectDirect(
   obj: unknown,
   symbolMap: Record<string, string>,
@@ -489,7 +489,7 @@ export function applyEmojiToCompact(
   return out;
 }
 
-/** y-zipehr: compact (terse + type inference) then emoji substitution. */
+/** `zipehr.yaml`: compact (terse + type inference) then emoji substitution. */
 export function convertObjectEhrtslib(
   obj: unknown,
   symbolMap: Record<string, string>,

@@ -568,7 +568,7 @@ export function isSymbolKey(key: string): boolean {
   return /[^\x00-\x7F]/.test(key) || key === "_";
 }
 
-/** Property type from parent RM class when not polymorphic (y-zipehr type inference). */
+/** Property type from parent RM class when not polymorphic (`zipehr.yaml` type inference). */
 export function inferrablePropertyType(
   parentType?: string,
   propertyName?: string,
@@ -588,7 +588,7 @@ export function isValueOnlyRmObject(obj: Record<string, unknown>): boolean {
   return keys.length === 1 && keys[0] === "value";
 }
 
-/** y-zipehr: fold `{ value: … }` to a bare scalar when parent property fixes the type. */
+/** `zipehr.yaml`: fold `{ value: … }` to a bare scalar when parent property fixes the type. */
 export function canFoldInferrableValueLeaf(
   typeName: string | undefined,
   parentType?: string,

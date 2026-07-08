@@ -1,4 +1,4 @@
-/** Custom flow-style text serializer for j-zipehr output (ported from ehrtslib-compact.js). */
+/** Custom flow-style text serializer for `zipehr.json` output (ported from ehrtslib-compact.js). */
 
 export function flowFormat(value: unknown, indentLevel = 0): string {
   const indent = "  ".repeat(indentLevel);

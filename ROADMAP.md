@@ -144,6 +144,14 @@ create/update end user docs
 ## Phase X - Contribution builder
 Implement "contribution builder" suggestion in https://link.springer.com/article/10.1186/1472-6947-13-57 including the table https://link.springer.com/article/10.1186/1472-6947-13-57/tables/2 Ît should be possible to run a variant of this on the client side in web/mobile apps so that they can send valid entire contributions to backend openEHR REST servers. Also a variant should be runanble on server side.
 
-## Phaze X -  multiuser contribution builder
+## Phaze X - multiuser contribution builder
 CRDT or OT enabled multiuser contribution builder enabling collaborative editing of uncomitted contribution in a style similar to "google docs" collaboration. (Preferably P2P with continous server persistence possiblility) Include indicators of what users are editing where currently and possibility to switch on source/user coloring of enteresd inf in a way similar to https://etherpad.org/. Also allow conversion of this info to openEHR's ENTRY.provider attribute
 
+## Phase X - CDR proxy
+Make a Deno based ehrtslib openEHR CDR proxy 
+- that includes conversion of all ehrtslib added formats and externally is exposed as a normal openEHR CDR but that accepts more media types
+- that adds a (multiuser?) contribution builder to a standard CDR
+- Make sure to do releases that export the proxy via Deno's export as single executable files for various operating systems
+- Possibly add features mising in the official spec but suggested in https://link.springer.com/article/10.1186/1472-6947-13-57 - for example 
+  - bookmarking and 
+  - automatic hashing and storage of ad hoc queries so that they become easier to audit and efficient to reuse

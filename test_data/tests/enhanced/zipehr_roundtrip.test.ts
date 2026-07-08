@@ -136,7 +136,7 @@ Deno.test("zipehr: terminology shortcuts", () => {
   assertEquals(compacted["⚙️"], "1.0.4");
 });
 
-Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
+Deno.test("zipehr: DV_CODED_TEXT terse in zipehr.json and zipehr.yaml", async () => {
   if (!exampleA) {
     exampleA = JSON.parse(await Deno.readTextFile(EXAMPLE_A_PATH));
   }
@@ -178,7 +178,7 @@ Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
   );
 });
 
-Deno.test("zipehr: compact plain object (y-zipehr pre-pass)", async () => {
+Deno.test("zipehr: compact plain object (zipehr.yaml pre-pass)", async () => {
   if (!exampleA) {
     exampleA = JSON.parse(await Deno.readTextFile(EXAMPLE_A_PATH));
   }
@@ -241,7 +241,7 @@ Deno.test("zipehr: expand to canonical and detect variants", async () => {
 
   assertEquals(detectInputFormat(jText).kind, "zipehr");
   assertEquals(detectInputFormat(yText).kind, "zipehr");
-  assertEquals(detectInputFormat(yText).variant, "y-zipehr");
+  assertEquals(detectInputFormat(yText).variant, "zipehr.yaml");
 });
 
 async function deserializeExampleA(): Promise<unknown> {
@@ -255,7 +255,7 @@ async function deserializeExampleA(): Promise<unknown> {
   );
   return deser.deserialize(JSON.stringify(exampleA));
 }
-Deno.test("zipehr: RM roundtrip via j-zipehr and y-zipehr", async () => {
+Deno.test("zipehr: RM roundtrip via zipehr.json and zipehr.yaml", async () => {
   initializeTypeRegistry();
   const rm = await deserializeExampleA();
   const jOut = await serializeToJZipehr(rm);
@@ -495,13 +495,13 @@ Deno.test("zipehr: demo convert with auto-detect input", async () => {
 
   const resolved = resolveInputFormat(zipehrYaml, "auto");
   assert(resolved.isZipehr);
-  assertEquals(resolved.zipehrVariant, "y-zipehr");
+  assertEquals(resolved.zipehrVariant, "zipehr.yaml");
 
   const result = await convert(zipehrYaml, {
     inputMode: "instance",
     inputFormat: "auto",
     inputDeserializerConfig: getJsonDeserializeConfigPreset("hybrid"),
-    outputFormats: ["json", "j-zipehr", "y-zipehr"],
+    outputFormats: ["json", "zipehr.json", "zipehr.yaml"],
     templateGenerationMode: "example",
     jsonSerializerType: "configurable",
     jsonConfig: { prettyPrint: true, indent: 2 },
@@ -523,7 +523,7 @@ Deno.test("zipehr: demo convert with auto-detect input", async () => {
   });
 
   assertEquals(result.success, true);
-  assertExists(result.outputs?.["j-zipehr"]);
-  assertExists(result.outputs?.["y-zipehr"]);
-  assert((result.outputs?.["j-zipehr"] ?? "").length > 10);
+  assertExists(result.outputs?.["zipehr.json"]);
+  assertExists(result.outputs?.["zipehr.yaml"]);
+  assert((result.outputs?.["zipehr.json"] ?? "").length > 10);
 });

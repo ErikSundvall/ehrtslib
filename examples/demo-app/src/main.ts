@@ -276,10 +276,10 @@ function setupOutputVisibilityListeners() {
   });
 }
 
-function getActiveZipehrVariant(): "j-zipehr" | "y-zipehr" {
+function getActiveZipehrVariant(): "zipehr.json" | "zipehr.yaml" {
   const select = document.getElementById("zipehr-variant") as HTMLSelectElement;
   const value = select?.value;
-  return value === "j-zipehr" ? "j-zipehr" : "y-zipehr";
+  return value === "zipehr.json" ? "zipehr.json" : "zipehr.yaml";
 }
 
 function getActiveSimplifiedVariant(): "flat" | "structured" {
@@ -1860,8 +1860,8 @@ function updateOutputs(outputs: Record<string, string>) {
     "xml",
     "json",
     "yaml",
-    "j-zipehr",
-    "y-zipehr",
+    "zipehr.json",
+    "zipehr.yaml",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2424,8 +2424,8 @@ function downloadOutput(format: string) {
     xml: "xml",
     json: "json",
     yaml: "yaml",
-    "j-zipehr": "zipehr.json",
-    "y-zipehr": "zipehr.yaml",
+    "zipehr.json": "zipehr.json",
+    "zipehr.yaml": "zipehr.yaml",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",

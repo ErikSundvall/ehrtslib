@@ -1,5 +1,5 @@
 /**
- * Compact plain-object conversion for y-zipehr (type inference + terse format).
+ * Compact plain-object conversion for `zipehr.yaml` (type inference + terse format).
  * Mirrors FLOW_YAML_CONFIG rules; works on canonical JSON with _type fields.
  */
 

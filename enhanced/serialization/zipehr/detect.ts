@@ -1,11 +1,11 @@
 /**
- * Detect whether input is canonical openEHR or zipehr (j/y variant).
+ * Detect whether input is canonical openEHR or zipehr (`zipehr.json` / `zipehr.yaml` variants).
  */
 
 import { parse as parseYaml } from "yaml";
 import { isSymbolKey } from "./shared.ts";
 
-export type ZipehrVariant = "j-zipehr" | "y-zipehr";
+export type ZipehrVariant = "zipehr.json" | "zipehr.yaml";
 
 export type InputDetectionResult =
   | { kind: "canonical"; format: "json" | "yaml" | "xml" }
@@ -49,8 +49,9 @@ function looksLikeXml(text: string): boolean {
 }
 
 /**
- * Auto-detect input format. Zipehr j variant is flow-style text (often parsed as YAML);
- * y variant is block/flow YAML with emoji keys.
+ * Auto-detect input format.
+ * - `zipehr.json` is flow-style text (often parsed as YAML)
+ * - `zipehr.yaml` is block/flow YAML with emoji keys
  */
 export function detectInputFormat(text: string): InputDetectionResult {
   const trimmed = text.trim();
@@ -60,13 +61,13 @@ export function detectInputFormat(text: string): InputDetectionResult {
     return { kind: "canonical", format: "xml" };
   }
 
-  // Strict JSON first, so JSON-looking j-zipehr never depends on the YAML parser.
+  // Strict JSON first, so JSON-looking `zipehr.json` never depends on the YAML parser.
   if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
     try {
       const parsed = JSON.parse(trimmed);
       if (parsed && typeof parsed === "object") {
         if (hasZipehrMarkers(parsed)) {
-          return { kind: "zipehr", variant: "j-zipehr" };
+          return { kind: "zipehr", variant: "zipehr.json" };
         }
         if (hasCanonicalTypeMarker(parsed)) {
           return { kind: "canonical", format: "json" };
@@ -84,7 +85,7 @@ export function detectInputFormat(text: string): InputDetectionResult {
       const parsed = parseSimpleYamlSubset(trimmed);
       if (parsed && typeof parsed === "object") {
         if (hasZipehrMarkers(parsed)) {
-          return { kind: "zipehr", variant: "y-zipehr" };
+          return { kind: "zipehr", variant: "zipehr.yaml" };
         }
         if (hasCanonicalTypeMarker(parsed)) {
           return { kind: "canonical", format: "yaml" };
@@ -101,10 +102,9 @@ export function detectInputFormat(text: string): InputDetectionResult {
       const parsed = parseYaml(trimmed);
       if (parsed && typeof parsed === "object") {
         if (hasZipehrMarkers(parsed)) {
-          const variant: ZipehrVariant = looksLikeYaml(trimmed) &&
-              !trimmed.startsWith("{")
-            ? "y-zipehr"
-            : "j-zipehr";
+          const variant: ZipehrVariant = looksLikeYaml(trimmed) && !trimmed.startsWith("{")
+            ? "zipehr.yaml"
+            : "zipehr.json";
           return { kind: "zipehr", variant };
         }
         if (hasCanonicalTypeMarker(parsed)) {
@@ -124,17 +124,16 @@ export function detectInputFormat(text: string): InputDetectionResult {
   // Heuristic: symbol keys in raw text → zipehr. ZipEHR also uses
   // non-emoji symbols such as Ⓣ and Ⓐ for archetype details.
   if (/[^\x00-\x7F]/u.test(trimmed)) {
-    const variant: ZipehrVariant =
-      looksLikeYaml(trimmed) && !trimmed.startsWith("{")
-        ? "y-zipehr"
-        : "j-zipehr";
+    const variant: ZipehrVariant = looksLikeYaml(trimmed) && !trimmed.startsWith("{")
+      ? "zipehr.yaml"
+      : "zipehr.json";
     return { kind: "zipehr", variant };
   }
 
   return { kind: "unknown" };
 }
 
-/** Parse zipehr input text to a plain object (YAML parser accepts flow-style j-zipehr). */
+/** Parse zipehr input text to a plain object (YAML parser accepts flow-style `zipehr.json`). */
 export function parseZipehrText(text: string): unknown {
   const trimmed = text.trim();
   const attempts = [
@@ -172,7 +171,7 @@ export function parseZipehrText(text: string): unknown {
   throw new Error(`Unable to parse ZipEHR input as YAML or JSON${detail}`);
 }
 
-/** Quote non-ASCII / emoji keys so flow-style j-zipehr can be parsed as JSON. */
+/** Quote non-ASCII / emoji keys so flow-style `zipehr.json` can be parsed as JSON. */
 function quoteSymbolKeysForJson(text: string): string {
   return text.replace(
     /(^|[{\[,]\s*|\n\s*)([^\s"'{}\[\],:][^:\n]*?):/g,
