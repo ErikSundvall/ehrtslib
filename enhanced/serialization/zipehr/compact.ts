@@ -4,7 +4,9 @@
  */
 
 import {
+  canFoldInferrableValueLeaf,
   inferType,
+  isValueOnlyRmObject,
   POLYMORPHIC_TYPES,
   resolveType,
 } from "./shared.ts";
@@ -122,7 +124,9 @@ export function toPlainObjectCompact(
 
   if (Array.isArray(obj)) {
     const result = obj
-      .map((item) => toPlainObjectCompact(item, parentType, propertyName, config))
+      .map((item) =>
+        toPlainObjectCompact(item, parentType, propertyName, config)
+      )
       .filter((item) => item !== undefined);
     if (result.length === 0 && !config.includeEmptyCollections) {
       return undefined;
@@ -132,6 +136,13 @@ export function toPlainObjectCompact(
 
   const typed = obj as Record<string, unknown>;
   const typeName = resolveType(obj, parentType, propertyName);
+
+  if (
+    isValueOnlyRmObject(typed) &&
+    canFoldInferrableValueLeaf(typeName, parentType, propertyName)
+  ) {
+    return typed.value;
+  }
 
   if (config.useTerseFormat && typeName && canUseTerseFormat(typeName)) {
     const terse = toTerseValue(typed, typeName);

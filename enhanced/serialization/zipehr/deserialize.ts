@@ -6,9 +6,11 @@ import {
   ARCHETYPE_DETAIL_SYMBOLS,
   expandTerseString,
   getSymbolFor,
+  inferrablePropertyType,
   isSymbolKey,
   isTerseCodePhrase,
   isTerseDvCodedText,
+  isValueOnlyRmObject,
   parseLocatableBracket,
   parseLocatableFolded,
   parseTerseDvCodedText,
@@ -62,6 +64,40 @@ function expandTerseScalar(
     return { _type: expectedType, value: expanded };
   }
   return expanded;
+}
+
+function expandInferrableLeaf(
+  value: unknown,
+  expectedType: string,
+): unknown {
+  if (typeof value === "string") {
+    if (expectedType === "CODE_PHRASE") {
+      const expanded = expandTerseString(value);
+      if (isTerseCodePhrase(expanded) || expanded.includes("::")) {
+        return expandCodePhraseTerse(value);
+      }
+    }
+    if (expectedType === "DV_CODED_TEXT") {
+      const expanded = expandTerseString(value);
+      if (isTerseDvCodedText(expanded)) {
+        return expandDvCodedTextTerse(value);
+      }
+    }
+    const expanded = expandTerseScalar(value, expectedType);
+    if (typeof expanded === "object" && expanded !== null) {
+      return expanded;
+    }
+    return { _type: expectedType, value: expanded };
+  }
+
+  if (
+    typeof value === "number" || typeof value === "boolean" ||
+    value === null
+  ) {
+    return { _type: expectedType, value };
+  }
+
+  return value;
 }
 
 function expandArchetypeDetails(
@@ -163,7 +199,14 @@ function expandNode(
   symbolMap?: Record<string, string>,
 ): unknown {
   if (node === null || node === undefined) return node;
-  if (typeof node !== "object") return node;
+
+  const expectedType = inferrablePropertyType(parentType, propertyName);
+  if (typeof node !== "object") {
+    if (expectedType) {
+      return expandInferrableLeaf(node, expectedType);
+    }
+    return node;
+  }
 
   if (Array.isArray(node)) {
     const itemType = parentType && propertyName
@@ -175,6 +218,14 @@ function expandNode(
   }
 
   const obj = expandPromotedTerminology(node as Record<string, unknown>);
+
+  if (
+    expectedType &&
+    isValueOnlyRmObject(obj) &&
+    !Object.keys(obj).some((k) => isSymbolKey(k) || k === "_")
+  ) {
+    return expandInferrableLeaf(obj.value, expectedType);
+  }
 
   if (obj.archetype_details && typeof obj.archetype_details === "object") {
     obj.archetype_details = expandArchetypeDetails(
@@ -328,6 +379,9 @@ function expandNode(
   let nodeType: string | undefined;
   if (typeof typeMarker === "string") {
     nodeType = reverseMap.get(typeMarker) ?? typeMarker;
+  }
+  if (!nodeType) {
+    nodeType = inferrablePropertyType(parentType, propertyName);
   }
 
   const out: Record<string, unknown> = {};

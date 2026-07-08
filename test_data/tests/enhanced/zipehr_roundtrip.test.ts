@@ -151,13 +151,10 @@ Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
 
   const yContext = yObj.context as Record<string, unknown>;
   assertEquals(yContext.setting, "🌬️238|other care|");
+  assertEquals(yContext.start_time, "2024-01-15T10:30:00Z");
   assertEquals(
-    (yContext.start_time as Record<string, unknown>).value,
-    "2024-01-15T10:30:00Z",
-  );
-  assertEquals(
-    (yContext.start_time as Record<string, unknown>)["📅⏰"],
-    undefined,
+    typeof yContext.start_time,
+    "string",
   );
 
   const fromJ = expandZipehrToCanonical(jObj, map) as Record<string, unknown>;
@@ -168,6 +165,13 @@ Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
     .setting as Record<string, unknown>;
   assertEquals(jSettingCanon.value, "other care");
   assertEquals(ySettingCanon.value, "other care");
+  assertEquals(
+    (fromY.context as Record<string, unknown>).start_time as Record<
+      string,
+      unknown
+    >,
+    { _type: "DV_DATE_TIME", value: "2024-01-15T10:30:00Z" },
+  );
   assertEquals(
     (jSettingCanon.defining_code as { code_string: string }).code_string,
     "238",

@@ -372,7 +372,7 @@ export function applyEmojiToCompact(
     !Object.prototype.hasOwnProperty.call(compactObj, "_type")
   ) {
     if (inferrablePropertyType(parentType, propertyName)) {
-      return compactObj;
+      return compactObj.value;
     }
     const dvType = resolveType(original, parentType, propertyName);
     if (dvType && dvType.startsWith("DV_")) {

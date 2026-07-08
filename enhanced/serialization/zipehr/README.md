@@ -10,7 +10,7 @@ skin on top.
 |---|---|---|
 | **Target runtime** | Any language; string replace + JSON parse | Libraries with RM type inference (e.g. ehrtslib) |
 | **Type marking** | Emoji key on **every** typed node | Emoji on structural / LOCATABLE nodes only |
-| **Leaf values** | Terse string inside type emoji wrapper | Bare terse scalar or `{ value: … }` when type is inferrable |
+| **Leaf values** | Terse string inside type emoji wrapper | Bare terse scalar when type is inferrable from parent property |
 | **Layout** | Flow-style JSON | Hybrid block/flow YAML |
 
 **j-zipehr** needs only the symbol table and substitution rules — no parent-type map, no
@@ -107,7 +107,7 @@ top-level `💬` / `🌐` / `🔤` keys with bare code strings.
 | Property | j-zipehr | y-zipehr |
 |----------|----------|----------|
 | `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `{ "🗈": "🌬️238\|other care\|" }` | `🌬️238\|other care\|` |
-| `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) | `{ "📅⌚": "2023-08-31T18:31:16+02:00" }` | `{ value: "2023-08-31T18:31:16+02:00" }` |
+| `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) | `{ "📅⌚": "2023-08-31T18:31:16+02:00" }` | `"2023-08-31T18:31:16+02:00"` |
 
 ## Folded LOCATABLE names
 

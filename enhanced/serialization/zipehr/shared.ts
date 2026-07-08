@@ -74,7 +74,11 @@ export const PROPERTY_TYPE_MAP: Record<
     data: "HISTORY",
     feeder_audit: "FEEDER_AUDIT",
   },
-  ELEMENT: { name: "DV_TEXT", value: "DATA_VALUE", feeder_audit: "FEEDER_AUDIT" },
+  ELEMENT: {
+    name: "DV_TEXT",
+    value: "DATA_VALUE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
   CLUSTER: { name: "DV_TEXT", items: "ITEM", feeder_audit: "FEEDER_AUDIT" },
   HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME" },
   POINT_EVENT: {
@@ -448,7 +452,11 @@ export function buildLocatableFoldedString(
   archetypeNodeId: string | null | undefined,
   archetypeDetails: unknown,
 ): string {
-  const bracket = buildLocatableBracket(nameStr, archetypeNodeId, archetypeDetails);
+  const bracket = buildLocatableBracket(
+    nameStr,
+    archetypeNodeId,
+    archetypeDetails,
+  );
   if (!bracket) return nameStr;
   return `${nameStr}[${bracket}]`;
 }
@@ -508,14 +516,18 @@ export function parseLocatableBracket(
   for (let i = 0; i < tokens.length; i++) {
     const { sym, start } = tokens[i];
     const valueStart = start + sym.length;
-    const valueEnd = i + 1 < tokens.length ? tokens[i + 1].start : trimmed.length;
+    const valueEnd = i + 1 < tokens.length
+      ? tokens[i + 1].start
+      : trimmed.length;
     const value = trimmed.slice(valueStart, valueEnd).trim();
     if (sym === tSym) details[tSym] = value;
     else if (sym === aSym) details[aSym] = value;
     else if (sym === rSym) details[rSym] = value;
   }
 
-  if (details[aSym] == null && (details[tSym] != null || details[rSym] != null)) {
+  if (
+    details[aSym] == null && (details[tSym] != null || details[rSym] != null)
+  ) {
     details[aSym] = locatableName;
   }
 
@@ -568,4 +580,20 @@ export function inferrablePropertyType(
   }
   if (!expected || POLYMORPHIC_TYPES.has(expected)) return undefined;
   return expected;
+}
+
+/** RM object reduced to a single `value` attribute (type marker may be present). */
+export function isValueOnlyRmObject(obj: Record<string, unknown>): boolean {
+  const keys = Object.keys(obj).filter((k) => k !== "_type");
+  return keys.length === 1 && keys[0] === "value";
+}
+
+/** y-zipehr: fold `{ value: … }` to a bare scalar when parent property fixes the type. */
+export function canFoldInferrableValueLeaf(
+  typeName: string | undefined,
+  parentType?: string,
+  propertyName?: string,
+): boolean {
+  if (!typeName) return false;
+  return inferrablePropertyType(parentType, propertyName) === typeName;
 }
