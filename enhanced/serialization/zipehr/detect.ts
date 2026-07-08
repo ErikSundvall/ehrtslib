@@ -60,7 +60,42 @@ export function detectInputFormat(text: string): InputDetectionResult {
     return { kind: "canonical", format: "xml" };
   }
 
-  // Try YAML parse first (handles both y-zipehr and flow-style j-zipehr)
+  // Strict JSON first, so JSON-looking j-zipehr never depends on the YAML parser.
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object") {
+        if (hasZipehrMarkers(parsed)) {
+          return { kind: "zipehr", variant: "j-zipehr" };
+        }
+        if (hasCanonicalTypeMarker(parsed)) {
+          return { kind: "canonical", format: "json" };
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // Generated ZipEHR YAML uses a small YAML subset with block maps/sequences
+  // and flow maps. Parse that before falling back to the full YAML package.
+  if (looksLikeYaml(trimmed)) {
+    try {
+      const parsed = parseSimpleYamlSubset(trimmed);
+      if (parsed && typeof parsed === "object") {
+        if (hasZipehrMarkers(parsed)) {
+          return { kind: "zipehr", variant: "y-zipehr" };
+        }
+        if (hasCanonicalTypeMarker(parsed)) {
+          return { kind: "canonical", format: "yaml" };
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // Try YAML parse for inputs outside the simple subset.
   if (looksLikeYaml(trimmed) || trimmed.startsWith("{")) {
     try {
       const parsed = parseYaml(trimmed);
@@ -86,21 +121,6 @@ export function detectInputFormat(text: string): InputDetectionResult {
     }
   }
 
-  // Strict JSON
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (parsed && typeof parsed === "object") {
-      if (hasZipehrMarkers(parsed)) {
-        return { kind: "zipehr", variant: "j-zipehr" };
-      }
-      if (hasCanonicalTypeMarker(parsed)) {
-        return { kind: "canonical", format: "json" };
-      }
-    }
-  } catch {
-    // fall through
-  }
-
   // Heuristic: symbol keys in raw text → zipehr. ZipEHR also uses
   // non-emoji symbols such as Ⓣ and Ⓐ for archetype details.
   if (/[^\x00-\x7F]/u.test(trimmed)) {
@@ -124,6 +144,20 @@ export function parseZipehrText(text: string): unknown {
   let lastError: unknown;
   let firstYamlError: unknown;
   for (const candidate of attempts) {
+    if (candidate.startsWith("{") || candidate.startsWith("[")) {
+      try {
+        return JSON.parse(candidate);
+      } catch (error) {
+        lastError = error;
+        // try next
+      }
+    }
+    try {
+      return parseSimpleYamlSubset(candidate);
+    } catch (error) {
+      lastError = error;
+      // try next
+    }
     try {
       const parsed = parseYaml(candidate);
       if (parsed !== null && parsed !== undefined) return parsed;
@@ -132,17 +166,6 @@ export function parseZipehrText(text: string): unknown {
       lastError = error;
       // try next
     }
-    try {
-      return JSON.parse(candidate);
-    } catch (error) {
-      lastError = error;
-      // try next
-    }
-  }
-  try {
-    return parseSimpleYamlSubset(trimmed);
-  } catch (error) {
-    lastError = error;
   }
   const reported = firstYamlError ?? lastError;
   const detail = reported instanceof Error ? `: ${reported.message}` : "";
@@ -279,12 +302,17 @@ function splitSimpleYamlPair(text: string): [string, string] {
 
 function findSimpleYamlColon(text: string): number {
   let quote: string | null = null;
+  let depth = 0;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if ((ch === `"` || ch === "'") && text[i - 1] !== "\\") {
       quote = quote === ch ? null : quote ?? ch;
     }
-    if (ch === ":" && quote === null) return i;
+    if (quote === null) {
+      if (ch === "{" || ch === "[") depth++;
+      if (ch === "}" || ch === "]") depth--;
+    }
+    if (ch === ":" && quote === null && depth === 0) return i;
   }
   return -1;
 }
@@ -301,6 +329,12 @@ function parseSimpleYamlScalar(text: string): unknown {
   if (text === "null" || text === "~") return null;
   if (text === "true") return true;
   if (text === "false") return false;
+  if (text.startsWith("{") && text.endsWith("}")) {
+    return parseSimpleFlowMap(text);
+  }
+  if (text.startsWith("[") && text.endsWith("]")) {
+    return parseSimpleFlowSeq(text);
+  }
   if (text.startsWith('"')) return JSON.parse(text);
   if (text.startsWith("'") && text.endsWith("'")) {
     return text.slice(1, -1).replace(/''/g, "'");
@@ -310,4 +344,56 @@ function parseSimpleYamlScalar(text: string): unknown {
     return numberValue;
   }
   return text;
+}
+
+function parseSimpleFlowMap(text: string): Record<string, unknown> {
+  const inner = text.slice(1, -1).trim();
+  if (inner === "") return {};
+
+  const out: Record<string, unknown> = {};
+  for (const part of splitSimpleFlowItems(inner)) {
+    const colon = findSimpleYamlColon(part);
+    if (colon < 0) throw new Error(`Expected flow map pair: ${part}`);
+    const key = parseSimpleYamlKey(part.slice(0, colon).trim());
+    const value = part.slice(colon + 1).trim();
+    out[key] = parseSimpleYamlScalar(value);
+  }
+  return out;
+}
+
+function parseSimpleFlowSeq(text: string): unknown[] {
+  const inner = text.slice(1, -1).trim();
+  if (inner === "") return [];
+  return splitSimpleFlowItems(inner).map(parseSimpleYamlScalar);
+}
+
+function splitSimpleFlowItems(text: string): string[] {
+  const out: string[] = [];
+  let quote: string | null = null;
+  let depth = 0;
+  let start = 0;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if ((ch === `"` || ch === "'") && text[i - 1] !== "\\") {
+      quote = quote === ch ? null : quote ?? ch;
+      continue;
+    }
+    if (quote !== null) continue;
+    if (ch === "{" || ch === "[") {
+      depth++;
+      continue;
+    }
+    if (ch === "}" || ch === "]") {
+      depth--;
+      continue;
+    }
+    if (ch === "," && depth === 0) {
+      out.push(text.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+
+  out.push(text.slice(start).trim());
+  return out.filter((part) => part !== "");
 }

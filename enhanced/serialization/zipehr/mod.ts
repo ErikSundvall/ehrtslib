@@ -7,32 +7,32 @@
  */
 
 export {
-  TERMINOLOGY_SHORTCUTS,
-  TERMINOLOGY_FIELD_PROMOTIONS,
   ARCHETYPE_DETAIL_SYMBOLS,
-  POLYMORPHIC_TYPES,
-  PROPERTY_TYPE_MAP,
-  loadSymbolMapFromText,
-  getSymbolFor,
-  shortenTerseString,
-  expandTerseString,
-  inferType,
-  resolveType,
-  isTerseCodePhrase,
-  isTerseDvCodedText,
-  compactArchetypeDetails,
   buildLocatableBracket,
   buildLocatableFoldedString,
+  compactArchetypeDetails,
+  expandTerseString,
+  getSymbolFor,
+  inferrablePropertyType,
+  inferType,
+  isSymbolKey,
+  isTerseCodePhrase,
+  isTerseDvCodedText,
+  loadSymbolMapFromText,
   parseLocatableBracket,
   parseLocatableFolded,
-  inferrablePropertyType,
-  isSymbolKey,
+  POLYMORPHIC_TYPES,
+  PROPERTY_TYPE_MAP,
+  resolveType,
+  shortenTerseString,
+  TERMINOLOGY_FIELD_PROMOTIONS,
+  TERMINOLOGY_SHORTCUTS,
 } from "./shared.ts";
 
 export {
+  buildReverseSymbolMap,
   loadDefaultSymbolMap,
   loadSymbolMapFromFileText,
-  buildReverseSymbolMap,
 } from "./symbol_map.ts";
 
 export {
@@ -42,19 +42,19 @@ export {
 } from "./compact.ts";
 
 export {
+  applyEmojiToCompact,
+  applyZipehrShorthands,
   convertObjectDirect,
   convertObjectEhrtslib,
-  applyZipehrShorthands,
-  applyEmojiToCompact,
 } from "./convert.ts";
 
 export { expandZipehrToCanonical } from "./deserialize.ts";
 
 export {
   detectInputFormat,
+  type InputDetectionResult,
   parseZipehrText,
   type ZipehrVariant,
-  type InputDetectionResult,
 } from "./detect.ts";
 
 export { flowFormat } from "./flow_format.ts";
@@ -63,6 +63,8 @@ export {
   rmToCanonicalPlain,
   serializeToJZipehr,
   serializeToYZipehr,
-  zipehrTextToCanonical,
+  serializeZipehrPlainToJson,
+  serializeZipehrPlainToYaml,
   type ZipehrOutputVariant,
+  zipehrTextToCanonical,
 } from "./serializer.ts";

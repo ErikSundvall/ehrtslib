@@ -6,9 +6,9 @@ import {
   ARCHETYPE_DETAIL_SYMBOLS,
   expandTerseString,
   getSymbolFor,
+  isSymbolKey,
   isTerseCodePhrase,
   isTerseDvCodedText,
-  isSymbolKey,
   parseLocatableBracket,
   parseLocatableFolded,
   parseTerseDvCodedText,
@@ -117,7 +117,9 @@ function expandFoldedLocatable(
     out.archetype_node_id = bracketParts.archetypeNodeId;
   }
   if (bracketParts.archetypeDetails) {
-    out.archetype_details = expandArchetypeDetails(bracketParts.archetypeDetails);
+    out.archetype_details = expandArchetypeDetails(
+      bracketParts.archetypeDetails,
+    );
   }
 
   for (const k of Object.keys(obj)) {
@@ -186,7 +188,8 @@ function expandNode(
 
   const compositionSym = getSymbolFor(symbolMap, "COMPOSITION");
   if (
-    compositionSym && Object.prototype.hasOwnProperty.call(obj, compositionSym) &&
+    compositionSym &&
+    Object.prototype.hasOwnProperty.call(obj, compositionSym) &&
     typeof obj[compositionSym] === "string"
   ) {
     return expandFoldedLocatable(
@@ -199,7 +202,9 @@ function expandNode(
     );
   }
 
-  const symbolKeys = Object.keys(obj).filter((k) => isSymbolKey(k) && k !== "_");
+  const symbolKeys = Object.keys(obj).filter((k) =>
+    isSymbolKey(k) && k !== "_"
+  );
   const typeMarker = obj._;
 
   // ZipEHR shorthand fold reverse:

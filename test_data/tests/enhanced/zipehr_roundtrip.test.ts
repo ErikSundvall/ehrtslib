@@ -3,7 +3,6 @@ import {
   assertEquals,
   assertExists,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parse as parseYaml } from "yaml";
 import * as openehr_base from "../../enhanced/openehr_base.ts";
 import * as openehr_rm from "../../enhanced/openehr_rm.ts";
 import { JsonConfigurableDeserializer } from "../../enhanced/serialization/json/mod.ts";
@@ -15,6 +14,7 @@ import {
   convertObjectDirect,
   convertObjectEhrtslib,
   detectInputFormat,
+  expandTerseString,
   expandZipehrToCanonical,
   jsonToCompactPlain,
   loadDefaultSymbolMap,
@@ -23,8 +23,9 @@ import {
   parseZipehrText,
   serializeToJZipehr,
   serializeToYZipehr,
+  serializeZipehrPlainToJson,
+  serializeZipehrPlainToYaml,
   shortenTerseString,
-  expandTerseString,
   zipehrTextToCanonical,
 } from "../../enhanced/serialization/zipehr/mod.ts";
 import {
@@ -106,7 +107,10 @@ Deno.test("zipehr: folded locatable bracket", () => {
     },
   );
   assertEquals(sameNameBracket, "⚙️1.1.0");
-  const restored = parseLocatableBracket(sameNameBracket, "openEHR-EHR-CLUSTER.organisation.v1");
+  const restored = parseLocatableBracket(
+    sameNameBracket,
+    "openEHR-EHR-CLUSTER.organisation.v1",
+  );
   assertEquals(
     (restored.archetypeDetails as Record<string, unknown>)["Ⓐ"],
     "openEHR-EHR-CLUSTER.organisation.v1",
@@ -151,7 +155,10 @@ Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
     (yContext.start_time as Record<string, unknown>).value,
     "2024-01-15T10:30:00Z",
   );
-  assertEquals((yContext.start_time as Record<string, unknown>)["📅⏰"], undefined);
+  assertEquals(
+    (yContext.start_time as Record<string, unknown>)["📅⏰"],
+    undefined,
+  );
 
   const fromJ = expandZipehrToCanonical(jObj, map) as Record<string, unknown>;
   const fromY = expandZipehrToCanonical(yObj, map) as Record<string, unknown>;
@@ -323,7 +330,27 @@ const CHEMO_FIXTURE: Record<string, unknown> = {
             "rm_version": "1.1.0",
           },
           "archetype_node_id": "openEHR-EHR-CLUSTER.organisation.v1",
-          "items": [],
+          "items": [
+            {
+              "_type": "ELEMENT",
+              "name": { "_type": "DV_TEXT", "value": "Namn" },
+              "archetype_node_id": "at0001",
+              "value": {
+                "_type": "DV_TEXT",
+                "value": "Brandbergens vårdcentral",
+              },
+            },
+            {
+              "_type": "ELEMENT",
+              "name": { "_type": "DV_TEXT", "value": "Identifierare" },
+              "archetype_node_id": "at0003",
+              "value": {
+                "_type": "DV_IDENTIFIER",
+                "id": "SE2321000016-1003",
+                "type": "urn:oid:1.2.752.29.4.19",
+              },
+            },
+          ],
         },
       ],
     },
@@ -332,8 +359,14 @@ const CHEMO_FIXTURE: Record<string, unknown> = {
 
 Deno.test("zipehr: chemo fixture bracket roundtrip (j and y)", async () => {
   const map = await loadDefaultSymbolMap();
-  const jObj = convertObjectDirect(CHEMO_FIXTURE, map) as Record<string, unknown>;
-  const yObj = convertObjectEhrtslib(CHEMO_FIXTURE, map) as Record<string, unknown>;
+  const jObj = convertObjectDirect(CHEMO_FIXTURE, map) as Record<
+    string,
+    unknown
+  >;
+  const yObj = convertObjectEhrtslib(CHEMO_FIXTURE, map) as Record<
+    string,
+    unknown
+  >;
 
   assertEquals(
     jObj["🖂"],
@@ -344,16 +377,24 @@ Deno.test("zipehr: chemo fixture bracket roundtrip (j and y)", async () => {
     "ChemoForm-MBA.v7[Ⓣ ChemoForm-MBA.v7 Ⓐ openEHR-EHR-COMPOSITION.self_reported_data.v1 ⚙️1.1.0]",
   );
 
-  const context = (jObj.context as Record<string, unknown>).other_context as Record<
-    string,
-    unknown
-  >;
+  const context = (jObj.context as Record<string, unknown>)
+    .other_context as Record<
+      string,
+      unknown
+    >;
   assertEquals(context["🌳"], "Item tree[at0003]");
 
-  const cluster = ((context.items as Record<string, unknown>[])[0]);
+  const cluster = (context.items as Record<string, unknown>[])[0];
   assertEquals(
     cluster["📁"],
     "Vårdenhet[Ⓐ openEHR-EHR-CLUSTER.organisation.v1 ⚙️1.1.0]",
+  );
+  const elements = cluster.items as Record<string, unknown>[];
+  assertEquals(elements[0].value, undefined);
+  assertEquals(elements[0]["🗉"], "Brandbergens vårdcentral");
+  assertEquals(
+    (elements[1]["🪪"] as Record<string, unknown>).id,
+    "SE2321000016-1003",
   );
 
   const fromJ = expandZipehrToCanonical(jObj, map) as Record<string, unknown>;
@@ -364,32 +405,80 @@ Deno.test("zipehr: chemo fixture bracket roundtrip (j and y)", async () => {
     "ChemoForm-MBA.v7",
   );
   assertEquals(
-    (fromJ.archetype_details as { archetype_id: { value: string } }).archetype_id
+    (fromJ.archetype_details as { archetype_id: { value: string } })
+      .archetype_id
       .value,
     "openEHR-EHR-COMPOSITION.self_reported_data.v1",
   );
-  assertEquals(fromJ.archetype_node_id, "openEHR-EHR-COMPOSITION.self_reported_data.v1");
+  assertEquals(
+    fromJ.archetype_node_id,
+    "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+  );
 
   const restoredCluster = (
     (
-      (
-        (fromY.context as Record<string, unknown>).other_context as Record<
-          string,
-          unknown
-        >
-      ).items as Record<string, unknown>[]
-    )[0]
-  );
+      (fromY.context as Record<string, unknown>).other_context as Record<
+        string,
+        unknown
+      >
+    ).items as Record<string, unknown>[]
+  )[0];
   assertEquals(
     (restoredCluster.name as { value: string }).value,
     "Vårdenhet",
+  );
+  const restoredElements = restoredCluster.items as Record<string, unknown>[];
+  assertEquals(
+    (restoredElements[0].value as Record<string, unknown>).value,
+    "Brandbergens vårdcentral",
+  );
+  assertEquals(
+    (restoredElements[1].value as Record<string, unknown>).id,
+    "SE2321000016-1003",
   );
   assertEquals(
     (restoredCluster.archetype_details as { archetype_id: { value: string } })
       .archetype_id.value,
     "openEHR-EHR-CLUSTER.organisation.v1",
   );
-  assertEquals(restoredCluster.archetype_node_id, "openEHR-EHR-CLUSTER.organisation.v1");
+  assertEquals(
+    restoredCluster.archetype_node_id,
+    "openEHR-EHR-CLUSTER.organisation.v1",
+  );
+});
+
+Deno.test("zipehr: hybrid JSON/YAML formatting stays valid and roundtrips", async () => {
+  const map = await loadDefaultSymbolMap();
+  const zipehrObj = convertObjectDirect(CHEMO_FIXTURE, map);
+
+  const jsonText = serializeZipehrPlainToJson(zipehrObj);
+  const yamlText = serializeZipehrPlainToYaml(
+    convertObjectEhrtslib(CHEMO_FIXTURE, map),
+  );
+
+  assert(
+    jsonText.includes(
+      `{ "🔹": "Namn[at0001]", "🗉": "Brandbergens vårdcentral" }`,
+    ),
+  );
+  assert(
+    yamlText.includes(`{ 🔹: "Namn[at0001]", 🗉: "Brandbergens vårdcentral" }`),
+  );
+
+  const parsedJson = JSON.parse(jsonText);
+  const parsedYaml = parseZipehrText(yamlText);
+
+  const fromJson = expandZipehrToCanonical(parsedJson, map) as Record<
+    string,
+    unknown
+  >;
+  const fromYaml = expandZipehrToCanonical(parsedYaml, map) as Record<
+    string,
+    unknown
+  >;
+
+  assertEquals((fromJson.name as { value: string }).value, "ChemoForm-MBA.v7");
+  assertEquals((fromYaml.name as { value: string }).value, "ChemoForm-MBA.v7");
 });
 
 Deno.test("zipehr: demo convert with auto-detect input", async () => {

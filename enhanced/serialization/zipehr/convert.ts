@@ -335,7 +335,9 @@ export function applyEmojiToCompact(
       if (inferrablePropertyType(parentType, propertyName)) {
         return shortenTerseString(compact);
       }
-      if (typeName === "CODE_PHRASE" || isTerseCodePhraseCompat(compact, original)) {
+      if (
+        typeName === "CODE_PHRASE" || isTerseCodePhraseCompat(compact, original)
+      ) {
         return wrapCodePhraseString(compact, symbolMap);
       }
       if (typeName === "DV_CODED_TEXT" || isTerseDvCodedText(compact)) {
@@ -349,9 +351,10 @@ export function applyEmojiToCompact(
   }
 
   const compactObj = compact as Record<string, unknown>;
-  const origObj = (original && typeof original === "object" && !Array.isArray(original))
-    ? original as Record<string, unknown>
-    : undefined;
+  const origObj =
+    (original && typeof original === "object" && !Array.isArray(original))
+      ? original as Record<string, unknown>
+      : undefined;
 
   if (compactObj._type && Object.keys(compactObj).length === 1) {
     const sym = getSymbolFor(symbolMap, String(compactObj._type)) ||

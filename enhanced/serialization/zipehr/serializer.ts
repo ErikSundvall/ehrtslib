@@ -8,7 +8,6 @@ import { JsonCanonicalSerializer } from "../json/json_canonical_serializer.ts";
 import { convertObjectDirect, convertObjectEhrtslib } from "./convert.ts";
 import { expandZipehrToCanonical } from "./deserialize.ts";
 import { detectInputFormat, parseZipehrText } from "./detect.ts";
-import { flowFormat } from "./flow_format.ts";
 import { loadDefaultSymbolMap } from "./symbol_map.ts";
 
 export type ZipehrOutputVariant = "j-zipehr" | "y-zipehr";
@@ -25,7 +24,7 @@ export async function serializeToJZipehr(obj: unknown): Promise<string> {
   const symbolMap = await loadDefaultSymbolMap();
   const canonical = rmToCanonicalPlain(obj);
   const converted = convertObjectDirect(canonical, symbolMap);
-  return JSON.stringify(converted, null, 2);
+  return serializeZipehrPlainToJson(converted);
 }
 
 /** Serialize RM object to y-zipehr YAML (terse + type inference + emoji + hybrid layout). */
@@ -36,9 +35,13 @@ export async function serializeToYZipehr(obj: unknown): Promise<string> {
   return serializeZipehrPlainToYaml(converted);
 }
 
-function serializeZipehrPlainToYaml(obj: unknown): string {
+export function serializeZipehrPlainToJson(obj: unknown): string {
+  return formatHybridJson(obj, 0);
+}
+
+export function serializeZipehrPlainToYaml(obj: unknown): string {
   const doc = new Document(obj);
-  applyHybridFormatting(doc.contents, 0);
+  applyHybridFormatting(doc.contents, obj, 0);
   return doc.toString({
     indent: 2,
     lineWidth: 120,
@@ -47,51 +50,130 @@ function serializeZipehrPlainToYaml(obj: unknown): string {
   });
 }
 
-function applyHybridFormatting(node: unknown, depth: number): void {
+function formatHybridJson(value: unknown, depth: number): string {
+  if (canFormatInline(value)) return formatInlineJson(value);
+
+  const indent = "  ".repeat(depth);
+  const childIndent = "  ".repeat(depth + 1);
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "[]";
+    const lines = value.map((item, index) => {
+      const suffix = index === value.length - 1 ? "" : ",";
+      return `${childIndent}${formatHybridJson(item, depth + 1)}${suffix}`;
+    });
+    return `[\n${lines.join("\n")}\n${indent}]`;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return "{}";
+    const lines = entries.map(([key, entryValue], index) => {
+      const suffix = index === entries.length - 1 ? "" : ",";
+      return `${childIndent}${JSON.stringify(key)}: ${
+        formatHybridJson(entryValue, depth + 1)
+      }${suffix}`;
+    });
+    return `{\n${lines.join("\n")}\n${indent}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+function formatInlineJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(formatInlineJson).join(", ")}]`;
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    return `{ ${
+      entries.map(([key, entryValue]) =>
+        `${JSON.stringify(key)}: ${formatInlineJson(entryValue)}`
+      ).join(", ")
+    } }`;
+  }
+  return JSON.stringify(value);
+}
+
+function canFormatInline(value: unknown): boolean {
+  if (!value || typeof value !== "object") return true;
+  return canFormatInlineInner(value, 0) &&
+    formatInlineJson(value).length <= 160;
+}
+
+function canFormatInlineInner(value: unknown, depth: number): boolean {
+  if (!value || typeof value !== "object") return true;
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return true;
+    if (value.length > 4) return false;
+    return value.every((item) =>
+      !item || typeof item !== "object" || canFormatInlineInner(item, depth + 1)
+    );
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length > 4) return false;
+  if (depth > 2) return false;
+  return entries.every(([, entryValue]) => {
+    if (Array.isArray(entryValue)) return entryValue.length === 0;
+    if (entryValue && typeof entryValue === "object") {
+      return canFormatInlineInner(entryValue, depth + 1);
+    }
+    return true;
+  });
+}
+
+function applyHybridFormatting(
+  node: unknown,
+  source: unknown,
+  depth: number,
+): void {
   if (!node || typeof node !== "object") return;
 
   if (isMap(node)) {
-    const obj: Record<string, unknown> = {};
-    for (const item of node.items) {
-      const keyNode = item.key;
-      if (
-        keyNode && typeof keyNode === "object" && "value" in keyNode &&
-        item.value !== undefined
-      ) {
-        const key = String((keyNode as { value: unknown }).value);
-        obj[key] = item.value;
-      }
-    }
-    const inline = HybridStyleFormatter.shouldFormatInline(obj, {
-      maxInlineDepth: 1,
+    const inline = HybridStyleFormatter.shouldFormatInline(source, {
+      maxInlineDepth: 2,
       maxInlineProperties: 4,
       maxInlineLength: 120,
-    });
+    }) || canFormatYamlInline(source);
     if (!inline) {
       node.flow = false;
     } else {
       node.flow = true;
     }
     for (const item of node.items) {
-      if (item.value) applyHybridFormatting(item.value, depth + 1);
+      const keyNode = item.key;
+      const key = keyNode && typeof keyNode === "object" && "value" in keyNode
+        ? String((keyNode as { value: unknown }).value)
+        : undefined;
+      const childSource =
+        source && typeof source === "object" && !Array.isArray(source) &&
+          key !== undefined
+          ? (source as Record<string, unknown>)[key]
+          : undefined;
+      if (item.value) applyHybridFormatting(item.value, childSource, depth + 1);
     }
     return;
   }
 
   if (isSeq(node)) {
-    const arr: unknown[] = [];
-    for (const item of node.items) {
-      arr.push(item);
-    }
-    const inline = HybridStyleFormatter.shouldFormatInline(arr, {
+    const sourceArray = Array.isArray(source) ? source : [];
+    const inline = HybridStyleFormatter.shouldFormatInline(sourceArray, {
       maxInlineDepth: 1,
       maxInlineProperties: 4,
     });
     node.flow = inline;
-    for (const item of node.items) {
-      applyHybridFormatting(item, depth + 1);
+    for (let i = 0; i < node.items.length; i++) {
+      applyHybridFormatting(node.items[i], sourceArray[i], depth + 1);
     }
   }
+}
+
+function canFormatYamlInline(value: unknown): boolean {
+  if (!value || typeof value !== "object") return true;
+  return canFormatInlineInner(value, 0) &&
+    formatInlineJson(value).length <= 120;
 }
 
 /** Deserialize zipehr text (j or y variant) to canonical plain JSON. */
