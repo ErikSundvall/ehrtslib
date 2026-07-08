@@ -60,6 +60,16 @@ data_types: {
   ACTION: ["🗹"],
   VERSIONED_OBJECT: ["🔁"],
   CONTRIBUTION: ["✍️"],
+}, terminology_shortcuts: {
+  openehr: ["🌬️"],
+  local: ["📍"],
+  language: ["💬"],
+  territory: ["🌐"],
+  encoding: ["🔤"],
+}, field_promotions: {
+  language: ["💬"],
+  territory: ["🌐"],
+  encoding: ["🔤"],
 }, foundation_types: {
 } }
 ` as string;

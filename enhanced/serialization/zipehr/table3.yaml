@@ -74,6 +74,18 @@
   ACTION: ["🗹","✅","🛠️","🔧","🧾","📌","📋","🧭","🩺","📅","📑","🧾","🔁"],
   VERSIONED_OBJECT: ["🔁","📦","🧾","📑","🕰️","🧾","🔖","📂","🗳️","🧭","📚","📝"],
   CONTRIBUTION: ["✍️","🧾","📑","📅","🧭","📌","🔗","🧾","📝","🧾","🧾","🔍"]
+}, terminology_shortcuts: {
+  # Terse CODE_PHRASE / DV_CODED_TEXT: terminology_id prefix → emoji (:: suffix in payloads)
+  openehr: ["🌬️"],
+  local: ["📍"],
+  language: ["💬"],
+  territory: ["🌐"],
+  encoding: ["🔤"],
+}, field_promotions: {
+  # COMPOSITION top-level: property → emoji key; codes use prefixes above (ISO_639-1::, ISO_3166-1::, IANA_character-sets::)
+  language: ["💬"],
+  territory: ["🌐"],
+  encoding: ["🔤"],
 }, foundation_types: {
   # FOUNDATION_TYPES never occur in data structures so they are not included here
   

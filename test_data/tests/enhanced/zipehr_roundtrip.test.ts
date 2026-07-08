@@ -118,7 +118,7 @@ Deno.test("zipehr: folded locatable bracket", () => {
 });
 
 Deno.test("zipehr: terminology shortcuts", () => {
-  assertEquals(shortenTerseString("openehr::433"), "🪟433");
+  assertEquals(shortenTerseString("openehr::433"), "🌬️433");
   assertEquals(shortenTerseString("ISO_639-1::en"), "💬en");
   assertEquals(shortenTerseString("local::at0023|Ja|"), "📍at0023|Ja|");
   assertEquals(expandTerseString("📍at0023|Ja|"), "local::at0023|Ja|");
@@ -142,11 +142,11 @@ Deno.test("zipehr: DV_CODED_TEXT terse in j-zipehr and y-zipehr", async () => {
 
   const jContext = jObj.context as Record<string, unknown>;
   const jSetting = jContext.setting as Record<string, unknown>;
-  assertEquals(jSetting["🗈"], "🪟238|other care|");
+  assertEquals(jSetting["🗈"], "🌬️238|other care|");
   assertEquals(jSetting.defining_code, undefined);
 
   const yContext = yObj.context as Record<string, unknown>;
-  assertEquals(yContext.setting, "🪟238|other care|");
+  assertEquals(yContext.setting, "🌬️238|other care|");
   assertEquals(
     (yContext.start_time as Record<string, unknown>).value,
     "2024-01-15T10:30:00Z",

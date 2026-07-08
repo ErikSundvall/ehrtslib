@@ -23,8 +23,13 @@ polymorphic-type handling (`shared.ts`).
 ## Symbol lookup table
 
 RM class → emoji is defined in [`table3.yaml`](table3.yaml). Each row lists alternatives;
-**only the first symbol is used** at runtime. First symbols must be unique across the whole
-table (symbol pairs like `📅⌚` count as one symbol).
+**only the first symbol is used** at runtime. First symbols must be unique across RM type
+rows (`data_types`, `data_structures`, `ehr_components`; symbol pairs like `📅⌚` count as one).
+
+Additional sections in the same file:
+
+- **`terminology_shortcuts`** — terse-string prefix replacements (`openehr::` → `🌬️`, etc.)
+- **`field_promotions`** — COMPOSITION `language` / `territory` / `encoding` promoted to emoji keys
 
 Embedded copy for bundles/tests: [`table3_text.ts`](table3_text.ts) (first symbol per row
 only). Regenerate after editing the YAML:
@@ -83,13 +88,16 @@ Type inference order: `PROPERTY_TYPE_MAP[parent][property]` → structure heuris
 
 Terminology shortcuts (applied on serialize, expanded on deserialize):
 
-| Prefix | Emoji |
-|--------|-------|
-| `openehr::` | `🪟` |
-| `local::` | `📍` |
-| `ISO_639-1::` | `💬` |
-| `ISO_3166-1::` | `🌐` |
-| `IANA_character-sets::` | `🔤` |
+| Prefix | Emoji | table3 key |
+|--------|-------|------------|
+| `openehr::` | `🌬️` | `openehr` |
+| `local::` | `📍` | `local` |
+| `ISO_639-1::` | `💬` | `language` |
+| `ISO_3166-1::` | `🌐` | `territory` |
+| `IANA_character-sets::` | `🔤` | `encoding` |
+
+Canonical listing: `terminology_shortcuts` and `field_promotions` in [`table3.yaml`](table3.yaml).
+Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in `shared.ts`.
 
 **COMPOSITION** promotes `language` / `territory` / `encoding` CODE_PHRASE children to
 top-level `💬` / `🌐` / `🔤` keys with bare code strings.
@@ -98,7 +106,7 @@ top-level `💬` / `🌐` / `🔤` keys with bare code strings.
 
 | Property | j-zipehr | y-zipehr |
 |----------|----------|----------|
-| `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `{ "🗈": "🪟238\|other care\|" }` | `🪟238\|other care\|` |
+| `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `{ "🗈": "🌬️238\|other care\|" }` | `🌬️238\|other care\|` |
 | `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) | `{ "📅⌚": "2023-08-31T18:31:16+02:00" }` | `{ value: "2023-08-31T18:31:16+02:00" }` |
 
 ## Folded LOCATABLE names

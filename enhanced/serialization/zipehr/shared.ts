@@ -2,7 +2,7 @@
 
 /** Terminology prefix → emoji (applied to terse CODE_PHRASE / DV_CODED_TEXT strings). */
 export const TERMINOLOGY_SHORTCUTS = Object.freeze([
-  { prefix: "openehr::", emoji: "🪟" },
+  { prefix: "openehr::", emoji: "🌬️" },
   { prefix: "local::", emoji: "📍" },
   { prefix: "ISO_639-1::", emoji: "💬" },
   { prefix: "ISO_3166-1::", emoji: "🌐" },

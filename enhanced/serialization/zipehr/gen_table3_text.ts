@@ -6,6 +6,15 @@ const TOP_SECTIONS = new Set([
   "data_types",
   "data_structures",
   "ehr_components",
+  "terminology_shortcuts",
+  "field_promotions",
+  "foundation_types",
+]);
+
+const RM_SYMBOL_SECTIONS = new Set([
+  "data_types",
+  "data_structures",
+  "ehr_components",
   "foundation_types",
 ]);
 
@@ -56,8 +65,15 @@ console.log(`Wrote ${outPath.pathname}`);
 const firstSymbols = new Map<string, string>();
 const duplicates: string[] = [];
 let m: RegExpExecArray | null;
-while ((m = entryRe.exec(cleaned)) !== null) {
-  const [, key, symbol] = m;
+let dupSection = "";
+for (const line of lines) {
+  for (const sec of line.matchAll(/(\w+):\s*\{/g)) {
+    if (RM_SYMBOL_SECTIONS.has(sec[1])) dupSection = sec[1];
+    else dupSection = "";
+  }
+  const entry = line.match(/^\s*([A-Za-z0-9_]+)\s*:\s*\[\s*["']([^"']+)["']/);
+  if (!entry || !dupSection) continue;
+  const [, key, symbol] = entry;
   if (firstSymbols.has(symbol)) {
     duplicates.push(`${symbol}: ${firstSymbols.get(symbol)} vs ${key}`);
   } else {
