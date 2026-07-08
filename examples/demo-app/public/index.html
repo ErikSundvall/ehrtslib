@@ -213,7 +213,7 @@
                       <button class="btn btn-secondary btn-sm" id="load-example">
                         <span class="material-icons btn-icon" aria-hidden="true"
                         >folder_open</span>
-                        Load Example
+                        Select Preset Example
                       </button>
                       <div class="example-menu hidden" id="example-menu">
                         <button class="example-item" data-example="dv-text">
@@ -437,10 +437,6 @@
                 <input type="checkbox" id="output-yaml" checked>
                 <span>YAML</span>
               </label>
-              <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
-                <input type="checkbox" id="output-zipehr">
-                <span>ZipEHR</span>
-              </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="output-json" checked>
                 <span>JSON</span>
@@ -464,8 +460,12 @@
                 <span>XML</span>
               </label>
               <label class="checkbox-label" title="FLAT or STRUCTURED simplified openEHR format (requires operational template)">
-                <input type="checkbox" id="output-simplified">
+                <input type="checkbox" id="output-simplified" checked>
                 <span>Simplified</span>
+              </label>
+              <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
+                <input type="checkbox" id="output-zipehr" checked>
+                <span>ZipEHR</span>
               </label>
             </div>
           </div>
@@ -491,13 +491,13 @@
           <div class="tabs-row output-tabs-row">
             <div class="tabs" id="output-tabs">
               <button class="tab active" data-tab="yaml">YAML</button>
-              <button class="tab hidden" data-tab="zipehr">ZipEHR</button>
               <button class="tab" data-tab="json">JSON</button>
               <button class="tab hidden" data-tab="markdown">Markdown</button>
               <button class="tab hidden" data-tab="asciidoc">AsciiDoc</button>
               <button class="tab" data-tab="typescript">TypeScript</button>
               <button class="tab" data-tab="xml">XML</button>
-              <button class="tab hidden" data-tab="simplified">Simplified</button>
+              <button class="tab" data-tab="simplified">Simplified</button>
+              <button class="tab" data-tab="zipehr">ZipEHR</button>
             </div>
           </div>
 
