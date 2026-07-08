@@ -235,6 +235,7 @@ function setupEventListeners() {
   // Output visibility
   setupOutputVisibilityListeners();
   setupZipehrVariantListener();
+  setupZipehrSymbolVariantListener();
   setupSimplifiedVariantListener();
   setupSimplifiedOptUpload();
   setupInputSimplifiedTemplateUpload();
@@ -326,6 +327,22 @@ function setupZipehrVariantListener(): void {
     scheduleAutoConvert();
   });
   switchZipehrVariantPane();
+}
+
+function getActiveZipehrSymbolVariant(): "emoji" | "lettercode" {
+  const checkbox = document.getElementById(
+    "zipehr-symbol-variant-lettercode",
+  ) as HTMLInputElement | null;
+  return checkbox?.checked ? "lettercode" : "emoji";
+}
+
+function setupZipehrSymbolVariantListener(): void {
+  const checkbox = document.getElementById(
+    "zipehr-symbol-variant-lettercode",
+  ) as HTMLInputElement | null;
+  checkbox?.addEventListener("change", () => {
+    scheduleAutoConvert();
+  });
 }
 
 function setupSimplifiedVariantListener(): void {
@@ -1847,6 +1864,7 @@ function gatherConversionOptions(): ConversionOptions {
     asciidocConfig,
     xmlConfig,
     typescriptConfig,
+    zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
 }
@@ -2374,11 +2392,22 @@ function switchOutputTab(tabName: string) {
  */
 function updateOutputInfo() {
   const tabName = getActiveOutputFormat();
-  const pane = document.getElementById(`tab-${tabName}`);
-  const outputChar = pane?.querySelector(".output-char-count");
-  const outputLine = pane?.querySelector(".output-line-count");
+  const rootTab =
+    tabName.startsWith("zipehr.") ? "tab-zipehr" : `tab-${tabName}`;
+  const root = document.getElementById(rootTab);
 
-  if (!pane || !outputChar || !outputLine) return;
+  // `tab-zipehr` contains two hidden panes (`zipehr.json` and `zipehr.yaml`).
+  const countsRoot =
+    tabName.startsWith("zipehr.")
+      ? (document.querySelector(
+          `.zipehr-variant-pane[data-zipehr-variant="${tabName}"]`,
+        ) as HTMLElement | null) ?? root
+      : root;
+
+  const outputChar = countsRoot?.querySelector(".output-char-count");
+  const outputLine = countsRoot?.querySelector(".output-line-count");
+
+  if (!countsRoot || !outputChar || !outputLine) return;
 
   const editor = getDemoEditor(`output-${tabName}-content`);
   if (!editor) return;

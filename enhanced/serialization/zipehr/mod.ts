@@ -34,7 +34,9 @@ export {
 export {
   buildReverseSymbolMap,
   loadDefaultSymbolMap,
+  loadSymbolMap,
   loadSymbolMapFromFileText,
+  type ZipehrSymbolVariant,
 } from "./symbol_map.ts";
 
 export {

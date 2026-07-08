@@ -1614,3 +1614,54 @@ body {
         --border-medium: #000000;
     }
 }
+
+/* ZipEHR symbol variant switch (emoji vs letter codes) */
+.symbol-variant-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+}
+
+.symbol-variant-option {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+input[type="checkbox"][role="switch"].symbol-variant-switch-toggle {
+    width: 44px;
+    height: 24px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: var(--border-medium);
+    border: 1px solid var(--border-medium);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    outline: none;
+    flex: 0 0 auto;
+}
+
+input[type="checkbox"][role="switch"].symbol-variant-switch-toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-medium);
+    transition: transform 0.2s;
+}
+
+input[type="checkbox"][role="switch"].symbol-variant-switch-toggle:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+input[type="checkbox"][role="switch"].symbol-variant-switch-toggle:checked::after {
+    transform: translateX(20px);
+}

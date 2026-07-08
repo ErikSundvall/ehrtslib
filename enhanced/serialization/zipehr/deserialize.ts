@@ -17,7 +17,43 @@ import {
   PROPERTY_TYPE_MAP,
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
-import { buildReverseSymbolMap } from "./symbol_map.ts";
+import { buildReverseSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
+import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
+
+function buildSymbolMapFromTable(
+  base: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = Object.create(null);
+  for (const [key, symbol] of Object.entries(base)) {
+    out[key] = symbol;
+    out[key.toUpperCase()] = symbol;
+    out[key.toLowerCase()] = symbol;
+  }
+  return out;
+}
+
+const DEFAULT_EMOJI_SYMBOL_MAP = buildSymbolMapFromTable(TABLE3_EMOJI_SYMBOLS);
+const DEFAULT_LETTER_SYMBOL_MAP = buildSymbolMapFromTable(TABLE3_LETTER_SYMBOLS);
+
+function scoreZipehrSymbolKeys(
+  node: unknown,
+  reverseMap: Map<string, string>,
+): number {
+  if (node === null || node === undefined) return 0;
+  if (typeof node !== "object") return 0;
+  if (Array.isArray(node)) {
+    return node.reduce((sum, item) => sum + scoreZipehrSymbolKeys(item, reverseMap), 0);
+  }
+
+  const obj = node as Record<string, unknown>;
+  let score = 0;
+  for (const [k, v] of Object.entries(obj)) {
+    if (k !== "_" && reverseMap.has(k)) score++;
+    if (k === "_" && typeof v === "string" && reverseMap.has(v)) score++;
+    score += scoreZipehrSymbolKeys(v, reverseMap);
+  }
+  return score;
+}
 
 function expandCodePhraseTerse(terse: string): Record<string, unknown> {
   const expanded = expandTerseString(terse);
@@ -222,7 +258,10 @@ function expandNode(
   if (
     expectedType &&
     isValueOnlyRmObject(obj) &&
-    !Object.keys(obj).some((k) => isSymbolKey(k) || k === "_")
+    !Object.keys(obj).some((k) =>
+      k === "_" ||
+      (reverseMap ? reverseMap.has(k) : isSymbolKey(k))
+    )
   ) {
     return expandInferrableLeaf(obj.value, expectedType);
   }
@@ -254,7 +293,7 @@ function expandNode(
   }
 
   const symbolKeys = Object.keys(obj).filter((k) =>
-    isSymbolKey(k) && k !== "_"
+    reverseMap ? reverseMap.has(k) && k !== "_" : isSymbolKey(k) && k !== "_"
   );
   const typeMarker = obj._;
 
@@ -410,8 +449,25 @@ function expandNode(
 /** Expand a zipehr object tree to canonical openEHR JSON. */
 export function expandZipehrToCanonical(
   zipehrObj: unknown,
-  symbolMap: Record<string, string>,
+  symbolMapOrVariant?: Record<string, string> | ZipehrSymbolVariant | "auto",
 ): unknown {
+  let symbolMap: Record<string, string>;
+  if (!symbolMapOrVariant || symbolMapOrVariant === "auto") {
+    const reverseEmoji = buildReverseSymbolMap(DEFAULT_EMOJI_SYMBOL_MAP);
+    const reverseLetter = buildReverseSymbolMap(DEFAULT_LETTER_SYMBOL_MAP);
+    const emojiScore = scoreZipehrSymbolKeys(zipehrObj, reverseEmoji);
+    const letterScore = scoreZipehrSymbolKeys(zipehrObj, reverseLetter);
+    symbolMap = letterScore > emojiScore
+      ? DEFAULT_LETTER_SYMBOL_MAP
+      : DEFAULT_EMOJI_SYMBOL_MAP;
+  } else if (typeof symbolMapOrVariant === "string") {
+    symbolMap = symbolMapOrVariant === "lettercode"
+      ? DEFAULT_LETTER_SYMBOL_MAP
+      : DEFAULT_EMOJI_SYMBOL_MAP;
+  } else {
+    symbolMap = symbolMapOrVariant;
+  }
+
   const reverseMap = buildReverseSymbolMap(symbolMap);
   return expandNode(zipehrObj, undefined, undefined, reverseMap, symbolMap);
 }

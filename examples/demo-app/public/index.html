@@ -460,7 +460,7 @@
                 <span>XML</span>
               </label>
               <label class="checkbox-label" title="FLAT or STRUCTURED simplified openEHR format (requires operational template)">
-                <input type="checkbox" id="output-simplified" checked>
+                <input type="checkbox" id="output-simplified">
                 <span>Simplified</span>
               </label>
               <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
@@ -824,13 +824,33 @@
                         <option value="zipehr.yaml" selected>zipehr.yaml (YAML, terse + type inference)</option>
                       </select>
                     </div>
+                  <div class="form-group">
+                    <label for="zipehr-symbol-variant-lettercode">Symbols:</label>
+                    <div class="symbol-variant-switch">
+                      <span class="symbol-variant-option">Emoji</span>
+                      <input
+                        type="checkbox"
+                        id="zipehr-symbol-variant-lettercode"
+                        role="switch"
+                        class="symbol-variant-switch-toggle"
+                      />
+                      <span class="symbol-variant-option">Letter codes</span>
+                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
               <div class="zipehr-variant-pane" data-zipehr-variant="zipehr.json">
-                <div class="output-toolbar">
-                  <span class="output-info"></span>
-                  <span class="output-actions">
+                <div class="output-info output-toolbar" id="output-j-zipehr-content">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
                     <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.json" type="button">
                       <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
                       Copy
@@ -844,9 +864,16 @@
                 <div class="demo-editor-host output-content" id="output-zipehr.json-content"></div>
               </div>
               <div class="zipehr-variant-pane hidden" data-zipehr-variant="zipehr.yaml">
-                <div class="output-toolbar">
-                  <span class="output-info"></span>
-                  <span class="output-actions">
+                <div class="output-info output-toolbar" id="output-y-zipehr-content">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
                     <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.yaml" type="button">
                       <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
                       Copy

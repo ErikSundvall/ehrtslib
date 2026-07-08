@@ -180,6 +180,8 @@ export interface ConversionOptions {
     | JsonDeserializationConfig
     | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
+  /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs. */
+  zipehrSymbolVariant?: "emoji" | "lettercode";
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
@@ -362,10 +364,16 @@ export async function convert(
             outputs.yaml = serializeToYaml(rmObject, options.yamlConfig);
             break;
           case "zipehr.json":
-            outputs["zipehr.json"] = await serializeToJZipehr(rmObject);
+            outputs["zipehr.json"] = await serializeToJZipehr(
+              rmObject,
+              options.zipehrSymbolVariant,
+            );
             break;
           case "zipehr.yaml":
-            outputs["zipehr.yaml"] = await serializeToYZipehr(rmObject);
+            outputs["zipehr.yaml"] = await serializeToYZipehr(
+              rmObject,
+              options.zipehrSymbolVariant,
+            );
             break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
@@ -444,10 +452,16 @@ async function convertTemplateInput(
         outputs.yaml = serializeToYaml(generatedInstance, options.yamlConfig);
         break;
       case "zipehr.json":
-        outputs["zipehr.json"] = await serializeToJZipehr(generatedInstance);
+        outputs["zipehr.json"] = await serializeToJZipehr(
+          generatedInstance,
+          options.zipehrSymbolVariant,
+        );
         break;
       case "zipehr.yaml":
-        outputs["zipehr.yaml"] = await serializeToYZipehr(generatedInstance);
+        outputs["zipehr.yaml"] = await serializeToYZipehr(
+          generatedInstance,
+          options.zipehrSymbolVariant,
+        );
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(

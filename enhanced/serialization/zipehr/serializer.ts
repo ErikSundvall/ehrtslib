@@ -9,7 +9,7 @@ import { JsonCanonicalSerializer } from "../json/json_canonical_serializer.ts";
 import { convertObjectDirect, convertObjectEhrtslib } from "./convert.ts";
 import { expandZipehrToCanonical } from "./deserialize.ts";
 import { detectInputFormat, parseZipehrText } from "./detect.ts";
-import { loadDefaultSymbolMap } from "./symbol_map.ts";
+import { loadSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
 
 export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml";
 
@@ -21,16 +21,22 @@ export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {
 }
 
 /** Serialize RM object to `zipehr.json` JSON text (emoji keys, direct canonical path). */
-export async function serializeToJZipehr(obj: unknown): Promise<string> {
-  const symbolMap = await loadDefaultSymbolMap();
+export async function serializeToJZipehr(
+  obj: unknown,
+  symbolVariant: ZipehrSymbolVariant = "emoji",
+): Promise<string> {
+  const symbolMap = await loadSymbolMap(symbolVariant);
   const canonical = rmToCanonicalPlain(obj);
   const converted = convertObjectDirect(canonical, symbolMap);
   return serializeZipehrPlainToJson(converted);
 }
 
 /** Serialize RM object to `zipehr.yaml` YAML (terse + type inference + emoji + hybrid layout). */
-export async function serializeToYZipehr(obj: unknown): Promise<string> {
-  const symbolMap = await loadDefaultSymbolMap();
+export async function serializeToYZipehr(
+  obj: unknown,
+  symbolVariant: ZipehrSymbolVariant = "emoji",
+): Promise<string> {
+  const symbolMap = await loadSymbolMap(symbolVariant);
   const canonical = rmToCanonicalPlain(obj);
   const converted = convertObjectEhrtslib(canonical, symbolMap);
   return serializeZipehrPlainToYaml(converted);
@@ -178,10 +184,13 @@ function canFormatYamlInline(value: unknown): boolean {
 }
 
 /** Deserialize zipehr text (j or y variant) to canonical plain JSON. */
-export async function zipehrTextToCanonical(text: string): Promise<unknown> {
-  const symbolMap = await loadDefaultSymbolMap();
+export async function zipehrTextToCanonical(
+  text: string,
+  symbolVariant: "auto" | ZipehrSymbolVariant = "auto",
+): Promise<unknown> {
   const parsed = parseZipehrText(text);
-  return expandZipehrToCanonical(parsed, symbolMap);
+  // Auto-detect symbol variant by attempting both decoders.
+  return expandZipehrToCanonical(parsed, symbolVariant);
 }
 
 export { detectInputFormat, parseZipehrText };

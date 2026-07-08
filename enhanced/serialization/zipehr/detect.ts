@@ -3,7 +3,13 @@
  */
 
 import { parse as parseYaml } from "yaml";
-import { isSymbolKey } from "./shared.ts";
+// Detection needs to understand both emoji and ASCII lettercode symbol keys.
+import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
+
+const KNOWN_ZIPEHR_SYMBOL_KEYS = new Set<string>([
+  ...Object.values(TABLE3_EMOJI_SYMBOLS),
+  ...Object.values(TABLE3_LETTER_SYMBOLS),
+]);
 
 export type ZipehrVariant = "zipehr.json" | "zipehr.yaml";
 
@@ -17,10 +23,10 @@ function hasZipehrMarkers(obj: unknown): boolean {
   if (Array.isArray(obj)) return obj.some(hasZipehrMarkers);
   const record = obj as Record<string, unknown>;
   for (const k of Object.keys(record)) {
-    if (isSymbolKey(k)) return true;
+    if (KNOWN_ZIPEHR_SYMBOL_KEYS.has(k)) return true;
     if (
       k === "_" && typeof record[k] === "string" &&
-      isSymbolKey(record[k] as string)
+      KNOWN_ZIPEHR_SYMBOL_KEYS.has(record[k] as string)
     ) {
       return true;
     }
