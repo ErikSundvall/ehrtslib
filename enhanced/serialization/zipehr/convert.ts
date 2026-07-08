@@ -16,8 +16,6 @@ import {
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 
-const STRUCTURAL_TYPES = new Set(["ARCHETYPE_DETAILS"]);
-
 function promoteTerminologyFields(obj: Record<string, unknown>): void {
   for (const { field, prefix, emoji } of TERMINOLOGY_FIELD_PROMOTIONS) {
     if (!Object.prototype.hasOwnProperty.call(obj, field)) continue;
@@ -137,7 +135,6 @@ function convertObjectDirectInner(
 
     if (t.startsWith("DV_")) {
       const symbol = getSymbolFor(symbolMap, t) || t;
-      const out: Record<string, unknown> = {};
       if (Object.prototype.hasOwnProperty.call(typed, "value")) {
         const extraKeys = Object.keys(typed).filter((k) =>
           k !== "_type" && k !== "value"
@@ -147,19 +144,22 @@ function convertObjectDirectInner(
             [symbol]: convertObjectDirectInner(typed.value, symbolMap),
           };
         }
-        out[symbol] = convertObjectDirectInner(typed.value, symbolMap);
+        const inner: Record<string, unknown> = {
+          value: convertObjectDirectInner(typed.value, symbolMap),
+        };
         for (const k of extraKeys) {
-          out[k] = convertObjectDirectInner(typed[k], symbolMap);
+          inner[k] = convertObjectDirectInner(typed[k], symbolMap);
         }
-        return out;
+        return { [symbol]: inner };
       }
       const inner: Record<string, unknown> = {};
       for (const k of Object.keys(typed)) {
         if (k === "_type") continue;
         inner[k] = convertObjectDirectInner(typed[k], symbolMap);
       }
-      out[symbol] = Object.keys(inner).length === 0 ? null : inner;
-      return out;
+      return {
+        [symbol]: Object.keys(inner).length === 0 ? null : inner,
+      };
     }
 
     const sym = getSymbolFor(symbolMap, t) || t;
@@ -247,10 +247,11 @@ function wrapDvScalar(
 
 function isTerseCodePhraseCompat(str: string, original: unknown): boolean {
   if (typeof str !== "string") return false;
-  if (/^[^:]+::[^|]+$/.test(str)) return true;
-  return !!(original && typeof original === "object" &&
-    !Array.isArray(original) &&
-    (original as { _type?: string })._type === "CODE_PHRASE");
+  if (original && typeof original === "object" && !Array.isArray(original)) {
+    const typed = (original as { _type?: string })._type;
+    if (typed && typed !== "CODE_PHRASE") return false;
+  }
+  return /^[^:]+::[^|]+$/.test(str);
 }
 
 export function applyEmojiToCompact(
@@ -376,8 +377,7 @@ export function applyEmojiToCompact(
   }
 
   if (
-    typeName && String(typeName).startsWith("DV_") &&
-    !Object.prototype.hasOwnProperty.call(compactObj, "value")
+    typeName && String(typeName).startsWith("DV_")
   ) {
     const symbol = getSymbolFor(symbolMap, String(typeName)) || typeName;
     const inner: Record<string, unknown> = {};
@@ -396,7 +396,7 @@ export function applyEmojiToCompact(
     };
   }
 
-  if (STRUCTURAL_TYPES.has(String(typeName))) {
+  if (inferrablePropertyType(parentType, propertyName)) {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(compactObj)) {
       if (k === "_type") continue;
@@ -412,9 +412,24 @@ export function applyEmojiToCompact(
   }
 
   const sym = getSymbolFor(symbolMap, String(typeName));
+  if (sym) {
+    const inner: Record<string, unknown> = {};
+    for (const k of Object.keys(compactObj)) {
+      if (k === "_type") continue;
+      inner[k] = applyEmojiToCompact(
+        compactObj[k],
+        origObj && origObj[k],
+        symbolMap,
+        String(typeName),
+        k,
+      );
+    }
+    return { [sym]: inner };
+  }
+
   const out: Record<string, unknown> = {};
-  if (sym || (typeName && typeName !== "Object")) {
-    out._ = sym || typeName;
+  if (typeName && typeName !== "Object") {
+    out._ = typeName;
   }
   for (const k of Object.keys(compactObj)) {
     if (k === "_type") continue;

@@ -38,6 +38,7 @@ export const POLYMORPHIC_TYPES = new Set([
   "PATHABLE",
   "PARTY_IDENTIFIED",
   "PARTY_PROXY",
+  "DV_ENCAPSULATED",
 ]);
 
 export const PROPERTY_TYPE_MAP: Record<
@@ -51,20 +52,136 @@ export const PROPERTY_TYPE_MAP: Record<
     territory: "CODE_PHRASE",
     context: "EVENT_CONTEXT",
     content: "CONTENT_ITEM",
+    uid: "OBJECT_VERSION_ID",
+    feeder_audit: "FEEDER_AUDIT",
+    composer: "PARTY_PROXY",
   },
   DV_CODED_TEXT: { defining_code: "CODE_PHRASE" },
   CODE_PHRASE: { terminology_id: "TERMINOLOGY_ID" },
-  OBSERVATION: { name: "DV_TEXT", language: "CODE_PHRASE", data: "HISTORY" },
-  ELEMENT: { name: "DV_TEXT", value: "DATA_VALUE" },
+  FEEDER_AUDIT: {
+    original_content: "DV_ENCAPSULATED",
+    originating_system_audit: "FEEDER_AUDIT_DETAILS",
+    feeder_system_audit: "FEEDER_AUDIT_DETAILS",
+  },
+  FEEDER_AUDIT_DETAILS: {
+    subject: "PARTY_PROXY",
+    provider: "PARTY_PROXY",
+    location: "PARTY_IDENTIFIED",
+  },
+  OBSERVATION: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    data: "HISTORY",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  ELEMENT: { name: "DV_TEXT", value: "DATA_VALUE", feeder_audit: "FEEDER_AUDIT" },
+  CLUSTER: { name: "DV_TEXT", items: "ITEM", feeder_audit: "FEEDER_AUDIT" },
   HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME" },
   POINT_EVENT: {
     name: "DV_TEXT",
     time: "DV_DATE_TIME",
     data: "ITEM_STRUCTURE",
   },
-  EVENT_CONTEXT: { start_time: "DV_DATE_TIME", setting: "DV_CODED_TEXT" },
+  EVENT_CONTEXT: {
+    start_time: "DV_DATE_TIME",
+    setting: "DV_CODED_TEXT",
+    other_context: "ITEM_STRUCTURE",
+  },
   ITEM_TREE: { name: "DV_TEXT", items: "ITEM" },
+  ITEM_LIST: { name: "DV_TEXT", items: "ITEM" },
+  ITEM_TABLE: { name: "DV_TEXT", rows: "ITEM_TABLE_ROW" },
+  ITEM_SINGLE: { name: "DV_TEXT", item: "ITEM" },
+  SECTION: { name: "DV_TEXT", items: "CONTENT_ITEM" },
+  ENTRY: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    encoding: "CODE_PHRASE",
+    subject: "PARTY_PROXY",
+    provider: "PARTY_PROXY",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  CARE_ENTRY: {
+    name: "DV_TEXT",
+    protocol: "ITEM_STRUCTURE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  EVALUATION: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    data: "ITEM_STRUCTURE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  INSTRUCTION: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    narrative: "DV_TEXT",
+    expiry_time: "DV_DATE_TIME",
+    wf_definition: "DV_PARSABLE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  ACTION: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    time: "DV_DATE_TIME",
+    description: "ITEM_STRUCTURE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  ADMIN_ENTRY: {
+    name: "DV_TEXT",
+    language: "CODE_PHRASE",
+    data: "ITEM_STRUCTURE",
+    feeder_audit: "FEEDER_AUDIT",
+  },
+  INTERVAL_EVENT: {
+    name: "DV_TEXT",
+    time: "DV_DATE_TIME",
+    width: "DV_DURATION",
+    data: "ITEM_STRUCTURE",
+  },
+  DV_TEXT: { language: "CODE_PHRASE", encoding: "CODE_PHRASE" },
+  DV_ORDERED: {
+    normal_status: "CODE_PHRASE",
+    normal_range: "REFERENCE_RANGE",
+  },
+  DV_QUANTITY: { accuracy: "DV_AMOUNT" },
+  DV_ENCAPSULATED: { charset: "CODE_PHRASE", language: "CODE_PHRASE" },
 };
+
+/** LOCATABLE-owned properties inferred for any LOCATABLE subtype parent. */
+export const LOCATABLE_PROPERTY_TYPES: Record<string, string> = {
+  name: "DV_TEXT",
+  feeder_audit: "FEEDER_AUDIT",
+  uid: "OBJECT_VERSION_ID",
+};
+
+/** RM types that inherit LOCATABLE attributes (for {@link inferrablePropertyType}). */
+export const LOCATABLE_LIKE_TYPES = new Set([
+  "LOCATABLE",
+  "CONTENT_ITEM",
+  "ENTRY",
+  "CARE_ENTRY",
+  "SECTION",
+  "ADMIN_ENTRY",
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "DATA_STRUCTURE",
+  "ITEM_STRUCTURE",
+  "ITEM_TREE",
+  "ITEM_LIST",
+  "ITEM_TABLE",
+  "ITEM_SINGLE",
+  "ITEM",
+  "CLUSTER",
+  "ELEMENT",
+  "HISTORY",
+  "EVENT",
+  "POINT_EVENT",
+  "INTERVAL_EVENT",
+  "ACTIVITY",
+  "COMPOSITION",
+]);
 
 export function loadSymbolMapFromText(text: string): Record<string, string> {
   const lines = text.split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
@@ -445,7 +562,10 @@ export function inferrablePropertyType(
   propertyName?: string,
 ): string | undefined {
   if (!parentType || !propertyName) return undefined;
-  const expected = PROPERTY_TYPE_MAP[parentType]?.[propertyName];
+  let expected = PROPERTY_TYPE_MAP[parentType]?.[propertyName];
+  if (!expected && LOCATABLE_LIKE_TYPES.has(parentType)) {
+    expected = LOCATABLE_PROPERTY_TYPES[propertyName];
+  }
   if (!expected || POLYMORPHIC_TYPES.has(expected)) return undefined;
   return expected;
 }

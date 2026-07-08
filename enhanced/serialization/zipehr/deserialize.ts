@@ -241,7 +241,7 @@ function expandNode(
   if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "object") {
     const symKey = symbolKeys[0];
     const typeName = typeFromSymbolKey(symKey, reverseMap, symbolMap);
-    if (typeName && typeName.startsWith("DV_")) {
+    if (typeName) {
       const inner = expandNode(
         obj[symKey],
         typeName,
@@ -252,7 +252,7 @@ function expandNode(
       const out: Record<string, unknown> = { _type: typeName };
       if (inner && typeof inner === "object" && !Array.isArray(inner)) {
         Object.assign(out, inner as Record<string, unknown>);
-      } else {
+      } else if (inner !== undefined) {
         out.value = inner;
       }
       for (const k of Object.keys(obj)) {
