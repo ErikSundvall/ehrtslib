@@ -45,6 +45,32 @@
   PARTY_SELF: ["PS","👤👈","👤👇","👤🙋‍♂️","👤🙋‍♀️", "👤🫵"],
   PARTY_REF: ["PF","👤⤨"],
   PARTY_RELATED: ["PR","👤🧑‍🧑‍🧒","🔗"]
+
+  ## ------------------------------------------------------------------------
+  ## Missing classes compared to `ehrbase-short-codes.md` (letter code only).
+  ## Intentionally commented out
+  ## TODO:enable incrementally to avoid symbol collisions.
+  ## ATTESTATION: ["AT"]
+  ## AUDIT_DETAILS: ["AD"]
+  ## GENERIC_ID: ["GX"]
+  ## HIER_OBJECT_ID: ["HX"]
+  ## INTERNET_ID: ["IX"]
+  ## INTERVAL: ["IV"]
+  ## ISM_TRANSITION: ["IT"]
+  ## LINK: ["LK"]
+  ## LOCATABLE_REF: ["LR"]
+  ## OBJECT_REF: ["OR"]
+  ## OBJECT_VERSION_ID: ["OV"]
+  ## PARTICIPATION: ["PA"]
+  ## TERMINOLOGY_ID: ["T"]
+  ## UUID: ["U"]
+
+  ## Hopefully handled in other ways already above in ehrtslib.
+  ## ARCHETYPE_ID: ["AX"]
+  ## TEMPLATE_ID: ["TP"]
+  ## ARCHETYPED: ["AR"]
+  
+
 }
 
 }, data_structures: {

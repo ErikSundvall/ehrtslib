@@ -89,6 +89,7 @@ const restored = deserializer.deserialize(json);
 - **JSON** - Compliant with openEHR ITS-JSON specification, plus optimized variants (compact, type-inferred). See [JSON serialization guide](enhanced/serialization/json/README.md)
 - **XML** - Compliant with openEHR ITS-XML specification. See [XML serialization guide](enhanced/serialization/xml/README.md)
 - **YAML** - Human-readable format with multiple style options. See [YAML serialization guide](enhanced/serialization/yaml/README.md)
+- **ZipEHR (experimental)** - Compact ZipEHR YAML/JSON with symbol variants `emoji` (default) and `lettercode` (Ehrbase short letter codes). S
 
 ### Archetype and Template Support
 
