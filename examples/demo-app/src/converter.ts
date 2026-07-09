@@ -95,6 +95,7 @@ import {
 import {
   detectInputFormat,
   serializeToJZipehr,
+  serializeToXZipehr,
   serializeToYZipehr,
   zipehrTextToCanonical,
 } from "../../../enhanced/serialization/zipehr/mod.ts";
@@ -163,6 +164,7 @@ export type OutputFormat =
   | "yaml"
   | "zipehr.json"
   | "zipehr.yaml"
+  | "zipehr.xhtml"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -180,7 +182,7 @@ export interface ConversionOptions {
     | JsonDeserializationConfig
     | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
-  /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs. */
+  /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs (`zipehr.xhtml` always uses letter codes). */
   zipehrSymbolVariant?: "emoji" | "lettercode";
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
@@ -211,6 +213,7 @@ export interface ConversionResult {
     yaml?: string;
     "zipehr.json"?: string;
     "zipehr.yaml"?: string;
+    "zipehr.xhtml"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -375,6 +378,9 @@ export async function convert(
               options.zipehrSymbolVariant,
             );
             break;
+          case "zipehr.xhtml":
+            outputs["zipehr.xhtml"] = await serializeToXZipehr(rmObject);
+            break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
               rmObject,
@@ -462,6 +468,9 @@ async function convertTemplateInput(
           generatedInstance,
           options.zipehrSymbolVariant,
         );
+        break;
+      case "zipehr.xhtml":
+        outputs["zipehr.xhtml"] = await serializeToXZipehr(generatedInstance);
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(
@@ -635,6 +644,14 @@ function detectSimplifiedJson(
 
 type ResolvedWireFormat = "xml" | "json" | "yaml" | "flat" | "structured";
 
+function zipehrWireFormat(
+  variant: string,
+): ResolvedWireFormat {
+  if (variant === "zipehr.yaml") return "yaml";
+  if (variant === "zipehr.xhtml") return "xml";
+  return "json";
+}
+
 /**
  * Resolve effective input format (auto-detect zipehr, simplified, canonical).
  */
@@ -654,13 +671,13 @@ export function resolveInputFormat(
     const detected = detectInputFormat(input);
     if (detected.kind === "zipehr") {
       return {
-        format: detected.variant === "zipehr.yaml" ? "yaml" : "json",
+        format: zipehrWireFormat(detected.variant),
         isZipehr: true,
         zipehrVariant: detected.variant,
       };
     }
     throw new Error(
-      "Input format set to ZipEHR but content does not look like zipehr.json or zipehr.yaml.",
+      "Input format set to ZipEHR but content does not look like zipehr.json, zipehr.yaml, or zipehr.xhtml.",
     );
   }
 
@@ -671,7 +688,7 @@ export function resolveInputFormat(
   const detected = detectInputFormat(input);
   if (detected.kind === "zipehr") {
     return {
-      format: detected.variant === "zipehr.yaml" ? "yaml" : "json",
+      format: zipehrWireFormat(detected.variant),
       isZipehr: true,
       zipehrVariant: detected.variant,
     };

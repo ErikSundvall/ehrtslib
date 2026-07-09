@@ -277,10 +277,18 @@ function setupOutputVisibilityListeners() {
   });
 }
 
-function getActiveZipehrVariant(): "zipehr.json" | "zipehr.yaml" {
+type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
+
+function getActiveZipehrVariant(): ZipehrOutputVariant {
   const select = document.getElementById("zipehr-variant") as HTMLSelectElement;
   const value = select?.value;
-  return value === "zipehr.json" ? "zipehr.json" : "zipehr.yaml";
+  if (value === "zipehr.json") return "zipehr.json";
+  if (value === "zipehr.xhtml") return "zipehr.xhtml";
+  return "zipehr.yaml";
+}
+
+function isZipehrXhtmlVariantSelected(): boolean {
+  return getActiveZipehrVariant() === "zipehr.xhtml";
 }
 
 function getActiveSimplifiedVariant(): "flat" | "structured" {
@@ -323,26 +331,51 @@ function switchSimplifiedVariantPane(): void {
 function setupZipehrVariantListener(): void {
   const select = document.getElementById("zipehr-variant");
   select?.addEventListener("change", () => {
+    syncZipehrSymbolVariantControls();
     switchZipehrVariantPane();
     scheduleAutoConvert();
   });
+  syncZipehrSymbolVariantControls();
   switchZipehrVariantPane();
 }
 
 function getActiveZipehrSymbolVariant(): "emoji" | "lettercode" {
-  const checkbox = document.getElementById(
+  if (isZipehrXhtmlVariantSelected()) return "lettercode";
+  const selected = document.querySelector(
+    'input[name="zipehr-symbol-variant"]:checked',
+  ) as HTMLInputElement | null;
+  return selected?.value === "lettercode" ? "lettercode" : "emoji";
+}
+
+function syncZipehrSymbolVariantControls(): void {
+  const group = document.getElementById("zipehr-symbol-variant-group");
+  const emojiRadio = document.getElementById(
+    "zipehr-symbol-variant-emoji",
+  ) as HTMLInputElement | null;
+  const letterRadio = document.getElementById(
     "zipehr-symbol-variant-lettercode",
   ) as HTMLInputElement | null;
-  return checkbox?.checked ? "lettercode" : "emoji";
+  const xhtml = isZipehrXhtmlVariantSelected();
+
+  if (letterRadio && xhtml) {
+    letterRadio.checked = true;
+  }
+  if (emojiRadio) emojiRadio.disabled = xhtml;
+  if (letterRadio) letterRadio.disabled = xhtml;
+  group?.classList.toggle("is-disabled", xhtml);
+  group?.setAttribute("aria-disabled", xhtml ? "true" : "false");
 }
 
 function setupZipehrSymbolVariantListener(): void {
-  const checkbox = document.getElementById(
-    "zipehr-symbol-variant-lettercode",
-  ) as HTMLInputElement | null;
-  checkbox?.addEventListener("change", () => {
-    scheduleAutoConvert();
-  });
+  document
+    .querySelectorAll('input[name="zipehr-symbol-variant"]')
+    .forEach((input) => {
+      input.addEventListener("change", () => {
+        if (!isZipehrXhtmlVariantSelected()) {
+          scheduleAutoConvert();
+        }
+      });
+    });
 }
 
 function setupSimplifiedVariantListener(): void {
@@ -1880,6 +1913,7 @@ function updateOutputs(outputs: Record<string, string>) {
     "yaml",
     "zipehr.json",
     "zipehr.yaml",
+    "zipehr.xhtml",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2396,7 +2430,7 @@ function updateOutputInfo() {
     tabName.startsWith("zipehr.") ? "tab-zipehr" : `tab-${tabName}`;
   const root = document.getElementById(rootTab);
 
-  // `tab-zipehr` contains two hidden panes (`zipehr.json` and `zipehr.yaml`).
+  // `tab-zipehr` contains hidden panes per ZipEHR variant.
   const countsRoot =
     tabName.startsWith("zipehr.")
       ? (document.querySelector(
@@ -2455,6 +2489,7 @@ function downloadOutput(format: string) {
     yaml: "yaml",
     "zipehr.json": "zipehr.json",
     "zipehr.yaml": "zipehr.yaml",
+    "zipehr.xhtml": "zipehr.xhtml",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",

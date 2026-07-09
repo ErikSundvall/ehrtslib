@@ -90,6 +90,21 @@ function expandDvCodedTextTerse(terse: string): Record<string, unknown> {
   };
 }
 
+function expandQuantityTerse(
+  terse: string,
+): Record<string, unknown> | null {
+  const match = terse.match(/^([^|]+)\|([^|]*)\|?$/);
+  if (!match) return null;
+  const magnitude = Number(match[1]);
+  if (!Number.isFinite(magnitude)) return null;
+  const out: Record<string, unknown> = {
+    _type: "DV_QUANTITY",
+    magnitude,
+  };
+  if (match[2]) out.units = match[2];
+  return out;
+}
+
 function expandTerseScalar(
   value: string,
   expectedType?: string,
@@ -97,6 +112,10 @@ function expandTerseScalar(
   const expanded = expandTerseString(value);
   if (isTerseDvCodedText(expanded)) return expandDvCodedTextTerse(expanded);
   if (isTerseCodePhrase(expanded)) return expandCodePhraseTerse(expanded);
+  if (expectedType === "DV_QUANTITY") {
+    const quantity = expandQuantityTerse(expanded);
+    if (quantity) return quantity;
+  }
   if (expectedType === "DV_TEXT" || expectedType === "TERMINOLOGY_ID") {
     return { _type: expectedType, value: expanded };
   }
@@ -139,11 +158,15 @@ function expandInferrableLeaf(
 
 function expandArchetypeDetails(
   details: Record<string, unknown>,
+  symbolMap?: Record<string, string>,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = { _type: "ARCHETYPED" };
-  const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
-  const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
-  const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
+  const tSym = symbolMap?.["ARCHETYPED.template_id"] ??
+    ARCHETYPE_DETAIL_SYMBOLS.template_id;
+  const aSym = symbolMap?.["ARCHETYPED.archetype_id"] ??
+    ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
+  const rSym = symbolMap?.["ARCHETYPED.rm_version"] ??
+    ARCHETYPE_DETAIL_SYMBOLS.rm_version;
 
   if (details[tSym] != null) {
     out.template_id = {
@@ -187,7 +210,10 @@ function expandStructuredLocatable(
     out.archetype_node_id = parsed.archetypeNodeId;
   }
   if (parsed.archetypeDetails) {
-    out.archetype_details = expandArchetypeDetails(parsed.archetypeDetails);
+    out.archetype_details = expandArchetypeDetails(
+      parsed.archetypeDetails,
+      symbolMap,
+    );
   }
 
   for (const k of Object.keys(obj)) {

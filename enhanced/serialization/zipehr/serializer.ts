@@ -17,8 +17,16 @@ import {
   ZIPEHR_YAML_SCHEMA_DIRECTIVE,
 } from "./schema.ts";
 import { loadSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
+import {
+  ensureLetterCodeMapLoaded,
+  serializeCanonicalToXhtml,
+  serializeZipehrPlainToXhtml,
+  wrapFhirNarrative,
+  type XhtmlSerializeOptions,
+} from "./xhtml_serialize.ts";
+import { zipehrXhtmlToCanonical } from "./xhtml_deserialize.ts";
 
-export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml";
+export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
 
 /** Convert an RM instance to canonical plain JSON (with _type). */
 export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {
@@ -197,11 +205,33 @@ function canFormatYamlInline(value: unknown): boolean {
     formatInlineJson(value).length <= 120;
 }
 
-/** Deserialize zipehr text (j or y variant) to canonical plain JSON. */
+/** Serialize RM object to `zipehr.xhtml` (FHIR-safe XHTML fragment). */
+export async function serializeToXZipehr(
+  obj: unknown,
+  options?: XhtmlSerializeOptions,
+): Promise<string> {
+  await ensureLetterCodeMapLoaded();
+  const canonical = rmToCanonicalPlain(obj);
+  return serializeCanonicalToXhtml(canonical, options);
+}
+
+export {
+  serializeCanonicalToXhtml,
+  serializeZipehrPlainToXhtml,
+  wrapFhirNarrative,
+  zipehrXhtmlToCanonical,
+};
+
+/** Deserialize zipehr text (j, y, or xhtml variant) to canonical plain JSON. */
 export async function zipehrTextToCanonical(
   text: string,
   symbolVariant: "auto" | ZipehrSymbolVariant = "auto",
 ): Promise<unknown> {
+  const detected = detectInputFormat(text);
+  if (detected.kind === "zipehr" && detected.variant === "zipehr.xhtml") {
+    return zipehrXhtmlToCanonical(text);
+  }
+
   const { parsed, hadDeclaration, declarationMismatch } = parseZipehrTextWithMeta(text);
   warnMissingZipehrSchema(hadDeclaration);
   warnMismatchedZipehrSchema(declarationMismatch, hadDeclaration);

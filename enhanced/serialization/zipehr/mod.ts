@@ -1,9 +1,10 @@
 /**
  * ZipEHR compact serialization format (emoji type symbols).
  *
- * Two output variants:
+ * Three output variants:
  * - **zipehr.json**: flow-style JSON text from canonical JSON (_type) via direct emoji substitution
  * - **zipehr.yaml**: YAML with terse format, type inference, emoji symbols, and hybrid layout
+ * - **zipehr.xhtml**: FHIR-safe XHTML fragment with Ehrbase letter-code class/title metadata
  */
 
 export {
@@ -74,8 +75,41 @@ export {
 export { flowFormat } from "./flow_format.ts";
 
 export {
+  buildLocatableTitleFromCanonical,
+  ensureLetterCodeMapLoaded,
+  serializeCanonicalToXhtml,
+  serializeZipehrPlainToXhtml,
+  wrapFhirNarrative,
+  ZIPEHR_XHTML_VERSION_URI,
+} from "./xhtml_serialize.ts";
+
+export {
+  xhtmlElementToZipehrObject,
+  zipehrXhtmlToCanonical,
+  zipehrXhtmlToLetterObject,
+} from "./xhtml_deserialize.ts";
+
+export {
+  classFromRmType,
+  getLetterCodeReverseMap,
+  knownLetterClassTokens,
+  loadLetterCodeMap,
+  rmTypeFromClass,
+} from "./letter_codes.ts";
+
+export {
+  escapeTitleValue,
+  formatLocatableTitle,
+  parseLocatableTitle,
+  splitTitlePairs,
+  unescapeTitleValue,
+  type LocatableTitleFields,
+} from "./title_grammar.ts";
+
+export {
   rmToCanonicalPlain,
   serializeToJZipehr,
+  serializeToXZipehr,
   serializeToYZipehr,
   serializeZipehrPlainToJson,
   serializeZipehrPlainToYaml,

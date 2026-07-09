@@ -80,11 +80,12 @@ export const PROPERTY_TYPE_MAP: Record<
     feeder_audit: "FEEDER_AUDIT",
   },
   CLUSTER: { name: "DV_TEXT", items: "ITEM", feeder_audit: "FEEDER_AUDIT" },
-  HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME" },
+  HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME", events: "EVENT" },
   POINT_EVENT: {
     name: "DV_TEXT",
     time: "DV_DATE_TIME",
     data: "ITEM_STRUCTURE",
+    state: "ITEM_STRUCTURE",
   },
   EVENT_CONTEXT: {
     start_time: "DV_DATE_TIME",

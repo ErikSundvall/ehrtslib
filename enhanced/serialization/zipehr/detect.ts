@@ -10,12 +10,18 @@ import {
 } from "./schema.ts";
 import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
 
+const LETTER_CLASS_TOKENS = new Set<string>([
+  ...Object.values(TABLE3_LETTER_SYMBOLS),
+  "PE",
+  "IE",
+]);
+
 const KNOWN_ZIPEHR_SYMBOL_KEYS = new Set<string>([
   ...Object.values(TABLE3_EMOJI_SYMBOLS),
   ...Object.values(TABLE3_LETTER_SYMBOLS),
 ]);
 
-export type ZipehrVariant = "zipehr.json" | "zipehr.yaml";
+export type ZipehrVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
 
 export type InputDetectionResult =
   | { kind: "canonical"; format: "json" | "yaml" | "xml" }
@@ -54,6 +60,16 @@ function looksLikeYaml(text: string): boolean {
     /^[\s]*[\w\p{Emoji}]/u.test(trimmed);
 }
 
+function looksLikeZipehrXhtml(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("<")) return false;
+  if (trimmed.includes('xmlns="http://www.w3.org/1999/xhtml"')) return true;
+  if (trimmed.includes("xmlns='http://www.w3.org/1999/xhtml'")) return true;
+  return /<div\b[^>]*\bclass="([A-Za-z]{1,3})"/.test(trimmed) &&
+    [...trimmed.matchAll(/\bclass="([^"]+)"/g)]
+      .some((match) => LETTER_CLASS_TOKENS.has(match[1]));
+}
+
 function looksLikeXml(text: string): boolean {
   return text.trim().startsWith("<");
 }
@@ -69,6 +85,9 @@ export function detectInputFormat(text: string): InputDetectionResult {
   if (!trimmed) return { kind: "unknown" };
 
   if (looksLikeXml(trimmed)) {
+    if (looksLikeZipehrXhtml(trimmed)) {
+      return { kind: "zipehr", variant: "zipehr.xhtml" };
+    }
     return { kind: "canonical", format: "xml" };
   }
 

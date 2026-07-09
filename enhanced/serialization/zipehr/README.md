@@ -110,6 +110,15 @@ substitution rules; it does not need parent-type inference. This makes it usable
 fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This requires
 `PROPERTY_TYPE_MAP` plus polymorphic-type handling (`shared.ts`).
 
+**zipehr.xhtml**: FHIR `Narrative.div`-safe XHTML snippets. RM types appear as Ehrbase letter codes in
+`class` (from `table3.yaml`). LOCATABLE metadata uses semicolon-separated `code: value` pairs
+in `title` (`id`, `te`, `ar`, `rm` — semicolons inside values are escaped as `\;` or quoted).
+Human-visible names live in headings (`h2`–`h4` for composition/section/entries) or leading
+`<span>` labels. DV values use terse strings in value-span `title` attributes without emoji
+shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
+
+API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
+
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 
 ```json

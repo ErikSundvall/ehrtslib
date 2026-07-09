@@ -74,7 +74,7 @@
                 <option value="yaml">YAML</option>
                 <option value="flat">FLAT (simplified)</option>
                 <option value="structured">STRUCTURED (simplified)</option>
-                <option value="zipehr">ZipEHR (j/y)</option>
+                <option value="zipehr">ZipEHR (JSON/YAML/XHTML)</option>
                 <option value="auto">Auto detect (experimental)</option>
               </select>
             </div>
@@ -822,19 +822,36 @@
                       <select id="zipehr-variant" class="config-dropdown">
                         <option value="zipehr.json">zipehr.json (JSON, canonical _type path)</option>
                         <option value="zipehr.yaml" selected>zipehr.yaml (YAML, terse + type inference)</option>
+                        <option value="zipehr.xhtml">zipehr.xhtml (XHTML, FHIR narrative)</option>
                       </select>
                     </div>
                   <div class="form-group">
-                    <label for="zipehr-symbol-variant-lettercode">Symbols:</label>
-                    <div class="symbol-variant-switch">
-                      <span class="symbol-variant-option">Emoji</span>
-                      <input
-                        type="checkbox"
-                        id="zipehr-symbol-variant-lettercode"
-                        role="switch"
-                        class="symbol-variant-switch-toggle"
-                      />
-                      <span class="symbol-variant-option">Letter codes</span>
+                    <label>Symbols:</label>
+                    <div
+                      class="symbol-variant-radios"
+                      id="zipehr-symbol-variant-group"
+                      role="radiogroup"
+                      aria-label="ZipEHR symbols"
+                    >
+                      <label class="symbol-variant-radio">
+                        <input
+                          type="radio"
+                          name="zipehr-symbol-variant"
+                          id="zipehr-symbol-variant-emoji"
+                          value="emoji"
+                          checked
+                        />
+                        <span>Emoji</span>
+                      </label>
+                      <label class="symbol-variant-radio">
+                        <input
+                          type="radio"
+                          name="zipehr-symbol-variant"
+                          id="zipehr-symbol-variant-lettercode"
+                          value="lettercode"
+                        />
+                        <span>Letter codes</span>
+                      </label>
                     </div>
                   </div>
                   </div>
@@ -885,6 +902,29 @@
                   </span>
                 </div>
                 <div class="demo-editor-host output-content" id="output-zipehr.yaml-content"></div>
+              </div>
+              <div class="zipehr-variant-pane hidden" data-zipehr-variant="zipehr.xhtml">
+                <div class="output-info output-toolbar" id="output-x-zipehr-content">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.xhtml" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="zipehr.xhtml" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-zipehr.xhtml-content"></div>
               </div>
             </div>
 
