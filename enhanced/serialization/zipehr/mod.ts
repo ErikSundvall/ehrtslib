@@ -57,8 +57,19 @@ export {
   detectInputFormat,
   type InputDetectionResult,
   parseZipehrText,
+  parseZipehrTextWithMeta,
+  type ZipehrParseResult,
   type ZipehrVariant,
 } from "./detect.ts";
+
+export {
+  stripZipehrJsonSchemaProperty,
+  stripZipehrYamlSchemaDirective,
+  warnMissingZipehrSchema,
+  warnMismatchedZipehrSchema,
+  ZIPEHR_SCHEMA_URL,
+  ZIPEHR_YAML_SCHEMA_DIRECTIVE,
+} from "./schema.ts";
 
 export { flowFormat } from "./flow_format.ts";
 

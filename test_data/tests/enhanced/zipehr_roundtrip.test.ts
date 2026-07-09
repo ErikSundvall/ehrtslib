@@ -19,11 +19,14 @@ import {
   loadDefaultSymbolMap,
   parseLocatableStructuredObject,
   parseZipehrText,
+  parseZipehrTextWithMeta,
   serializeToJZipehr,
   serializeToYZipehr,
   serializeZipehrPlainToJson,
   serializeZipehrPlainToYaml,
   shortenTerseString,
+  ZIPEHR_SCHEMA_URL,
+  ZIPEHR_YAML_SCHEMA_DIRECTIVE,
   zipehrTextToCanonical,
 } from "../../enhanced/serialization/zipehr/mod.ts";
 import {
@@ -512,6 +515,40 @@ Deno.test("zipehr: hybrid JSON/YAML formatting stays valid and roundtrips", asyn
 
   assertEquals((fromJson.name as { value: string }).value, "ChemoForm-MBA.v7");
   assertEquals((fromYaml.name as { value: string }).value, "ChemoForm-MBA.v7");
+});
+
+Deno.test("zipehr: schema declaration on serialize and warn on missing", async () => {
+  const map = await loadDefaultSymbolMap();
+  const zipehrObj = convertObjectDirect(CHEMO_FIXTURE, map);
+
+  const jsonText = serializeZipehrPlainToJson(zipehrObj);
+  assert(jsonText.startsWith(`{\n  "$schema": "${ZIPEHR_SCHEMA_URL}"`));
+  const parsedWithSchema = JSON.parse(jsonText);
+  assertEquals(parsedWithSchema.$schema, ZIPEHR_SCHEMA_URL);
+
+  const yamlText = serializeZipehrPlainToYaml(
+    convertObjectEhrtslib(CHEMO_FIXTURE, map),
+  );
+  assert(yamlText.startsWith(`${ZIPEHR_YAML_SCHEMA_DIRECTIVE}\n`));
+
+  const warnings: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (msg: string) => warnings.push(msg);
+  try {
+    const withoutSchema = jsonText.replace(
+      /^\{\s*"\$schema":\s*"[^"]+",?\s*/,
+      "{",
+    );
+    await zipehrTextToCanonical(withoutSchema);
+    assertEquals(warnings.length, 1);
+    assert(warnings[0].includes("lacks schema declaration"));
+
+    warnings.length = 0;
+    await zipehrTextToCanonical(jsonText);
+    assertEquals(warnings.length, 0);
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 Deno.test("zipehr: demo convert with auto-detect input", async () => {

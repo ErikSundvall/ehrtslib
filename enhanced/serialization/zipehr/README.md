@@ -1,33 +1,96 @@
 # ZipEHR
 
-ZipEHR is a reversible “skin” over canonical openEHR JSON. It compresses data so it’s easier
-to skim with limited screen space or limited LLM context windows:
+ZipEHR is a reversible “skin” over canonical openEHR JSON. It compresses data to a more compact
+(JSON or YAML) format so it’s easier to skim with limited scrolling/screen space or limited LLM
+context windows
 
 - RM type information (`_type`) becomes emoji keys
 - selected values become “terse” strings/scalars
 - LOCATABLE names are emitted as structured objects with attribute emoji keys (`🪧`, `🆔`, `Ⓣ`, `Ⓐ`, `⚙️`)
 
-Crucially, ZipEHR is designed to round-trip back to canonical JSON with `_type` fields.
+ZipEHR is designed to round-trip back to canonical JSON with `_type` fields.
+It is an opinionated losless compression and decompression algorithm where the compressed
+format aims for high human & LLM readability of clinical facts. it is also opiniated about
+line breaking strategy in output format where it tries to fit things that belong together
+onto the same line when possible and tries to balance readabilty with number of lines.
+Many humans (and likely LLMs) seem to  have a built in capabilty to focus on text and 
+disregard  emojis as "noise" if they want to read fast.
 
 ## Newcomer mental model
 
 ### 1) Start from canonical JSON
 Canonical JSON is plain objects that still carry openEHR RM typing via an `_type` field.
-Example (one RM leaf):
+Example excerpt from [`openEHR-EHR-OBSERVATION.body_weight.v2`](https://ckm.openehr.org/ckm/archetypes/openEHR-EHR-OBSERVATION.body_weight.v2) — weight **85 kg** with clothing state **at0028** (*Fully clothed, without shoes*):
 
 ```json
-{ "_type": "DV_TEXT", "value": "Vital Signs" }
+{
+  "_type": "OBSERVATION",
+  "name": { "_type": "DV_TEXT", "value": "Body weight" },
+  "archetype_node_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+  "archetype_details": {
+    "_type": "ARCHETYPED",
+    "archetype_id": {
+      "_type": "ARCHETYPE_ID",
+      "value": "openEHR-EHR-OBSERVATION.body_weight.v2"
+    }
+  },
+  "data": {
+    "_type": "HISTORY",
+    "events": [
+      {
+        "_type": "EVENT",
+        "archetype_node_id": "at0003",
+        "data": {
+          "_type": "ITEM_TREE",
+          "archetype_node_id": "at0001",
+          "items": [
+            {
+              "_type": "ELEMENT",
+              "name": { "_type": "DV_TEXT", "value": "Weight" },
+              "archetype_node_id": "at0004",
+              "value": {
+                "_type": "DV_QUANTITY",
+                "magnitude": 85,
+                "units": "kg"
+              }
+            }
+          ]
+        },
+        "state": {
+          "_type": "ITEM_TREE",
+          "archetype_node_id": "at0008",
+          "items": [
+            {
+              "_type": "ELEMENT",
+              "name": { "_type": "DV_TEXT", "value": "State of dress" },
+              "archetype_node_id": "at0009",
+              "value": {
+                "_type": "DV_CODED_TEXT",
+                "value": "Fully clothed, without shoes",
+                "defining_code": {
+                  "_type": "CODE_PHRASE",
+                  "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "local" },
+                  "code_string": "at0028"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
 ```
 
-### 2) ZipEHR replaces “noise” with emojis
+### 2) ZipEHR replaces “noise” with emojis (or abbreviations)
 Instead of writing long RM type names everywhere, ZipEHR substitutes them with emojis via a
 symbol table (`table3.yaml`). On the wire/storage side, this keeps the clinical payload
 structure while hiding technical naming that tends to be irrelevant to clinicians and
-hurts readability for people skimming.
+hurts readability for people/LLMs skimming.
 
 ### 3) Some forms become terser (by design)
 ZipEHR formats “coded” and “wrapped” values into compact string representations, and in the
-`zipehr.yaml` variant it may omit redundant `_type` wrappers where the parent property implies
+`zipehr.yaml` variant it will omit redundant `_type` wrappers where the parent property implies
 the type.
 
 ## Variants
@@ -47,6 +110,68 @@ substitution rules; it does not need parent-type inference. This makes it usable
 fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This requires
 `PROPERTY_TYPE_MAP` plus polymorphic-type handling (`shared.ts`).
 
+**zipehr.json** (same clinical content as above, after `convertObjectDirect`):
+
+```json
+{
+  "$schema": "http://purl.org/ehrtslib/zipehr/v1",
+  "👀": { "🪧": "Body weight", "Ⓐ": "openEHR-EHR-OBSERVATION.body_weight.v2" },
+  "data": {
+    "_": "📉",
+    "events": [
+      {
+        "_": "EVENT",
+        "archetype_node_id": "at0003",
+        "data": {
+          "_": "🌳",
+          "archetype_node_id": "at0001",
+          "items": [{ "🔹": { "🪧": "Weight", "🆔": "at0004" }, "🌡️": { "magnitude": 85, "units": "kg" } }]
+        },
+        "state": {
+          "_": "🌳",
+          "archetype_node_id": "at0008",
+          "items": [{ "🔹": { "🪧": "State of dress", "🆔": "at0009" }, "🗈": "📍at0028|Fully clothed, without shoes|" }]
+        }
+      }
+    ]
+  }
+}
+```
+
+**zipehr.yaml** (same clinical content, after `convertObjectEhrtslib` — more compact; type inference drops redundant wrappers):
+
+```yaml
+# yaml-language-server: $schema=http://purl.org/ehrtslib/zipehr/v1
+👀: { 🪧: "Body weight", Ⓐ: "openEHR-EHR-OBSERVATION.body_weight.v2" }
+data:
+  events:
+    - _: "EVENT"
+      archetype_node_id: "at0003"
+      data:
+        🌳:
+          archetype_node_id: "at0001"
+          items:
+            - { 🔹: { 🪧: "Weight", 🆔: "at0004" }, 🌡️: { magnitude: 85, units: "kg" } }
+      state:
+        🌳:
+          archetype_node_id: "at0008"
+          items:
+            - { 🔹: { 🪧: "State of dress", 🆔: "at0009" }, 🗈: "📍at0028|Fully clothed, without shoes|" }
+```
+
+### Schema declaration
+
+Serialized ZipEHR files carry a format schema for editor validation:
+
+| Variant | Declaration |
+|---------|-------------|
+| **zipehr.json** | `"$schema": "http://purl.org/ehrtslib/zipehr/v1"` as the **first** root property |
+| **zipehr.yaml** | `# yaml-language-server: $schema=http://purl.org/ehrtslib/zipehr/v1` as the first line |
+
+The machine-readable schema lives at [`zipehr_v1.schema.json`](zipehr_v1.schema.json) (`$id` =
+`http://purl.org/ehrtslib/zipehr/v1`). Deserialization accepts files without these
+declarations but logs a `console.warn` when they are missing.
+
 ## Symbol lookup table (`table3.yaml`)
 
 RM class → emoji is defined in [`table3.yaml`](table3.yaml). Each row lists alternatives, but
@@ -60,15 +185,17 @@ ZipEHR can emit either:
 - the corresponding **Ehrbase 2-letter/short codes** as ASCII `lettercode` symbols.
 
 The mapping for those letter codes is defined in [`ehrbase-short-codes.md`](ehrbase-short-codes.md).
-In `table3.yaml` updated entries follow the convention `[letterCode, emoji]`, and the runtime selects
-the symbol variant via `symbolVariant` (`emoji` vs `lettercode`).
+In `table3.yaml` entries follow the convention 
+`[letterCode, emoji, ...posibly other alternative emojis during experimentation]`, and the 
+runtime selects the symbol variant form first or second position via `symbolVariant` 
+(`emoji` vs `lettercode`).
 
 That “first symbol only” rule has two implications newcomers should care about:
 
 1. **Round-tripping depends on stability.** If the first symbol changes for a type, older
    ZipEHR payloads may not decode the same way.
 2. **First symbols must be unique across RM type rows** (`data_types`, `data_structures`,
-   `ehr_components`). (Symbol pairs like `📅⌚` count as one unit.)
+   `ehr_components`). (Symbol pairs like `📅⌚` (DV_DATE_TIME) count as one unit.)
 
 Extra rows in the same file:
 
@@ -96,7 +223,7 @@ Reverse lookup (emoji → RM class) uses the same first-symbol uniqueness rule
 Foundation and abstract rows are commented out in `table3.yaml` because they never appear as
 runtime `_type` values in instance data.
 
-## What ZipEHR does (pipeline)
+## Details of what ZipEHR does (pipeline) 
 
 ```
 Canonical JSON (_type) ─┬─ zipehr.json: convertObjectDirect → flow JSON

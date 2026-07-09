@@ -4,6 +4,10 @@
 
 import { parse as parseYaml } from "yaml";
 // Detection needs to understand both emoji and ASCII lettercode symbol keys.
+import {
+  stripZipehrJsonSchemaProperty,
+  stripZipehrYamlSchemaDirective,
+} from "./schema.ts";
 import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
 
 const KNOWN_ZIPEHR_SYMBOL_KEYS = new Set<string>([
@@ -60,7 +64,8 @@ function looksLikeXml(text: string): boolean {
  * - `zipehr.yaml` is block/flow YAML with emoji keys
  */
 export function detectInputFormat(text: string): InputDetectionResult {
-  const trimmed = text.trim();
+  const { text: withoutYamlDirective } = stripZipehrYamlSchemaDirective(text);
+  const trimmed = withoutYamlDirective.trim();
   if (!trimmed) return { kind: "unknown" };
 
   if (looksLikeXml(trimmed)) {
@@ -71,11 +76,12 @@ export function detectInputFormat(text: string): InputDetectionResult {
   if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
     try {
       const parsed = JSON.parse(trimmed);
-      if (parsed && typeof parsed === "object") {
-        if (hasZipehrMarkers(parsed)) {
+      const { obj } = stripZipehrJsonSchemaProperty(parsed);
+      if (obj && typeof obj === "object") {
+        if (hasZipehrMarkers(obj)) {
           return { kind: "zipehr", variant: "zipehr.json" };
         }
-        if (hasCanonicalTypeMarker(parsed)) {
+        if (hasCanonicalTypeMarker(obj)) {
           return { kind: "canonical", format: "json" };
         }
       }
@@ -139,9 +145,19 @@ export function detectInputFormat(text: string): InputDetectionResult {
   return { kind: "unknown" };
 }
 
+export type ZipehrParseResult = {
+  parsed: unknown;
+  hadDeclaration: boolean;
+  declarationMismatch: boolean;
+};
+
 /** Parse zipehr input text to a plain object (YAML parser accepts flow-style `zipehr.json`). */
-export function parseZipehrText(text: string): unknown {
-  const trimmed = text.trim();
+export function parseZipehrTextWithMeta(text: string): ZipehrParseResult {
+  const yamlStripped = stripZipehrYamlSchemaDirective(text);
+  const trimmed = yamlStripped.text.trim();
+  let hadDeclaration = yamlStripped.hadDeclaration;
+  let declarationMismatch = yamlStripped.declarationMismatch;
+
   const attempts = [
     trimmed,
     quoteSymbolKeysForJson(trimmed),
@@ -151,21 +167,46 @@ export function parseZipehrText(text: string): unknown {
   for (const candidate of attempts) {
     if (candidate.startsWith("{") || candidate.startsWith("[")) {
       try {
-        return JSON.parse(candidate);
+        const parsed = JSON.parse(candidate);
+        const jsonStripped = stripZipehrJsonSchemaProperty(parsed);
+        hadDeclaration ||= jsonStripped.hadDeclaration;
+        declarationMismatch ||= jsonStripped.declarationMismatch;
+        return {
+          parsed: jsonStripped.obj,
+          hadDeclaration,
+          declarationMismatch,
+        };
       } catch (error) {
         lastError = error;
         // try next
       }
     }
     try {
-      return parseSimpleYamlSubset(candidate);
+      const parsed = parseSimpleYamlSubset(candidate);
+      const jsonStripped = stripZipehrJsonSchemaProperty(parsed);
+      hadDeclaration ||= jsonStripped.hadDeclaration;
+      declarationMismatch ||= jsonStripped.declarationMismatch;
+      return {
+        parsed: jsonStripped.obj,
+        hadDeclaration,
+        declarationMismatch,
+      };
     } catch (error) {
       lastError = error;
       // try next
     }
     try {
       const parsed = parseYaml(candidate);
-      if (parsed !== null && parsed !== undefined) return parsed;
+      if (parsed !== null && parsed !== undefined) {
+        const jsonStripped = stripZipehrJsonSchemaProperty(parsed);
+        hadDeclaration ||= jsonStripped.hadDeclaration;
+        declarationMismatch ||= jsonStripped.declarationMismatch;
+        return {
+          parsed: jsonStripped.obj,
+          hadDeclaration,
+          declarationMismatch,
+        };
+      }
     } catch (error) {
       firstYamlError ??= error;
       lastError = error;
@@ -175,6 +216,10 @@ export function parseZipehrText(text: string): unknown {
   const reported = firstYamlError ?? lastError;
   const detail = reported instanceof Error ? `: ${reported.message}` : "";
   throw new Error(`Unable to parse ZipEHR input as YAML or JSON${detail}`);
+}
+
+export function parseZipehrText(text: string): unknown {
+  return parseZipehrTextWithMeta(text).parsed;
 }
 
 /** Quote non-ASCII / emoji keys so flow-style `zipehr.json` can be parsed as JSON. */

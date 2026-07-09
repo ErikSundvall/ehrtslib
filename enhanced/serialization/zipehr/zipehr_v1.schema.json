@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://purl.org/ehrtslib/zipehr/v1",
+  "title": "ZipEHR compact clinical document",
+  "description": "v1.0.0-alpha.1 of Ehrtslib ZipEHR format (zipehr.yaml / zipehr.json): a reversible, human-readable compression of canonical openEHR JSON. RM types appear as emoji (or letter-code) keys; coded values and terminology use terse strings. See enhanced/serialization/zipehr/README.md.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "http://purl.org/ehrtslib/zipehr/v1",
+      "description": "Optional on read; serializers emit this as the first root property in zipehr.json."
+    }
+  },
+  "additionalProperties": {
+    "$ref": "#/$defs/zipehrValue"
+  },
+  "$defs": {
+    "terseCodePhrase": {
+      "type": "string",
+      "description": "CODE_PHRASE terse form: terminology::code (terminology prefix may be shortened to an emoji).",
+      "examples": ["🌬️433", "local::at0028", "💬en"]
+    },
+    "terseDvCodedText": {
+      "type": "string",
+      "description": "DV_CODED_TEXT terse form: terminology::code|value|",
+      "pattern": "^.+\\|.*\\|$",
+      "examples": ["📍at0028|Fully clothed, without shoes|", "🌬️433|event|"]
+    },
+    "locatableStructured": {
+      "type": "object",
+      "description": "Structured LOCATABLE header (name, archetype ids, template metadata).",
+      "properties": {
+        "🪧": {
+          "type": "string",
+          "description": "LOCATABLE.name.value"
+        },
+        "🆔": {
+          "type": "string",
+          "description": "LOCATABLE.archetype_node_id"
+        },
+        "Ⓣ": {
+          "type": "string",
+          "description": "ARCHETYPED.template_id"
+        },
+        "Ⓐ": {
+          "type": "string",
+          "description": "ARCHETYPED.archetype_id"
+        },
+        "⚙️": {
+          "type": "string",
+          "description": "ARCHETYPED.rm_version"
+        }
+      },
+      "additionalProperties": false
+    },
+    "zipehrScalar": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "null" }
+      ]
+    },
+    "zipehrValue": {
+      "description": "Any ZipEHR node: scalar, array, or object keyed by RM emoji symbols and openEHR property names.",
+      "oneOf": [
+        { "$ref": "#/$defs/zipehrScalar" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/zipehrValue" }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "_": {
+              "type": "string",
+              "description": "RM type symbol when the node is a typed object without a dedicated emoji root key."
+            }
+          },
+          "additionalProperties": { "$ref": "#/$defs/zipehrValue" }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "$schema": "http://purl.org/ehrtslib/zipehr/v1",
+      "👀": {
+        "🪧": "Body weight",
+        "Ⓐ": "openEHR-EHR-OBSERVATION.body_weight.v2"
+      },
+      "data": {
+        "events": [
+          {
+            "data": {
+              "🌳": {
+                "archetype_node_id": "at0001",
+                "items": [
+                  {
+                    "🔹": { "🪧": "Weight", "🆔": "at0004" },
+                    "🌡️": { "magnitude": 85, "units": "kg" }
+                  }
+                ]
+              }
+            },
+            "state": {
+              "🌳": {
+                "archetype_node_id": "at0008",
+                "items": [
+                  {
+                    "🔹": { "🪧": "State of dress", "🆔": "at0009" },
+                    "🗈": "📍at0028|Fully clothed, without shoes|"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

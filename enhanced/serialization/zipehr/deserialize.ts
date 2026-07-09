@@ -18,6 +18,7 @@ import {
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 import { buildReverseSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
+import { stripZipehrJsonSchemaProperty } from "./schema.ts";
 import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
 
 function buildSymbolMapFromTable(
@@ -430,12 +431,13 @@ export function expandZipehrToCanonical(
   zipehrObj: unknown,
   symbolMapOrVariant?: Record<string, string> | ZipehrSymbolVariant | "auto",
 ): unknown {
+  const { obj } = stripZipehrJsonSchemaProperty(zipehrObj);
   let symbolMap: Record<string, string>;
   if (!symbolMapOrVariant || symbolMapOrVariant === "auto") {
     const reverseEmoji = buildReverseSymbolMap(DEFAULT_EMOJI_SYMBOL_MAP);
     const reverseLetter = buildReverseSymbolMap(DEFAULT_LETTER_SYMBOL_MAP);
-    const emojiScore = scoreZipehrSymbolKeys(zipehrObj, reverseEmoji);
-    const letterScore = scoreZipehrSymbolKeys(zipehrObj, reverseLetter);
+    const emojiScore = scoreZipehrSymbolKeys(obj, reverseEmoji);
+    const letterScore = scoreZipehrSymbolKeys(obj, reverseLetter);
     symbolMap = letterScore > emojiScore
       ? DEFAULT_LETTER_SYMBOL_MAP
       : DEFAULT_EMOJI_SYMBOL_MAP;
@@ -448,5 +450,5 @@ export function expandZipehrToCanonical(
   }
 
   const reverseMap = buildReverseSymbolMap(symbolMap);
-  return expandNode(zipehrObj, undefined, undefined, reverseMap, symbolMap);
+  return expandNode(obj, undefined, undefined, reverseMap, symbolMap);
 }

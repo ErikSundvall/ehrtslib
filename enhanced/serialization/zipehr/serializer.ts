@@ -8,7 +8,14 @@ import { HybridStyleFormatter } from "../common/hybrid_formatter.ts";
 import { JsonCanonicalSerializer } from "../json/json_canonical_serializer.ts";
 import { convertObjectDirect, convertObjectEhrtslib } from "./convert.ts";
 import { expandZipehrToCanonical } from "./deserialize.ts";
-import { detectInputFormat, parseZipehrText } from "./detect.ts";
+import { detectInputFormat, parseZipehrTextWithMeta } from "./detect.ts";
+import {
+  stripZipehrJsonSchemaProperty,
+  warnMissingZipehrSchema,
+  warnMismatchedZipehrSchema,
+  ZIPEHR_SCHEMA_URL,
+  ZIPEHR_YAML_SCHEMA_DIRECTIVE,
+} from "./schema.ts";
 import { loadSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
 
 export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml";
@@ -43,18 +50,25 @@ export async function serializeToYZipehr(
 }
 
 export function serializeZipehrPlainToJson(obj: unknown): string {
-  return formatHybridJson(obj, 0);
+  const withSchema = {
+    $schema: ZIPEHR_SCHEMA_URL,
+    ...(obj && typeof obj === "object" && !Array.isArray(obj)
+      ? obj as Record<string, unknown>
+      : {}),
+  };
+  return formatHybridJson(withSchema, 0);
 }
 
 export function serializeZipehrPlainToYaml(obj: unknown): string {
   const doc = new Document(obj);
   applyHybridFormatting(doc.contents, obj, 0);
-  return doc.toString({
+  const body = doc.toString({
     indent: 2,
     lineWidth: 120,
     defaultStringType: "QUOTE_DOUBLE",
     defaultKeyType: "PLAIN",
   });
+  return `${ZIPEHR_YAML_SCHEMA_DIRECTIVE}\n${body}`;
 }
 
 function formatHybridJson(value: unknown, depth: number): string {
@@ -188,9 +202,11 @@ export async function zipehrTextToCanonical(
   text: string,
   symbolVariant: "auto" | ZipehrSymbolVariant = "auto",
 ): Promise<unknown> {
-  const parsed = parseZipehrText(text);
+  const { parsed, hadDeclaration, declarationMismatch } = parseZipehrTextWithMeta(text);
+  warnMissingZipehrSchema(hadDeclaration);
+  warnMismatchedZipehrSchema(declarationMismatch, hadDeclaration);
   // Auto-detect symbol variant by attempting both decoders.
   return expandZipehrToCanonical(parsed, symbolVariant);
 }
 
-export { detectInputFormat, parseZipehrText };
+export { detectInputFormat, parseZipehrText, parseZipehrTextWithMeta } from "./detect.ts";
