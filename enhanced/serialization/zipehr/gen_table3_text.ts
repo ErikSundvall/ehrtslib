@@ -38,7 +38,7 @@ for (const line of lines) {
     current = { name: sec[1], entries: [] };
     sections.push(current);
   }
-  const entry = line.match(/^\s*([A-Za-z0-9_]+)\s*:\s*\[\s*([^\]]+)\]/);
+  const entry = line.match(/^\s*([A-Za-z0-9_.]+)\s*:\s*\[\s*([^\]]+)\]/);
   if (entry && current) {
     const key = entry[1];
     const inner = entry[2];
@@ -64,14 +64,15 @@ const seenKeys = new Set<string>();
 for (const sec of sections) {
   if (!RM_SYMBOL_SECTIONS.has(sec.name)) continue;
   for (const { key, letterSymbol, emojiSymbol } of sec.entries) {
-    // Ignore non-uppercase keys (e.g. `archetype_node_id`).
-    if (key !== key.toUpperCase()) continue;
+    // RM class rows are UPPERCASE; attribute rows use dotted keys (e.g. LOCATABLE.name).
+    if (key !== key.toUpperCase() && !key.includes(".")) continue;
     if (seenKeys.has(key)) {
       throw new Error(`Duplicate symbol key in table3.yaml: ${key}`);
     }
     seenKeys.add(key);
-    letterLines.push(`  ${key}: "${letterSymbol}",`);
-    emojiLines.push(`  ${key}: "${emojiSymbol}",`);
+    const keyLiteral = key.includes(".") ? `"${key}"` : key;
+    letterLines.push(`  ${keyLiteral}: "${letterSymbol}",`);
+    emojiLines.push(`  ${keyLiteral}: "${emojiSymbol}",`);
   }
 }
 
@@ -100,9 +101,10 @@ const dupLetter: string[] = [];
 const dupEmoji: string[] = [];
 
 for (const line of letterLines) {
-  const m = line.match(/^\s*([A-Z0-9_]+):\s*"([^"]+)"\s*,?$/);
+  const m = line.match(/^\s*([A-Z0-9_.]+):\s*"([^"]+)"\s*,?$/);
   if (!m) continue;
   const type = m[1];
+  if (type.includes(".")) continue;
   const sym = m[2];
   if (letterReverse.has(sym)) dupLetter.push(`${sym}: ${letterReverse.get(sym)} vs ${type}`);
   else letterReverse.set(sym, type);

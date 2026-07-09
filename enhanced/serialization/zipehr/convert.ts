@@ -4,12 +4,13 @@
 
 import { jsonToCompactPlain, toTerseDvCodedTextShort } from "./compact.ts";
 import {
-  buildLocatableFoldedString,
+  buildLocatableStructuredObject,
   compactArchetypeDetails,
   extractFirstScalar,
   extractTerminologyFieldCode,
   getSymbolFor,
   inferrablePropertyType,
+  isLocatableStructuredObject,
   isSymbolKey,
   isTerseDvCodedText,
   resolveType,
@@ -27,12 +28,14 @@ function promoteTerminologyFields(obj: Record<string, unknown>): void {
   }
 }
 
-function hasLocatableFoldString(obj: Record<string, unknown>): boolean {
-  // Folded locatable strings always end with a bracket suffix: `name[at0001]`.
+function hasLocatableStructuredField(
+  obj: Record<string, unknown>,
+  symbolMap: Record<string, string>,
+): boolean {
   return Object.keys(obj).some((k) => {
     if (k === "value") return false;
     if (!isSymbolKey(k)) return false;
-    return typeof obj[k] === "string" && /\[[^\]]+\]$/.test(String(obj[k]));
+    return isLocatableStructuredObject(obj[k], symbolMap);
   });
 }
 
@@ -40,15 +43,15 @@ function hasLocatableFoldString(obj: Record<string, unknown>): boolean {
  * Fold redundant `value: { <emoji>: ... }` wrappers on locatable-like objects.
  *
  * Example:
- *   { "🔹": "Namn[at0001]", value: { "🗉": "Brand..." } }
+ *   { "🔹": { "🪧": "Namn", "🆔": "at0001" }, value: { "🗉": "Brand..." } }
  * becomes:
- *   { "🔹": "Namn[at0001]", "🗉": "Brand..." }
- *
- * This is a space-saving ZipEHR shorthand; `deserialize.ts` reconstructs the
- * original canonical shape.
+ *   { "🔹": { "🪧": "Namn", "🆔": "at0001" }, "🗉": "Brand..." }
  */
-function foldRedundantValueProperty(obj: Record<string, unknown>): void {
-  if (!hasLocatableFoldString(obj)) return;
+function foldRedundantValueProperty(
+  obj: Record<string, unknown>,
+  symbolMap: Record<string, string>,
+): void {
+  if (!hasLocatableStructuredField(obj, symbolMap)) return;
   if (!Object.prototype.hasOwnProperty.call(obj, "value")) return;
 
   const inner = (obj as Record<string, unknown>).value as unknown;
@@ -82,12 +85,13 @@ function foldCompositionName(
   if (nameStr == null) return obj;
 
   const sym = compositionSym || "🖂";
-  const folded = buildLocatableFoldedString(
+  const structured = buildLocatableStructuredObject(
     nameStr,
     obj.archetype_node_id != null ? String(obj.archetype_node_id) : undefined,
     obj.archetype_details,
+    symbolMap,
   );
-  const out: Record<string, unknown> = { [sym]: folded };
+  const out: Record<string, unknown> = { [sym]: structured };
   for (const k of Object.keys(obj)) {
     if (
       k === "_" || k === "name" || k === "archetype_node_id" ||
@@ -120,7 +124,7 @@ export function applyZipehrShorthands(
 
   obj = foldCompositionName(obj, symbolMap);
   promoteTerminologyFields(obj);
-  foldRedundantValueProperty(obj);
+  foldRedundantValueProperty(obj, symbolMap);
 
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(obj)) {
@@ -218,12 +222,13 @@ function convertObjectDirectInner(
           convertObjectDirectInner(typed.archetype_node_id, symbolMap),
         ) ?? String(typed.archetype_node_id)
         : undefined;
-      const folded = buildLocatableFoldedString(
+      const structured = buildLocatableStructuredObject(
         nameStr,
         nodeId,
         typed.archetype_details,
+        symbolMap,
       );
-      const out: Record<string, unknown> = { [sym]: folded };
+      const out: Record<string, unknown> = { [sym]: structured };
       for (const k of Object.keys(typed)) {
         if (
           k === "_type" || k === "name" || k === "archetype_node_id" ||
@@ -397,12 +402,13 @@ export function applyEmojiToCompact(
       : (origObj.archetype_node_id != null
         ? String(origObj.archetype_node_id)
         : undefined);
-    const folded = buildLocatableFoldedString(
+    const structured = buildLocatableStructuredObject(
       nameStr,
       nodeId,
       origObj.archetype_details,
+      symbolMap,
     );
-    const out: Record<string, unknown> = { [String(sym)]: folded };
+    const out: Record<string, unknown> = { [String(sym)]: structured };
     for (const k of Object.keys(compactObj)) {
       if (
         k === "_type" || k === "name" || k === "archetype_node_id" ||

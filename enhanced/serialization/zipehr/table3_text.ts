@@ -2,6 +2,11 @@
 /** Regenerate: deno run --allow-read --allow-write gen_table3_text.ts */
 
 export const TABLE3_LETTER_SYMBOLS = {
+  "LOCATABLE.archetype_node_id": "id",
+  "LOCATABLE.name": "na",
+  "ARCHETYPED.archetype_id": "ar",
+  "ARCHETYPED.template_id": "te",
+  "ARCHETYPED.rm_version": "rm",
   DV_BOOLEAN: "b",
   DV_IDENTIFIER: "id",
   DV_STATE: "st",
@@ -52,11 +57,16 @@ export const TABLE3_LETTER_SYMBOLS = {
   EVALUATION: "EV",
   INSTRUCTION: "IN",
   ACTION: "AN",
-  VERSIONED_OBJECT: "🗃️",
-  CONTRIBUTION: "📮",
+  VERSIONED_OBJECT: ",",
+  CONTRIBUTION: ",",
 } as const;
 
 export const TABLE3_EMOJI_SYMBOLS = {
+  "LOCATABLE.archetype_node_id": "🆔",
+  "LOCATABLE.name": "🪧",
+  "ARCHETYPED.archetype_id": "Ⓐ",
+  "ARCHETYPED.template_id": "Ⓣ",
+  "ARCHETYPED.rm_version": "⚙️",
   DV_BOOLEAN: "✅",
   DV_IDENTIFIER: "🪪",
   DV_STATE: "⚑",
@@ -107,6 +117,6 @@ export const TABLE3_EMOJI_SYMBOLS = {
   EVALUATION: "💭",
   INSTRUCTION: "❏",
   ACTION: "🗹",
-  VERSIONED_OBJECT: "🗃️",
-  CONTRIBUTION: "📮",
+  VERSIONED_OBJECT: ",",
+  CONTRIBUTION: ",",
 } as const;

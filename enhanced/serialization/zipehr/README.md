@@ -5,7 +5,7 @@ to skim with limited screen space or limited LLM context windows:
 
 - RM type information (`_type`) becomes emoji keys
 - selected values become “terse” strings/scalars
-- LOCATABLE names are folded into a compact `name[bracket]` form
+- LOCATABLE names are emitted as structured objects with attribute emoji keys (`🪧`, `🆔`, `Ⓣ`, `Ⓐ`, `⚙️`)
 
 Crucially, ZipEHR is designed to round-trip back to canonical JSON with `_type` fields.
 
@@ -52,6 +52,16 @@ fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This r
 RM class → emoji is defined in [`table3.yaml`](table3.yaml). Each row lists alternatives, but
 **only the first symbol is used at runtime**. Alternatives exist to let you experiment with
 icons without changing the wire format.
+
+### Emoji vs Ehrbase letter codes
+
+ZipEHR can emit either:
+- the primary **emoji** symbol (default), or
+- the corresponding **Ehrbase 2-letter/short codes** as ASCII `lettercode` symbols.
+
+The mapping for those letter codes is defined in [`ehrbase-short-codes.md`](ehrbase-short-codes.md).
+In `table3.yaml` updated entries follow the convention `[letterCode, emoji]`, and the runtime selects
+the symbol variant via `symbolVariant` (`emoji` vs `lettercode`).
 
 That “first symbol only” rule has two implications newcomers should care about:
 
@@ -103,8 +113,8 @@ Deserialization uses `expandZipehrToCanonical` for both variants. Input is auto-
 3. Format `CODE_PHRASE` / `DV_CODED_TEXT` as a single emoji key wrapping a terse string.
 4. Format `DV_*` leaves with only `value` as “emoji wraps scalar directly”.
 5. If `DV_*` has extra fields, keep them but still anchor the leaf under its emoji key.
-6. Fold LOCATABLE nodes (`name` + `archetype_node_id` and/or `archetype_details`) into
-   `name[bracket]` and store that folded string under the LOCATABLE’s emoji key.
+6. Emit LOCATABLE nodes (`name` + `archetype_node_id` and/or `archetype_details`) as a
+   structured object under the LOCATABLE’s emoji key (see [Structured LOCATABLE objects](#structured-locatable-objects)).
 7. Other nodes become `{ "_": "…", …properties }` (COMPOSITION uses `🖂` instead of `_`).
 8. Apply shorthands: terminology field promotion, archetype-detail compaction.
 
@@ -155,7 +165,7 @@ top-level `💬` / `🌐` / `🔤` keys with bare code strings.
 | `EVENT_CONTEXT.setting` (`DV_CODED_TEXT`) | `{ "🗈": "🌬️238\|other care\|" }` | `🌬️238\|other care\|` |
 | `EVENT_CONTEXT.start_time` (`DV_DATE_TIME`) | `{ "📅⌚": "2023-08-31T18:31:16+02:00" }` | `"2023-08-31T18:31:16+02:00"` |
 
-## Folded LOCATABLE names (`name[bracket]`)
+## Structured LOCATABLE objects
 
 LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, …) merge:
 
@@ -163,49 +173,47 @@ LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, …) merge:
 - `archetype_node_id`
 - `archetype_details` (when present)
 
-into one quoted string:
+into one JSON/YAML object (valid for standard parsers, including on a single flow line):
 
 ```yaml
-🖂: "ChemoForm-MBA.v7[Ⓣ ChemoForm-MBA.v7 Ⓐ openEHR-EHR-COMPOSITION.self_reported_data.v1 ⚙️1.1.0]"
-📁: "Vårdenhet[Ⓐ openEHR-EHR-CLUSTER.organisation.v1 ⚙️1.1.0]"
-🌳: "Item tree[at0003]"
+🖂: { "🪧": "ChemoForm-MBA.v7", "Ⓣ": "ChemoForm-MBA.v7", "Ⓐ": "openEHR-EHR-COMPOSITION.self_reported_data.v1", "⚙️": "1.1.0" }
+📁: { "🪧": "Vårdenhet", "Ⓐ": "openEHR-EHR-CLUSTER.organisation.v1", "⚙️": "1.1.0" }
+🌳: { "🪧": "Item tree", "🆔": "at0003" }
 ```
 
-Archetype-detail inline symbols (`ARCHETYPE_DETAIL_SYMBOLS` in `shared.ts`):
+Attribute emoji keys are defined in `table3.yaml` (`data_types.attributes`):
 
-| Field | Symbol |
-|-------|--------|
-| `template_id` | `Ⓣ` |
-| `archetype_id` | `Ⓐ` |
-| `rm_version` | `⚙️` |
+| RM attribute | table3 key | Emoji |
+|--------------|------------|-------|
+| `LOCATABLE.name` | `LOCATABLE.name` | `🪧` |
+| `LOCATABLE.archetype_node_id` | `LOCATABLE.archetype_node_id` | `🆔` |
+| `ARCHETYPED.template_id` | `ARCHETYPED.template_id` | `Ⓣ` |
+| `ARCHETYPED.archetype_id` | `ARCHETYPED.archetype_id` | `Ⓐ` |
+| `ARCHETYPED.rm_version` | `ARCHETYPED.rm_version` | `⚙️` |
 
-### Bracket algorithm (serialize)
+### Serialize rules
 
-1. Start with `name.value`.
-2. Build bracket (space-separated), in order:
-   - `Ⓣ {template_id}` if present
-   - `Ⓐ {archetype_id}` if present **and** differs from `name.value` (omit when equal)
-   - `⚙️{rm_version}` if present (no space after symbol)
-   - plain `archetype_node_id` when it differs from `archetype_id`
-3. If no detail symbols apply, bracket is just `archetype_node_id` (`name[node_id]` form).
-4. Drop separate `archetype_details` from output when folded.
+1. Always emit `🪧` with `name.value`.
+2. Emit `Ⓣ`, `Ⓐ`, `⚙️` when present in `archetype_details`.
+3. Omit `Ⓐ` when `archetype_id` equals `name.value`.
+4. Emit `🆔` for `archetype_node_id` when no detail symbols apply, or when it differs from `archetype_id`.
+5. Drop separate `archetype_details` / `name` / `archetype_node_id` from the parent row when structured.
 
 COMPOSITION uses emoji key `🖂` (not `_` + `name`).
 
-### Bracket algorithm (deserialize)
+### Deserialize rules
 
-1. Split `name[bracket]` when brackets are present.
-2. Tokenize bracket on `Ⓣ`, `Ⓐ`, `⚙️`.
-3. Plain text without symbols → `archetype_node_id`.
-4. `Ⓐ` absent but `Ⓣ` or `⚙️` present → restore `archetype_id` from `name.value`.
-5. `Ⓐ` present, no separate node id → `archetype_node_id` = archetype id.
+1. Read `🪧` → `name.value`.
+2. Read `🆔` → `archetype_node_id` when present.
+3. Read `Ⓣ` / `Ⓐ` / `⚙️` → `archetype_details` (restore omitted `Ⓐ` from name when `Ⓣ` or `⚙️` present).
+4. When `🆔` absent but `Ⓐ` present → `archetype_node_id` = archetype id.
 
 ## Module map
 
 | File | Role |
 |------|------|
 | `table3.yaml` / `table3_text.ts` | Symbol lookup table |
-| `shared.ts` | Terse parse/format, bracket fold, type inference maps |
+| `shared.ts` | Terse parse/format, structured LOCATABLE, type inference maps |
 | `convert.ts` | `zipehr.json` direct substitution; `zipehr.yaml` compact + emoji pass |
 | `compact.ts` | `zipehr.yaml` compaction (terse values, strip inferrable types) |
 | `deserialize.ts` | Expand ZipEHR → canonical JSON |

@@ -405,137 +405,126 @@ export function extractCompactArchetypeDetails(
   return out;
 }
 
-/**
- * Build the bracket suffix for a folded LOCATABLE name.
- * Template id, archetype id (when different from name), and rm version are inlined
- * with Ⓣ / Ⓐ / ⚙️ symbols. Plain archetype_node_id is kept when no details apply.
- */
-export function buildLocatableBracket(
-  nameStr: string,
-  archetypeNodeId: string | null | undefined,
-  archetypeDetails: unknown,
-): string {
-  const details = extractCompactArchetypeDetails(archetypeDetails);
-  const templateId = details[ARCHETYPE_DETAIL_SYMBOLS.template_id];
-  const archetypeId = details[ARCHETYPE_DETAIL_SYMBOLS.archetype_id];
-  const rmVersion = details[ARCHETYPE_DETAIL_SYMBOLS.rm_version];
-  const nodeId = archetypeNodeId != null && archetypeNodeId !== ""
-    ? String(archetypeNodeId)
-    : undefined;
-  const hasDetailSymbols = templateId != null || archetypeId != null ||
-    rmVersion != null;
-
-  const parts: string[] = [];
-  if (!hasDetailSymbols) {
-    if (nodeId) parts.push(nodeId);
-    return parts.join(" ");
-  }
-
-  if (templateId != null) {
-    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.template_id} ${templateId}`);
-  }
-  if (archetypeId != null && archetypeId !== nameStr) {
-    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.archetype_id} ${archetypeId}`);
-  }
-  if (rmVersion != null) {
-    parts.push(`${ARCHETYPE_DETAIL_SYMBOLS.rm_version}${rmVersion}`);
-  }
-  if (nodeId && nodeId !== archetypeId) {
-    parts.push(nodeId);
-  }
-
-  return parts.join(" ");
-}
-
-export function buildLocatableFoldedString(
-  nameStr: string,
-  archetypeNodeId: string | null | undefined,
-  archetypeDetails: unknown,
-): string {
-  const bracket = buildLocatableBracket(
-    nameStr,
-    archetypeNodeId,
-    archetypeDetails,
-  );
-  if (!bracket) return nameStr;
-  return `${nameStr}[${bracket}]`;
-}
-
-/** Parse `name[bracket]` locatable fold; returns null when not folded. */
-export function parseLocatableFolded(
-  value: string,
-): { name: string; bracket: string } | null {
-  const match = value.match(/^(.+)\[(.+)\]$/);
-  if (!match) return null;
-  return { name: match[1], bracket: match[2] };
-}
-
-/**
- * Parse bracket content produced by {@link buildLocatableBracket}.
- * When Ⓐ was omitted because it matched name, it is restored from the locatable name.
- */
-export function parseLocatableBracket(
-  bracket: string,
-  locatableName: string,
+function locatableAttributeSymbols(
+  symbolMap: Record<string, string>,
 ): {
+  name: string;
+  nodeId: string;
+  templateId: string;
+  archetypeId: string;
+  rmVersion: string;
+} {
+  return {
+    name: getSymbolFor(symbolMap, "LOCATABLE.name") ?? "🪧",
+    nodeId: getSymbolFor(symbolMap, "LOCATABLE.archetype_node_id") ?? "🆔",
+    templateId: getSymbolFor(symbolMap, "ARCHETYPED.template_id") ??
+      ARCHETYPE_DETAIL_SYMBOLS.template_id,
+    archetypeId: getSymbolFor(symbolMap, "ARCHETYPED.archetype_id") ??
+      ARCHETYPE_DETAIL_SYMBOLS.archetype_id,
+    rmVersion: getSymbolFor(symbolMap, "ARCHETYPED.rm_version") ??
+      ARCHETYPE_DETAIL_SYMBOLS.rm_version,
+  };
+}
+
+/**
+ * Build a structured LOCATABLE object (JSON/YAML-library-friendly).
+ * Emoji keys come from `table3.yaml` attribute rows via `symbolMap`.
+ */
+export function buildLocatableStructuredObject(
+  nameStr: string,
+  archetypeNodeId: string | null | undefined,
+  archetypeDetails: unknown,
+  symbolMap: Record<string, string>,
+): Record<string, unknown> {
+  const sym = locatableAttributeSymbols(symbolMap);
+  const out: Record<string, unknown> = { [sym.name]: nameStr };
+
+  const nodeId = archetypeNodeId != null ? String(archetypeNodeId) : undefined;
+
+  let templateId: string | null = null;
+  let archetypeId: string | null = null;
+  let rmVersion: unknown = null;
+
+  if (
+    archetypeDetails && typeof archetypeDetails === "object" &&
+    !Array.isArray(archetypeDetails)
+  ) {
+    const src = archetypeDetails as Record<string, unknown>;
+    templateId = extractWrappedTerseString(src.template_id) ??
+      (src[sym.templateId] != null ? String(src[sym.templateId]) : null);
+    archetypeId = extractWrappedTerseString(src.archetype_id) ??
+      (src[sym.archetypeId] != null ? String(src[sym.archetypeId]) : null);
+    rmVersion = src.rm_version ?? src[sym.rmVersion];
+  }
+
+  const hasDetailSymbols = templateId != null || archetypeId != null ||
+    (rmVersion != null && String(rmVersion) !== "");
+
+  if (templateId != null) out[sym.templateId] = templateId;
+  if (archetypeId != null && archetypeId !== nameStr) {
+    out[sym.archetypeId] = archetypeId;
+  }
+  if (rmVersion != null && String(rmVersion) !== "") {
+    out[sym.rmVersion] = String(rmVersion);
+  }
+
+  if (!hasDetailSymbols) {
+    if (nodeId != null && nodeId !== "") out[sym.nodeId] = nodeId;
+    return out;
+  }
+
+  if (nodeId != null && nodeId !== "") {
+    if (archetypeId == null || nodeId !== archetypeId) out[sym.nodeId] = nodeId;
+  }
+
+  return out;
+}
+
+export function isLocatableStructuredObject(
+  value: unknown,
+  symbolMap: Record<string, string>,
+): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const nameSym = locatableAttributeSymbols(symbolMap).name;
+  return Object.prototype.hasOwnProperty.call(value, nameSym);
+}
+
+/** Inverse of {@link buildLocatableStructuredObject}. */
+export function parseLocatableStructuredObject(
+  structured: Record<string, unknown>,
+  symbolMap: Record<string, string>,
+): {
+  name: string;
   archetypeNodeId?: string;
   archetypeDetails?: Record<string, unknown>;
 } {
-  const trimmed = bracket.trim();
-  if (!trimmed) return {};
-
-  const tSym = ARCHETYPE_DETAIL_SYMBOLS.template_id;
-  const aSym = ARCHETYPE_DETAIL_SYMBOLS.archetype_id;
-  const rSym = ARCHETYPE_DETAIL_SYMBOLS.rm_version;
-  const symbols = [tSym, aSym, rSym];
-  const hasAnySymbol = symbols.some((sym) => trimmed.includes(sym));
-
-  if (!hasAnySymbol) {
-    return { archetypeNodeId: trimmed };
-  }
-
-  type Token = { sym: string; start: number };
-  const tokens: Token[] = [];
-  for (const sym of symbols) {
-    let idx = trimmed.indexOf(sym);
-    while (idx !== -1) {
-      tokens.push({ sym, start: idx });
-      idx = trimmed.indexOf(sym, idx + sym.length);
-    }
-  }
-  tokens.sort((a, b) => a.start - b.start);
+  const sym = locatableAttributeSymbols(symbolMap);
+  const name = String(structured[sym.name] ?? "");
 
   const details: Record<string, unknown> = {};
-  let archetypeNodeId: string | undefined;
-
-  if (tokens.length > 0 && tokens[0].start > 0) {
-    const prefix = trimmed.slice(0, tokens[0].start).trim();
-    if (prefix) archetypeNodeId = prefix;
+  if (structured[sym.templateId] != null) {
+    details[sym.templateId] = structured[sym.templateId];
   }
-
-  for (let i = 0; i < tokens.length; i++) {
-    const { sym, start } = tokens[i];
-    const valueStart = start + sym.length;
-    const valueEnd = i + 1 < tokens.length
-      ? tokens[i + 1].start
-      : trimmed.length;
-    const value = trimmed.slice(valueStart, valueEnd).trim();
-    if (sym === tSym) details[tSym] = value;
-    else if (sym === aSym) details[aSym] = value;
-    else if (sym === rSym) details[rSym] = value;
-  }
-
-  if (
-    details[aSym] == null && (details[tSym] != null || details[rSym] != null)
+  if (structured[sym.archetypeId] != null) {
+    details[sym.archetypeId] = structured[sym.archetypeId];
+  } else if (
+    structured[sym.templateId] != null || structured[sym.rmVersion] != null
   ) {
-    details[aSym] = locatableName;
+    details[sym.archetypeId] = name;
+  }
+  if (structured[sym.rmVersion] != null) {
+    details[sym.rmVersion] = structured[sym.rmVersion];
   }
 
-  if (details[aSym] != null && archetypeNodeId == null) {
-    archetypeNodeId = String(details[aSym]);
+  let archetypeNodeId: string | undefined;
+  if (structured[sym.nodeId] != null) {
+    archetypeNodeId = String(structured[sym.nodeId]);
+  } else if (details[sym.archetypeId] != null) {
+    archetypeNodeId = String(details[sym.archetypeId]);
   }
 
   return {
+    name,
     archetypeNodeId,
     archetypeDetails: Object.keys(details).length > 0 ? details : undefined,
   };

@@ -7,12 +7,12 @@ import {
   expandTerseString,
   getSymbolFor,
   inferrablePropertyType,
+  isLocatableStructuredObject,
   isSymbolKey,
   isTerseCodePhrase,
   isTerseDvCodedText,
   isValueOnlyRmObject,
-  parseLocatableBracket,
-  parseLocatableFolded,
+  parseLocatableStructuredObject,
   parseTerseDvCodedText,
   PROPERTY_TYPE_MAP,
   TERMINOLOGY_FIELD_PROMOTIONS,
@@ -167,31 +167,26 @@ function expandArchetypeDetails(
   return out;
 }
 
-function expandFoldedLocatable(
-  foldedValue: string,
+function expandStructuredLocatable(
+  structured: Record<string, unknown>,
   typeName: string,
   obj: Record<string, unknown>,
   symKey: string,
   reverseMap: Map<string, string>,
   symbolMap: Record<string, string>,
 ): Record<string, unknown> {
-  const parsed = parseLocatableFolded(foldedValue);
-  const name = parsed?.name ?? foldedValue;
-  const bracket = parsed?.bracket ?? "";
-  const bracketParts = parseLocatableBracket(bracket, name);
+  const parsed = parseLocatableStructuredObject(structured, symbolMap);
 
   const out: Record<string, unknown> = {
     _type: typeName,
-    name: { _type: "DV_TEXT", value: name },
+    name: { _type: "DV_TEXT", value: parsed.name },
   };
 
-  if (bracketParts.archetypeNodeId) {
-    out.archetype_node_id = bracketParts.archetypeNodeId;
+  if (parsed.archetypeNodeId) {
+    out.archetype_node_id = parsed.archetypeNodeId;
   }
-  if (bracketParts.archetypeDetails) {
-    out.archetype_details = expandArchetypeDetails(
-      bracketParts.archetypeDetails,
-    );
+  if (parsed.archetypeDetails) {
+    out.archetype_details = expandArchetypeDetails(parsed.archetypeDetails);
   }
 
   for (const k of Object.keys(obj)) {
@@ -280,10 +275,10 @@ function expandNode(
   if (
     compositionSym &&
     Object.prototype.hasOwnProperty.call(obj, compositionSym) &&
-    typeof obj[compositionSym] === "string"
+    isLocatableStructuredObject(obj[compositionSym], symbolMap)
   ) {
-    return expandFoldedLocatable(
-      String(obj[compositionSym]),
+    return expandStructuredLocatable(
+      obj[compositionSym] as Record<string, unknown>,
       "COMPOSITION",
       obj,
       compositionSym,
@@ -298,49 +293,30 @@ function expandNode(
   const typeMarker = obj._;
 
   // ZipEHR shorthand fold reverse:
-  // { "🔹": "Namn[at0001]", value: { "🗉": "Brand..." } }
+  // { "🔹": { "🪧": "Namn", "🆔": "at0001" }, value: { "🗉": "Brand..." } }
   // becomes:
-  // { "🔹": "Namn[at0001]", "🗉": "Brand..." }
+  // { "🔹": { "🪧": "Namn", "🆔": "at0001" }, "🗉": "Brand..." }
   if (
     symbolKeys.length === 2 &&
     !Object.prototype.hasOwnProperty.call(obj, "value")
   ) {
-    const locatableKeys = symbolKeys.filter((k) => {
-      return typeof obj[k] === "string" && parseLocatableFolded(String(obj[k]));
-    });
+    const locatableKeys = symbolKeys.filter((k) =>
+      isLocatableStructuredObject(obj[k], symbolMap)
+    );
     if (locatableKeys.length === 1) {
       const locKey = locatableKeys[0];
       const otherKey = symbolKeys.find((k) => k !== locKey)!;
       const typeName = typeFromSymbolKey(locKey, reverseMap, symbolMap);
       if (typeName) {
-        const foldedValue = String(obj[locKey]);
-        const parsed = parseLocatableFolded(foldedValue);
-        const name = parsed?.name ?? foldedValue;
-        const bracket = parsed?.bracket ?? "";
-        const bracketParts = parseLocatableBracket(bracket, name);
+        const out = expandStructuredLocatable(
+          obj[locKey] as Record<string, unknown>,
+          typeName,
+          obj,
+          locKey,
+          reverseMap,
+          symbolMap,
+        );
 
-        const out: Record<string, unknown> = {
-          _type: typeName,
-          name: { _type: "DV_TEXT", value: name },
-        };
-
-        if (bracketParts.archetypeNodeId) {
-          out.archetype_node_id = bracketParts.archetypeNodeId;
-        }
-        if (bracketParts.archetypeDetails) {
-          out.archetype_details = expandArchetypeDetails(
-            bracketParts.archetypeDetails,
-          );
-        }
-
-        for (const k of Object.keys(obj)) {
-          if (k === locKey || k === otherKey) continue;
-          if (k === "archetype_details") continue;
-          out[k] = expandNode(obj[k], typeName, k, reverseMap, symbolMap);
-        }
-
-        // The promoted symbol key corresponds to the original canonical
-        // `value` property for locatable nodes.
         const valueWrapper = { [otherKey]: obj[otherKey] };
         out.value = expandNode(
           valueWrapper,
@@ -363,18 +339,6 @@ function expandNode(
       return expandCodePhraseTerse(strVal);
     }
 
-    const locatable = parseLocatableFolded(strVal);
-    if (locatable && typeName) {
-      return expandFoldedLocatable(
-        strVal,
-        typeName,
-        obj,
-        symKey,
-        reverseMap,
-        symbolMap,
-      );
-    }
-
     if (typeName && typeName.startsWith("DV_")) {
       const expanded = expandTerseScalar(strVal, typeName);
       if (typeof expanded === "object") return expanded;
@@ -394,8 +358,23 @@ function expandNode(
     const symKey = symbolKeys[0];
     const typeName = typeFromSymbolKey(symKey, reverseMap, symbolMap);
     if (typeName) {
+      const innerVal = obj[symKey];
+      if (
+        innerVal && typeof innerVal === "object" && !Array.isArray(innerVal) &&
+        isLocatableStructuredObject(innerVal, symbolMap)
+      ) {
+        return expandStructuredLocatable(
+          innerVal as Record<string, unknown>,
+          typeName,
+          obj,
+          symKey,
+          reverseMap,
+          symbolMap,
+        );
+      }
+
       const inner = expandNode(
-        obj[symKey],
+        innerVal,
         typeName,
         undefined,
         reverseMap,
