@@ -84,7 +84,7 @@ Example excerpt from [`openEHR-EHR-OBSERVATION.body_weight.v2`](https://ckm.open
 
 ### 2) ZipEHR replaces “noise” with emojis (or abbreviations)
 Instead of writing long RM type names everywhere, ZipEHR substitutes them with emojis via a
-symbol table (`table3.yaml`). On the wire/storage side, this keeps the clinical payload
+symbol table (`symbol_table.yaml`). On the wire/storage side, this keeps the clinical payload
 structure while hiding technical naming that tends to be irrelevant to clinicians and
 hurts readability for people/LLMs skimming.
 
@@ -111,7 +111,7 @@ fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This r
 `PROPERTY_TYPE_MAP` plus polymorphic-type handling (`shared.ts`).
 
 **zipehr.xhtml**: FHIR `Narrative.div`-safe XHTML snippets. RM types appear as Ehrbase letter codes in
-`class` (from `table3.yaml`). LOCATABLE metadata uses semicolon-separated `code: value` pairs
+`class` (from `symbol_table.yaml`). LOCATABLE metadata uses semicolon-separated `code: value` pairs
 in `title` (`id`, `te`, `ar`, `rm` — semicolons inside values are escaped as `\;` or quoted).
 Human-visible names live in headings (`h2`–`h4` for composition/section/entries) or leading
 `<span>` labels. DV values use terse strings in value-span `title` attributes without emoji
@@ -181,9 +181,9 @@ The machine-readable schema lives at [`zipehr_v1.schema.json`](zipehr_v1.schema.
 `http://purl.org/ehrtslib/zipehr/v1`). Deserialization accepts files without these
 declarations but logs a `console.warn` when they are missing.
 
-## Symbol lookup table (`table3.yaml`)
+## Symbol lookup table (`symbol_table.yaml`)
 
-RM class → emoji is defined in [`table3.yaml`](table3.yaml). Each row lists alternatives, but
+RM class → emoji is defined in [`symbol_table.yaml`](symbol_table.yaml). Each row lists alternatives, but
 **only the first symbol is used at runtime**. Alternatives exist to let you experiment with
 icons without changing the wire format.
 
@@ -194,7 +194,7 @@ ZipEHR can emit either:
 - the corresponding **Ehrbase 2-letter/short codes** as ASCII `lettercode` symbols.
 
 The mapping for those letter codes is defined in [`ehrbase-short-codes.md`](ehrbase-short-codes.md).
-In `table3.yaml` entries follow the convention 
+In `symbol_table.yaml` entries follow the convention 
 `[letterCode, emoji, ...posibly other alternative emojis during experimentation]`, and the 
 runtime selects the symbol variant form first or second position via `symbolVariant` 
 (`emoji` vs `lettercode`).
@@ -212,11 +212,11 @@ Extra rows in the same file:
 - **`field_promotions`** — COMPOSITION `language` / `territory` / `encoding` promoted to emoji keys
 
 ### Editing workflow (required)
-`table3_text.ts` is an embedded first-symbol copy used by the test suite and the browser demo.
-After editing `table3.yaml`, regenerate the embedded table:
+`symbol_table.ts` is an embedded first-symbol copy used by the test suite and the browser demo.
+After editing `symbol_table.yaml`, regenerate the embedded table:
 
 ```bash
-deno run --allow-read --allow-write enhanced/serialization/zipehr/gen_table3_text.ts
+deno run --allow-read --allow-write enhanced/serialization/zipehr/gen_symbol_table.ts
 ```
 
 If you also publish the browser demo (GitHub Pages), rebuild its bundle so it picks up the
@@ -229,7 +229,7 @@ deno task build:demo
 Reverse lookup (emoji → RM class) uses the same first-symbol uniqueness rule
 (`buildReverseSymbolMap` in `symbol_map.ts`).
 
-Foundation and abstract rows are commented out in `table3.yaml` because they never appear as
+Foundation and abstract rows are commented out in `symbol_table.yaml` because they never appear as
 runtime `_type` values in instance data.
 
 ## Details of what ZipEHR does (pipeline) 
@@ -280,7 +280,7 @@ Type inference order:
 
 Terminology shortcuts (applied on serialize, expanded on deserialize):
 
-| Prefix | Emoji | table3 key |
+| Prefix | Emoji | symbol_table key |
 |--------|-------|------------|
 | `openehr::` | `🌬️` | `openehr` |
 | `local::` | `📍` | `local` |
@@ -288,7 +288,7 @@ Terminology shortcuts (applied on serialize, expanded on deserialize):
 | `ISO_3166-1::` | `🌐` | `territory` |
 | `IANA_character-sets::` | `🔤` | `encoding` |
 
-Canonical listing: `terminology_shortcuts` and `field_promotions` in [`table3.yaml`](table3.yaml).
+Canonical listing: `terminology_shortcuts` and `field_promotions` in [`symbol_table.yaml`](symbol_table.yaml).
 Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in `shared.ts`.
 
 **COMPOSITION** promotes `language` / `territory` / `encoding` CODE_PHRASE children to
@@ -317,9 +317,9 @@ into one JSON/YAML object (valid for standard parsers, including on a single flo
 🌳: { "🪧": "Item tree", "🆔": "at0003" }
 ```
 
-Attribute emoji keys are defined in `table3.yaml` (`data_types.attributes`):
+Attribute emoji keys are defined in `symbol_table.yaml` (`data_types.attributes`):
 
-| RM attribute | table3 key | Emoji |
+| RM attribute | symbol_table key | Emoji |
 |--------------|------------|-------|
 | `LOCATABLE.name` | `LOCATABLE.name` | `🪧` |
 | `LOCATABLE.archetype_node_id` | `LOCATABLE.archetype_node_id` | `🆔` |
@@ -348,7 +348,7 @@ COMPOSITION uses emoji key `🖂` (not `_` + `name`).
 
 | File | Role |
 |------|------|
-| `table3.yaml` / `table3_text.ts` | Symbol lookup table |
+| `symbol_table.yaml` / `symbol_table.ts` | Symbol lookup table |
 | `shared.ts` | Terse parse/format, structured LOCATABLE, type inference maps |
 | `convert.ts` | `zipehr.json` direct substitution; `zipehr.yaml` compact + emoji pass |
 | `compact.ts` | `zipehr.yaml` compaction (terse values, strip inferrable types) |

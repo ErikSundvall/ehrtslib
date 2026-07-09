@@ -19,7 +19,7 @@ import {
 } from "./shared.ts";
 import { buildReverseSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
 import { stripZipehrJsonSchemaProperty } from "./schema.ts";
-import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
+import { SYMBOL_TABLE_EMOJI_SYMBOLS, SYMBOL_TABLE_LETTER_SYMBOLS } from "./symbol_table.ts";
 
 function buildSymbolMapFromTable(
   base: Record<string, string>,
@@ -33,8 +33,8 @@ function buildSymbolMapFromTable(
   return out;
 }
 
-const DEFAULT_EMOJI_SYMBOL_MAP = buildSymbolMapFromTable(TABLE3_EMOJI_SYMBOLS);
-const DEFAULT_LETTER_SYMBOL_MAP = buildSymbolMapFromTable(TABLE3_LETTER_SYMBOLS);
+const DEFAULT_EMOJI_SYMBOL_MAP = buildSymbolMapFromTable(SYMBOL_TABLE_EMOJI_SYMBOLS);
+const DEFAULT_LETTER_SYMBOL_MAP = buildSymbolMapFromTable(SYMBOL_TABLE_LETTER_SYMBOLS);
 
 function scoreZipehrSymbolKeys(
   node: unknown,
@@ -110,14 +110,18 @@ function expandTerseScalar(
   expectedType?: string,
 ): unknown {
   const expanded = expandTerseString(value);
+  if (
+    expectedType === "OBJECT_VERSION_ID" || expectedType === "ARCHETYPE_ID" ||
+    expectedType === "TEMPLATE_ID" || expectedType === "TERMINOLOGY_ID" ||
+    expectedType === "DV_TEXT"
+  ) {
+    return { _type: expectedType, value: expanded };
+  }
   if (isTerseDvCodedText(expanded)) return expandDvCodedTextTerse(expanded);
   if (isTerseCodePhrase(expanded)) return expandCodePhraseTerse(expanded);
   if (expectedType === "DV_QUANTITY") {
     const quantity = expandQuantityTerse(expanded);
     if (quantity) return quantity;
-  }
-  if (expectedType === "DV_TEXT" || expectedType === "TERMINOLOGY_ID") {
-    return { _type: expectedType, value: expanded };
   }
   return expanded;
 }
@@ -378,6 +382,13 @@ function expandNode(
         out[k] = expandNode(obj[k], typeName, k, reverseMap, symbolMap);
       }
       return out;
+    }
+
+    if (
+      typeName === "OBJECT_VERSION_ID" || typeName === "TERMINOLOGY_ID" ||
+      typeName === "ARCHETYPE_ID" || typeName === "TEMPLATE_ID"
+    ) {
+      return expandInferrableLeaf(strVal, typeName);
     }
   }
 

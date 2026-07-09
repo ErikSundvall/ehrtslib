@@ -4,7 +4,7 @@
 **Date:** 2026-07-09  
 **Status:** Draft — `ready-for-agent`  
 **Project:** ehrtslib — TypeScript/Deno openEHR implementation  
-**Related:** [enhanced/serialization/zipehr/README.md](../enhanced/serialization/zipehr/README.md), [zipehr_v1.schema.json](../enhanced/serialization/zipehr/zipehr_v1.schema.json), [table3.yaml](../enhanced/serialization/zipehr/table3.yaml), [FHIR R4 Narrative](https://hl7.org/fhir/R4/narrative.html)
+**Related:** [enhanced/serialization/zipehr/README.md](../enhanced/serialization/zipehr/README.md), [zipehr_v1.schema.json](../enhanced/serialization/zipehr/zipehr_v1.schema.json), [symbol_table.yaml](../enhanced/serialization/zipehr/symbol_table.yaml), [FHIR R4 Narrative](https://hl7.org/fhir/R4/narrative.html)
 
 ---
 
@@ -33,8 +33,8 @@ Add a third ZipEHR output variant — **`zipehr.xhtml`** — that serializes can
 | Aspect | Rule |
 |--------|------|
 | Root | `<div xmlns="http://www.w3.org/1999/xhtml" lang="…">` (FHIR narrative fragment) |
-| RM type | `class` = **first Ehrbase letter code** from `table3.yaml` (e.g. `CO`, `OB`, `E`, `q`, `c`) — no prefix |
-| LOCATABLE / ARCHETYPED metadata | `title` = semicolon-separated `code: value` pairs using **attribute letter codes** from `table3.yaml` (`id`, `ar`, `te`, `rm`) — **no emojis** |
+| RM type | `class` = **first Ehrbase letter code** from `symbol_table.yaml` (e.g. `CO`, `OB`, `E`, `q`, `c`) — no prefix |
+| LOCATABLE / ARCHETYPED metadata | `title` = semicolon-separated `code: value` pairs using **attribute letter codes** from `symbol_table.yaml` (`id`, `ar`, `te`, `rm`) — **no emojis** |
 | `archetype_node_id` | Always `id: at…` in `title`, never XML `id` attribute |
 | Archetype root (`ARCHETYPED`) | `ar:`, `te:`, `rm:` in `title`; omit `ar` when equal to visible name (same rule as ZipEHR structured LOCATABLE) |
 | ELEMENT name | Plain `<span>` text **before** value `<span>` — **not** in `title` |
@@ -76,7 +76,7 @@ Add a third ZipEHR output variant — **`zipehr.xhtml`** — that serializes can
 ```
 title     := pair (";" WS pair)*
 pair      := attrCode ":" WS value
-attrCode  := "id" | "ar" | "te" | "rm"   # from table3.yaml attributes first symbol
+attrCode  := "id" | "ar" | "te" | "rm"   # from symbol_table.yaml attributes first symbol
 value     := quotedString | unquotedValue
 unquotedValue := char+ excluding ";" unless quoted
 ```
@@ -118,7 +118,7 @@ unquotedValue := char+ excluding ";" unless quoted
 17. As a demo-app user, I want to preview zipehr.xhtml with optional external CSS supplied by the host page (not embedded in the fragment), so that browser beautification works in the static demo.
 18. As an LLM pipeline author, I want to convert zipehr.xhtml → canonical → zipehr.yaml, so that I can normalize FHIR narrative payloads into the most compact ZipEHR variant.
 19. As a maintainer, I want title parsing/formatting isolated in a small module, so that grammar evolution does not ripple through the DOM walker.
-20. As a maintainer, I want letter-code maps derived from `table3.yaml` (first symbol per row), reusing `loadSymbolMap("lettercode")`, so that symbol table edits stay single-sourced.
+20. As a maintainer, I want letter-code maps derived from `symbol_table.yaml` (first symbol per row), reusing `loadSymbolMap("lettercode")`, so that symbol table edits stay single-sourced.
 21. As a developer, I want PROPERTY_TYPE_MAP and child-property ordering conventions from ZipEHR YAML to drive nesting of child `div` elements, so that array order is stable.
 22. As a developer, I want polymorphic slots (ELEMENT.value, etc.) handled via the same inference paths as `zipehr.yaml`, so that behavior stays consistent across variants.
 23. As an integrator, I want an optional helper that wraps a fragment as FHIR `Narrative` JSON (`status: generated`, escaped `div` string), so that FHIR serialization is one call away.
@@ -151,7 +151,7 @@ unquotedValue := char+ excluding ";" unless quoted
 
 #### 2. Letter-code registry (extend existing symbol map)
 
-**Responsibility:** Bidirectional map between RM class names and first `table3.yaml` letter symbol.
+**Responsibility:** Bidirectional map between RM class names and first `symbol_table.yaml` letter symbol.
 
 **Reuse:** `loadSymbolMap("lettercode")`, `buildReverseSymbolMap`.
 
@@ -194,7 +194,7 @@ canonical JSON
 Add `zipehr.xhtml` to `InputDetectionResult` / `ZipehrVariant` when:
 
 - Input is XML/HTML with `xmlns="http://www.w3.org/1999/xhtml"`, or
-- Heuristic: root `div` children use known letter-code `class` tokens from table3.
+- Heuristic: root `div` children use known letter-code `class` tokens from symbol_table.
 
 #### 6. High-level API (extend serializer module)
 

@@ -145,6 +145,7 @@ function isLabelSpanChild(
   reverseMap: Map<string, string>,
 ): boolean {
   if (child.tag !== "span") return false;
+  if (child.attrs.class) return false;
   const rmType = rmTypeFromClass(node.attrs.class ?? "", reverseMap);
   if (rmType === "ELEMENT") return false;
   const spans = childElements(node).filter((c) => c.tag === "span");
@@ -345,7 +346,15 @@ function deserializeElement(
 
   for (const child of childDivs) {
     if (child.tag === "span") {
-      Object.assign(out, deserializeValueSpan(child, reverseMap));
+      const valueRm = childRmTypeFromNode(child, reverseMap);
+      const valueObj = deserializeValueSpan(child, reverseMap);
+      if (valueRm) {
+        const propName = resolveChildPropertyName(rmType, valueRm, usedProperties);
+        usedProperties.add(propName);
+        assignChildProperty(out, propName, valueObj);
+      } else {
+        Object.assign(out, valueObj);
+      }
       continue;
     }
 

@@ -8,17 +8,17 @@ import {
   stripZipehrJsonSchemaProperty,
   stripZipehrYamlSchemaDirective,
 } from "./schema.ts";
-import { TABLE3_EMOJI_SYMBOLS, TABLE3_LETTER_SYMBOLS } from "./table3_text.ts";
+import { SYMBOL_TABLE_EMOJI_SYMBOLS, SYMBOL_TABLE_LETTER_SYMBOLS } from "./symbol_table.ts";
 
 const LETTER_CLASS_TOKENS = new Set<string>([
-  ...Object.values(TABLE3_LETTER_SYMBOLS),
+  ...Object.values(SYMBOL_TABLE_LETTER_SYMBOLS),
   "PE",
   "IE",
 ]);
 
 const KNOWN_ZIPEHR_SYMBOL_KEYS = new Set<string>([
-  ...Object.values(TABLE3_EMOJI_SYMBOLS),
-  ...Object.values(TABLE3_LETTER_SYMBOLS),
+  ...Object.values(SYMBOL_TABLE_EMOJI_SYMBOLS),
+  ...Object.values(SYMBOL_TABLE_LETTER_SYMBOLS),
 ]);
 
 export type ZipehrVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";

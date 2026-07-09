@@ -429,7 +429,7 @@ function locatableAttributeSymbols(
 
 /**
  * Build a structured LOCATABLE object (JSON/YAML-library-friendly).
- * Emoji keys come from `table3.yaml` attribute rows via `symbolMap`.
+ * Emoji keys come from `symbol_table.yaml` attribute rows via `symbolMap`.
  */
 export function buildLocatableStructuredObject(
   nameStr: string,

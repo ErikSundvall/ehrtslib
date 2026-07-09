@@ -2,19 +2,19 @@
   attributes: {
     LOCATABLE.archetype_node_id: ["id","🆔"],
     LOCATABLE.name: ["na","🪧"],
-    ARCHETYPED.archetype_id: ["ar","Ⓐ"],
-    ARCHETYPED.template_id: ["te","Ⓣ"],
+    ARCHETYPED.archetype_id: ["AX","Ⓐ"],
+    ARCHETYPED.template_id: ["TP","Ⓣ"],
     ARCHETYPED.rm_version: ["rm","⚙️"]
   },
   # DATA_VALUE (abstract): ["❓","📦","🧩","🔸","🔷","🔹","🔍","📦","⚙️","🔣","❔","🔗"],
-  DV_BOOLEAN: ["b","✅","❌","✔️","✖️","👍","👎","⭕","✳️","☑️","🔘","🔁","❗"],
+  DV_BOOLEAN: ["b","🗹","✅","❌","✔️","✖️","👍","👎","⭕","✳️","☑️","🔘","🔁","❗"],
   DV_IDENTIFIER: ["id","🪪","🆔","🔑","🏷️","🔗","🧾","#️⃣","🔬","🔖","🔐","🧾","📇"],
   DV_STATE: ["st","⚑","🏁","🔴","🟢","⚪","🔸","🔔","📌","🔻","🔺"],
   DV_TEXT: ["x","🗉","🖹"],
   DV_CODED_TEXT: ["c","🗈","🗎"],
-  DV_PARAGRAPH: ["p","📃","¶","🗒️","📚","📝","📄","📖","🧾"],
+  DV_PARAGRAPH: ["p","🗎","📃","¶","🗒️","📚","📝","📄","📖","🧾"],
   CODE_PHRASE: ["C","🏷️","🔤","🔡","🔣","🧾","📛","🪪","🔖","🔎","🔗","✳️","🔢"],
-  TERM_MAPPING: ["TM","🔀","🔗","🔁","🔄","🧭","🗺️","🔖","🧩","📌"],
+  TERM_MAPPING: ["TM","⇄","🔗","🔁","🔄","🧭","🗺️","🔖","🧩","📌"],
 
   # DV_ORDERED (abstract): ["🔢","📊","🔼","🔽","📈","📉","🧭"],
   DV_QUANTITY: ["q","🌡️","⚖️","📏","📐","📊","🔬","🧪","🧾","#","∑"],
@@ -34,43 +34,36 @@
   DV_MULTIMEDIA: ["mu","📷","🖼️","🎥","🎧","📹","🎞️","📺","🔊"],
   DV_PARSABLE: ["pa","🔣","📄","🧾","💾","🗂️","🔍"],
   DV_URI: ["u","🔗","🌐","🔍","📎","📁","🧭","🌍"],
-  DV_EHR_URI: ["eu","⤨","🩺🔗","🧾🔗","🏥🔗"],
+  DV_EHR_URI: ["eu","⤮","🩺🔗","🧾🔗","🏥🔗"],
 
   # OTHERS LATE TO THE ZIPEHR PARTY
   DV_SCALE: ["sc","↕️","📊","⚖️","📈","📉","🔢","🔬"],
   FEEDER_AUDIT: ["FA","📩","📥"],
   FEEDER_AUDIT_DETAILS: ["FD","📩🔍"],
-  PARTY_PROXY: ["PA","👤❔","👤🎭","🔗"],
+  PARTY_PROXY: ["PX","👤❔","👤🎭","🔗"], #no code in ehrbase? Likely not in data. Invented one anyway for fun. 
   PARTY_IDENTIFIED: ["PI","👤🪪"],
-  PARTY_SELF: ["PS","👤👈","👤👇","👤🙋‍♂️","👤🙋‍♀️", "👤🫵"],
-  PARTY_REF: ["PF","👤⤨"],
-  PARTY_RELATED: ["PR","👤🧑‍🧑‍🧒","🔗"]
+  PARTY_RELATED: ["PR","👤🧑‍🧑‍🧒","🔗"],
+  PARTY_SELF: ["PS","👤👈","👤👇","👤🙋‍♂️","👤🙋‍♀️", "👤🫵"], 
+  PARTY_REF: ["PF","↦👤"],
+  OBJECT_REF: ["OR","↦📦"],
+  LOCATABLE_REF: ["LR","↦🧭"],
+  OBJECT_VERSION_ID: ["OV","📦🆔"],
+  PARTICIPATION: ["PA","👥"],
+  AUDIT_DETAILS: ["AD","🛃🔍"],
+  ATTESTATION: ["AT","✍"],
+  GENERIC_ID: ["GX","🃏🆔"],
+  INTERNET_ID: ["IX","🖧🆔"],
+  HIER_OBJECT_ID: ["HX","🌳🆔","🔝🆔"],
+  UUID: ["U", "🌌🆔"],
+  INTERVAL: ["IV","⟷"],
+  ISM_TRANSITION: ["IT","⏭","⏭️","➡️","🔁","↔️","🔀"],
+  LINK: ["LK","⤭"], # note (U+292D) not same symbol as DV_EHR_URI: ⤮ (U+292E)
 
   ## ------------------------------------------------------------------------
   ## Missing classes compared to `ehrbase-short-codes.md` (letter code only).
-  ## Intentionally commented out
-  ## TODO:enable incrementally to avoid symbol collisions.
-  ## ATTESTATION: ["AT"]
-  ## AUDIT_DETAILS: ["AD"]
-  ## GENERIC_ID: ["GX"]
-  ## HIER_OBJECT_ID: ["HX"]
-  ## INTERNET_ID: ["IX"]
-  ## INTERVAL: ["IV"]
-  ## ISM_TRANSITION: ["IT"]
-  ## LINK: ["LK"]
-  ## LOCATABLE_REF: ["LR"]
-  ## OBJECT_REF: ["OR"]
-  ## OBJECT_VERSION_ID: ["OV"]
-  ## PARTICIPATION: ["PA"]
-  ## TERMINOLOGY_ID: ["T"]
-  ## UUID: ["U"]
-
   ## Hopefully handled in other ways already above in ehrtslib.
-  ## ARCHETYPE_ID: ["AX"]
-  ## TEMPLATE_ID: ["TP"]
-  ## ARCHETYPED: ["AR"]
-  
-
+  ## (inlined) ARCHETYPED: ["AR"] 
+  ## (terse format inlines terminology and does not need this) TERMINOLOGY_ID: ["T"]
 }
 
 }, data_structures: {
@@ -86,11 +79,11 @@
   HISTORY: ["HI","📉","📜","⏳","📚","📈","🗓️","🧭","🔁","🧾"],
   # EVENT (abstract): ["🕰️","📍","🔴","🔔","⏱️","📅","📌","🧭","🔁","🧾","🔎","📣"],
   POINT_EVENT: ["PE","🞋","📍","🔴","📌","🕰️","🕒","🔎","🧾","⚪","🔹","📅","⏱️","✅"],
-  INTERVAL_EVENT: ["IE","⟷","↔️","⏳","⌛","📏","📈","📊","🔁","🧾","🔬","🕰️","📆"],
+  INTERVAL_EVENT: ["IE","🔛","⏱","⟷","↔️","⏳","⌛","📏","📈","📊","🔁","🧾","🔬","🕰️","📆"],
 }, ehr_components: {
-  EHR: ["🏥","📁","🗂️","🩺","🧾","👤","🧭","🔐","🧾","🔗","📦","📑"],
+  EHR: ["EH", "🏥","📁","🗂️","🩺","🧾","👤","🧭","🔐","🧾","🔗","📦","📑"],
   EHR_STATUS: ["ES","🏥⏻","⚙️","🔒","👥","📛","🧭","📌","📋","🧾","🔔","🔍","📈"],
-  EHR_ACCESS: ["🏥🔐","🛡️","🔑","🔒","🧾","👤","🧭","🧾","🔗","🛂","📜","🧾"],
+  EHR_ACCESS: ["EA","🏥🔐","🛡️","🔑","🔒",🧾","👤","🧭","🧾","🔗","🛂","📜","🧾"],
   COMPOSITION: ["CO","🖂","📄","🧾","📁","📜","🗂️","📝","📑","🩺","📦","🔖","📋","🧾"],
   EVENT_CONTEXT: ["EC","🛈","🕰️","📍","📅","📌","🧭","🏥","📍","🗺️","🧾","📍","🔍","🧾"],
   # CONTENT_ITEM (assumed abstract): ["📎","📌","📂","🧩","📁","🧾","📑","🗂️","📋","🔖","🧭","🔎"],
@@ -100,20 +93,20 @@
   # CARE_ENTRY (abstract): ["📝🧑‍⚕️","🩺","🧾","📄","📝","📌","📋","🧭","🧾","📑","📂","🔬","📊"],
   OBSERVATION: ["OB","👀","🔭","🩺","📈","📊","🧪","📍","📋","🧾","📑","📌","📷","🩻"],
   EVALUATION: ["EV","💭","🧐","🤔","🧠","📝","📋","🔍","📊","🧾","📑","📌","⚖️","📛","🧭","🔖"],
-  INSTRUCTION: ["IN","❏","📋","📜","📝","📅","🧭","📌","🧾","📑","📋","🛎️","🔔","⚙️","🧩"],
-  ACTION: ["AN","🗹","✅","🛠️","🔧","🧾","📌","📋","🧭","🩺","📅","📑","🧾","🔁"],
-  VERSIONED_OBJECT: ["","🗃️","🔁","📦","🧾","📑","🕰️","🧾","🔖","📂","🗳️","🧭","📚","📝"],
-  CONTRIBUTION: ["","📮","✍️","🧾","📑","📅","🧭","📌","🔗","🧾","📝","🧾","🧾","🔍"]
+  INSTRUCTION: ["IN","💬","🗣️","❏","📋","📜","📝","📅","🧭","📌","🧾","📑","📋","🛎️","🔔","⚙️","🧩"],
+  ACTION: ["AN","✅","🗹","🛠️","🔧","🧾","📌","📋","🧭","🩺","📅","📑","🧾","🔁"],
+  VERSIONED_OBJECT: ["VO","🗃️","🔁","📦","🧾","📑","🕰️","🧾","🔖","📂","🗳️","🧭","📚","📝"],
+  CONTRIBUTION: ["CB","📮","✍️","🧾","📑","📅","🧭","📌","🔗","🧾","📝","🧾","🧾","🔍"]
 }, terminology_shortcuts: {
   # Terse CODE_PHRASE / DV_CODED_TEXT: terminology_id prefix → emoji (:: suffix in payloads)
   openehr: ["🌬️"],
   local: ["📍"],
-  language: ["💬"],
+  language: ["🗪"],
   territory: ["🌐"],
   encoding: ["🔤"],
 }, field_promotions: {
   # COMPOSITION top-level: property → emoji key; codes use prefixes above (ISO_639-1::, ISO_3166-1::, IANA_character-sets::)
-  language: ["💬"],
+  language: ["🗪"],
   territory: ["🌐"],
   encoding: ["🔤"],
 }, foundation_types: {
@@ -134,12 +127,12 @@
   #Character: ["🔠","🔤","🔡","🔣","✳️"],
 
   #String: ["🗒️","📝","🔤","📄","📜","🔎"],
-  #Uri: ["⛓️","🔗","📎","🔍","📁","🧭"],
+  #Uri: ["🌐🔗","⛓️","📎","🔍","📁","🧭"],
 
   # Aggregate<T> (abstract): ["🗃️","📦","📚","📑","🧩"],
   #List: ["📑","📋","📜","🔢","📚","🧾"],
   #Array: ["▥","🔢","📦","📚","🧾","📑"],
-  #Set: ["🧩","🔢","📚","📑","✅","🔁"],
+  #Set: ["⚭","🔢","📚","📑","✅","🔁"],
   #Hash: ["🔐","📇","🗂️","📁","🔎","🧾"],
 
   #Interval: ["📏","↔️","⟷","–","—","🔢"]

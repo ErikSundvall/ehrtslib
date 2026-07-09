@@ -1,5 +1,5 @@
 /**
- * Bidirectional RM class ↔ Ehrbase letter-code helpers (first symbol from table3.yaml).
+ * Bidirectional RM class ↔ Ehrbase letter-code helpers (first symbol from symbol_table.yaml).
  */
 
 import { buildReverseSymbolMap, loadSymbolMap } from "./symbol_map.ts";

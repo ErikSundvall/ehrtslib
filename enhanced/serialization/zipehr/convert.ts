@@ -179,6 +179,22 @@ function convertObjectDirectInner(
       };
     }
 
+    const valueOnlyIdTypes = new Set([
+      "OBJECT_VERSION_ID",
+      "TERMINOLOGY_ID",
+      "ARCHETYPE_ID",
+      "TEMPLATE_ID",
+    ]);
+    if (valueOnlyIdTypes.has(t) && Object.prototype.hasOwnProperty.call(typed, "value")) {
+      const extraKeys = Object.keys(typed).filter((k) => k !== "_type" && k !== "value");
+      if (extraKeys.length === 0) {
+        const symbol = getSymbolFor(symbolMap, t) || t;
+        return {
+          [symbol]: convertObjectDirectInner(typed.value, symbolMap),
+        };
+      }
+    }
+
     if (t.startsWith("DV_")) {
       const symbol = getSymbolFor(symbolMap, t) || t;
       if (Object.prototype.hasOwnProperty.call(typed, "value")) {

@@ -1,12 +1,12 @@
 /**
- * Regenerate table3_text.ts from table3.yaml.
+ * Regenerate symbol_table.ts from symbol_table.yaml.
  *
- * `TABLE3_LETTER_SYMBOLS`: uses array[0] as the symbol (Ehrbase short code).
- * `TABLE3_EMOJI_SYMBOLS`: uses array[1] when array[0] looks like a letter code,
+ * `SYMBOL_TABLE_LETTER_SYMBOLS`: uses array[0] as the symbol (Ehrbase short code).
+ * `SYMBOL_TABLE_EMOJI_SYMBOLS`: uses array[1] when array[0] looks like a letter code,
  * otherwise uses array[0] (backward compatible for any entries not updated).
  */
-const yamlPath = new URL("./table3.yaml", import.meta.url);
-const outPath = new URL("./table3_text.ts", import.meta.url);
+const yamlPath = new URL("./symbol_table.yaml", import.meta.url);
+const outPath = new URL("./symbol_table.ts", import.meta.url);
 
 const TOP_SECTIONS = new Set([
   "data_types",
@@ -67,7 +67,7 @@ for (const sec of sections) {
     // RM class rows are UPPERCASE; attribute rows use dotted keys (e.g. LOCATABLE.name).
     if (key !== key.toUpperCase() && !key.includes(".")) continue;
     if (seenKeys.has(key)) {
-      throw new Error(`Duplicate symbol key in table3.yaml: ${key}`);
+      throw new Error(`Duplicate symbol key in symbol_table.yaml: ${key}`);
     }
     seenKeys.add(key);
     const keyLiteral = key.includes(".") ? `"${key}"` : key;
@@ -77,14 +77,14 @@ for (const sec of sections) {
 }
 
 const output = [
-  "/** Embedded symbol maps derived from table3.yaml for browser + tests. */",
-  "/** Regenerate: deno run --allow-read --allow-write gen_table3_text.ts */",
+  "/** Embedded symbol maps derived from symbol_table.yaml for browser + tests. */",
+  "/** Regenerate: deno run --allow-read --allow-write gen_symbol_table.ts */",
   "",
-  "export const TABLE3_LETTER_SYMBOLS = {",
+  "export const SYMBOL_TABLE_LETTER_SYMBOLS = {",
   ...letterLines,
   "} as const;",
   "",
-  "export const TABLE3_EMOJI_SYMBOLS = {",
+  "export const SYMBOL_TABLE_EMOJI_SYMBOLS = {",
   ...emojiLines,
   "} as const;",
   "",

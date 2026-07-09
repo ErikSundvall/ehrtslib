@@ -9,12 +9,14 @@ import {
   extractFirstScalar,
   extractWrappedTerseString,
   expandTerseString,
+  inferrablePropertyType,
   isLocatableStructuredObject,
   isSymbolKey,
   isTerseDvCodedText,
   PROPERTY_TYPE_MAP,
 } from "./shared.ts";
 import {
+  classFromRmType,
   getLetterCodeReverseMap,
   loadLetterCodeMap,
   rmTypeFromClass,
@@ -166,6 +168,9 @@ function formatValueTitle(
     case "DV_TIME":
     case "DV_TEXT":
     case "TERMINOLOGY_ID":
+    case "OBJECT_VERSION_ID":
+    case "ARCHETYPE_ID":
+    case "TEMPLATE_ID":
       return obj.value != null ? String(obj.value) : undefined;
     default:
       return undefined;
@@ -210,6 +215,11 @@ function formatValueDisplay(rmType: string, value: unknown): string {
     case "DV_DATE":
     case "DV_TIME":
       return String(obj.value ?? "");
+    case "OBJECT_VERSION_ID":
+    case "ARCHETYPE_ID":
+    case "TEMPLATE_ID":
+    case "TERMINOLOGY_ID":
+      return String(obj.value ?? obj);
     case "DV_IDENTIFIER":
       return String(obj.id ?? obj.value ?? "");
     default:
@@ -309,6 +319,11 @@ function renderZipehrNode(
   }
 
   if (typeof node !== "object") {
+    const expectedType = inferrablePropertyType(parentType, propertyName);
+    if (expectedType) {
+      const classToken = classFromRmType(expectedType, letterMap) ?? expectedType;
+      return renderValueSpan(expectedType, classToken, node);
+    }
     return escapeXmlText(String(node));
   }
 
@@ -390,6 +405,17 @@ function renderZipehrNode(
   if (typeof obj._ === "string") {
     const classToken = obj._;
     const rmType = rmTypeFromClass(classToken, reverseMap) ?? classToken;
+    const childKeys = Object.keys(obj).filter((k) => k !== "_" && k !== "_type");
+    if (
+      !rmTypeFromClass(classToken, reverseMap) &&
+      !reverseMap.has(classToken) &&
+      childKeys.length === 1 &&
+      childKeys[0] === "value"
+    ) {
+      const valueRm = inferrablePropertyType(parentType, propertyName) ?? classToken;
+      const valueClass = classFromRmType(valueRm, letterMap) ?? classToken;
+      return renderValueSpan(valueRm, valueClass, obj.value);
+    }
     if (!rmTypeFromClass(classToken, reverseMap) && !reverseMap.has(classToken)) {
       throw new UnsupportedZipehrXhtmlTypeError(classToken);
     }

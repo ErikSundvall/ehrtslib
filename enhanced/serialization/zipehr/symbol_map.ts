@@ -1,7 +1,7 @@
 import {
-  TABLE3_EMOJI_SYMBOLS,
-  TABLE3_LETTER_SYMBOLS,
-} from "./table3_text.ts";
+  SYMBOL_TABLE_EMOJI_SYMBOLS,
+  SYMBOL_TABLE_LETTER_SYMBOLS,
+} from "./symbol_table.ts";
 
 export type ZipehrSymbolVariant = "emoji" | "lettercode";
 
@@ -25,7 +25,9 @@ export async function loadSymbolMap(
   variant: ZipehrSymbolVariant,
 ): Promise<Record<string, string>> {
   if (cachedByVariant[variant]) return cachedByVariant[variant]!;
-  const base = variant === "lettercode" ? TABLE3_LETTER_SYMBOLS : TABLE3_EMOJI_SYMBOLS;
+  const base = variant === "lettercode"
+    ? SYMBOL_TABLE_LETTER_SYMBOLS
+    : SYMBOL_TABLE_EMOJI_SYMBOLS;
   cachedByVariant[variant] = withCaseVariants(base);
   return cachedByVariant[variant]!;
 }
