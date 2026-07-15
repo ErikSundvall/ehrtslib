@@ -25,6 +25,8 @@ import {
   serializeZipehrPlainToJson,
   serializeZipehrPlainToYaml,
   shortenTerseString,
+  loadSymbolMap,
+  shouldUseTerminologyShortcuts,
   ZIPEHR_SCHEMA_URL,
   ZIPEHR_YAML_SCHEMA_DIRECTIVE,
   zipehrTextToCanonical,
@@ -129,7 +131,7 @@ Deno.test("zipehr: structured LOCATABLE object", async () => {
 
 Deno.test("zipehr: terminology shortcuts", () => {
   assertEquals(shortenTerseString("openehr::433"), "🌬️433");
-  assertEquals(shortenTerseString("ISO_639-1::en"), "💬en");
+  assertEquals(shortenTerseString("ISO_639-1::en"), "🗪en");
   assertEquals(shortenTerseString("local::at0023|Ja|"), "📍at0023|Ja|");
   assertEquals(expandTerseString("📍at0023|Ja|"), "local::at0023|Ja|");
   const compacted = compactArchetypeDetails({
@@ -140,6 +142,29 @@ Deno.test("zipehr: terminology shortcuts", () => {
   assertEquals(compacted["Ⓣ"], "Vital Signs");
   assertEquals(compacted["Ⓐ"], "openEHR-EHR-COMPOSITION.encounter.v1");
   assertEquals(compacted["⚙️"], "1.0.4");
+});
+
+Deno.test("zipehr: terminology shortcuts skipped for lettercode variant", async () => {
+  const emojiMap = await loadDefaultSymbolMap();
+  const letterMap = await loadSymbolMap("lettercode");
+  assert(shouldUseTerminologyShortcuts(emojiMap));
+  assert(!shouldUseTerminologyShortcuts(letterMap));
+  assertEquals(shortenTerseString("ISO_639-1::en", letterMap), "ISO_639-1::en");
+  assertEquals(shortenTerseString("openehr::433", letterMap), "openehr::433");
+
+  if (!exampleA) {
+    exampleA = JSON.parse(await Deno.readTextFile(EXAMPLE_A_PATH));
+  }
+  const letterConverted = convertObjectEhrtslib(exampleA, letterMap) as Record<
+    string,
+    unknown
+  >;
+  assertEquals(letterConverted.language, "ISO_639-1::en");
+  assertEquals(letterConverted.territory, "ISO_3166-1::US");
+  assertEquals(
+    Object.prototype.hasOwnProperty.call(letterConverted, "🗪"),
+    false,
+  );
 });
 
 Deno.test("zipehr: DV_CODED_TEXT terse in zipehr.json and zipehr.yaml", async () => {
@@ -213,10 +238,10 @@ Deno.test("zipehr: ehrtslib path shorthands", async () => {
     },
   );
   assertEquals(converted.archetype_details, undefined);
-  assertEquals(converted["💬"], "en");
+  assertEquals(converted["🗪"], "en");
   assertEquals(converted["🌐"], "US");
   const obs = (converted.content as Record<string, unknown>[])[0];
-  assertEquals(obs["💬"], "en");
+  assertEquals(obs["🗪"], "en");
   assertEquals(obs["🔤"], "UTF-8");
 });
 

@@ -146,3 +146,23 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   VERSIONED_OBJECT: "🗃️",
   CONTRIBUTION: "📮",
 } as const;
+
+export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };
+export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [
+  { prefix: "openehr::", emoji: "🌬️" },
+  { prefix: "local::", emoji: "📍" },
+  { prefix: "ISO_639-1::", emoji: "🗪" },
+  { prefix: "ISO_3166-1::", emoji: "🌐" },
+  { prefix: "IANA_character-sets::", emoji: "🔤" },
+] as const;
+
+export type TerminologyFieldPromotion = {
+  readonly field: string;
+  readonly prefix: string;
+  readonly emoji: string;
+};
+export const TERMINOLOGY_FIELD_PROMOTIONS: readonly TerminologyFieldPromotion[] = [
+  { field: "language", prefix: "ISO_639-1::", emoji: "🗪" },
+  { field: "territory", prefix: "ISO_3166-1::", emoji: "🌐" },
+  { field: "encoding", prefix: "IANA_character-sets::", emoji: "🔤" },
+] as const;

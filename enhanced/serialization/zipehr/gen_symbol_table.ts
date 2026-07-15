@@ -23,6 +23,15 @@ const RM_SYMBOL_SECTIONS = new Set([
   "ehr_components",
 ]);
 
+/** symbol_table.yaml terminology_shortcuts keys → terse-string prefixes. */
+const TERMINOLOGY_KEY_TO_PREFIX: Record<string, string> = {
+  openehr: "openehr::",
+  local: "local::",
+  language: "ISO_639-1::",
+  territory: "ISO_3166-1::",
+  encoding: "IANA_character-sets::",
+};
+
 const text = await Deno.readTextFile(yamlPath);
 const lines = text.split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
 
@@ -59,9 +68,35 @@ for (const line of lines) {
 
 const letterLines: string[] = [];
 const emojiLines: string[] = [];
+const terminologyShortcutLines: string[] = [];
+const fieldPromotionLines: string[] = [];
 const seenKeys = new Set<string>();
 
 for (const sec of sections) {
+  if (sec.name === "terminology_shortcuts") {
+    for (const { key, emojiSymbol } of sec.entries) {
+      const prefix = TERMINOLOGY_KEY_TO_PREFIX[key];
+      if (!prefix) {
+        throw new Error(`Unknown terminology_shortcuts key in symbol_table.yaml: ${key}`);
+      }
+      terminologyShortcutLines.push(
+        `  { prefix: "${prefix}", emoji: "${emojiSymbol}" },`,
+      );
+    }
+    continue;
+  }
+  if (sec.name === "field_promotions") {
+    for (const { key, emojiSymbol } of sec.entries) {
+      const prefix = TERMINOLOGY_KEY_TO_PREFIX[key];
+      if (!prefix) {
+        throw new Error(`Unknown field_promotions key in symbol_table.yaml: ${key}`);
+      }
+      fieldPromotionLines.push(
+        `  { field: "${key}", prefix: "${prefix}", emoji: "${emojiSymbol}" },`,
+      );
+    }
+    continue;
+  }
   if (!RM_SYMBOL_SECTIONS.has(sec.name)) continue;
   for (const { key, letterSymbol, emojiSymbol } of sec.entries) {
     // RM class rows are UPPERCASE; attribute rows use dotted keys (e.g. LOCATABLE.name).
@@ -87,6 +122,20 @@ const output = [
   "export const SYMBOL_TABLE_EMOJI_SYMBOLS = {",
   ...emojiLines,
   "} as const;",
+  "",
+  "export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };",
+  "export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [",
+  ...terminologyShortcutLines,
+  "] as const;",
+  "",
+  "export type TerminologyFieldPromotion = {",
+  "  readonly field: string;",
+  "  readonly prefix: string;",
+  "  readonly emoji: string;",
+  "};",
+  "export const TERMINOLOGY_FIELD_PROMOTIONS: readonly TerminologyFieldPromotion[] = [",
+  ...fieldPromotionLines,
+  "] as const;",
   "",
 ].join("\n");
 

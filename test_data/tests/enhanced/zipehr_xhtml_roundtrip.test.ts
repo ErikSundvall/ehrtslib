@@ -340,6 +340,12 @@ Deno.test("zipehr xhtml: wrapFhirNarrative produces JSON-escapable div", async (
   assertEquals(parsed.div, xhtml);
 });
 
+Deno.test("zipehr xhtml: pretty-printed by default", async () => {
+  const xhtml = await serializeToXZipehr(BODY_WEIGHT_FIXTURE);
+  assert(xhtml.includes("\n"));
+  assert(xhtml.includes('  <div class="OB"'));
+});
+
 Deno.test("zipehr xhtml: golden fragment shape (normalized)", async () => {
   const xhtml = normalizeWhitespace(await serializeToXZipehr(BODY_WEIGHT_FIXTURE));
   assert(xhtml.startsWith(

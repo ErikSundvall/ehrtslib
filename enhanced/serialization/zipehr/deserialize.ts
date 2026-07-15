@@ -15,6 +15,7 @@ import {
   parseLocatableStructuredObject,
   parseTerseDvCodedText,
   PROPERTY_TYPE_MAP,
+  shouldUseTerminologyShortcuts,
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 import { buildReverseSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
@@ -56,8 +57,11 @@ function scoreZipehrSymbolKeys(
   return score;
 }
 
-function expandCodePhraseTerse(terse: string): Record<string, unknown> {
-  const expanded = expandTerseString(terse);
+function expandCodePhraseTerse(
+  terse: string,
+  symbolMap?: Record<string, string>,
+): Record<string, unknown> {
+  const expanded = expandTerseString(terse, symbolMap);
   const parts = expanded.split("::");
   const termId = parts[0] ?? "";
   const rest = parts.slice(1).join("::");
@@ -75,8 +79,11 @@ function expandCodePhraseTerse(terse: string): Record<string, unknown> {
   return result;
 }
 
-function expandDvCodedTextTerse(terse: string): Record<string, unknown> {
-  const expanded = expandTerseString(terse);
+function expandDvCodedTextTerse(
+  terse: string,
+  symbolMap?: Record<string, string>,
+): Record<string, unknown> {
+  const expanded = expandTerseString(terse, symbolMap);
   const parsed = parseTerseDvCodedText(expanded);
   if (!parsed) {
     return { _type: "DV_CODED_TEXT", value: expanded };
@@ -86,6 +93,7 @@ function expandDvCodedTextTerse(terse: string): Record<string, unknown> {
     value: parsed.value,
     defining_code: expandCodePhraseTerse(
       `${parsed.termId}::${parsed.code}`,
+      symbolMap,
     ),
   };
 }
@@ -108,8 +116,9 @@ function expandQuantityTerse(
 function expandTerseScalar(
   value: string,
   expectedType?: string,
+  symbolMap?: Record<string, string>,
 ): unknown {
-  const expanded = expandTerseString(value);
+  const expanded = expandTerseString(value, symbolMap);
   if (
     expectedType === "OBJECT_VERSION_ID" || expectedType === "ARCHETYPE_ID" ||
     expectedType === "TEMPLATE_ID" || expectedType === "TERMINOLOGY_ID" ||
@@ -117,8 +126,12 @@ function expandTerseScalar(
   ) {
     return { _type: expectedType, value: expanded };
   }
-  if (isTerseDvCodedText(expanded)) return expandDvCodedTextTerse(expanded);
-  if (isTerseCodePhrase(expanded)) return expandCodePhraseTerse(expanded);
+  if (isTerseDvCodedText(expanded)) {
+    return expandDvCodedTextTerse(expanded, symbolMap);
+  }
+  if (isTerseCodePhrase(expanded)) {
+    return expandCodePhraseTerse(expanded, symbolMap);
+  }
   if (expectedType === "DV_QUANTITY") {
     const quantity = expandQuantityTerse(expanded);
     if (quantity) return quantity;
@@ -129,21 +142,22 @@ function expandTerseScalar(
 function expandInferrableLeaf(
   value: unknown,
   expectedType: string,
+  symbolMap?: Record<string, string>,
 ): unknown {
   if (typeof value === "string") {
     if (expectedType === "CODE_PHRASE") {
-      const expanded = expandTerseString(value);
+      const expanded = expandTerseString(value, symbolMap);
       if (isTerseCodePhrase(expanded) || expanded.includes("::")) {
-        return expandCodePhraseTerse(value);
+        return expandCodePhraseTerse(value, symbolMap);
       }
     }
     if (expectedType === "DV_CODED_TEXT") {
-      const expanded = expandTerseString(value);
+      const expanded = expandTerseString(value, symbolMap);
       if (isTerseDvCodedText(expanded)) {
-        return expandDvCodedTextTerse(value);
+        return expandDvCodedTextTerse(value, symbolMap);
       }
     }
-    const expanded = expandTerseScalar(value, expectedType);
+    const expanded = expandTerseScalar(value, expectedType, symbolMap);
     if (typeof expanded === "object" && expanded !== null) {
       return expanded;
     }
@@ -229,13 +243,15 @@ function expandStructuredLocatable(
 
 function expandPromotedTerminology(
   obj: Record<string, unknown>,
+  symbolMap?: Record<string, string>,
 ): Record<string, unknown> {
+  if (!shouldUseTerminologyShortcuts(symbolMap)) return obj;
   const out = { ...obj };
   for (const { field, prefix, emoji } of TERMINOLOGY_FIELD_PROMOTIONS) {
     if (!Object.prototype.hasOwnProperty.call(out, emoji)) continue;
     const code = String(out[emoji]);
     delete out[emoji];
-    out[field] = expandCodePhraseTerse(`${prefix}${code}`);
+    out[field] = expandCodePhraseTerse(`${prefix}${code}`, symbolMap);
   }
   return out;
 }
@@ -265,7 +281,7 @@ function expandNode(
   const expectedType = inferrablePropertyType(parentType, propertyName);
   if (typeof node !== "object") {
     if (expectedType) {
-      return expandInferrableLeaf(node, expectedType);
+      return expandInferrableLeaf(node, expectedType, symbolMap);
     }
     return node;
   }
@@ -279,7 +295,10 @@ function expandNode(
     );
   }
 
-  const obj = expandPromotedTerminology(node as Record<string, unknown>);
+  const obj = expandPromotedTerminology(
+    node as Record<string, unknown>,
+    symbolMap,
+  );
 
   if (
     expectedType &&
@@ -289,7 +308,7 @@ function expandNode(
       (reverseMap ? reverseMap.has(k) : isSymbolKey(k))
     )
   ) {
-    return expandInferrableLeaf(obj.value, expectedType);
+    return expandInferrableLeaf(obj.value, expectedType, symbolMap);
   }
 
   if (obj.archetype_details && typeof obj.archetype_details === "object") {
@@ -367,11 +386,11 @@ function expandNode(
     const typeName = typeFromSymbolKey(symKey, reverseMap, symbolMap);
 
     if (symKey === getSymbolFor(symbolMap, "CODE_PHRASE") || symKey === "🏷️") {
-      return expandCodePhraseTerse(strVal);
+      return expandCodePhraseTerse(strVal, symbolMap);
     }
 
     if (typeName && typeName.startsWith("DV_")) {
-      const expanded = expandTerseScalar(strVal, typeName);
+      const expanded = expandTerseScalar(strVal, typeName, symbolMap);
       if (typeof expanded === "object") return expanded;
       const out: Record<string, unknown> = {
         _type: typeName,
@@ -388,7 +407,7 @@ function expandNode(
       typeName === "OBJECT_VERSION_ID" || typeName === "TERMINOLOGY_ID" ||
       typeName === "ARCHETYPE_ID" || typeName === "TEMPLATE_ID"
     ) {
-      return expandInferrableLeaf(strVal, typeName);
+      return expandInferrableLeaf(strVal, typeName, symbolMap);
     }
   }
 
@@ -447,12 +466,12 @@ function expandNode(
     if (k === "_") continue;
 
     const v = obj[k];
-    if (typeof v === "string" && isTerseCodePhrase(expandTerseString(v))) {
-      out[k] = expandCodePhraseTerse(v);
+    if (typeof v === "string" && isTerseCodePhrase(expandTerseString(v, symbolMap))) {
+      out[k] = expandCodePhraseTerse(v, symbolMap);
       continue;
     }
-    if (typeof v === "string" && isTerseDvCodedText(expandTerseString(v))) {
-      out[k] = expandDvCodedTextTerse(v);
+    if (typeof v === "string" && isTerseDvCodedText(expandTerseString(v, symbolMap))) {
+      out[k] = expandDvCodedTextTerse(v, symbolMap);
       continue;
     }
 

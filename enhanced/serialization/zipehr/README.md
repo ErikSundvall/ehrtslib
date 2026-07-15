@@ -119,6 +119,10 @@ shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
+**oehr.html5** (proposed): semantic HTML5 narrative with `data-oe-*` hooks for JavaScript
+hydration and client-side contribution building. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
+Format URI: `http://purl.org/ehrtslib/oehr/html5/v1`.
+
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 
 ```json
@@ -284,15 +288,15 @@ Terminology shortcuts (applied on serialize, expanded on deserialize):
 |--------|-------|------------|
 | `openehr::` | `🌬️` | `openehr` |
 | `local::` | `📍` | `local` |
-| `ISO_639-1::` | `💬` | `language` |
+| `ISO_639-1::` | `🗪` | `language` |
 | `ISO_3166-1::` | `🌐` | `territory` |
 | `IANA_character-sets::` | `🔤` | `encoding` |
 
 Canonical listing: `terminology_shortcuts` and `field_promotions` in [`symbol_table.yaml`](symbol_table.yaml).
-Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in `shared.ts`.
+Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in `symbol_table.ts` (generated from yaml).
 
 **COMPOSITION** promotes `language` / `territory` / `encoding` CODE_PHRASE children to
-top-level `💬` / `🌐` / `🔤` keys with bare code strings.
+top-level `🗪` / `🌐` / `🔤` keys with bare code strings.
 
 ### Variant examples (same clinical meaning, different representation)
 

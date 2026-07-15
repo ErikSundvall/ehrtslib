@@ -27,6 +27,7 @@ export {
   PROPERTY_TYPE_MAP,
   resolveType,
   shortenTerseString,
+  shouldUseTerminologyShortcuts,
   TERMINOLOGY_FIELD_PROMOTIONS,
   TERMINOLOGY_SHORTCUTS,
 } from "./shared.ts";

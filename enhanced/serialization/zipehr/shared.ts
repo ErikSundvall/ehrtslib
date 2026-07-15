@@ -1,20 +1,11 @@
 /** Shared utilities for zipehr conversion (ported from zipehr-shared.js). */
 
-/** Terminology prefix → emoji (applied to terse CODE_PHRASE / DV_CODED_TEXT strings). */
-export const TERMINOLOGY_SHORTCUTS = Object.freeze([
-  { prefix: "openehr::", emoji: "🌬️" },
-  { prefix: "local::", emoji: "📍" },
-  { prefix: "ISO_639-1::", emoji: "💬" },
-  { prefix: "ISO_3166-1::", emoji: "🌐" },
-  { prefix: "IANA_character-sets::", emoji: "🔤" },
-]);
+import {
+  TERMINOLOGY_FIELD_PROMOTIONS,
+  TERMINOLOGY_SHORTCUTS,
+} from "./symbol_table.ts";
 
-/** RM property → emoji when promoted from nested CODE_PHRASE to parent row. */
-export const TERMINOLOGY_FIELD_PROMOTIONS = Object.freeze([
-  { field: "language", prefix: "ISO_639-1::", emoji: "💬" },
-  { field: "territory", prefix: "ISO_3166-1::", emoji: "🌐" },
-  { field: "encoding", prefix: "IANA_character-sets::", emoji: "🔤" },
-]);
+export { TERMINOLOGY_FIELD_PROMOTIONS, TERMINOLOGY_SHORTCUTS };
 
 /** ARCHETYPE_DETAILS child → inline emoji key. */
 export const ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({
@@ -215,8 +206,20 @@ export function getSymbolFor(
   return undefined;
 }
 
-export function shortenTerseString(str: string): string {
+export function shouldUseTerminologyShortcuts(
+  symbolMap?: Record<string, string>,
+): boolean {
+  if (!symbolMap) return true;
+  const sym = getSymbolFor(symbolMap, "COMPOSITION");
+  return sym != null && isSymbolKey(sym);
+}
+
+export function shortenTerseString(
+  str: string,
+  symbolMap?: Record<string, string>,
+): string {
   if (typeof str !== "string") return str;
+  if (!shouldUseTerminologyShortcuts(symbolMap)) return str;
   for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
     if (str.startsWith(prefix)) {
       return emoji + str.slice(prefix.length);
@@ -225,8 +228,12 @@ export function shortenTerseString(str: string): string {
   return str;
 }
 
-export function expandTerseString(str: string): string {
+export function expandTerseString(
+  str: string,
+  symbolMap?: Record<string, string>,
+): string {
   if (typeof str !== "string") return str;
+  if (!shouldUseTerminologyShortcuts(symbolMap)) return str;
   for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
     if (str.startsWith(emoji)) {
       return prefix + str.slice(emoji.length);
@@ -358,10 +365,15 @@ export function extractTerminologyFieldCode(
   fieldValue: unknown,
   prefix: string,
   emoji: string,
+  symbolMap?: Record<string, string>,
 ): string | null {
   const terse = extractWrappedTerseString(fieldValue);
   if (terse == null) return null;
-  return stripKnownTerminologyCode(shortenTerseString(terse), prefix, emoji);
+  return stripKnownTerminologyCode(
+    shortenTerseString(terse, symbolMap),
+    prefix,
+    emoji,
+  );
 }
 
 export function compactArchetypeDetails(

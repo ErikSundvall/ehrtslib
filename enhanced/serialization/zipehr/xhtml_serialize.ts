@@ -50,6 +50,8 @@ const HEADING_BY_TYPE: Record<string, string> = {
 
 export type XhtmlSerializeOptions = {
   lang?: string;
+  /** Insert newlines and indentation (default: true). */
+  prettyPrint?: boolean;
 };
 
 export class UnsupportedZipehrXhtmlTypeError extends Error {
@@ -74,6 +76,25 @@ function assertSafeTagName(tag: string): void {
   if (FORBIDDEN_TAGS.has(tag.toLowerCase())) {
     throw new Error(`Forbidden XHTML tag: ${tag}`);
   }
+}
+
+function prettyPrintXhtml(html: string): string {
+  const pad = "  ";
+  let depth = 0;
+  return html
+    .replace(/>\s+</g, "><")
+    .replace(/></g, ">\n<")
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return "";
+      if (/^<\//.test(trimmed)) depth = Math.max(0, depth - 1);
+      const indented = pad.repeat(depth) + trimmed;
+      if (/^<[^!?/][^>]*>$/.test(trimmed)) depth++;
+      return indented;
+    })
+    .filter(Boolean)
+    .join("\n") + "\n";
 }
 
 function buildLocatableTitleFields(
@@ -145,10 +166,11 @@ function formatDvQuantityDisplay(value: unknown): string {
 function formatValueTitle(
   rmType: string,
   value: unknown,
+  letterMap: Record<string, string>,
 ): string | undefined {
   if (value == null) return undefined;
   if (typeof value === "string") {
-    const expanded = expandTerseString(value);
+    const expanded = expandTerseString(value, letterMap);
     if (rmType === "DV_TEXT" && expanded === value) return undefined;
     return expanded;
   }
@@ -185,15 +207,20 @@ function formatQuantityDisplayFromTerse(value: string): string | null {
   return units ? `${magnitude} ${units}` : magnitude;
 }
 
-function formatValueDisplay(rmType: string, value: unknown): string {
+function formatValueDisplay(
+  rmType: string,
+  value: unknown,
+  letterMap: Record<string, string>,
+): string {
   if (value == null) return "";
   if (typeof value === "string") {
     if (rmType === "DV_QUANTITY") {
       const fromTerse = formatQuantityDisplayFromTerse(value);
       if (fromTerse) return fromTerse;
     }
-    if (isTerseDvCodedText(expandTerseString(value))) {
-      const match = expandTerseString(value).match(/^[^:]+::[^|]+\|([^|]*)\|$/);
+    const expanded = expandTerseString(value, letterMap);
+    if (isTerseDvCodedText(expanded)) {
+      const match = expanded.match(/^[^:]+::[^|]+\|([^|]*)\|$/);
       return match?.[1] ?? value;
     }
     return value;
@@ -231,9 +258,10 @@ function renderValueSpan(
   rmType: string,
   classToken: string,
   value: unknown,
+  letterMap: Record<string, string>,
 ): string {
-  const display = escapeXmlText(formatValueDisplay(rmType, value));
-  const title = formatValueTitle(rmType, value);
+  const display = escapeXmlText(formatValueDisplay(rmType, value, letterMap));
+  const title = formatValueTitle(rmType, value, letterMap);
   const titleAttr = title && title !== display
     ? ` title="${escapeXmlAttr(title)}"`
     : title && rmType !== "DV_TEXT"
@@ -322,7 +350,7 @@ function renderZipehrNode(
     const expectedType = inferrablePropertyType(parentType, propertyName);
     if (expectedType) {
       const classToken = classFromRmType(expectedType, letterMap) ?? expectedType;
-      return renderValueSpan(expectedType, classToken, node);
+      return renderValueSpan(expectedType, classToken, node, letterMap);
     }
     return escapeXmlText(String(node));
   }
@@ -349,7 +377,7 @@ function renderZipehrNode(
       const directValueKey = symbolKeys.find((k) => k !== locKey);
       if (directValueKey) {
         const valueRm = rmTypeFromClass(directValueKey, reverseMap) ?? directValueKey;
-        valueHtml = renderValueSpan(valueRm, directValueKey, obj[directValueKey]);
+        valueHtml = renderValueSpan(valueRm, directValueKey, obj[directValueKey], letterMap);
       } else if (obj.value && typeof obj.value === "object") {
         const valueObj = obj.value as Record<string, unknown>;
         const innerKeys = Object.keys(valueObj).filter((k) =>
@@ -362,6 +390,7 @@ function renderZipehrNode(
             valueRm,
             innerKey,
             valueObj[innerKey],
+            letterMap,
           );
         } else if (
           Object.keys(valueObj).length > 0 &&
@@ -369,7 +398,7 @@ function renderZipehrNode(
         ) {
           const innerKey = innerKeys[0] ?? Object.keys(valueObj)[0];
           const valueRm = rmTypeFromClass(innerKey, reverseMap) ?? innerKey;
-          valueHtml = renderValueSpan(valueRm, innerKey, valueObj[innerKey]);
+          valueHtml = renderValueSpan(valueRm, innerKey, valueObj[innerKey], letterMap);
         }
       }
       const consumed = new Set([locKey, "value", directValueKey].filter(Boolean));
@@ -414,7 +443,7 @@ function renderZipehrNode(
     ) {
       const valueRm = inferrablePropertyType(parentType, propertyName) ?? classToken;
       const valueClass = classFromRmType(valueRm, letterMap) ?? classToken;
-      return renderValueSpan(valueRm, valueClass, obj.value);
+      return renderValueSpan(valueRm, valueClass, obj.value, letterMap);
     }
     if (!rmTypeFromClass(classToken, reverseMap) && !reverseMap.has(classToken)) {
       throw new UnsupportedZipehrXhtmlTypeError(classToken);
@@ -448,7 +477,7 @@ function renderZipehrNode(
   if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "string") {
     const symKey = symbolKeys[0];
     const rmType = rmTypeFromClass(symKey, reverseMap) ?? symKey;
-    return renderValueSpan(rmType, symKey, obj[symKey]);
+    return renderValueSpan(rmType, symKey, obj[symKey], letterMap);
   }
 
   return renderChildren(obj, parentType, letterMap, reverseMap);
@@ -487,7 +516,9 @@ export function serializeZipehrPlainToXhtml(
   if (!body.replace(/\s/g, "")) {
     throw new Error("ZipEHR XHTML fragment has no non-whitespace content");
   }
-  return `<div xmlns="http://www.w3.org/1999/xhtml" lang="${escapeXmlAttr(lang)}">${body}</div>`;
+  const root = `<div xmlns="http://www.w3.org/1999/xhtml" lang="${escapeXmlAttr(lang)}">${body}</div>`;
+  const prettyPrint = options.prettyPrint !== false;
+  return prettyPrint ? prettyPrintXhtml(root) : root;
 }
 
 let syncLetterMap: Record<string, string> | undefined;

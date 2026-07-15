@@ -15,13 +15,18 @@ import {
   isTerseDvCodedText,
   resolveType,
   shortenTerseString,
+  shouldUseTerminologyShortcuts,
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 
-function promoteTerminologyFields(obj: Record<string, unknown>): void {
+function promoteTerminologyFields(
+  obj: Record<string, unknown>,
+  symbolMap: Record<string, string>,
+): void {
+  if (!shouldUseTerminologyShortcuts(symbolMap)) return;
   for (const { field, prefix, emoji } of TERMINOLOGY_FIELD_PROMOTIONS) {
     if (!Object.prototype.hasOwnProperty.call(obj, field)) continue;
-    const code = extractTerminologyFieldCode(obj[field], prefix, emoji);
+    const code = extractTerminologyFieldCode(obj[field], prefix, emoji, symbolMap);
     if (code == null) continue;
     delete obj[field];
     obj[emoji] = code;
@@ -123,7 +128,7 @@ export function applyZipehrShorthands(
   }
 
   obj = foldCompositionName(obj, symbolMap);
-  promoteTerminologyFields(obj);
+  promoteTerminologyFields(obj, symbolMap);
   foldRedundantValueProperty(obj, symbolMap);
 
   const out: Record<string, unknown> = {};
@@ -133,7 +138,10 @@ export function applyZipehrShorthands(
   return out;
 }
 
-function formatCodePhraseValue(obj: Record<string, unknown>): string {
+function formatCodePhraseValue(
+  obj: Record<string, unknown>,
+  symbolMap: Record<string, string>,
+): string {
   let termId: string | undefined;
   const tid = obj.terminology_id;
   if (tid) {
@@ -150,7 +158,7 @@ function formatCodePhraseValue(obj: Record<string, unknown>): string {
   if (termId) valueStr += termId + "::";
   valueStr += String(code);
   if (preferred) valueStr += "|" + preferred + "|";
-  return shortenTerseString(valueStr);
+  return shortenTerseString(valueStr, symbolMap);
 }
 
 function convertObjectDirectInner(
@@ -169,13 +177,16 @@ function convertObjectDirectInner(
 
     if (t === "CODE_PHRASE") {
       const symbol = getSymbolFor(symbolMap, "CODE_PHRASE") || "🏷️";
-      return { [symbol]: formatCodePhraseValue(typed) };
+      return { [symbol]: formatCodePhraseValue(typed, symbolMap) };
     }
 
     if (t === "DV_CODED_TEXT") {
       const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
       return {
-        [symbol]: toTerseDvCodedTextShort(typed, shortenTerseString),
+        [symbol]: toTerseDvCodedTextShort(
+          typed,
+          (s) => shortenTerseString(s, symbolMap),
+        ),
       };
     }
 
@@ -288,7 +299,7 @@ function wrapCodePhraseString(
   symbolMap: Record<string, string>,
 ): Record<string, string> {
   const symbol = getSymbolFor(symbolMap, "CODE_PHRASE") || "🏷️";
-  return { [symbol]: shortenTerseString(terseStr) };
+  return { [symbol]: shortenTerseString(terseStr, symbolMap) };
 }
 
 function wrapDvCodedTextString(
@@ -296,7 +307,7 @@ function wrapDvCodedTextString(
   symbolMap: Record<string, string>,
 ): Record<string, unknown> {
   const symbol = getSymbolFor(symbolMap, "DV_CODED_TEXT") || "🗈";
-  return { [symbol]: shortenTerseString(terseStr) };
+  return { [symbol]: shortenTerseString(terseStr, symbolMap) };
 }
 
 function wrapDvScalar(
@@ -354,7 +365,7 @@ export function applyEmojiToCompact(
     }
     if (typeof compact === "string") {
       if (inferrablePropertyType(parentType, propertyName)) {
-        return shortenTerseString(compact);
+        return shortenTerseString(compact, symbolMap);
       }
       if (
         typeName === "CODE_PHRASE" || isTerseCodePhraseCompat(compact, original)
