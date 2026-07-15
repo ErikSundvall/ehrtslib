@@ -119,9 +119,10 @@ shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
-**oehr.html5** (proposed): semantic HTML5 narrative with `data-oe-*` hooks for JavaScript
-hydration and client-side contribution building. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
-Format URI: `http://purl.org/ehrtslib/oehr/html5/v1`.
+**zipehr.html5** (proposed): compact `oe-*` custom elements (not FHIR Narrative). Two dialects —
+`html5/short` (`oe-ob`, `oe-q`, …) and `html5/full` (`oe-observation`, `oe-dv-quantity`, …).
+Semantics in tags + short attributes; no FLAT paths (inferred by traversal). See
+[`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 

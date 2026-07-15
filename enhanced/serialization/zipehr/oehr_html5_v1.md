@@ -1,335 +1,338 @@
-# oehr.html5/v1 — Semantic HTML5 openEHR narrative format
+# ZipEHR HTML5 — compact custom-element formats
 
 **Status:** proposed (not implemented)  
-**Format URI:** `http://purl.org/ehrtslib/oehr/html5/v1`  
-**Related:** [`README.md`](README.md) (`zipehr.xhtml/v1`), [`ROADMAP.md`](../../../ROADMAP.md) (Contribution builder), [`docs/SIMPLIFIED_FORMATS.md`](../../../docs/SIMPLIFIED_FORMATS.md)
+**Related:** [`README.md`](README.md), [`symbol_table.yaml`](symbol_table.yaml), [`ROADMAP.md`](../../../ROADMAP.md) (Contribution builder)
 
 ## Purpose
 
-`oehr.html5/v1` is a **reversible, compact, HTML5-native** serialisation of openEHR RM instance trees. It targets the same use cases as `zipehr.xhtml/v1` (human-readable narrative, FHIR `Narrative.div` embedding, browser rendering) but is designed from the start for **JavaScript hydration**: bind editors, track edits, and feed a client-side **contribution builder** that can emit valid openEHR `CONTRIBUTION` payloads to REST CDRs.
+Two ZipEHR HTML5 wire formats serialise openEHR RM instance trees as **custom elements** (`oe-*`) for:
 
-Where `zipehr.xhtml/v1` encodes semantics mainly in `class` and `title` (XHTML-era patterns), `oehr.html5/v1` uses:
+- compact storage / LLM context
+- CSS / XPath / XQuery / DOM tree walk
+- optional upgrade to web components for in-browser edit → contribution builder
 
-- **Semantic HTML5 elements** (`article`, `section`, `dl`, `data`, `time`, …)
-- **`data-oe-*` attributes** as a stable, parseable machine layer
-- **ZipEHR terse value grammar** (unchanged) for lossless round-trip of coded and typed values
+Not constrained by FHIR Narrative. Prefer **attributes** for codes and typed fields; keep **text** only when it is the clinical display string (or omit display when derived later from terminology/archetype).
 
-The format is a *skin* over canonical openEHR JSON — same information contract as ZipEHR JSON/YAML, different wire syntax.
+| Format URI | Tag dialect | Example tags |
+|------------|-------------|--------------|
+| `http://purl.org/ehrtslib/zipehr/html5/short/v1` | Ehrbase / `symbol_table` letter codes | `oe-co`, `oe-ob`, `oe-e`, `oe-q`, `oe-c` |
+| `http://purl.org/ehrtslib/zipehr/html5/full/v1` | RM class names, kebab-case | `oe-composition`, `oe-observation`, `oe-element`, `oe-dv-quantity` |
+
+Same attribute grammar and tree shape; only the local name after `oe-` differs. Round-trip both ↔ canonical JSON via the shared ZipEHR letter map.
 
 ## Design goals
 
-| Goal | Approach |
-|------|----------|
-| HTML5 purist | Prefer native elements over generic `div`/`span`; headings reflect document outline |
-| Compact | Short `data-oe-*` keys; omit inferrable metadata; optional minified emission |
-| openEHR semantics | RM types, archetype ids, node ids, template id, terse DV values — all recoverable |
-| Hydratable | Every editable leaf has `data-oe-p` (template path) and/or `data-oe-v` (canonical terse value) |
-| Contribution-ready | Edits map to FLAT-path deltas → RM patch → `VERSION` in a `CONTRIBUTION` (see [Hydration & contribution builder](#hydration--contribution-builder)) |
-| FHIR-safe | Fragment embeddable in FHIR R4 `Narrative.div` (HTML subset; no `script`/`iframe`/…) |
+| Goal | Rule |
+|------|------|
+| Compress | Short tags (short dialect), short attrs, omit inferrable noise |
+| Semantics | Every typed node is an `oe-*` element; LOCATABLE + DV fields recoverable |
+| Traversable | Parent/child = RM containment; siblings under multi-valued props use document order |
+| No path strings | No FLAT/`data-oe-p`; paths inferred by walk + template/AOM if needed |
+| Attribute-first | Codes, magnitudes, units, ISO times, ids → attributes |
+| Hydrate later | Tags alone are storage; web components upgrade the same tags in apps |
 
-## Non-goals (v1)
+## Non-goals
 
-- Replacing FLAT/STRUCTURED JSON for API transport (those remain the primary machine interchange formats)
-- Full in-browser template validation UI (hydration contract only; widgets are app-specific)
-- Multi-user CRDT/OT (future ROADMAP phase; v1 defines stable node identity hooks)
+- FHIR `Narrative.div` compliance (use `zipehr.xhtml/v1` for that)
+- Emitting FLAT paths or editor-kind hints in the stored document
+- Pretty-print as default (minify for wire; pretty for debugging)
 
-## Relationship to other formats
+## Relationship to other ZipEHR skins
 
 ```
 Canonical JSON (_type)
-    ├─ zipehr.json / zipehr.yaml     … LLM/human compact tree
-    ├─ zipehr.xhtml/v1               … FHIR narrative (class + title encoding)
-    └─ oehr.html5/v1                 … semantic HTML + data-oe-* (this document)
-            ↕ deserialize
-    FLAT paths (when Web Template known) … contribution builder deltas
+  ├─ zipehr.json / zipehr.yaml
+  ├─ zipehr.xhtml/v1          … FHIR-safe (class + title)
+  ├─ zipehr.html5/short/v1    … oe-{letter}   (this doc)
+  └─ zipehr.html5/full/v1     … oe-{rm-kebab} (this doc)
 ```
 
-| | zipehr.xhtml/v1 | oehr.html5/v1 |
+| | xhtml/v1 | html5 short/full |
 |---|---|---|
-| Document flavour | XHTML namespace on root `div` | HTML5 fragment (`article` root) |
-| RM type | `class="OB"` on `div` | `data-oe-t="OB"` on semantic container |
-| LOCATABLE metadata | `title="te: …; ar: …; rm: …; id: …"` | separate `data-oe-te`, `data-oe-a`, `data-oe-rm`, `data-oe-n` |
-| Scalar values | `span` text + optional `title` terse | `<data value="…">` or `<time datetime="…">` |
-| ELEMENT | `div.E` + label `span` + value `span` | `<dl data-oe-t="E">` + `<dt>` / `<dd>` |
-| Edit hooks | none | `data-oe-p`, `data-oe-v`, `data-oe-edit` |
-| Path to contribution | indirect (deserialize → RM → FLAT) | direct path via `data-oe-p` when template-bound |
+| Elements | `div` / `span` | custom `oe-*` |
+| Type | `class="OB"` | tag `oe-ob` / `oe-observation` |
+| Metadata | `title="te:…; ar:…"` | short attrs `a` `t` `r` `n` `na` |
+| Values | text + optional `title` | attrs (`m` `u` `code` …) |
+| Paths | — | none (traverse) |
 
-Letter-code RM aliases reuse [`symbol_table.yaml`](symbol_table.yaml) / Ehrbase short codes ([`ehrbase-short-codes.md`](ehrbase-short-codes.md)).
+## Tag names
 
-## Document shell
+Custom elements require a hyphen → always `oe-…`. HTML parsers fold names to lowercase.
 
-### Root
+### Short dialect (`html5/short`)
+
+Letter codes from [`symbol_table.yaml`](symbol_table.yaml) / [`ehrbase-short-codes.md`](ehrbase-short-codes.md), lowercased:
+
+| RM type | Tag |
+|---------|-----|
+| COMPOSITION | `oe-co` |
+| SECTION | `oe-se` |
+| OBSERVATION | `oe-ob` |
+| EVALUATION | `oe-ev` |
+| INSTRUCTION | `oe-in` |
+| ACTION | `oe-an` |
+| ADMIN_ENTRY | `oe-ae` |
+| EVENT_CONTEXT | `oe-ec` |
+| HISTORY | `oe-hi` |
+| POINT_EVENT | `oe-pe` |
+| INTERVAL_EVENT | `oe-ie` |
+| ITEM_TREE | `oe-tr` |
+| ITEM_LIST | `oe-il` |
+| CLUSTER | `oe-cl` |
+| ELEMENT | `oe-e` |
+| DV_QUANTITY | `oe-q` |
+| DV_CODED_TEXT | `oe-c` |
+| DV_TEXT | `oe-x` |
+| DV_BOOLEAN | `oe-b` |
+| DV_COUNT | `oe-co`† |
+| DV_DATE | `oe-d` |
+| DV_TIME | `oe-t` |
+| DV_DATE_TIME | `oe-dt` |
+| CODE_PHRASE | `oe-cp`‡ |
+
+† Letter `co` collides with COMPOSITION `CO` under case-folding. Prefer **`oe-cnt`** for `DV_COUNT` in the HTML5 short dialect (document this alias in the symbol table / serializer).  
+‡ Letter `C` → use **`oe-cp`** for `CODE_PHRASE` so it does not collide with `oe-c` (`DV_CODED_TEXT`).
+
+Serializer must emit these HTML5-safe aliases; reverse map is table-driven like existing letter codes.
+
+### Full dialect (`html5/full`)
+
+`oe-` + RM class lowercased with `_` → `-`:
+
+| RM type | Tag |
+|---------|-----|
+| COMPOSITION | `oe-composition` |
+| OBSERVATION | `oe-observation` |
+| POINT_EVENT | `oe-point-event` |
+| ITEM_TREE | `oe-item-tree` |
+| ELEMENT | `oe-element` |
+| DV_QUANTITY | `oe-dv-quantity` |
+| DV_CODED_TEXT | `oe-dv-coded-text` |
+| DV_DATE_TIME | `oe-dv-date-time` |
+| CODE_PHRASE | `oe-code-phrase` |
+
+No collisions; more bytes; better for human inspection and CSS without looking up codes.
+
+### Detect dialect
+
+- Root has `fmt` attribute (see below), or
+- First `oe-*` name length / known token set (`oe-ob` vs `oe-observation`).
+
+## Attribute vocabulary (shared)
+
+Global HTML attrs used as usual: `lang` on root. Prefer these over `data-*` to save bytes.
+
+| Attr | RM / meaning | When emitted |
+|------|----------------|--------------|
+| `fmt` | format URI or short token `s1` / `f1` | root only |
+| `na` | `LOCATABLE.name.value` | when present and not equal to a sole identifiable code |
+| `n` | `archetype_node_id` | at-codes and ids not equal to `a` |
+| `a` | `archetype_details.archetype_id` | when present; omit if equal to `na` |
+| `tp` | `archetype_details.template_id` | composition / root when present |
+| `rm` | `archetype_details.rm_version` | when present |
+| `p` | RM property name on parent | **only** when child type ↔ property is ambiguous |
+
+### Value attributes by DV (attribute-first)
+
+| Type | Attrs | Text content |
+|------|-------|--------------|
+| `DV_QUANTITY` | `m` magnitude, `u` units | omit (or optional display) |
+| `DV_COUNT` | `m` | omit |
+| `DV_PROPORTION` | `n` numerator, `d` denominator, `t` type, `p` precision† | omit |
+| `DV_BOOLEAN` | `v` = `0`/`1` or empty/`true` | omit |
+| `DV_TEXT` | — | text = value |
+| `DV_CODED_TEXT` | `t` terminology_id, `c` code_string | optional rubric; or omit text if UI looks up |
+| `CODE_PHRASE` | `t`, `c` | omit |
+| `DV_ORDINAL` | `v` symbol value, `t`/`c` defining_code | optional |
+| `DV_DATE` / `DV_TIME` / `DV_DATE_TIME` | `v` ISO-8601 | omit |
+| `DV_DURATION` | `v` ISO-8601 duration | omit |
+| `DV_URI` / `DV_EHR_URI` | `v` | omit |
+| `DV_IDENTIFIER` | `id`, `type`, `issuer`, `assigner` as needed | omit |
+
+† For `DV_PROPORTION`, do not reuse `n`/`p` if a LOCATABLE parent already reserved them — proportion fields live only on the DV leaf element: use `num` / `den` / `k` (proportion kind) / `prec` if collision risk. Prefer `num`/`den`/`k`/`prec` always for clarity at ~same cost.
+
+**Do not** store ZipEHR terse strings as a second copy of the same fact. Either attrs (`t`+`c`) *or* a single terse `v` — prefer attrs for codes/quantities (more XPath-friendly: `oe-c[@c='at0028']`).
+
+Terminology shortcuts (optional emission only): `t=local` / `t=openehr` written literally; emoji shortcuts stay in JSON/YAML ZipEHR, not HTML5.
+
+### Composition promotions
+
+Same idea as ZipEHR field promotions — attributes on `oe-co` / `oe-composition`:
+
+| Attr | Meaning |
+|------|---------|
+| `lang` | language code (`en`) |
+| `te` | territory (`SE`) |
+| `enc` | encoding (`UTF-8`) when present |
+
+## Tree shape & inference
+
+1. Element tag ⇒ RM `_type`.
+2. Children are RM properties: assign using `PROPERTY_TYPE_MAP[parent][childType]` (same as `xhtml_deserialize`). Array properties (`content`, `items`, `events`, …) → sibling order = list order.
+3. Emit `p="…"` only when two siblings would map to the same property or type is polymorphic without unique match (rare).
+4. No wrapper for “property slots”: the typed child *is* the slot (`oe-ec` under `oe-co` ⇒ `context`).
+5. Omit empty optional containers.
+
+### ELEMENT
 
 ```html
-<article data-oe-fmt="http://purl.org/ehrtslib/oehr/html5/v1" lang="en">
+<oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e>
+```
+
+Full dialect:
+
+```html
+<oe-element n="at0004" na="Weight"><oe-dv-quantity m="85" u="kg"/></oe-element>
+```
+
+Name in `na` (attribute), not a nested `oe-x`, unless name is structured (rare).
+
+## Root
+
+```html
+<oe-co fmt="s1" lang="en" tp="Vital Signs" a="openEHR-EHR-COMPOSITION.encounter.v1" rm="1.1.0" na="Vital Signs">
   …
-</article>
+</oe-co>
 ```
 
-- **`data-oe-fmt`** — format version URI (required on root). Deserializers warn if missing.
-- **`lang`** — composition language (BCP 47), from `COMPOSITION.language` when present.
-- Root RM type is always **`CO`** (COMPOSITION); implied by `article`, still set explicitly as `data-oe-t="CO"`.
+Short `fmt` tokens:
 
-### FHIR `Narrative.div` embedding
+| Token | URI |
+|-------|-----|
+| `s1` | `…/zipehr/html5/short/v1` |
+| `f1` | `…/zipehr/html5/full/v1` |
 
-FHIR expects XHTML-ish HTML inside `div`. For interoperability:
+Deserializers accept full URI or token.
 
-```json
-{
-  "status": "generated",
-  "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">…article…</div>"
-}
-```
+## Worked example (body weight) — short, compact
 
-The inner `article` keeps HTML5 semantics; the outer wrapper satisfies FHIR. Deserializers strip the wrapper if present.
-
-### Forbidden content
-
-Same safety set as `zipehr.xhtml/v1`: no `script`, `link`, `iframe`, `object`, `form`, `head`, `body`. Forms for editing are attached by the host app *around* or *onto* the fragment, not serialised inside it.
-
-## Machine layer: `data-oe-*` attributes
-
-Short prefix **`oe`** = openEHR. All attributes are optional except where noted.
-
-| Attribute | Meaning | Example |
-|-----------|---------|---------|
-| `data-oe-fmt` | Format URI | root only |
-| `data-oe-t` | RM type letter code | `OB`, `E`, `q`, `c`, `dt` |
-| `data-oe-n` | `archetype_node_id` | `at0004` |
-| `data-oe-a` | `archetype_details.archetype_id` | `openEHR-EHR-OBSERVATION.body_weight.v2` |
-| `data-oe-te` | `archetype_details.template_id` | `ChemoForm-MBA.v7` |
-| `data-oe-rm` | `archetype_details.rm_version` | `1.1.0` |
-| `data-oe-v` | Terse canonical value (ZipEHR grammar) | `local::at0028\|Fully clothed, without shoes\|` |
-| `data-oe-p` | Web Template / FLAT path (when known) | `vital_signs/body_weight:0/weight\|magnitude` |
-| `data-oe-edit` | Suggested editor kind (hydration hint) | `text`, `coded`, `quantity`, `datetime`, `readonly` |
-
-### LOCATABLE metadata rules
-
-Same compaction rules as ZipEHR structured LOCATABLE objects:
-
-1. Human-visible **name** always in the nearest heading or `<dt>` (never only in attributes).
-2. Emit `data-oe-te`, `data-oe-a`, `data-oe-rm` when present in `archetype_details`.
-3. Omit `data-oe-a` when it equals the visible name / template title.
-4. Emit `data-oe-n` when it differs from `data-oe-a`, or when no archetype id is present.
-5. Do **not** duplicate metadata in `title` — unlike `zipehr.xhtml/v1`.
-
-### Terse values
-
-Reuse ZipEHR terse grammar from [`README.md`](README.md#terse-data-values-what-strings-mean):
-
-| DV type | Terse form | HTML5 carrier |
-|---------|------------|---------------|
-| `DV_TEXT` | plain text | text content; omit `data-oe-v` if identical |
-| `DV_CODED_TEXT` | `term::code\|value\|` | `data-oe-v` on `<dd>` or `<data>` |
-| `DV_QUANTITY` | `magnitude\|unit\|` | `<data value="85\|kg\|">` |
-| `DV_DATE_TIME` | ISO-8601 string | `<time datetime="…">` + matching `data-oe-v` if needed |
-| `CODE_PHRASE` | `term::code` | `data-oe-v` |
-
-Display text stays human-friendly; machine form lives in `value` / `datetime` / `data-oe-v`.
-
-## Semantic structure map
-
-RM containers map to HTML5 landmarks; children follow RM property order where practical.
-
-| RM type | Element | Heading | Notes |
-|---------|---------|---------|-------|
-| `COMPOSITION` | `<article>` | `<h1>` or `<h2>` | Root only |
-| `SECTION` | `<section>` | `<h2>`–`<h4>` | Nested under composition |
-| `OBSERVATION` | `<section>` | `<h3>` | `data-oe-t="OB"` |
-| `EVALUATION` | `<section>` | `<h3>` | `EV` |
-| `INSTRUCTION` | `<section>` | `<h3>` | `IN` |
-| `ACTION` | `<section>` | `<h3>` | `AN` |
-| `ADMIN_ENTRY` | `<section>` | `<h3>` | `AE` |
-| `CLUSTER` | `<section>` | `<h4>`–`<h5>` | May nest |
-| `HISTORY` | `<section>` | optional `<h4>` | `HI`; events as nested sections |
-| `POINT_EVENT` / `INTERVAL_EVENT` | `<section>` | optional | `PE` / `IE` |
-| `ITEM_TREE` / `ITEM_LIST` / … | `<section>` | optional | `TR`, `IL`, … |
-| `ELEMENT` | `<dl>` | — | `<dt>` = name, `<dd>` = value |
-| `EVENT_CONTEXT` | `<section>` | `<h3>` | `EC` |
-| Scalar DV | `<dd>`, `<data>`, `<time>` | — | Inside ELEMENT or property slot |
-
-**Definition lists for ELEMENT** align with HTML5 semantics: a term (`<dt>`) and description/value (`<dd>`). This is more native than `div` + `span` pairs and styles well with default UA CSS.
-
-### Property slots without RM containers
-
-When a parent RM object has a single scalar property (e.g. `EVENT_CONTEXT.start_time`), emit a compact **property row**:
+Same clinical content as ZipEHR README / CKM body_weight.v2:
 
 ```html
-<p data-oe-t="EC" data-oe-prop="start_time">
-  <time datetime="2024-01-15T10:30:00Z" data-oe-t="dt">15 Jan 2024, 10:30 UTC</time>
-</p>
+<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight"><oe-hi><oe-pe n="at0003"><oe-tr n="at0001"><oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e></oe-tr><oe-tr n="at0008"><oe-e n="at0009" na="State of dress"><oe-c t="local" c="at0028">Fully clothed, without shoes</oe-c></oe-e></oe-tr></oe-pe></oe-hi></oe-ob>
 ```
 
-`data-oe-prop` records the RM attribute name when the element is not an RM container. Deserializers use `PROPERTY_TYPE_MAP` + `data-oe-prop` to reattach children.
-
-## Example: body weight observation
-
-Canonical source: [openEHR-EHR-OBSERVATION.body_weight.v2](https://ckm.openehr.org/ckm/archetypes/openEHR-EHR-OBSERVATION.body_weight.v2) — 85 kg, clothing state *Fully clothed, without shoes* (`at0028`).
+Pretty (debug only):
 
 ```html
-<article data-oe-fmt="http://purl.org/ehrtslib/oehr/html5/v1" data-oe-t="CO" lang="en">
-  <section data-oe-t="OB" data-oe-a="openEHR-EHR-OBSERVATION.body_weight.v2">
-    <h2>Body weight</h2>
-    <section data-oe-t="HI">
-      <section data-oe-t="PE" data-oe-n="at0003">
-        <section data-oe-t="TR" data-oe-n="at0001">
-          <dl data-oe-t="E" data-oe-n="at0004"
-              data-oe-p="body_weight/weight:0|magnitude">
-            <dt>Weight</dt>
-            <dd data-oe-t="q" data-oe-edit="quantity">
-              <data value="85|kg|">85 kg</data>
-            </dd>
-          </dl>
-        </section>
-        <section data-oe-t="TR" data-oe-n="at0008">
-          <dl data-oe-t="E" data-oe-n="at0009"
-              data-oe-p="body_weight/state_of_dress:0|code">
-            <dt>State of dress</dt>
-            <dd data-oe-t="c"
-                data-oe-v="local::at0028|Fully clothed, without shoes|"
-                data-oe-edit="coded">
-              Fully clothed, without shoes
-            </dd>
-          </dl>
-        </section>
-      </section>
-    </section>
-  </section>
-</article>
+<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight">
+  <oe-hi>
+    <oe-pe n="at0003">
+      <oe-tr n="at0001">
+        <oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e>
+      </oe-tr>
+      <oe-tr n="at0008">
+        <oe-e n="at0009" na="State of dress">
+          <oe-c t="local" c="at0028">Fully clothed, without shoes</oe-c>
+        </oe-e>
+      </oe-tr>
+    </oe-pe>
+  </oe-hi>
+</oe-ob>
 ```
 
-## Example: composition header (template-bound)
+### Full dialect (same tree)
 
 ```html
-<article data-oe-fmt="http://purl.org/ehrtslib/oehr/html5/v1"
-         data-oe-t="CO"
-         data-oe-te="ChemoForm-MBA.v7"
-         data-oe-a="openEHR-EHR-COMPOSITION.self_reported_data.v1"
-         data-oe-rm="1.1.0"
-         lang="sv">
-  <h1>ChemoForm-MBA.v7</h1>
-  <section data-oe-t="EC">
-    <p data-oe-prop="start_time">
-      <time datetime="2023-08-31T16:31:16Z" data-oe-t="dt">31 Aug 2023 18:31</time>
-    </p>
-  </section>
-  …
-</article>
+<oe-observation fmt="f1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight">
+  <oe-history>
+    <oe-point-event n="at0003">
+      <oe-item-tree n="at0001">
+        <oe-element n="at0004" na="Weight"><oe-dv-quantity m="85" u="kg"/></oe-element>
+      </oe-item-tree>
+      <oe-item-tree n="at0008">
+        <oe-element n="at0009" na="State of dress">
+          <oe-dv-coded-text t="local" c="at0028">Fully clothed, without shoes</oe-dv-coded-text>
+        </oe-element>
+      </oe-item-tree>
+    </oe-point-event>
+  </oe-history>
+</oe-observation>
 ```
 
-## Compact emission profile
+### Even smaller (drop display names)
 
-For minimal bytes (mobile, bandwidth-sensitive narrative):
+If names are loaded from archetype terminology at hydrate time:
 
-| Technique | Saving |
-|-----------|--------|
-| Omit `data-oe-v` when equal to text/`value`/`datetime` | avoids duplicate strings |
-| Omit `data-oe-t` on `<dd>` when inferrable from parent `data-oe-prop` + `PROPERTY_TYPE_MAP` | **deserialize only** with parent context |
-| Single-line emission (no insignificant whitespace) | wire size |
-| Omit headings when name is empty and `data-oe-n` is sufficient | rare edge case |
+```html
+<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2"><oe-hi><oe-pe n="at0003"><oe-tr n="at0001"><oe-e n="at0004"><oe-q m="85" u="kg"/></oe-e></oe-tr><oe-tr n="at0008"><oe-e n="at0009"><oe-c t="local" c="at0028"/></oe-e></oe-tr></oe-pe></oe-hi></oe-ob>
+```
 
-Pretty-printed emission is the default for authoring; compact profile is opt-in (`prettyPrint: false`).
+Lossless for codes + magnitudes; display labels restored from AOM / terminology.
+
+## CSS / XPath (traversal without paths)
+
+```css
+oe-ob oe-e[n="at0004"] oe-q { font-weight: bold; }
+oe-c[c="at0028"] { color: green; }
+```
+
+```xpath
+//oe-e[@n='at0004']/oe-q/@m
+//oe-c[@t='local' and @c='at0028']
+count(//oe-pe)
+```
+
+Full dialect: replace `oe-ob` → `oe-observation`, `oe-e` → `oe-element`, etc.
+
+Sibling index for repeating nodes (contribution delta):  
+`nth-child` / preceding-sibling count among same tag under the same parent property — inferred at walk time, not stored.
+
+## Compression checklist (emit rules)
+
+1. Prefer **short** dialect for storage/bandwidth.
+2. Minify: no insignificant whitespace/newlines.
+3. Omit `na` when app will resolve from archetype.
+4. Omit `a` when equal to template root / already on ancestor if nested archetype same as node id (keep `a` on root LOCATABLE that introduces the archetype).
+5. Omit `p` whenever property inference is unique.
+6. Self-close empty DV with only attrs: `<oe-q m="85" u="kg"/>` (XML-style in stored fragments; HTML parsers accept void custom elements inconsistently — prefer explicit close `<oe-q m="85" u="kg"></oe-q>` for HTML browser paste if needed; storage/XML mode may self-close).
+7. Never emit FLAT paths or `data-oe-edit`.
+8. Never duplicate typed value as text when attrs already carry it (`m`/`u`/`c`).
 
 ## Hydration & contribution builder
 
-This section defines the **contract** for client-side JavaScript. Implementation belongs in a future `enhanced/contribution/` (or demo) module per [ROADMAP.md](../../../ROADMAP.md) *Phase X — Contribution builder* (Beale et al., [*openEHR Architecture Overview*](https://link.springer.com/article/10.1186/1472-6947-13-57)).
-
-### Node identity
-
-A hydrated field is uniquely addressed by:
-
-```
-(data-oe-p)  OR  (dom path of data-oe-t + data-oe-n chain)
-```
-
-When a **Web Template** was used at serialise time, prefer `data-oe-p` — it aligns with FLAT keys and the contribution builder’s change list (Table 2 in the paper: versions, commits, audited changes).
-
-### Suggested hydration algorithm
+Storage = inert custom tags. In a webapp, register web components with the same local names (or a single upgrade script).
 
 ```mermaid
 flowchart LR
-  HTML[oehr.html5 fragment] --> Parse[DOM + data-oe-* parse]
-  Parse --> Model[ZipEHR letter tree or canonical JSON]
-  Parse --> Paths[FLAT path index]
-  Paths --> Editor[Bind inputs per data-oe-edit]
-  Editor --> Dirty[Track changed data-oe-p]
-  Dirty --> Delta[FLAT delta map]
-  Delta --> RM[deserializeFromFlat partial]
-  RM --> Contrib[CONTRIBUTION builder]
-  Contrib --> REST[openEHR REST POST /contributions]
+  Tags[oe-* markup] --> WC[Web components loaded]
+  Tags --> Walk[DOM / XPath walk]
+  Walk --> RM[canonical JSON]
+  WC --> Edit[user edits attrs/text]
+  Edit --> Walk
+  RM --> FLAT[optional FLAT via Web Template]
+  FLAT --> CB[CONTRIBUTION builder]
+  CB --> REST[REST CDR]
 ```
 
-1. **Parse** — walk DOM; build RM subtree (same inverse as deserializer).
-2. **Index** — collect all `[data-oe-p]` nodes.
-3. **Bind** — by `data-oe-edit`:
-   - `text` → `contenteditable` or `<input type="text">`
-   - `quantity` → magnitude + unit controls; write back `magnitude|unit|` to `<data value>`
-   - `coded` → terminology picker; write `term::code|value|` to `data-oe-v` + label text
-   - `datetime` → `<input type="datetime-local">`; sync `datetime` attribute
-   - `readonly` → no binding
-4. **Dirty tracking** — on change, set `data-oe-changed=""` (empty boolean attribute) and store original in `data-oe-orig` (hydrator-only; not serialised back).
-5. **Submit** — gather dirty paths → FLAT delta → merge into full FLAT via Web Template → `deserializeFromFlat` → wrap in `ORIGINAL_VERSION` → `CONTRIBUTION`.
+- **Addressing:** reconstructed path from ancestor tags + `n`/`a` + sibling indices (no stored `data-oe-p`).
+- **Dirty:** runtime only (e.g. component state or transient attr); do not persist editor chrome.
+- **Submit:** walk → RM → (optional) FLAT merge → `ORIGINAL_VERSION` → `CONTRIBUTION` ([ROADMAP](../../../ROADMAP.md)).
 
-### Minimum DOM hooks for editable v1
+## Deserialization sketch
 
-| Hook | Required when | Purpose |
-|------|---------------|---------|
-| `data-oe-p` | template known | stable change path |
-| `data-oe-v` or `<data value>` | coded / non-text | lossless round-trip |
-| `data-oe-edit` | user-editable fields | widget selection |
-| `data-oe-changed` | after edit | dirty flag (runtime only) |
+1. Parse as HTML/XML fragment; require root `oe-*` with `fmt` if available.
+2. Map tag → RM type (short map or kebab→`DV_*`/`COMPOSITION`…).
+3. Read LOCATABLE attrs → structured name / node id / archetyped.
+4. Read DV attrs → typed fields; text → `DV_TEXT.value` or coded rubric.
+5. Attach children via property inference (+ rare `p`).
+6. Expand to canonical `_type` JSON.
 
-Server-side contribution builder runs the same pipeline without DOM — useful for HTML uploaded as a document artefact.
-
-### Relationship to ENTRY.provider
-
-Future multi-user editing (ROADMAP *multiuser contribution builder*) can map `data-oe-changed-by` (runtime) to openEHR `ENTRY.provider` on commit. v1 leaves provider attribution to the contribution audit trail (`AUDIT_DETAILS.committer`).
-
-## Deserialization
-
-Inverse of serialisation:
-
-1. Locate root `article[data-oe-fmt]` (or FHIR wrapper `div` → `article`).
-2. Walk semantic tree; read `data-oe-t` → RM type via letter-code reverse map.
-3. Rebuild LOCATABLE fields from `data-oe-n` / `data-oe-a` / `data-oe-te` / `data-oe-rm` + heading/dt text.
-4. For each value leaf: prefer `data-oe-v`, else `<data value>`, else `<time datetime>`, else text content → terse expand → canonical DV.
-5. Assign children using `data-oe-prop` when set, else `PROPERTY_TYPE_MAP` + child RM type (same algorithm as `xhtml_deserialize.ts`).
-6. `expandZipehrToCanonical` → canonical JSON.
-
-Unknown `data-oe-t` → hard error (extensibility requires format version bump).
-
-## Serialisation API (planned)
-
-Mirror existing ZipEHR exports:
+## Planned API
 
 ```ts
-// proposed — not yet implemented
-serializeToOehrHtml5(canonical, { webTemplate?, prettyPrint?, lang? }): string
-oehrHtml5ToCanonical(html: string): Promise<unknown>
-hydrateOehrHtml5(fragment: string, options: HydrateOptions): HydratedView
-collectFlatDeltas(hydrated: HydratedView): Record<string, unknown>
+serializeToZipehrHtml5(canonical, { dialect: "short" | "full", prettyPrint?: boolean }): string
+zipehrHtml5ToCanonical(html: string): Promise<unknown>
+// dialect auto-detected from fmt / tags
 ```
-
-When `webTemplate` is supplied, emit `data-oe-p` on ELEMENT and scalar slots.
-
-## Validation
-
-- **HTML5**: tolerate browser HTML parser differences; serialised output should be XML-compatible where FHIR requires it (escape `<`, `&`, quotes in text/attributes).
-- **Clinical**: HTML carries no validation guarantees — template validation runs after deserialize (existing `TemplateValidator`).
-- **Security**: sanitize on ingest if accepting user HTML; strip forbidden tags.
-
-## Versioning
-
-- **v1** — initial proposal (this document).
-- Breaking changes (attribute rename, element map change) → `…/v2` URI; deserializers may accept older URIs with explicit flag.
 
 ## Open questions
 
-1. **`h1` vs `h2` at composition root** — `h1` for standalone pages, `h2` when embedded in FHIR/OAuth portals (profile flag?).
-2. **ITEM_TABLE** — HTML `<table>` for tabular archetypes vs nested `<section>` (table is more native but heavier).
-3. **Multimedia** — `<figure>` + `<img src="data:…">` vs `data-oe-v` URI only (size vs preview).
-4. **ISM_TRANSITION** — state machine as `<ol data-oe-t="IT">` or dedicated microformat.
+1. **Self-close vs explicit end tags** for HTML parse vs XML storage profile.
+2. **`DV_COUNT` / `COMPOSITION` letter collision** — stick with `oe-cnt` vs reserve another letter in HTML5-only table.
+3. **Boolean `oe-b`:** attribute `v="1"` vs presence of empty attr vs text `true`.
+4. Whether **name-less** compact profile is a separate `fmt` token (`s1n`) or an serialize option.
 
 ## Summary
 
-`oehr.html5/v1` trades XHTML `class`/`title` encoding for **semantic HTML5 structure** plus an explicit **`data-oe-*` machine layer**. It stays compact by reusing ZipEHR terse values and LOCATABLE compaction rules, while adding **FLAT-path hooks** (`data-oe-p`) and **editor hints** (`data-oe-edit`) so a browser-side contribution builder can hydrate the narrative, apply edits, and submit standards-compliant contributions without leaving the HTML document model.
+ZipEHR HTML5 replaces div/class narratives with **`oe-*` custom elements** in two tag dictionaries (**letter** vs **full RM kebab**). openEHR semantics sit in **tags + short attributes**; codes and quantities are attributes; display text is optional. **No FLAT paths** — CSS/XPath and DOM walk reconstruct structure for hydration and contribution commit.
