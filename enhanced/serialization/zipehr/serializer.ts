@@ -47,6 +47,8 @@ export type ZipehrOutputVariant =
   | "zipehr.html5.emoji";
 
 export type { Html5Dialect, Html5Layout, Html5SerializeOptions };
+export type { RmPropertyEmitMode } from "./shared.ts";
+export type { XhtmlSerializeOptions } from "./xhtml_serialize.ts";
 
 /** Convert an RM instance to canonical plain JSON (with _type). */
 export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {

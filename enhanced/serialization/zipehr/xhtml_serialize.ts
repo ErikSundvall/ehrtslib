@@ -9,12 +9,17 @@ import {
   extractFirstScalar,
   extractLanguageCode,
   expandTerseString,
+  formatPropertyComment,
   inferrablePropertyType,
   isLocatableStructuredObject,
   isSymbolKey,
   isTerseDvCodedText,
   LANGUAGE_CARRIER_TYPES,
   PROPERTY_TYPE_MAP,
+  propertySlotAmbiguous,
+  type RmPropertyEmitMode,
+  shouldEmitPropertyAttribute,
+  shouldEmitPropertyComment,
 } from "./shared.ts";
 import {
   classFromRmType,
@@ -59,6 +64,22 @@ export type XhtmlSerializeOptions = {
   symbolVariant?: TitleSymbolVariant;
   /** Insert newlines and indentation (default: true). */
   prettyPrint?: boolean;
+  /**
+   * How to surface RM property names (`context`, `start_time`, …).
+   * - `omit` (default) — only when the parent slot is ambiguous
+   * - `attribute` — second `class` token (FHIR Narrative–safe)
+   * - `comment` — compact `<!--prop-->` before the element
+   */
+  propertyMode?: RmPropertyEmitMode;
+};
+
+export type { RmPropertyEmitMode };
+
+type XhtmlRenderCtx = {
+  letterMap: Record<string, string>;
+  reverseMap: Map<string, string>;
+  titleVariant: TitleSymbolVariant;
+  propertyMode: RmPropertyEmitMode;
 };
 
 export class UnsupportedZipehrXhtmlTypeError extends Error {
@@ -275,20 +296,64 @@ function formatValueDisplay(
   }
 }
 
+function formatClassAttr(
+  typeToken: string,
+  propertyName: string | undefined,
+  parentType: string | undefined,
+  childType: string,
+  propertyMode: RmPropertyEmitMode,
+): string {
+  let cls = typeToken;
+  if (
+    propertyName &&
+    shouldEmitPropertyAttribute(
+      propertyMode,
+      propertySlotAmbiguous(parentType, childType, propertyName),
+    )
+  ) {
+    cls = `${typeToken} ${propertyName}`;
+  }
+  return `class="${escapeXmlAttr(cls)}"`;
+}
+
+function withPropertyComment(
+  html: string,
+  propertyName: string | undefined,
+  propertyMode: RmPropertyEmitMode,
+): string {
+  if (!propertyName || !shouldEmitPropertyComment(propertyMode)) return html;
+  return formatPropertyComment(propertyName) + html;
+}
+
 function renderValueSpan(
   rmType: string,
   classToken: string,
   value: unknown,
-  letterMap: Record<string, string>,
+  ctx: XhtmlRenderCtx,
+  parentType?: string,
+  propertyName?: string,
 ): string {
-  const display = escapeXmlText(formatValueDisplay(rmType, value, letterMap));
-  const title = formatValueTitle(rmType, value, letterMap);
+  const display = escapeXmlText(
+    formatValueDisplay(rmType, value, ctx.letterMap),
+  );
+  const title = formatValueTitle(rmType, value, ctx.letterMap);
   const titleAttr = title && title !== display
     ? ` title="${escapeXmlAttr(title)}"`
     : title && rmType !== "DV_TEXT"
     ? ` title="${escapeXmlAttr(title)}"`
     : "";
-  return `<span class="${escapeXmlAttr(classToken)}"${titleAttr}>${display}</span>`;
+  const classAttr = formatClassAttr(
+    classToken,
+    propertyName,
+    parentType,
+    rmType,
+    ctx.propertyMode,
+  );
+  return withPropertyComment(
+    `<span ${classAttr}${titleAttr}>${display}</span>`,
+    propertyName,
+    ctx.propertyMode,
+  );
 }
 
 function orderedChildKeys(
@@ -314,14 +379,12 @@ function isClassTokenKey(
 function renderChildren(
   obj: Record<string, unknown>,
   rmType: string | undefined,
-  letterMap: Record<string, string>,
-  reverseMap: Map<string, string>,
-  titleVariant: TitleSymbolVariant,
+  ctx: XhtmlRenderCtx,
 ): string {
   const keys = orderedChildKeys(
     rmType,
     Object.keys(obj).filter((k) => {
-      if (k === "_" || isClassTokenKey(k, reverseMap)) return false;
+      if (k === "_" || isClassTokenKey(k, ctx.reverseMap)) return false;
       // Native HTML `lang` carries openEHR language — do not emit as a child.
       if (k === "language" && LANGUAGE_CARRIER_TYPES.has(rmType ?? "")) {
         return false;
@@ -330,7 +393,7 @@ function renderChildren(
     }),
   );
   return keys.map((key) =>
-    renderZipehrNode(obj[key], rmType, key, letterMap, reverseMap, titleVariant)
+    renderZipehrNode(obj[key], rmType, key, ctx)
   ).join("");
 }
 
@@ -348,15 +411,15 @@ function renderLocatableDiv(
   rmType: string,
   structured: Record<string, unknown>,
   siblings: Record<string, unknown>,
-  letterMap: Record<string, string>,
-  reverseMap: Map<string, string>,
-  titleVariant: TitleSymbolVariant,
+  ctx: XhtmlRenderCtx,
+  parentType?: string,
+  propertyName?: string,
 ): string {
   const title = formatLocatableTitle(
-    buildLocatableTitleFields(structured, letterMap),
-    titleVariant,
+    buildLocatableTitleFields(structured, ctx.letterMap),
+    ctx.titleVariant,
   );
-  const name = locatableName(structured, letterMap);
+  const name = locatableName(structured, ctx.letterMap);
   const headingTag = HEADING_BY_TYPE[rmType];
   const heading = headingTag
     ? `<${headingTag}>${escapeXmlText(name)}</${headingTag}>`
@@ -367,45 +430,49 @@ function renderLocatableDiv(
   assertSafeTagName(headingTag || "div");
   const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
   const langAttr = langAttrFromSiblings(rmType, siblings);
-  const childHtml = renderChildren(
-    siblings,
+  const childHtml = renderChildren(siblings, rmType, ctx);
+  const classAttr = formatClassAttr(
+    classToken,
+    propertyName,
+    parentType,
     rmType,
-    letterMap,
-    reverseMap,
-    titleVariant,
+    ctx.propertyMode,
   );
-  return `<div class="${escapeXmlAttr(classToken)}"${titleAttr}${langAttr}>${heading}${nameSpan}${childHtml}</div>`;
+  return withPropertyComment(
+    `<div ${classAttr}${titleAttr}${langAttr}>${heading}${nameSpan}${childHtml}</div>`,
+    propertyName,
+    ctx.propertyMode,
+  );
 }
 
 function renderZipehrNode(
   node: unknown,
-  parentType?: string,
-  propertyName?: string,
-  letterMap?: Record<string, string>,
-  reverseMap?: Map<string, string>,
-  titleVariant: TitleSymbolVariant = "lettercode",
+  parentType: string | undefined,
+  propertyName: string | undefined,
+  ctx: XhtmlRenderCtx,
 ): string {
   if (node == null) return "";
-  if (!letterMap || !reverseMap) throw new Error("letter maps are required");
+  const { letterMap, reverseMap } = ctx;
 
   if (Array.isArray(node)) {
     return node.map((item) =>
-      renderZipehrNode(
-        item,
-        parentType,
-        propertyName,
-        letterMap,
-        reverseMap,
-        titleVariant,
-      )
+      renderZipehrNode(item, parentType, propertyName, ctx)
     ).join("");
   }
 
   if (typeof node !== "object") {
     const expectedType = inferrablePropertyType(parentType, propertyName);
     if (expectedType) {
-      const classToken = classFromRmType(expectedType, letterMap) ?? expectedType;
-      return renderValueSpan(expectedType, classToken, node, letterMap);
+      const classToken = classFromRmType(expectedType, letterMap) ??
+        expectedType;
+      return renderValueSpan(
+        expectedType,
+        classToken,
+        node,
+        ctx,
+        parentType,
+        propertyName,
+      );
     }
     return escapeXmlText(String(node));
   }
@@ -426,14 +493,22 @@ function renderZipehrNode(
       const structured = obj[locKey] as Record<string, unknown>;
       const title = formatLocatableTitle(
         buildLocatableTitleFields(structured, letterMap),
-        titleVariant,
+        ctx.titleVariant,
       );
       const label = locatableName(structured, letterMap);
       let valueHtml = "";
       const directValueKey = symbolKeys.find((k) => k !== locKey);
       if (directValueKey) {
-        const valueRm = rmTypeFromClass(directValueKey, reverseMap) ?? directValueKey;
-        valueHtml = renderValueSpan(valueRm, directValueKey, obj[directValueKey], letterMap);
+        const valueRm = rmTypeFromClass(directValueKey, reverseMap) ??
+          directValueKey;
+        valueHtml = renderValueSpan(
+          valueRm,
+          directValueKey,
+          obj[directValueKey],
+          ctx,
+          rmType,
+          "value",
+        );
       } else if (obj.value && typeof obj.value === "object") {
         const valueObj = obj.value as Record<string, unknown>;
         const innerKeys = Object.keys(valueObj).filter((k) =>
@@ -446,7 +521,9 @@ function renderZipehrNode(
             valueRm,
             innerKey,
             valueObj[innerKey],
-            letterMap,
+            ctx,
+            rmType,
+            "value",
           );
         } else if (
           Object.keys(valueObj).length > 0 &&
@@ -454,21 +531,39 @@ function renderZipehrNode(
         ) {
           const innerKey = innerKeys[0] ?? Object.keys(valueObj)[0];
           const valueRm = rmTypeFromClass(innerKey, reverseMap) ?? innerKey;
-          valueHtml = renderValueSpan(valueRm, innerKey, valueObj[innerKey], letterMap);
+          valueHtml = renderValueSpan(
+            valueRm,
+            innerKey,
+            valueObj[innerKey],
+            ctx,
+            rmType,
+            "value",
+          );
         }
       }
-      const consumed = new Set([locKey, "value", directValueKey].filter(Boolean));
+      const consumed = new Set(
+        [locKey, "value", directValueKey].filter(Boolean),
+      );
       const otherChildren = renderChildren(
         Object.fromEntries(
           Object.entries(obj).filter(([k]) => !consumed.has(k) && k !== "_"),
         ),
         rmType,
-        letterMap,
-        reverseMap,
-        titleVariant,
+        ctx,
       );
       const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
-      return `<div class="E"${titleAttr}><span>${escapeXmlText(label)}</span>${valueHtml}${otherChildren}</div>`;
+      const classAttr = formatClassAttr(
+        "E",
+        propertyName,
+        parentType,
+        rmType,
+        ctx.propertyMode,
+      );
+      return withPropertyComment(
+        `<div ${classAttr}${titleAttr}><span>${escapeXmlText(label)}</span>${valueHtml}${otherChildren}</div>`,
+        propertyName,
+        ctx.propertyMode,
+      );
     }
 
     if (!rmTypeFromClass(locKey, reverseMap)) {
@@ -482,9 +577,9 @@ function renderZipehrNode(
       rmType,
       obj[locKey] as Record<string, unknown>,
       siblings,
-      letterMap,
-      reverseMap,
-      titleVariant,
+      ctx,
+      parentType,
+      propertyName,
     );
   }
 
@@ -492,29 +587,44 @@ function renderZipehrNode(
   if (typeof obj._ === "string") {
     const classToken = obj._;
     const rmType = rmTypeFromClass(classToken, reverseMap) ?? classToken;
-    const childKeys = Object.keys(obj).filter((k) => k !== "_" && k !== "_type");
+    const childKeys = Object.keys(obj).filter((k) =>
+      k !== "_" && k !== "_type"
+    );
     if (
       !rmTypeFromClass(classToken, reverseMap) &&
       !reverseMap.has(classToken) &&
       childKeys.length === 1 &&
       childKeys[0] === "value"
     ) {
-      const valueRm = inferrablePropertyType(parentType, propertyName) ?? classToken;
+      const valueRm = inferrablePropertyType(parentType, propertyName) ??
+        classToken;
       const valueClass = classFromRmType(valueRm, letterMap) ?? classToken;
-      return renderValueSpan(valueRm, valueClass, obj.value, letterMap);
+      return renderValueSpan(
+        valueRm,
+        valueClass,
+        obj.value,
+        ctx,
+        parentType,
+        propertyName,
+      );
     }
     if (!rmTypeFromClass(classToken, reverseMap) && !reverseMap.has(classToken)) {
       throw new UnsupportedZipehrXhtmlTypeError(classToken);
     }
     const langAttr = langAttrFromSiblings(rmType, obj);
-    const childHtml = renderChildren(
-      obj,
+    const childHtml = renderChildren(obj, rmType, ctx);
+    const classAttr = formatClassAttr(
+      classToken,
+      propertyName,
+      parentType,
       rmType,
-      letterMap,
-      reverseMap,
-      titleVariant,
+      ctx.propertyMode,
     );
-    return `<div class="${escapeXmlAttr(classToken)}"${langAttr}>${childHtml}</div>`;
+    return withPropertyComment(
+      `<div ${classAttr}${langAttr}>${childHtml}</div>`,
+      propertyName,
+      ctx.propertyMode,
+    );
   }
 
   // Single symbol wrapper with inner object (non-locatable)
@@ -530,14 +640,19 @@ function renderZipehrNode(
         ),
       };
       const langAttr = langAttrFromSiblings(rmType, merged);
-      const childHtml = renderChildren(
-        merged,
+      const childHtml = renderChildren(merged, rmType, ctx);
+      const classAttr = formatClassAttr(
+        symKey,
+        propertyName,
+        parentType,
         rmType,
-        letterMap,
-        reverseMap,
-        titleVariant,
+        ctx.propertyMode,
       );
-      return `<div class="${escapeXmlAttr(symKey)}"${langAttr}>${childHtml}</div>`;
+      return withPropertyComment(
+        `<div ${classAttr}${langAttr}>${childHtml}</div>`,
+        propertyName,
+        ctx.propertyMode,
+      );
     }
   }
 
@@ -545,10 +660,17 @@ function renderZipehrNode(
   if (symbolKeys.length === 1 && typeof obj[symbolKeys[0]] === "string") {
     const symKey = symbolKeys[0];
     const rmType = rmTypeFromClass(symKey, reverseMap) ?? symKey;
-    return renderValueSpan(rmType, symKey, obj[symKey], letterMap);
+    return renderValueSpan(
+      rmType,
+      symKey,
+      obj[symKey],
+      ctx,
+      parentType,
+      propertyName,
+    );
   }
 
-  return renderChildren(obj, parentType, letterMap, reverseMap, titleVariant);
+  return renderChildren(obj, parentType, ctx);
 }
 
 function extractDocumentLang(
@@ -564,20 +686,18 @@ export function serializeZipehrPlainToXhtml(
 ): string {
   const letterMap = cachedSyncLetterMap();
   const reverseMap = getLetterCodeReverseMap(letterMap);
-  const titleVariant = options.symbolVariant ?? "lettercode";
+  const ctx: XhtmlRenderCtx = {
+    letterMap,
+    reverseMap,
+    titleVariant: options.symbolVariant ?? "lettercode",
+    propertyMode: options.propertyMode ?? "omit",
+  };
   const lang = options.lang ??
     (zipehrObj && typeof zipehrObj === "object" && !Array.isArray(zipehrObj)
       ? extractLanguageCode((zipehrObj as Record<string, unknown>).language)
       : undefined) ??
     "en";
-  const body = renderZipehrNode(
-    zipehrObj,
-    undefined,
-    undefined,
-    letterMap,
-    reverseMap,
-    titleVariant,
-  );
+  const body = renderZipehrNode(zipehrObj, undefined, undefined, ctx);
   if (!body.replace(/\s/g, "")) {
     throw new Error("ZipEHR XHTML fragment has no non-whitespace content");
   }

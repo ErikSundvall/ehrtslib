@@ -868,6 +868,17 @@
                       <option value="fluffy">Fluffy (indented)</option>
                     </select>
                   </div>
+                  <div class="form-group hidden" id="zipehr-property-mode-group">
+                    <label for="zipehr-property-mode">RM property names:</label>
+                    <select id="zipehr-property-mode" class="config-dropdown">
+                      <option value="omit" selected>Omit when possible</option>
+                      <option value="attribute">Include as attribute</option>
+                      <option value="comment">Include as comment</option>
+                    </select>
+                    <p class="form-hint">
+                      HTML5 uses <code>p</code>/<code>property</code>; XHTML uses a second <code>class</code> token. Comments are <code>&lt;!--start_time--&gt;</code> before the tag.
+                    </p>
+                  </div>
                   </div>
                 </div>
               </div>

@@ -322,6 +322,27 @@ function getActiveZipehrHtml5Layout():
   return variant === "zipehr.html5.short" ? "oneliner" : "linesaving";
 }
 
+function isZipehrMarkupVariantSelected(): boolean {
+  const v = getActiveZipehrVariant();
+  return v === "zipehr.xhtml" || isZipehrHtml5VariantSelected();
+}
+
+function getActiveZipehrPropertyMode():
+  | "omit"
+  | "attribute"
+  | "comment"
+  | undefined {
+  if (!isZipehrMarkupVariantSelected()) return undefined;
+  const select = document.getElementById(
+    "zipehr-property-mode",
+  ) as HTMLSelectElement | null;
+  const value = select?.value;
+  if (value === "omit" || value === "attribute" || value === "comment") {
+    return value;
+  }
+  return "omit";
+}
+
 function getActiveSimplifiedVariant(): "flat" | "structured" {
   const select = document.getElementById(
     "simplified-variant",
@@ -339,6 +360,8 @@ function switchZipehrVariantPane(): void {
   });
   const prettyGroup = document.getElementById("zipehr-html5-pretty-group");
   prettyGroup?.classList.toggle("hidden", !isZipehrHtml5VariantSelected());
+  const propertyGroup = document.getElementById("zipehr-property-mode-group");
+  propertyGroup?.classList.toggle("hidden", !isZipehrMarkupVariantSelected());
   if (getActiveOutputFormat() === variant) {
     updateOutputInfo();
   }
@@ -379,6 +402,10 @@ function setupZipehrVariantListener(): void {
   const layoutSelect = document.getElementById("zipehr-html5-layout");
   layoutSelect?.addEventListener("change", () => {
     if (isZipehrHtml5VariantSelected()) scheduleAutoConvert();
+  });
+  const propertyModeSelect = document.getElementById("zipehr-property-mode");
+  propertyModeSelect?.addEventListener("change", () => {
+    if (isZipehrMarkupVariantSelected()) scheduleAutoConvert();
   });
   syncZipehrSymbolVariantControls();
   switchZipehrVariantPane();
@@ -1950,6 +1977,7 @@ function gatherConversionOptions(): ConversionOptions {
     typescriptConfig,
     zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
     zipehrHtml5Layout: getActiveZipehrHtml5Layout(),
+    zipehrPropertyMode: getActiveZipehrPropertyMode(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
 }

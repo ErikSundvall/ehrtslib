@@ -152,7 +152,10 @@ function isLabelSpanChild(
 ): boolean {
   if (child.tag !== "span") return false;
   if (child.attrs.class) return false;
-  const rmType = rmTypeFromClass(node.attrs.class ?? "", reverseMap);
+  const rmType = rmTypeFromClass(
+    parseClassTokens(node.attrs.class).typeToken,
+    reverseMap,
+  );
   if (rmType === "ELEMENT") return false;
   const spans = childElements(node).filter((c) => c.tag === "span");
   return spans[0] === child;
@@ -208,7 +211,7 @@ function deserializeValueSpan(
   span: XhtmlElement,
   reverseMap: Map<string, string>,
 ): Record<string, unknown> {
-  const classToken = span.attrs.class ?? "";
+  const classToken = parseClassTokens(span.attrs.class).typeToken;
   const title = span.attrs.title;
   const display = elementText(span);
   const value = title ?? display;
@@ -310,18 +313,31 @@ function childRmTypeFromNode(
   child: XhtmlElement,
   reverseMap: Map<string, string>,
 ): string | undefined {
-  const classToken = child.attrs.class;
+  const classToken = parseClassTokens(child.attrs.class).typeToken;
   if (!classToken) return undefined;
   return rmTypeFromClass(classToken, reverseMap);
+}
+
+/** Split `class="EC context"` into type letter + optional RM property name. */
+function parseClassTokens(classAttr: string | undefined): {
+  typeToken: string;
+  property?: string;
+} {
+  if (!classAttr) return { typeToken: "" };
+  const parts = classAttr.trim().split(/\s+/).filter(Boolean);
+  return {
+    typeToken: parts[0] ?? "",
+    property: parts[1],
+  };
 }
 
 function deserializeElement(
   node: XhtmlElement,
   letterMap: Record<string, string>,
   reverseMap: Map<string, string>,
-  parentRmType?: string,
+  _parentRmType?: string,
 ): Record<string, unknown> {
-  const classToken = node.attrs.class;
+  const { typeToken: classToken } = parseClassTokens(node.attrs.class);
   if (!classToken) {
     throw new Error(`ZipEHR XHTML element missing class attribute: <${node.tag}>`);
   }
@@ -364,8 +380,10 @@ function deserializeElement(
     if (child.tag === "span") {
       const valueRm = childRmTypeFromNode(child, reverseMap);
       const valueObj = deserializeValueSpan(child, reverseMap);
+      const explicit = parseClassTokens(child.attrs.class).property;
       if (valueRm) {
-        const propName = resolveChildPropertyName(rmType, valueRm, usedProperties);
+        const propName = explicit ??
+          resolveChildPropertyName(rmType, valueRm, usedProperties);
         usedProperties.add(propName);
         assignChildProperty(out, propName, valueObj);
       } else {
@@ -375,7 +393,9 @@ function deserializeElement(
     }
 
     const childRm = childRmTypeFromNode(child, reverseMap) ?? "UNKNOWN";
-    const propName = resolveChildPropertyName(rmType, childRm, usedProperties);
+    const explicit = parseClassTokens(child.attrs.class).property;
+    const propName = explicit ??
+      resolveChildPropertyName(rmType, childRm, usedProperties);
     usedProperties.add(propName);
     const childObj = deserializeElement(child, letterMap, reverseMap, rmType);
     assignChildProperty(out, propName, childObj);

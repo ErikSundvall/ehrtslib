@@ -33,6 +33,35 @@ export function isArchetypeIdSameAsNodeIdFlag(value: unknown): boolean {
     value === "" || value === "true";
 }
 
+/**
+ * How (X)HTML formats emit openEHR RM property names (`context`, `start_time`, …).
+ * - `omit` — only when the parent slot is ambiguous (type→property not unique)
+ * - `attribute` — always as an attribute (`p`/`property`, or XHTML extra `class` token)
+ * - `comment` — always as a compact `<!--prop-->` before the element (ambiguous slots
+ *   still also get the attribute so round-trip stays lossless)
+ */
+export type RmPropertyEmitMode = "omit" | "attribute" | "comment";
+
+/** Emit the machine-readable property attribute for this mode? */
+export function shouldEmitPropertyAttribute(
+  mode: RmPropertyEmitMode,
+  ambiguous: boolean,
+): boolean {
+  if (mode === "attribute") return true;
+  return ambiguous;
+}
+
+/** Emit a human-visible `<!--prop-->` before the element for this mode? */
+export function shouldEmitPropertyComment(mode: RmPropertyEmitMode): boolean {
+  return mode === "comment";
+}
+
+/** Compact HTML comment for an RM property name (`<!--start_time-->`). */
+export function formatPropertyComment(propertyName: string): string {
+  const safe = propertyName.replace(/--/g, "‑‑");
+  return `<!--${safe}-->`;
+}
+
 export const POLYMORPHIC_TYPES = new Set([
   "DATA_VALUE",
   "DV_ORDERED",
@@ -161,6 +190,23 @@ export const PROPERTY_TYPE_MAP: Record<
   DV_QUANTITY: { accuracy: "DV_AMOUNT" },
   DV_ENCAPSULATED: { charset: "CODE_PHRASE", language: "CODE_PHRASE" },
 };
+
+/**
+ * True when several parent properties share the same child RM type
+ * (e.g. OBSERVATION `data` / `state` both ITEM_STRUCTURE).
+ */
+export function propertySlotAmbiguous(
+  parentType: string | undefined,
+  childType: string,
+  propertyName: string,
+): boolean {
+  if (!parentType) return false;
+  const map = PROPERTY_TYPE_MAP[parentType];
+  if (!map) return false;
+  const matches = Object.entries(map).filter(([, t]) => t === childType);
+  if (matches.length <= 1) return false;
+  return !matches.some(([p]) => p === propertyName) || matches.length > 1;
+}
 
 /** LOCATABLE-owned properties inferred for any LOCATABLE subtype parent. */
 export const LOCATABLE_PROPERTY_TYPES: Record<string, string> = {

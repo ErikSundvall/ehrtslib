@@ -12,12 +12,18 @@ import {
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 import {
+  formatPropertyComment,
   LANGUAGE_CARRIER_TYPES,
   LOCATABLE_LIKE_TYPES,
   PROPERTY_TYPE_MAP,
+  propertySlotAmbiguous,
+  type RmPropertyEmitMode,
+  shouldEmitPropertyAttribute,
+  shouldEmitPropertyComment,
 } from "./shared.ts";
 
 export type Html5Dialect = "short" | "full" | "emoji";
+export type { RmPropertyEmitMode };
 
 /**
  * Output density for HTML5 markup:
@@ -36,6 +42,11 @@ export type Html5SerializeOptions = {
   lang?: string;
   /** When true, omit LOCATABLE name text (codes/ids still emitted). */
   omitLocatableNames?: boolean;
+  /**
+   * How to surface RM property names (`context`, `start_time`, …).
+   * Default: `omit` (attribute only when the parent slot is ambiguous).
+   */
+  propertyMode?: RmPropertyEmitMode;
 };
 
 export const ZIPEHR_HTML5_URI = {
@@ -296,6 +307,8 @@ type MarkupNode = {
   /** Simple leaf text content (DV_TEXT, etc.). */
   textContent?: string;
   children: MarkupNode[];
+  /** Compact `<!--prop-->` emitted immediately before the open tag. */
+  propertyComment?: string;
 };
 
 function markup(
@@ -305,6 +318,7 @@ function markup(
     leadingText?: string;
     textContent?: string;
     children?: MarkupNode[];
+    propertyComment?: string;
   },
 ): MarkupNode {
   return {
@@ -313,6 +327,7 @@ function markup(
     leadingText: opts?.leadingText ?? "",
     textContent: opts?.textContent,
     children: opts?.children ?? [],
+    propertyComment: opts?.propertyComment,
   };
 }
 
@@ -487,17 +502,27 @@ function orderedKeys(
   return [...inOrder, ...rest];
 }
 
-function propertyAmbiguous(
+function propertyAttrName(dialect: Html5Dialect): string {
+  return dialect === "full" ? "property" : "p";
+}
+
+function applyPropertyEmit(
+  attrs: AttrBag[],
+  dialect: Html5Dialect,
+  propertyMode: RmPropertyEmitMode,
   parentType: string | undefined,
+  propertyName: string | undefined,
   childType: string,
-  propertyName: string,
-): boolean {
-  if (!parentType) return false;
-  const map = PROPERTY_TYPE_MAP[parentType];
-  if (!map) return false;
-  const matches = Object.entries(map).filter(([, t]) => t === childType);
-  if (matches.length <= 1) return false;
-  return !matches.some(([p]) => p === propertyName) || matches.length > 1;
+): string | undefined {
+  if (!propertyName) return undefined;
+  const ambiguous = propertySlotAmbiguous(parentType, childType, propertyName);
+  if (shouldEmitPropertyAttribute(propertyMode, ambiguous)) {
+    attrs.push({ name: propertyAttrName(dialect), value: propertyName });
+  }
+  if (shouldEmitPropertyComment(propertyMode)) {
+    return propertyName;
+  }
+  return undefined;
 }
 
 function buildNode(
@@ -509,6 +534,7 @@ function buildNode(
     parentType?: string;
     propertyName?: string;
     lang?: string;
+    propertyMode: RmPropertyEmitMode;
   },
 ): MarkupNode | MarkupNode[] | null {
   if (node == null) return null;
@@ -553,20 +579,19 @@ function buildNode(
     });
   }
 
-  if (
-    options.parentType && options.propertyName &&
-    propertyAmbiguous(options.parentType, rmType, options.propertyName)
-  ) {
-    const propAttr = dialect === "short"
-      ? "p"
-      : dialect === "full"
-      ? "property"
-      : "p";
-    extraAttrs.push({ name: propAttr, value: options.propertyName });
-  }
+  const propertyCommentName = applyPropertyEmit(
+    extraAttrs,
+    dialect,
+    options.propertyMode,
+    options.parentType,
+    options.propertyName,
+    rmType,
+  );
 
   if (isDataValueType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
-    return renderDvLeaf(rmType, obj, dialect, extraAttrs);
+    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs);
+    if (propertyCommentName) leaf.propertyComment = propertyCommentName;
+    return leaf;
   }
 
   const tag = tagForType(rmType, dialect);
@@ -634,6 +659,7 @@ function buildNode(
       isRoot: false,
       parentType: rmType,
       propertyName: key,
+      propertyMode: options.propertyMode,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);
@@ -643,6 +669,7 @@ function buildNode(
   return markup(tag, attrs, {
     leadingText: nameText,
     children,
+    propertyComment: propertyCommentName,
   });
 }
 
@@ -656,23 +683,30 @@ function closeTag(node: MarkupNode): string {
   return `</${node.tag}>`;
 }
 
+function propertyCommentPrefix(node: MarkupNode): string {
+  return node.propertyComment
+    ? formatPropertyComment(node.propertyComment)
+    : "";
+}
+
 function isSimpleLeaf(node: MarkupNode): boolean {
   return node.children.length === 0;
 }
 
 function formatCompact(node: MarkupNode): string {
+  const prefix = propertyCommentPrefix(node);
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
       ? escapeXmlText(node.textContent)
       : "";
     if (!text && node.attrs.length === 0 && !node.leadingText) {
-      return `<${node.tag}${formatAttrs(node.attrs)}/>`;
+      return `${prefix}<${node.tag}${formatAttrs(node.attrs)}/>`;
     }
-    return `${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
+    return `${prefix}${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
   }
   const inner = escapeXmlText(node.leadingText) +
     node.children.map(formatCompact).join("");
-  return `${openTag(node)}${inner}${closeTag(node)}`;
+  return `${prefix}${openTag(node)}${inner}${closeTag(node)}`;
 }
 
 function maxElementDepth(node: MarkupNode): number {
@@ -696,6 +730,7 @@ function canInlineLinesaving(node: MarkupNode): boolean {
 
 function formatLinesaving(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
+  const prefix = propertyCommentPrefix(node);
   if (canInlineLinesaving(node)) {
     return pad + formatCompact(node);
   }
@@ -703,7 +738,7 @@ function formatLinesaving(node: MarkupNode, depth: number): string {
   const lines: string[] = [];
   const leading = node.leadingText ? escapeXmlText(node.leadingText) : "";
   // Open tag + optional leading name on same line (JSON-style key clustering)
-  lines.push(pad + openTag(node) + leading);
+  lines.push(pad + prefix + openTag(node) + leading);
   for (const child of node.children) {
     lines.push(formatLinesaving(child, depth + 1));
   }
@@ -714,19 +749,20 @@ function formatLinesaving(node: MarkupNode, depth: number): string {
 function formatFluffy(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
   const childPad = "  ".repeat(depth + 1);
+  const prefix = propertyCommentPrefix(node);
 
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
       ? escapeXmlText(node.textContent)
       : "";
     if (!text && !node.leadingText) {
-      return `${pad}<${node.tag}${formatAttrs(node.attrs)}/>`;
+      return `${pad}${prefix}<${node.tag}${formatAttrs(node.attrs)}/>`;
     }
-    return `${pad}${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
+    return `${pad}${prefix}${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
   }
 
   const lines: string[] = [];
-  lines.push(pad + openTag(node));
+  lines.push(pad + prefix + openTag(node));
   if (node.leadingText) {
     lines.push(childPad + escapeXmlText(node.leadingText));
   }
@@ -762,6 +798,7 @@ export function serializeCanonicalToHtml5(
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
     lang: options.lang,
+    propertyMode: options.propertyMode ?? "omit",
   });
   if (built == null) return "";
   if (Array.isArray(built)) {

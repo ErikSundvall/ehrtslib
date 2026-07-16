@@ -147,6 +147,21 @@ Root `fmt` tokens: `s1` / `f1` / `e1` (or full URIs).
 openEHR `language` on COMPOSITION and ENTRY is emitted as the native HTML `lang` attribute
 (not `🗪` / `language=`). Territory/encoding remain promoted attrs where applicable.
 
+### RM property names (`propertyMode`)
+
+| Mode | Behaviour |
+|------|-----------|
+| `omit` (default) | Emit `p` / `property` only when the parent slot is ambiguous |
+| `attribute` | Always emit `p` (short/emoji) or `property` (full) |
+| `comment` | Always emit `<!--prop-->` before the element; still emit the attribute when ambiguous |
+
+```ts
+await serializeToZipehrHtml5(obj, {
+  dialect: "full",
+  propertyMode: "attribute", // or "omit" | "comment"
+});
+```
+
 ## API
 
 ```ts

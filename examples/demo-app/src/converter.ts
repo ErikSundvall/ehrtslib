@@ -190,6 +190,11 @@ export interface ConversionOptions {
   zipehrSymbolVariant?: "emoji" | "lettercode";
   /** ZipEHR HTML5 layout: oneliner | linesaving | fluffy. */
   zipehrHtml5Layout?: "oneliner" | "linesaving" | "fluffy";
+  /**
+   * How (X)HTML formats emit RM property names (`context`, `start_time`, …).
+   * Default: omit when possible.
+   */
+  zipehrPropertyMode?: "omit" | "attribute" | "comment";
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
@@ -390,6 +395,7 @@ export async function convert(
           case "zipehr.xhtml":
             outputs["zipehr.xhtml"] = await serializeToXZipehr(rmObject, {
               symbolVariant: options.zipehrSymbolVariant ?? "lettercode",
+              propertyMode: options.zipehrPropertyMode,
             });
             break;
           case "zipehr.html5.short":
@@ -398,7 +404,10 @@ export async function convert(
             outputs[format] = await serializeToHtml5Variant(
               rmObject,
               format,
-              { layout: options.zipehrHtml5Layout },
+              {
+                layout: options.zipehrHtml5Layout,
+                propertyMode: options.zipehrPropertyMode,
+              },
             );
             break;
           case "markdown":
@@ -492,6 +501,7 @@ async function convertTemplateInput(
       case "zipehr.xhtml":
         outputs["zipehr.xhtml"] = await serializeToXZipehr(generatedInstance, {
           symbolVariant: options.zipehrSymbolVariant ?? "lettercode",
+          propertyMode: options.zipehrPropertyMode,
         });
         break;
       case "zipehr.html5.short":
@@ -500,7 +510,10 @@ async function convertTemplateInput(
         outputs[format] = await serializeToHtml5Variant(
           generatedInstance,
           format,
-          { layout: options.zipehrHtml5Layout },
+          {
+            layout: options.zipehrHtml5Layout,
+            propertyMode: options.zipehrPropertyMode,
+          },
         );
         break;
       case "markdown":
