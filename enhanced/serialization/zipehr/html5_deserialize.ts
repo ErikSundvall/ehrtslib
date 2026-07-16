@@ -12,10 +12,13 @@ import {
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 import {
+  expandTerseString,
   isArchetypeIdSameAsNodeIdFlag,
+  isTerseCodePhrase,
   LANGUAGE_CARRIER_TYPES,
   languageCodePhrase,
   LOCATABLE_LIKE_TYPES,
+  parseTerseDvCodedText,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
   TECHNICAL_ID_TYPES,
@@ -45,8 +48,12 @@ function isText(node: Html5Node): node is Html5Text {
 
 function buildShortTagToType(): Map<string, string> {
   const map = new Map<string, string>();
+  // Types with html5_short_tags overrides must not also claim their letter code
+  // (e.g. CODE_PHRASE "C" would lowercase-collide with DV_CODED_TEXT "c").
+  const overridden = new Set(Object.keys(SYMBOL_TABLE_HTML5_SHORT_TAGS));
   for (const [rmType, letter] of Object.entries(SYMBOL_TABLE_LETTER_SYMBOLS)) {
     if (rmType.includes(".")) continue;
+    if (overridden.has(rmType)) continue;
     map.set(String(letter).toLowerCase(), rmType);
   }
   for (const [rmType, suffix] of Object.entries(SYMBOL_TABLE_HTML5_SHORT_TAGS)) {
@@ -368,31 +375,219 @@ function deserializeDvQuantity(
   return out;
 }
 
+function textMachineAttrNames(dialect: Html5Dialect): {
+  definingCode: string[];
+  formatting: string;
+  hyperlink: string;
+  mappings: string;
+  encoding: string;
+} {
+  if (dialect === "short") {
+    return {
+      definingCode: [
+        String(SYMBOL_TABLE_LETTER_SYMBOLS["DV_CODED_TEXT.defining_code"] ?? "dc"),
+      ],
+      formatting: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.formatting"] ?? "xf",
+      ),
+      hyperlink: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.hyperlink"] ?? "u",
+      ),
+      mappings: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.mappings"] ?? "tm",
+      ),
+      encoding: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.encoding"] ?? "enc",
+      ),
+    };
+  }
+  if (dialect === "full") {
+    return {
+      definingCode: ["defining-code"],
+      formatting: "formatting",
+      hyperlink: "hyperlink",
+      mappings: "mappings",
+      encoding: "encoding",
+    };
+  }
+  const tag = String(
+    SYMBOL_TABLE_EMOJI_SYMBOLS["DV_CODED_TEXT.defining_code"] ?? "🏷️",
+  );
+  return {
+    // ≝🏷️ = optional property-qualified form of defining_code
+    definingCode: [tag, `≝${tag}`],
+    formatting: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.formatting"] ?? "🖹",
+    ),
+    hyperlink: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.hyperlink"] ?? "🔗",
+    ),
+    mappings: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.mappings"] ?? "⇄",
+    ),
+    encoding: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.encoding"] ?? "🔤",
+    ),
+  };
+}
+
+function canonicalCodePhrase(
+  terminology: string | undefined,
+  code: string | undefined,
+): Record<string, unknown> | undefined {
+  if (!code && !terminology) return undefined;
+  const out: Record<string, unknown> = { _type: "CODE_PHRASE" };
+  if (code) out.code_string = code;
+  if (terminology) {
+    out.terminology_id = { _type: "TERMINOLOGY_ID", value: terminology };
+  }
+  return out;
+}
+
+/** Parse terse CODE_PHRASE wire (with optional emoji terminology shortcuts). */
+function parseTerseCodePhraseWire(
+  raw: string | undefined,
+): { terminology?: string; code?: string } | undefined {
+  if (raw == null || raw === "") return undefined;
+  const expanded = expandTerseString(raw.trim());
+  if (isTerseCodePhrase(expanded)) {
+    const m = expanded.match(/^([^:]+)::([^|]+)$/);
+    if (m) return { terminology: m[1], code: m[2] };
+  }
+  // Bare code after a known emoji shortcut (e.g. attr value was already code-only)
+  for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
+    if (raw.startsWith(emoji)) {
+      return {
+        terminology: prefix.replace(/::$/, ""),
+        code: raw.slice(emoji.length),
+      };
+    }
+  }
+  // Non-terse fallback: treat whole string as code
+  if (!expanded.includes("::")) return { code: expanded };
+  return undefined;
+}
+
 function readTerminologyAndCode(
   attrs: Record<string, string>,
   dialect: Html5Dialect,
 ): { terminology?: string; code?: string } {
+  const names = textMachineAttrNames(dialect);
+  for (const key of names.definingCode) {
+    if (attrs[key] != null) {
+      const parsed = parseTerseCodePhraseWire(attrs[key]);
+      if (parsed) return parsed;
+    }
+  }
+
+  // Legacy split attrs (pre-terse html5)
   if (dialect === "short") {
-    return { terminology: attrs.t, code: attrs.c };
+    if (attrs.t != null || attrs.c != null) {
+      return { terminology: attrs.t, code: attrs.c };
+    }
   }
-  if (dialect === "full") {
-    return {
-      terminology: attrs["terminology-id"],
-      code: attrs["code-string"],
-    };
-  }
-  for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
-    if (attrs[emoji] != null) {
+  if (dialect === "full" || dialect === "emoji") {
+    if (attrs["terminology-id"] != null || attrs["code-string"] != null) {
       return {
-        terminology: prefix.replace(/::$/, ""),
-        code: attrs[emoji],
+        terminology: attrs["terminology-id"],
+        code: attrs["code-string"],
       };
     }
   }
-  return {
-    terminology: attrs["terminology-id"],
-    code: attrs["code-string"],
-  };
+  // Legacy emoji: terminology shortcut emoji as attr name, code as value
+  if (dialect === "emoji") {
+    for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
+      if (attrs[emoji] != null) {
+        return {
+          terminology: prefix.replace(/::$/, ""),
+          code: attrs[emoji],
+        };
+      }
+    }
+  }
+  return {};
+}
+
+function parseMappingsWire(
+  raw: string | undefined,
+): Record<string, unknown>[] | undefined {
+  if (raw == null || raw === "") return undefined;
+  const out: Record<string, unknown>[] = [];
+  for (const part of raw.split(";")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const pipe = trimmed.indexOf("|");
+    if (pipe < 0) continue;
+    const match = trimmed.slice(0, pipe);
+    const rest = trimmed.slice(pipe + 1);
+    // rest = target_terse  OR  target_terse|purpose_dv_coded_terse
+    const purposeMatch = rest.match(
+      /^([^|]+::[^|]+)\|([^:]+::[^|]+\|[^|]*\|)$/,
+    );
+    let targetRaw: string;
+    let purpose: Record<string, unknown> | undefined;
+    if (purposeMatch) {
+      targetRaw = purposeMatch[1];
+      const p = parseTerseDvCodedText(expandTerseString(purposeMatch[2]));
+      if (p) {
+        purpose = {
+          _type: "DV_CODED_TEXT",
+          value: p.value,
+          defining_code: canonicalCodePhrase(p.termId, p.code),
+        };
+      }
+    } else {
+      targetRaw = rest;
+    }
+    const target = parseTerseCodePhraseWire(targetRaw);
+    if (!target?.code) continue;
+    const row: Record<string, unknown> = {
+      _type: "TERM_MAPPING",
+      match,
+      target: canonicalCodePhrase(target.terminology, target.code),
+    };
+    if (purpose) row.purpose = purpose;
+    out.push(row);
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+function applyDvTextMachineAttrs(
+  out: Record<string, unknown>,
+  attrs: Record<string, string>,
+  dialect: Html5Dialect,
+): void {
+  const names = textMachineAttrNames(dialect);
+
+  if (attrs.lang) {
+    out.language = languageCodePhrase(attrs.lang);
+  }
+
+  const encRaw = attrs[names.encoding];
+  if (encRaw != null && encRaw !== "") {
+    if (encRaw.includes("::") || /^(🔤|🌬️|📍)/.test(encRaw)) {
+      const parsed = parseTerseCodePhraseWire(encRaw);
+      if (parsed) {
+        out.encoding = canonicalCodePhrase(
+          parsed.terminology ?? "IANA_character-sets",
+          parsed.code,
+        );
+      }
+    } else {
+      out.encoding = canonicalCodePhrase("IANA_character-sets", encRaw);
+    }
+  }
+
+  if (attrs[names.formatting] != null && attrs[names.formatting] !== "") {
+    out.formatting = attrs[names.formatting];
+  }
+
+  if (attrs[names.hyperlink] != null && attrs[names.hyperlink] !== "") {
+    out.hyperlink = { _type: "DV_URI", value: attrs[names.hyperlink] };
+  }
+
+  const mappings = parseMappingsWire(attrs[names.mappings]);
+  if (mappings) out.mappings = mappings;
 }
 
 function deserializeDvLeaf(
@@ -414,30 +609,28 @@ function deserializeDvLeaf(
   switch (rmType) {
     case "DV_TEXT":
       out.value = text;
+      applyDvTextMachineAttrs(out, node.attrs, dialect);
       break;
     case "DV_CODED_TEXT": {
       out.value = leadingText(node) || text;
       const { terminology, code } = readTerminologyAndCode(node.attrs, dialect);
       if (code) {
-        const defining: Record<string, unknown> = {
-          _type: "CODE_PHRASE",
-          code_string: code,
-        };
-        if (terminology) {
-          defining.terminology_id = {
-            _type: "TERMINOLOGY_ID",
-            value: terminology,
-          };
-        }
-        out.defining_code = defining;
+        out.defining_code = canonicalCodePhrase(terminology, code);
       }
+      applyDvTextMachineAttrs(out, node.attrs, dialect);
       break;
     }
     case "CODE_PHRASE": {
-      const { terminology, code } = readTerminologyAndCode(node.attrs, dialect);
-      out.code_string = code ?? text;
-      if (terminology) {
-        out.terminology_id = { _type: "TERMINOLOGY_ID", value: terminology };
+      // Prefer terse text content; fall back to legacy split attrs.
+      const fromText = parseTerseCodePhraseWire(text);
+      if (fromText?.code) {
+        Object.assign(out, canonicalCodePhrase(fromText.terminology, fromText.code));
+      } else {
+        const { terminology, code } = readTerminologyAndCode(node.attrs, dialect);
+        out.code_string = code ?? text;
+        if (terminology) {
+          out.terminology_id = { _type: "TERMINOLOGY_ID", value: terminology };
+        }
       }
       break;
     }

@@ -18,6 +18,7 @@ import {
   PROPERTY_TYPE_MAP,
   propertySlotAmbiguous,
   type RmPropertyEmitMode,
+  shortenTerseString,
   shouldEmitPropertyAttribute,
   shouldEmitPropertyComment,
   TECHNICAL_ID_TYPES,
@@ -117,23 +118,154 @@ function encodeMagnitudeStatus(
   return dialect === "emoji" ? row.emoji : row.letter;
 }
 
-function terminologyAttr(
-  terminologyId: string | undefined,
-  dialect: Html5Dialect,
-): { attr: string; value: string } | undefined {
-  if (!terminologyId) return undefined;
-  if (dialect === "emoji") {
-    for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
-      const id = prefix.replace(/::$/, "");
-      if (terminologyId === id || terminologyId.startsWith(prefix)) {
-        return { attr: emoji, value: terminologyId };
-      }
-    }
-    // local / openehr without ::
-    if (terminologyId === "local") return { attr: "📍", value: terminologyId };
-    if (terminologyId === "openehr") return { attr: "🌬️", value: terminologyId };
+/** Attr names for DV_TEXT / DV_CODED_TEXT machine fields. */
+function textMachineAttrNames(dialect: Html5Dialect): {
+  definingCode: string;
+  formatting: string;
+  hyperlink: string;
+  mappings: string;
+  encoding: string;
+} {
+  if (dialect === "short") {
+    return {
+      definingCode: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_CODED_TEXT.defining_code"] ?? "dc",
+      ),
+      formatting: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.formatting"] ?? "xf",
+      ),
+      hyperlink: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.hyperlink"] ?? "u",
+      ),
+      mappings: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.mappings"] ?? "tm",
+      ),
+      encoding: String(
+        SYMBOL_TABLE_LETTER_SYMBOLS["DV_TEXT.encoding"] ?? "enc",
+      ),
+    };
   }
-  return undefined;
+  if (dialect === "full") {
+    return {
+      definingCode: "defining-code",
+      formatting: "formatting",
+      hyperlink: "hyperlink",
+      mappings: "mappings",
+      encoding: "encoding",
+    };
+  }
+  return {
+    definingCode: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_CODED_TEXT.defining_code"] ?? "🏷️",
+    ),
+    formatting: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.formatting"] ?? "🖹",
+    ),
+    hyperlink: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.hyperlink"] ?? "🔗",
+    ),
+    mappings: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.mappings"] ?? "⇄",
+    ),
+    encoding: String(
+      SYMBOL_TABLE_EMOJI_SYMBOLS["DV_TEXT.encoding"] ?? "🔤",
+    ),
+  };
+}
+
+/** CODE_PHRASE → terse wire string; emoji dialect applies terminology shortcuts. */
+function codePhraseToTerseWire(
+  value: unknown,
+  dialect: Html5Dialect,
+): string | undefined {
+  const { terminology, code } = unwrapCodePhrase(value);
+  if (!terminology && !code) return undefined;
+  const terse = terminology && code
+    ? `${terminology}::${code}`
+    : code
+    ? String(code)
+    : terminology
+    ? String(terminology)
+    : undefined;
+  if (terse == null || terse === "" || terse === "::") return undefined;
+  if (dialect === "emoji" && terminology && code) {
+    return shortenTerseString(`${terminology}::${code}`);
+  }
+  if (terminology && code) return `${terminology}::${code}`;
+  return terse;
+}
+
+/**
+ * Compact TERM_MAPPING list for attrs:
+ * `match|target_terse` joined by `;`; optional purpose as DV_CODED_TEXT terse after target.
+ */
+function mappingsToWire(
+  mappings: unknown,
+  dialect: Html5Dialect,
+): string | undefined {
+  if (!Array.isArray(mappings) || mappings.length === 0) return undefined;
+  const parts: string[] = [];
+  for (const m of mappings) {
+    if (m == null || typeof m !== "object" || Array.isArray(m)) continue;
+    const row = m as Record<string, unknown>;
+    const match = row.match != null ? String(row.match) : "?";
+    const target = codePhraseToTerseWire(row.target, dialect);
+    if (!target) continue;
+    let part = `${match}|${target}`;
+    const purpose = row.purpose;
+    if (purpose && typeof purpose === "object" && !Array.isArray(purpose)) {
+      const p = purpose as Record<string, unknown>;
+      const pDef = codePhraseToTerseWire(p.defining_code, dialect);
+      const pVal = p.value != null ? String(p.value) : "";
+      if (pDef) part += `|${pDef}|${pVal}|`;
+    }
+    parts.push(part);
+  }
+  return parts.length > 0 ? parts.join(";") : undefined;
+}
+
+function appendDvTextMachineAttrs(
+  attrs: AttrBag[],
+  obj: Record<string, unknown>,
+  dialect: Html5Dialect,
+  opts?: { definingCode?: unknown },
+): void {
+  const names = textMachineAttrNames(dialect);
+
+  if (opts?.definingCode != null) {
+    const wire = codePhraseToTerseWire(opts.definingCode, dialect);
+    if (wire) attrs.push({ name: names.definingCode, value: wire });
+  }
+
+  const langCode = unwrapCodePhrase(obj.language).code;
+  if (langCode) attrs.push({ name: "lang", value: langCode });
+
+  const enc = unwrapCodePhrase(obj.encoding);
+  if (enc.code) {
+    const wire =
+      enc.terminology && enc.terminology !== "IANA_character-sets"
+        ? codePhraseToTerseWire(obj.encoding, dialect) ?? enc.code
+        : enc.code;
+    attrs.push({ name: names.encoding, value: wire });
+  }
+
+  if (obj.formatting != null && String(obj.formatting) !== "") {
+    attrs.push({ name: names.formatting, value: String(obj.formatting) });
+  }
+
+  const href = obj.hyperlink;
+  if (href != null) {
+    const uri = typeof href === "string"
+      ? href
+      : typeof href === "object" && !Array.isArray(href) &&
+          (href as Record<string, unknown>).value != null
+      ? String((href as Record<string, unknown>).value)
+      : undefined;
+    if (uri) attrs.push({ name: names.hyperlink, value: uri });
+  }
+
+  const mapWire = mappingsToWire(obj.mappings, dialect);
+  if (mapWire) attrs.push({ name: names.mappings, value: mapWire });
 }
 
 function extractNameValue(obj: Record<string, unknown>): string {
@@ -399,50 +531,20 @@ function renderDvLeaf(
   switch (rmType) {
     case "DV_TEXT":
       text = obj.value != null ? String(obj.value) : "";
+      appendDvTextMachineAttrs(attrs, obj, dialect);
       break;
     case "DV_CODED_TEXT": {
       text = obj.value != null ? String(obj.value) : "";
-      const defining = unwrapCodePhrase(obj.defining_code);
-      const term = defining.terminology;
-      const code = defining.code;
-      if (dialect === "short") {
-        if (term) attrs.push({ name: "t", value: term });
-        if (code) attrs.push({ name: "c", value: code });
-      } else if (dialect === "full") {
-        if (term) attrs.push({ name: "terminology-id", value: term });
-        if (code) attrs.push({ name: "code-string", value: code });
-      } else {
-        const ta = terminologyAttr(term, dialect);
-        if (ta && code) {
-          attrs.push({ name: ta.attr, value: code });
-        } else {
-          if (term) attrs.push({ name: "terminology-id", value: term });
-          if (code) attrs.push({ name: "code-string", value: code });
-        }
-      }
+      appendDvTextMachineAttrs(attrs, obj, dialect, {
+        definingCode: obj.defining_code,
+      });
       break;
     }
     case "CODE_PHRASE": {
-      const { terminology, code } = unwrapCodePhrase(obj);
-      if (dialect === "short") {
-        if (terminology) attrs.push({ name: "t", value: terminology });
-        if (code) attrs.push({ name: "c", value: code });
-      } else if (dialect === "full") {
-        if (terminology) {
-          attrs.push({ name: "terminology-id", value: terminology });
-        }
-        if (code) attrs.push({ name: "code-string", value: code });
-      } else {
-        const ta = terminologyAttr(terminology, dialect);
-        if (ta && code) attrs.push({ name: ta.attr, value: code });
-        else {
-          if (terminology) {
-            attrs.push({ name: "terminology-id", value: terminology });
-          }
-          if (code) attrs.push({ name: "code-string", value: code });
-        }
-      }
-      text = code ?? "";
+      // Leaf CODE_PHRASE: terse string as element text (no split terminology/code attrs).
+      text = codePhraseToTerseWire(obj, dialect) ??
+        unwrapCodePhrase(obj).code ??
+        "";
       break;
     }
     case "DV_BOOLEAN":

@@ -14,6 +14,15 @@
     DV_QUANTITY.precision: ["prc","⋯"],
     # ± U+00B1 plus-minus — systemic error margins, tolerances, bounds
     DV_QUANTITY.accuracy: ["acc","±"],
+    # DV_TEXT / DV_CODED_TEXT — html5 attr promotions (terse CODE_PHRASE in attr value).
+    # defining_code letter is `dc` (not `C`): HTML parsers fold ASCII attr names to lowercase,
+    # which would collide with legacy short `c` (= code_string). Emoji attr is 🏷️; optional
+    # property qualifier ≝🏷️ is accepted on deserialize (not required on serialize).
+    DV_CODED_TEXT.defining_code: ["dc","🏷️"],
+    DV_TEXT.formatting: ["xf","🖹"],
+    DV_TEXT.hyperlink: ["u","🔗"],
+    DV_TEXT.mappings: ["tm","⇄"],
+    DV_TEXT.encoding: ["enc","🔤"],
   },
   # DATA_VALUE (abstract): ["❓","📦","🧩","🔸","🔷","🔹","🔍","📦","⚙️","🔣","❔","🔗"],
   DV_BOOLEAN: ["b","🗹","✅","❌","✔️","✖️","👍","👎","⭕","✳️","☑️","🔘","🔁","❗"],

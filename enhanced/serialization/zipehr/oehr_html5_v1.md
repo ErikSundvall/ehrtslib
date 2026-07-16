@@ -136,9 +136,33 @@ Possible future inline stream (non-HTML) varaints: `№5.6±0.2◌µmol/L⋯1`; 
 
 ## Attribute vocabulary (summary)
 
-**Short:** `fmt`, `n`, `a` (valueless = same-as-`n` flag), `tp`, `rm`, `p`, `t`, `c`, `u`  
-**Full:** kebab RM names (`archetype-node-id`, valueless `archetype-id` flag, …)  
-**Emoji:** `🆔`, `Ⓐ` (valueless flag or string), `Ⓣ`, `⚙️`, terminology shortcuts, quantity tokens above
+**Short:** `fmt`, `n`, `a` (valueless = same-as-`n` flag), `tp`, `rm`, `p`, `dc` (terse CODE_PHRASE), `tm`, `xf`, `u`, `enc`  
+**Full:** kebab RM names (`archetype-node-id`, `defining-code`, …)  
+**Emoji:** `🆔`, `Ⓐ` (valueless flag or string), `Ⓣ`, `⚙️`, `🏷️` (terse defining_code; also accepts `≝🏷️`), `⇄`, `🖹`, `🔗`, `🔤`, quantity tokens above
+
+### DV_TEXT / DV_CODED_TEXT machine fields
+
+Prefer **attributes** for technical CODE_PHRASE fields; keep the clinical rubric as element text.
+
+| RM field | Short | Full | Emoji | Value form |
+|----------|-------|------|-------|------------|
+| `defining_code` | `dc` | `defining-code` | `🏷️` (alt: `≝🏷️`) | terse `terminology::code` (emoji may shorten known prefixes, e.g. `🌬️433`) |
+| `language` | `lang` | `lang` | `lang` | bare ISO 639 code (native HTML) |
+| `encoding` | `enc` | `encoding` | `🔤` | bare IANA charset code |
+| `formatting` | `xf` | `formatting` | `🖹` | `markdown` / `plain` / … |
+| `hyperlink` | `u` | `hyperlink` | `🔗` | URI string |
+| `mappings` | `tm` | `mappings` | `⇄` | `match\|target_terse` joined by `;` (optional purpose: `\|purpose_dv_coded_terse`) |
+
+```html
+<o-🗈 🏷️="SNOMED-CT::44054006">Diabetes mellitus type 2</o-🗈>
+<o-c dc="openehr::433">event</o-c>
+<o-🗈 🏷️="🌬️433" lang="en">event</o-🗈>
+<o-🗉 ⇄="=|LOINC::1234-5;>|ICD10::E11.9">Ross River infection</o-🗉>
+```
+
+(`>` / `<` in `match` are HTML-escaped in attribute values, e.g. `&gt;|ICD10::E11.9`.)
+
+No per-terminology emoji shortcuts for SNOMED/LOINC/ICD yet — use full `terminology::code` (existing `local` / `openehr` / ISO shortcuts still apply inside terse strings).
 
 Technical identifier types (`OBJECT_VERSION_ID`, `ARCHETYPE_ID`, `TEMPLATE_ID`,
 `TERMINOLOGY_ID`, `HIER_OBJECT_ID`, `GENERIC_ID`, `INTERNET_ID`, `UUID`) are

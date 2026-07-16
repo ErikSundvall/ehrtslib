@@ -263,7 +263,7 @@ data:
       </o-item-tree>
       <o-item-tree archetype-node-id="at0008">
         <o-element archetype-node-id="at0009">State of dress
-          <o-dv-coded-text terminology-id="local" code-string="at0028">Fully clothed, without shoes</o-dv-coded-text>
+          <o-dv-coded-text defining-code="local::at0028">Fully clothed, without shoes</o-dv-coded-text>
         </o-element>
       </o-item-tree>
     </o-point-event>
@@ -282,7 +282,7 @@ data:
       </o-🌳>
       <o-🌳 🆔="at0008">
         <o-🔹 🆔="at0009">State of dress
-          <o-🗈 📍="at0028">Fully clothed, without shoes</o-🗈>
+          <o-🗈 🏷️="📍at0028">Fully clothed, without shoes</o-🗈>
         </o-🔹>
       </o-🌳>
     </o-🞋>
@@ -364,6 +364,7 @@ Notes:
 
 - Prefer exact `id: …` / `🆔: …` / `starts-with` on XHTML `title` when ids might be prefixes of longer strings.
 - openEHR `language` on COMPOSITION and ENTRY maps to native HTML/XHTML `lang` (browsers pick it up; round-trip restores `CODE_PHRASE` / ISO_639-1).
+- HTML5 `DV_CODED_TEXT.defining_code` is a single terse attr (`🏷️` / `dc` / `defining-code`), not split `terminology-id` + `code-string`. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 ### Schema declaration
 
