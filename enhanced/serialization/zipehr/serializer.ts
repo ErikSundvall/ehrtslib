@@ -25,8 +25,26 @@ import {
   type XhtmlSerializeOptions,
 } from "./xhtml_serialize.ts";
 import { zipehrXhtmlToCanonical } from "./xhtml_deserialize.ts";
+import {
+  serializeCanonicalToHtml5,
+  type Html5Dialect,
+  type Html5SerializeOptions,
+} from "./html5_serialize.ts";
+import {
+  detectHtml5Dialect,
+  looksLikeZipehrHtml5,
+  zipehrHtml5ToCanonical,
+} from "./html5_deserialize.ts";
 
-export type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
+export type ZipehrOutputVariant =
+  | "zipehr.json"
+  | "zipehr.yaml"
+  | "zipehr.xhtml"
+  | "zipehr.html5.short"
+  | "zipehr.html5.full"
+  | "zipehr.html5.emoji";
+
+export type { Html5Dialect, Html5SerializeOptions };
 
 /** Convert an RM instance to canonical plain JSON (with _type). */
 export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {
@@ -215,14 +233,52 @@ export async function serializeToXZipehr(
   return serializeCanonicalToXhtml(canonical, options);
 }
 
+const HTML5_VARIANT_DIALECT: Record<
+  "zipehr.html5.short" | "zipehr.html5.full" | "zipehr.html5.emoji",
+  Html5Dialect
+> = {
+  "zipehr.html5.short": "short",
+  "zipehr.html5.full": "full",
+  "zipehr.html5.emoji": "emoji",
+};
+
+/** Serialize RM object or canonical JSON to ZipEHR HTML5 (`o-*` custom elements). */
+export async function serializeToZipehrHtml5(
+  obj: unknown,
+  options: Html5SerializeOptions,
+): Promise<string> {
+  const canonical = obj && typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      Object.prototype.hasOwnProperty.call(obj, "_type")
+    ? obj
+    : rmToCanonicalPlain(obj);
+  return serializeCanonicalToHtml5(canonical, options);
+}
+
+/** Convenience: serialize to a named HTML5 output variant. */
+export async function serializeToHtml5Variant(
+  obj: unknown,
+  variant: "zipehr.html5.short" | "zipehr.html5.full" | "zipehr.html5.emoji",
+  options?: Omit<Html5SerializeOptions, "dialect">,
+): Promise<string> {
+  return serializeToZipehrHtml5(obj, {
+    ...options,
+    dialect: HTML5_VARIANT_DIALECT[variant],
+  });
+}
+
 export {
+  detectHtml5Dialect,
+  looksLikeZipehrHtml5,
+  serializeCanonicalToHtml5,
   serializeCanonicalToXhtml,
   serializeZipehrPlainToXhtml,
   wrapFhirNarrative,
+  zipehrHtml5ToCanonical,
   zipehrXhtmlToCanonical,
 };
 
-/** Deserialize zipehr text (j, y, or xhtml variant) to canonical plain JSON. */
+/** Deserialize zipehr text (j, y, xhtml, or html5) to canonical plain JSON. */
 export async function zipehrTextToCanonical(
   text: string,
   symbolVariant: "auto" | ZipehrSymbolVariant = "auto",
@@ -230,6 +286,17 @@ export async function zipehrTextToCanonical(
   const detected = detectInputFormat(text);
   if (detected.kind === "zipehr" && detected.variant === "zipehr.xhtml") {
     return zipehrXhtmlToCanonical(text);
+  }
+  if (
+    detected.kind === "zipehr" &&
+    (detected.variant === "zipehr.html5.short" ||
+      detected.variant === "zipehr.html5.full" ||
+      detected.variant === "zipehr.html5.emoji")
+  ) {
+    return zipehrHtml5ToCanonical(text);
+  }
+  if (looksLikeZipehrHtml5(text)) {
+    return zipehrHtml5ToCanonical(text);
   }
 
   const { parsed, hadDeclaration, declarationMismatch } = parseZipehrTextWithMeta(text);

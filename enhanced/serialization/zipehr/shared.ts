@@ -1,11 +1,18 @@
 /** Shared utilities for zipehr conversion (ported from zipehr-shared.js). */
 
 import {
+  MAGNITUDE_STATUS_EXACT_RM,
+  MAGNITUDE_STATUS_OPERATORS,
   TERMINOLOGY_FIELD_PROMOTIONS,
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 
-export { TERMINOLOGY_FIELD_PROMOTIONS, TERMINOLOGY_SHORTCUTS };
+export {
+  MAGNITUDE_STATUS_EXACT_RM,
+  MAGNITUDE_STATUS_OPERATORS,
+  TERMINOLOGY_FIELD_PROMOTIONS,
+  TERMINOLOGY_SHORTCUTS,
+};
 
 /** ARCHETYPE_DETAILS child → inline emoji key. */
 export const ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({

@@ -32,6 +32,10 @@ function isElement(node: XhtmlNode): node is XhtmlElement {
   return "tag" in node;
 }
 
+function isText(node: XhtmlNode): node is XhtmlText {
+  return "kind" in node && (node as XhtmlText).kind === "text";
+}
+
 function parseXhtmlFragment(text: string): XhtmlElement {
   const trimmed = text.trim();
   if (!trimmed || !/\S/.test(trimmed.replace(/<[^>]+>/g, ""))) {
@@ -112,7 +116,7 @@ function appendChildNodes(
 
 function elementText(node: XhtmlElement): string {
   return node.children
-    .map((child) => (child.kind === "text" ? child.text : elementText(child)))
+    .map((child) => (isText(child) ? child.text : elementText(child)))
     .join("")
     .trim();
 }

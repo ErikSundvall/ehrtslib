@@ -823,6 +823,9 @@
                         <option value="zipehr.json">zipehr.json (JSON, canonical _type path)</option>
                         <option value="zipehr.yaml" selected>zipehr.yaml (YAML, terse + type inference)</option>
                         <option value="zipehr.xhtml">zipehr.xhtml (XHTML, FHIR narrative)</option>
+                        <option value="zipehr.html5.short">zipehr.html5/short (o- letter tags)</option>
+                        <option value="zipehr.html5.full">zipehr.html5/full (o- RM kebab tags)</option>
+                        <option value="zipehr.html5.emoji">zipehr.html5/emoji (o- emoji tags)</option>
                       </select>
                     </div>
                   <div class="form-group">
@@ -853,6 +856,16 @@
                         <span>Letter codes</span>
                       </label>
                     </div>
+                  </div>
+                  <div class="form-group hidden" id="zipehr-html5-pretty-group">
+                    <label class="symbol-variant-radio">
+                      <input
+                        type="checkbox"
+                        id="zipehr-html5-pretty-print"
+                        checked
+                      />
+                      <span>Pretty-print HTML5</span>
+                    </label>
                   </div>
                   </div>
                 </div>
@@ -925,6 +938,75 @@
                   </span>
                 </div>
                 <div class="demo-editor-host output-content" id="output-zipehr.xhtml-content"></div>
+              </div>
+              <div class="zipehr-variant-pane hidden" data-zipehr-variant="zipehr.html5.short">
+                <div class="output-info output-toolbar">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.html5.short" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="zipehr.html5.short" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-zipehr.html5.short-content"></div>
+              </div>
+              <div class="zipehr-variant-pane hidden" data-zipehr-variant="zipehr.html5.full">
+                <div class="output-info output-toolbar">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.html5.full" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="zipehr.html5.full" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-zipehr.html5.full-content"></div>
+              </div>
+              <div class="zipehr-variant-pane hidden" data-zipehr-variant="zipehr.html5.emoji">
+                <div class="output-info output-toolbar">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="zipehr.html5.emoji" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="zipehr.html5.emoji" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-zipehr.html5.emoji-content"></div>
               </div>
             </div>
 

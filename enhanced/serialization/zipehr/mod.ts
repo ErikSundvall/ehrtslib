@@ -28,6 +28,8 @@ export {
   resolveType,
   shortenTerseString,
   shouldUseTerminologyShortcuts,
+  MAGNITUDE_STATUS_EXACT_RM,
+  MAGNITUDE_STATUS_OPERATORS,
   TERMINOLOGY_FIELD_PROMOTIONS,
   TERMINOLOGY_SHORTCUTS,
 } from "./shared.ts";
@@ -109,11 +111,27 @@ export {
 
 export {
   rmToCanonicalPlain,
+  serializeToHtml5Variant,
   serializeToJZipehr,
   serializeToXZipehr,
   serializeToYZipehr,
+  serializeToZipehrHtml5,
   serializeZipehrPlainToJson,
   serializeZipehrPlainToYaml,
+  type Html5Dialect,
+  type Html5SerializeOptions,
   type ZipehrOutputVariant,
   zipehrTextToCanonical,
 } from "./serializer.ts";
+
+export {
+  serializeCanonicalToHtml5,
+  ZIPEHR_HTML5_FMT_TOKEN,
+  ZIPEHR_HTML5_URI,
+} from "./html5_serialize.ts";
+
+export {
+  detectHtml5Dialect,
+  looksLikeZipehrHtml5,
+  zipehrHtml5ToCanonical,
+} from "./html5_deserialize.ts";

@@ -4,7 +4,16 @@
     LOCATABLE.name: ["na","🪧"],
     ARCHETYPED.archetype_id: ["AX","Ⓐ"],
     ARCHETYPED.template_id: ["TP","Ⓣ"],
-    ARCHETYPED.rm_version: ["rm","⚙️"]
+    ARCHETYPED.rm_version: ["rm","⚙️"],
+    # DV_QUANTITY — emoji dialect attrs / child tags; inline-stream delimiters (oehr_html5/emoji)
+    # Status tag 🎛 (U+1F39B) precedes operator; omit magnitude_status entirely when =.
+    DV_QUANTITY.magnitude_status: ["mst","🎛"],
+    DV_QUANTITY.magnitude: ["mag","№"],
+    DV_QUANTITY.units: ["unit","◌"],
+    # ⋯ U+22EF midline ellipsis — trailing decimal granularity / point resolution
+    DV_QUANTITY.precision: ["prc","⋯"],
+    # ± U+00B1 plus-minus — systemic error margins, tolerances, bounds
+    DV_QUANTITY.accuracy: ["acc","±"],
   },
   # DATA_VALUE (abstract): ["❓","📦","🧩","🔸","🔷","🔹","🔍","📦","⚙️","🔣","❔","🔗"],
   DV_BOOLEAN: ["b","🗹","✅","❌","✔️","✖️","👍","👎","⭕","✳️","☑️","🔘","🔁","❗"],
@@ -83,7 +92,7 @@
 }, ehr_components: {
   EHR: ["EH", "🏥","📁","🗂️","🩺","🧾","👤","🧭","🔐","🧾","🔗","📦","📑"],
   EHR_STATUS: ["ES","🏥⏻","⚙️","🔒","👥","📛","🧭","📌","📋","🧾","🔔","🔍","📈"],
-  EHR_ACCESS: ["EA","🏥🔐","🛡️","🔑","🔒",🧾","👤","🧭","🧾","🔗","🛂","📜","🧾"],
+  EHR_ACCESS: ["EA","🏥🔐","🛡️","🔑","🔒","🧾","👤","🧭","🧾","🔗","🛂","📜","🧾"],
   COMPOSITION: ["CO","🖂","📄","🧾","📁","📜","🗂️","📝","📑","🩺","📦","🔖","📋","🧾"],
   EVENT_CONTEXT: ["EC","🛈","🕰️","📍","📅","📌","🧭","🏥","📍","🗺️","🧾","📍","🔍","🧾"],
   # CONTENT_ITEM (assumed abstract): ["📎","📌","📂","🧩","📁","🧾","📑","🗂️","📋","🔖","🧭","🔎"],
@@ -104,6 +113,14 @@
   language: ["🗪"],
   territory: ["🌐"],
   encoding: ["🔤"],
+}, magnitude_status_operators: {
+  # RM magnitude_status → [letter, emoji] wire symbols (identical: HTML-safe for xhtml + html5 short).
+  # Exact (=) omitted on the wire. Avoid raw < / > (need &lt;/&gt; escapes in HTML/XHTML).
+  "<": ["⩻","⩻"],
+  ">": ["⩼","⩼"],
+  "<=": ["⩽","⩽"],
+  ">=": ["⩾","⩾"],
+  "~": ["~","~"],
 }, field_promotions: {
   # COMPOSITION top-level: property → emoji key; codes use prefixes above (ISO_639-1::, ISO_3166-1::, IANA_character-sets::)
   language: ["🗪"],
@@ -114,10 +131,10 @@
   # Types not listed here use lowercased letter code from the primary symbol (array[0]).
   # See oehr_html5_v1.md § Short dialect.
   DV_COUNT: cnt,
-  CODE_PHRASE: cp,
-  DV_INTERVAL: intv,
-  DV_PARSABLE: pars,
-  DV_PROPORTION: prop,
+  CODE_PHRASE: cph,
+  DV_INTERVAL: ivl,
+  DV_PARSABLE: prs,
+  DV_PROPORTION: prp,
   DV_URI: uri,
 }, foundation_types: {
   # FOUNDATION_TYPES never occur in data structures so they are not included here

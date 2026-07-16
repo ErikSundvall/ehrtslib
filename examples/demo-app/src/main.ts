@@ -277,18 +277,45 @@ function setupOutputVisibilityListeners() {
   });
 }
 
-type ZipehrOutputVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
+type ZipehrOutputVariant =
+  | "zipehr.json"
+  | "zipehr.yaml"
+  | "zipehr.xhtml"
+  | "zipehr.html5.short"
+  | "zipehr.html5.full"
+  | "zipehr.html5.emoji";
 
 function getActiveZipehrVariant(): ZipehrOutputVariant {
   const select = document.getElementById("zipehr-variant") as HTMLSelectElement;
   const value = select?.value;
   if (value === "zipehr.json") return "zipehr.json";
   if (value === "zipehr.xhtml") return "zipehr.xhtml";
+  if (value === "zipehr.html5.short") return "zipehr.html5.short";
+  if (value === "zipehr.html5.full") return "zipehr.html5.full";
+  if (value === "zipehr.html5.emoji") return "zipehr.html5.emoji";
   return "zipehr.yaml";
 }
 
 function isZipehrXhtmlVariantSelected(): boolean {
   return getActiveZipehrVariant() === "zipehr.xhtml";
+}
+
+function isZipehrHtml5VariantSelected(): boolean {
+  const v = getActiveZipehrVariant();
+  return (
+    v === "zipehr.html5.short" ||
+    v === "zipehr.html5.full" ||
+    v === "zipehr.html5.emoji"
+  );
+}
+
+function getActiveZipehrHtml5PrettyPrint(): boolean | undefined {
+  if (!isZipehrHtml5VariantSelected()) return undefined;
+  const checkbox = document.getElementById(
+    "zipehr-html5-pretty-print",
+  ) as HTMLInputElement | null;
+  if (!checkbox) return undefined;
+  return checkbox.checked;
 }
 
 function getActiveSimplifiedVariant(): "flat" | "structured" {
@@ -306,6 +333,8 @@ function switchZipehrVariantPane(): void {
       pane.getAttribute("data-zipehr-variant") !== variant,
     );
   });
+  const prettyGroup = document.getElementById("zipehr-html5-pretty-group");
+  prettyGroup?.classList.toggle("hidden", !isZipehrHtml5VariantSelected());
   if (getActiveOutputFormat() === variant) {
     updateOutputInfo();
   }
@@ -331,16 +360,33 @@ function switchSimplifiedVariantPane(): void {
 function setupZipehrVariantListener(): void {
   const select = document.getElementById("zipehr-variant");
   select?.addEventListener("change", () => {
+    const pretty = document.getElementById(
+      "zipehr-html5-pretty-print",
+    ) as HTMLInputElement | null;
+    if (pretty && isZipehrHtml5VariantSelected()) {
+      const v = getActiveZipehrVariant();
+      pretty.checked = v !== "zipehr.html5.short";
+    }
     syncZipehrSymbolVariantControls();
     switchZipehrVariantPane();
     scheduleAutoConvert();
+  });
+  const pretty = document.getElementById("zipehr-html5-pretty-print");
+  pretty?.addEventListener("change", () => {
+    if (isZipehrHtml5VariantSelected()) scheduleAutoConvert();
   });
   syncZipehrSymbolVariantControls();
   switchZipehrVariantPane();
 }
 
 function getActiveZipehrSymbolVariant(): "emoji" | "lettercode" {
-  if (isZipehrXhtmlVariantSelected()) return "lettercode";
+  if (isZipehrXhtmlVariantSelected() || isZipehrHtml5VariantSelected()) {
+    // HTML5 short uses letter tags; full/emoji ignore this control.
+    return isZipehrHtml5VariantSelected() &&
+        getActiveZipehrVariant() === "zipehr.html5.emoji"
+      ? "emoji"
+      : "lettercode";
+  }
   const selected = document.querySelector(
     'input[name="zipehr-symbol-variant"]:checked',
   ) as HTMLInputElement | null;
@@ -355,15 +401,16 @@ function syncZipehrSymbolVariantControls(): void {
   const letterRadio = document.getElementById(
     "zipehr-symbol-variant-lettercode",
   ) as HTMLInputElement | null;
-  const xhtml = isZipehrXhtmlVariantSelected();
+  const lockSymbols = isZipehrXhtmlVariantSelected() ||
+    isZipehrHtml5VariantSelected();
 
-  if (letterRadio && xhtml) {
+  if (letterRadio && isZipehrXhtmlVariantSelected()) {
     letterRadio.checked = true;
   }
-  if (emojiRadio) emojiRadio.disabled = xhtml;
-  if (letterRadio) letterRadio.disabled = xhtml;
-  group?.classList.toggle("is-disabled", xhtml);
-  group?.setAttribute("aria-disabled", xhtml ? "true" : "false");
+  if (emojiRadio) emojiRadio.disabled = lockSymbols;
+  if (letterRadio) letterRadio.disabled = lockSymbols;
+  group?.classList.toggle("is-disabled", lockSymbols);
+  group?.setAttribute("aria-disabled", lockSymbols ? "true" : "false");
 }
 
 function setupZipehrSymbolVariantListener(): void {
@@ -1898,6 +1945,7 @@ function gatherConversionOptions(): ConversionOptions {
     xmlConfig,
     typescriptConfig,
     zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
+    zipehrHtml5PrettyPrint: getActiveZipehrHtml5PrettyPrint(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
 }
@@ -1914,6 +1962,9 @@ function updateOutputs(outputs: Record<string, string>) {
     "zipehr.json",
     "zipehr.yaml",
     "zipehr.xhtml",
+    "zipehr.html5.short",
+    "zipehr.html5.full",
+    "zipehr.html5.emoji",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2490,6 +2541,9 @@ function downloadOutput(format: string) {
     "zipehr.json": "zipehr.json",
     "zipehr.yaml": "zipehr.yaml",
     "zipehr.xhtml": "zipehr.xhtml",
+    "zipehr.html5.short": "html",
+    "zipehr.html5.full": "html",
+    "zipehr.html5.emoji": "html",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",

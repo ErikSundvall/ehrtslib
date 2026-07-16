@@ -2,8 +2,7 @@
  * Regenerate symbol_table.ts from symbol_table.yaml.
  *
  * `SYMBOL_TABLE_LETTER_SYMBOLS`: uses array[0] as the symbol (Ehrbase short code).
- * `SYMBOL_TABLE_EMOJI_SYMBOLS`: uses array[1] when array[0] looks like a letter code,
- * otherwise uses array[0] (backward compatible for any entries not updated).
+ * `SYMBOL_TABLE_EMOJI_SYMBOLS`: uses array[1] when present, otherwise array[0].
  */
 const yamlPath = new URL("./symbol_table.yaml", import.meta.url);
 const outPath = new URL("./symbol_table.ts", import.meta.url);
@@ -13,6 +12,7 @@ const TOP_SECTIONS = new Set([
   "data_structures",
   "ehr_components",
   "terminology_shortcuts",
+  "magnitude_status_operators",
   "field_promotions",
   "html5_short_tags",
   "foundation_types",
@@ -48,20 +48,20 @@ for (const line of lines) {
     current = { name: sec[1], entries: [] };
     sections.push(current);
   }
-  const entry = line.match(/^\s*([A-Za-z0-9_.]+)\s*:\s*\[\s*([^\]]+)\]/);
+  const entry = line.match(
+    /^\s*(?:"([^"]+)"|([A-Za-z0-9_.]+))\s*:\s*\[\s*([^\]]+)\]/,
+  );
   if (entry && current) {
-    const key = entry[1];
-    const inner = entry[2];
+    const key = entry[1] ?? entry[2];
+    const inner = entry[3];
     const symbols = [...inner.matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
     if (symbols.length === 0) continue;
 
     const first = symbols[0];
     const second = symbols[1];
 
-    // Letter codes are 1-2 ASCII alphanumerics; emojis are non-ASCII.
-    const looksLikeLetterCode = /^[A-Za-z0-9]{1,2}$/.test(first);
     const letterSymbol = first;
-    const emojiSymbol = looksLikeLetterCode && second != null ? second : first;
+    const emojiSymbol = second != null ? second : first;
 
     current.entries.push({ key, letterSymbol, emojiSymbol });
     continue;
@@ -80,6 +80,7 @@ const letterLines: string[] = [];
 const emojiLines: string[] = [];
 const html5ShortTagLines: string[] = [];
 const terminologyShortcutLines: string[] = [];
+const magnitudeStatusOperatorLines: string[] = [];
 const fieldPromotionLines: string[] = [];
 const seenKeys = new Set<string>();
 
@@ -92,6 +93,14 @@ for (const sec of sections) {
       }
       terminologyShortcutLines.push(
         `  { prefix: "${prefix}", emoji: "${emojiSymbol}" },`,
+      );
+    }
+    continue;
+  }
+  if (sec.name === "magnitude_status_operators") {
+    for (const { key, letterSymbol, emojiSymbol } of sec.entries) {
+      magnitudeStatusOperatorLines.push(
+        `  { rm: ${JSON.stringify(key)}, letter: ${JSON.stringify(letterSymbol)}, emoji: ${JSON.stringify(emojiSymbol)} },`,
       );
     }
     continue;
@@ -122,7 +131,9 @@ for (const sec of sections) {
       throw new Error(`Duplicate symbol key in symbol_table.yaml: ${key}`);
     }
     seenKeys.add(key);
-    const keyLiteral = key.includes(".") ? `"${key}"` : key;
+    const keyLiteral = key.includes(".") || /[^A-Za-z0-9_]/.test(key)
+      ? JSON.stringify(key)
+      : key;
     letterLines.push(`  ${keyLiteral}: "${letterSymbol}",`);
     emojiLines.push(`  ${keyLiteral}: "${emojiSymbol}",`);
   }
@@ -149,6 +160,20 @@ const output = [
   "export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [",
   ...terminologyShortcutLines,
   "] as const;",
+  "",
+  "export type MagnitudeStatusOperator = {",
+  "  readonly rm: string;",
+  "  readonly letter: string;",
+  "  readonly emoji: string;",
+  "};",
+  "",
+  "/** RM magnitude_status value → HTML-safe wire symbols. Exact `=` is omitted on the wire. */",
+  "export const MAGNITUDE_STATUS_OPERATORS: readonly MagnitudeStatusOperator[] = [",
+  ...magnitudeStatusOperatorLines,
+  "] as const;",
+  "",
+  "/** RM magnitude_status for exact point values — never emitted in terse / emoji streams. */",
+  "export const MAGNITUDE_STATUS_EXACT_RM = \"=\" as const;",
   "",
   "export type TerminologyFieldPromotion = {",
   "  readonly field: string;",

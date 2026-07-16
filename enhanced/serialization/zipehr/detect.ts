@@ -9,6 +9,7 @@ import {
   stripZipehrYamlSchemaDirective,
 } from "./schema.ts";
 import { SYMBOL_TABLE_EMOJI_SYMBOLS, SYMBOL_TABLE_LETTER_SYMBOLS } from "./symbol_table.ts";
+import { detectHtml5Dialect, looksLikeZipehrHtml5 } from "./html5_deserialize.ts";
 
 const LETTER_CLASS_TOKENS = new Set<string>([
   ...Object.values(SYMBOL_TABLE_LETTER_SYMBOLS),
@@ -21,7 +22,13 @@ const KNOWN_ZIPEHR_SYMBOL_KEYS = new Set<string>([
   ...Object.values(SYMBOL_TABLE_LETTER_SYMBOLS),
 ]);
 
-export type ZipehrVariant = "zipehr.json" | "zipehr.yaml" | "zipehr.xhtml";
+export type ZipehrVariant =
+  | "zipehr.json"
+  | "zipehr.yaml"
+  | "zipehr.xhtml"
+  | "zipehr.html5.short"
+  | "zipehr.html5.full"
+  | "zipehr.html5.emoji";
 
 export type InputDetectionResult =
   | { kind: "canonical"; format: "json" | "yaml" | "xml" }
@@ -85,6 +92,15 @@ export function detectInputFormat(text: string): InputDetectionResult {
   if (!trimmed) return { kind: "unknown" };
 
   if (looksLikeXml(trimmed)) {
+    if (looksLikeZipehrHtml5(trimmed)) {
+      const dialect = detectHtml5Dialect(trimmed) ?? "short";
+      const variant = dialect === "full"
+        ? "zipehr.html5.full"
+        : dialect === "emoji"
+        ? "zipehr.html5.emoji"
+        : "zipehr.html5.short";
+      return { kind: "zipehr", variant };
+    }
     if (looksLikeZipehrXhtml(trimmed)) {
       return { kind: "zipehr", variant: "zipehr.xhtml" };
     }

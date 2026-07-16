@@ -94,6 +94,7 @@ import {
 
 import {
   detectInputFormat,
+  serializeToHtml5Variant,
   serializeToJZipehr,
   serializeToXZipehr,
   serializeToYZipehr,
@@ -165,6 +166,9 @@ export type OutputFormat =
   | "zipehr.json"
   | "zipehr.yaml"
   | "zipehr.xhtml"
+  | "zipehr.html5.short"
+  | "zipehr.html5.full"
+  | "zipehr.html5.emoji"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -184,6 +188,8 @@ export interface ConversionOptions {
   outputFormats: OutputFormat[];
   /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs (`zipehr.xhtml` always uses letter codes). */
   zipehrSymbolVariant?: "emoji" | "lettercode";
+  /** Pretty-print for ZipEHR HTML5 dialects (default follows dialect: short=false, full/emoji=true). */
+  zipehrHtml5PrettyPrint?: boolean;
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
@@ -214,6 +220,9 @@ export interface ConversionResult {
     "zipehr.json"?: string;
     "zipehr.yaml"?: string;
     "zipehr.xhtml"?: string;
+    "zipehr.html5.short"?: string;
+    "zipehr.html5.full"?: string;
+    "zipehr.html5.emoji"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -381,6 +390,15 @@ export async function convert(
           case "zipehr.xhtml":
             outputs["zipehr.xhtml"] = await serializeToXZipehr(rmObject);
             break;
+          case "zipehr.html5.short":
+          case "zipehr.html5.full":
+          case "zipehr.html5.emoji":
+            outputs[format] = await serializeToHtml5Variant(
+              rmObject,
+              format,
+              { prettyPrint: options.zipehrHtml5PrettyPrint },
+            );
+            break;
           case "markdown":
             outputs.markdown = serializeToMarkdown(
               rmObject,
@@ -471,6 +489,15 @@ async function convertTemplateInput(
         break;
       case "zipehr.xhtml":
         outputs["zipehr.xhtml"] = await serializeToXZipehr(generatedInstance);
+        break;
+      case "zipehr.html5.short":
+      case "zipehr.html5.full":
+      case "zipehr.html5.emoji":
+        outputs[format] = await serializeToHtml5Variant(
+          generatedInstance,
+          format,
+          { prettyPrint: options.zipehrHtml5PrettyPrint },
+        );
         break;
       case "markdown":
         outputs.markdown = serializeToMarkdown(
@@ -648,7 +675,14 @@ function zipehrWireFormat(
   variant: string,
 ): ResolvedWireFormat {
   if (variant === "zipehr.yaml") return "yaml";
-  if (variant === "zipehr.xhtml") return "xml";
+  if (
+    variant === "zipehr.xhtml" ||
+    variant === "zipehr.html5.short" ||
+    variant === "zipehr.html5.full" ||
+    variant === "zipehr.html5.emoji"
+  ) {
+    return "xml";
+  }
   return "json";
 }
 
@@ -677,7 +711,7 @@ export function resolveInputFormat(
       };
     }
     throw new Error(
-      "Input format set to ZipEHR but content does not look like zipehr.json, zipehr.yaml, or zipehr.xhtml.",
+      "Input format set to ZipEHR but content does not look like zipehr.json, zipehr.yaml, zipehr.xhtml, or zipehr.html5.",
     );
   }
 

@@ -7,6 +7,11 @@ export const SYMBOL_TABLE_LETTER_SYMBOLS = {
   "ARCHETYPED.archetype_id": "AX",
   "ARCHETYPED.template_id": "TP",
   "ARCHETYPED.rm_version": "rm",
+  "DV_QUANTITY.magnitude_status": "mst",
+  "DV_QUANTITY.magnitude": "mag",
+  "DV_QUANTITY.units": "unit",
+  "DV_QUANTITY.precision": "prc",
+  "DV_QUANTITY.accuracy": "acc",
   DV_BOOLEAN: "b",
   DV_IDENTIFIER: "id",
   DV_STATE: "st",
@@ -80,6 +85,11 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   "ARCHETYPED.archetype_id": "Ⓐ",
   "ARCHETYPED.template_id": "Ⓣ",
   "ARCHETYPED.rm_version": "⚙️",
+  "DV_QUANTITY.magnitude_status": "🎛",
+  "DV_QUANTITY.magnitude": "№",
+  "DV_QUANTITY.units": "◌",
+  "DV_QUANTITY.precision": "⋯",
+  "DV_QUANTITY.accuracy": "±",
   DV_BOOLEAN: "🗹",
   DV_IDENTIFIER: "🪪",
   DV_STATE: "⚑",
@@ -150,10 +160,10 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
 /** HTML5 short-dialect tag suffix overrides (`o-{suffix}`) when letter codes collide under lowercasing. */
 export const SYMBOL_TABLE_HTML5_SHORT_TAGS = {
   DV_COUNT: "cnt",
-  CODE_PHRASE: "cp",
-  DV_INTERVAL: "intv",
-  DV_PARSABLE: "pars",
-  DV_PROPORTION: "prop",
+  CODE_PHRASE: "cph",
+  DV_INTERVAL: "ivl",
+  DV_PARSABLE: "prs",
+  DV_PROPORTION: "prp",
   DV_URI: "uri",
 } as const;
 
@@ -165,6 +175,24 @@ export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [
   { prefix: "ISO_3166-1::", emoji: "🌐" },
   { prefix: "IANA_character-sets::", emoji: "🔤" },
 ] as const;
+
+export type MagnitudeStatusOperator = {
+  readonly rm: string;
+  readonly letter: string;
+  readonly emoji: string;
+};
+
+/** RM magnitude_status value → HTML-safe wire symbols. Exact `=` is omitted on the wire. */
+export const MAGNITUDE_STATUS_OPERATORS: readonly MagnitudeStatusOperator[] = [
+  { rm: "<", letter: "⩻", emoji: "⩻" },
+  { rm: ">", letter: "⩼", emoji: "⩼" },
+  { rm: "<=", letter: "⩽", emoji: "⩽" },
+  { rm: ">=", letter: "⩾", emoji: "⩾" },
+  { rm: "~", letter: "~", emoji: "~" },
+] as const;
+
+/** RM magnitude_status for exact point values — never emitted in terse / emoji streams. */
+export const MAGNITUDE_STATUS_EXACT_RM = "=" as const;
 
 export type TerminologyFieldPromotion = {
   readonly field: string;

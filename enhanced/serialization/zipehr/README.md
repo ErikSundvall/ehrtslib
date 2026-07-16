@@ -119,10 +119,9 @@ shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
-**zipehr.html5** (proposed): compact `o-*` custom elements (not FHIR Narrative). Three dialects —
-`html5/short` (`o-ob`, `o-q`, …), `html5/full` (`o-observation`, `o-dv-quantity`, …), and
-`html5/emoji` (`o-👀`, `o-🌡️`, …). LOCATABLE names and DV values render as element text for
-browser readability without CSS. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
+**zipehr.html5** (`html5/short`, `html5/full`, `html5/emoji`): compact `o-*` custom
+elements (not FHIR Narrative). Pretty-print is user-selectable for all three dialects
+(default: compact for short, pretty for full/emoji). See [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 
@@ -202,9 +201,10 @@ The mapping for those letter codes is defined in [`ehrbase-short-codes.md`](ehrb
 In `symbol_table.yaml` entries follow the convention 
 `[letterCode, emoji, ...posibly other alternative emojis during experimentation]`, and the 
 runtime selects the symbol variant form first or second position via `symbolVariant` 
-(`emoji` vs `lettercode`).
+(`emoji` vs `lettercode`). Sme extra codes fro special Zipehr needs (mostly attributes) not present
+in ehrbase have been added.
 
-That “first symbol only” rule has two implications newcomers should care about:
+That “first symbol only” rule has two implications developers that fiddle with symbols should care about:
 
 1. **Round-tripping depends on stability.** If the first symbol changes for a type, older
    ZipEHR payloads may not decode the same way.
@@ -334,6 +334,16 @@ Attribute emoji keys are defined in `symbol_table.yaml` (`data_types.attributes`
 | `ARCHETYPED.template_id` | `ARCHETYPED.template_id` | `Ⓣ` |
 | `ARCHETYPED.archetype_id` | `ARCHETYPED.archetype_id` | `Ⓐ` |
 | `ARCHETYPED.rm_version` | `ARCHETYPED.rm_version` | `⚙️` |
+| `DV_QUANTITY.magnitude_status` | `DV_QUANTITY.magnitude_status` | `🎛` |
+| `DV_QUANTITY.magnitude` | `DV_QUANTITY.magnitude` | `№` |
+| `DV_QUANTITY.units` | `DV_QUANTITY.units` | `◌` |
+| `DV_QUANTITY.precision` | `DV_QUANTITY.precision` | `⋯` |
+| `DV_QUANTITY.accuracy` | `DV_QUANTITY.accuracy` | `±` |
+
+`magnitude_status` operator mapping (`magnitude_status_operators` in yaml): exact `=` omitted on the wire; letter **and** emoji columns use the same HTML-safe symbols (`⩻` / `⩼` / `⩽` / `⩾` / `~`) so lettercode XHTML and html5/short never need `&lt;`/`&gt;` HTML escaping. Status tag `🎛` (setting/adjustment knobs symbol) precedes the operator in some serialisation formats; use generated `MAGNITUDE_STATUS_OPERATORS` from `symbol_table.ts`.
+
+  "<": ["⩻","⩻"],
+  ">": ["⩼","⩼"],
 
 ### Serialize rules
 
