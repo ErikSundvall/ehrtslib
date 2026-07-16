@@ -1,0 +1,235 @@
+/**
+ * Default browser stylesheet for ZipEHR HTML5 full dialect (o-{rm-kebab} tags).
+ */
+:root {
+  --zf-ink: #18212b;
+  --zf-muted: #5c6b7a;
+  --zf-paper: #f6f4ef;
+  --zf-card: #ffffff;
+  --zf-line: #d8d2c6;
+  --zf-accent: #8a4b1f;
+  --zf-entry: #f3ebe2;
+  --zf-value: #1d5c63;
+  --zf-unit: #5a6e72;
+  --zf-label: #3a2f24;
+  --zf-font: "Literata", Georgia, "Times New Roman", serif;
+  --zf-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: var(--zf-ui);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--zf-ink);
+  background:
+    radial-gradient(circle at 10% 0%, #efe6da 0%, transparent 45%),
+    var(--zf-paper);
+}
+
+o-composition,
+o-section,
+o-observation,
+o-evaluation,
+o-instruction,
+o-action,
+o-admin-entry,
+o-history,
+o-point-event,
+o-interval-event,
+o-item-tree,
+o-item-list,
+o-item-single,
+o-item-table,
+o-cluster,
+o-element,
+o-event-context,
+o-dv-quantity,
+o-dv-coded-text,
+o-dv-text,
+o-dv-boolean,
+o-dv-count,
+o-dv-proportion,
+o-dv-ordinal,
+o-dv-interval,
+o-dv-date,
+o-dv-time,
+o-dv-date-time,
+o-dv-duration,
+o-dv-uri,
+o-dv-ehr-uri,
+o-dv-scale,
+o-dv-state,
+o-dv-identifier,
+o-dv-parsable,
+o-code-phrase {
+  display: block;
+}
+
+o-composition,
+o-observation,
+o-evaluation,
+o-instruction,
+o-action,
+o-admin-entry {
+  max-width: 48rem;
+  margin: 0.75rem auto;
+  padding: 1rem 1.1rem 1.15rem;
+  background: var(--zf-card);
+  border: 1px solid var(--zf-line);
+  border-radius: 0.45rem;
+  box-shadow: 0 1px 2px rgba(58, 47, 36, 0.05);
+}
+
+o-composition {
+  border-top: 3px solid var(--zf-accent);
+  font-family: var(--zf-font);
+}
+
+o-observation,
+o-evaluation,
+o-instruction,
+o-action,
+o-admin-entry {
+  background: var(--zf-entry);
+  border-color: #e0d2c2;
+}
+
+o-section {
+  max-width: 48rem;
+  margin: 0.9rem auto;
+  padding: 0.4rem 0 0.4rem 0.9rem;
+  border-left: 3px solid #b89a78;
+}
+
+o-composition::first-line,
+o-observation::first-line,
+o-evaluation::first-line,
+o-instruction::first-line,
+o-action::first-line,
+o-admin-entry::first-line {
+  font-family: var(--zf-font);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--zf-accent);
+  letter-spacing: -0.015em;
+}
+
+o-section::first-line {
+  font-weight: 650;
+  font-size: 1.08rem;
+  color: var(--zf-label);
+}
+
+o-history,
+o-point-event,
+o-interval-event,
+o-item-tree,
+o-item-list,
+o-cluster,
+o-event-context {
+  margin: 0.35rem 0 0.35rem 0.4rem;
+}
+
+o-event-context {
+  padding: 0.45rem 0.65rem;
+  border-left: 3px solid #c4b5a0;
+  color: var(--zf-muted);
+  font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+o-element {
+  display: grid;
+  grid-template-columns: minmax(7rem, 32%) 1fr;
+  gap: 0.25rem 0.9rem;
+  align-items: baseline;
+  margin: 0.28rem 0;
+  padding: 0.45rem 0.6rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0.35rem;
+  border: 1px solid transparent;
+}
+
+o-element:hover {
+  border-color: var(--zf-line);
+}
+
+o-element::first-line {
+  font-weight: 600;
+  color: var(--zf-label);
+  font-size: 0.92rem;
+}
+
+o-dv-quantity,
+o-dv-coded-text,
+o-dv-text,
+o-dv-boolean,
+o-dv-count,
+o-dv-proportion,
+o-dv-ordinal,
+o-dv-interval,
+o-dv-date,
+o-dv-time,
+o-dv-date-time,
+o-dv-duration,
+o-dv-uri,
+o-dv-scale {
+  display: inline;
+  color: var(--zf-value);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+magnitude,
+units,
+mag,
+unit {
+  display: inline;
+}
+
+magnitude,
+mag {
+  font-weight: 700;
+  color: var(--zf-value);
+}
+
+units,
+unit {
+  margin-left: 0.2em;
+  color: var(--zf-unit);
+  font-weight: 500;
+  font-size: 0.92em;
+}
+
+o-object-version-id:empty,
+o-archetype-id:empty,
+o-template-id:empty,
+o-terminology-id:empty,
+o-hier-object-id:empty,
+o-generic-id:empty,
+o-internet-id:empty,
+o-uuid:empty {
+  display: none;
+}
+
+[title]:not([title=""]) {
+  cursor: help;
+}
+
+@media (max-width: 560px) {
+  o-element {
+    grid-template-columns: 1fr;
+  }
+}

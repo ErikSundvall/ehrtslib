@@ -226,13 +226,28 @@ const demoTheme = EditorView.theme({
   },
 }, { dark: true });
 
-function createEditor(
+const compactTheme = EditorView.theme({
+  "&": {
+    fontSize: "0.8rem",
+    maxHeight: "11rem",
+  },
+  ".cm-scroller": {
+    maxHeight: "11rem",
+  },
+  ".cm-content": {
+    padding: "0.5rem 0.65rem",
+  },
+});
+
+export function createDemoEditor(
   host: HTMLElement,
   options: {
     readOnly: boolean;
     initial?: string;
     placeholderText?: string;
     language?: DemoLanguage;
+    /** Shorter editor for side panels (e.g. CSS preview). */
+    compact?: boolean;
   },
 ): DemoEditor {
   const lineNumbersCompartment = new Compartment();
@@ -240,18 +255,20 @@ function createEditor(
   const languageCompartment = new Compartment();
   const changeListeners = new Set<() => void>();
 
-  const extensions = [
+  const extensions: Extension[] = [
     history(),
     keymap.of([...defaultKeymap, ...historyKeymap, ...foldKeymap]),
     demoTheme,
-    ...foldingExtensions,
+    ...(options.compact ? [compactTheme] : foldingExtensions),
     EditorState.readOnly.of(options.readOnly),
     EditorView.editable.of(!options.readOnly),
     lineNumbersCompartment.of(
-      isLineNumbersEnabled() ? lineNumbers() : [],
+      options.compact
+        ? []
+        : (isLineNumbersEnabled() ? lineNumbers() : []),
     ),
     lineWrapCompartment.of(
-      isLineWrapEnabled() ? EditorView.lineWrapping : [],
+      isLineWrapEnabled() || options.compact ? EditorView.lineWrapping : [],
     ),
     languageCompartment.of(
       languageExtension(options.language ?? "plain"),
@@ -262,6 +279,11 @@ function createEditor(
       }
     }),
   ];
+
+  if (options.compact) {
+    // Keep basic syntax highlighting without fold gutter noise.
+    extensions.push(syntaxHighlighting(demoHighlightStyle));
+  }
 
   if (options.placeholderText) {
     extensions.push(placeholder(options.placeholderText));
@@ -306,6 +328,18 @@ function createEditor(
 
   editors.set(host.id, editor);
   return editor;
+}
+
+function createEditor(
+  host: HTMLElement,
+  options: {
+    readOnly: boolean;
+    initial?: string;
+    placeholderText?: string;
+    language?: DemoLanguage;
+  },
+): DemoEditor {
+  return createDemoEditor(host, options);
 }
 
 export function getDemoEditor(id: string): DemoEditor | null {

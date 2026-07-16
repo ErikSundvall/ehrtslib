@@ -1,0 +1,167 @@
+/**
+ * Default browser stylesheet for ZipEHR HTML5 emoji dialect (o-{emoji} tags).
+ * Uses attribute / structural cues so we don't need every emoji tag listed.
+ */
+:root {
+  --ze-ink: #1b2430;
+  --ze-muted: #617084;
+  --ze-paper: #f3f6fb;
+  --ze-card: #ffffff;
+  --ze-line: #c9d4e4;
+  --ze-accent: #355c7d;
+  --ze-entry: #eaf1f8;
+  --ze-value: #1a6b5c;
+  --ze-unit: #4d6670;
+  --ze-label: #2a3644;
+  --ze-font: "Nunito Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: var(--ze-font);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ze-ink);
+  background:
+    radial-gradient(ellipse at top right, #e3ecf7 0%, transparent 50%),
+    var(--ze-paper);
+}
+
+/* All ZipEHR custom elements under a fmt root */
+[fmt],
+[fmt] :where(*) {
+  display: block;
+}
+
+[fmt] {
+  max-width: 48rem;
+  margin: 0.75rem auto;
+  padding: 1rem 1.1rem 1.15rem;
+  background: var(--ze-card);
+  border: 1px solid var(--ze-line);
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 3px rgba(53, 92, 125, 0.07);
+  border-top: 3px solid var(--ze-accent);
+}
+
+[fmt]::first-line {
+  font-weight: 750;
+  font-size: 1.18rem;
+  color: var(--ze-accent);
+  letter-spacing: -0.01em;
+}
+
+/* Nested containers: indent */
+[fmt] :where(*) {
+  margin: 0.28rem 0 0.28rem 0.45rem;
+}
+
+/* Entry-like nodes (have archetype id attrs) get a soft card */
+[fmt] [🆔],
+[fmt] [n] {
+  padding: 0.55rem 0.7rem;
+  margin-left: 0.2rem;
+  background: var(--ze-entry);
+  border: 1px solid #c5d5e8;
+  border-radius: 0.45rem;
+}
+
+[fmt] [🆔]::first-line,
+[fmt] [n]::first-line {
+  font-weight: 650;
+  color: var(--ze-label);
+}
+
+/* Value leaves: magnitude / units (emoji + letter child tags) */
+№,
+◌,
+mag,
+unit,
+magnitude,
+units {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+№,
+mag,
+magnitude {
+  font-weight: 750;
+  color: var(--ze-value);
+  font-variant-numeric: tabular-nums;
+}
+
+◌,
+unit,
+units {
+  margin-left: 0.2em !important;
+  color: var(--ze-unit);
+  font-weight: 550;
+  font-size: 0.92em;
+}
+
+/* Quantity / coded value wrappers: keep inline with surrounding name text */
+o-🌡️,
+o-🗈,
+o-🗉,
+o-⚖️,
+o-🔢,
+o-📅,
+o-⌚,
+o-⏳,
+o-🔗 {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0.05em 0.25em !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid transparent !important;
+  border-radius: 0.25rem !important;
+  color: var(--ze-value);
+  font-weight: 650;
+}
+
+/* Soft row for leaf elements (emoji ELEMENT 🔹 etc. still match [🆔]) */
+[fmt] [🆔]:has(№),
+[fmt] [🆔]:has(mag),
+[fmt] [🆔]:has(o-🌡️),
+[fmt] [n]:has(mag),
+[fmt] [n]:has(o-q) {
+  display: grid;
+  grid-template-columns: minmax(7rem, 32%) 1fr;
+  gap: 0.25rem 0.85rem;
+  align-items: baseline;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+/* Hide empty technical id leaves */
+[fmt] :empty[title],
+[fmt] :empty[title=""] {
+  display: none !important;
+}
+
+[title]:not([title=""]) {
+  cursor: help;
+}
+
+@media (max-width: 560px) {
+  [fmt] [🆔]:has(№),
+  [fmt] [🆔]:has(mag),
+  [fmt] [🆔]:has(o-🌡️),
+  [fmt] [n]:has(mag) {
+    grid-template-columns: 1fr;
+  }
+}

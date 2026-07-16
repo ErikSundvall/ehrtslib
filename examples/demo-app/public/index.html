@@ -1020,6 +1020,69 @@
                 </div>
                 <div class="demo-editor-host output-content" id="output-zipehr.html5.emoji-content"></div>
               </div>
+
+              <!-- Browser preview for (x)HTML ZipEHR dialects -->
+              <div class="zipehr-html-preview hidden" id="zipehr-html-preview">
+                <div class="zipehr-html-preview-header">
+                  <h3 class="zipehr-html-preview-title">Browser preview</h3>
+                  <div class="zipehr-html-preview-controls">
+                    <label class="zipehr-css-label" for="zipehr-css-select">
+                      CSS stylesheet:
+                    </label>
+                    <select id="zipehr-css-select" class="config-dropdown zipehr-css-select">
+                      <option value="default">Default for dialect</option>
+                      <option value="zipehr-xhtml.css">zipehr-xhtml.css</option>
+                      <option value="zipehr-html5-short.css">zipehr-html5-short.css</option>
+                      <option value="zipehr-html5-full.css">zipehr-html5-full.css</option>
+                      <option value="zipehr-html5-emoji.css">zipehr-html5-emoji.css</option>
+                      <option value="none">None (browser default)</option>
+                      <option value="custom" disabled>Custom (uploaded)</option>
+                    </select>
+                    <button
+                      class="btn btn-secondary btn-sm"
+                      id="zipehr-css-upload-btn"
+                      type="button"
+                      title="Upload a CSS file"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                      Upload CSS
+                    </button>
+                    <input
+                      type="file"
+                      id="zipehr-css-file-input"
+                      accept=".css,text/css"
+                      hidden
+                    >
+                    <button
+                      class="btn btn-secondary btn-sm"
+                      id="zipehr-preview-popup-btn"
+                      type="button"
+                      title="Open preview in a separate window (stays in sync)"
+                    >
+                      <span class="material-icons btn-icon" aria-hidden="true">open_in_new</span>
+                      Open window
+                    </button>
+                  </div>
+                </div>
+                <div class="zipehr-html-preview-body">
+                  <div class="zipehr-css-editor-col">
+                    <div class="zipehr-css-editor-label">Stylesheet source</div>
+                    <div
+                      class="demo-editor-host zipehr-css-editor-host"
+                      id="zipehr-css-editor"
+                    ></div>
+                  </div>
+                  <div class="zipehr-render-col">
+                    <div class="zipehr-css-editor-label">Rendered view</div>
+                    <iframe
+                      id="zipehr-preview-frame"
+                      class="zipehr-preview-frame"
+                      title="ZipEHR HTML browser preview"
+                      sandbox="allow-same-origin"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="tab-pane" id="tab-markdown">

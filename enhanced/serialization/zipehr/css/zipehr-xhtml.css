@@ -1,0 +1,218 @@
+/**
+ * Default browser stylesheet for ZipEHR XHTML (zipehr.xhtml / FHIR Narrative–safe).
+ * Targets letter-code class tokens (CO, OB, E, q, …) and heading labels.
+ */
+:root {
+  --zx-ink: #1a2332;
+  --zx-muted: #5a6a7a;
+  --zx-paper: #f7f5f0;
+  --zx-card: #ffffff;
+  --zx-line: #d5dde6;
+  --zx-accent: #0d6e6e;
+  --zx-entry: #e8f3f3;
+  --zx-value: #0b4f6c;
+  --zx-label: #2c3e50;
+  --zx-font: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --zx-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: var(--zx-font);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--zx-ink);
+  background:
+    radial-gradient(ellipse at top left, #eef6f6 0%, transparent 55%),
+    var(--zx-paper);
+}
+
+/* Root narrative wrapper */
+div[xmlns],
+body > div {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+/* Composition / section / entry shells */
+.CO,
+.SE,
+.OB,
+.EV,
+.IN,
+.AN,
+.AE {
+  display: block;
+  background: var(--zx-card);
+  border: 1px solid var(--zx-line);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem 1rem;
+  margin: 0.75rem 0;
+  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+}
+
+.CO {
+  border-top: 3px solid var(--zx-accent);
+  padding-top: 1rem;
+}
+
+.SE {
+  background: transparent;
+  box-shadow: none;
+  border-style: dashed;
+  padding-left: 0.75rem;
+}
+
+.OB,
+.EV,
+.IN,
+.AN,
+.AE {
+  background: var(--zx-entry);
+  border-color: #c5d9d9;
+}
+
+.CO > h2,
+.SE > h3,
+.OB > h4,
+.EV > h4,
+.IN > h4,
+.AN > h4,
+.AE > h4 {
+  margin: 0 0 0.65rem;
+  font-family: var(--zx-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--zx-accent);
+}
+
+.CO > h2 {
+  font-size: 1.45rem;
+}
+
+.SE > h3 {
+  font-size: 1.2rem;
+  color: var(--zx-label);
+}
+
+.OB > h4,
+.EV > h4,
+.IN > h4,
+.AN > h4,
+.AE > h4 {
+  font-size: 1.05rem;
+}
+
+/* Structure containers stay quiet */
+.HI,
+.PE,
+.IE,
+.TR,
+.CL,
+.IL,
+.IS,
+.TA,
+.EC {
+  display: block;
+  margin: 0.35rem 0;
+}
+
+.EC {
+  padding: 0.5rem 0.65rem;
+  border-left: 3px solid #b7c5d3;
+  color: var(--zx-muted);
+  font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* ELEMENT row: label + value */
+.E {
+  display: grid;
+  grid-template-columns: minmax(7rem, 32%) 1fr;
+  gap: 0.35rem 0.85rem;
+  align-items: baseline;
+  padding: 0.4rem 0.55rem;
+  margin: 0.2rem 0;
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid transparent;
+}
+
+.E:hover {
+  border-color: var(--zx-line);
+}
+
+.E > span:first-child {
+  font-weight: 600;
+  color: var(--zx-label);
+  font-size: 0.92rem;
+}
+
+/* DATA_VALUE spans */
+.q,
+.c,
+.x,
+.b,
+.co,
+.pr,
+.o,
+.iv,
+.d,
+.t,
+.dt,
+.du,
+.u,
+.eu,
+.sc,
+.st,
+.id,
+.C {
+  color: var(--zx-value);
+  font-variant-numeric: tabular-nums;
+  font-weight: 560;
+}
+
+.q::after {
+  /* units already in text for xhtml; keep emphasis */
+  content: none;
+}
+
+.b {
+  font-weight: 700;
+}
+
+/* Hide machine-only technical id leaves (empty text, title only) */
+.OV:empty,
+.AX:empty,
+.TP:empty,
+.T:empty,
+.HX:empty,
+.GX:empty,
+.IX:empty,
+.U:empty,
+span[title]:empty {
+  display: none;
+}
+
+/* Tooltip cue for coded metadata */
+[title]:not(:empty) {
+  cursor: help;
+}
+
+@media (max-width: 560px) {
+  .E {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}

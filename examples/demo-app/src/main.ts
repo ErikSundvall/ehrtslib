@@ -52,6 +52,11 @@ import {
   type DemoLanguage,
 } from "./codemirror-setup.ts";
 import { initEditorDisplaySettings } from "./editor-settings.ts";
+import {
+  initZipehrHtmlPreview,
+  onZipehrMarkupVariantChanged,
+  refreshZipehrHtmlPreview,
+} from "./zipehr-html-preview.ts";
 
 const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 
@@ -98,6 +103,15 @@ function init() {
   });
   syncInputEditorLanguage();
   setupEventListeners();
+  initZipehrHtmlPreview({
+    getActiveVariant: () => getActiveZipehrVariant(),
+    getActiveHtml: () => {
+      const v = getActiveZipehrVariant();
+      return getDemoEditor(`output-${v}-content`)?.value ??
+        currentOutputs[v] ??
+        "";
+    },
+  });
   updateAutoConvertButtonUi();
   updateTemplateLanguageOptions();
 
@@ -365,6 +379,10 @@ function switchZipehrVariantPane(): void {
   if (getActiveOutputFormat() === variant) {
     updateOutputInfo();
   }
+  const html = getDemoEditor(`output-${variant}-content`)?.value ??
+    currentOutputs[variant] ??
+    "";
+  onZipehrMarkupVariantChanged(variant, html);
 }
 
 function switchSimplifiedVariantPane(): void {
@@ -2013,6 +2031,15 @@ function updateOutputs(outputs: Record<string, string>) {
   });
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();
+  syncZipehrHtmlPreviewFromOutputs();
+}
+
+function syncZipehrHtmlPreviewFromOutputs(): void {
+  const variant = getActiveZipehrVariant();
+  const html = getDemoEditor(`output-${variant}-content`)?.value ??
+    currentOutputs[variant] ??
+    "";
+  void refreshZipehrHtmlPreview({ variant, html });
 }
 
 /**

@@ -1,0 +1,247 @@
+/**
+ * Default browser stylesheet for ZipEHR HTML5 short dialect (o-{letter} tags).
+ * Clinically relevant names/values are element text; attrs hold machine fields.
+ */
+:root {
+  --zs-ink: #1a2332;
+  --zs-muted: #5a6a7a;
+  --zs-paper: #f4f7fa;
+  --zs-card: #ffffff;
+  --zs-line: #cfd8e3;
+  --zs-accent: #1f4e79;
+  --zs-entry: #edf3fa;
+  --zs-value: #0b5a8c;
+  --zs-unit: #4a6578;
+  --zs-label: #243447;
+  --zs-font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: var(--zs-font);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--zs-ink);
+  background:
+    linear-gradient(180deg, #e8eef5 0%, var(--zs-paper) 12rem);
+}
+
+/* Custom elements are inline by default — make structure readable */
+o-co,
+o-se,
+o-ob,
+o-ev,
+o-in,
+o-an,
+o-ae,
+o-hi,
+o-pe,
+o-ie,
+o-tr,
+o-cl,
+o-il,
+o-is,
+o-ta,
+o-ec,
+o-e,
+o-q,
+o-c,
+o-x,
+o-b,
+o-cnt,
+o-prp,
+o-o,
+o-ivl,
+o-d,
+o-t,
+o-dt,
+o-du,
+o-uri,
+o-eu,
+o-sc,
+o-st,
+o-cph,
+o-prs,
+o-id {
+  display: block;
+}
+
+o-co,
+o-ob,
+o-ev,
+o-in,
+o-an,
+o-ae {
+  max-width: 48rem;
+  margin: 0.75rem auto;
+  padding: 0.9rem 1.05rem 1.05rem;
+  background: var(--zs-card);
+  border: 1px solid var(--zs-line);
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 3px rgba(31, 78, 121, 0.06);
+}
+
+o-co {
+  border-top: 3px solid var(--zs-accent);
+}
+
+o-ob,
+o-ev,
+o-in,
+o-an,
+o-ae {
+  background: var(--zs-entry);
+  border-color: #c5d4e6;
+}
+
+o-se {
+  max-width: 48rem;
+  margin: 0.85rem auto;
+  padding: 0.35rem 0 0.35rem 0.85rem;
+  border-left: 3px solid #8aa0b8;
+}
+
+/* Leading text (= LOCATABLE name) as a heading-like first line */
+o-co,
+o-se,
+o-ob,
+o-ev,
+o-in,
+o-an,
+o-ae {
+  font-size: 1rem;
+}
+
+o-co::first-line,
+o-ob::first-line,
+o-ev::first-line,
+o-in::first-line,
+o-an::first-line,
+o-ae::first-line {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--zs-accent);
+  letter-spacing: -0.01em;
+}
+
+o-se::first-line {
+  font-weight: 650;
+  font-size: 1.05rem;
+  color: var(--zs-label);
+}
+
+o-hi,
+o-pe,
+o-ie,
+o-tr,
+o-cl,
+o-il,
+o-ec {
+  margin: 0.3rem 0 0.3rem 0.35rem;
+}
+
+o-ec {
+  padding: 0.45rem 0.6rem;
+  border-left: 3px solid #a8b8c8;
+  color: var(--zs-muted);
+  font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* ELEMENT: name text + nested value */
+o-e {
+  display: grid;
+  grid-template-columns: minmax(7rem, 32%) 1fr;
+  gap: 0.25rem 0.85rem;
+  align-items: baseline;
+  margin: 0.25rem 0;
+  padding: 0.4rem 0.55rem;
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 0.35rem;
+  border: 1px solid transparent;
+}
+
+o-e:hover {
+  border-color: var(--zs-line);
+}
+
+o-e::first-line {
+  font-weight: 600;
+  color: var(--zs-label);
+  font-size: 0.92rem;
+}
+
+/* Quantity / coded values */
+o-q,
+o-c,
+o-x,
+o-b,
+o-cnt,
+o-prp,
+o-o,
+o-ivl,
+o-d,
+o-t,
+o-dt,
+o-du,
+o-uri,
+o-sc {
+  display: inline;
+  color: var(--zs-value);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+mag,
+unit,
+№,
+◌ {
+  display: inline;
+}
+
+mag,
+№ {
+  font-weight: 700;
+  color: var(--zs-value);
+}
+
+unit,
+◌ {
+  margin-left: 0.2em;
+  color: var(--zs-unit);
+  font-weight: 500;
+  font-size: 0.92em;
+}
+
+/* Machine-only id leaves (empty text, title attr) */
+o-ov:empty,
+o-ax:empty,
+o-tp:empty,
+o-hx:empty,
+o-gx:empty,
+o-ix:empty,
+o-u:empty,
+[title=""]:empty {
+  display: none;
+}
+
+[title]:not([title=""]) {
+  cursor: help;
+}
+
+@media (max-width: 560px) {
+  o-e {
+    grid-template-columns: 1fr;
+  }
+}

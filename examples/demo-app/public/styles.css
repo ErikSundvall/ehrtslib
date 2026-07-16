@@ -1647,3 +1647,112 @@ body {
 .symbol-variant-radios.is-disabled .symbol-variant-radio input[type="radio"] {
     cursor: not-allowed;
 }
+
+/* ==========================================
+   ZipEHR (x)HTML browser preview
+   ========================================== */
+.zipehr-html-preview {
+    margin-top: var(--spacing-md);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    overflow: hidden;
+}
+
+.zipehr-html-preview-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-tertiary);
+}
+
+.zipehr-html-preview-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.zipehr-html-preview-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.zipehr-css-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.zipehr-css-select {
+    min-width: 11rem;
+    max-width: 16rem;
+}
+
+.zipehr-html-preview-body {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(14rem, 1.35fr);
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    min-height: 14rem;
+}
+
+.zipehr-css-editor-col,
+.zipehr-render-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+
+.zipehr-css-editor-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.zipehr-css-editor-host {
+    height: 11rem;
+    min-height: 11rem;
+    max-height: 11rem;
+    overflow: hidden;
+    background-color: var(--bg-code);
+    border: 1px solid #334155;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+}
+
+.zipehr-css-editor-host .cm-editor {
+    flex: 1;
+    min-height: 0;
+    max-height: 11rem;
+}
+
+.zipehr-preview-frame {
+    width: 100%;
+    height: 16rem;
+    min-height: 16rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: #fff;
+}
+
+@media (max-width: 900px) {
+    .zipehr-html-preview-body {
+        grid-template-columns: 1fr;
+    }
+
+    .zipehr-preview-frame {
+        height: 18rem;
+    }
+}
