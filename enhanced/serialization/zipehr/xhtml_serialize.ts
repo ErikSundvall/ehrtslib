@@ -20,6 +20,7 @@ import {
   type RmPropertyEmitMode,
   shouldEmitPropertyAttribute,
   shouldEmitPropertyComment,
+  TECHNICAL_ID_TYPES,
 } from "./shared.ts";
 import {
   classFromRmType,
@@ -109,7 +110,7 @@ function assertSafeTagName(tag: string): void {
 function prettyPrintXhtml(html: string): string {
   const pad = "  ";
   let depth = 0;
-  return html
+  const pretty = html
     .replace(/>\s+</g, "><")
     .replace(/></g, ">\n<")
     .split("\n")
@@ -123,6 +124,11 @@ function prettyPrintXhtml(html: string): string {
     })
     .filter(Boolean)
     .join("\n") + "\n";
+  // Keep empty elements compact (e.g. technical-id spans with title only).
+  return pretty.replace(
+    /<(span|div)(\s[^>]*)?>\s*<\/\1>/g,
+    "<$1$2></$1>",
+  );
 }
 
 function buildLocatableTitleFields(
@@ -255,6 +261,8 @@ function formatValueDisplay(
   letterMap: Record<string, string>,
 ): string {
   if (value == null) return "";
+  // Technical IDs: title-only — never mirror into element text.
+  if (TECHNICAL_ID_TYPES.has(rmType)) return "";
   if (typeof value === "string") {
     if (rmType === "DV_QUANTITY") {
       const fromTerse = formatQuantityDisplayFromTerse(value);
@@ -284,11 +292,6 @@ function formatValueDisplay(
     case "DV_DATE":
     case "DV_TIME":
       return String(obj.value ?? "");
-    case "OBJECT_VERSION_ID":
-    case "ARCHETYPE_ID":
-    case "TEMPLATE_ID":
-    case "TERMINOLOGY_ID":
-      return String(obj.value ?? obj);
     case "DV_IDENTIFIER":
       return String(obj.id ?? obj.value ?? "");
     default:

@@ -18,6 +18,7 @@ import {
   LOCATABLE_LIKE_TYPES,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
+  TECHNICAL_ID_TYPES,
 } from "./shared.ts";
 import {
   type Html5Dialect,
@@ -404,6 +405,12 @@ function deserializeDvLeaf(
   const text = elementText(node);
   const out: Record<string, unknown> = { _type: rmType };
 
+  if (TECHNICAL_ID_TYPES.has(rmType)) {
+    const id = node.attrs.title || text;
+    if (id) out.value = id;
+    return out;
+  }
+
   switch (rmType) {
     case "DV_TEXT":
       out.value = text;
@@ -481,7 +488,7 @@ function deserializeElement(
     throw new Error(`Unknown ZipEHR HTML5 tag: <${node.tag}>`);
   }
 
-  if (isDataValueType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
+  if (isLeafRmType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
     return deserializeDvLeaf(rmType, node, dialect);
   }
 
@@ -595,6 +602,10 @@ function deserializeElement(
 function isDataValueType(rmType: string): boolean {
   return rmType.startsWith("DV_") || rmType === "CODE_PHRASE" ||
     rmType === "TERM_MAPPING" || rmType === "REFERENCE_RANGE";
+}
+
+function isLeafRmType(rmType: string): boolean {
+  return isDataValueType(rmType) || TECHNICAL_ID_TYPES.has(rmType);
 }
 
 /** Detect HTML5 dialect from markup (`fmt` attr or tag shape). */

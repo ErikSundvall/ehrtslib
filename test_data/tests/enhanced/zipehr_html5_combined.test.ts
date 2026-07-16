@@ -106,3 +106,52 @@ Deno.test("zipehr html5: n + valueless a flag (short)", async () => {
   const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
   assertEquals(back.archetype_node_id, "openEHR-EHR-CLUSTER.organisation.v1");
 });
+
+const UID_VALUE =
+  "573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1";
+
+const COMPOSITION_WITH_UID: Record<string, unknown> = {
+  _type: "COMPOSITION",
+  name: { _type: "DV_TEXT", value: "Encounter" },
+  uid: { _type: "OBJECT_VERSION_ID", value: UID_VALUE },
+  archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+  language: {
+    _type: "CODE_PHRASE",
+    terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+    code_string: "sv",
+  },
+  territory: {
+    _type: "CODE_PHRASE",
+    terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_3166-1" },
+    code_string: "SE",
+  },
+  category: {
+    _type: "DV_CODED_TEXT",
+    value: "event",
+    defining_code: {
+      _type: "CODE_PHRASE",
+      terminology_id: { _type: "TERMINOLOGY_ID", value: "openehr" },
+      code_string: "433",
+    },
+  },
+  composer: { _type: "PARTY_IDENTIFIED", name: "Demo" },
+  content: [],
+};
+
+Deno.test("zipehr html5: OBJECT_VERSION_ID uid round-trips all dialects", async () => {
+  for (const dialect of ["short", "full", "emoji"] as const) {
+    const html = await serializeCanonicalToHtml5(COMPOSITION_WITH_UID, {
+      dialect,
+      layout: "oneliner",
+      propertyMode: "attribute",
+    });
+    assertStringIncludes(html, `title="${UID_VALUE}"`);
+    // Machine attr only — empty element text (not clinician-visible).
+    assertEquals(html.includes(`>${UID_VALUE}<`), false);
+
+    const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
+    const uid = back.uid as Record<string, unknown>;
+    assertEquals(uid._type, "OBJECT_VERSION_ID");
+    assertEquals(uid.value, UID_VALUE);
+  }
+});

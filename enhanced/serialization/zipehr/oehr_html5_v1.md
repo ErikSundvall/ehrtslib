@@ -140,6 +140,11 @@ Possible future inline stream (non-HTML) varaints: `№5.6±0.2◌µmol/L⋯1`; 
 **Full:** kebab RM names (`archetype-node-id`, valueless `archetype-id` flag, …)  
 **Emoji:** `🆔`, `Ⓐ` (valueless flag or string), `Ⓣ`, `⚙️`, terminology shortcuts, quantity tokens above
 
+Technical identifier types (`OBJECT_VERSION_ID`, `ARCHETYPE_ID`, `TEMPLATE_ID`,
+`TERMINOLOGY_ID`, `HIER_OBJECT_ID`, `GENERIC_ID`, `INTERNET_ID`, `UUID`) are
+leaf elements: the id string is stored in the HTML `title` attribute (machine
+field), with **empty** element text — not clinician-visible in a bare document.
+
 When `archetype_node_id` equals `archetype_id`, always emit the node-id attr (`n` / `archetype-node-id` / `🆔`) and a **valueless** ARCHETYPED flag (`a` / `archetype-id` / `Ⓐ`) — same compression as zipehr.json / zipehr.yaml (`"Ⓐ": true`).
 
 Root `fmt` tokens: `s1` / `f1` / `e1` (or full URIs).

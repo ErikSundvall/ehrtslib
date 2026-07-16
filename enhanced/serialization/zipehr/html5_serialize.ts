@@ -20,6 +20,7 @@ import {
   type RmPropertyEmitMode,
   shouldEmitPropertyAttribute,
   shouldEmitPropertyComment,
+  TECHNICAL_ID_TYPES,
 } from "./shared.ts";
 
 export type Html5Dialect = "short" | "full" | "emoji";
@@ -388,6 +389,13 @@ function renderDvLeaf(
   const attrs = [...extraAttrs];
   let text = "";
 
+  // Technical IDs: machine attr only (not clinician-visible text).
+  if (TECHNICAL_ID_TYPES.has(rmType)) {
+    const id = obj.value != null ? String(obj.value) : "";
+    if (id) attrs.push({ name: "title", value: id });
+    return markup(tag, attrs);
+  }
+
   switch (rmType) {
     case "DV_TEXT":
       text = obj.value != null ? String(obj.value) : "";
@@ -489,6 +497,10 @@ function isDataValueType(rmType: string): boolean {
     rmType === "TERM_MAPPING" || rmType === "REFERENCE_RANGE";
 }
 
+function isLeafRmType(rmType: string): boolean {
+  return isDataValueType(rmType) || TECHNICAL_ID_TYPES.has(rmType);
+}
+
 function orderedKeys(
   parentType: string | undefined,
   keys: string[],
@@ -588,7 +600,7 @@ function buildNode(
     rmType,
   );
 
-  if (isDataValueType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
+  if (isLeafRmType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
     const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs);
     if (propertyCommentName) leaf.propertyComment = propertyCommentName;
     return leaf;

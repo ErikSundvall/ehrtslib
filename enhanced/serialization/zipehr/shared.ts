@@ -259,6 +259,21 @@ export const LANGUAGE_CARRIER_TYPES = new Set([
   "ADMIN_ENTRY",
 ]);
 
+/**
+ * Technical identifier types with a single string `value` (not clinician-facing).
+ * In xhtml/html5: store in `title` (or equivalent machine attr), not element text.
+ */
+export const TECHNICAL_ID_TYPES = new Set([
+  "OBJECT_VERSION_ID",
+  "ARCHETYPE_ID",
+  "TEMPLATE_ID",
+  "TERMINOLOGY_ID",
+  "HIER_OBJECT_ID",
+  "GENERIC_ID",
+  "INTERNET_ID",
+  "UUID",
+]);
+
 /** Extract an ISO 639 language code from a CODE_PHRASE object or terse string. */
 export function extractLanguageCode(language: unknown): string | undefined {
   if (language == null) return undefined;

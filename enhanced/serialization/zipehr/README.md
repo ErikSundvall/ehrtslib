@@ -117,10 +117,11 @@ semicolon-separated `code: value` pairs in `title`. Wire codes are either letter
 escaped as `\;` or quoted. openEHR `language` on COMPOSITION and ENTRY is emitted as the native HTML
 `lang` attribute (not an openEHR-style language child). Human-visible names live in headings
 (`h2`–`h4` for composition/section/entries) or leading `<span>` labels. DV values use terse strings
-in value-span `title` attributes without terminology emoji shortcuts. RM property names
-(`context`, `start_time`, …) are controlled by `propertyMode`: `omit` (default; attribute only when
-ambiguous), `attribute` (second `class` token, e.g. `class="EC context"`), or `comment`
-(`<!--start_time-->` before the element). Format URI:
+in value-span `title` attributes without terminology emoji shortcuts. Technical identifier types
+(`OBJECT_VERSION_ID`, …) put the id in `title` only (empty element text — not clinician-visible).
+RM property names (`context`, `start_time`, …) are controlled by `propertyMode`: `omit` (default;
+attribute only when ambiguous), `attribute` (second `class` token, e.g. `class="EC context"`), or
+`comment` (`<!--start_time-->` before the element). Format URI:
 `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.

@@ -373,23 +373,24 @@ Deno.test("zipehr xhtml: ar omitted when archetype id equals visible name", asyn
 });
 
 Deno.test("zipehr xhtml: composition uid (OBJECT_VERSION_ID) round-trip", async () => {
+  const uidValue = "a1b2c3d4-e5f6-7890-abcd-ef1234567890::ehrbase.org::1";
   const withUid: Record<string, unknown> = {
     ...CHEMO_FIXTURE,
     uid: {
       "_type": "OBJECT_VERSION_ID",
-      "value": "a1b2c3d4-e5f6-7890-abcd-ef1234567890::ehrbase.org::1",
+      "value": uidValue,
     },
   };
-  const xhtml = await serializeCanonicalToXhtml(withUid);
-  assert(xhtml.includes('class="OV"'));
-  assert(xhtml.includes("a1b2c3d4-e5f6-7890-abcd-ef1234567890::ehrbase.org::1"));
+  const xhtml = await serializeCanonicalToXhtml(withUid, {
+    propertyMode: "attribute",
+  });
+  // Technical id: title only, empty element text (not clinician-visible).
+  assert(xhtml.includes(`class="OV uid" title="${uidValue}"></span>`));
+  assert(!xhtml.includes(`>${uidValue}</span>`));
   const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
   const uid = restored.uid as Record<string, unknown>;
   assertEquals(uid._type, "OBJECT_VERSION_ID");
-  assertEquals(
-    uid.value,
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567890::ehrbase.org::1",
-  );
+  assertEquals(uid.value, uidValue);
 });
 
 Deno.test("zipehr xhtml: wrapFhirNarrative produces JSON-escapable div", async () => {

@@ -26,6 +26,7 @@ export {
   isTerseDvCodedText,
   isValueOnlyRmObject,
   LANGUAGE_CARRIER_TYPES,
+  TECHNICAL_ID_TYPES,
   languageCodePhrase,
   languageTerseString,
   loadSymbolMapFromText,
