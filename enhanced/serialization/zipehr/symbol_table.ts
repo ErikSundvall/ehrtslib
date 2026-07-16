@@ -147,6 +147,16 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   CONTRIBUTION: "📮",
 } as const;
 
+/** HTML5 short-dialect tag suffix overrides (`o-{suffix}`) when letter codes collide under lowercasing. */
+export const SYMBOL_TABLE_HTML5_SHORT_TAGS = {
+  DV_COUNT: "cnt",
+  CODE_PHRASE: "cp",
+  DV_INTERVAL: "intv",
+  DV_PARSABLE: "pars",
+  DV_PROPORTION: "prop",
+  DV_URI: "uri",
+} as const;
+
 export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };
 export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [
   { prefix: "openehr::", emoji: "🌬️" },

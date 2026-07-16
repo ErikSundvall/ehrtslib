@@ -119,10 +119,10 @@ shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
-**zipehr.html5** (proposed): compact `oe-*` custom elements (not FHIR Narrative). Two dialects —
-`html5/short` (`oe-ob`, `oe-q`, …) and `html5/full` (`oe-observation`, `oe-dv-quantity`, …).
-Semantics in tags + short attributes; no FLAT paths (inferred by traversal). See
-[`oehr_html5_v1.md`](oehr_html5_v1.md).
+**zipehr.html5** (proposed): compact `o-*` custom elements (not FHIR Narrative). Three dialects —
+`html5/short` (`o-ob`, `o-q`, …), `html5/full` (`o-observation`, `o-dv-quantity`, …), and
+`html5/emoji` (`o-👀`, `o-🌡️`, …). LOCATABLE names and DV values render as element text for
+browser readability without CSS. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 
@@ -215,6 +215,9 @@ Extra rows in the same file:
 
 - **`terminology_shortcuts`** — terse-string prefix replacements (`openehr::` → `🌬️`, etc.)
 - **`field_promotions`** — COMPOSITION `language` / `territory` / `encoding` promoted to emoji keys
+- **`html5_short_tags`** — `o-{suffix}` overrides when Ehrbase letter codes collide under HTML
+  ASCII lowercasing (e.g. `DV_COUNT` → `cnt` because `co` = `COMPOSITION`). Used by
+  `zipehr.html5/short` only; see [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 ### Editing workflow (required)
 `symbol_table.ts` is an embedded first-symbol copy used by the test suite and the browser demo.

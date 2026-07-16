@@ -109,6 +109,16 @@
   language: ["🗪"],
   territory: ["🌐"],
   encoding: ["🔤"],
+}, html5_short_tags: {
+  # Tag suffix after `o-` when Ehrbase letter codes collide under HTML ASCII lowercasing.
+  # Types not listed here use lowercased letter code from the primary symbol (array[0]).
+  # See oehr_html5_v1.md § Short dialect.
+  DV_COUNT: cnt,
+  CODE_PHRASE: cp,
+  DV_INTERVAL: intv,
+  DV_PARSABLE: pars,
+  DV_PROPORTION: prop,
+  DV_URI: uri,
 }, foundation_types: {
   # FOUNDATION_TYPES never occur in data structures so they are not included here
   
