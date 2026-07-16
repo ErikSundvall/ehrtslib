@@ -550,6 +550,59 @@ Deno.test("zipehr: hybrid JSON/YAML formatting stays valid and roundtrips", asyn
   assertEquals((fromYaml.name as { value: string }).value, "ChemoForm-MBA.v7");
 });
 
+Deno.test("zipehr: LOCATABLE archetype-detail clusters stay on one line", async () => {
+  const map = await loadDefaultSymbolMap();
+  const longName = "Frågeformulär för symptom och andra tecken";
+  const archetypeId =
+    "openEHR-EHR-OBSERVATION.symptom_sign_screening.v1";
+  const fixture = {
+    _type: "OBSERVATION",
+    name: { _type: "DV_TEXT", value: longName },
+    archetype_node_id: archetypeId,
+    archetype_details: {
+      _type: "ARCHETYPED",
+      archetype_id: { _type: "ARCHETYPE_ID", value: archetypeId },
+      rm_version: "1.1.0",
+    },
+    data: {
+      _type: "HISTORY",
+      archetype_node_id: "at0001",
+      events: [],
+    },
+  };
+
+  const yamlText = serializeZipehrPlainToYaml(
+    convertObjectEhrtslib(fixture, map),
+  );
+  const jsonText = serializeZipehrPlainToJson(
+    convertObjectDirect(fixture, map),
+  );
+
+  // Structured LOCATABLE must be a single flow-style line, not a block map.
+  assert(
+    !yamlText.includes("👀:\n"),
+    `YAML should not block-expand 👀 structured name; got:\n${yamlText}`,
+  );
+  assert(
+    yamlText.includes(
+      `👀: { 🪧: "${longName}", 🆔: "${archetypeId}", Ⓐ: true, ⚙️: "1.1.0" }`,
+    ),
+    `YAML missing single-line LOCATABLE cluster; got:\n${yamlText}`,
+  );
+  assert(
+    jsonText.includes(
+      `"👀": { "🪧": "${longName}", "🆔": "${archetypeId}", "Ⓐ": true, "⚙️": "1.1.0" }`,
+    ),
+    `JSON missing single-line LOCATABLE cluster; got:\n${jsonText}`,
+  );
+
+  // Round-trip still restores the long name and archetype id.
+  const fromYaml = expandZipehrToCanonical(parseZipehrText(yamlText), map) as
+    Record<string, unknown>;
+  assertEquals((fromYaml.name as { value: string }).value, longName);
+  assertEquals(fromYaml.archetype_node_id, archetypeId);
+});
+
 Deno.test("zipehr: schema declaration on serialize and warn on missing", async () => {
   const map = await loadDefaultSymbolMap();
   const zipehrObj = convertObjectDirect(CHEMO_FIXTURE, map);

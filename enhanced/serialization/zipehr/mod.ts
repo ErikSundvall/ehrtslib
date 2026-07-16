@@ -20,6 +20,7 @@ export {
   inferrablePropertyType,
   inferType,
   isLocatableStructuredObject,
+  looksLikeLocatableStructuredObject,
   isSymbolKey,
   isTerseCodePhrase,
   isTerseDvCodedText,

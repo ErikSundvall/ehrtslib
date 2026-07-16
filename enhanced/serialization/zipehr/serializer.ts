@@ -16,6 +16,7 @@ import {
   ZIPEHR_SCHEMA_URL,
   ZIPEHR_YAML_SCHEMA_DIRECTIVE,
 } from "./schema.ts";
+import { looksLikeLocatableStructuredObject } from "./shared.ts";
 import { loadSymbolMap, type ZipehrSymbolVariant } from "./symbol_map.ts";
 import {
   ensureLetterCodeMapLoaded,
@@ -89,9 +90,11 @@ export function serializeZipehrPlainToJson(obj: unknown): string {
 export function serializeZipehrPlainToYaml(obj: unknown): string {
   const doc = new Document(obj);
   applyHybridFormatting(doc.contents, obj, 0);
+  // lineWidth 0 disables wrapping so flow-style LOCATABLE clusters
+  // (🪧/🆔/Ⓐ/⚙️) stay on a single line even with long clinical names.
   const body = doc.toString({
     indent: 2,
-    lineWidth: 120,
+    lineWidth: 0,
     defaultStringType: "QUOTE_DOUBLE",
     defaultKeyType: "PLAIN",
   });
@@ -145,6 +148,8 @@ function formatInlineJson(value: unknown): string {
 
 function canFormatInline(value: unknown): boolean {
   if (!value || typeof value !== "object") return true;
+  // Always keep LOCATABLE name/archetype-detail clusters on one line.
+  if (looksLikeLocatableStructuredObject(value)) return true;
   return canFormatInlineInner(value, 0) &&
     formatInlineJson(value).length <= 160;
 }
@@ -180,11 +185,12 @@ function applyHybridFormatting(
   if (!node || typeof node !== "object") return;
 
   if (isMap(node)) {
-    const inline = HybridStyleFormatter.shouldFormatInline(source, {
-      maxInlineDepth: 2,
-      maxInlineProperties: 4,
-      maxInlineLength: 120,
-    }) || canFormatYamlInline(source);
+    const inline = looksLikeLocatableStructuredObject(source) ||
+      HybridStyleFormatter.shouldFormatInline(source, {
+        maxInlineDepth: 2,
+        maxInlineProperties: 4,
+        maxInlineLength: 120,
+      }) || canFormatYamlInline(source);
     if (!inline) {
       node.flow = false;
     } else {
@@ -220,6 +226,7 @@ function applyHybridFormatting(
 
 function canFormatYamlInline(value: unknown): boolean {
   if (!value || typeof value !== "object") return true;
+  if (looksLikeLocatableStructuredObject(value)) return true;
   return canFormatInlineInner(value, 0) &&
     formatInlineJson(value).length <= 120;
 }

@@ -598,6 +598,21 @@ export function isLocatableStructuredObject(
   return Object.prototype.hasOwnProperty.call(value, nameSym);
 }
 
+/**
+ * Detect a structured LOCATABLE metadata object without a symbol map.
+ * Used by hybrid formatters so name / archetype-detail clusters always stay
+ * on one line (emoji `🪧` or letter-code `na`).
+ */
+export function looksLikeLocatableStructuredObject(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const obj = value as Record<string, unknown>;
+  if (!("🪧" in obj) && !("na" in obj)) return false;
+  return Object.values(obj).every((v) =>
+    v === null || v === undefined ||
+    typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+  );
+}
+
 /** Inverse of {@link buildLocatableStructuredObject}. */
 export function parseLocatableStructuredObject(
   structured: Record<string, unknown>,
