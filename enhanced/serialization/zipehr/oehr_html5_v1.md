@@ -119,20 +119,20 @@ From `magnitude_status_operators` in `symbol_table.yaml` (letter **and** emoji c
 | RM | Wire |
 |----|------|
 | `=` | omitted |
-| `<` | `⋖` (U+2A7B) |
-| `>` | `⋗` (U+2A7C) |
+| `<` | `⩻` (U+2A7B LESS-THAN WITH QUESTION MARK ABOVE) |
+| `>` | `⩼` (U+2A7C GREATER-THAN WITH QUESTION MARK ABOVE) |
 | `<=` | `⩽` (U+2A7D) |
 | `>=` | `⩾` (U+2A7E) |
 | `~` | `~` |
 
 ```html
-<o-🌡️ 🎛="⋖">
+<o-🌡️ 🎛="⩻">
   <№>0.05</№>
   <◌>mg/L</◌>
 </o-🌡️>
 ```
 
-Possible future inline stream (non-HTML) varaints: `№5.6±0.2◌µmol/L⋯1`; `🎛⋖№0.05◌mg/L⋯2`.
+Possible future inline stream (non-HTML) varaints: `№5.6±0.2◌µmol/L⋯1`; `🎛⩻№0.05◌mg/L⋯2`.
 
 ## Attribute vocabulary (summary)
 

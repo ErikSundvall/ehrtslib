@@ -116,6 +116,10 @@
 }, magnitude_status_operators: {
   # RM magnitude_status → [letter, emoji] wire symbols (identical: HTML-safe for xhtml + html5 short).
   # Exact (=) omitted on the wire. Avoid raw < / > (need &lt;/&gt; escapes in HTML/XHTML).
+  # Chosen glyphs (not the dotted ⋖/⋗ U+22D6/U+22D7):
+  #   <  → ⩻ U+2A7B LESS-THAN WITH QUESTION MARK ABOVE
+  #   >  → ⩼ U+2A7C GREATER-THAN WITH QUESTION MARK ABOVE
+  #   <= → ⩽ U+2A7D;  >= → ⩾ U+2A7E;  ~ → ASCII tilde
   "<": ["⩻","⩻"],
   ">": ["⩼","⩼"],
   "<=": ["⩽","⩽"],
