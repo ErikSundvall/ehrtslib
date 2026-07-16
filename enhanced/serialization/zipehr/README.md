@@ -113,15 +113,16 @@ fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This r
 **zipehr.xhtml**: FHIR `Narrative.div`-safe XHTML snippets. RM types appear as Ehrbase letter codes in
 `class` (from `symbol_table.yaml`) — never as emoji in the class token. LOCATABLE metadata uses
 semicolon-separated `code: value` pairs in `title`. Wire codes are either letter (`id`, `te`, `ar`,
-`rm`) or emoji (`🆔`, `Ⓣ`, `Ⓐ`, `⚙️`) depending on `symbolVariant`; semicolons inside values are
+`rm`, `territory`) or emoji (`🆔`, `Ⓣ`, `Ⓐ`, `⚙️`, `🌐`) depending on `symbolVariant`; semicolons inside values are
 escaped as `\;` or quoted. openEHR `language` on COMPOSITION and ENTRY is emitted as the native HTML
-`lang` attribute (not an openEHR-style language child). Human-visible names live in headings
+`lang` attribute (not an openEHR-style language child). COMPOSITION `territory` is promoted into the
+root node `title` (`territory: SE` / `🌐: SE`), matching html5 root promotion. Human-visible names live in headings
 (`h2`–`h4` for composition/section/entries) or leading `<span>` labels. DV values use terse strings
-in value-span `title` attributes without terminology emoji shortcuts. Technical identifier types
-(`OBJECT_VERSION_ID`, …) put the id in `title` only (empty element text — not clinician-visible).
+in value-span `title` attributes; the emoji title variant applies terminology shortcuts (`📍`, `🌬️`, …).
+Technical identifier types (`OBJECT_VERSION_ID`, …) put the id in `title` only (empty element text — not clinician-visible).
 RM property names (`context`, `start_time`, …) are controlled by `propertyMode`: `omit` (default;
-attribute only when ambiguous), `attribute` (second `class` token, e.g. `class="EC context"`), or
-`comment` (`<!--start_time-->` before the element). Format URI:
+title prefix only when ambiguous), `attribute` (`prop — …` at the start of `title`, not a second
+`class` token), or `comment` (`<!--start_time-->` before the element). Format URI:
 `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
@@ -232,7 +233,7 @@ data:
         <div class="TR" title="🆔: at0008">
           <div class="E" title="🆔: at0009">
             <span>State of dress</span>
-            <span class="c" title="local::at0028|Fully clothed, without shoes|">Fully clothed, without shoes</span>
+            <span class="c" title="📍at0028|Fully clothed, without shoes|">Fully clothed, without shoes</span>
           </div>
         </div>
       </div>
@@ -493,8 +494,9 @@ Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in
 
 **COMPOSITION** (json/yaml) promotes `language` / `territory` / `encoding` CODE_PHRASE children to
 top-level `🗪` / `🌐` / `🔤` keys with bare code strings. **xhtml / html5** instead emit openEHR
-`language` (on COMPOSITION and ENTRY) as the native HTML `lang` attribute; territory/encoding stay
-as promoted attrs (`🌐` / `🔤` or `territory` / `encoding`) where those dialects support them.
+`language` (on COMPOSITION and ENTRY) as the native HTML `lang` attribute. Territory is promoted on
+the COMPOSITION root (`🌐` / `territory` attrs in html5; `🌐:` / `territory:` pairs in xhtml `title`).
+Encoding stays as a promoted attr in html5 where that dialect supports it.
 
 ### Variant examples (same clinical meaning, different representation)
 

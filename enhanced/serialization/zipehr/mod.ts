@@ -115,8 +115,11 @@ export {
 export {
   escapeTitleValue,
   formatLocatableTitle,
+  formatTitleWithProperty,
   parseLocatableTitle,
   splitTitlePairs,
+  splitTitlePropertyPrefix,
+  TITLE_PROPERTY_DELIMITER,
   unescapeTitleValue,
   type LocatableTitleFields,
   type TitleSymbolVariant,

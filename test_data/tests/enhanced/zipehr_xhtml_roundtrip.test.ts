@@ -226,6 +226,13 @@ Deno.test("zipehr xhtml: emoji title codes round-trip (class stays letter)", asy
   );
   assert(xhtml.includes('title="🆔: at0004"'));
   assert(!xhtml.includes('title="id:'));
+  // Terminology shortcuts allowed in title attribute values.
+  assert(
+    xhtml.includes(
+      'class="c" title="📍at0028|Fully clothed, without shoes|"',
+    ),
+  );
+  assert(!xhtml.includes("local::at0028"));
 
   const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
   assertEquals((restored.name as { value: string }).value, "Body weight");
@@ -233,6 +240,67 @@ Deno.test("zipehr xhtml: emoji title codes round-trip (class stays letter)", asy
     restored.archetype_node_id,
     "openEHR-EHR-OBSERVATION.body_weight.v2",
   );
+  const event = (
+    (restored.data as Record<string, unknown>).events as Record<string, unknown>[]
+  )[0];
+  const dressEl = (
+    ((event.state as Record<string, unknown>).items as Record<string, unknown>[])[0]
+  );
+  assertEquals(
+    ((dressEl.value as Record<string, unknown>).defining_code as {
+      code_string: string;
+    }).code_string,
+    "at0028",
+  );
+});
+
+Deno.test("zipehr xhtml: composition territory in root title", async () => {
+  const fixture: Record<string, unknown> = {
+    ...CHEMO_FIXTURE,
+    territory: {
+      _type: "CODE_PHRASE",
+      terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_3166-1" },
+      code_string: "SE",
+    },
+  };
+  const letter = await serializeCanonicalToXhtml(fixture);
+  assert(letter.includes("territory: SE"));
+  assert(!letter.includes('class="C territory"'));
+  assert(!letter.includes("ISO_3166-1::SE"));
+
+  const emoji = await serializeCanonicalToXhtml(fixture, {
+    symbolVariant: "emoji",
+  });
+  assert(emoji.includes("🌐: SE"));
+  assert(!emoji.includes("territory: SE"));
+
+  const restored = await zipehrXhtmlToCanonical(emoji) as Record<string, unknown>;
+  assertEquals(
+    (restored.territory as { code_string: string }).code_string,
+    "SE",
+  );
+  assertEquals(
+    (restored.territory as {
+      terminology_id: { value: string };
+    }).terminology_id.value,
+    "ISO_3166-1",
+  );
+});
+
+Deno.test("zipehr xhtml: propertyMode attribute uses title prefix, not class", async () => {
+  const fixture: Record<string, unknown> = {
+    ...CHEMO_FIXTURE,
+    uid: {
+      _type: "OBJECT_VERSION_ID",
+      value: "a1b2c3d4-e5f6-7890-abcd-ef1234567890::ehrbase.org::1",
+    },
+  };
+  const xhtml = await serializeCanonicalToXhtml(fixture, {
+    propertyMode: "attribute",
+  });
+  assert(xhtml.includes('title="uid — '));
+  assert(xhtml.includes('title="context —'));
+  assert(!/\bclass="[^"]*\s+\w+"/.test(xhtml));
 });
 
 Deno.test("zipehr xhtml: native lang round-trips COMPOSITION and ENTRY language", async () => {
@@ -385,7 +453,8 @@ Deno.test("zipehr xhtml: composition uid (OBJECT_VERSION_ID) round-trip", async 
     propertyMode: "attribute",
   });
   // Technical id: title only, empty element text (not clinician-visible).
-  assert(xhtml.includes(`class="OV uid" title="${uidValue}"></span>`));
+  assert(xhtml.includes(`class="OV" title="uid — ${uidValue}"></span>`));
+  assert(!xhtml.includes(`class="OV uid"`));
   assert(!xhtml.includes(`>${uidValue}</span>`));
   const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
   const uid = restored.uid as Record<string, unknown>;

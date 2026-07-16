@@ -81,12 +81,12 @@ Deno.test("zipehr all variants: OBJECT_VERSION_ID uid ↔ canonical JSON", async
     );
   }
 
-  // zipehr.xhtml (title-only for technical ids)
+  // zipehr.xhtml (title-only for technical ids; property prefix in title)
   {
     const xhtml = await serializeCanonicalToXhtml(COMPOSITION_WITH_UID, {
       propertyMode: "attribute",
     });
-    assertStringIncludes(xhtml, `title="${UID_VALUE}"`);
+    assertStringIncludes(xhtml, `title="uid — ${UID_VALUE}"`);
     assertEquals(xhtml.includes(`>${UID_VALUE}</span>`), false);
     assertUidRestored(
       await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>,

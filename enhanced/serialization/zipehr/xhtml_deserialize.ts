@@ -8,13 +8,15 @@ import {
   getLetterCodeReverseMap,
   rmTypeFromClass,
 } from "./letter_codes.ts";
-import { parseLocatableTitle } from "./title_grammar.ts";
+import { parseLocatableTitle, splitTitlePropertyPrefix } from "./title_grammar.ts";
 import {
+  expandTerseString,
   isLocatableStructuredObject,
   LANGUAGE_CARRIER_TYPES,
   languageTerseString,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
+  TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 import { ensureLetterCodeMapLoaded } from "./xhtml_serialize.ts";
 
@@ -152,10 +154,7 @@ function isLabelSpanChild(
 ): boolean {
   if (child.tag !== "span") return false;
   if (child.attrs.class) return false;
-  const rmType = rmTypeFromClass(
-    parseClassTokens(node.attrs.class).typeToken,
-    reverseMap,
-  );
+  const rmType = rmTypeFromClass(classToken(node.attrs.class), reverseMap);
   if (rmType === "ELEMENT") return false;
   const spans = childElements(node).filter((c) => c.tag === "span");
   return spans[0] === child;
@@ -165,7 +164,7 @@ function titleToStructured(
   title: string | undefined,
   visibleName: string | undefined,
   letterMap: Record<string, string>,
-): Record<string, unknown> {
+): { structured: Record<string, unknown>; territory?: string } {
   const nameSym = letterMap["LOCATABLE.name"] ?? "na";
   const nodeSym = letterMap["LOCATABLE.archetype_node_id"] ?? "id";
   const templateSym = letterMap["ARCHETYPED.template_id"] ?? "te";
@@ -175,7 +174,8 @@ function titleToStructured(
   const structured: Record<string, unknown> = {};
   if (visibleName) structured[nameSym] = visibleName;
 
-  const fields = parseLocatableTitle(title ?? "");
+  const { rest } = splitTitlePropertyPrefix(title ?? "");
+  const fields = parseLocatableTitle(rest);
   if (fields.id) structured[nodeSym] = fields.id;
   if (fields.te) structured[templateSym] = fields.te;
   if (fields.rm) structured[rmSym] = fields.rm;
@@ -190,7 +190,16 @@ function titleToStructured(
     structured[archetypeSym] = visibleName;
   }
 
-  return structured;
+  return { structured, territory: fields.territory };
+}
+
+function territoryTerseString(code: string): string {
+  const promo = TERMINOLOGY_FIELD_PROMOTIONS.find((p) => p.field === "territory");
+  return `${promo?.prefix ?? "ISO_3166-1::"}${code}`;
+}
+
+function titleProperty(title: string | undefined): string | undefined {
+  return splitTitlePropertyPrefix(title ?? "").property;
 }
 
 function warnNameMismatch(
@@ -207,15 +216,14 @@ function warnNameMismatch(
   }
 }
 
-function deserializeValueSpan(
-  span: XhtmlElement,
-  reverseMap: Map<string, string>,
-): Record<string, unknown> {
-  const classToken = parseClassTokens(span.attrs.class).typeToken;
-  const title = span.attrs.title;
+function deserializeValueSpan(span: XhtmlElement): Record<string, unknown> {
+  const token = classToken(span.attrs.class);
   const display = elementText(span);
-  const value = title ?? display;
-  return { [classToken]: value };
+  const { rest: titleRest } = splitTitlePropertyPrefix(span.attrs.title ?? "");
+  // Expand terminology emoji shortcuts when present in title values.
+  const raw = titleRest || display;
+  const value = raw ? expandTerseString(raw) : display;
+  return { [token]: value };
 }
 
 function deserializeElementDiv(
@@ -226,10 +234,10 @@ function deserializeElementDiv(
   const spans = childElements(node).filter((c) => c.tag === "span");
   const label = spans[0] ? elementText(spans[0]) : undefined;
   const valueSpan = spans[1];
-  const structured = titleToStructured(node.attrs.title, label, letterMap);
+  const { structured } = titleToStructured(node.attrs.title, label, letterMap);
   const out: Record<string, unknown> = { E: structured };
   if (valueSpan) {
-    Object.assign(out, deserializeValueSpan(valueSpan, reverseMap));
+    Object.assign(out, deserializeValueSpan(valueSpan));
   }
   for (const child of childElements(node)) {
     if (child.tag === "span") continue;
@@ -313,22 +321,14 @@ function childRmTypeFromNode(
   child: XhtmlElement,
   reverseMap: Map<string, string>,
 ): string | undefined {
-  const classToken = parseClassTokens(child.attrs.class).typeToken;
-  if (!classToken) return undefined;
-  return rmTypeFromClass(classToken, reverseMap);
+  const token = classToken(child.attrs.class);
+  if (!token) return undefined;
+  return rmTypeFromClass(token, reverseMap);
 }
 
-/** Split `class="EC context"` into type letter + optional RM property name. */
-function parseClassTokens(classAttr: string | undefined): {
-  typeToken: string;
-  property?: string;
-} {
-  if (!classAttr) return { typeToken: "" };
-  const parts = classAttr.trim().split(/\s+/).filter(Boolean);
-  return {
-    typeToken: parts[0] ?? "",
-    property: parts[1],
-  };
+/** Ehrbase letter `class` token (single token; RM properties live in `title`). */
+function classToken(classAttr: string | undefined): string {
+  return classAttr?.trim() ?? "";
 }
 
 function deserializeElement(
@@ -337,14 +337,14 @@ function deserializeElement(
   reverseMap: Map<string, string>,
   _parentRmType?: string,
 ): Record<string, unknown> {
-  const { typeToken: classToken } = parseClassTokens(node.attrs.class);
-  if (!classToken) {
+  const token = classToken(node.attrs.class);
+  if (!token) {
     throw new Error(`ZipEHR XHTML element missing class attribute: <${node.tag}>`);
   }
 
-  const rmType = rmTypeFromClass(classToken, reverseMap);
+  const rmType = rmTypeFromClass(token, reverseMap);
   if (!rmType) {
-    throw new Error(`Unknown ZipEHR XHTML class token: ${classToken}`);
+    throw new Error(`Unknown ZipEHR XHTML class token: ${token}`);
   }
 
   if (rmType === "ELEMENT") {
@@ -352,18 +352,22 @@ function deserializeElement(
   }
 
   const visibleName = visibleLocatableName(node);
-  const structured = titleToStructured(node.attrs.title, visibleName, letterMap);
+  const { structured, territory } = titleToStructured(
+    node.attrs.title,
+    visibleName,
+    letterMap,
+  );
   const hasStructured = Object.keys(structured).length > 0;
 
   const out: Record<string, unknown> = {};
   if (hasStructured && isLocatableStructuredObject(structured, letterMap)) {
-    out[classToken] = structured;
+    out[token] = structured;
     warnNameMismatch(
       visibleName,
       String(structured[letterMap["LOCATABLE.name"] ?? "na"] ?? ""),
     );
   } else {
-    out._ = classToken;
+    out._ = token;
   }
 
   // Native HTML `lang` → openEHR language CODE_PHRASE (COMPOSITION / ENTRY).
@@ -371,16 +375,23 @@ function deserializeElement(
     out.language = languageTerseString(node.attrs.lang);
   }
 
+  // COMPOSITION territory from root title (`territory: SE` / `🌐: SE`).
+  if (rmType === "COMPOSITION" && territory) {
+    out.territory = territoryTerseString(territory);
+  }
+
   const childDivs = childElements(node).filter((c) =>
     !HEADING_TAGS.has(c.tag) && !isLabelSpanChild(node, c, reverseMap)
   );
   const usedProperties = new Set<string>();
+  if (out.language != null) usedProperties.add("language");
+  if (out.territory != null) usedProperties.add("territory");
 
   for (const child of childDivs) {
     if (child.tag === "span") {
       const valueRm = childRmTypeFromNode(child, reverseMap);
-      const valueObj = deserializeValueSpan(child, reverseMap);
-      const explicit = parseClassTokens(child.attrs.class).property;
+      const valueObj = deserializeValueSpan(child);
+      const explicit = titleProperty(child.attrs.title);
       if (valueRm) {
         const propName = explicit ??
           resolveChildPropertyName(rmType, valueRm, usedProperties);
@@ -393,7 +404,7 @@ function deserializeElement(
     }
 
     const childRm = childRmTypeFromNode(child, reverseMap) ?? "UNKNOWN";
-    const explicit = parseClassTokens(child.attrs.class).property;
+    const explicit = titleProperty(child.attrs.title);
     const propName = explicit ??
       resolveChildPropertyName(rmType, childRm, usedProperties);
     usedProperties.add(propName);

@@ -36,7 +36,8 @@ export function isArchetypeIdSameAsNodeIdFlag(value: unknown): boolean {
 /**
  * How (X)HTML formats emit openEHR RM property names (`context`, `start_time`, …).
  * - `omit` — only when the parent slot is ambiguous (type→property not unique)
- * - `attribute` — always as an attribute (`p`/`property`, or XHTML extra `class` token)
+ * - `attribute` — always as an attribute (`p`/`property` in html5; XHTML puts the
+ *   name at the start of `title` as `prop — …`, not in `class`)
  * - `comment` — always as a compact `<!--prop-->` before the element (ambiguous slots
  *   still also get the attribute so round-trip stays lossless)
  */

@@ -9,6 +9,7 @@ import {
   extractFirstScalar,
   extractLanguageCode,
   expandTerseString,
+  extractTerminologyFieldCode,
   formatPropertyComment,
   inferrablePropertyType,
   isLocatableStructuredObject,
@@ -20,7 +21,9 @@ import {
   type RmPropertyEmitMode,
   shouldEmitPropertyAttribute,
   shouldEmitPropertyComment,
+  shortenTerseString,
   TECHNICAL_ID_TYPES,
+  TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
 import {
   classFromRmType,
@@ -30,6 +33,7 @@ import {
 } from "./letter_codes.ts";
 import {
   formatLocatableTitle,
+  formatTitleWithProperty,
   type LocatableTitleFields,
   type TitleSymbolVariant,
 } from "./title_grammar.ts";
@@ -68,7 +72,7 @@ export type XhtmlSerializeOptions = {
   /**
    * How to surface RM property names (`context`, `start_time`, …).
    * - `omit` (default) — only when the parent slot is ambiguous
-   * - `attribute` — second `class` token (FHIR Narrative–safe)
+   * - `attribute` — prefix of `title` as `prop — …` (not in `class`)
    * - `comment` — compact `<!--prop-->` before the element
    */
   propertyMode?: RmPropertyEmitMode;
@@ -211,16 +215,25 @@ function formatDvQuantityDisplay(value: unknown): string {
   return units ? `${magnitude} ${units}` : String(magnitude);
 }
 
+function maybeShortenTitleValue(
+  terse: string,
+  variant: TitleSymbolVariant,
+): string {
+  // Emoji titles may use TERMINOLOGY_SHORTCUTS (allowed in attribute values).
+  return variant === "emoji" ? shortenTerseString(terse) : terse;
+}
+
 function formatValueTitle(
   rmType: string,
   value: unknown,
   letterMap: Record<string, string>,
+  variant: TitleSymbolVariant,
 ): string | undefined {
   if (value == null) return undefined;
   if (typeof value === "string") {
     const expanded = expandTerseString(value, letterMap);
     if (rmType === "DV_TEXT" && expanded === value) return undefined;
-    return expanded;
+    return maybeShortenTitleValue(expanded, variant);
   }
   if (typeof value !== "object" || Array.isArray(value)) {
     return String(value);
@@ -230,9 +243,9 @@ function formatValueTitle(
     case "DV_QUANTITY":
       return formatDvQuantityTitle(obj);
     case "DV_CODED_TEXT":
-      return toTerseDvCodedText(obj);
+      return maybeShortenTitleValue(toTerseDvCodedText(obj), variant);
     case "CODE_PHRASE":
-      return toTerseCodePhrase(obj);
+      return maybeShortenTitleValue(toTerseCodePhrase(obj), variant);
     case "DV_DATE_TIME":
     case "DV_DATE":
     case "DV_TIME":
@@ -299,24 +312,8 @@ function formatValueDisplay(
   }
 }
 
-function formatClassAttr(
-  typeToken: string,
-  propertyName: string | undefined,
-  parentType: string | undefined,
-  childType: string,
-  propertyMode: RmPropertyEmitMode,
-): string {
-  let cls = typeToken;
-  if (
-    propertyName &&
-    shouldEmitPropertyAttribute(
-      propertyMode,
-      propertySlotAmbiguous(parentType, childType, propertyName),
-    )
-  ) {
-    cls = `${typeToken} ${propertyName}`;
-  }
-  return `class="${escapeXmlAttr(cls)}"`;
+function formatClassAttr(typeToken: string): string {
+  return `class="${escapeXmlAttr(typeToken)}"`;
 }
 
 function withPropertyComment(
@@ -326,6 +323,45 @@ function withPropertyComment(
 ): string {
   if (!propertyName || !shouldEmitPropertyComment(propertyMode)) return html;
   return formatPropertyComment(propertyName) + html;
+}
+
+function shouldEmitPropertyInTitle(
+  propertyName: string | undefined,
+  parentType: string | undefined,
+  childType: string,
+  propertyMode: RmPropertyEmitMode,
+): boolean {
+  if (!propertyName) return false;
+  return shouldEmitPropertyAttribute(
+    propertyMode,
+    propertySlotAmbiguous(parentType, childType, propertyName),
+  );
+}
+
+function composeTitleAttr(
+  titleBody: string,
+  propertyName: string | undefined,
+  parentType: string | undefined,
+  childType: string,
+  propertyMode: RmPropertyEmitMode,
+): string {
+  const title = formatTitleWithProperty(
+    propertyName,
+    titleBody,
+    shouldEmitPropertyInTitle(propertyName, parentType, childType, propertyMode),
+  );
+  return title ? ` title="${escapeXmlAttr(title)}"` : "";
+}
+
+function extractCompositionTerritoryCode(value: unknown): string | undefined {
+  const promo = TERMINOLOGY_FIELD_PROMOTIONS.find((p) => p.field === "territory");
+  if (!promo) return undefined;
+  // Force shortcut path so ISO_3166-1::SE / 🌐SE both strip to bare code.
+  return extractTerminologyFieldCode(
+    value,
+    promo.prefix,
+    promo.emoji,
+  ) ?? undefined;
 }
 
 function renderValueSpan(
@@ -339,19 +375,31 @@ function renderValueSpan(
   const display = escapeXmlText(
     formatValueDisplay(rmType, value, ctx.letterMap),
   );
-  const title = formatValueTitle(rmType, value, ctx.letterMap);
-  const titleAttr = title && title !== display
-    ? ` title="${escapeXmlAttr(title)}"`
-    : title && rmType !== "DV_TEXT"
-    ? ` title="${escapeXmlAttr(title)}"`
-    : "";
-  const classAttr = formatClassAttr(
-    classToken,
+  const titleBody = formatValueTitle(
+    rmType,
+    value,
+    ctx.letterMap,
+    ctx.titleVariant,
+  ) ?? "";
+  const emitProp = shouldEmitPropertyInTitle(
     propertyName,
     parentType,
     rmType,
     ctx.propertyMode,
   );
+  // Skip machine title when it would only duplicate clinician-visible DV_TEXT.
+  const keepMachineTitle = Boolean(titleBody) &&
+    !(titleBody === display && rmType === "DV_TEXT");
+  const titleAttr = (emitProp || keepMachineTitle)
+    ? composeTitleAttr(
+      keepMachineTitle ? titleBody : "",
+      propertyName,
+      parentType,
+      rmType,
+      ctx.propertyMode,
+    )
+    : "";
+  const classAttr = formatClassAttr(classToken);
   return withPropertyComment(
     `<span ${classAttr}${titleAttr}>${display}</span>`,
     propertyName,
@@ -392,6 +440,13 @@ function renderChildren(
       if (k === "language" && LANGUAGE_CARRIER_TYPES.has(rmType ?? "")) {
         return false;
       }
+      // COMPOSITION territory is promoted into the root `title` attribute.
+      if (
+        rmType === "COMPOSITION" && k === "territory" &&
+        extractCompositionTerritoryCode(obj[k])
+      ) {
+        return false;
+      }
       return true;
     }),
   );
@@ -418,10 +473,12 @@ function renderLocatableDiv(
   parentType?: string,
   propertyName?: string,
 ): string {
-  const title = formatLocatableTitle(
-    buildLocatableTitleFields(structured, ctx.letterMap),
-    ctx.titleVariant,
-  );
+  const fields = buildLocatableTitleFields(structured, ctx.letterMap);
+  if (rmType === "COMPOSITION") {
+    const territoryCode = extractCompositionTerritoryCode(siblings.territory);
+    if (territoryCode) fields.territory = territoryCode;
+  }
+  const titleBody = formatLocatableTitle(fields, ctx.titleVariant);
   const name = locatableName(structured, ctx.letterMap);
   const headingTag = HEADING_BY_TYPE[rmType];
   const heading = headingTag
@@ -431,16 +488,16 @@ function renderLocatableDiv(
     ? `<span>${escapeXmlText(name)}</span>`
     : "";
   assertSafeTagName(headingTag || "div");
-  const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
-  const langAttr = langAttrFromSiblings(rmType, siblings);
-  const childHtml = renderChildren(siblings, rmType, ctx);
-  const classAttr = formatClassAttr(
-    classToken,
+  const titleAttr = composeTitleAttr(
+    titleBody,
     propertyName,
     parentType,
     rmType,
     ctx.propertyMode,
   );
+  const langAttr = langAttrFromSiblings(rmType, siblings);
+  const childHtml = renderChildren(siblings, rmType, ctx);
+  const classAttr = formatClassAttr(classToken);
   return withPropertyComment(
     `<div ${classAttr}${titleAttr}${langAttr}>${heading}${nameSpan}${childHtml}</div>`,
     propertyName,
@@ -554,14 +611,14 @@ function renderZipehrNode(
         rmType,
         ctx,
       );
-      const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
-      const classAttr = formatClassAttr(
-        "E",
+      const titleAttr = composeTitleAttr(
+        title,
         propertyName,
         parentType,
         rmType,
         ctx.propertyMode,
       );
+      const classAttr = formatClassAttr("E");
       return withPropertyComment(
         `<div ${classAttr}${titleAttr}><span>${escapeXmlText(label)}</span>${valueHtml}${otherChildren}</div>`,
         propertyName,
@@ -616,15 +673,16 @@ function renderZipehrNode(
     }
     const langAttr = langAttrFromSiblings(rmType, obj);
     const childHtml = renderChildren(obj, rmType, ctx);
-    const classAttr = formatClassAttr(
-      classToken,
+    const titleAttr = composeTitleAttr(
+      "",
       propertyName,
       parentType,
       rmType,
       ctx.propertyMode,
     );
+    const classAttr = formatClassAttr(classToken);
     return withPropertyComment(
-      `<div ${classAttr}${langAttr}>${childHtml}</div>`,
+      `<div ${classAttr}${titleAttr}${langAttr}>${childHtml}</div>`,
       propertyName,
       ctx.propertyMode,
     );
@@ -644,15 +702,16 @@ function renderZipehrNode(
       };
       const langAttr = langAttrFromSiblings(rmType, merged);
       const childHtml = renderChildren(merged, rmType, ctx);
-      const classAttr = formatClassAttr(
-        symKey,
+      const titleAttr = composeTitleAttr(
+        "",
         propertyName,
         parentType,
         rmType,
         ctx.propertyMode,
       );
+      const classAttr = formatClassAttr(symKey);
       return withPropertyComment(
-        `<div ${classAttr}${langAttr}>${childHtml}</div>`,
+        `<div ${classAttr}${titleAttr}${langAttr}>${childHtml}</div>`,
         propertyName,
         ctx.propertyMode,
       );
