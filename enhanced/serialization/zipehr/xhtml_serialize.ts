@@ -114,27 +114,40 @@ function buildLocatableTitleFields(
   if (structured[templateSym] != null) {
     fields.te = String(structured[templateSym]);
   }
-
-  const combinedValue = structured[combinedKey] != null
-    ? String(structured[combinedKey])
-    : undefined;
-  const archetypeId = combinedValue ??
-    (structured[archetypeSym] != null
-      ? String(structured[archetypeSym])
-      : undefined);
-  if (archetypeId != null && archetypeId !== name) {
-    fields.ar = archetypeId;
-  }
   if (structured[rmSym] != null && String(structured[rmSym]) !== "") {
     fields.rm = String(structured[rmSym]);
   }
-  if (structured[nodeSym] != null) {
-    const nodeId = String(structured[nodeSym]);
-    if (!archetypeId || nodeId !== archetypeId) {
-      fields.id = nodeId;
+
+  const nodeId = structured[nodeSym] != null
+    ? String(structured[nodeSym])
+    : (structured[combinedKey] != null
+      ? String(structured[combinedKey])
+      : undefined);
+
+  const aRaw = structured[archetypeSym];
+  let archetypeId: string | true | undefined;
+  if (structured[combinedKey] != null) {
+    archetypeId = String(structured[combinedKey]);
+  } else if (aRaw === true || aRaw === "true") {
+    archetypeId = true;
+  } else if (aRaw != null && aRaw !== false && aRaw !== "") {
+    archetypeId = String(aRaw);
+  }
+
+  const effectiveId = nodeId ??
+    (typeof archetypeId === "string" ? archetypeId : undefined);
+  if (effectiveId != null) fields.id = effectiveId;
+
+  if (archetypeId === true) {
+    fields.ar = true;
+  } else if (typeof archetypeId === "string" && archetypeId !== name) {
+    if (effectiveId != null && archetypeId === effectiveId) {
+      fields.ar = true;
+    } else {
+      fields.ar = archetypeId;
     }
   }
-  // Combined key already implies id === ar; no separate id field.
+
   return fields;
 }
 

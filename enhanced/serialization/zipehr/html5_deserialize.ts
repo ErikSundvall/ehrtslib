@@ -12,6 +12,7 @@ import {
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 import {
+  isArchetypeIdSameAsNodeIdFlag,
   LOCATABLE_LIKE_TYPES,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
@@ -277,31 +278,58 @@ function readLocatableMeta(
   templateId?: string;
   rmVersion?: string;
 } {
+  // Legacy combined attrs (pre boolean-Ⓐ design).
+  const legacyCombined = attrs.an ?? attrs["archetype-id-node-id"] ??
+    attrs["Ⓐ🆔"];
+
+  let nodeId: string | undefined;
+  let archRaw: string | undefined;
+  let templateId: string | undefined;
+  let rmVersion: string | undefined;
+  let archKeyPresent = false;
+
   if (dialect === "short") {
-    const combined = attrs.an;
+    nodeId = attrs.n;
+    archKeyPresent = Object.prototype.hasOwnProperty.call(attrs, "a");
+    archRaw = attrs.a;
+    templateId = attrs.tp;
+    rmVersion = attrs.rm;
+  } else if (dialect === "full") {
+    nodeId = attrs["archetype-node-id"];
+    archKeyPresent = Object.prototype.hasOwnProperty.call(attrs, "archetype-id");
+    archRaw = attrs["archetype-id"];
+    templateId = attrs["template-id"];
+    rmVersion = attrs["rm-version"];
+  } else {
+    nodeId = attrs["🆔"];
+    archKeyPresent = Object.prototype.hasOwnProperty.call(attrs, "Ⓐ");
+    archRaw = attrs["Ⓐ"];
+    templateId = attrs["Ⓣ"];
+    rmVersion = attrs["⚙️"];
+  }
+
+  if (legacyCombined) {
     return {
-      nodeId: attrs.n ?? combined,
-      archetypeId: attrs.a ?? combined,
-      templateId: attrs.tp,
-      rmVersion: attrs.rm,
+      nodeId: nodeId ?? legacyCombined,
+      archetypeId: legacyCombined,
+      templateId,
+      rmVersion,
     };
   }
-  if (dialect === "full") {
-    const combined = attrs["archetype-id-node-id"];
-    return {
-      nodeId: attrs["archetype-node-id"] ?? combined,
-      archetypeId: attrs["archetype-id"] ?? combined,
-      templateId: attrs["template-id"],
-      rmVersion: attrs["rm-version"],
-    };
+
+  let archetypeId: string | undefined;
+  if (archKeyPresent) {
+    if (isArchetypeIdSameAsNodeIdFlag(archRaw)) {
+      archetypeId = nodeId;
+    } else if (archRaw != null && archRaw !== "") {
+      archetypeId = archRaw;
+    }
   }
-  const combined = attrs["Ⓐ🆔"];
-  return {
-    nodeId: attrs["🆔"] ?? combined,
-    archetypeId: attrs["Ⓐ"] ?? combined,
-    templateId: attrs["Ⓣ"],
-    rmVersion: attrs["⚙️"],
-  };
+
+  // Legacy: Ⓐ/a string alone implied node id.
+  if (!nodeId && archetypeId) nodeId = archetypeId;
+
+  return { nodeId, archetypeId, templateId, rmVersion };
 }
 
 function deserializeDvQuantity(
@@ -478,9 +506,7 @@ function deserializeElement(
   }
 
   const meta = readLocatableMeta(node.attrs, dialect);
-  // Combined attr / legacy Ⓐ-only: node id defaults to archetype id.
-  const nodeId = meta.nodeId ?? meta.archetypeId;
-  if (nodeId) out.archetype_node_id = nodeId;
+  if (meta.nodeId) out.archetype_node_id = meta.nodeId;
   if (meta.archetypeId || meta.templateId || meta.rmVersion) {
     const details: Record<string, unknown> = { _type: "ARCHETYPED" };
     if (meta.archetypeId) {

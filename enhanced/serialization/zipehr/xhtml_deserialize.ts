@@ -173,8 +173,13 @@ function titleToStructured(
   const fields = parseLocatableTitle(title ?? "");
   if (fields.id) structured[nodeSym] = fields.id;
   if (fields.te) structured[templateSym] = fields.te;
-  if (fields.ar) structured[archetypeSym] = fields.ar;
   if (fields.rm) structured[rmSym] = fields.rm;
+  if (fields.ar === true) {
+    structured[archetypeSym] = true;
+    if (!fields.id && visibleName) structured[nodeSym] = visibleName;
+  } else if (fields.ar) {
+    structured[archetypeSym] = fields.ar;
+  }
 
   if (!fields.ar && (fields.te || fields.rm) && visibleName) {
     structured[archetypeSym] = visibleName;

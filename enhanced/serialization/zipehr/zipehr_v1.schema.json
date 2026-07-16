@@ -43,12 +43,8 @@
           "description": "ARCHETYPED.template_id"
         },
         "Ⓐ": {
-          "type": "string",
-          "description": "ARCHETYPED.archetype_id (when different from archetype_node_id)"
-        },
-        "Ⓐ🆔": {
-          "type": "string",
-          "description": "Combined ARCHETYPED.archetype_id + LOCATABLE.archetype_node_id when both share the same value"
+          "type": ["string", "boolean"],
+          "description": "ARCHETYPED.archetype_id, or true when equal to 🆔 (same-as-node-id flag)"
         },
         "⚙️": {
           "type": "string",
@@ -91,7 +87,8 @@
       "$schema": "http://purl.org/ehrtslib/zipehr/v1",
       "👀": {
         "🪧": "Body weight",
-        "Ⓐ🆔": "openEHR-EHR-OBSERVATION.body_weight.v2"
+        "🆔": "openEHR-EHR-OBSERVATION.body_weight.v2",
+        "Ⓐ": true
       },
       "data": {
         "events": [

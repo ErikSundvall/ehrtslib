@@ -9,7 +9,9 @@
 
 export {
   ARCHETYPE_DETAIL_SYMBOLS,
+  ARCHETYPE_ID_SAME_AS_NODE_ID,
   combinedArchetypeIdNodeIdKey,
+  isArchetypeIdSameAsNodeIdFlag,
   buildLocatableStructuredObject,
   canFoldInferrableValueLeaf,
   compactArchetypeDetails,

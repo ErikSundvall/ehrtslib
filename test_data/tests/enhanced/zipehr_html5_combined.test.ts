@@ -29,13 +29,14 @@ const ROOT_CLUSTER: Record<string, unknown> = {
   ],
 };
 
-Deno.test("zipehr html5: combined archetype-id-node-id attr (emoji)", async () => {
+Deno.test("zipehr html5: 🆔 + valueless Ⓐ flag (emoji)", async () => {
   const html = await serializeCanonicalToHtml5(ROOT_CLUSTER, {
     dialect: "emoji",
     layout: "oneliner",
   });
-  assertStringIncludes(html, 'Ⓐ🆔="openEHR-EHR-CLUSTER.organisation.v1"');
-  assertEquals(html.includes(' Ⓐ='), false);
+  assertStringIncludes(html, '🆔="openEHR-EHR-CLUSTER.organisation.v1"');
+  assertStringIncludes(html, " Ⓐ");
+  assertEquals(html.includes("Ⓐ🆔"), false);
   assertStringIncludes(html, '🆔="at0001"');
 
   const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
@@ -47,14 +48,14 @@ Deno.test("zipehr html5: combined archetype-id-node-id attr (emoji)", async () =
   );
 });
 
-Deno.test("zipehr html5: combined an attr (short)", async () => {
+Deno.test("zipehr html5: n + valueless a flag (short)", async () => {
   const html = await serializeCanonicalToHtml5(ROOT_CLUSTER, {
     dialect: "short",
     layout: "oneliner",
   });
-  assertStringIncludes(html, 'an="openEHR-EHR-CLUSTER.organisation.v1"');
-  assertEquals(html.includes(' n="openEHR-EHR-CLUSTER.organisation.v1"'), false);
-  assertEquals(html.includes(' a="openEHR-EHR-CLUSTER.organisation.v1"'), false);
+  assertStringIncludes(html, 'n="openEHR-EHR-CLUSTER.organisation.v1"');
+  assertStringIncludes(html, " a ");
+  assertEquals(html.includes(" an="), false);
 
   const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
   assertEquals(back.archetype_node_id, "openEHR-EHR-CLUSTER.organisation.v1");
@@ -65,4 +66,16 @@ Deno.test("zipehr html5: legacy Ⓐ without 🆔 still restores node id", () => 
     `<o-📁 fmt="e1" Ⓐ="openEHR-EHR-CLUSTER.organisation.v1" ⚙️="1.1.0">Vårdenhet</o-📁>`;
   const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
   assertEquals(back.archetype_node_id, "openEHR-EHR-CLUSTER.organisation.v1");
+});
+
+Deno.test("zipehr html5: legacy Ⓐ🆔 combined attr still round-trips", () => {
+  const html =
+    `<o-📁 fmt="e1" Ⓐ🆔="openEHR-EHR-CLUSTER.organisation.v1" ⚙️="1.1.0">Vårdenhet</o-📁>`;
+  const back = zipehrHtml5ToCanonical(html) as Record<string, unknown>;
+  assertEquals(back.archetype_node_id, "openEHR-EHR-CLUSTER.organisation.v1");
+  assertEquals(
+    (back.archetype_details as { archetype_id: { value: string } })
+      .archetype_id.value,
+    "openEHR-EHR-CLUSTER.organisation.v1",
+  );
 });

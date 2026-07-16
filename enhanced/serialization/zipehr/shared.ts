@@ -22,14 +22,25 @@ export const ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({
 });
 
 /**
- * Combined wire key when `archetype_node_id` equals `archetype_id`
- * (`Ⓐ` + `🆔` for emoji; lettercode concatenates its attribute symbols).
+ * Wire marker meaning “archetype_id equals archetype_node_id” (do not repeat the
+ * long id). JSON/YAML use boolean `true`; HTML5 uses a valueless attribute.
+ */
+export const ARCHETYPE_ID_SAME_AS_NODE_ID = true;
+
+/**
+ * @deprecated Combined `Ⓐ🆔` key — accepted on deserialize for older payloads only.
  */
 export function combinedArchetypeIdNodeIdKey(
   archetypeIdSym: string,
   nodeIdSym: string,
 ): string {
   return `${archetypeIdSym}${nodeIdSym}`;
+}
+
+/** True when `Ⓐ` / `a` / `archetype-id` is the “same as node id” flag. */
+export function isArchetypeIdSameAsNodeIdFlag(value: unknown): boolean {
+  return value === true || value === ARCHETYPE_ID_SAME_AS_NODE_ID ||
+    value === "" || value === "true";
 }
 
 export const POLYMORPHIC_TYPES = new Set([
@@ -460,6 +471,9 @@ function locatableAttributeSymbols(
 /**
  * Build a structured LOCATABLE object (JSON/YAML-library-friendly).
  * Emoji keys come from `symbol_table.yaml` attribute rows via `symbolMap`.
+ *
+ * `🆔` is always the path node id. When `archetype_id` equals that id, emit
+ * `Ⓐ: true` (HTML: valueless `Ⓐ`) instead of repeating the string.
  */
 export function buildLocatableStructuredObject(
   nameStr: string,
@@ -474,11 +488,10 @@ export function buildLocatableStructuredObject(
   );
   const out: Record<string, unknown> = { [sym.name]: nameStr };
 
-  const nodeId = archetypeNodeId != null ? String(archetypeNodeId) : undefined;
-
   let templateId: string | null = null;
   let archetypeId: string | null = null;
   let rmVersion: unknown = null;
+  let archetypeIdIsFlag = false;
 
   if (
     archetypeDetails && typeof archetypeDetails === "object" &&
@@ -487,40 +500,44 @@ export function buildLocatableStructuredObject(
     const src = archetypeDetails as Record<string, unknown>;
     templateId = extractWrappedTerseString(src.template_id) ??
       (src[sym.templateId] != null ? String(src[sym.templateId]) : null);
-    archetypeId = extractWrappedTerseString(src.archetype_id) ??
-      (src[sym.archetypeId] != null ? String(src[sym.archetypeId]) : null) ??
-      (src[combinedKey] != null ? String(src[combinedKey]) : null);
     rmVersion = src.rm_version ?? src[sym.rmVersion];
+
+    if (isArchetypeIdSameAsNodeIdFlag(src[sym.archetypeId])) {
+      archetypeIdIsFlag = true;
+    } else if (src[combinedKey] != null) {
+      archetypeId = String(src[combinedKey]);
+    } else {
+      archetypeId = extractWrappedTerseString(src.archetype_id) ??
+        (src[sym.archetypeId] != null
+          ? String(src[sym.archetypeId])
+          : null);
+    }
   }
 
-  const hasDetailSymbols = templateId != null || archetypeId != null ||
-    (rmVersion != null && String(rmVersion) !== "");
+  const nodeId = archetypeNodeId != null && String(archetypeNodeId) !== ""
+    ? String(archetypeNodeId)
+    : undefined;
+
+  if (archetypeIdIsFlag && archetypeId == null) {
+    archetypeId = nodeId ?? null;
+  }
+
+  const effectiveNodeId = nodeId ??
+    (archetypeId != null ? archetypeId : undefined);
 
   if (templateId != null) out[sym.templateId] = templateId;
+  if (effectiveNodeId != null) out[sym.nodeId] = effectiveNodeId;
 
-  const emitArchetypeId = archetypeId != null && archetypeId !== nameStr;
-  // Missing node id is treated like equality (deserialize restores it from Ⓐ / Ⓐ🆔).
-  const nodeEqualsArchetype = archetypeId != null &&
-    (nodeId == null || nodeId === "" || nodeId === archetypeId);
-
-  if (emitArchetypeId) {
-    if (nodeEqualsArchetype) {
-      out[combinedKey] = archetypeId;
+  if (archetypeId != null && archetypeId !== nameStr) {
+    if (effectiveNodeId != null && archetypeId === effectiveNodeId) {
+      out[sym.archetypeId] = ARCHETYPE_ID_SAME_AS_NODE_ID;
     } else {
       out[sym.archetypeId] = archetypeId;
     }
   }
+
   if (rmVersion != null && String(rmVersion) !== "") {
     out[sym.rmVersion] = String(rmVersion);
-  }
-
-  if (!hasDetailSymbols) {
-    if (nodeId != null && nodeId !== "") out[sym.nodeId] = nodeId;
-    return out;
-  }
-
-  if (nodeId != null && nodeId !== "" && !nodeEqualsArchetype) {
-    out[sym.nodeId] = nodeId;
   }
 
   return out;
@@ -550,35 +567,46 @@ export function parseLocatableStructuredObject(
     sym.nodeId,
   );
   const name = String(structured[sym.name] ?? "");
-  const combinedValue = structured[combinedKey] != null
+  const nodeIdRaw = structured[sym.nodeId] != null
+    ? String(structured[sym.nodeId])
+    : undefined;
+  const combinedLegacy = structured[combinedKey] != null
     ? String(structured[combinedKey])
     : undefined;
+  const aRaw = structured[sym.archetypeId];
 
   const details: Record<string, unknown> = {};
   if (structured[sym.templateId] != null) {
     details[sym.templateId] = structured[sym.templateId];
   }
-  if (combinedValue != null) {
-    details[sym.archetypeId] = combinedValue;
-  } else if (structured[sym.archetypeId] != null) {
-    details[sym.archetypeId] = structured[sym.archetypeId];
-  } else if (
-    structured[sym.templateId] != null || structured[sym.rmVersion] != null
-  ) {
-    details[sym.archetypeId] = name;
-  }
   if (structured[sym.rmVersion] != null) {
     details[sym.rmVersion] = structured[sym.rmVersion];
   }
 
-  let archetypeNodeId: string | undefined;
-  if (structured[sym.nodeId] != null) {
-    archetypeNodeId = String(structured[sym.nodeId]);
-  } else if (combinedValue != null) {
-    archetypeNodeId = combinedValue;
-  } else if (details[sym.archetypeId] != null) {
-    // Legacy: Ⓐ alone (pre-combined-key) implied node id === archetype id.
-    archetypeNodeId = String(details[sym.archetypeId]);
+  let archetypeNodeId = nodeIdRaw ?? combinedLegacy;
+  let archetypeIdStr: string | undefined;
+
+  if (combinedLegacy != null) {
+    // Legacy Ⓐ🆔 key.
+    archetypeIdStr = combinedLegacy;
+    archetypeNodeId = combinedLegacy;
+  } else if (isArchetypeIdSameAsNodeIdFlag(aRaw)) {
+    archetypeIdStr = archetypeNodeId ?? name;
+  } else if (aRaw != null && aRaw !== false) {
+    archetypeIdStr = String(aRaw);
+  } else if (
+    structured[sym.templateId] != null || structured[sym.rmVersion] != null
+  ) {
+    archetypeIdStr = name;
+  }
+
+  // Legacy: Ⓐ string alone (no 🆔) implied node id === archetype id.
+  if (archetypeNodeId == null && archetypeIdStr != null) {
+    archetypeNodeId = archetypeIdStr;
+  }
+
+  if (archetypeIdStr != null) {
+    details[sym.archetypeId] = archetypeIdStr;
   }
 
   return {

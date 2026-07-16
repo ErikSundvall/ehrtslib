@@ -136,11 +136,11 @@ Possible future inline stream (non-HTML) varaints: `№5.6±0.2◌µmol/L⋯1`; 
 
 ## Attribute vocabulary (summary)
 
-**Short:** `fmt`, `n`, `a`, `an`, `tp`, `rm`, `p`, `t`, `c`, `u`  
-**Full:** kebab RM names (`archetype-node-id`, `archetype-id`, `archetype-id-node-id`, …)  
-**Emoji:** `🆔`, `Ⓐ`, `Ⓐ🆔`, `Ⓣ`, `⚙️`, terminology shortcuts, quantity tokens above
+**Short:** `fmt`, `n`, `a` (valueless = same-as-`n` flag), `tp`, `rm`, `p`, `t`, `c`, `u`  
+**Full:** kebab RM names (`archetype-node-id`, valueless `archetype-id` flag, …)  
+**Emoji:** `🆔`, `Ⓐ` (valueless flag or string), `Ⓣ`, `⚙️`, terminology shortcuts, quantity tokens above
 
-When `archetype_node_id` equals `archetype_id`, emit the combined attribute (`an` / `archetype-id-node-id` / `Ⓐ🆔`) instead of both separately — same compression as zipehr.json / zipehr.yaml.
+When `archetype_node_id` equals `archetype_id`, always emit the node-id attr (`n` / `archetype-node-id` / `🆔`) and a **valueless** ARCHETYPED flag (`a` / `archetype-id` / `Ⓐ`) — same compression as zipehr.json / zipehr.yaml (`"Ⓐ": true`).
 
 Root `fmt` tokens: `s1` / `f1` / `e1` (or full URIs).
 
@@ -168,5 +168,5 @@ zipehrHtml5ToCanonical(html); // dialect from fmt / tags
 ## Worked example (body weight, short compact)
 
 ```html
-<o-ob fmt="s1" an="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight<o-hi><o-pe n="at0003"><o-tr n="at0001"><o-e n="at0004">Weight<o-q><mag>85</mag><unit>kg</unit></o-q></o-e></o-tr></o-pe></o-hi></o-ob>
+<o-ob fmt="s1" n="openEHR-EHR-OBSERVATION.body_weight.v2" a>Body weight<o-hi><o-pe n="at0003"><o-tr n="at0001"><o-e n="at0004">Weight<o-q><mag>85</mag><unit>kg</unit></o-q></o-e></o-tr></o-pe></o-hi></o-ob>
 ```

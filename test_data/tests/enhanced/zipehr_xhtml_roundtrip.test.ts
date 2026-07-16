@@ -169,7 +169,7 @@ Deno.test("zipehr xhtml: body weight observation round-trip", async () => {
   assertFhirSafe(xhtml);
   assertNoEmojiInAttributes(xhtml);
   assert(xhtml.includes('class="OB"'));
-  assert(xhtml.includes('title="ar: openEHR-EHR-OBSERVATION.body_weight.v2"'));
+  assert(xhtml.includes('title="id: openEHR-EHR-OBSERVATION.body_weight.v2; ar"'));
   assert(xhtml.includes("<h4>Body weight</h4>"));
   assert(xhtml.includes("<span>Weight</span>"));
   assert(xhtml.includes('class="q" title="85|kg|">85 kg</span>'));
@@ -216,7 +216,7 @@ Deno.test("zipehr xhtml: chemo composition title round-trip", async () => {
   assertFhirSafe(xhtml);
   assert(
     xhtml.includes(
-      'title="te: ChemoForm-MBA.v7; ar: openEHR-EHR-COMPOSITION.self_reported_data.v1; rm: 1.1.0"',
+      'title="id: openEHR-EHR-COMPOSITION.self_reported_data.v1; ar; te: ChemoForm-MBA.v7; rm: 1.1.0"',
     ),
   );
   assert(xhtml.includes("<h2>ChemoForm-MBA.v7</h2>"));
@@ -307,7 +307,10 @@ Deno.test("zipehr xhtml: ar omitted when archetype id equals visible name", asyn
   };
   const xhtml = await serializeCanonicalToXhtml(clusterOnly);
   assert(!xhtml.includes("ar: openEHR-EHR-CLUSTER.organisation.v1"));
+  assert(xhtml.includes('id: openEHR-EHR-CLUSTER.organisation.v1'));
   assert(xhtml.includes('rm: 1.1.0'));
+  // Name equals archetype id → no bare `ar` flag (restore from name via rm).
+  assert(!/; ar(;|")/.test(xhtml) && !xhtml.includes('title="ar"'));
 });
 
 Deno.test("zipehr xhtml: composition uid (OBJECT_VERSION_ID) round-trip", async () => {
@@ -349,7 +352,7 @@ Deno.test("zipehr xhtml: pretty-printed by default", async () => {
 Deno.test("zipehr xhtml: golden fragment shape (normalized)", async () => {
   const xhtml = normalizeWhitespace(await serializeToXZipehr(BODY_WEIGHT_FIXTURE));
   assert(xhtml.startsWith(
-    '<div xmlns="http://www.w3.org/1999/xhtml" lang="en"><div class="OB" title="ar: openEHR-EHR-OBSERVATION.body_weight.v2"><h4>Body weight</h4>',
+    '<div xmlns="http://www.w3.org/1999/xhtml" lang="en"><div class="OB" title="id: openEHR-EHR-OBSERVATION.body_weight.v2; ar"><h4>Body weight</h4>',
   ));
 });
 

@@ -1,16 +1,20 @@
 /**
  * Semicolon-separated `code: value` metadata grammar for XHTML `title` attributes.
+ *
+ * Bare `ar` (no `: value`) means archetype_id equals the node id (`id:`), matching
+ * the HTML5 valueless `Ⓐ` / `a` flag.
  */
 
 export type LocatableTitleFields = {
   id?: string;
-  ar?: string;
+  /** Archetype id string, or `true` when equal to `id` (flag). */
+  ar?: string | true;
   te?: string;
   rm?: string;
 };
 
 const KNOWN_ATTR_CODES = new Set(["id", "ar", "te", "rm"]);
-const ATTR_ORDER = ["te", "ar", "rm", "id"] as const;
+const ATTR_ORDER = ["id", "ar", "te", "rm"] as const;
 
 /** Escape backslashes and semicolons for unquoted title values. */
 export function escapeTitleValue(value: string): string {
@@ -93,6 +97,10 @@ export function formatLocatableTitle(fields: LocatableTitleFields): string {
   for (const code of ATTR_ORDER) {
     const value = fields[code];
     if (value == null || value === "") continue;
+    if (value === true) {
+      pairs.push(code);
+      continue;
+    }
     const rendered = needsQuoting(value)
       ? quoteTitleValue(value)
       : escapeTitleValue(value);
@@ -108,13 +116,19 @@ export function parseLocatableTitle(title: string): LocatableTitleFields {
 
   for (const pair of splitTitlePairs(title)) {
     const colonIdx = pair.indexOf(":");
-    if (colonIdx < 0) continue;
+    if (colonIdx < 0) {
+      // Bare flag token (e.g. `ar` → archetype id same as node id).
+      const code = pair.trim();
+      if (code === "ar") fields.ar = true;
+      continue;
+    }
     const code = pair.slice(0, colonIdx).trim();
     if (!KNOWN_ATTR_CODES.has(code)) continue;
     const rawValue = pair.slice(colonIdx + 1).trim();
     const quoted = parseQuotedValue(rawValue);
     const value = quoted ?? unescapeTitleValue(rawValue);
-    fields[code as keyof LocatableTitleFields] = value;
+    fields[code as "id" | "te" | "rm"] = value;
+    if (code === "ar") fields.ar = value;
   }
   return fields;
 }

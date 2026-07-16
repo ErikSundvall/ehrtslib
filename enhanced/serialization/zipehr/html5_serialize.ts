@@ -185,14 +185,7 @@ function unwrapCodePhrase(value: unknown): {
   return { terminology, code };
 }
 
-type AttrBag = { name: string; value: string };
-
-/** Combined attr when archetype_node_id === archetype_id. */
-function combinedLocatableAttrName(dialect: Html5Dialect): string {
-  if (dialect === "short") return "an";
-  if (dialect === "full") return "archetype-id-node-id";
-  return "Ⓐ🆔";
-}
+type AttrBag = { name: string; value?: string; boolean?: boolean };
 
 function locatableAttrs(
   obj: Record<string, unknown>,
@@ -203,46 +196,54 @@ function locatableAttrs(
     ? String(obj.archetype_node_id)
     : undefined;
   const { archetypeId, templateId, rmVersion } = extractArchetypeDetails(obj);
-  // Missing node id implies equality with archetype id (same as JSON/YAML).
-  const nodeEqualsArchetype = archetypeId != null &&
-    (nodeId == null || nodeId === archetypeId);
-  const combinedName = combinedLocatableAttrName(dialect);
+  const effectiveNodeId = nodeId ?? archetypeId;
+  const sameAsNode = archetypeId != null && effectiveNodeId != null &&
+    archetypeId === effectiveNodeId;
 
-  if (dialect === "short") {
-    if (nodeEqualsArchetype) {
-      out.push({ name: combinedName, value: archetypeId! });
-    } else {
-      if (nodeId) out.push({ name: "n", value: nodeId });
-      if (archetypeId) out.push({ name: "a", value: archetypeId });
+  const names = dialect === "short"
+    ? {
+      node: "n",
+      arch: "a",
+      template: "tp",
+      rm: "rm",
     }
-    if (templateId) out.push({ name: "tp", value: templateId });
-    if (rmVersion) out.push({ name: "rm", value: rmVersion });
-  } else if (dialect === "full") {
-    if (nodeEqualsArchetype) {
-      out.push({ name: combinedName, value: archetypeId! });
-    } else {
-      if (nodeId) out.push({ name: "archetype-node-id", value: nodeId });
-      if (archetypeId) out.push({ name: "archetype-id", value: archetypeId });
+    : dialect === "full"
+    ? {
+      node: "archetype-node-id",
+      arch: "archetype-id",
+      template: "template-id",
+      rm: "rm-version",
     }
-    if (templateId) out.push({ name: "template-id", value: templateId });
-    if (rmVersion) out.push({ name: "rm-version", value: rmVersion });
-  } else {
-    if (nodeEqualsArchetype) {
-      out.push({ name: combinedName, value: archetypeId! });
-    } else {
-      if (nodeId) out.push({ name: "🆔", value: nodeId });
-      if (archetypeId) out.push({ name: "Ⓐ", value: archetypeId });
-    }
-    if (templateId) out.push({ name: "Ⓣ", value: templateId });
-    if (rmVersion) out.push({ name: "⚙️", value: rmVersion });
+    : {
+      node: "🆔",
+      arch: "Ⓐ",
+      template: "Ⓣ",
+      rm: "⚙️",
+    };
+
+  if (effectiveNodeId) {
+    out.push({ name: names.node, value: effectiveNodeId });
   }
+  if (archetypeId) {
+    if (sameAsNode) {
+      out.push({ name: names.arch, boolean: true });
+    } else {
+      out.push({ name: names.arch, value: archetypeId });
+    }
+  }
+  if (templateId) out.push({ name: names.template, value: templateId });
+  if (rmVersion) out.push({ name: names.rm, value: rmVersion });
   return out;
 }
 
 function formatAttrs(attrs: AttrBag[]): string {
   if (attrs.length === 0) return "";
   return " " + attrs
-    .map((a) => `${a.name}="${escapeXmlAttr(a.value)}"`)
+    .map((a) =>
+      a.boolean || a.value == null
+        ? a.name
+        : `${a.name}="${escapeXmlAttr(a.value)}"`
+    )
     .join(" ");
 }
 
