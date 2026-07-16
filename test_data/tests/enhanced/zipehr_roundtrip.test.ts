@@ -70,7 +70,7 @@ Deno.test("zipehr: structured LOCATABLE object", async () => {
     {
       "🪧": "ChemoForm-MBA.v7",
       "Ⓣ": "ChemoForm-MBA.v7",
-      "Ⓐ": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+      "Ⓐ🆔": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
       "⚙️": "1.1.0",
     },
   );
@@ -86,7 +86,7 @@ Deno.test("zipehr: structured LOCATABLE object", async () => {
   );
   assertEquals(clusterStructured, {
     "🪧": "Vårdenhet",
-    "Ⓐ": "openEHR-EHR-CLUSTER.organisation.v1",
+    "Ⓐ🆔": "openEHR-EHR-CLUSTER.organisation.v1",
     "⚙️": "1.1.0",
   });
 
@@ -233,7 +233,7 @@ Deno.test("zipehr: ehrtslib path shorthands", async () => {
     {
       "🪧": "Vital Signs",
       "Ⓣ": "Vital Signs",
-      "Ⓐ": "openEHR-EHR-COMPOSITION.encounter.v1",
+      "Ⓐ🆔": "openEHR-EHR-COMPOSITION.encounter.v1",
       "⚙️": "1.0.4",
     },
   );
@@ -305,7 +305,7 @@ Deno.test("zipehr: RM roundtrip via zipehr.json and zipehr.yaml", async () => {
     {
       "🪧": "Vital Signs",
       "Ⓣ": "Vital Signs",
-      "Ⓐ": "openEHR-EHR-COMPOSITION.encounter.v1",
+      "Ⓐ🆔": "openEHR-EHR-COMPOSITION.encounter.v1",
       "⚙️": "1.0.4",
     },
   );
@@ -418,7 +418,7 @@ Deno.test("zipehr: chemo fixture structured locatable roundtrip (j and y)", asyn
     {
       "🪧": "ChemoForm-MBA.v7",
       "Ⓣ": "ChemoForm-MBA.v7",
-      "Ⓐ": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+      "Ⓐ🆔": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
       "⚙️": "1.1.0",
     },
   );
@@ -427,7 +427,7 @@ Deno.test("zipehr: chemo fixture structured locatable roundtrip (j and y)", asyn
     {
       "🪧": "ChemoForm-MBA.v7",
       "Ⓣ": "ChemoForm-MBA.v7",
-      "Ⓐ": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
+      "Ⓐ🆔": "openEHR-EHR-COMPOSITION.self_reported_data.v1",
       "⚙️": "1.1.0",
     },
   );
@@ -442,7 +442,7 @@ Deno.test("zipehr: chemo fixture structured locatable roundtrip (j and y)", asyn
   const cluster = (context.items as Record<string, unknown>[])[0];
   assertEquals(cluster["📁"], {
     "🪧": "Vårdenhet",
-    "Ⓐ": "openEHR-EHR-CLUSTER.organisation.v1",
+    "Ⓐ🆔": "openEHR-EHR-CLUSTER.organisation.v1",
     "⚙️": "1.1.0",
   });
   const elements = cluster.items as Record<string, unknown>[];

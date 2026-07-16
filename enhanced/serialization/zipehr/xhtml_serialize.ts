@@ -106,6 +106,7 @@ function buildLocatableTitleFields(
   const templateSym = letterMap["ARCHETYPED.template_id"] ?? "te";
   const archetypeSym = letterMap["ARCHETYPED.archetype_id"] ?? "ar";
   const rmSym = letterMap["ARCHETYPED.rm_version"] ?? "rm";
+  const combinedKey = `${archetypeSym}${nodeSym}`;
 
   const name = String(structured[nameSym] ?? "");
   const fields: LocatableTitleFields = {};
@@ -113,22 +114,27 @@ function buildLocatableTitleFields(
   if (structured[templateSym] != null) {
     fields.te = String(structured[templateSym]);
   }
-  if (structured[archetypeSym] != null) {
-    const archetypeId = String(structured[archetypeSym]);
-    if (archetypeId !== name) fields.ar = archetypeId;
+
+  const combinedValue = structured[combinedKey] != null
+    ? String(structured[combinedKey])
+    : undefined;
+  const archetypeId = combinedValue ??
+    (structured[archetypeSym] != null
+      ? String(structured[archetypeSym])
+      : undefined);
+  if (archetypeId != null && archetypeId !== name) {
+    fields.ar = archetypeId;
   }
   if (structured[rmSym] != null && String(structured[rmSym]) !== "") {
     fields.rm = String(structured[rmSym]);
   }
   if (structured[nodeSym] != null) {
     const nodeId = String(structured[nodeSym]);
-    const archetypeId = structured[archetypeSym] != null
-      ? String(structured[archetypeSym])
-      : undefined;
     if (!archetypeId || nodeId !== archetypeId) {
       fields.id = nodeId;
     }
   }
+  // Combined key already implies id === ar; no separate id field.
   return fields;
 }
 

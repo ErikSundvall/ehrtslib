@@ -278,24 +278,27 @@ function readLocatableMeta(
   rmVersion?: string;
 } {
   if (dialect === "short") {
+    const combined = attrs.an;
     return {
-      nodeId: attrs.n,
-      archetypeId: attrs.a,
+      nodeId: attrs.n ?? combined,
+      archetypeId: attrs.a ?? combined,
       templateId: attrs.tp,
       rmVersion: attrs.rm,
     };
   }
   if (dialect === "full") {
+    const combined = attrs["archetype-id-node-id"];
     return {
-      nodeId: attrs["archetype-node-id"],
-      archetypeId: attrs["archetype-id"],
+      nodeId: attrs["archetype-node-id"] ?? combined,
+      archetypeId: attrs["archetype-id"] ?? combined,
       templateId: attrs["template-id"],
       rmVersion: attrs["rm-version"],
     };
   }
+  const combined = attrs["Ⓐ🆔"];
   return {
-    nodeId: attrs["🆔"],
-    archetypeId: attrs["Ⓐ"],
+    nodeId: attrs["🆔"] ?? combined,
+    archetypeId: attrs["Ⓐ"] ?? combined,
     templateId: attrs["Ⓣ"],
     rmVersion: attrs["⚙️"],
   };
@@ -475,7 +478,9 @@ function deserializeElement(
   }
 
   const meta = readLocatableMeta(node.attrs, dialect);
-  if (meta.nodeId) out.archetype_node_id = meta.nodeId;
+  // Combined attr / legacy Ⓐ-only: node id defaults to archetype id.
+  const nodeId = meta.nodeId ?? meta.archetypeId;
+  if (nodeId) out.archetype_node_id = nodeId;
   if (meta.archetypeId || meta.templateId || meta.rmVersion) {
     const details: Record<string, unknown> = { _type: "ARCHETYPED" };
     if (meta.archetypeId) {

@@ -187,6 +187,13 @@ function unwrapCodePhrase(value: unknown): {
 
 type AttrBag = { name: string; value: string };
 
+/** Combined attr when archetype_node_id === archetype_id. */
+function combinedLocatableAttrName(dialect: Html5Dialect): string {
+  if (dialect === "short") return "an";
+  if (dialect === "full") return "archetype-id-node-id";
+  return "Ⓐ🆔";
+}
+
 function locatableAttrs(
   obj: Record<string, unknown>,
   dialect: Html5Dialect,
@@ -196,20 +203,36 @@ function locatableAttrs(
     ? String(obj.archetype_node_id)
     : undefined;
   const { archetypeId, templateId, rmVersion } = extractArchetypeDetails(obj);
+  // Missing node id implies equality with archetype id (same as JSON/YAML).
+  const nodeEqualsArchetype = archetypeId != null &&
+    (nodeId == null || nodeId === archetypeId);
+  const combinedName = combinedLocatableAttrName(dialect);
 
   if (dialect === "short") {
-    if (nodeId) out.push({ name: "n", value: nodeId });
-    if (archetypeId) out.push({ name: "a", value: archetypeId });
+    if (nodeEqualsArchetype) {
+      out.push({ name: combinedName, value: archetypeId! });
+    } else {
+      if (nodeId) out.push({ name: "n", value: nodeId });
+      if (archetypeId) out.push({ name: "a", value: archetypeId });
+    }
     if (templateId) out.push({ name: "tp", value: templateId });
     if (rmVersion) out.push({ name: "rm", value: rmVersion });
   } else if (dialect === "full") {
-    if (nodeId) out.push({ name: "archetype-node-id", value: nodeId });
-    if (archetypeId) out.push({ name: "archetype-id", value: archetypeId });
+    if (nodeEqualsArchetype) {
+      out.push({ name: combinedName, value: archetypeId! });
+    } else {
+      if (nodeId) out.push({ name: "archetype-node-id", value: nodeId });
+      if (archetypeId) out.push({ name: "archetype-id", value: archetypeId });
+    }
     if (templateId) out.push({ name: "template-id", value: templateId });
     if (rmVersion) out.push({ name: "rm-version", value: rmVersion });
   } else {
-    if (nodeId) out.push({ name: "🆔", value: nodeId });
-    if (archetypeId) out.push({ name: "Ⓐ", value: archetypeId });
+    if (nodeEqualsArchetype) {
+      out.push({ name: combinedName, value: archetypeId! });
+    } else {
+      if (nodeId) out.push({ name: "🆔", value: nodeId });
+      if (archetypeId) out.push({ name: "Ⓐ", value: archetypeId });
+    }
     if (templateId) out.push({ name: "Ⓣ", value: templateId });
     if (rmVersion) out.push({ name: "⚙️", value: rmVersion });
   }

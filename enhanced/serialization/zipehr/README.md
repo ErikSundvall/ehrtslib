@@ -6,7 +6,7 @@ context windows
 
 - RM type information (`_type`) becomes emoji keys
 - selected values become “terse” strings/scalars
-- LOCATABLE names are emitted as structured objects with attribute emoji keys (`🪧`, `🆔`, `Ⓣ`, `Ⓐ`, `⚙️`)
+- LOCATABLE names are emitted as structured objects with attribute emoji keys (`🪧`, `🆔`, `Ⓣ`, `Ⓐ`, `Ⓐ🆔`, `⚙️`)
 
 ZipEHR is designed to round-trip back to canonical JSON with `_type` fields.
 It is an opinionated losless compression and decompression algorithm where the compressed
@@ -128,7 +128,7 @@ elements (not FHIR Narrative). Layout is a tristate — `oneliner` / `linesaving
 ```json
 {
   "$schema": "http://purl.org/ehrtslib/zipehr/v1",
-  "👀": { "🪧": "Body weight", "Ⓐ": "openEHR-EHR-OBSERVATION.body_weight.v2" },
+  "👀": { "🪧": "Body weight", "Ⓐ🆔": "openEHR-EHR-OBSERVATION.body_weight.v2" },
   "data": {
     "_": "📉",
     "events": [
@@ -155,7 +155,7 @@ elements (not FHIR Narrative). Layout is a tristate — `oneliner` / `linesaving
 
 ```yaml
 # yaml-language-server: $schema=http://purl.org/ehrtslib/zipehr/v1
-👀: { 🪧: "Body weight", Ⓐ: "openEHR-EHR-OBSERVATION.body_weight.v2" }
+👀: { 🪧: "Body weight", Ⓐ🆔: "openEHR-EHR-OBSERVATION.body_weight.v2" }
 data:
   events:
     - _: "EVENT"
@@ -171,6 +171,145 @@ data:
           items:
             - { 🔹: { 🪧: "State of dress", 🆔: "at0009" }, 🗈: "📍at0028|Fully clothed, without shoes|" }
 ```
+
+**zipehr.xhtml** (same clinical tree — FHIR Narrative–safe; Ehrbase letter `class`, LOCATABLE ids in `title`):
+
+```html
+<div xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <div class="OB" title="ar: openEHR-EHR-OBSERVATION.body_weight.v2">
+    <h4>Body weight</h4>
+    <div class="HI">
+      <div class="PE" title="id: at0003">
+        <div class="TR" title="id: at0001">
+          <div class="E" title="id: at0004">
+            <span>Weight</span>
+            <span class="q" title="85|kg|">85 kg</span>
+          </div>
+        </div>
+        <div class="TR" title="id: at0008">
+          <div class="E" title="id: at0009">
+            <span>State of dress</span>
+            <span class="c" title="local::at0028|Fully clothed, without shoes|">Fully clothed, without shoes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+Root uses `ar:` (archetype id) when it also stands for the node id; nested at-codes use `id:`. See [Selecting by node id](#selecting-by-node-id-css--xpath).
+
+**zipehr.html5/short** (`layout: oneliner` — combined root attr `an`):
+
+```html
+<o-ob fmt="s1" an="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight<o-hi><o-pe n="at0003"><o-tr n="at0001"><o-e n="at0004">Weight<o-q><mag>85</mag><unit>kg</unit></o-q></o-e></o-tr><o-tr n="at0008"><o-e n="at0009">State of dress<o-c t="local" c="at0028">Fully clothed, without shoes</o-c></o-e></o-tr></o-pe></o-hi></o-ob>
+```
+
+**zipehr.html5/full** (`layout: linesaving` — combined root attr `archetype-id-node-id`):
+
+```html
+<o-observation fmt="f1" archetype-id-node-id="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight
+  <o-history>
+    <o-point-event archetype-node-id="at0003">
+      <o-item-tree archetype-node-id="at0001">
+        <o-element archetype-node-id="at0004">Weight
+          <o-dv-quantity><magnitude>85</magnitude><units>kg</units></o-dv-quantity>
+        </o-element>
+      </o-item-tree>
+      <o-item-tree archetype-node-id="at0008">
+        <o-element archetype-node-id="at0009">State of dress
+          <o-dv-coded-text terminology-id="local" code-string="at0028">Fully clothed, without shoes</o-dv-coded-text>
+        </o-element>
+      </o-item-tree>
+    </o-point-event>
+  </o-history>
+</o-observation>
+```
+
+**zipehr.html5/emoji** (`layout: linesaving` — combined root attr `Ⓐ🆔`):
+
+```html
+<o-👀 fmt="e1" Ⓐ🆔="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight
+  <o-📉>
+    <o-🞋 🆔="at0003">
+      <o-🌳 🆔="at0001">
+        <o-🔹 🆔="at0004">Weight<o-🌡️><№>85</№><◌>kg</◌></o-🌡️></o-🔹>
+      </o-🌳>
+      <o-🌳 🆔="at0008">
+        <o-🔹 🆔="at0009">State of dress
+          <o-🗈 📍="at0028">Fully clothed, without shoes</o-🗈>
+        </o-🔹>
+      </o-🌳>
+    </o-🞋>
+  </o-📉>
+</o-👀>
+```
+
+### Selecting by node id (CSS / XPath)
+
+openEHR paths are sequences of `archetype_node_id` values. In the (X)HTML skins those ids are attributes (or `title` pairs), so you can walk the same path with CSS or XPath.
+
+| Dialect | Node id alone | Archetype id alone | Combined (`node id` = `archetype id`) |
+|---------|---------------|--------------------|----------------------------------------|
+| **html5/emoji** | `🆔` | `Ⓐ` | `Ⓐ🆔` |
+| **html5/short** | `n` | `a` | `an` |
+| **html5/full** | `archetype-node-id` | `archetype-id` | `archetype-id-node-id` |
+| **xhtml** | `title` contains `id: …` | `title` contains `ar: …` | only `ar:` is emitted (id omitted) |
+
+To select a node **by its node id**, match either the dedicated node-id attribute **or** the combined attribute (roots often use the combined form):
+
+```css
+/* html5/emoji — Weight ELEMENT (at0004) */
+[🆔="at0004"], [Ⓐ🆔="at0004"]
+
+/* html5/short */
+[n="at0004"], [an="at0004"]
+
+/* html5/full */
+[archetype-node-id="at0004"], [archetype-id-node-id="at0004"]
+```
+
+```xpath
+(: html5/emoji :)
+//*[@🆔='at0004' or @Ⓐ🆔='at0004']
+
+(: html5/short :)
+//*[@n='at0004' or @an='at0004']
+
+(: html5/full :)
+//*[@archetype-node-id='at0004' or @archetype-id-node-id='at0004']
+
+(: xhtml — match title pair id: or ar: (combined roots emit ar: only) :)
+//*[@title='id: at0004' or starts-with(@title, 'id: at0004;')
+    or @title='ar: at0004' or starts-with(@title, 'ar: at0004;')]
+```
+
+Path-shaped queries (observation → event `at0003` → tree `at0001` → weight `at0004`), emoji dialect:
+
+```css
+[Ⓐ🆔="openEHR-EHR-OBSERVATION.body_weight.v2"] [🆔="at0003"] [🆔="at0001"] [🆔="at0004"]
+```
+
+```xpath
+//*[@Ⓐ🆔='openEHR-EHR-OBSERVATION.body_weight.v2']
+  //*[@🆔='at0003']//*[@🆔='at0001']//*[@🆔='at0004']
+```
+
+Same path, short dialect (`an` / `n`) and full dialect (`archetype-id-node-id` / `archetype-node-id`) — substitute the attribute names from the table. XHTML equivalent:
+
+```xpath
+//*[@class='OB' and starts-with(@title, 'ar: openEHR-EHR-OBSERVATION.body_weight.v2')]
+  //*[@class='PE' and (@title='id: at0003' or starts-with(@title, 'id: at0003;'))]
+  //*[@class='TR' and (@title='id: at0001' or starts-with(@title, 'id: at0001;'))]
+  //*[@class='E' and (@title='id: at0004' or starts-with(@title, 'id: at0004;'))]
+```
+
+Notes:
+
+- Prefer the **or-combined** form (`🆔` **or** `Ⓐ🆔`, etc.) whenever the path step might be an archetyped root.
+- CSS cannot express “attribute A or B equals X” as one simple attribute selector without a comma group; use the two-selector list above (or XPath).
+- XHTML packs several fields into one `title`; prefer exact / `starts-with` matches on `id:` / `ar:` pairs rather than bare `contains(., 'at0004')`, which can false-positive inside longer ids.
 
 ### Schema declaration
 
@@ -320,8 +459,8 @@ LOCATABLE nodes (COMPOSITION, OBSERVATION, CLUSTER, ITEM_TREE, …) merge:
 into one JSON/YAML object (valid for standard parsers, including on a single flow line):
 
 ```yaml
-🖂: { "🪧": "ChemoForm-MBA.v7", "Ⓣ": "ChemoForm-MBA.v7", "Ⓐ": "openEHR-EHR-COMPOSITION.self_reported_data.v1", "⚙️": "1.1.0" }
-📁: { "🪧": "Vårdenhet", "Ⓐ": "openEHR-EHR-CLUSTER.organisation.v1", "⚙️": "1.1.0" }
+🖂: { "🪧": "ChemoForm-MBA.v7", "Ⓣ": "ChemoForm-MBA.v7", "Ⓐ🆔": "openEHR-EHR-COMPOSITION.self_reported_data.v1", "⚙️": "1.1.0" }
+📁: { "🪧": "Vårdenhet", "Ⓐ🆔": "openEHR-EHR-CLUSTER.organisation.v1", "⚙️": "1.1.0" }
 🌳: { "🪧": "Item tree", "🆔": "at0003" }
 ```
 
@@ -333,6 +472,7 @@ Attribute emoji keys are defined in `symbol_table.yaml` (`data_types.attributes`
 | `LOCATABLE.archetype_node_id` | `LOCATABLE.archetype_node_id` | `🆔` |
 | `ARCHETYPED.template_id` | `ARCHETYPED.template_id` | `Ⓣ` |
 | `ARCHETYPED.archetype_id` | `ARCHETYPED.archetype_id` | `Ⓐ` |
+| *(combined)* | when `archetype_node_id` = `archetype_id` | `Ⓐ🆔` |
 | `ARCHETYPED.rm_version` | `ARCHETYPED.rm_version` | `⚙️` |
 | `DV_QUANTITY.magnitude_status` | `DV_QUANTITY.magnitude_status` | `🎛` |
 | `DV_QUANTITY.magnitude` | `DV_QUANTITY.magnitude` | `№` |
@@ -348,10 +488,11 @@ Attribute emoji keys are defined in `symbol_table.yaml` (`data_types.attributes`
 ### Serialize rules
 
 1. Always emit `🪧` with `name.value`.
-2. Emit `Ⓣ`, `Ⓐ`, `⚙️` when present in `archetype_details`.
-3. Omit `Ⓐ` when `archetype_id` equals `name.value`.
-4. Emit `🆔` for `archetype_node_id` when no detail symbols apply, or when it differs from `archetype_id`.
-5. Drop separate `archetype_details` / `name` / `archetype_node_id` from the parent row when structured.
+2. Emit `Ⓣ`, `Ⓐ` / `Ⓐ🆔`, `⚙️` when present in `archetype_details`.
+3. Omit `Ⓐ` / `Ⓐ🆔` when `archetype_id` equals `name.value`.
+4. When `archetype_node_id` equals `archetype_id` (or node id is absent and will be restored from the archetype id), emit combined key `Ⓐ🆔` instead of separate `Ⓐ` + `🆔` so path-building still shows a node-id marker.
+5. Emit separate `🆔` when no detail symbols apply, or when `archetype_node_id` differs from `archetype_id`.
+6. Drop separate `archetype_details` / `name` / `archetype_node_id` from the parent row when structured.
 
 COMPOSITION uses emoji key `🖂` (not `_` + `name`).
 
@@ -359,8 +500,11 @@ COMPOSITION uses emoji key `🖂` (not `_` + `name`).
 
 1. Read `🪧` → `name.value`.
 2. Read `🆔` → `archetype_node_id` when present.
-3. Read `Ⓣ` / `Ⓐ` / `⚙️` → `archetype_details` (restore omitted `Ⓐ` from name when `Ⓣ` or `⚙️` present).
-4. When `🆔` absent but `Ⓐ` present → `archetype_node_id` = archetype id.
+3. Read `Ⓐ🆔` → both `archetype_id` and `archetype_node_id` (same value).
+4. Read `Ⓣ` / `Ⓐ` / `⚙️` → `archetype_details` (restore omitted `Ⓐ` from name when `Ⓣ` or `⚙️` present).
+5. Legacy: when `🆔` absent but `Ⓐ` present → `archetype_node_id` = archetype id.
+
+For walking these ids in the HTML skins, see [Selecting by node id (CSS / XPath)](#selecting-by-node-id-css--xpath).
 
 ## Module map
 

@@ -9,6 +9,7 @@
 
 export {
   ARCHETYPE_DETAIL_SYMBOLS,
+  combinedArchetypeIdNodeIdKey,
   buildLocatableStructuredObject,
   canFoldInferrableValueLeaf,
   compactArchetypeDetails,

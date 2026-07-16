@@ -21,6 +21,17 @@ export const ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({
   rm_version: "⚙️",
 });
 
+/**
+ * Combined wire key when `archetype_node_id` equals `archetype_id`
+ * (`Ⓐ` + `🆔` for emoji; lettercode concatenates its attribute symbols).
+ */
+export function combinedArchetypeIdNodeIdKey(
+  archetypeIdSym: string,
+  nodeIdSym: string,
+): string {
+  return `${archetypeIdSym}${nodeIdSym}`;
+}
+
 export const POLYMORPHIC_TYPES = new Set([
   "DATA_VALUE",
   "DV_ORDERED",
@@ -457,6 +468,10 @@ export function buildLocatableStructuredObject(
   symbolMap: Record<string, string>,
 ): Record<string, unknown> {
   const sym = locatableAttributeSymbols(symbolMap);
+  const combinedKey = combinedArchetypeIdNodeIdKey(
+    sym.archetypeId,
+    sym.nodeId,
+  );
   const out: Record<string, unknown> = { [sym.name]: nameStr };
 
   const nodeId = archetypeNodeId != null ? String(archetypeNodeId) : undefined;
@@ -473,7 +488,8 @@ export function buildLocatableStructuredObject(
     templateId = extractWrappedTerseString(src.template_id) ??
       (src[sym.templateId] != null ? String(src[sym.templateId]) : null);
     archetypeId = extractWrappedTerseString(src.archetype_id) ??
-      (src[sym.archetypeId] != null ? String(src[sym.archetypeId]) : null);
+      (src[sym.archetypeId] != null ? String(src[sym.archetypeId]) : null) ??
+      (src[combinedKey] != null ? String(src[combinedKey]) : null);
     rmVersion = src.rm_version ?? src[sym.rmVersion];
   }
 
@@ -481,8 +497,18 @@ export function buildLocatableStructuredObject(
     (rmVersion != null && String(rmVersion) !== "");
 
   if (templateId != null) out[sym.templateId] = templateId;
-  if (archetypeId != null && archetypeId !== nameStr) {
-    out[sym.archetypeId] = archetypeId;
+
+  const emitArchetypeId = archetypeId != null && archetypeId !== nameStr;
+  // Missing node id is treated like equality (deserialize restores it from Ⓐ / Ⓐ🆔).
+  const nodeEqualsArchetype = archetypeId != null &&
+    (nodeId == null || nodeId === "" || nodeId === archetypeId);
+
+  if (emitArchetypeId) {
+    if (nodeEqualsArchetype) {
+      out[combinedKey] = archetypeId;
+    } else {
+      out[sym.archetypeId] = archetypeId;
+    }
   }
   if (rmVersion != null && String(rmVersion) !== "") {
     out[sym.rmVersion] = String(rmVersion);
@@ -493,8 +519,8 @@ export function buildLocatableStructuredObject(
     return out;
   }
 
-  if (nodeId != null && nodeId !== "") {
-    if (archetypeId == null || nodeId !== archetypeId) out[sym.nodeId] = nodeId;
+  if (nodeId != null && nodeId !== "" && !nodeEqualsArchetype) {
+    out[sym.nodeId] = nodeId;
   }
 
   return out;
@@ -519,13 +545,22 @@ export function parseLocatableStructuredObject(
   archetypeDetails?: Record<string, unknown>;
 } {
   const sym = locatableAttributeSymbols(symbolMap);
+  const combinedKey = combinedArchetypeIdNodeIdKey(
+    sym.archetypeId,
+    sym.nodeId,
+  );
   const name = String(structured[sym.name] ?? "");
+  const combinedValue = structured[combinedKey] != null
+    ? String(structured[combinedKey])
+    : undefined;
 
   const details: Record<string, unknown> = {};
   if (structured[sym.templateId] != null) {
     details[sym.templateId] = structured[sym.templateId];
   }
-  if (structured[sym.archetypeId] != null) {
+  if (combinedValue != null) {
+    details[sym.archetypeId] = combinedValue;
+  } else if (structured[sym.archetypeId] != null) {
     details[sym.archetypeId] = structured[sym.archetypeId];
   } else if (
     structured[sym.templateId] != null || structured[sym.rmVersion] != null
@@ -539,7 +574,10 @@ export function parseLocatableStructuredObject(
   let archetypeNodeId: string | undefined;
   if (structured[sym.nodeId] != null) {
     archetypeNodeId = String(structured[sym.nodeId]);
+  } else if (combinedValue != null) {
+    archetypeNodeId = combinedValue;
   } else if (details[sym.archetypeId] != null) {
+    // Legacy: Ⓐ alone (pre-combined-key) implied node id === archetype id.
     archetypeNodeId = String(details[sym.archetypeId]);
   }
 
