@@ -5,37 +5,41 @@
 
 ## Purpose
 
-Two ZipEHR HTML5 wire formats serialise openEHR RM instance trees as **custom elements** (`oe-*`) for:
+Three ZipEHR HTML5 wire formats serialise openEHR RM instance trees as **custom elements** (`o-*`) for:
 
 - compact storage / LLM context
+- **browser-readable clinical text without CSS** (names and values as element text)
 - CSS / XPath / XQuery / DOM tree walk
 - optional upgrade to web components for in-browser edit → contribution builder
 
-Not constrained by FHIR Narrative. Prefer **attributes** for codes and typed fields; keep **text** only when it is the clinical display string (or omit display when derived later from terminology/archetype).
+Not constrained by FHIR Narrative. Prefer **attributes** for codes, ids, and machine fields; put **clinically relevant display strings in element text** so a bare HTML document is human-readable.
 
 | Format URI | Tag dialect | Example tags |
 |------------|-------------|--------------|
-| `http://purl.org/ehrtslib/zipehr/html5/short/v1` | Ehrbase / `symbol_table` letter codes | `oe-co`, `oe-ob`, `oe-e`, `oe-q`, `oe-c` |
-| `http://purl.org/ehrtslib/zipehr/html5/full/v1` | RM class names, kebab-case | `oe-composition`, `oe-observation`, `oe-element`, `oe-dv-quantity` |
+| `http://purl.org/ehrtslib/zipehr/html5/short/v1` | Ehrbase / `symbol_table` letter codes | `o-co`, `o-ob`, `o-e`, `o-q`, `o-c` |
+| `http://purl.org/ehrtslib/zipehr/html5/full/v1` | RM class names, kebab-case | `o-composition`, `o-observation`, `o-element`, `o-dv-quantity` |
+| `http://purl.org/ehrtslib/zipehr/html5/emoji/v1` | ZipEHR emoji symbols | `o-👀`, `o-🔹`, `o-🌡️`, `o-🗈` |
 
-Same attribute grammar and tree shape; only the local name after `oe-` differs. Round-trip both ↔ canonical JSON via the shared ZipEHR letter map.
+Same tree shape across dialects; tag local name after `o-` differs. Round-trip all ↔ canonical JSON via the shared ZipEHR symbol maps.
 
 ## Design goals
 
 | Goal | Rule |
 |------|------|
-| Compress | Short tags (short dialect), short attrs, omit inferrable noise |
-| Semantics | Every typed node is an `oe-*` element; LOCATABLE + DV fields recoverable |
+| Compress | Short dialect: minified wire, short attrs |
+| Readable | LOCATABLE **names** and DV **values** render as **text** in the browser without CSS |
+| Semantics | Every typed node is an `o-*` element; LOCATABLE + DV fields recoverable |
 | Traversable | Parent/child = RM containment; siblings under multi-valued props use document order |
 | No path strings | No FLAT/`data-oe-p`; paths inferred by walk + template/AOM if needed |
-| Attribute-first | Codes, magnitudes, units, ISO times, ids → attributes |
+| Text-first clinical | Display names, rubrics, magnitudes, units, booleans → text (or nested text children) |
+| Machine attrs | Archetype ids, codes, terminology ids, precision metadata → attributes |
 | Hydrate later | Tags alone are storage; web components upgrade the same tags in apps |
 
 ## Non-goals
 
 - FHIR `Narrative.div` compliance (use `zipehr.xhtml/v1` for that)
 - Emitting FLAT paths or editor-kind hints in the stored document
-- Pretty-print as default (minify for wire; pretty for debugging)
+- Minifying the **full** or **emoji** dialect (pretty-print is default there)
 
 ## Relationship to other ZipEHR skins
 
@@ -43,156 +47,270 @@ Same attribute grammar and tree shape; only the local name after `oe-` differs. 
 Canonical JSON (_type)
   ├─ zipehr.json / zipehr.yaml
   ├─ zipehr.xhtml/v1          … FHIR-safe (class + title)
-  ├─ zipehr.html5/short/v1    … oe-{letter}   (this doc)
-  └─ zipehr.html5/full/v1     … oe-{rm-kebab} (this doc)
+  ├─ zipehr.html5/short/v1    … o-{letter}   (this doc)
+  ├─ zipehr.html5/full/v1     … o-{rm-kebab} (this doc)
+  └─ zipehr.html5/emoji/v1    … o-{emoji}    (this doc)
 ```
 
-| | xhtml/v1 | html5 short/full |
+| | xhtml/v1 | html5 short/full/emoji |
 |---|---|---|
-| Elements | `div` / `span` | custom `oe-*` |
-| Type | `class="OB"` | tag `oe-ob` / `oe-observation` |
-| Metadata | `title="te:…; ar:…"` | short attrs `a` `t` `r` `n` `na` |
-| Values | text + optional `title` | attrs (`m` `u` `code` …) |
+| Elements | `div` / `span` | custom `o-*` |
+| Type | `class="OB"` | tag `o-ob` / `o-observation` / `o-👀` |
+| LOCATABLE name | heading / leading `span` text | **element text** (leading text node) |
+| DV values | text + optional `title` | **element text** or nested text children |
+| Metadata | `title="te:…; ar:…"` | short or full RM attrs |
 | Paths | — | none (traverse) |
 
 ## Tag names
 
-Custom elements require a hyphen → always `oe-…`. HTML parsers fold names to lowercase.
+Custom elements require a hyphen → always `o-…`. HTML parsers fold ASCII tag names to lowercase; emoji suffixes are case-stable.
 
 ### Short dialect (`html5/short`)
 
-Letter codes from [`symbol_table.yaml`](symbol_table.yaml) / [`ehrbase-short-codes.md`](ehrbase-short-codes.md), lowercased:
+Letter codes from [`symbol_table.yaml`](symbol_table.yaml) / [`ehrbase-short-codes.md`](ehrbase-short-codes.md), lowercased, with **HTML5 collision overrides** from `html5_short_tags`:
 
-| RM type | Tag |
-|---------|-----|
-| COMPOSITION | `oe-co` |
-| SECTION | `oe-se` |
-| OBSERVATION | `oe-ob` |
-| EVALUATION | `oe-ev` |
-| INSTRUCTION | `oe-in` |
-| ACTION | `oe-an` |
-| ADMIN_ENTRY | `oe-ae` |
-| EVENT_CONTEXT | `oe-ec` |
-| HISTORY | `oe-hi` |
-| POINT_EVENT | `oe-pe` |
-| INTERVAL_EVENT | `oe-ie` |
-| ITEM_TREE | `oe-tr` |
-| ITEM_LIST | `oe-il` |
-| CLUSTER | `oe-cl` |
-| ELEMENT | `oe-e` |
-| DV_QUANTITY | `oe-q` |
-| DV_CODED_TEXT | `oe-c` |
-| DV_TEXT | `oe-x` |
-| DV_BOOLEAN | `oe-b` |
-| DV_COUNT | `oe-co`† |
-| DV_DATE | `oe-d` |
-| DV_TIME | `oe-t` |
-| DV_DATE_TIME | `oe-dt` |
-| CODE_PHRASE | `oe-cp`‡ |
+| RM type | Tag | Notes |
+|---------|-----|-------|
+| COMPOSITION | `o-co` | |
+| SECTION | `o-se` | |
+| OBSERVATION | `o-ob` | |
+| EVALUATION | `o-ev` | |
+| INSTRUCTION | `o-in` | |
+| ACTION | `o-an` | |
+| ADMIN_ENTRY | `o-ae` | |
+| EVENT_CONTEXT | `o-ec` | |
+| HISTORY | `o-hi` | |
+| POINT_EVENT | `o-pe` | |
+| INTERVAL_EVENT | `o-ie` | |
+| ITEM_TREE | `o-tr` | |
+| ITEM_LIST | `o-il` | |
+| CLUSTER | `o-cl` | |
+| ELEMENT | `o-e` | |
+| DV_QUANTITY | `o-q` | |
+| DV_CODED_TEXT | `o-c` | |
+| DV_TEXT | `o-x` | |
+| DV_BOOLEAN | `o-b` | |
+| DV_COUNT | `o-cnt` | override: `co` collides with `COMPOSITION` |
+| DV_DATE | `o-d` | |
+| DV_TIME | `o-t` | |
+| DV_DATE_TIME | `o-dt` | |
+| CODE_PHRASE | `o-cp` | override: `C` collides with `DV_CODED_TEXT` |
+| DV_INTERVAL | `o-intv` | override: `iv` collides with `INTERVAL` |
+| DV_PARSABLE | `o-pars` | override: `pa` collides with `PARTICIPATION` |
+| DV_PROPORTION | `o-prop` | override: `pr` collides with `PARTY_RELATED` |
+| DV_URI | `o-uri` | override: `u` collides with `UUID` |
 
-† Letter `co` collides with COMPOSITION `CO` under case-folding. Prefer **`oe-cnt`** for `DV_COUNT` in the HTML5 short dialect (document this alias in the symbol table / serializer).  
-‡ Letter `C` → use **`oe-cp`** for `CODE_PHRASE` so it does not collide with `oe-c` (`DV_CODED_TEXT`).
-
-Serializer must emit these HTML5-safe aliases; reverse map is table-driven like existing letter codes.
+Serializer resolves tag suffix as: `SYMBOL_TABLE_HTML5_SHORT_TAGS[type] ?? letterCode.toLowerCase()`. Reverse map is table-driven (see generated `SYMBOL_TABLE_HTML5_SHORT_TAGS` in [`symbol_table.ts`](symbol_table.ts)).
 
 ### Full dialect (`html5/full`)
 
-`oe-` + RM class lowercased with `_` → `-`:
+`o-` + RM class lowercased with `_` → `-`:
 
 | RM type | Tag |
 |---------|-----|
-| COMPOSITION | `oe-composition` |
-| OBSERVATION | `oe-observation` |
-| POINT_EVENT | `oe-point-event` |
-| ITEM_TREE | `oe-item-tree` |
-| ELEMENT | `oe-element` |
-| DV_QUANTITY | `oe-dv-quantity` |
-| DV_CODED_TEXT | `oe-dv-coded-text` |
-| DV_DATE_TIME | `oe-dv-date-time` |
-| CODE_PHRASE | `oe-code-phrase` |
+| COMPOSITION | `o-composition` |
+| OBSERVATION | `o-observation` |
+| POINT_EVENT | `o-point-event` |
+| ITEM_TREE | `o-item-tree` |
+| ELEMENT | `o-element` |
+| DV_QUANTITY | `o-dv-quantity` |
+| DV_CODED_TEXT | `o-dv-coded-text` |
+| DV_DATE_TIME | `o-dv-date-time` |
+| CODE_PHRASE | `o-code-phrase` |
 
-No collisions; more bytes; better for human inspection and CSS without looking up codes.
+No letter-code collisions; more bytes; better for human inspection and CSS without lookup tables. **Default output is pretty-printed** (indented, line breaks). **Attribute names use full openEHR RM names** (see below).
+
+### Emoji dialect (`html5/emoji`)
+
+Per [WHATWG HTML](https://html.spec.whatwg.org/dev/custom-elements.html), custom element local names may include Unicode (including emoji) when they:
+
+- start with a lowercase ASCII letter,
+- contain a hyphen (`o-` prefix satisfies both),
+- contain no ASCII uppercase letters.
+
+Therefore the emoji dialect uses `o-` + primary emoji from [`symbol_table.yaml`](symbol_table.yaml) (`SYMBOL_TABLE_EMOJI_SYMBOLS`):
+
+| RM type | Tag |
+|---------|-----|
+| COMPOSITION | `o-🖂` |
+| OBSERVATION | `o-👀` |
+| ELEMENT | `o-🔹` |
+| DV_QUANTITY | `o-🌡️` |
+| DV_CODED_TEXT | `o-🗈` |
+| ITEM_TREE | `o-🌳` |
+| HISTORY | `o-📉` |
+
+**Attribute names** may also use ZipEHR emoji keys where defined in `symbol_table.yaml` (`data_types.attributes`, `terminology_shortcuts`, `field_promotions`) — e.g. `🆔` for `archetype_node_id`, `Ⓐ` for `archetype_id`, `📍` for `local` terminology. Emoji attribute names are valid (no ASCII upper alpha). Clinical values still use **text content**, not emoji attrs, for browser readability.
+
+Pretty-print is default (same as full). Use emoji dialect when aligning visually with `zipehr.json` / `zipehr.yaml`.
 
 ### Detect dialect
 
 - Root has `fmt` attribute (see below), or
-- First `oe-*` name length / known token set (`oe-ob` vs `oe-observation`).
+- Inspect first `o-*` suffix: short letter token (`o-ob`), kebab RM name (`o-observation`), or emoji (`o-👀`).
 
-## Attribute vocabulary (shared)
+## Browser-readable text (all dialects)
+
+### LOCATABLE names
+
+Emit `LOCATABLE.name.value` as the **leading text** of the element (before child elements). Do **not** rely on a `na` / `name` attribute for display — attributes are fallback for deserialization when text is stripped.
+
+```html
+<o-e n="at0004">Weight
+  <o-q><mag>85</mag><unit>kg</unit></o-q>
+</o-e>
+```
+
+Full dialect uses the RM attribute name on the element and full nested tags:
+
+```html
+<o-element archetype-node-id="at0004">Weight
+  <o-dv-quantity>
+    <magnitude>85</magnitude>
+    <units>kg</units>
+  </o-dv-quantity>
+</o-element>
+```
+
+If the name is structured (rare), nest a typed `DV_TEXT` child instead of raw text.
+
+### DV values as text
+
+| Type | Text content | Attributes (machine) |
+|------|----------------|----------------------|
+| `DV_TEXT` | `value` | — |
+| `DV_CODED_TEXT` | rubric (`value`) | `terminology_id`, `code_string` (short: `t`, `c`) |
+| `CODE_PHRASE` | omit (code-only) or code as text | `terminology_id`, `code_string` |
+| `DV_BOOLEAN` | `true` / `false` (or `1` / `0`) | optional `value` mirror |
+| `DV_DATE` / `DV_TIME` / `DV_DATE_TIME` | ISO-8601 string | optional `value` mirror |
+| `DV_DURATION` | ISO-8601 duration | optional `value` mirror |
+| `DV_COUNT` | magnitude as text | optional `magnitude` attr |
+| `DV_URI` / `DV_EHR_URI` | URI string | — |
+| `DV_IDENTIFIER` | `id` text | `issuer`, `assigner`, `type` as needed |
+
+### `DV_QUANTITY` — nested magnitude and unit
+
+Use child elements so magnitude and unit are visible without CSS or XPath:
+
+**Short dialect** — abbreviated child tags:
+
+```html
+<o-q>
+  <mag>85</mag>
+  <unit>kg</unit>
+</o-q>
+```
+
+When the unit has a **display name** distinct from the unit id, put the display string in text and the unit id in an attribute:
+
+```html
+<o-q>
+  <mag>1.2</mag>
+  <unit u="[mg_per_dl]">mg/dL</unit>
+</o-q>
+```
+
+**Full dialect** — RM child tag names:
+
+```html
+<o-dv-quantity>
+  <magnitude>1.2</magnitude>
+  <units u="[mg_per_dl]">mg/dL</units>
+</o-dv-quantity>
+```
+
+**Emoji dialect** — same RM child names as full (clinical facts stay literal text):
+
+```html
+<o-🌡️>
+  <magnitude>85</magnitude>
+  <units>kg</units>
+</o-🌡️>
+```
+
+Rules:
+
+1. `<mag>` / `<magnitude>` text = numeric magnitude (always).
+2. `<unit>` / `<units>`: if display ≠ unit id → text = display, `u` attribute = unit id; else text = unit id and omit `u`.
+3. Optional RM fields (`accuracy`, `precision`, `normal_status`, …) remain attributes on the DV element (full RM names in full/emoji dialects).
+4. Do not duplicate magnitude/unit as attributes when nested children are present.
+
+### `DV_PROPORTION`
+
+Nested text children in short dialect: `<num>`, `<den>`; full dialect: `<numerator>`, `<denominator>`. Kind and precision as attributes (`proportion-kind`, `precision` in full dialect).
+
+## Attribute vocabulary
+
+### Short dialect (`html5/short`)
 
 Global HTML attrs used as usual: `lang` on root. Prefer these over `data-*` to save bytes.
 
 | Attr | RM / meaning | When emitted |
 |------|----------------|--------------|
-| `fmt` | format URI or short token `s1` / `f1` | root only |
-| `na` | `LOCATABLE.name.value` | when present and not equal to a sole identifiable code |
-| `n` | `archetype_node_id` | at-codes and ids not equal to `a` |
-| `a` | `archetype_details.archetype_id` | when present; omit if equal to `na` |
+| `fmt` | format URI or short token `s1` / `f1` / `e1` | root only |
+| `n` | `archetype_node_id` | at-codes and ids |
+| `a` | `archetype_details.archetype_id` | when present |
 | `tp` | `archetype_details.template_id` | composition / root when present |
 | `rm` | `archetype_details.rm_version` | when present |
 | `p` | RM property name on parent | **only** when child type ↔ property is ambiguous |
+| `t` | terminology id | coded types |
+| `c` | code string | coded types |
+| `u` | unit id on `<unit>` child only | when display text differs from id |
 
-### Value attributes by DV (attribute-first)
+**Do not** emit `na` / `name` for display when name text is present (text is authoritative for rendering).
 
-| Type | Attrs | Text content |
-|------|-------|--------------|
-| `DV_QUANTITY` | `m` magnitude, `u` units | omit (or optional display) |
-| `DV_COUNT` | `m` | omit |
-| `DV_PROPORTION` | `n` numerator, `d` denominator, `t` type, `p` precision† | omit |
-| `DV_BOOLEAN` | `v` = `0`/`1` or empty/`true` | omit |
-| `DV_TEXT` | — | text = value |
-| `DV_CODED_TEXT` | `t` terminology_id, `c` code_string | optional rubric; or omit text if UI looks up |
-| `CODE_PHRASE` | `t`, `c` | omit |
-| `DV_ORDINAL` | `v` symbol value, `t`/`c` defining_code | optional |
-| `DV_DATE` / `DV_TIME` / `DV_DATE_TIME` | `v` ISO-8601 | omit |
-| `DV_DURATION` | `v` ISO-8601 duration | omit |
-| `DV_URI` / `DV_EHR_URI` | `v` | omit |
-| `DV_IDENTIFIER` | `id`, `type`, `issuer`, `assigner` as needed | omit |
+Terminology shortcuts (optional): `t=local` / `t=openehr` written literally; emoji terminology shortcuts (`📍`, `🌬️`) are for the **emoji dialect** only.
 
-† For `DV_PROPORTION`, do not reuse `n`/`p` if a LOCATABLE parent already reserved them — proportion fields live only on the DV leaf element: use `num` / `den` / `k` (proportion kind) / `prec` if collision risk. Prefer `num`/`den`/`k`/`prec` always for clarity at ~same cost.
+### Full dialect (`html5/full`)
 
-**Do not** store ZipEHR terse strings as a second copy of the same fact. Either attrs (`t`+`c`) *or* a single terse `v` — prefer attrs for codes/quantities (more XPath-friendly: `oe-c[@c='at0028']`).
+Use **full openEHR RM attribute names** (kebab-case in HTML). Pretty-printed by default.
 
-Terminology shortcuts (optional emission only): `t=local` / `t=openehr` written literally; emoji shortcuts stay in JSON/YAML ZipEHR, not HTML5.
+| Attr | RM attribute |
+|------|----------------|
+| `archetype-node-id` | `LOCATABLE.archetype_node_id` |
+| `archetype-id` | `ARCHETYPED.archetype_id` |
+| `template-id` | `ARCHETYPED.template_id` |
+| `rm-version` | `ARCHETYPED.rm_version` |
+| `terminology-id` | `CODE_PHRASE.terminology_id` / coded text |
+| `code-string` | `CODE_PHRASE.code_string` |
+| `language` | `COMPOSITION.language` |
+| `territory` | `COMPOSITION.territory` |
+| `encoding` | `COMPOSITION.encoding` |
+| `property` | parent RM property when inference is ambiguous |
 
-### Composition promotions
+Value fields that appear as nested text children (`magnitude`, `units`, `numerator`, …) are **not** duplicated as attributes.
 
-Same idea as ZipEHR field promotions — attributes on `oe-co` / `oe-composition`:
+### Emoji dialect (`html5/emoji`)
 
-| Attr | Meaning |
-|------|---------|
-| `lang` | language code (`en`) |
-| `te` | territory (`SE`) |
-| `enc` | encoding (`UTF-8`) when present |
+Use emoji attribute keys from `symbol_table.yaml` wherever defined:
+
+| Emoji attr | RM meaning |
+|------------|------------|
+| `🆔` | `archetype_node_id` |
+| `Ⓐ` | `archetype_id` |
+| `Ⓣ` | `template_id` |
+| `⚙️` | `rm_version` |
+| `📍` / `🌬️` / `🗪` / `🌐` / `🔤` | terminology / composition promotions |
+
+Coded values: terminology emoji + `code-string` text child or attribute as appropriate. Clinical rubrics remain **text** inside the DV element.
 
 ## Tree shape & inference
 
 1. Element tag ⇒ RM `_type`.
 2. Children are RM properties: assign using `PROPERTY_TYPE_MAP[parent][childType]` (same as `xhtml_deserialize`). Array properties (`content`, `items`, `events`, …) → sibling order = list order.
-3. Emit `p="…"` only when two siblings would map to the same property or type is polymorphic without unique match (rare).
-4. No wrapper for “property slots”: the typed child *is* the slot (`oe-ec` under `oe-co` ⇒ `context`).
+3. Emit `p` / `property` only when two siblings would map to the same property or type is polymorphic without unique match (rare).
+4. No wrapper for “property slots”: the typed child *is* the slot (`o-ec` under `o-co` ⇒ `context`).
 5. Omit empty optional containers.
-
-### ELEMENT
-
-```html
-<oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e>
-```
-
-Full dialect:
-
-```html
-<oe-element n="at0004" na="Weight"><oe-dv-quantity m="85" u="kg"/></oe-element>
-```
-
-Name in `na` (attribute), not a nested `oe-x`, unless name is structured (rare).
+6. Leading text node (after trim) on LOCATABLE elements ⇒ `name.value`.
 
 ## Root
 
+Short dialect (compact wire):
+
 ```html
-<oe-co fmt="s1" lang="en" tp="Vital Signs" a="openEHR-EHR-COMPOSITION.encounter.v1" rm="1.1.0" na="Vital Signs">
+<o-co fmt="s1" lang="en" tp="Vital Signs" a="openEHR-EHR-COMPOSITION.encounter.v1" rm="1.1.0">Vital Signs
   …
-</oe-co>
+</o-co>
 ```
 
 Short `fmt` tokens:
@@ -201,61 +319,97 @@ Short `fmt` tokens:
 |-------|-----|
 | `s1` | `…/zipehr/html5/short/v1` |
 | `f1` | `…/zipehr/html5/full/v1` |
+| `e1` | `…/zipehr/html5/emoji/v1` |
 
 Deserializers accept full URI or token.
 
-## Worked example (body weight) — short, compact
+## Worked example (body weight)
 
-Same clinical content as ZipEHR README / CKM body_weight.v2:
+Same clinical content as ZipEHR README / CKM body_weight.v2.
 
-```html
-<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight"><oe-hi><oe-pe n="at0003"><oe-tr n="at0001"><oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e></oe-tr><oe-tr n="at0008"><oe-e n="at0009" na="State of dress"><oe-c t="local" c="at0028">Fully clothed, without shoes</oe-c></oe-e></oe-tr></oe-pe></oe-hi></oe-ob>
-```
-
-Pretty (debug only):
+### Short dialect — compact (minified wire)
 
 ```html
-<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight">
-  <oe-hi>
-    <oe-pe n="at0003">
-      <oe-tr n="at0001">
-        <oe-e n="at0004" na="Weight"><oe-q m="85" u="kg"/></oe-e>
-      </oe-tr>
-      <oe-tr n="at0008">
-        <oe-e n="at0009" na="State of dress">
-          <oe-c t="local" c="at0028">Fully clothed, without shoes</oe-c>
-        </oe-e>
-      </oe-tr>
-    </oe-pe>
-  </oe-hi>
-</oe-ob>
+<o-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight<o-hi><o-pe n="at0003"><o-tr n="at0001"><o-e n="at0004">Weight<o-q><mag>85</mag><unit>kg</unit></o-q></o-e></o-tr><o-tr n="at0008"><o-e n="at0009">State of dress<o-c t="local" c="at0028">Fully clothed, without shoes</o-c></o-e></o-tr></o-pe></o-hi></o-ob>
 ```
 
-### Full dialect (same tree)
+### Short dialect — pretty (debug)
 
 ```html
-<oe-observation fmt="f1" a="openEHR-EHR-OBSERVATION.body_weight.v2" na="Body weight">
-  <oe-history>
-    <oe-point-event n="at0003">
-      <oe-item-tree n="at0001">
-        <oe-element n="at0004" na="Weight"><oe-dv-quantity m="85" u="kg"/></oe-element>
-      </oe-item-tree>
-      <oe-item-tree n="at0008">
-        <oe-element n="at0009" na="State of dress">
-          <oe-dv-coded-text t="local" c="at0028">Fully clothed, without shoes</oe-dv-coded-text>
-        </oe-element>
-      </oe-item-tree>
-    </oe-point-event>
-  </oe-history>
-</oe-observation>
+<o-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight
+  <o-hi>
+    <o-pe n="at0003">
+      <o-tr n="at0001">
+        <o-e n="at0004">Weight
+          <o-q><mag>85</mag><unit>kg</unit></o-q>
+        </o-e>
+      </o-tr>
+      <o-tr n="at0008">
+        <o-e n="at0009">State of dress
+          <o-c t="local" c="at0028">Fully clothed, without shoes</o-c>
+        </o-e>
+      </o-tr>
+    </o-pe>
+  </o-hi>
+</o-ob>
 ```
 
-### Even smaller (drop display names)
+### Full dialect (pretty-print default)
+
+```html
+<o-observation fmt="f1" archetype-id="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight
+  <o-history>
+    <o-point-event archetype-node-id="at0003">
+      <o-item-tree archetype-node-id="at0001">
+        <o-element archetype-node-id="at0004">Weight
+          <o-dv-quantity>
+            <magnitude>85</magnitude>
+            <units>kg</units>
+          </o-dv-quantity>
+        </o-element>
+      </o-item-tree>
+      <o-item-tree archetype-node-id="at0008">
+        <o-element archetype-node-id="at0009">State of dress
+          <o-dv-coded-text terminology-id="local" code-string="at0028">Fully clothed, without shoes</o-dv-coded-text>
+        </o-element>
+      </o-item-tree>
+    </o-point-event>
+  </o-history>
+</o-observation>
+```
+
+### Emoji dialect (pretty-print default)
+
+```html
+<o-👀 fmt="e1" Ⓐ="openEHR-EHR-OBSERVATION.body_weight.v2">Body weight
+  <o-📉>
+    <o-🞋 🆔="at0003">
+      <o-🌳 🆔="at0001">
+        <o-🔹 🆔="at0004">Weight
+          <o-🌡️>
+            <magnitude>85</magnitude>
+            <units>kg</units>
+          </o-🌡️>
+        </o-🔹>
+      </o-🌳>
+      <o-🌳 🆔="at0008">
+        <o-🔹 🆔="at0009">State of dress
+          <o-🗈 📍="at0028">Fully clothed, without shoes</o-🗈>
+        </o-🔹>
+      </o-🌳>
+    </o-🞋>
+  </o-📉>
+</o-👀>
+```
+
+Note: emoji dialect may place `code-string` as text with terminology emoji attr (`📍="at0028"`) parallel to ZipEHR terse strings.
+
+### Compact short (drop display names)
 
 If names are loaded from archetype terminology at hydrate time:
 
 ```html
-<oe-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2"><oe-hi><oe-pe n="at0003"><oe-tr n="at0001"><oe-e n="at0004"><oe-q m="85" u="kg"/></oe-e></oe-tr><oe-tr n="at0008"><oe-e n="at0009"><oe-c t="local" c="at0028"/></oe-e></oe-tr></oe-pe></oe-hi></oe-ob>
+<o-ob fmt="s1" a="openEHR-EHR-OBSERVATION.body_weight.v2"><o-hi><o-pe n="at0003"><o-tr n="at0001"><o-e n="at0004"><o-q><mag>85</mag><unit>kg</unit></o-q></o-e></o-tr><o-tr n="at0008"><o-e n="at0009"><o-c t="local" c="at0028"/></o-e></o-tr></o-pe></o-hi></o-ob>
 ```
 
 Lossless for codes + magnitudes; display labels restored from AOM / terminology.
@@ -263,31 +417,40 @@ Lossless for codes + magnitudes; display labels restored from AOM / terminology.
 ## CSS / XPath (traversal without paths)
 
 ```css
-oe-ob oe-e[n="at0004"] oe-q { font-weight: bold; }
-oe-c[c="at0028"] { color: green; }
+o-ob o-e[n="at0004"] o-q mag { font-weight: bold; }
+o-c[c="at0028"] { color: green; }
 ```
 
 ```xpath
-//oe-e[@n='at0004']/oe-q/@m
-//oe-c[@t='local' and @c='at0028']
-count(//oe-pe)
+//o-e[@n='at0004']/o-q/mag/text()
+//o-c[@t='local' and @c='at0028']/text()
+count(//o-pe)
 ```
 
-Full dialect: replace `oe-ob` → `oe-observation`, `oe-e` → `oe-element`, etc.
+Full dialect: `o-observation`, `o-element`, `archetype-node-id`, …  
+Emoji dialect: `o-👀`, `o-🔹`, `@🆔`, …
 
 Sibling index for repeating nodes (contribution delta):  
 `nth-child` / preceding-sibling count among same tag under the same parent property — inferred at walk time, not stored.
 
 ## Compression checklist (emit rules)
 
-1. Prefer **short** dialect for storage/bandwidth.
-2. Minify: no insignificant whitespace/newlines.
-3. Omit `na` when app will resolve from archetype.
-4. Omit `a` when equal to template root / already on ancestor if nested archetype same as node id (keep `a` on root LOCATABLE that introduces the archetype).
-5. Omit `p` whenever property inference is unique.
-6. Self-close empty DV with only attrs: `<oe-q m="85" u="kg"/>` (XML-style in stored fragments; HTML parsers accept void custom elements inconsistently — prefer explicit close `<oe-q m="85" u="kg"></oe-q>` for HTML browser paste if needed; storage/XML mode may self-close).
-7. Never emit FLAT paths or `data-oe-edit`.
-8. Never duplicate typed value as text when attrs already carry it (`m`/`u`/`c`).
+### Short dialect (`s1`)
+
+1. **Minify** by default: no insignificant whitespace/newlines.
+2. Omit LOCATABLE name text when app will resolve from archetype.
+3. Omit `a` when equal to template root / already on ancestor.
+4. Omit `p` whenever property inference is unique.
+5. Prefer explicit close tags for DV leaves in HTML paste contexts: `<o-q>…</o-q>`.
+6. Never emit FLAT paths or `data-oe-edit`.
+7. Never duplicate nested text values as attributes.
+
+### Full (`f1`) and emoji (`e1`) dialects
+
+1. **Pretty-print** by default (indented, one logical block per line).
+2. Full RM attribute names (full) or emoji attrs (emoji).
+3. Same text-first rules for names and DV values.
+4. No minification unless `prettyPrint: false` explicitly requested.
 
 ## Hydration & contribution builder
 
@@ -295,33 +458,36 @@ Storage = inert custom tags. In a webapp, register web components with the same 
 
 ```mermaid
 flowchart LR
-  Tags[oe-* markup] --> WC[Web components loaded]
+  Tags[o-* markup] --> WC[Web components loaded]
   Tags --> Walk[DOM / XPath walk]
   Walk --> RM[canonical JSON]
-  WC --> Edit[user edits attrs/text]
+  WC --> Edit[user edits text/attrs]
   Edit --> Walk
   RM --> FLAT[optional FLAT via Web Template]
   FLAT --> CB[CONTRIBUTION builder]
   CB --> REST[REST CDR]
 ```
 
-- **Addressing:** reconstructed path from ancestor tags + `n`/`a` + sibling indices (no stored `data-oe-p`).
-- **Dirty:** runtime only (e.g. component state or transient attr); do not persist editor chrome.
+- **Addressing:** reconstructed path from ancestor tags + `n`/`🆔`/`archetype-node-id` + sibling indices (no stored `data-oe-p`).
+- **Dirty:** runtime only; do not persist editor chrome.
 - **Submit:** walk → RM → (optional) FLAT merge → `ORIGINAL_VERSION` → `CONTRIBUTION` ([ROADMAP](../../../ROADMAP.md)).
 
 ## Deserialization sketch
 
-1. Parse as HTML/XML fragment; require root `oe-*` with `fmt` if available.
-2. Map tag → RM type (short map or kebab→`DV_*`/`COMPOSITION`…).
-3. Read LOCATABLE attrs → structured name / node id / archetyped.
-4. Read DV attrs → typed fields; text → `DV_TEXT.value` or coded rubric.
-5. Attach children via property inference (+ rare `p`).
+1. Parse as HTML/XML fragment; require root `o-*` with `fmt` if available.
+2. Map tag → RM type (short map, kebab map, or emoji map).
+3. Read leading text → `LOCATABLE.name.value`; read LOCATABLE attrs → node id / archetyped.
+4. Read DV text children → typed fields (`mag`/`magnitude`, `unit`/`units`, rubric text, …).
+5. Attach children via property inference (+ rare `p` / `property`).
 6. Expand to canonical `_type` JSON.
 
 ## Planned API
 
 ```ts
-serializeToZipehrHtml5(canonical, { dialect: "short" | "full", prettyPrint?: boolean }): string
+serializeToZipehrHtml5(canonical, {
+  dialect: "short" | "full" | "emoji",
+  prettyPrint?: boolean, // default: false for short, true for full/emoji
+}): string
 zipehrHtml5ToCanonical(html: string): Promise<unknown>
 // dialect auto-detected from fmt / tags
 ```
@@ -329,10 +495,10 @@ zipehrHtml5ToCanonical(html: string): Promise<unknown>
 ## Open questions
 
 1. **Self-close vs explicit end tags** for HTML parse vs XML storage profile.
-2. **`DV_COUNT` / `COMPOSITION` letter collision** — stick with `oe-cnt` vs reserve another letter in HTML5-only table.
-3. **Boolean `oe-b`:** attribute `v="1"` vs presence of empty attr vs text `true`.
-4. Whether **name-less** compact profile is a separate `fmt` token (`s1n`) or an serialize option.
+2. **Boolean text:** prefer `true`/`false` vs `1`/`0` in text nodes.
+3. Whether **name-less** compact profile is a separate `fmt` token (`s1n`) or a serialize option.
+4. **Emoji coded-text attrs:** single `📍` attr holding code vs separate terminology + code-string attrs.
 
 ## Summary
 
-ZipEHR HTML5 replaces div/class narratives with **`oe-*` custom elements** in two tag dictionaries (**letter** vs **full RM kebab**). openEHR semantics sit in **tags + short attributes**; codes and quantities are attributes; display text is optional. **No FLAT paths** — CSS/XPath and DOM walk reconstruct structure for hydration and contribution commit.
+ZipEHR HTML5 replaces div/class narratives with **`o-*` custom elements** in three tag dictionaries (**letter**, **full RM kebab**, **emoji**). Clinically relevant **names and values render as HTML text** (with nested `magnitude` / `unit` children for quantities); machine ids and codes use attributes. Short dialect minifies for wire; full and emoji dialects pretty-print with full RM or emoji attribute names respectively. **No FLAT paths** — CSS/XPath and DOM walk reconstruct structure for hydration and contribution commit.

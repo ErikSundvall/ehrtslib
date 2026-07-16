@@ -14,6 +14,7 @@ const TOP_SECTIONS = new Set([
   "ehr_components",
   "terminology_shortcuts",
   "field_promotions",
+  "html5_short_tags",
   "foundation_types",
 ]);
 
@@ -63,11 +64,21 @@ for (const line of lines) {
     const emojiSymbol = looksLikeLetterCode && second != null ? second : first;
 
     current.entries.push({ key, letterSymbol, emojiSymbol });
+    continue;
+  }
+  const scalarEntry = line.match(/^\s*([A-Za-z0-9_.]+)\s*:\s*([A-Za-z0-9_-]+)\s*,?\s*$/);
+  if (scalarEntry && current?.name === "html5_short_tags") {
+    current.entries.push({
+      key: scalarEntry[1],
+      letterSymbol: scalarEntry[2],
+      emojiSymbol: scalarEntry[2],
+    });
   }
 }
 
 const letterLines: string[] = [];
 const emojiLines: string[] = [];
+const html5ShortTagLines: string[] = [];
 const terminologyShortcutLines: string[] = [];
 const fieldPromotionLines: string[] = [];
 const seenKeys = new Set<string>();
@@ -97,6 +108,12 @@ for (const sec of sections) {
     }
     continue;
   }
+  if (sec.name === "html5_short_tags") {
+    for (const { key, letterSymbol } of sec.entries) {
+      html5ShortTagLines.push(`  ${key}: "${letterSymbol}",`);
+    }
+    continue;
+  }
   if (!RM_SYMBOL_SECTIONS.has(sec.name)) continue;
   for (const { key, letterSymbol, emojiSymbol } of sec.entries) {
     // RM class rows are UPPERCASE; attribute rows use dotted keys (e.g. LOCATABLE.name).
@@ -121,6 +138,11 @@ const output = [
   "",
   "export const SYMBOL_TABLE_EMOJI_SYMBOLS = {",
   ...emojiLines,
+  "} as const;",
+  "",
+  "/** HTML5 short-dialect tag suffix overrides (`o-{suffix}`) when letter codes collide under lowercasing. */",
+  "export const SYMBOL_TABLE_HTML5_SHORT_TAGS = {",
+  ...html5ShortTagLines,
   "} as const;",
   "",
   "export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };",
