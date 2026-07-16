@@ -57,8 +57,6 @@ Same tree shape across dialects; tag local name after `o-` differs. Round-trip a
 | full | `linesaving` |
 | emoji | `linesaving` |
 
-Deprecated: `prettyPrint: true` → `linesaving`, `prettyPrint: false` → `oneliner`.
-
 ## Relationship to other ZipEHR skins
 
 ```

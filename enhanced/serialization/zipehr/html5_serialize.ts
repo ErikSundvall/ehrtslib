@@ -32,10 +32,6 @@ export type Html5SerializeOptions = {
    * Layout density. Default: `oneliner` for short, `linesaving` for full/emoji.
    */
   layout?: Html5Layout;
-  /**
-   * @deprecated Prefer `layout`. `true` → linesaving, `false` → oneliner.
-   */
-  prettyPrint?: boolean;
   lang?: string;
   /** When true, omit LOCATABLE name text (codes/ids still emitted). */
   omitLocatableNames?: boolean;
@@ -709,8 +705,6 @@ function resolveLayout(
   options: Html5SerializeOptions,
 ): Html5Layout {
   if (options.layout) return options.layout;
-  if (options.prettyPrint === true) return "linesaving";
-  if (options.prettyPrint === false) return "oneliner";
   return dialect === "short" ? "oneliner" : "linesaving";
 }
 
