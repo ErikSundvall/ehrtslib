@@ -18,11 +18,22 @@ import {
 
 export type Html5Dialect = "short" | "full" | "emoji";
 
+/**
+ * Output density for HTML5 markup:
+ * - `oneliner` — fully compact (no insignificant whitespace)
+ * - `linesaving` — hybrid: keep small related clusters on one line (like zipehr.json)
+ * - `fluffy` — standard indented HTML (one logical element block per line)
+ */
+export type Html5Layout = "oneliner" | "linesaving" | "fluffy";
+
 export type Html5SerializeOptions = {
   dialect: Html5Dialect;
   /**
-   * Pretty-print with indentation. Default: `false` for short, `true` for full/emoji.
-   * User-selectable for all three dialects.
+   * Layout density. Default: `oneliner` for short, `linesaving` for full/emoji.
+   */
+  layout?: Html5Layout;
+  /**
+   * @deprecated Prefer `layout`. `true` → linesaving, `false` → oneliner.
    */
   prettyPrint?: boolean;
   lang?: string;
@@ -41,16 +52,6 @@ export const ZIPEHR_HTML5_FMT_TOKEN: Record<Html5Dialect, string> = {
   full: "f1",
   emoji: "e1",
 };
-
-const ARRAY_PROPERTIES = new Set([
-  "content",
-  "items",
-  "events",
-  "activities",
-  "other_participations",
-  "other_reference_ranges",
-  "mappings",
-]);
 
 const SKIP_PROPS = new Set([
   "_type",
@@ -266,11 +267,43 @@ function quantityAttrNames(dialect: Html5Dialect): {
   };
 }
 
+type MarkupNode = {
+  tag: string;
+  attrs: AttrBag[];
+  /** LOCATABLE display name before child elements. */
+  leadingText: string;
+  /** Simple leaf text content (DV_TEXT, etc.). */
+  textContent?: string;
+  children: MarkupNode[];
+};
+
+function markup(
+  tag: string,
+  attrs: AttrBag[],
+  opts?: {
+    leadingText?: string;
+    textContent?: string;
+    children?: MarkupNode[];
+  },
+): MarkupNode {
+  return {
+    tag,
+    attrs,
+    leadingText: opts?.leadingText ?? "",
+    textContent: opts?.textContent,
+    children: opts?.children ?? [],
+  };
+}
+
+function textLeaf(tag: string, text: string): MarkupNode {
+  return markup(tag, [], { textContent: text });
+}
+
 function renderDvQuantity(
   obj: Record<string, unknown>,
   dialect: Html5Dialect,
   extraAttrs: AttrBag[],
-): string {
+): MarkupNode {
   const tag = tagForType("DV_QUANTITY", dialect);
   const { mag, unit } = quantityChildTags(dialect);
   const qAttrs = quantityAttrNames(dialect);
@@ -293,14 +326,16 @@ function renderDvQuantity(
   const unitsSystem = obj.units_system != null
     ? String(obj.units_system)
     : undefined;
-  const unitAttr = unitsSystem && unitsSystem !== units
-    ? ` u="${escapeXmlAttr(unitsSystem)}"`
-    : "";
+  const unitAttrs: AttrBag[] = unitsSystem && unitsSystem !== units
+    ? [{ name: "u", value: unitsSystem }]
+    : [];
 
-  const inner =
-    `<${mag}>${escapeXmlText(magnitude)}</${mag}>` +
-    `<${unit}${unitAttr}>${escapeXmlText(units)}</${unit}>`;
-  return `<${tag}${formatAttrs(attrs)}>${inner}</${tag}>`;
+  return markup(tag, attrs, {
+    children: [
+      textLeaf(mag, magnitude),
+      markup(unit, unitAttrs, { textContent: units }),
+    ],
+  });
 }
 
 function renderDvLeaf(
@@ -308,7 +343,7 @@ function renderDvLeaf(
   obj: Record<string, unknown>,
   dialect: Html5Dialect,
   extraAttrs: AttrBag[],
-): string {
+): MarkupNode {
   if (rmType === "DV_QUANTITY") {
     return renderDvQuantity(obj, dialect, extraAttrs);
   }
@@ -398,20 +433,19 @@ function renderDvLeaf(
           value: String(obj.precision),
         });
       }
-      const inner =
-        `<${numTag}>${escapeXmlText(String(obj.numerator ?? ""))}</${numTag}>` +
-        `<${denTag}>${escapeXmlText(String(obj.denominator ?? ""))}</${denTag}>`;
-      return `<${tag}${formatAttrs(attrs)}>${inner}</${tag}>`;
+      return markup(tag, attrs, {
+        children: [
+          textLeaf(numTag, String(obj.numerator ?? "")),
+          textLeaf(denTag, String(obj.denominator ?? "")),
+        ],
+      });
     }
     default:
       text = obj.value != null ? String(obj.value) : "";
       break;
   }
 
-  if (!text && attrs.length === 0) {
-    return `<${tag}${formatAttrs(attrs)}/>`;
-  }
-  return `<${tag}${formatAttrs(attrs)}>${escapeXmlText(text)}</${tag}>`;
+  return markup(tag, attrs, { textContent: text || undefined });
 }
 
 function isDataValueType(rmType: string): boolean {
@@ -445,7 +479,7 @@ function propertyAmbiguous(
   return !matches.some(([p]) => p === propertyName) || matches.length > 1;
 }
 
-function renderNode(
+function buildNode(
   node: unknown,
   dialect: Html5Dialect,
   options: {
@@ -455,30 +489,39 @@ function renderNode(
     propertyName?: string;
     lang?: string;
   },
-): string {
-  if (node == null) return "";
+): MarkupNode | MarkupNode[] | null {
+  if (node == null) return null;
 
   if (Array.isArray(node)) {
-    return node.map((item) =>
-      renderNode(item, dialect, { ...options, isRoot: false })
-    ).join("");
+    const items: MarkupNode[] = [];
+    for (const item of node) {
+      const built = buildNode(item, dialect, { ...options, isRoot: false });
+      if (built == null) continue;
+      if (Array.isArray(built)) items.push(...built);
+      else items.push(built);
+    }
+    return items;
   }
 
   if (typeof node !== "object") {
-    return escapeXmlText(String(node));
+    return null;
   }
 
   const obj = node as Record<string, unknown>;
   const rmType = obj._type != null ? String(obj._type) : undefined;
   if (!rmType) {
-    // Untyped object: render children only
-    return Object.entries(obj).map(([k, v]) =>
-      renderNode(v, dialect, {
+    const items: MarkupNode[] = [];
+    for (const [k, v] of Object.entries(obj)) {
+      const built = buildNode(v, dialect, {
         ...options,
         isRoot: false,
         propertyName: k,
-      })
-    ).join("");
+      });
+      if (built == null) continue;
+      if (Array.isArray(built)) items.push(...built);
+      else items.push(built);
+    }
+    return items;
   }
 
   const extraAttrs: AttrBag[] = [];
@@ -508,11 +551,9 @@ function renderNode(
     return renderDvLeaf(rmType, obj, dialect, extraAttrs);
   }
 
-  // LOCATABLE / structure
   const tag = tagForType(rmType, dialect);
   const attrs = [...extraAttrs, ...locatableAttrs(obj, dialect)];
 
-  // Composition language/territory/encoding promotions
   if (rmType === "COMPOSITION") {
     for (const field of ["language", "territory", "encoding"] as const) {
       const cp = unwrapCodePhrase(obj[field]);
@@ -530,9 +571,7 @@ function renderNode(
           continue;
         }
       }
-      if (dialect === "short") {
-        // keep as nested CODE_PHRASE children instead
-      } else {
+      if (dialect !== "short") {
         attrs.push({ name: field, value: cp.code });
       }
     }
@@ -554,53 +593,131 @@ function renderNode(
     }),
   );
 
-  const childrenHtml = childKeys.map((key) => {
+  const children: MarkupNode[] = [];
+  for (const key of childKeys) {
     const child = obj[key];
-    if (ARRAY_PROPERTIES.has(key) && Array.isArray(child)) {
-      return child.map((item) =>
-        renderNode(item, dialect, {
-          omitLocatableNames: options.omitLocatableNames,
-          isRoot: false,
-          parentType: rmType,
-          propertyName: key,
-        })
-      ).join("");
-    }
-    return renderNode(child, dialect, {
+    const built = buildNode(child, dialect, {
       omitLocatableNames: options.omitLocatableNames,
       isRoot: false,
       parentType: rmType,
       propertyName: key,
     });
-  }).join("");
+    if (built == null) continue;
+    if (Array.isArray(built)) children.push(...built);
+    else children.push(built);
+  }
 
-  const leading = nameText ? escapeXmlText(nameText) : "";
-  return `<${tag}${formatAttrs(attrs)}>${leading}${childrenHtml}</${tag}>`;
+  return markup(tag, attrs, {
+    leadingText: nameText,
+    children,
+  });
 }
 
-function prettyPrintHtml5(html: string): string {
-  const pad = "  ";
-  let depth = 0;
-  return html
-    .replace(/>\s+</g, "><")
-    .replace(/></g, ">\n<")
-    .split("\n")
-    .map((line) => {
-      const trimmed = line.trim();
-      if (!trimmed) return "";
-      if (/^<\//.test(trimmed)) depth = Math.max(0, depth - 1);
-      const indented = pad.repeat(depth) + trimmed;
-      // Open tag that is not self-closing and not a leaf-only line with close
-      if (
-        /^<[^!?/][^>]*[^/]>$/.test(trimmed) &&
-        !/^<[^>]+>.*<\/[^>]+>$/.test(trimmed)
-      ) {
-        depth++;
-      }
-      return indented;
-    })
-    .filter(Boolean)
-    .join("\n") + "\n";
+const LINESAVING_MAX_INLINE = 140;
+
+function openTag(node: MarkupNode): string {
+  return `<${node.tag}${formatAttrs(node.attrs)}>`;
+}
+
+function closeTag(node: MarkupNode): string {
+  return `</${node.tag}>`;
+}
+
+function isSimpleLeaf(node: MarkupNode): boolean {
+  return node.children.length === 0;
+}
+
+function formatCompact(node: MarkupNode): string {
+  if (isSimpleLeaf(node)) {
+    const text = node.textContent != null
+      ? escapeXmlText(node.textContent)
+      : "";
+    if (!text && node.attrs.length === 0 && !node.leadingText) {
+      return `<${node.tag}${formatAttrs(node.attrs)}/>`;
+    }
+    return `${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
+  }
+  const inner = escapeXmlText(node.leadingText) +
+    node.children.map(formatCompact).join("");
+  return `${openTag(node)}${inner}${closeTag(node)}`;
+}
+
+function maxElementDepth(node: MarkupNode): number {
+  if (node.children.length === 0) return 0;
+  return 1 + Math.max(...node.children.map(maxElementDepth));
+}
+
+function canInlineLinesaving(node: MarkupNode): boolean {
+  if (isSimpleLeaf(node)) return true;
+  // Keep quantity/proportion-style clusters (depth 1) with parent name on one line
+  const depth = maxElementDepth(node);
+  if (depth <= 1) {
+    return formatCompact(node).length <= LINESAVING_MAX_INLINE;
+  }
+  if (depth === 2) {
+    // e.g. ELEMENT + QUANTITY(mag,unit) or ELEMENT + coded text
+    return formatCompact(node).length <= LINESAVING_MAX_INLINE;
+  }
+  return false;
+}
+
+function formatLinesaving(node: MarkupNode, depth: number): string {
+  const pad = "  ".repeat(depth);
+  if (canInlineLinesaving(node)) {
+    return pad + formatCompact(node);
+  }
+
+  const lines: string[] = [];
+  const leading = node.leadingText ? escapeXmlText(node.leadingText) : "";
+  // Open tag + optional leading name on same line (JSON-style key clustering)
+  lines.push(pad + openTag(node) + leading);
+  for (const child of node.children) {
+    lines.push(formatLinesaving(child, depth + 1));
+  }
+  lines.push(pad + closeTag(node));
+  return lines.join("\n");
+}
+
+function formatFluffy(node: MarkupNode, depth: number): string {
+  const pad = "  ".repeat(depth);
+  const childPad = "  ".repeat(depth + 1);
+
+  if (isSimpleLeaf(node)) {
+    const text = node.textContent != null
+      ? escapeXmlText(node.textContent)
+      : "";
+    if (!text && !node.leadingText) {
+      return `${pad}<${node.tag}${formatAttrs(node.attrs)}/>`;
+    }
+    return `${pad}${openTag(node)}${escapeXmlText(node.leadingText)}${text}${closeTag(node)}`;
+  }
+
+  const lines: string[] = [];
+  lines.push(pad + openTag(node));
+  if (node.leadingText) {
+    lines.push(childPad + escapeXmlText(node.leadingText));
+  }
+  for (const child of node.children) {
+    lines.push(formatFluffy(child, depth + 1));
+  }
+  lines.push(pad + closeTag(node));
+  return lines.join("\n");
+}
+
+function resolveLayout(
+  dialect: Html5Dialect,
+  options: Html5SerializeOptions,
+): Html5Layout {
+  if (options.layout) return options.layout;
+  if (options.prettyPrint === true) return "linesaving";
+  if (options.prettyPrint === false) return "oneliner";
+  return dialect === "short" ? "oneliner" : "linesaving";
+}
+
+function formatMarkup(node: MarkupNode, layout: Html5Layout): string {
+  if (layout === "oneliner") return formatCompact(node);
+  if (layout === "fluffy") return formatFluffy(node, 0) + "\n";
+  return formatLinesaving(node, 0) + "\n";
 }
 
 /** Serialize canonical JSON (with `_type`) to ZipEHR HTML5 markup. */
@@ -609,11 +726,18 @@ export function serializeCanonicalToHtml5(
   options: Html5SerializeOptions,
 ): string {
   const dialect = options.dialect;
-  const prettyPrint = options.prettyPrint ?? dialect !== "short";
-  const html = renderNode(canonical, dialect, {
+  const layout = resolveLayout(dialect, options);
+  const built = buildNode(canonical, dialect, {
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
     lang: options.lang,
   });
-  return prettyPrint ? prettyPrintHtml5(html) : html;
+  if (built == null) return "";
+  if (Array.isArray(built)) {
+    // Unexpected multi-root — join
+    return built.map((n) => formatMarkup(n, layout)).join(
+      layout === "oneliner" ? "" : "\n",
+    );
+  }
+  return formatMarkup(built, layout);
 }

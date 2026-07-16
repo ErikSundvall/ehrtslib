@@ -120,8 +120,8 @@ shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
 **zipehr.html5** (`html5/short`, `html5/full`, `html5/emoji`): compact `o-*` custom
-elements (not FHIR Narrative). Pretty-print is user-selectable for all three dialects
-(default: compact for short, pretty for full/emoji). See [`oehr_html5_v1.md`](oehr_html5_v1.md).
+elements (not FHIR Narrative). Layout is a tristate — `oneliner` / `linesaving` / `fluffy`
+(default: oneliner for short, linesaving for full/emoji). See [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 

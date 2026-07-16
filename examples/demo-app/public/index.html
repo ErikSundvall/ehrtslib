@@ -858,14 +858,12 @@
                     </div>
                   </div>
                   <div class="form-group hidden" id="zipehr-html5-pretty-group">
-                    <label class="symbol-variant-radio">
-                      <input
-                        type="checkbox"
-                        id="zipehr-html5-pretty-print"
-                        checked
-                      />
-                      <span>Pretty-print HTML5</span>
-                    </label>
+                    <label for="zipehr-html5-layout">HTML5 layout:</label>
+                    <select id="zipehr-html5-layout" class="config-dropdown">
+                      <option value="oneliner">Oneliner (compact)</option>
+                      <option value="linesaving" selected>Linesaving (hybrid)</option>
+                      <option value="fluffy">Fluffy (indented)</option>
+                    </select>
                   </div>
                   </div>
                 </div>

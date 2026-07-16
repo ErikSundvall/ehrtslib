@@ -119,6 +119,7 @@ export {
   serializeZipehrPlainToJson,
   serializeZipehrPlainToYaml,
   type Html5Dialect,
+  type Html5Layout,
   type Html5SerializeOptions,
   type ZipehrOutputVariant,
   zipehrTextToCanonical,

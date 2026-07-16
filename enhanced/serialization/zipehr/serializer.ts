@@ -28,6 +28,7 @@ import { zipehrXhtmlToCanonical } from "./xhtml_deserialize.ts";
 import {
   serializeCanonicalToHtml5,
   type Html5Dialect,
+  type Html5Layout,
   type Html5SerializeOptions,
 } from "./html5_serialize.ts";
 import {
@@ -44,7 +45,7 @@ export type ZipehrOutputVariant =
   | "zipehr.html5.full"
   | "zipehr.html5.emoji";
 
-export type { Html5Dialect, Html5SerializeOptions };
+export type { Html5Dialect, Html5Layout, Html5SerializeOptions };
 
 /** Convert an RM instance to canonical plain JSON (with _type). */
 export function rmToCanonicalPlain(obj: unknown): Record<string, unknown> {

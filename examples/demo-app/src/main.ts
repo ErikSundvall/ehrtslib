@@ -309,13 +309,21 @@ function isZipehrHtml5VariantSelected(): boolean {
   );
 }
 
-function getActiveZipehrHtml5PrettyPrint(): boolean | undefined {
+function getActiveZipehrHtml5Layout():
+  | "oneliner"
+  | "linesaving"
+  | "fluffy"
+  | undefined {
   if (!isZipehrHtml5VariantSelected()) return undefined;
-  const checkbox = document.getElementById(
-    "zipehr-html5-pretty-print",
-  ) as HTMLInputElement | null;
-  if (!checkbox) return undefined;
-  return checkbox.checked;
+  const select = document.getElementById(
+    "zipehr-html5-layout",
+  ) as HTMLSelectElement | null;
+  const value = select?.value;
+  if (value === "oneliner" || value === "linesaving" || value === "fluffy") {
+    return value;
+  }
+  const variant = getActiveZipehrVariant();
+  return variant === "zipehr.html5.short" ? "oneliner" : "linesaving";
 }
 
 function getActiveSimplifiedVariant(): "flat" | "structured" {
@@ -360,19 +368,20 @@ function switchSimplifiedVariantPane(): void {
 function setupZipehrVariantListener(): void {
   const select = document.getElementById("zipehr-variant");
   select?.addEventListener("change", () => {
-    const pretty = document.getElementById(
-      "zipehr-html5-pretty-print",
-    ) as HTMLInputElement | null;
-    if (pretty && isZipehrHtml5VariantSelected()) {
+    const layout = document.getElementById(
+      "zipehr-html5-layout",
+    ) as HTMLSelectElement | null;
+    if (layout && isZipehrHtml5VariantSelected()) {
       const v = getActiveZipehrVariant();
-      pretty.checked = v !== "zipehr.html5.short";
+      // Seed dialect default when switching into HTML5 (user can override).
+      layout.value = v === "zipehr.html5.short" ? "oneliner" : "linesaving";
     }
     syncZipehrSymbolVariantControls();
     switchZipehrVariantPane();
     scheduleAutoConvert();
   });
-  const pretty = document.getElementById("zipehr-html5-pretty-print");
-  pretty?.addEventListener("change", () => {
+  const layoutSelect = document.getElementById("zipehr-html5-layout");
+  layoutSelect?.addEventListener("change", () => {
     if (isZipehrHtml5VariantSelected()) scheduleAutoConvert();
   });
   syncZipehrSymbolVariantControls();
@@ -1945,7 +1954,7 @@ function gatherConversionOptions(): ConversionOptions {
     xmlConfig,
     typescriptConfig,
     zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
-    zipehrHtml5PrettyPrint: getActiveZipehrHtml5PrettyPrint(),
+    zipehrHtml5Layout: getActiveZipehrHtml5Layout(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
 }

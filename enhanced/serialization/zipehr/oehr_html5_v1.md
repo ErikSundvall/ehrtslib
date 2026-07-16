@@ -41,17 +41,23 @@ Same tree shape across dialects; tag local name after `o-` differs. Round-trip a
 - FHIR `Narrative.div` compliance (use `zipehr.xhtml/v1` for that)
 - Emitting FLAT paths or editor-kind hints in the stored document
 
-## Pretty-print vs compact
+## Pretty-print vs compact (layout)
 
-**All three dialects** accept `prettyPrint` (user-selectable):
+**All three dialects** accept `layout` (user-selectable tristate):
 
-| Dialect | Default `prettyPrint` |
-|---------|------------------------|
-| short | `false` (compact wire) |
-| full | `true` |
-| emoji | `true` |
+| Layout | Behaviour |
+|--------|-----------|
+| `oneliner` | Fully compact — no insignificant whitespace |
+| `linesaving` | Hybrid (like `zipehr.json`): keep small related clusters on one line; break larger structure |
+| `fluffy` | Standard indented HTML — open/close tags and children on separate lines |
 
-Set `prettyPrint: false` on full/emoji for minified output; set `prettyPrint: true` on short for debug.
+| Dialect | Default `layout` |
+|---------|------------------|
+| short | `oneliner` |
+| full | `linesaving` |
+| emoji | `linesaving` |
+
+Deprecated: `prettyPrint: true` → `linesaving`, `prettyPrint: false` → `oneliner`.
 
 ## Relationship to other ZipEHR skins
 
@@ -149,12 +155,12 @@ import {
 
 await serializeToZipehrHtml5(canonicalOrRm, {
   dialect: "short" | "full" | "emoji",
-  prettyPrint?: boolean, // default: false short, true full/emoji
+  layout?: "oneliner" | "linesaving" | "fluffy",
   lang?: string,
   omitLocatableNames?: boolean,
 });
 
-await serializeToHtml5Variant(obj, "zipehr.html5.short", { prettyPrint: true });
+await serializeToHtml5Variant(obj, "zipehr.html5.short", { layout: "fluffy" });
 
 zipehrHtml5ToCanonical(html); // dialect from fmt / tags
 ```

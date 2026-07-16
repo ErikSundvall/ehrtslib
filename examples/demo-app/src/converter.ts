@@ -188,8 +188,8 @@ export interface ConversionOptions {
   outputFormats: OutputFormat[];
   /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs (`zipehr.xhtml` always uses letter codes). */
   zipehrSymbolVariant?: "emoji" | "lettercode";
-  /** Pretty-print for ZipEHR HTML5 dialects (default follows dialect: short=false, full/emoji=true). */
-  zipehrHtml5PrettyPrint?: boolean;
+  /** ZipEHR HTML5 layout: oneliner | linesaving | fluffy. */
+  zipehrHtml5Layout?: "oneliner" | "linesaving" | "fluffy";
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
@@ -396,7 +396,7 @@ export async function convert(
             outputs[format] = await serializeToHtml5Variant(
               rmObject,
               format,
-              { prettyPrint: options.zipehrHtml5PrettyPrint },
+              { layout: options.zipehrHtml5Layout },
             );
             break;
           case "markdown":
@@ -496,7 +496,7 @@ async function convertTemplateInput(
         outputs[format] = await serializeToHtml5Variant(
           generatedInstance,
           format,
-          { prettyPrint: options.zipehrHtml5PrettyPrint },
+          { layout: options.zipehrHtml5Layout },
         );
         break;
       case "markdown":
