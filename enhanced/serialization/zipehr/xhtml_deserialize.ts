@@ -11,6 +11,8 @@ import {
 import { parseLocatableTitle } from "./title_grammar.ts";
 import {
   isLocatableStructuredObject,
+  LANGUAGE_CARRIER_TYPES,
+  languageTerseString,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
 } from "./shared.ts";
@@ -346,6 +348,11 @@ function deserializeElement(
     );
   } else {
     out._ = classToken;
+  }
+
+  // Native HTML `lang` → openEHR language CODE_PHRASE (COMPOSITION / ENTRY).
+  if (node.attrs.lang && LANGUAGE_CARRIER_TYPES.has(rmType)) {
+    out.language = languageTerseString(node.attrs.lang);
   }
 
   const childDivs = childElements(node).filter((c) =>

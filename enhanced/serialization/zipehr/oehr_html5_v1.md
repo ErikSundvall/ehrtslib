@@ -144,6 +144,9 @@ When `archetype_node_id` equals `archetype_id`, always emit the node-id attr (`n
 
 Root `fmt` tokens: `s1` / `f1` / `e1` (or full URIs).
 
+openEHR `language` on COMPOSITION and ENTRY is emitted as the native HTML `lang` attribute
+(not `🗪` / `language=`). Territory/encoding remain promoted attrs where applicable.
+
 ## API
 
 ```ts

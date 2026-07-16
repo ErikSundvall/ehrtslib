@@ -12,6 +12,7 @@ import {
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 import {
+  LANGUAGE_CARRIER_TYPES,
   LOCATABLE_LIKE_TYPES,
   PROPERTY_TYPE_MAP,
 } from "./shared.ts";
@@ -550,9 +551,6 @@ function buildNode(
       name: "fmt",
       value: ZIPEHR_HTML5_FMT_TOKEN[dialect],
     });
-    if (options.lang) {
-      extraAttrs.push({ name: "lang", value: options.lang });
-    }
   }
 
   if (
@@ -574,15 +572,24 @@ function buildNode(
   const tag = tagForType(rmType, dialect);
   const attrs = [...extraAttrs, ...locatableAttrs(obj, dialect)];
 
+  // Native HTML `lang` for openEHR language (COMPOSITION and ENTRY subtypes).
+  if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
+    const langCode = unwrapCodePhrase(obj.language).code ??
+      (options.isRoot ? options.lang : undefined);
+    if (langCode) {
+      attrs.push({ name: "lang", value: langCode });
+    }
+  } else if (options.isRoot && options.lang) {
+    attrs.push({ name: "lang", value: options.lang });
+  }
+
   if (rmType === "COMPOSITION") {
-    for (const field of ["language", "territory", "encoding"] as const) {
+    for (const field of ["territory", "encoding"] as const) {
       const cp = unwrapCodePhrase(obj[field]);
       if (!cp.code) continue;
       if (dialect === "emoji") {
         const promo = TERMINOLOGY_SHORTCUTS.find((s) =>
-          field === "language"
-            ? s.prefix.startsWith("ISO_639")
-            : field === "territory"
+          field === "territory"
             ? s.prefix.startsWith("ISO_3166")
             : s.prefix.startsWith("IANA")
         );
@@ -603,8 +610,14 @@ function buildNode(
     Object.keys(obj).filter((k) => {
       if (SKIP_PROPS.has(k)) return false;
       if (
+        LANGUAGE_CARRIER_TYPES.has(rmType) && k === "language" &&
+        unwrapCodePhrase(obj[k]).code
+      ) {
+        return false;
+      }
+      if (
         rmType === "COMPOSITION" && dialect !== "short" &&
-        (k === "language" || k === "territory" || k === "encoding") &&
+        (k === "territory" || k === "encoding") &&
         unwrapCodePhrase(obj[k]).code
       ) {
         return false;

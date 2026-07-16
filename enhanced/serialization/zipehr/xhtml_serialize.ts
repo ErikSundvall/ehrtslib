@@ -7,12 +7,13 @@ import { toTerseCodePhrase, toTerseDvCodedText } from "./compact.ts";
 import {
   extractCompactArchetypeDetails,
   extractFirstScalar,
-  extractWrappedTerseString,
+  extractLanguageCode,
   expandTerseString,
   inferrablePropertyType,
   isLocatableStructuredObject,
   isSymbolKey,
   isTerseDvCodedText,
+  LANGUAGE_CARRIER_TYPES,
   PROPERTY_TYPE_MAP,
 } from "./shared.ts";
 import {
@@ -24,6 +25,7 @@ import {
 import {
   formatLocatableTitle,
   type LocatableTitleFields,
+  type TitleSymbolVariant,
 } from "./title_grammar.ts";
 
 export const ZIPEHR_XHTML_VERSION_URI =
@@ -50,6 +52,11 @@ const HEADING_BY_TYPE: Record<string, string> = {
 
 export type XhtmlSerializeOptions = {
   lang?: string;
+  /**
+   * Symbols inside `title` attribute values (`id`/`ar`/… vs `🆔`/`Ⓐ`/…).
+   * `class` tokens always stay Ehrbase letter codes. Default: `lettercode`.
+   */
+  symbolVariant?: TitleSymbolVariant;
   /** Insert newlines and indentation (default: true). */
   prettyPrint?: boolean;
 };
@@ -106,7 +113,6 @@ function buildLocatableTitleFields(
   const templateSym = letterMap["ARCHETYPED.template_id"] ?? "te";
   const archetypeSym = letterMap["ARCHETYPED.archetype_id"] ?? "ar";
   const rmSym = letterMap["ARCHETYPED.rm_version"] ?? "rm";
-  const combinedKey = `${archetypeSym}${nodeSym}`;
 
   const name = String(structured[nameSym] ?? "");
   const fields: LocatableTitleFields = {};
@@ -120,15 +126,11 @@ function buildLocatableTitleFields(
 
   const nodeId = structured[nodeSym] != null
     ? String(structured[nodeSym])
-    : (structured[combinedKey] != null
-      ? String(structured[combinedKey])
-      : undefined);
+    : undefined;
 
   const aRaw = structured[archetypeSym];
   let archetypeId: string | true | undefined;
-  if (structured[combinedKey] != null) {
-    archetypeId = String(structured[combinedKey]);
-  } else if (aRaw === true || aRaw === "true") {
+  if (aRaw === true || aRaw === "true") {
     archetypeId = true;
   } else if (aRaw != null && aRaw !== false && aRaw !== "") {
     archetypeId = String(aRaw);
@@ -314,14 +316,31 @@ function renderChildren(
   rmType: string | undefined,
   letterMap: Record<string, string>,
   reverseMap: Map<string, string>,
+  titleVariant: TitleSymbolVariant,
 ): string {
   const keys = orderedChildKeys(
     rmType,
-    Object.keys(obj).filter((k) => k !== "_" && !isClassTokenKey(k, reverseMap)),
+    Object.keys(obj).filter((k) => {
+      if (k === "_" || isClassTokenKey(k, reverseMap)) return false;
+      // Native HTML `lang` carries openEHR language — do not emit as a child.
+      if (k === "language" && LANGUAGE_CARRIER_TYPES.has(rmType ?? "")) {
+        return false;
+      }
+      return true;
+    }),
   );
   return keys.map((key) =>
-    renderZipehrNode(obj[key], rmType, key, letterMap, reverseMap)
+    renderZipehrNode(obj[key], rmType, key, letterMap, reverseMap, titleVariant)
   ).join("");
+}
+
+function langAttrFromSiblings(
+  rmType: string,
+  siblings: Record<string, unknown>,
+): string {
+  if (!LANGUAGE_CARRIER_TYPES.has(rmType)) return "";
+  const code = extractLanguageCode(siblings.language);
+  return code ? ` lang="${escapeXmlAttr(code)}"` : "";
 }
 
 function renderLocatableDiv(
@@ -331,9 +350,11 @@ function renderLocatableDiv(
   siblings: Record<string, unknown>,
   letterMap: Record<string, string>,
   reverseMap: Map<string, string>,
+  titleVariant: TitleSymbolVariant,
 ): string {
   const title = formatLocatableTitle(
     buildLocatableTitleFields(structured, letterMap),
+    titleVariant,
   );
   const name = locatableName(structured, letterMap);
   const headingTag = HEADING_BY_TYPE[rmType];
@@ -345,8 +366,15 @@ function renderLocatableDiv(
     : "";
   assertSafeTagName(headingTag || "div");
   const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
-  const childHtml = renderChildren(siblings, rmType, letterMap, reverseMap);
-  return `<div class="${escapeXmlAttr(classToken)}"${titleAttr}>${heading}${nameSpan}${childHtml}</div>`;
+  const langAttr = langAttrFromSiblings(rmType, siblings);
+  const childHtml = renderChildren(
+    siblings,
+    rmType,
+    letterMap,
+    reverseMap,
+    titleVariant,
+  );
+  return `<div class="${escapeXmlAttr(classToken)}"${titleAttr}${langAttr}>${heading}${nameSpan}${childHtml}</div>`;
 }
 
 function renderZipehrNode(
@@ -355,13 +383,21 @@ function renderZipehrNode(
   propertyName?: string,
   letterMap?: Record<string, string>,
   reverseMap?: Map<string, string>,
+  titleVariant: TitleSymbolVariant = "lettercode",
 ): string {
   if (node == null) return "";
   if (!letterMap || !reverseMap) throw new Error("letter maps are required");
 
   if (Array.isArray(node)) {
     return node.map((item) =>
-      renderZipehrNode(item, parentType, propertyName, letterMap, reverseMap)
+      renderZipehrNode(
+        item,
+        parentType,
+        propertyName,
+        letterMap,
+        reverseMap,
+        titleVariant,
+      )
     ).join("");
   }
 
@@ -390,6 +426,7 @@ function renderZipehrNode(
       const structured = obj[locKey] as Record<string, unknown>;
       const title = formatLocatableTitle(
         buildLocatableTitleFields(structured, letterMap),
+        titleVariant,
       );
       const label = locatableName(structured, letterMap);
       let valueHtml = "";
@@ -428,6 +465,7 @@ function renderZipehrNode(
         rmType,
         letterMap,
         reverseMap,
+        titleVariant,
       );
       const titleAttr = title ? ` title="${escapeXmlAttr(title)}"` : "";
       return `<div class="E"${titleAttr}><span>${escapeXmlText(label)}</span>${valueHtml}${otherChildren}</div>`;
@@ -446,6 +484,7 @@ function renderZipehrNode(
       siblings,
       letterMap,
       reverseMap,
+      titleVariant,
     );
   }
 
@@ -467,8 +506,15 @@ function renderZipehrNode(
     if (!rmTypeFromClass(classToken, reverseMap) && !reverseMap.has(classToken)) {
       throw new UnsupportedZipehrXhtmlTypeError(classToken);
     }
-    const childHtml = renderChildren(obj, rmType, letterMap, reverseMap);
-    return `<div class="${escapeXmlAttr(classToken)}">${childHtml}</div>`;
+    const langAttr = langAttrFromSiblings(rmType, obj);
+    const childHtml = renderChildren(
+      obj,
+      rmType,
+      letterMap,
+      reverseMap,
+      titleVariant,
+    );
+    return `<div class="${escapeXmlAttr(classToken)}"${langAttr}>${childHtml}</div>`;
   }
 
   // Single symbol wrapper with inner object (non-locatable)
@@ -477,18 +523,21 @@ function renderZipehrNode(
     const rmType = rmTypeFromClass(symKey, reverseMap) ?? symKey;
     const inner = obj[symKey];
     if (inner && typeof inner === "object" && !Array.isArray(inner)) {
+      const merged = {
+        ...inner as Record<string, unknown>,
+        ...Object.fromEntries(
+          Object.entries(obj).filter(([k]) => k !== symKey && k !== "_"),
+        ),
+      };
+      const langAttr = langAttrFromSiblings(rmType, merged);
       const childHtml = renderChildren(
-        {
-          ...inner as Record<string, unknown>,
-          ...Object.fromEntries(
-            Object.entries(obj).filter(([k]) => k !== symKey && k !== "_"),
-          ),
-        },
+        merged,
         rmType,
         letterMap,
         reverseMap,
+        titleVariant,
       );
-      return `<div class="${escapeXmlAttr(symKey)}">${childHtml}</div>`;
+      return `<div class="${escapeXmlAttr(symKey)}"${langAttr}>${childHtml}</div>`;
     }
   }
 
@@ -499,22 +548,13 @@ function renderZipehrNode(
     return renderValueSpan(rmType, symKey, obj[symKey], letterMap);
   }
 
-  return renderChildren(obj, parentType, letterMap, reverseMap);
+  return renderChildren(obj, parentType, letterMap, reverseMap, titleVariant);
 }
 
-function extractCompositionLang(
+function extractDocumentLang(
   canonical: Record<string, unknown>,
 ): string | undefined {
-  const language = canonical.language;
-  if (!language || typeof language !== "object") return undefined;
-  const code = extractWrappedTerseString(
-    (language as Record<string, unknown>).code_string ??
-      language,
-  );
-  if (code) return code;
-  const phrase = language as Record<string, unknown>;
-  if (phrase.code_string) return String(phrase.code_string);
-  return undefined;
+  return extractLanguageCode(canonical.language);
 }
 
 /** Serialize a letter-code ZipEHR object tree to an XHTML fragment. */
@@ -524,13 +564,19 @@ export function serializeZipehrPlainToXhtml(
 ): string {
   const letterMap = cachedSyncLetterMap();
   const reverseMap = getLetterCodeReverseMap(letterMap);
-  const lang = options.lang ?? "en";
+  const titleVariant = options.symbolVariant ?? "lettercode";
+  const lang = options.lang ??
+    (zipehrObj && typeof zipehrObj === "object" && !Array.isArray(zipehrObj)
+      ? extractLanguageCode((zipehrObj as Record<string, unknown>).language)
+      : undefined) ??
+    "en";
   const body = renderZipehrNode(
     zipehrObj,
     undefined,
     undefined,
     letterMap,
     reverseMap,
+    titleVariant,
   );
   if (!body.replace(/\s/g, "")) {
     throw new Error("ZipEHR XHTML fragment has no non-whitespace content");
@@ -568,10 +614,13 @@ export async function serializeCanonicalToXhtml(
   const zipehrObj = convertObjectDirect(canonical, letterMap);
   const lang = options.lang ??
     (canonical && typeof canonical === "object" && !Array.isArray(canonical)
-      ? extractCompositionLang(canonical as Record<string, unknown>)
+      ? extractDocumentLang(canonical as Record<string, unknown>)
       : undefined) ??
     "en";
-  return serializeZipehrPlainToXhtml(zipehrObj, { lang });
+  return serializeZipehrPlainToXhtml(zipehrObj, {
+    ...options,
+    lang,
+  });
 }
 
 /** Wrap an XHTML fragment as a FHIR R4 `Narrative` object. */

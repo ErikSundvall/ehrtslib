@@ -296,10 +296,6 @@ function getActiveZipehrVariant(): ZipehrOutputVariant {
   return "zipehr.yaml";
 }
 
-function isZipehrXhtmlVariantSelected(): boolean {
-  return getActiveZipehrVariant() === "zipehr.xhtml";
-}
-
 function isZipehrHtml5VariantSelected(): boolean {
   const v = getActiveZipehrVariant();
   return (
@@ -389,10 +385,9 @@ function setupZipehrVariantListener(): void {
 }
 
 function getActiveZipehrSymbolVariant(): "emoji" | "lettercode" {
-  if (isZipehrXhtmlVariantSelected() || isZipehrHtml5VariantSelected()) {
-    // HTML5 short uses letter tags; full/emoji ignore this control.
-    return isZipehrHtml5VariantSelected() &&
-        getActiveZipehrVariant() === "zipehr.html5.emoji"
+  if (isZipehrHtml5VariantSelected()) {
+    // HTML5 short/full use letter tags; emoji dialect uses emoji tags.
+    return getActiveZipehrVariant() === "zipehr.html5.emoji"
       ? "emoji"
       : "lettercode";
   }
@@ -404,22 +399,22 @@ function getActiveZipehrSymbolVariant(): "emoji" | "lettercode" {
 
 function syncZipehrSymbolVariantControls(): void {
   const group = document.getElementById("zipehr-symbol-variant-group");
+  const hint = document.getElementById("zipehr-symbol-variant-hint");
   const emojiRadio = document.getElementById(
     "zipehr-symbol-variant-emoji",
   ) as HTMLInputElement | null;
   const letterRadio = document.getElementById(
     "zipehr-symbol-variant-lettercode",
   ) as HTMLInputElement | null;
-  const lockSymbols = isZipehrXhtmlVariantSelected() ||
-    isZipehrHtml5VariantSelected();
+  // HTML5 dialects fix their own symbols; json/yaml/xhtml use the radios.
+  const lockSymbols = isZipehrHtml5VariantSelected();
+  const showXhtmlHint = getActiveZipehrVariant() === "zipehr.xhtml";
 
-  if (letterRadio && isZipehrXhtmlVariantSelected()) {
-    letterRadio.checked = true;
-  }
   if (emojiRadio) emojiRadio.disabled = lockSymbols;
   if (letterRadio) letterRadio.disabled = lockSymbols;
   group?.classList.toggle("is-disabled", lockSymbols);
   group?.setAttribute("aria-disabled", lockSymbols ? "true" : "false");
+  if (hint) hint.hidden = !showXhtmlHint;
 }
 
 function setupZipehrSymbolVariantListener(): void {
@@ -427,7 +422,7 @@ function setupZipehrSymbolVariantListener(): void {
     .querySelectorAll('input[name="zipehr-symbol-variant"]')
     .forEach((input) => {
       input.addEventListener("change", () => {
-        if (!isZipehrXhtmlVariantSelected()) {
+        if (!isZipehrHtml5VariantSelected()) {
           scheduleAutoConvert();
         }
       });

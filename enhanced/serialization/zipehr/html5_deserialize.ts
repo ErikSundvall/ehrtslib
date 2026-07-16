@@ -13,6 +13,8 @@ import {
 } from "./symbol_table.ts";
 import {
   isArchetypeIdSameAsNodeIdFlag,
+  LANGUAGE_CARRIER_TYPES,
+  languageCodePhrase,
   LOCATABLE_LIKE_TYPES,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
@@ -278,10 +280,6 @@ function readLocatableMeta(
   templateId?: string;
   rmVersion?: string;
 } {
-  // Legacy combined attrs (pre boolean-Ⓐ design).
-  const legacyCombined = attrs.an ?? attrs["archetype-id-node-id"] ??
-    attrs["Ⓐ🆔"];
-
   let nodeId: string | undefined;
   let archRaw: string | undefined;
   let templateId: string | undefined;
@@ -308,15 +306,6 @@ function readLocatableMeta(
     rmVersion = attrs["⚙️"];
   }
 
-  if (legacyCombined) {
-    return {
-      nodeId: nodeId ?? legacyCombined,
-      archetypeId: legacyCombined,
-      templateId,
-      rmVersion,
-    };
-  }
-
   let archetypeId: string | undefined;
   if (archKeyPresent) {
     if (isArchetypeIdSameAsNodeIdFlag(archRaw)) {
@@ -325,9 +314,6 @@ function readLocatableMeta(
       archetypeId = archRaw;
     }
   }
-
-  // Legacy: Ⓐ/a string alone implied node id.
-  if (!nodeId && archetypeId) nodeId = archetypeId;
 
   return { nodeId, archetypeId, templateId, rmVersion };
 }
@@ -519,18 +505,31 @@ function deserializeElement(
     out.archetype_details = details;
   }
 
-  // Emoji composition promotions
-  if (rmType === "COMPOSITION" && dialect === "emoji") {
+  // Native HTML `lang` (preferred) + legacy openEHR language attribute forms.
+  if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
+    if (node.attrs.lang) {
+      out.language = languageCodePhrase(node.attrs.lang);
+    } else if (node.attrs.language) {
+      out.language = languageCodePhrase(node.attrs.language);
+    } else if (node.attrs["🗪"] != null) {
+      out.language = languageCodePhrase(node.attrs["🗪"]);
+    }
+  }
+
+  // COMPOSITION territory / encoding promotions (emoji + full attr names)
+  if (rmType === "COMPOSITION") {
     for (const { field, prefix, emoji } of [
-      { field: "language", prefix: "ISO_639-1", emoji: "🗪" },
       { field: "territory", prefix: "ISO_3166-1", emoji: "🌐" },
       { field: "encoding", prefix: "IANA_character-sets", emoji: "🔤" },
     ]) {
-      if (node.attrs[emoji] != null) {
+      const fromEmoji = node.attrs[emoji];
+      const fromName = node.attrs[field];
+      const code = fromEmoji ?? fromName;
+      if (code != null) {
         out[field] = {
           _type: "CODE_PHRASE",
           terminology_id: { _type: "TERMINOLOGY_ID", value: prefix },
-          code_string: node.attrs[emoji],
+          code_string: code,
         };
       }
     }
@@ -541,6 +540,9 @@ function deserializeElement(
     "archetype_node_id",
     "archetype_details",
   ]);
+  if (out.language != null) used.add("language");
+  if (out.territory != null) used.add("territory");
+  if (out.encoding != null) used.add("encoding");
   const propAttr = node.attrs.p ?? node.attrs.property;
 
   for (const child of childElements(node)) {

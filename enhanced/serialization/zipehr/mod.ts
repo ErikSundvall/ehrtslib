@@ -4,18 +4,18 @@
  * Three output variants:
  * - **zipehr.json**: flow-style JSON text from canonical JSON (_type) via direct emoji substitution
  * - **zipehr.yaml**: YAML with terse format, type inference, emoji symbols, and hybrid layout
- * - **zipehr.xhtml**: FHIR-safe XHTML fragment with Ehrbase letter-code class/title metadata
+ * - **zipehr.xhtml**: FHIR-safe XHTML fragment (letter-code `class`; letter or emoji `title` codes)
  */
 
 export {
   ARCHETYPE_DETAIL_SYMBOLS,
   ARCHETYPE_ID_SAME_AS_NODE_ID,
-  combinedArchetypeIdNodeIdKey,
   isArchetypeIdSameAsNodeIdFlag,
   buildLocatableStructuredObject,
   canFoldInferrableValueLeaf,
   compactArchetypeDetails,
   expandTerseString,
+  extractLanguageCode,
   getSymbolFor,
   inferrablePropertyType,
   inferType,
@@ -24,6 +24,9 @@ export {
   isTerseCodePhrase,
   isTerseDvCodedText,
   isValueOnlyRmObject,
+  LANGUAGE_CARRIER_TYPES,
+  languageCodePhrase,
+  languageTerseString,
   loadSymbolMapFromText,
   parseLocatableStructuredObject,
   POLYMORPHIC_TYPES,
@@ -110,6 +113,7 @@ export {
   splitTitlePairs,
   unescapeTitleValue,
   type LocatableTitleFields,
+  type TitleSymbolVariant,
 } from "./title_grammar.ts";
 
 export {

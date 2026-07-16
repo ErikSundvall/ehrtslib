@@ -186,7 +186,7 @@ export interface ConversionOptions {
     | JsonDeserializationConfig
     | YamlDeserializationConfig;
   outputFormats: OutputFormat[];
-  /** ZipEHR symbols to emit for `zipehr.json` / `zipehr.yaml` outputs (`zipehr.xhtml` always uses letter codes). */
+  /** ZipEHR symbols for `zipehr.json` / `zipehr.yaml`, and for `zipehr.xhtml` title codes. */
   zipehrSymbolVariant?: "emoji" | "lettercode";
   /** ZipEHR HTML5 layout: oneliner | linesaving | fluffy. */
   zipehrHtml5Layout?: "oneliner" | "linesaving" | "fluffy";
@@ -388,7 +388,9 @@ export async function convert(
             );
             break;
           case "zipehr.xhtml":
-            outputs["zipehr.xhtml"] = await serializeToXZipehr(rmObject);
+            outputs["zipehr.xhtml"] = await serializeToXZipehr(rmObject, {
+              symbolVariant: options.zipehrSymbolVariant ?? "lettercode",
+            });
             break;
           case "zipehr.html5.short":
           case "zipehr.html5.full":
@@ -488,7 +490,9 @@ async function convertTemplateInput(
         );
         break;
       case "zipehr.xhtml":
-        outputs["zipehr.xhtml"] = await serializeToXZipehr(generatedInstance);
+        outputs["zipehr.xhtml"] = await serializeToXZipehr(generatedInstance, {
+          symbolVariant: options.zipehrSymbolVariant ?? "lettercode",
+        });
         break;
       case "zipehr.html5.short":
       case "zipehr.html5.full":

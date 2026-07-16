@@ -111,11 +111,14 @@ fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This r
 `PROPERTY_TYPE_MAP` plus polymorphic-type handling (`shared.ts`).
 
 **zipehr.xhtml**: FHIR `Narrative.div`-safe XHTML snippets. RM types appear as Ehrbase letter codes in
-`class` (from `symbol_table.yaml`). LOCATABLE metadata uses semicolon-separated `code: value` pairs
-in `title` (`id`, `te`, `ar`, `rm` — semicolons inside values are escaped as `\;` or quoted).
-Human-visible names live in headings (`h2`–`h4` for composition/section/entries) or leading
-`<span>` labels. DV values use terse strings in value-span `title` attributes without emoji
-shortcuts. Format URI: `http://purl.org/ehrtslib/zipehr/xhtml/v1`.
+`class` (from `symbol_table.yaml`) — never as emoji in the class token. LOCATABLE metadata uses
+semicolon-separated `code: value` pairs in `title`. Wire codes are either letter (`id`, `te`, `ar`,
+`rm`) or emoji (`🆔`, `Ⓣ`, `Ⓐ`, `⚙️`) depending on `symbolVariant`; semicolons inside values are
+escaped as `\;` or quoted. openEHR `language` on COMPOSITION and ENTRY is emitted as the native HTML
+`lang` attribute (not an openEHR-style language child). Human-visible names live in headings
+(`h2`–`h4` for composition/section/entries) or leading `<span>` labels. DV values use terse strings
+in value-span `title` attributes without terminology emoji shortcuts. Format URI:
+`http://purl.org/ehrtslib/zipehr/xhtml/v1`.
 
 API: `serializeToXZipehr`, `zipehrXhtmlToCanonical`, `wrapFhirNarrative`.
 
@@ -172,7 +175,7 @@ data:
             - { 🔹: { 🪧: "State of dress", 🆔: "at0009" }, 🗈: "📍at0028|Fully clothed, without shoes|" }
 ```
 
-**zipehr.xhtml** (same clinical tree — FHIR Narrative–safe; Ehrbase letter `class`, LOCATABLE ids in `title`):
+**zipehr.xhtml** (lettercode titles — FHIR Narrative–safe; Ehrbase letter `class`, LOCATABLE ids in `title`):
 
 ```html
 <div xmlns="http://www.w3.org/1999/xhtml" lang="en">
@@ -198,7 +201,33 @@ data:
 </div>
 ```
 
-`id:` is always the path node id. Bare `ar` (no value) means ARCHETYPED with `archetype_id` equal to that id. See [Selecting by node id](#selecting-by-node-id-css--xpath).
+**zipehr.xhtml** (emoji titles — same letter `class` tokens; emoji only inside `title` values):
+
+```html
+<div xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <div class="OB" title="🆔: openEHR-EHR-OBSERVATION.body_weight.v2; Ⓐ">
+    <h4>Body weight</h4>
+    <div class="HI">
+      <div class="PE" title="🆔: at0003">
+        <div class="TR" title="🆔: at0001">
+          <div class="E" title="🆔: at0004">
+            <span>Weight</span>
+            <span class="q" title="85|kg|">85 kg</span>
+          </div>
+        </div>
+        <div class="TR" title="🆔: at0008">
+          <div class="E" title="🆔: at0009">
+            <span>State of dress</span>
+            <span class="c" title="local::at0028|Fully clothed, without shoes|">Fully clothed, without shoes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+`id:` / `🆔:` is always the path node id. Bare `ar` / `Ⓐ` (no value) means ARCHETYPED with `archetype_id` equal to that id. When a COMPOSITION or ENTRY carries openEHR `language`, that code is also written as native `lang` on that element (in addition to the root fragment `lang`). See [Selecting by node id](#selecting-by-node-id-css--xpath).
 
 **zipehr.html5/short** (`layout: oneliner` — `n` = node id, valueless `a` = ARCHETYPED flag):
 
@@ -246,9 +275,9 @@ data:
 </o-👀>
 ```
 
-### Selecting by node id (CSS / XPath)
+### Selecting by node id (CSS / XPath / XQuery)
 
-openEHR AQL-style paths are sequences of `archetype_node_id` values. ZipEHR keeps that id on **one** attribute per dialect (`🆔` / `n` / `archetype-node-id` / XHTML `id:`), so CSS, XPath, and XQuery can mirror an AQL path uniformly — including ARCHETYPED roots.
+openEHR AQL-style paths are sequences of `archetype_node_id` values. ZipEHR keeps that id on **one** attribute per dialect (`🆔` / `n` / `archetype-node-id` / XHTML `id:` or `🆔:`), so CSS, XPath, and XQuery can mirror an AQL path uniformly — including ARCHETYPED roots.
 
 | Dialect | Path node id | ARCHETYPED flag (`archetype_id` = node id) | Explicit `archetype_id` (when different) |
 |---------|--------------|--------------------------------------------|------------------------------------------|
@@ -256,7 +285,10 @@ openEHR AQL-style paths are sequences of `archetype_node_id` values. ZipEHR keep
 | **html5/short** | `n="…"` | valueless `a` | `a="…"` |
 | **html5/full** | `archetype-node-id="…"` | valueless `archetype-id` | `archetype-id="…"` |
 | **json / yaml** | `"🆔": "…"` | `"Ⓐ": true` | `"Ⓐ": "…"` |
-| **xhtml** | `title` pair `id: …` | bare `ar` in `title` | `ar: …` |
+| **xhtml (letter)** | `title` pair `id: …` | bare `ar` in `title` | `ar: …` |
+| **xhtml (emoji)** | `title` pair `🆔: …` | bare `Ⓐ` in `title` | `Ⓐ: …` |
+
+**CSS** (attribute selectors — works in browsers and most HTML tooling):
 
 ```css
 /* html5/emoji — Weight ELEMENT */
@@ -270,6 +302,8 @@ openEHR AQL-style paths are sequences of `archetype_node_id` values. ZipEHR keep
 [archetype-node-id="at0004"]
 ```
 
+**XPath** (XML trees; note emoji attr names need a processor that accepts them):
+
 ```xpath
 (: same path attribute at every step — no name wildcards needed :)
 //*[@🆔 = 'openEHR-EHR-OBSERVATION.body_weight.v2']
@@ -279,18 +313,22 @@ openEHR AQL-style paths are sequences of `archetype_node_id` values. ZipEHR keep
 //*[@n = 'at0004']
 //*[@archetype-node-id = 'at0004']
 
-(: xhtml :)
+(: xhtml lettercode titles :)
 //*[contains(concat('; ', normalize-space(@title), ';'), '; id: at0004;')
     or @title = 'id: at0004' or starts-with(@title, 'id: at0004;')]
+
+(: xhtml emoji titles :)
+//*[contains(concat('; ', normalize-space(@title), ';'), '; 🆔: at0004;')
+    or @title = '🆔: at0004' or starts-with(@title, '🆔: at0004;')]
 ```
 
-Path-shaped CSS (emoji):
+**CSS** path-shaped descendant walk (html5/emoji):
 
 ```css
 [🆔="openEHR-EHR-OBSERVATION.body_weight.v2"] [🆔="at0003"] [🆔="at0001"] [🆔="at0004"]
 ```
 
-XHTML path walk:
+**XPath** XHTML path walk by letter `class` + `title` id:
 
 ```xpath
 //*[@class='OB' and (contains(@title, 'id: openEHR-EHR-OBSERVATION.body_weight.v2'))]
@@ -299,10 +337,18 @@ XHTML path walk:
   //*[@class='E' and contains(@title, 'id: at0004')]
 ```
 
+**XQuery** (same predicates as XPath, in a FLWOR — useful when selecting typed nodes into a sequence):
+
+```xquery
+(: xhtml lettercode — Weight ELEMENT by title id :)
+//*[contains(concat('; ', normalize-space(@title), ';'), '; id: at0004;')
+    or @title = 'id: at0004' or starts-with(@title, 'id: at0004;')]
+```
+
 Notes:
 
-- Prefer exact `id: …` / `starts-with` on XHTML `title` when ids might be prefixes of longer strings.
-- Legacy combined attrs (`Ⓐ🆔`, `an`, `archetype-id-node-id`) are still accepted on deserialize.
+- Prefer exact `id: …` / `🆔: …` / `starts-with` on XHTML `title` when ids might be prefixes of longer strings.
+- openEHR `language` on COMPOSITION and ENTRY maps to native HTML/XHTML `lang` (browsers pick it up; round-trip restores `CODE_PHRASE` / ISO_639-1).
 
 ### Schema declaration
 
@@ -346,7 +392,7 @@ That “first symbol only” rule has two implications developers that fiddle wi
 Extra rows in the same file:
 
 - **`terminology_shortcuts`** — terse-string prefix replacements (`openehr::` → `🌬️`, etc.)
-- **`field_promotions`** — COMPOSITION `language` / `territory` / `encoding` promoted to emoji keys
+- **`field_promotions`** — COMPOSITION `territory` / `encoding` (and `language` in json/yaml) promoted to emoji keys; xhtml/html5 map `language` to native `lang` instead
 - **`html5_short_tags`** — `o-{suffix}` overrides when Ehrbase letter codes collide under HTML
   ASCII lowercasing (e.g. `DV_COUNT` → `cnt` because `co` = `COMPOSITION`). Used by
   `zipehr.html5/short` only; see [`oehr_html5_v1.md`](oehr_html5_v1.md).
@@ -431,8 +477,10 @@ Terminology shortcuts (applied on serialize, expanded on deserialize):
 Canonical listing: `terminology_shortcuts` and `field_promotions` in [`symbol_table.yaml`](symbol_table.yaml).
 Runtime constants: `TERMINOLOGY_SHORTCUTS` and `TERMINOLOGY_FIELD_PROMOTIONS` in `symbol_table.ts` (generated from yaml).
 
-**COMPOSITION** promotes `language` / `territory` / `encoding` CODE_PHRASE children to
-top-level `🗪` / `🌐` / `🔤` keys with bare code strings.
+**COMPOSITION** (json/yaml) promotes `language` / `territory` / `encoding` CODE_PHRASE children to
+top-level `🗪` / `🌐` / `🔤` keys with bare code strings. **xhtml / html5** instead emit openEHR
+`language` (on COMPOSITION and ENTRY) as the native HTML `lang` attribute; territory/encoding stay
+as promoted attrs (`🌐` / `🔤` or `territory` / `encoding`) where those dialects support them.
 
 ### Variant examples (same clinical meaning, different representation)
 
@@ -474,8 +522,6 @@ Attribute emoji keys are defined in `symbol_table.yaml` (`data_types.attributes`
 
 `magnitude_status` operator mapping (`magnitude_status_operators` in yaml): exact `=` omitted on the wire; letter **and** emoji columns use the same HTML-safe symbols (`⩻` / `⩼` / `⩽` / `⩾` / `~`) so lettercode XHTML and html5/short never need `&lt;`/`&gt;` HTML escaping. Status tag `🎛` (setting/adjustment knobs symbol) precedes the operator in some serialisation formats; use generated `MAGNITUDE_STATUS_OPERATORS` from `symbol_table.ts`.
 
-  "<": ["⩻","⩻"],
-  ">": ["⩼","⩼"],
 
 ### Serialize rules
 
@@ -496,7 +542,6 @@ COMPOSITION uses emoji key `🖂` (not `_` + `name`).
 3. Read `Ⓐ: true` / empty HTML attr → `archetype_id` = node id.
 4. Read `Ⓐ: "…"` → `archetype_details.archetype_id`.
 5. Read `Ⓣ` / `⚙️` → `archetype_details` (restore omitted `Ⓐ` from name when `Ⓣ` or `⚙️` present and no `Ⓐ`).
-6. Legacy: combined `Ⓐ🆔` / `an` / `archetype-id-node-id`, or `Ⓐ` string alone without `🆔`.
 
 For walking these ids in the HTML skins, see [Selecting by node id (CSS / XPath)](#selecting-by-node-id-css--xpath).
 

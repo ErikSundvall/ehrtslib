@@ -27,16 +27,6 @@ export const ARCHETYPE_DETAIL_SYMBOLS = Object.freeze({
  */
 export const ARCHETYPE_ID_SAME_AS_NODE_ID = true;
 
-/**
- * @deprecated Combined `Ⓐ🆔` key — accepted on deserialize for older payloads only.
- */
-export function combinedArchetypeIdNodeIdKey(
-  archetypeIdSym: string,
-  nodeIdSym: string,
-): string {
-  return `${archetypeIdSym}${nodeIdSym}`;
-}
-
 /** True when `Ⓐ` / `a` / `archetype-id` is the “same as node id” flag. */
 export function isArchetypeIdSameAsNodeIdFlag(value: unknown): boolean {
   return value === true || value === ARCHETYPE_ID_SAME_AS_NODE_ID ||
@@ -207,6 +197,68 @@ export const LOCATABLE_LIKE_TYPES = new Set([
   "ACTIVITY",
   "COMPOSITION",
 ]);
+
+/**
+ * RM types that carry openEHR `language` (CODE_PHRASE, ISO_639-1).
+ * Mapped to native HTML/XHTML `lang` in zipehr.xhtml / zipehr.html5.
+ */
+export const LANGUAGE_CARRIER_TYPES = new Set([
+  "COMPOSITION",
+  "ENTRY",
+  "CARE_ENTRY",
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "ADMIN_ENTRY",
+]);
+
+/** Extract an ISO 639 language code from a CODE_PHRASE object or terse string. */
+export function extractLanguageCode(language: unknown): string | undefined {
+  if (language == null) return undefined;
+  if (typeof language === "string") {
+    const trimmed = language.trim();
+    if (!trimmed) return undefined;
+    for (const { prefix, emoji } of TERMINOLOGY_SHORTCUTS) {
+      if (!prefix.startsWith("ISO_639")) continue;
+      if (trimmed.startsWith(prefix)) {
+        return trimmed.slice(prefix.length) || undefined;
+      }
+      if (trimmed.startsWith(emoji)) {
+        return trimmed.slice(emoji.length) || undefined;
+      }
+    }
+    if (trimmed.startsWith("ISO_639-1::")) {
+      return trimmed.slice("ISO_639-1::".length) || undefined;
+    }
+    // Already a bare code (e.g. from HTML `lang`)
+    if (!trimmed.includes("::")) return trimmed;
+    const m = trimmed.match(/::([^:]+)$/);
+    return m?.[1];
+  }
+  if (typeof language !== "object" || Array.isArray(language)) return undefined;
+  const phrase = language as Record<string, unknown>;
+  if (phrase.code_string != null) return String(phrase.code_string);
+  if (phrase.code != null) return String(phrase.code);
+  // Lettercode ZipEHR wrapper: { C: "ISO_639-1::sv" } or similar
+  const wrapped = extractWrappedTerseString(language);
+  if (wrapped) return extractLanguageCode(wrapped);
+  return undefined;
+}
+
+/** Build a canonical CODE_PHRASE for an ISO 639-1 language code. */
+export function languageCodePhrase(code: string): Record<string, unknown> {
+  return {
+    _type: "CODE_PHRASE",
+    terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+    code_string: code,
+  };
+}
+
+/** Terse lettercode ZipEHR form of a language CODE_PHRASE. */
+export function languageTerseString(code: string): string {
+  return `ISO_639-1::${code}`;
+}
 
 export function loadSymbolMapFromText(text: string): Record<string, string> {
   const lines = text.split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
@@ -482,10 +534,6 @@ export function buildLocatableStructuredObject(
   symbolMap: Record<string, string>,
 ): Record<string, unknown> {
   const sym = locatableAttributeSymbols(symbolMap);
-  const combinedKey = combinedArchetypeIdNodeIdKey(
-    sym.archetypeId,
-    sym.nodeId,
-  );
   const out: Record<string, unknown> = { [sym.name]: nameStr };
 
   let templateId: string | null = null;
@@ -504,8 +552,6 @@ export function buildLocatableStructuredObject(
 
     if (isArchetypeIdSameAsNodeIdFlag(src[sym.archetypeId])) {
       archetypeIdIsFlag = true;
-    } else if (src[combinedKey] != null) {
-      archetypeId = String(src[combinedKey]);
     } else {
       archetypeId = extractWrappedTerseString(src.archetype_id) ??
         (src[sym.archetypeId] != null
@@ -562,16 +608,9 @@ export function parseLocatableStructuredObject(
   archetypeDetails?: Record<string, unknown>;
 } {
   const sym = locatableAttributeSymbols(symbolMap);
-  const combinedKey = combinedArchetypeIdNodeIdKey(
-    sym.archetypeId,
-    sym.nodeId,
-  );
   const name = String(structured[sym.name] ?? "");
-  const nodeIdRaw = structured[sym.nodeId] != null
+  const archetypeNodeId = structured[sym.nodeId] != null
     ? String(structured[sym.nodeId])
-    : undefined;
-  const combinedLegacy = structured[combinedKey] != null
-    ? String(structured[combinedKey])
     : undefined;
   const aRaw = structured[sym.archetypeId];
 
@@ -583,14 +622,8 @@ export function parseLocatableStructuredObject(
     details[sym.rmVersion] = structured[sym.rmVersion];
   }
 
-  let archetypeNodeId = nodeIdRaw ?? combinedLegacy;
   let archetypeIdStr: string | undefined;
-
-  if (combinedLegacy != null) {
-    // Legacy Ⓐ🆔 key.
-    archetypeIdStr = combinedLegacy;
-    archetypeNodeId = combinedLegacy;
-  } else if (isArchetypeIdSameAsNodeIdFlag(aRaw)) {
+  if (isArchetypeIdSameAsNodeIdFlag(aRaw)) {
     archetypeIdStr = archetypeNodeId ?? name;
   } else if (aRaw != null && aRaw !== false) {
     archetypeIdStr = String(aRaw);
@@ -598,11 +631,6 @@ export function parseLocatableStructuredObject(
     structured[sym.templateId] != null || structured[sym.rmVersion] != null
   ) {
     archetypeIdStr = name;
-  }
-
-  // Legacy: Ⓐ string alone (no 🆔) implied node id === archetype id.
-  if (archetypeNodeId == null && archetypeIdStr != null) {
-    archetypeNodeId = archetypeIdStr;
   }
 
   if (archetypeIdStr != null) {

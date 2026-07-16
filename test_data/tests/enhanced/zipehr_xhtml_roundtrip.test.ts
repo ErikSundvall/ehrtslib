@@ -137,12 +137,12 @@ function normalizeWhitespace(text: string): string {
   return text.replace(/>\s+</g, "><").trim();
 }
 
-function assertNoEmojiInAttributes(xhtml: string): void {
-  const attrMatches = xhtml.match(/[a-zA-Z-]+="[^"]*"/g) ?? [];
-  for (const attr of attrMatches) {
+function assertNoEmojiInClassAttributes(xhtml: string): void {
+  const classMatches = xhtml.match(/class="[^"]*"/g) ?? [];
+  for (const attr of classMatches) {
     assert(
       !/[^\x00-\x7F]/u.test(attr),
-      `Emoji or non-ASCII found in attribute: ${attr}`,
+      `Emoji or non-ASCII found in class attribute: ${attr}`,
     );
   }
 }
@@ -167,7 +167,7 @@ Deno.test("zipehr xhtml: title grammar escapes and parses semicolons", () => {
 Deno.test("zipehr xhtml: body weight observation round-trip", async () => {
   const xhtml = await serializeToXZipehr(BODY_WEIGHT_FIXTURE);
   assertFhirSafe(xhtml);
-  assertNoEmojiInAttributes(xhtml);
+  assertNoEmojiInClassAttributes(xhtml);
   assert(xhtml.includes('class="OB"'));
   assert(xhtml.includes('title="id: openEHR-EHR-OBSERVATION.body_weight.v2; ar"'));
   assert(xhtml.includes("<h4>Body weight</h4>"));
@@ -209,6 +209,65 @@ Deno.test("zipehr xhtml: body weight observation round-trip", async () => {
     }).code_string,
     "at0028",
   );
+});
+
+Deno.test("zipehr xhtml: emoji title codes round-trip (class stays letter)", async () => {
+  const xhtml = await serializeToXZipehr(BODY_WEIGHT_FIXTURE, {
+    symbolVariant: "emoji",
+  });
+  assertFhirSafe(xhtml);
+  assertNoEmojiInClassAttributes(xhtml);
+  assert(xhtml.includes('class="OB"'));
+  assert(xhtml.includes('class="E"'));
+  assert(
+    xhtml.includes(
+      'title="🆔: openEHR-EHR-OBSERVATION.body_weight.v2; Ⓐ"',
+    ),
+  );
+  assert(xhtml.includes('title="🆔: at0004"'));
+  assert(!xhtml.includes('title="id:'));
+
+  const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
+  assertEquals((restored.name as { value: string }).value, "Body weight");
+  assertEquals(
+    restored.archetype_node_id,
+    "openEHR-EHR-OBSERVATION.body_weight.v2",
+  );
+});
+
+Deno.test("zipehr xhtml: native lang round-trips COMPOSITION and ENTRY language", async () => {
+  const fixture: Record<string, unknown> = {
+    ...CHEMO_FIXTURE,
+    language: {
+      _type: "CODE_PHRASE",
+      terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+      code_string: "sv",
+    },
+    content: [
+      {
+        ...BODY_WEIGHT_FIXTURE,
+        language: {
+          _type: "CODE_PHRASE",
+          terminology_id: { _type: "TERMINOLOGY_ID", value: "ISO_639-1" },
+          code_string: "en",
+        },
+      },
+    ],
+  };
+  const xhtml = await serializeCanonicalToXhtml(fixture);
+  assert(xhtml.includes('lang="sv"'));
+  assert(xhtml.includes('class="CO"'));
+  assert(xhtml.includes('class="OB"') && xhtml.includes('lang="en"'));
+  assert(!xhtml.includes("ISO_639-1"));
+  assert(!xhtml.includes("🗪"));
+
+  const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
+  assertEquals(
+    (restored.language as { code_string: string }).code_string,
+    "sv",
+  );
+  const obs = (restored.content as Record<string, unknown>[])[0];
+  assertEquals((obs.language as { code_string: string }).code_string, "en");
 });
 
 Deno.test("zipehr xhtml: chemo composition title round-trip", async () => {

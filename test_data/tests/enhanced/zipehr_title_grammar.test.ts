@@ -17,6 +17,18 @@ Deno.test("zipehr title grammar: round-trip pairs", () => {
   assertEquals(parseLocatableTitle(title), fields);
 });
 
+Deno.test("zipehr title grammar: emoji wire codes round-trip", () => {
+  const fields = {
+    id: "at0004",
+    ar: true as const,
+    te: "ChemoForm-MBA.v7",
+    rm: "1.1.0",
+  };
+  const title = formatLocatableTitle(fields, "emoji");
+  assertEquals(title, "🆔: at0004; Ⓐ; Ⓣ: ChemoForm-MBA.v7; ⚙️: 1.1.0");
+  assertEquals(parseLocatableTitle(title), fields);
+});
+
 Deno.test("zipehr title grammar: semicolon escape in values", () => {
   const value = "a; b; c";
   const title = formatLocatableTitle({ id: value });
