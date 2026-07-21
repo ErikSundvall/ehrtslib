@@ -14,15 +14,16 @@ import {
 import {
   expandTerseString,
   isArchetypeIdSameAsNodeIdFlag,
+  isPolymorphicType,
   isTerseCodePhrase,
   LANGUAGE_CARRIER_TYPES,
   languageCodePhrase,
   LOCATABLE_LIKE_TYPES,
   parseTerseDvCodedText,
-  POLYMORPHIC_TYPES,
-  PROPERTY_TYPE_MAP,
+  propertyTypesFor,
   TECHNICAL_ID_TYPES,
 } from "./shared.ts";
+import { isSubtypeOf } from "../../meta/mod.ts";
 import {
   type Html5Dialect,
   ZIPEHR_HTML5_FMT_TOKEN,
@@ -228,27 +229,36 @@ function inferProperty(
   if (explicitProp) return explicitProp;
   if (!parentType) return undefined;
 
-  const map = {
-    ...(PROPERTY_TYPE_MAP[parentType] ?? {}),
-  };
+  const map = propertyTypesFor(parentType);
 
   const candidates = Object.entries(map)
     .filter(([prop, t]) => {
       if (used.has(prop)) return false;
       if (t === childType) return true;
-      // Polymorphic slots: DATA_VALUE etc.
-      if (POLYMORPHIC_TYPES.has(t) && childType.startsWith("DV_")) return true;
-      if (t === "ITEM_STRUCTURE" && childType.startsWith("ITEM_")) return true;
-      if (t === "CONTENT_ITEM") return true;
-      if (t === "EVENT" && (childType === "POINT_EVENT" || childType === "INTERVAL_EVENT")) {
-        return true;
-      }
-      if (t === "PARTY_PROXY" && childType.startsWith("PARTY_")) return true;
-      return false;
+      if (!isPolymorphicType(t)) return false;
+      // Child must be a legal substitute for the declared slot type
+      return isSubtypeOf(childType, t);
     })
     .map(([prop]) => prop);
 
   if (candidates.length === 1) return candidates[0];
+
+  if (candidates.length > 1) {
+    // Prefer abstract/polymorphic slots (e.g. ELEMENT.value: DATA_VALUE) over
+    // exact optional siblings (null_flavour: DV_CODED_TEXT).
+    const polySlots = candidates.filter((p) => isPolymorphicType(map[p]!));
+    if (polySlots.length === 1) return polySlots[0];
+    for (const preferred of [
+      "value",
+      "data",
+      "content",
+      "items",
+      "events",
+      "activities",
+    ]) {
+      if (candidates.includes(preferred)) return preferred;
+    }
+  }
 
   // Common defaults
   if (childType === "HISTORY" && !used.has("data")) return "data";

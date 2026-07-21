@@ -8,6 +8,13 @@ library is big and detailed, so developers using it are assumed to be importing
 just needed parts and to have build tools/processes that use e.g. "tree shaking"
 to reduce the amount of code shipped to end users.
 
+## Documentation map
+
+| Audience | Entry |
+| -------- | ----- |
+| **Library users** (most people and agents, likely you) | [docs/README.md](docs/README.md) |
+| **Ehrtslib maintainers / library maintenance agents** | [docs/maintainers/README.md](docs/maintainers/README.md) · [CONTRIBUTING.md](CONTRIBUTING.md) |
+
 ## For library users: Using the library in your own projects
 
 This library uses a **dual getter/setter pattern** for working with openEHR primitive types (String, Integer, Boolean, etc.), providing both convenience and type safety.
@@ -89,8 +96,10 @@ const restored = deserializer.deserialize(json);
 - **JSON** - Compliant with openEHR ITS-JSON specification, plus optimized variants (compact, type-inferred). See [JSON serialization guide](enhanced/serialization/json/README.md)
 - **XML** - Compliant with openEHR ITS-XML specification. See [XML serialization guide](enhanced/serialization/xml/README.md)
 - **YAML** - Human-readable format with multiple style options. See [YAML serialization guide](enhanced/serialization/yaml/README.md)
-- **ZipEHR (experimental)** - Compact ZipEHR YAML/JSON with symbol variants `emoji` (default) and `lettercode` (Ehrbase short letter codes). See [`enhanced/serialization/zipehr/ehrbase-short-codes.md`](enhanced/serialization/zipehr/ehrbase-short-codes.md) for the mapping.
-- **SIMPLIFIED (experimental)** - Experimental FLAT/STRUCTURED simplified openEHR representation for operational templates. See [SIMPLIFIED-CREATION-GUIDE.md](SIMPLIFIED-CREATION-GUIDE.md).
+- **ZipEHR (experimental)** - Compact emoji/lettercode JSON, YAML, XHTML, HTML5. See [ZipEHR guide](enhanced/serialization/zipehr/README.md)
+- **official openEHR simplified formats ** (experimental implementation) - FLAT / STRUCTURED / Web Template (ITS-REST). See [docs/SIMPLIFIED_FORMATS.md](docs/SIMPLIFIED_FORMATS.md). *Not the same as* the [composition creation guide](SIMPLIFIED-CREATION-GUIDE.md).
+
+**Documentation map:** [docs/README.md](docs/README.md) (users) · [docs/maintainers/](docs/maintainers/README.md) (maintainers) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### Archetype and Template Support
 

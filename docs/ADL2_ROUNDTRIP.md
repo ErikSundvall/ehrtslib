@@ -13,7 +13,7 @@
 
 - **Comments** (`--` in cADL/ADL) are not preserved
 - **Formatting** (indentation, blank lines) may differ
-- **Rules / invariants** — parsed into `ARCHETYPE.invariants`, serialized, and evaluated via `TemplateValidator` / `InvariantEvaluator` (see `docs/ADL2_SUPPORT.md`)
+- **Rules / invariants** — parsed into `ARCHETYPE.invariants`, serialized, and evaluated via `TemplateValidator` / `InvariantEvaluator` (see [ADL_SUPPORT.md](ADL_SUPPORT.md))
 - **Annotations / rm_overlay** — ODIN trees stored on AOM and round-tripped
 - **Annotations / RM overlay** sections — not fully mapped
 - **Sibling order** (`before`/`after` in cADL) — not implemented

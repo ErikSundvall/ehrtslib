@@ -1,5 +1,6 @@
 /** Shared utilities for zipehr conversion (ported from zipehr-shared.js). */
 
+import { TypeInferenceEngine } from "../common/type_inference.ts";
 import {
   MAGNITUDE_STATUS_EXACT_RM,
   MAGNITUDE_STATUS_OPERATORS,
@@ -63,138 +64,44 @@ export function formatPropertyComment(propertyName: string): string {
   return `<!--${safe}-->`;
 }
 
-export const POLYMORPHIC_TYPES = new Set([
-  "DATA_VALUE",
-  "DV_ORDERED",
-  "DV_TEXT",
-  "ITEM",
-  "ITEM_STRUCTURE",
-  "EVENT",
-  "LOCATABLE",
-  "CONTENT_ITEM",
-  "CARE_ENTRY",
-  "ENTRY",
-  "SECTION",
-  "PATHABLE",
-  "PARTY_IDENTIFIED",
-  "PARTY_PROXY",
-  "DV_ENCAPSULATED",
-]);
-
-export const PROPERTY_TYPE_MAP: Record<
-  string,
-  Record<string, string>
-> = {
-  COMPOSITION: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    category: "DV_CODED_TEXT",
-    territory: "CODE_PHRASE",
-    context: "EVENT_CONTEXT",
-    content: "CONTENT_ITEM",
-    uid: "OBJECT_VERSION_ID",
-    feeder_audit: "FEEDER_AUDIT",
-    composer: "PARTY_PROXY",
+/** @deprecated Use {@link isPolymorphicType} — kept for ZipEHR callers/tests. */
+export const POLYMORPHIC_TYPES = {
+  has(typeName: string): boolean {
+    return TypeInferenceEngine.isPolymorphic(typeName);
   },
-  DV_CODED_TEXT: { defining_code: "CODE_PHRASE" },
-  CODE_PHRASE: { terminology_id: "TERMINOLOGY_ID" },
-  FEEDER_AUDIT: {
-    original_content: "DV_ENCAPSULATED",
-    originating_system_audit: "FEEDER_AUDIT_DETAILS",
-    feeder_system_audit: "FEEDER_AUDIT_DETAILS",
-  },
-  FEEDER_AUDIT_DETAILS: {
-    subject: "PARTY_PROXY",
-    provider: "PARTY_PROXY",
-    location: "PARTY_IDENTIFIED",
-  },
-  OBSERVATION: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    data: "HISTORY",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  ELEMENT: {
-    name: "DV_TEXT",
-    value: "DATA_VALUE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  CLUSTER: { name: "DV_TEXT", items: "ITEM", feeder_audit: "FEEDER_AUDIT" },
-  HISTORY: { name: "DV_TEXT", origin: "DV_DATE_TIME", events: "EVENT" },
-  POINT_EVENT: {
-    name: "DV_TEXT",
-    time: "DV_DATE_TIME",
-    data: "ITEM_STRUCTURE",
-    state: "ITEM_STRUCTURE",
-  },
-  EVENT_CONTEXT: {
-    start_time: "DV_DATE_TIME",
-    setting: "DV_CODED_TEXT",
-    other_context: "ITEM_STRUCTURE",
-  },
-  ITEM_TREE: { name: "DV_TEXT", items: "ITEM" },
-  ITEM_LIST: { name: "DV_TEXT", items: "ITEM" },
-  ITEM_TABLE: { name: "DV_TEXT", rows: "ITEM_TABLE_ROW" },
-  ITEM_SINGLE: { name: "DV_TEXT", item: "ITEM" },
-  SECTION: { name: "DV_TEXT", items: "CONTENT_ITEM" },
-  ENTRY: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    encoding: "CODE_PHRASE",
-    subject: "PARTY_PROXY",
-    provider: "PARTY_PROXY",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  CARE_ENTRY: {
-    name: "DV_TEXT",
-    protocol: "ITEM_STRUCTURE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  EVALUATION: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    data: "ITEM_STRUCTURE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  INSTRUCTION: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    narrative: "DV_TEXT",
-    expiry_time: "DV_DATE_TIME",
-    wf_definition: "DV_PARSABLE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  ACTION: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    time: "DV_DATE_TIME",
-    description: "ITEM_STRUCTURE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  ADMIN_ENTRY: {
-    name: "DV_TEXT",
-    language: "CODE_PHRASE",
-    data: "ITEM_STRUCTURE",
-    feeder_audit: "FEEDER_AUDIT",
-  },
-  INTERVAL_EVENT: {
-    name: "DV_TEXT",
-    time: "DV_DATE_TIME",
-    width: "DV_DURATION",
-    data: "ITEM_STRUCTURE",
-  },
-  DV_TEXT: { language: "CODE_PHRASE", encoding: "CODE_PHRASE" },
-  DV_ORDERED: {
-    normal_status: "CODE_PHRASE",
-    normal_range: "REFERENCE_RANGE",
-  },
-  DV_QUANTITY: { accuracy: "DV_AMOUNT" },
-  DV_ENCAPSULATED: { charset: "CODE_PHRASE", language: "CODE_PHRASE" },
 };
 
 /**
+ * Parent → property → RM type map (BMM-backed via {@link TypeInferenceEngine}).
+ * Prefer {@link propertyTypesFor} for new code.
+ */
+export const PROPERTY_TYPE_MAP: Record<string, Record<string, string>> =
+  new Proxy({} as Record<string, Record<string, string>>, {
+    get(_target, parentType: string | symbol) {
+      if (typeof parentType !== "string") return undefined;
+      return TypeInferenceEngine.getPropertyTypeMap(parentType);
+    },
+    has(_target, parentType: string | symbol) {
+      if (typeof parentType !== "string") return false;
+      return Object.keys(TypeInferenceEngine.getPropertyTypeMap(parentType))
+        .length > 0;
+    },
+  });
+
+/** Property → type map for a parent RM class (BMM-backed). */
+export function propertyTypesFor(
+  parentType: string,
+): Record<string, string> {
+  return TypeInferenceEngine.getPropertyTypeMap(parentType);
+}
+
+export function isPolymorphicType(typeName: string): boolean {
+  return TypeInferenceEngine.isPolymorphic(typeName);
+}
+
+/**
  * True when several parent properties share the same child RM type
- * (e.g. OBSERVATION `data` / `state` both ITEM_STRUCTURE).
+ * (e.g. OBSERVATION `data` / `state` both HISTORY / ITEM_STRUCTURE).
  */
 export function propertySlotAmbiguous(
   parentType: string | undefined,
@@ -202,48 +109,25 @@ export function propertySlotAmbiguous(
   propertyName: string,
 ): boolean {
   if (!parentType) return false;
-  const map = PROPERTY_TYPE_MAP[parentType];
-  if (!map) return false;
+  const map = TypeInferenceEngine.getPropertyTypeMap(parentType);
   const matches = Object.entries(map).filter(([, t]) => t === childType);
   if (matches.length <= 1) return false;
   return !matches.some(([p]) => p === propertyName) || matches.length > 1;
 }
 
-/** LOCATABLE-owned properties inferred for any LOCATABLE subtype parent. */
-export const LOCATABLE_PROPERTY_TYPES: Record<string, string> = {
-  name: "DV_TEXT",
-  feeder_audit: "FEEDER_AUDIT",
-  uid: "OBJECT_VERSION_ID",
-};
+/** Whether `rmType` is a LOCATABLE (or subtype). */
+export function isLocatableLike(rmType: string): boolean {
+  return TypeInferenceEngine.isLocatableLike(rmType);
+}
 
-/** RM types that inherit LOCATABLE attributes (for {@link inferrablePropertyType}). */
-export const LOCATABLE_LIKE_TYPES = new Set([
-  "LOCATABLE",
-  "CONTENT_ITEM",
-  "ENTRY",
-  "CARE_ENTRY",
-  "SECTION",
-  "ADMIN_ENTRY",
-  "OBSERVATION",
-  "EVALUATION",
-  "INSTRUCTION",
-  "ACTION",
-  "DATA_STRUCTURE",
-  "ITEM_STRUCTURE",
-  "ITEM_TREE",
-  "ITEM_LIST",
-  "ITEM_TABLE",
-  "ITEM_SINGLE",
-  "ITEM",
-  "CLUSTER",
-  "ELEMENT",
-  "HISTORY",
-  "EVENT",
-  "POINT_EVENT",
-  "INTERVAL_EVENT",
-  "ACTIVITY",
-  "COMPOSITION",
-]);
+/**
+ * @deprecated Use {@link isLocatableLike}. Set-like facade for existing callers.
+ */
+export const LOCATABLE_LIKE_TYPES = {
+  has(rmType: string): boolean {
+    return TypeInferenceEngine.isLocatableLike(rmType);
+  },
+};
 
 /**
  * RM types that carry openEHR `language` (CODE_PHRASE, ISO_639-1).
@@ -386,45 +270,7 @@ export function expandTerseString(
 }
 
 export function inferFromStructure(data: unknown): string | undefined {
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    return undefined;
-  }
-  const props = Object.keys(data);
-  const obj = data as Record<string, unknown>;
-  if (props.includes("value") && props.includes("defining_code")) {
-    return "DV_CODED_TEXT";
-  }
-  if (props.includes("terminology_id") && props.includes("code_string")) {
-    return "CODE_PHRASE";
-  }
-  if (props.includes("magnitude") && props.includes("units")) {
-    return "DV_QUANTITY";
-  }
-  if (props.includes("magnitude") && !props.includes("units")) {
-    return "DV_COUNT";
-  }
-  if (
-    props.includes("value") && typeof obj.value === "boolean"
-  ) return "DV_BOOLEAN";
-  if (
-    props.includes("value") && typeof obj.value === "string" &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(obj.value as string)
-  ) return "DV_DATE_TIME";
-  if (
-    props.includes("value") && !props.includes("defining_code") &&
-    !props.includes("magnitude")
-  ) return "DV_TEXT";
-  if (
-    props.length === 1 && props.includes("value") &&
-    typeof obj.value === "string"
-  ) return "TERMINOLOGY_ID";
-  if (props.includes("category") && props.includes("archetype_node_id")) {
-    return "COMPOSITION";
-  }
-  if (props.includes("data") && props.includes("archetype_node_id")) {
-    return "OBSERVATION";
-  }
-  return undefined;
+  return TypeInferenceEngine.inferFromStructure(data);
 }
 
 export function inferType(
@@ -432,16 +278,21 @@ export function inferType(
   parentType: string | undefined,
   data: unknown,
 ): string | undefined {
-  const parentMap = parentType && PROPERTY_TYPE_MAP[parentType];
-  const defaultType = parentMap && parentMap[propertyName];
-  if (defaultType && !POLYMORPHIC_TYPES.has(defaultType)) return defaultType;
-  const fromStructure = inferFromStructure(data);
+  if (parentType) {
+    const inferred = TypeInferenceEngine.inferType(
+      propertyName,
+      parentType,
+      data,
+    );
+    if (inferred) return inferred;
+  }
+  const fromStructure = TypeInferenceEngine.inferFromStructure(data);
   if (fromStructure) return fromStructure;
   if (data && typeof data === "object" && !Array.isArray(data)) {
     const typed = data as { _type?: string };
     if (typed._type) return typed._type;
   }
-  return defaultType;
+  return undefined;
 }
 
 export function resolveType(
@@ -754,12 +605,10 @@ export function inferrablePropertyType(
   propertyName?: string,
 ): string | undefined {
   if (!parentType || !propertyName) return undefined;
-  let expected = PROPERTY_TYPE_MAP[parentType]?.[propertyName];
-  if (!expected && LOCATABLE_LIKE_TYPES.has(parentType)) {
-    expected = LOCATABLE_PROPERTY_TYPES[propertyName];
-  }
-  if (!expected || POLYMORPHIC_TYPES.has(expected)) return undefined;
-  return expected;
+  return TypeInferenceEngine.getInferrablePropertyType(
+    parentType,
+    propertyName,
+  );
 }
 
 /** RM object reduced to a single `value` attribute (type marker may be present). */

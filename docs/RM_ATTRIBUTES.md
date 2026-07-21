@@ -30,22 +30,6 @@ API: `attributesFor`, `ownAttributesFor`, `ancestorsOf`, `isSubtypeOf`,
 
 `ancestorsOf` returns most-specific first, root (`Any`) last.
 
-## Regenerate from BMM
-
-Uses the same URLs as class codegen (`tasks/bmm_versions.json` for
-`openehr_base` + `openehr_rm`):
-
-```bash
-deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
-```
-
-Writes:
-
-- `generated/rm_attribute_meta.ts` (baseline next to class stubs)
-- `enhanced/meta/rm_attribute_meta.generated.ts` (imported by the facade)
-
-Do not hand-edit the generated files.
-
 ## RM meta vs AM / OPT tooling
 
 | Layer | Module(s) | Answers |
@@ -68,7 +52,11 @@ in this library API.
 Also distinct from:
 
 - **`TypeRegistry`** — name ↔ constructor for (de)serialization
-- **`TypeInferenceEngine` / ZipEHR maps** — incomplete hand tables for serde;
-  not a public schema API
+- **`TypeInferenceEngine`** — serialization/deserilaization helper that *uses* this meta to decide when
+  `_type` can be omitted / recovered (JSON, YAML, ZipEHR). Not a public schema API.
 - **`MANDATORY_RM_ATTRIBUTES`** — partial lists for generators; prefer
   `attributesFor(t).filter(a => a.mandatory)` going forward
+
+## Regenerating meta (info to Ehrtslib maintainers)
+
+See [maintainers/rm-meta-generation.md](maintainers/rm-meta-generation.md).

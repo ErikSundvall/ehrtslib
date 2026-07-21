@@ -1,18 +1,19 @@
 /**
  * Type Inference Engine for Smart Type Omission
- * 
- * This module provides intelligent type inference for openEHR RM objects
- * during serialization and deserialization. It allows omitting the `_type`
- * field when the type can be unambiguously determined from context.
- * 
- * Key Features:
- * - Infer types from property names and parent types
- * - Detect when types can be safely omitted
- * - Handle polymorphic properties
- * - Structure-based type inference as fallback
+ *
+ * Determines when `_type` can be omitted on serialize and how to recover it on
+ * deserialize. Property → type lookup is backed by BMM RM meta
+ * (`enhanced/meta.attributesFor`), not hand-maintained tables.
  */
 
-import { TypeRegistry } from './type_registry.ts';
+import {
+  attributesFor,
+  hasRmType,
+  isAbstractType,
+  isSubtypeOf,
+  subtypesOf,
+} from "../../meta/mod.ts";
+import { TypeRegistry } from "./type_registry.ts";
 
 /**
  * Property type information extracted from RM class metadata
@@ -25,297 +26,328 @@ interface PropertyTypeInfo {
   isPolymorphic: boolean;
 }
 
+/** BMM / BASE names that are not openEHR object types for serde purposes. */
+const PRIMITIVE_LIKE = new Set([
+  "String",
+  "Boolean",
+  "Integer",
+  "Integer64",
+  "Real",
+  "Double",
+  "Byte",
+  "Any",
+  "Character",
+  "Octet",
+]);
+
+/**
+ * Clinical-RM concrete defaults when BMM declares an abstract type that serde
+ * almost always materialises as one subtype (ZipEHR uid folding, etc.).
+ */
+const CONCRETE_DEFAULTS: Record<string, string> = {
+  UID_BASED_ID: "OBJECT_VERSION_ID",
+};
+
+/**
+ * Strip BMM container / generic wrappers to the element or base type name.
+ * `List<CONTENT_ITEM>` → `CONTENT_ITEM`, `HISTORY<ITEM_STRUCTURE>` → `HISTORY`,
+ * `EVENT<T>` → `EVENT`, bare `T` (EVENT.data) → `ITEM_STRUCTURE`.
+ */
+export function normalizeRmTypeName(typeName: string): string | undefined {
+  let t = typeName.trim();
+  if (!t) return undefined;
+
+  const listMatch = t.match(/^List<\s*(.+)\s*>$/i);
+  if (listMatch) t = listMatch[1].trim();
+
+  const genericMatch = t.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*<.*>$/);
+  if (genericMatch) t = genericMatch[1];
+
+  if (t === "T") return "ITEM_STRUCTURE";
+  return t;
+}
+
+function isPrimitiveLike(typeName: string): boolean {
+  return PRIMITIVE_LIKE.has(typeName);
+}
+
 /**
  * Type Inference Engine for determining when `_type` fields can be omitted
  * and for inferring types during deserialization.
  */
 export class TypeInferenceEngine {
-  // Cache for property type mappings
   private static propertyTypeMap = new Map<string, PropertyTypeInfo>();
-  
-  // List of known polymorphic types
-  // These are types that have concrete subtypes that may appear in their place
-  private static polymorphicTypes = new Set<string>([
-    'DATA_VALUE',
-    'DV_ORDERED',
-    'DV_TEXT',  // DV_CODED_TEXT inherits from DV_TEXT
-    'ITEM',
-    'ITEM_STRUCTURE',
-    'EVENT',  // POINT_EVENT and INTERVAL_EVENT
-    'LOCATABLE',
-    'CONTENT_ITEM',
-    'CARE_ENTRY',
-    'ENTRY',
-    'SECTION',
-    'PATHABLE',
-    'PARTY_IDENTIFIED',  // PARTY_RELATED inherits from PARTY_IDENTIFIED
-    'PARTY_PROXY',  // Abstract, can be PARTY_SELF, PARTY_IDENTIFIED, or PARTY_RELATED
-  ]);
-  
+  private static propertyMapCache = new Map<string, Record<string, string>>();
+
+  /** Extra polymorphic registrations (tests / rare extensions). */
+  private static extraPolymorphic = new Set<string>();
+
   /**
-   * Determine if a type field can be omitted during serialization
-   * 
-   * @param propertyName - Name of the property holding the value
-   * @param parentType - Type name of the parent object
-   * @param value - The actual value object
-   * @returns true if the type can be safely omitted
+   * Determine if a type field can be omitted during serialization.
+   * Exact type match may omit even when the expected type has subtypes
+   * (e.g. DV_TEXT name with a DV_TEXT value); a subtype instance must keep `_type`.
    */
-  static canOmitType(propertyName: string, parentType: string, value: any): boolean {
-    if (!value || typeof value !== 'object') {
+  static canOmitType(
+    propertyName: string,
+    parentType: string,
+    value: any,
+  ): boolean {
+    if (!value || typeof value !== "object") {
       return true; // Primitives don't need type
     }
-    
-    // Get the actual type of the value
+
     const valueType = TypeRegistry.getTypeNameFromInstance(value);
     if (!valueType) {
       return false; // Unknown type, must include
     }
-    
-    // Get expected type for this property
-    const expectedType = this.getDefaultTypeForProperty(parentType, propertyName);
-    
+
+    const expectedType = this.getDefaultTypeForProperty(
+      parentType,
+      propertyName,
+    );
+
     if (!expectedType) {
       return false; // No default type known, must include
     }
-    
-    // Check if the property is polymorphic
-    if (this.isPolymorphic(expectedType)) {
-      return false; // Polymorphic properties need explicit type
-    }
-    
-    // If value type matches expected type exactly, can omit
+
+    // Exact match: safe to omit regardless of whether expectedType has subtypes
     return valueType === expectedType;
   }
-  
+
   /**
    * Infer the type from context during deserialization
-   * 
-   * @param propertyName - Name of the property
-   * @param parentType - Type name of the parent object
-   * @param data - The data object being deserialized
-   * @returns Inferred type name or undefined if cannot infer
    */
-  static inferType(propertyName: string, parentType: string, data: any): string | undefined {
-    // Strategy 1: Get default type for this property
-    const defaultType = this.getDefaultTypeForProperty(parentType, propertyName);
+  static inferType(
+    propertyName: string,
+    parentType: string,
+    data: any,
+  ): string | undefined {
+    const defaultType = this.getDefaultTypeForProperty(
+      parentType,
+      propertyName,
+    );
     if (defaultType && !this.isPolymorphic(defaultType)) {
       return defaultType;
     }
-    
-    // Strategy 2: Infer from structure (property names)
+
     const structureInferred = this.inferFromStructure(data, defaultType);
     if (structureInferred) {
       return structureInferred;
     }
-    
-    // Strategy 3: Use the default type even if polymorphic (best guess)
+
     if (defaultType) {
-      // Log when we're making a best guess on a polymorphic type
       if (this.isPolymorphic(defaultType)) {
-        if (typeof console !== 'undefined' && console.debug) {
+        if (typeof console !== "undefined" && console.debug) {
           console.debug(
-            `TypeInferenceEngine: Using best guess type '${defaultType}' for polymorphic property '${propertyName}' on '${parentType}'`
+            `TypeInferenceEngine: Using best guess type '${defaultType}' for polymorphic property '${propertyName}' on '${parentType}'`,
           );
         }
       }
       return defaultType;
     }
   }
-  
+
   /**
-   * Get the expected/default type for a property on a parent type
-   * 
-   * @param parentType - Type name of the parent
-   * @param propertyName - Name of the property
-   * @returns Expected type name or undefined
+   * Get the expected/default type for a property on a parent type (BMM-backed).
    */
-  static getDefaultTypeForProperty(parentType: string, propertyName: string): string | undefined {
+  static getDefaultTypeForProperty(
+    parentType: string,
+    propertyName: string,
+  ): string | undefined {
     const key = `${parentType}.${propertyName}`;
     const cached = this.propertyTypeMap.get(key);
     if (cached) {
       return cached.expectedType;
     }
-    
-    // Build property type map from known RM structures
-    // This is a simplified version - in a complete implementation,
-    // this would be built from BMM metadata or reflection
+
     const mapping = this.buildPropertyTypeMapping(parentType, propertyName);
     if (mapping) {
       this.propertyTypeMap.set(key, mapping);
       return mapping.expectedType;
     }
-    
+
     return undefined;
   }
-  
+
   /**
-   * Check if a type is polymorphic (has multiple possible subtypes)
-   * 
-   * @param typeName - The type name to check
-   * @returns true if the type is polymorphic
+   * Non-polymorphic expected type for a property — suitable for omitting `_type`
+   * or folding a value-only leaf (ZipEHR yaml / HTML).
+   */
+  static getInferrablePropertyType(
+    parentType: string,
+    propertyName: string,
+  ): string | undefined {
+    const expected = this.getDefaultTypeForProperty(parentType, propertyName);
+    if (!expected || this.isPolymorphic(expected) || isPrimitiveLike(expected)) {
+      return undefined;
+    }
+    return expected;
+  }
+
+  /**
+   * All RM property → type entries for a parent (normalized). Used by ZipEHR
+   * for child key order and ambiguous slot detection.
+   */
+  static getPropertyTypeMap(parentType: string): Record<string, string> {
+    const cached = this.propertyMapCache.get(parentType);
+    if (cached) return cached;
+
+    const map: Record<string, string> = {};
+    for (const attr of attributesFor(parentType)) {
+      const normalized = normalizeRmTypeName(attr.typeName);
+      if (!normalized || isPrimitiveLike(normalized)) continue;
+      const concrete = CONCRETE_DEFAULTS[normalized] ?? normalized;
+      map[attr.name] = concrete;
+    }
+    this.propertyMapCache.set(parentType, map);
+    return map;
+  }
+
+  /**
+   * True when the type may be substituted by a concrete subtype in instance data.
    */
   static isPolymorphic(typeName: string): boolean {
-    return this.polymorphicTypes.has(typeName);
+    if (this.extraPolymorphic.has(typeName)) return true;
+    if (isAbstractType(typeName)) return true;
+    // Concrete types with RM object subtypes (e.g. DV_TEXT → DV_CODED_TEXT,
+    // PARTY_IDENTIFIED → PARTY_RELATED)
+    return subtypesOf(typeName).some((sub) => this.isRmObjectSubtype(sub));
   }
-  
+
+  private static isRmObjectSubtype(typeName: string): boolean {
+    if (isPrimitiveLike(typeName)) return false;
+    return (
+      isSubtypeOf(typeName, "DATA_VALUE") ||
+      isSubtypeOf(typeName, "LOCATABLE") ||
+      isSubtypeOf(typeName, "PATHABLE") ||
+      isSubtypeOf(typeName, "PARTY_PROXY") ||
+      isSubtypeOf(typeName, "DV_ENCAPSULATED") ||
+      isSubtypeOf(typeName, "UID_BASED_ID") ||
+      isSubtypeOf(typeName, "CONTENT_ITEM") ||
+      isSubtypeOf(typeName, "ITEM") ||
+      isSubtypeOf(typeName, "ITEM_STRUCTURE") ||
+      isSubtypeOf(typeName, "EVENT")
+    );
+  }
+
   /**
    * Infer type from the structure of the data object
-   * Uses property names as hints to determine type
-   * 
-   * @param data - The data object
-   * @param expectedType - Optional hint about expected type
-   * @returns Inferred type name or undefined
    */
-  static inferFromStructure(data: any, expectedType?: string): string | undefined {
-    if (!data || typeof data !== 'object') {
+  static inferFromStructure(
+    data: any,
+    _expectedType?: string,
+  ): string | undefined {
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
       return undefined;
     }
-    
+
     const properties = Object.keys(data);
-    
-    // Check for distinctive property combinations
-    
-    // DV_TEXT has 'value' property
-    if (properties.includes('value') && !properties.includes('defining_code')) {
-      if (!properties.includes('magnitude')) {
-        return 'DV_TEXT';
-      }
+
+    if (properties.includes("value") && properties.includes("defining_code")) {
+      return "DV_CODED_TEXT";
     }
-    
-    // DV_CODED_TEXT has 'value' and 'defining_code'
-    if (properties.includes('value') && properties.includes('defining_code')) {
-      return 'DV_CODED_TEXT';
+
+    if (
+      properties.includes("terminology_id") &&
+      properties.includes("code_string")
+    ) {
+      return "CODE_PHRASE";
     }
-    
-    // CODE_PHRASE has 'terminology_id' and 'code_string'
-    if (properties.includes('terminology_id') && properties.includes('code_string')) {
-      return 'CODE_PHRASE';
+
+    if (properties.includes("magnitude") && properties.includes("units")) {
+      return "DV_QUANTITY";
     }
-    
-    // TERMINOLOGY_ID has 'value' as simple string
-    if (properties.length === 1 && properties.includes('value') && typeof data.value === 'string') {
-      return 'TERMINOLOGY_ID';
+
+    if (properties.includes("magnitude") && !properties.includes("units")) {
+      return "DV_COUNT";
     }
-    
-    // DV_QUANTITY has 'magnitude' and 'units'
-    if (properties.includes('magnitude') && properties.includes('units')) {
-      return 'DV_QUANTITY';
+
+    if (properties.includes("value") && typeof data.value === "boolean") {
+      return "DV_BOOLEAN";
     }
-    
-    // DV_COUNT has 'magnitude' without 'units'
-    if (properties.includes('magnitude') && !properties.includes('units')) {
-      return 'DV_COUNT';
+
+    if (
+      properties.includes("value") && typeof data.value === "string" &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(data.value)
+    ) {
+      return "DV_DATE_TIME";
     }
-    
-    // DV_BOOLEAN has 'value' of type boolean
-    if (properties.includes('value') && typeof data.value === 'boolean') {
-      return 'DV_BOOLEAN';
+
+    if (
+      properties.includes("value") && !properties.includes("defining_code") &&
+      !properties.includes("magnitude")
+    ) {
+      return "DV_TEXT";
     }
-    
-    // DV_DATE_TIME has 'value' with date-time string
-    if (properties.includes('value') && typeof data.value === 'string' && 
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(data.value)) {
-      return 'DV_DATE_TIME';
+
+    if (
+      properties.length === 1 && properties.includes("value") &&
+      typeof data.value === "string"
+    ) {
+      return "TERMINOLOGY_ID";
     }
-    
-    // COMPOSITION has 'category', 'archetype_node_id', 'content'
-    if (properties.includes('category') && properties.includes('archetype_node_id')) {
-      return 'COMPOSITION';
+
+    if (
+      properties.includes("category") &&
+      properties.includes("archetype_node_id")
+    ) {
+      return "COMPOSITION";
     }
-    
-    // OBSERVATION has 'data' and is often recognizable
-    if (properties.includes('data') && properties.includes('archetype_node_id')) {
-      return 'OBSERVATION';
+
+    if (
+      properties.includes("data") && properties.includes("archetype_node_id")
+    ) {
+      return "OBSERVATION";
     }
-    
+
     return undefined;
   }
-  
-  /**
-   * Build property type mapping for a given parent type and property
-   * This is a simplified version - would ideally use BMM metadata
-   * 
-   * @param parentType - The parent type
-   * @param propertyName - The property name
-   * @returns Property type information or undefined
-   */
+
   private static buildPropertyTypeMapping(
     parentType: string,
-    propertyName: string
+    propertyName: string,
   ): PropertyTypeInfo | undefined {
-    // Common property mappings based on openEHR RM
-    const mappings: Record<string, Record<string, { type: string; polymorphic: boolean }>> = {
-      'COMPOSITION': {
-        'name': { type: 'DV_TEXT', polymorphic: false },
-        'language': { type: 'CODE_PHRASE', polymorphic: false },
-        'category': { type: 'DV_CODED_TEXT', polymorphic: false },
-        'territory': { type: 'CODE_PHRASE', polymorphic: false },
-        'context': { type: 'EVENT_CONTEXT', polymorphic: false },
-        'content': { type: 'CONTENT_ITEM', polymorphic: true },
-      },
-      'DV_CODED_TEXT': {
-        'defining_code': { type: 'CODE_PHRASE', polymorphic: false },
-      },
-      'CODE_PHRASE': {
-        'terminology_id': { type: 'TERMINOLOGY_ID', polymorphic: false },
-      },
-      'OBSERVATION': {
-        'name': { type: 'DV_TEXT', polymorphic: false },
-        'language': { type: 'CODE_PHRASE', polymorphic: false },
-        'data': { type: 'HISTORY', polymorphic: false },
-      },
-      'ELEMENT': {
-        'name': { type: 'DV_TEXT', polymorphic: false },
-        'value': { type: 'DATA_VALUE', polymorphic: true },
-      },
-      'PARTY_IDENTIFIED': {
-        'name': { type: 'DV_TEXT', polymorphic: false },
-      },
-    };
-    
-    const parentMappings = mappings[parentType];
-    if (!parentMappings) {
+    if (!hasRmType(parentType) && attributesFor(parentType).length === 0) {
       return undefined;
     }
-    
-    const propInfo = parentMappings[propertyName];
-    if (!propInfo) {
-      return undefined;
-    }
-    
+
+    const attr = attributesFor(parentType).find((a) => a.name === propertyName);
+    if (!attr) return undefined;
+
+    const normalized = normalizeRmTypeName(attr.typeName);
+    if (!normalized) return undefined;
+
+    const expectedType = CONCRETE_DEFAULTS[normalized] ?? normalized;
+    const isPolymorphic = attr.polymorphic === true ||
+      this.isPolymorphic(expectedType) ||
+      this.isPolymorphic(normalized);
+
     return {
       parentType,
       propertyName,
-      expectedType: propInfo.type,
-      isPolymorphic: propInfo.polymorphic,
+      expectedType,
+      isPolymorphic,
     };
   }
-  
-  /**
-   * Get the property type for a given object path
-   * Useful for nested object traversal
-   * 
-   * @param parentType - The parent type
-   * @param propertyName - The property name
-   * @returns The expected type or undefined
-   */
-  static getPropertyType(parentType: string, propertyName: string): string | undefined {
+
+  static getPropertyType(
+    parentType: string,
+    propertyName: string,
+  ): string | undefined {
     return this.getDefaultTypeForProperty(parentType, propertyName);
   }
-  
-  /**
-   * Clear cached type mappings (useful for testing)
-   */
+
   static clearCache(): void {
     this.propertyTypeMap.clear();
+    this.propertyMapCache.clear();
   }
-  
-  /**
-   * Register additional polymorphic types
-   * 
-   * @param types - Array of type names that are polymorphic
-   */
+
   static registerPolymorphicTypes(types: string[]): void {
-    types.forEach(type => this.polymorphicTypes.add(type));
+    types.forEach((type) => this.extraPolymorphic.add(type));
+  }
+
+  /** Whether `rmType` inherits LOCATABLE (replaces hand-maintained type sets). */
+  static isLocatableLike(rmType: string): boolean {
+    return isSubtypeOf(rmType, "LOCATABLE");
   }
 }

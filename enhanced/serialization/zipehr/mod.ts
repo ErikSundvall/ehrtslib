@@ -19,8 +19,10 @@ export {
   getSymbolFor,
   inferrablePropertyType,
   inferType,
+  isLocatableLike,
   isLocatableStructuredObject,
   looksLikeLocatableStructuredObject,
+  isPolymorphicType,
   isSymbolKey,
   isTerseCodePhrase,
   isTerseDvCodedText,
@@ -33,6 +35,7 @@ export {
   parseLocatableStructuredObject,
   POLYMORPHIC_TYPES,
   PROPERTY_TYPE_MAP,
+  propertyTypesFor,
   propertySlotAmbiguous,
   formatPropertyComment,
   shouldEmitPropertyAttribute,
@@ -44,6 +47,7 @@ export {
   MAGNITUDE_STATUS_OPERATORS,
   TERMINOLOGY_FIELD_PROMOTIONS,
   TERMINOLOGY_SHORTCUTS,
+  LOCATABLE_LIKE_TYPES,
 } from "./shared.ts";
 
 export {

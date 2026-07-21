@@ -12,12 +12,13 @@ import { parseLocatableTitle, splitTitlePropertyPrefix } from "./title_grammar.t
 import {
   expandTerseString,
   isLocatableStructuredObject,
+  isPolymorphicType,
   LANGUAGE_CARRIER_TYPES,
   languageTerseString,
-  POLYMORPHIC_TYPES,
-  PROPERTY_TYPE_MAP,
+  propertyTypesFor,
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
+import { isSubtypeOf } from "../../meta/mod.ts";
 import { ensureLetterCodeMapLoaded } from "./xhtml_serialize.ts";
 
 export type XhtmlElement = {
@@ -259,27 +260,8 @@ function childPropertyMatches(
   childRmType: string,
 ): boolean {
   if (expectedType === childRmType) return true;
-  if (!POLYMORPHIC_TYPES.has(expectedType)) return false;
-  if (expectedType === "EVENT") {
-    return childRmType === "POINT_EVENT" || childRmType === "INTERVAL_EVENT" ||
-      childRmType === "EVENT";
-  }
-  if (expectedType === "ITEM") {
-    return childRmType === "ELEMENT" || childRmType === "CLUSTER" ||
-      childRmType === "ITEM_TREE" || childRmType === "ITEM_LIST";
-  }
-  if (expectedType === "ITEM_STRUCTURE") {
-    return childRmType.startsWith("ITEM_");
-  }
-  if (expectedType === "CONTENT_ITEM") {
-    return childRmType === "SECTION" || childRmType === "OBSERVATION" ||
-      childRmType === "EVALUATION" || childRmType === "ADMIN_ENTRY" ||
-      childRmType === "INSTRUCTION" || childRmType === "ACTION";
-  }
-  if (expectedType === "DATA_VALUE") {
-    return childRmType.startsWith("DV_") || childRmType === "CODE_PHRASE";
-  }
-  return false;
+  if (!isPolymorphicType(expectedType)) return false;
+  return isSubtypeOf(childRmType, expectedType);
 }
 
 function resolveChildPropertyName(
@@ -287,13 +269,31 @@ function resolveChildPropertyName(
   childRmType: string,
   used: Set<string>,
 ): string {
-  const map = PROPERTY_TYPE_MAP[parentRmType] ?? {};
-  for (const [prop, expectedType] of Object.entries(map)) {
-    if (used.has(prop)) continue;
-    if (childPropertyMatches(expectedType, childRmType)) return prop;
+  const map = propertyTypesFor(parentRmType);
+  const candidates = Object.entries(map)
+    .filter(([prop, expectedType]) => {
+      if (used.has(prop)) return false;
+      return childPropertyMatches(expectedType, childRmType);
+    })
+    .map(([prop]) => prop);
+
+  if (candidates.length === 1) return candidates[0]!;
+  if (candidates.length > 1) {
+    const polySlots = candidates.filter((p) => isPolymorphicType(map[p]!));
+    if (polySlots.length === 1) return polySlots[0]!;
+    for (const preferred of [
+      "value",
+      "data",
+      "content",
+      "items",
+      "events",
+      "activities",
+    ]) {
+      if (candidates.includes(preferred)) return preferred;
+    }
+    return candidates[0]!;
   }
-  const fallback = `child_${used.size}`;
-  return fallback;
+  return `child_${used.size}`;
 }
 
 function assignChildProperty(

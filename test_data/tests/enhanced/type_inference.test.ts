@@ -57,11 +57,28 @@ Deno.test("TypeInferenceEngine: canOmitType - simple property", () => {
 
 Deno.test("TypeInferenceEngine: isPolymorphic", () => {
   assertEquals(TypeInferenceEngine.isPolymorphic("DATA_VALUE"), true);
-  assertEquals(TypeInferenceEngine.isPolymorphic("DV_TEXT"), false);
+  // DV_TEXT has concrete subtype DV_CODED_TEXT — treat as polymorphic for inference
+  assertEquals(TypeInferenceEngine.isPolymorphic("DV_TEXT"), true);
   assertEquals(TypeInferenceEngine.isPolymorphic("CONTENT_ITEM"), true);
+  assertEquals(TypeInferenceEngine.isPolymorphic("DV_QUANTITY"), false);
 });
 
 Deno.test("TypeInferenceEngine: getPropertyType", () => {
   const propertyType = TypeInferenceEngine.getPropertyType("DV_CODED_TEXT", "defining_code");
   assertEquals(propertyType, "CODE_PHRASE");
+});
+
+Deno.test("TypeInferenceEngine: BMM-backed LOCATABLE uid defaults to OBJECT_VERSION_ID", () => {
+  assertEquals(
+    TypeInferenceEngine.getInferrablePropertyType("COMPOSITION", "uid"),
+    "OBJECT_VERSION_ID",
+  );
+  assertEquals(
+    TypeInferenceEngine.getDefaultTypeForProperty("ELEMENT", "value"),
+    "DATA_VALUE",
+  );
+  assertEquals(
+    TypeInferenceEngine.isLocatableLike("OBSERVATION"),
+    true,
+  );
 });

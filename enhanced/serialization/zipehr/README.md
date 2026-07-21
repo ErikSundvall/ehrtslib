@@ -106,9 +106,10 @@ the type.
 substitution rules; it does not need parent-type inference. This makes it usable even in
 “stringly typed” environments.
 
-**zipehr.yaml**: more compact. It drops redundant type wrappers where the parent RM property
-fixes the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). This requires
-`PROPERTY_TYPE_MAP` plus polymorphic-type handling (`shared.ts`).
+**zipehr.yaml**: more compact. It drops redundant type wrappers where the parent RM property has already
+locked/fixed the type (for example `EVENT_CONTEXT.setting` → `DV_CODED_TEXT`). Type lookup is
+shared with JSON/YAML via `TypeInferenceEngine` (BMM-backed `enhanced/meta`), exposed to
+ZipEHR through `inferrablePropertyType` / `propertyTypesFor` in `shared.ts`.
 
 **zipehr.xhtml**: FHIR `Narrative.div`-safe XHTML snippets. RM types appear as Ehrbase letter codes in
 `class` (from `symbol_table.yaml`) — never as emoji in the class token. LOCATABLE metadata uses
@@ -467,9 +468,9 @@ No step requires knowing the parent type.
 3. Apply the same shorthands as `zipehr.json` (terminology promotion, composition name fold).
 4. Emit hybrid YAML (block maps for depth, flow for shallow objects).
 
-Type inference order:
+Type inference order (via shared `TypeInferenceEngine` / `inferType`):
 
-`PROPERTY_TYPE_MAP[parent][property]` → structure heuristic (`inferFromStructure`)
+`attributesFor(parent)` property type → structure heuristic (`inferFromStructure`)
 → `_type` on the object → polymorphic fallback.
 
 ## Terse data values (what strings mean)

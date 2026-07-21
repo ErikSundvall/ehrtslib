@@ -5,7 +5,10 @@
  */
 
 export { TypeRegistry } from './type_registry.ts';
-export { TypeInferenceEngine } from './type_inference.ts';
+export {
+  TypeInferenceEngine,
+  normalizeRmTypeName,
+} from './type_inference.ts';
 export { HybridStyleFormatter } from './hybrid_formatter.ts';
 export type { HybridFormatterOptions } from './hybrid_formatter.ts';
 export type { ArchetypeNodeIdLocation, NameLocation } from './types.ts';
