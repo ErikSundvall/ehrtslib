@@ -154,8 +154,24 @@ const generator = new TypeScriptGenerator({ language: "en" });
 const code = generator.generate(template);
 ```
 
+#### RM attribute introspection
+
+Runtime, BMM-backed schema for RM types (attributes, multiplicities, subtype
+queries) — for editors and validators. Distinct from AM/OPT constraint walking.
+
+```typescript
+import { attributesFor, isDataValueType, subtypesOf } from "./enhanced/meta/mod.ts";
+
+attributesFor("ELEMENT");           // includes optional value: DATA_VALUE
+isDataValueType("DV_CODED_TEXT"); // true
+subtypesOf("DATA_VALUE");           // concrete DV_* leaves
+```
+
+See **[docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md)** (includes RM vs AM comparison).
+
 #### Complete Documentation
 - **[ADL support (1.4 + 2.x)](docs/ADL_SUPPORT.md)** - Feature matrix and conversion limits
+- **[RM attribute introspection](docs/RM_ATTRIBUTES.md)** - BMM-backed `attributesFor` / `subtypesOf` (vs AM/OPT tooling)
 - **[Archetype and Template Usage Guide](examples/archetype_template_usage.ts)** - Complete examples of parsing, validation, and generation
 - **[Validation Framework](enhanced/validation/)** - Comprehensive validation with multiple validators
 - **[Code Generation](enhanced/generation/)** - Generate TypeScript, RM instances, and serialize to ADL2

@@ -44,6 +44,16 @@ This generates stub files in the `/generated` directory. These stubs are safe to
 regenerate at any time - they won't overwrite your enhanced implementations in
 `/enhanced`.
 
+Also regenerate **RM attribute metadata** (used by `enhanced/meta`) after BMM
+URL/version changes:
+
+```bash
+deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
+# or: deno task generate:rm-meta
+```
+
+See [docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md).
+
 **Note:** The root-level `openehr_*.ts` files are thin re-export wrappers that
 provide backward compatibility by re-exporting from `/enhanced`.
 

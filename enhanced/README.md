@@ -41,6 +41,7 @@ Additional service files not in `/generated`:
 - `property_unit_service.ts` - Property and unit service for UCUM-based unit handling
 - `ucum_service.ts` - UCUM (Unified Code for Units of Measure) validation and conversion service
 - `temporal_polyfill.ts` - Temporal API polyfill for date/time operations
+- `meta/` - BMM-backed RM attribute introspection (`attributesFor`, `subtypesOf`, …); see [docs/RM_ATTRIBUTES.md](../docs/RM_ATTRIBUTES.md). Regenerate with `deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts`
 
 ## Import Guidelines
 
