@@ -950,6 +950,13 @@ body {
     gap: var(--spacing-sm);
 }
 
+.opt-html5-hydrate-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
 .simplified-template-info {
     flex: 1 1 12rem;
     font-size: 0.85rem;

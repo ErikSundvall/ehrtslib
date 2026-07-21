@@ -158,3 +158,29 @@ export {
   looksLikeZipehrHtml5,
   zipehrHtml5ToCanonical,
 } from "./html5_deserialize.ts";
+
+export {
+  OPT_HTML5_FMT_TOKEN,
+  OPT_HTML5_URI,
+  optTagForType,
+  serializeOperationalTemplateToHtml5,
+  serializeToOptHtml5Variant,
+  type OptHtml5Dialect,
+  type OptHtml5Layout,
+  type OptHtml5SerializeOptions,
+} from "./opt_html5_serialize.ts";
+
+export {
+  detectOptHtml5Dialect,
+  looksLikeOptHtml5,
+  optHtml5ElementToPlain,
+  optHtml5ToPlain,
+  resolveOptTag,
+} from "./opt_html5_deserialize.ts";
+
+export {
+  hydrateOptHtml5,
+  wrapOptHtml5PreviewDocument,
+  type OptHydrateMode,
+  type OptHydrateOptions,
+} from "./opt_html5_hydrate.ts";

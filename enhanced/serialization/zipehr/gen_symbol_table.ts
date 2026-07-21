@@ -15,6 +15,8 @@ const TOP_SECTIONS = new Set([
   "magnitude_status_operators",
   "field_promotions",
   "html5_short_tags",
+  "am_types",
+  "opt_html5_short_tags",
   "foundation_types",
 ]);
 
@@ -23,6 +25,23 @@ const RM_SYMBOL_SECTIONS = new Set([
   "data_structures",
   "ehr_components",
 ]);
+
+/** AOM2 / OPT HTML5 class + attribute symbols (same array shape as RM sections). */
+const AM_SYMBOL_SECTIONS = new Set(["am_types"]);
+
+/** BASE foundation types (PascalCase keys) — used for 🔐 + foundation OPT compounds. */
+const FOUNDATION_SYMBOL_SECTIONS = new Set(["foundation_types"]);
+
+/** C_* primitive ← foundation type (for docs / derived compounds). */
+const FOUNDATION_TO_C_PRIMITIVE: Record<string, string> = {
+  Boolean: "C_BOOLEAN",
+  Integer: "C_INTEGER",
+  Real: "C_REAL",
+  String: "C_STRING",
+};
+
+/** OPT HTML5 constraint lock prefix for foundation-backed C_* primitives. */
+const OPT_CONSTRAINT_EMOJI = "🔐";
 
 /** symbol_table.yaml terminology_shortcuts keys → terse-string prefixes. */
 const TERMINOLOGY_KEY_TO_PREFIX: Record<string, string> = {
@@ -67,7 +86,11 @@ for (const line of lines) {
     continue;
   }
   const scalarEntry = line.match(/^\s*([A-Za-z0-9_.]+)\s*:\s*([A-Za-z0-9_-]+)\s*,?\s*$/);
-  if (scalarEntry && current?.name === "html5_short_tags") {
+  if (
+    scalarEntry &&
+    (current?.name === "html5_short_tags" ||
+      current?.name === "opt_html5_short_tags")
+  ) {
     current.entries.push({
       key: scalarEntry[1],
       letterSymbol: scalarEntry[2],
@@ -79,6 +102,7 @@ for (const line of lines) {
 const letterLines: string[] = [];
 const emojiLines: string[] = [];
 const html5ShortTagLines: string[] = [];
+const optHtml5ShortTagLines: string[] = [];
 const terminologyShortcutLines: string[] = [];
 const magnitudeStatusOperatorLines: string[] = [];
 const fieldPromotionLines: string[] = [];
@@ -123,10 +147,24 @@ for (const sec of sections) {
     }
     continue;
   }
-  if (!RM_SYMBOL_SECTIONS.has(sec.name)) continue;
+  if (sec.name === "opt_html5_short_tags") {
+    for (const { key, letterSymbol } of sec.entries) {
+      optHtml5ShortTagLines.push(`  ${key}: "${letterSymbol}",`);
+    }
+    continue;
+  }
+  if (!RM_SYMBOL_SECTIONS.has(sec.name) &&
+    !AM_SYMBOL_SECTIONS.has(sec.name) &&
+    !FOUNDATION_SYMBOL_SECTIONS.has(sec.name)
+  ) {
+    continue;
+  }
   for (const { key, letterSymbol, emojiSymbol } of sec.entries) {
-    // RM class rows are UPPERCASE; attribute rows use dotted keys (e.g. LOCATABLE.name).
-    if (key !== key.toUpperCase() && !key.includes(".")) continue;
+    // RM/AM class rows are UPPERCASE; attributes use dotted keys; foundation is PascalCase.
+    const isFoundation = FOUNDATION_SYMBOL_SECTIONS.has(sec.name);
+    const isClassOrAttr = key === key.toUpperCase() || key.includes(".");
+    const isPascalFoundation = isFoundation && /^[A-Z][A-Za-z0-9]*$/.test(key);
+    if (!isClassOrAttr && !isPascalFoundation) continue;
     if (seenKeys.has(key)) {
       throw new Error(`Duplicate symbol key in symbol_table.yaml: ${key}`);
     }
@@ -154,6 +192,21 @@ const output = [
   "/** HTML5 short-dialect tag suffix overrides (`o-{suffix}`) when letter codes collide under lowercasing. */",
   "export const SYMBOL_TABLE_HTML5_SHORT_TAGS = {",
   ...html5ShortTagLines,
+  "} as const;",
+  "",
+  "/** OPT HTML5 short-dialect tag suffix overrides (`a-{suffix}`). */",
+  "export const SYMBOL_TABLE_OPT_HTML5_SHORT_TAGS = {",
+  ...optHtml5ShortTagLines,
+  "} as const;",
+  "",
+  "/** Prefix for foundation-backed C_* primitive constraint tags (emoji dialect). */",
+  `export const OPT_CONSTRAINT_EMOJI = "${OPT_CONSTRAINT_EMOJI}" as const;`,
+  "",
+  "/** Foundation type → AOM C_* primitive (🔐 + foundation emoji). */",
+  "export const FOUNDATION_TO_C_PRIMITIVE = {",
+  ...Object.entries(FOUNDATION_TO_C_PRIMITIVE).map(
+    ([k, v]) => `  ${k}: "${v}",`,
+  ),
   "} as const;",
   "",
   "export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };",
@@ -206,10 +259,19 @@ for (const line of letterLines) {
   else letterReverse.set(sym, type);
 }
 for (const line of emojiLines) {
-  const m = line.match(/^\s*([A-Z0-9_]+):\s*"([^"]+)"\s*,?$/);
+  // Include PascalCase foundation keys and UPPERCASE RM/AM class keys (not dotted attrs).
+  const m = line.match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*:\s*"([^"]+)"\s*,?$/);
   if (!m) continue;
   const type = m[1];
+  if (type.includes(".")) continue;
   const sym = m[2];
+  // Foundation primaries may intentionally reuse alts of RM types; uniqueness is
+  // required for uppercase RM/AM class tags and for 🔐-prefixed constraint tags.
+  const enforceUnique = type === type.toUpperCase() || sym.startsWith(OPT_CONSTRAINT_EMOJI);
+  if (!enforceUnique) {
+    if (!emojiReverse.has(sym)) emojiReverse.set(sym, type);
+    continue;
+  }
   if (emojiReverse.has(sym)) dupEmoji.push(`${sym}: ${emojiReverse.get(sym)} vs ${type}`);
   else emojiReverse.set(sym, type);
 }

@@ -21,6 +21,7 @@ import {
   initializeTypeRegistry,
   isSimplifiedInputFormat,
   MISSING_WEB_TEMPLATE_ERROR,
+  MISSING_OPT_FOR_HTML5_ERROR,
   type InputFormat,
   type InputMode,
   type OutputFormat,
@@ -57,6 +58,11 @@ import {
   onZipehrMarkupVariantChanged,
   refreshZipehrHtmlPreview,
 } from "./zipehr-html-preview.ts";
+import {
+  initOptHtml5Preview,
+  onOptHtml5VariantChanged,
+  refreshOptHtml5Preview,
+} from "./opt-html5-preview.ts";
 
 const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
 
@@ -112,8 +118,18 @@ function init() {
         "";
     },
   });
+  initOptHtml5Preview({
+    getActiveVariant: () => getActiveOptHtml5Variant(),
+    getActiveHtml: () => {
+      const v = getActiveOptHtml5Variant();
+      return getDemoEditor(`output-${v}-content`)?.value ??
+        currentOutputs[v] ??
+        "";
+    },
+  });
   updateAutoConvertButtonUi();
   updateTemplateLanguageOptions();
+  syncOptHtml5TemplateUi();
 
   // Load default example (triggers debounced auto-convert via handleInputChange)
   loadExample(DEFAULT_INSTANCE_EXAMPLE);
@@ -253,6 +269,8 @@ function setupEventListeners() {
   setupSimplifiedVariantListener();
   setupSimplifiedOptUpload();
   setupInputSimplifiedTemplateUpload();
+  setupOptHtml5VariantListener();
+  setupOptHtml5OptUpload();
   syncInputFormatUi();
 
   // Collapsible sections
@@ -272,6 +290,7 @@ function setupOutputVisibilityListeners() {
     "asciidoc",
     "typescript",
     "simplified",
+    "opt-html5",
     "webtemplate",
   ];
 
@@ -362,6 +381,119 @@ function getActiveSimplifiedVariant(): "flat" | "structured" {
     "simplified-variant",
   ) as HTMLSelectElement;
   return select?.value === "flat" ? "flat" : "structured";
+}
+
+type OptHtml5OutputVariant =
+  | "opt.html5.short"
+  | "opt.html5.full"
+  | "opt.html5.emoji";
+
+function getActiveOptHtml5Variant(): OptHtml5OutputVariant {
+  const select = document.getElementById(
+    "opt-html5-variant",
+  ) as HTMLSelectElement | null;
+  const value = select?.value;
+  if (value === "opt.html5.short") return "opt.html5.short";
+  if (value === "opt.html5.full") return "opt.html5.full";
+  return "opt.html5.emoji";
+}
+
+function getActiveOptHtml5Layout():
+  | "oneliner"
+  | "linesaving"
+  | "fluffy"
+  | undefined {
+  const select = document.getElementById(
+    "opt-html5-layout",
+  ) as HTMLSelectElement | null;
+  const value = select?.value;
+  if (value === "oneliner" || value === "linesaving" || value === "fluffy") {
+    return value;
+  }
+  return getActiveOptHtml5Variant() === "opt.html5.short"
+    ? "oneliner"
+    : "linesaving";
+}
+
+function switchOptHtml5VariantPane(): void {
+  const variant = getActiveOptHtml5Variant();
+  document.querySelectorAll(".opt-html5-variant-pane").forEach((pane) => {
+    pane.classList.toggle(
+      "hidden",
+      pane.getAttribute("data-opt-html5-variant") !== variant,
+    );
+  });
+  if (getActiveOutputFormat() === "opt-html5" || getActiveOutputFormat() === variant) {
+    updateOutputInfo();
+  }
+  const html = getDemoEditor(`output-${variant}-content`)?.value ??
+    currentOutputs[variant] ??
+    "";
+  onOptHtml5VariantChanged(variant, html);
+}
+
+function setupOptHtml5VariantListener(): void {
+  const select = document.getElementById("opt-html5-variant");
+  select?.addEventListener("change", () => {
+    switchOptHtml5VariantPane();
+    scheduleAutoConvert();
+  });
+  const layout = document.getElementById("opt-html5-layout");
+  layout?.addEventListener("change", () => scheduleAutoConvert());
+  switchOptHtml5VariantPane();
+}
+
+function setupOptHtml5OptUpload(): void {
+  // Reuse simplified workspace uploads via the same file handler pattern
+  const btn = document.getElementById("opt-html5-opt-upload-btn");
+  const input = document.getElementById(
+    "opt-html5-opt-upload",
+  ) as HTMLInputElement | null;
+  const clearBtn = document.getElementById("opt-html5-opt-clear-btn");
+  btn?.addEventListener("click", () => input?.click());
+  input?.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    // Delegate to the same simplified upload path by temporarily wiring
+    const simplifiedInput = document.getElementById(
+      "simplified-opt-upload",
+    ) as HTMLInputElement | null;
+    if (simplifiedInput) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      simplifiedInput.files = dt.files;
+      simplifiedInput.dispatchEvent(new Event("change"));
+    }
+    input.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    document.getElementById("simplified-opt-clear-btn")?.click();
+  });
+}
+
+function syncOptHtml5TemplateUi(): void {
+  const info = document.getElementById("opt-html5-template-info");
+  const clearBtn = document.getElementById("opt-html5-opt-clear-btn");
+  const section = document.getElementById("opt-html5-template-section");
+  const missing = document.getElementById("opt-html5-missing-template");
+  const ws = getEffectiveTemplateWorkspace();
+  const has = (ws?.listFiles().length ?? 0) > 0;
+  if (info) {
+    if (simplifiedWorkspace.listFiles().length) {
+      const name = simplifiedWorkspace.listFiles()[0]?.path.split("/").pop();
+      info.textContent = `Uploaded: ${name ?? "template"}`;
+    } else if (clinicalWorkspace.listFiles().length) {
+      info.textContent = "Linked from template tab";
+    } else {
+      info.textContent = "No template loaded — upload OPT or use Template tab";
+    }
+  }
+  clearBtn?.classList.toggle(
+    "hidden",
+    simplifiedWorkspace.listFiles().length === 0,
+  );
+  section?.classList.toggle("needs-attention", !has);
+  missing?.classList.toggle("hidden", has);
 }
 
 function switchZipehrVariantPane(): void {
@@ -534,6 +666,7 @@ function syncSimplifiedTemplateUi(): void {
   if (inputInfo) inputInfo.textContent = text;
   outputClearBtn?.classList.toggle("hidden", !hasUpload);
   inputClearBtn?.classList.toggle("hidden", !hasUpload);
+  syncOptHtml5TemplateUi();
 
   const section = document.getElementById("input-simplified-template-section");
   if (section && isSimplifiedInputFormat(currentInputFormat)) {
@@ -721,6 +854,7 @@ function getActiveOutputFormat(): string {
   const tab = activeTab?.getAttribute("data-tab") || "yaml";
   if (tab === "zipehr") return getActiveZipehrVariant();
   if (tab === "simplified") return getActiveSimplifiedVariant();
+  if (tab === "opt-html5") return getActiveOptHtml5Variant();
   return tab;
 }
 
@@ -1683,6 +1817,17 @@ async function handleConvert() {
       if (result.error?.includes(MISSING_WEB_TEMPLATE_ERROR)) {
         highlightTemplateUploadRequired();
       }
+      if (result.error?.includes(MISSING_OPT_FOR_HTML5_ERROR)) {
+        syncOptHtml5TemplateUi();
+        document.getElementById("opt-html5-missing-template")?.classList
+          .remove("hidden");
+        document.getElementById("opt-html5-template-section")?.classList
+          .add("needs-attention");
+        document.getElementById("opt-html5-template-section")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
       showError(result.error || "Conversion failed");
       return;
     }
@@ -1699,6 +1844,12 @@ async function handleConvert() {
     const message = (error as Error).message;
     if (message.includes(MISSING_WEB_TEMPLATE_ERROR)) {
       highlightTemplateUploadRequired();
+    }
+    if (message.includes(MISSING_OPT_FOR_HTML5_ERROR)) {
+      syncOptHtml5TemplateUi();
+      document.getElementById("opt-html5-missing-template")?.classList.remove(
+        "hidden",
+      );
     }
     showError(message);
   }
@@ -1766,6 +1917,11 @@ function gatherConversionOptions(): ConversionOptions {
     (document.getElementById("output-simplified") as HTMLInputElement)?.checked
   ) {
     outputFormats.push(getActiveSimplifiedVariant());
+  }
+  if (
+    (document.getElementById("output-opt-html5") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push(getActiveOptHtml5Variant());
   }
   if (
     (document.getElementById("output-webtemplate") as HTMLInputElement)?.checked
@@ -1995,6 +2151,7 @@ function gatherConversionOptions(): ConversionOptions {
     typescriptConfig,
     zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
     zipehrHtml5Layout: getActiveZipehrHtml5Layout(),
+    optHtml5Layout: getActiveOptHtml5Layout(),
     zipehrPropertyMode: getActiveZipehrPropertyMode(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
@@ -2015,6 +2172,9 @@ function updateOutputs(outputs: Record<string, string>) {
     "zipehr.html5.short",
     "zipehr.html5.full",
     "zipehr.html5.emoji",
+    "opt.html5.short",
+    "opt.html5.full",
+    "opt.html5.emoji",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2032,6 +2192,7 @@ function updateOutputs(outputs: Record<string, string>) {
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();
   syncZipehrHtmlPreviewFromOutputs();
+  syncOptHtml5PreviewFromOutputs();
 }
 
 function syncZipehrHtmlPreviewFromOutputs(): void {
@@ -2040,6 +2201,15 @@ function syncZipehrHtmlPreviewFromOutputs(): void {
     currentOutputs[variant] ??
     "";
   void refreshZipehrHtmlPreview({ variant, html });
+}
+
+function syncOptHtml5PreviewFromOutputs(): void {
+  const variant = getActiveOptHtml5Variant();
+  const html = getDemoEditor(`output-${variant}-content`)?.value ??
+    currentOutputs[variant] ??
+    "";
+  void refreshOptHtml5Preview({ variant, html });
+  syncOptHtml5TemplateUi();
 }
 
 /**
@@ -2528,6 +2698,7 @@ function switchOutputTab(tabName: string) {
   // Update counts/info for newly selected tab
   if (tabName === "zipehr") switchZipehrVariantPane();
   if (tabName === "simplified") switchSimplifiedVariantPane();
+  if (tabName === "opt-html5") switchOptHtml5VariantPane();
   updateOutputInfo();
 }
 
@@ -2536,17 +2707,23 @@ function switchOutputTab(tabName: string) {
  */
 function updateOutputInfo() {
   const tabName = getActiveOutputFormat();
-  const rootTab =
-    tabName.startsWith("zipehr.") ? "tab-zipehr" : `tab-${tabName}`;
+  const rootTab = tabName.startsWith("zipehr.")
+    ? "tab-zipehr"
+    : tabName.startsWith("opt.html5.")
+    ? "tab-opt-html5"
+    : `tab-${tabName}`;
   const root = document.getElementById(rootTab);
 
-  // `tab-zipehr` contains hidden panes per ZipEHR variant.
-  const countsRoot =
-    tabName.startsWith("zipehr.")
-      ? (document.querySelector(
-          `.zipehr-variant-pane[data-zipehr-variant="${tabName}"]`,
-        ) as HTMLElement | null) ?? root
-      : root;
+  // Variant panes for ZipEHR / OPT HTML5
+  const countsRoot = tabName.startsWith("zipehr.")
+    ? (document.querySelector(
+      `.zipehr-variant-pane[data-zipehr-variant="${tabName}"]`,
+    ) as HTMLElement | null) ?? root
+    : tabName.startsWith("opt.html5.")
+    ? (document.querySelector(
+      `.opt-html5-variant-pane[data-opt-html5-variant="${tabName}"]`,
+    ) as HTMLElement | null) ?? root
+    : root;
 
   const outputChar = countsRoot?.querySelector(".output-char-count");
   const outputLine = countsRoot?.querySelector(".output-line-count");
@@ -2603,6 +2780,9 @@ function downloadOutput(format: string) {
     "zipehr.html5.short": "html",
     "zipehr.html5.full": "html",
     "zipehr.html5.emoji": "html",
+    "opt.html5.short": "html",
+    "opt.html5.full": "html",
+    "opt.html5.emoji": "html",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",
@@ -2627,7 +2807,15 @@ function downloadOutput(format: string) {
  * Show success message after copy
  */
 function showSuccessMessage(format: string) {
-  const successElement = document.getElementById(`success-${format}`);
+  const id = format.startsWith("opt.html5.")
+    ? "success-opt-html5"
+    : format === "flat" || format === "structured"
+    ? "success-simplified"
+    : `success-${format}`;
+  const successElement = document.getElementById(id) ??
+    (format.startsWith("zipehr.")
+      ? document.getElementById("success-zipehr")
+      : null);
   if (successElement) {
     successElement.classList.remove("hidden");
     setTimeout(() => {

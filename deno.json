@@ -19,6 +19,7 @@
     "test": "deno test --allow-read",
     "check": "deno check enhanced/*.ts",
     "generate:rm-meta": "deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts",
+    "generate:symbol-table": "deno run --allow-read --allow-write enhanced/serialization/zipehr/gen_symbol_table.ts",
     "build:demo": "deno run -A examples/demo-app/scripts/build.ts",
     "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts",
     "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts"

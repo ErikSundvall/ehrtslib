@@ -463,6 +463,10 @@
                 <input type="checkbox" id="output-simplified">
                 <span>Simplified</span>
               </label>
+              <label class="checkbox-label" title="Compact AOM2 OPT as HTML5 custom elements (requires operational template)">
+                <input type="checkbox" id="output-opt-html5">
+                <span>OPT HTML5</span>
+              </label>
               <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
                 <input type="checkbox" id="output-zipehr" checked>
                 <span>ZipEHR</span>
@@ -497,6 +501,7 @@
               <button class="tab" data-tab="typescript">TypeScript</button>
               <button class="tab" data-tab="xml">XML</button>
               <button class="tab" data-tab="simplified">Simplified</button>
+              <button class="tab" data-tab="opt-html5">OPT HTML5</button>
               <button class="tab" data-tab="zipehr">ZipEHR</button>
             </div>
           </div>
@@ -1686,6 +1691,157 @@
               <div class="success-message hidden" id="success-simplified">
                 <span class="material-icons success-icon" aria-hidden="true">check</span>
                 <span>Copied to clipboard!</span>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-opt-html5">
+              <div class="config-section" id="opt-html5-options">
+                <div class="config-grid">
+                  <div class="config-col">
+                    <div class="form-group">
+                      <label for="opt-html5-variant">OPT HTML5 dialect:</label>
+                      <select id="opt-html5-variant" class="config-dropdown">
+                        <option value="opt.html5.short">short (a- letter tags)</option>
+                        <option value="opt.html5.full">full (a- AM kebab tags)</option>
+                        <option value="opt.html5.emoji" selected>emoji (a- AM±RM glyphs)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="opt-html5-layout">Layout:</label>
+                      <select id="opt-html5-layout" class="config-dropdown">
+                        <option value="oneliner">oneliner</option>
+                        <option value="linesaving" selected>linesaving</option>
+                        <option value="fluffy">fluffy</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Hydrate preview:</label>
+                      <div class="opt-html5-hydrate-row">
+                        <label class="checkbox-label"><input type="radio" name="opt-html5-hydrate-mode" value="off" checked> Off</label>
+                        <label class="checkbox-label"><input type="radio" name="opt-html5-hydrate-mode" value="all"> All fields</label>
+                        <label class="checkbox-label"><input type="radio" name="opt-html5-hydrate-mode" value="focus"> Focus only</label>
+                      </div>
+                    </div>
+                    <div class="form-group" id="opt-html5-template-section">
+                      <label for="opt-html5-opt-upload">Operational template (required):</label>
+                      <p class="form-hint">
+                        OPT HTML5 serialises the AOM2 operational template tree (not an RM instance).
+                        Upload .opt / .oet / .adl / .zip, or load a template on the Template input tab
+                        (same workspace as Simplified).
+                      </p>
+                      <div class="simplified-template-row">
+                        <span class="simplified-template-info" id="opt-html5-template-info"
+                        >No template loaded — upload OPT or use Template tab</span>
+                        <input type="file" id="opt-html5-opt-upload" class="hidden" accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json,.json">
+                        <button class="btn btn-secondary btn-sm" id="opt-html5-opt-upload-btn" type="button">
+                          <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                          Upload OPT
+                        </button>
+                        <button class="btn btn-secondary btn-sm hidden" id="opt-html5-opt-clear-btn" type="button">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="opt-html5-variant-pane" data-opt-html5-variant="opt.html5.short">
+                <div class="editor-block">
+                  <div class="output-info">
+                    <span class="char-count"><span class="label">Characters:</span> <span class="output-char-count">0</span></span>
+                    <span class="line-count"><span class="label">Lines:</span> <span class="output-line-count">0</span></span>
+                    <span class="output-editor-actions">
+                      <button class="btn btn-secondary btn-sm copy-output-btn" data-format="opt.html5.short" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">content_copy</span> Copy
+                      </button>
+                      <button class="btn btn-secondary btn-sm download-output-btn" data-format="opt.html5.short" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">download</span> Download
+                      </button>
+                    </span>
+                  </div>
+                  <div class="demo-editor-host output-content" id="output-opt.html5.short-content"></div>
+                </div>
+              </div>
+              <div class="opt-html5-variant-pane hidden" data-opt-html5-variant="opt.html5.full">
+                <div class="editor-block">
+                  <div class="output-info">
+                    <span class="char-count"><span class="label">Characters:</span> <span class="output-char-count">0</span></span>
+                    <span class="line-count"><span class="label">Lines:</span> <span class="output-line-count">0</span></span>
+                    <span class="output-editor-actions">
+                      <button class="btn btn-secondary btn-sm copy-output-btn" data-format="opt.html5.full" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">content_copy</span> Copy
+                      </button>
+                      <button class="btn btn-secondary btn-sm download-output-btn" data-format="opt.html5.full" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">download</span> Download
+                      </button>
+                    </span>
+                  </div>
+                  <div class="demo-editor-host output-content" id="output-opt.html5.full-content"></div>
+                </div>
+              </div>
+              <div class="opt-html5-variant-pane hidden" data-opt-html5-variant="opt.html5.emoji">
+                <div class="editor-block">
+                  <div class="output-info">
+                    <span class="char-count"><span class="label">Characters:</span> <span class="output-char-count">0</span></span>
+                    <span class="line-count"><span class="label">Lines:</span> <span class="output-line-count">0</span></span>
+                    <span class="output-editor-actions">
+                      <button class="btn btn-secondary btn-sm copy-output-btn" data-format="opt.html5.emoji" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">content_copy</span> Copy
+                      </button>
+                      <button class="btn btn-secondary btn-sm download-output-btn" data-format="opt.html5.emoji" type="button">
+                        <span class="material-icons btn-icon" aria-hidden="true">download</span> Download
+                      </button>
+                    </span>
+                  </div>
+                  <div class="demo-editor-host output-content" id="output-opt.html5.emoji-content"></div>
+                </div>
+              </div>
+
+              <div id="opt-html5-preview" class="zipehr-html-preview">
+                <div class="zipehr-html-preview-header">
+                  <h3 class="zipehr-html-preview-title">OPT browser preview</h3>
+                  <div class="zipehr-html-preview-controls">
+                    <label class="zipehr-css-label" for="opt-html5-css-select">Stylesheet:</label>
+                    <select id="opt-html5-css-select" class="config-dropdown zipehr-css-select">
+                      <option value="default">Default for dialect</option>
+                      <option value="opt-html5-short.css">opt-html5-short.css</option>
+                      <option value="opt-html5-full.css">opt-html5-full.css</option>
+                      <option value="opt-html5-emoji.css">opt-html5-emoji.css</option>
+                      <option value="none">None</option>
+                      <option value="custom" disabled>Custom</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" id="opt-html5-preview-popup-btn" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">open_in_new</span>
+                      Popup
+                    </button>
+                  </div>
+                </div>
+                <div class="zipehr-html-preview-body">
+                  <div class="zipehr-css-editor-col">
+                    <div class="zipehr-css-editor-label">Stylesheet source</div>
+                    <div class="demo-editor-host zipehr-css-editor-host" id="opt-html5-css-editor"></div>
+                  </div>
+                  <div class="zipehr-render-col">
+                    <div class="zipehr-css-editor-label">Rendered OPT (hydrateable)</div>
+                    <iframe id="opt-html5-preview-frame" class="zipehr-preview-frame" title="OPT HTML5 preview" sandbox="allow-scripts allow-same-origin"></iframe>
+                  </div>
+                </div>
+              </div>
+
+              <div class="success-message hidden" id="success-opt-html5">
+                <span class="material-icons success-icon" aria-hidden="true">check</span>
+                <span>Copied to clipboard!</span>
+              </div>
+              <div class="error-state hidden" id="opt-html5-missing-template">
+                <span class="material-icons error-icon" aria-hidden="true">info</span>
+                <div class="error-message">
+                  <strong>Operational template required</strong>
+                  <p>
+                    Load a template on the Template input tab, or upload an OPT above,
+                    then convert again. OPT HTML5 shows the constraint tree and available choices.
+                  </p>
+                </div>
               </div>
             </div>
 

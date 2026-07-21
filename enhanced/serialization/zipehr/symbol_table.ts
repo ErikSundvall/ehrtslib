@@ -82,6 +82,46 @@ export const SYMBOL_TABLE_LETTER_SYMBOLS = {
   ACTION: "AN",
   VERSIONED_OBJECT: "VO",
   CONTRIBUTION: "CB",
+  "C_OBJECT.node_id": "ni",
+  "C_OBJECT.rm_type_name": "rt",
+  "C_OBJECT.occurrences": "oc",
+  "C_ATTRIBUTE.rm_attribute_name": "an",
+  "C_ATTRIBUTE.existence": "ex",
+  "C_MULTIPLE_ATTRIBUTE.cardinality": "cd",
+  "C_ARCHETYPE_ROOT.archetype_ref": "ar",
+  "C_TERMINOLOGY_CODE.constraint": "tc",
+  "CONSTRAINT_REF.reference": "rf",
+  OPERATIONAL_TEMPLATE: "OT",
+  C_COMPLEX_OBJECT: "CC",
+  C_ARCHETYPE_ROOT: "CR",
+  C_SINGLE_ATTRIBUTE: "SA",
+  C_MULTIPLE_ATTRIBUTE: "MA",
+  C_PRIMITIVE_OBJECT: "CP",
+  ARCHETYPE_SLOT: "SL",
+  CONSTRAINT_REF: "RF",
+  C_COMPLEX_OBJECT_PROXY: "CPX",
+  C_STRING: "XS",
+  C_BOOLEAN: "XB",
+  C_INTEGER: "XI",
+  C_REAL: "XR",
+  C_DATE: "XD",
+  C_TIME: "XT",
+  C_DATE_TIME: "XDT",
+  C_DURATION: "XDU",
+  C_TERMINOLOGY_CODE: "TC",
+  CARDINALITY: "CD",
+  ARCHETYPE_TERMINOLOGY: "ATM",
+  C_ATTRIBUTE_TUPLE: "CT",
+  C_PRIMITIVE_TUPLE: "PT",
+  Boolean: "Fb",
+  Integer: "Fi",
+  Integer64: "Fj",
+  Real: "Fr",
+  Double: "Fd",
+  Byte: "Fy",
+  Octet: "Fo",
+  Character: "Fc",
+  String: "Fs",
 } as const;
 
 export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
@@ -99,7 +139,7 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   "DV_TEXT.formatting": "🖹",
   "DV_TEXT.hyperlink": "🔗",
   "DV_TEXT.mappings": "⇄",
-  "DV_TEXT.encoding": "🔤",
+  "DV_TEXT.encoding": "🔡",
   DV_BOOLEAN: "🗹",
   DV_IDENTIFIER: "🪪",
   DV_STATE: "⚑",
@@ -110,7 +150,7 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   TERM_MAPPING: "⇄",
   DV_QUANTITY: "🌡️",
   DV_COUNT: "🔢",
-  DV_PROPORTION: "⨸",
+  DV_PROPORTION: "÷",
   DV_ORDINAL: "📶",
   DV_INTERVAL: "↔️",
   REFERENCE_RANGE: "↕",
@@ -165,6 +205,46 @@ export const SYMBOL_TABLE_EMOJI_SYMBOLS = {
   ACTION: "✅",
   VERSIONED_OBJECT: "🗃️",
   CONTRIBUTION: "📮",
+  "C_OBJECT.node_id": "🆔",
+  "C_OBJECT.rm_type_name": "🅁",
+  "C_OBJECT.occurrences": "🔢",
+  "C_ATTRIBUTE.rm_attribute_name": "📎",
+  "C_ATTRIBUTE.existence": "∃",
+  "C_MULTIPLE_ATTRIBUTE.cardinality": "#️⃣",
+  "C_ARCHETYPE_ROOT.archetype_ref": "Ⓐ",
+  "C_TERMINOLOGY_CODE.constraint": "🔖",
+  "CONSTRAINT_REF.reference": "↦",
+  OPERATIONAL_TEMPLATE: "🗂",
+  C_COMPLEX_OBJECT: "🔐⬡",
+  C_ARCHETYPE_ROOT: "🔐√",
+  C_SINGLE_ATTRIBUTE: "🔐▸",
+  C_MULTIPLE_ATTRIBUTE: "🔐⋮",
+  C_PRIMITIVE_OBJECT: "🔐◆",
+  ARCHETYPE_SLOT: "🗳",
+  CONSTRAINT_REF: "🔐↦",
+  C_COMPLEX_OBJECT_PROXY: "🔐🪞",
+  C_STRING: "🔐📝",
+  C_BOOLEAN: "🔐✓",
+  C_INTEGER: "🔐𝕫",
+  C_REAL: "🔐𝕣",
+  C_DATE: "🔐📆",
+  C_TIME: "🔐⏱",
+  C_DATE_TIME: "🔐📅⌚",
+  C_DURATION: "🔐⌛",
+  C_TERMINOLOGY_CODE: "🔐🔖",
+  CARDINALITY: "#️⃣",
+  ARCHETYPE_TERMINOLOGY: "📖",
+  C_ATTRIBUTE_TUPLE: "🔐⧉",
+  C_PRIMITIVE_TUPLE: "🔐⮺",
+  Boolean: "✓",
+  Integer: "𝕫",
+  Integer64: "ℤ",
+  Real: "𝕣",
+  Double: "ℝ",
+  Byte: "⑧",
+  Octet: "⓼",
+  Character: "🔠",
+  String: "📝",
 } as const;
 
 /** HTML5 short-dialect tag suffix overrides (`o-{suffix}`) when letter codes collide under lowercasing. */
@@ -177,13 +257,35 @@ export const SYMBOL_TABLE_HTML5_SHORT_TAGS = {
   DV_URI: "uri",
 } as const;
 
+/** OPT HTML5 short-dialect tag suffix overrides (`a-{suffix}`). */
+export const SYMBOL_TABLE_OPT_HTML5_SHORT_TAGS = {
+  C_COMPLEX_OBJECT_PROXY: "cpx",
+  C_DATE_TIME: "xdt",
+  C_DURATION: "xdu",
+  C_TERMINOLOGY_CODE: "tc",
+  ARCHETYPE_TERMINOLOGY: "atm",
+  C_ATTRIBUTE_TUPLE: "cat",
+  C_PRIMITIVE_TUPLE: "cpt",
+} as const;
+
+/** Prefix for foundation-backed C_* primitive constraint tags (emoji dialect). */
+export const OPT_CONSTRAINT_EMOJI = "🔐" as const;
+
+/** Foundation type → AOM C_* primitive (🔐 + foundation emoji). */
+export const FOUNDATION_TO_C_PRIMITIVE = {
+  Boolean: "C_BOOLEAN",
+  Integer: "C_INTEGER",
+  Real: "C_REAL",
+  String: "C_STRING",
+} as const;
+
 export type TerminologyShortcut = { readonly prefix: string; readonly emoji: string };
 export const TERMINOLOGY_SHORTCUTS: readonly TerminologyShortcut[] = [
   { prefix: "openehr::", emoji: "🌬️" },
   { prefix: "local::", emoji: "📍" },
   { prefix: "ISO_639-1::", emoji: "🗪" },
   { prefix: "ISO_3166-1::", emoji: "🌐" },
-  { prefix: "IANA_character-sets::", emoji: "🔤" },
+  { prefix: "IANA_character-sets::", emoji: "🔡" },
 ] as const;
 
 export type MagnitudeStatusOperator = {
@@ -212,5 +314,5 @@ export type TerminologyFieldPromotion = {
 export const TERMINOLOGY_FIELD_PROMOTIONS: readonly TerminologyFieldPromotion[] = [
   { field: "language", prefix: "ISO_639-1::", emoji: "🗪" },
   { field: "territory", prefix: "ISO_3166-1::", emoji: "🌐" },
-  { field: "encoding", prefix: "IANA_character-sets::", emoji: "🔤" },
+  { field: "encoding", prefix: "IANA_character-sets::", emoji: "🔡" },
 ] as const;

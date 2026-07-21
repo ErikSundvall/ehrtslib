@@ -1,0 +1,126 @@
+/**
+ * Default browser stylesheet for OPT HTML5 short dialect (`a-{letter}` tags).
+ */
+:root {
+  --opt-ink: #1a2330;
+  --opt-muted: #5c6b7a;
+  --opt-paper: #f4f7fb;
+  --opt-card: #ffffff;
+  --opt-line: #c5d0de;
+  --opt-accent: #2f5d50;
+  --opt-attr: #eef3f0;
+  --opt-choice: #f7f1e8;
+  --opt-font: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+
+html { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+
+body {
+  margin: 0;
+  padding: 1.25rem 1.5rem 2rem;
+  font-family: var(--opt-font);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--opt-ink);
+  background:
+    radial-gradient(ellipse at top left, #dfece6 0%, transparent 45%),
+    var(--opt-paper);
+}
+
+[fmt],
+[fmt] :where(a-ot, a-cc, a-cr, a-sa, a-ma, a-cp, a-sl, a-rf, a-cpx, a-xs, a-xb, a-xi, a-xr, a-xd, a-xt, a-xdt, a-xdu, a-tc, a-cd, a-atm, a-cat, a-cpt) {
+  display: block;
+}
+
+a-ot[fmt] {
+  max-width: 52rem;
+  margin: 0.5rem auto;
+  padding: 1rem 1.15rem;
+  background: var(--opt-card);
+  border: 1px solid var(--opt-line);
+  border-radius: 0.55rem;
+  border-top: 3px solid var(--opt-accent);
+  box-shadow: 0 1px 3px rgba(47, 93, 80, 0.08);
+}
+
+a-ot[fmt]::first-line {
+  font-weight: 750;
+  font-size: 1.2rem;
+  color: var(--opt-accent);
+}
+
+a-cc, a-cr {
+  margin: 0.4rem 0 0.4rem 0.35rem;
+  padding: 0.45rem 0.6rem;
+  background: #eaf2ef;
+  border: 1px solid #c5d9d0;
+  border-radius: 0.4rem;
+}
+
+a-sa, a-ma {
+  margin: 0.3rem 0 0.3rem 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--opt-attr);
+  border-left: 3px solid #7a9a8c;
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+a-sa::before {
+  content: "attr ";
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--opt-muted);
+}
+
+a-ma::before {
+  content: "list ";
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--opt-muted);
+}
+
+a-sa[data-opt-choices]::after {
+  content: " (choose one)";
+  font-size: 0.8em;
+  color: var(--opt-muted);
+  font-style: italic;
+}
+
+[data-opt-field] {
+  margin: 0.25rem 0 0.25rem 0.4rem;
+  padding: 0.3rem 0.45rem;
+  background: #f8fafb;
+  border-radius: 0.3rem;
+}
+
+ch {
+  display: inline-block;
+  margin: 0.15rem 0.25rem 0.15rem 0;
+  padding: 0.15rem 0.45rem;
+  background: var(--opt-choice);
+  border: 1px solid #e0d2bc;
+  border-radius: 999px;
+  font-size: 0.9em;
+}
+
+[oc]::after,
+[ex]::after,
+[cd]::after {
+  content: " [" attr(oc) attr(ex) attr(cd) "]";
+  font-size: 0.75em;
+  color: var(--opt-muted);
+  font-family: ui-monospace, monospace;
+}
+
+a-cc[rt]::before,
+a-cr[rt]::before,
+a-cp[rt]::before {
+  content: attr(rt) " · ";
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--opt-muted);
+  font-family: ui-monospace, monospace;
+}

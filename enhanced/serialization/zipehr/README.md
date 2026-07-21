@@ -133,6 +133,11 @@ elements (not FHIR Narrative). Layout is a tristate — `oneliner` / `linesaving
 (default: oneliner for short, linesaving for full/emoji). Same `propertyMode` as XHTML:
 `omit` / `attribute` (`p` or `property=`) / `comment`. See [`oehr_html5_v1.md`](oehr_html5_v1.md).
 
+**opt.html5** (`opt-html5/short`, `opt-html5/full`, `opt-html5/emoji`): compact `a-*` custom
+elements for AOM2 **OPERATIONAL_TEMPLATE** trees (constraint structure, not RM instances).
+Emoji dialect may compound AM + RM glyphs (e.g. `a-⬡👀`). Includes optional form hydration.
+See [`opt_html5_v1.md`](opt_html5_v1.md).
+
 Default browser stylesheets for readable clinical display live in [`css/`](css/):
 
 | Dialect | Stylesheet |
@@ -141,6 +146,9 @@ Default browser stylesheets for readable clinical display live in [`css/`](css/)
 | `html5/short` | [`css/zipehr-html5-short.css`](css/zipehr-html5-short.css) |
 | `html5/full` | [`css/zipehr-html5-full.css`](css/zipehr-html5-full.css) |
 | `html5/emoji` | [`css/zipehr-html5-emoji.css`](css/zipehr-html5-emoji.css) |
+| `opt.html5/short` | [`css/opt-html5-short.css`](css/opt-html5-short.css) |
+| `opt.html5/full` | [`css/opt-html5-full.css`](css/opt-html5-full.css) |
+| `opt.html5/emoji` | [`css/opt-html5-emoji.css`](css/opt-html5-emoji.css) |
 
 **zipehr.json** (same clinical content as above, after `convertObjectDirect`):
 
@@ -419,7 +427,7 @@ Extra rows in the same file:
 After editing `symbol_table.yaml`, regenerate the embedded table:
 
 ```bash
-deno run --allow-read --allow-write enhanced/serialization/zipehr/gen_symbol_table.ts
+deno task generate:symbol-table
 ```
 
 If you also publish the browser demo (GitHub Pages), rebuild its bundle so it picks up the

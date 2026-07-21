@@ -22,7 +22,7 @@
     DV_TEXT.formatting: ["xf","🖹"],
     DV_TEXT.hyperlink: ["u","🔗"],
     DV_TEXT.mappings: ["tm","⇄"],
-    DV_TEXT.encoding: ["enc","🔤"],
+    DV_TEXT.encoding: ["enc","🔡"],
   },
   # DATA_VALUE (abstract): ["❓","📦","🧩","🔸","🔷","🔹","🔍","📦","⚙️","🔣","❔","🔗"],
   DV_BOOLEAN: ["b","🗹","✅","❌","✔️","✖️","👍","👎","⭕","✳️","☑️","🔘","🔁","❗"],
@@ -37,13 +37,13 @@
   # DV_ORDERED (abstract): ["🔢","📊","🔼","🔽","📈","📉","🧭"],
   DV_QUANTITY: ["q","🌡️","⚖️","📏","📐","📊","🔬","🧪","🧾","#","∑"],
   DV_COUNT: ["co","🔢","🧮","🔟","🔢","#","①②③","🔢","🔢"],
-  DV_PROPORTION: ["pr","⨸","⌹","÷","%","➗","∶","⅟","🔢","📈","📉"],
+  DV_PROPORTION: ["pr","÷","⌹","⨸","%","➗","∶","⅟","🔢","📈","📉"],
   DV_ORDINAL: ["o","📶","🥇","🥈","🥉","🔜"],
   DV_INTERVAL: ["iv","↔️","⟷","–","—","🔁","📏","📈"],
   REFERENCE_RANGE: ["RR","↕","📏","📋","🔬","📊","🧭"],
 
   # DV_TEMPORAL (abstract): ["🕰️","📅","⏰","🗓️","🕒","⏳","⌛","🕘","🕛"],
-  DV_DATE: ["d","📅","📆","🗓️","📇","📅","🕰️"],
+  DV_DATE: ["d","📅","🗓","📆","🗓️","📇","🕰️"],
   DV_TIME: ["t","⌚","⏰","🕒","⏱️","🕓"],
   DV_DATE_TIME: ["dt","📅⌚","🕰️","📆🕒","🗓️🕒","🕘"],
   DV_DURATION: ["du","⏳","⌛","⏱️","↔️","🔁"],
@@ -121,7 +121,7 @@
   local: ["📍"],
   language: ["🗪"],
   territory: ["🌐"],
-  encoding: ["🔤"],
+  encoding: ["🔡"],
 }, magnitude_status_operators: {
   # RM magnitude_status → [letter, emoji] wire symbols (identical: HTML-safe for xhtml + html5 short).
   # Exact (=) omitted on the wire. Avoid raw < / > (need &lt;/&gt; escapes in HTML/XHTML).
@@ -138,7 +138,7 @@
   # COMPOSITION top-level: property → emoji key; codes use prefixes above (ISO_639-1::, ISO_3166-1::, IANA_character-sets::)
   language: ["🗪"],
   territory: ["🌐"],
-  encoding: ["🔤"],
+  encoding: ["🔡"],
 }, html5_short_tags: {
   # Tag suffix after `o-` when Ehrbase letter codes collide under HTML ASCII lowercasing.
   # Types not listed here use lowercased letter code from the primary symbol (array[0]).
@@ -149,33 +149,71 @@
   DV_PARSABLE: prs,
   DV_PROPORTION: prp,
   DV_URI: uri,
+}, am_types: {
+  # AOM2 / OPT HTML5 symbols (prefix `a-` on the wire; see opt_html5_v1.md).
+  # Compound patterns (emoji dialect):
+  #   1) AM + RM: C_COMPLEX_OBJECT+OBSERVATION → a-⬡👀
+  #   2) 🔐 + foundation_types: C_BOOLEAN → a-🔐✓, C_INTEGER → a-🔐𝕫, C_STRING → a-🔐📝, …
+  # Edit foundation_types primaries, then keep the matching C_* 🔐… rows in sync.
+  attributes: {
+    C_OBJECT.node_id: ["ni","🆔"],
+    C_OBJECT.rm_type_name: ["rt","🅁"],
+    C_OBJECT.occurrences: ["oc","🔢"],
+    C_ATTRIBUTE.rm_attribute_name: ["an","📎"],
+    C_ATTRIBUTE.existence: ["ex","∃"],
+    C_MULTIPLE_ATTRIBUTE.cardinality: ["cd","#️⃣"],
+    C_ARCHETYPE_ROOT.archetype_ref: ["ar","Ⓐ"],
+    C_TERMINOLOGY_CODE.constraint: ["tc","🔖"],
+    CONSTRAINT_REF.reference: ["rf","↦"],
+  },
+  OPERATIONAL_TEMPLATE: ["OT","🗂"],
+  C_COMPLEX_OBJECT: ["CC","🔐⬡"],
+  C_ARCHETYPE_ROOT: ["CR","🔐√"],
+  C_SINGLE_ATTRIBUTE: ["SA","🔐▸"],
+  C_MULTIPLE_ATTRIBUTE: ["MA","🔐⋮"],
+  C_PRIMITIVE_OBJECT: ["CP","🔐◆"],
+  ARCHETYPE_SLOT: ["SL","🗳"],
+  CONSTRAINT_REF: ["RF","🔐↦"],
+  C_COMPLEX_OBJECT_PROXY: ["CPX","🔐🪞"],
+  C_STRING: ["XS","🔐📝"],
+  C_BOOLEAN: ["XB","🔐✓"],
+  C_INTEGER: ["XI","🔐𝕫"],
+  C_REAL: ["XR","🔐𝕣"],
+  C_DATE: ["XD","🔐📆"],
+  C_TIME: ["XT","🔐⌚"],
+  C_DATE_TIME: ["XDT","🔐📅⌚"],
+  C_DURATION: ["XDU","🔐⌛"],
+  C_TERMINOLOGY_CODE: ["TC","🔐🔖"],
+  CARDINALITY: ["CD","#️⃣"],
+  ARCHETYPE_TERMINOLOGY: ["ATM","📖"],
+  C_ATTRIBUTE_TUPLE: ["CT","🔐⧉"],
+  C_PRIMITIVE_TUPLE: ["PT","🔐⮺"],
+}, opt_html5_short_tags: {
+  # Tag suffix after `a-` for OPT HTML5 short dialect when letter codes need disambiguation.
+  C_COMPLEX_OBJECT_PROXY: cpx,
+  C_DATE_TIME: xdt,
+  C_DURATION: xdu,
+  C_TERMINOLOGY_CODE: tc,
+  ARCHETYPE_TERMINOLOGY: atm,
+  C_ATTRIBUTE_TUPLE: cat,
+  C_PRIMITIVE_TUPLE: cpt,
 }, foundation_types: {
-  # FOUNDATION_TYPES never occur in data structures so they are not included here
-  
-  # Any (abstract): ["❓","🔶","🔷","🔸","⚪","🔹"],
-  # Ordered (abstract): ["↕️","🔢","📈","📉"],
-  # Numeric (abstract): ["🔢","#","∑","➕","➖"],
-  # Ordered_Numeric (abstract): ["🔢","↕️","📈","📉"],
-
-  # Boolean: ["✔️","✅","❌","🔘","✖️","👍","👎"],
-  #Integer: ["🔟","🔢","➕","➖","🔟","🔣"],
-  #Integer64: ["🧮","🔢","🔒","🔣","#","🔟"],
-  #Real: ["➗","📐","📊","🔬","🔣"],
-  #Double: ["➗➗","🔬","📈","📉","🔣","🔎"],
-  #Byte: ["📦","🔢","🔸","🔷"],
-  #Octet: ["🎛️","🔢","🔸","🔷"],
-  #Character: ["🔠","🔤","🔡","🔣","✳️"],
-
-  #String: ["🗒️","📝","🔤","📄","📜","🔎"],
-  #Uri: ["🌐🔗","⛓️","📎","🔍","📁","🧭"],
-
-  # Aggregate<T> (abstract): ["🗃️","📦","📚","📑","🧩"],
-  #List: ["📑","📋","📜","🔢","📚","🧾"],
-  #Array: ["▥","🔢","📦","📚","🧾","📑"],
-  #Set: ["⚭","🔢","📚","📑","✅","🔁"],
-  #Hash: ["🔐","📇","🗂️","📁","🔎","🧾"],
-
-  #Interval: ["📏","↔️","⟷","–","—","🔢"]
+  # openEHR foundation / primitive types (BASE). Second glyph in OPT constraint compounds:
+  #   🔐 (U+1F510 CLOSED LOCK WITH KEY) + foundation primary emoji → C_BOOLEAN / C_INTEGER / …
+  # Shape: [syntheticLetter, primaryEmoji, …alts]. Letters use F* so they never collide
+  # with Ehrbase RM letter codes. Primary emojis chosen to avoid RM class collisions.
+  Boolean: ["Fb","✓","✅","❌","🔘","✖️","👍","👎"],
+  Integer: ["Fi","𝕫","🔢","➕","➖","🔟","🔣"],
+  Integer64: ["Fj","ℤ","🔢","🔒","🔣","#","🔟"],
+  Real: ["Fr","𝕣","⨸","📊","🔬","🔣"],
+  Double: ["Fd","ℝ","🔬","📈","📉","🔣","🔎"],
+  Byte: ["Fy","⑧","🔢","🔸","🔷"],
+  Octet: ["Fo","⓼","8️⃣","🎛️","🔢","🔸","🔷"],
+  Character: ["Fc","🔠","🔤","🔡","🔣","✳️"],
+  String: ["Fs","📝","🔤","📄","📜","🔎"],
+  #Uri: ["Fu","🌐🔗","⛓️","📎","🔍","📁","🧭"],
+  # Interval: ["📏","↔️","⟷","–","—","🔢"]
+  # Aggregate / List / Array / Set / Hash / Interval — still unused in OPT HTML5
 } }
 # good sources for icons:
 # http://xahlee.info/comp/unicode_index.html?q=

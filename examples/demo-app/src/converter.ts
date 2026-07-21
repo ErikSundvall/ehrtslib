@@ -96,10 +96,12 @@ import {
   detectInputFormat,
   serializeToHtml5Variant,
   serializeToJZipehr,
+  serializeToOptHtml5Variant,
   serializeToXZipehr,
   serializeToYZipehr,
   zipehrTextToCanonical,
 } from "../../../enhanced/serialization/zipehr/mod.ts";
+import * as openehr_am from "../../../enhanced/openehr_am.ts";
 
 // Import RM and Base modules for type registration
 import * as openehr_rm from "../../../enhanced/openehr_rm.ts";
@@ -153,6 +155,13 @@ export const MISSING_WEB_TEMPLATE_ERROR =
   "(.opt, .oet, .adl, .adls, .zip, .t.json) or a Web Template JSON file using the " +
   "template upload control in the input panel (when using FLAT/STRUCTURED input) or " +
   "the Simplified output tab, or load a template on the Template input tab.";
+
+/** Shown when OPT HTML5 output is requested without a loaded operational template. */
+export const MISSING_OPT_FOR_HTML5_ERROR =
+  "OPT HTML5 requires an operational template. Upload an OPT (.opt, .oet, .adl, .adls, " +
+  ".zip, .t.json) using the template upload control on the OPT HTML5 tab or Simplified " +
+  "tab, or load a template on the Template input tab.";
+
 export type InputMode = "instance" | "template" | "template-adgit";
 export type TemplateGenerationMode = GenerationMode;
 
@@ -169,6 +178,9 @@ export type OutputFormat =
   | "zipehr.html5.short"
   | "zipehr.html5.full"
   | "zipehr.html5.emoji"
+  | "opt.html5.short"
+  | "opt.html5.full"
+  | "opt.html5.emoji"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -190,6 +202,8 @@ export interface ConversionOptions {
   zipehrSymbolVariant?: "emoji" | "lettercode";
   /** ZipEHR HTML5 layout: oneliner | linesaving | fluffy. */
   zipehrHtml5Layout?: "oneliner" | "linesaving" | "fluffy";
+  /** OPT HTML5 layout (same tristate as ZipEHR HTML5). */
+  optHtml5Layout?: "oneliner" | "linesaving" | "fluffy";
   /**
    * How (X)HTML formats emit RM property names (`context`, `start_time`, …).
    * Default: omit when possible.
@@ -228,6 +242,9 @@ export interface ConversionResult {
     "zipehr.html5.short"?: string;
     "zipehr.html5.full"?: string;
     "zipehr.html5.emoji"?: string;
+    "opt.html5.short"?: string;
+    "opt.html5.full"?: string;
+    "opt.html5.emoji"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -244,6 +261,47 @@ const SIMPLIFIED_OUTPUT_FORMATS = new Set<OutputFormat>([
   "structured",
   "webtemplate",
 ]);
+
+const OPT_HTML5_OUTPUT_FORMATS = new Set<OutputFormat>([
+  "opt.html5.short",
+  "opt.html5.full",
+  "opt.html5.emoji",
+]);
+
+function writeOptHtml5Outputs(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  outputFormats: OutputFormat[],
+  outputs: Record<string, string>,
+  layout?: "oneliner" | "linesaving" | "fluffy",
+): void {
+  for (const format of outputFormats) {
+    if (!OPT_HTML5_OUTPUT_FORMATS.has(format)) continue;
+    outputs[format] = serializeToOptHtml5Variant(
+      opt,
+      format as "opt.html5.short" | "opt.html5.full" | "opt.html5.emoji",
+      { layout },
+    );
+  }
+}
+
+/** Resolve OPERATIONAL_TEMPLATE from workspace (required for OPT HTML5). */
+export function resolveOperationalTemplateForOptHtml5(
+  options: ConversionOptions,
+): openehr_am.OPERATIONAL_TEMPLATE {
+  const ws = options.templateWorkspace;
+  if (!ws?.listFiles().length) {
+    throw new Error(MISSING_OPT_FOR_HTML5_ERROR);
+  }
+  try {
+    return ws.resolveOperational().operationalTemplate;
+  } catch (error) {
+    throw new Error(
+      `${MISSING_OPT_FOR_HTML5_ERROR} (${
+        error instanceof Error ? error.message : String(error)
+      })`,
+    );
+  }
+}
 
 function writeSimplifiedOutputs(
   instance: unknown,
@@ -362,9 +420,13 @@ export async function convert(
     const simplifiedFormats = options.outputFormats.filter((format) =>
       SIMPLIFIED_OUTPUT_FORMATS.has(format)
     );
+    const optHtml5Formats = options.outputFormats.filter((format) =>
+      OPT_HTML5_OUTPUT_FORMATS.has(format)
+    );
 
     for (const format of options.outputFormats) {
       if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
+      if (OPT_HTML5_OUTPUT_FORMATS.has(format)) continue;
       try {
         switch (format) {
           case "xml":
@@ -442,6 +504,16 @@ export async function convert(
       writeSimplifiedOutputs(rmObject, webTemplate, simplifiedFormats, outputs);
     }
 
+    if (optHtml5Formats.length) {
+      const opt = resolveOperationalTemplateForOptHtml5(options);
+      writeOptHtml5Outputs(
+        opt,
+        optHtml5Formats,
+        outputs,
+        options.optHtml5Layout,
+      );
+    }
+
     return {
       success: true,
       outputs,
@@ -460,7 +532,10 @@ async function convertTemplateInput(
   input: string,
   options: ConversionOptions,
 ): Promise<ConversionResult> {
-  const template = resolveOperationalTemplate(input, options);
+  const template = resolveOperationalTemplate(
+    input,
+    options,
+  ) as openehr_am.OPERATIONAL_TEMPLATE;
 
   const generator = new RMInstanceGenerator({
     mode: options.templateGenerationMode,
@@ -472,6 +547,7 @@ async function convertTemplateInput(
 
   for (const format of options.outputFormats) {
     if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
+    if (OPT_HTML5_OUTPUT_FORMATS.has(format)) continue;
     switch (format) {
       case "xml":
         outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
@@ -543,6 +619,13 @@ async function convertTemplateInput(
     buildWebTemplate(template),
     options.outputFormats,
     outputs,
+  );
+
+  writeOptHtml5Outputs(
+    template,
+    options.outputFormats,
+    outputs,
+    options.optHtml5Layout,
   );
 
   return { success: true, outputs };
