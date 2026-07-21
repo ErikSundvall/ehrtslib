@@ -5,7 +5,7 @@
  * for recording blood pressure using ehrtslib.
  * 
  * Two approaches are shown:
- * 1. Simplified creation - compact, readable
+ * 1. Brief property styles - compact, readable
  * 2. Manual creation - explicit, detailed
  * 
  * Note: Template-based validation will be added in future phases via the AM package.
@@ -15,7 +15,7 @@ import * as openehr_rm from "../openehr_rm.ts";
 import * as openehr_base from "../openehr_base.ts";
 
 /**
- * Create a simple blood pressure COMPOSITION using the SIMPLIFIED approach
+ * Create a simple blood pressure COMPOSITION using brief property styles
  * 
  * This is the recommended approach for new code - it's compact, readable,
  * and achieves approximately 70% code reduction compared to manual creation.
@@ -319,7 +319,7 @@ if (import.meta.main) {
   console.log();
   
   // Example 1: Simplified approach (recommended for new code)
-  console.log("Example 1: SIMPLIFIED APPROACH (Phase 4f.2)");
+  console.log("Example 1: BRIEF PROPERTY STYLES (Phase 4f.2)");
   console.log("-".repeat(80));
   console.log("Creating COMPOSITION using simplified constructor initialization...\n");
   
@@ -352,9 +352,9 @@ if (import.meta.main) {
   console.log("Both approaches produce equivalent COMPOSITION objects.");
   console.log("Choose the approach that best fits your needs:");
   console.log();
-  console.log("  • Simplified: Compact, readable, recommended for new code");
+  console.log("  • Brief property styles: Compact, readable, recommended for new code");
   console.log("  • Manual: Explicit, detailed, useful for complex scenarios");
   console.log();
-  console.log("See SIMPLIFIED-CREATION-GUIDE.md for more examples and patterns.");
+  console.log("See docs/user/brief-property-styles.md for more examples and patterns.");
   console.log("=".repeat(80));
 }

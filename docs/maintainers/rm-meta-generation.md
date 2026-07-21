@@ -17,4 +17,4 @@ Writes:
 
 Do not hand-edit the generated files.
 
-Full maintenance tooling: [../../README-FOR-LIB-MAINTENANCE.md](../../README-FOR-LIB-MAINTENANCE.md).
+Full maintenance tooling: [codegen-and-bmm.md](codegen-and-bmm.md).

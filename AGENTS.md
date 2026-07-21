@@ -6,7 +6,7 @@ Cloud agents use **this repo**, not your machine's `~/.cursor/` folder.
 
 - **Skills**: Loaded from `.cursor/skills/` (openEHR, Context7, and synced personal workflows).
 - **Rules**: `.cursor/rules/` (e.g. `openehr-context.mdc` for `*.adl` / `*.oet` / `*.opt`).
-- **MCP**: Repo [`.cursor/mcp.json`](.cursor/mcp.json) documents servers for the local IDE; **cloud agents need the same servers enabled at [cursor.com/agents](https://cursor.com/agents)** (see [docs/CURSOR_CLOUD_SETUP.md](docs/CURSOR_CLOUD_SETUP.md)).
+- **MCP**: Repo [`.cursor/mcp.json`](.cursor/mcp.json) documents servers for the local IDE; **cloud agents need the same servers enabled at [cursor.com/agents](https://cursor.com/agents)** (see [docs/maintainers/cursor-cloud-setup.md](docs/maintainers/cursor-cloud-setup.md)).
 - **Deno**: Cloud VM runs `.cursor/environment.json` install on first use.
 
 Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, terminology) and skills under `.cursor/skills/`.
@@ -84,4 +84,4 @@ done
 
 **No Docker/DB:** This repo is a library + static demo; CI ([`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)) only builds the demo for GitHub Pages.
 
-**MCP:** Enable servers from [`.cursor/mcp.json`](.cursor/mcp.json) at [cursor.com/agents](https://cursor.com/agents) per [`docs/CURSOR_CLOUD_SETUP.md`](docs/CURSOR_CLOUD_SETUP.md) for openEHR modeling tasks.
+**MCP:** Enable servers from [`.cursor/mcp.json`](.cursor/mcp.json) at [cursor.com/agents](https://cursor.com/agents) per [`docs/maintainers/cursor-cloud-setup.md`](docs/maintainers/cursor-cloud-setup.md) for openEHR modeling tasks.

@@ -3,8 +3,8 @@
 This directory contains TypeScript library stubs that are **deterministically
 generated** from openEHR BMM (Basic Meta-Model) JSON specifications.
 
-For detailed information about the generation process and workflow, see the main
-[README.md](../README.md).
+For detailed information about the generation process and workflow, see
+[docs/maintainers/codegen-and-bmm.md](../docs/maintainers/codegen-and-bmm.md).
 
 ## ⚠️ Important
 
@@ -52,5 +52,5 @@ When updating to a new BMM version:
 3. Manually merge changes into `/enhanced` directory
 4. Run tests to verify nothing broke
 
-See the main [README.md](../README.md) for detailed instructions on updating BMM
+See [docs/maintainers/codegen-and-bmm.md](../docs/maintainers/codegen-and-bmm.md) for detailed instructions on updating BMM
 versions.

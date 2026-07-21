@@ -108,7 +108,7 @@ Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollab
 - Example instances from `RMInstanceGenerator` may omit primitive values on optional DV types; FLAT/STRUCTURED leaf keys appear only when RM values are populated.
 - Deserialization returns plain RM object trees by default; use `toTypedRm()` (or `JsonCanonicalDeserializer`) for typed class instances.
 - Only template-scoped paths round-trip; extraneous RM metadata outside the Web Template is dropped.
-- DV field maps follow `docs/reference_for_llms/simplified_formats.md` (ITS-REST); bare-path keys for single-field types (`DV_TEXT`, `DV_DATE_TIME`, …) and `|suffix` for multi-field types.
+- DV field maps follow `docs/vendor/simplified_formats.md` (ITS-REST); bare-path keys for single-field types (`DV_TEXT`, `DV_DATE_TIME`, …) and `|suffix` for multi-field types.
 
 ## Tests
 

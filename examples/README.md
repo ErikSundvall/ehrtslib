@@ -1,4 +1,4 @@
-# ehrtslib Examples
+﻿# ehrtslib Examples
 
 This directory contains examples demonstrating how to use ehrtslib to create openEHR COMPOSITION objects.
 
@@ -8,8 +8,8 @@ This directory contains examples demonstrating how to use ehrtslib to create ope
 A complete example showing how to create a blood pressure recording COMPOSITION.
 
 **Demonstrates:**
-- Creating a COMPOSITION with all required properties using **both simplified and manual approaches**
-- Simplified creation with constructor initialization and terse format
+- Creating a COMPOSITION with all required properties using **both brief property styles and manual approaches**
+- Brief property styles with constructor initialization and terse format
 - Adding an OBSERVATION with HISTORY and POINT_EVENT
 - Using ITEM_TREE and ELEMENT to structure data
 - Working with DV_QUANTITY for measurements
@@ -24,7 +24,7 @@ deno run examples/basic-composition.ts
 Prints summaries of two equivalent COMPOSITIONs created using different approaches, including the blood pressure measurements (systolic: 120 mm[Hg], diastolic: 80 mm[Hg]).
 
 ### simple-observation.ts
-A simpler variation showing a temperature recording with **both simplified and manual approaches**.
+A simpler variation showing a temperature recording with **both brief property styles and manual approaches**.
 
 **Demonstrates:**
 - Same COMPOSITION structure as basic-composition but with different values
@@ -115,13 +115,13 @@ Study the examples to understand:
 - How to structure nested objects
 - Proper use of openEHR data types
 - The relationship between COMPOSITION, OBSERVATION, HISTORY, EVENT, and data structures
-- **How simplified creation patterns reduce boilerplate**
+- **How brief property styles reduce boilerplate**
 - **When to use terse format vs. object initialization**
 
 ### As Starting Points
 Copy and modify these examples for your own COMPOSITION structures:
 1. Start with one of the examples
-2. Choose simplified or manual approach (or mix both!)
+2. Choose brief property styles or the manual approach (or mix both!)
 3. Change the archetype IDs to match your needs
 4. Modify the data elements and values
 5. Adjust the metadata (language, territory, composer, etc.)
@@ -132,12 +132,12 @@ Use these examples to:
 - Understand property naming conventions
 - See working examples of data type usage
 - **Learn terse format syntax** (e.g., `"ISO_639-1::en"`, `"openehr::433|event|"`)
-- **Compare simplified vs. manual approaches** side-by-side
+- **Compare brief property styles vs. manual approaches** side-by-side
 
 ## Documentation References
 
-- **SIMPLIFIED-CREATION-GUIDE.md** - Comprehensive guide to simplified object creation
-- **DUAL-APPROACH-GUIDE.md** - Explains the dual getter/setter pattern that enables simplified creation
+- **[docs/user/brief-property-styles.md](../docs/user/brief-property-styles.md)** — brief property styles (constructors + terse codes)
+- **[docs/user/dual-accessors.md](../docs/user/dual-accessors.md)** — dual getter/setter pattern
 - **docs/getting-started.md** - Introduction to ehrtslib
 - **ROADMAP.md** - Project roadmap and upcoming features
 

@@ -1,7 +1,7 @@
 /**
  * Declarative field maps between RM data-value objects and simplified-format
  * pipe-suffix fields, per the ITS-REST simplified formats specification
- * (docs/reference_for_llms/simplified_formats.md, "RM Mappings" section).
+ * (docs/vendor/simplified_formats.md, "RM Mappings" section).
  *
  * A suffix of "" (empty string) denotes the *bare* flat key, i.e. the value
  * is written on the path itself with no `|suffix` (e.g. DV_TEXT, DV_COUNT,

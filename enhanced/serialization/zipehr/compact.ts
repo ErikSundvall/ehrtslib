@@ -6,8 +6,8 @@
 import {
   canFoldInferrableValueLeaf,
   inferType,
+  isPolymorphicType,
   isValueOnlyRmObject,
-  POLYMORPHIC_TYPES,
   resolveType,
 } from "./shared.ts";
 
@@ -88,7 +88,7 @@ function shouldIncludeType(
     if (!parentType || !propertyName || !typeName) return true;
     const expected = inferType(propertyName, parentType, { _type: typeName });
     if (!expected) return true;
-    if (POLYMORPHIC_TYPES.has(expected)) return true;
+    if (isPolymorphicType(expected)) return true;
     return typeName !== expected;
   }
   return false;

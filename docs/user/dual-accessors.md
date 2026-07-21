@@ -230,9 +230,9 @@ To implement the dual pattern for a new class property:
 ## Related Documentation
 
 - See **STORY-PR6-AI-DEVELOPER-DIALOGUE.md** (Chapters 4-6) for detailed background and design rationale
-- See **README.md** for library usage examples
-- See **ROADMAP.md** for implementation phases
-- See **SIMPLIFIED-CREATION-GUIDE.md** for constructor initialization patterns
+- See **[README.md](../../README.md)** for library usage examples
+- See [roadmap.md](../maintainers/roadmap.md) for implementation phases
+- See **[brief-property-styles.md](brief-property-styles.md)** for constructor initialization patterns
 
 ## Constructor Initialization Pattern
 
@@ -311,4 +311,4 @@ This pattern requires **zero additional implementation** - it already works thro
 4. **Flexible**: Mix and match initialization styles as needed
 5. **Standards Aligned**: Terse format matches openEHR community conventions
 
-For more examples and patterns, see **SIMPLIFIED-CREATION-GUIDE.md**.
+For more examples and patterns, see **[brief-property-styles.md](brief-property-styles.md)**.

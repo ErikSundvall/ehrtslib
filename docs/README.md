@@ -2,13 +2,15 @@
 
 **Primary audience:** developers building applications with ehrtslib.
 
+**Maintainers / agents:** see [maintainers/](maintainers/) — keep that path out of the user journey.
+
 ## Start here
 
 | Goal | Doc |
 | ---- | --- |
 | Hello world / packages | [getting-started.md](getting-started.md) |
-| Create compositions (constructors + terse codes) | [../SIMPLIFIED-CREATION-GUIDE.md](../SIMPLIFIED-CREATION-GUIDE.md) |
-| Dual getters (`name` vs `$name`) | [../DUAL-APPROACH-GUIDE.md](../DUAL-APPROACH-GUIDE.md) |
+| Brief property styles (constructors + terse codes) | [user/brief-property-styles.md](user/brief-property-styles.md) |
+| Dual getters (`name` vs `$name`) | [user/dual-accessors.md](user/dual-accessors.md) |
 | FLAT / STRUCTURED / Web Template | [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md) |
 | Load archetype/template file sets | [CLINICAL_MODEL_FILESETS.md](CLINICAL_MODEL_FILESETS.md) |
 | ADL 1.4 / 2 + OPT/OET | [ADL_SUPPORT.md](ADL_SUPPORT.md) |
@@ -18,30 +20,16 @@
 
 ## Serialization formats
 
-Guides live next to the code (import the format module, open its README):
-
 | Format | Guide |
 | ------ | ----- |
-| JSON (ITS + configurable) | [enhanced/serialization/json/README.md](../enhanced/serialization/json/README.md) |
-| XML | [enhanced/serialization/xml/README.md](../enhanced/serialization/xml/README.md) |
-| YAML | [enhanced/serialization/yaml/README.md](../enhanced/serialization/yaml/README.md) |
-| ZipEHR (experimental) | [enhanced/serialization/zipehr/README.md](../enhanced/serialization/zipehr/README.md) |
-| Markdown / AsciiDoc (experimental) | [markdown](../enhanced/serialization/markdown/README.md) · [asciidoc](../enhanced/serialization/asciidoc/README.md) |
-| TypeScript emit | [typescript](../enhanced/serialization/typescript/README.md) |
+| Format matrix | [enhanced/serialization/README.md](../enhanced/serialization/README.md) |
+| JSON | [json/README.md](../enhanced/serialization/json/README.md) |
+| XML | [xml/README.md](../enhanced/serialization/xml/README.md) |
+| YAML | [yaml/README.md](../enhanced/serialization/yaml/README.md) |
+| ZipEHR | [zipehr/README.md](../enhanced/serialization/zipehr/README.md) |
 
 Also: [examples/](../examples/README.md) and the [demo app](../examples/demo-app/README.md).
 
-## Name collision: “simplified”
-
-| Phrase | Means | Doc |
-| ------ | ----- | --- |
-| **Simplified creation** | Easier RM object constructors + terse code strings | `SIMPLIFIED-CREATION-GUIDE.md` |
-| **Simplified formats** | openEHR ITS-REST FLAT / STRUCTURED / Web Template | [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md) |
-
-These are unrelated features.
-
 ## Offline openEHR language specs
 
-[reference_for_llms/](reference_for_llms/) mirrors official specs for offline/LLM use. Prefer live specs or the openehr-assistant MCP when online. This is **not** ehrtslib API documentation.
-
-(Note to Ehrtslib Maintainers / maintaining agents: see [maintainers/](maintainers/) instead — keep that documenteation out of the newcomer/user journey to reduce confusion.)
+[vendor/](vendor/) summarizes relevant parts of official specs for offline/LLM use. Prefer live specs or the openehr-assistant MCP when available.

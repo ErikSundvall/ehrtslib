@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture review — ehrtslib (completed)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+      <header class="space-y-2">
+        <p class="text-sm uppercase tracking-widest text-stone-500">ehrtslib · updated 2026-07-21</p>
+        <h1 class="text-3xl font-semibold tracking-tight">Architecture review — status</h1>
+        <p class="text-stone-600">All candidates from the original review have been applied where practical.</p>
+      </header>
+
+      <ul class="space-y-3">
+        <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span class="font-medium text-emerald-900">✓ Unify RM property typing behind meta</span>
+          <p class="text-sm text-emerald-800 mt-1">TypeInferenceEngine ← attributesFor; ZipEHR delegates.</p>
+        </li>
+        <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span class="font-medium text-emerald-900">✓ Collapse LOCATABLE / DATA_VALUE local sets</span>
+          <p class="text-sm text-emerald-800 mt-1">meta isSubtypeOf / isDataValueType; ZipEHR leaf extras via isZipehrLeafRmType; generator + web template updated.</p>
+        </li>
+        <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span class="font-medium text-emerald-900">✓ Share terse string core</span>
+          <p class="text-sm text-emerald-800 mt-1"><code>enhanced/terse_strings.ts</code>; terse_format + ZipEHR reuse it.</p>
+        </li>
+        <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span class="font-medium text-emerald-900">✓ Docs audience seam</span>
+          <p class="text-sm text-emerald-800 mt-1"><code>docs/user/</code>, <code>docs/maintainers/</code>, <code>docs/vendor/</code>; stubs at old paths.</p>
+        </li>
+        <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <span class="font-medium text-emerald-900">✓ Drop PROPERTY_TYPE_MAP Proxy</span>
+          <p class="text-sm text-emerald-800 mt-1">Callers use <code>propertyTypesFor</code> / <code>isPolymorphicType</code> / <code>isLocatableLike</code>.</p>
+        </li>
+      </ul>
+
+      <p class="text-sm text-stone-500">Original visual review (browser-saved HTML) remains in this folder for history; this file is the completion status.</p>
+    </main>
+  </body>
+</html>

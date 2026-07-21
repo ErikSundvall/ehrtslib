@@ -14,7 +14,6 @@ import {
   isValueOnlyRmObject,
   parseLocatableStructuredObject,
   parseTerseDvCodedText,
-  PROPERTY_TYPE_MAP,
   shouldUseTerminologyShortcuts,
   TERMINOLOGY_FIELD_PROMOTIONS,
 } from "./shared.ts";
@@ -287,9 +286,6 @@ function expandNode(
   }
 
   if (Array.isArray(node)) {
-    const itemType = parentType && propertyName
-      ? PROPERTY_TYPE_MAP[parentType]?.[propertyName]
-      : undefined;
     return node.map((item) =>
       expandNode(item, parentType, propertyName, reverseMap, symbolMap)
     );

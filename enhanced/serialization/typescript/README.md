@@ -1,10 +1,10 @@
-# TypeScript Constructor Serialization for openEHR RM Objects
+﻿# TypeScript Constructor Serialization for openEHR RM Objects
 
 This module provides TypeScript code generation for openEHR Reference Model (RM) objects using the **Nested Object Initialization** pattern.
 
 ## Overview
 
-The TypeScript Constructor Serializer generates clean, readable TypeScript code that uses the simplified object creation patterns described in [SIMPLIFIED-CREATION-GUIDE.md](../../../SIMPLIFIED-CREATION-GUIDE.md).
+The TypeScript Constructor Serializer generates clean, readable TypeScript code that uses the brief property styles described in [brief-property-styles.md](../../../docs/user/brief-property-styles.md).
 
 Instead of verbose imperative code, you get concise declarative constructors.
 
@@ -396,7 +396,7 @@ console.log(code);
 
 ## See Also
 
-- [SIMPLIFIED-CREATION-GUIDE.md](../../../SIMPLIFIED-CREATION-GUIDE.md) - Full guide to simplified object creation
+- [brief-property-styles.md](../../../docs/user/brief-property-styles.md) — brief property styles
 - [JSON Serialization](../json/README.md) - JSON serialization/deserialization
 - [YAML Serialization](../yaml/README.md) - YAML serialization/deserialization
 - [XML Serialization](../xml/README.md) - XML serialization/deserialization

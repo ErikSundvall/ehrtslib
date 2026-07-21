@@ -6,7 +6,7 @@
  * from the blood pressure example.
  * 
  * Two approaches are shown:
- * 1. Simplified creation - compact, readable
+ * 1. Brief property styles - compact, readable
  * 2. Manual creation - explicit, detailed (traditional)
  */
 
@@ -14,7 +14,7 @@ import * as openehr_rm from "../openehr_rm.ts";
 import * as openehr_base from "../openehr_base.ts";
 
 /**
- * Create a simple temperature recording COMPOSITION using the SIMPLIFIED approach
+ * Create a simple temperature recording COMPOSITION using brief property styles
  * 
  * This is the recommended approach - compact and readable with approximately 70% less code.
  * 
@@ -293,7 +293,7 @@ if (import.meta.main) {
   console.log();
   
   // Example 1: Simplified approach (recommended for most code)
-  console.log("Example 1: SIMPLIFIED APPROACH");
+  console.log("Example 1: BRIEF PROPERTY STYLES");
   console.log("-".repeat(80));
   console.log("Creating COMPOSITION using simplified constructor initialization...\n");
   
@@ -325,9 +325,9 @@ if (import.meta.main) {
   console.log("Both approaches produce equivalent COMPOSITION objects.");
   console.log("Choose the approach that best fits your needs:");
   console.log();
-  console.log("  • Simplified: Compact, readable, recommended for most code/use-cases");
+  console.log("  • Brief property styles: Compact, readable, recommended for most code/use-cases");
   console.log("  • Manual: Explicit, detailed, useful for complex scenarios");
   console.log();
-  console.log("See SIMPLIFIED-CREATION-GUIDE.md for more examples and patterns.");
+  console.log("See docs/user/brief-property-styles.md for more examples and patterns.");
   console.log("=".repeat(80));
 }

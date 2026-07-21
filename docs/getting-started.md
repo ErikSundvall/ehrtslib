@@ -49,7 +49,7 @@ import * as openehr_base from "./enhanced/openehr_base.ts";
 
 ## "Hello World" - Simplest Possible COMPOSITION
 
-Here's the minimal code to create a COMPOSITION using [constructor initialization with nested objects](../SIMPLIFIED-CREATION-GUIDE.md#constructor-initialization) (see the [Simplified Object Creation Guide](../SIMPLIFIED-CREATION-GUIDE.md) for terse formats and more patterns):
+Here's the minimal code to create a COMPOSITION using [constructor initialization with nested objects](user/brief-property-styles.md#constructor-initialization) (see [Brief property styles](user/brief-property-styles.md) for terse formats and more patterns):
 
 ```typescript
 import * as openehr_rm from "./openehr_rm.ts";
@@ -93,7 +93,7 @@ When creating COMPOSITION objects, certain properties are required by the openEH
 
 ### The Dual Getter/Setter Approach
 
-ehrtslib uses a dual approach for properties: assign primitives for everyday use, or use `$`-prefixed getters when you need the underlying BASE wrapper (see [DUAL-APPROACH-GUIDE.md](../DUAL-APPROACH-GUIDE.md)). Both patterns below set the same clinical text on a `DV_TEXT`:
+ehrtslib uses a dual approach for properties: assign primitives for everyday use, or use `$`-prefixed getters when you need the underlying BASE wrapper (see [dual-accessors.md](user/dual-accessors.md)). Both patterns below set the same clinical text on a `DV_TEXT`:
 
 ```typescript
 import * as openehr_base from "./openehr_base.ts";
@@ -118,11 +118,11 @@ Most RM classes use direct property access for simplicity; use `$property` when 
 
 ### Working with Data Types
 
-ehrtslib includes specialized data types for clinical information. Several support [constructor initialization](../SIMPLIFIED-CREATION-GUIDE.md#constructor-initialization) (string, terse format, or nested object); others rely on direct primitive assignment via the dual pattern.
+ehrtslib includes specialized data types for clinical information. Several support [constructor initialization](user/brief-property-styles.md#constructor-initialization) (string, terse format, or nested object); others rely on direct primitive assignment via the dual pattern.
 
 **DV_TEXT** — Plain text:
 
-Simplified (constructor):
+Brief property style (constructor):
 ```typescript
 const text = new openehr_rm.DV_TEXT("Patient is well");
 // or: new openehr_rm.DV_TEXT({ value: "Patient is well", language: "ISO_639-1::en" })
@@ -136,7 +136,7 @@ text.value = "Patient is well";
 
 **DV_CODED_TEXT** — Coded terminology:
 
-Simplified (terse format or nested object):
+Brief property style (terse or nested object):
 ```typescript
 const coded = new openehr_rm.DV_CODED_TEXT("local::at0005|Male|");
 // or:
@@ -160,7 +160,7 @@ coded.defining_code = code;
 
 **DV_QUANTITY** — Numerical measurements (no constructor init yet; use direct primitives):
 
-Simplified (dual pattern):
+Brief property style (dual pattern):
 ```typescript
 const quantity = new openehr_rm.DV_QUANTITY();
 quantity.magnitude = 120.0;
@@ -176,7 +176,7 @@ quantity.units = openehr_base.String.from("mm[Hg]");
 
 **DV_DATE_TIME** — Date and time (direct primitive assignment):
 
-Simplified:
+Brief property style:
 ```typescript
 const datetime = new openehr_rm.DV_DATE_TIME();
 datetime.value = "2024-12-08T14:30:00";
@@ -232,13 +232,13 @@ These examples demonstrate:
 
 ## Current Limitations
 
-See the full project status in [ROADMAP.md](../ROADMAP.md) ([GitHub](https://github.com/ErikSundvall/ehrtslib/blob/main/ROADMAP.md)).
+See the full project status in [roadmap.md](maintainers/roadmap.md) ([GitHub](https://github.com/ErikSundvall/ehrtslib/blob/main/docs/maintainers/roadmap.md)).
 
 **What's Available:**
 - Complete BASE, RM, LANG, and AM package implementations
 - ADL2/ADL 1.4 parsing, template flattening, and file-based archetype repository
 - Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, `InvariantEvaluator`)
-- Simplified object creation with constructor initialization and terse formats ([Simplified Creation Guide](../SIMPLIFIED-CREATION-GUIDE.md))
+- Brief property styles with constructor initialization and terse formats ([Brief property styles](user/brief-property-styles.md))
 - Canonical JSON serialization plus FLAT/STRUCTURED simplified formats ([SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md))
 - Demo app: template upload, conversion, RM instance / TypeScript stub generation, and **bidirectional** FLAT/STRUCTURED (see [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md#demo-app))
 
@@ -249,14 +249,14 @@ See the full project status in [ROADMAP.md](../ROADMAP.md) ([GitHub](https://git
 - Turnkey “fill a form, get a valid composition” API — complex trees still need manual assembly or template tooling
 
 **Current Approach:**
-You can build COMPOSITION trees manually (verbose or simplified constructors), generate instances from operational templates (`RMInstanceGenerator`), validate against templates, and serialize to canonical JSON or simplified FLAT/STRUCTURED formats. For the interactive workflow, use the demo app under `examples/demo-app/`.
+You can build COMPOSITION trees manually (verbose or brief property styles), generate instances from operational templates (`RMInstanceGenerator`), validate against templates, and serialize to canonical JSON or simplified FLAT/STRUCTURED formats. For the interactive workflow, use the demo app under `examples/demo-app/`.
 
 ## Next Steps
 
 1. Review the example files in `examples/`
 2. Understand the openEHR specifications at https://specifications.openehr.org/
 3. Start with simple COMPOSITION structures
-4. Refer to [ROADMAP.md](../ROADMAP.md) for upcoming features
+4. Refer to [roadmap.md](maintainers/roadmap.md) for upcoming features
 5. Check the openEHR specification documentation for detailed class definitions
 
 ## Running Examples
@@ -281,4 +281,4 @@ The examples will:
 
 ## Summary
 
-ehrtslib provides complete implementations of openEHR RM, BASE, LANG, and AM packages, with template validation, simplified constructors, and FLAT/STRUCTURED serialization. Complex clinical trees can still be verbose to assemble by hand; see [ROADMAP.md](../ROADMAP.md) for distribution builds and remaining ADL/OPT round-trip work.
+ehrtslib provides complete implementations of openEHR RM, BASE, LANG, and AM packages, with template validation, brief property styles, and FLAT/STRUCTURED serialization. Complex clinical trees can still be verbose to assemble by hand; see [roadmap.md](maintainers/roadmap.md) for distribution builds and remaining ADL/OPT round-trip work.

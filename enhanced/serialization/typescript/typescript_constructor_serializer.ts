@@ -1,10 +1,10 @@
-/**
+﻿/**
  * TypeScript Constructor Serializer for openEHR RM Objects
  * 
  * Generates TypeScript constructor code that can be used to create
  * openEHR RM object instances using the "Nested Object Initialization" pattern.
  * 
- * This follows the patterns described in SIMPLIFIED-CREATION-GUIDE.md
+ * This follows the patterns described in docs/user/brief-property-styles.md
  */
 
 import { TypeRegistry } from '../common/type_registry.ts';

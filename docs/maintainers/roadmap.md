@@ -105,7 +105,7 @@ Library support for all six conversion directions:
 | RM → STRUCTURED | `serializeToStructured` | ✅ |
 | STRUCTURED → RM | `deserializeFromStructured` | ✅ |
 
-Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_field_maps.ts` aligned with `docs/reference_for_llms/simplified_formats.md`. Tests in `test_data/tests/serialization/simplified/` and `examples/demo-app/src/converter.template.test.ts`. Known limitations are documented in `docs/SIMPLIFIED_FORMATS.md#limitations`.
+Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_field_maps.ts` aligned with `docs/vendor/simplified_formats.md`. Tests in `test_data/tests/serialization/simplified/` and `examples/demo-app/src/converter.template.test.ts`. Known limitations are documented in `docs/SIMPLIFIED_FORMATS.md#limitations`.
 
 ## Phase 7d Better `.t.json` + GitHub file sets — partly done (likely not fully tested)
 - `parseTemplateJson` / `template_json` repository kind (Archetype Designer JSON AOM)

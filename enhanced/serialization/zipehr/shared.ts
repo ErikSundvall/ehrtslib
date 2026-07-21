@@ -1,6 +1,12 @@
 /** Shared utilities for zipehr conversion (ported from zipehr-shared.js). */
 
+import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import { TypeInferenceEngine } from "../common/type_inference.ts";
+import {
+  isTerseCodePhraseString,
+  isTerseDvCodedTextString,
+  matchTerseDvCodedText,
+} from "../../terse_strings.ts";
 import {
   MAGNITUDE_STATUS_EXACT_RM,
   MAGNITUDE_STATUS_OPERATORS,
@@ -64,30 +70,6 @@ export function formatPropertyComment(propertyName: string): string {
   return `<!--${safe}-->`;
 }
 
-/** @deprecated Use {@link isPolymorphicType} — kept for ZipEHR callers/tests. */
-export const POLYMORPHIC_TYPES = {
-  has(typeName: string): boolean {
-    return TypeInferenceEngine.isPolymorphic(typeName);
-  },
-};
-
-/**
- * Parent → property → RM type map (BMM-backed via {@link TypeInferenceEngine}).
- * Prefer {@link propertyTypesFor} for new code.
- */
-export const PROPERTY_TYPE_MAP: Record<string, Record<string, string>> =
-  new Proxy({} as Record<string, Record<string, string>>, {
-    get(_target, parentType: string | symbol) {
-      if (typeof parentType !== "string") return undefined;
-      return TypeInferenceEngine.getPropertyTypeMap(parentType);
-    },
-    has(_target, parentType: string | symbol) {
-      if (typeof parentType !== "string") return false;
-      return Object.keys(TypeInferenceEngine.getPropertyTypeMap(parentType))
-        .length > 0;
-    },
-  });
-
 /** Property → type map for a parent RM class (BMM-backed). */
 export function propertyTypesFor(
   parentType: string,
@@ -121,13 +103,39 @@ export function isLocatableLike(rmType: string): boolean {
 }
 
 /**
- * @deprecated Use {@link isLocatableLike}. Set-like facade for existing callers.
+ * Technical identifier types with a single string `value` (not clinician-facing).
+ * In xhtml/html5: store in `title` (or equivalent machine attr), not element text.
  */
-export const LOCATABLE_LIKE_TYPES = {
-  has(rmType: string): boolean {
-    return TypeInferenceEngine.isLocatableLike(rmType);
-  },
-};
+export const TECHNICAL_ID_TYPES = new Set([
+  "OBJECT_VERSION_ID",
+  "ARCHETYPE_ID",
+  "TEMPLATE_ID",
+  "TERMINOLOGY_ID",
+  "HIER_OBJECT_ID",
+  "GENERIC_ID",
+  "INTERNET_ID",
+  "UUID",
+]);
+
+/**
+ * Non-DATA_VALUE types ZipEHR still treats as value/leaf objects in HTML/XHTML.
+ * (BMM `isDataValueType` is the primary check; these are documented extras.)
+ */
+const ZIPEHR_VALUE_EXTRAS = new Set([
+  "CODE_PHRASE",
+  "TERM_MAPPING",
+  "REFERENCE_RANGE",
+]);
+
+/** DATA_VALUE or ZipEHR value extras (not technical IDs). */
+export function isZipehrDataValueLike(rmType: string): boolean {
+  return metaIsDataValueType(rmType) || ZIPEHR_VALUE_EXTRAS.has(rmType);
+}
+
+/** Leaf wire types for ZipEHR HTML5/XHTML (value objects + technical IDs). */
+export function isZipehrLeafRmType(rmType: string): boolean {
+  return isZipehrDataValueLike(rmType) || TECHNICAL_ID_TYPES.has(rmType);
+}
 
 /**
  * RM types that carry openEHR `language` (CODE_PHRASE, ISO_639-1).
@@ -142,21 +150,6 @@ export const LANGUAGE_CARRIER_TYPES = new Set([
   "INSTRUCTION",
   "ACTION",
   "ADMIN_ENTRY",
-]);
-
-/**
- * Technical identifier types with a single string `value` (not clinician-facing).
- * In xhtml/html5: store in `title` (or equivalent machine attr), not element text.
- */
-export const TECHNICAL_ID_TYPES = new Set([
-  "OBJECT_VERSION_ID",
-  "ARCHETYPE_ID",
-  "TEMPLATE_ID",
-  "TERMINOLOGY_ID",
-  "HIER_OBJECT_ID",
-  "GENERIC_ID",
-  "INTERNET_ID",
-  "UUID",
 ]);
 
 /** Extract an ISO 639 language code from a CODE_PHRASE object or terse string. */
@@ -308,19 +301,17 @@ export function resolveType(
 }
 
 export function isTerseCodePhrase(str: string): boolean {
-  return typeof str === "string" && /^[^:]+::[^|]+$/.test(str);
+  return isTerseCodePhraseString(str);
 }
 
 export function isTerseDvCodedText(str: string): boolean {
-  return typeof str === "string" && /^[^:]+::[^|]+\|[^|]*\|$/.test(str);
+  return isTerseDvCodedTextString(str);
 }
 
 export function parseTerseDvCodedText(
   terse: string,
 ): { termId: string; code: string; value: string } | null {
-  const match = terse.match(/^([^:]+)::([^|]+)\|([^|]*)\|$/);
-  if (!match) return null;
-  return { termId: match[1], code: match[2], value: match[3] };
+  return matchTerseDvCodedText(terse);
 }
 
 export function extractWrappedTerseString(v: unknown): string | null {

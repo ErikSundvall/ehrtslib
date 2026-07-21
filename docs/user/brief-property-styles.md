@@ -1,6 +1,6 @@
-# Simplified Object Creation Guide
+# Brief property styles
 
-This guide explains the simplified object creation patterns introduced in Phase 4f.2 of ehrtslib.
+This guide covers **brief property styles** in ehrtslib: constructor initialization, terse coded strings, and direct primitive assignment — without verbose nested wrapper boilerplate.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This guide explains the simplified object creation patterns introduced in Phase 
 
 ## Overview
 
-Creating openEHR RM objects used to require extensive boilerplate code with explicit instantiation of nested wrapper objects. The simplified creation patterns reduce this by **69-76%** while maintaining full type safety and backward compatibility.
+Creating openEHR RM objects used to require extensive boilerplate with explicit nested wrapper objects. Brief property styles cut that down by **69-76%** while keeping full type safety and backward compatibility.
 
 ## The Problem
 
@@ -658,14 +658,14 @@ type DvCodedTextInit = DvTextInit & {
 
 ## References
 
-- **DUAL-APPROACH-GUIDE.md** - Dual getter/setter pattern that enables this
-- **PRD (tasks/prd-phase4f1-simplified-object-creation.md)** - Detailed design rationale
-- **openEHR Terse Format Spec** - [Simplified Serial Formats](https://openehr.atlassian.net/wiki/spaces/spec/pages/624361477/Simplified+Serial+Formats+-+Data+Types)
-- **openEHR Discourse** - [Simplified Data Template Discussion](https://discourse.openehr.org/t/simplified-data-template-sdt-data-types/546)
+- **[dual-accessors.md](dual-accessors.md)** — dual getter/setter pattern that enables this
+- **PRD (`tasks/prd-phase4f1-simplified-object-creation.md`)** — detailed design rationale
+- **openEHR Terse Format Spec** — [Simplified Serial Formats](https://openehr.atlassian.net/wiki/spaces/spec/pages/624361477/Simplified+Serial+Formats+-+Data+Types)
+- **openEHR Discourse** — [Simplified Data Template Discussion](https://discourse.openehr.org/t/simplified-data-template-sdt-data-types/546)
 
 ## Summary
 
-The simplified object creation patterns provide:
+Brief property styles provide:
 
 - ✅ **69-76% code reduction** for typical object creation
 - ✅ **Full type safety** with TypeScript inference

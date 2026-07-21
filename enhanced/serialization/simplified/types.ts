@@ -1,7 +1,7 @@
 /**
  * openEHR Web Template and simplified format (FLAT / STRUCTURED) types.
  * @see openehr://guides/specs/its-rest-simplified_formats
- * @see docs/reference_for_llms/simplified_formats.md
+ * @see docs/vendor/simplified_formats.md
  */
 
 export interface WebTemplateInputListItem {

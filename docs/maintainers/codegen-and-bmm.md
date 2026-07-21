@@ -240,7 +240,7 @@ Work through the TODO comments in your enhanced file:
 
 For complex new features or significantly changed classes, you may want to
 create or update instruction files (as described in Phase 3 of
-[ROADMAP.md](ROADMAP.md)). These files help guide implementation of missing
+[roadmap.md](roadmap.md)). These files help guide implementation of missing
 behaviors:
 
 1. **Analyze specifications**: Use the openEHR specifications at
@@ -257,7 +257,7 @@ behaviors:
 3. **Use AI to create/update instructions**: Prompt an AI assistant with:
    ```
    Analyze the [ClassName] in the openEHR specifications and create a detailed
-   instruction file following Phase 3 guidelines in ROADMAP.md. Include
+   instruction file following Phase 3 guidelines in roadmap.md. Include
    behavior descriptions, pseudocode, test cases, and specification references.
    ```
 

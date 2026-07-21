@@ -3,27 +3,19 @@
 Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 **Library users should start at [../README.md](../README.md)** instead.
 
-## Hubs
-
 | Topic | Location |
 | ----- | -------- |
-| BMM / stub / meta regeneration | [../../README-FOR-LIB-MAINTENANCE.md](../../README-FOR-LIB-MAINTENANCE.md) |
+| BMM / stub / meta regeneration | [codegen-and-bmm.md](codegen-and-bmm.md) |
+| RM meta generation only | [rm-meta-generation.md](rm-meta-generation.md) |
 | What is safe to edit under `enhanced/` | [../../enhanced/README.md](../../enhanced/README.md) |
 | Generated stubs (do not hand-edit) | [../../generated/README.md](../../generated/README.md) |
 | Domain glossary (agents) | [../../CONTEXT.md](../../CONTEXT.md) |
-| Roadmap | [../../ROADMAP.md](../../ROADMAP.md) · [finished](../../ROADMAP-FINISHED-TASKS.md) |
-| Spec vs impl notes | [../../INCONSISTENCIES.md](../../INCONSISTENCIES.md) |
-| Archie test-data attribution | [../../ARCHIE_ATTRIBUTION.md](../../ARCHIE_ATTRIBUTION.md) |
-| Cursor Cloud / MCP | [../CURSOR_CLOUD_SETUP.md](../CURSOR_CLOUD_SETUP.md) |
+| Roadmap | [roadmap.md](roadmap.md) · [archive](roadmap-archive.md) |
+| Spec vs impl notes | [inconsistencies.md](inconsistencies.md) |
+| Archie test-data attribution | [archie-attribution.md](archie-attribution.md) |
+| Cursor Cloud / MCP | [cursor-cloud-setup.md](cursor-cloud-setup.md) |
 | Agent runtime notes | [../../AGENTS.md](../../AGENTS.md) |
-| RM meta regeneration detail | [rm-meta-generation.md](rm-meta-generation.md) |
 | Test fixtures | [../../test_data/README.md](../../test_data/README.md) |
+| Offline vendor specs | [../vendor/](../vendor/) |
 | PRDs / task lists | [../../tasks/](../../tasks/) |
-| Historical merge notes | [../../archive/](../../archive/) |
-
-## Target layout (ongoing)
-
-Prefer gradually relocating the root maintainer files listed above into this
-folder (with short stubs at old paths). User-facing docs stay under `docs/`
-root or `docs/user/` and are linked only from [../README.md](../README.md) and
-the repository [README.md](../../README.md).
+| Historical notes | [../../archive/](../../archive/) |

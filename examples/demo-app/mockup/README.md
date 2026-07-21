@@ -313,7 +313,7 @@ This example demonstrates:
 
 - **Task List**: `/tasks/task-list-phase4g5-demo-app.md`
 - **PRD**: `/tasks/prd-phase4g1-serialization-deserialization.md`
-- **Creation Guide**: `/SIMPLIFIED-CREATION-GUIDE.md`
+- **Creation Guide**: `/docs/user/brief-property-styles.md`
 - **Main README**: `/README.md`
 
 ## 📸 Screenshots

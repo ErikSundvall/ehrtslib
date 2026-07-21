@@ -7,7 +7,7 @@
  * canonical JSON, and `|other` free-text on open coded value-sets.
  *
  * @see openehr://guides/specs/its-rest-simplified_formats
- * @see docs/reference_for_llms/simplified_formats.md
+ * @see docs/vendor/simplified_formats.md
  */
 
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";

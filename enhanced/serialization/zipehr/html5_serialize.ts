@@ -13,10 +13,11 @@ import {
 } from "./symbol_table.ts";
 import {
   formatPropertyComment,
+  isLocatableLike,
+  isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
-  LOCATABLE_LIKE_TYPES,
-  PROPERTY_TYPE_MAP,
   propertySlotAmbiguous,
+  propertyTypesFor,
   type RmPropertyEmitMode,
   shortenTerseString,
   shouldEmitPropertyAttribute,
@@ -594,23 +595,14 @@ function renderDvLeaf(
   return markup(tag, attrs, { textContent: text || undefined });
 }
 
-function isDataValueType(rmType: string): boolean {
-  return rmType.startsWith("DV_") || rmType === "CODE_PHRASE" ||
-    rmType === "TERM_MAPPING" || rmType === "REFERENCE_RANGE";
-}
-
-function isLeafRmType(rmType: string): boolean {
-  return isDataValueType(rmType) || TECHNICAL_ID_TYPES.has(rmType);
-}
-
 function orderedKeys(
   parentType: string | undefined,
   keys: string[],
 ): string[] {
   if (!parentType) return keys;
-  const preferred = PROPERTY_TYPE_MAP[parentType];
-  if (!preferred) return keys;
+  const preferred = propertyTypesFor(parentType);
   const order = Object.keys(preferred);
+  if (order.length === 0) return keys;
   const inOrder = order.filter((k) => keys.includes(k));
   const rest = keys.filter((k) => !order.includes(k));
   return [...inOrder, ...rest];
@@ -702,7 +694,7 @@ function buildNode(
     rmType,
   );
 
-  if (isLeafRmType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
+  if (isZipehrLeafRmType(rmType) && !isLocatableLike(rmType)) {
     const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs);
     if (propertyCommentName) leaf.propertyComment = propertyCommentName;
     return leaf;

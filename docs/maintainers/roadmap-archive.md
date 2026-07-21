@@ -494,7 +494,7 @@ Background: We want to improve the demo web application code based on `/tasks/ta
 **Completed Improvements:**
 - ✅ Now runs initial conversion on load instead of prefilling with dummy data
 - ✅ Added TypeScriptConstructorSerializer to `/enhanced/serialization/typescript/` directory
-  - ✅ Follows "Nested Object Initialization" pattern from SIMPLIFIED-CREATION-GUIDE.md
+  - ✅ Follows "Nested Object Initialization" pattern from docs/user/brief-property-styles.md
   - ✅ Comprehensive test suite (13/13 tests passing)
   - ✅ Full documentation in README.md
 - ✅ Demo app now uses TypeScriptConstructorSerializer instead of ad hoc code (reduced code from 610 to 305 lines!)

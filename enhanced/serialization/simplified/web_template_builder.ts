@@ -4,6 +4,7 @@
 
 import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../openehr_base.ts";
+import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import type {
   WebTemplate,
   WebTemplateInput,
@@ -39,25 +40,6 @@ const SKIP_RM_TYPES = new Set([
   "ITEM_LIST",
   "ITEM_SINGLE",
   "ITEM_TABLE",
-]);
-
-const DV_LEAF_TYPES = new Set([
-  "DV_TEXT",
-  "DV_CODED_TEXT",
-  "DV_QUANTITY",
-  "DV_COUNT",
-  "DV_PROPORTION",
-  "DV_DATE",
-  "DV_TIME",
-  "DV_DATE_TIME",
-  "DV_DURATION",
-  "DV_BOOLEAN",
-  "DV_IDENTIFIER",
-  "DV_URI",
-  "DV_EHR_URI",
-  "DV_MULTIMEDIA",
-  "DV_PARSABLE",
-  "CODE_PHRASE",
 ]);
 
 const CONTEXT_ATTRS = new Set([
@@ -128,7 +110,9 @@ function buildInputs(
 }
 
 function isDataValueType(rmType: string): boolean {
-  return DV_LEAF_TYPES.has(rmType) || rmType.startsWith("C_");
+  // Web Template also treats AM constraint types (C_*) as "value-like" leaves.
+  return metaIsDataValueType(rmType) || rmType === "CODE_PHRASE" ||
+    rmType.startsWith("C_");
 }
 
 /**

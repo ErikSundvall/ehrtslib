@@ -43,7 +43,7 @@ if (nameWrapper.is_empty()) {
 
 **When to use which:** Use default primitive access (~95% of cases) for simple value operations. Use `$` prefix wrapper access when you need openEHR-specific methods like `is_empty()`, `as_upper()`, or type-specific validation.
 
-For detailed information about the dual approach pattern, see [DUAL-APPROACH-GUIDE.md](DUAL-APPROACH-GUIDE.md).
+For detailed information about the dual approach pattern, see [docs/user/dual-accessors.md](docs/user/dual-accessors.md).
 
 ### Creating and Modifying Compositions
 
@@ -74,7 +74,7 @@ composition.uid = "8849182c-82ad-4088-a07f-48ead4180515::uk.nhs.example::1";
 - Mix constructor initialization with direct property assignment as needed
 - Full type safety with IDE autocomplete
 
-See [SIMPLIFIED-CREATION-GUIDE.md](SIMPLIFIED-CREATION-GUIDE.md) for comprehensive examples and best practices.
+See [docs/user/brief-property-styles.md](docs/user/brief-property-styles.md) for comprehensive examples and best practices.
 
 ### Serialization and Deserialization
 
@@ -97,7 +97,7 @@ const restored = deserializer.deserialize(json);
 - **XML** - Compliant with openEHR ITS-XML specification. See [XML serialization guide](enhanced/serialization/xml/README.md)
 - **YAML** - Human-readable format with multiple style options. See [YAML serialization guide](enhanced/serialization/yaml/README.md)
 - **ZipEHR (experimental)** - Compact emoji/lettercode JSON, YAML, XHTML, HTML5. See [ZipEHR guide](enhanced/serialization/zipehr/README.md)
-- **official openEHR simplified formats ** (experimental implementation) - FLAT / STRUCTURED / Web Template (ITS-REST). See [docs/SIMPLIFIED_FORMATS.md](docs/SIMPLIFIED_FORMATS.md). *Not the same as* the [composition creation guide](SIMPLIFIED-CREATION-GUIDE.md).
+- **Simplified formats (experimental)** - FLAT / STRUCTURED / Web Template (ITS-REST). See [docs/SIMPLIFIED_FORMATS.md](docs/SIMPLIFIED_FORMATS.md).
 
 **Documentation map:** [docs/README.md](docs/README.md) (users) · [docs/maintainers/](docs/maintainers/README.md) (maintainers) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -187,7 +187,7 @@ See **[docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md)** (includes RM vs AM compar
 
 ## Additional Resources
 
-- **[README-FOR-LIB-MAINTENANCE.md](README-FOR-LIB-MAINTENANCE.md)** - Comprehensive guide for library maintainers on generating TypeScript from openEHR BMM specifications, updating versions, and managing dependencies
-- **[DUAL-APPROACH-GUIDE.md](DUAL-APPROACH-GUIDE.md)** - Detailed explanation of the dual getter/setter pattern used in this library
-- **[ROADMAP.md](ROADMAP.md)** - Project roadmap and development phases
-- **[SIMPLIFIED-CREATION-GUIDE.md](SIMPLIFIED-CREATION-GUIDE.md)** - Simplified guide for creating openEHR data structures
+- **[docs/README.md](docs/README.md)** — user documentation map
+- **[docs/user/brief-property-styles.md](docs/user/brief-property-styles.md)** — constructors + terse codes
+- **[docs/user/dual-accessors.md](docs/user/dual-accessors.md)** — `name` vs `$name` pattern
+- **[docs/maintainers/](docs/maintainers/README.md)** — codegen, roadmap, agents (maintainers only)

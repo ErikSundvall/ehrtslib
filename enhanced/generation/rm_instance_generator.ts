@@ -10,6 +10,7 @@
  */
 
 import * as openehr_am from "../openehr_am.ts";
+import { isSubtypeOf } from "../meta/mod.ts";
 import {
   resolveTemplateLanguage,
 } from "./term_codes.ts";
@@ -60,35 +61,6 @@ const MANDATORY_RM_ATTRIBUTES: Record<string, string[]> = {
   INTERVAL_EVENT: ["time", "data", "math_function"],
   CLUSTER: ["items"],
 };
-
-const LOCATABLE_TYPES = new Set([
-  "COMPOSITION",
-  "SECTION",
-  "OBSERVATION",
-  "EVALUATION",
-  "INSTRUCTION",
-  "ACTION",
-  "ADMIN_ENTRY",
-  "CLUSTER",
-  "ELEMENT",
-  "ITEM_TREE",
-  "ITEM_LIST",
-  "ITEM_TABLE",
-  "ITEM_SINGLE",
-  "HISTORY",
-  "EVENT",
-  "POINT_EVENT",
-  "INTERVAL_EVENT",
-  "ACTIVITY",
-]);
-
-const ENTRY_TYPES = new Set([
-  "OBSERVATION",
-  "EVALUATION",
-  "INSTRUCTION",
-  "ACTION",
-  "ADMIN_ENTRY",
-]);
 
 export type GenerationMode = "minimal" | "example" | "maximal";
 
@@ -193,7 +165,7 @@ export class RMInstanceGenerator {
       : undefined;
     if ((archetypeRef || cObject.node_id) && !rmType.startsWith("DV_")) {
       instance.archetype_node_id = archetypeRef ?? cObject.node_id;
-      if (LOCATABLE_TYPES.has(rmType)) {
+      if (isSubtypeOf(rmType, "LOCATABLE")) {
         const label = this.locatableLabel(cObject, ctx);
         if (label) instance.name = this.dvText(label);
       }
@@ -349,10 +321,10 @@ export class RMInstanceGenerator {
 
   private mandatoryAttributesFor(rmTypeName: string): string[] {
     const attrs = new Set<string>();
-    if (LOCATABLE_TYPES.has(rmTypeName)) {
+    if (isSubtypeOf(rmTypeName, "LOCATABLE")) {
       for (const attr of MANDATORY_RM_ATTRIBUTES.LOCATABLE) attrs.add(attr);
     }
-    if (ENTRY_TYPES.has(rmTypeName)) {
+    if (isSubtypeOf(rmTypeName, "ENTRY")) {
       for (const attr of MANDATORY_RM_ATTRIBUTES.ENTRY) attrs.add(attr);
     }
     for (const attr of MANDATORY_RM_ATTRIBUTES[rmTypeName] ?? []) {

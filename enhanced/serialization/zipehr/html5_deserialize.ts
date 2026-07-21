@@ -14,11 +14,12 @@ import {
 import {
   expandTerseString,
   isArchetypeIdSameAsNodeIdFlag,
+  isLocatableLike,
   isPolymorphicType,
   isTerseCodePhrase,
+  isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   languageCodePhrase,
-  LOCATABLE_LIKE_TYPES,
   parseTerseDvCodedText,
   propertyTypesFor,
   TECHNICAL_ID_TYPES,
@@ -691,7 +692,7 @@ function deserializeElement(
     throw new Error(`Unknown ZipEHR HTML5 tag: <${node.tag}>`);
   }
 
-  if (isLeafRmType(rmType) && !LOCATABLE_LIKE_TYPES.has(rmType)) {
+  if (isZipehrLeafRmType(rmType) && !isLocatableLike(rmType)) {
     return deserializeDvLeaf(rmType, node, dialect);
   }
 
@@ -800,15 +801,6 @@ function deserializeElement(
   }
 
   return out;
-}
-
-function isDataValueType(rmType: string): boolean {
-  return rmType.startsWith("DV_") || rmType === "CODE_PHRASE" ||
-    rmType === "TERM_MAPPING" || rmType === "REFERENCE_RANGE";
-}
-
-function isLeafRmType(rmType: string): boolean {
-  return isDataValueType(rmType) || TECHNICAL_ID_TYPES.has(rmType);
 }
 
 /** Detect HTML5 dialect from markup (`fmt` attr or tag shape). */

@@ -15,7 +15,7 @@ The demo application provides:
 
 ### New in Phase 4g.6
 
-- **TypeScript Constructor Serializer**: Professional serializer that generates code following the "Nested Object Initialization" pattern from SIMPLIFIED-CREATION-GUIDE.md
+- **TypeScript Constructor Serializer**: Professional serializer that generates code following the "Nested Object Initialization" pattern from docs/user/brief-property-styles.md
   - Supports terse format for CODE_PHRASE and DV_CODED_TEXT
   - Primitive value constructors for simple wrapper types
   - Configurable archetype_node_id location (beginning, after_name, end)

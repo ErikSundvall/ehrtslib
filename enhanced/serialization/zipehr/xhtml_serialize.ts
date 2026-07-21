@@ -16,7 +16,7 @@ import {
   isSymbolKey,
   isTerseDvCodedText,
   LANGUAGE_CARRIER_TYPES,
-  PROPERTY_TYPE_MAP,
+  propertyTypesFor,
   propertySlotAmbiguous,
   type RmPropertyEmitMode,
   shouldEmitPropertyAttribute,
@@ -412,9 +412,9 @@ function orderedChildKeys(
   keys: string[],
 ): string[] {
   if (!rmType) return keys;
-  const preferred = PROPERTY_TYPE_MAP[rmType];
-  if (!preferred) return keys;
+  const preferred = propertyTypesFor(rmType);
   const order = Object.keys(preferred);
+  if (order.length === 0) return keys;
   const inOrder = order.filter((k) => keys.includes(k));
   const rest = keys.filter((k) => !order.includes(k));
   return [...inOrder, ...rest];

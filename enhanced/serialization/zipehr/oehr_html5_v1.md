@@ -1,7 +1,7 @@
 # ZipEHR HTML5 — compact custom-element formats
 
 **Status:** implemented (`html5_serialize.ts` / `html5_deserialize.ts`)  
-**Related:** [`README.md`](README.md), [`symbol_table.yaml`](symbol_table.yaml), [`ROADMAP.md`](../../../ROADMAP.md) (Contribution builder)
+**Related:** [`README.md`](README.md), [`symbol_table.yaml`](symbol_table.yaml), [`roadmap.md`](../../../docs/maintainers/roadmap.md) (Contribution builder)
 
 ## Purpose
 

@@ -27,14 +27,15 @@ export {
   isTerseCodePhrase,
   isTerseDvCodedText,
   isValueOnlyRmObject,
+  isZipehrDataValueLike,
+  isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   TECHNICAL_ID_TYPES,
   languageCodePhrase,
   languageTerseString,
   loadSymbolMapFromText,
   parseLocatableStructuredObject,
-  POLYMORPHIC_TYPES,
-  PROPERTY_TYPE_MAP,
+  parseTerseDvCodedText,
   propertyTypesFor,
   propertySlotAmbiguous,
   formatPropertyComment,
@@ -47,7 +48,6 @@ export {
   MAGNITUDE_STATUS_OPERATORS,
   TERMINOLOGY_FIELD_PROMOTIONS,
   TERMINOLOGY_SHORTCUTS,
-  LOCATABLE_LIKE_TYPES,
 } from "./shared.ts";
 
 export {
