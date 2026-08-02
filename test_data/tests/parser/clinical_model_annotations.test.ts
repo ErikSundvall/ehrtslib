@@ -3,9 +3,9 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../../../enhanced/parser/adl2_parser.ts";
-import { ADL2Serializer } from "../../../enhanced/generation/adl2_serializer.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { ADL2Parser } from "../../../parser/adl2_parser.ts";
+import { ADL2Serializer } from "../../../generation/adl2_serializer.ts";
 import {
   buildDefinitionTree,
   countAnnotationKeysAtPath,
@@ -15,7 +15,7 @@ import {
   listAnnotatedPaths,
   removePathAnnotation,
   setPathAnnotation,
-} from "../../../enhanced/parser/clinical_model_annotations.ts";
+} from "../../../parser/clinical_model_annotations.ts";
 
 const TEST_DATA = new URL("../../", import.meta.url);
 

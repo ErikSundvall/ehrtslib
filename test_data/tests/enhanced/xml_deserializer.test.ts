@@ -5,10 +5,10 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
-import { XmlDeserializer } from "../../enhanced/serialization/xml/xml_deserializer.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
-import { TypeNotFoundError } from "../../enhanced/serialization/common/errors.ts";
-import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../enhanced/openehr_rm.ts";
+import { XmlDeserializer } from "../../../serialization/xml/xml_deserializer.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
+import { TypeNotFoundError } from "../../../serialization/common/errors.ts";
+import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../../rm/openehr_rm.ts";
 
 // Register types for testing
 TypeRegistry.clear();
@@ -117,7 +117,7 @@ Deno.test("XmlDeserializer - round-trip DV_TEXT", () => {
   original.value = "Round Trip Test";
   
   // Import serializer for round-trip test
-  const { XmlSerializer } = await import("../../enhanced/serialization/xml/xml_serializer.ts");
+  const { XmlSerializer } = await import("../../../serialization/xml/xml_serializer.ts");
   
   const serializer = new XmlSerializer();
   const xml = serializer.serialize(original);
@@ -137,7 +137,7 @@ Deno.test("XmlDeserializer - round-trip CODE_PHRASE with nested object", () => {
   original.terminology_id = terminologyId;
   
   // Import serializer for round-trip test
-  const { XmlSerializer } = await import("../../enhanced/serialization/xml/xml_serializer.ts");
+  const { XmlSerializer } = await import("../../../serialization/xml/xml_serializer.ts");
   
   const serializer = new XmlSerializer();
   const xml = serializer.serialize(original);

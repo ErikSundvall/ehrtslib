@@ -1,4 +1,4 @@
-# RM attribute introspection (`enhanced/meta`)
+# RM attribute introspection (`meta`)
 
 BMM-backed **Reference Model** schema metadata for editors, validators, and
 codegen. Complements `TypeRegistry` (construct / deserialize) with answers to:
@@ -15,7 +15,7 @@ import {
   attributesFor,
   isDataValueType,
   subtypesOf,
-} from "./enhanced/meta/mod.ts";
+} from "./meta/mod.ts";
 
 const attrs = attributesFor("DV_QUANTITY");
 const visible = attrs.filter((a) => a.mandatory);
@@ -34,8 +34,8 @@ API: `attributesFor`, `ownAttributesFor`, `ancestorsOf`, `isSubtypeOf`,
 
 | Layer | Module(s) | Answers |
 | ----- | --------- | ------- |
-| **RM (this API)** | `enhanced/meta` | What the Reference Model *allows* for type `T` (BMM attributes, multiplicities, inheritance) |
-| **AM / OPT** | `enhanced/am/*`, web-template builder, clinical definition trees | What a *specific archetype or template* constrains (paths, occurrences, value sets, exclusions) |
+| **RM (this API)** | `meta` | What the Reference Model *allows* for type `T` (BMM attributes, multiplicities, inheritance) |
+| **AM / OPT** | `am/util/*`, web-template builder, clinical definition trees | What a *specific archetype or template* constrains (paths, occurrences, value sets, exclusions) |
 
 They are complementary:
 

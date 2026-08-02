@@ -6,12 +6,12 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
 import {
   SerializationError,
   DeserializationError,
   TypeNotFoundError,
-} from "../../enhanced/serialization/common/errors.ts";
+} from "../../../serialization/common/errors.ts";
 
 // Test classes
 class TestClass1 {

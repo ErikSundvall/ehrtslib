@@ -2,15 +2,15 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_am from "../../../enhanced/openehr_am.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 import {
   assertTemplateInstanceCoverage,
   expectedTemplateSlots,
   RMInstanceGenerator,
   templateInstanceCoverage,
   type GenerationMode,
-} from "../../../enhanced/generation/mod.ts";
-import { parseOptXml } from "../../../enhanced/parser/legacy/opt_xml_parser.ts";
+} from "../../../generation/mod.ts";
+import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 
 const OPT_DIR = new URL("../../opt14/", import.meta.url);
 

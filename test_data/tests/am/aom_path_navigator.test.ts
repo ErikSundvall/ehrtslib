@@ -3,8 +3,8 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseAdl } from "../../enhanced/parser/mod.ts";
-import { resolveAomPath } from "../../enhanced/am/aom_path_navigator.ts";
+import { parseAdl } from "../../../parser/mod.ts";
+import { resolveAomPath } from "../../../am/util/aom_path_navigator.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 

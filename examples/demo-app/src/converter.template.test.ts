@@ -2,7 +2,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/mod.ts";
+import { ClinicalModelWorkspace } from "../../../parser/mod.ts";
 import {
   convert,
   getAsciidocConfigPreset,

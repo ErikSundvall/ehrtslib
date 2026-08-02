@@ -1,7 +1,8 @@
-# Tests for Enhanced Implementations
+# Behavioural tests for the hand-written implementations
 
-This directory contains tests for the **enhanced** implementations in
-`/enhanced`.
+This directory holds behavioural tests for the hand-written model modules
+(`base/`, `rm/`, `am/`, `lang/`, `term/`) and the serialization, terminology and
+metadata layers built on them.
 
 ## Purpose
 
@@ -23,19 +24,21 @@ Tests in this directory should:
 
 ## Running These Tests
 
+From the **repository root**:
+
 ```bash
-deno test tests/enhanced/
+deno test test_data/tests/enhanced/ --allow-read --no-check
 ```
 
 ## Comparison
 
-Tests in `/tests/generated` only verify structural correctness. Tests here
+Tests under `test_data/tests/generated/` only verify structural correctness. Tests here
 verify full implementation correctness and behavior.
 
 ## Test Development Process
 
 When adding new tests:
 
-1. Start with structural tests in `/tests/generated`
+1. Start with structural tests in `test_data/tests/generated/`
 2. Once implementation is complete, add behavioral tests here
-3. Enhanced tests can import from `/tests/generated` if needed for fixtures
+3. Behavioural tests can import from generated fixtures if needed

@@ -14,13 +14,5 @@ examples/demo-app/dist/
 # GitHub Pages demo app build output (generated during CI via `deno task build:demo`)
 docs/demo/
 
-# Local test symlinks/junctions and hardlinks — recreate per machine (see AGENTS.md)
-test_data/enhanced
-test_data/openehr_am.ts
-test_data/openehr_base.ts
-test_data/openehr_lang.ts
-test_data/openehr_rm.ts
-test_data/openehr_term.ts
-
 # temp test files
-enhanced/serialization/zipehr/examples/
+serialization/zipehr/examples/

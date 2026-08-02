@@ -13,7 +13,7 @@ deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
 Writes:
 
 - `generated/rm_attribute_meta.ts` (baseline next to class stubs)
-- `enhanced/meta/rm_attribute_meta.generated.ts` (imported by the facade)
+- `meta/rm_attribute_meta.generated.ts` (imported by the facade)
 
 Do not hand-edit the generated files.
 

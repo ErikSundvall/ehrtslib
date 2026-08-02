@@ -27,7 +27,7 @@ ehrtslib is organized into several packages:
 - **openehr_term**: Terminology support
 - **openehr_am**: Archetype Model (ADL parsing, templates, validation)
 
-All classes are generated from BMM specifications and then enhanced with functional implementations.
+Class skeletons come from the BMM specifications; the behaviour is hand-written on top of them.
 
 ## Installation and Setup
 
@@ -40,11 +40,10 @@ import * as openehr_rm from "./openehr_rm.ts";
 import * as openehr_base from "./openehr_base.ts";
 ```
 
-2. Or import from the enhanced versions for full functionality:
+2. Or take everything through the namespaced barrel:
 
 ```typescript
-import * as openehr_rm from "./enhanced/openehr_rm.ts";
-import * as openehr_base from "./enhanced/openehr_base.ts";
+import { base, rm, parser, serialization } from "./mod.ts";
 ```
 
 ## "Hello World" - Simplest Possible COMPOSITION

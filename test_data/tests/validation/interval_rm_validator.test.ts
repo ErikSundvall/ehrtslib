@@ -3,9 +3,9 @@
  */
 
 import { assertEquals, assertExists } from "https://deno.land/std@0.210.0/assert/mod.ts";
-import { IntervalValidator } from "../../enhanced/validation/interval_validator.ts";
-import { RMSpecificationValidator } from "../../enhanced/validation/rm_specification_validator.ts";
-import { TemplateValidator } from "../../enhanced/validation/template_validator.ts";
+import { IntervalValidator } from "../../../validation/interval_validator.ts";
+import { RMSpecificationValidator } from "../../../validation/rm_specification_validator.ts";
+import { TemplateValidator } from "../../../validation/template_validator.ts";
 
 Deno.test("IntervalValidator - valid bounded interval", () => {
   const validator = new IntervalValidator();

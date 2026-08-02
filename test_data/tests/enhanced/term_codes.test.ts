@@ -2,7 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
   availableTemplateLanguages,
   termCodeCandidates,
-} from "../../../enhanced/generation/term_codes.ts";
+} from "../../../generation/term_codes.ts";
 
 Deno.test("termCodeCandidates normalises short archetype node ids", () => {
   const at02 = termCodeCandidates("at0.2");

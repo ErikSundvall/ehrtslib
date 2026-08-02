@@ -28,6 +28,6 @@ deno test tests/generated/
 
 ## Comparison
 
-Tests in `/tests/enhanced` expect full implementations and behavioral
+Tests in `test_data/tests/enhanced/` expect full implementations and behavioral
 correctness. Tests here only verify the structural aspects from BMM
 specifications.

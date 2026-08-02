@@ -1,3 +1,8 @@
+# Historical mockup only
+
+> **Not the live demo.** This folder is a static Phase 4g design reference.
+> The implemented app is under `../` (build with `deno task build:demo`).
+
 # ehrtslib Format Converter - Mockup
 
 This directory contains the **static HTML/CSS mockup** for the ehrtslib Format Converter demo application. This is a visual prototype created in Phase 4g.5, Section 0, before full implementation.
@@ -258,7 +263,7 @@ content:
 
 **TypeScript Output (with terse format and compact constructors):**
 ```typescript
-import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./enhanced/openehr_rm.ts";
+import { COMPOSITION, SECTION, ELEMENT, DV_CODED_TEXT, DV_QUANTITY } from "./openehr_rm.ts";
 
 const composition = new COMPOSITION({
   name: "Vital Signs Encounter",

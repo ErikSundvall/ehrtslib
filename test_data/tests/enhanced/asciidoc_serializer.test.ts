@@ -3,14 +3,14 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert";
-import { AsciidocSerializer } from "../../enhanced/serialization/asciidoc/mod.ts";
+import { AsciidocSerializer } from "../../../serialization/asciidoc/mod.ts";
 import {
   COMPACT_ASCIIDOC_CONFIG,
   LOSSLESS_ASCIIDOC_CONFIG,
-} from "../../enhanced/serialization/asciidoc/mod.ts";
-import * as rm from "../../enhanced/openehr_rm.ts";
-import * as base from "../../enhanced/openehr_base.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
+} from "../../../serialization/asciidoc/mod.ts";
+import * as rm from "../../../rm/openehr_rm.ts";
+import * as base from "../../../base/openehr_base.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);

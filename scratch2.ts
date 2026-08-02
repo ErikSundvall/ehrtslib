@@ -1,12 +1,12 @@
-import { parseOptXml } from "./enhanced/parser/legacy/opt_xml_parser.ts";
-import { RMInstanceGenerator } from "./enhanced/generation/rm_instance_generator.ts";
+import { parseOptXml } from "./parser/legacy/opt_xml_parser.ts";
+import { RMInstanceGenerator } from "./generation/rm_instance_generator.ts";
 import {
   buildWebTemplate,
   deserializeFromFlat,
   serializeToFlat,
   serializeToStructured,
   structuredToFlat,
-} from "./enhanced/serialization/simplified/mod.ts";
+} from "./serialization/simplified/mod.ts";
 
 const xml = await Deno.readTextFile(
   "test_data/opt14/ehrbase_blood_pressure_simple.de.v0.opt",

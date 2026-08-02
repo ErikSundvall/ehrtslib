@@ -10,16 +10,16 @@ import {
   JsonConfigurableDeserializer,
   NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
   COMPACT_JSON_CONFIG
-} from "../enhanced/serialization/json/mod.ts";
+} from "../serialization/json/mod.ts";
 import {
   DeserializationError,
   TypeNotFoundError
-} from "../enhanced/serialization/common/mod.ts";
-import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT } from "../enhanced/openehr_rm.ts";
-import { TERMINOLOGY_ID } from "../enhanced/openehr_base.ts";
-import { TypeRegistry } from "../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../enhanced/openehr_rm.ts";
-import * as base from "../enhanced/openehr_base.ts";
+} from "../serialization/common/mod.ts";
+import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT } from "../rm/openehr_rm.ts";
+import { TERMINOLOGY_ID } from "../base/openehr_base.ts";
+import { TypeRegistry } from "../serialization/common/type_registry.ts";
+import * as rm from "../rm/openehr_rm.ts";
+import * as base from "../base/openehr_base.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);

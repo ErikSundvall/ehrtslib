@@ -18,7 +18,7 @@ import {
   unescapeTitleValue,
   wrapFhirNarrative,
   zipehrXhtmlToCanonical,
-} from "../../enhanced/serialization/zipehr/mod.ts";
+} from "../../../serialization/zipehr/mod.ts";
 
 const BODY_WEIGHT_FIXTURE: Record<string, unknown> = {
   "_type": "OBSERVATION",

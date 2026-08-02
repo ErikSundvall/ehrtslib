@@ -9,7 +9,7 @@
 const GRAMMARS = ["grammars/Adl.g4", "grammars/cadl.g4", "grammars/odin.g4"];
 
 console.log("ehrtslib ANTLR hybrid stub");
-console.log("Hand-written parsers: enhanced/parser/adl2_*.ts, cadl_parser.ts, odin_parser.ts");
+console.log("Hand-written parsers: parser/adl2_*.ts, cadl_parser.ts, odin_parser.ts");
 console.log("\nReference grammars:");
 
 for (const path of GRAMMARS) {
@@ -24,6 +24,6 @@ for (const path of GRAMMARS) {
 console.log(`
 Next steps (not automated here):
   1. Run ANTLR4 on grammars/ with TypeScript target
-  2. Diff generated lexer/parser against enhanced/parser/
+  2. Diff generated lexer/parser against parser/
   3. Port missing token types and production handlers incrementally
 `);

@@ -3,10 +3,10 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { InvariantEvaluator } from "../../enhanced/validation/invariant_evaluator.ts";
-import { ArchetypePathResolver } from "../../enhanced/validation/archetype_path_resolver.ts";
-import { TemplateValidator } from "../../enhanced/validation/template_validator.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
+import { InvariantEvaluator } from "../../../validation/invariant_evaluator.ts";
+import { ArchetypePathResolver } from "../../../validation/archetype_path_resolver.ts";
+import { TemplateValidator } from "../../../validation/template_validator.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 function buildObservationWithDataRule(): openehr_am.ARCHETYPE {
   const template = new openehr_am.ARCHETYPE();

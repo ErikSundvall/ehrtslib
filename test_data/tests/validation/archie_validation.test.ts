@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assert } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { TemplateValidator } from "../../enhanced/validation/template_validator.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
-import * as openehr_base from "../../enhanced/openehr_base.ts";
+import { TemplateValidator } from "../../../validation/template_validator.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
+import * as openehr_base from "../../../base/openehr_base.ts";
 
 function archetypeWithDefinition(
   rmType: string,

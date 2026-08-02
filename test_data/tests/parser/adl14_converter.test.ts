@@ -7,9 +7,9 @@ import {
   convertAdl14ToAdl2,
   detectAdlVersion,
   parseAdl,
-} from "../../enhanced/parser/mod.ts";
-import { ADL2Serializer } from "../../enhanced/generation/adl2_serializer.ts";
-import { ArchetypeValidator } from "../../enhanced/validation/archetype_validator.ts";
+} from "../../../parser/mod.ts";
+import { ADL2Serializer } from "../../../generation/adl2_serializer.ts";
+import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 

@@ -1,14 +1,14 @@
 import {
   assert,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { RMInstanceGenerator } from "../../../enhanced/generation/mod.ts";
-import { parseOptXml } from "../../../enhanced/parser/legacy/opt_xml_parser.ts";
+import { RMInstanceGenerator } from "../../../generation/mod.ts";
+import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 import {
   buildWebTemplate,
   serializeToFlat,
   serializeToStructured,
-} from "../../../enhanced/serialization/simplified/mod.ts";
-import type { WebTemplateNode } from "../../../enhanced/serialization/simplified/types.ts";
+} from "../../../serialization/simplified/mod.ts";
+import type { WebTemplateNode } from "../../../serialization/simplified/types.ts";
 
 const OPT_DIR = new URL("../../opt14/", import.meta.url);
 

@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { lookupTermInBag, resolveLocatableLabel } from "../../../enhanced/generation/term_scope.ts";
+import { lookupTermInBag, resolveLocatableLabel } from "../../../generation/term_scope.ts";
 
 Deno.test("lookupTermInBag resolves dotted suffix within one archetype bag", () => {
   const bag = {

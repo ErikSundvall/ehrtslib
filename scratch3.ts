@@ -1,5 +1,5 @@
-import { parseOptXml } from "./enhanced/parser/legacy/opt_xml_parser.ts";
-import { RMInstanceGenerator } from "./enhanced/generation/rm_instance_generator.ts";
+import { parseOptXml } from "./parser/legacy/opt_xml_parser.ts";
+import { RMInstanceGenerator } from "./generation/rm_instance_generator.ts";
 import {
   buildWebTemplate,
   deserializeFromFlat,
@@ -8,7 +8,7 @@ import {
   serializeToStructured,
   structuredToFlat,
   webTemplateToOpt,
-} from "./enhanced/serialization/simplified/mod.ts";
+} from "./serialization/simplified/mod.ts";
 
 function diffKeys(a: Record<string, unknown>, b: Record<string, unknown>) {
   const out: string[] = [];

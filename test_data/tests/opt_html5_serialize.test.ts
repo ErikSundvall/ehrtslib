@@ -5,13 +5,13 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { parseOptXml } from "../../enhanced/parser/legacy/opt_xml_parser.ts";
+import { parseOptXml } from "../../parser/legacy/opt_xml_parser.ts";
 import {
   optTagForType,
   serializeOperationalTemplateToHtml5,
   serializeToOptHtml5Variant,
-} from "../../enhanced/serialization/zipehr/opt_html5_serialize.ts";
-import { resolveOptTag } from "../../enhanced/serialization/zipehr/opt_html5_deserialize.ts";
+} from "../../serialization/zipehr/opt_html5_serialize.ts";
+import { resolveOptTag } from "../../serialization/zipehr/opt_html5_deserialize.ts";
 
 const OPT_PATH =
   new URL("../../test_data/opt14/ehrbase_blood_pressure_simple.de.v0.opt", import.meta.url);

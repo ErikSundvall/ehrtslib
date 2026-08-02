@@ -216,6 +216,12 @@
                         Select Preset Example
                       </button>
                       <div class="example-menu hidden" id="example-menu">
+                        <button
+                          class="example-item"
+                          data-example="accident-report-vitals"
+                        >
+                          Accident report + vitals (Ehrlibs FLAT)
+                        </button>
                         <button class="example-item" data-example="dv-text">
                           Simple DV_TEXT
                         </button>
@@ -274,6 +280,14 @@
                 class="input-pane-toolbar input-pane-toolbar--adgit"
                 aria-label="Template from Archetype Designer on GitHub"
               >
+                <select
+                  id="curated-model-example"
+                  class="curated-model-select"
+                  title="Curated templates — Ehrlibs first"
+                  aria-label="Curated model example"
+                >
+                  <option value="">Curated examples…</option>
+                </select>
                 <input
                   type="url"
                   class="github-template-url-input"
@@ -293,12 +307,15 @@
                 </button>
               </div>
               <p class="adgit-intro">
-                Paste a GitHub <strong>blob</strong> or <strong>raw</strong> link to a
-                Better Archetype Designer <code>.t.json</code> file. The loader
-                downloads that template and recursively fetches nested templates and
-                archetypes from the same branch. It will then (if successful)
-                automatically switch over to the "Generate example from Template" tab 
-                where you may find the template and files it depend on.many files.
+                Primary examples come from
+                <a href="https://github.com/Ehrlibs/openEHR-model-examples" target="_blank" rel="noopener"
+                >Ehrlibs/openEHR-model-examples</a>
+                (Accident report + vital signs). Pick a curated example or paste any
+                GitHub <strong>blob</strong> / <strong>raw</strong> link to a Better
+                Archetype Designer <code>.t.json</code>. The loader downloads that
+                template and recursively fetches nested templates and archetypes from
+                the same branch, then switches to
+                <strong>Generate example from Template</strong>.
               </p>
               <div
                 class="adgit-progress"

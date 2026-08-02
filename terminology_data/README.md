@@ -21,7 +21,7 @@ Current version: 3.1.0 (dated 2024-04-11)
 
 ## Usage
 
-The terminology service automatically loads these files when initialized. See `enhanced/terminology_service.ts` for implementation details.
+The terminology service automatically loads these files when initialized. See `term/terminology_service.ts` for implementation details.
 
 ## Updating
 

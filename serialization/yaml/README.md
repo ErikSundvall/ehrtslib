@@ -1,0 +1,554 @@
+# YAML Serialization for openEHR RM Objects
+
+This module provides YAML serialization and deserialization for openEHR Reference Model (RM) objects.
+
+**Note**: YAML is not an official openEHR standard format, but it provides excellent human readability for files, documentation, and data inspection.
+
+## Features
+
+- ✅ **Human-readable format** - Easy to read and edit
+- ✅ **Multiple styles** - Block, flow, and hybrid formatting
+- ✅ **Type inference** - Optional compact mode with fewer type annotations
+- ✅ **Terse format** - Recommended for YAML (no official standard to break!)
+- ✅ **Flexible configuration** - Multiple preset configurations
+- ✅ **Type-safe deserialization** - Automatic reconstruction of typed objects
+
+## Quick Start
+
+### Basic Serialization
+
+```typescript
+import { YamlSerializer } from './serialization/yaml/mod.ts';
+import { DV_TEXT } from './openehr_rm.ts';
+
+// Create an RM object
+const dvText = new DV_TEXT();
+dvText.value = "Patient temperature reading";
+
+// Serialize to YAML
+const serializer = new YamlSerializer();
+const yaml = serializer.serialize(dvText);
+
+console.log(yaml);
+// Output:
+// _type: DV_TEXT
+// value: Patient temperature reading
+```
+
+### Basic Deserialization
+
+```typescript
+import { YamlDeserializer } from './serialization/yaml/mod.ts';
+
+const yaml = `
+_type: DV_TEXT
+value: Test value
+`;
+
+const deserializer = new YamlDeserializer();
+const obj = deserializer.deserialize(yaml);
+
+console.log(obj.value); // "Test value"
+```
+
+## Configuration Options
+
+### Serialization Configuration
+
+```typescript
+interface YamlSerializationConfig {
+  // Main YAML style (default: 'hybrid')
+  mainStyle?: 'block' | 'flow' | 'hybrid';
+  
+  // Include _type fields (default: false - only on polymorphic types)
+  includeType?: boolean;
+  
+  // Use type inference (compact mode) (default: true)
+  useTypeInference?: boolean;
+  
+  // Indentation (default: 2)
+  indent?: number;
+  
+  // Line width (default: 80)
+  lineWidth?: number;
+  
+  // Use terse format (recommended for YAML!) (default: true)
+  useTerseFormat?: boolean;
+  
+  // Include null values (default: false)
+  includeNullValues?: boolean;
+  
+  // Include empty collections (default: false)
+  includeEmptyCollections?: boolean;
+  
+  // Max properties for inline formatting in hybrid style (default: 3)
+  maxInlineProperties?: number;
+  
+  // Keep archetype details inline - ONLY for flow style (default: false)
+  keepArchetypeDetailsInline?: boolean;
+}
+```
+
+### Three Main Styles
+
+**Phase 4g.8 Update**: The YAML serializer now supports three distinct, valid YAML styles:
+
+1. **Hybrid Style** (Default): Simple objects are inline using flow style, complex objects use block style. This provides a good balance between compactness and readability.
+
+2. **Flow Style**: All objects use flow style (inline with curly braces and brackets). When `keepArchetypeDetailsInline` is enabled, strategic line breaks are added for better readability while maintaining valid YAML syntax.
+
+3. **Block Style**: Traditional multi-line YAML format. Most verbose but arguably most readable for deeply nested structures.
+
+### Deserialization Configuration
+
+```typescript
+interface YamlDeserializationConfig {
+  // Strict mode (default: true)
+  strict?: boolean;
+  
+  // Allow duplicate keys (default: false)
+  allowDuplicateKeys?: boolean;
+  
+  // Parse terse format (default: true)
+  parseTerseFormat?: boolean;
+}
+```
+
+## Preset Configurations
+
+The following examples all serialize the same SECTION with two data elements to show the differences between configurations.
+
+**Input Object:**
+```typescript
+// Create a section with diabetes diagnosis and pulse observation
+const section = new SECTION();
+section.name = new DV_TEXT();
+section.name.value = "Vital Signs";
+
+// First element: Diabetes diagnosis (DV_CODED_TEXT)
+const diabetesElement = new ELEMENT();
+diabetesElement.name = new DV_TEXT();
+diabetesElement.name.value = "Diagnosis";
+diabetesElement.value = new DV_CODED_TEXT();
+diabetesElement.value.value = "Diabetes mellitus type 2";
+diabetesElement.value.defining_code = new CODE_PHRASE();
+diabetesElement.value.defining_code.terminology_id = new TERMINOLOGY_ID();
+diabetesElement.value.defining_code.terminology_id.value = "SNOMED-CT";
+diabetesElement.value.defining_code.code_string = "44054006";
+diabetesElement.value.defining_code.preferred_term = "Type 2 diabetes mellitus";
+
+// Second element: Pulse rate (DV_QUANTITY)
+const pulseElement = new ELEMENT();
+pulseElement.name = new DV_TEXT();
+pulseElement.name.value = "Pulse rate";
+pulseElement.value = new DV_QUANTITY();
+pulseElement.value.magnitude = 72;
+pulseElement.value.units = "/min";
+
+section.items = [diabetesElement, pulseElement];
+```
+
+### Default YAML (Compact & Readable - Recommended)
+
+```typescript
+import { YamlSerializer } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer();  // Uses DEFAULT_YAML_SERIALIZATION_CONFIG
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+_type: SECTION
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
+```
+
+Uses type inference and terse format for maximum conciseness while maintaining readability. _type included only on polymorphic classes. Empty collections omitted.
+
+### Verbose YAML
+
+```typescript
+import { YamlSerializer, VERBOSE_YAML_CONFIG } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(VERBOSE_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+_type: SECTION
+name:
+  _type: DV_TEXT
+  value: Vital Signs
+items:
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Diagnosis
+    value:
+      _type: DV_CODED_TEXT
+      defining_code:
+        _type: CODE_PHRASE
+        terminology_id:
+          _type: TERMINOLOGY_ID
+          value: SNOMED-CT
+        code_string: "44054006"
+        preferred_term: Type 2 diabetes mellitus
+      value: Diabetes mellitus type 2
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Pulse rate
+    value:
+      _type: DV_QUANTITY
+      magnitude: 72
+      units: /min
+```
+
+Full YAML with all type information and no terse format. Most verbose but clearest structure.
+
+### Hybrid YAML (Default - Balance of Compact & Readable)
+
+```typescript
+import { YamlSerializer, HYBRID_YAML_CONFIG } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+name: { value: Vital Signs }
+items:
+  - name: { value: Diagnosis }
+    value: { defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2 }
+  - name: { value: Pulse rate }
+    value: { magnitude: 72, units: /min }
+```
+
+Simple objects are formatted inline using flow style (e.g., `{ value: Text }`), while complex nested structures maintain block style formatting. Uses terse format and type inference for compact output. **This is the default and recommended style.**
+
+### Block Style (Traditional Multi-line)
+
+```typescript
+import { YamlSerializer, BLOCK_YAML_CONFIG } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(BLOCK_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+name:
+  value: Vital Signs
+items:
+  - name:
+      value: Diagnosis
+    value:
+      defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|
+      value: Diabetes mellitus type 2
+  - name:
+      value: Pulse rate
+    value:
+      magnitude: 72
+      units: /min
+```
+
+Traditional multi-line YAML block style. Most verbose but arguably most readable for deeply nested structures. Each property on its own line with consistent indentation.
+
+### Flow Style (Compact with Strategic Line Breaks)
+
+```typescript
+import { YamlSerializer, FLOW_YAML_CONFIG } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(FLOW_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output (with keepArchetypeDetailsInline enabled):**
+```yaml
+{
+  name: { value: Vital Signs },
+  items: [
+    {name: { value: Diagnosis },
+     value: { defining_code: SNOMED-CT::44054006|Type 2 diabetes mellitus|, value: Diabetes mellitus type 2 }},
+    {name: { value: Pulse rate },
+     value: { magnitude: 72, units: /min }}
+  ]
+}
+```
+
+Most compact format using flow style (inline JSON-like syntax) with strategic line breaks when `keepArchetypeDetailsInline` is enabled. Archetype metadata (name, archetype_node_id, archetype_details) is kept on one line for better readability.
+
+### Verbose YAML (With All Types)
+
+```typescript
+import { YamlSerializer, VERBOSE_YAML_CONFIG } from './serialization/yaml/mod.ts';
+
+const serializer = new YamlSerializer(VERBOSE_YAML_CONFIG);
+const yaml = serializer.serialize(section);
+```
+
+**Output:**
+```yaml
+_type: SECTION
+name:
+  _type: DV_TEXT
+  value: Vital Signs
+items:
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Diagnosis
+    value:
+      _type: DV_CODED_TEXT
+      defining_code:
+        _type: CODE_PHRASE
+        terminology_id:
+          _type: TERMINOLOGY_ID
+          value: SNOMED-CT
+        code_string: "44054006"
+        preferred_term: Type 2 diabetes mellitus
+      value: Diabetes mellitus type 2
+  - _type: ELEMENT
+    name:
+      _type: DV_TEXT
+      value: Pulse rate
+    value:
+      _type: DV_QUANTITY
+      magnitude: 72
+      units: /min
+```
+
+Full YAML with all type information included. Block style without terse format. Most verbose but clearest structure for debugging or when type information is critical.
+
+**Output:**
+```yaml
+{_type: SECTION, name: {_type: DV_TEXT, value: Vital Signs}, items: [{_type: ELEMENT, name: {_type: DV_TEXT, value: Diagnosis}, value: {_type: DV_CODED_TEXT, defining_code: {_type: CODE_PHRASE, terminology_id: {_type: TERMINOLOGY_ID, value: SNOMED-CT}, code_string: "44054006", preferred_term: Type 2 diabetes mellitus}, value: Diabetes mellitus type 2}}, {_type: ELEMENT, name: {_type: DV_TEXT, value: Pulse rate}, value: {_type: DV_QUANTITY, magnitude: 72, units: /min}}]}
+```
+
+More compact, JSON-like appearance. Useful when horizontal space is prioritized over vertical readability.
+
+## Archetype Metadata Inline Formatting (Phase 4g.7)
+
+In hybrid YAML mode, there's a special feature for formatting archetype metadata properties inline for better readability.
+
+### Configuration
+
+```typescript
+interface YamlSerializationConfig {
+  // ... other options ...
+  
+  /**
+   * Keep archetype metadata (name, archetype_node_id, archetype_details) inline in hybrid style.
+   * When enabled, these properties are formatted on the same line using flow style,
+   * while other properties remain on separate lines.
+   * @default true (enabled by default in hybrid mode)
+   */
+  keepArchetypeDetailsInline?: boolean;
+}
+```
+
+### Example
+
+When `keepArchetypeDetailsInline` is `true` (default in hybrid mode):
+
+```typescript
+const cluster = new CLUSTER();
+cluster.name = new DV_TEXT({ value: "Organization" });
+cluster.archetype_node_id = "openEHR-EHR-CLUSTER.organisation.v1";
+cluster.archetype_details = new ARCHETYPED();
+cluster.archetype_details.archetype_id = new ARCHETYPE_ID({ value: "openEHR-EHR-CLUSTER.organisation.v1" });
+cluster.archetype_details.rm_version = "1.1.0";
+cluster.items = [...]; // Some items
+
+const serializer = new YamlSerializer(HYBRID_YAML_CONFIG);
+const yaml = serializer.serialize(cluster);
+```
+
+**Output with `keepArchetypeDetailsInline: true` (default in hybrid mode):**
+```yaml
+{ name: { value: Organization }, archetype_node_id: openEHR-EHR-CLUSTER.organisation.v1, archetype_details: { archetype_id: { value: openEHR-EHR-CLUSTER.organisation.v1 }, rm_version: 1.1.0 } }
+items:
+  - { name: { value: Child Item }, archetype_node_id: at0001 }
+    value: { value: Some value }
+```
+
+Notice how:
+- All archetype metadata properties (`name`, `archetype_node_id`, `archetype_details`) are grouped on a single line using flow style
+- Nested objects within archetype properties are also inline
+- Other properties like `items` and `value` appear on subsequent lines
+- This format makes it easy to scan archetype structures while keeping details compact
+
+This format makes it easy to quickly scan the archetype structure while keeping the details compact.
+
+### Disabling the Feature
+
+To disable this feature and use standard hybrid formatting:
+
+```typescript
+const serializer = new YamlSerializer({
+  ...HYBRID_YAML_CONFIG,
+  keepArchetypeDetailsInline: false,
+});
+```
+
+## Advanced Usage
+
+### Terse Format (Recommended for YAML)
+
+Unlike JSON, YAML has no official openEHR standard, so terse format is **recommended**:
+
+```typescript
+const serializer = new YamlSerializer({ useTerseFormat: true });
+
+const codePhrase = new CODE_PHRASE();
+codePhrase.terminology_id = new TERMINOLOGY_ID();
+codePhrase.terminology_id.value = "ISO_639-1";
+codePhrase.code_string = "en";
+
+const yaml = serializer.serialize(codePhrase);
+console.log(yaml); // ISO_639-1::en
+```
+
+To deserialize:
+
+```typescript
+const deserializer = new YamlDeserializer({ parseTerseFormat: true });
+const obj = deserializer.deserialize("ISO_639-1::en");
+```
+
+### Compact Mode with Type Inference
+
+```typescript
+const serializer = new YamlSerializer({
+  includeType: true,
+  useTypeInference: true, // Omit types when safe
+  useTerseFormat: true
+});
+
+const yaml = serializer.serialize(composition);
+```
+
+This produces the most concise YAML while still being deserializable.
+
+### Hybrid Style Formatting
+
+```typescript
+const serializer = new YamlSerializer({
+  mainStyle: 'hybrid',
+  useTerseFormat: true,
+  maxInlineProperties: 3
+});
+
+// Simple objects are formatted inline (flow style)
+// Complex objects use block style
+const yaml = serializer.serialize(composition);
+```
+
+The hybrid style intelligently decides whether to format objects inline or across multiple lines:
+- **Simple objects** (≤ `maxInlineProperties`, no nested objects) → Flow style: `{ value: Text, units: kg }`
+- **Complex objects** (many properties or nested structures) → Block style with proper indentation
+- **Arrays** → Block style with items properly indented
+- The threshold is configurable via `maxInlineProperties` (default: 3)
+- Inspired by the zipehr approach for optimal readability
+
+### Cross-Format Conversion
+
+Convert between JSON and YAML easily:
+
+```typescript
+import { JsonDeserializer } from '../json/mod.ts';
+import { YamlSerializer } from './mod.ts';
+
+// Deserialize from JSON
+const jsonDeserializer = new JsonDeserializer();
+const obj = jsonDeserializer.deserialize(jsonString);
+
+// Serialize to YAML
+const yamlSerializer = new YamlSerializer();
+const yaml = yamlSerializer.serialize(obj);
+```
+
+## YAML-Specific Features
+
+### Anchors and Aliases
+
+The YAML parser supports anchors and aliases:
+
+```yaml
+_type: COMPOSITION
+name: &composition_name
+  _type: DV_TEXT
+  value: Blood Pressure
+
+# Reuse the same object
+description: *composition_name
+```
+
+### Multi-line Strings
+
+YAML's multi-line string support works naturally:
+
+```yaml
+_type: DV_TEXT
+value: |
+  This is a long
+  multi-line text
+  with line breaks
+```
+
+## Type Registration
+
+Before using serialization, ensure all RM types are registered:
+
+```typescript
+import { TypeRegistry } from './serialization/common/type_registry.ts';
+import * as rm from './openehr_rm.ts';
+import * as base from './openehr_base.ts';
+
+TypeRegistry.registerModule(rm);
+TypeRegistry.registerModule(base);
+```
+
+
+## Permissions
+
+The YAML library used is `yaml` from JSR. It may require environment variable access:
+
+```bash
+deno run --allow-env --allow-read your_script.ts
+```
+
+## Performance Tips
+
+1. **Reuse serializer instances** - Create once, use multiple times
+2. **Use compact config** for smaller output
+3. **Enable terse format** for CODE_PHRASE and DV_CODED_TEXT
+4. **Consider block style** for deeply nested objects
+
+## Compatibility
+
+- ⚠️ YAML is not an official openEHR standard
+- ✅ All data can be converted between JSON and YAML
+- ✅ Terse format is recommended for YAML
+- ✅ Works with type inference
+- ✅ Supports all YAML 1.2 features
+
+## Examples
+
+See the `examples/` directory for more comprehensive examples:
+- `yaml_serialization_basic.ts` - Basic usage
+- `yaml_serialization_advanced.ts` - Advanced features

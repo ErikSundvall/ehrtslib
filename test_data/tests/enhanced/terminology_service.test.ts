@@ -19,7 +19,7 @@ import {
   CodeSet,
   TerminologyGroup,
   Terminology,
-} from "../../enhanced/terminology_service.ts";
+} from "../../../term/terminology_service.ts";
 
 // ===== Singleton Tests =====
 

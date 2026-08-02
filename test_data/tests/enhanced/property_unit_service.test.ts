@@ -17,7 +17,7 @@ import {
   PropertyUnitDataService,
   PropertyData,
   UnitData,
-} from "../../enhanced/property_unit_service.ts";
+} from "../../../term/property_unit_service.ts";
 
 // Sample XML for testing
 const SAMPLE_XML = `<?xml version="1.0" standalone="yes"?>

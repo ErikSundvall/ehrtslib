@@ -41,10 +41,10 @@ deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
 This generates stub files in the `/generated` directory. These stubs are safe to
-regenerate at any time - they won't overwrite your enhanced implementations in
-`/enhanced`.
+regenerate at any time - they won't overwrite the hand-written model modules
+under `base/`, `rm/`, `am/`, `lang/` and `term/`.
 
-Also regenerate **RM attribute metadata** (used by `enhanced/meta`) after BMM
+Also regenerate **RM attribute metadata** (used by `meta`) after BMM
 URL/version changes:
 
 ```bash
@@ -54,8 +54,9 @@ deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
 
 See [docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md).
 
-**Note:** The root-level `openehr_*.ts` files are thin re-export wrappers that
-provide backward compatibility by re-exporting from `/enhanced`.
+**Note:** The root-level `openehr_*.ts` files are thin re-export wrappers over the
+per-component barrels (`base/mod.ts`, `rm/mod.ts`, …), so the public import paths
+stay stable.
 
 ### What the Generator Does
 
@@ -110,7 +111,7 @@ scripts should handle most cases.
 ### Output Structure
 
 The library uses a three-tier structure to separate generated stubs from
-enhanced implementations:
+hand-written implementations:
 
 ```
 /ehrtslib
@@ -119,21 +120,24 @@ enhanced implementations:
 │   ├── openehr_base.ts # Generated stubs
 │   ├── openehr_rm.ts
 │   └── ...
-├── /enhanced           # ✅ SAFE TO EDIT - Your implementations
-│   ├── README.md       # Explains enhanced code
-│   ├── openehr_base.ts # Full implementations
-│   ├── openehr_rm.ts
-│   └── ...
-├── openehr_base.ts     # 🔄 Re-export wrapper (backward compatibility)
-├── openehr_rm.ts       # Re-exports from /enhanced
+├── /base               # ✅ SAFE TO EDIT - hand-written BASE model
+│   ├── mod.ts          # Component barrel
+│   └── openehr_base.ts # Full implementations
+├── /rm                 # ✅ Reference Model (same shape as /base)
+├── /am                 # ✅ Archetype Model; AOM utilities in /am/util
+├── /lang               # ✅ LANG / BMM model
+├── /term               # ✅ Terminology model + terminology/UCUM services
+├── openehr_base.ts     # 🔄 Root re-export (stable public path)
+├── openehr_rm.ts       # Re-exports from ./rm/mod.ts
+├── mod.ts              # Namespaced barrel for the whole library
 └── ...
 ```
 
 **Key Points:**
 
 - `/generated` - Contains pure BMM-derived stubs. Safe to regenerate anytime.
-- `/enhanced` - Contains fully implemented classes with your enhancements. Never
-  overwritten by generator.
+- `/base`, `/rm`, `/am`, `/lang`, `/term` - Contain the fully implemented classes.
+  Never overwritten by the generator.
 - Root level - Thin re-export wrappers for backward compatibility. External code
   imports from here.
 
@@ -166,7 +170,7 @@ git diff tasks/bmm_versions.json
 
 ### Step 2: Review What Changed
 
-Before updating your enhanced implementations, understand what changed in the
+Before updating the hand-written implementations, understand what changed in the
 new BMM version using the comparison utility:
 
 ```bash
@@ -196,36 +200,36 @@ Generate new stubs from the updated BMM files:
 deno run --allow-read --allow-net --allow-write tasks/generate_ts_libs.ts
 ```
 
-This updates files in `/generated` with the new BMM structure. Your `/enhanced`
+This updates files in `/generated` with the new BMM structure. The hand-written modules
 implementations remain untouched.
 
 ### Step 4: Get Merge Assistance
 
-Use the merge utility to insert TODO comments into your enhanced files:
+Use the merge utility to insert TODO comments into the hand-written modules:
 
 ```bash
 # Generate TODO comments based on the comparison report (openehr_base used as an example)
 deno run --allow-read --allow-write tasks/merge_bmm_updates.ts \
   bmm_comparison_openehr_base_1.3.0_to_1.4.0.md \
-  enhanced/openehr_base.ts
+  base/openehr_base.ts
 ```
 
-This creates a backup and inserts TODO comments at the top of the enhanced file,
+This creates a backup and inserts TODO comments at the top of the hand-written module,
 listing all changes that need to be made.
 
-### Step 5: Update Enhanced Files (Manually or AI assisted)
+### Step 5: Update the Hand-written Modules (Manually or AI assisted)
 
-Work through the TODO comments in your enhanced file:
+Work through the TODO comments in the hand-written module:
 
-1. **For new classes**: Copy the class stub from `/generated` to `/enhanced` and
+1. **For new classes**: Copy the class stub from `/generated` into the matching component directory and
    implement methods
 
-2. **For new methods**: Add the method to the appropriate class in `/enhanced`
+2. **For new methods**: Add the method to the appropriate class in the matching component directory
    - Copy the signature from `/generated`
    - Implement the behavior
    - Add tests
 
-3. **For modified signatures**: Update the method in `/enhanced`
+3. **For modified signatures**: Update the method in the matching component directory
    - Compare old vs new signature in `/generated`
    - Update your implementation to match
    - Verify tests still pass
@@ -261,10 +265,10 @@ behaviors:
    behavior descriptions, pseudocode, test cases, and specification references.
    ```
 
-4. **Use instructions when coding**: When implementing in `/enhanced`, refer to
+4. **Use instructions when coding**: When implementing a component module, refer to
    the instruction files to ensure correct behavior:
    ```
-   Implement the [ClassName] class in enhanced/[package].ts following the
+   Implement the [ClassName] class in [component]/[package].ts following the
    instructions in tasks/instructions/[ClassName].md
    ```
 
@@ -307,7 +311,7 @@ Before committing your changes:
    ```
 
 4. **Document the update**:
-   - Update the header comment in enhanced files with new BMM version
+   - Update the header comment in the hand-written modules with new BMM version
    - Note the BMM version in commit messages
    - Update any changelogs or version documentation
    - Document any breaking changes from the BMM update
@@ -318,14 +322,14 @@ If something goes wrong during the update:
 
 ```bash
 # The merge utility creates automatic backups that can be restored (openehr_base used as an example)
-cp enhanced/openehr_base.ts.backup.1234567890 enhanced/openehr_base.ts
+cp base/openehr_base.ts.backup.1234567890 base/openehr_base.ts
 
 # Or use git to reset
-git checkout -- enhanced/openehr_base.ts
+git checkout -- base/openehr_base.ts
 ```
 
 **Note**: Since `/generated` can always be regenerated, you only need to protect
-`/enhanced` files.
+the hand-written modules.
 
 ## Adding a New BMM File
 
@@ -404,17 +408,18 @@ The generator will:
 - Add proper import statements for dependencies
 - Create `generated/openehr_proc.ts` (or whatever your package name is)
 
-### Step 3: Create Enhanced Implementation
+### Step 3: Create the Hand-written Implementation
 
-After generation, create the enhanced version:
+After generation, create the hand-written version:
 
-1. **Copy the generated stub to enhanced**:
+1. **Copy the generated stub into a new component directory**:
    ```bash
-   cp generated/openehr_proc.ts enhanced/openehr_proc.ts
+   mkdir proc
+cp generated/openehr_proc.ts proc/openehr_proc.ts
    ```
 
-2. **Update the header** in `enhanced/openehr_proc.ts`:
-   - Change "Generated" to "Enhanced implementation based on"
+2. **Update the header** in `proc/openehr_proc.ts`:
+   - Change "Generated" to "Hand-written implementation based on"
    - Add "Last synced with BMM" date
    - Update warnings to indicate this is safe to edit
 
@@ -426,7 +431,7 @@ After generation, create the enhanced version:
 
 4. **Check for TypeScript errors**:
    ```bash
-   deno check enhanced/openehr_proc.ts
+   deno check proc/openehr_proc.ts
    ```
 
 ### Step 4: Create Root Re-export Wrapper
@@ -437,14 +442,14 @@ Create a thin re-export wrapper at the root level:
 cat > openehr_proc.ts << 'EOF'
 // Re-export wrapper for openehr_proc
 // 
-// This file provides backward compatibility by re-exporting all symbols from the enhanced implementation.
+// Stable root entry point; the implementation lives in the component directory.
 // External code can continue to import from the root level without changes.
 // 
 // ✅ Backward Compatibility Layer
 // This is a thin re-export wrapper that maintains API stability.
-// The actual implementation is in ./enhanced/openehr_proc.ts
+// The actual implementation is in ./proc/openehr_proc.ts
 
-export * from "./enhanced/openehr_proc.ts";
+export * from "./proc/mod.ts";
 EOF
 ```
 
@@ -452,14 +457,14 @@ EOF
 
 If the new package is referenced by existing packages:
 
-1. **Update imports in enhanced files** that need the new package:
+1. **Update imports in the hand-written modules** that need the new package:
    ```typescript
    import * as openehr_proc from "./openehr_proc.ts";
    ```
 
 2. **Regenerate if BMM dependencies changed**:
    - If other BMM files now reference the new package, regenerate them
-   - Update their enhanced versions with any new references
+   - Update their hand-written versions with any new references
 
 ### Step 6: Add Tests
 
@@ -472,9 +477,9 @@ Create tests for the new package in both test directories:
 
    Write tests that verify structure but accept "not implemented" errors.
 
-2. **Create behavioral test** in `tests/enhanced/`:
+2. **Create behavioral test** in `test_data/tests/enhanced/`:
    ```bash
-   touch tests/enhanced/openehr_proc_test.ts
+   touch test_data/tests/enhanced/openehr_proc_test.ts
    ```
 
    Write tests that verify full behavior:
@@ -512,7 +517,7 @@ If the new package is significant, update documentation:
    const proc = new SomeClass();
    ```
 
-3. **Document in enhanced file**:
+3. **Document in the hand-written module**:
    - Add header comments explaining the package purpose
    - Document any custom additions beyond the BMM
 
@@ -525,9 +530,9 @@ Final verification steps:
    deno check generated/*.ts
    ```
 
-2. **Check all enhanced files**:
+2. **Check all hand-written modules**:
    ```bash
-   deno check enhanced/*.ts
+   deno task check
    ```
 
 3. **Check root re-exports**:
@@ -542,7 +547,7 @@ Final verification steps:
 
 5. **Verify no circular dependencies**:
    - Deno will error if circular imports exist
-   - Adjust imports if needed (enhanced files should only import other enhanced
+   - Adjust imports if needed (component modules should only import other hand-written
      files)
 
 ### Common Issues and Solutions
@@ -614,9 +619,9 @@ Example usage:
 import { LOCATABLE } from "./openehr_rm.ts";
 import * as base from "./openehr_base.ts";
 
-// Import from enhanced (for internal development)
-import { LOCATABLE } from "./enhanced/openehr_rm.ts";
-import * as base from "./enhanced/openehr_base.ts";
+// Import the component module directly (for internal development)
+import { LOCATABLE } from "./openehr_rm.ts";
+import * as base from "./openehr_base.ts";
 
 // Use the classes
 const id: base.UID_BASED_ID = ...;
@@ -687,7 +692,7 @@ npm outdated @lhncbc/ucum-lhc
    ```
 3. Run tests to verify compatibility:
    ```bash
-   deno test tests/enhanced/measurement_service_test.ts
+   deno test test_data/tests/enhanced/measurement_service_test.ts
    ```
 4. Update `package.json` version if needed
 5. Document the update in commit message
@@ -730,14 +735,14 @@ cat deno.json | grep fast-xml-parser
    ```
 4. Run tests to verify compatibility:
    ```bash
-   deno test tests/enhanced/xml_serializer.test.ts
-   deno test tests/enhanced/xml_deserializer.test.ts
-   deno test tests/enhanced/serialization_common.test.ts
+   deno test test_data/tests/enhanced/xml_serializer.test.ts
+   deno test test_data/tests/enhanced/xml_deserializer.test.ts
+   deno test tests/serialization_common.test.ts
    ```
 5. Document the update in commit message
 
 **Important Notes:**
-- Used for XML serialization in `enhanced/serialization/xml/`
+- Used for XML serialization in `serialization/xml/`
 - Supports openEHR ITS-XML compliance with xsi:type attributes
 - Lightweight and performant
 - MIT licensed
@@ -769,14 +774,14 @@ cat deno.json | grep yaml
    ```
 3. Run tests to verify compatibility:
    ```bash
-   deno test tests/enhanced/yaml_serializer_basic.test.ts
-   deno test tests/enhanced/yaml_hybrid_test.ts
-   deno test tests/enhanced/roundtrip.test.ts
+   deno test test_data/tests/enhanced/yaml_serializer_basic.test.ts
+   deno test test_data/tests/enhanced/yaml_hybrid_test.ts
+   deno test test_data/tests/enhanced/roundtrip.test.ts
    ```
 4. Document the update in commit message
 
 **Important Notes:**
-- Used for YAML serialization in `enhanced/serialization/yaml/`
+- Used for YAML serialization in `serialization/yaml/`
 - Supports multiple formatting styles (block, flow, hybrid)
 - ISC licensed (library size varies by version)
 
@@ -810,7 +815,7 @@ https://github.com/openEHR/specifications-TERM/blob/master/computable/XML/Proper
 
 3. Run tests:
    ```bash
-   deno test tests/enhanced/property_unit_service_test.ts
+   deno test test_data/tests/enhanced/property_unit_service_test.ts
    ```
 
 4. Commit with a clear message noting what changed

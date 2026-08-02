@@ -3,7 +3,7 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer, TokenType } from "../../enhanced/parser/adl2_tokenizer.ts";
+import { ADL2Tokenizer, TokenType } from "../../../parser/adl2_tokenizer.ts";
 
 Deno.test("Tokenizer - basic keywords", () => {
   const input = "archetype language description definition terminology";

@@ -16,7 +16,7 @@ import {
   RM_META_RM_RELEASE,
   RM_META_SCHEMA_NAME,
   subtypesOf,
-} from "../../../enhanced/meta/mod.ts";
+} from "../../../meta/mod.ts";
 
 Deno.test("meta header records RM BMM release", () => {
   assertEquals(RM_META_SCHEMA_NAME, "rm");

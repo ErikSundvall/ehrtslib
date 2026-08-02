@@ -493,6 +493,16 @@ body {
     flex: 1 1 16rem;
 }
 
+.input-pane-toolbar--adgit .curated-model-select {
+    flex: 0 1 14rem;
+    max-width: 18rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: var(--radius-sm, 4px);
+    background: var(--surface, #fff);
+}
+
 .form-group-inline {
     display: flex;
     align-items: center;

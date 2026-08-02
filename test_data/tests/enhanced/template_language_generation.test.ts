@@ -1,9 +1,9 @@
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
+import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
   availableTemplateLanguages,
   RMInstanceGenerator,
-} from "../../../enhanced/generation/mod.ts";
+} from "../../../generation/mod.ts";
 
 const BLOB_URL =
   "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";

@@ -3,12 +3,12 @@
  */
 
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { TypeScriptConstructorSerializer, DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG } from "../../enhanced/serialization/typescript/mod.ts";
-import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT, COMPOSITION, SECTION, ELEMENT, DV_QUANTITY, PARTY_IDENTIFIED } from "../../enhanced/openehr_rm.ts";
-import { TERMINOLOGY_ID, OBJECT_VERSION_ID, ARCHETYPE_ID } from "../../enhanced/openehr_base.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../../enhanced/openehr_rm.ts";
-import * as base from "../../enhanced/openehr_base.ts";
+import { TypeScriptConstructorSerializer, DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG } from "../../../serialization/typescript/mod.ts";
+import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT, COMPOSITION, SECTION, ELEMENT, DV_QUANTITY, PARTY_IDENTIFIED } from "../../../rm/openehr_rm.ts";
+import { TERMINOLOGY_ID, OBJECT_VERSION_ID, ARCHETYPE_ID } from "../../../base/openehr_base.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
+import * as rm from "../../../rm/openehr_rm.ts";
+import * as base from "../../../base/openehr_base.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);
@@ -268,8 +268,8 @@ Deno.test("TypeScript Constructor: imports grouping", () => {
   assertExists(code);
   
   // Should have both RM and BASE imports
-  assert(code.includes('from \'./enhanced/openehr_rm.ts\''), "Should have RM imports");
-  assert(code.includes('from \'./enhanced/openehr_base.ts\''), "Should have BASE imports");
+  assert(code.includes('from \'./openehr_rm.ts\''), "Should have RM imports");
+  assert(code.includes('from \'./openehr_base.ts\''), "Should have BASE imports");
   
   // Check that imports are grouped
   const lines = code.split('\n');

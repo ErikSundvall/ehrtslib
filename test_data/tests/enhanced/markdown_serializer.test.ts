@@ -3,16 +3,16 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert";
-import { MarkdownSerializer } from "../../enhanced/serialization/markdown/mod.ts";
+import { MarkdownSerializer } from "../../../serialization/markdown/mod.ts";
 import {
   CLINICAL_MARKDOWN_CONFIG,
   STRUCTURAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
   WIKILINK_MARKDOWN_CONFIG,
-} from "../../enhanced/serialization/markdown/mod.ts";
-import * as rm from "../../enhanced/openehr_rm.ts";
-import * as base from "../../enhanced/openehr_base.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
+} from "../../../serialization/markdown/mod.ts";
+import * as rm from "../../../rm/openehr_rm.ts";
+import * as base from "../../../base/openehr_base.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);

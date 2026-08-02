@@ -6,7 +6,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 
 ## Module
 
-`enhanced/serialization/simplified/` exports:
+`serialization/simplified/` exports:
 
 | Export | Purpose |
 |--------|---------|
@@ -25,7 +25,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 | `validateFlatPayload(flat, wt)` | Validate FLAT keys against template schema |
 | `toTypedRm(plain)` | Plain `_type` tree → typed RM class instances |
 
-Re-exported from `enhanced/serialization/mod.ts`.
+Re-exported from `serialization/mod.ts`.
 
 ## Workflow
 
@@ -97,7 +97,7 @@ On the **Instance** input tab, choose **FLAT (simplified)** or **STRUCTURED (sim
 - Web Template JSON (standalone `.json` with `templateId` and `tree`)
 - A template already loaded on the **Template** input tab (shared with the Simplified output tab)
 
-Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `TemplateWorkspace` for ADL2 flattening.
+Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `ClinicalModelWorkspace` (backed by `TemplateWorkspace`) for ADL2 flattening.
 
 **Auto** input format detects simplified JSON (`ctx/` keys → FLAT; top-level `ctx` object → STRUCTURED).
 

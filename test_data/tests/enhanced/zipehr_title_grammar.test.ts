@@ -5,7 +5,7 @@ import {
   parseLocatableTitle,
   splitTitlePairs,
   unescapeTitleValue,
-} from "../../enhanced/serialization/zipehr/title_grammar.ts";
+} from "../../../serialization/zipehr/title_grammar.ts";
 
 Deno.test("zipehr title grammar: round-trip pairs", () => {
   const fields = {

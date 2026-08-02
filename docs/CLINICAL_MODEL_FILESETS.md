@@ -1,22 +1,24 @@
 # Clinical model file sets
 
-Library support for working with archetypes and templates from ZIP uploads, local folders, or **read-only** GitHub branches (e.g. [Region Stockholm CKM mirror](https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek)).
+Library support for working with archetypes and templates from ZIP uploads, local folders, or **read-only** GitHub branches.
+
+**Recommended demo / example source:** [Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples) (mirrors a CKM-style `/local` layout; includes the Accident report + vital signs theme pack). Larger mirrors such as [Region Stockholm CKM-mirror](https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek) remain supported.
 
 ## Formats
 
 | Extension | Kind | Notes |
 |-----------|------|--------|
 | `.adl` / `.adls` | archetype / template | ADL2 (ADL 1.4 converted on load) |
-| `.opt` | opt_xml | Legacy operational template XML |
+| `.opt` | opt_xml | Operational template XML |
 | `.oet` | oet_xml | Ocean Template Editor XML |
 | `.t.json` | template_json | Better **Archetype Designer** JSON (AOM `TEMPLATE` + overlays) |
 
-`.t.json` is **not** ITS-REST Web Template JSON (that is produced from an operational template via `buildWebTemplate()`).
+`.t.json` is **not** ITS-REST Web Template JSON (that is produced from an operational template via `buildWebTemplate()`). Glossary: [CONTEXT.md](../CONTEXT.md).
 
 ## API
 
 ```typescript
-import { ClinicalModelWorkspace, parseGitHubRepoSpec } from "./enhanced/parser/mod.ts";
+import { ClinicalModelWorkspace, parseGitHubRepoSpec } from "./parser/mod.ts";
 
 const ws = new ClinicalModelWorkspace();
 
@@ -25,12 +27,12 @@ ws.loadFromZipEntries([{ path: "local/foo.t.json", content: "..." }]);
 
 // Read-only GitHub branch (whole tree under a path prefix)
 await ws.loadFromGitHub(
-  "regionstockholm/CKM-mirror-via-modellbibliotek@MultiDiciplinery_Tumor_meetings:local",
+  "Ehrlibs/openEHR-model-examples@main:local",
 );
 
 // Single `.t.json` URL — recursive dependencies (nested templates + archetypes)
 await ws.loadFromGitHubTemplateUrl(
-  "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json",
+  "https://github.com/Ehrlibs/openEHR-model-examples/blob/main/local/theme-packs/sport-event-details/templates/Accident%20report%20including%20vital%20signs.t.json",
   {
     onProgress: (e) => console.log(e.phase, e.message),
   },
@@ -60,7 +62,9 @@ On **Template (schema)**:
 
 On **Template from AD@git**:
 
-1. Paste a GitHub **blob** or **raw** link to a `.t.json` file
+1. Choose a curated example (Ehrlibs first) or paste a GitHub **blob** / **raw** `.t.json` URL
 2. Click **Load** — progress log shows fetch/parse steps; file set opens on **Template (schema)**
 
 Select the **generation root** radio on a template file to drive example / FLAT / Web Template output.
+
+Instance preset **Accident report + vitals (Ehrlibs FLAT)** matches the Accident report Web Template root id `accident_report_including_vital_signs`. On load the demo fetches the published `.wt.json` into the simplified-schema workspace so FLAT → canonical conversion works. AD@git still defaults to the `.t.json` for **Generate example from Template** (dependency closure). For the richest operational template, also upload the theme-pack `.opt` from the same folder.

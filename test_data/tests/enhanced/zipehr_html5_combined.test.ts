@@ -5,7 +5,7 @@ import {
 import {
   serializeCanonicalToHtml5,
   zipehrHtml5ToCanonical,
-} from "../../enhanced/serialization/zipehr/mod.ts";
+} from "../../../serialization/zipehr/mod.ts";
 
 const ROOT_CLUSTER: Record<string, unknown> = {
   _type: "CLUSTER",

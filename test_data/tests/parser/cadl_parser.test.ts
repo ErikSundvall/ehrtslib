@@ -3,9 +3,9 @@
  */
 
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { CadlParser } from "../../enhanced/parser/cadl_parser.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { CadlParser } from "../../../parser/cadl_parser.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 function parseCadl(input: string) {
   const tokenizer = new ADL2Tokenizer(input);

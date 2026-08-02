@@ -3,15 +3,15 @@
  */
 
 import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseOptXml } from "../../../enhanced/parser/legacy/opt_xml_parser.ts";
-import { RMInstanceGenerator } from "../../../enhanced/generation/rm_instance_generator.ts";
+import { parseOptXml } from "../../../../parser/legacy/opt_xml_parser.ts";
+import { RMInstanceGenerator } from "../../../../generation/rm_instance_generator.ts";
 import {
   JsonCanonicalDeserializer,
   JsonCanonicalSerializer,
-} from "../../../enhanced/serialization/json/mod.ts";
-import { TypeRegistry } from "../../../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../../../enhanced/openehr_rm.ts";
-import * as base from "../../../enhanced/openehr_base.ts";
+} from "../../../../serialization/json/mod.ts";
+import { TypeRegistry } from "../../../../serialization/common/type_registry.ts";
+import * as rm from "../../../../rm/openehr_rm.ts";
+import * as base from "../../../../base/openehr_base.ts";
 import {
   buildWebTemplate,
   serializeToFlat,
@@ -19,7 +19,7 @@ import {
   serializeToStructured,
   deserializeFromStructured,
   structuredToFlat,
-} from "../../../enhanced/serialization/simplified/mod.ts";
+} from "../../../../serialization/simplified/mod.ts";
 
 TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);

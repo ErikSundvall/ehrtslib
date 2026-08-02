@@ -9,7 +9,7 @@
 import { buildRmMetaTables, emitRmMetaTypeScript } from "./rm_meta_generator.ts";
 
 const outputDir = Deno.args[0] || "./generated";
-const enhancedOut = "./enhanced/meta/rm_attribute_meta.generated.ts";
+const metaOut = "./meta/rm_attribute_meta.generated.ts";
 
 const bmmVersions = JSON.parse(
   await Deno.readTextFile("./tasks/bmm_versions.json"),
@@ -40,14 +40,14 @@ const tables = buildRmMetaTables(
 const content = emitRmMetaTypeScript(tables);
 
 await Deno.mkdir(outputDir, { recursive: true });
-await Deno.mkdir("./enhanced/meta", { recursive: true });
+await Deno.mkdir("./meta", { recursive: true });
 
 const generatedPath = `${outputDir}/rm_attribute_meta.ts`;
 await Deno.writeTextFile(generatedPath, content);
-await Deno.writeTextFile(enhancedOut, content);
+await Deno.writeTextFile(metaOut, content);
 
 console.log(`Wrote ${generatedPath}`);
-console.log(`Wrote ${enhancedOut}`);
+console.log(`Wrote ${metaOut}`);
 console.log(
   `Classes: ${Object.keys(tables.classes).length}, types with attributes: ${
     Object.keys(tables.ownAttributes).length

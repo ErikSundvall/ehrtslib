@@ -9,8 +9,8 @@ import {
   XmlSerializer, 
   XmlDeserializer,
   TypeRegistry 
-} from "../enhanced/serialization/xml/mod.ts";
-import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../enhanced/openehr_rm.ts";
+} from "../serialization/xml/mod.ts";
+import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../rm/openehr_rm.ts";
 
 // Register types (required for deserialization)
 TypeRegistry.register("DV_TEXT", DV_TEXT);

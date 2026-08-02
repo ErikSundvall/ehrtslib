@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { orderSerializationKeys } from "../../../enhanced/serialization/common/property_order.ts";
+import { orderSerializationKeys } from "../../../serialization/common/property_order.ts";
 
 const sample = ["items", "archetype_node_id", "name", "language"];
 

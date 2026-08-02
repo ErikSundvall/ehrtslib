@@ -2,7 +2,7 @@
  * TAAAT — Template and Archetype Annotation Tool
  */
 
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
+import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
   buildDefinitionTree,
   getPathAnnotations,
@@ -13,7 +13,7 @@ import {
   setPathAnnotation,
   type AnnotatedResource,
   type DefinitionTreeNode,
-} from "../../../enhanced/parser/clinical_model_annotations.ts";
+} from "../../../parser/clinical_model_annotations.ts";
 import {
   exportPaletteJson,
   loadPalette,

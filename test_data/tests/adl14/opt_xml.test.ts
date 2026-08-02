@@ -3,8 +3,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseOptXml } from "../../enhanced/parser/legacy/opt_xml_parser.ts";
-import { RMInstanceGenerator } from "../../enhanced/generation/rm_instance_generator.ts";
+import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
+import { RMInstanceGenerator } from "../../../generation/rm_instance_generator.ts";
 
 const OPT_DIR = new URL("../../test_data/opt14/", import.meta.url);
 

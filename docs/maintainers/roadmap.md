@@ -35,20 +35,20 @@ Pick "**Option 1: External Validator (RECOMMENDED)**" note that the code example
 4. **Performance Targets:** What's acceptable for parsing/validation? → <100ms parse, <50ms validation typical archetype
 * Sounds like OK targets but not critical now
 5. **Template Flattening Implementation Strategy:**
-* Bidirectional abilities — **done (MVP)** (`enhanced/am/`: `flattenToOperationalTemplate`, `extractDifferentialDefinition` for editor round-trip)
+* Bidirectional abilities — **done (MVP)** (`am/util/`: `flattenToOperationalTemplate`, `extractDifferentialDefinition` for editor round-trip)
 * **ADL 2** — parse, serialize, rules, annotations, rm_overlay ([`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md))
 * **ADL 1.4** — syntactic conversion + `parseAdl()` **done**; deeper AOM migration → Phase 6b
 * **Rules/invariants** — parse, serialize, evaluate **done**
 * **Validation** — `TemplateValidator`, `InvariantEvaluator`, `ArchetypeValidator`, deserializer `validateAgainstTemplate` **done**
 
-Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`docs/MERGE_TO_MAIN.md`](docs/MERGE_TO_MAIN.md) for merge checklist.
+Phase 5b is substantially complete on branch `ui-restoration-2026-02-18`. See [`archive/MERGE_TO_MAIN.md`](../../archive/MERGE_TO_MAIN.md) for the historical merge checklist.
 
 ## Phase 6a.1 ✅ (done)
 Interactive UI refinement for the demo app was performed using pencil.dev and cursor after phase 5. 
 Now we want Exploration of generating instance examples and typescript code stubs in the output column based on operational ADL templates being inserted in an editor in the so far unpopulated "template" tab of the input column. 
 
 ## Phase 6a.2 — Done
-Library example generation via `RMInstanceGenerator` (already in `enhanced/generation/`). Template file sets:
+Library example generation via `RMInstanceGenerator` (already in `generation/`). Template file sets:
 `TemplateWorkspace` + extended `ArchetypeRepository` flatten ADL2 differential `template` → operational when archetypes are in the set.
 Demo: multi-file + ZIP upload, active-file selector, workspace-backed conversion (not textarea concat). See `docs/ADL_SUPPORT.md` and `tests/parser/template_workspace.test.ts`.
 
@@ -81,7 +81,7 @@ Exploration of serialisation and deserialisation of RM object instance trees to 
 openEHR simplified JSON formats (FLAT, STRUCTURED via Web Template).
 
 Implemented `deserializeFromFlat`, `deserializeFromStructured`, and `structuredToFlat` in
-`enhanced/serialization/simplified/`. Round-trip tests in `tests/serialization/simplified/roundtrip.test.ts`
+`serialization/simplified/`. Round-trip tests in `tests/serialization/simplified/roundtrip.test.ts`
 cover canonical JSON ↔ FLAT/STRUCTURED via Web Template.
 
 ## Phase 7b — ✅ (done)
@@ -90,7 +90,7 @@ validation. (Take inspiration from Archie and openEHR's simplified formats using
 "web template"-based formalisms)
 Create library functionality and make sure the demo tool also allows convertion at least TO the different simplified formats
 
-Implemented in `enhanced/serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app supports FLAT/STRUCTURED/Web Template **output** (template tab) and **input** (instance tab with template upload). See `docs/SIMPLIFIED_FORMATS.md`.
+Implemented in `serialization/simplified/` (Web Template builder, FLAT/STRUCTURED serializers, FLAT validator). Demo app supports FLAT/STRUCTURED/Web Template **output** (template tab) and **input** (instance tab with template upload). See `docs/SIMPLIFIED_FORMATS.md`.
 
 ## Phase 7e — Simplified formats bidirectional — done
 

@@ -4,8 +4,8 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
-import { ArchetypeRepository, parseOetXml, compileOetToOperational } from "../../enhanced/parser/mod.ts";
-import { resolveAomPath } from "../../enhanced/am/aom_path_navigator.ts";
+import { ArchetypeRepository, parseOetXml, compileOetToOperational } from "../../../parser/mod.ts";
+import { resolveAomPath } from "../../../am/util/aom_path_navigator.ts";
 
 const ADL2_DIR = new URL("../../test_data/adl2/", import.meta.url);
 

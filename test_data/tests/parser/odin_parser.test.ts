@@ -3,8 +3,8 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { OdinParser } from "../../enhanced/parser/odin_parser.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { OdinParser } from "../../../parser/odin_parser.ts";
 
 function parseOdin(input: string) {
   const tokenizer = new ADL2Tokenizer(input);

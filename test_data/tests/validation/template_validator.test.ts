@@ -3,8 +3,8 @@
  */
 
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TemplateValidator } from "../../enhanced/validation/template_validator.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
+import { TemplateValidator } from "../../../validation/template_validator.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 Deno.test("Validator - template with no definition fails", () => {
   const validator = new TemplateValidator();

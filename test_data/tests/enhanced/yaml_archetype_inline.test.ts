@@ -4,10 +4,10 @@
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { YamlSerializer, HYBRID_YAML_CONFIG } from "../../enhanced/serialization/yaml/mod.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../../enhanced/openehr_rm.ts";
-import * as base from "../../enhanced/openehr_base.ts";
+import { YamlSerializer, HYBRID_YAML_CONFIG } from "../../../serialization/yaml/mod.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
+import * as rm from "../../../rm/openehr_rm.ts";
+import * as base from "../../../base/openehr_base.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);

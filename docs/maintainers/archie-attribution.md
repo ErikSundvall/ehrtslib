@@ -34,14 +34,14 @@ Test data files from Archie's comprehensive ADL2 test suite have been copied to:
 
 Test patterns and validation approaches from Archie's test suite have inspired ehrtslib's tests:
 
-**Parser Tests** (`tests/parser/archie_compatibility.test.ts`)
+**Parser Tests** (`test_data/tests/parser/archie_compatibility.test.ts`)
 - Inspired by Archie's parser tests:
   - `PrimitivesConstraintParserTest.java`
   - `NumberConstraintParserTest.java`
   - `CStringParserTest.java`
   - `TemporalConstraintParserTest.java`
   
-**Validation Tests** (`tests/validation/archie_validation.test.ts`)
+**Validation Tests** (`test_data/tests/validation/archie_validation.test.ts`)
 - Inspired by Archie's validation framework:
   - `MultiplicityRMObjectValidationTest.java` - Occurrence and cardinality validation
   - `PrimitivesRMObjectValidationTest.java` - Primitive constraint validation

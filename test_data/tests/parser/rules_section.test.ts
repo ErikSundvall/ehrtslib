@@ -3,12 +3,12 @@
  */
 
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
-import { ADL2Serializer } from "../../enhanced/generation/adl2_serializer.ts";
-import { RulesParser } from "../../enhanced/parser/rules_parser.ts";
-import { TokenType } from "../../enhanced/parser/adl2_tokenizer.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { ADL2Parser } from "../../../parser/adl2_parser.ts";
+import { ADL2Serializer } from "../../../generation/adl2_serializer.ts";
+import { RulesParser } from "../../../parser/rules_parser.ts";
+import { TokenType } from "../../../parser/adl2_tokenizer.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 

@@ -3,8 +3,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseOptXml } from "../../enhanced/parser/mod.ts";
-import { OptXmlSerializer } from "../../enhanced/generation/opt_xml_serializer.ts";
+import { parseOptXml } from "../../../parser/mod.ts";
+import { OptXmlSerializer } from "../../../generation/opt_xml_serializer.ts";
 
 const TEST_DATA = new URL("../../test_data/opt14/", import.meta.url);
 

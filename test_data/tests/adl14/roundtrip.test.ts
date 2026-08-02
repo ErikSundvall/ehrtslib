@@ -7,12 +7,12 @@ import {
   parseAdl,
   parseTemplateInput,
   detectTemplateInputFormat,
-} from "../../enhanced/parser/mod.ts";
+} from "../../../parser/mod.ts";
 import {
   ADL14Serializer,
   adl14RoundTripMetrics,
-} from "../../enhanced/generation/adl14_serializer.ts";
-import { ArchetypeValidator } from "../../enhanced/validation/archetype_validator.ts";
+} from "../../../generation/adl14_serializer.ts";
+import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 

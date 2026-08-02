@@ -5,12 +5,12 @@
  * Uses the canonical (canonical) serializer for simple, standard-compliant output.
  */
 
-import { JsonCanonicalSerializer, JsonCanonicalDeserializer, JsonConfigurableSerializer, CANONICAL_JSON_CONFIG } from "../enhanced/serialization/json/mod.ts";
-import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT } from "../enhanced/openehr_rm.ts";
-import { TERMINOLOGY_ID } from "../enhanced/openehr_base.ts";
-import { TypeRegistry } from "../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../enhanced/openehr_rm.ts";
-import * as base from "../enhanced/openehr_base.ts";
+import { JsonCanonicalSerializer, JsonCanonicalDeserializer, JsonConfigurableSerializer, CANONICAL_JSON_CONFIG } from "../serialization/json/mod.ts";
+import { DV_TEXT, CODE_PHRASE, DV_CODED_TEXT } from "../rm/openehr_rm.ts";
+import { TERMINOLOGY_ID } from "../base/openehr_base.ts";
+import { TypeRegistry } from "../serialization/common/type_registry.ts";
+import * as rm from "../rm/openehr_rm.ts";
+import * as base from "../base/openehr_base.ts";
 
 // Register all RM types (required once at startup)
 TypeRegistry.registerModule(rm);

@@ -3,15 +3,15 @@
  */
 
 import { assertEquals, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
-import { initArchetypeId } from "../../enhanced/init_helpers.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
+import { initArchetypeId } from "../../../base/init_helpers.ts";
 import {
   extractDifferentialDefinition,
   flattenArchetypeDefinition,
   flattenToOperationalTemplate,
   specializeComplexObject,
   type ArchetypeResolver,
-} from "../../enhanced/am/mod.ts";
+} from "../../../am/util/mod.ts";
 
 function obsRoot(id = "id1"): openehr_am.C_COMPLEX_OBJECT {
   const o = new openehr_am.C_COMPLEX_OBJECT();

@@ -9,6 +9,11 @@
 
 import { EXAMPLES } from "./examples.ts";
 import {
+  defaultModelExampleUrl,
+  getModelExample,
+  MODEL_EXAMPLE_CATALOG,
+} from "./model-examples-catalog.ts";
+import {
   resolveInputFormat,
   type ConversionOptions,
   convert,
@@ -32,19 +37,19 @@ import {
 import type {
   JsonDeserializationConfig,
   JsonSerializationConfig,
-} from "../../../enhanced/serialization/json/mod.ts";
+} from "../../../serialization/json/mod.ts";
 
 import type {
   YamlDeserializationConfig,
   YamlSerializationConfig,
-} from "../../../enhanced/serialization/yaml/mod.ts";
+} from "../../../serialization/yaml/mod.ts";
 
-import type { MarkdownSerializationConfig } from "../../../enhanced/serialization/markdown/mod.ts";
-import type { AsciidocSerializationConfig } from "../../../enhanced/serialization/asciidoc/mod.ts";
+import type { MarkdownSerializationConfig } from "../../../serialization/markdown/mod.ts";
+import type { AsciidocSerializationConfig } from "../../../serialization/asciidoc/mod.ts";
 
 import { strFromU8, unzipSync } from "fflate";
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
-import { availableTemplateLanguages } from "../../../enhanced/generation/term_codes.ts";
+import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
+import { availableTemplateLanguages } from "../../../generation/term_codes.ts";
 import {
   getDemoEditor,
   initDemoEditors,
@@ -64,7 +69,8 @@ import {
   refreshOptHtml5Preview,
 } from "./opt-html5-preview.ts";
 
-const DEFAULT_INSTANCE_EXAMPLE = "complex-composition";
+/** Primary instance example: Ehrlibs Accident report FLAT (see model-examples-catalog). */
+const DEFAULT_INSTANCE_EXAMPLE = "accident-report-vitals";
 
 // Application state
 let currentInputFormat = "json";
@@ -104,8 +110,12 @@ function init() {
   displayBuildInfo();
 
   initDemoEditors({
-    instanceInitial: EXAMPLES[DEFAULT_INSTANCE_EXAMPLE as keyof typeof EXAMPLES]
-      .json,
+    instanceInitial:
+      (EXAMPLES[DEFAULT_INSTANCE_EXAMPLE as keyof typeof EXAMPLES] as {
+        flat?: string;
+        json: string;
+      }).flat ??
+        EXAMPLES[DEFAULT_INSTANCE_EXAMPLE as keyof typeof EXAMPLES].json,
   });
   syncInputEditorLanguage();
   setupEventListeners();
@@ -705,7 +715,7 @@ async function loadFileIntoSimplifiedWorkspace(file: File): Promise<void> {
     const content = await file.text();
     const parsed = JSON.parse(content);
     const { isWebTemplateJson } = await import(
-      "../../../enhanced/serialization/simplified/mod.ts"
+      "../../../serialization/simplified/mod.ts"
     );
     if (!isWebTemplateJson(parsed)) {
       throw new Error(
@@ -1123,47 +1133,72 @@ function setupTemplateAdGitLoad() {
   const urlInput = document.getElementById("github-template-url") as
     | HTMLInputElement
     | null;
+  const curatedSelect = document.getElementById("curated-model-example") as
+    | HTMLSelectElement
+    | null;
   if (!loadBtn || !urlInput) return;
 
-  const defaultUrl =
-    "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
-  if (!urlInput.value.trim()) urlInput.value = defaultUrl;
+  if (curatedSelect && curatedSelect.options.length <= 1) {
+    for (const entry of MODEL_EXAMPLE_CATALOG) {
+      const opt = document.createElement("option");
+      opt.value = entry.id;
+      opt.textContent = entry.featured
+        ? `★ ${entry.label}`
+        : entry.label;
+      curatedSelect.appendChild(opt);
+    }
+  }
 
-  loadBtn.addEventListener("click", async () => {
-    const url = urlInput.value.trim();
-    if (!url) {
-      alert("Paste a GitHub blob or raw URL to a .t.json template file.");
-      return;
-    }
-    loadBtn.setAttribute("disabled", "true");
-    clearAdGitProgress();
-    appendAdGitProgress("Starting…", "parse-url");
-    try {
-      const result = await clinicalWorkspace.loadFromGitHubTemplateUrl(url, {
-        onProgress: (e) => {
-          appendAdGitProgress(e.message, e.phase, e.path);
-        },
-        maxFiles: 200,
-      });
-      for (const w of result.warnings) {
-        appendAdGitProgress(w, "resolve");
-      }
-      appendAdGitProgress(
-        `Done — ${result.fetched} files loaded (root: ${result.rootPath})`,
-        "complete",
-      );
-      if (result.rootPath) selectTemplateFileTab(result.rootPath);
-      updateTemplateFileSetUi();
-      activateInputTab("template");
-      handleInputChange("template");
-      void handleConvert();
-    } catch (e) {
-      appendAdGitProgress((e as Error).message, "fetch");
-      alert(`Template load failed: ${(e as Error).message}`);
-    } finally {
-      loadBtn.removeAttribute("disabled");
-    }
+  if (!urlInput.value.trim()) urlInput.value = defaultModelExampleUrl();
+
+  curatedSelect?.addEventListener("change", () => {
+    const id = curatedSelect.value;
+    if (!id) return;
+    const entry = MODEL_EXAMPLE_CATALOG.find((e) => e.id === id);
+    if (entry) urlInput.value = entry.githubUrl;
   });
+
+  loadBtn.addEventListener("click", () => {
+    void loadTemplateFromGitHubUrl(urlInput.value.trim(), loadBtn);
+  });
+}
+
+async function loadTemplateFromGitHubUrl(
+  url: string,
+  loadBtn?: HTMLElement | null,
+) {
+  if (!url) {
+    alert("Paste a GitHub blob or raw URL to a .t.json template file.");
+    return;
+  }
+  loadBtn?.setAttribute("disabled", "true");
+  clearAdGitProgress();
+  appendAdGitProgress("Starting…", "parse-url");
+  try {
+    const result = await clinicalWorkspace.loadFromGitHubTemplateUrl(url, {
+      onProgress: (e) => {
+        appendAdGitProgress(e.message, e.phase, e.path);
+      },
+      maxFiles: 200,
+    });
+    for (const w of result.warnings) {
+      appendAdGitProgress(w, "resolve");
+    }
+    appendAdGitProgress(
+      `Done — ${result.fetched} files loaded (root: ${result.rootPath})`,
+      "complete",
+    );
+    if (result.rootPath) selectTemplateFileTab(result.rootPath);
+    updateTemplateFileSetUi();
+    activateInputTab("template");
+    handleInputChange("template");
+    void handleConvert();
+  } catch (e) {
+    appendAdGitProgress((e as Error).message, "fetch");
+    alert(`Template load failed: ${(e as Error).message}`);
+  } finally {
+    loadBtn?.removeAttribute("disabled");
+  }
 }
 
 function clearAdGitProgress() {
@@ -1442,7 +1477,13 @@ function handleInputFormatChange(e: Event) {
  * Load an example into the input textarea
  */
 function loadExample(exampleKey: string) {
-  const example = EXAMPLES[exampleKey as keyof typeof EXAMPLES];
+  const example = EXAMPLES[exampleKey as keyof typeof EXAMPLES] as
+    | (typeof EXAMPLES)[keyof typeof EXAMPLES] & {
+      preferredFormat?: string;
+      flat?: string;
+      structured?: string;
+    }
+    | undefined;
   if (!example) {
     console.error("Example not found:", exampleKey);
     return;
@@ -1455,15 +1496,47 @@ function loadExample(exampleKey: string) {
 
   if (inputEditor && formatSelect) {
     activateInputTab("instance");
-    // Load the appropriate format
+    if (example.preferredFormat) {
+      formatSelect.value = example.preferredFormat;
+      syncInputFormatUi();
+    }
     const format = formatSelect.value;
-    inputEditor.value = example[format as keyof typeof example] as string ||
+    const payload =
+      (example[format as keyof typeof example] as string | undefined) ||
+      example.flat ||
       example.json;
+    inputEditor.value = payload;
     currentInputFormat = format;
 
     syncInputEditorLanguage();
-    // Update character count and validation
     handleInputChange("instance");
+  }
+
+  // For Ehrlibs FLAT presets, attach the published Web Template so conversion works.
+  if (exampleKey === "accident-report-vitals") {
+    void ensurePublishedWebTemplateLoaded("accident-report-vitals");
+  }
+}
+
+async function ensurePublishedWebTemplateLoaded(catalogId: string) {
+  const entry = getModelExample(catalogId);
+  if (!entry.webTemplateUrl) return;
+  try {
+    const res = await fetch(entry.webTemplateUrl);
+    if (!res.ok) {
+      console.warn("Web Template fetch failed:", res.status, entry.webTemplateUrl);
+      return;
+    }
+    const text = await res.text();
+    simplifiedWorkspace.clear();
+    simplifiedWorkspace.addFile(
+      `${entry.id}.wt.json`,
+      text,
+    );
+    syncSimplifiedTemplateUi();
+    scheduleAutoConvert();
+  } catch (e) {
+    console.warn("Could not load published Web Template:", e);
   }
 }
 

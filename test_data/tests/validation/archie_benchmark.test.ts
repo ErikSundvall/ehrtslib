@@ -3,8 +3,8 @@
  */
 
 import { assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseAdl } from "../../enhanced/parser/mod.ts";
-import { ArchetypeValidator } from "../../enhanced/validation/archetype_validator.ts";
+import { parseAdl } from "../../../parser/mod.ts";
+import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
 const ARCHIE_ROOT = new URL("../../test_data/archie-tests/", import.meta.url);
 

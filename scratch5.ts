@@ -1,7 +1,7 @@
-import { parseOptXml } from "./enhanced/parser/legacy/opt_xml_parser.ts";
+import { parseOptXml } from "./parser/legacy/opt_xml_parser.ts";
 import {
   buildWebTemplate,
-} from "./enhanced/serialization/simplified/mod.ts";
+} from "./serialization/simplified/mod.ts";
 
 const xml = await Deno.readTextFile(
   "test_data/opt14/RIPPLE-Conformance Test.opt",

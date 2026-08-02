@@ -4,14 +4,14 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
-import { RMInstanceGenerator } from "../../../enhanced/generation/rm_instance_generator.ts";
+import { RMInstanceGenerator } from "../../../generation/rm_instance_generator.ts";
 import {
   ArchetypeRepository,
   TemplateWorkspace,
   getOperationalTemplateFromInput,
   parseTemplateInput,
-} from "../../../enhanced/parser/mod.ts";
-import type { TemplateWorkspaceFile } from "../../../enhanced/parser/template_workspace.ts";
+} from "../../../parser/mod.ts";
+import type { TemplateWorkspaceFile } from "../../../parser/template_workspace.ts";
 
 const ADL2_DIR = fromFileUrl(new URL("../../adl2/", import.meta.url));
 const VALIDITY_TEMPLATES_DIR = fromFileUrl(

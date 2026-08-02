@@ -15,7 +15,7 @@ import {
   UcumValidationResult,
   UcumConversionResult,
   getUcumService,
-} from "../../enhanced/ucum_service.ts";
+} from "../../../term/ucum_service.ts";
 
 // ===== Singleton and Initialization Tests =====
 

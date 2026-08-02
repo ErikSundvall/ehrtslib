@@ -12,9 +12,9 @@ import {
   toTerseDvCodedText,
   isTerseCodePhrase,
   isTerseDvCodedText,
-} from "../../enhanced/terse_format.ts";
-import { TERMINOLOGY_ID } from "../../enhanced/openehr_base.ts";
-import { CODE_PHRASE, DV_CODED_TEXT } from "../../enhanced/openehr_rm.ts";
+} from "../../../serialization/terse_format.ts";
+import { TERMINOLOGY_ID } from "../../../base/openehr_base.ts";
+import { CODE_PHRASE, DV_CODED_TEXT } from "../../../rm/openehr_rm.ts";
 
 // ============================================================================
 // CODE_PHRASE Tests

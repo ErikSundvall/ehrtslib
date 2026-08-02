@@ -12,9 +12,9 @@ ehrtslib parses **ADL 2** natively and accepts **ADL 1.4** via automatic convers
 
 ```typescript
 
-import { parseAdl, parseTemplateInput, ArchetypeRepository } from "./enhanced/parser/mod.ts";
+import { parseAdl, parseTemplateInput, ArchetypeRepository } from "./parser/mod.ts";
 
-import { OptXmlSerializer } from "./enhanced/generation/mod.ts";
+import { OptXmlSerializer } from "./generation/mod.ts";
 
 
 
@@ -84,7 +84,7 @@ Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT),
 
 
 
-`convertAdl14ToAdl2()` in [`enhanced/parser/adl14_to_adl2_converter.ts`](../enhanced/parser/adl14_to_adl2_converter.ts) applies:
+`convertAdl14ToAdl2()` in [`parser/adl14_to_adl2_converter.ts`](../parser/adl14_to_adl2_converter.ts) applies:
 
 
 
@@ -162,7 +162,7 @@ Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT),
 
 | `annotations`, `rm_overlay` | Yes |
 
-| Template flattening (`enhanced/am/`) | MVP |
+| Template flattening (`am/util/`) | MVP |
 
 | `TemplateValidator` + invariants | Yes |
 
@@ -176,25 +176,17 @@ Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT),
 
 ## Verify
 
-
+From the repository root. Prefer `--no-check`; `deno task test` typechecks and currently fails on many test files.
 
 ```bash
-
-deno test tests/adl14/ tests/am/ tests/test_data/ tests/parser/ tests/validation/ --allow-read --no-check
+deno test test_data/tests/adl14/ test_data/tests/am/ test_data/tests/parser/ test_data/tests/validation/ --allow-read --no-check
 
 deno test examples/demo-app/src/converter.template.test.ts --allow-read --no-check
-
 ```
-
-
 
 ## Related
 
-
-
 - PRD: [`tasks/prd-phase6b-adl14-full-roundtrip.md`](../tasks/prd-phase6b-adl14-full-roundtrip.md)
-
 - BMM survey: [`tasks/bmm_survey_phase6b.md`](../tasks/bmm_survey_phase6b.md)
-
-- [ROADMAP.md](../ROADMAP.md#phase-6b)
+- [Roadmap](maintainers/roadmap.md) (Phase 6b) · root stub [ROADMAP.md](../ROADMAP.md)
 

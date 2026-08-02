@@ -6,9 +6,9 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.177.0/testing/asserts.ts";
 
-import { XmlSerializer } from "../../enhanced/serialization/xml/xml_serializer.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
-import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../enhanced/openehr_rm.ts";
+import { XmlSerializer } from "../../../serialization/xml/xml_serializer.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
+import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../../rm/openehr_rm.ts";
 
 // Register types for testing
 TypeRegistry.clear();

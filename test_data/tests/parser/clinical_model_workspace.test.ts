@@ -4,8 +4,8 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
-import { parseGitHubRepoSpec } from "../../../enhanced/parser/github_repo_loader.ts";
+import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
+import { parseGitHubRepoSpec } from "../../../parser/github_repo_loader.ts";
 
 Deno.test("parseGitHubRepoSpec parses owner/repo@branch:path", () => {
   const ref = parseGitHubRepoSpec(

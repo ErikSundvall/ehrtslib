@@ -3,8 +3,8 @@
  */
 
 import { assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseAdl } from "../../enhanced/parser/mod.ts";
-import { parseOptXml } from "../../enhanced/parser/legacy/opt_xml_parser.ts";
+import { parseAdl } from "../../../parser/mod.ts";
+import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 
 const ROOT = new URL("../../test_data/", import.meta.url);
 

@@ -3,8 +3,8 @@
  */
 
 import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { ADL2Parser } from "../../../parser/adl2_parser.ts";
 
 const TEST_DATA = new URL("../../test_data/archie-tests/", import.meta.url);
 

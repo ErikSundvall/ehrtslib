@@ -1,10 +1,180 @@
 /**
  * Example data for the ehrtslib Format Converter demo app
- * 
+ *
  * These examples demonstrate different openEHR RM structures in various formats.
+ * Ehrlibs model examples (primary): https://github.com/Ehrlibs/openEHR-model-examples
  */
 
 export const EXAMPLES = {
+  /**
+   * FLAT / STRUCTURED instance for the Ehrlibs "Accident report including vital signs"
+   * template (`templateId` / root node id: accident_report_including_vital_signs).
+   * Paths follow the published Web Template; load the matching `.t.json` on AD@git
+   * for round-trip conversion. Pattern aligned with
+   * openehr://examples/flat/vital_signs_blood_pressure and
+   * openehr://guides/simplified_formats/*.
+   */
+  "accident-report-vitals": {
+    name: "Accident report + vital signs (Ehrlibs FLAT)",
+    description:
+      "FLAT composition for Ehrlibs theme-pack template Accident report including vital signs",
+    preferredFormat: "flat",
+    flat: `{
+  "ctx/language": "en",
+  "ctx/territory": "SE",
+  "ctx/time": "2026-08-02T10:15:00Z",
+  "ctx/composer_name": "Dr. A. Smith",
+  "ctx/category|code": "433",
+  "ctx/category|value": "event",
+  "ctx/category|terminology": "openehr",
+  "ctx/setting|code": "225",
+  "ctx/setting|value": "secondary medical care",
+  "ctx/setting|terminology": "openehr",
+
+  "accident_report_including_vital_signs/problem_diagnosis:0/injury": "Ankle sprain during marathon",
+  "accident_report_including_vital_signs/problem_diagnosis:0/clinical_description": "Twisted left ankle at kilometre 18; able to weight-bear with pain",
+  "accident_report_including_vital_signs/problem_diagnosis:0/anatomical_location:0/specific_site": "Lateral ankle ligaments",
+  "accident_report_including_vital_signs/problem_diagnosis:0/date_time_of_onset": "2026-08-02T09:45:00Z",
+  "accident_report_including_vital_signs/problem_diagnosis:0/sport_event:0/event_name": "Stockholm Marathon 2026",
+  "accident_report_including_vital_signs/problem_diagnosis:0/sport_event:0/time_after_start": "PT1H45M",
+  "accident_report_including_vital_signs/problem_diagnosis:0/sport_event:0/location:0/address_or_description": "Near water station, km 18",
+
+  "accident_report_including_vital_signs/vital_signs/pulse_oximetry:0/any_event:0/spo|numerator": 98,
+  "accident_report_including_vital_signs/vital_signs/pulse_oximetry:0/any_event:0/spo|denominator": 100,
+  "accident_report_including_vital_signs/vital_signs/pulse_oximetry:0/any_event:0/spo|type": 2,
+  "accident_report_including_vital_signs/vital_signs/pulse_oximetry:0/any_event:0/time": "2026-08-02T10:10:00Z",
+
+  "accident_report_including_vital_signs/vital_signs/respiration:0/any_event:0/rate|magnitude": 18,
+  "accident_report_including_vital_signs/vital_signs/respiration:0/any_event:0/rate|unit": "/min",
+  "accident_report_including_vital_signs/vital_signs/respiration:0/any_event:0/time": "2026-08-02T10:10:00Z",
+
+  "accident_report_including_vital_signs/vital_signs/pulse_heart_beat:0/any_event:0/rate|magnitude": 92,
+  "accident_report_including_vital_signs/vital_signs/pulse_heart_beat:0/any_event:0/rate|unit": "/min",
+  "accident_report_including_vital_signs/vital_signs/pulse_heart_beat:0/any_event:0/time": "2026-08-02T10:10:00Z"
+}`,
+    structured: `{
+  "ctx": {
+    "language": "en",
+    "territory": "SE",
+    "time": "2026-08-02T10:15:00Z",
+    "composer_name": "Dr. A. Smith",
+    "category": [
+      { "|code": "433", "|value": "event", "|terminology": "openehr" }
+    ],
+    "setting": [
+      { "|code": "225", "|value": "secondary medical care", "|terminology": "openehr" }
+    ]
+  },
+  "accident_report_including_vital_signs": {
+    "problem_diagnosis": [{
+      "injury": [{ "|value": "Ankle sprain during marathon" }],
+      "clinical_description": [{ "|value": "Twisted left ankle at kilometre 18; able to weight-bear with pain" }],
+      "anatomical_location": [{
+        "specific_site": [{ "|value": "Lateral ankle ligaments" }]
+      }],
+      "date_time_of_onset": [{ "|value": "2026-08-02T09:45:00Z" }],
+      "sport_event": [{
+        "event_name": [{ "|value": "Stockholm Marathon 2026" }],
+        "time_after_start": [{ "|value": "PT1H45M" }],
+        "location": [{
+          "address_or_description": [{ "|value": "Near water station, km 18" }]
+        }]
+      }]
+    }],
+    "vital_signs": [{
+      "pulse_oximetry": [{
+        "any_event": [{
+          "spo": [{ "|numerator": 98, "|denominator": 100, "|type": 2 }],
+          "time": [{ "|value": "2026-08-02T10:10:00Z" }]
+        }]
+      }],
+      "respiration": [{
+        "any_event": [{
+          "rate": [{ "|magnitude": 18, "|unit": "/min" }],
+          "time": [{ "|value": "2026-08-02T10:10:00Z" }]
+        }]
+      }],
+      "pulse_heart_beat": [{
+        "any_event": [{
+          "rate": [{ "|magnitude": 92, "|unit": "/min" }],
+          "time": [{ "|value": "2026-08-02T10:10:00Z" }]
+        }]
+      }]
+    }]
+  }
+}`,
+    json: `{
+  "_type": "COMPOSITION",
+  "name": { "_type": "DV_TEXT", "value": "Accident report including vital signs" },
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "language": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_639-1" },
+    "code_string": "en"
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_3166-1" },
+    "code_string": "SE"
+  },
+  "category": {
+    "_type": "DV_CODED_TEXT",
+    "value": "event",
+    "defining_code": {
+      "_type": "CODE_PHRASE",
+      "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "openehr" },
+      "code_string": "433"
+    }
+  },
+  "composer": { "_type": "PARTY_IDENTIFIED", "name": "Dr. A. Smith" },
+  "context": {
+    "_type": "EVENT_CONTEXT",
+    "start_time": { "_type": "DV_DATE_TIME", "value": "2026-08-02T10:15:00Z" },
+    "setting": {
+      "_type": "DV_CODED_TEXT",
+      "value": "secondary medical care",
+      "defining_code": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "openehr" },
+        "code_string": "225"
+      }
+    }
+  },
+  "content": []
+}`,
+    xml: `<?xml version="1.0" encoding="UTF-8"?>
+<COMPOSITION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <name><value>Accident report including vital signs</value></name>
+  <archetype_node_id>openEHR-EHR-COMPOSITION.encounter.v1</archetype_node_id>
+  <language>
+    <terminology_id><value>ISO_639-1</value></terminology_id>
+    <code_string>en</code_string>
+  </language>
+  <territory>
+    <terminology_id><value>ISO_3166-1</value></terminology_id>
+    <code_string>SE</code_string>
+  </territory>
+  <category>
+    <value>event</value>
+    <defining_code>
+      <terminology_id><value>openehr</value></terminology_id>
+      <code_string>433</code_string>
+    </defining_code>
+  </category>
+  <composer xsi:type="PARTY_IDENTIFIED"><name>Dr. A. Smith</name></composer>
+</COMPOSITION>`,
+    yaml: `_type: COMPOSITION
+name:
+  _type: DV_TEXT
+  value: Accident report including vital signs
+archetype_node_id: openEHR-EHR-COMPOSITION.encounter.v1
+language: ISO_639-1::en
+territory: ISO_3166-1::SE
+category: openehr::433|event|
+composer:
+  name: Dr. A. Smith`,
+  },
+
   'dv-text': {
     name: 'Simple DV_TEXT',
     description: 'A simple text value',

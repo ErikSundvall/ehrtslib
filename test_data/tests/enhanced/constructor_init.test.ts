@@ -5,7 +5,7 @@
  */
 
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { COMPOSITION, DV_TEXT, DV_CODED_TEXT, CODE_PHRASE } from "../../enhanced/openehr_rm.ts";
+import { COMPOSITION, DV_TEXT, DV_CODED_TEXT, CODE_PHRASE } from "../../../rm/openehr_rm.ts";
 
 // ============================================================================
 // DV_TEXT Constructor Tests

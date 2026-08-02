@@ -8,7 +8,7 @@ import {
   ArchetypeRepository,
   isTemplateJson,
   parseTemplateJson,
-} from "../../../enhanced/parser/mod.ts";
+} from "../../../parser/mod.ts";
 
 const CARE_UNIT = fromFileUrl(
   new URL("../../tjson/Care unit v2.t.json", import.meta.url),

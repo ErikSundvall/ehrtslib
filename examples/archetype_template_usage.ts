@@ -6,18 +6,18 @@
  */
 
 // Parsing ADL2
-import { ADL2Tokenizer } from "../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../enhanced/parser/adl2_parser.ts";
+import { ADL2Tokenizer } from "../parser/adl2_tokenizer.ts";
+import { ADL2Parser } from "../parser/adl2_parser.ts";
 
 // Validation with optional enhancements
-import { TemplateValidator } from "../enhanced/validation/template_validator.ts";
+import { TemplateValidator } from "../validation/template_validator.ts";
 
 // Generation
 import { 
   RMInstanceGenerator,
   TypeScriptGenerator,
   ADL2Serializer 
-} from "../enhanced/generation/mod.ts";
+} from "../generation/mod.ts";
 
 /**
  * Example 1: Parse ADL2 file

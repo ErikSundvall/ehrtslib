@@ -5,7 +5,7 @@
 import {
   wrapOptHtml5PreviewDocument,
   type OptHydrateMode,
-} from "../../../enhanced/serialization/zipehr/opt_html5_hydrate.ts";
+} from "../../../serialization/zipehr/opt_html5_hydrate.ts";
 import {
   createDemoEditor,
   getDemoEditor,

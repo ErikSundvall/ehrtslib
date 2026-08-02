@@ -62,25 +62,25 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 
 | Goal | Command |
 |------|---------|
-| Typecheck enhanced modules | `deno task check` |
+| Typecheck model modules | `deno task check` |
+| Typecheck everything reachable from `mod.ts` | `deno task check:all` |
 | Tests (recommended) | `deno test --allow-read --no-check` |
 | Demo unit tests | `deno test --allow-read --no-check examples/demo-app/src/converter.template.test.ts` |
 | Build static demo | `deno task build:demo` → output in `docs/demo/` |
-| Demo dev server | `cd examples/demo-app && deno task dev` → **http://127.0.0.1:8000** |
-
-**Test import paths:** files under `test_data/tests/` import via `../../enhanced/` and `../../openehr_*.ts`, which resolve under `test_data/`, not the repo root. Before running the full suite, create symlinks once per VM (also in the VM update script):
-
-```bash
-cd test_data
-ln -sfn ../enhanced enhanced
-for f in openehr_am openehr_base openehr_lang openehr_rm openehr_term; do
-  ln -sfn ../${f}.ts ${f}.ts
-done
-```
+| Demo dev server | `deno task dev:demo` (or `cd examples/demo-app && deno task dev`) → **http://127.0.0.1:8000** |
+| Recommended lib tests | `deno test test_data/tests/ --allow-read --no-check` |
 
 **Tests vs `deno task test`:** `deno task test` runs without `--no-check` and currently fails type-checking on many test files (~300 errors). Use `--no-check` as documented in [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md). Expect some failing cases in the full suite (fixture/archie benchmarks); demo and `deno task check` are reliable smoke checks.
 
-**Lint/format:** `deno fmt --check` and `deno lint` include generated `docs/demo/bundle.js` and report thousands of issues. Lint source only: `deno lint enhanced examples/demo-app/src test_data/tests`.
+**`check` vs `check:all`:** `deno task check` covers the openEHR model modules and is green. `deno task check:all` additionally pulls in `parser/`, `serialization/`, `validation/` and `generation/`, which carry ~100 long-standing strictness errors; treat its output as a known-red inventory, not a gate.
+
+**`tsconfig.json` scope matters:** Deno 2.8 reads `tsconfig.json`, and its `include` list decides which files get the repo's compiler options rather than Deno's stricter defaults. Any new top-level source directory must be added there or it will report spurious `TS4114` override errors.
+
+**Repository layout:** openEHR components live in `base/`, `rm/`, `am/`, `lang/` and `term/`; tooling in `parser/`, `serialization/`, `validation/`, `generation/` and `meta/`; BMM stubs in `generated/` (never hand-edited). See [`docs/maintainers/hand-written-vs-generated.md`](docs/maintainers/hand-written-vs-generated.md).
+
+**Test import paths:** files under `test_data/tests/` import the library through ordinary relative paths to the repo root (`../../../parser/mod.ts` and so on). No symlinks or hardlinks under `test_data/` are needed any more — delete any left over from earlier checkouts.
+
+**Lint/format:** `deno fmt --check` and `deno lint` include generated `docs/demo/bundle.js` and report thousands of issues. Lint source only: `deno lint base rm am lang term parser serialization validation generation meta examples/demo-app/src test_data/tests`.
 
 **No Docker/DB:** This repo is a library + static demo; CI ([`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)) only builds the demo for GitHub Pages.
 

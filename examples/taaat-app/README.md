@@ -35,4 +35,4 @@ TAAAT_BASE_URL=http://127.0.0.1:8765 deno test -A --no-check examples/taaat-app/
 
 ## Library API
 
-See `enhanced/parser/clinical_model_annotations.ts` and `ClinicalModelWorkspace.loadFromGitHubClinicalModelUrl()`.
+See `parser/clinical_model_annotations.ts` and `ClinicalModelWorkspace.loadFromGitHubClinicalModelUrl()`.

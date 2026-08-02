@@ -22,13 +22,13 @@
 
 | Format | Guide |
 | ------ | ----- |
-| Format matrix | [enhanced/serialization/README.md](../enhanced/serialization/README.md) |
-| JSON | [json/README.md](../enhanced/serialization/json/README.md) |
-| XML | [xml/README.md](../enhanced/serialization/xml/README.md) |
-| YAML | [yaml/README.md](../enhanced/serialization/yaml/README.md) |
-| ZipEHR | [zipehr/README.md](../enhanced/serialization/zipehr/README.md) |
+| Format matrix | [serialization/README.md](../serialization/README.md) |
+| JSON | [json/README.md](../serialization/json/README.md) |
+| XML | [xml/README.md](../serialization/xml/README.md) |
+| YAML | [yaml/README.md](../serialization/yaml/README.md) |
+| ZipEHR | [zipehr/README.md](../serialization/zipehr/README.md) |
 
-Also: [examples/](../examples/README.md) and the [demo app](../examples/demo-app/README.md).
+Also: [examples/](../examples/README.md), the [demo app](../examples/demo-app/README.md), and curated models in [Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples).
 
 ## Offline openEHR language specs
 

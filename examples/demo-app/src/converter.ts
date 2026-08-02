@@ -21,7 +21,7 @@ import {
   type JsonSerializationConfig,
   NON_STANDARD_VERY_COMPACT_JSON_CONFIG,
   NON_STANDARD_VERY_COMPACT_JSON_DESERIALIZE_CONFIG,
-} from "../../../enhanced/serialization/json/mod.ts";
+} from "../../../serialization/json/mod.ts";
 
 import {
   BLOCK_YAML_CONFIG,
@@ -34,12 +34,12 @@ import {
   YamlDeserializer,
   type YamlSerializationConfig,
   YamlSerializer,
-} from "../../../enhanced/serialization/yaml/mod.ts";
+} from "../../../serialization/yaml/mod.ts";
 
 import {
   XmlDeserializer,
   XmlSerializer,
-} from "../../../enhanced/serialization/xml/mod.ts";
+} from "../../../serialization/xml/mod.ts";
 
 import {
   CLINICAL_MARKDOWN_CONFIG,
@@ -49,7 +49,7 @@ import {
   MarkdownSerializer,
   STRUCTURAL_MARKDOWN_CONFIG,
   WIKILINK_MARKDOWN_CONFIG,
-} from "../../../enhanced/serialization/markdown/mod.ts";
+} from "../../../serialization/markdown/mod.ts";
 
 import {
   type AsciidocSerializationConfig,
@@ -57,12 +57,12 @@ import {
   COMPACT_ASCIIDOC_CONFIG,
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
   LOSSLESS_ASCIIDOC_CONFIG,
-} from "../../../enhanced/serialization/asciidoc/mod.ts";
+} from "../../../serialization/asciidoc/mod.ts";
 
 import {
   type TypeScriptConstructorSerializationConfig,
   TypeScriptConstructorSerializer,
-} from "../../../enhanced/serialization/typescript/mod.ts";
+} from "../../../serialization/typescript/mod.ts";
 
 import {
   buildWebTemplate,
@@ -73,24 +73,24 @@ import {
   serializeToFlatJson,
   serializeToStructuredJson,
   type WebTemplate,
-} from "../../../enhanced/serialization/simplified/mod.ts";
+} from "../../../serialization/simplified/mod.ts";
 import {
   type ClinicalModelWorkspace,
   getOperationalTemplateFromInput,
   parseTemplateInput,
   type TemplateWorkspace,
-} from "../../../enhanced/parser/mod.ts";
+} from "../../../parser/mod.ts";
 import {
   type GenerationMode,
   RMInstanceGenerator,
   TypeScriptGenerator,
-} from "../../../enhanced/generation/mod.ts";
+} from "../../../generation/mod.ts";
 
 import {
   DeserializationError,
   SerializationError,
   TypeRegistry,
-} from "../../../enhanced/serialization/common/mod.ts";
+} from "../../../serialization/common/mod.ts";
 
 import {
   detectInputFormat,
@@ -100,12 +100,12 @@ import {
   serializeToXZipehr,
   serializeToYZipehr,
   zipehrTextToCanonical,
-} from "../../../enhanced/serialization/zipehr/mod.ts";
-import * as openehr_am from "../../../enhanced/openehr_am.ts";
+} from "../../../serialization/zipehr/mod.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 // Import RM and Base modules for type registration
-import * as openehr_rm from "../../../enhanced/openehr_rm.ts";
-import * as openehr_base from "../../../enhanced/openehr_base.ts";
+import * as openehr_rm from "../../../rm/openehr_rm.ts";
+import * as openehr_base from "../../../base/openehr_base.ts";
 
 // Global flag to track if TypeRegistry is initialized
 let typeRegistryInitialized = false;

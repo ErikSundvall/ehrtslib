@@ -12,8 +12,8 @@ import {
   SerializationError,
   DeserializationError,
   TypeNotFoundError
-} from "../enhanced/serialization/xml/mod.ts";
-import { DV_TEXT, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../enhanced/openehr_rm.ts";
+} from "../serialization/xml/mod.ts";
+import { DV_TEXT, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../rm/openehr_rm.ts";
 
 // Register types
 TypeRegistry.registerModule({

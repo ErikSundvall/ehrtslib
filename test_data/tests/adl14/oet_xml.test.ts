@@ -3,7 +3,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { parseOetXml, isOetXml } from "../../enhanced/parser/legacy/oet_xml_parser.ts";
+import { parseOetXml, isOetXml } from "../../../parser/legacy/oet_xml_parser.ts";
 
 const OET_DIR = new URL("../../test_data/oet14/", import.meta.url);
 

@@ -10,11 +10,11 @@ import {
   parseGitHubClinicalModelFileUrl,
   parseGitHubTemplateFileUrl,
   resolveClinicalModelRef,
-} from "../../../enhanced/parser/github_template_closure.ts";
+} from "../../../parser/github_template_closure.ts";
 import {
   collectTemplateJsonExternalRefsFromText,
-} from "../../../enhanced/parser/template_json_dependencies.ts";
-import { ClinicalModelWorkspace } from "../../../enhanced/parser/clinical_model_workspace.ts";
+} from "../../../parser/template_json_dependencies.ts";
+import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 
 const BLOB_URL =
   "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";

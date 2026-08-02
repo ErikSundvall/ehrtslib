@@ -14,7 +14,7 @@ import {
   zipehrHtml5ToCanonical,
   zipehrTextToCanonical,
   zipehrXhtmlToCanonical,
-} from "../../enhanced/serialization/zipehr/mod.ts";
+} from "../../../serialization/zipehr/mod.ts";
 
 const UID_VALUE =
   "573b2f9c-d267-4052-ae09-7b58dcfd6233::regionstockholm_se::1";

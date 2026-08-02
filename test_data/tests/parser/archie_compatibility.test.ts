@@ -19,11 +19,11 @@
  */
 
 import { assert, assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../enhanced/parser/adl2_tokenizer.ts";
-import { ADL2Parser } from "../../enhanced/parser/adl2_parser.ts";
-import type { ADL2ParseResult } from "../../enhanced/parser/adl2_parser.ts";
-import { OdinParser } from "../../enhanced/parser/odin_parser.ts";
-import * as openehr_am from "../../enhanced/openehr_am.ts";
+import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { ADL2Parser } from "../../../parser/adl2_parser.ts";
+import type { ADL2ParseResult } from "../../../parser/adl2_parser.ts";
+import { OdinParser } from "../../../parser/odin_parser.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
 
 const ARCHIE_TEST_DATA = new URL("../../test_data/archie-tests/", import.meta.url);
 

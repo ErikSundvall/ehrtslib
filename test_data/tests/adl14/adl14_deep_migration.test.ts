@@ -3,8 +3,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { convertAdl14ToAdl2 } from "../../enhanced/parser/adl14_to_adl2_converter.ts";
-import { parseAdl } from "../../enhanced/parser/mod.ts";
+import { convertAdl14ToAdl2 } from "../../../parser/adl14_to_adl2_converter.ts";
+import { parseAdl } from "../../../parser/mod.ts";
 
 const TEST_DATA = new URL("../../test_data/", import.meta.url);
 

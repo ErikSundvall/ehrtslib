@@ -11,10 +11,10 @@ import {
   FLOW_YAML_CONFIG,
   HYBRID_YAML_CONFIG,
   DEFAULT_YAML_SERIALIZATION_CONFIG,
-} from "../../enhanced/serialization/yaml/mod.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/type_registry.ts";
-import * as rm from "../../enhanced/openehr_rm.ts";
-import * as base from "../../enhanced/openehr_base.ts";
+} from "../../../serialization/yaml/mod.ts";
+import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
+import * as rm from "../../../rm/openehr_rm.ts";
+import * as base from "../../../base/openehr_base.ts";
 
 // Register all RM types
 TypeRegistry.registerModule(rm);

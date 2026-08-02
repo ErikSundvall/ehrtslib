@@ -14,8 +14,18 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "enhanced/**/*.ts",
-    "tests/**/*.ts"
+    "*.ts",
+    "base/**/*.ts",
+    "rm/**/*.ts",
+    "am/**/*.ts",
+    "lang/**/*.ts",
+    "term/**/*.ts",
+    "parser/**/*.ts",
+    "serialization/**/*.ts",
+    "validation/**/*.ts",
+    "generation/**/*.ts",
+    "meta/**/*.ts",
+    "test_data/tests/**/*.ts"
   ],
   "exclude": [
     "node_modules"

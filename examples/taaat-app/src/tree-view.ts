@@ -3,7 +3,7 @@
  */
 
 import * as d3 from "d3";
-import type { DefinitionTreeNode } from "../../../enhanced/parser/clinical_model_annotations.ts";
+import type { DefinitionTreeNode } from "../../../parser/clinical_model_annotations.ts";
 
 export interface TreeViewOptions {
   container: HTMLElement;

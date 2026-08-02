@@ -3,10 +3,10 @@ import {
   assertEquals,
   assertExists,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import * as openehr_base from "../../enhanced/openehr_base.ts";
-import * as openehr_rm from "../../enhanced/openehr_rm.ts";
-import { JsonConfigurableDeserializer } from "../../enhanced/serialization/json/mod.ts";
-import { TypeRegistry } from "../../enhanced/serialization/common/mod.ts";
+import * as openehr_base from "../../../base/openehr_base.ts";
+import * as openehr_rm from "../../../rm/openehr_rm.ts";
+import { JsonConfigurableDeserializer } from "../../../serialization/json/mod.ts";
+import { TypeRegistry } from "../../../serialization/common/mod.ts";
 import {
   buildLocatableStructuredObject,
   compactArchetypeDetails,
@@ -30,7 +30,7 @@ import {
   ZIPEHR_SCHEMA_URL,
   ZIPEHR_YAML_SCHEMA_DIRECTIVE,
   zipehrTextToCanonical,
-} from "../../enhanced/serialization/zipehr/mod.ts";
+} from "../../../serialization/zipehr/mod.ts";
 import {
   convert,
   getJsonDeserializeConfigPreset,

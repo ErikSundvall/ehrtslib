@@ -1,8 +1,8 @@
-import { parseOptXml } from "./enhanced/parser/legacy/opt_xml_parser.ts";
+import { parseOptXml } from "./parser/legacy/opt_xml_parser.ts";
 import {
   buildWebTemplate,
   webTemplateToOpt,
-} from "./enhanced/serialization/simplified/mod.ts";
+} from "./serialization/simplified/mod.ts";
 
 const name = Deno.args[0] ?? "section_cardinality.opt";
 const xml = await Deno.readTextFile(`test_data/opt14/${name}`);
