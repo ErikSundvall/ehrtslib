@@ -57,3 +57,6 @@ const result = validator.validate(rmInstance, template);
 - Deno scripts: [examples/README.md](examples/README.md)
 - Browser converter: [examples/demo-app/README.md](examples/demo-app/README.md) — primary clinical models from [Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples)
 - Roadmap: [docs/maintainers/roadmap.md](docs/maintainers/roadmap.md)
+
+
+You can also visit [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ErikSundvall/ehrtslib) to ask about how to use and understand Ehrtslib.
