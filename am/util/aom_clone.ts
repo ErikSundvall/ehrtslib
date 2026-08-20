@@ -5,6 +5,7 @@
 import * as openehr_am from "../openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import {
+  COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
   type TermScopeMeta,
@@ -23,14 +24,9 @@ function cloneMultiplicity(
 }
 
 export function cloneCObject(obj: openehr_am.C_OBJECT): openehr_am.C_OBJECT {
+  // C_ARCHETYPE_ROOT extends C_COMPLEX_OBJECT — cloneComplexObject handles both.
   if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
     return cloneComplexObject(obj);
-  }
-  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
-    const root = new openehr_am.C_ARCHETYPE_ROOT();
-    copyComplexFields(obj, root);
-    root.archetype_ref = obj.archetype_ref;
-    return root;
   }
   if (obj instanceof openehr_am.ARCHETYPE_SLOT) {
     const slot = new openehr_am.ARCHETYPE_SLOT();
@@ -86,6 +82,11 @@ function copyObjectFields(
   if (srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY]) {
     destMeta[TERM_NAME_FALLBACK_NODE_ID_KEY] =
       srcMeta[TERM_NAME_FALLBACK_NODE_ID_KEY];
+  }
+  if (srcMeta[COMPONENT_TERM_DEFINITIONS_KEY]) {
+    destMeta[COMPONENT_TERM_DEFINITIONS_KEY] = {
+      ...srcMeta[COMPONENT_TERM_DEFINITIONS_KEY],
+    };
   }
 }
 

@@ -17,22 +17,21 @@ import {
   templateRootId,
 } from "./normalize.ts";
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
+import {
+  archetypeTermBagsForLanguage,
+  resolveTermEntry,
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+  type OperationalTemplateWithTermScopes,
+  type TermEntry,
+  type TermScopeMeta,
+} from "../../generation/term_scope.ts";
+import type { TermBag } from "../../am/util/ontology_merge.ts";
 
 export interface WebTemplateBuilderOptions {
   defaultLanguage?: string;
   /** Mark composition-level metadata nodes as ctx (for FLAT ctx/ prefix). */
   includeContextNodes?: boolean;
-}
-
-type TermBag = Record<string, { text?: unknown; description?: unknown }>;
-
-function termLabel(val: unknown): string | undefined {
-  if (typeof val === "string" && val && val !== "[object Object]") return val;
-  if (val && typeof val === "object") {
-    const o = val as Record<string, unknown>;
-    return termLabel(o.value) ?? termLabel(o.text) ?? termLabel(o["#text"]);
-  }
-  return undefined;
 }
 
 const SKIP_RM_TYPES = new Set([
@@ -72,15 +71,8 @@ function multiplicityBounds(
 function lookupTerm(
   terms: TermBag,
   nodeId?: string,
-): { text?: string; description?: string } {
-  if (!nodeId) return {};
-  const at = nodeIdToAtCode(nodeId);
-  const raw = terms[nodeId] ?? terms[at];
-  if (!raw) return {};
-  return {
-    text: termLabel(raw.text),
-    description: termLabel(raw.description),
-  };
+): TermEntry {
+  return resolveTermEntry(nodeId, undefined, terms, {}, undefined) ?? {};
 }
 
 function buildInputs(
@@ -159,11 +151,23 @@ export class WebTemplateBuilder {
   private requestedLang?: string;
   private includeContext: boolean;
   private terms: TermBag = {};
+  private archetypeTerms: Record<string, TermBag> = {};
 
   constructor(options?: WebTemplateBuilderOptions) {
     this.requestedLang = options?.defaultLanguage;
     this.lang = options?.defaultLanguage ?? "en";
     this.includeContext = options?.includeContextNodes ?? true;
+  }
+
+  private termFor(obj: openehr_am.C_OBJECT): TermEntry {
+    const meta = obj as TermScopeMeta;
+    return resolveTermEntry(
+      obj.node_id,
+      meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+      this.terms,
+      this.archetypeTerms,
+      meta[TERM_ARCHETYPE_SCOPE_KEY],
+    ) ?? lookupTerm(this.terms, obj.node_id);
   }
 
   build(opt: openehr_am.OPERATIONAL_TEMPLATE): WebTemplate {
@@ -187,6 +191,10 @@ export class WebTemplateBuilder {
       (l): l is string => !!l && !!termDefs[l],
     ) ?? this.requestedLang ?? defaultLanguage;
     this.terms = termDefs[this.lang] ?? {};
+    this.archetypeTerms = archetypeTermBagsForLanguage(
+      opt as OperationalTemplateWithTermScopes,
+      this.lang,
+    );
 
     if (!opt.definition) {
       throw new Error("Operational template has no definition");
@@ -236,7 +244,7 @@ export class WebTemplateBuilder {
     idHint: string,
     isCompositionRoot = false,
   ): WebTemplateNode {
-    const term = lookupTerm(this.terms, obj.node_id);
+    const term = this.termFor(obj);
     const { min, max } = multiplicityBounds(obj.occurrences);
     const rmType = obj.rm_type_name ?? "COMPLEX";
 
@@ -288,7 +296,7 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const childLabel = lookupTerm(this.terms, child.node_id).text ??
+        const childLabel = this.termFor(child).text ??
           child.rm_type_name?.toLowerCase() ??
           attrName;
         if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
@@ -353,7 +361,7 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const itemLabel = lookupTerm(this.terms, child.node_id).text ??
+        const itemLabel = this.termFor(child).text ??
           attrName;
         const isComplex = child instanceof openehr_am.C_COMPLEX_OBJECT;
         if (isComplex) {
@@ -398,7 +406,7 @@ export class WebTemplateBuilder {
         aqlPath,
         `events[${nodeIdToAtCode(ev.node_id)}]`,
       );
-      const term = lookupTerm(this.terms, ev.node_id);
+      const term = this.termFor(ev);
       const { min, max } = multiplicityBounds(ev.occurrences);
       const eventShell: WebTemplateNode = {
         id: normalizeWebTemplateId(term.text ?? "event"),
@@ -454,7 +462,7 @@ export class WebTemplateBuilder {
       const elementNodeId = nodeIdToAtCode(obj.node_id);
       if (!leaf.nodeId && elementNodeId) {
         leaf.nodeId = elementNodeId;
-        const term = lookupTerm(this.terms, obj.node_id);
+        const term = this.termFor(obj);
         if (term.text && !leaf.localizedName) {
           leaf.name = term.text;
           leaf.localizedName = term.text;
@@ -476,7 +484,7 @@ export class WebTemplateBuilder {
     idHint: string,
   ): WebTemplateNode {
     const rmType = obj.rm_type_name ?? "DV_TEXT";
-    const term = lookupTerm(this.terms, obj.node_id);
+    const term = this.termFor(obj);
     const { min, max } = multiplicityBounds(obj.occurrences);
     return {
       id: normalizeWebTemplateId(term.text ?? idHint),

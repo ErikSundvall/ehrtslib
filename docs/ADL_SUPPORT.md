@@ -78,7 +78,29 @@ const xml = new OptXmlSerializer().serialize(opt!);
 
 Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT), `oet14/`, `adl14/`, `archie-tests/`.
 
+## Terminology lookup (`at0001` is not global)
 
+Archetype at-codes (`at0001`, `at0000`, …) are **local to one archetype**. A blood-pressure OPT typically has a different `at0001` on the composition, the observation, and a nested device cluster.
+
+`RMInstanceGenerator.locatableLabel` looks up labels with:
+
+1. `term_archetype_scope` on the constraint node (which archetype this node came from)
+2. `archetype_term_definitions[archetypeId][language][atCode]` (per-archetype bags)
+3. only then the merged `ontology.term_definitions` map
+
+Those scoped fields are filled by:
+
+| Input | When scopes are attached |
+|-------|--------------------------|
+| ADL / `.t.json` flatten | `flattenToOperationalTemplate` |
+| Legacy **OPT XML** | `parseOptXml` / `parseTemplateInput` (same as flatten) |
+| Web Template → OPT | `webTemplateToOpt` (from node names under the nearest archetype-id ancestor) |
+
+Do **not** treat `opt.ontology.term_definitions.en.at0001` as the name of a specific node. That flat map still last-wins when the same at-code appears in several inlined archetypes. It remains for consumers that only need a merged dictionary.
+
+`buildWebTemplate` uses the same scoped lookup as the generator, so Web Template node `name` / `localizedName` stay correct even when at-codes collide. The reconstructed OPT's flat ontology from `webTemplateToOpt` is still last-wins; use `archetype_term_definitions` or the names already on the Web Template tree.
+
+`OptXmlSerializer` emits `xsi:type="C_ARCHETYPE_ROOT"` (the subclass must be tested **before** `C_COMPLEX_OBJECT`) and writes that root's `<term_definitions>`. It does not serialize term bindings or value sets.
 
 ## ADL 1.4 conversion
 
@@ -134,7 +156,7 @@ Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT),
 
 | OET `hide_on_form` rules | Ignored (UI metadata, not AOM) | N/A |
 
-| OPT XML serialize | Structural round-trip; whitespace/metadata may differ | Compare parsed AOM, not bytes |
+| OPT XML serialize | Structural round-trip plus per-`C_ARCHETYPE_ROOT` `term_definitions`; bindings/value sets still omitted | Compare parsed AOM, not bytes |
 
 | ADL 1.4 → 2 → 1.4 | Node ids and ontology shape restored; comments lost | Use ADL2 as source of truth |
 

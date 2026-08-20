@@ -39,6 +39,7 @@ const json = new JsonConfigurableSerializer({ prettyPrint: true })
 | FLAT / STRUCTURED / Web Template | [docs/SIMPLIFIED_FORMATS.md](docs/SIMPLIFIED_FORMATS.md) |
 | Clinical model file sets / GitHub load | [docs/CLINICAL_MODEL_FILESETS.md](docs/CLINICAL_MODEL_FILESETS.md) |
 | ADL 1.4 / 2 + OPT/OET + validation | [docs/ADL_SUPPORT.md](docs/ADL_SUPPORT.md) |
+| Terminology lookup (`at0001` is local) | [docs/ADL_SUPPORT.md](docs/ADL_SUPPORT.md#terminology-lookup-at0001-is-not-global) |
 | Validation gaps | [docs/VALIDATION_LIMITATIONS.md](docs/VALIDATION_LIMITATIONS.md) |
 | RM attribute introspection | [docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md) |
 

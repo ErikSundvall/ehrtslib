@@ -103,7 +103,7 @@ Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollab
 
 ## Limitations
 
-- Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal); terminology rubrics from OPT XML may be incomplete when term text is nested XML objects.
+- Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal). Node **names** use archetype-scoped term lookup (`term_archetype_scope` + `archetype_term_definitions`), matching `RMInstanceGenerator`. The reconstructed OPT from `webTemplateToOpt()` still has a flat `ontology.term_definitions` map that last-wins on colliding at-codes — prefer names on the Web Template nodes or `archetype_term_definitions`.
 - `webTemplateToOpt()` reconstructs an approximate operational template from a derived Web Template; constraint detail (value sets, invariants) is not preserved — sufficient for structural round-trip, instance generation, and FLAT/STRUCTURED (de)serialization.
 - Example instances from `RMInstanceGenerator` may omit primitive values on optional DV types; FLAT/STRUCTURED leaf keys appear only when RM values are populated.
 - Deserialization returns plain RM object trees by default; use `toTypedRm()` (or `JsonCanonicalDeserializer`) for typed class instances.

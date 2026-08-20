@@ -5,8 +5,11 @@
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 import { RMInstanceGenerator } from "../../../generation/rm_instance_generator.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
+import type { OperationalTemplateWithTermScopes } from "../../../generation/term_scope.ts";
+import { TERM_ARCHETYPE_SCOPE_KEY, type TermScopeMeta } from "../../../generation/term_scope.ts";
 
-const OPT_DIR = new URL("../../test_data/opt14/", import.meta.url);
+const OPT_DIR = new URL("../../opt14/", import.meta.url);
 
 async function listOptFiles(): Promise<string[]> {
   const files: string[] = [];
@@ -69,6 +72,8 @@ Deno.test("parseOptXml - blood pressure terminology uses archetype text not RM t
     terms.at0005.text !== "[object Object]",
     "term text must not be a broken object stringification",
   );
+  // Flat merged ontology is last-wins: composition at0005 ("Admin detail")
+  // is overwritten by observation at0005 ("Diastolic"). Prefer scoped lookup.
   assertEquals(terms.at0005.text, "Diastolic");
 
   const instance = new RMInstanceGenerator({ mode: "example" }).generate(
@@ -82,3 +87,97 @@ Deno.test("parseOptXml - blood pressure terminology uses archetype text not RM t
     "observation name should come from template terminology",
   );
 });
+
+function findLocatable(
+  node: unknown,
+  pred: (item: { archetype_node_id?: string; name?: { value?: string } }) => boolean,
+): { archetype_node_id?: string; name?: { value?: string } } | undefined {
+  if (!node || typeof node !== "object") return undefined;
+  const rec = node as { archetype_node_id?: string; name?: { value?: string } };
+  if (pred(rec)) return rec;
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const found = findLocatable(item, pred);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  for (const value of Object.values(node as Record<string, unknown>)) {
+    const found = findLocatable(value, pred);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+function collectArchetypeRoots(
+  obj: openehr_am.C_OBJECT | undefined,
+  out: openehr_am.C_ARCHETYPE_ROOT[] = [],
+): openehr_am.C_ARCHETYPE_ROOT[] {
+  if (!obj) return out;
+  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) out.push(obj);
+  if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
+    for (const attr of obj.attributes ?? []) {
+      for (const child of (attr as { children?: openehr_am.C_OBJECT[] }).children ?? []) {
+        collectArchetypeRoots(child, out);
+      }
+    }
+  }
+  return out;
+}
+
+Deno.test("parseOptXml - scoped term bags keep colliding at0001 per archetype", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("ehrbase_blood_pressure_simple.de.v0.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const scoped = (operationalTemplate as OperationalTemplateWithTermScopes)
+    .archetype_term_definitions ?? {};
+
+  assert(
+    operationalTemplate.definition instanceof openehr_am.C_ARCHETYPE_ROOT,
+    "OPT <definition> with archetype_id is a C_ARCHETYPE_ROOT",
+  );
+  assertEquals(
+    (operationalTemplate.definition as openehr_am.C_ARCHETYPE_ROOT).archetype_ref,
+    "openEHR-EHR-COMPOSITION.sample_encounter.v1",
+  );
+
+  assertEquals(
+    scoped["openEHR-EHR-CLUSTER.sample_device.v1"]?.en?.at0001?.text,
+    "Name",
+  );
+  assertEquals(
+    scoped["openEHR-EHR-OBSERVATION.sample_blood_pressure.v1"]?.en?.at0001?.text,
+    "history",
+  );
+  assertEquals(
+    scoped["openEHR-EHR-COMPOSITION.sample_encounter.v1"]?.en?.at0001?.text,
+    "Tree",
+  );
+
+  const device = collectArchetypeRoots(operationalTemplate.definition).find(
+    (r) => r.archetype_ref === "openEHR-EHR-CLUSTER.sample_device.v1",
+  );
+  assert(device, "expected inlined sample_device C_ARCHETYPE_ROOT");
+  assertEquals(
+    (device as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY],
+    "openEHR-EHR-CLUSTER.sample_device.v1",
+  );
+
+  const instance = new RMInstanceGenerator({ mode: "example" }).generate(
+    operationalTemplate,
+  );
+  const deviceCluster = findLocatable(
+    instance,
+    (item) =>
+      typeof item.archetype_node_id === "string" &&
+      item.archetype_node_id.includes("sample_device"),
+  );
+  assert(deviceCluster, "expected sample_device cluster in generated instance");
+  assertEquals(
+    deviceCluster.name?.value,
+    "Device details (training sample)",
+    "device cluster must not inherit the observation at0000 label",
+  );
+});
+

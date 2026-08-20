@@ -73,3 +73,41 @@ Deno.test("buildWebTemplate - blood pressure template", async () => {
   assert(wt.tree.children?.some((c) => !c.inContext));
   assert("ctx/language" in flat || Object.keys(flat).length > 0);
 });
+
+function walkWebTemplateNodes(
+  node: { nodeId?: string; name?: string; children?: unknown[] },
+  visit: (n: { nodeId?: string; name?: string }) => void,
+): void {
+  visit(node);
+  for (const child of node.children ?? []) {
+    walkWebTemplateNodes(child as { nodeId?: string; name?: string; children?: unknown[] }, visit);
+  }
+}
+
+Deno.test("buildWebTemplate - colliding at0001 names stay archetype-local", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("ehrbase_blood_pressure_simple.de.v0.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const wt = buildWebTemplate(operationalTemplate);
+
+  const pairs: Array<{ nodeId: string; name?: string }> = [];
+  walkWebTemplateNodes(wt.tree, (n) => {
+    if (n.nodeId) pairs.push({ nodeId: n.nodeId, name: n.name });
+  });
+
+  assertEquals(
+    pairs.find((p) =>
+      p.nodeId === "openEHR-EHR-OBSERVATION.sample_blood_pressure.v1"
+    )?.name,
+    "Blood pressure (Training sample)",
+  );
+  // Composition and observation both use at0000; scoped lookup must not
+  // rename the composition to the observation rubric.
+  assertEquals(wt.tree.name, "Encounter (training sample)");
+  assert(
+    pairs.some((p) => p.nodeId === "at0004" && p.name === "Systolic"),
+    "expected systolic element from the observation terminology",
+  );
+});
+

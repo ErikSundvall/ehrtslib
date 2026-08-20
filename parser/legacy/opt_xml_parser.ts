@@ -10,6 +10,7 @@ import {
   parseLegacyTemplateXml,
   textValue,
 } from "./xml_aom_mapper.ts";
+import { applyOperationalTemplateTermScopes } from "../../generation/term_scope.ts";
 
 export interface OptXmlParseResult {
   operationalTemplate: openehr_am.OPERATIONAL_TEMPLATE;
@@ -83,6 +84,10 @@ export function parseOptXml(source: string): OptXmlParseResult {
     ontology.value_sets = {};
     opt.ontology = ontology;
   }
+
+  // Per-archetype bags + term_archetype_scope on every inlined node.
+  // The merged ontology above is last-wins on colliding at-codes.
+  applyOperationalTemplateTermScopes(opt, "en");
 
   if (root.concept) {
     warnings.push("OPT concept metadata preserved in description only (not full round-trip).");

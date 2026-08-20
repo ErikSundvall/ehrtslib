@@ -9,8 +9,9 @@
  *   each node's `aqlPath` (which retains the collapsed wrapper segments),
  * - `C_ARCHETYPE_ROOT` nodes for archetype-id node ids,
  * - occurrences from `min` / `max`,
- * - the ontology `term_definitions` from node names/descriptions
- *   (per language when `localizedNames` are present).
+ * - per-archetype `archetype_term_definitions` from node names (keyed by the
+ *   nearest archetype-id ancestor), plus a flat `ontology.term_definitions`
+ *   map that still last-wins on colliding at-codes.
  *
  * The result is sufficient for `buildWebTemplate` to reproduce an equivalent
  * Web Template (structural round-trip), for RM instance generation, and for
@@ -20,6 +21,12 @@
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import type { WebTemplate, WebTemplateNode } from "./types.ts";
+import {
+  TERM_ARCHETYPE_SCOPE_KEY,
+  type OperationalTemplateWithTermScopes,
+  type TermScopeMeta,
+} from "../../generation/term_scope.ts";
+import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
 
 const MULTIPLE_ATTRS = new Set([
   "content",
@@ -96,6 +103,8 @@ const DEFAULT_CTX_PATHS = new Set([
 
 export class WebTemplateToOptConverter {
   private terms: TermBag = {};
+  /** Per-archetype term tables (language → at-code → text). */
+  private scopedTerms: Record<string, TermDefinitionTable> = {};
   private defaultLang = "en";
   /**
    * Constraint objects already claimed by a Web Template node. Sibling WT
@@ -106,6 +115,7 @@ export class WebTemplateToOptConverter {
 
   convert(webTemplate: WebTemplate): openehr_am.OPERATIONAL_TEMPLATE {
     this.terms = {};
+    this.scopedTerms = {};
     this.claimed = new Set();
     this.defaultLang = webTemplate.defaultLanguage || "en";
 
@@ -129,7 +139,12 @@ export class WebTemplateToOptConverter {
       if (isArchetypeId(tree.nodeId)) root.archetype_ref = tree.nodeId;
     }
     root.occurrences = multiplicity(tree.min ?? 1, tree.max ?? 1);
-    this.recordTerms(tree);
+    if (tree.nodeId && isArchetypeId(tree.nodeId)) {
+      (root as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = tree.nodeId;
+    }
+    this.recordTerms(tree, tree.nodeId && isArchetypeId(tree.nodeId)
+      ? tree.nodeId
+      : undefined);
 
     for (const child of tree.children ?? []) {
       // Template-specific context nodes (e.g. category, other_context) carry
@@ -148,12 +163,20 @@ export class WebTemplateToOptConverter {
     ontology.value_sets = {};
     opt.ontology = ontology;
 
+    const index: Record<string, TermDefinitionTable> = {};
+    for (const [archId, table] of Object.entries(this.scopedTerms)) {
+      index[archId] = table;
+    }
+    (opt as OperationalTemplateWithTermScopes).archetype_term_definitions =
+      index;
+
     return opt;
   }
 
-  private recordTerms(node: WebTemplateNode): void {
-    // Archetype roots are keyed by their archetype id so that
-    // buildWebTemplate can recover their display names too.
+  private recordTerms(node: WebTemplateNode, archetypeScope?: string): void {
+    const scope = node.nodeId && isArchetypeId(node.nodeId)
+      ? node.nodeId
+      : archetypeScope;
     const code = node.nodeId;
     if (!code) return;
 
@@ -172,6 +195,15 @@ export class WebTemplateToOptConverter {
       if (description != null) {
         this.terms[lang][code].description = description;
       }
+      if (scope && !isArchetypeId(code)) {
+        this.scopedTerms[scope] ??= {};
+        this.scopedTerms[scope][lang] ??= {};
+        this.scopedTerms[scope][lang][code] ??= {};
+        if (text != null) this.scopedTerms[scope][lang][code].text = text;
+        if (description != null) {
+          this.scopedTerms[scope][lang][code].description = description;
+        }
+      }
     }
   }
 
@@ -188,7 +220,7 @@ export class WebTemplateToOptConverter {
     const segments = allSegments.slice(parentAqlDepth);
     if (!segments.length) return;
 
-    this.recordTerms(node);
+    this.recordTerms(node, this.scopeOf(parent));
 
     const isLeaf = !!node.inputs?.length && !node.children?.length;
     // Spec-style leaves address ELEMENT.value; the element is the
@@ -210,6 +242,8 @@ export class WebTemplateToOptConverter {
           attr,
           seg.nodeId,
           wrapperRmType(current.rm_type_name ?? "", seg.attr),
+          false,
+          this.scopeOf(current),
         );
         continue;
       }
@@ -224,16 +258,26 @@ export class WebTemplateToOptConverter {
             attr,
             seg.nodeId ?? node.nodeId,
             "ELEMENT",
+            false,
+            this.scopeOf(current),
           );
           element.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
           const valueAttr = this.ensureAttribute(element, "value");
-          const dv = this.ensureObject(valueAttr, undefined, node.rmType);
+          const dv = this.ensureObject(
+            valueAttr,
+            undefined,
+            node.rmType,
+            false,
+            this.scopeOf(element),
+          );
           dv.occurrences = multiplicity(1, 1);
         } else {
           const dv = this.ensureObject(
             attr,
             seg.nodeId ?? node.nodeId,
             node.rmType,
+            false,
+            this.scopeOf(current),
           );
           dv.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
         }
@@ -245,6 +289,7 @@ export class WebTemplateToOptConverter {
         seg.nodeId ?? node.nodeId,
         node.rmType,
         /* forceUnclaimed */ true,
+        this.scopeOf(current),
       );
       this.claimed.add(obj);
       obj.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
@@ -274,11 +319,19 @@ export class WebTemplateToOptConverter {
     return attr;
   }
 
+  private scopeOf(obj: openehr_am.C_OBJECT): string | undefined {
+    return (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] ??
+      (obj instanceof openehr_am.C_ARCHETYPE_ROOT
+        ? obj.archetype_ref
+        : undefined);
+  }
+
   private ensureObject(
     attr: openehr_am.C_ATTRIBUTE,
     nodeId: string | undefined,
     rmType: string,
     forceUnclaimed = false,
+    inheritedScope?: string,
   ): openehr_am.C_COMPLEX_OBJECT {
     attr.children ??= [];
     const existing = attr.children.find((c) =>
@@ -296,6 +349,10 @@ export class WebTemplateToOptConverter {
     }
     obj.rm_type_name = rmType;
     if (nodeId) obj.node_id = nodeId;
+    const scope = isArchetypeId(nodeId) ? nodeId : inheritedScope;
+    if (scope) {
+      (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = scope;
+    }
     attr.children.push(obj);
     return obj;
   }

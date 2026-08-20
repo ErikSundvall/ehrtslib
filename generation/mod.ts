@@ -24,13 +24,19 @@ export type {
 } from "./template_instance_coverage.ts";
 
 export {
+  applyOperationalTemplateTermScopes,
+  archetypeTermBagsForLanguage,
+  lookupTermEntryInBag,
   lookupTermInBag,
   resolveLocatableLabel,
+  resolveTermEntry,
+  COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
 } from "./term_scope.ts";
 export type {
   OperationalTemplateWithTermScopes,
+  TermEntry,
   TermScopeMeta,
 } from "./term_scope.ts";
 

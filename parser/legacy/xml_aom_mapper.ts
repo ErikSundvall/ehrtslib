@@ -5,6 +5,11 @@
 import { XMLParser } from "fast-xml-parser";
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
+import {
+  COMPONENT_TERM_DEFINITIONS_KEY,
+  type TermScopeMeta,
+} from "../../generation/term_scope.ts";
+import type { TermBag } from "../../am/util/ontology_merge.ts";
 
 export function parseLegacyTemplateXml(xml: string): Record<string, unknown> {
   const parser = new XMLParser({
@@ -163,8 +168,15 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   const n = node as Record<string, unknown>;
   const type = (xsiType(n) || amFieldString(n, "rm_type_name", "rmTypeName")) ??
     "C_COMPLEX_OBJECT";
+  const hasArchetypeId = !!(
+    textValue(n.archetype_id) ??
+      textValue(n.archetype_ref) ??
+      textValue(n.archetypeRef)
+  );
 
-  if (type === "C_ARCHETYPE_ROOT") {
+  // Legacy OPT XML often omits xsi:type on <definition> even when the node
+  // carries archetype_id + term_definitions (a C_ARCHETYPE_ROOT).
+  if (type === "C_ARCHETYPE_ROOT" || hasArchetypeId) {
     return parseCArchetypeRoot(n);
   }
   if (type === "C_COMPLEX_OBJECT" || !type.startsWith("C_")) {
@@ -282,6 +294,10 @@ function parseCArchetypeRoot(
   ).filter(
     Boolean,
   ) as openehr_am.C_ATTRIBUTE[];
+  const localTerms = collectLocalTermDefinitions(n);
+  if (Object.keys(localTerms).length) {
+    (root as TermScopeMeta)[COMPONENT_TERM_DEFINITIONS_KEY] = localTerms;
+  }
   return root;
 }
 
@@ -453,12 +469,11 @@ function parseCQuantity(n: Record<string, unknown>): openehr_am.C_QUANTITY {
   return q;
 }
 
-export function collectTermDefinitions(
-  node: unknown,
-  bag: Record<string, Record<string, { text?: string; description?: string }>>,
-): void {
-  if (!node || typeof node !== "object") return;
-  const n = node as Record<string, unknown>;
+/** Terms on this XML node only — not descendants (nested C_ARCHETYPE_ROOT). */
+export function collectLocalTermDefinitions(
+  n: Record<string, unknown>,
+): TermBag {
+  const bag: TermBag = {};
   for (const td of asArray(n.term_definitions)) {
     const rec = td as Record<string, unknown>;
     const code = String(rec["@_code"] ?? rec.code ?? "");
@@ -473,8 +488,26 @@ export function collectTermDefinitions(
       if (id === "text") entry.text = val;
       if (id === "description") entry.description = val;
     }
+    if (entry.text || entry.description) bag[code] = entry;
+  }
+  return bag;
+}
+
+/**
+ * Flatten every `<term_definitions>` in the XML tree into one language bag.
+ * Colliding at-codes (the same `at0001` in two archetypes) last-write-wins.
+ * Prefer `archetype_term_definitions` + `term_archetype_scope` for lookup.
+ */
+export function collectTermDefinitions(
+  node: unknown,
+  bag: Record<string, Record<string, { text?: string; description?: string }>>,
+): void {
+  if (!node || typeof node !== "object") return;
+  const n = node as Record<string, unknown>;
+  const local = collectLocalTermDefinitions(n);
+  if (Object.keys(local).length) {
     if (!bag.en) bag.en = {};
-    bag.en[code] = entry;
+    Object.assign(bag.en, local);
   }
   for (const child of asArray(n.children)) collectTermDefinitions(child, bag);
   for (const attr of asArray(n.attributes)) {

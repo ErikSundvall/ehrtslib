@@ -1,5 +1,11 @@
 /**
  * Unified template / operational template input parsing (ADL 1.4, ADL2, OPT XML, OET XML).
+ *
+ * OPT XML (`parseOptXml`) now tags `C_ARCHETYPE_ROOT` subtrees with
+ * `term_archetype_scope` and fills `archetype_term_definitions`, matching the
+ * flattening path used for `.t.json` / ADL templates. Prefer those scoped
+ * tables over the merged `ontology.term_definitions` map, which still last-wins
+ * on colliding at-codes such as `at0001`.
  */
 
 import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
