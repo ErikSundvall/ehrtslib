@@ -102,6 +102,28 @@ Do **not** treat `opt.ontology.term_definitions.en.at0001` as the name of a spec
 
 `OptXmlSerializer` emits `xsi:type="C_ARCHETYPE_ROOT"` (the subclass must be tested **before** `C_COMPLEX_OBJECT`) and writes that root's `<term_definitions>`. It does not serialize term bindings or value sets.
 
+### L10n annotations (multilingual repeated parts)
+
+Legacy OPT XML can store **only one** ontology / `component_ontologies` block per archetype id. Renamed repetitions of the same archetype therefore lose independent translations. Better Studio and related tools work around this with path annotations:
+
+```xml
+<annotations path="[openEHR-EHR-COMPOSITION.x.v1]/content[openEHR-EHR-SECTION.adhoc.v1 and name/value='Medical equipment at home']">
+  <items id="L10n.sv">Medicinsk utrustning i hemmet</items>
+  <items id="L10n.fr">Équipement médical à domicile</items>
+</annotations>
+```
+
+ehrtslib support:
+
+| Direction | Behaviour |
+|-----------|-----------|
+| **Parse** OPT XML | Top-level `<annotations>` → `RESOURCE_ANNOTATIONS.documentation` (incl. `L10n.*`) |
+| **Serialize** OPT XML | Emits annotations when present; `OptXmlSerializer({ l10nFromWebTemplate })` can synthesize `L10n.{lang}` from Web Template `localizedNames` |
+| **Web Template** | `buildWebTemplate` promotes `L10n.{lang}` into `node.localizedNames` and copies all path items onto `node.annotations` |
+| **Web Template → OPT** | `webTemplateToOpt` writes `L10n.*` path annotations from each node's `localizedNames` |
+
+Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Background: [openEHR Discourse #2760](https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760).
+
 ## ADL 1.4 conversion
 
 
@@ -156,7 +178,7 @@ Do **not** treat `opt.ontology.term_definitions.en.at0001` as the name of a spec
 
 | OET `hide_on_form` rules | Ignored (UI metadata, not AOM) | N/A |
 
-| OPT XML serialize | Structural round-trip plus per-`C_ARCHETYPE_ROOT` `term_definitions`; bindings/value sets still omitted | Compare parsed AOM, not bytes |
+| OPT XML serialize | Structural round-trip plus per-`C_ARCHETYPE_ROOT` `term_definitions` and path `<annotations>` (incl. `L10n.*`); bindings/value sets still omitted | Compare parsed AOM, not bytes; use `l10nFromWebTemplate` when exporting multilingual repeated names |
 
 | ADL 1.4 → 2 → 1.4 | Node ids and ontology shape restored; comments lost | Use ADL2 as source of truth |
 

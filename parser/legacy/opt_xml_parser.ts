@@ -5,12 +5,14 @@
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import {
+  asArray,
   collectTermDefinitions,
   parseCObject,
   parseLegacyTemplateXml,
   textValue,
 } from "./xml_aom_mapper.ts";
 import { applyOperationalTemplateTermScopes } from "../../generation/term_scope.ts";
+import { setOptPathAnnotationItems } from "../../generation/opt_l10n.ts";
 
 export interface OptXmlParseResult {
   operationalTemplate: openehr_am.OPERATIONAL_TEMPLATE;
@@ -89,9 +91,38 @@ export function parseOptXml(source: string): OptXmlParseResult {
   // The merged ontology above is last-wins on colliding at-codes.
   applyOperationalTemplateTermScopes(opt, "en");
 
+  // Path annotations (including Better/AD `L10n.{lang}` name overrides).
+  parseOptAnnotations(root, opt);
+
   if (root.concept) {
     warnings.push("OPT concept metadata preserved in description only (not full round-trip).");
   }
 
   return { operationalTemplate: opt, warnings };
+}
+
+/**
+ * Parse top-level OPT `<annotations path="...">` into RESOURCE_ANNOTATIONS.
+ * Items use `id` as the key (e.g. `L10n.sv`, `FHIR`).
+ */
+function parseOptAnnotations(
+  root: Record<string, unknown>,
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+): void {
+  for (const raw of asArray(root.annotations)) {
+    if (!raw || typeof raw !== "object") continue;
+    const rec = raw as Record<string, unknown>;
+    const path = String(rec["@_path"] ?? rec.path ?? "").trim();
+    if (!path) continue;
+    const items: Record<string, string> = {};
+    for (const it of asArray(rec.items)) {
+      if (!it || typeof it !== "object") continue;
+      const item = it as Record<string, unknown>;
+      const id = String(item["@_id"] ?? item.id ?? "").trim();
+      const val = textValue(item);
+      if (!id || !val) continue;
+      items[id] = val;
+    }
+    setOptPathAnnotationItems(opt, path, items);
+  }
 }

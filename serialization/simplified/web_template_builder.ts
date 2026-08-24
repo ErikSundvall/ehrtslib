@@ -27,11 +27,22 @@ import {
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
 import type { TermBag } from "../../am/util/ontology_merge.ts";
+import {
+  annotationsForAqlPath,
+  applyL10nToLocalizedNames,
+  flattenOptPathAnnotations,
+  type OptPathAnnotationMap,
+} from "../../generation/opt_l10n.ts";
 
 export interface WebTemplateBuilderOptions {
   defaultLanguage?: string;
   /** Mark composition-level metadata nodes as ctx (for FLAT ctx/ prefix). */
   includeContextNodes?: boolean;
+  /**
+   * Promote OPT `L10n.{lang}` path annotations into node `localizedNames`
+   * and attach all path annotations to `node.annotations` (default true).
+   */
+  applyL10nAnnotations?: boolean;
 }
 
 const SKIP_RM_TYPES = new Set([
@@ -150,13 +161,16 @@ export class WebTemplateBuilder {
   private lang: string;
   private requestedLang?: string;
   private includeContext: boolean;
+  private applyL10n: boolean;
   private terms: TermBag = {};
   private archetypeTerms: Record<string, TermBag> = {};
+  private pathAnnotations: OptPathAnnotationMap = {};
 
   constructor(options?: WebTemplateBuilderOptions) {
     this.requestedLang = options?.defaultLanguage;
     this.lang = options?.defaultLanguage ?? "en";
     this.includeContext = options?.includeContextNodes ?? true;
+    this.applyL10n = options?.applyL10nAnnotations ?? true;
   }
 
   private termFor(obj: openehr_am.C_OBJECT): TermEntry {
@@ -168,6 +182,31 @@ export class WebTemplateBuilder {
       this.archetypeTerms,
       meta[TERM_ARCHETYPE_SCOPE_KEY],
     ) ?? lookupTerm(this.terms, obj.node_id);
+  }
+
+  /** Attach OPT path annotations and promote L10n.* into localizedNames. */
+  private decorateWithAnnotations(node: WebTemplateNode): WebTemplateNode {
+    if (!this.applyL10n) return node;
+    const items = annotationsForAqlPath(
+      this.pathAnnotations,
+      node.aqlPath,
+      node.name ?? node.localizedName,
+    );
+    if (!items) return node;
+    const localizedNames = applyL10nToLocalizedNames(
+      node.localizedNames,
+      items,
+    );
+    const forLang = localizedNames?.[this.lang];
+    return {
+      ...node,
+      annotations: { ...(node.annotations ?? {}), ...items },
+      localizedNames,
+      // Prefer L10n for the active language when present; keep id stable.
+      ...(forLang
+        ? { name: forLang, localizedName: forLang }
+        : {}),
+    };
   }
 
   build(opt: openehr_am.OPERATIONAL_TEMPLATE): WebTemplate {
@@ -195,6 +234,9 @@ export class WebTemplateBuilder {
       opt as OperationalTemplateWithTermScopes,
       this.lang,
     );
+    this.pathAnnotations = this.applyL10n
+      ? flattenOptPathAnnotations(opt)
+      : {};
 
     if (!opt.definition) {
       throw new Error("Operational template has no definition");
@@ -341,7 +383,7 @@ export class WebTemplateBuilder {
     }
 
     if (!node.children?.length) delete node.children;
-    return node;
+    return this.decorateWithAnnotations(node);
   }
 
   private flattenDataStructure(
@@ -408,7 +450,7 @@ export class WebTemplateBuilder {
       );
       const term = this.termFor(ev);
       const { min, max } = multiplicityBounds(ev.occurrences);
-      const eventShell: WebTemplateNode = {
+      const eventShell: WebTemplateNode = this.decorateWithAnnotations({
         id: normalizeWebTemplateId(term.text ?? "event"),
         name: term.text,
         localizedName: term.text,
@@ -422,7 +464,7 @@ export class WebTemplateBuilder {
           ? { [this.lang]: term.description }
           : undefined,
         children: [],
-      };
+      });
       const dataAttr = ev.attributes?.find((a) =>
         a.rm_attribute_name === "data"
       );
@@ -486,7 +528,7 @@ export class WebTemplateBuilder {
     const rmType = obj.rm_type_name ?? "DV_TEXT";
     const term = this.termFor(obj);
     const { min, max } = multiplicityBounds(obj.occurrences);
-    return {
+    return this.decorateWithAnnotations({
       id: normalizeWebTemplateId(term.text ?? idHint),
       name: term.text ?? idHint,
       localizedName: term.text,
@@ -500,7 +542,7 @@ export class WebTemplateBuilder {
         ? { [this.lang]: term.description }
         : undefined,
       inputs: buildInputs(rmType, obj),
-    };
+    });
   }
 
   private defaultCompositionContextNodes(): WebTemplateNode[] {

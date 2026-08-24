@@ -484,6 +484,10 @@
                 <input type="checkbox" id="output-opt-html5">
                 <span>OPT HTML5</span>
               </label>
+              <label class="checkbox-label" title="Legacy ADL 1.4 OPT XML export, with optional L10n annotations for multilingual repeated parts">
+                <input type="checkbox" id="output-opt-xml">
+                <span>OPT XML</span>
+              </label>
               <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
                 <input type="checkbox" id="output-zipehr" checked>
                 <span>ZipEHR</span>
@@ -519,6 +523,7 @@
               <button class="tab" data-tab="xml">XML</button>
               <button class="tab" data-tab="simplified">Simplified</button>
               <button class="tab" data-tab="opt-html5">OPT HTML5</button>
+              <button class="tab" data-tab="opt-xml">OPT XML</button>
               <button class="tab" data-tab="zipehr">ZipEHR</button>
             </div>
           </div>
@@ -1857,6 +1862,83 @@
                   <p>
                     Load a template on the Template input tab, or upload an OPT above,
                     then convert again. OPT HTML5 shows the constraint tree and available choices.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-opt-xml">
+              <div class="config-section" id="opt-xml-options">
+                <div class="config-grid">
+                  <div class="config-col">
+                    <div class="form-group">
+                      <p class="form-hint">
+                        Legacy ADL 1.4 <code>.opt</code> XML. Optional
+                        <code>L10n.&#123;lang&#125;</code> path annotations work around OPT's
+                        single-ontology-per-archetype-id limit for renamed repetitions
+                        (<a href="https://discourse.openehr.org/t/2760" target="_blank" rel="noopener">Discourse #2760</a>).
+                      </p>
+                      <label class="checkbox-label" title="Emit top-level path annotations already on the OPT">
+                        <input type="checkbox" id="opt-xml-include-annotations" checked>
+                        <span>Include annotations</span>
+                      </label>
+                      <label class="checkbox-label" title="Synthesize L10n.{lang} from Web Template localizedNames">
+                        <input type="checkbox" id="opt-xml-emit-l10n" checked>
+                        <span>Emit L10n annotations</span>
+                      </label>
+                    </div>
+                    <div class="form-group" id="opt-xml-template-section">
+                      <label for="opt-xml-opt-upload">Operational template (required in Instance mode):</label>
+                      <div class="simplified-template-row">
+                        <span class="simplified-template-info" id="opt-xml-template-info"
+                        >Uses template from input tab when available</span>
+                        <input type="file" id="opt-xml-opt-upload" class="hidden" accept=".opt,.oet,.adl,.adls,.xml,.zip,.t.json,.json">
+                        <button class="btn btn-secondary btn-sm" id="opt-xml-opt-upload-btn" type="button">
+                          <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
+                          Upload OPT
+                        </button>
+                        <button class="btn btn-secondary btn-sm hidden" id="opt-xml-opt-clear-btn" type="button">
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="editor-block">
+                <div class="output-info">
+                  <span class="char-count">
+                    <span class="label">Characters:</span>
+                    <span class="output-char-count">0</span>
+                  </span>
+                  <span class="line-count">
+                    <span class="label">Lines:</span>
+                    <span class="output-line-count">0</span>
+                  </span>
+                  <span class="output-editor-actions">
+                    <button class="btn btn-secondary btn-sm copy-output-btn" data-format="opt.xml" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">content_copy</span>
+                      Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm download-output-btn" data-format="opt.xml" type="button">
+                      <span class="material-icons btn-icon" aria-hidden="true">download</span>
+                      Download
+                    </button>
+                  </span>
+                </div>
+                <div class="demo-editor-host output-content" id="output-opt.xml-content"></div>
+              </div>
+              <div class="success-message hidden" id="success-opt.xml">
+                <span class="material-icons success-icon" aria-hidden="true">check</span>
+                <span>Copied to clipboard!</span>
+              </div>
+              <div class="error-state hidden" id="opt-xml-missing-template">
+                <span class="material-icons error-icon" aria-hidden="true">info</span>
+                <div class="error-message">
+                  <strong>Operational template required</strong>
+                  <p>
+                    Load a template on the Template input tab, or upload an OPT above,
+                    then convert again.
                   </p>
                 </div>
               </div>

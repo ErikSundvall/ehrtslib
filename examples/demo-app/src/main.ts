@@ -27,6 +27,7 @@ import {
   isSimplifiedInputFormat,
   MISSING_WEB_TEMPLATE_ERROR,
   MISSING_OPT_FOR_HTML5_ERROR,
+  MISSING_OPT_FOR_XML_ERROR,
   type InputFormat,
   type InputMode,
   type OutputFormat,
@@ -281,6 +282,7 @@ function setupEventListeners() {
   setupInputSimplifiedTemplateUpload();
   setupOptHtml5VariantListener();
   setupOptHtml5OptUpload();
+  setupOptXmlOptUpload();
   syncInputFormatUi();
 
   // Collapsible sections
@@ -301,6 +303,7 @@ function setupOutputVisibilityListeners() {
     "typescript",
     "simplified",
     "opt-html5",
+    "opt-xml",
     "webtemplate",
   ];
 
@@ -486,6 +489,75 @@ function syncOptHtml5TemplateUi(): void {
   const clearBtn = document.getElementById("opt-html5-opt-clear-btn");
   const section = document.getElementById("opt-html5-template-section");
   const missing = document.getElementById("opt-html5-missing-template");
+  const ws = getEffectiveTemplateWorkspace();
+  const has = (ws?.listFiles().length ?? 0) > 0;
+  if (info) {
+    if (simplifiedWorkspace.listFiles().length) {
+      const name = simplifiedWorkspace.listFiles()[0]?.path.split("/").pop();
+      info.textContent = `Uploaded: ${name ?? "template"}`;
+    } else if (clinicalWorkspace.listFiles().length) {
+      info.textContent = "Linked from template tab";
+    } else {
+      info.textContent = "No template loaded — upload OPT or use Template tab";
+    }
+  }
+  clearBtn?.classList.toggle(
+    "hidden",
+    simplifiedWorkspace.listFiles().length === 0,
+  );
+  section?.classList.toggle("needs-attention", !has);
+  missing?.classList.toggle("hidden", has);
+}
+
+function setupOptXmlOptUpload(): void {
+  const btn = document.getElementById("opt-xml-opt-upload-btn");
+  const input = document.getElementById(
+    "opt-xml-opt-upload",
+  ) as HTMLInputElement | null;
+  const clearBtn = document.getElementById("opt-xml-opt-clear-btn");
+  btn?.addEventListener("click", () => input?.click());
+  input?.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const simplifiedInput = document.getElementById(
+      "simplified-opt-upload",
+    ) as HTMLInputElement | null;
+    if (simplifiedInput) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      simplifiedInput.files = dt.files;
+      simplifiedInput.dispatchEvent(new Event("change"));
+    }
+    input.value = "";
+  });
+  clearBtn?.addEventListener("click", () => {
+    document.getElementById("simplified-opt-clear-btn")?.click();
+  });
+
+  document.getElementById("opt-xml-include-annotations")?.addEventListener(
+    "change",
+    () => {
+      const include = (document.getElementById(
+        "opt-xml-include-annotations",
+      ) as HTMLInputElement)?.checked;
+      const l10n = document.getElementById(
+        "opt-xml-emit-l10n",
+      ) as HTMLInputElement | null;
+      if (l10n) l10n.disabled = !include;
+      scheduleAutoConvert();
+    },
+  );
+  document.getElementById("opt-xml-emit-l10n")?.addEventListener(
+    "change",
+    () => scheduleAutoConvert(),
+  );
+}
+
+function syncOptXmlTemplateUi(): void {
+  const info = document.getElementById("opt-xml-template-info");
+  const clearBtn = document.getElementById("opt-xml-opt-clear-btn");
+  const section = document.getElementById("opt-xml-template-section");
+  const missing = document.getElementById("opt-xml-missing-template");
   const ws = getEffectiveTemplateWorkspace();
   const has = (ws?.listFiles().length ?? 0) > 0;
   if (info) {
@@ -1901,6 +1973,17 @@ async function handleConvert() {
           block: "nearest",
         });
       }
+      if (result.error?.includes(MISSING_OPT_FOR_XML_ERROR)) {
+        syncOptXmlTemplateUi();
+        document.getElementById("opt-xml-missing-template")?.classList
+          .remove("hidden");
+        document.getElementById("opt-xml-template-section")?.classList
+          .add("needs-attention");
+        document.getElementById("opt-xml-template-section")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
       showError(result.error || "Conversion failed");
       return;
     }
@@ -1921,6 +2004,12 @@ async function handleConvert() {
     if (message.includes(MISSING_OPT_FOR_HTML5_ERROR)) {
       syncOptHtml5TemplateUi();
       document.getElementById("opt-html5-missing-template")?.classList.remove(
+        "hidden",
+      );
+    }
+    if (message.includes(MISSING_OPT_FOR_XML_ERROR)) {
+      syncOptXmlTemplateUi();
+      document.getElementById("opt-xml-missing-template")?.classList.remove(
         "hidden",
       );
     }
@@ -1995,6 +2084,11 @@ function gatherConversionOptions(): ConversionOptions {
     (document.getElementById("output-opt-html5") as HTMLInputElement)?.checked
   ) {
     outputFormats.push(getActiveOptHtml5Variant());
+  }
+  if (
+    (document.getElementById("output-opt-xml") as HTMLInputElement)?.checked
+  ) {
+    outputFormats.push("opt.xml");
   }
   if (
     (document.getElementById("output-webtemplate") as HTMLInputElement)?.checked
@@ -2225,6 +2319,12 @@ function gatherConversionOptions(): ConversionOptions {
     zipehrSymbolVariant: getActiveZipehrSymbolVariant(),
     zipehrHtml5Layout: getActiveZipehrHtml5Layout(),
     optHtml5Layout: getActiveOptHtml5Layout(),
+    optXmlIncludeAnnotations:
+      (document.getElementById("opt-xml-include-annotations") as HTMLInputElement)
+        ?.checked ?? true,
+    optXmlEmitL10n:
+      (document.getElementById("opt-xml-emit-l10n") as HTMLInputElement)
+        ?.checked ?? true,
     zipehrPropertyMode: getActiveZipehrPropertyMode(),
     templateWorkspace: getEffectiveTemplateWorkspace(),
   };
@@ -2248,6 +2348,7 @@ function updateOutputs(outputs: Record<string, string>) {
     "opt.html5.short",
     "opt.html5.full",
     "opt.html5.emoji",
+    "opt.xml",
     "markdown",
     "asciidoc",
     "typescript",
@@ -2266,6 +2367,7 @@ function updateOutputs(outputs: Record<string, string>) {
   updateOutputInfo();
   syncZipehrHtmlPreviewFromOutputs();
   syncOptHtml5PreviewFromOutputs();
+  syncOptXmlTemplateUi();
 }
 
 function syncZipehrHtmlPreviewFromOutputs(): void {
@@ -2856,6 +2958,7 @@ function downloadOutput(format: string) {
     "opt.html5.short": "html",
     "opt.html5.full": "html",
     "opt.html5.emoji": "html",
+    "opt.xml": "opt",
     markdown: "md",
     asciidoc: "adoc",
     typescript: "ts",

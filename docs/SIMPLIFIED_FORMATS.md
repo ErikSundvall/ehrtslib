@@ -87,6 +87,13 @@ Example (from openEHR curated example `openehr://examples/flat/vital_signs_blood
 
 On the **Template (schema)** input tab, enable **FLAT**, **STRUCTURED**, or **Web Template** output checkboxes. The converter builds a Web Template from the operational template, generates an example RM instance, and emits the selected simplified formats.
 
+### OPT XML export (L10n)
+
+Enable **OPT XML** in the output checkboxes. Options on that tab:
+
+- **Include annotations** — emit path `<annotations>` already on the OPT
+- **Emit L10n annotations** — synthesize Better/AD `L10n.{lang}` keys from Web Template `localizedNames` (workaround for multilingual renamed repetitions; see Discourse #2760)
+
 ### FLAT / STRUCTURED → RM input
 
 On the **Instance** input tab, choose **FLAT (simplified)** or **STRUCTURED (simplified)** as the input format. Paste or upload JSON in that format; the converter deserializes to an RM instance and can emit canonical JSON, XML, YAML, etc.
@@ -103,7 +110,7 @@ Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollab
 
 ## Limitations
 
-- Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal). Node **names** use archetype-scoped term lookup (`term_archetype_scope` + `archetype_term_definitions`), matching `RMInstanceGenerator`. The reconstructed OPT from `webTemplateToOpt()` still has a flat `ontology.term_definitions` map that last-wins on colliding at-codes — prefer names on the Web Template nodes or `archetype_term_definitions`.
+- Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal). Node **names** use archetype-scoped term lookup (`term_archetype_scope` + `archetype_term_definitions`), matching `RMInstanceGenerator`. OPT path annotations `L10n.{lang}` are promoted into `localizedNames` (Better/AD workaround for multilingual renamed repetitions — see `docs/ADL_SUPPORT.md`). The reconstructed OPT from `webTemplateToOpt()` still has a flat `ontology.term_definitions` map that last-wins on colliding at-codes — prefer names on the Web Template nodes, `archetype_term_definitions`, or the emitted `L10n.*` annotations.
 - `webTemplateToOpt()` reconstructs an approximate operational template from a derived Web Template; constraint detail (value sets, invariants) is not preserved — sufficient for structural round-trip, instance generation, and FLAT/STRUCTURED (de)serialization.
 - Example instances from `RMInstanceGenerator` may omit primitive values on optional DV types; FLAT/STRUCTURED leaf keys appear only when RM values are populated.
 - Deserialization returns plain RM object trees by default; use `toTypedRm()` (or `JsonCanonicalDeserializer`) for typed class instances.

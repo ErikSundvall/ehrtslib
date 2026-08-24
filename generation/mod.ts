@@ -51,3 +51,26 @@ export type { Adl14SerializerConfig } from "./adl14_serializer.ts";
 
 export { OptXmlSerializer } from "./opt_xml_serializer.ts";
 export type { OptXmlSerializerConfig } from "./opt_xml_serializer.ts";
+
+export {
+  annotationsForAqlPath,
+  applyL10nToLocalizedNames,
+  applyPathAnnotationsToOpt,
+  collectL10nAnnotationsFromWebTemplateTree,
+  extractL10nNames,
+  flattenOptPathAnnotations,
+  l10nAnnotationKey,
+  l10nItemsFromLocalizedNames,
+  languageFromL10nKey,
+  normalizeAnnotationPath,
+  OPT_ANNOTATION_LANG,
+  optAnnotationsForXml,
+  setOptPathAnnotation,
+  setOptPathAnnotationItems,
+  stripLeadingArchetypeId,
+  stripNamePredicates,
+} from "./opt_l10n.ts";
+export type {
+  AnnotationDocumentation,
+  OptPathAnnotationMap,
+} from "./opt_l10n.ts";

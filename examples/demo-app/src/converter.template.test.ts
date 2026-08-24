@@ -127,6 +127,39 @@ Deno.test("convert template input generates simplified format outputs", async ()
   assert(JSON.parse(result.outputs?.webtemplate || "{}").templateId);
 });
 
+Deno.test("convert template input generates OPT XML with optional L10n annotations", async () => {
+  const result = await convert(OPERATIONAL_TEMPLATE_ADL, {
+    inputMode: "template",
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    outputFormats: ["opt.xml"],
+    templateGenerationMode: "minimal",
+    optXmlIncludeAnnotations: true,
+    optXmlEmitL10n: true,
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+  });
+
+  assertEquals(result.success, true);
+  assert(result.outputs?.["opt.xml"]?.includes("<template"));
+  assert(result.outputs?.["opt.xml"]?.includes("demo_generated"));
+});
+
 Deno.test("convert instance mode without template workspace errors on simplified outputs", async () => {
   const templateJson = await convert(OPERATIONAL_TEMPLATE_ADL, {
     inputMode: "template",

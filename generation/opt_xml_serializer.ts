@@ -4,6 +4,10 @@
  * Emits `C_ARCHETYPE_ROOT` (checked before `C_COMPLEX_OBJECT`) and the
  * per-root `<term_definitions>` used by Ocean/CKM OPT files. Terminology is
  * still not a byte-identical round-trip (languages, bindings, value sets).
+ *
+ * Path annotations (including Better/AD `L10n.{lang}` multilingual name
+ * overrides for repeated renamed archetype occurrences) are emitted when
+ * present on the OPT, or synthesized when `emitL10nAnnotations` is true.
  */
 
 import { XMLBuilder } from "fast-xml-parser";
@@ -15,9 +19,28 @@ import {
   type OperationalTemplateWithTermScopes,
   type TermScopeMeta,
 } from "./term_scope.ts";
+import {
+  applyPathAnnotationsToOpt,
+  collectL10nAnnotationsFromWebTemplateTree,
+  flattenOptPathAnnotations,
+  optAnnotationsForXml,
+  type OptPathAnnotationMap,
+} from "./opt_l10n.ts";
+import type { WebTemplate } from "../serialization/simplified/types.ts";
 
 export interface OptXmlSerializerConfig {
   templateNamespace?: string;
+  /**
+   * When true (default), emit path `<annotations>` including any `L10n.*`
+   * entries already on the OPT. Set false to omit the annotations section.
+   */
+  includeAnnotations?: boolean;
+  /**
+   * When set, synthesize `L10n.{lang}` annotations from the Web Template
+   * tree's `localizedNames` (workaround for OPT's single ontology-per-
+   * archetype-id limit). Merged with existing OPT annotations.
+   */
+  l10nFromWebTemplate?: WebTemplate;
 }
 
 interface SerializeCtx {
@@ -171,16 +194,41 @@ function termsByArchetypeFromOpt(
 }
 
 export class OptXmlSerializer {
-  private config: Required<OptXmlSerializerConfig>;
+  private config: {
+    templateNamespace: string;
+    includeAnnotations: boolean;
+    l10nFromWebTemplate?: WebTemplate;
+  };
 
   constructor(config?: OptXmlSerializerConfig) {
     this.config = {
       templateNamespace: config?.templateNamespace ??
         "http://schemas.openehr.org/v1",
+      includeAnnotations: config?.includeAnnotations ?? true,
+      l10nFromWebTemplate: config?.l10nFromWebTemplate,
     };
   }
 
   serialize(opt: openehr_am.OPERATIONAL_TEMPLATE): string {
+    // Merge synthesized L10n into a throwaway annotation map for XML only —
+    // do not mutate the caller's OPT.
+    let annotationSource = opt;
+    if (this.config.l10nFromWebTemplate?.tree) {
+      const fromWt: OptPathAnnotationMap =
+        collectL10nAnnotationsFromWebTemplateTree(
+          this.config.l10nFromWebTemplate.tree,
+        );
+      // Clone annotation documentation onto a shallow shell for emit.
+      const shell = Object.create(
+        Object.getPrototypeOf(opt),
+        Object.getOwnPropertyDescriptors(opt),
+      ) as openehr_am.OPERATIONAL_TEMPLATE;
+      (shell as { annotations?: unknown }).annotations = undefined;
+      applyPathAnnotationsToOpt(shell, flattenOptPathAnnotations(opt));
+      applyPathAnnotationsToOpt(shell, fromWt);
+      annotationSource = shell;
+    }
+
     const templateId = opt.archetype_id?.value ?? "template.en.v1";
     const ctx: SerializeCtx = {
       termsByArchetype: termsByArchetypeFromOpt(opt),
@@ -189,19 +237,34 @@ export class OptXmlSerializer {
       ? serializeCObject(opt.definition, ctx)
       : { rm_type_name: "COMPOSITION", "@_xsi:type": "C_COMPLEX_OBJECT" };
 
+    const template: Record<string, unknown> = {
+      "@_xmlns": this.config.templateNamespace,
+      "@_xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+      "@_xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+      template_id: { value: templateId },
+      language: opt.original_language
+        ? { code_string: opt.original_language }
+        : { code_string: "en" },
+      concept: opt.concept ?? templateId,
+      definition,
+    };
+
+    if (this.config.includeAnnotations) {
+      const annotations = optAnnotationsForXml(annotationSource).map(
+        ({ path, items }) => ({
+          "@_path": path,
+          items: Object.entries(items).map(([id, text]) => ({
+            "@_id": id,
+            "#text": text,
+          })),
+        }),
+      );
+      if (annotations.length) template.annotations = annotations;
+    }
+
     const doc = {
       "?xml": { "@_version": "1.0", "@_encoding": "utf-8" },
-      template: {
-        "@_xmlns": this.config.templateNamespace,
-        "@_xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        "@_xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
-        template_id: { value: templateId },
-        language: opt.original_language
-          ? { code_string: opt.original_language }
-          : { code_string: "en" },
-        concept: opt.concept ?? templateId,
-        definition,
-      },
+      template,
     };
 
     const builder = new XMLBuilder({

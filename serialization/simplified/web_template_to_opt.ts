@@ -27,6 +27,10 @@ import {
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
 import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
+import {
+  applyPathAnnotationsToOpt,
+  collectL10nAnnotationsFromWebTemplateTree,
+} from "../../generation/opt_l10n.ts";
 
 const MULTIPLE_ATTRS = new Set([
   "content",
@@ -169,6 +173,13 @@ export class WebTemplateToOptConverter {
     }
     (opt as OperationalTemplateWithTermScopes).archetype_term_definitions =
       index;
+
+    // OPT cannot store per-occurrence translations in component_ontologies;
+    // emit Better/AD L10n.{lang} path annotations from localizedNames.
+    applyPathAnnotationsToOpt(
+      opt,
+      collectL10nAnnotationsFromWebTemplateTree(tree),
+    );
 
     return opt;
   }

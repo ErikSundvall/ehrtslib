@@ -25,7 +25,10 @@ export function parseLegacyTemplateXml(xml: string): Record<string, unknown> {
         p.endsWith(".code_list") ||
         p.endsWith(".list") ||
         p.endsWith(".term_definitions") ||
-        p.endsWith(".items");
+        p.endsWith(".items") ||
+        // Top-level OPT `<annotations path="...">` repeats as siblings.
+        p === "template.annotations" ||
+        p.endsWith(".annotations");
     },
   });
   const doc = parser.parse(xml) as Record<string, unknown>;

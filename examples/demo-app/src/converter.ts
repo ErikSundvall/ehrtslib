@@ -82,6 +82,7 @@ import {
 } from "../../../parser/mod.ts";
 import {
   type GenerationMode,
+  OptXmlSerializer,
   RMInstanceGenerator,
   TypeScriptGenerator,
 } from "../../../generation/mod.ts";
@@ -162,6 +163,12 @@ export const MISSING_OPT_FOR_HTML5_ERROR =
   ".zip, .t.json) using the template upload control on the OPT HTML5 tab or Simplified " +
   "tab, or load a template on the Template input tab.";
 
+/** Shown when OPT XML output is requested without a loaded operational template. */
+export const MISSING_OPT_FOR_XML_ERROR =
+  "OPT XML requires an operational template. Upload an OPT (.opt, .oet, .adl, .adls, " +
+  ".zip, .t.json) using the template upload control on the OPT XML tab or Simplified " +
+  "tab, or load a template on the Template input tab.";
+
 export type InputMode = "instance" | "template" | "template-adgit";
 export type TemplateGenerationMode = GenerationMode;
 
@@ -181,6 +188,7 @@ export type OutputFormat =
   | "opt.html5.short"
   | "opt.html5.full"
   | "opt.html5.emoji"
+  | "opt.xml"
   | "markdown"
   | "asciidoc"
   | "typescript"
@@ -209,6 +217,14 @@ export interface ConversionOptions {
    * Default: omit when possible.
    */
   zipehrPropertyMode?: "omit" | "attribute" | "comment";
+  /**
+   * When emitting `opt.xml`, include path `<annotations>` (default true).
+   * With `optXmlEmitL10n` also synthesize Better/AD `L10n.{lang}` keys from
+   * the Web Template's localizedNames.
+   */
+  optXmlIncludeAnnotations?: boolean;
+  /** Synthesize L10n.* annotations from Web Template names (default true). */
+  optXmlEmitL10n?: boolean;
   templateGenerationMode: TemplateGenerationMode;
   templateLanguage?: string;
   jsonSerializerType: "canonical" | "configurable";
@@ -245,6 +261,7 @@ export interface ConversionResult {
     "opt.html5.short"?: string;
     "opt.html5.full"?: string;
     "opt.html5.emoji"?: string;
+    "opt.xml"?: string;
     markdown?: string;
     asciidoc?: string;
     typescript?: string;
@@ -301,6 +318,42 @@ export function resolveOperationalTemplateForOptHtml5(
       })`,
     );
   }
+}
+
+export function resolveOperationalTemplateForOptXml(
+  options: ConversionOptions,
+): openehr_am.OPERATIONAL_TEMPLATE {
+  const ws = options.templateWorkspace;
+  if (!ws?.listFiles().length) {
+    throw new Error(MISSING_OPT_FOR_XML_ERROR);
+  }
+  try {
+    return ws.resolveOperational().operationalTemplate;
+  } catch (error) {
+    throw new Error(
+      `${MISSING_OPT_FOR_XML_ERROR} (${
+        error instanceof Error ? error.message : String(error)
+      })`,
+    );
+  }
+}
+
+function writeOptXmlOutput(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  outputFormats: OutputFormat[],
+  outputs: Record<string, string>,
+  options: ConversionOptions,
+): void {
+  if (!outputFormats.includes("opt.xml")) return;
+  const includeAnnotations = options.optXmlIncludeAnnotations ?? true;
+  const emitL10n = options.optXmlEmitL10n ?? true;
+  const l10nFromWebTemplate = includeAnnotations && emitL10n
+    ? buildWebTemplate(opt)
+    : undefined;
+  outputs["opt.xml"] = new OptXmlSerializer({
+    includeAnnotations,
+    l10nFromWebTemplate,
+  }).serialize(opt);
 }
 
 function writeSimplifiedOutputs(
@@ -423,10 +476,12 @@ export async function convert(
     const optHtml5Formats = options.outputFormats.filter((format) =>
       OPT_HTML5_OUTPUT_FORMATS.has(format)
     );
+    const wantsOptXml = options.outputFormats.includes("opt.xml");
 
     for (const format of options.outputFormats) {
       if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
       if (OPT_HTML5_OUTPUT_FORMATS.has(format)) continue;
+      if (format === "opt.xml") continue;
       try {
         switch (format) {
           case "xml":
@@ -514,6 +569,11 @@ export async function convert(
       );
     }
 
+    if (wantsOptXml) {
+      const opt = resolveOperationalTemplateForOptXml(options);
+      writeOptXmlOutput(opt, options.outputFormats, outputs, options);
+    }
+
     return {
       success: true,
       outputs,
@@ -548,6 +608,7 @@ async function convertTemplateInput(
   for (const format of options.outputFormats) {
     if (SIMPLIFIED_OUTPUT_FORMATS.has(format)) continue;
     if (OPT_HTML5_OUTPUT_FORMATS.has(format)) continue;
+    if (format === "opt.xml") continue;
     switch (format) {
       case "xml":
         outputs.xml = serializeToXml(generatedInstance, options.xmlConfig);
@@ -627,6 +688,8 @@ async function convertTemplateInput(
     outputs,
     options.optHtml5Layout,
   );
+
+  writeOptXmlOutput(template, options.outputFormats, outputs, options);
 
   return { success: true, outputs };
 }
