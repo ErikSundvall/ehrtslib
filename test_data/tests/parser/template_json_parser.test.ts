@@ -29,6 +29,10 @@ Deno.test("parseTemplateJson loads template and overlays", async () => {
     overlays[0].archetype_id?.value,
     "openEHR-EHR-CLUSTER.ovl-organisation-000.v1",
   );
+  assertEquals(
+    overlays[0].parent_archetype_id?.value,
+    "openEHR-EHR-CLUSTER.organisation.v1",
+  );
 });
 
 Deno.test("ArchetypeRepository.loadFile classifies .t.json as template_json", async () => {

@@ -15,6 +15,17 @@ Library support for working with archetypes and templates from ZIP uploads, loca
 
 `.t.json` is **not** ITS-REST Web Template JSON (that is produced from an operational template via `buildWebTemplate()`). Glossary: [CONTEXT.md](../CONTEXT.md).
 
+### Snapshot vs differential overlays
+
+Better Archetype Designer can store **TEMPLATE_OVERLAY** objects two ways:
+
+| Overlay form | `differential` | `termDefinitions` | AD@git closure |
+|--------------|----------------|-------------------|----------------|
+| **Snapshot** | `false` | Full (tens of codes) | Node names resolve from the overlay itself. Overlay parent ADLs are unused for labels. The demo featured Accident report model is this form. |
+| **Differential** | `true` | Empty / almost empty | Flatten specialises each overlay against `parentArchetypeId`. Closure **must** fetch those parent `.adl` files (e.g. `openEHR-EHR-EVALUATION.problem_diagnosis.v1`) or Web Template names fall back to at-codes (`at0002.1`). `simple-diagnose-and-vitals.t.json` is this form. |
+
+`collectTemplateJsonExternalRefs` therefore enqueues overlay `parentArchetypeId` values (while still skipping inlined overlay ids such as `ovl-…`). ADL `parent_archetype_id` chains are followed after a parent file is fetched.
+
 ## API
 
 ```typescript

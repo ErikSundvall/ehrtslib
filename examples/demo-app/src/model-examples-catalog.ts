@@ -45,6 +45,16 @@ export const MODEL_EXAMPLE_CATALOG: ModelExampleEntry[] = [
     description: "Same template with Swedish localisation overlays.",
   },
   {
+    id: "simple-diagnose-and-vitals",
+    label: "Simple diagnose and vitals (Ehrlibs)",
+    githubUrl:
+      "https://github.com/Ehrlibs/openEHR-model-examples/blob/main/local/theme-packs/simple-diagnose-and-vitals/simple-diagnose-and-vitals.t.json",
+    featured: false,
+    source: "Ehrlibs/openEHR-model-examples",
+    description:
+      "Differential-overlay .t.json (empty overlay termDefinitions). AD@git closure fetches TEMPLATE_OVERLAY parent archetypes so node names are ontology texts rather than at-codes. Contrast with the snapshot Accident report model above.",
+  },
+  {
     id: "mdt-lung",
     label: "MDT Lung cancer (Region Stockholm)",
     githubUrl:
