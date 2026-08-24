@@ -282,7 +282,8 @@ function inferProperty(
   if (
     childType === "OBSERVATION" || childType === "EVALUATION" ||
     childType === "INSTRUCTION" || childType === "ACTION" ||
-    childType === "ADMIN_ENTRY" || childType === "SECTION"
+    childType === "ADMIN_ENTRY" || childType === "GENERIC_ENTRY" ||
+    childType === "SECTION"
   ) {
     if (!used.has("content")) return "content";
   }

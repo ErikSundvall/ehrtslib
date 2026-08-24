@@ -150,6 +150,7 @@ export const LANGUAGE_CARRIER_TYPES = new Set([
   "INSTRUCTION",
   "ACTION",
   "ADMIN_ENTRY",
+  "GENERIC_ENTRY",
 ]);
 
 /** Extract an ISO 639 language code from a CODE_PHRASE object or terse string. */

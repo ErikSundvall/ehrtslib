@@ -246,7 +246,7 @@ Deno.test("zipehr: ehrtslib path shorthands", async () => {
   assertEquals(converted["🌐"], "US");
   const obs = (converted.content as Record<string, unknown>[])[0];
   assertEquals(obs["🗪"], "en");
-  assertEquals(obs["🔤"], "UTF-8");
+  assertEquals(obs["🔡"], "UTF-8");
 });
 
 Deno.test("zipehr: ehrtslib path YAML re-parse roundtrip", async () => {

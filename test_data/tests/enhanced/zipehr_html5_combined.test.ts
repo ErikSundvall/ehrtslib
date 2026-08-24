@@ -199,7 +199,7 @@ Deno.test("zipehr html5: DV_CODED_TEXT terse defining_code + machine attrs", asy
   });
   assertStringIncludes(emoji, '🏷️="SNOMED-CT::44054006"');
   assertStringIncludes(emoji, 'lang="en"');
-  assertStringIncludes(emoji, '🔤="UTF-8"');
+  assertStringIncludes(emoji, '🔡="UTF-8"');
   assertStringIncludes(emoji, '⇄="&gt;|ICD10::E11.9"');
   assertEquals(emoji.includes("terminology-id="), false);
 
