@@ -15,15 +15,23 @@ function archetypeIdValue(node: unknown): string | undefined {
   return undefined;
 }
 
+function overlayRecords(root: Record<string, unknown>): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const raw of asArray(root.templateOverlays ?? root.template_overlays)) {
+    if (!raw || typeof raw !== "object") continue;
+    const ov = raw as Record<string, unknown>;
+    if (jsonType(ov) !== "TEMPLATE_OVERLAY") continue;
+    out.push(ov);
+  }
+  return out;
+}
+
 /** Collect overlay archetype ids declared in this template file. */
 export function collectTemplateJsonOverlayIds(
   root: Record<string, unknown>,
 ): Set<string> {
   const overlayIds = new Set<string>();
-  for (const raw of asArray(root.templateOverlays ?? root.templateOverlays)) {
-    if (!raw || typeof raw !== "object") continue;
-    const ov = raw as Record<string, unknown>;
-    if (jsonType(ov) !== "TEMPLATE_OVERLAY") continue;
+  for (const ov of overlayRecords(root)) {
     const id = archetypeIdValue(ov.archetypeId ?? ov.archetype_id);
     if (id) overlayIds.add(id);
   }
@@ -32,18 +40,14 @@ export function collectTemplateJsonOverlayIds(
 
 /**
  * References that must be satisfied by other files in a file set
- * (parent archetype, nested templates, archetype roots not covered by overlays).
+ * (parent archetype, overlay parents, nested templates, archetype roots
+ * not covered by inlined overlays).
  */
 export function collectTemplateJsonExternalRefs(
   root: Record<string, unknown>,
 ): string[] {
   const overlayIds = collectTemplateJsonOverlayIds(root);
   const external = new Set<string>();
-
-  const parent = archetypeIdValue(
-    root.parentArchetypeId ?? root.parent_archetype_id,
-  );
-  if (parent) external.add(parent);
 
   function considerRef(ref: string | undefined) {
     if (!ref) return;
@@ -68,6 +72,19 @@ export function collectTemplateJsonExternalRefs(
       );
     }
     for (const v of Object.values(rec)) walk(v);
+  }
+
+  considerRef(
+    archetypeIdValue(root.parentArchetypeId ?? root.parent_archetype_id),
+  );
+
+  const overlays = overlayRecords(root);
+  for (const ov of overlays) {
+    // Overlay objects live in this .t.json; their *parents* do not.
+    considerRef(
+      archetypeIdValue(ov.parentArchetypeId ?? ov.parent_archetype_id),
+    );
+    walk(ov.definition);
   }
 
   walk(root.definition);

@@ -97,8 +97,13 @@ function applyAuthoredArchetypeFields(
     target.uid = uid;
   }
 
-  target.archetype_id = parseArchetypeIdField(root.archetypeId);
-  target.parent_archetype_id = parseArchetypeIdField(root.parentArchetypeId);
+  target.archetype_id = parseArchetypeIdField(
+    root.archetypeId ?? root.archetype_id,
+  );
+  // normalizeBetterTemplateJson remaps parentArchetypeId → parent_archetype_id
+  target.parent_archetype_id = parseArchetypeIdField(
+    root.parentArchetypeId ?? root.parent_archetype_id,
+  );
 
   if (root.adlVersion !== undefined) target.adl_version = String(root.adlVersion);
   if (root.adl_version !== undefined) target.adl_version = String(root.adl_version);
@@ -115,8 +120,9 @@ function applyAuthoredArchetypeFields(
     target.ontology = parseJsonOntology(term as Record<string, unknown>, warnings);
   }
 
-  if (root.originalLanguage && typeof root.originalLanguage === "object") {
-    const lang = parseCodePhrase(root.originalLanguage);
+  const originalLanguage = root.originalLanguage ?? root.original_language;
+  if (originalLanguage && typeof originalLanguage === "object") {
+    const lang = parseCodePhrase(originalLanguage);
     if (lang) {
       if (lang.code_string) target.original_language = lang.code_string;
       if (target.ontology) target.ontology.original_language = lang;

@@ -46,7 +46,11 @@ Deno.test("collectTemplateJsonExternalRefsFromText finds parent and nested templ
     ),
   );
   const refs = collectTemplateJsonExternalRefsFromText(fixture);
-  assert(refs.some((r) => r.includes("openEHR-EHR")));
+  assert(refs.some((r) => r.includes("openEHR-EHR-CLUSTER.organisation")));
+  assert(
+    !refs.some((r) => /ovl-organisation/i.test(r)),
+    "overlay ids are inlined in the .t.json and must not be fetched",
+  );
 });
 
 Deno.test("resolveClinicalModelRef finds archetype and template paths", () => {
