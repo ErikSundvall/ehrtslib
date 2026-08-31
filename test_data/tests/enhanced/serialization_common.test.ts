@@ -136,6 +136,18 @@ Deno.test("SerializationError - includes cause", () => {
   assertEquals(error.cause, cause);
 });
 
+Deno.test("DeserializationError - includes optional source location", () => {
+  const error = new DeserializationError("Test error", "{}", undefined, {
+    jsonPointer: "/value",
+    sourceLine: 4,
+    sourceColumn: 12,
+  });
+
+  assertEquals(error.source?.jsonPointer, "/value");
+  assertEquals(error.source?.sourceLine, 4);
+  assertEquals(error.source?.sourceColumn, 12);
+});
+
 Deno.test("DeserializationError - creates error with message and data", () => {
   const data = "<xml>test</xml>";
   const error = new DeserializationError("Test error", data);

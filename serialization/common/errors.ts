@@ -1,3 +1,7 @@
+import type { JsonSourceLocation } from "./json_source_index.ts";
+
+export type { JsonSourceLocation };
+
 /**
  * Base error class for serialization-related errors
  */
@@ -24,11 +28,12 @@ export class DeserializationError extends Error {
   constructor(
     message: string,
     public readonly data?: string,
-    public readonly cause?: Error
+    public readonly cause?: Error,
+    public readonly source?: JsonSourceLocation,
   ) {
     super(message);
     this.name = "DeserializationError";
-    
+
     // Maintain proper stack trace in V8 environments
     if ((Error as ErrorConstructor & { captureStackTrace?: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace) {
       (Error as ErrorConstructor & { captureStackTrace: (targetObject: object, constructorOpt?: unknown) => void }).captureStackTrace(this, DeserializationError);
@@ -42,9 +47,10 @@ export class DeserializationError extends Error {
 export class TypeNotFoundError extends DeserializationError {
   constructor(
     public readonly typeName: string,
-    data?: string
+    data?: string,
+    source?: JsonSourceLocation,
   ) {
-    super(`Type not found in registry: ${typeName}`, data);
+    super(`Type not found in registry: ${typeName}`, data, undefined, source);
     this.name = "TypeNotFoundError";
     
     // Maintain proper stack trace in V8 environments
@@ -61,9 +67,10 @@ export class InvalidFormatError extends DeserializationError {
   constructor(
     message: string,
     public readonly formatString?: string,
-    cause?: Error
+    cause?: Error,
+    source?: JsonSourceLocation,
   ) {
-    super(message, formatString, cause);
+    super(message, formatString, cause, source);
     this.name = "InvalidFormatError";
     
     // Maintain proper stack trace in V8 environments

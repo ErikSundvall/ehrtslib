@@ -11,6 +11,8 @@ import {
 export interface PostDeserializeValidationOptions {
   validateAgainstTemplate?: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE;
   validator?: TemplateValidator;
+  /** Original JSON source; forwarded to `TemplateValidator.validate` for line/column mapping. */
+  jsonSource?: string;
 }
 
 export function validateDeserializedInstance(
@@ -23,5 +25,7 @@ export function validateDeserializedInstance(
   }
 
   const validator = options.validator ?? new TemplateValidator();
-  return validator.validate(instance, template);
+  return validator.validate(instance, template, {
+    jsonSource: options.jsonSource,
+  });
 }
