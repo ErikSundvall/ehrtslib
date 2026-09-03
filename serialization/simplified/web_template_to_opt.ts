@@ -11,19 +11,32 @@
  * - occurrences from `min` / `max`,
  * - per-archetype `archetype_term_definitions` from node names (keyed by the
  *   nearest archetype-id ancestor), plus a flat `ontology.term_definitions`
- *   map that still last-wins on colliding at-codes.
+ *   map that still last-wins on colliding at-codes,
+ * - best-effort leaf constraints from Web Template `inputs[]`:
+ *   `C_QUANTITY.list[].units` and assumed magnitude/units, and
+ *   `C_TERMINOLOGY_CODE` `code_list` + `assumed_value` (with labels recorded
+ *   as term definitions).
+ *
+ * Still dropped (not present on a typical Web Template): magnitude/precision
+ * *ranges*, invariants, non-unit `C_QUANTITY_ITEM` facets, cardinality of
+ * collapsed wrappers, and value-set bindings that were never emitted as
+ * `inputs[].list`.
  *
  * The result is sufficient for `buildWebTemplate` to reproduce an equivalent
- * Web Template (structural round-trip), for RM instance generation, and for
- * FLAT/STRUCTURED (de)serialization.
+ * Web Template (structural round-trip plus the input lists above), for RM
+ * instance generation, and for FLAT/STRUCTURED (de)serialization.
  */
 
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
-import type { WebTemplate, WebTemplateNode } from "./types.ts";
+import type {
+  WebTemplate,
+  WebTemplateInput,
+  WebTemplateNode,
+} from "./types.ts";
 import {
-  TERM_ARCHETYPE_SCOPE_KEY,
   type OperationalTemplateWithTermScopes,
+  TERM_ARCHETYPE_SCOPE_KEY,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
 import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
@@ -80,8 +93,10 @@ function multiplicity(
 function wrapperRmType(parentRmType: string, attr: string): string {
   if (attr === "data" && parentRmType === "OBSERVATION") return "HISTORY";
   if (attr === "events") return "POINT_EVENT";
-  if (attr === "data" || attr === "state" || attr === "protocol" ||
-    attr === "description") return "ITEM_TREE";
+  if (
+    attr === "data" || attr === "state" || attr === "protocol" ||
+    attr === "description"
+  ) return "ITEM_TREE";
   if (attr === "items") return "CLUSTER";
   if (attr === "content") return "OBSERVATION";
   if (attr === "activities") return "ACTIVITY";
@@ -146,9 +161,10 @@ export class WebTemplateToOptConverter {
     if (tree.nodeId && isArchetypeId(tree.nodeId)) {
       (root as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = tree.nodeId;
     }
-    this.recordTerms(tree, tree.nodeId && isArchetypeId(tree.nodeId)
-      ? tree.nodeId
-      : undefined);
+    this.recordTerms(
+      tree,
+      tree.nodeId && isArchetypeId(tree.nodeId) ? tree.nodeId : undefined,
+    );
 
     for (const child of tree.children ?? []) {
       // Template-specific context nodes (e.g. category, other_context) carry
@@ -274,23 +290,21 @@ export class WebTemplateToOptConverter {
           );
           element.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
           const valueAttr = this.ensureAttribute(element, "value");
-          const dv = this.ensureObject(
+          this.createLeafConstraint(
             valueAttr,
+            node,
             undefined,
-            node.rmType,
-            false,
+            multiplicity(1, 1),
             this.scopeOf(element),
           );
-          dv.occurrences = multiplicity(1, 1);
         } else {
-          const dv = this.ensureObject(
+          this.createLeafConstraint(
             attr,
+            node,
             seg.nodeId ?? node.nodeId,
-            node.rmType,
-            false,
+            multiplicity(node.min ?? 0, node.max ?? 1),
             this.scopeOf(current),
           );
-          dv.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
         }
         return;
       }
@@ -309,6 +323,163 @@ export class WebTemplateToOptConverter {
         this.insertNode(obj, child, allSegments.length);
       }
       return;
+    }
+  }
+
+  private createLeafConstraint(
+    attr: openehr_am.C_ATTRIBUTE,
+    node: WebTemplateNode,
+    nodeId: string | undefined,
+    occ: openehr_base.Multiplicity_interval,
+    inheritedScope?: string,
+  ): openehr_am.C_OBJECT {
+    const rmType = node.rmType || "DV_TEXT";
+    if (rmType === "DV_QUANTITY") {
+      const q = new openehr_am.C_QUANTITY();
+      q.rm_type_name = "DV_QUANTITY";
+      if (nodeId) q.node_id = nodeId;
+      q.occurrences = occ;
+      this.stampScope(q, inheritedScope);
+      this.applyQuantityInputs(q, node.inputs);
+      attr.children ??= [];
+      attr.children.push(q);
+      return q;
+    }
+    if (rmType === "CODE_PHRASE") {
+      const t = this.newTerminologyCode(inheritedScope);
+      if (nodeId) t.node_id = nodeId;
+      t.occurrences = occ;
+      this.applyTerminologyInputs(t, node.inputs, inheritedScope);
+      attr.children ??= [];
+      attr.children.push(t);
+      return t;
+    }
+    const dv = this.ensureObject(
+      attr,
+      nodeId,
+      rmType,
+      false,
+      inheritedScope,
+    );
+    dv.occurrences = occ;
+    if (rmType === "DV_CODED_TEXT") {
+      this.applyCodedTextInputs(dv, node.inputs, inheritedScope);
+    }
+    return dv;
+  }
+
+  private stampScope(obj: openehr_am.C_OBJECT, scope?: string): void {
+    if (scope) {
+      (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = scope;
+    }
+  }
+
+  private newTerminologyCode(
+    scope?: string,
+  ): openehr_am.C_TERMINOLOGY_CODE {
+    const t = new openehr_am.C_TERMINOLOGY_CODE();
+    t.rm_type_name = "CODE_PHRASE";
+    this.stampScope(t, scope);
+    return t;
+  }
+
+  private applyQuantityInputs(
+    q: openehr_am.C_QUANTITY,
+    inputs?: WebTemplateInput[],
+  ): void {
+    const unit = inputs?.find((i) => i.suffix === "unit");
+    const mag = inputs?.find((i) => i.suffix === "magnitude");
+    const units = (unit?.list ?? []).map((item) => item.value).filter(Boolean);
+    if (units.length) {
+      (q as { list?: openehr_am.C_QUANTITY_ITEM[] }).list = units.map(
+        (value) => {
+          const item = new openehr_am.C_QUANTITY_ITEM();
+          item.units = value;
+          return item;
+        },
+      );
+    }
+    const assumedUnits = typeof unit?.defaultValue === "string"
+      ? unit.defaultValue
+      : undefined;
+    const assumedMag = typeof mag?.defaultValue === "number"
+      ? mag.defaultValue
+      : (typeof mag?.defaultValue === "string" && mag.defaultValue !== ""
+        ? Number(mag.defaultValue)
+        : undefined);
+    if (
+      assumedUnits !== undefined ||
+      (assumedMag !== undefined && Number.isFinite(assumedMag))
+    ) {
+      q.assumed_value = {
+        magnitude: Number.isFinite(assumedMag) ? assumedMag : undefined,
+        units: assumedUnits,
+      } as unknown as openehr_base.Any;
+    }
+  }
+
+  private applyCodedTextInputs(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    inputs?: WebTemplateInput[],
+    scope?: string,
+  ): void {
+    const code = inputs?.find((i) => i.suffix === "code");
+    if (
+      !code?.list?.length && code?.defaultValue == null && !code?.terminology
+    ) {
+      return;
+    }
+    const defining = this.ensureAttribute(obj, "defining_code");
+    const t = this.newTerminologyCode(scope);
+    t.occurrences = multiplicity(1, 1);
+    this.applyTerminologyInputs(t, inputs, scope);
+    defining.children ??= [];
+    defining.children.push(t);
+  }
+
+  private applyTerminologyInputs(
+    t: openehr_am.C_TERMINOLOGY_CODE,
+    inputs?: WebTemplateInput[],
+    scope?: string,
+  ): void {
+    const code = inputs?.find((i) => i.suffix === "code") ??
+      inputs?.find((i) => !i.suffix) ??
+      inputs?.[0];
+    if (!code) return;
+    const runtime = t as openehr_am.C_TERMINOLOGY_CODE & {
+      code_list?: string[];
+      terminology_id?: string;
+    };
+    const codes = (code.list ?? []).map((item) => item.value).filter(Boolean);
+    if (codes.length === 1) runtime.constraint = codes[0];
+    if (codes.length) runtime.code_list = codes;
+    if (code.terminology) runtime.terminology_id = code.terminology;
+    if (code.defaultValue != null && String(code.defaultValue) !== "") {
+      const assumed = new openehr_base.Terminology_code();
+      assumed.code_string = String(code.defaultValue);
+      if (code.terminology) assumed.terminology_id = code.terminology;
+      runtime.assumed_value = assumed;
+    }
+    for (const item of code.list ?? []) {
+      if (!item.label) continue;
+      this.recordCodeTerm(item.value, item.label, scope);
+    }
+  }
+
+  private recordCodeTerm(
+    code: string,
+    text: string,
+    scope?: string,
+  ): void {
+    const lang = this.defaultLang;
+    this.terms[lang] ??= {};
+    this.terms[lang][code] ??= {};
+    this.terms[lang][code].text = text;
+    if (scope && !isArchetypeId(code)) {
+      this.scopedTerms[scope] ??= {};
+      this.scopedTerms[scope][lang] ??= {};
+      this.scopedTerms[scope][lang][code] ??= {};
+      this.scopedTerms[scope][lang][code].text = text;
     }
   }
 
