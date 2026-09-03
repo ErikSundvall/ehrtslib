@@ -11,15 +11,13 @@
 
 import * as openehr_am from "../am/openehr_am.ts";
 import { isSubtypeOf } from "../meta/mod.ts";
-import {
-  resolveTemplateLanguage,
-} from "./term_codes.ts";
+import { resolveTemplateLanguage } from "./term_codes.ts";
 import {
   lookupTermInBag,
+  type OperationalTemplateWithTermScopes,
   resolveLocatableLabel,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
-  type OperationalTemplateWithTermScopes,
   type TermScopeMeta,
 } from "./term_scope.ts";
 
@@ -100,16 +98,17 @@ export class RMInstanceGenerator {
     }
 
     const override = this.config.language?.trim();
-    this.language = override
-      ? override
-      : resolveTemplateLanguage(template);
+    this.language = override ? override : resolveTemplateLanguage(template);
     this.terms = this.collectTerms(template);
     this.archetypeTerms = this.collectArchetypeTerms(template);
 
     return this.generateFromCObject(template.definition, 0, "root", {});
   }
 
-  private termContextFrom(cObject: openehr_am.C_OBJECT, parent?: TermContext): TermContext {
+  private termContextFrom(
+    cObject: openehr_am.C_OBJECT,
+    parent?: TermContext,
+  ): TermContext {
     const meta = cObject as TermScopeMeta;
     return {
       scope: meta[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
@@ -502,7 +501,9 @@ export class RMInstanceGenerator {
         .children ?? [];
       for (const child of children) {
         if (this.isObjectExcluded(child)) continue;
-        if (this.isObjectRequired(child) || this.hasMandatoryDescendant(child)) {
+        if (
+          this.isObjectRequired(child) || this.hasMandatoryDescendant(child)
+        ) {
           return true;
         }
       }
@@ -529,9 +530,16 @@ export class RMInstanceGenerator {
   }
 
   private generateQuantity(cObject: openehr_am.C_QUANTITY): any {
+    const assumed = cObject.assumed_value as
+      | { magnitude?: number; units?: string }
+      | undefined;
     const item =
       ((cObject as { list?: Array<{ units?: string }> }).list ?? [])[0];
-    return { _type: "DV_QUANTITY", magnitude: 1, units: item?.units ?? "1" };
+    return {
+      _type: "DV_QUANTITY",
+      magnitude: assumed?.magnitude ?? 1,
+      units: assumed?.units ?? item?.units ?? "1",
+    };
   }
 
   private generateCodedText(cObject: openehr_am.C_CODED_TEXT): any {
@@ -547,14 +555,20 @@ export class RMInstanceGenerator {
   }
 
   private generateCodePhrase(cObject: openehr_am.C_TERMINOLOGY_CODE): any {
+    const codes = (cObject as { code_list?: string[] }).code_list;
     const code = cObject.default_value?.code_string ??
       cObject.assumed_value?.code_string ??
       cObject.constraint ??
+      codes?.[0] ??
       "at0000";
     const terminology =
       (cObject as { terminology_id?: string }).terminology_id ??
-        cObject.default_value?.terminology_id?.value ??
-        cObject.assumed_value?.terminology_id?.value ??
+        (typeof cObject.default_value?.terminology_id === "string"
+          ? cObject.default_value.terminology_id
+          : undefined) ??
+        (typeof cObject.assumed_value?.terminology_id === "string"
+          ? cObject.assumed_value.terminology_id
+          : undefined) ??
         (code.startsWith("at") || code.startsWith("id") ? "local" : "openehr");
     return this.codePhrase(terminology, code);
   }
@@ -576,7 +590,9 @@ export class RMInstanceGenerator {
     }
     if (cObject instanceof openehr_am.C_INTEGER) return 1;
     if (cObject instanceof openehr_am.C_REAL) return 1.0;
-    const rmType = "rm_type_name" in cObject ? (cObject.rm_type_name ?? "") : "";
+    const rmType = "rm_type_name" in cObject
+      ? (cObject.rm_type_name ?? "")
+      : "";
     if (rmType === "DURATION") return "PT1H";
     return this.generateDataValueByType(rmType, pathHint);
   }

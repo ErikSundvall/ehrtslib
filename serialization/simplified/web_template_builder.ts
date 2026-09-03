@@ -19,10 +19,10 @@ import {
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
 import {
   archetypeTermBagsForLanguage,
+  type OperationalTemplateWithTermScopes,
   resolveTermEntry,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
-  type OperationalTemplateWithTermScopes,
   type TermEntry,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
@@ -86,30 +86,92 @@ function lookupTerm(
   return resolveTermEntry(nodeId, undefined, terms, {}, undefined) ?? {};
 }
 
-function buildInputs(
-  rmType: string,
-  cObj?: openehr_am.C_OBJECT,
-): WebTemplateInput[] {
-  const resolved = resolveDvType(rmType);
-  const inputs: WebTemplateInput[] = resolved.startsWith("DV_") ||
-      resolved === "CODE_PHRASE" || resolved.startsWith("PARTY_") ||
-      rmType.startsWith("C_")
-    ? inputsForRmType(resolved)
-    : [];
+type TerminologyCodeRuntime = openehr_am.C_TERMINOLOGY_CODE & {
+  code_list?: string[];
+  terminology_id?: string;
+};
 
-  if (cObj instanceof openehr_am.C_STRING) {
-    const list = (cObj as { list?: string[] }).list;
-    if (list?.length) {
-      const target = inputs.find((i) => !i.suffix) ?? inputs[0];
-      if (target) {
-        target.list = list.map((v) => ({ value: v }));
-      } else {
-        inputs.push({ type: "TEXT", list: list.map((v) => ({ value: v })) });
+function nestedTerminologyCode(
+  cObj?: openehr_am.C_OBJECT,
+): TerminologyCodeRuntime | undefined {
+  if (!cObj) return undefined;
+  if (cObj instanceof openehr_am.C_TERMINOLOGY_CODE) {
+    return cObj as TerminologyCodeRuntime;
+  }
+  if (cObj instanceof openehr_am.C_COMPLEX_OBJECT) {
+    for (const attr of cObj.attributes ?? []) {
+      for (
+        const child
+          of (attr as { children?: openehr_am.C_OBJECT[] }).children ??
+            []
+      ) {
+        const found = nestedTerminologyCode(child);
+        if (found) return found;
       }
     }
   }
+  return undefined;
+}
 
-  return inputs;
+function applyStringList(
+  inputs: WebTemplateInput[],
+  cObj: openehr_am.C_STRING,
+): void {
+  const list = (cObj as { list?: string[] }).list;
+  if (!list?.length) return;
+  const target = inputs.find((i) => !i.suffix) ?? inputs[0];
+  const items = list.map((v) => ({ value: v }));
+  if (target) target.list = items;
+  else inputs.push({ type: "TEXT", list: items });
+}
+
+type QuantityAssumedValue = {
+  magnitude?: number;
+  units?: string;
+  precision?: number;
+};
+
+function applyQuantityInputs(
+  inputs: WebTemplateInput[],
+  cObj: openehr_am.C_QUANTITY,
+): void {
+  const units = ((cObj as { list?: openehr_am.C_QUANTITY_ITEM[] }).list ?? [])
+    .map((item) => item.units)
+    .filter((u): u is string => !!u);
+  const assumed = cObj.assumed_value as QuantityAssumedValue | undefined;
+  const unitInput = inputs.find((i) => i.suffix === "unit");
+  if (unitInput && units.length) {
+    unitInput.list = units.map((value) => ({ value }));
+    if (units.length === 1) unitInput.defaultValue = units[0];
+  }
+  if (unitInput && assumed?.units) unitInput.defaultValue = assumed.units;
+  if (assumed?.magnitude !== undefined) {
+    const magInput = inputs.find((i) => i.suffix === "magnitude");
+    if (magInput) magInput.defaultValue = assumed.magnitude;
+  }
+}
+
+function applyTerminologyInputs(
+  inputs: WebTemplateInput[],
+  term: TerminologyCodeRuntime,
+  labelFor: (code: string, scope?: string) => string | undefined,
+  scope?: string,
+): void {
+  const codeInput = inputs.find((i) => i.suffix === "code") ?? inputs[0];
+  if (!codeInput) return;
+  const codes = term.code_list?.length
+    ? term.code_list
+    : (term.constraint ? [term.constraint] : []);
+  if (codes.length) {
+    codeInput.list = codes.map((value) => {
+      const label = labelFor(value, scope);
+      return label ? { value, label } : { value };
+    });
+  }
+  const assumed = term.assumed_value?.code_string;
+  if (assumed) codeInput.defaultValue = assumed;
+  const terminology = term.terminology_id ?? term.assumed_value?.terminology_id;
+  if (terminology) codeInput.terminology = terminology;
 }
 
 function isDataValueType(rmType: string): boolean {
@@ -173,6 +235,48 @@ export class WebTemplateBuilder {
     this.applyL10n = options?.applyL10nAnnotations ?? true;
   }
 
+  private labelForCode(code: string, scope?: string): string | undefined {
+    return resolveTermEntry(
+      code,
+      undefined,
+      this.terms,
+      this.archetypeTerms,
+      scope,
+    )?.text;
+  }
+
+  private buildInputs(
+    rmType: string,
+    cObj?: openehr_am.C_OBJECT,
+  ): WebTemplateInput[] {
+    const resolved = resolveDvType(rmType);
+    const inputs: WebTemplateInput[] = resolved.startsWith("DV_") ||
+        resolved === "CODE_PHRASE" || resolved.startsWith("PARTY_") ||
+        rmType.startsWith("C_")
+      ? inputsForRmType(resolved)
+      : [];
+
+    if (cObj instanceof openehr_am.C_STRING) {
+      applyStringList(inputs, cObj);
+    }
+    if (cObj instanceof openehr_am.C_QUANTITY) {
+      applyQuantityInputs(inputs, cObj);
+    }
+    const term = nestedTerminologyCode(cObj);
+    if (term) {
+      const scope = (term as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] ??
+        (cObj as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY];
+      applyTerminologyInputs(
+        inputs,
+        term,
+        (code, codeScope) => this.labelForCode(code, codeScope),
+        scope,
+      );
+    }
+
+    return inputs;
+  }
+
   private termFor(obj: openehr_am.C_OBJECT): TermEntry {
     const meta = obj as TermScopeMeta;
     return resolveTermEntry(
@@ -203,9 +307,7 @@ export class WebTemplateBuilder {
       annotations: { ...(node.annotations ?? {}), ...items },
       localizedNames,
       // Prefer L10n for the active language when present; keep id stable.
-      ...(forLang
-        ? { name: forLang, localizedName: forLang }
-        : {}),
+      ...(forLang ? { name: forLang, localizedName: forLang } : {}),
     };
   }
 
@@ -234,9 +336,7 @@ export class WebTemplateBuilder {
       opt as OperationalTemplateWithTermScopes,
       this.lang,
     );
-    this.pathAnnotations = this.applyL10n
-      ? flattenOptPathAnnotations(opt)
-      : {};
+    this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};
 
     if (!opt.definition) {
       throw new Error("Operational template has no definition");
@@ -465,20 +565,26 @@ export class WebTemplateBuilder {
           : undefined,
         children: [],
       });
-      const dataAttr = ev.attributes?.find((a) =>
-        a.rm_attribute_name === "data"
-      );
-      const dataChild = (dataAttr as { children?: openehr_am.C_OBJECT[] })
-        ?.children?.[0];
-      if (dataChild instanceof openehr_am.C_COMPLEX_OBJECT) {
-        eventNodes.push(this.flattenDataStructure(
-          dataChild,
-          joinAqlPath(evPath, `data[${nodeIdToAtCode(dataChild.node_id)}]`),
+      const eventChildren: WebTemplateNode[] = [];
+      for (const attrName of ["data", "state", "protocol"] as const) {
+        const attr = ev.attributes?.find((a) =>
+          a.rm_attribute_name === attrName
+        );
+        const child = (attr as { children?: openehr_am.C_OBJECT[] })
+          ?.children?.[0];
+        if (!(child instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
+        const flattened = this.flattenDataStructure(
+          child,
+          joinAqlPath(evPath, `${attrName}[${nodeIdToAtCode(child.node_id)}]`),
           eventShell,
-        ));
-      } else {
-        eventNodes.push(eventShell);
+        );
+        eventChildren.push(...flattened.children ?? []);
       }
+      eventNodes.push(
+        nodeShell(eventShell, {
+          children: eventChildren.length ? eventChildren : undefined,
+        }),
+      );
     }
 
     return nodeShell(shell, {
@@ -541,7 +647,7 @@ export class WebTemplateBuilder {
       localizedDescriptions: term.description
         ? { [this.lang]: term.description }
         : undefined,
-      inputs: buildInputs(rmType, obj),
+      inputs: this.buildInputs(rmType, obj),
     });
   }
 
@@ -616,7 +722,7 @@ export class WebTemplateBuilder {
       max: 1,
       aqlPath: `/${name}`,
       inContext: true,
-      inputs: buildInputs(rmType, child),
+      inputs: this.buildInputs(rmType, child),
     }];
   }
 }

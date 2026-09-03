@@ -117,6 +117,57 @@ Deno.test("OPT → WT → OPT → WT preserves leaf aqlPaths (blood pressure)", 
   assertEquals(after, before);
 });
 
+function findWtLeaf(
+  node: WebTemplateNode,
+  pred: (n: WebTemplateNode) => boolean,
+): WebTemplateNode | undefined {
+  if (pred(node)) return node;
+  for (const child of node.children ?? []) {
+    const found = findWtLeaf(child, pred);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+Deno.test("OPT → WT → OPT → WT preserves quantity units and coded lists (blood pressure)", async () => {
+  const { wt } = await loadOpt("ehrbase_blood_pressure_simple.de.v0.opt");
+  const wt2 = buildWebTemplate(
+    webTemplateToOpt(parseWebTemplate(JSON.stringify(wt))),
+  );
+
+  const systolic = findWtLeaf(wt2.tree, (n) => n.nodeId === "at0004");
+  const unit = systolic?.inputs?.find((i) => i.suffix === "unit");
+  assertEquals(unit?.list?.map((item) => item.value), ["mm[Hg]"]);
+
+  const position = findWtLeaf(
+    wt2.tree,
+    (n) => n.nodeId === "at0008" && n.rmType === "DV_CODED_TEXT",
+  );
+  const code = position?.inputs?.find((i) => i.suffix === "code");
+  assertEquals(code?.defaultValue, "at1001");
+  assertEquals(
+    code?.list?.map((item) => item.value),
+    ["at1000", "at1001", "at1002", "at1003", "at1013", "at1014"],
+  );
+  assertEquals(
+    code?.list?.find((item) => item.value === "at1001")?.label,
+    "Sitting",
+  );
+
+  const tilt = findWtLeaf(
+    wt2.tree,
+    (n) => n.nodeId === "at1005" && n.rmType === "DV_QUANTITY",
+  );
+  assertEquals(
+    tilt?.inputs?.find((i) => i.suffix === "magnitude")?.defaultValue,
+    0,
+  );
+  assertEquals(
+    tilt?.inputs?.find((i) => i.suffix === "unit")?.defaultValue,
+    "°",
+  );
+});
+
 Deno.test("FLAT full roundtrip preserves all keys (minimal_evaluation)", async () => {
   const { wt, instance } = await loadOpt("minimal_evaluation.opt");
   const flat = serializeToFlat(instance, wt);
