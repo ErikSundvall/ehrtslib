@@ -19,6 +19,12 @@ import {
   InvalidFormatError,
 } from '../common/errors.ts';
 import {
+  buildJsonSourceIndex,
+  escapeJsonPointerSegment,
+  lookupJsonSourceLocation,
+  type JsonSourceIndex,
+} from '../common/json_source_index.ts';
+import {
   parseTerseCodePhrase,
   parseTerseDvCodedText,
   isTerseCodePhrase,
@@ -54,6 +60,7 @@ export class JsonConfigurableDeserializer {
    */
   deserialize<T = any>(json: string): T {
     try {
+      const sourceIndex = buildJsonSourceIndex(json);
       const parsed = JSON.parse(json);
       
       // Check if parsed result is a terse format string
@@ -64,8 +71,8 @@ export class JsonConfigurableDeserializer {
         }
       }
       
-      const instance = this.fromJsonObject(parsed);
-      return this.maybeValidateAgainstTemplate(instance);
+      const instance = this.fromJsonObject(parsed, undefined, undefined, undefined, '', sourceIndex);
+      return this.maybeValidateAgainstTemplate(instance, json);
     } catch (error) {
       if (error instanceof DeserializationError) {
         throw error;
@@ -88,6 +95,7 @@ export class JsonConfigurableDeserializer {
    */
   deserializeAs<T>(json: string, type: new () => T): T {
     try {
+      const sourceIndex = buildJsonSourceIndex(json);
       const parsed = JSON.parse(json);
       
       // Check if parsed result is a terse format string
@@ -99,8 +107,8 @@ export class JsonConfigurableDeserializer {
       }
       
       const typeName = TypeRegistry.getTypeName(type);
-      const instance = this.fromJsonObject(parsed, typeName);
-      return this.maybeValidateAgainstTemplate(instance);
+      const instance = this.fromJsonObject(parsed, typeName, undefined, undefined, '', sourceIndex);
+      return this.maybeValidateAgainstTemplate(instance, json);
     } catch (error) {
       if (error instanceof DeserializationError) {
         throw error;
@@ -126,7 +134,9 @@ export class JsonConfigurableDeserializer {
     obj: any,
     expectedType?: string,
     parentType?: string,
-    propertyName?: string
+    propertyName?: string,
+    jsonPointer = '',
+    sourceIndex?: JsonSourceIndex,
   ): T {
     // Handle primitives
     if (obj === null || obj === undefined) {
@@ -147,8 +157,15 @@ export class JsonConfigurableDeserializer {
     
     // Handle arrays
     if (Array.isArray(obj)) {
-      return obj.map(item => 
-        this.fromJsonObject(item, expectedType, parentType, propertyName)
+      return obj.map((item, index) => 
+        this.fromJsonObject(
+          item,
+          expectedType,
+          parentType,
+          propertyName,
+          `${jsonPointer}/${index}`,
+          sourceIndex,
+        )
       ) as T;
     }
     
@@ -157,9 +174,12 @@ export class JsonConfigurableDeserializer {
     
     if (!typeName) {
       if (this.config.strict) {
-        throw new DeserializationError(
+        throw this.deserializationError(
           'Cannot determine type for object (strict mode enabled)',
-          JSON.stringify(obj)
+          JSON.stringify(obj),
+          undefined,
+          jsonPointer,
+          sourceIndex,
         );
       }
       // In lenient mode, return plain object
@@ -171,7 +191,11 @@ export class JsonConfigurableDeserializer {
     
     if (!constructor) {
       if (this.config.strict) {
-        throw new TypeNotFoundError(typeName, JSON.stringify(obj) + ' (strict mode enabled)');
+        throw new TypeNotFoundError(
+          typeName,
+          JSON.stringify(obj) + ' (strict mode enabled)',
+          lookupJsonSourceLocation(sourceIndex ?? new Map(), jsonPointer),
+        );
       }
       // In lenient mode, return plain object
       return obj as T;
@@ -187,17 +211,31 @@ export class JsonConfigurableDeserializer {
         continue;
       }
       
+      const childPointer = jsonPointer === ''
+        ? `/${escapeJsonPointerSegment(key)}`
+        : `${jsonPointer}/${escapeJsonPointerSegment(key)}`;
+
       // Recursively deserialize property
       try {
-        instance[key] = this.fromJsonObject(value, undefined, typeName, key);
+        instance[key] = this.fromJsonObject(
+          value,
+          undefined,
+          typeName,
+          key,
+          childPointer,
+          sourceIndex,
+        );
       } catch (error) {
         if (this.config.strict) {
-          throw new DeserializationError(
+          throw this.deserializationError(
             `Failed to deserialize property '${key}' of ${typeName}: ${
               error instanceof Error ? error.message : String(error)
             }`,
             JSON.stringify(obj),
-            error instanceof Error ? error : undefined
+            error instanceof Error ? error : undefined,
+            childPointer,
+            sourceIndex,
+            error instanceof DeserializationError ? error.source : undefined,
           );
         }
         // In lenient mode, use raw value
@@ -208,19 +246,43 @@ export class JsonConfigurableDeserializer {
     return instance as T;
   }
 
-  private maybeValidateAgainstTemplate<T>(instance: T): T {
+  private deserializationError(
+    message: string,
+    data?: string,
+    cause?: Error,
+    jsonPointer?: string,
+    sourceIndex?: JsonSourceIndex,
+    existingSource?: DeserializationError['source'],
+  ): DeserializationError {
+    const source = existingSource ??
+      (jsonPointer !== undefined
+        ? lookupJsonSourceLocation(sourceIndex ?? new Map(), jsonPointer)
+        : undefined);
+    return new DeserializationError(message, data, cause, source);
+  }
+
+  private maybeValidateAgainstTemplate<T>(instance: T, jsonSource?: string): T {
     const template = this.config.validateAgainstTemplate;
     if (!template) return instance;
 
     const result = validateDeserializedInstance(instance, {
       validateAgainstTemplate: template,
+      jsonSource,
     });
     if (result && !result.valid) {
-      const summary = result.errors.map((e) => `${e.path}: ${e.message}`).join(
+      const summary = result.errors.map((e) => {
+        const location = e.sourceLine !== undefined
+          ? ` (line ${e.sourceLine}, column ${e.sourceColumn})`
+          : e.jsonPointer !== undefined
+          ? ` (${e.jsonPointer})`
+          : '';
+        return `${e.path}: ${e.message}${location}`;
+      }).join(
         "; ",
       );
       throw new DeserializationError(
         `Deserialized instance failed template validation: ${summary}`,
+        jsonSource,
       );
     }
     return instance;
@@ -306,7 +368,7 @@ export class JsonConfigurableDeserializer {
     json: string,
     config: JsonDeserializationConfig
   ): T {
-    const deserializer = new JsonDeserializer(config);
+    const deserializer = new JsonConfigurableDeserializer(config);
     return deserializer.deserialize<T>(json);
   }
 }

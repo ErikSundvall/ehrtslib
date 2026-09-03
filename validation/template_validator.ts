@@ -7,6 +7,11 @@
 
 import * as openehr_am from "../am/openehr_am.ts";
 import { TypeRegistry } from "../serialization/common/type_registry.ts";
+import {
+  buildJsonSourceIndex,
+  enrichValidationMessageWithSource,
+  type JsonSourceIndex,
+} from "../serialization/common/json_source_index.ts";
 import { UcumService } from "../term/ucum_service.ts";
 import { IntervalValidator } from "./interval_validator.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
@@ -32,6 +37,20 @@ export interface ValidationMessage {
   message: string;
   severity: "error" | "warning" | "info";
   constraintType: string;
+  /** JSON Pointer into the original source when `jsonSource` was provided to `validate`. */
+  jsonPointer?: string;
+  /** 1-based line in the original JSON source (when available). */
+  sourceLine?: number;
+  /** 1-based column in the original JSON source (when available). */
+  sourceColumn?: number;
+}
+
+/**
+ * Optional per-validation inputs (e.g. original JSON for source mapping).
+ */
+export interface ValidationOptions {
+  /** Original JSON text used to build `rmInstance`; enables source line/column on messages. */
+  jsonSource?: string;
 }
 
 /**
@@ -115,10 +134,14 @@ export class TemplateValidator {
    */
   validate(
     rmInstance: any,
-    template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE
+    template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+    options?: ValidationOptions,
   ): ValidationResult {
     const errors: ValidationMessage[] = [];
     const warnings: ValidationMessage[] = [];
+    const sourceIndex = options?.jsonSource
+      ? buildJsonSourceIndex(options.jsonSource)
+      : undefined;
 
     // Validate against definition
     if (!template.definition) {
@@ -153,6 +176,12 @@ export class TemplateValidator {
       );
       errors.push(...invariantMsgs.filter((m) => m.severity === "error"));
       warnings.push(...invariantMsgs.filter((m) => m.severity === "warning"));
+    }
+
+    if (sourceIndex) {
+      for (const message of [...errors, ...warnings]) {
+        enrichValidationMessageWithSource(message, sourceIndex);
+      }
     }
 
     return {

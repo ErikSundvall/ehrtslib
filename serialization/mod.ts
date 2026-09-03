@@ -101,6 +101,13 @@ export {
   DeserializationError,
   TypeNotFoundError,
   InvalidFormatError,
+  type JsonSourceLocation,
+  buildJsonSourceIndex,
+  enrichValidationMessageWithSource,
+  escapeJsonPointerSegment,
+  lookupJsonSourceLocation,
+  rmPathToJsonPointer,
+  type JsonSourceIndex,
 } from './common/mod.ts';
 
 // Simplified formats (Web Template, FLAT, STRUCTURED)

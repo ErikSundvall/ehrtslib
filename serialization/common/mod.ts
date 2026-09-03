@@ -20,6 +20,15 @@ export {
   TypeNotFoundError,
   InvalidFormatError,
 } from './errors.ts';
+export type { JsonSourceLocation } from './errors.ts';
+export {
+  buildJsonSourceIndex,
+  enrichValidationMessageWithSource,
+  escapeJsonPointerSegment,
+  lookupJsonSourceLocation,
+  rmPathToJsonPointer,
+} from './json_source_index.ts';
+export type { JsonSourceIndex } from './json_source_index.ts';
 export {
   collectRmPropertyNames,
   resolveRmTypeName,
