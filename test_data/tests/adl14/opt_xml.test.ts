@@ -8,6 +8,7 @@ import {
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 import { RMInstanceGenerator } from "../../../generation/rm_instance_generator.ts";
+import { OptXmlSerializer } from "../../../generation/opt_xml_serializer.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 import type { OperationalTemplateWithTermScopes } from "../../../generation/term_scope.ts";
 import {
@@ -283,4 +284,120 @@ Deno.test("parseOptXml - C_QUANTITY keeps assumed_value magnitude and units", as
   const units = ((value as { list?: Array<{ units?: string }> }).list ?? [])
     .map((item) => item.units);
   assertEquals(units, ["°"]);
+});
+
+Deno.test("parseOptXml - C_QUANTITY list items keep magnitude and precision intervals", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("ehrbase_blood_pressure_simple.de.v0.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const value = elementValue(operationalTemplate, "at0004");
+  assert(
+    value instanceof openehr_am.C_QUANTITY,
+    "expected Systolic C_QUANTITY",
+  );
+  const item = (value as {
+    list?: Array<{
+      units?: string;
+      magnitude?: { lower?: number; upper?: number; upper_included?: boolean };
+      precision?: { lower?: number; upper?: number };
+    }>;
+  }).list?.[0];
+  assertEquals(item?.units, "mm[Hg]");
+  assertEquals(item?.magnitude?.lower, 0);
+  assertEquals(item?.magnitude?.upper, 1000);
+  assertEquals(item?.magnitude?.upper_included, false);
+  assertEquals(item?.precision?.lower, 0);
+  assertEquals(item?.precision?.upper, 0);
+});
+
+Deno.test("parseOptXml - C_DV_CODED_TEXT nested defining_code becomes C_TERMINOLOGY_CODE", () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <template_id><value>coded_text_dialect.en.v1</value></template_id>
+  <language><code_string>en</code_string></language>
+  <concept>test</concept>
+  <definition xsi:type="C_COMPLEX_OBJECT">
+    <rm_type_name>COMPOSITION</rm_type_name>
+    <node_id>at0000</node_id>
+    <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+      <rm_attribute_name>content</rm_attribute_name>
+      <children xsi:type="C_COMPLEX_OBJECT">
+        <rm_type_name>ELEMENT</rm_type_name>
+        <node_id>at0001</node_id>
+        <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+          <rm_attribute_name>value</rm_attribute_name>
+          <children xsi:type="C_DV_CODED_TEXT">
+            <rm_type_name>DV_CODED_TEXT</rm_type_name>
+            <defining_code>
+              <terminology_id><value>local</value></terminology_id>
+              <code_list>at0002</code_list>
+              <code_list>at0003</code_list>
+              <assumed_value>
+                <terminology_id><value>local</value></terminology_id>
+                <code_string>at0002</code_string>
+              </assumed_value>
+            </defining_code>
+          </children>
+        </attributes>
+      </children>
+    </attributes>
+  </definition>
+</template>`;
+  const { operationalTemplate } = parseOptXml(xml);
+  const value = elementValue(operationalTemplate, "at0001");
+  assert(
+    value instanceof openehr_am.C_COMPLEX_OBJECT,
+    "expected wrapped DV_CODED_TEXT",
+  );
+  const defining = value.attributes?.find((a) =>
+    a.rm_attribute_name === "defining_code"
+  );
+  const term = (defining as { children?: openehr_am.C_OBJECT[] })?.children
+    ?.[0];
+  assert(
+    term instanceof openehr_am.C_TERMINOLOGY_CODE,
+    "expected nested C_TERMINOLOGY_CODE",
+  );
+  const runtime = term as openehr_am.C_TERMINOLOGY_CODE & {
+    code_list?: string[];
+  };
+  assertEquals(runtime.code_list, ["at0002", "at0003"]);
+  assertEquals(runtime.assumed_value?.code_string, "at0002");
+});
+
+Deno.test("parseOptXml - C_DV_ORDINAL keeps list values and symbols", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("constrain_test.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const value = findCObject(
+    operationalTemplate.definition,
+    (obj) =>
+      obj instanceof openehr_am.C_ORDINAL &&
+      ((obj as { list?: openehr_am.ORDINAL[] }).list?.length ?? 0) >= 4,
+  );
+  assert(value instanceof openehr_am.C_ORDINAL, "expected C_ORDINAL with list");
+  const list = (value as { list?: openehr_am.ORDINAL[] }).list ?? [];
+  assertEquals(list.slice(0, 4).map((item) => item.value), [0, 1, 2, 3]);
+  assertEquals(
+    list.slice(0, 4).map((item) => item.symbol?.code_string),
+    ["at0010", "at0011", "at0012", "at0013"],
+  );
+
+  const xml2 = new OptXmlSerializer().serialize(operationalTemplate);
+  const second = parseOptXml(xml2);
+  const again = findCObject(
+    second.operationalTemplate.definition,
+    (obj) =>
+      obj instanceof openehr_am.C_ORDINAL &&
+      ((obj as { list?: openehr_am.ORDINAL[] }).list?.length ?? 0) >= 4,
+  );
+  const list2 = (again as { list?: openehr_am.ORDINAL[] })?.list ?? [];
+  assertEquals(list2.slice(0, 4).map((item) => item.symbol?.code_string), [
+    "at0010",
+    "at0011",
+    "at0012",
+    "at0013",
+  ]);
 });

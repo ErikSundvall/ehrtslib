@@ -15,7 +15,9 @@ import {
   serializeToFlatJson,
   serializeToStructured,
   validateFlatPayload,
+  webTemplateToOpt,
 } from "../../../../serialization/simplified/mod.ts";
+import * as openehr_am from "../../../../am/openehr_am.ts";
 
 const OPT_DIR = new URL("../../../opt14/", import.meta.url);
 
@@ -223,3 +225,85 @@ Deno.test("buildWebTemplate - Tilt assumed_value on magnitude and unit", async (
   assertEquals(unit?.defaultValue, "°");
   assertEquals(unit?.list?.map((item) => item.value), ["°"]);
 });
+
+Deno.test("buildWebTemplate - Systolic magnitude/precision validation from C_QUANTITY intervals", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("ehrbase_blood_pressure_simple.de.v0.opt", OPT_DIR),
+  );
+  const { operationalTemplate } = parseOptXml(xml);
+  const wt = buildWebTemplate(operationalTemplate);
+  const systolic = findWtNode(
+    wt.tree,
+    (n) =>
+      n.nodeId === "at0004" &&
+      (n as { rmType?: string }).rmType === "DV_QUANTITY",
+  );
+  assert(systolic, "expected Systolic node");
+  const mag = systolic.inputs?.find((i) => i.suffix === "magnitude");
+  const range = mag?.validation?.range as
+    | { min?: number; max?: number; minOp?: string; maxOp?: string }
+    | undefined;
+  const precision = mag?.validation?.precision as
+    | { min?: number; max?: number }
+    | undefined;
+  assertEquals(range?.min, 0);
+  assertEquals(range?.max, 1000);
+  assertEquals(range?.minOp, ">=");
+  assertEquals(range?.maxOp, "<");
+  assertEquals(precision?.min, 0);
+  assertEquals(precision?.max, 0);
+
+  const reconstructed = webTemplateToOpt(wt);
+  const valueAttr = findCQuantity(reconstructed.definition, "at0004");
+  const item = (valueAttr as {
+    list?: Array<{ magnitude?: { lower?: number; upper?: number } }>;
+  })?.list?.[0];
+  assertEquals(item?.magnitude?.lower, 0);
+  assertEquals(item?.magnitude?.upper, 1000);
+});
+
+Deno.test("buildWebTemplate - C_DV_ORDINAL list becomes coded inputs", async () => {
+  const xml = await Deno.readTextFile(new URL("constrain_test.opt", OPT_DIR));
+  const { operationalTemplate } = parseOptXml(xml);
+  const wt = buildWebTemplate(operationalTemplate);
+  const ordinal = findWtNode(
+    wt.tree,
+    (n) =>
+      n.nodeId === "at0004" &&
+      (n as { rmType?: string }).rmType === "DV_ORDINAL",
+  );
+  assert(ordinal, "expected ordinal node");
+  const code = ordinal.inputs?.find((i) => i.suffix === "code");
+  assertEquals(
+    code?.list?.map((item) => item.value),
+    ["at0010", "at0011", "at0012", "at0013"],
+  );
+});
+
+function findCQuantity(
+  obj: openehr_am.C_OBJECT | undefined,
+  nodeId: string,
+): openehr_am.C_QUANTITY | undefined {
+  if (!obj) return undefined;
+  if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
+    if (obj.node_id === nodeId && obj.rm_type_name === "ELEMENT") {
+      const valueAttr = obj.attributes?.find((a) =>
+        a.rm_attribute_name === "value"
+      );
+      const child = (valueAttr as { children?: openehr_am.C_OBJECT[] })
+        ?.children?.[0];
+      if (child instanceof openehr_am.C_QUANTITY) return child;
+    }
+    for (const attr of obj.attributes ?? []) {
+      for (
+        const child
+          of (attr as { children?: openehr_am.C_OBJECT[] }).children ??
+            []
+      ) {
+        const found = findCQuantity(child, nodeId);
+        if (found) return found;
+      }
+    }
+  }
+  return undefined;
+}

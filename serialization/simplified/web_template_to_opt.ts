@@ -13,14 +13,12 @@
  *   nearest archetype-id ancestor), plus a flat `ontology.term_definitions`
  *   map that still last-wins on colliding at-codes,
  * - best-effort leaf constraints from Web Template `inputs[]`:
- *   `C_QUANTITY.list[].units` and assumed magnitude/units, and
- *   `C_TERMINOLOGY_CODE` `code_list` + `assumed_value` (with labels recorded
- *   as term definitions).
+ *   `C_QUANTITY.list[].units`, assumed magnitude/units, magnitude/precision
+ *   ranges from `inputs[].validation`, and `C_TERMINOLOGY_CODE` `code_list` +
+ *   `assumed_value` (with labels recorded as term definitions).
  *
- * Still dropped (not present on a typical Web Template): magnitude/precision
- * *ranges*, invariants, non-unit `C_QUANTITY_ITEM` facets, cardinality of
- * collapsed wrappers, and value-set bindings that were never emitted as
- * `inputs[].list`.
+ * Still dropped: invariants, cardinality of collapsed wrappers, and value-set
+ * bindings that were never emitted as `inputs[].list`.
  *
  * The result is sufficient for `buildWebTemplate` to reproduce an equivalent
  * Web Template (structural round-trip plus the input lists above), for RM
@@ -29,6 +27,10 @@
 
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
+import type {
+  QuantityItemInterval,
+  QuantityItemRuntime,
+} from "../../parser/legacy/xml_aom_mapper.ts";
 import type {
   WebTemplate,
   WebTemplateInput,
@@ -53,6 +55,26 @@ const MULTIPLE_ATTRS = new Set([
   "rows",
   "other_participations",
 ]);
+
+function intervalFromValidationRange(
+  range: unknown,
+): QuantityItemInterval | undefined {
+  if (!range || typeof range !== "object") return undefined;
+  const rec = range as Record<string, unknown>;
+  const interval: QuantityItemInterval = {};
+  if (typeof rec.min === "number") {
+    interval.lower = rec.min;
+    interval.lower_included = rec.minOp !== ">";
+  }
+  if (typeof rec.max === "number") {
+    interval.upper = rec.max;
+    interval.upper_included = rec.maxOp !== "<";
+  }
+  if (interval.lower === undefined && interval.upper === undefined) {
+    return undefined;
+  }
+  return interval;
+}
 
 interface AqlSegment {
   attr: string;
@@ -391,13 +413,32 @@ export class WebTemplateToOptConverter {
     const mag = inputs?.find((i) => i.suffix === "magnitude");
     const units = (unit?.list ?? []).map((item) => item.value).filter(Boolean);
     if (units.length) {
-      (q as { list?: openehr_am.C_QUANTITY_ITEM[] }).list = units.map(
-        (value) => {
-          const item = new openehr_am.C_QUANTITY_ITEM();
+      (q as { list?: QuantityItemRuntime[] }).list = units.map(
+        (value, index) => {
+          const item = new openehr_am.C_QUANTITY_ITEM() as QuantityItemRuntime;
           item.units = value;
+          const validation = (unit?.list?.[index]?.validation ??
+            mag?.validation) as Record<string, unknown> | undefined;
+          const magnitude = intervalFromValidationRange(validation?.range);
+          if (magnitude) item.magnitude = magnitude;
+          const precision = intervalFromValidationRange(validation?.precision);
+          if (precision) item.precision = precision;
           return item;
         },
       );
+    } else if (mag?.validation) {
+      const item = new openehr_am.C_QUANTITY_ITEM() as QuantityItemRuntime;
+      const magnitude = intervalFromValidationRange(
+        (mag.validation as Record<string, unknown>).range,
+      );
+      if (magnitude) item.magnitude = magnitude;
+      const precision = intervalFromValidationRange(
+        (mag.validation as Record<string, unknown>).precision,
+      );
+      if (precision) item.precision = precision;
+      if (item.magnitude || item.precision) {
+        (q as { list?: QuantityItemRuntime[] }).list = [item];
+      }
     }
     const assumedUnits = typeof unit?.defaultValue === "string"
       ? unit.defaultValue

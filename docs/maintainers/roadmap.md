@@ -124,6 +124,8 @@ Also: `toTypedRm()` for typed RM instances; declarative DV field maps in `dv_fie
 - OPT ↔ ADL2 OPT2 round-trip (no public OPT2 corpus yet)
 - More OET tests, compile with CKM archetype bank (needs larger fixture download)
 
+OPT XML constraint closeout (#75 serialize, #76 quantity intervals, #77 `C_DV_CODED_TEXT`, plus `C_DV_ORDINAL.list`) is implemented with the simplified-format range round-trip.
+
 ## Phase X - dist and docs
 
 - One version of this code needs to be small so that it can fit and be run
