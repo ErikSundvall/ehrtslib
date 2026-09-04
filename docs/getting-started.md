@@ -239,6 +239,7 @@ See the full project status in [roadmap.md](maintainers/roadmap.md) ([GitHub](ht
 - Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, `InvariantEvaluator`)
 - Brief property styles with constructor initialization and terse formats ([Brief property styles](user/brief-property-styles.md))
 - Canonical JSON serialization plus FLAT/STRUCTURED simplified formats ([SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md))
+- Optional BMM class/attribute specification descriptions and spec URLs ([SPEC_DESCRIPTIONS.md](SPEC_DESCRIPTIONS.md))
 - Demo app: template upload, conversion, RM instance / TypeScript stub generation, and **bidirectional** FLAT/STRUCTURED (see [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md#demo-app))
 
 **What's Not Yet Available (or still maturing):**

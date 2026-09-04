@@ -7,6 +7,7 @@ Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 | ----- | -------- |
 | BMM / stub / meta regeneration | [codegen-and-bmm.md](codegen-and-bmm.md) |
 | RM meta generation only | [rm-meta-generation.md](rm-meta-generation.md) |
+| Specification descriptions (`spec`) | [../SPEC_DESCRIPTIONS.md](../SPEC_DESCRIPTIONS.md) |
 | Repository layout; what is safe to hand-edit | [hand-written-vs-generated.md](hand-written-vs-generated.md) |
 | Generated stubs (do not hand-edit) | [../../generated/README.md](../../generated/README.md) |
 | Domain glossary (agents) | [../../CONTEXT.md](../../CONTEXT.md) |

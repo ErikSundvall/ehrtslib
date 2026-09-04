@@ -199,6 +199,7 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   if (mapped === "C_QUANTITY") return parseCQuantity(n);
   if (mapped === "C_TERMINOLOGY_CODE") return parseCTerminologyCode(n);
   if (mapped === "C_CODED_TEXT") return parseCCodedText(n);
+  if (mapped === "C_ORDINAL") return parseCOrdinal(n);
   // The primitive constraint classes do not extend C_OBJECT in the generated
   // model but carry equivalent runtime metadata (see ConstraintMeta).
   if (mapped === "C_STRING") {
@@ -491,10 +492,101 @@ function parseCTerminologyCode(
   return t;
 }
 
-function parseCCodedText(n: Record<string, unknown>): openehr_am.C_CODED_TEXT {
+/**
+ * ADL 1.4 `C_DV_CODED_TEXT` / `C_CODED_TEXT` often carries a nested
+ * `defining_code` (`C_CODE_PHRASE`) rather than a `C_COMPLEX_OBJECT` with a
+ * `defining_code` attribute. Lift that into the same AOM shape #69/#70
+ * already handle so Web Template `inputs[suffix=code].list` is populated.
+ */
+function parseCCodedText(n: Record<string, unknown>): openehr_am.C_OBJECT {
+  const defining = n.defining_code ?? n.definingCode;
+  const nestedAttrs = asArray(n.attributes);
+  const ownCodes = asArray(n.code_list);
+  if (
+    defining || nestedAttrs.length || ownCodes.length ||
+    n.terminology_id || n.terminologyId || n.assumed_value
+  ) {
+    const obj = new openehr_am.C_COMPLEX_OBJECT();
+    applyOccurrence(obj, n);
+    if (!obj.rm_type_name) obj.rm_type_name = "DV_CODED_TEXT";
+    const attributes: openehr_am.C_ATTRIBUTE[] = nestedAttrs.map((attr) =>
+      parseAttribute(attr, obj.rm_type_name)
+    ).filter(Boolean) as openehr_am.C_ATTRIBUTE[];
+    const hasDefining = attributes.some((a) =>
+      a.rm_attribute_name === "defining_code"
+    );
+    if (!hasDefining) {
+      const source = (defining && typeof defining === "object")
+        ? defining as Record<string, unknown>
+        : n;
+      const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
+      attr.rm_attribute_name = "defining_code";
+      (attr as { children?: openehr_am.C_OBJECT[] }).children = [
+        parseCTerminologyCode(source),
+      ];
+      attributes.push(attr);
+    }
+    obj.attributes = attributes;
+    return obj;
+  }
   const c = new openehr_am.C_CODED_TEXT();
   applyOccurrence(c, n);
   return c;
+}
+
+/** Runtime extras on ADL 1.4 `C_DV_ORDINAL` mapped to AOM2 `C_ORDINAL`. */
+type OrdinalRuntime = Omit<openehr_am.C_ORDINAL, "list"> & {
+  list?: openehr_am.ORDINAL[];
+};
+
+function parseOrdinalSymbol(
+  node: unknown,
+): openehr_base.CODE_PHRASE | undefined {
+  if (!node || typeof node !== "object") return undefined;
+  const rec = node as Record<string, unknown>;
+  const defining = (rec.defining_code ?? rec.definingCode ?? rec) as Record<
+    string,
+    unknown
+  >;
+  const code = textValue(defining.code_string) ??
+    (typeof defining.code_string === "string" ||
+        typeof defining.code_string === "number"
+      ? String(defining.code_string)
+      : undefined);
+  if (!code) return undefined;
+  const tid = terminologyIdValue(
+    defining.terminology_id ?? defining.terminologyId ?? rec.terminology_id,
+  ) ?? "local";
+  return openehr_base.CODE_PHRASE.from(tid, code);
+}
+
+function parseCOrdinal(n: Record<string, unknown>): openehr_am.C_ORDINAL {
+  const o = new openehr_am.C_ORDINAL() as OrdinalRuntime;
+  applyOccurrence(o, n);
+  o.rm_type_name = n.rm_type_name ? String(n.rm_type_name) : "DV_ORDINAL";
+  const items: openehr_am.ORDINAL[] = [];
+  for (const entry of asArray(n.list)) {
+    if (!entry || typeof entry !== "object") continue;
+    const rec = entry as Record<string, unknown>;
+    const ord = new openehr_am.ORDINAL();
+    const value = optionalNumber(rec.value);
+    if (value !== undefined) ord.value = value;
+    const symbol = parseOrdinalSymbol(rec.symbol ?? rec);
+    if (symbol) ord.symbol = symbol;
+    items.push(ord);
+  }
+  if (items.length) o.list = items;
+  const assumed = n.assumed_value;
+  if (assumed && typeof assumed === "object") {
+    const rec = assumed as Record<string, unknown>;
+    const av = new openehr_am.ORDINAL();
+    const value = optionalNumber(rec.value);
+    if (value !== undefined) av.value = value;
+    const symbol = parseOrdinalSymbol(rec.symbol ?? rec);
+    if (symbol) av.symbol = symbol;
+    o.assumed_value = av as unknown as openehr_base.Any;
+  }
+  return o;
 }
 
 /** Assumed DV_QUANTITY fields from ADL 1.4 `<assumed_value>`. */
@@ -502,6 +594,60 @@ export interface QuantityAssumedValue {
   magnitude?: number;
   units?: string;
   precision?: number;
+}
+
+/** Magnitude / precision interval on an ADL 1.4 `C_QUANTITY_ITEM`. */
+export interface QuantityItemInterval {
+  lower?: number;
+  upper?: number;
+  lower_included?: boolean;
+  upper_included?: boolean;
+  lower_unbounded?: boolean;
+  upper_unbounded?: boolean;
+}
+
+/** Runtime extras on `C_QUANTITY_ITEM` (BMM types `magnitude` as Interval). */
+export type QuantityItemRuntime =
+  & Omit<openehr_am.C_QUANTITY_ITEM, "magnitude">
+  & {
+    magnitude?: QuantityItemInterval;
+    precision?: QuantityItemInterval;
+  };
+
+function parseNumericInterval(
+  node: unknown,
+): QuantityItemInterval | undefined {
+  if (!node || typeof node !== "object") return undefined;
+  const rec = node as Record<string, unknown>;
+  const interval: QuantityItemInterval = {};
+  const lower = optionalNumber(rec.lower);
+  const upper = optionalNumber(rec.upper);
+  if (lower !== undefined) interval.lower = lower;
+  if (upper !== undefined) interval.upper = upper;
+  if (rec.lower_unbounded !== undefined) {
+    interval.lower_unbounded = rec.lower_unbounded === true ||
+      rec.lower_unbounded === "true";
+  }
+  if (rec.upper_unbounded !== undefined) {
+    interval.upper_unbounded = rec.upper_unbounded === true ||
+      rec.upper_unbounded === "true";
+  }
+  if (rec.lower_included !== undefined) {
+    interval.lower_included = rec.lower_included === true ||
+      rec.lower_included === "true";
+  }
+  if (rec.upper_included !== undefined) {
+    interval.upper_included = rec.upper_included === true ||
+      rec.upper_included === "true";
+  }
+  if (
+    interval.lower === undefined && interval.upper === undefined &&
+    interval.lower_unbounded === undefined &&
+    interval.upper_unbounded === undefined
+  ) {
+    return undefined;
+  }
+  return interval;
 }
 
 function optionalNumber(value: unknown): number | undefined {
@@ -536,9 +682,16 @@ function parseCQuantity(n: Record<string, unknown>): openehr_am.C_QUANTITY {
     q.property = textValue(prop.code_string) ?? textValue(prop);
   }
   const items = asArray(n.list).map((entry) => {
-    const item = new openehr_am.C_QUANTITY_ITEM();
+    const item = new openehr_am.C_QUANTITY_ITEM() as QuantityItemRuntime;
     const rec = entry as Record<string, unknown>;
-    item.units = String(rec.units ?? rec.value ?? entry);
+    const units = textValue(rec.units) ??
+      (typeof rec.units === "string" ? rec.units : undefined) ??
+      (typeof entry === "string" ? entry : undefined);
+    if (units !== undefined) item.units = String(units);
+    const magnitude = parseNumericInterval(rec.magnitude);
+    if (magnitude) item.magnitude = magnitude;
+    const precision = parseNumericInterval(rec.precision);
+    if (precision) item.precision = precision;
     return item;
   });
   if (items.length) (q as { list?: openehr_am.C_QUANTITY_ITEM[] }).list = items;

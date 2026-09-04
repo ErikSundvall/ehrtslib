@@ -97,6 +97,177 @@ function termsForRoot(
   return undefined;
 }
 
+function serializeNumericInterval(
+  interval?: {
+    lower?: number;
+    upper?: number;
+    lower_included?: boolean;
+    upper_included?: boolean;
+    lower_unbounded?: boolean;
+    upper_unbounded?: boolean;
+  },
+): Record<string, unknown> | undefined {
+  if (!interval) return undefined;
+  const out: Record<string, unknown> = {};
+  if (interval.lower_included !== undefined) {
+    out.lower_included = interval.lower_included;
+  }
+  if (interval.upper_included !== undefined) {
+    out.upper_included = interval.upper_included;
+  }
+  if (interval.lower_unbounded !== undefined) {
+    out.lower_unbounded = interval.lower_unbounded;
+  }
+  if (interval.upper_unbounded !== undefined) {
+    out.upper_unbounded = interval.upper_unbounded;
+  }
+  if (interval.lower !== undefined) out.lower = interval.lower;
+  if (interval.upper !== undefined) out.upper = interval.upper;
+  return Object.keys(out).length ? out : undefined;
+}
+
+type TerminologyCodeRuntime = openehr_am.C_TERMINOLOGY_CODE & {
+  code_list?: string[];
+  terminology_id?: string;
+};
+
+type QuantityItemRuntime = Omit<openehr_am.C_QUANTITY_ITEM, "magnitude"> & {
+  magnitude?: {
+    lower?: number;
+    upper?: number;
+    lower_included?: boolean;
+    upper_included?: boolean;
+    lower_unbounded?: boolean;
+    upper_unbounded?: boolean;
+  };
+  precision?: {
+    lower?: number;
+    upper?: number;
+    lower_included?: boolean;
+    upper_included?: boolean;
+    lower_unbounded?: boolean;
+    upper_unbounded?: boolean;
+  };
+};
+
+type QuantityAssumedValue = {
+  magnitude?: number;
+  units?: string;
+  precision?: number;
+};
+
+type OrdinalRuntime = Omit<openehr_am.C_ORDINAL, "list"> & {
+  list?: openehr_am.ORDINAL[];
+};
+
+function terminologyIdValue(
+  tid: openehr_base.TERMINOLOGY_ID | string | undefined,
+): string | undefined {
+  if (!tid) return undefined;
+  if (typeof tid === "string") return tid;
+  return tid.value;
+}
+
+function serializeCTerminologyCode(
+  obj: TerminologyCodeRuntime,
+  base: Record<string, unknown>,
+): Record<string, unknown> {
+  base["@_xsi:type"] = "C_CODE_PHRASE";
+  base.rm_type_name = obj.rm_type_name ?? "CODE_PHRASE";
+  const tid = obj.terminology_id ??
+    obj.assumed_value?.terminology_id;
+  if (tid) base.terminology_id = { value: tid };
+  const codes = obj.code_list?.length
+    ? obj.code_list
+    : (obj.constraint ? [obj.constraint] : []);
+  if (codes.length) base.code_list = codes;
+  if (obj.assumed_value?.code_string) {
+    const assumed: Record<string, unknown> = {
+      code_string: obj.assumed_value.code_string,
+    };
+    const assumedTid = obj.assumed_value.terminology_id ?? tid;
+    if (assumedTid) assumed.terminology_id = { value: assumedTid };
+    base.assumed_value = assumed;
+  }
+  return base;
+}
+
+function serializeCQuantity(
+  obj: openehr_am.C_QUANTITY,
+  base: Record<string, unknown>,
+): Record<string, unknown> {
+  base["@_xsi:type"] = "C_DV_QUANTITY";
+  base.rm_type_name = obj.rm_type_name ?? "DV_QUANTITY";
+  if (obj.property) {
+    base.property = {
+      terminology_id: { value: "openehr" },
+      code_string: obj.property,
+    };
+  }
+  const items = ((obj as { list?: QuantityItemRuntime[] }).list ?? []).map(
+    (item) => {
+      const rec: Record<string, unknown> = {};
+      const mag = serializeNumericInterval(item.magnitude);
+      if (mag) rec.magnitude = mag;
+      const prec = serializeNumericInterval(item.precision);
+      if (prec) rec.precision = prec;
+      if (item.units) rec.units = item.units;
+      return rec;
+    },
+  ).filter((rec) => Object.keys(rec).length);
+  if (items.length) base.list = items;
+  const assumed = obj.assumed_value as QuantityAssumedValue | undefined;
+  if (
+    assumed &&
+    (assumed.magnitude !== undefined || assumed.units !== undefined ||
+      assumed.precision !== undefined)
+  ) {
+    const rec: Record<string, unknown> = {};
+    if (assumed.magnitude !== undefined) rec.magnitude = assumed.magnitude;
+    if (assumed.units !== undefined) rec.units = assumed.units;
+    if (assumed.precision !== undefined) rec.precision = assumed.precision;
+    base.assumed_value = rec;
+  }
+  return base;
+}
+
+function serializeOrdinalSymbol(
+  symbol?: openehr_base.CODE_PHRASE,
+): Record<string, unknown> | undefined {
+  if (!symbol?.code_string) return undefined;
+  const defining: Record<string, unknown> = {
+    code_string: symbol.code_string,
+  };
+  const tid = terminologyIdValue(symbol.terminology_id);
+  if (tid) defining.terminology_id = { value: tid };
+  return { defining_code: defining };
+}
+
+function serializeCOrdinal(
+  obj: OrdinalRuntime,
+  base: Record<string, unknown>,
+): Record<string, unknown> {
+  base["@_xsi:type"] = "C_DV_ORDINAL";
+  base.rm_type_name = obj.rm_type_name ?? "DV_ORDINAL";
+  const items = (obj.list ?? []).map((ord) => {
+    const rec: Record<string, unknown> = {};
+    if (ord.value !== undefined) rec.value = ord.value;
+    const symbol = serializeOrdinalSymbol(ord.symbol);
+    if (symbol) rec.symbol = symbol;
+    return rec;
+  }).filter((rec) => Object.keys(rec).length);
+  if (items.length) base.list = items;
+  const assumed = obj.assumed_value as openehr_am.ORDINAL | undefined;
+  if (assumed && (assumed.value !== undefined || assumed.symbol)) {
+    const rec: Record<string, unknown> = {};
+    if (assumed.value !== undefined) rec.value = assumed.value;
+    const symbol = serializeOrdinalSymbol(assumed.symbol);
+    if (symbol) rec.symbol = symbol;
+    base.assumed_value = rec;
+  }
+  return base;
+}
+
 function serializeCObject(
   obj: openehr_am.C_OBJECT,
   ctx: SerializeCtx,
@@ -139,6 +310,18 @@ function serializeCObject(
       base.list = list.map((v) => ({ value: v }));
     }
     return base;
+  }
+
+  if (obj instanceof openehr_am.C_TERMINOLOGY_CODE) {
+    return serializeCTerminologyCode(obj as TerminologyCodeRuntime, base);
+  }
+
+  if (obj instanceof openehr_am.C_QUANTITY) {
+    return serializeCQuantity(obj, base);
+  }
+
+  if (obj instanceof openehr_am.C_ORDINAL) {
+    return serializeCOrdinal(obj as OrdinalRuntime, base);
   }
 
   if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {

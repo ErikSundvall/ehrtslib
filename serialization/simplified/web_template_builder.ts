@@ -3,6 +3,10 @@
  */
 
 import * as openehr_am from "../../am/openehr_am.ts";
+import type {
+  QuantityItemInterval,
+  QuantityItemRuntime,
+} from "../../parser/legacy/xml_aom_mapper.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import type {
@@ -131,24 +135,75 @@ type QuantityAssumedValue = {
   precision?: number;
 };
 
+function intervalToRange(
+  interval?: QuantityItemInterval,
+): Record<string, unknown> | undefined {
+  if (!interval) return undefined;
+  const out: Record<string, unknown> = {};
+  if (interval.lower !== undefined && !interval.lower_unbounded) {
+    out.min = interval.lower;
+    out.minOp = interval.lower_included === false ? ">" : ">=";
+  }
+  if (interval.upper !== undefined && !interval.upper_unbounded) {
+    out.max = interval.upper;
+    out.maxOp = interval.upper_included === false ? "<" : "<=";
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function validationFromQuantityItem(
+  item?: QuantityItemRuntime,
+): Record<string, unknown> | undefined {
+  if (!item) return undefined;
+  const range = intervalToRange(item.magnitude);
+  const precision = intervalToRange(item.precision);
+  if (!range && !precision) return undefined;
+  const validation: Record<string, unknown> = {};
+  if (range) validation.range = range;
+  if (precision) validation.precision = precision;
+  return validation;
+}
+
 function applyQuantityInputs(
   inputs: WebTemplateInput[],
   cObj: openehr_am.C_QUANTITY,
 ): void {
-  const units = ((cObj as { list?: openehr_am.C_QUANTITY_ITEM[] }).list ?? [])
-    .map((item) => item.units)
-    .filter((u): u is string => !!u);
+  const items = (cObj as { list?: QuantityItemRuntime[] }).list ?? [];
+  const units = items.map((item) => item.units).filter((u): u is string => !!u);
   const assumed = cObj.assumed_value as QuantityAssumedValue | undefined;
   const unitInput = inputs.find((i) => i.suffix === "unit");
+  const magInput = inputs.find((i) => i.suffix === "magnitude");
+  const validation = validationFromQuantityItem(items[0]);
   if (unitInput && units.length) {
-    unitInput.list = units.map((value) => ({ value }));
+    unitInput.list = units.map((value, index) => {
+      const itemValidation = validationFromQuantityItem(items[index]) ??
+        validation;
+      return itemValidation ? { value, validation: itemValidation } : { value };
+    });
     if (units.length === 1) unitInput.defaultValue = units[0];
   }
   if (unitInput && assumed?.units) unitInput.defaultValue = assumed.units;
-  if (assumed?.magnitude !== undefined) {
-    const magInput = inputs.find((i) => i.suffix === "magnitude");
-    if (magInput) magInput.defaultValue = assumed.magnitude;
+  if (assumed?.magnitude !== undefined && magInput) {
+    magInput.defaultValue = assumed.magnitude;
   }
+  if (validation && magInput) magInput.validation = validation;
+}
+
+function applyOrdinalInputs(
+  inputs: WebTemplateInput[],
+  cObj: openehr_am.C_ORDINAL,
+): void {
+  const list = (cObj as { list?: openehr_am.ORDINAL[] }).list ?? [];
+  if (!list.length) return;
+  const codeInput = inputs.find((i) => i.suffix === "code") ?? inputs[0];
+  if (!codeInput) return;
+  codeInput.list = list
+    .map((ord) => ({
+      value: ord.symbol?.code_string ?? String(ord.value ?? ""),
+    }))
+    .filter((item) => item.value);
+  const tid = list[0]?.symbol?.terminology_id?.value;
+  if (tid) codeInput.terminology = tid;
 }
 
 function applyTerminologyInputs(
@@ -261,6 +316,9 @@ export class WebTemplateBuilder {
     }
     if (cObj instanceof openehr_am.C_QUANTITY) {
       applyQuantityInputs(inputs, cObj);
+    }
+    if (cObj instanceof openehr_am.C_ORDINAL) {
+      applyOrdinalInputs(inputs, cObj);
     }
     const term = nestedTerminologyCode(cObj);
     if (term) {
