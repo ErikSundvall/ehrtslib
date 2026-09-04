@@ -24,6 +24,7 @@ assistance; the generator never overwrites it.
 | `validation/` | Archetype, template, interval, invariant and RM specification validators |
 | `generation/` | RM instance, ADL, OPT XML and TypeScript generators |
 | `meta/` | BMM-backed RM attribute introspection (`attributesFor`, `subtypesOf`, …) — see [../RM_ATTRIBUTES.md](../RM_ATTRIBUTES.md) |
+| `spec/` | Optional BMM class/attribute **descriptions** plus specification HTML/Markdown URLs — see [../SPEC_DESCRIPTIONS.md](../SPEC_DESCRIPTIONS.md). Not on the root `mod.ts` barrel. |
 | `mod.ts` | Public barrel; re-exports every area as a namespace |
 | `openehr_*.ts` | Stable root re-exports for a single component |
 | `generated/` | BMM stubs — do not hand-edit |

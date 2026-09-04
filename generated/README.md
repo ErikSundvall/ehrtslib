@@ -33,6 +33,7 @@ Each file corresponds to one openEHR BMM package:
 - `openehr_term.ts` - Terminology service types
 - `openehr_lang.ts` - Language and localization types
 - `rm_attribute_meta.ts` - RM/BASE attribute metadata tables (also copied to `meta/rm_attribute_meta.generated.ts`); regenerate with `tasks/generate_rm_meta.ts`
+- `spec_docs.ts` - class/attribute specification descriptions (also copied to `spec/spec_docs.generated.ts`); regenerate with `tasks/generate_spec_docs.ts`
 
 ## Version Information
 

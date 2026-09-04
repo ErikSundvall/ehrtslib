@@ -54,6 +54,15 @@ deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
 
 See [docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md).
 
+Also regenerate **specification descriptions** (used by `spec`) after BMM
+or classes.json changes:
+
+```bash
+deno task generate:spec-docs
+```
+
+See [../SPEC_DESCRIPTIONS.md](../SPEC_DESCRIPTIONS.md).
+
 **Note:** The root-level `openehr_*.ts` files are thin re-export wrappers over the
 per-component barrels (`base/mod.ts`, `rm/mod.ts`, …), so the public import paths
 stay stable.

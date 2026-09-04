@@ -2,6 +2,20 @@
 
 Terms used when discussing clinical modelling integrations. Implementation details belong in ADRs and code, not here.
 
+## Specification description
+
+BMM `documentation` text for an openEHR class or one of its attributes, used as help copy in applications. Looked up by class name (and optional component) from the optional `spec` package.
+
+_Avoid_: JSDoc, Javadoc, “spec blob”
+
+## Specification HTML URL
+
+Canonical HTML class-section URL on the openEHR **development** stream (the documents linked from [development_baseline](https://specifications.openehr.org/development_baseline)), including the class fragment.
+
+## Specification Markdown URL
+
+Markdown twin of a **Specification HTML URL**, as advertised by [llms.txt](https://specifications.openehr.org/llms.txt) (same path with `.md` instead of `.html`). Contains prose, not the HTML class attribute tables.
+
 ## Better Archetype Designer template (`.t.json`)
 
 JSON serialisation of an AOM **`TEMPLATE`** (and embedded **`TEMPLATE_OVERLAY`** objects) produced by Better’s **Archetype Designer** (openEHR tools at [tools.openehr.org/designer](https://tools.openehr.org/designer/)). Uses `@type` discriminators (e.g. `"TEMPLATE"`, `"C_COMPLEX_OBJECT"`). May declare `adlVersion` **1.4** or **2.x**; content is a **differential** template with optional overlays, not an operational template.
@@ -34,6 +48,7 @@ Library type `ClinicalModelWorkspace` — editable file set with `updateFileCont
 |------|---------|
 | `base/`, `rm/`, `am/`, `lang/`, `term/` | Hand-written openEHR model implementations, split by BMM package |
 | `parser/`, `serialization/`, `validation/`, `generation/`, `meta/` | Tooling layers over the model |
+| `spec/` | Optional BMM class/attribute descriptions and specification URLs |
 | `generated/` | BMM-emitted stubs — never hand-edit |
 | `mod.ts` | Public namespaced barrel |
 | `openehr_*.ts` | Stable single-component re-exports |
