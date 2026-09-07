@@ -7,7 +7,7 @@
  * users rarely scroll to the bottom of long instance payloads.
  */
 
-import { EXAMPLES } from "./examples.ts";
+import { EXAMPLES, resolveExampleInput } from "./examples.ts";
 import {
   defaultModelExampleUrl,
   getModelExample,
@@ -1549,13 +1549,7 @@ function handleInputFormatChange(e: Event) {
  * Load an example into the input textarea
  */
 function loadExample(exampleKey: string) {
-  const example = EXAMPLES[exampleKey as keyof typeof EXAMPLES] as
-    | (typeof EXAMPLES)[keyof typeof EXAMPLES] & {
-      preferredFormat?: string;
-      flat?: string;
-      structured?: string;
-    }
-    | undefined;
+  const example = EXAMPLES[exampleKey as keyof typeof EXAMPLES];
   if (!example) {
     console.error("Example not found:", exampleKey);
     return;
@@ -1568,15 +1562,12 @@ function loadExample(exampleKey: string) {
 
   if (inputEditor && formatSelect) {
     activateInputTab("instance");
-    if (example.preferredFormat) {
-      formatSelect.value = example.preferredFormat;
-      syncInputFormatUi();
-    }
-    const format = formatSelect.value;
-    const payload =
-      (example[format as keyof typeof example] as string | undefined) ||
-      example.flat ||
-      example.json;
+    const { format, payload } = resolveExampleInput(
+      example,
+      formatSelect.value,
+    );
+    formatSelect.value = format;
+    syncInputFormatUi();
     inputEditor.value = payload;
     currentInputFormat = format;
 

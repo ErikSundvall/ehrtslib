@@ -5,6 +5,62 @@
  * Ehrlibs model examples (primary): https://github.com/Ehrlibs/openEHR-model-examples
  */
 
+/** Formats an instance preset may ship as editor payload. */
+export type ExamplePayloadFormat =
+  | "flat"
+  | "structured"
+  | "json"
+  | "yaml"
+  | "xml";
+
+const EXAMPLE_PAYLOAD_FORMATS: ExamplePayloadFormat[] = [
+  "flat",
+  "structured",
+  "json",
+  "yaml",
+  "xml",
+];
+
+export type DemoExample = {
+  name: string;
+  description: string;
+  preferredFormat?: ExamplePayloadFormat;
+  flat?: string;
+  structured?: string;
+  json?: string;
+  yaml?: string;
+  xml?: string;
+};
+
+/**
+ * Pick format + payload for a preset without leaving the UI on a mismatched
+ * input format (e.g. FLAT selected while only canonical JSON exists → null YAML).
+ */
+export function resolveExampleInput(
+  example: DemoExample,
+  currentFormat?: string,
+): { format: ExamplePayloadFormat; payload: string } {
+  const preferred = example.preferredFormat;
+  const candidates: string[] = [];
+  if (preferred) candidates.push(preferred);
+  if (currentFormat) candidates.push(currentFormat);
+  for (const format of EXAMPLE_PAYLOAD_FORMATS) {
+    if (!candidates.includes(format)) candidates.push(format);
+  }
+
+  for (const format of candidates) {
+    if (!EXAMPLE_PAYLOAD_FORMATS.includes(format as ExamplePayloadFormat)) {
+      continue;
+    }
+    const payload = example[format as ExamplePayloadFormat];
+    if (typeof payload === "string" && payload.length > 0) {
+      return { format: format as ExamplePayloadFormat, payload };
+    }
+  }
+
+  throw new Error(`Example "${example.name}" has no usable payload`);
+}
+
 export const EXAMPLES = {
   /**
    * FLAT / STRUCTURED instance for the Ehrlibs "Accident report including vital signs"
@@ -178,6 +234,7 @@ composer:
   'dv-text': {
     name: 'Simple DV_TEXT',
     description: 'A simple text value',
+    preferredFormat: "json",
     json: `{
   "_type": "DV_TEXT",
   "value": "Hello, openEHR!"
@@ -193,6 +250,7 @@ value: Hello, openEHR!`
   'code-phrase': {
     name: 'CODE_PHRASE',
     description: 'A coded term reference',
+    preferredFormat: "json",
     json: `{
   "_type": "CODE_PHRASE",
   "terminology_id": {
@@ -218,6 +276,7 @@ code_string: en`
   'dv-coded-text': {
     name: 'DV_CODED_TEXT',
     description: 'Text with coded terminology',
+    preferredFormat: "json",
     json: `{
   "_type": "DV_CODED_TEXT",
   "value": "event",
@@ -253,6 +312,7 @@ defining_code:
   'basic-composition': {
     name: 'Basic COMPOSITION',
     description: 'Simple composition structure',
+    preferredFormat: "json",
     json: `{
   "_type": "COMPOSITION",
   "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
@@ -327,6 +387,7 @@ composer:
   'complex-composition': {
     name: 'Complex COMPOSITION',
     description: 'Composition with nested content',
+    preferredFormat: "json",
     json: `{
   "_type": "COMPOSITION",
   "name": {"_type": "DV_TEXT", "value": "Vital Signs Encounter"},
@@ -480,6 +541,7 @@ content:
   'realistic-composition': {
     name: 'Realistic Template Composition',
     description: 'Real-world example (ChemoForm-MBA) with Clusters and Observations',
+    preferredFormat: "json",
     json: `{
   "_type": "COMPOSITION",
   "name": {
