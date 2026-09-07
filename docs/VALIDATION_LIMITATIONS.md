@@ -4,9 +4,25 @@ Known gaps in `TemplateValidator` and related validators. Capabilities that **do
 
 ## RM subtype checking
 
-`TemplateValidator` compares `TypeRegistry.getTypeNameFromInstance()` to `C_OBJECT.rm_type_name` with **exact string equality**. It does not yet resolve RM inheritance (e.g. `DV_TEXT` instance vs `DV_CODED_TEXT` constraint).
+`TemplateValidator` accepts an instance whose `_type` is the constrained `C_OBJECT.rm_type_name` **or a subtype** (`isSubtypeOf` from [`meta`](../meta/mod.ts)). `POINT_EVENT` satisfies `EVENT`; `DV_CODED_TEXT` satisfies `DV_TEXT`. Primitive RM types (`INTEGER`, `STRING`, …) are not compared as `_type` tags.
 
-BMM-backed hierarchy helpers exist in [`meta`](../meta/mod.ts) (`isSubtypeOf`, `subtypesOf`, `isDataValueType`) — see [RM_ATTRIBUTES.md](RM_ATTRIBUTES.md). Wiring them into `TemplateValidator` remains a follow-up.
+## RM specification walk
+
+`RMSpecificationValidator.validateInstance` walks the canonical JSON tree, not only OPT-constrained attributes. That is required because ADL 1.4 OPTs often omit `composer`, `language`, `territory`, and `EVENT_CONTEXT.setting`. The walk applies:
+
+- openEHR terminology groups (`COMPOSITION.category`, `EVENT_CONTEXT.setting`, …)
+- ISO 639-1 / ISO 3166-1 checks on `language` / `territory`
+- RM-mandatory attributes (`COMPOSITION.composer`, `ENTRY.subject`, …) when the object has `_type` and is not a skeletal identity stub
+
+`C_ARCHETYPE_ROOT.archetype_ref` is compared to `archetype_node_id` when the instance uses a full archetype id.
+
+## Primitive constraints from OPT XML
+
+Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced.
+
+## Veredictum CNF content corpus
+
+In-process tests under `test_data/tests/validation/veredictum_*.test.ts` replay [Veredictum](https://github.com/rubentalstra/Veredictum) `CONT-*` decision tables and composition/FLAT fixtures. REST-only cases (versioning, AQL, EHR lifecycle) are not executed. Attribution: [veredictum-attribution.md](maintainers/veredictum-attribution.md).
 
 ## Archetype paths
 

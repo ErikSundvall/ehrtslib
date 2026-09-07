@@ -8,3 +8,4 @@ export * from "./interval_validator.ts";
 export * from "./invariant_evaluator.ts";
 export * from "./rm_specification_validator.ts";
 export * from "./template_validator.ts";
+export * from "./temporal_pattern.ts";
