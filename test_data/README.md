@@ -15,6 +15,7 @@ Curated openEHR archetype and template fixtures for parser, validation, and seri
 | `opt14/` | ADL 1.4 XML operational templates | 20 | Legacy OPT interop (ehrbase, REST `adl1.4`) |
 | `oet14/` | CKM OET source templates | 4+ | Ocean Template Editor XML (parse via `parseOetXml`) |
 | `external/` | — | — | Pointers to full upstream repos (not vendored) |
+| `veredictum/` | CNF YAML + OPT XML + JSON | Veredictum content tables used to validate ehrtslib validators |
 
 ## Important: ADL2 operational templates (OPT2)
 
@@ -37,6 +38,7 @@ deno run --allow-net --allow-write test_data/scripts/download_fixtures.ts
 | openEHR Archie `adl2-tests` | https://github.com/openEHR/archie | Apache 2.0 |
 | openEHR adl-archetypes | https://github.com/openEHR/adl-archetypes | Apache 2.0 |
 | ehrbase openEHR_SDK OPT fixtures | https://github.com/ehrbase/openEHR_SDK | Apache 2.0 |
+| Veredictum CNF content corpus | https://github.com/rubentalstra/Veredictum | Apache 2.0 |
 
 See `archie-tests/README.md` and `opt14/README.md` for attribution detail.
 
@@ -45,6 +47,7 @@ See `archie-tests/README.md` and `opt14/README.md` for attribution detail.
 - **Archie full ADL2 tests** (~270 `.adls`): `archie/tools/src/test/resources/adl2-tests/`
 - **CKM mirror** (~44 `.oet` source templates, 1000+ archetypes): https://github.com/openEHR/CKM-mirror
 - **ehrbase SDK full OPT set** (~54 `.opt`): `openEHR_SDK/test-data/.../operationaltemplate/`
+- **Veredictum** (CNF content + REST instrument): https://github.com/rubentalstra/Veredictum — curated in-tree extract at `veredictum/` (see that README)
 
 Documented in `external/README.md`.
 

@@ -1,0 +1,33 @@
+# CATALOGUE ADDITION: the DV_TEXT sibling of CONT-DV_URI-validate_pattern and
+# CONT-DV_EHR_URI-validate_pattern. The pattern axis reaches DV_TEXT today only
+# through the merged CONT-DV_TEXT-validate_open table, whose pattern cell is
+# the literal "XYZ" — a regex is never exercised on a DV_TEXT. This case runs a
+# real regular expression over the same C_STRING.pattern slot.
+id: CONT-DV_TEXT-validate_pattern
+kind: content
+component: CONTENT
+rm_class: DV_TEXT
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  A committed DV_TEXT is accepted iff its value matches the archetype's
+  C_STRING.pattern; a value that satisfies the regular expression commits and
+  one that does not is refused.
+description: "DV_TEXT against a C_STRING.pattern (CNF-[0-9]{4})"
+spec_refs:
+  - "AM AOM1.4 §C_STRING (pattern: String, 0..1 — \"Regular expression pattern for proposed instances of String to match\"; valid_value (a_value: String): Boolean)"
+  - "RM data_types §DV_TEXT (value: String, 1..1)"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_STRING.pattern on the ELEMENT.value DV_TEXT, varied per row.
+  template: cnf.tpl.dv_text_c_string
+  path: "/content[openEHR-EHR-OBSERVATION.minimal.v1]/data/events/data/items[at0001]/value"
+  constraint_columns: ["C_STRING.pattern"]
+decision_table:
+  columns: ["value", "C_STRING.pattern", "expected", "violates"]
+  rows:
+    - ["CNF-1234", "CNF-[0-9]{4}", "accepted", []]
+    - ["cnf-1234", "CNF-[0-9]{4}", "rejected", ["constraint(C_STRING.pattern): value does not match the C_STRING.pattern constraint"]]
+    - ["CNF-12", "CNF-[0-9]{4}", "rejected", ["constraint(C_STRING.pattern): value does not match the C_STRING.pattern constraint"]]
+    - [null, "CNF-[0-9]{4}", "rejected", ["rm_schema: value is mandatory"]]

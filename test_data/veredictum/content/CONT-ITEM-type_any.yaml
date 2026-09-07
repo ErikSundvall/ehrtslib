@@ -1,0 +1,31 @@
+# CATALOGUE ADDITION: the ITEM sibling of the CONT-ITEM_STR-type_* family. RM
+# data_structures makes ITEM the abstract parent of CLUSTER and ELEMENT, and
+# ITEM_TREE.items is a List<ITEM>, so a member slot left at the abstract class
+# admits both subtypes. The narrowing itself is AOM1.4 C_OBJECT.rm_type_name,
+# the same released constraint the ITEM_STRUCTURE family cites.
+id: CONT-ITEM-type_any
+kind: content
+component: CONTENT
+rm_class: ITEM
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  ITEM is any ITEM subtype: an ITEM_TREE member slot constrained to the abstract
+  ITEM class accepts a committed CLUSTER and a committed ELEMENT alike.
+description: "ITEM_TREE.items member type against an open (abstract ITEM) archetype slot"
+spec_refs:
+  - "AM AOM1.4 §C_OBJECT (rm_type_name) — the reference-model type a node constrains"
+  - "RM data_structures §ITEM (abstract parent of CLUSTER and ELEMENT) / §CLUSTER / §ELEMENT"
+  - "RM data_structures §ITEM_TREE (items: List<ITEM>, 0..1 — can include 0 or more CLUSTERs and/or 0 or more individual ELEMENTs)"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_OBJECT.rm_type_name = ITEM (abstract/open) on the ITEM_TREE member slot.
+  template: cnf.tpl.ecc_item_type_narrowing
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items"
+  constraint_columns: ["slot_type"]
+decision_table:
+  columns: [slot_type, committed_type, expected, violates]
+  rows:
+    - ["ITEM", "CLUSTER", accepted, []]
+    - ["ITEM", "ELEMENT", accepted, []]

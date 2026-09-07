@@ -72,7 +72,7 @@ Deno.test("validateFlatPayload - round-trip keys", async () => {
   );
   const { operationalTemplate } = parseOptXml(xml);
   const wt = buildWebTemplate(operationalTemplate);
-  const instance = new RMInstanceGenerator({ mode: "maximal" }).generate(
+  const instance = new RMInstanceGenerator({ mode: "example" }).generate(
     operationalTemplate,
   );
   const flat = serializeToFlat(instance, wt);

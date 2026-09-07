@@ -1,0 +1,63 @@
+# CATALOGUE ADDITION: the CLUSTER sibling of CONT-ITEM_TREE-items_cardinality,
+# and the one container class the RM makes MANDATORY. CLUSTER.items is 1..1
+# while ITEM_TREE.items, ITEM_LIST.items and ITEM_TABLE.rows are 0..1, so a
+# CLUSTER with no items is refused on every cardinality token, including the
+# ones whose interval admits zero members.
+# Realization: the CLUSTER under test sits at at0010 inside the EVALUATION's
+# ITEM_TREE (at0003), because CLUSTER is not an ITEM_STRUCTURE and cannot be an
+# EVALUATION.data. Its items attribute keeps C_ATTRIBUTE.existence 1..1 on every
+# row — that is the RM's own existence restated, never an archetype tightening,
+# so the zero-count rows cite the RM requirement rather than the archetype's.
+id: CONT-CLUSTER-items_cardinality
+kind: content
+component: CONTENT
+rm_class: CLUSTER
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  CLUSTER.items cardinality: a committed CLUSTER is accepted iff its member
+  count lies inside the archetype's C_MULTIPLE_ATTRIBUTE.cardinality interval
+  AND the RM-mandatory items attribute is present, so a zero-member CLUSTER is
+  refused even under an unbounded 0..* cardinality.
+description: "CLUSTER.items member count against every cardinality interval, over an RM-mandatory container"
+spec_refs:
+  - "AM AOM1.4 §C_MULTIPLE_ATTRIBUTE (cardinality) — a cardinality constraint indicates what the valid membership of a container object is"
+  - "AM AOM1.4 §C_ATTRIBUTE (existence) — whether the attribute field must be present"
+  - "RM data_structures §CLUSTER (items: List<ITEM>, 1..1 — ordered list of items, CLUSTER or ELEMENT objects, under this CLUSTER)"
+  - "RM data_structures §ITEM_TREE (items: List<ITEM>, 0..1 — the carrier the constrained CLUSTER is a member of)"
+  - "AM AOM2 master04.5 §Class Definitions (VCACA) — a stated cardinality must be the same or narrower than the reference model's, so a 0-lower-bound interval is unstatable on CLUSTER.items"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_MULTIPLE_ATTRIBUTE.cardinality on CLUSTER.items, varied per row.
+  template: cnf.tpl.ecc_cluster_items_cardinality
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items[at0010]/items"
+  constraint_columns: ["cardinality"]
+decision_table:
+  columns: [cardinality, member_count, expected, violates]
+  rows:
+    - ["any", 0, rejected, ["rm_schema: items is mandatory"]]
+    - ["any", 1, accepted, []]
+    - ["any", 3, accepted, []]
+    - ["any", 6, accepted, []]
+    # No `opt` rows: cardinality 0..1 widens CLUSTER.items past the RM's 1..*
+    # floor, and AOM2 VCACA ("the same or narrower" than the reference model)
+    # makes such a template invalid — the shape is unauthorable, not untested
+    # (adjudicated on #283; the ITEM_TREE/ITEM_LIST twins keep their opt rows,
+    # their RM floor being 0..1).
+    - ["mand", 0, rejected, ["rm_schema: items is mandatory", "constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (1)"]]
+    - ["mand", 1, accepted, []]
+    - ["mand", 3, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["mand", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["1plus", 0, rejected, ["rm_schema: items is mandatory", "constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (1)"]]
+    - ["1plus", 1, accepted, []]
+    - ["1plus", 3, accepted, []]
+    - ["1plus", 6, accepted, []]
+    - ["3plus", 0, rejected, ["rm_schema: items is mandatory", "constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3plus", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3plus", 3, accepted, []]
+    - ["3plus", 6, accepted, []]
+    - ["3to5", 0, rejected, ["rm_schema: items is mandatory", "constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3to5", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3to5", 3, accepted, []]
+    - ["3to5", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (5)"]]

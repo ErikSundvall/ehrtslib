@@ -1,0 +1,30 @@
+# The ELEMENT-narrowed member of the CONT-ITEM-type_* family, the mirror of
+# CONT-ITEM-type_cluster: a committed ELEMENT satisfies the narrowed slot.
+# The unmatched-member direction is register AMB-229's option pair, never a
+# gating row here.
+id: CONT-ITEM-type_element
+kind: content
+component: CONTENT
+rm_class: ITEM
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  ITEM is ELEMENT: an ITEM_TREE member slot narrowed to ELEMENT accepts a
+  committed ELEMENT (the matched-member half; the unmatched half is register
+  AMB-229's option pair).
+description: "ITEM_TREE.items member type against an ELEMENT-narrowed archetype slot"
+spec_refs:
+  - "AM AOM1.4 §C_OBJECT (rm_type_name) — the reference-model type a node constrains"
+  - "RM data_structures §ITEM (abstract parent of CLUSTER and ELEMENT) / §CLUSTER / §ELEMENT"
+  - "RM data_structures §ITEM_TREE (items: List<ITEM>, 0..1 — can include 0 or more CLUSTERs and/or 0 or more individual ELEMENTs)"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_OBJECT.rm_type_name = ELEMENT on the ITEM_TREE member slot.
+  template: cnf.tpl.ecc_item_type_narrowing
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items"
+  constraint_columns: ["slot_type"]
+decision_table:
+  columns: [slot_type, committed_type, expected, violates]
+  rows:
+    - ["ELEMENT", "ELEMENT", accepted, []]

@@ -1,0 +1,55 @@
+# CATALOGUE ADDITION: the ITEM_LIST sibling of CONT-ITEM_TREE-items_cardinality.
+# ITEM_LIST.items is List<ELEMENT> rather than List<ITEM>, so every member is a
+# leaf ELEMENT; the cardinality axis is otherwise identical.
+# Realization: C_MULTIPLE_ATTRIBUTE.cardinality on ITEM_LIST.items, varied per
+# row; the attribute's C_ATTRIBUTE.existence follows the token, and the instance
+# omits `items` for a zero count.
+id: CONT-ITEM_LIST-items_cardinality
+kind: content
+component: CONTENT
+rm_class: ITEM_LIST
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  ITEM_LIST.items cardinality: a committed ITEM_LIST of ELEMENTs is accepted iff
+  its member count lies inside the archetype's C_MULTIPLE_ATTRIBUTE.cardinality
+  interval, and refused below the lower bound or above the upper bound.
+description: "ITEM_LIST.items member count against every cardinality interval"
+spec_refs:
+  - "AM AOM1.4 §C_MULTIPLE_ATTRIBUTE (cardinality) — a cardinality constraint indicates what the valid membership of a container object is"
+  - "AM AOM1.4 §C_ATTRIBUTE (existence) — whether the attribute field must be present"
+  - "RM data_structures §ITEM_LIST (items: List<ELEMENT>, 0..1 — the list may be empty; invariant Valid_structure: items.forall (i:ITEM | i.type = \"ELEMENT\"))"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_MULTIPLE_ATTRIBUTE.cardinality on ITEM_LIST.items, varied per row.
+  template: cnf.tpl.ecc_item_list_items_cardinality
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items"
+  constraint_columns: ["cardinality"]
+decision_table:
+  columns: [cardinality, member_count, expected, violates]
+  rows:
+    - ["any", 0, accepted, []]
+    - ["any", 1, accepted, []]
+    - ["any", 3, accepted, []]
+    - ["any", 6, accepted, []]
+    - ["opt", 0, accepted, []]
+    - ["opt", 1, accepted, []]
+    - ["opt", 3, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["opt", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["mand", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (1)"]]
+    - ["mand", 1, accepted, []]
+    - ["mand", 3, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["mand", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (1)"]]
+    - ["1plus", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (1)"]]
+    - ["1plus", 1, accepted, []]
+    - ["1plus", 3, accepted, []]
+    - ["1plus", 6, accepted, []]
+    - ["3plus", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3plus", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3plus", 3, accepted, []]
+    - ["3plus", 6, accepted, []]
+    - ["3to5", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3to5", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count below the interval lower bound (3)"]]
+    - ["3to5", 3, accepted, []]
+    - ["3to5", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): items count above the interval upper bound (5)"]]

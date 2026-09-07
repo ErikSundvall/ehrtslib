@@ -94,6 +94,7 @@ export function validateFlatPayload(
   };
 
   const seenChains = new Set<string>();
+  const indexCounts = new Map<string, number>();
 
   for (const key of Object.keys(payload)) {
     if (key.startsWith("ctx/")) {
@@ -110,7 +111,8 @@ export function validateFlatPayload(
     const basePath = pipeIdx === -1 ? key : key.slice(0, pipeIdx);
     const suffix = pipeIdx === -1 ? "" : key.slice(pipeIdx + 1);
 
-    const segments = basePath.split("/").map(stripIndex);
+    const rawSegments = basePath.split("/");
+    const segments = rawSegments.map(stripIndex);
     if (segments[0] !== rootId) {
       report(key, `Key does not start with template root "${rootId}"`);
       continue;
@@ -131,11 +133,33 @@ export function validateFlatPayload(
     }
     seenChains.add(chain);
 
+    const lastRaw = rawSegments[rawSegments.length - 1] ?? "";
+    const indexMatch = lastRaw.match(/:(\d+)$/);
+    const instanceIndex = indexMatch ? Number(indexMatch[1]) : 0;
+    const parentRaw = rawSegments.slice(0, -1).join("/");
+    const countKey = `${parentRaw}\n${chain}`;
+    const prev = indexCounts.get(countKey) ?? 0;
+    indexCounts.set(countKey, Math.max(prev, instanceIndex + 1));
+
     if (rmAttrIdx === -1 && suffix && !knownSuffixes(node).has(suffix)) {
       warnings.push({
         path: key,
         message: `Unknown suffix "|${suffix}" for rmType ${node.rmType}`,
         severity: "warning",
+      });
+    }
+  }
+
+  for (const [countKey, count] of indexCounts) {
+    const chain = countKey.slice(countKey.indexOf("\n") + 1);
+    const node = chains.get(chain);
+    if (!node) continue;
+    if (node.max >= 0 && count > node.max) {
+      errors.push({
+        path: `${rootId}/${chain}`,
+        message:
+          `instance count ${count} exceeds the template cardinality ${node.max} for the node`,
+        severity: "error",
       });
     }
   }

@@ -1,0 +1,31 @@
+# The ACCEPTANCE arm of register AMB-229, the twin of
+# CONT-ITEM-unmatched_member_refused: a validator that admits a container
+# member matching no constraint node also survives every released sentence,
+# so the lenient posture is equally a declared implementation choice.
+id: CONT-ITEM-unmatched_member_accepted
+kind: content
+component: CONTENT
+rm_class: ITEM
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+option: unmatched-member-accepted
+ambiguities: [AMB-229]
+test_purpose: >-
+  A party declaring the lenient posture admits a committed container member
+  that matches no constraint node of the narrowed ITEM_TREE member slot.
+description: "An unmatched ITEM_TREE.items member is admitted under the declared lenient posture"
+spec_refs:
+  - "AM AOM1.4 §C_OBJECT (rm_type_name) — the reference-model type a node constrains"
+  - "AM ADL1.4 master05 §Single-valued Attributes — the released closure quantifier, stated for non-container attributes only; the container case is silence (register AMB-229)"
+  - "RM data_structures §ITEM (abstract parent of CLUSTER and ELEMENT) / §CLUSTER / §ELEMENT"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  template: cnf.tpl.ecc_item_type_narrowing
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items"
+  constraint_columns: ["slot_type"]
+decision_table:
+  columns: [slot_type, committed_type, expected, violates]
+  rows:
+    - ["CLUSTER", "ELEMENT", accepted, []]
+    - ["ELEMENT", "CLUSTER", accepted, []]

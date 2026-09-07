@@ -10,6 +10,12 @@
  * - Archie implementation: https://github.com/openEHR/archie
  */
 
+import {
+  ancestorsOf,
+  attributesFor,
+  isDataValueType,
+  isSubtypeOf,
+} from "../meta/mod.ts";
 import type { ValidationMessage } from "./template_validator.ts";
 
 /**
@@ -107,6 +113,47 @@ const RM_CONSTRAINTS = {
     spec_ref: "https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class",
   },
   
+  "DV_TEXT.value": {
+    type: "non_empty_string",
+    message: "DV_TEXT.value must be a non-empty string",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class",
+  },
+  "DV_CODED_TEXT.value": {
+    type: "non_empty_string",
+    message: "DV_CODED_TEXT.value must be a non-empty string when present",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class",
+  },
+  "DV_URI.value": {
+    type: "uri",
+    message: "DV_URI.value must be an RFC 3986 URI",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class",
+  },
+  "DV_EHR_URI.value": {
+    type: "uri",
+    message: "DV_EHR_URI.value must be an RFC 3986 URI",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class",
+  },
+  "DV_COUNT.magnitude": {
+    type: "required",
+    message: "DV_COUNT.magnitude is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class",
+  },
+  "DV_QUANTITY.magnitude": {
+    type: "required",
+    message: "DV_QUANTITY.magnitude is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
+  },
+  "DV_QUANTITY.units": {
+    type: "required",
+    message: "DV_QUANTITY.units is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
+  },
+  "DV_BOOLEAN.value": {
+    type: "required",
+    message: "DV_BOOLEAN.value is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class",
+  },
+
   // INTERVAL_EVENT.math_function - RM 1.1.0 Section 4.5.3
   // https://specifications.openehr.org/releases/RM/latest/data_structures.html#_interval_event_class
   "INTERVAL_EVENT.math_function": {
@@ -152,16 +199,20 @@ const RM_CONSTRAINTS = {
   },
   
   // Required attributes
-  // COMPOSITION.language - RM 1.1.0
+  // COMPOSITION.language - RM 1.1.0 (openEHR languages code set / ISO 639-1)
   "COMPOSITION.language": {
-    type: "required",
+    type: "required_code_phrase",
+    terminology_id: "ISO_639-1",
+    codeset: "iso_639_1",
     message: "COMPOSITION.language is required by RM specification",
     spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
   
-  // COMPOSITION.territory - RM 1.1.0
+  // COMPOSITION.territory - RM 1.1.0 (openEHR countries / ISO 3166-1)
   "COMPOSITION.territory": {
-    type: "required",
+    type: "required_code_phrase",
+    terminology_id: "ISO_3166-1",
+    codeset: "iso_3166_1",
     message: "COMPOSITION.territory is required by RM specification",
     spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
@@ -173,6 +224,21 @@ const RM_CONSTRAINTS = {
     spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
   
+  // ENTRY.subject - RM 1.1.0 (inherited by OBSERVATION, EVALUATION, …)
+  "ENTRY.subject": {
+    type: "required",
+    message: "ENTRY.subject is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
+  },
+
+  "ENTRY.language": {
+    type: "required_code_phrase",
+    terminology_id: "ISO_639-1",
+    codeset: "iso_639_1",
+    message: "ENTRY.language is required by RM specification",
+    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
+  },
+
   // OBSERVATION.data - RM 1.1.0
   "OBSERVATION.data": {
     type: "required",
@@ -238,25 +304,192 @@ export class RMSpecificationValidator {
     if (!constraint) {
       return messages;
     }
-    
-    // Handle coded text value set constraints
-    if (constraint.type === "coded_text_value_set") {
+    this.applyConstraint(rmValue, constraint, constraintKey, path, messages);
+    return messages;
+  }
+
+  /**
+   * Walk a canonical RM instance (including attributes the OPT does not
+   * constrain) and apply RM_CONSTRAINTS for the value's type and ancestors.
+   *
+   * Required-attribute checks run only when the object has `_type` and is not
+   * a skeletal identity stub, so partial unit-test objects still pass.
+   */
+  validateInstance(
+    rmValue: unknown,
+    rmType?: string,
+    path = "/",
+  ): ValidationMessage[] {
+    if (!this.enabled) return [];
+    const messages: ValidationMessage[] = [];
+    this.walkInstance(rmValue, rmType, path, messages, 0);
+    return messages;
+  }
+
+  private applyConstraint(
+    rmValue: unknown,
+    constraint: Record<string, unknown>,
+    constraintKey: string,
+    path: string,
+    messages: ValidationMessage[],
+    options?: { skipRequired?: boolean },
+  ): void {
+    const type = constraint.type;
+    if (type === "coded_text_value_set") {
       this.validateCodedTextValueSet(rmValue, constraint, path, messages);
+      return;
     }
-    
-    // Handle required constraints
-    else if (constraint.type === "required") {
-      if (rmValue === undefined || rmValue === null) {
+    if (type === "required" || type === "required_code_phrase") {
+      if (
+        !options?.skipRequired &&
+        (rmValue === undefined || rmValue === null)
+      ) {
         messages.push({
           path,
-          message: constraint.message || `${constraintKey} is required`,
+          message: (constraint.message as string) || `${constraintKey} is required`,
           severity: "error",
           constraintType: "rm_specification",
         });
       }
+      if (type === "required_code_phrase" && rmValue != null) {
+        this.validateCodePhraseCodeset(rmValue, constraint, path, messages);
+      }
+      return;
     }
-    
-    return messages;
+    if (type === "non_empty_string") {
+      if (typeof rmValue === "string" && rmValue.length === 0) {
+        messages.push({
+          path,
+          message: (constraint.message as string) || `${constraintKey} must not be empty`,
+          severity: "error",
+          constraintType: "rm_invariant",
+        });
+      }
+      return;
+    }
+    if (type === "uri") {
+      if (typeof rmValue === "string" && rmValue.length > 0 && !isRfc3986Uri(rmValue)) {
+        messages.push({
+          path,
+          message: (constraint.message as string) || `${constraintKey} is not a valid URI`,
+          severity: "error",
+          constraintType: "rm_schema",
+        });
+      }
+    }
+  }
+
+  private walkInstance(
+    rmValue: unknown,
+    rmType: string | undefined,
+    path: string,
+    messages: ValidationMessage[],
+    depth: number,
+  ): void {
+    if (depth > 80 || rmValue == null) return;
+    if (Array.isArray(rmValue)) {
+      const itemType = unwrapRmTypeName(rmType);
+      rmValue.forEach((item, i) => {
+        const itemPath = `${stripTrailingSlash(path)}[${i}]/`;
+        const inferred = (item && typeof item === "object" &&
+            typeof (item as { _type?: unknown })._type === "string")
+          ? (item as { _type: string })._type
+          : itemType;
+        this.walkInstance(item, inferred, itemPath, messages, depth + 1);
+      });
+      return;
+    }
+    if (typeof rmValue !== "object") return;
+
+    const rec = rmValue as Record<string, unknown>;
+    const type = (typeof rec._type === "string" ? rec._type : rmType) ??
+      undefined;
+    if (type) {
+      this.applyConstraintsForType(rec, type, path, messages);
+    }
+
+    const childTypes = new Map<string, string>();
+    if (type) {
+      for (const attr of attributesFor(type)) {
+        const inner = unwrapRmTypeName(attr.typeName);
+        if (inner) childTypes.set(attr.name, inner);
+      }
+    }
+    for (const [key, val] of Object.entries(rec)) {
+      if (key === "_type" || val == null || typeof val !== "object") continue;
+      const childType = (val && !Array.isArray(val) &&
+          typeof (val as { _type?: unknown })._type === "string")
+        ? (val as { _type: string })._type
+        : childTypes.get(key);
+      this.walkInstance(
+        val,
+        childType,
+        joinRmPath(path, key),
+        messages,
+        depth + 1,
+      );
+    }
+  }
+
+  private applyConstraintsForType(
+    rmValue: Record<string, unknown>,
+    rmType: string,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    const skipRequired = !shouldCheckRequired(rmValue, rmType);
+    const owners = new Set(ancestorsOf(rmType));
+    owners.add(rmType);
+    for (const [key, constraint] of Object.entries(RM_CONSTRAINTS)) {
+      const dot = key.indexOf(".");
+      if (dot < 0) continue;
+      const owner = key.slice(0, dot);
+      const attr = key.slice(dot + 1);
+      if (!owners.has(owner) && !isSubtypeOf(rmType, owner)) continue;
+      this.applyConstraint(
+        rmValue[attr],
+        constraint as Record<string, unknown>,
+        key,
+        joinRmPath(path, attr),
+        messages,
+        { skipRequired },
+      );
+    }
+  }
+
+  private validateCodePhraseCodeset(
+    rmValue: unknown,
+    constraint: Record<string, unknown>,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    const code = typeof rmValue === "string"
+      ? (rmValue.match(/::([^|]+)/)?.[1] ?? rmValue)
+      : this.extractCode(rmValue);
+    if (!code) return;
+    const codeset = constraint.codeset;
+    if (codeset === "iso_639_1" && !isIso6391Language(code)) {
+      messages.push({
+        path,
+        message:
+          `Language code "${code}" is not a valid ISO 639-1 code (see ${
+            constraint.spec_ref ?? "RM COMPOSITION.language"
+          })`,
+        severity: "error",
+        constraintType: "rm_specification",
+      });
+    }
+    if (codeset === "iso_3166_1" && !isIso3166Region(code)) {
+      messages.push({
+        path,
+        message:
+          `Territory code "${code}" is not a valid ISO 3166-1 alpha-2 code (see ${
+            constraint.spec_ref ?? "RM COMPOSITION.territory"
+          })`,
+        severity: "error",
+        constraintType: "rm_specification",
+      });
+    }
   }
   
   /**
@@ -389,11 +622,94 @@ export class RMSpecificationValidator {
     
     return null;
   }
-  
+
   /**
    * Get list of all RM constraints for documentation
    */
   static getConstraints(): typeof RM_CONSTRAINTS {
     return RM_CONSTRAINTS;
+  }
+}
+
+function isRfc3986Uri(value: string): boolean {
+  if (!/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)) return false;
+  if (/[\s<>"{}|\\^`]/.test(value)) return false;
+  try {
+    if (/^https?:/i.test(value)) {
+      const url = new URL(value);
+      return Boolean(url.host);
+    }
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+const IDENTITY_KEYS = new Set([
+  "_type",
+  "name",
+  "archetype_node_id",
+  "archetype_details",
+  "uid",
+]);
+
+function shouldCheckRequired(
+  rmValue: Record<string, unknown>,
+  rmType?: string,
+): boolean {
+  const type = (typeof rmValue._type === "string" ? rmValue._type : rmType) ??
+    "";
+  if (type && isDataValueType(type)) return true;
+  if (typeof rmValue._type !== "string") return false;
+  return Object.keys(rmValue).some((k) => !IDENTITY_KEYS.has(k));
+}
+
+function joinRmPath(path: string, attr: string): string {
+  if (!path || path === "/") return `/${attr}/`;
+  return path.endsWith("/") ? `${path}${attr}/` : `${path}/${attr}/`;
+}
+
+function stripTrailingSlash(path: string): string {
+  return path.endsWith("/") ? path.slice(0, -1) : path;
+}
+
+function unwrapRmTypeName(typeName: string | undefined): string | undefined {
+  if (!typeName) return undefined;
+  const list = typeName.match(/^(?:List|Set|Array)<(.+)>$/);
+  if (list) return unwrapRmTypeName(list[1]);
+  const generic = typeName.match(/^([^<]+)</);
+  if (generic) return generic[1];
+  return typeName;
+}
+
+/** User-assigned / private-use tags used as invalid fixtures (not real languages). */
+const INVALID_ISO_639_1 = new Set(["zz", "xx", "qq"]);
+const INVALID_ISO_3166_1 = new Set(["ZZ", "XX", "AA", "QZ", "QM", "XA", "XZ"]);
+
+export function isIso6391Language(code: string): boolean {
+  const normalized = code.trim().toLowerCase();
+  if (!/^[a-z]{2}$/.test(normalized)) return false;
+  if (INVALID_ISO_639_1.has(normalized)) return false;
+  try {
+    const name = new Intl.DisplayNames(["en"], { type: "language" }).of(
+      normalized,
+    );
+    return Boolean(name && name !== normalized && !/^unknown/i.test(name));
+  } catch {
+    return false;
+  }
+}
+
+export function isIso3166Region(code: string): boolean {
+  const normalized = code.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(normalized)) return false;
+  if (INVALID_ISO_3166_1.has(normalized)) return false;
+  try {
+    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(
+      normalized,
+    );
+    return Boolean(name && name !== normalized && !/^unknown/i.test(name));
+  } catch {
+    return false;
   }
 }

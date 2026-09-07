@@ -195,6 +195,10 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
     return parseCComplexObject(n);
   }
 
+  if (type === "C_PRIMITIVE_OBJECT") {
+    return parseCPrimitiveObject(n);
+  }
+
   const mapped = mapPrimitiveType(type);
   if (mapped === "C_QUANTITY") return parseCQuantity(n);
   if (mapped === "C_TERMINOLOGY_CODE") return parseCTerminologyCode(n);
@@ -202,22 +206,50 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   if (mapped === "C_ORDINAL") return parseCOrdinal(n);
   // The primitive constraint classes do not extend C_OBJECT in the generated
   // model but carry equivalent runtime metadata (see ConstraintMeta).
-  if (mapped === "C_STRING") {
-    return parseCString(n) as unknown as openehr_am.C_OBJECT;
-  }
-  if (mapped === "C_INTEGER") {
-    return parseCInteger(n) as unknown as openehr_am.C_OBJECT;
-  }
-  if (mapped === "C_REAL") {
-    return parseCReal(n) as unknown as openehr_am.C_OBJECT;
-  }
-  if (mapped === "C_BOOLEAN") {
-    return parseCBoolean(n) as unknown as openehr_am.C_OBJECT;
+  const primitive = parsePrimitiveItem(n, mapped);
+  if (primitive) {
+    return primitive as unknown as openehr_am.C_OBJECT;
   }
 
   const fallback = new openehr_am.C_PRIMITIVE_OBJECT();
   fallback.rm_type_name = String(n.rm_type_name ?? type.replace(/^C_/, "DV_"));
   return fallback;
+}
+
+function parseCPrimitiveObject(
+  n: Record<string, unknown>,
+): openehr_am.C_PRIMITIVE_OBJECT {
+  const obj = new openehr_am.C_PRIMITIVE_OBJECT();
+  applyOccurrence(obj, n);
+  if (!obj.rm_type_name) {
+    obj.rm_type_name = String(n.rm_type_name ?? "Any");
+  }
+  const itemNode = n.item;
+  if (itemNode && typeof itemNode === "object") {
+    const rec = itemNode as Record<string, unknown>;
+    const itemType = xsiType(rec) ||
+      amFieldString(rec, "rm_type_name", "rmTypeName") ||
+      "";
+    const mapped = mapPrimitiveType(itemType);
+    const item = parsePrimitiveItem(rec, mapped);
+    if (item) obj.item = item;
+  }
+  return obj;
+}
+
+function parsePrimitiveItem(
+  n: Record<string, unknown>,
+  mapped: string,
+): openehr_am.C_PRIMITIVE | undefined {
+  if (mapped === "C_STRING") return parseCString(n);
+  if (mapped === "C_INTEGER") return parseCInteger(n);
+  if (mapped === "C_REAL") return parseCReal(n);
+  if (mapped === "C_BOOLEAN") return parseCBoolean(n);
+  if (mapped === "C_DATE") return parseCDate(n);
+  if (mapped === "C_TIME") return parseCTime(n);
+  if (mapped === "C_DATE_TIME") return parseCDateTime(n);
+  if (mapped === "C_DURATION") return parseCDuration(n);
+  return undefined;
 }
 
 export function parseOccurrencesOrMultiplicity(
@@ -394,11 +426,25 @@ function constraintToRange(
   return undefined;
 }
 
+function numericList(n: Record<string, unknown>): number[] {
+  return asArray(n.list).map((x) => {
+    if (typeof x === "number") return x;
+    const rec = x as Record<string, unknown>;
+    return Number(rec.value ?? x);
+  }).filter((x) => Number.isFinite(x));
+}
+
 function parseCInteger(n: Record<string, unknown>): openehr_am.C_INTEGER {
   const i = new openehr_am.C_INTEGER();
   applyOccurrence(meta(i), n);
   if (!meta(i).rm_type_name) meta(i).rm_type_name = "INTEGER";
-  meta(i).range = constraintToRange(n);
+  const range = constraintToRange(n);
+  if (range) {
+    meta(i).range = range;
+    (i as { range?: openehr_base.Multiplicity_interval }).range = range;
+  }
+  const lists = numericList(n);
+  if (lists.length) (i as { list?: number[] }).list = lists;
   return i;
 }
 
@@ -406,8 +452,95 @@ function parseCReal(n: Record<string, unknown>): openehr_am.C_REAL {
   const r = new openehr_am.C_REAL();
   applyOccurrence(meta(r), n);
   if (!meta(r).rm_type_name) meta(r).rm_type_name = "REAL";
-  meta(r).range = constraintToRange(n);
+  const range = constraintToRange(n);
+  if (range) {
+    meta(r).range = range;
+    (r as { range?: openehr_base.Multiplicity_interval }).range = range;
+  }
+  const lists = numericList(n);
+  if (lists.length) (r as { list?: number[] }).list = lists;
   return r;
+}
+
+type TemporalConstraint = {
+  pattern?: string;
+  range?: openehr_base.Multiplicity_interval;
+};
+
+function applyTemporalPattern(
+  target: TemporalConstraint,
+  n: Record<string, unknown>,
+): void {
+  const pattern = n.pattern ?? n.pattern_constraint;
+  if (pattern !== undefined && pattern !== null && String(pattern).length) {
+    target.pattern = String(pattern);
+  }
+  const range = parseOrderedRange(n);
+  if (range) target.range = range;
+}
+
+function parseOrderedRange(
+  n: Record<string, unknown>,
+): openehr_base.Multiplicity_interval | undefined {
+  const direct = n.range;
+  if (!direct || typeof direct !== "object") return constraintToRange(n);
+  const rec = direct as Record<string, unknown>;
+  const m = new openehr_base.Multiplicity_interval();
+  if (rec.lower !== undefined) {
+    (m as unknown as Record<string, unknown>).lower = rec.lower;
+  }
+  if (rec.upper !== undefined) {
+    (m as unknown as Record<string, unknown>).upper = rec.upper;
+  }
+  if (rec.lower_unbounded !== undefined) {
+    m.lower_unbounded = rec.lower_unbounded === true ||
+      rec.lower_unbounded === "true";
+  }
+  if (rec.upper_unbounded !== undefined) {
+    m.upper_unbounded = rec.upper_unbounded === true ||
+      rec.upper_unbounded === "true";
+  }
+  if (rec.lower_included !== undefined) {
+    m.lower_included = rec.lower_included === true ||
+      rec.lower_included === "true";
+  }
+  if (rec.upper_included !== undefined) {
+    m.upper_included = rec.upper_included === true ||
+      rec.upper_included === "true";
+  }
+  return m;
+}
+
+function parseCDate(n: Record<string, unknown>): openehr_am.C_DATE {
+  const d = new openehr_am.C_DATE();
+  applyOccurrence(meta(d), n);
+  if (!meta(d).rm_type_name) meta(d).rm_type_name = "DATE";
+  applyTemporalPattern(d as TemporalConstraint, n);
+  return d;
+}
+
+function parseCTime(n: Record<string, unknown>): openehr_am.C_TIME {
+  const t = new openehr_am.C_TIME();
+  applyOccurrence(meta(t), n);
+  if (!meta(t).rm_type_name) meta(t).rm_type_name = "TIME";
+  applyTemporalPattern(t as TemporalConstraint, n);
+  return t;
+}
+
+function parseCDateTime(n: Record<string, unknown>): openehr_am.C_DATE_TIME {
+  const t = new openehr_am.C_DATE_TIME();
+  applyOccurrence(meta(t), n);
+  if (!meta(t).rm_type_name) meta(t).rm_type_name = "DATE_TIME";
+  applyTemporalPattern(t as TemporalConstraint, n);
+  return t;
+}
+
+function parseCDuration(n: Record<string, unknown>): openehr_am.C_DURATION {
+  const d = new openehr_am.C_DURATION();
+  applyOccurrence(meta(d), n);
+  if (!meta(d).rm_type_name) meta(d).rm_type_name = "DURATION";
+  applyTemporalPattern(d as TemporalConstraint, n);
+  return d;
 }
 
 function parseCBoolean(n: Record<string, unknown>): openehr_am.C_BOOLEAN {

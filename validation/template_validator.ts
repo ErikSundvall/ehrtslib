@@ -6,6 +6,7 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
+import { isSubtypeOf } from "../meta/mod.ts";
 import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import {
   buildJsonSourceIndex,
@@ -16,6 +17,10 @@ import { UcumService } from "../term/ucum_service.ts";
 import { IntervalValidator } from "./interval_validator.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
 import { InvariantEvaluator } from "./invariant_evaluator.ts";
+import {
+  inOrderedRange,
+  matchesAdlTemporalPattern,
+} from "./temporal_pattern.ts";
 
 /**
  * Validation result
@@ -163,6 +168,19 @@ export class TemplateValidator {
       );
     }
 
+    if (this.config.validateRMSpecification && this.rmSpecValidator) {
+      const rmMsgs = this.rmSpecValidator.validateInstance(
+        rmInstance,
+        template.definition?.rm_type_name,
+        "/",
+      );
+      for (const m of rmMsgs) {
+        m.archetypePath = m.archetypePath ?? m.path;
+      }
+      errors.push(...rmMsgs.filter((m) => m.severity === "error"));
+      warnings.push(...rmMsgs.filter((m) => m.severity === "warning"));
+    }
+
     if (
       this.config.validateInvariants &&
       template.invariants?.length
@@ -211,16 +229,51 @@ export class TemplateValidator {
       return;
     }
 
-    // Validate type match using TypeRegistry if enabled
+    // Validate type match using TypeRegistry if enabled.
+    // Primitive RM types (INTEGER, STRING, …) constrain leaf values, not
+    // `_type` tags. Constrained RM classes accept instances of subtypes
+    // (POINT_EVENT satisfies EVENT; DV_CODED_TEXT satisfies DV_TEXT).
     if (this.config.useTypeRegistry && cObject.rm_type_name && rmNode) {
-      const actualType = this.getTypeName(rmNode);
-      if (actualType && actualType !== cObject.rm_type_name) {
+      const expected = cObject.rm_type_name;
+      if (!isPrimitiveRmType(expected)) {
+        const actualType = this.getTypeName(rmNode);
+        if (
+          actualType &&
+          actualType !== expected &&
+          !isSubtypeOf(actualType, expected)
+        ) {
+          errors.push({
+            path,
+            archetypePath: path,
+            message: `Type mismatch: expected ${expected}, got ${actualType}`,
+            severity: "error",
+            constraintType: "type",
+          });
+        }
+      }
+    }
+
+    if (
+      cObject instanceof openehr_am.C_ARCHETYPE_ROOT &&
+      rmNode &&
+      typeof cObject.archetype_ref === "string" &&
+      cObject.archetype_ref
+    ) {
+      const instanceId = typeof rmNode.archetype_node_id === "string"
+        ? rmNode.archetype_node_id
+        : undefined;
+      if (
+        instanceId &&
+        looksLikeArchetypeId(instanceId) &&
+        instanceId !== cObject.archetype_ref
+      ) {
         errors.push({
           path,
           archetypePath: path,
-          message: `Type mismatch: expected ${cObject.rm_type_name}, got ${actualType}`,
+          message:
+            `archetype_node_id "${instanceId}" does not match template archetype "${cObject.archetype_ref}"`,
           severity: "error",
-          constraintType: "type",
+          constraintType: "archetype_id",
         });
       }
     }
@@ -232,17 +285,28 @@ export class TemplateValidator {
       warnings.push(...msgs.filter(m => m.severity === "warning"));
     }
 
-    // Validate primitive constraints - check both inheritance and type name
-    const isPrimitiveObject = cObject instanceof openehr_am.C_PRIMITIVE_OBJECT ||
-                             cObject instanceof openehr_am.C_STRING ||
-                             cObject instanceof openehr_am.C_INTEGER ||
-                             cObject instanceof openehr_am.C_REAL ||
-                             cObject instanceof openehr_am.C_BOOLEAN;
-    
-    if (isPrimitiveObject && rmNode !== null && rmNode !== undefined) {
-      const msgs = this.primitiveValidator.validate(rmNode, cObject as openehr_am.C_PRIMITIVE_OBJECT, path);
-      errors.push(...msgs.filter(m => m.severity === "error"));
-      warnings.push(...msgs.filter(m => m.severity === "warning"));
+    // Validate primitive constraints. Legacy OPT XML wraps C_INTEGER/C_STRING
+    // inside C_PRIMITIVE_OBJECT.item; AOM2 C_TERMINOLOGY_CODE also extends
+    // C_PRIMITIVE_OBJECT and is handled by TerminologyValidator instead.
+    if (
+      isPrimitiveConstraint(cObject) &&
+      rmNode !== null && rmNode !== undefined
+    ) {
+      const msgs = this.primitiveValidator.validate(rmNode, cObject, path);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    if (cObject instanceof openehr_am.C_QUANTITY && rmNode) {
+      const msgs = validateQuantityConstraint(rmNode, cObject, path);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    if (cObject instanceof openehr_am.C_ORDINAL && rmNode) {
+      const msgs = validateOrdinalConstraint(rmNode, cObject, path);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
     }
 
     // Validate UCUM units if enabled
@@ -297,7 +361,6 @@ export class TemplateValidator {
         errors,
         warnings,
         depth,
-        cObject.rm_type_name,
       );
     }
   }
@@ -309,7 +372,6 @@ export class TemplateValidator {
     errors: ValidationMessage[],
     warnings: ValidationMessage[],
     depth: number,
-    parentRmType?: string,
   ): void {
     if (!cObject.attributes) return;
 
@@ -319,41 +381,78 @@ export class TemplateValidator {
 
       const rmValue = rmNode[attrName];
       const attrPath = `${path}${attrName}/`;
-      const archetypeAttrPath = `${path}${attrName}/`;
+      const existence = (
+        cAttribute as { existence?: { lower?: number } }
+      ).existence;
 
-      // Validate cardinality
-      if (Array.isArray(rmValue)) {
-        const msgs = this.cardinalityValidator.validate(rmValue, cAttribute, attrPath);
-        errors.push(...msgs.filter(m => m.severity === "error"));
-        warnings.push(...msgs.filter(m => m.severity === "warning"));
+      if (existence && (existence.lower ?? 0) > 0) {
+        const missing = rmValue === null || rmValue === undefined ||
+          (Array.isArray(rmValue) && rmValue.length === 0);
+        if (missing) {
+          errors.push({
+            path: attrPath,
+            archetypePath: attrPath,
+            message: `Required attribute missing: ${attrName}`,
+            severity: "error",
+            constraintType: "existence",
+          });
+        }
       }
 
-      // Validate children
-      if (cAttribute.children) {
-        for (const child of cAttribute.children) {
-          if (Array.isArray(rmValue)) {
-            rmValue.forEach((item, i) => {
-              this.validateNode(
-                item,
-                child,
-                `${attrPath}[${i}]/`,
-                errors,
-                warnings,
-                depth + 1,
-                parentRmType ?? cObject.rm_type_name,
-              );
-            });
-          } else {
-            this.validateNode(
-              rmValue,
-              child,
-              attrPath,
-              errors,
-              warnings,
-              depth + 1,
-              parentRmType ?? cObject.rm_type_name,
-            );
-          }
+      const members = Array.isArray(rmValue)
+        ? rmValue
+        : (rmValue === null || rmValue === undefined ? [] : [rmValue]);
+      if (
+        cAttribute instanceof openehr_am.C_MULTIPLE_ATTRIBUTE ||
+        Array.isArray(rmValue)
+      ) {
+        const msgs = this.cardinalityValidator.validate(
+          members,
+          cAttribute,
+          attrPath,
+        );
+        errors.push(...msgs.filter((m) => m.severity === "error"));
+        warnings.push(...msgs.filter((m) => m.severity === "warning"));
+      }
+
+      const children = cAttribute.children ?? [];
+      if (!children.length) continue;
+
+      if (Array.isArray(rmValue)) {
+        rmValue.forEach((item, i) => {
+          const child = matchConstraintChild(children, item) ?? children[0];
+          this.validateNode(
+            item,
+            child,
+            `${attrPath}[${i}]/`,
+            errors,
+            warnings,
+            depth + 1,
+            cObject.rm_type_name,
+          );
+        });
+      } else if (rmValue !== null && rmValue !== undefined) {
+        const child = matchConstraintChild(children, rmValue) ?? children[0];
+        this.validateNode(
+          rmValue,
+          child,
+          attrPath,
+          errors,
+          warnings,
+          depth + 1,
+          cObject.rm_type_name,
+        );
+      } else {
+        for (const child of children) {
+          this.validateNode(
+            rmValue,
+            child,
+            attrPath,
+            errors,
+            warnings,
+            depth + 1,
+            cObject.rm_type_name,
+          );
         }
       }
     }
@@ -440,15 +539,35 @@ export class CardinalityValidator {
   validate(
     rmValue: any[],
     cAttribute: openehr_am.C_ATTRIBUTE,
-    path: string
+    path: string,
   ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
-    
-    // Basic cardinality check for arrays
-    if (!Array.isArray(rmValue)) return messages;
-    
-    // Could expand to check C_MULTIPLE_ATTRIBUTE.cardinality property
-    
+    const members = Array.isArray(rmValue) ? rmValue : [];
+    const card = (cAttribute as openehr_am.C_MULTIPLE_ATTRIBUTE).cardinality;
+    const interval = card && typeof card === "object"
+      ? (card as { interval?: { lower?: number; upper?: number; upper_unbounded?: boolean } }).interval
+      : undefined;
+    if (!interval) return messages;
+
+    const count = members.length;
+    const lower = interval.lower ?? 0;
+    const upper = interval.upper_unbounded ? undefined : interval.upper;
+    if (count < lower) {
+      messages.push({
+        path,
+        message: `Cardinality ${count} below minimum: ${lower}`,
+        severity: "error",
+        constraintType: "cardinality",
+      });
+    }
+    if (upper !== undefined && count > upper) {
+      messages.push({
+        path,
+        message: `Cardinality ${count} above maximum: ${upper}`,
+        severity: "error",
+        constraintType: "cardinality",
+      });
+    }
     return messages;
   }
 }
@@ -459,31 +578,31 @@ export class CardinalityValidator {
 export class PrimitiveValidator {
   validate(
     rmValue: any,
-    cObject: openehr_am.C_PRIMITIVE_OBJECT,
-    path: string
+    cObject: unknown,
+    path: string,
   ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
-    
-    // Validate C_STRING constraints
-    if (cObject instanceof openehr_am.C_STRING) {
-      this.validateString(rmValue, cObject, path, messages);
+    const constraint = unwrapPrimitiveConstraint(cObject);
+    if (!constraint) return messages;
+    const value = extractPrimitiveValue(rmValue);
+
+    if (constraint instanceof openehr_am.C_STRING) {
+      this.validateString(value, constraint, path, messages);
+    } else if (constraint instanceof openehr_am.C_INTEGER) {
+      this.validateInteger(value, constraint, path, messages);
+    } else if (constraint instanceof openehr_am.C_REAL) {
+      this.validateReal(value, constraint, path, messages);
+    } else if (constraint instanceof openehr_am.C_BOOLEAN) {
+      this.validateBoolean(value, constraint, path, messages);
+    } else if (
+      constraint instanceof openehr_am.C_DATE ||
+      constraint instanceof openehr_am.C_TIME ||
+      constraint instanceof openehr_am.C_DATE_TIME ||
+      constraint instanceof openehr_am.C_DURATION
+    ) {
+      this.validateTemporal(value, constraint, path, messages);
     }
-    
-    // Validate C_INTEGER constraints
-    else if (cObject instanceof openehr_am.C_INTEGER) {
-      this.validateInteger(rmValue, cObject, path, messages);
-    }
-    
-    // Validate C_REAL constraints
-    else if (cObject instanceof openehr_am.C_REAL) {
-      this.validateReal(rmValue, cObject, path, messages);
-    }
-    
-    // Validate C_BOOLEAN constraints
-    else if (cObject instanceof openehr_am.C_BOOLEAN) {
-      this.validateBoolean(rmValue, cObject, path, messages);
-    }
-    
+
     return messages;
   }
 
@@ -493,7 +612,7 @@ export class PrimitiveValidator {
     path: string,
     messages: ValidationMessage[]
   ): void {
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       messages.push({
         path,
         message: `Expected string, got ${typeof value}`,
@@ -525,12 +644,12 @@ export class PrimitiveValidator {
       }
     }
 
-    // Check list if provided
-    if (constraint.list && constraint.list.length > 0) {
-      if (!constraint.list.includes(value)) {
+    const list = (constraint as { list?: string[] }).list;
+    if (list && list.length > 0) {
+      if (!list.includes(value)) {
         messages.push({
           path,
-          message: `String "${value}" not in allowed list: [${constraint.list.join(', ')}]`,
+          message: `String "${value}" not in allowed list: [${list.join(", ")}]`,
           severity: "error",
           constraintType: "string_list",
         });
@@ -554,37 +673,23 @@ export class PrimitiveValidator {
       return;
     }
 
-    // Check range if provided
-    if (constraint.range) {
-      const range = constraint.range;
-      if (range.lower !== undefined && value < range.lower) {
-        messages.push({
-          path,
-          message: `Integer ${value} below minimum: ${range.lower}`,
-          severity: "error",
-          constraintType: "integer_range",
-        });
-      }
-      if (range.upper !== undefined && value > range.upper) {
-        messages.push({
-          path,
-          message: `Integer ${value} above maximum: ${range.upper}`,
-          severity: "error",
-          constraintType: "integer_range",
-        });
-      }
+    if (constraint.range && !inOrderedRange(value, constraint.range as RangeLike)) {
+      messages.push({
+        path,
+        message: `Integer ${value} not in range`,
+        severity: "error",
+        constraintType: "integer_range",
+      });
     }
 
-    // Check list if provided
-    if (constraint.list && constraint.list.length > 0) {
-      if (!constraint.list.includes(value)) {
-        messages.push({
-          path,
-          message: `Integer ${value} not in allowed list: [${constraint.list.join(', ')}]`,
-          severity: "error",
-          constraintType: "integer_list",
-        });
-      }
+    const list = (constraint as { list?: number[] }).list;
+    if (list && list.length > 0 && !list.includes(value)) {
+      messages.push({
+        path,
+        message: `Integer ${value} not in allowed list: [${list.join(", ")}]`,
+        severity: "error",
+        constraintType: "integer_list",
+      });
     }
   }
 
@@ -604,37 +709,23 @@ export class PrimitiveValidator {
       return;
     }
 
-    // Check range if provided
-    if (constraint.range) {
-      const range = constraint.range;
-      if (range.lower !== undefined && value < range.lower) {
-        messages.push({
-          path,
-          message: `Real ${value} below minimum: ${range.lower}`,
-          severity: "error",
-          constraintType: "real_range",
-        });
-      }
-      if (range.upper !== undefined && value > range.upper) {
-        messages.push({
-          path,
-          message: `Real ${value} above maximum: ${range.upper}`,
-          severity: "error",
-          constraintType: "real_range",
-        });
-      }
+    if (constraint.range && !inOrderedRange(value, constraint.range as RangeLike)) {
+      messages.push({
+        path,
+        message: `Real ${value} not in range`,
+        severity: "error",
+        constraintType: "real_range",
+      });
     }
 
-    // Check list if provided
-    if (constraint.list && constraint.list.length > 0) {
-      if (!constraint.list.includes(value)) {
-        messages.push({
-          path,
-          message: `Real ${value} not in allowed list: [${constraint.list.join(', ')}]`,
-          severity: "error",
-          constraintType: "real_list",
-        });
-      }
+    const list = (constraint as { list?: number[] }).list;
+    if (list && list.length > 0 && !list.includes(value)) {
+      messages.push({
+        path,
+        message: `Real ${value} not in allowed list: [${list.join(", ")}]`,
+        severity: "error",
+        constraintType: "real_list",
+      });
     }
   }
 
@@ -672,6 +763,46 @@ export class PrimitiveValidator {
       });
     }
   }
+
+  private validateTemporal(
+    value: any,
+    constraint:
+      | openehr_am.C_DATE
+      | openehr_am.C_TIME
+      | openehr_am.C_DATE_TIME
+      | openehr_am.C_DURATION,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    if (typeof value !== "string") {
+      messages.push({
+        path,
+        message: `Expected ISO 8601 string, got ${typeof value}`,
+        severity: "error",
+        constraintType: "primitive_type",
+      });
+      return;
+    }
+    const pattern = (constraint as { pattern?: string }).pattern ??
+      (constraint as { pattern_constraint?: string }).pattern_constraint;
+    if (pattern && !matchesAdlTemporalPattern(value, pattern)) {
+      messages.push({
+        path,
+        message: `Value "${value}" does not match temporal pattern ${pattern}`,
+        severity: "error",
+        constraintType: "temporal_pattern",
+      });
+    }
+    const range = (constraint as { range?: RangeLike }).range;
+    if (range && !inOrderedRange(value, range)) {
+      messages.push({
+        path,
+        message: `Value "${value}" is outside the constrained range`,
+        severity: "error",
+        constraintType: "temporal_range",
+      });
+    }
+  }
 }
 
 /**
@@ -681,37 +812,27 @@ export class TerminologyValidator {
   validate(
     rmValue: any,
     cObject: openehr_am.C_OBJECT,
-    path: string
+    path: string,
   ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
-    
+    if (!rmValue) return messages;
+
+    if (cObject instanceof openehr_am.C_TERMINOLOGY_CODE) {
+      this.validateCodePhrase(rmValue, cObject, path, messages);
+      return messages;
+    }
+
     const isCodedText = cObject.rm_type_name === "DV_CODED_TEXT" ||
-      (rmValue && typeof rmValue === "object" && "defining_code" in rmValue);
-    if (isCodedText && rmValue) {
+      (typeof rmValue === "object" && rmValue && "defining_code" in rmValue);
+    if (isCodedText) {
       if (rmValue.defining_code) {
-        const code = rmValue.defining_code;
-        
-        // Validate terminology_id is present
-        if (!code.terminology_id || !code.terminology_id.value) {
-          messages.push({
-            path,
-            archetypePath: path,
-            message: "Missing terminology_id in coded text",
-            severity: "error",
-            constraintType: "terminology",
-          });
-        }
-        
-        // Validate code_string is present
-        if (!code.code_string) {
-          messages.push({
-            path,
-            message: "Missing code_string in coded text",
-            severity: "error",
-            constraintType: "terminology",
-          });
-        }
-      } else {
+        this.validateCodePhrase(
+          rmValue.defining_code,
+          cObject,
+          path,
+          messages,
+        );
+      } else if (cObject.rm_type_name === "DV_CODED_TEXT") {
         messages.push({
           path,
           message: "Missing defining_code in DV_CODED_TEXT",
@@ -720,10 +841,216 @@ export class TerminologyValidator {
         });
       }
     }
-    
-    // Could add external terminology validation (SNOMED, LOINC, etc.)
-    // by querying terminology services
-    
+
     return messages;
   }
+
+  private validateCodePhrase(
+    code: any,
+    cObject: openehr_am.C_OBJECT,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    const terminologyId = terminologyIdOf(code);
+    const codeString = codeStringOf(code);
+    if (!terminologyId) {
+      messages.push({
+        path,
+        archetypePath: path,
+        message: "Missing terminology_id in coded text",
+        severity: "error",
+        constraintType: "terminology",
+      });
+    }
+    if (!codeString) {
+      messages.push({
+        path,
+        message: "Missing code_string in coded text",
+        severity: "error",
+        constraintType: "terminology",
+      });
+    }
+
+    const runtime = cObject as openehr_am.C_TERMINOLOGY_CODE & {
+      code_list?: string[];
+      terminology_id?: string;
+    };
+    if (runtime.terminology_id && terminologyId) {
+      if (runtime.terminology_id !== terminologyId) {
+        messages.push({
+          path,
+          message:
+            `terminology_id "${terminologyId}" does not match constrained terminology "${runtime.terminology_id}"`,
+          severity: "error",
+          constraintType: "terminology_id",
+        });
+      }
+    }
+    const allowed = runtime.code_list?.length
+      ? runtime.code_list
+      : (runtime.constraint ? [runtime.constraint] : []);
+    if (allowed.length && codeString && !allowed.includes(codeString)) {
+      messages.push({
+        path,
+        message: `code_string "${codeString}" is not in C_CODE_PHRASE.code_list`,
+        severity: "error",
+        constraintType: "code_list",
+      });
+    }
+  }
+}
+
+type RangeLike = {
+  lower?: unknown;
+  upper?: unknown;
+  lower_included?: boolean;
+  upper_included?: boolean;
+  lower_unbounded?: boolean;
+  upper_unbounded?: boolean;
+};
+
+const PRIMITIVE_RM_TYPES = new Set([
+  "INTEGER",
+  "REAL",
+  "BOOLEAN",
+  "STRING",
+  "DATE",
+  "TIME",
+  "DATE_TIME",
+  "DURATION",
+  "ISO8601_DATE",
+  "ISO8601_TIME",
+  "ISO8601_DATE_TIME",
+  "ISO8601_DURATION",
+]);
+
+function isPrimitiveRmType(rmType: string): boolean {
+  return PRIMITIVE_RM_TYPES.has(rmType.toUpperCase());
+}
+
+function isPrimitiveConstraint(cObject: unknown): boolean {
+  if (cObject instanceof openehr_am.C_TERMINOLOGY_CODE) return false;
+  return cObject instanceof openehr_am.C_PRIMITIVE_OBJECT ||
+    cObject instanceof openehr_am.C_STRING ||
+    cObject instanceof openehr_am.C_INTEGER ||
+    cObject instanceof openehr_am.C_REAL ||
+    cObject instanceof openehr_am.C_BOOLEAN ||
+    cObject instanceof openehr_am.C_DATE ||
+    cObject instanceof openehr_am.C_TIME ||
+    cObject instanceof openehr_am.C_DATE_TIME ||
+    cObject instanceof openehr_am.C_DURATION;
+}
+
+function unwrapPrimitiveConstraint(cObject: unknown): unknown {
+  if (
+    cObject instanceof openehr_am.C_PRIMITIVE_OBJECT &&
+    !(cObject instanceof openehr_am.C_TERMINOLOGY_CODE)
+  ) {
+    return cObject.item ?? cObject;
+  }
+  return cObject;
+}
+
+function extractPrimitiveValue(rmValue: unknown): unknown {
+  if (rmValue && typeof rmValue === "object" && "value" in rmValue) {
+    return (rmValue as { value?: unknown }).value;
+  }
+  return rmValue;
+}
+
+function matchConstraintChild(
+  children: openehr_am.C_OBJECT[],
+  rmItem: unknown,
+): openehr_am.C_OBJECT | undefined {
+  if (children.length === 1) return children[0];
+  const actual = TypeRegistry.getTypeNameFromInstance(rmItem);
+  if (!actual) return children[0];
+  return children.find((child) => {
+    const expected = child.rm_type_name;
+    if (!expected) return false;
+    return actual === expected || isSubtypeOf(actual, expected);
+  });
+}
+
+function terminologyIdOf(code: unknown): string | undefined {
+  if (!code || typeof code !== "object") return undefined;
+  const rec = code as { terminology_id?: { value?: string } | string };
+  if (typeof rec.terminology_id === "string") return rec.terminology_id;
+  return rec.terminology_id?.value;
+}
+
+function looksLikeArchetypeId(id: string): boolean {
+  return /openEHR-/i.test(id) || id.includes("::") ||
+    /-(EHR|DEMOGRAPHIC|EHR_EXTRACT)-/.test(id);
+}
+
+function codeStringOf(code: unknown): string | undefined {
+  if (!code || typeof code !== "object") return undefined;
+  const rec = code as { code_string?: string };
+  return rec.code_string;
+}
+
+function validateQuantityConstraint(
+  rmValue: any,
+  cObject: openehr_am.C_QUANTITY,
+  path: string,
+): ValidationMessage[] {
+  const messages: ValidationMessage[] = [];
+  const list = (cObject as { list?: Array<{ units?: string; magnitude?: RangeLike }> }).list ?? [];
+  const units = rmValue?.units;
+  if (list.length && units) {
+    const match = list.find((item) => item.units === units);
+    if (!match) {
+      messages.push({
+        path,
+        message: `units "${units}" is not in C_DV_QUANTITY.list`,
+        severity: "error",
+        constraintType: "quantity_units",
+      });
+    } else if (
+      match.magnitude &&
+      rmValue.magnitude !== undefined &&
+      !inOrderedRange(rmValue.magnitude, match.magnitude)
+    ) {
+      messages.push({
+        path,
+        message: `magnitude ${rmValue.magnitude} is outside the units interval for ${units}`,
+        severity: "error",
+        constraintType: "quantity_magnitude",
+      });
+    }
+  }
+  return messages;
+}
+
+function validateOrdinalConstraint(
+  rmValue: any,
+  cObject: openehr_am.C_ORDINAL,
+  path: string,
+): ValidationMessage[] {
+  const messages: ValidationMessage[] = [];
+  const list = (cObject as {
+    list?: Array<{ value?: number; symbol?: { code_string?: string } }>;
+  }).list ?? [];
+  if (!list.length) return messages;
+  const value = rmValue?.value;
+  const symbol = codeStringOf(rmValue?.symbol) ??
+    codeStringOf(rmValue?.symbol?.defining_code);
+  const match = list.find((item) => {
+    const itemCode = codeStringOf(item.symbol) ??
+      (item.symbol as { code_string?: string } | undefined)?.code_string;
+    if (value !== undefined && item.value !== undefined) {
+      return item.value === value;
+    }
+    return itemCode !== undefined && itemCode === symbol;
+  });
+  if (!match) {
+    messages.push({
+      path,
+      message: "DV_ORDINAL is not a member of C_DV_ORDINAL.list",
+      severity: "error",
+      constraintType: "ordinal_list",
+    });
+  }
+  return messages;
 }
