@@ -202,4 +202,65 @@ Deno.test("RMSpecificationValidator - getConstraints returns knowledge base", ()
   assertEquals(constraints["COMPOSITION.category"].allowed_codes.includes("433"), true);
 });
 
+Deno.test("RMSpecificationValidator - instance walk catches unconstrained setting", () => {
+  const validator = new RMSpecificationValidator();
+  const instance = {
+    _type: "COMPOSITION",
+    language: { terminology_id: { value: "ISO_639-1" }, code_string: "en" },
+    territory: { terminology_id: { value: "ISO_3166-1" }, code_string: "UY" },
+    category: {
+      defining_code: { terminology_id: { value: "openehr" }, code_string: "433" },
+    },
+    composer: { _type: "PARTY_IDENTIFIED", name: "Dr. House" },
+    context: {
+      setting: {
+        value: "primary medical care",
+        defining_code: {
+          terminology_id: { value: "openehr" },
+          code_string: "999",
+        },
+      },
+    },
+  };
+  const messages = validator.validateInstance(instance, "COMPOSITION");
+  const setting = messages.filter((m) => m.path.includes("setting"));
+  assertEquals(setting.length > 0, true, "invalid EVENT_CONTEXT.setting must error");
+  assertEquals(setting[0].constraintType, "rm_specification");
+});
+
+Deno.test("RMSpecificationValidator - ISO 639-1 / 3166-1 codesets", () => {
+  const validator = new RMSpecificationValidator();
+  const zz = validator.validate(
+    { terminology_id: { value: "ISO_639-1" }, code_string: "zz" },
+    "COMPOSITION",
+    "language",
+    "/language",
+  );
+  assertEquals(zz.some((m) => m.constraintType === "rm_specification"), true);
+
+  const en = validator.validate(
+    { terminology_id: { value: "ISO_639-1" }, code_string: "en" },
+    "COMPOSITION",
+    "language",
+    "/language",
+  );
+  assertEquals(en.length, 0);
+
+  const uy = validator.validate(
+    { terminology_id: { value: "ISO_3166-1" }, code_string: "UY" },
+    "COMPOSITION",
+    "territory",
+    "/territory",
+  );
+  assertEquals(uy.length, 0);
+
+  const zzRegion = validator.validate(
+    { terminology_id: { value: "ISO_3166-1" }, code_string: "ZZ" },
+    "COMPOSITION",
+    "territory",
+    "/territory",
+  );
+  assertEquals(zzRegion.some((m) => m.constraintType === "rm_specification"), true);
+});
+
 console.log("✅ Interval and RM Specification Validator tests completed");
