@@ -211,7 +211,11 @@ export function overlayStringPattern(
   const valueNode = observationValueConstraint(opt.definition);
   if (!valueNode) return;
   const str = findStringConstraint(valueNode);
-  if (str) str.pattern = pattern;
+  if (str) {
+    str.pattern = pattern;
+    // Pattern overlays replace a list constraint on the same C_STRING.
+    (str as { list?: string[] }).list = undefined;
+  }
 }
 
 function findStringConstraint(

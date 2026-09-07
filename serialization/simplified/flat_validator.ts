@@ -136,8 +136,10 @@ export function validateFlatPayload(
     const lastRaw = rawSegments[rawSegments.length - 1] ?? "";
     const indexMatch = lastRaw.match(/:(\d+)$/);
     const instanceIndex = indexMatch ? Number(indexMatch[1]) : 0;
-    const prev = indexCounts.get(chain) ?? 0;
-    indexCounts.set(chain, Math.max(prev, instanceIndex + 1));
+    const parentRaw = rawSegments.slice(0, -1).join("/");
+    const countKey = `${parentRaw}\n${chain}`;
+    const prev = indexCounts.get(countKey) ?? 0;
+    indexCounts.set(countKey, Math.max(prev, instanceIndex + 1));
 
     if (rmAttrIdx === -1 && suffix && !knownSuffixes(node).has(suffix)) {
       warnings.push({
@@ -148,7 +150,8 @@ export function validateFlatPayload(
     }
   }
 
-  for (const [chain, count] of indexCounts) {
+  for (const [countKey, count] of indexCounts) {
+    const chain = countKey.slice(countKey.indexOf("\n") + 1);
     const node = chains.get(chain);
     if (!node) continue;
     if (node.max >= 0 && count > node.max) {

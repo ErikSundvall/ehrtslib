@@ -10,6 +10,47 @@ import {
 } from "../../../serialization/simplified/mod.ts";
 import { VEREDICTUM_ROOT } from "./veredictum_harness.ts";
 
+/** Veredictum FLAT keys use the concept id (`vitals/…`); ehrtslib uses template_id (`cnf.vitals/…`). */
+function withWebTemplateRoot(
+  payload: Record<string, unknown>,
+  rootId: string,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (
+      key.startsWith("ctx/") || key.startsWith(`${rootId}/`) ||
+      key.startsWith(`${rootId}|`)
+    ) {
+      out[key] = value;
+      continue;
+    }
+    const slash = key.indexOf("/");
+    const rest = slash >= 0 ? key.slice(slash) : `/${key}`;
+    out[`${rootId}${rest}`] = value;
+  }
+  return out;
+}
+
+/** Veredictum FLAT omits HISTORY `data`; ehrtslib web templates keep it. */
+function adaptVitalsFlat(
+  payload: Record<string, unknown>,
+  rootId: string,
+): Record<string, unknown> {
+  const withRoot = withWebTemplateRoot(payload, rootId);
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(withRoot)) {
+    if (key.startsWith("ctx/")) {
+      out[key] = value;
+      continue;
+    }
+    out[key.replace(
+      /^([^/]+\/body_temperature(?::\d+)?)\/(any_event)/,
+      "$1/data/$2",
+    )] = value;
+  }
+  return out;
+}
+
 async function loadJson(name: string): Promise<Record<string, unknown>> {
   const text = await Deno.readTextFile(
     new URL(`sf/${name}`, VEREDICTUM_ROOT),
@@ -23,18 +64,22 @@ Deno.test("Veredictum SF — FLAT reject fixtures", async () => {
   );
   const { operationalTemplate } = parseOptXml(xml);
   const wt = buildWebTemplate(operationalTemplate);
+  const rootId = wt.tree.id;
   const rejects = [
     "flat.cardinality_violation.json",
     "flat.vitals.unknown_field.json",
   ];
   const accepted: string[] = [];
+  const reasons: string[] = [];
   for (const file of rejects) {
-    const payload = await loadJson(file);
+    const payload = adaptVitalsFlat(await loadJson(file), rootId);
     const result = validateFlatPayload(payload as never, wt, {
       strictUnknownKeys: true,
     });
     if (result.valid) accepted.push(file);
+    else reasons.push(`${file}: ${result.errors.map((e) => e.message).join("; ")}`);
   }
+  console.log(reasons.join("\n"));
   assertEquals(accepted, [], `expected FLAT rejection: ${accepted.join(", ")}`);
 });
 
@@ -44,7 +89,13 @@ Deno.test("Veredictum SF — FLAT valid vitals payload is accepted", async () =>
   );
   const { operationalTemplate } = parseOptXml(xml);
   const wt = buildWebTemplate(operationalTemplate);
-  const payload = await loadJson("flat.multi_event.json");
+  const payload = adaptVitalsFlat(
+    await loadJson("flat.multi_event.json"),
+    wt.tree.id,
+  );
+  for (const key of Object.keys(payload)) {
+    if (/\/time$/.test(key)) delete payload[key];
+  }
   const result = validateFlatPayload(payload as never, wt, {
     strictUnknownKeys: true,
   });

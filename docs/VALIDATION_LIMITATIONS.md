@@ -16,6 +16,8 @@ Known gaps in `TemplateValidator` and related validators. Capabilities that **do
 
 `C_ARCHETYPE_ROOT.archetype_ref` is compared to `archetype_node_id` when the instance uses a full archetype id.
 
+Remaining CONT catalogue gaps (cardinality overlays on CLUSTER/COMPOSITION context, some temporal patterns, HISTORY `data` in FLAT paths vs Veredictum’s omitted segment, EVENT `time` not exposed on the web template) are tracked by the pass-rate floor in `veredictum_content.test.ts`.
+
 ## Primitive constraints from OPT XML
 
 Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced.

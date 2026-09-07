@@ -13,6 +13,7 @@
 import {
   ancestorsOf,
   attributesFor,
+  isDataValueType,
   isSubtypeOf,
 } from "../meta/mod.ts";
 import type { ValidationMessage } from "./template_validator.ts";
@@ -436,7 +437,7 @@ export class RMSpecificationValidator {
     path: string,
     messages: ValidationMessage[],
   ): void {
-    const skipRequired = !shouldCheckRequired(rmValue);
+    const skipRequired = !shouldCheckRequired(rmValue, rmType);
     const owners = new Set(ancestorsOf(rmType));
     owners.add(rmType);
     for (const [key, constraint] of Object.entries(RM_CONSTRAINTS)) {
@@ -652,7 +653,13 @@ const IDENTITY_KEYS = new Set([
   "uid",
 ]);
 
-function shouldCheckRequired(rmValue: Record<string, unknown>): boolean {
+function shouldCheckRequired(
+  rmValue: Record<string, unknown>,
+  rmType?: string,
+): boolean {
+  const type = (typeof rmValue._type === "string" ? rmValue._type : rmType) ??
+    "";
+  if (type && isDataValueType(type)) return true;
   if (typeof rmValue._type !== "string") return false;
   return Object.keys(rmValue).some((k) => !IDENTITY_KEYS.has(k));
 }

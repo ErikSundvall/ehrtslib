@@ -156,8 +156,8 @@ Deno.test("Veredictum content — catalogue pass-rate floor", async () => {
   }
   assert(total >= 200, `expected hundreds of rows, got ${total}`);
   assert(
-    rate >= 40,
-    `content pass rate ${rate.toFixed(1)}% below 40% floor. Samples:\n${
+    rate >= 55,
+    `content pass rate ${rate.toFixed(1)}% below 55% floor. Samples:\n${
       sampleFails.join("\n")
     }`,
   );
