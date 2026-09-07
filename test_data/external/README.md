@@ -15,5 +15,6 @@ git clone --depth 1 https://github.com/openEHR/CKM-mirror.git
 | openEHR/adl-archetypes | `ADL2-reference/`, `Example/` | Reference archetypes; 4 single-file ADL2 templates |
 | ehrbase/openEHR_SDK | `test-data/.../operationaltemplate/` | ~54 ADL 1.4 XML `.opt` |
 | openEHR/CKM-mirror | `local/templates/` (`.oet`), `local/archetypes/` | CKM snapshot; ADL 1.4 era |
+| rubentalstra/Veredictum | `artifacts/schedule/content`, `artifacts/corpus/templates` | CNF decision tables + OPTs; curated in `test_data/veredictum/` |
 
 Curated subsets are copied into `test_data/` via `scripts/download_fixtures.ts`.

@@ -1,0 +1,50 @@
+# CATALOGUE ADDITION: C_ATTRIBUTE.existence over the two ELEMENT attributes the
+# RM ties together. Both are 0..1 in the RM, and ELEMENT's own invariants make
+# EXACTLY ONE of them present in a conformant instance:
+#   Inv_is_null_valid: is_null() = (value = Void)
+#   Inv_null_flavour_indicated: is_null() xor null_flavour = Void
+# so value-and-null_flavour together and neither-of-them are both refused, on
+# top of whatever the archetype's existence constraints demand.
+# The (mandatory, mandatory) constraint pair is deliberately NOT authored: no
+# instance satisfies Inv_null_flavour_indicated when both attributes must be
+# present, so that archetype constrains nothing a server can be right or wrong
+# about. It is a defective archetype, not a wire behaviour.
+id: CONT-ELEMENT-value_null_flavour_existence
+kind: content
+component: CONTENT
+rm_class: ELEMENT
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  ELEMENT.value and ELEMENT.null_flavour existence: a committed ELEMENT is
+  accepted iff exactly one of the two attributes is present AND every
+  archetype-mandated attribute is there; committing both, or neither, violates
+  the RM invariant that ties them.
+description: "ELEMENT.value / ELEMENT.null_flavour against C_ATTRIBUTE.existence and the RM null-flavour invariant"
+spec_refs:
+  - "AM AOM1.4 §C_ATTRIBUTE (existence) — constraint on every attribute which indicates whether its target object exists or not (i.e. is mandatory or not)"
+  - "RM data_structures §ELEMENT (value: DATA_VALUE 0..1; null_flavour: DV_CODED_TEXT 0..1; invariants Inv_is_null_valid: is_null() = (value = Void), Inv_null_flavour_indicated: is_null() xor null_flavour = Void, Inv_null_flavour_valid)"
+  - "RM data_structures §ITEM_TREE (items: List<ITEM>, 0..1 — the carrier the constrained ELEMENT is a member of)"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_ATTRIBUTE.existence on ELEMENT.value AND on ELEMENT.null_flavour, varied
+  # per row; the committed null flavour is openehr::253 (unknown).
+  template: cnf.tpl.ecc_element_existence
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items[at0004]"
+  constraint_columns: ["value_existence", "null_flavour_existence"]
+decision_table:
+  columns: [value_existence, null_flavour_existence, value_committed, null_flavour_committed, expected, violates]
+  rows:
+    - ["optional", "optional", "present", "absent", accepted, []]
+    - ["optional", "optional", "absent", "present", accepted, []]
+    - ["optional", "optional", "present", "present", rejected, ["rm_invariant(ELEMENT.Inv_null_flavour_indicated): value and null_flavour are both present"]]
+    - ["optional", "optional", "absent", "absent", rejected, ["rm_invariant(ELEMENT.Inv_null_flavour_indicated): the element is null but carries no null_flavour"]]
+    - ["mandatory", "optional", "present", "absent", accepted, []]
+    - ["mandatory", "optional", "absent", "present", rejected, ["constraint(C_ATTRIBUTE.existence): value is mandated by the archetype (existence 1..1) but absent"]]
+    - ["mandatory", "optional", "present", "present", rejected, ["rm_invariant(ELEMENT.Inv_null_flavour_indicated): value and null_flavour are both present"]]
+    - ["mandatory", "optional", "absent", "absent", rejected, ["constraint(C_ATTRIBUTE.existence): value is mandated by the archetype (existence 1..1) but absent", "rm_invariant(ELEMENT.Inv_null_flavour_indicated): the element is null but carries no null_flavour"]]
+    - ["optional", "mandatory", "present", "absent", rejected, ["constraint(C_ATTRIBUTE.existence): null_flavour is mandated by the archetype (existence 1..1) but absent"]]
+    - ["optional", "mandatory", "absent", "present", accepted, []]
+    - ["optional", "mandatory", "present", "present", rejected, ["rm_invariant(ELEMENT.Inv_null_flavour_indicated): value and null_flavour are both present"]]
+    - ["optional", "mandatory", "absent", "absent", rejected, ["constraint(C_ATTRIBUTE.existence): null_flavour is mandated by the archetype (existence 1..1) but absent", "rm_invariant(ELEMENT.Inv_null_flavour_indicated): the element is null but carries no null_flavour"]]

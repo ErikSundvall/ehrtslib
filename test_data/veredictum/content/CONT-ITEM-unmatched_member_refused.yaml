@@ -1,0 +1,33 @@
+# The REFUSAL arm of register AMB-229: no released sentence decides what a
+# validator does with a container member matching NO constraint node (the
+# closure quantifier exists for single-valued attributes only), so the strict
+# posture is a declared implementation choice, selected by the statement
+# option, never a spec-required refusal. The matched-member halves stay
+# gating in CONT-ITEM-type_cluster / CONT-ITEM-type_element.
+id: CONT-ITEM-unmatched_member_refused
+kind: content
+component: CONTENT
+rm_class: ITEM
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+option: unmatched-member-refused
+ambiguities: [AMB-229]
+test_purpose: >-
+  A party declaring the strict posture refuses a committed container member
+  that matches no constraint node of the narrowed ITEM_TREE member slot.
+description: "An unmatched ITEM_TREE.items member is refused under the declared strict posture"
+spec_refs:
+  - "AM AOM1.4 §C_OBJECT (rm_type_name) — the reference-model type a node constrains"
+  - "AM ADL1.4 master05 §Single-valued Attributes — the released closure quantifier, stated for non-container attributes only; the container case is silence (register AMB-229)"
+  - "RM data_structures §ITEM (abstract parent of CLUSTER and ELEMENT) / §CLUSTER / §ELEMENT"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  template: cnf.tpl.ecc_item_type_narrowing
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/items"
+  constraint_columns: ["slot_type"]
+decision_table:
+  columns: [slot_type, committed_type, expected, violates]
+  rows:
+    - ["CLUSTER", "ELEMENT", rejected, ["constraint(C_OBJECT.rm_type_name): ELEMENT matches no constraint node of a CLUSTER-narrowed slot (declared strict posture, register AMB-229)"]]
+    - ["ELEMENT", "CLUSTER", rejected, ["constraint(C_OBJECT.rm_type_name): CLUSTER matches no constraint node of an ELEMENT-narrowed slot (declared strict posture, register AMB-229)"]]

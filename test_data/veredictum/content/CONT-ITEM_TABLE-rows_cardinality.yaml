@@ -1,0 +1,56 @@
+# CATALOGUE ADDITION: the ITEM_TABLE sibling of
+# CONT-ITEM_TREE-items_cardinality. The constrained container is `rows` rather
+# than `items`, and every member is a row CLUSTER (at0010) whose own items are
+# leaf ELEMENTs, which is what the RM's Valid_structure invariant requires.
+# Realization: C_MULTIPLE_ATTRIBUTE.cardinality on ITEM_TABLE.rows, varied per
+# row; the attribute's C_ATTRIBUTE.existence follows the token, and the instance
+# omits `rows` for a zero count.
+id: CONT-ITEM_TABLE-rows_cardinality
+kind: content
+component: CONTENT
+rm_class: ITEM_TABLE
+status: active
+capabilities: [ArchetypeValidation]
+profiles: [CORE]
+test_purpose: >-
+  ITEM_TABLE.rows cardinality: a committed ITEM_TABLE is accepted iff its row
+  count lies inside the archetype's C_MULTIPLE_ATTRIBUTE.cardinality interval,
+  and refused below the lower bound or above the upper bound.
+description: "ITEM_TABLE.rows member count against every cardinality interval"
+spec_refs:
+  - "AM AOM1.4 §C_MULTIPLE_ATTRIBUTE (cardinality) — a cardinality constraint indicates what the valid membership of a container object is"
+  - "AM AOM1.4 §C_ATTRIBUTE (existence) — whether the attribute field must be present"
+  - "RM data_structures §ITEM_TABLE (rows: List<CLUSTER>, 0..1 — the table may be empty; invariant Valid_structure: rows.for_all (items.for_all (instance_of (\"ELEMENT\"))))"
+applies: { rm: ">=1.0.2" }
+constraint_context:
+  # C_MULTIPLE_ATTRIBUTE.cardinality on ITEM_TABLE.rows, varied per row.
+  template: cnf.tpl.ecc_item_table_rows_cardinality
+  path: "/content[openEHR-EHR-EVALUATION.minimal.v1]/data/rows"
+  constraint_columns: ["cardinality"]
+decision_table:
+  columns: [cardinality, member_count, expected, violates]
+  rows:
+    - ["any", 0, accepted, []]
+    - ["any", 1, accepted, []]
+    - ["any", 3, accepted, []]
+    - ["any", 6, accepted, []]
+    - ["opt", 0, accepted, []]
+    - ["opt", 1, accepted, []]
+    - ["opt", 3, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count above the interval upper bound (1)"]]
+    - ["opt", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count above the interval upper bound (1)"]]
+    - ["mand", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (1)"]]
+    - ["mand", 1, accepted, []]
+    - ["mand", 3, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count above the interval upper bound (1)"]]
+    - ["mand", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count above the interval upper bound (1)"]]
+    - ["1plus", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (1)"]]
+    - ["1plus", 1, accepted, []]
+    - ["1plus", 3, accepted, []]
+    - ["1plus", 6, accepted, []]
+    - ["3plus", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (3)"]]
+    - ["3plus", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (3)"]]
+    - ["3plus", 3, accepted, []]
+    - ["3plus", 6, accepted, []]
+    - ["3to5", 0, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (3)"]]
+    - ["3to5", 1, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count below the interval lower bound (3)"]]
+    - ["3to5", 3, accepted, []]
+    - ["3to5", 6, rejected, ["constraint(C_MULTIPLE_ATTRIBUTE.cardinality): rows count above the interval upper bound (5)"]]

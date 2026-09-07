@@ -14,6 +14,7 @@ Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 | Roadmap | [roadmap.md](roadmap.md) · [archive](roadmap-archive.md) |
 | Spec vs impl notes | [inconsistencies.md](inconsistencies.md) |
 | Archie test-data attribution | [archie-attribution.md](archie-attribution.md) |
+| Veredictum CNF fixture attribution | [veredictum-attribution.md](veredictum-attribution.md) |
 | Cursor Cloud / MCP | [cursor-cloud-setup.md](cursor-cloud-setup.md) |
 | Agent runtime notes | [../../AGENTS.md](../../AGENTS.md) |
 | Test fixtures | [../../test_data/README.md](../../test_data/README.md) |
