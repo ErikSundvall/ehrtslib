@@ -92,18 +92,22 @@ function listEditableFiles(): { path: string; kind: string }[] {
 function refreshFileSelect(): void {
   const select = $("file-select") as SlSelect | null;
   if (!select) return;
-  select.innerHTML = "";
   const files = listEditableFiles();
-  for (const f of files) {
-    const opt = slEl("sl-option", { text: `${f.path} (${f.kind})` });
-    (opt as HTMLElement & { value: string }).value = f.path;
+  select.innerHTML = "";
+  files.forEach((f, i) => {
+    const opt = document.createElement("sl-option") as HTMLElement & {
+      value: string;
+    };
+    opt.textContent = `${f.path} (${f.kind})`;
     select.appendChild(opt);
-  }
-  if (activeFilePath && files.some((f) => f.path === activeFilePath)) {
-    select.value = activeFilePath;
-  } else if (files.length) {
-    activeFilePath = files[0].path;
-    select.value = activeFilePath;
+    // Index values avoid Shoelace's space-separated value parsing.
+    opt.value = String(i);
+  });
+  const idx = files.findIndex((f) => f.path === activeFilePath);
+  const nextIdx = idx >= 0 ? idx : files.length ? 0 : -1;
+  if (nextIdx >= 0) {
+    activeFilePath = files[nextIdx].path;
+    select.value = String(nextIdx);
   } else {
     select.value = "";
   }
@@ -449,8 +453,6 @@ function setupLoadBar(): void {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      const sel = $("file-select") as SlSelect | null;
-      if (sel && activeFilePath) sel.value = activeFilePath;
       resetFacets();
       loadActiveResource();
       selectedNode = undefined;
@@ -469,12 +471,14 @@ function setupLoadBar(): void {
 
 function setupFileSelect(): void {
   $("file-select")?.addEventListener("sl-change", (e) => {
-    activeFilePath = slValue(e.target as Element);
+    const idx = Number(slValue(e.target as Element));
+    const files = listEditableFiles();
+    activeFilePath = Number.isFinite(idx) ? files[idx]?.path : undefined;
     loadActiveResource();
     selectedNode = undefined;
     resetFacets();
     refreshWorkspace();
-    setStatus(`Editing ${activeFilePath}`);
+    setStatus(activeFilePath ? `Editing ${activeFilePath}` : "No file selected");
   });
 }
 

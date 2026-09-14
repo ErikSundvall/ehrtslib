@@ -18329,18 +18329,19 @@ function refreshFileSelect() {
   const select = $2("file-select");
   if (!select)
     return;
-  select.innerHTML = "";
   const files = listEditableFiles();
-  for (const f2 of files) {
-    const opt = slEl("sl-option", { text: `${f2.path} (${f2.kind})` });
-    opt.value = f2.path;
+  select.innerHTML = "";
+  files.forEach((f2, i2) => {
+    const opt = document.createElement("sl-option");
+    opt.textContent = `${f2.path} (${f2.kind})`;
     select.appendChild(opt);
-  }
-  if (activeFilePath && files.some((f2) => f2.path === activeFilePath)) {
-    select.value = activeFilePath;
-  } else if (files.length) {
-    activeFilePath = files[0].path;
-    select.value = activeFilePath;
+    opt.value = String(i2);
+  });
+  const idx = files.findIndex((f2) => f2.path === activeFilePath);
+  const nextIdx = idx >= 0 ? idx : files.length ? 0 : -1;
+  if (nextIdx >= 0) {
+    activeFilePath = files[nextIdx].path;
+    select.value = String(nextIdx);
   } else {
     select.value = "";
   }
@@ -18676,9 +18677,6 @@ function setupLoadBar() {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      const sel = $2("file-select");
-      if (sel && activeFilePath)
-        sel.value = activeFilePath;
       resetFacets();
       loadActiveResource();
       selectedNode = void 0;
@@ -18694,12 +18692,14 @@ function setupLoadBar() {
 }
 function setupFileSelect() {
   $2("file-select")?.addEventListener("sl-change", (e2) => {
-    activeFilePath = slValue(e2.target);
+    const idx = Number(slValue(e2.target));
+    const files = listEditableFiles();
+    activeFilePath = Number.isFinite(idx) ? files[idx]?.path : void 0;
     loadActiveResource();
     selectedNode = void 0;
     resetFacets();
     refreshWorkspace();
-    setStatus(`Editing ${activeFilePath}`);
+    setStatus(activeFilePath ? `Editing ${activeFilePath}` : "No file selected");
   });
 }
 function setupPaletteActions() {
