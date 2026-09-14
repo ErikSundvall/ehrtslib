@@ -19,7 +19,7 @@ deno task dev
 
 Serves `docs/taaat/` at http://localhost:8001 with watch rebuild.
 
-Throwaway UI variants (full tree + L10n generate): http://localhost:8001/prototype.html?variant=A — or from the repo root, `deno task proto:taaat`. See [`prototype/NOTES.md`](prototype/NOTES.md).
+The live TAAAT page is an outline explorer: every definition-tree node stays visible, with annotation pills from all language bags. Earlier throwaway variants: http://localhost:8001/prototype.html — see [`prototype/NOTES.md`](prototype/NOTES.md).
 
 ## Tests
 

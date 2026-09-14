@@ -20,4 +20,4 @@ Switcher: `?variant=A|B|C`, ← → keys, floating bar. Run: `deno task proto:ta
 
 ## Verdict
 
-_Awaiting review: pick a variant (or mix, e.g. “outline from A, generate/diff from C”) then delete `examples/taaat-app/src/prototype/` and fold the winner into the live TAAAT page._
+**A — Outline explorer**, with annotation pills on every row (all language bags), language outline colours, family fill colours, an interactive legend, and a per-family accordion inspector (L10n generate lives in the `L10n.` section). Folded into the live TAAAT page. Earlier B/C variants remain at `prototype.html` for reference until deleted.

@@ -5,9 +5,7 @@
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
   buildDefinitionTree,
-  getPathAnnotations,
-  getResourceDocumentation,
-  removePathAnnotation,
+  ensureResourceAnnotations,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   setPathAnnotation,
@@ -15,13 +13,26 @@ import {
   type DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
+  familyFillColor,
+  familyLegendLabel,
+  languageOutlineColor,
+  listFamilies,
+  listLanguageBags,
+} from "../../../parser/annotation_families.ts";
+import {
   exportPaletteJson,
   loadPalette,
   parsePaletteJson,
   savePalette,
   type PaletteEntry,
 } from "./palette.ts";
-import { DefinitionTreeView } from "./tree-view.ts";
+import { renderOutline } from "./outline-tree.ts";
+import {
+  createInspectorState,
+  currentLanguageBags,
+  renderInspector,
+  type InspectorState,
+} from "./inspector.ts";
 
 export type LoadMode = "template" | "archetype";
 
@@ -30,8 +41,12 @@ let activeFilePath: string | undefined;
 let activeResource: AnnotatedResource | undefined;
 let selectedNode: DefinitionTreeNode | undefined;
 let palette: PaletteEntry[] = loadPalette();
-let language = "en";
-let treeView: DefinitionTreeView | undefined;
+let filterText = "";
+const enabledLanguages = new Set<string>();
+const enabledFamilies = new Set<string>();
+const knownLanguages = new Set<string>();
+const knownFamilies = new Set<string>();
+const inspectorState: InspectorState = createInspectorState();
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
@@ -103,100 +118,165 @@ function persistResourceToWorkspace(): void {
   }
 }
 
+function resetFacets(): void {
+  enabledLanguages.clear();
+  enabledFamilies.clear();
+  knownLanguages.clear();
+  knownFamilies.clear();
+}
+
+function syncFacets(): void {
+  const doc = activeResource
+    ? getResourceDocumentation(activeResource)
+    : undefined;
+  for (const l of listLanguageBags(doc, ["en"])) {
+    if (!knownLanguages.has(l)) {
+      knownLanguages.add(l);
+      enabledLanguages.add(l);
+    }
+  }
+  for (const f of listFamilies(doc)) {
+    if (!knownFamilies.has(f)) {
+      knownFamilies.add(f);
+      enabledFamilies.add(f);
+    }
+  }
+}
+
+function renderLegend(): void {
+  const doc = activeResource
+    ? getResourceDocumentation(activeResource)
+    : undefined;
+  syncFacets();
+  const langHost = $("legend-languages");
+  const famHost = $("legend-families");
+  if (langHost) {
+    langHost.innerHTML = "";
+    for (const lang of listLanguageBags(doc, ["en"])) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "legend-chip legend-lang";
+      btn.setAttribute(
+        "aria-pressed",
+        enabledLanguages.has(lang) ? "true" : "false",
+      );
+      btn.style.borderColor = languageOutlineColor(lang);
+      btn.textContent = lang;
+      btn.title = `Language bag ${lang} — outline colour on pills`;
+      btn.addEventListener("click", () => {
+        if (enabledLanguages.has(lang) && enabledLanguages.size === 1) return;
+        if (enabledLanguages.has(lang)) enabledLanguages.delete(lang);
+        else enabledLanguages.add(lang);
+        refreshWorkspace();
+      });
+      langHost.appendChild(btn);
+    }
+  }
+  if (famHost) {
+    famHost.innerHTML = "";
+    for (const family of listFamilies(doc)) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "legend-chip legend-family";
+      btn.setAttribute(
+        "aria-pressed",
+        enabledFamilies.has(family) ? "true" : "false",
+      );
+      btn.style.background = familyFillColor(family);
+      btn.textContent = familyLegendLabel(family);
+      btn.title = `Family ${familyLegendLabel(family)} — fill colour on pills`;
+      btn.addEventListener("click", () => {
+        if (enabledFamilies.has(family) && enabledFamilies.size === 1) return;
+        if (enabledFamilies.has(family)) enabledFamilies.delete(family);
+        else enabledFamilies.add(family);
+        refreshWorkspace();
+      });
+      famHost.appendChild(btn);
+    }
+  }
+}
+
+function flattenFind(
+  node: DefinitionTreeNode,
+  path: string,
+): DefinitionTreeNode | undefined {
+  if (node.path === path) return node;
+  for (const child of node.children) {
+    const hit = flattenFind(child, path);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 function refreshTree(): void {
   const container = $("tree-container");
   if (!container) return;
-  container.innerHTML = "";
   if (!activeResource) {
-    container.innerHTML = "<p class=\"tree-empty\">Load a model to see the tree.</p>";
+    container.innerHTML =
+      "<p class=\"tree-empty\">Load a model to see the tree.</p>";
     return;
   }
   const tree = buildDefinitionTree(activeResource);
-  treeView = new DefinitionTreeView({
-    container,
-    selectedPath: selectedNode?.path,
-    onSelect: (node) => {
-      selectedNode = node;
-      treeView?.setSelectedPath(node.path);
-      refreshAnnotationEditor();
-      updatePathLabel();
-    },
-  });
-  treeView.setData(tree);
-  window.requestAnimationFrame(() => treeView?.resize());
-}
-
-function updatePathLabel(): void {
-  const el = $("selected-path");
-  if (!el) return;
-  if (!selectedNode) {
-    el.textContent = "Select a node in the tree";
+  if (!tree) {
+    container.innerHTML =
+      "<p class=\"tree-empty\">No definition tree (empty or unparsed model).</p>";
     return;
   }
-  const pathDisplay = selectedNode.path || "(definition root)";
-  el.textContent = pathDisplay;
-}
-
-function refreshAnnotationEditor(): void {
-  const tbody = $("annotation-rows");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  if (!activeResource || !selectedNode) return;
-
-  const doc = getResourceDocumentation(activeResource);
-  const path = selectedNode.path;
-  const anns = getPathAnnotations(doc, path, language);
-
-  for (const [key, value] of Object.entries(anns)) {
-    tbody.appendChild(createAnnotationRow(key, value));
+  if (selectedNode) {
+    selectedNode = flattenFind(tree, selectedNode.path) ?? selectedNode;
   }
+  renderOutline({
+    container,
+    tree,
+    doc: getResourceDocumentation(activeResource),
+    selectedPath: selectedNode?.path,
+    filterText,
+    enabledLanguages,
+    enabledFamilies,
+    onSelect: (node) => {
+      selectedNode = node;
+      refreshWorkspace();
+    },
+  });
 }
 
-function createAnnotationRow(key: string, value: string): HTMLTableRowElement {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td><input type="text" class="ann-key" value="${escapeAttr(key)}" /></td>
-    <td><input type="text" class="ann-value" value="${escapeAttr(value)}" /></td>
-    <td><button type="button" class="btn btn-sm btn-danger ann-remove" title="Remove">×</button></td>
-  `;
-  tr.querySelector(".ann-remove")?.addEventListener("click", () => {
-    if (!activeResource || !selectedNode) return;
-    const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
-    if (k) {
-      removePathAnnotation(activeResource, selectedNode.path, k, language);
+function refreshInspector(): void {
+  const title = $("selected-title");
+  const pathEl = $("selected-path");
+  const host = $("family-accordions");
+  if (!host) return;
+  if (!activeResource || !selectedNode) {
+    if (title) title.textContent = "Annotations";
+    if (pathEl) pathEl.textContent = "Select a node in the tree";
+    host.innerHTML =
+      "<p class=\"tree-empty\">Select a node to edit family sections.</p>";
+    return;
+  }
+  const tree = buildDefinitionTree(activeResource);
+  if (!tree) return;
+  const bag = ensureResourceAnnotations(activeResource);
+  if (title) title.textContent = selectedNode.label;
+  if (pathEl) pathEl.textContent = selectedNode.path || "(definition root)";
+  renderInspector({
+    host,
+    resource: activeResource,
+    tree,
+    node: selectedNode,
+    doc: bag,
+    languages: currentLanguageBags(bag),
+    enabledLanguages,
+    state: inspectorState,
+    onChange: () => {
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
-    }
+      refreshWorkspace();
+    },
   });
-  const onChange = () => {
-    if (!activeResource || !selectedNode) return;
-    const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
-    const v = tr.querySelector<HTMLInputElement>(".ann-value")?.value ?? "";
-    if (!k) return;
-    setPathAnnotation(activeResource, selectedNode.path, k, v, language);
-    persistResourceToWorkspace();
-    refreshTree();
-  };
-  tr.querySelectorAll("input").forEach((inp) => {
-    inp.addEventListener("change", onChange);
-  });
-  return tr;
 }
 
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-
-function addAnnotationRow(key = "", value = ""): void {
-  const tbody = $("annotation-rows");
-  if (!tbody || !activeResource || !selectedNode) return;
-  if (key) {
-    setPathAnnotation(activeResource, selectedNode.path, key, value, language);
-    persistResourceToWorkspace();
-  }
-  tbody.appendChild(createAnnotationRow(key, value));
+function refreshWorkspace(): void {
+  renderLegend();
   refreshTree();
+  refreshInspector();
 }
 
 function refreshPaletteUi(): void {
@@ -207,7 +287,9 @@ function refreshPaletteUi(): void {
     const li = document.createElement("li");
     const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
     li.innerHTML = `
-      <button type="button" class="palette-apply" title="Apply to selected node">${escapeAttr(label)}</button>
+      <button type="button" class="palette-apply" title="Apply to selected node">${
+      escapeAttr(label)
+    }</button>
       <button type="button" class="palette-remove" title="Remove from favourites">×</button>
     `;
     li.querySelector(".palette-apply")?.addEventListener("click", () => {
@@ -215,16 +297,21 @@ function refreshPaletteUi(): void {
         alert("Select a tree node first.");
         return;
       }
-      setPathAnnotation(
-        activeResource,
-        selectedNode.path,
-        entry.key,
-        entry.value ?? "",
-        language,
-      );
+      const bags = [...enabledLanguages];
+      const langs = bags.length
+        ? bags
+        : currentLanguageBags(ensureResourceAnnotations(activeResource));
+      for (const lang of langs) {
+        setPathAnnotation(
+          activeResource,
+          selectedNode.path,
+          entry.key,
+          entry.value ?? "",
+          lang,
+        );
+      }
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
+      refreshWorkspace();
     });
     li.querySelector(".palette-remove")?.addEventListener("click", () => {
       palette = palette.filter((p) => p.key !== entry.key);
@@ -233,6 +320,10 @@ function refreshPaletteUi(): void {
     });
     list.appendChild(li);
   }
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
 function setupLoadBar(): void {
@@ -287,11 +378,10 @@ function setupLoadBar(): void {
         const sel = $("file-select") as HTMLSelectElement | null;
         if (sel) sel.value = activeFilePath;
       }
+      resetFacets();
       loadActiveResource();
       selectedNode = undefined;
-      refreshTree();
-      refreshAnnotationEditor();
-      updatePathLabel();
+      refreshWorkspace();
       const warn = result.warnings.length
         ? ` (${result.warnings.length} warnings)`
         : "";
@@ -310,23 +400,9 @@ function setupFileSelect(): void {
     activeFilePath = (e.target as HTMLSelectElement).value;
     loadActiveResource();
     selectedNode = undefined;
-    refreshTree();
-    refreshAnnotationEditor();
-    updatePathLabel();
+    resetFacets();
+    refreshWorkspace();
     setStatus(`Editing ${activeFilePath}`);
-  });
-}
-
-function setupAnnotationActions(): void {
-  $("add-annotation-btn")?.addEventListener("click", () => addAnnotationRow());
-  $("language-select")?.addEventListener("change", (e) => {
-    language = (e.target as HTMLSelectElement).value;
-    refreshAnnotationEditor();
-  });
-  $("download-adl-btn")?.addEventListener("click", () => {
-    if (!activeResource || !activeFilePath) return;
-    const text = serializeAnnotatedResource(activeResource);
-    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
   });
 }
 
@@ -377,16 +453,19 @@ function downloadText(content: string, filename: string): void {
   URL.revokeObjectURL(a.href);
 }
 
-function setupResize(): void {
-  window.addEventListener("resize", () => treeView?.resize());
+function setupDownload(): void {
+  $("download-adl-btn")?.addEventListener("click", () => {
+    if (!activeResource || !activeFilePath) return;
+    const text = serializeAnnotatedResource(activeResource);
+    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
+  });
 }
 
-export function reloadUi(): void {
-  loadActiveResource();
-  refreshFileSelect();
-  refreshTree();
-  refreshAnnotationEditor();
-  updatePathLabel();
+function setupFilter(): void {
+  $("tree-filter")?.addEventListener("input", (e) => {
+    filterText = (e.target as HTMLInputElement).value;
+    refreshTree();
+  });
 }
 
 function setupLocalFiles(): void {
@@ -401,6 +480,7 @@ function setupLocalFiles(): void {
     }
     const editable = listEditableFiles();
     activeFilePath = editable[0]?.path;
+    resetFacets();
     refreshFileSelect();
     reloadUi();
     setStatus(`Loaded ${files.length} local file(s)`);
@@ -408,15 +488,21 @@ function setupLocalFiles(): void {
   });
 }
 
+export function reloadUi(): void {
+  loadActiveResource();
+  refreshFileSelect();
+  refreshWorkspace();
+}
+
 export function initApp(): void {
   setupLoadBar();
   setupFileSelect();
-  setupAnnotationActions();
   setupPaletteActions();
+  setupDownload();
+  setupFilter();
   setupLocalFiles();
-  setupResize();
   refreshPaletteUi();
-  updatePathLabel();
+  renderLegend();
   setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 

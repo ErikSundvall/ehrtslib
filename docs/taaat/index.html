@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta
       name="description"
-      content="TAAAT — Template and Archetype Annotation Tool for openEHR models"
+      content="TAAAT — Template &amp; Archetype Annotation Tool for openEHR models"
     >
     <title>TAAAT — Template &amp; Archetype Annotation Tool</title>
     <link rel="stylesheet" href="styles.css">
@@ -18,7 +18,6 @@
         <nav class="header-nav">
           <a href="../">ehrtslib home</a>
           <a href="../demo/">Format converter demo</a>
-          <a href="./prototype.html">UI prototypes</a>
           <a href="https://specifications.openehr.org/" target="_blank" rel="noopener"
           >openEHR specs</a>
         </nav>
@@ -59,63 +58,86 @@
       <select id="file-select" class="file-select" aria-label="Active file in workspace">
         <option value="">—</option>
       </select>
+      <button type="button" id="download-adl-btn" class="btn btn-secondary btn-sm">
+        Download ADL
+      </button>
+    </section>
+
+    <section class="facet-legend" id="facet-legend" aria-label="Annotation facets">
+      <div class="legend-block">
+        <h2>Languages</h2>
+        <p class="legend-hint">Outline colour. Click to show/hide pills from that language bag.</p>
+        <div id="legend-languages" class="legend-pills"></div>
+      </div>
+      <div class="legend-block">
+        <h2>Families</h2>
+        <p class="legend-hint">Fill colour. Click to show/hide a key-prefix family.</p>
+        <div id="legend-families" class="legend-pills"></div>
+      </div>
+      <p class="legend-refs">
+        Families are dotted key prefixes such as
+        <code>L10n.</code>
+        (<a
+          href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760"
+          target="_blank"
+          rel="noopener"
+        >OPT multilingual workaround</a>)
+        and
+        <code>a.</code>
+        (<a
+          href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19"
+          target="_blank"
+          rel="noopener"
+        >UI-hint / automation annotations</a>).
+        Unprefixed keys (<code>comment</code>, <code>design note</code>, <code>ui</code>) stay in their own family.
+      </p>
     </section>
 
     <main class="workspace">
       <aside class="panel tree-panel" aria-label="Definition tree">
-        <h2>Definition tree</h2>
-        <p class="hint">Nodes with annotations show a filled marker and count.</p>
+        <div class="tree-toolbar">
+          <h2>Definition tree</h2>
+          <input
+            type="search"
+            id="tree-filter"
+            class="tree-filter"
+            placeholder="Filter nodes…"
+            autocomplete="off"
+          >
+        </div>
+        <p class="hint">
+          Every node stays visible. Pills show annotation values from every enabled
+          language bag; extra pills wrap onto more rows.
+        </p>
         <div id="tree-container" class="tree-container"></div>
       </aside>
 
-      <section class="panel detail-panel" aria-label="Annotations">
-        <h2>Annotations</h2>
-        <p id="selected-path" class="selected-path"></p>
-        <div class="lang-row">
-          <label for="language-select">Language</label>
-          <select id="language-select">
-            <option value="en" selected>en</option>
-            <option value="sv">sv</option>
-            <option value="de">de</option>
-          </select>
-          <button type="button" id="add-annotation-btn" class="btn btn-secondary btn-sm">
-            Add row
-          </button>
-          <button type="button" id="download-adl-btn" class="btn btn-secondary btn-sm">
-            Download ADL
-          </button>
-        </div>
-        <table class="annotation-table">
-          <thead>
-            <tr>
-              <th>Key</th>
-              <th>Value</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="annotation-rows"></tbody>
-        </table>
+      <section class="panel detail-panel" aria-label="Annotation families">
+        <header class="inspector-head">
+          <h2 id="selected-title">Annotations</h2>
+          <p id="selected-path" class="selected-path">Select a node in the tree</p>
+        </header>
+        <div id="family-accordions" class="family-accordions"></div>
+        <aside class="palette-panel" aria-label="Annotation palette">
+          <h3>Favourites</h3>
+          <p class="hint">Saved in this browser. Apply adds the key on the selected node in every enabled language bag.</p>
+          <ul id="palette-list" class="palette-list"></ul>
+          <div class="palette-add">
+            <input type="text" id="palette-key" placeholder="Key" class="palette-input">
+            <input type="text" id="palette-value" placeholder="Value (optional)" class="palette-input">
+            <button type="button" id="palette-add-btn" class="btn btn-secondary btn-sm">Add</button>
+          </div>
+          <div class="palette-io">
+            <button type="button" id="palette-download-btn" class="btn btn-secondary btn-sm">
+              Export palette
+            </button>
+            <label class="btn btn-secondary btn-sm upload-label">
+              Import palette
+              <input type="file" id="palette-upload-input" accept="application/json,.json" hidden>
+            </label>
+          </div>
+        </aside>
       </section>
-
-      <aside class="panel palette-panel" aria-label="Annotation palette">
-        <h2>Favourites</h2>
-        <p class="hint">Saved in this browser. Import/export JSON lists.</p>
-        <ul id="palette-list" class="palette-list"></ul>
-        <div class="palette-add">
-          <input type="text" id="palette-key" placeholder="Key" class="palette-input">
-          <input type="text" id="palette-value" placeholder="Value (optional)" class="palette-input">
-          <button type="button" id="palette-add-btn" class="btn btn-secondary btn-sm">Add</button>
-        </div>
-        <div class="palette-io">
-          <button type="button" id="palette-download-btn" class="btn btn-secondary btn-sm">
-            Export palette
-          </button>
-          <label class="btn btn-secondary btn-sm upload-label">
-            Import palette
-            <input type="file" id="palette-upload-input" accept="application/json,.json" hidden>
-          </label>
-        </div>
-      </aside>
     </main>
 
     <footer id="status-bar" class="status-bar" role="status"></footer>

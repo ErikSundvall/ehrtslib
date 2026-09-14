@@ -6,7 +6,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 
 Deno.test({
-  name: "TAAAT UI loads and edits local archetype annotations",
+  name: "TAAAT UI loads outline, pills, and family accordion",
   async fn() {
     const { chromium } = await import("npm:playwright@1.50.1");
     const baseUrl = Deno.env.get("TAAAT_BASE_URL") ?? "http://127.0.0.1:8765";
@@ -27,6 +27,7 @@ Deno.test({
 
     await page.waitForSelector("#load-github-btn");
     await page.waitForSelector("#tree-container");
+    await page.waitForSelector("#facet-legend");
 
     await page.evaluate(async (adlText: string) => {
       const t = (globalThis as { __TAAAT__?: {
@@ -40,22 +41,35 @@ Deno.test({
       t.reloadUi();
     }, testAdl);
 
-    await page.waitForSelector(".definition-tree-svg .node", { timeout: 8000 });
+    await page.waitForSelector(".outline-row", { timeout: 8000 });
+    const nodeCount = await page.locator(".outline-row").count();
+    assert(nodeCount >= 1, "expected at least one outline row");
 
-    const nodeCount = await page.locator(".definition-tree-svg .node").count();
-    assert(nodeCount >= 1, "expected at least one tree node");
+    await page.locator(".outline-row").first().click();
+    await page.waitForSelector(".family-acc");
+    const famCount = await page.locator(".family-acc").count();
+    assert(famCount >= 3, "expected L10n, a., and unprefixed family sections");
 
-    await page.locator(".definition-tree-svg .node").first().click();
-    await page.click("#add-annotation-btn");
-    const keyInput = page.locator("#annotation-rows tr:last-child .ann-key");
-    const valInput = page.locator("#annotation-rows tr:last-child .ann-value");
-    await keyInput.fill("smoke-key");
-    await valInput.fill("smoke-value");
-    await keyInput.blur();
+    const l10nAdd = page.locator(".family-acc").first().locator("button", { hasText: "Add key" });
+    await l10nAdd.click();
+    const valInput = page.locator(".family-acc").first().locator("tbody input").nth(1);
+    await valInput.fill("smoke-l10n");
     await valInput.blur();
+
+    await page.waitForSelector(".ann-pill");
+    const pillCount = await page.locator(".ann-pill").count();
+    assert(pillCount >= 1, "expected annotation pills on the tree row");
+
+    const legendLangs = await page.locator("#legend-languages .legend-chip").count();
+    assert(legendLangs >= 1, "language legend should list bags");
 
     const paletteCount = await page.locator("#palette-list li").count();
     assert(paletteCount >= 1, "palette should list favourites");
+
+    const l10nHref = await page.locator(".legend-refs a").first().getAttribute("href");
+    assert(l10nHref?.includes("2760") === true, "legend should cite L10n discourse post");
+    const hintsHref = await page.locator(".legend-refs a").nth(1).getAttribute("href");
+    assert(hintsHref?.includes("2406") === true, "legend should cite UI-hints post 19");
 
     assertEquals(pageErrors.length, 0, `page errors: ${pageErrors.join("; ")}`);
     await browser.close();
