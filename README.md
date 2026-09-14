@@ -1,6 +1,8 @@
 # ehrtslib (Electronic Health Record TypeScript Library)
 
-[Experimental website](https://eriksundvall.github.io/ehrtslib) · [Live demo](https://eriksundvall.github.io/ehrtslib/demo)
+[Experimental website](https://eriksundvall.github.io/ehrtslib) · [Live demo](https://eriksundvall.github.io/ehrtslib/demo) · [TAAAT](https://eriksundvall.github.io/ehrtslib/taaat)
+
+Frozen demo / TAAAT releases stay at `/demo-vX.Y/` and `/taaat-vX.Y/` when newer builds ship ([releases](docs/maintainers/releases.md)).
 
 TypeScript library for (to begin with) openEHR — usable in browsers and on Deno/Node. Import only what you need; rely on tree-shaking for client bundles.
 
@@ -57,6 +59,7 @@ const result = validator.validate(rmInstance, template);
 
 - Deno scripts: [examples/README.md](examples/README.md)
 - Browser converter: [examples/demo-app/README.md](examples/demo-app/README.md) — primary clinical models from [Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples)
+- TAAAT: [examples/taaat-app/README.md](examples/taaat-app/README.md)
 - Roadmap: [docs/maintainers/roadmap.md](docs/maintainers/roadmap.md)
 
 
