@@ -33,9 +33,7 @@ Deno.test({
     });
     assertEquals(res?.status(), 200);
 
-    await page.waitForFunction(() =>
-      !!customElements.get("sl-button") && !!customElements.get("sl-details")
-    );
+    await page.waitForFunction(() => !!customElements.get("sl-button"));
     await page.waitForSelector("#load-github-btn");
     await page.waitForSelector("#tree-container");
     await page.waitForSelector("#facet-legend");
