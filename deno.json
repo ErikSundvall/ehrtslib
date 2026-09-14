@@ -24,6 +24,8 @@
     "generate:symbol-table": "deno run --allow-read --allow-write serialization/zipehr/gen_symbol_table.ts",
     "build:demo": "deno run -A examples/demo-app/scripts/build.ts",
     "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts",
-    "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts"
+    "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts",
+    "dev:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
+    "proto:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts"
   }
 }
