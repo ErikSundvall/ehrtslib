@@ -72,6 +72,12 @@ A **path annotation** whose key is `L10n.{language}` and whose value is the tran
 
 _Avoid_: term definition, name constraint, localizedNames (web-template projection of the same idea)
 
+## Annotation family
+
+Dotted **path annotation** key prefix that groups related keys: `L10n.` (translated occurrence names for OPT export) and `a.` (automation / UI-hint keys such as `a.id` and `a.rule`). Keys without a prefix (`comment`, `design note`, `ui`) are unprefixed.
+
+_Avoid_: tag, namespace (except as informal synonym), category
+
 ## Example dialogue
 
 > **Modeller:** The template uses `SECTION.adhoc` twice — “Medical equipment at home” and “Social situation”. Swedish labels vanish in the OPT.

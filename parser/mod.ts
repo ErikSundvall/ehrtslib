@@ -97,6 +97,20 @@ export {
   type ApplyL10nResult,
 } from "./l10n_annotation_generate.ts";
 export {
+  annotationFamily,
+  familyFillColor,
+  familyLegendLabel,
+  flattenDefinitionTree,
+  KNOWN_FAMILIES,
+  languageOutlineColor,
+  listFamilies,
+  listLanguageBags,
+  l10nSourcesFromTree,
+  pillsAtPath,
+  UNPREFIXED_FAMILY,
+  type AnnotationPill,
+} from "./annotation_families.ts";
+export {
   collectTemplateJsonOverlayIds,
   collectTemplateJsonExternalRefs,
   collectTemplateJsonExternalRefsFromText,

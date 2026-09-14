@@ -173,6 +173,26 @@ function readAttributeChildren(
   return children ?? [];
 }
 
+function childrenOfComplex(
+  obj: openehr_am.C_COMPLEX_OBJECT,
+  parentPath: string,
+  doc: AnnotationDocumentation | undefined,
+): DefinitionTreeNode[] {
+  const children: DefinitionTreeNode[] = [];
+  for (const attr of readAttributes(obj)) {
+    const attrName = attr.rm_attribute_name ?? "attr";
+    for (const child of readAttributeChildren(attr)) {
+      const childPath = joinConstraintPath(
+        parentPath,
+        attrName,
+        child.node_id ?? "?",
+      );
+      children.push(buildObjectSubtree(child, childPath, doc));
+    }
+  }
+  return children;
+}
+
 function buildObjectSubtree(
   obj: openehr_am.C_OBJECT,
   parentPath: string,
@@ -195,25 +215,13 @@ function buildObjectSubtree(
       annotationKeyCount: keyCount,
       isArchetypeRoot: true,
       archetypeRef: ref,
-      children: [],
+      children: childrenOfComplex(obj, parentPath, doc),
     };
   }
 
   if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
     const path = parentPath;
     const keyCount = countAnnotationKeysAtPath(doc, path);
-    const children: DefinitionTreeNode[] = [];
-    for (const attr of readAttributes(obj)) {
-      const attrName = attr.rm_attribute_name ?? "attr";
-      for (const child of readAttributeChildren(attr)) {
-        const childPath = joinConstraintPath(
-          parentPath,
-          attrName,
-          child.node_id ?? "?",
-        );
-        children.push(buildObjectSubtree(child, childPath, doc));
-      }
-    }
     const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
     return {
       id: path || "/root",
@@ -223,7 +231,7 @@ function buildObjectSubtree(
       nodeId: obj.node_id,
       hasAnnotations: keyCount > 0,
       annotationKeyCount: keyCount,
-      children,
+      children: childrenOfComplex(obj, parentPath, doc),
     };
   }
 
