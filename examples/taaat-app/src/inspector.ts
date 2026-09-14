@@ -8,14 +8,17 @@ import type {
   DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
+  annotationPathOf,
   getPathAnnotations,
   removePathAnnotation,
   setPathAnnotation,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   annotationFamily,
+  documentationViewForTree,
   familyFillColor,
   familyLegendLabel,
+  flattenDefinitionTree,
   l10nSourcesFromTree,
   languageOutlineColor,
   listFamilies,
@@ -24,7 +27,6 @@ import {
   UNPREFIXED_FAMILY,
 } from "../../../parser/annotation_families.ts";
 import {
-  applyL10nWrites,
   type L10nWrite,
   proposeL10nWrites,
 } from "../../../parser/l10n_annotation_generate.ts";
@@ -65,6 +67,10 @@ export interface InspectorOptions {
   enabledLanguages: Set<string>;
   state: InspectorState;
   onChange: () => void;
+  resourceForNode?: (node: DefinitionTreeNode) => AnnotatedResource;
+  documentationForNode?: (
+    node: DefinitionTreeNode,
+  ) => AnnotationDocumentation | undefined;
 }
 
 function familyHelp(family: string): string {
@@ -95,9 +101,10 @@ function renderRowsForFamily(
   body: HTMLElement,
 ): void {
   const { resource, node, doc, languages, enabledLanguages, onChange } = opts;
+  const path = annotationPathOf(node);
   const bags = languages.filter((l) => enabledLanguages.has(l));
   const writeBags = bags.length ? bags : languages;
-  const pills = pillsAtPath(doc, node.path).filter((p) => p.family === family);
+  const pills = pillsAtPath(doc, path).filter((p) => p.family === family);
   const keys = [...new Set(pills.map((p) => p.key))];
 
   const table = document.createElement("table");
@@ -123,7 +130,7 @@ function renderRowsForFamily(
     for (const lang of writeBags) {
       const td = document.createElement("td");
       const inp = document.createElement("input");
-      inp.value = getPathAnnotations(doc, node.path, lang)[key] ?? "";
+      inp.value = getPathAnnotations(doc, path, lang)[key] ?? "";
       inp.style.borderLeft = `3px solid ${languageOutlineColor(lang)}`;
       values[lang] = inp;
       td.appendChild(inp);
@@ -138,7 +145,7 @@ function renderRowsForFamily(
     del.addEventListener("click", () => {
       const k = keyInp.value.trim() || key;
       for (const lang of writeBags) {
-        removePathAnnotation(resource, node.path, k, lang);
+        removePathAnnotation(resource, path, k, lang);
       }
       onChange();
     });
@@ -153,13 +160,13 @@ function renderRowsForFamily(
       }
       if (nextKey !== key) {
         for (const lang of writeBags) {
-          removePathAnnotation(resource, node.path, key, lang);
+          removePathAnnotation(resource, path, key, lang);
         }
       }
       for (const lang of writeBags) {
         setPathAnnotation(
           resource,
-          node.path,
+          path,
           nextKey,
           values[lang].value,
           lang,
@@ -199,13 +206,11 @@ function renderRowsForFamily(
     let key = defaultKey;
     let n = 2;
     while (
-      writeBags.some((l) =>
-        getPathAnnotations(doc, node.path, l)[key] !== undefined
-      )
+      writeBags.some((l) => getPathAnnotations(doc, path, l)[key] !== undefined)
     ) {
       key = `${defaultKey}-${n++}`;
     }
-    setOnEnabledBags(resource, node.path, key, "", writeBags);
+    setOnEnabledBags(resource, path, key, "", writeBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -242,8 +247,10 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
     });
   });
   const run = (apply: boolean) => {
-    const sources = l10nSourcesFromTree(opts.tree, opts.doc);
-    const writes = proposeL10nWrites(opts.doc, sources, {
+    const getDoc = opts.documentationForNode ?? (() => opts.doc);
+    const viewDoc = documentationViewForTree(opts.tree, getDoc);
+    const sources = l10nSourcesFromTree(opts.tree, viewDoc);
+    const writes = proposeL10nWrites(viewDoc, sources, {
       languageBags: opts.languages,
       overwrite: opts.state.overwriteL10n,
       repeatedOccurrencesOnly: opts.state.repeatedOnly,
@@ -251,7 +258,19 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
     });
     opts.state.lastWrites = writes;
     if (apply) {
-      applyL10nWrites(opts.doc, writes, opts.state.overwriteL10n);
+      for (const w of writes) {
+        if (w.kind === "unchanged") continue;
+        if (w.kind === "conflict" && !opts.state.overwriteL10n) continue;
+        if (!/^L10n\./i.test(w.key)) continue;
+        const targetNode = flattenDefinitionTree(opts.tree).find((n) =>
+          n.path === w.path
+        );
+        const owner = targetNode && opts.resourceForNode
+          ? opts.resourceForNode(targetNode)
+          : opts.resource;
+        const writePath = targetNode ? annotationPathOf(targetNode) : w.path;
+        setPathAnnotation(owner, writePath, w.key, w.value, w.languageBag);
+      }
       opts.onChange();
       return;
     }
@@ -309,7 +328,9 @@ export function renderInspector(opts: InspectorOptions): void {
       else state.openFamilies.delete(family);
     });
     const summary = document.createElement("summary");
-    const count = pillsAtPath(doc, node.path).filter((p) => p.family === family)
+    const count = pillsAtPath(doc, annotationPathOf(node)).filter((p) =>
+      p.family === family
+    )
       .length;
     summary.innerHTML = `
       <span class="family-swatch" style="background:${
@@ -325,7 +346,9 @@ export function renderInspector(opts: InspectorOptions): void {
     help.innerHTML = familyHelp(family);
     body.appendChild(help);
     renderRowsForFamily(opts, family, body);
-    if (family === "L10n.") renderL10nGenerate(opts, body);
+    if (family === "L10n.") {
+      renderL10nGenerate(opts, body);
+    }
     details.append(summary, body);
     host.appendChild(details);
   }

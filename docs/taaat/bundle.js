@@ -15600,7 +15600,9 @@ function parseTemplateJson(source) {
   warnings.push(...collectBetterJsonLintWarnings(raw));
   const type = jsonType(root);
   if (type === "OPERATIONAL_TEMPLATE") {
-    warnings.push("JSON operational template treated as template for flattening");
+    warnings.push(
+      "JSON operational template treated as template for flattening"
+    );
   }
   const template = parseTemplateObject(root, warnings);
   const overlays = [];
@@ -15609,7 +15611,9 @@ function parseTemplateJson(source) {
       continue;
     const rec = raw2;
     if (jsonType(rec) !== "TEMPLATE_OVERLAY") {
-      warnings.push(`Skipped non-overlay in templateOverlays: ${jsonType(rec)}`);
+      warnings.push(
+        `Skipped non-overlay in templateOverlays: ${jsonType(rec)}`
+      );
       continue;
     }
     overlays.push(parseTemplateOverlay(rec, warnings));
@@ -15642,10 +15646,16 @@ function applyAuthoredArchetypeFields(target, root, warnings) {
   target.parent_archetype_id = parseArchetypeIdField(
     root.parentArchetypeId ?? root.parent_archetype_id
   );
-  if (root.adlVersion !== void 0)
+  if (root.adlVersion !== void 0) {
     target.adl_version = String(root.adlVersion);
-  if (root.adl_version !== void 0)
+  }
+  if (root.adl_version !== void 0) {
     target.adl_version = String(root.adl_version);
+  }
+  const annotations = root.annotations;
+  if (annotations && typeof annotations === "object") {
+    applyAnnotationsOdin(target, annotations);
+  }
   const def = root.definition;
   if (def && typeof def === "object") {
     target.definition = parseCObject(
@@ -15654,7 +15664,10 @@ function applyAuthoredArchetypeFields(target, root, warnings) {
   }
   const term = root.terminology;
   if (term && typeof term === "object") {
-    target.ontology = parseJsonOntology(term, warnings);
+    target.ontology = parseJsonOntology(
+      term,
+      warnings
+    );
   }
   const originalLanguage = root.originalLanguage ?? root.original_language;
   if (originalLanguage && typeof originalLanguage === "object") {
@@ -17299,6 +17312,9 @@ var ADL2Serializer = class {
 };
 
 // parser/clinical_model_annotations.ts
+function annotationPathOf(node) {
+  return node.annotationPath ?? node.path;
+}
 function asAnnotationDocumentation(doc) {
   if (!doc || typeof doc !== "object")
     return void 0;
@@ -17366,7 +17382,17 @@ function readAttributeChildren(attr) {
   const children = attr.children;
   return children ?? [];
 }
-function childrenOfComplex(obj, parentPath, doc) {
+function overlayRelativePath(fullPath, overlayRootPath) {
+  if (!overlayRootPath)
+    return void 0;
+  if (fullPath === overlayRootPath)
+    return "";
+  if (fullPath.startsWith(overlayRootPath)) {
+    return fullPath.slice(overlayRootPath.length);
+  }
+  return void 0;
+}
+function childrenOfComplex(obj, parentPath, doc, ctx) {
   const children = [];
   for (const attr of readAttributes(obj)) {
     const attrName = attr.rm_attribute_name ?? "attr";
@@ -17376,18 +17402,45 @@ function childrenOfComplex(obj, parentPath, doc) {
         attrName,
         child.node_id ?? "?"
       );
-      children.push(buildObjectSubtree(child, childPath, doc));
+      children.push(buildObjectSubtree(child, childPath, doc, ctx));
     }
   }
   return children;
 }
-function buildObjectSubtree(obj, parentPath, doc) {
+function finishNode(node, ctx) {
+  const annotationPath = overlayRelativePath(node.path, ctx.overlayRootPath);
+  if (ctx.overlayId)
+    node.overlayId = ctx.overlayId;
+  if (annotationPath !== void 0)
+    node.annotationPath = annotationPath;
+  return node;
+}
+function buildObjectSubtree(obj, parentPath, doc, ctx) {
   if (obj instanceof C_ARCHETYPE_ROOT) {
     const path2 = parentPath;
     const keyCount2 = countAnnotationKeysAtPath(doc, path2);
     const ref = obj.archetype_ref;
     const label = ref ? `use ${ref}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    return {
+    let children = childrenOfComplex(obj, parentPath, doc, ctx);
+    if (!children.length && ref && ctx.resolveArchetype) {
+      const filled = ctx.resolveArchetype(ref);
+      const overlayDef = filled?.definition;
+      if (overlayDef) {
+        const overlayDoc = getResourceDocumentation(filled);
+        const overlayCtx = {
+          resolveArchetype: ctx.resolveArchetype,
+          overlayId: filled.archetype_id?.value ?? ref,
+          overlayRootPath: path2
+        };
+        children = childrenOfComplex(
+          overlayDef,
+          parentPath,
+          overlayDoc,
+          overlayCtx
+        );
+      }
+    }
+    return finishNode({
       id: path2 || "/root",
       path: path2,
       label,
@@ -17397,14 +17450,15 @@ function buildObjectSubtree(obj, parentPath, doc) {
       annotationKeyCount: keyCount2,
       isArchetypeRoot: true,
       archetypeRef: ref,
-      children: childrenOfComplex(obj, parentPath, doc)
-    };
+      children
+    }, ctx);
   }
   if (obj instanceof C_COMPLEX_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
+    const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
+    const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
     const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
-    return {
+    return finishNode({
       id: path2 || "/root",
       path: path2,
       label,
@@ -17412,13 +17466,14 @@ function buildObjectSubtree(obj, parentPath, doc) {
       nodeId: obj.node_id,
       hasAnnotations: keyCount2 > 0,
       annotationKeyCount: keyCount2,
-      children: childrenOfComplex(obj, parentPath, doc)
-    };
+      children: childrenOfComplex(obj, parentPath, doc, ctx)
+    }, ctx);
   }
   if (obj instanceof C_PRIMITIVE_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
-    return {
+    const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
+    const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
+    return finishNode({
       id: path2,
       path: path2,
       label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
@@ -17427,25 +17482,28 @@ function buildObjectSubtree(obj, parentPath, doc) {
       hasAnnotations: keyCount2 > 0,
       annotationKeyCount: keyCount2,
       children: []
-    };
+    }, ctx);
   }
   const path = parentPath;
-  const keyCount = countAnnotationKeysAtPath(doc, path);
-  return {
+  const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
+  const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
+  return finishNode({
     id: path || "/unknown",
     path,
     label: "constraint",
     hasAnnotations: keyCount > 0,
     annotationKeyCount: keyCount,
     children: []
-  };
+  }, ctx);
 }
-function buildDefinitionTree(resource) {
+function buildDefinitionTree(resource, options = {}) {
   const definition = resource.definition;
   if (!definition)
     return void 0;
   const doc = getResourceDocumentation(resource);
-  return buildObjectSubtree(definition, "", doc);
+  return buildObjectSubtree(definition, "", doc, {
+    resolveArchetype: options.resolveArchetype
+  });
 }
 function serializeAnnotatedResource(resource) {
   return new ADL2Serializer().serialize(resource);
@@ -17528,6 +17586,37 @@ function flattenDefinitionTree(node, out = []) {
   out.push(node);
   for (const child of node.children)
     flattenDefinitionTree(child, out);
+  return out;
+}
+function mergeDocumentation(docs) {
+  const out = {};
+  for (const doc of docs) {
+    if (!doc)
+      continue;
+    for (const [lang, paths] of Object.entries(doc)) {
+      out[lang] ??= {};
+      for (const [path, keys] of Object.entries(paths ?? {})) {
+        out[lang][path] = { ...out[lang][path], ...keys };
+      }
+    }
+  }
+  return out;
+}
+function documentationViewForTree(tree, getDoc) {
+  const out = {};
+  for (const node of flattenDefinitionTree(tree)) {
+    const src = getDoc(node);
+    if (!src)
+      continue;
+    const srcPath = annotationPathOf(node);
+    for (const [lang, paths] of Object.entries(src)) {
+      const items = paths?.[srcPath];
+      if (!items)
+        continue;
+      out[lang] ??= {};
+      out[lang][node.path] = { ...out[lang][node.path], ...items };
+    }
+  }
   return out;
 }
 function l10nSourcesFromTree(tree, doc) {
@@ -17688,8 +17777,9 @@ function renderOutline(options) {
     if (node.isArchetypeRoot)
       row.classList.add("is-archetype-root");
     row.style.setProperty("--depth", String(depthOf(node.path)));
+    const ownerDoc = options.documentationForNode?.(node) ?? doc;
     const pills = visiblePills(
-      pillsAtPath(doc, node.path),
+      pillsAtPath(ownerDoc, annotationPathOf(node)),
       options.enabledLanguages,
       options.enabledFamilies
     );
@@ -17800,36 +17890,6 @@ function proposeL10nWrites(doc, nodes, options) {
   }
   return writes;
 }
-function applyL10nWrites(doc, writes, overwrite = false) {
-  const result = {
-    applied: 0,
-    skippedUnchanged: 0,
-    skippedConflict: 0,
-    skippedNonL10n: 0
-  };
-  for (const write of writes) {
-    if (!isL10nKey(write.key)) {
-      result.skippedNonL10n++;
-      continue;
-    }
-    if (write.kind === "unchanged") {
-      result.skippedUnchanged++;
-      continue;
-    }
-    if (write.kind === "conflict" && !overwrite) {
-      result.skippedConflict++;
-      continue;
-    }
-    if (!doc[write.languageBag])
-      doc[write.languageBag] = {};
-    if (!doc[write.languageBag][write.path]) {
-      doc[write.languageBag][write.path] = {};
-    }
-    doc[write.languageBag][write.path][write.key] = write.value;
-    result.applied++;
-  }
-  return result;
-}
 
 // examples/taaat-app/src/inspector.ts
 function createInspectorState() {
@@ -17860,9 +17920,10 @@ function setOnEnabledBags(resource, path, key, value, bags) {
 }
 function renderRowsForFamily(opts, family, body) {
   const { resource, node, doc, languages, enabledLanguages: enabledLanguages2, onChange } = opts;
+  const path = annotationPathOf(node);
   const bags = languages.filter((l2) => enabledLanguages2.has(l2));
   const writeBags = bags.length ? bags : languages;
-  const pills = pillsAtPath(doc, node.path).filter((p2) => p2.family === family);
+  const pills = pillsAtPath(doc, path).filter((p2) => p2.family === family);
   const keys = [...new Set(pills.map((p2) => p2.key))];
   const table = document.createElement("table");
   table.className = "family-table";
@@ -17882,7 +17943,7 @@ function renderRowsForFamily(opts, family, body) {
     for (const lang of writeBags) {
       const td = document.createElement("td");
       const inp = document.createElement("input");
-      inp.value = getPathAnnotations(doc, node.path, lang)[key] ?? "";
+      inp.value = getPathAnnotations(doc, path, lang)[key] ?? "";
       inp.style.borderLeft = `3px solid ${languageOutlineColor(lang)}`;
       values[lang] = inp;
       td.appendChild(inp);
@@ -17897,7 +17958,7 @@ function renderRowsForFamily(opts, family, body) {
     del.addEventListener("click", () => {
       const k2 = keyInp.value.trim() || key;
       for (const lang of writeBags) {
-        removePathAnnotation(resource, node.path, k2, lang);
+        removePathAnnotation(resource, path, k2, lang);
       }
       onChange();
     });
@@ -17911,13 +17972,13 @@ function renderRowsForFamily(opts, family, body) {
       }
       if (nextKey !== key) {
         for (const lang of writeBags) {
-          removePathAnnotation(resource, node.path, key, lang);
+          removePathAnnotation(resource, path, key, lang);
         }
       }
       for (const lang of writeBags) {
         setPathAnnotation(
           resource,
-          node.path,
+          path,
           nextKey,
           values[lang].value,
           lang
@@ -17949,12 +18010,10 @@ function renderRowsForFamily(opts, family, body) {
     const defaultKey = family === UNPREFIXED_FAMILY ? "comment" : family === "L10n." ? "L10n.sv" : family === "a." ? "a.id" : `${family}key`;
     let key = defaultKey;
     let n2 = 2;
-    while (writeBags.some(
-      (l2) => getPathAnnotations(doc, node.path, l2)[key] !== void 0
-    )) {
+    while (writeBags.some((l2) => getPathAnnotations(doc, path, l2)[key] !== void 0)) {
       key = `${defaultKey}-${n2++}`;
     }
-    setOnEnabledBags(resource, node.path, key, "", writeBags);
+    setOnEnabledBags(resource, path, key, "", writeBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -17981,8 +18040,10 @@ function renderL10nGenerate(opts, body) {
     });
   });
   const run = (apply) => {
-    const sources = l10nSourcesFromTree(opts.tree, opts.doc);
-    const writes = proposeL10nWrites(opts.doc, sources, {
+    const getDoc = opts.documentationForNode ?? (() => opts.doc);
+    const viewDoc = documentationViewForTree(opts.tree, getDoc);
+    const sources = l10nSourcesFromTree(opts.tree, viewDoc);
+    const writes = proposeL10nWrites(viewDoc, sources, {
       languageBags: opts.languages,
       overwrite: opts.state.overwriteL10n,
       repeatedOccurrencesOnly: opts.state.repeatedOnly,
@@ -17990,7 +18051,20 @@ function renderL10nGenerate(opts, body) {
     });
     opts.state.lastWrites = writes;
     if (apply) {
-      applyL10nWrites(opts.doc, writes, opts.state.overwriteL10n);
+      for (const w2 of writes) {
+        if (w2.kind === "unchanged")
+          continue;
+        if (w2.kind === "conflict" && !opts.state.overwriteL10n)
+          continue;
+        if (!/^L10n\./i.test(w2.key))
+          continue;
+        const targetNode = flattenDefinitionTree(opts.tree).find(
+          (n2) => n2.path === w2.path
+        );
+        const owner = targetNode && opts.resourceForNode ? opts.resourceForNode(targetNode) : opts.resource;
+        const writePath = targetNode ? annotationPathOf(targetNode) : w2.path;
+        setPathAnnotation(owner, writePath, w2.key, w2.value, w2.languageBag);
+      }
       opts.onChange();
       return;
     }
@@ -18044,7 +18118,9 @@ function renderInspector(opts) {
         state.openFamilies.delete(family);
     });
     const summary = document.createElement("summary");
-    const count = pillsAtPath(doc, node.path).filter((p2) => p2.family === family).length;
+    const count = pillsAtPath(doc, annotationPathOf(node)).filter(
+      (p2) => p2.family === family
+    ).length;
     summary.innerHTML = `
       <span class="family-swatch" style="background:${familyFillColor(family)}"></span>
       <span>${escapeHtml2(familyLegendLabel(family))}</span>
@@ -18057,8 +18133,9 @@ function renderInspector(opts) {
     help.innerHTML = familyHelp(family);
     body.appendChild(help);
     renderRowsForFamily(opts, family, body);
-    if (family === "L10n.")
+    if (family === "L10n.") {
       renderL10nGenerate(opts, body);
+    }
     details.append(summary, body);
     host.appendChild(details);
   }
@@ -18151,7 +18228,7 @@ function resetFacets() {
   knownFamilies.clear();
 }
 function syncFacets() {
-  const doc = activeResource ? getResourceDocumentation(activeResource) : void 0;
+  const doc = workspaceDocumentation();
   for (const l2 of listLanguageBags(doc, [...extraLanguageBags])) {
     if (!knownLanguages.has(l2)) {
       knownLanguages.add(l2);
@@ -18165,8 +18242,42 @@ function syncFacets() {
     }
   }
 }
+function currentTree() {
+  if (!activeResource)
+    return void 0;
+  return buildDefinitionTree(activeResource, {
+    resolveArchetype: (id) => workspace.repository.get(id)
+  });
+}
+function ownerForNode(node) {
+  if (node.overlayId) {
+    const overlay = workspace.repository.get(node.overlayId);
+    if (overlay)
+      return overlay;
+  }
+  return activeResource;
+}
+function documentationForNode(node) {
+  const owner = ownerForNode(node);
+  return owner ? getResourceDocumentation(owner) : void 0;
+}
+function workspaceDocumentation() {
+  const docs = [];
+  if (activeResource)
+    docs.push(getResourceDocumentation(activeResource));
+  const seen = /* @__PURE__ */ new Set();
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    const key = arch?.archetype_id?.value ?? id;
+    if (!arch || seen.has(key) || arch === activeResource)
+      continue;
+    seen.add(key);
+    docs.push(getResourceDocumentation(arch));
+  }
+  return mergeDocumentation(docs);
+}
 function renderLegend() {
-  const doc = activeResource ? getResourceDocumentation(activeResource) : void 0;
+  const doc = workspaceDocumentation();
   syncFacets();
   const langHost = $2("legend-languages");
   const famHost = $2("legend-families");
@@ -18239,7 +18350,7 @@ function refreshTree() {
     container.innerHTML = '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = currentTree();
   if (!tree) {
     container.innerHTML = '<p class="tree-empty">No definition tree (empty or unparsed model).</p>';
     return;
@@ -18251,6 +18362,7 @@ function refreshTree() {
     container,
     tree,
     doc: getResourceDocumentation(activeResource),
+    documentationForNode,
     selectedPath: selectedNode?.path,
     filterText,
     enabledLanguages,
@@ -18275,26 +18387,32 @@ function refreshInspector() {
     host.innerHTML = '<p class="tree-empty">Select a node to edit family sections.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = currentTree();
   if (!tree)
     return;
-  const bag = ensureResourceAnnotations(activeResource);
+  const owner = ownerForNode(selectedNode) ?? activeResource;
+  const bag = ensureResourceAnnotations(owner);
   if (title)
     title.textContent = selectedNode.label;
   if (pathEl)
     pathEl.textContent = selectedNode.path || "(definition root)";
   const languages = [
-    .../* @__PURE__ */ new Set([...currentLanguageBags(bag), ...extraLanguageBags])
+    .../* @__PURE__ */ new Set([
+      ...currentLanguageBags(workspaceDocumentation()),
+      ...extraLanguageBags
+    ])
   ];
   renderInspector({
     host,
-    resource: activeResource,
+    resource: owner,
     tree,
     node: selectedNode,
     doc: bag,
     languages,
     enabledLanguages,
     state: inspectorState,
+    resourceForNode: (node) => ownerForNode(node) ?? owner,
+    documentationForNode,
     onChange: () => {
       persistResourceToWorkspace();
       refreshWorkspace();
@@ -18323,12 +18441,13 @@ function refreshPaletteUi() {
         alert("Select a tree node first.");
         return;
       }
+      const owner = ownerForNode(selectedNode) ?? activeResource;
       const bags = [...enabledLanguages];
-      const langs = bags.length ? bags : currentLanguageBags(ensureResourceAnnotations(activeResource));
+      const langs = bags.length ? bags : currentLanguageBags(ensureResourceAnnotations(owner));
       for (const lang of langs) {
         setPathAnnotation(
-          activeResource,
-          selectedNode.path,
+          owner,
+          annotationPathOf(selectedNode),
           entry.key,
           entry.value ?? "",
           lang

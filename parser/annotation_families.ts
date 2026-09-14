@@ -5,9 +5,10 @@
  * @see https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760
  */
 
-import type {
-  AnnotationDocumentation,
-  DefinitionTreeNode,
+import {
+  type AnnotationDocumentation,
+  annotationPathOf,
+  type DefinitionTreeNode,
 } from "./clinical_model_annotations.ts";
 import type { L10nSourceNode } from "./l10n_annotation_generate.ts";
 
@@ -95,6 +96,46 @@ export function flattenDefinitionTree(
 ): DefinitionTreeNode[] {
   out.push(node);
   for (const child of node.children) flattenDefinitionTree(child, out);
+  return out;
+}
+
+/** Union language bags and paths from several documentation maps. */
+export function mergeDocumentation(
+  docs: Array<AnnotationDocumentation | undefined>,
+): AnnotationDocumentation {
+  const out: AnnotationDocumentation = {};
+  for (const doc of docs) {
+    if (!doc) continue;
+    for (const [lang, paths] of Object.entries(doc)) {
+      out[lang] ??= {};
+      for (const [path, keys] of Object.entries(paths ?? {})) {
+        out[lang][path] = { ...out[lang][path], ...keys };
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Project each node's owner documentation onto the tree `path` so L10n
+ * generation and scans can use one map.
+ */
+export function documentationViewForTree(
+  tree: DefinitionTreeNode,
+  getDoc: (node: DefinitionTreeNode) => AnnotationDocumentation | undefined,
+): AnnotationDocumentation {
+  const out: AnnotationDocumentation = {};
+  for (const node of flattenDefinitionTree(tree)) {
+    const src = getDoc(node);
+    if (!src) continue;
+    const srcPath = annotationPathOf(node);
+    for (const [lang, paths] of Object.entries(src)) {
+      const items = paths?.[srcPath];
+      if (!items) continue;
+      out[lang] ??= {};
+      out[lang][node.path] = { ...out[lang][node.path], ...items };
+    }
+  }
   return out;
 }
 

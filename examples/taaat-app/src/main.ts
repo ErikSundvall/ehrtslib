@@ -5,6 +5,8 @@
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
   type AnnotatedResource,
+  type AnnotationDocumentation,
+  annotationPathOf,
   buildDefinitionTree,
   type DefinitionTreeNode,
   ensureResourceAnnotations,
@@ -19,6 +21,7 @@ import {
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
+  mergeDocumentation,
 } from "../../../parser/annotation_families.ts";
 import {
   exportPaletteJson,
@@ -128,9 +131,7 @@ function resetFacets(): void {
 }
 
 function syncFacets(): void {
-  const doc = activeResource
-    ? getResourceDocumentation(activeResource)
-    : undefined;
+  const doc = workspaceDocumentation();
   for (const l of listLanguageBags(doc, [...extraLanguageBags])) {
     if (!knownLanguages.has(l)) {
       knownLanguages.add(l);
@@ -145,10 +146,44 @@ function syncFacets(): void {
   }
 }
 
+function currentTree(): DefinitionTreeNode | undefined {
+  if (!activeResource) return undefined;
+  return buildDefinitionTree(activeResource, {
+    resolveArchetype: (id) => workspace.repository.get(id),
+  });
+}
+
+function ownerForNode(node: DefinitionTreeNode): AnnotatedResource | undefined {
+  if (node.overlayId) {
+    const overlay = workspace.repository.get(node.overlayId);
+    if (overlay) return overlay;
+  }
+  return activeResource;
+}
+
+function documentationForNode(
+  node: DefinitionTreeNode,
+): AnnotationDocumentation | undefined {
+  const owner = ownerForNode(node);
+  return owner ? getResourceDocumentation(owner) : undefined;
+}
+
+function workspaceDocumentation(): AnnotationDocumentation {
+  const docs: Array<AnnotationDocumentation | undefined> = [];
+  if (activeResource) docs.push(getResourceDocumentation(activeResource));
+  const seen = new Set<string>();
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    const key = arch?.archetype_id?.value ?? id;
+    if (!arch || seen.has(key) || arch === activeResource) continue;
+    seen.add(key);
+    docs.push(getResourceDocumentation(arch));
+  }
+  return mergeDocumentation(docs);
+}
+
 function renderLegend(): void {
-  const doc = activeResource
-    ? getResourceDocumentation(activeResource)
-    : undefined;
+  const doc = workspaceDocumentation();
   syncFacets();
   const langHost = $("legend-languages");
   const famHost = $("legend-families");
@@ -218,7 +253,7 @@ function refreshTree(): void {
       '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = currentTree();
   if (!tree) {
     container.innerHTML =
       '<p class="tree-empty">No definition tree (empty or unparsed model).</p>';
@@ -231,6 +266,7 @@ function refreshTree(): void {
     container,
     tree,
     doc: getResourceDocumentation(activeResource),
+    documentationForNode,
     selectedPath: selectedNode?.path,
     filterText,
     enabledLanguages,
@@ -254,23 +290,29 @@ function refreshInspector(): void {
       '<p class="tree-empty">Select a node to edit family sections.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
+  const tree = currentTree();
   if (!tree) return;
-  const bag = ensureResourceAnnotations(activeResource);
+  const owner = ownerForNode(selectedNode) ?? activeResource;
+  const bag = ensureResourceAnnotations(owner);
   if (title) title.textContent = selectedNode.label;
   if (pathEl) pathEl.textContent = selectedNode.path || "(definition root)";
   const languages = [
-    ...new Set([...currentLanguageBags(bag), ...extraLanguageBags]),
+    ...new Set([
+      ...currentLanguageBags(workspaceDocumentation()),
+      ...extraLanguageBags,
+    ]),
   ];
   renderInspector({
     host,
-    resource: activeResource,
+    resource: owner,
     tree,
     node: selectedNode,
     doc: bag,
     languages,
     enabledLanguages,
     state: inspectorState,
+    resourceForNode: (node) => ownerForNode(node) ?? owner,
+    documentationForNode,
     onChange: () => {
       persistResourceToWorkspace();
       refreshWorkspace();
@@ -302,14 +344,15 @@ function refreshPaletteUi(): void {
         alert("Select a tree node first.");
         return;
       }
+      const owner = ownerForNode(selectedNode) ?? activeResource;
       const bags = [...enabledLanguages];
       const langs = bags.length
         ? bags
-        : currentLanguageBags(ensureResourceAnnotations(activeResource));
+        : currentLanguageBags(ensureResourceAnnotations(owner));
       for (const lang of langs) {
         setPathAnnotation(
-          activeResource,
-          selectedNode.path,
+          owner,
+          annotationPathOf(selectedNode),
           entry.key,
           entry.value ?? "",
           lang,

@@ -2,9 +2,10 @@
  * Fully expanded HTML outline of a definition tree, with annotation pills.
  */
 
-import type {
-  AnnotationDocumentation,
-  DefinitionTreeNode,
+import {
+  type AnnotationDocumentation,
+  annotationPathOf,
+  type DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   type AnnotationPill,
@@ -18,6 +19,10 @@ export interface OutlineRenderOptions {
   container: HTMLElement;
   tree: DefinitionTreeNode;
   doc?: AnnotationDocumentation;
+  /** Per-node documentation (overlay vs template). Defaults to `doc`. */
+  documentationForNode?: (
+    node: DefinitionTreeNode,
+  ) => AnnotationDocumentation | undefined;
   selectedPath?: string;
   filterText: string;
   enabledLanguages: Set<string>;
@@ -83,8 +88,9 @@ export function renderOutline(options: OutlineRenderOptions): void {
     if (node.path === selectedPath) row.classList.add("is-selected");
     if (node.isArchetypeRoot) row.classList.add("is-archetype-root");
     row.style.setProperty("--depth", String(depthOf(node.path)));
+    const ownerDoc = options.documentationForNode?.(node) ?? doc;
     const pills = visiblePills(
-      pillsAtPath(doc, node.path),
+      pillsAtPath(ownerDoc, annotationPathOf(node)),
       options.enabledLanguages,
       options.enabledFamilies,
     );
