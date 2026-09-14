@@ -42,6 +42,46 @@ In-memory workspace of related archetype/template/OPT/OET/`.t.json` files used t
 
 Library type `ClinicalModelWorkspace` — editable file set with `updateFileContent`, `exportFile` / `exportEntries` (for future annotation tools and download), `loadFromZipEntries`, read-only `loadFromGitHub(spec)` (whole branch tree), and `loadFromGitHubTemplateUrl(url)` (single `.t.json` + recursive dependencies).
 
+## TAAAT
+
+Template and Archetype Annotation Tool — the ehrtslib browser UI for viewing and editing **path annotations** on archetypes and templates.
+
+_Avoid_: TAAT, annotation designer, Archetype Designer
+
+## Definition tree
+
+The constraint tree of an archetype or template (`definition` and its children). It is the authored model, not a runtime composition instance.
+
+_Avoid_: composition tree, form tree, web template tree (a derived projection)
+
+## Path annotation
+
+A free-form key/value pair stored under `annotations.documentation[language][path][key]` on an archetype, template, overlay, or operational template. Keys are not part of the constraint tree.
+
+_Avoid_: comment, metadata, term definition
+
+## Annotation language bag
+
+One language compartment of **path annotations** (`documentation[language]`). Better Archetype Designer exports annotations as language-specific, so a key present only in `sv` can disappear when OPT export uses another primary language.
+
+_Avoid_: translation, terminology, ontology
+
+## L10n annotation
+
+A **path annotation** whose key is `L10n.{language}` and whose value is the translated occurrence name for that node. Workaround for ADL 1.4 OPT storing one ontology block per archetype id, which cannot hold independent translations for repeated/renamed occurrences of the same archetype.
+
+_Avoid_: term definition, name constraint, localizedNames (web-template projection of the same idea)
+
+## Example dialogue
+
+> **Modeller:** The template uses `SECTION.adhoc` twice — “Medical equipment at home” and “Social situation”. Swedish labels vanish in the OPT.
+>
+> **Dev:** That’s the OPT ontology limit. We don’t rewrite the **definition tree**. We add **L10n annotations** (`L10n.sv`, `L10n.fr`, …) on each occurrence path, and copy those keys into every **annotation language bag** so any primary-language export keeps them.
+>
+> **Modeller:** Will that overwrite my `design note` on the same node?
+>
+> **Dev:** No. Generation only writes `L10n.*` keys. Other **path annotations** and the whole constraint tree stay put.
+
 ## Library layout (hand-written vs generated)
 
 | Path | Meaning |
