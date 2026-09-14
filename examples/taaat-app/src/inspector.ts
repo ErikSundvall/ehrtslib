@@ -14,7 +14,6 @@ import {
   setPathAnnotation,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
-  annotationFamily,
   documentationViewForTree,
   familyFillColor,
   familyLegendLabel,
@@ -30,6 +29,13 @@ import {
   type L10nWrite,
   proposeL10nWrites,
 } from "../../../parser/l10n_annotation_generate.ts";
+import {
+  type SlButton,
+  type SlCheckbox,
+  type SlDetails,
+  type SlInput,
+  slEl,
+} from "./sl.ts";
 
 export interface InspectorState {
   overwriteL10n: boolean;
@@ -95,6 +101,16 @@ function setOnEnabledBags(
   }
 }
 
+function defaultKeyForFamily(family: string, languages: string[]): string {
+  if (family === UNPREFIXED_FAMILY) return "comment";
+  if (family === "L10n.") {
+    const lang = languages[0] ?? "en";
+    return `L10n.${lang}`;
+  }
+  if (family === "a.") return "a.id";
+  return `${family}key`;
+}
+
 function renderRowsForFamily(
   opts: InspectorOptions,
   family: string,
@@ -121,26 +137,31 @@ function renderRowsForFamily(
   const addRow = (key: string) => {
     const tr = document.createElement("tr");
     const keyTd = document.createElement("td");
-    const keyInp = document.createElement("input");
-    keyInp.value = key;
-    keyInp.className = "ann-key";
+    const keyInp = slEl<SlInput>("sl-input", {
+      className: "ann-key",
+      size: "small",
+      value: key,
+    });
     keyTd.appendChild(keyInp);
     tr.appendChild(keyTd);
-    const values: Record<string, HTMLInputElement> = {};
+    const values: Record<string, SlInput> = {};
     for (const lang of writeBags) {
       const td = document.createElement("td");
-      const inp = document.createElement("input");
-      inp.value = getPathAnnotations(doc, path, lang)[key] ?? "";
-      inp.style.borderLeft = `3px solid ${languageOutlineColor(lang)}`;
+      const inp = slEl<SlInput>("sl-input", {
+        size: "small",
+        value: getPathAnnotations(doc, path, lang)[key] ?? "",
+        style: `border-left: 3px solid ${languageOutlineColor(lang)}`,
+      });
       values[lang] = inp;
       td.appendChild(inp);
       tr.appendChild(td);
     }
     const delTd = document.createElement("td");
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "btn btn-sm btn-danger";
-    del.textContent = "×";
+    const del = slEl<SlButton>("sl-button", {
+      variant: "text",
+      size: "small",
+      text: "×",
+    });
     del.title = "Remove this key from enabled language bags";
     del.addEventListener("click", () => {
       const k = keyInp.value.trim() || key;
@@ -155,9 +176,6 @@ function renderRowsForFamily(
     const commit = () => {
       const nextKey = keyInp.value.trim();
       if (!nextKey) return;
-      if (annotationFamily(nextKey) !== family && key) {
-        // allow retargeting; caller refreshes
-      }
       if (nextKey !== key) {
         for (const lang of writeBags) {
           removePathAnnotation(resource, path, key, lang);
@@ -174,9 +192,9 @@ function renderRowsForFamily(
       }
       onChange();
     };
-    keyInp.addEventListener("change", commit);
+    keyInp.addEventListener("sl-change", commit);
     for (const inp of Object.values(values)) {
-      inp.addEventListener("change", commit);
+      inp.addEventListener("sl-change", commit);
     }
     tbody.appendChild(tr);
   };
@@ -191,26 +209,22 @@ function renderRowsForFamily(
     body.appendChild(table);
   }
 
-  const addBtn = document.createElement("button");
-  addBtn.type = "button";
-  addBtn.className = "btn btn-secondary btn-sm";
-  addBtn.textContent = "Add key";
+  const addBtn = slEl<SlButton>("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Add key",
+  });
   addBtn.addEventListener("click", () => {
-    const defaultKey = family === UNPREFIXED_FAMILY
-      ? "comment"
-      : family === "L10n."
-      ? "L10n.sv"
-      : family === "a."
-      ? "a.id"
-      : `${family}key`;
-    let key = defaultKey;
+    if (!writeBags.length) return;
+    const defaultKey = defaultKeyForFamily(family, languages);
+    let next = defaultKey;
     let n = 2;
     while (
-      writeBags.some((l) => getPathAnnotations(doc, path, l)[key] !== undefined)
+      writeBags.some((l) => getPathAnnotations(doc, path, l)[next] !== undefined)
     ) {
-      key = `${defaultKey}-${n++}`;
+      next = `${defaultKey}-${n++}`;
     }
-    setOnEnabledBags(resource, path, key, "", writeBags);
+    setOnEnabledBags(resource, path, next, "", writeBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -219,33 +233,61 @@ function renderRowsForFamily(
 function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
   const box = document.createElement("div");
   box.className = "l10n-generate";
-  box.innerHTML = `
-    <h4>Generate L10n annotations</h4>
-    <p class="muted">Writes only <code>L10n.*</code> keys from names already present as <code>L10n.&#123;lang&#125;</code> on repeated archetype occurrences. Other families and the constraint tree are left alone.</p>
-    <label><input type="checkbox" data-f="repeatedOnly"${
-    opts.state.repeatedOnly ? " checked" : ""
-  }> Repeated archetype occurrences only</label>
-    <label><input type="checkbox" data-f="copyToAllBags"${
-    opts.state.copyToAllBags ? " checked" : ""
-  }> Copy into every language bag</label>
-    <label><input type="checkbox" data-f="overwriteL10n"${
-    opts.state.overwriteL10n ? " checked" : ""
-  }> Overwrite existing L10n.* values that differ</label>
-    <div class="gen-actions">
-      <button type="button" class="btn" data-act="preview">Preview writes</button>
-      <button type="button" class="btn btn-primary" data-act="apply">Apply L10n</button>
-    </div>
-    <div class="gen-preview"></div>
-  `;
-  box.querySelectorAll<HTMLInputElement>("input[data-f]").forEach((inp) => {
-    inp.addEventListener("change", () => {
-      const f = inp.dataset.f as
-        | "repeatedOnly"
-        | "copyToAllBags"
-        | "overwriteL10n";
-      opts.state[f] = inp.checked;
+  const heading = document.createElement("h4");
+  heading.textContent = "Generate L10n annotations";
+  const help = document.createElement("p");
+  help.className = "muted";
+  help.innerHTML =
+    "Writes only <code>L10n.*</code> keys from names already present as <code>L10n.{lang}</code> on repeated archetype occurrences. Other families and the constraint tree are left alone.";
+  box.append(heading, help);
+
+  const flags: Array<{
+    field: "repeatedOnly" | "copyToAllBags" | "overwriteL10n";
+    label: string;
+  }> = [
+    {
+      field: "repeatedOnly",
+      label: "Repeated archetype occurrences only",
+    },
+    {
+      field: "copyToAllBags",
+      label: "Copy into every language bag",
+    },
+    {
+      field: "overwriteL10n",
+      label: "Overwrite existing L10n.* values that differ",
+    },
+  ];
+  for (const flag of flags) {
+    const cb = slEl<SlCheckbox>("sl-checkbox", {
+      checked: opts.state[flag.field],
+      text: flag.label,
     });
+    cb.addEventListener("sl-change", () => {
+      opts.state[flag.field] = cb.checked;
+    });
+    box.appendChild(cb);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "gen-actions";
+  const previewBtn = slEl<SlButton>("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Preview writes",
   });
+  const applyBtn = slEl<SlButton>("sl-button", {
+    variant: "primary",
+    size: "small",
+    text: "Apply L10n",
+  });
+  actions.append(previewBtn, applyBtn);
+  box.appendChild(actions);
+
+  const preview = document.createElement("div");
+  preview.className = "gen-preview";
+  box.appendChild(preview);
+
   const run = (apply: boolean) => {
     const getDoc = opts.documentationForNode ?? (() => opts.doc);
     const viewDoc = documentationViewForTree(opts.tree, getDoc);
@@ -274,21 +316,12 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
       opts.onChange();
       return;
     }
-    paintPreview(box.querySelector(".gen-preview") as HTMLElement, writes);
+    paintPreview(preview, writes);
   };
-  box.querySelector("[data-act=preview]")?.addEventListener(
-    "click",
-    () => run(false),
-  );
-  box.querySelector("[data-act=apply]")?.addEventListener(
-    "click",
-    () => run(true),
-  );
+  previewBtn.addEventListener("click", () => run(false));
+  applyBtn.addEventListener("click", () => run(true));
   if (opts.state.lastWrites.length) {
-    paintPreview(
-      box.querySelector(".gen-preview") as HTMLElement,
-      opts.state.lastWrites,
-    );
+    paintPreview(preview, opts.state.lastWrites);
   }
   body.appendChild(box);
 }
@@ -320,18 +353,22 @@ export function renderInspector(opts: InspectorOptions): void {
   const families = listFamilies(doc);
   host.innerHTML = "";
   for (const family of families) {
-    const details = document.createElement("details");
-    details.className = "family-acc";
-    details.open = state.openFamilies.has(family);
-    details.addEventListener("toggle", () => {
-      if (details.open) state.openFamilies.add(family);
-      else state.openFamilies.delete(family);
+    const details = slEl<SlDetails>("sl-details", {
+      className: "family-acc",
+      open: state.openFamilies.has(family),
     });
-    const summary = document.createElement("summary");
+    details.addEventListener("sl-show", () => {
+      state.openFamilies.add(family);
+    });
+    details.addEventListener("sl-hide", () => {
+      state.openFamilies.delete(family);
+    });
+    const summary = document.createElement("span");
+    summary.slot = "summary";
+    summary.className = "family-summary";
     const count = pillsAtPath(doc, annotationPathOf(node)).filter((p) =>
       p.family === family
-    )
-      .length;
+    ).length;
     summary.innerHTML = `
       <span class="family-swatch" style="background:${
       familyFillColor(family)
@@ -356,7 +393,7 @@ export function renderInspector(opts: InspectorOptions): void {
 
 export function currentLanguageBags(
   doc: AnnotationDocumentation | undefined,
+  modelLanguages: string[] = [],
 ): string[] {
-  const bags = listLanguageBags(doc, ["en"]);
-  return bags.length ? bags : ["en"];
+  return listLanguageBags(doc, modelLanguages);
 }

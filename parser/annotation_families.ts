@@ -31,6 +31,80 @@ export function annotationFamily(key: string): string {
   return m ? `${m[1]}.` : UNPREFIXED_FAMILY;
 }
 
+/** Normalise `ISO_639-1::sv`, `{ code_string: "sv" }`, or `"sv"` to `sv`. */
+export function languageCode(raw: unknown): string | undefined {
+  if (raw == null) return undefined;
+  if (typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    return languageCode(
+      o.code_string ?? o.codeString ?? o.value ?? o.language,
+    );
+  }
+  const s = String(raw).trim();
+  if (!s) return undefined;
+  const m = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s);
+  const code = (m?.[1] ?? "").toLowerCase();
+  return /^[a-z]{2,8}$/.test(code) ? code : undefined;
+}
+
+function addLang(set: Set<string>, raw: unknown): void {
+  const code = languageCode(raw);
+  if (code) set.add(code);
+}
+
+function addTranslationEntry(set: Set<string>, entry: unknown): void {
+  if (entry == null) return;
+  if (typeof entry === "string") {
+    addLang(set, entry);
+    return;
+  }
+  if (typeof entry !== "object") return;
+  const o = entry as Record<string, unknown>;
+  addLang(set, o.language);
+  addLang(set, o.code_string);
+  addLang(set, o.codeString);
+}
+
+/**
+ * Languages declared on an archetype/template (original language, translations,
+ * description details, terminology term-definition bags). These are the
+ * model's supported languages — not user-added annotation bags.
+ */
+export function listResourceLanguages(resource: unknown): string[] {
+  const set = new Set<string>();
+  if (!resource || typeof resource !== "object") return [];
+  const rec = resource as Record<string, unknown>;
+  addLang(set, rec.original_language);
+  addLang(set, rec.originalLanguage);
+  const translations = rec.translations;
+  if (Array.isArray(translations)) {
+    for (const t of translations) addTranslationEntry(set, t);
+  } else if (translations && typeof translations === "object") {
+    for (const [k, v] of Object.entries(translations as Record<string, unknown>)) {
+      addLang(set, k);
+      addTranslationEntry(set, v);
+    }
+  }
+  const desc = rec.description as Record<string, unknown> | undefined;
+  if (desc && typeof desc === "object") {
+    const details = desc.details;
+    if (details && typeof details === "object" && !Array.isArray(details)) {
+      for (const k of Object.keys(details)) addLang(set, k);
+    }
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      addLang(set, (other as Record<string, unknown>).original_language);
+    }
+  }
+  const onto = rec.ontology as Record<string, unknown> | undefined;
+  const term = onto?.term_definitions ?? onto?.termDefinitions ??
+    rec.term_definitions ?? rec.termDefinitions;
+  if (term && typeof term === "object" && !Array.isArray(term)) {
+    for (const k of Object.keys(term as object)) addLang(set, k);
+  }
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
 export function listLanguageBags(
   doc: AnnotationDocumentation | undefined,
   extra: string[] = [],

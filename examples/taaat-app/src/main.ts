@@ -21,6 +21,7 @@ import {
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
+  listResourceLanguages,
   mergeDocumentation,
 } from "../../../parser/annotation_families.ts";
 import {
@@ -37,6 +38,14 @@ import {
   type InspectorState,
   renderInspector,
 } from "./inspector.ts";
+import {
+  type SlAlert,
+  type SlButton,
+  type SlInput,
+  type SlSelect,
+  slEl,
+  slValue,
+} from "./sl.ts";
 
 export type LoadMode = "template" | "archetype";
 
@@ -50,24 +59,22 @@ const enabledLanguages = new Set<string>();
 const enabledFamilies = new Set<string>();
 const knownLanguages = new Set<string>();
 const knownFamilies = new Set<string>();
-const extraLanguageBags = new Set<string>(["en"]);
 const inspectorState: InspectorState = createInspectorState();
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
 
 function getLoadMode(): LoadMode {
-  const checked = document.querySelector<HTMLInputElement>(
-    'input[name="load-mode"]:checked',
-  );
-  return checked?.value === "archetype" ? "archetype" : "template";
+  const group = $("load-mode") as HTMLElement & { value?: string } | null;
+  return group?.value === "archetype" ? "archetype" : "template";
 }
 
 function setStatus(msg: string, isError = false): void {
-  const el = $("status-bar");
+  const el = $("status-bar") as SlAlert | null;
   if (!el) return;
   el.textContent = msg;
-  el.classList.toggle("is-error", isError);
+  el.variant = isError ? "danger" : "primary";
+  el.open = true;
 }
 
 function listEditableFiles(): { path: string; kind: string }[] {
@@ -83,14 +90,13 @@ function listEditableFiles(): { path: string; kind: string }[] {
 }
 
 function refreshFileSelect(): void {
-  const select = $("file-select") as HTMLSelectElement | null;
+  const select = $("file-select") as SlSelect | null;
   if (!select) return;
-  const files = listEditableFiles();
   select.innerHTML = "";
+  const files = listEditableFiles();
   for (const f of files) {
-    const opt = document.createElement("option");
-    opt.value = f.path;
-    opt.textContent = `${f.path} (${f.kind})`;
+    const opt = slEl("sl-option", { text: `${f.path} (${f.kind})` });
+    (opt as HTMLElement & { value: string }).value = f.path;
     select.appendChild(opt);
   }
   if (activeFilePath && files.some((f) => f.path === activeFilePath)) {
@@ -98,6 +104,8 @@ function refreshFileSelect(): void {
   } else if (files.length) {
     activeFilePath = files[0].path;
     select.value = activeFilePath;
+  } else {
+    select.value = "";
   }
 }
 
@@ -130,15 +138,31 @@ function resetFacets(): void {
   knownFamilies.clear();
 }
 
+function modelLanguages(): string[] {
+  const set = new Set<string>();
+  const addFrom = (res: unknown) => {
+    for (const lang of listResourceLanguages(res)) set.add(lang);
+  };
+  if (activeResource) addFrom(activeResource);
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    if (arch) addFrom(arch);
+  }
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+function workspaceLanguages(): string[] {
+  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+}
+
 function syncFacets(): void {
-  const doc = workspaceDocumentation();
-  for (const l of listLanguageBags(doc, [...extraLanguageBags])) {
+  for (const l of workspaceLanguages()) {
     if (!knownLanguages.has(l)) {
       knownLanguages.add(l);
       enabledLanguages.add(l);
     }
   }
-  for (const f of listFamilies(doc)) {
+  for (const f of listFamilies(workspaceDocumentation())) {
     if (!knownFamilies.has(f)) {
       knownFamilies.add(f);
       enabledFamilies.add(f);
@@ -183,23 +207,24 @@ function workspaceDocumentation(): AnnotationDocumentation {
 }
 
 function renderLegend(): void {
-  const doc = workspaceDocumentation();
   syncFacets();
   const langHost = $("legend-languages");
   const famHost = $("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
-    for (const lang of listLanguageBags(doc, [...extraLanguageBags])) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "legend-chip legend-lang";
+    for (const lang of workspaceLanguages()) {
+      const btn = slEl<SlButton>("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-lang",
+        text: lang,
+      });
       btn.setAttribute(
         "aria-pressed",
         enabledLanguages.has(lang) ? "true" : "false",
       );
-      btn.style.borderColor = languageOutlineColor(lang);
-      btn.textContent = lang;
-      btn.title = `Language bag ${lang} — outline colour on pills`;
+      btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
+      btn.title = `Language bag ${lang} — from the model's supported languages`;
       btn.addEventListener("click", () => {
         if (enabledLanguages.has(lang) && enabledLanguages.size === 1) return;
         if (enabledLanguages.has(lang)) enabledLanguages.delete(lang);
@@ -211,16 +236,18 @@ function renderLegend(): void {
   }
   if (famHost) {
     famHost.innerHTML = "";
-    for (const family of listFamilies(doc)) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "legend-chip legend-family";
+    for (const family of listFamilies(workspaceDocumentation())) {
+      const btn = slEl<SlButton>("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-family",
+        text: familyLegendLabel(family),
+      });
       btn.setAttribute(
         "aria-pressed",
         enabledFamilies.has(family) ? "true" : "false",
       );
-      btn.style.background = familyFillColor(family);
-      btn.textContent = familyLegendLabel(family);
+      btn.style.setProperty("--family-fill", familyFillColor(family));
       btn.title = `Family ${familyLegendLabel(family)} — fill colour on pills`;
       btn.addEventListener("click", () => {
         if (enabledFamilies.has(family) && enabledFamilies.size === 1) return;
@@ -296,19 +323,13 @@ function refreshInspector(): void {
   const bag = ensureResourceAnnotations(owner);
   if (title) title.textContent = selectedNode.label;
   if (pathEl) pathEl.textContent = selectedNode.path || "(definition root)";
-  const languages = [
-    ...new Set([
-      ...currentLanguageBags(workspaceDocumentation()),
-      ...extraLanguageBags,
-    ]),
-  ];
   renderInspector({
     host,
     resource: owner,
     tree,
     node: selectedNode,
     doc: bag,
-    languages,
+    languages: workspaceLanguages(),
     enabledLanguages,
     state: inspectorState,
     resourceForNode: (node) => ownerForNode(node) ?? owner,
@@ -333,22 +354,33 @@ function refreshPaletteUi(): void {
   for (const entry of palette) {
     const li = document.createElement("li");
     const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
-    li.innerHTML = `
-      <button type="button" class="palette-apply" title="Apply to selected node">${
-      escapeAttr(label)
-    }</button>
-      <button type="button" class="palette-remove" title="Remove from favourites">×</button>
-    `;
-    li.querySelector(".palette-apply")?.addEventListener("click", () => {
+    const apply = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "default",
+      className: "palette-apply",
+      text: label,
+    });
+    apply.title = "Apply to selected node";
+    const remove = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "text",
+      className: "palette-remove",
+      text: "×",
+    });
+    remove.title = "Remove from favourites";
+    apply.addEventListener("click", () => {
       if (!activeResource || !selectedNode) {
-        alert("Select a tree node first.");
+        setStatus("Select a tree node first.", true);
         return;
       }
       const owner = ownerForNode(selectedNode) ?? activeResource;
       const bags = [...enabledLanguages];
       const langs = bags.length
         ? bags
-        : currentLanguageBags(ensureResourceAnnotations(owner));
+        : currentLanguageBags(
+          ensureResourceAnnotations(owner),
+          modelLanguages(),
+        );
       for (const lang of langs) {
         setPathAnnotation(
           owner,
@@ -361,22 +393,19 @@ function refreshPaletteUi(): void {
       persistResourceToWorkspace();
       refreshWorkspace();
     });
-    li.querySelector(".palette-remove")?.addEventListener("click", () => {
+    remove.addEventListener("click", () => {
       palette = palette.filter((p) => p.key !== entry.key);
       savePalette(palette);
       refreshPaletteUi();
     });
+    li.append(apply, remove);
     list.appendChild(li);
   }
 }
 
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-
 function setupLoadBar(): void {
-  const loadBtn = $("load-github-btn");
-  const urlInput = $("github-url") as HTMLInputElement | null;
+  const loadBtn = $("load-github-btn") as SlButton | null;
+  const urlInput = $("github-url") as SlInput | null;
   if (!loadBtn || !urlInput) return;
 
   const templateDefault =
@@ -389,23 +418,21 @@ function setupLoadBar(): void {
     urlInput.placeholder = mode === "template"
       ? "GitHub URL to a .t.json template…"
       : "GitHub URL to an .adl / .adls archetype…";
-    if (!urlInput.value.trim()) {
+    if (!slValue(urlInput).trim()) {
       urlInput.value = mode === "template" ? templateDefault : archetypeDefault;
     }
   };
 
-  document.querySelectorAll('input[name="load-mode"]').forEach((el) => {
-    el.addEventListener("change", updatePlaceholder);
-  });
+  $("load-mode")?.addEventListener("sl-change", updatePlaceholder);
   updatePlaceholder();
 
   loadBtn.addEventListener("click", async () => {
-    const url = urlInput.value.trim();
+    const url = slValue(urlInput).trim();
     if (!url) {
-      alert("Paste a GitHub blob or raw URL.");
+      setStatus("Paste a GitHub blob or raw URL.", true);
       return;
     }
-    loadBtn.setAttribute("disabled", "true");
+    loadBtn.loading = true;
     setStatus("Loading…");
     try {
       workspace.clear();
@@ -422,10 +449,8 @@ function setupLoadBar(): void {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      if (activeFilePath) {
-        const sel = $("file-select") as HTMLSelectElement | null;
-        if (sel) sel.value = activeFilePath;
-      }
+      const sel = $("file-select") as SlSelect | null;
+      if (sel && activeFilePath) sel.value = activeFilePath;
       resetFacets();
       loadActiveResource();
       selectedNode = undefined;
@@ -436,16 +461,15 @@ function setupLoadBar(): void {
       setStatus(`Loaded ${result.fetched} files${warn}`);
     } catch (e) {
       setStatus((e as Error).message, true);
-      alert(`Load failed: ${(e as Error).message}`);
     } finally {
-      loadBtn.removeAttribute("disabled");
+      loadBtn.loading = false;
     }
   });
 }
 
 function setupFileSelect(): void {
-  $("file-select")?.addEventListener("change", (e) => {
-    activeFilePath = (e.target as HTMLSelectElement).value;
+  $("file-select")?.addEventListener("sl-change", (e) => {
+    activeFilePath = slValue(e.target as Element);
     loadActiveResource();
     selectedNode = undefined;
     resetFacets();
@@ -456,10 +480,10 @@ function setupFileSelect(): void {
 
 function setupPaletteActions(): void {
   $("palette-add-btn")?.addEventListener("click", () => {
-    const key = ($("palette-key") as HTMLInputElement | null)?.value.trim();
-    const value = ($("palette-value") as HTMLInputElement | null)?.value.trim();
+    const key = slValue($("palette-key")).trim();
+    const value = slValue($("palette-value")).trim();
     if (!key) {
-      alert("Enter an annotation key.");
+      setStatus("Enter an annotation key.", true);
       return;
     }
     if (!palette.some((p) => p.key === key)) {
@@ -467,14 +491,18 @@ function setupPaletteActions(): void {
       savePalette(palette);
       refreshPaletteUi();
     }
-    const keyInp = $("palette-key") as HTMLInputElement | null;
-    const valInp = $("palette-value") as HTMLInputElement | null;
+    const keyInp = $("palette-key") as SlInput | null;
+    const valInp = $("palette-value") as SlInput | null;
     if (keyInp) keyInp.value = "";
     if (valInp) valInp.value = "";
   });
 
   $("palette-download-btn")?.addEventListener("click", () => {
     downloadText(exportPaletteJson(palette), "taaat-palette.json");
+  });
+
+  $("palette-upload-btn")?.addEventListener("click", () => {
+    $("palette-upload-input")?.click();
   });
 
   $("palette-upload-input")?.addEventListener("change", async (e) => {
@@ -486,7 +514,7 @@ function setupPaletteActions(): void {
       refreshPaletteUi();
       setStatus("Palette imported");
     } catch (err) {
-      alert(`Invalid palette file: ${(err as Error).message}`);
+      setStatus(`Invalid palette file: ${(err as Error).message}`, true);
     }
     (e.target as HTMLInputElement).value = "";
   });
@@ -509,37 +537,18 @@ function setupDownload(): void {
   });
 }
 
-function setupAddLanguage(): void {
-  const inp = $("add-language") as HTMLInputElement | null;
-  if (!inp) return;
-  const commit = () => {
-    const lang = inp.value.trim().toLowerCase();
-    inp.value = "";
-    if (!/^[a-z]{2,8}$/.test(lang)) return;
-    extraLanguageBags.add(lang);
-    knownLanguages.add(lang);
-    enabledLanguages.add(lang);
-    refreshWorkspace();
-  };
-  inp.addEventListener("change", commit);
-  inp.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      commit();
-    }
-  });
-}
-
 function setupFilter(): void {
-  $("tree-filter")?.addEventListener("input", (e) => {
-    filterText = (e.target as HTMLInputElement).value;
+  $("tree-filter")?.addEventListener("sl-input", (e) => {
+    filterText = slValue(e.target as Element);
     refreshTree();
   });
 }
 
 function setupLocalFiles(): void {
   const input = $("local-files") as HTMLInputElement | null;
+  const btn = $("local-files-btn");
   if (!input) return;
+  btn?.addEventListener("click", () => input.click());
   input.addEventListener("change", async () => {
     const files = input.files;
     if (!files?.length) return;
@@ -569,7 +578,6 @@ export function initApp(): void {
   setupPaletteActions();
   setupDownload();
   setupFilter();
-  setupAddLanguage();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();

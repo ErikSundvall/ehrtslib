@@ -15652,6 +15652,12 @@ function applyAuthoredArchetypeFields(target, root, warnings) {
   if (root.adl_version !== void 0) {
     target.adl_version = String(root.adl_version);
   }
+  if (root.description && typeof root.description === "object") {
+    target.description = root.description;
+  }
+  if (root.translations !== void 0) {
+    target.translations = root.translations;
+  }
   const annotations = root.annotations;
   if (annotations && typeof annotations === "object") {
     applyAnnotationsOdin(target, annotations);
@@ -17534,6 +17540,78 @@ function annotationFamily(key) {
   const m2 = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
   return m2 ? `${m2[1]}.` : UNPREFIXED_FAMILY;
 }
+function languageCode(raw) {
+  if (raw == null)
+    return void 0;
+  if (typeof raw === "object") {
+    const o2 = raw;
+    return languageCode(
+      o2.code_string ?? o2.codeString ?? o2.value ?? o2.language
+    );
+  }
+  const s2 = String(raw).trim();
+  if (!s2)
+    return void 0;
+  const m2 = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s2);
+  const code = (m2?.[1] ?? "").toLowerCase();
+  return /^[a-z]{2,8}$/.test(code) ? code : void 0;
+}
+function addLang(set, raw) {
+  const code = languageCode(raw);
+  if (code)
+    set.add(code);
+}
+function addTranslationEntry(set, entry) {
+  if (entry == null)
+    return;
+  if (typeof entry === "string") {
+    addLang(set, entry);
+    return;
+  }
+  if (typeof entry !== "object")
+    return;
+  const o2 = entry;
+  addLang(set, o2.language);
+  addLang(set, o2.code_string);
+  addLang(set, o2.codeString);
+}
+function listResourceLanguages(resource) {
+  const set = /* @__PURE__ */ new Set();
+  if (!resource || typeof resource !== "object")
+    return [];
+  const rec = resource;
+  addLang(set, rec.original_language);
+  addLang(set, rec.originalLanguage);
+  const translations = rec.translations;
+  if (Array.isArray(translations)) {
+    for (const t2 of translations)
+      addTranslationEntry(set, t2);
+  } else if (translations && typeof translations === "object") {
+    for (const [k2, v2] of Object.entries(translations)) {
+      addLang(set, k2);
+      addTranslationEntry(set, v2);
+    }
+  }
+  const desc = rec.description;
+  if (desc && typeof desc === "object") {
+    const details = desc.details;
+    if (details && typeof details === "object" && !Array.isArray(details)) {
+      for (const k2 of Object.keys(details))
+        addLang(set, k2);
+    }
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      addLang(set, other.original_language);
+    }
+  }
+  const onto = rec.ontology;
+  const term = onto?.term_definitions ?? onto?.termDefinitions ?? rec.term_definitions ?? rec.termDefinitions;
+  if (term && typeof term === "object" && !Array.isArray(term)) {
+    for (const k2 of Object.keys(term))
+      addLang(set, k2);
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
 function listLanguageBags(doc, extra = []) {
   const set = /* @__PURE__ */ new Set();
   for (const lang of extra) {
@@ -17891,6 +17969,35 @@ function proposeL10nWrites(doc, nodes, options) {
   return writes;
 }
 
+// examples/taaat-app/src/sl.ts
+function slEl(tag, props = {}) {
+  const el = document.createElement(tag);
+  applySl(el, props);
+  return el;
+}
+function applySl(el, props) {
+  for (const [k2, v2] of Object.entries(props)) {
+    if (v2 === void 0)
+      continue;
+    if (k2 === "className" || k2 === "class")
+      el.className = String(v2);
+    else if (k2 === "text")
+      el.textContent = String(v2);
+    else if (k2 === "html")
+      el.innerHTML = String(v2);
+    else if (k2 === "style" && typeof v2 === "string") {
+      el.setAttribute("style", v2);
+    } else {
+      el[k2] = v2;
+    }
+  }
+}
+function slValue(el) {
+  if (!el)
+    return "";
+  return String(el.value ?? "");
+}
+
 // examples/taaat-app/src/inspector.ts
 function createInspectorState() {
   return {
@@ -17918,6 +18025,17 @@ function setOnEnabledBags(resource, path, key, value, bags) {
     setPathAnnotation(resource, path, key, value, lang);
   }
 }
+function defaultKeyForFamily(family, languages) {
+  if (family === UNPREFIXED_FAMILY)
+    return "comment";
+  if (family === "L10n.") {
+    const lang = languages[0] ?? "en";
+    return `L10n.${lang}`;
+  }
+  if (family === "a.")
+    return "a.id";
+  return `${family}key`;
+}
 function renderRowsForFamily(opts, family, body) {
   const { resource, node, doc, languages, enabledLanguages: enabledLanguages2, onChange } = opts;
   const path = annotationPathOf(node);
@@ -17934,26 +18052,31 @@ function renderRowsForFamily(opts, family, body) {
   const addRow = (key) => {
     const tr2 = document.createElement("tr");
     const keyTd = document.createElement("td");
-    const keyInp = document.createElement("input");
-    keyInp.value = key;
-    keyInp.className = "ann-key";
+    const keyInp = slEl("sl-input", {
+      className: "ann-key",
+      size: "small",
+      value: key
+    });
     keyTd.appendChild(keyInp);
     tr2.appendChild(keyTd);
     const values = {};
     for (const lang of writeBags) {
       const td = document.createElement("td");
-      const inp = document.createElement("input");
-      inp.value = getPathAnnotations(doc, path, lang)[key] ?? "";
-      inp.style.borderLeft = `3px solid ${languageOutlineColor(lang)}`;
+      const inp = slEl("sl-input", {
+        size: "small",
+        value: getPathAnnotations(doc, path, lang)[key] ?? "",
+        style: `border-left: 3px solid ${languageOutlineColor(lang)}`
+      });
       values[lang] = inp;
       td.appendChild(inp);
       tr2.appendChild(td);
     }
     const delTd = document.createElement("td");
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "btn btn-sm btn-danger";
-    del.textContent = "\xD7";
+    const del = slEl("sl-button", {
+      variant: "text",
+      size: "small",
+      text: "\xD7"
+    });
     del.title = "Remove this key from enabled language bags";
     del.addEventListener("click", () => {
       const k2 = keyInp.value.trim() || key;
@@ -17968,8 +18091,6 @@ function renderRowsForFamily(opts, family, body) {
       const nextKey = keyInp.value.trim();
       if (!nextKey)
         return;
-      if (annotationFamily(nextKey) !== family && key) {
-      }
       if (nextKey !== key) {
         for (const lang of writeBags) {
           removePathAnnotation(resource, path, key, lang);
@@ -17986,9 +18107,9 @@ function renderRowsForFamily(opts, family, body) {
       }
       onChange();
     };
-    keyInp.addEventListener("change", commit);
+    keyInp.addEventListener("sl-change", commit);
     for (const inp of Object.values(values)) {
-      inp.addEventListener("change", commit);
+      inp.addEventListener("sl-change", commit);
     }
     tbody.appendChild(tr2);
   };
@@ -18002,18 +18123,21 @@ function renderRowsForFamily(opts, family, body) {
   } else {
     body.appendChild(table);
   }
-  const addBtn = document.createElement("button");
-  addBtn.type = "button";
-  addBtn.className = "btn btn-secondary btn-sm";
-  addBtn.textContent = "Add key";
+  const addBtn = slEl("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Add key"
+  });
   addBtn.addEventListener("click", () => {
-    const defaultKey = family === UNPREFIXED_FAMILY ? "comment" : family === "L10n." ? "L10n.sv" : family === "a." ? "a.id" : `${family}key`;
-    let key = defaultKey;
+    if (!writeBags.length)
+      return;
+    const defaultKey = defaultKeyForFamily(family, languages);
+    let next = defaultKey;
     let n2 = 2;
-    while (writeBags.some((l2) => getPathAnnotations(doc, path, l2)[key] !== void 0)) {
-      key = `${defaultKey}-${n2++}`;
+    while (writeBags.some((l2) => getPathAnnotations(doc, path, l2)[next] !== void 0)) {
+      next = `${defaultKey}-${n2++}`;
     }
-    setOnEnabledBags(resource, path, key, "", writeBags);
+    setOnEnabledBags(resource, path, next, "", writeBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -18021,24 +18145,53 @@ function renderRowsForFamily(opts, family, body) {
 function renderL10nGenerate(opts, body) {
   const box = document.createElement("div");
   box.className = "l10n-generate";
-  box.innerHTML = `
-    <h4>Generate L10n annotations</h4>
-    <p class="muted">Writes only <code>L10n.*</code> keys from names already present as <code>L10n.&#123;lang&#125;</code> on repeated archetype occurrences. Other families and the constraint tree are left alone.</p>
-    <label><input type="checkbox" data-f="repeatedOnly"${opts.state.repeatedOnly ? " checked" : ""}> Repeated archetype occurrences only</label>
-    <label><input type="checkbox" data-f="copyToAllBags"${opts.state.copyToAllBags ? " checked" : ""}> Copy into every language bag</label>
-    <label><input type="checkbox" data-f="overwriteL10n"${opts.state.overwriteL10n ? " checked" : ""}> Overwrite existing L10n.* values that differ</label>
-    <div class="gen-actions">
-      <button type="button" class="btn" data-act="preview">Preview writes</button>
-      <button type="button" class="btn btn-primary" data-act="apply">Apply L10n</button>
-    </div>
-    <div class="gen-preview"></div>
-  `;
-  box.querySelectorAll("input[data-f]").forEach((inp) => {
-    inp.addEventListener("change", () => {
-      const f2 = inp.dataset.f;
-      opts.state[f2] = inp.checked;
+  const heading = document.createElement("h4");
+  heading.textContent = "Generate L10n annotations";
+  const help = document.createElement("p");
+  help.className = "muted";
+  help.innerHTML = "Writes only <code>L10n.*</code> keys from names already present as <code>L10n.{lang}</code> on repeated archetype occurrences. Other families and the constraint tree are left alone.";
+  box.append(heading, help);
+  const flags = [
+    {
+      field: "repeatedOnly",
+      label: "Repeated archetype occurrences only"
+    },
+    {
+      field: "copyToAllBags",
+      label: "Copy into every language bag"
+    },
+    {
+      field: "overwriteL10n",
+      label: "Overwrite existing L10n.* values that differ"
+    }
+  ];
+  for (const flag of flags) {
+    const cb = slEl("sl-checkbox", {
+      checked: opts.state[flag.field],
+      text: flag.label
     });
+    cb.addEventListener("sl-change", () => {
+      opts.state[flag.field] = cb.checked;
+    });
+    box.appendChild(cb);
+  }
+  const actions = document.createElement("div");
+  actions.className = "gen-actions";
+  const previewBtn = slEl("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Preview writes"
   });
+  const applyBtn = slEl("sl-button", {
+    variant: "primary",
+    size: "small",
+    text: "Apply L10n"
+  });
+  actions.append(previewBtn, applyBtn);
+  box.appendChild(actions);
+  const preview = document.createElement("div");
+  preview.className = "gen-preview";
+  box.appendChild(preview);
   const run = (apply) => {
     const getDoc = opts.documentationForNode ?? (() => opts.doc);
     const viewDoc = documentationViewForTree(opts.tree, getDoc);
@@ -18068,21 +18221,12 @@ function renderL10nGenerate(opts, body) {
       opts.onChange();
       return;
     }
-    paintPreview(box.querySelector(".gen-preview"), writes);
+    paintPreview(preview, writes);
   };
-  box.querySelector("[data-act=preview]")?.addEventListener(
-    "click",
-    () => run(false)
-  );
-  box.querySelector("[data-act=apply]")?.addEventListener(
-    "click",
-    () => run(true)
-  );
+  previewBtn.addEventListener("click", () => run(false));
+  applyBtn.addEventListener("click", () => run(true));
   if (opts.state.lastWrites.length) {
-    paintPreview(
-      box.querySelector(".gen-preview"),
-      opts.state.lastWrites
-    );
+    paintPreview(preview, opts.state.lastWrites);
   }
   body.appendChild(box);
 }
@@ -18108,16 +18252,19 @@ function renderInspector(opts) {
   const families = listFamilies(doc);
   host.innerHTML = "";
   for (const family of families) {
-    const details = document.createElement("details");
-    details.className = "family-acc";
-    details.open = state.openFamilies.has(family);
-    details.addEventListener("toggle", () => {
-      if (details.open)
-        state.openFamilies.add(family);
-      else
-        state.openFamilies.delete(family);
+    const details = slEl("sl-details", {
+      className: "family-acc",
+      open: state.openFamilies.has(family)
     });
-    const summary = document.createElement("summary");
+    details.addEventListener("sl-show", () => {
+      state.openFamilies.add(family);
+    });
+    details.addEventListener("sl-hide", () => {
+      state.openFamilies.delete(family);
+    });
+    const summary = document.createElement("span");
+    summary.slot = "summary";
+    summary.className = "family-summary";
     const count = pillsAtPath(doc, annotationPathOf(node)).filter(
       (p2) => p2.family === family
     ).length;
@@ -18140,9 +18287,8 @@ function renderInspector(opts) {
     host.appendChild(details);
   }
 }
-function currentLanguageBags(doc) {
-  const bags = listLanguageBags(doc, ["en"]);
-  return bags.length ? bags : ["en"];
+function currentLanguageBags(doc, modelLanguages2 = []) {
+  return listLanguageBags(doc, modelLanguages2);
 }
 
 // examples/taaat-app/src/main.ts
@@ -18156,21 +18302,19 @@ var enabledLanguages = /* @__PURE__ */ new Set();
 var enabledFamilies = /* @__PURE__ */ new Set();
 var knownLanguages = /* @__PURE__ */ new Set();
 var knownFamilies = /* @__PURE__ */ new Set();
-var extraLanguageBags = /* @__PURE__ */ new Set(["en"]);
 var inspectorState = createInspectorState();
 var $2 = (id) => document.getElementById(id);
 function getLoadMode() {
-  const checked = document.querySelector(
-    'input[name="load-mode"]:checked'
-  );
-  return checked?.value === "archetype" ? "archetype" : "template";
+  const group = $2("load-mode");
+  return group?.value === "archetype" ? "archetype" : "template";
 }
 function setStatus(msg, isError = false) {
   const el = $2("status-bar");
   if (!el)
     return;
   el.textContent = msg;
-  el.classList.toggle("is-error", isError);
+  el.variant = isError ? "danger" : "primary";
+  el.open = true;
 }
 function listEditableFiles() {
   return workspace.listFiles().filter((f2) => {
@@ -18185,12 +18329,11 @@ function refreshFileSelect() {
   const select = $2("file-select");
   if (!select)
     return;
-  const files = listEditableFiles();
   select.innerHTML = "";
+  const files = listEditableFiles();
   for (const f2 of files) {
-    const opt = document.createElement("option");
+    const opt = slEl("sl-option", { text: `${f2.path} (${f2.kind})` });
     opt.value = f2.path;
-    opt.textContent = `${f2.path} (${f2.kind})`;
     select.appendChild(opt);
   }
   if (activeFilePath && files.some((f2) => f2.path === activeFilePath)) {
@@ -18198,6 +18341,8 @@ function refreshFileSelect() {
   } else if (files.length) {
     activeFilePath = files[0].path;
     select.value = activeFilePath;
+  } else {
+    select.value = "";
   }
 }
 function loadActiveResource() {
@@ -18227,15 +18372,32 @@ function resetFacets() {
   knownLanguages.clear();
   knownFamilies.clear();
 }
+function modelLanguages() {
+  const set = /* @__PURE__ */ new Set();
+  const addFrom = (res) => {
+    for (const lang of listResourceLanguages(res))
+      set.add(lang);
+  };
+  if (activeResource)
+    addFrom(activeResource);
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    if (arch)
+      addFrom(arch);
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function workspaceLanguages() {
+  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+}
 function syncFacets() {
-  const doc = workspaceDocumentation();
-  for (const l2 of listLanguageBags(doc, [...extraLanguageBags])) {
+  for (const l2 of workspaceLanguages()) {
     if (!knownLanguages.has(l2)) {
       knownLanguages.add(l2);
       enabledLanguages.add(l2);
     }
   }
-  for (const f2 of listFamilies(doc)) {
+  for (const f2 of listFamilies(workspaceDocumentation())) {
     if (!knownFamilies.has(f2)) {
       knownFamilies.add(f2);
       enabledFamilies.add(f2);
@@ -18277,23 +18439,24 @@ function workspaceDocumentation() {
   return mergeDocumentation(docs);
 }
 function renderLegend() {
-  const doc = workspaceDocumentation();
   syncFacets();
   const langHost = $2("legend-languages");
   const famHost = $2("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
-    for (const lang of listLanguageBags(doc, [...extraLanguageBags])) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "legend-chip legend-lang";
+    for (const lang of workspaceLanguages()) {
+      const btn = slEl("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-lang",
+        text: lang
+      });
       btn.setAttribute(
         "aria-pressed",
         enabledLanguages.has(lang) ? "true" : "false"
       );
-      btn.style.borderColor = languageOutlineColor(lang);
-      btn.textContent = lang;
-      btn.title = `Language bag ${lang} \u2014 outline colour on pills`;
+      btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
+      btn.title = `Language bag ${lang} \u2014 from the model's supported languages`;
       btn.addEventListener("click", () => {
         if (enabledLanguages.has(lang) && enabledLanguages.size === 1)
           return;
@@ -18308,16 +18471,18 @@ function renderLegend() {
   }
   if (famHost) {
     famHost.innerHTML = "";
-    for (const family of listFamilies(doc)) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "legend-chip legend-family";
+    for (const family of listFamilies(workspaceDocumentation())) {
+      const btn = slEl("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-family",
+        text: familyLegendLabel(family)
+      });
       btn.setAttribute(
         "aria-pressed",
         enabledFamilies.has(family) ? "true" : "false"
       );
-      btn.style.background = familyFillColor(family);
-      btn.textContent = familyLegendLabel(family);
+      btn.style.setProperty("--family-fill", familyFillColor(family));
       btn.title = `Family ${familyLegendLabel(family)} \u2014 fill colour on pills`;
       btn.addEventListener("click", () => {
         if (enabledFamilies.has(family) && enabledFamilies.size === 1)
@@ -18396,19 +18561,13 @@ function refreshInspector() {
     title.textContent = selectedNode.label;
   if (pathEl)
     pathEl.textContent = selectedNode.path || "(definition root)";
-  const languages = [
-    .../* @__PURE__ */ new Set([
-      ...currentLanguageBags(workspaceDocumentation()),
-      ...extraLanguageBags
-    ])
-  ];
   renderInspector({
     host,
     resource: owner,
     tree,
     node: selectedNode,
     doc: bag,
-    languages,
+    languages: workspaceLanguages(),
     enabledLanguages,
     state: inspectorState,
     resourceForNode: (node) => ownerForNode(node) ?? owner,
@@ -18432,18 +18591,31 @@ function refreshPaletteUi() {
   for (const entry of palette) {
     const li2 = document.createElement("li");
     const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
-    li2.innerHTML = `
-      <button type="button" class="palette-apply" title="Apply to selected node">${escapeAttr(label)}</button>
-      <button type="button" class="palette-remove" title="Remove from favourites">\xD7</button>
-    `;
-    li2.querySelector(".palette-apply")?.addEventListener("click", () => {
+    const apply = slEl("sl-button", {
+      size: "small",
+      variant: "default",
+      className: "palette-apply",
+      text: label
+    });
+    apply.title = "Apply to selected node";
+    const remove = slEl("sl-button", {
+      size: "small",
+      variant: "text",
+      className: "palette-remove",
+      text: "\xD7"
+    });
+    remove.title = "Remove from favourites";
+    apply.addEventListener("click", () => {
       if (!activeResource || !selectedNode) {
-        alert("Select a tree node first.");
+        setStatus("Select a tree node first.", true);
         return;
       }
       const owner = ownerForNode(selectedNode) ?? activeResource;
       const bags = [...enabledLanguages];
-      const langs = bags.length ? bags : currentLanguageBags(ensureResourceAnnotations(owner));
+      const langs = bags.length ? bags : currentLanguageBags(
+        ensureResourceAnnotations(owner),
+        modelLanguages()
+      );
       for (const lang of langs) {
         setPathAnnotation(
           owner,
@@ -18456,16 +18628,14 @@ function refreshPaletteUi() {
       persistResourceToWorkspace();
       refreshWorkspace();
     });
-    li2.querySelector(".palette-remove")?.addEventListener("click", () => {
+    remove.addEventListener("click", () => {
       palette = palette.filter((p2) => p2.key !== entry.key);
       savePalette(palette);
       refreshPaletteUi();
     });
+    li2.append(apply, remove);
     list.appendChild(li2);
   }
-}
-function escapeAttr(s2) {
-  return s2.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 function setupLoadBar() {
   const loadBtn = $2("load-github-btn");
@@ -18477,21 +18647,19 @@ function setupLoadBar() {
   const updatePlaceholder = () => {
     const mode = getLoadMode();
     urlInput.placeholder = mode === "template" ? "GitHub URL to a .t.json template\u2026" : "GitHub URL to an .adl / .adls archetype\u2026";
-    if (!urlInput.value.trim()) {
+    if (!slValue(urlInput).trim()) {
       urlInput.value = mode === "template" ? templateDefault : archetypeDefault;
     }
   };
-  document.querySelectorAll('input[name="load-mode"]').forEach((el) => {
-    el.addEventListener("change", updatePlaceholder);
-  });
+  $2("load-mode")?.addEventListener("sl-change", updatePlaceholder);
   updatePlaceholder();
   loadBtn.addEventListener("click", async () => {
-    const url = urlInput.value.trim();
+    const url = slValue(urlInput).trim();
     if (!url) {
-      alert("Paste a GitHub blob or raw URL.");
+      setStatus("Paste a GitHub blob or raw URL.", true);
       return;
     }
-    loadBtn.setAttribute("disabled", "true");
+    loadBtn.loading = true;
     setStatus("Loading\u2026");
     try {
       workspace.clear();
@@ -18508,11 +18676,9 @@ function setupLoadBar() {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      if (activeFilePath) {
-        const sel = $2("file-select");
-        if (sel)
-          sel.value = activeFilePath;
-      }
+      const sel = $2("file-select");
+      if (sel && activeFilePath)
+        sel.value = activeFilePath;
       resetFacets();
       loadActiveResource();
       selectedNode = void 0;
@@ -18521,15 +18687,14 @@ function setupLoadBar() {
       setStatus(`Loaded ${result.fetched} files${warn}`);
     } catch (e2) {
       setStatus(e2.message, true);
-      alert(`Load failed: ${e2.message}`);
     } finally {
-      loadBtn.removeAttribute("disabled");
+      loadBtn.loading = false;
     }
   });
 }
 function setupFileSelect() {
-  $2("file-select")?.addEventListener("change", (e2) => {
-    activeFilePath = e2.target.value;
+  $2("file-select")?.addEventListener("sl-change", (e2) => {
+    activeFilePath = slValue(e2.target);
     loadActiveResource();
     selectedNode = void 0;
     resetFacets();
@@ -18539,10 +18704,10 @@ function setupFileSelect() {
 }
 function setupPaletteActions() {
   $2("palette-add-btn")?.addEventListener("click", () => {
-    const key = $2("palette-key")?.value.trim();
-    const value = $2("palette-value")?.value.trim();
+    const key = slValue($2("palette-key")).trim();
+    const value = slValue($2("palette-value")).trim();
     if (!key) {
-      alert("Enter an annotation key.");
+      setStatus("Enter an annotation key.", true);
       return;
     }
     if (!palette.some((p2) => p2.key === key)) {
@@ -18560,6 +18725,9 @@ function setupPaletteActions() {
   $2("palette-download-btn")?.addEventListener("click", () => {
     downloadText(exportPaletteJson(palette), "taaat-palette.json");
   });
+  $2("palette-upload-btn")?.addEventListener("click", () => {
+    $2("palette-upload-input")?.click();
+  });
   $2("palette-upload-input")?.addEventListener("change", async (e2) => {
     const file = e2.target.files?.[0];
     if (!file)
@@ -18570,7 +18738,7 @@ function setupPaletteActions() {
       refreshPaletteUi();
       setStatus("Palette imported");
     } catch (err) {
-      alert(`Invalid palette file: ${err.message}`);
+      setStatus(`Invalid palette file: ${err.message}`, true);
     }
     e2.target.value = "";
   });
@@ -18591,38 +18759,18 @@ function setupDownload() {
     downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
   });
 }
-function setupAddLanguage() {
-  const inp = $2("add-language");
-  if (!inp)
-    return;
-  const commit = () => {
-    const lang = inp.value.trim().toLowerCase();
-    inp.value = "";
-    if (!/^[a-z]{2,8}$/.test(lang))
-      return;
-    extraLanguageBags.add(lang);
-    knownLanguages.add(lang);
-    enabledLanguages.add(lang);
-    refreshWorkspace();
-  };
-  inp.addEventListener("change", commit);
-  inp.addEventListener("keydown", (e2) => {
-    if (e2.key === "Enter") {
-      e2.preventDefault();
-      commit();
-    }
-  });
-}
 function setupFilter() {
-  $2("tree-filter")?.addEventListener("input", (e2) => {
-    filterText = e2.target.value;
+  $2("tree-filter")?.addEventListener("sl-input", (e2) => {
+    filterText = slValue(e2.target);
     refreshTree();
   });
 }
 function setupLocalFiles() {
   const input = $2("local-files");
+  const btn = $2("local-files-btn");
   if (!input)
     return;
+  btn?.addEventListener("click", () => input.click());
   input.addEventListener("change", async () => {
     const files = input.files;
     if (!files?.length)
@@ -18651,7 +18799,6 @@ function initApp() {
   setupPaletteActions();
   setupDownload();
   setupFilter();
-  setupAddLanguage();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();

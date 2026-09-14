@@ -20,4 +20,4 @@ Switcher: `?variant=A|B|C`, ← → keys, floating bar. Run: `deno task proto:ta
 
 ## Verdict
 
-**A — Outline explorer**, with annotation pills on every row (all language bags), language outline colours, family fill colours, an interactive legend, and a per-family accordion inspector (L10n generate lives in the `L10n.` section). Folded into the live TAAAT page. Earlier B/C variants remain at `prototype.html` for reference until deleted.
+**Verdict:** Outline explorer, now the live TAAAT page. Family accordion uses Shoelace `sl-details`; language bags come from the template/archetype, not a TAAAT “add bag” control. Earlier B/C variants remain at `prototype.html` for reference until deleted.

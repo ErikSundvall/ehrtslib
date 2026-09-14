@@ -33,11 +33,15 @@ Deno.test({
     });
     assertEquals(res?.status(), 200);
 
+    await page.waitForFunction(() =>
+      !!customElements.get("sl-button") && !!customElements.get("sl-details")
+    );
     await page.waitForSelector("#load-github-btn");
     await page.waitForSelector("#tree-container");
     await page.waitForSelector("#facet-legend");
+    assertEquals(await page.locator("#add-language").count(), 0);
 
-    await page.evaluate(async (adlText: string) => {
+    await page.evaluate((adlText: string) => {
       const t = (globalThis as {
         __TAAAT__?: {
           workspace: {
@@ -60,18 +64,23 @@ Deno.test({
     assert(nodeCount >= 1, "expected at least one outline row");
 
     await page.locator(".outline-row").first().click();
-    await page.waitForSelector(".family-acc");
-    const famCount = await page.locator(".family-acc").count();
+    await page.waitForSelector("sl-details.family-acc");
+    const famCount = await page.locator("sl-details.family-acc").count();
     assert(famCount >= 3, "expected L10n, a., and unprefixed family sections");
 
-    const l10nAdd = page.locator(".family-acc").first().locator("button", {
-      hasText: "Add key",
-    });
+    const l10nAdd = page.locator("sl-details.family-acc").first().locator(
+      "sl-button",
+      { hasText: "Add key" },
+    );
     await l10nAdd.click();
-    const valInput = page.locator(".family-acc").first().locator("tbody input")
-      .nth(1);
-    await valInput.fill("smoke-l10n");
-    await valInput.blur();
+    const valInput = page.locator("sl-details.family-acc").first().locator(
+      "tbody sl-input",
+    ).nth(1);
+    await valInput.evaluate((el, value) => {
+      const input = el as HTMLElement & { value: string };
+      input.value = value;
+      el.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    }, "smoke-l10n");
 
     await page.waitForSelector(".ann-pill");
     const pillCount = await page.locator(".ann-pill").count();
@@ -80,6 +89,16 @@ Deno.test({
     const legendLangs = await page.locator("#legend-languages .legend-chip")
       .count();
     assert(legendLangs >= 1, "language legend should list bags");
+    const langLabels = await page.locator("#legend-languages .legend-chip")
+      .allTextContents();
+    assert(
+      langLabels.some((t) => t.trim() === "en"),
+      "smoke archetype original_language en should appear in the legend",
+    );
+    assert(
+      !langLabels.some((t) => t.trim() === "sv"),
+      "language bags cannot be added; sv is not on the smoke archetype",
+    );
 
     const l10nChip = page.locator("#legend-families .legend-chip").first();
     await l10nChip.click();
@@ -89,15 +108,6 @@ Deno.test({
     await l10nChip.click();
     assertEquals(await l10nChip.getAttribute("aria-pressed"), "true");
     assert((await page.locator(".ann-pill").count()) >= 1);
-
-    await page.fill("#add-language", "sv");
-    await page.locator("#add-language").press("Enter");
-    const langLabels = await page.locator("#legend-languages .legend-chip")
-      .allTextContents();
-    assert(
-      langLabels.some((t) => t.trim() === "sv"),
-      "adding a bag should appear in the language legend",
-    );
 
     const paletteCount = await page.locator("#palette-list li").count();
     assert(paletteCount >= 1, "palette should list favourites");

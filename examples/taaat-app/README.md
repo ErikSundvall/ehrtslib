@@ -19,7 +19,11 @@ deno task dev
 
 Serves `docs/taaat/` at http://localhost:8001 with watch rebuild.
 
-The live TAAAT page is an outline explorer: every definition-tree node stays visible, with annotation pills from all language bags. Earlier throwaway variants: http://localhost:8001/prototype.html — see [`prototype/NOTES.md`](prototype/NOTES.md).
+The live TAAAT page is an outline explorer: every definition-tree node stays visible, with annotation pills from all language bags. Family sections in the right pane use [Shoelace `sl-details`](https://shoelace.style/components/details) (CDN autoloader 2.20.1); load controls, filters, legend chips, and the workspace split also use Shoelace.
+
+Language bags come from the loaded openEHR template or archetype (original language, translations, description details, terminology). There is no “add language bag” control.
+
+Earlier throwaway variants: http://localhost:8001/prototype.html — see [`prototype/NOTES.md`](prototype/NOTES.md).
 
 ## Tests
 

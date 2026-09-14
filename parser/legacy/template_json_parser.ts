@@ -114,6 +114,13 @@ function applyAuthoredArchetypeFields(
     target.adl_version = String(root.adl_version);
   }
 
+  if (root.description && typeof root.description === "object") {
+    (target as Record<string, unknown>).description = root.description;
+  }
+  if (root.translations !== undefined) {
+    (target as Record<string, unknown>).translations = root.translations;
+  }
+
   const annotations = root.annotations;
   if (annotations && typeof annotations === "object") {
     applyAnnotationsOdin(target, annotations as Record<string, unknown>);
