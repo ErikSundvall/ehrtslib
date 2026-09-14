@@ -9,24 +9,24 @@ import type {
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   getPathAnnotations,
-  setPathAnnotation,
   removePathAnnotation,
+  setPathAnnotation,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   annotationFamily,
   familyFillColor,
   familyLegendLabel,
+  l10nSourcesFromTree,
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
-  l10nSourcesFromTree,
   pillsAtPath,
   UNPREFIXED_FAMILY,
 } from "../../../parser/annotation_families.ts";
 import {
   applyL10nWrites,
-  proposeL10nWrites,
   type L10nWrite,
+  proposeL10nWrites,
 } from "../../../parser/l10n_annotation_generate.ts";
 
 export interface InspectorState {
@@ -157,12 +157,20 @@ function renderRowsForFamily(
         }
       }
       for (const lang of writeBags) {
-        setPathAnnotation(resource, node.path, nextKey, values[lang].value, lang);
+        setPathAnnotation(
+          resource,
+          node.path,
+          nextKey,
+          values[lang].value,
+          lang,
+        );
       }
       onChange();
     };
     keyInp.addEventListener("change", commit);
-    for (const inp of Object.values(values)) inp.addEventListener("change", commit);
+    for (const inp of Object.values(values)) {
+      inp.addEventListener("change", commit);
+    }
     tbody.appendChild(tr);
   };
 
@@ -190,7 +198,11 @@ function renderRowsForFamily(
       : `${family}key`;
     let key = defaultKey;
     let n = 2;
-    while (writeBags.some((l) => getPathAnnotations(doc, node.path, l)[key] !== undefined)) {
+    while (
+      writeBags.some((l) =>
+        getPathAnnotations(doc, node.path, l)[key] !== undefined
+      )
+    ) {
       key = `${defaultKey}-${n++}`;
     }
     setOnEnabledBags(resource, node.path, key, "", writeBags);
@@ -222,7 +234,10 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
   `;
   box.querySelectorAll<HTMLInputElement>("input[data-f]").forEach((inp) => {
     inp.addEventListener("change", () => {
-      const f = inp.dataset.f as "repeatedOnly" | "copyToAllBags" | "overwriteL10n";
+      const f = inp.dataset.f as
+        | "repeatedOnly"
+        | "copyToAllBags"
+        | "overwriteL10n";
       opts.state[f] = inp.checked;
     });
   });
@@ -242,10 +257,19 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
     }
     paintPreview(box.querySelector(".gen-preview") as HTMLElement, writes);
   };
-  box.querySelector("[data-act=preview]")?.addEventListener("click", () => run(false));
-  box.querySelector("[data-act=apply]")?.addEventListener("click", () => run(true));
+  box.querySelector("[data-act=preview]")?.addEventListener(
+    "click",
+    () => run(false),
+  );
+  box.querySelector("[data-act=apply]")?.addEventListener(
+    "click",
+    () => run(true),
+  );
   if (opts.state.lastWrites.length) {
-    paintPreview(box.querySelector(".gen-preview") as HTMLElement, opts.state.lastWrites);
+    paintPreview(
+      box.querySelector(".gen-preview") as HTMLElement,
+      opts.state.lastWrites,
+    );
   }
   body.appendChild(box);
 }
@@ -288,7 +312,9 @@ export function renderInspector(opts: InspectorOptions): void {
     const count = pillsAtPath(doc, node.path).filter((p) => p.family === family)
       .length;
     summary.innerHTML = `
-      <span class="family-swatch" style="background:${familyFillColor(family)}"></span>
+      <span class="family-swatch" style="background:${
+      familyFillColor(family)
+    }"></span>
       <span>${escapeHtml(familyLegendLabel(family))}</span>
       <span class="family-count">${count}</span>
     `;

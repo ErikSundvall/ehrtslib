@@ -17915,13 +17915,20 @@ function renderRowsForFamily(opts, family, body) {
         }
       }
       for (const lang of writeBags) {
-        setPathAnnotation(resource, node.path, nextKey, values[lang].value, lang);
+        setPathAnnotation(
+          resource,
+          node.path,
+          nextKey,
+          values[lang].value,
+          lang
+        );
       }
       onChange();
     };
     keyInp.addEventListener("change", commit);
-    for (const inp of Object.values(values))
+    for (const inp of Object.values(values)) {
       inp.addEventListener("change", commit);
+    }
     tbody.appendChild(tr2);
   };
   for (const key of keys)
@@ -17942,7 +17949,9 @@ function renderRowsForFamily(opts, family, body) {
     const defaultKey = family === UNPREFIXED_FAMILY ? "comment" : family === "L10n." ? "L10n.sv" : family === "a." ? "a.id" : `${family}key`;
     let key = defaultKey;
     let n2 = 2;
-    while (writeBags.some((l2) => getPathAnnotations(doc, node.path, l2)[key] !== void 0)) {
+    while (writeBags.some(
+      (l2) => getPathAnnotations(doc, node.path, l2)[key] !== void 0
+    )) {
       key = `${defaultKey}-${n2++}`;
     }
     setOnEnabledBags(resource, node.path, key, "", writeBags);
@@ -17987,10 +17996,19 @@ function renderL10nGenerate(opts, body) {
     }
     paintPreview(box.querySelector(".gen-preview"), writes);
   };
-  box.querySelector("[data-act=preview]")?.addEventListener("click", () => run(false));
-  box.querySelector("[data-act=apply]")?.addEventListener("click", () => run(true));
+  box.querySelector("[data-act=preview]")?.addEventListener(
+    "click",
+    () => run(false)
+  );
+  box.querySelector("[data-act=apply]")?.addEventListener(
+    "click",
+    () => run(true)
+  );
   if (opts.state.lastWrites.length) {
-    paintPreview(box.querySelector(".gen-preview"), opts.state.lastWrites);
+    paintPreview(
+      box.querySelector(".gen-preview"),
+      opts.state.lastWrites
+    );
   }
   body.appendChild(box);
 }
@@ -18061,6 +18079,7 @@ var enabledLanguages = /* @__PURE__ */ new Set();
 var enabledFamilies = /* @__PURE__ */ new Set();
 var knownLanguages = /* @__PURE__ */ new Set();
 var knownFamilies = /* @__PURE__ */ new Set();
+var extraLanguageBags = /* @__PURE__ */ new Set(["en"]);
 var inspectorState = createInspectorState();
 var $2 = (id) => document.getElementById(id);
 function getLoadMode() {
@@ -18133,7 +18152,7 @@ function resetFacets() {
 }
 function syncFacets() {
   const doc = activeResource ? getResourceDocumentation(activeResource) : void 0;
-  for (const l2 of listLanguageBags(doc, ["en"])) {
+  for (const l2 of listLanguageBags(doc, [...extraLanguageBags])) {
     if (!knownLanguages.has(l2)) {
       knownLanguages.add(l2);
       enabledLanguages.add(l2);
@@ -18153,7 +18172,7 @@ function renderLegend() {
   const famHost = $2("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
-    for (const lang of listLanguageBags(doc, ["en"])) {
+    for (const lang of listLanguageBags(doc, [...extraLanguageBags])) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "legend-chip legend-lang";
@@ -18264,13 +18283,16 @@ function refreshInspector() {
     title.textContent = selectedNode.label;
   if (pathEl)
     pathEl.textContent = selectedNode.path || "(definition root)";
+  const languages = [
+    .../* @__PURE__ */ new Set([...currentLanguageBags(bag), ...extraLanguageBags])
+  ];
   renderInspector({
     host,
     resource: activeResource,
     tree,
     node: selectedNode,
     doc: bag,
-    languages: currentLanguageBags(bag),
+    languages,
     enabledLanguages,
     state: inspectorState,
     onChange: () => {
@@ -18450,6 +18472,28 @@ function setupDownload() {
     downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
   });
 }
+function setupAddLanguage() {
+  const inp = $2("add-language");
+  if (!inp)
+    return;
+  const commit = () => {
+    const lang = inp.value.trim().toLowerCase();
+    inp.value = "";
+    if (!/^[a-z]{2,8}$/.test(lang))
+      return;
+    extraLanguageBags.add(lang);
+    knownLanguages.add(lang);
+    enabledLanguages.add(lang);
+    refreshWorkspace();
+  };
+  inp.addEventListener("change", commit);
+  inp.addEventListener("keydown", (e2) => {
+    if (e2.key === "Enter") {
+      e2.preventDefault();
+      commit();
+    }
+  });
+}
 function setupFilter() {
   $2("tree-filter")?.addEventListener("input", (e2) => {
     filterText = e2.target.value;
@@ -18488,6 +18532,7 @@ function initApp() {
   setupPaletteActions();
   setupDownload();
   setupFilter();
+  setupAddLanguage();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();

@@ -7,11 +7,11 @@ import type {
   DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
+  type AnnotationPill,
+  familyFillColor,
   flattenDefinitionTree,
   languageOutlineColor,
-  familyFillColor,
   pillsAtPath,
-  type AnnotationPill,
 } from "../../../parser/annotation_families.ts";
 
 export interface OutlineRenderOptions {
@@ -52,7 +52,9 @@ function pillHtml(pill: AnnotationPill): string {
   const fill = familyFillColor(pill.family);
   const outline = languageOutlineColor(pill.language);
   const title = `${pill.language} / ${pill.key} = ${pill.value}`;
-  return `<span class="ann-pill" title="${escapeHtml(title)}" style="background:${fill};border-color:${outline}">
+  return `<span class="ann-pill" title="${
+    escapeHtml(title)
+  }" style="background:${fill};border-color:${outline}">
     <span class="ann-pill-lang">${escapeHtml(pill.language)}</span>
     <span class="ann-pill-key">${escapeHtml(pill.key)}</span>
     <span class="ann-pill-val">${escapeHtml(pill.value)}</span>
@@ -69,7 +71,9 @@ export function renderOutline(options: OutlineRenderOptions): void {
   const nodes = flattenDefinitionTree(tree);
   let shown = 0;
   for (const node of nodes) {
-    const hay = `${node.label} ${node.rmType ?? ""} ${node.archetypeRef ?? ""} ${node.path}`
+    const hay = `${node.label} ${node.rmType ?? ""} ${
+      node.archetypeRef ?? ""
+    } ${node.path}`
       .toLowerCase();
     if (q && !hay.includes(q)) continue;
     shown++;
@@ -100,7 +104,9 @@ export function renderOutline(options: OutlineRenderOptions): void {
   if (!shown) {
     const empty = document.createElement("p");
     empty.className = "tree-empty";
-    empty.textContent = q ? "No nodes match the filter." : "Empty definition tree.";
+    empty.textContent = q
+      ? "No nodes match the filter."
+      : "Empty definition tree.";
     container.appendChild(empty);
     return;
   }

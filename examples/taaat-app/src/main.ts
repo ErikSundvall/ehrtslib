@@ -4,14 +4,14 @@
 
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
+  type AnnotatedResource,
   buildDefinitionTree,
+  type DefinitionTreeNode,
   ensureResourceAnnotations,
   getResourceDocumentation,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   setPathAnnotation,
-  type AnnotatedResource,
-  type DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   familyFillColor,
@@ -23,16 +23,16 @@ import {
 import {
   exportPaletteJson,
   loadPalette,
+  type PaletteEntry,
   parsePaletteJson,
   savePalette,
-  type PaletteEntry,
 } from "./palette.ts";
 import { renderOutline } from "./outline-tree.ts";
 import {
   createInspectorState,
   currentLanguageBags,
-  renderInspector,
   type InspectorState,
+  renderInspector,
 } from "./inspector.ts";
 
 export type LoadMode = "template" | "archetype";
@@ -47,6 +47,7 @@ const enabledLanguages = new Set<string>();
 const enabledFamilies = new Set<string>();
 const knownLanguages = new Set<string>();
 const knownFamilies = new Set<string>();
+const extraLanguageBags = new Set<string>(["en"]);
 const inspectorState: InspectorState = createInspectorState();
 
 const $ = <T extends HTMLElement>(id: string) =>
@@ -130,7 +131,7 @@ function syncFacets(): void {
   const doc = activeResource
     ? getResourceDocumentation(activeResource)
     : undefined;
-  for (const l of listLanguageBags(doc, ["en"])) {
+  for (const l of listLanguageBags(doc, [...extraLanguageBags])) {
     if (!knownLanguages.has(l)) {
       knownLanguages.add(l);
       enabledLanguages.add(l);
@@ -153,7 +154,7 @@ function renderLegend(): void {
   const famHost = $("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
-    for (const lang of listLanguageBags(doc, ["en"])) {
+    for (const lang of listLanguageBags(doc, [...extraLanguageBags])) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "legend-chip legend-lang";
@@ -214,13 +215,13 @@ function refreshTree(): void {
   if (!container) return;
   if (!activeResource) {
     container.innerHTML =
-      "<p class=\"tree-empty\">Load a model to see the tree.</p>";
+      '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
   const tree = buildDefinitionTree(activeResource);
   if (!tree) {
     container.innerHTML =
-      "<p class=\"tree-empty\">No definition tree (empty or unparsed model).</p>";
+      '<p class="tree-empty">No definition tree (empty or unparsed model).</p>';
     return;
   }
   if (selectedNode) {
@@ -250,7 +251,7 @@ function refreshInspector(): void {
     if (title) title.textContent = "Annotations";
     if (pathEl) pathEl.textContent = "Select a node in the tree";
     host.innerHTML =
-      "<p class=\"tree-empty\">Select a node to edit family sections.</p>";
+      '<p class="tree-empty">Select a node to edit family sections.</p>';
     return;
   }
   const tree = buildDefinitionTree(activeResource);
@@ -258,13 +259,16 @@ function refreshInspector(): void {
   const bag = ensureResourceAnnotations(activeResource);
   if (title) title.textContent = selectedNode.label;
   if (pathEl) pathEl.textContent = selectedNode.path || "(definition root)";
+  const languages = [
+    ...new Set([...currentLanguageBags(bag), ...extraLanguageBags]),
+  ];
   renderInspector({
     host,
     resource: activeResource,
     tree,
     node: selectedNode,
     doc: bag,
-    languages: currentLanguageBags(bag),
+    languages,
     enabledLanguages,
     state: inspectorState,
     onChange: () => {
@@ -462,6 +466,27 @@ function setupDownload(): void {
   });
 }
 
+function setupAddLanguage(): void {
+  const inp = $("add-language") as HTMLInputElement | null;
+  if (!inp) return;
+  const commit = () => {
+    const lang = inp.value.trim().toLowerCase();
+    inp.value = "";
+    if (!/^[a-z]{2,8}$/.test(lang)) return;
+    extraLanguageBags.add(lang);
+    knownLanguages.add(lang);
+    enabledLanguages.add(lang);
+    refreshWorkspace();
+  };
+  inp.addEventListener("change", commit);
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+    }
+  });
+}
+
 function setupFilter(): void {
   $("tree-filter")?.addEventListener("input", (e) => {
     filterText = (e.target as HTMLInputElement).value;
@@ -501,6 +526,7 @@ export function initApp(): void {
   setupPaletteActions();
   setupDownload();
   setupFilter();
+  setupAddLanguage();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();

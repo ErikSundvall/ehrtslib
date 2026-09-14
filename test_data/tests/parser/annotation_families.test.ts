@@ -1,11 +1,11 @@
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
+  type AnnotationDocumentation,
   annotationFamily,
   listFamilies,
   listLanguageBags,
   pillsAtPath,
   UNPREFIXED_FAMILY,
-  type AnnotationDocumentation,
 } from "../../../parser/mod.ts";
 
 Deno.test("annotationFamily - dotted prefixes", () => {
@@ -30,6 +30,8 @@ Deno.test("pillsAtPath - all language bags, nothing collapsed", () => {
   assertEquals(pills.filter((p) => p.family === "L10n.").length, 2);
   assertEquals(pills.filter((p) => p.family === UNPREFIXED_FAMILY).length, 1);
   assertEquals(listLanguageBags(doc), ["en", "sv"]);
+  assertEquals(listLanguageBags(doc, ["fr"]), ["en", "fr", "sv"]);
   assertEquals(listFamilies(doc).includes("L10n."), true);
   assertEquals(listFamilies(doc).includes("a."), true);
+  assertEquals(listFamilies(doc).includes(UNPREFIXED_FAMILY), true);
 });
