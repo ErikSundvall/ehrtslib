@@ -6,6 +6,7 @@ import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace
 import {
   buildDefinitionTree,
   ensureResourceAnnotations,
+  getResourceDocumentation,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   setPathAnnotation,

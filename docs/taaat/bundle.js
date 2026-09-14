@@ -17304,7 +17304,7 @@ function asAnnotationDocumentation(doc) {
     return void 0;
   return doc;
 }
-function getResourceDocumentation2(resource) {
+function getResourceDocumentation(resource) {
   return asAnnotationDocumentation(getAnnotationsDocumentation(resource));
 }
 function ensureResourceAnnotations(resource) {
@@ -17344,7 +17344,7 @@ function setPathAnnotation(resource, path, key, value, language = "en") {
   doc[language][path][key] = value;
 }
 function removePathAnnotation(resource, path, key, language = "en") {
-  const doc = getResourceDocumentation2(resource);
+  const doc = getResourceDocumentation(resource);
   if (!doc?.[language]?.[path])
     return;
   delete doc[language][path][key];
@@ -17444,7 +17444,7 @@ function buildDefinitionTree(resource) {
   const definition = resource.definition;
   if (!definition)
     return void 0;
-  const doc = getResourceDocumentation2(resource);
+  const doc = getResourceDocumentation(resource);
   return buildObjectSubtree(definition, "", doc);
 }
 function serializeAnnotatedResource(resource) {
