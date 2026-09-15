@@ -19,6 +19,8 @@ deno task dev
 
 Serves `docs/taaat/` at http://localhost:8001 with watch rebuild.
 
+Throwaway UI variants (full tree + L10n generate): http://localhost:8001/prototype.html?variant=A — or from the repo root, `deno task proto:taaat`. See [`prototype/NOTES.md`](prototype/NOTES.md).
+
 ## Tests
 
 ```bash

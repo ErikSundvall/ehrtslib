@@ -87,6 +87,16 @@ export {
   type AnnotatedResource,
 } from "./clinical_model_annotations.ts";
 export {
+  proposeL10nWrites,
+  applyL10nWrites,
+  generateL10nAnnotations,
+  type L10nSourceNode,
+  type GenerateL10nOptions,
+  type L10nWrite,
+  type L10nWriteKind,
+  type ApplyL10nResult,
+} from "./l10n_annotation_generate.ts";
+export {
   collectTemplateJsonOverlayIds,
   collectTemplateJsonExternalRefs,
   collectTemplateJsonExternalRefsFromText,

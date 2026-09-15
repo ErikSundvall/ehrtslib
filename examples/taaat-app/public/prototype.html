@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAAAT UI prototypes (throwaway)</title>
+    <link rel="stylesheet" href="prototype.css">
+  </head>
+  <body>
+    <header class="proto-banner">
+      <div>
+        <strong>THROW AWAY PROTOTYPE</strong>
+        — three layouts for TAAAT. Flip with ← → or the bar below.
+        Not the live tool.
+      </div>
+      <nav>
+        <a href="./index.html">Current TAAAT</a>
+        <button type="button" id="proto-reset">Reset sample</button>
+        <button type="button" id="proto-state-toggle">Prototype state</button>
+      </nav>
+    </header>
+    <p class="proto-question">
+      Question: which layout makes the whole template definition tree visible
+      (today’s D3 view hides collapsed nodes) while still editing path annotations
+      and generating <code>L10n.*</code> keys without touching the constraint tree?
+    </p>
+    <div id="variant-root"></div>
+    <aside id="proto-state" class="proto-state">
+      <h2>Prototype state</h2>
+      <p>annotations.documentation after the last action. Definition tree is unchanged.</p>
+      <pre id="proto-state-json"></pre>
+    </aside>
+    <div id="proto-switcher"></div>
+    <script type="module" src="prototype.js"></script>
+  </body>
+</html>

@@ -28,26 +28,38 @@ const jsonAsModulePlugin = {
 try {
   await ensureDir(outDir);
 
-  await esbuild.build({
+  const sharedBuild = {
     plugins: [
       jsonAsModulePlugin,
       ...denoPlugins({ configPath }),
     ],
-    entryPoints: [toFileUrl(join(srcDir, "main.ts")).href],
     bundle: true,
-    outfile: join(outDir, "bundle.js"),
-    format: "esm",
+    format: "esm" as const,
     target: "es2022",
-    platform: "browser",
+    platform: "browser" as const,
     sourcemap: false,
     minify: false,
     define: {
       "process.env.NODE_ENV": '"production"',
     },
+  };
+
+  await esbuild.build({
+    ...sharedBuild,
+    entryPoints: [toFileUrl(join(srcDir, "main.ts")).href],
+    outfile: join(outDir, "bundle.js"),
+  });
+
+  await esbuild.build({
+    ...sharedBuild,
+    entryPoints: [toFileUrl(join(srcDir, "prototype", "main.ts")).href],
+    outfile: join(outDir, "prototype.js"),
   });
 
   await copy(join(publicDir, "index.html"), join(outDir, "index.html"), { overwrite: true });
   await copy(join(publicDir, "styles.css"), join(outDir, "styles.css"), { overwrite: true });
+  await copy(join(publicDir, "prototype.html"), join(outDir, "prototype.html"), { overwrite: true });
+  await copy(join(publicDir, "prototype.css"), join(outDir, "prototype.css"), { overwrite: true });
 
   console.log("TAAAT build complete → docs/taaat/");
 } catch (error) {
