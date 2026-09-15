@@ -10,7 +10,9 @@ import {
   getJsonDeserializeConfigPreset,
   getMarkdownConfigPreset,
   getYamlConfigPreset,
+  type ConversionOptions,
   validateTemplateInput,
+  workspaceForConversion,
 } from "./converter.ts";
 
 const OPERATIONAL_TEMPLATE_ADL = `operational_template (adl_version=2.0.5)
@@ -607,4 +609,99 @@ Deno.test("convert templateLanguage selects terminology language for generated n
   assertEquals(enJson.name?.value, "English composition");
   assertEquals(svJson.name?.value, "Svensk komposition");
   assert(enJson.name?.value !== svJson.name?.value);
+});
+
+const WEB_TEMPLATE_ONLY_JSON = JSON.stringify({
+  templateId: "accident_report_including_vital_signs",
+  defaultLanguage: "en",
+  tree: { id: "root", name: "Accident report", children: [] },
+});
+
+function convertTestOptions(
+  overrides: Partial<ConversionOptions> &
+    Pick<ConversionOptions, "inputMode" | "outputFormats">,
+): ConversionOptions {
+  return {
+    inputFormat: "json",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    templateGenerationMode: "example",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    ...overrides,
+  };
+}
+
+Deno.test("workspaceForConversion uses clinical file set for template and AD@git modes", () => {
+  const clinical = new ClinicalModelWorkspace();
+  clinical.addFile("lung.opt", OPERATIONAL_TEMPLATE_ADL);
+  const simplified = new ClinicalModelWorkspace();
+  simplified.addFile("accident.wt.json", WEB_TEMPLATE_ONLY_JSON);
+
+  const templateWs = workspaceForConversion("template", clinical, simplified);
+  assertEquals(templateWs.listFiles()[0]?.path, "lung.opt");
+
+  const adgitWs = workspaceForConversion("template-adgit", clinical, simplified);
+  assertEquals(adgitWs.listFiles()[0]?.path, "lung.opt");
+
+  const instanceWs = workspaceForConversion("instance", clinical, simplified);
+  assertEquals(instanceWs.listFiles()[0]?.path, "accident.wt.json");
+});
+
+Deno.test("convert template input ignores a Web Template-only workspace and uses the OPT text", async () => {
+  const wtOnly = new ClinicalModelWorkspace();
+  wtOnly.addFile("accident.wt.json", WEB_TEMPLATE_ONLY_JSON);
+
+  const result = await convert(
+    OPERATIONAL_TEMPLATE_ADL,
+    convertTestOptions({
+      inputMode: "template",
+      outputFormats: ["json"],
+      templateWorkspace: wtOnly,
+    }),
+  );
+
+  assertEquals(result.success, true, result.error);
+  const generated = JSON.parse(result.outputs?.json || "{}");
+  assertEquals(generated._type, "COMPOSITION");
+  assertEquals(generated.name?.value, "Demo composition");
+});
+
+Deno.test("convert template-adgit with clinical workspace is not shadowed by a Web Template file set", async () => {
+  const clinical = new ClinicalModelWorkspace();
+  clinical.addFile("lung.opt", OPERATIONAL_TEMPLATE_ADL);
+  const simplified = new ClinicalModelWorkspace();
+  simplified.addFile("accident.wt.json", WEB_TEMPLATE_ONLY_JSON);
+
+  const result = await convert(
+    "",
+    convertTestOptions({
+      inputMode: "template-adgit",
+      outputFormats: ["json"],
+      templateWorkspace: workspaceForConversion(
+        "template-adgit",
+        clinical,
+        simplified,
+      ),
+    }),
+  );
+
+  assertEquals(result.success, true, result.error);
+  const generated = JSON.parse(result.outputs?.json || "{}");
+  assertEquals(generated._type, "COMPOSITION");
+  assertEquals(generated.name?.value, "Demo composition");
 });

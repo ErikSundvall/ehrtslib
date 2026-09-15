@@ -33,6 +33,7 @@ import {
   type OutputFormat,
   type TemplateGenerationMode,
   validateTemplateInput,
+  workspaceForConversion,
 } from "./converter.ts";
 
 import type {
@@ -79,6 +80,8 @@ let currentInputTab: InputMode = "instance";
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
 let autoConvertDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+/** Incremented at the start of each conversion so a slower stale run cannot overwrite newer output. */
+let convertGeneration = 0;
 const AUTO_CONVERT_DEBOUNCE_MS = 350;
 
 /** In-browser template/archetype file set (ADL2 + legacy OPT/OET). */
@@ -1264,7 +1267,7 @@ async function loadTemplateFromGitHubUrl(
     updateTemplateFileSetUi();
     activateInputTab("template");
     handleInputChange("template");
-    void handleConvert();
+    convertNow();
   } catch (e) {
     appendAdGitProgress((e as Error).message, "fetch");
     alert(`Template load failed: ${(e as Error).message}`);
@@ -1597,7 +1600,11 @@ async function ensurePublishedWebTemplateLoaded(catalogId: string) {
       text,
     );
     syncSimplifiedTemplateUi();
-    scheduleAutoConvert();
+    // Only the instance tab consumes this Web Template as FLAT schema.
+    // Template / AD@git generation must not be re-run against it.
+    if (currentInputTab === "instance") {
+      scheduleAutoConvert();
+    }
   } catch (e) {
     console.warn("Could not load published Web Template:", e);
   }
@@ -1920,11 +1927,21 @@ function scheduleAutoConvert() {
   }, AUTO_CONVERT_DEBOUNCE_MS);
 }
 
+/** Cancel a pending debounce and convert immediately (new file-set load). */
+function convertNow() {
+  if (autoConvertDebounceTimer !== undefined) {
+    clearTimeout(autoConvertDebounceTimer);
+    autoConvertDebounceTimer = undefined;
+  }
+  void handleConvert();
+}
+
 /**
  * Run conversion (debounced when auto-convert is on).
  */
 async function handleConvert() {
   if (!canConvertFromInputTab()) return;
+  const generation = ++convertGeneration;
   console.log("🔄 Converting...");
   showLoading();
   hideError();
@@ -1946,6 +1963,7 @@ async function handleConvert() {
 
     // Perform conversion
     const result = await convert(inputText, options);
+    if (generation !== convertGeneration) return;
 
     hideLoading();
 
@@ -1986,6 +2004,7 @@ async function handleConvert() {
 
     console.log("✅ Conversion successful");
   } catch (error) {
+    if (generation !== convertGeneration) return;
     hideLoading();
     console.error("Conversion error:", error);
     const message = (error as Error).message;
@@ -2317,7 +2336,11 @@ function gatherConversionOptions(): ConversionOptions {
       (document.getElementById("opt-xml-emit-l10n") as HTMLInputElement)
         ?.checked ?? true,
     zipehrPropertyMode: getActiveZipehrPropertyMode(),
-    templateWorkspace: getEffectiveTemplateWorkspace(),
+    templateWorkspace: workspaceForConversion(
+      inputMode,
+      clinicalWorkspace,
+      simplifiedWorkspace,
+    ),
   };
 }
 

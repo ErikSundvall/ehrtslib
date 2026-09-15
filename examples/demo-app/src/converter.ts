@@ -244,6 +244,27 @@ export interface ConversionOptions {
 }
 
 /**
+ * Pick which in-browser file set drives a conversion.
+ *
+ * Template / AD@git generation must use the clinical-model workspace even when
+ * the instance tab has a published Web Template loaded for FLAT conversion.
+ * Instance mode still prefers that simplified-schema workspace when present.
+ */
+export function workspaceForConversion(
+  inputMode: InputMode,
+  clinical: ClinicalModelWorkspace,
+  simplified: ClinicalModelWorkspace,
+): ClinicalModelWorkspace {
+  if (inputMode === "template" || inputMode === "template-adgit") {
+    return clinical;
+  }
+  if (simplified.listFiles().length > 0) {
+    return simplified;
+  }
+  return clinical;
+}
+
+/**
  * Conversion result
  */
 export interface ConversionResult {
@@ -419,7 +440,13 @@ function resolveOperationalTemplate(
   options: ConversionOptions,
 ): unknown {
   if (options.templateWorkspace?.listFiles().length) {
-    return options.templateWorkspace.resolveOperational().operationalTemplate;
+    try {
+      return options.templateWorkspace.resolveOperational().operationalTemplate;
+    } catch (workspaceError) {
+      if (!input.trim()) throw workspaceError;
+      // Web Template JSON (instance FLAT schema) is not an operational
+      // template — fall through and parse the editor / generation input.
+    }
   }
 
   try {
