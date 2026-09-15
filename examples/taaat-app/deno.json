@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.1.0",
   "tasks": {
     "build": "deno run -A scripts/build.ts",
     "dev": "deno run -A scripts/dev-server.ts",
