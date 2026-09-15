@@ -104,9 +104,21 @@
         <h2>Languages</h2>
         <p class="legend-hint">
           From the openEHR template or archetype (original language, translations,
-          description details). Outline colour on pills. Click to show or hide a bag.
+          description details). Outline colour on pills. The original language uses a
+          thicker outline. Click a chip to show or hide a bag.
         </p>
-        <div id="legend-languages" class="legend-pills"></div>
+        <div class="legend-pills-row">
+          <div id="legend-languages" class="legend-pills"></div>
+          <sl-button
+            type="button"
+            id="copy-original-btn"
+            size="small"
+            disabled
+            title="Copy original-language annotations into another language bag"
+          >
+            Copy original to…
+          </sl-button>
+        </div>
       </div>
       <div class="legend-block">
         <h2>Families</h2>
@@ -130,6 +142,8 @@
         >UI-hint / automation annotations</a>).
         Unprefixed keys (<code>comment</code>, <code>design note</code>, <code>ui</code>) stay in their own family.
         Language bags cannot be added here — they follow the model's supported languages.
+        Logic/UI keys (<code>a.*</code>) are maintained in the original language; use
+        <strong>Copy original to…</strong> when an export will use another bag as primary.
       </p>
     </section>
 

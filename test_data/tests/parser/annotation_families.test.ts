@@ -2,10 +2,13 @@ import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import {
   type AnnotationDocumentation,
   annotationFamily,
+  isLanguageIndependentFamily,
   languageCode,
   listFamilies,
   listLanguageBags,
   listResourceLanguages,
+  orderLanguagesWithOriginal,
+  originalLanguageOf,
   pillsAtPath,
   UNPREFIXED_FAMILY,
 } from "../../../parser/mod.ts";
@@ -62,4 +65,38 @@ Deno.test("listResourceLanguages reads Care unit template languages", async () =
   const loaded = repo.loadFile("Care unit v2.t.json", text);
   const template = repo.getTemplate(loaded.archetypeId ?? "");
   assertEquals(listResourceLanguages(template), ["de", "en", "nb", "sv"]);
+  assertEquals(originalLanguageOf(template), "en");
+});
+
+Deno.test("originalLanguageOf prefers original_language over translations", () => {
+  assertEquals(
+    originalLanguageOf({
+      original_language: "ISO_639-1::sv",
+      originalLanguage: { codeString: "en" },
+      translations: { en: { language: "en" } },
+    }),
+    "sv",
+  );
+  assertEquals(
+    originalLanguageOf({
+      description: { otherDetails: { original_language: "ISO_639-1::nb" } },
+    }),
+    "nb",
+  );
+  assertEquals(originalLanguageOf({ translations: ["de"] }), undefined);
+});
+
+Deno.test("orderLanguagesWithOriginal puts original first", () => {
+  assertEquals(orderLanguagesWithOriginal(["sv", "de", "en"], "en"), [
+    "en",
+    "de",
+    "sv",
+  ]);
+  assertEquals(orderLanguagesWithOriginal(["sv", "de"], "en"), ["de", "sv"]);
+});
+
+Deno.test("isLanguageIndependentFamily is the a. automation family", () => {
+  assertEquals(isLanguageIndependentFamily("a."), true);
+  assertEquals(isLanguageIndependentFamily("L10n."), false);
+  assertEquals(isLanguageIndependentFamily(UNPREFIXED_FAMILY), false);
 });

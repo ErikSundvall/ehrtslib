@@ -1,0 +1,59 @@
+archetype (adl_version=2.0.6; rm_release=1.0.4)
+    openEHR-TEST_PKG-taaat_langs.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+    translations = <
+        ["sv"] = <
+            language = <[ISO_639-1::sv]>
+            author = <
+                ["name"] = <"ehrtslib test">
+            >
+        >
+    >
+
+description
+    original_author = <
+        ["name"] = <"ehrtslib test">
+    >
+    lifecycle_state = <"published">
+    details = <
+        ["en"] = <
+            language = <[ISO_639-1::en]>
+            purpose = <"TAAAT original-language copy fixture">
+        >
+        ["sv"] = <
+            language = <[ISO_639-1::sv]>
+            purpose = <"TAAAT-kopieringsfixtur">
+        >
+    >
+
+definition
+    WHOLE[id1]
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = <
+                text = <"whole">
+                description = <"whole">
+            >
+        >
+        ["sv"] = <
+            ["id1"] = <
+                text = <"helhet">
+                description = <"helhet">
+            >
+        >
+    >
+
+annotations
+    documentation = <
+        ["en"] = <
+            ["/data[id2]"] = <
+                ["a.id"] = <"encounter-form">
+                ["a.rule"] = <"show-when-adult">
+                ["comment"] = <"author note in English">
+            >
+        >
+    >

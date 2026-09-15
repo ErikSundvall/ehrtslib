@@ -109,17 +109,30 @@ export {
   familyFillColor,
   familyLegendLabel,
   flattenDefinitionTree,
+  isLanguageIndependentFamily,
   KNOWN_FAMILIES,
   l10nSourcesFromTree,
+  LANGUAGE_INDEPENDENT_FAMILIES,
   languageCode,
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
   listResourceLanguages,
   mergeDocumentation,
+  orderLanguagesWithOriginal,
+  originalLanguageOf,
   pillsAtPath,
   UNPREFIXED_FAMILY,
 } from "./annotation_families.ts";
+export {
+  type AnnotationCopyItem,
+  applyCopyItems,
+  applyCopyItemsToDocumentation,
+  copyItemId,
+  defaultCopySelection,
+  groupCopyItemsByFamily,
+  listCopyItemsFromDocumentation,
+} from "./copy_original_annotations.ts";
 export {
   collectTemplateJsonExternalRefs,
   collectTemplateJsonExternalRefsFromText,
@@ -132,10 +145,18 @@ export {
 } from "./clinical_model_paths.ts";
 
 export {
-  documentationToBetterAnnotations, patchTemplateJsonAnnotations, listTemplateJsonArchetypeIds,
+  documentationToBetterAnnotations,
+  listTemplateJsonArchetypeIds,
+  patchTemplateJsonAnnotations,
 } from "./template_json_annotations.ts";
 export {
-  encodeUtf8Base64, decodeUtf8Base64, getGitHubFileContents, commitGitHubFile, getGitHubAuthenticatedUser,
-  type GitHubContentsFile, type GitHubCommitFileInput, type GitHubCommitFileResult,
+  commitGitHubFile,
+  decodeUtf8Base64,
+  encodeUtf8Base64,
+  getGitHubAuthenticatedUser,
+  getGitHubFileContents,
+  type GitHubCommitFileInput,
+  type GitHubCommitFileResult,
+  type GitHubContentsFile,
 } from "./github_contents.ts";
 export type { ClinicalModelGitHubSource } from "./clinical_model_workspace.ts";
