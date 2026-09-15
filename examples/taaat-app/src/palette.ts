@@ -43,6 +43,9 @@ export function defaultPalette(): PaletteEntry[] {
     { key: "design note" },
     { key: "requirements note" },
     { key: "ui", value: "passthrough" },
+    { key: "a.id" },
+    { key: "a.rule" },
+    { key: "L10n.sv" },
     { key: "medline ref" },
   ];
 }
