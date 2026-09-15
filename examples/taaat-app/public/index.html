@@ -24,8 +24,10 @@
         <h1>TAAAT</h1>
         <p class="tagline">Template and Archetype Annotation Tool</p>
         <nav class="header-nav">
-          <sl-button variant="text" size="small" href="../">ehrtslib home</sl-button>
-          <sl-button variant="text" size="small" href="../demo/">Format converter demo</sl-button>
+          <sl-button variant="text" size="small"
+            href="../">ehrtslib home</sl-button>
+          <sl-button variant="text" size="small"
+            href="../demo/">Format converter demo</sl-button>
           <sl-button
             variant="text"
             size="small"
@@ -37,37 +39,88 @@
     </header>
 
     <section class="load-bar" aria-label="Load model">
-      <sl-radio-group id="load-mode" size="small" value="template">
+      <sl-radio-group id="source-mode" size="small" value="github"
+        aria-label="Source">
+        <sl-radio-button value="local">Local files</sl-radio-button>
+        <sl-radio-button value="github">GitHub</sl-radio-button>
+      </sl-radio-group>
+      <sl-radio-group id="load-mode" size="small" value="template"
+        aria-label="Model kind">
         <sl-radio-button value="template">Template</sl-radio-button>
         <sl-radio-button value="archetype">Archetype</sl-radio-button>
       </sl-radio-group>
-      <sl-input
-        id="github-url"
-        type="url"
-        size="small"
-        spellcheck="false"
-        autocomplete="off"
-        class="url-input"
-      ></sl-input>
-      <sl-button type="button" id="load-github-btn" variant="primary" size="small">
-        Load from GitHub
-      </sl-button>
-      <sl-button
-        type="button"
-        id="local-files-btn"
-        variant="default"
-        size="small"
-        title="Load .adl, .adls, or .t.json from disk"
-      >
-        Local files
-      </sl-button>
-      <input
-        type="file"
-        id="local-files"
-        accept=".adl,.adls,.t.json,application/json,text/plain"
-        multiple
-        hidden
-      >
+
+      <div id="local-workflow" class="workflow-fields" hidden>
+        <sl-button
+          type="button"
+          id="local-files-btn"
+          variant="primary"
+          size="small"
+          title="Load .adl, .adls, or .t.json from disk"
+        >
+          Choose local files
+        </sl-button>
+        <input
+          type="file"
+          id="local-files"
+          accept=".adl,.adls,.t.json,application/json,text/plain"
+          multiple
+          hidden
+        >
+      </div>
+
+      <div id="github-workflow" class="workflow-fields">
+        <sl-select
+          id="github-example"
+          size="small"
+          hoist
+          placeholder="Examples…"
+          class="example-select"
+          aria-label="Example models"
+        ></sl-select>
+        <sl-input
+          id="github-url"
+          type="url"
+          size="small"
+          spellcheck="false"
+          autocomplete="off"
+          class="url-input"
+        ></sl-input>
+        <sl-button type="button" id="load-github-btn" variant="primary"
+          size="small">
+          Load from GitHub
+        </sl-button>
+        <sl-input
+          id="github-token"
+          type="password"
+          size="small"
+          password-toggle
+          placeholder="GitHub token (optional)"
+          class="token-input"
+          autocomplete="off"
+        ></sl-input>
+        <sl-button
+          variant="text"
+          size="small"
+          href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
+          target="_blank"
+          rel="noopener"
+          id="github-token-help"
+          title="Fine-grained PAT: repository Contents Read and write. Classic PAT: repo (or public_repo for public repositories). Find existing tokens at github.com/settings/tokens"
+        >
+          How to create or find a token
+        </sl-button>
+        <sl-button type="button" id="github-login-btn" variant="default"
+          size="small">
+          GitHub login
+        </sl-button>
+        <sl-button type="button" id="github-commit-btn" variant="success"
+          size="small" disabled>
+          Commit to GitHub
+        </sl-button>
+        <span id="github-user" class="github-user" hidden></span>
+      </div>
+
       <sl-select
         id="file-select"
         size="small"
@@ -78,28 +131,14 @@
       >
         <sl-option value="">—</sl-option>
       </sl-select>
-      <sl-button type="button" id="download-file-btn" variant="default" size="small">
+      <sl-button type="button" id="download-file-btn" variant="default"
+        size="small">
         Download
       </sl-button>
-      <sl-input
-        id="github-token"
-        type="password"
-        size="small"
-        password-toggle
-        placeholder="GitHub token (optional)"
-        class="token-input"
-        autocomplete="off"
-      ></sl-input>
-      <sl-button type="button" id="github-login-btn" variant="default" size="small">
-        GitHub login
-      </sl-button>
-      <sl-button type="button" id="github-commit-btn" variant="success" size="small" disabled>
-        Commit to GitHub
-      </sl-button>
-      <span id="github-user" class="github-user" hidden></span>
     </section>
 
-    <section class="facet-legend" id="facet-legend" aria-label="Annotation facets">
+    <section class="facet-legend" id="facet-legend"
+      aria-label="Annotation facets">
       <div class="legend-block">
         <h2>Languages</h2>
         <p class="legend-hint">
@@ -110,8 +149,35 @@
       </div>
       <div class="legend-block">
         <h2>Families</h2>
-        <p class="legend-hint">Fill colour. Click to show/hide a key-prefix family.</p>
+        <p class="legend-hint">
+          Fill colour. Click to show/hide a key-prefix family. Add a prefix
+          (for example <code>fhir.</code>) to create a family; favourites live
+          inside each family except L10n.
+        </p>
         <div id="legend-families" class="legend-pills"></div>
+        <div class="family-tools">
+          <sl-input
+            id="add-family-prefix"
+            size="small"
+            placeholder="prefix."
+            class="family-prefix-input"
+            aria-label="New family prefix"
+          ></sl-input>
+          <sl-button type="button" id="add-family-btn" variant="default"
+            size="small">
+            Add family
+          </sl-button>
+          <sl-button type="button" id="families-export-btn" variant="default"
+            size="small">
+            Export families
+          </sl-button>
+          <sl-button type="button" id="families-import-btn" variant="default"
+            size="small">
+            Import families
+          </sl-button>
+          <input type="file" id="families-upload-input"
+            accept="application/json,.json" hidden>
+        </div>
       </div>
       <p class="legend-refs">
         Families are dotted key prefixes such as
@@ -153,31 +219,14 @@
         <div id="tree-container" class="tree-container"></div>
       </aside>
 
-      <section slot="end" class="panel detail-panel" aria-label="Annotation families">
+      <section slot="end" class="panel detail-panel"
+        aria-label="Annotation families">
         <header class="inspector-head">
           <h2 id="selected-title">Annotations</h2>
-          <p id="selected-path" class="selected-path">Select a node in the tree</p>
+          <p id="selected-path"
+            class="selected-path">Select a node in the tree</p>
         </header>
         <div id="family-accordions" class="family-accordions"></div>
-        <aside class="palette-panel" aria-label="Annotation palette">
-          <h3>Favourites</h3>
-          <p class="hint">Saved in this browser. Apply adds the key on the selected node in every enabled language bag.</p>
-          <ul id="palette-list" class="palette-list"></ul>
-          <div class="palette-add">
-            <sl-input id="palette-key" size="small" placeholder="Key" class="palette-input"></sl-input>
-            <sl-input id="palette-value" size="small" placeholder="Value (optional)" class="palette-input"></sl-input>
-            <sl-button type="button" id="palette-add-btn" variant="default" size="small">Add</sl-button>
-          </div>
-          <div class="palette-io">
-            <sl-button type="button" id="palette-download-btn" variant="default" size="small">
-              Export palette
-            </sl-button>
-            <sl-button type="button" id="palette-upload-btn" variant="default" size="small">
-              Import palette
-            </sl-button>
-            <input type="file" id="palette-upload-input" accept="application/json,.json" hidden>
-          </div>
-        </aside>
       </section>
     </sl-split-panel>
 

@@ -6,44 +6,51 @@ import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace
 import {
   type AnnotatedResource,
   type AnnotationDocumentation,
-  annotationPathOf,
   buildDefinitionTree,
   type DefinitionTreeNode,
   ensureResourceAnnotations,
   getResourceDocumentation,
   resolveAnnotatedResource,
-  serializeAnnotatedResource,
-  setPathAnnotation,
 } from "../../../parser/clinical_model_annotations.ts";
 import {
   familyFillColor,
   familyLegendLabel,
+  KNOWN_FAMILIES,
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
   listResourceLanguages,
   mergeDocumentation,
+  normalizeFamilyPrefix,
+  UNPREFIXED_FAMILY,
 } from "../../../parser/annotation_families.ts";
 import {
-  exportPaletteJson,
-  loadPalette,
-  type PaletteEntry,
-  parsePaletteJson,
-  savePalette,
-} from "./palette.ts";
+  addExtraFamily,
+  exportFamilyStoreJson,
+  type FamilyStore,
+  loadFamilyStore,
+  parseFamilyStoreJson,
+  saveFamilyStore,
+} from "./family_store.ts";
+import {
+  defaultExampleUrl,
+  exampleMatchingUrl,
+  examplesForKind,
+  type TaaatLoadKind,
+} from "./examples.ts";
 import { renderOutline } from "./outline-tree.ts";
 import {
   createInspectorState,
-  currentLanguageBags,
   type InspectorState,
   renderInspector,
 } from "./inspector.ts";
 import {
   type SlAlert,
   type SlButton,
-  type SlInput,
-  type SlSelect,
   slEl,
+  type SlInput,
+  type SlRadioGroup,
+  type SlSelect,
   slValue,
 } from "./sl.ts";
 
@@ -54,12 +61,13 @@ import {
 } from "../../../parser/github_contents.ts";
 
 export type LoadMode = "template" | "archetype";
+export type SourceMode = "local" | "github";
 
 const workspace = new ClinicalModelWorkspace();
 let activeFilePath: string | undefined;
 let activeResource: AnnotatedResource | undefined;
 let selectedNode: DefinitionTreeNode | undefined;
-let palette: PaletteEntry[] = loadPalette();
+let familyStore: FamilyStore = loadFamilyStore();
 let filterText = "";
 const enabledLanguages = new Set<string>();
 const enabledFamilies = new Set<string>();
@@ -68,17 +76,37 @@ const knownFamilies = new Set<string>();
 const inspectorState: InspectorState = createInspectorState();
 
 const GITHUB_TOKEN_KEY = "taaat-github-token";
+const SOURCE_MODE_KEY = "taaat-source-mode";
 let githubToken: string | undefined =
   sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? undefined;
 let githubLogin: string | undefined;
-
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
 
 function getLoadMode(): LoadMode {
-  const group = $("load-mode") as HTMLElement & { value?: string } | null;
+  const group = $("load-mode") as SlRadioGroup | null;
   return group?.value === "archetype" ? "archetype" : "template";
+}
+
+function getSourceMode(): SourceMode {
+  const group = $("source-mode") as SlRadioGroup | null;
+  return group?.value === "local" ? "local" : "github";
+}
+
+function applySourceMode(mode: SourceMode): void {
+  const group = $("source-mode") as SlRadioGroup | null;
+  if (group) group.value = mode;
+  const local = $("local-workflow");
+  const github = $("github-workflow");
+  if (local) local.hidden = mode !== "local";
+  if (github) github.hidden = mode !== "github";
+  sessionStorage.setItem(SOURCE_MODE_KEY, mode);
+  setStatus(
+    mode === "local"
+      ? "Choose local .adl / .t.json files, then Download the annotated file."
+      : "Pick an example or paste a GitHub URL. Token is optional for public read; required to commit.",
+  );
 }
 
 function setStatus(msg: string, isError = false): void {
@@ -175,7 +203,12 @@ function syncFacets(): void {
       enabledLanguages.add(l);
     }
   }
-  for (const f of listFamilies(workspaceDocumentation())) {
+  for (
+    const f of listFamilies(
+      workspaceDocumentation(),
+      familyStore.extraFamilies,
+    )
+  ) {
     if (!knownFamilies.has(f)) {
       knownFamilies.add(f);
       enabledFamilies.add(f);
@@ -249,7 +282,12 @@ function renderLegend(): void {
   }
   if (famHost) {
     famHost.innerHTML = "";
-    for (const family of listFamilies(workspaceDocumentation())) {
+    for (
+      const family of listFamilies(
+        workspaceDocumentation(),
+        familyStore.extraFamilies,
+      )
+    ) {
       const btn = slEl<SlButton>("sl-button", {
         size: "small",
         pill: true,
@@ -318,20 +356,52 @@ function refreshTree(): void {
   });
 }
 
+function persistFamilyStore(next: FamilyStore): void {
+  familyStore = next;
+  saveFamilyStore(familyStore);
+  for (const f of familyStore.extraFamilies) {
+    if (!knownFamilies.has(f)) {
+      knownFamilies.add(f);
+      enabledFamilies.add(f);
+    }
+    inspectorState.openFamilies.add(f);
+  }
+  refreshWorkspace();
+}
+
 function refreshInspector(): void {
   const title = $("selected-title");
   const pathEl = $("selected-path");
   const host = $("family-accordions");
   if (!host) return;
+  const tree = currentTree();
   if (!activeResource || !selectedNode) {
     if (title) title.textContent = "Annotations";
-    if (pathEl) pathEl.textContent = "Select a node in the tree";
-    host.innerHTML =
-      '<p class="tree-empty">Select a node to edit family sections.</p>';
+    if (pathEl) {
+      pathEl.textContent = activeResource
+        ? "Select a node in the tree"
+        : "Load a model, then select a node";
+    }
+    renderInspector({
+      host,
+      resource: activeResource,
+      tree,
+      node: undefined,
+      doc: activeResource ? ensureResourceAnnotations(activeResource) : {},
+      languages: workspaceLanguages(),
+      enabledLanguages,
+      state: inspectorState,
+      familyStore,
+      onChange: () => {
+        persistResourceToWorkspace();
+        refreshWorkspace();
+      },
+      onFamilyStoreChange: persistFamilyStore,
+      resourceForNode: (node) => ownerForNode(node) ?? activeResource!,
+      documentationForNode,
+    });
     return;
   }
-  const tree = currentTree();
-  if (!tree) return;
   const owner = ownerForNode(selectedNode) ?? activeResource;
   const bag = ensureResourceAnnotations(owner);
   if (title) title.textContent = selectedNode.label;
@@ -345,12 +415,14 @@ function refreshInspector(): void {
     languages: workspaceLanguages(),
     enabledLanguages,
     state: inspectorState,
+    familyStore,
     resourceForNode: (node) => ownerForNode(node) ?? owner,
     documentationForNode,
     onChange: () => {
       persistResourceToWorkspace();
       refreshWorkspace();
     },
+    onFamilyStoreChange: persistFamilyStore,
   });
 }
 
@@ -360,84 +432,80 @@ function refreshWorkspace(): void {
   refreshInspector();
 }
 
-function refreshPaletteUi(): void {
-  const list = $("palette-list");
-  if (!list) return;
-  list.innerHTML = "";
-  for (const entry of palette) {
-    const li = document.createElement("li");
-    const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
-    const apply = slEl<SlButton>("sl-button", {
-      size: "small",
-      variant: "default",
-      className: "palette-apply",
-      text: label,
-    });
-    apply.title = "Apply to selected node";
-    const remove = slEl<SlButton>("sl-button", {
-      size: "small",
-      variant: "text",
-      className: "palette-remove",
-      text: "×",
-    });
-    remove.title = "Remove from favourites";
-    apply.addEventListener("click", () => {
-      if (!activeResource || !selectedNode) {
-        setStatus("Select a tree node first.", true);
-        return;
-      }
-      const owner = ownerForNode(selectedNode) ?? activeResource;
-      const bags = [...enabledLanguages];
-      const langs = bags.length
-        ? bags
-        : currentLanguageBags(
-          ensureResourceAnnotations(owner),
-          modelLanguages(),
-        );
-      for (const lang of langs) {
-        setPathAnnotation(
-          owner,
-          annotationPathOf(selectedNode),
-          entry.key,
-          entry.value ?? "",
-          lang,
-        );
-      }
-      persistResourceToWorkspace();
-      refreshWorkspace();
-    });
-    remove.addEventListener("click", () => {
-      palette = palette.filter((p) => p.key !== entry.key);
-      savePalette(palette);
-      refreshPaletteUi();
-    });
-    li.append(apply, remove);
-    list.appendChild(li);
+function populateExampleSelect(kind: TaaatLoadKind): void {
+  const select = $("github-example") as SlSelect | null;
+  if (!select) return;
+  const currentUrl = slValue($("github-url"));
+  select.innerHTML = "";
+  const custom = document.createElement("sl-option") as HTMLElement & {
+    value: string;
+  };
+  custom.value = "";
+  custom.textContent = "Custom URL…";
+  select.appendChild(custom);
+  for (const example of examplesForKind(kind)) {
+    const opt = document.createElement("sl-option") as HTMLElement & {
+      value: string;
+    };
+    opt.value = example.id;
+    opt.textContent = example.label;
+    opt.title = example.url;
+    select.appendChild(opt);
+  }
+  const match = exampleMatchingUrl(currentUrl, kind);
+  select.value = match?.id ?? "";
+}
+
+function syncUrlFromKind(kind: TaaatLoadKind): void {
+  const urlInput = $("github-url") as SlInput | null;
+  const exampleSelect = $("github-example") as SlSelect | null;
+  if (!urlInput) return;
+  urlInput.placeholder = kind === "template"
+    ? "GitHub URL to a .t.json template…"
+    : "GitHub URL to an .adl / .adls archetype…";
+  const current = slValue(urlInput).trim();
+  const match = exampleMatchingUrl(current);
+  if (!current || (match && match.kind !== kind)) {
+    urlInput.value = defaultExampleUrl(kind);
+  }
+  if (exampleSelect) {
+    const next = exampleMatchingUrl(slValue(urlInput), kind);
+    exampleSelect.value = next?.id ?? "";
   }
 }
 
 function setupLoadBar(): void {
   const loadBtn = $("load-github-btn") as SlButton | null;
   const urlInput = $("github-url") as SlInput | null;
+  const exampleSelect = $("github-example") as SlSelect | null;
   if (!loadBtn || !urlInput) return;
 
-  const templateDefault =
-    "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
-  const archetypeDefault =
-    "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/main/local/archetypes/composition/openEHR-EHR-COMPOSITION.review.v0.adl";
+  const storedSource = sessionStorage.getItem(SOURCE_MODE_KEY);
+  applySourceMode(storedSource === "local" ? "local" : "github");
+  $("source-mode")?.addEventListener("sl-change", () => {
+    applySourceMode(getSourceMode());
+  });
 
-  const updatePlaceholder = () => {
-    const mode = getLoadMode();
-    urlInput.placeholder = mode === "template"
-      ? "GitHub URL to a .t.json template…"
-      : "GitHub URL to an .adl / .adls archetype…";
-    if (!slValue(urlInput).trim()) {
-      urlInput.value = mode === "template" ? templateDefault : archetypeDefault;
-    }
-  };
+  populateExampleSelect(getLoadMode());
+  syncUrlFromKind(getLoadMode());
 
-  $("load-mode")?.addEventListener("sl-change", updatePlaceholder);
-  updatePlaceholder();
+  $("load-mode")?.addEventListener("sl-change", () => {
+    const kind = getLoadMode();
+    populateExampleSelect(kind);
+    syncUrlFromKind(kind);
+  });
+
+  exampleSelect?.addEventListener("sl-change", () => {
+    const id = slValue(exampleSelect);
+    const example = examplesForKind(getLoadMode()).find((e) => e.id === id);
+    if (example) urlInput.value = example.url;
+  });
+
+  urlInput.addEventListener("sl-input", () => {
+    if (!exampleSelect) return;
+    const match = exampleMatchingUrl(slValue(urlInput), getLoadMode());
+    exampleSelect.value = match?.id ?? "";
+  });
 
   loadBtn.addEventListener("click", async () => {
     const url = slValue(urlInput).trim();
@@ -500,47 +568,53 @@ function setupFileSelect(): void {
     selectedNode = undefined;
     resetFacets();
     refreshWorkspace();
-    setStatus(activeFilePath ? `Editing ${activeFilePath}` : "No file selected");
+    setStatus(
+      activeFilePath ? `Editing ${activeFilePath}` : "No file selected",
+    );
   });
 }
 
-function setupPaletteActions(): void {
-  $("palette-add-btn")?.addEventListener("click", () => {
-    const key = slValue($("palette-key")).trim();
-    const value = slValue($("palette-value")).trim();
-    if (!key) {
-      setStatus("Enter an annotation key.", true);
+function setupFamilyTools(): void {
+  $("add-family-btn")?.addEventListener("click", () => {
+    const raw = slValue($("add-family-prefix"));
+    const prefix = normalizeFamilyPrefix(raw);
+    if (!prefix) {
+      setStatus("Use a prefix like fhir. or ui.", true);
       return;
     }
-    if (!palette.some((p) => p.key === key)) {
-      palette.push({ key, value: value || undefined });
-      savePalette(palette);
-      refreshPaletteUi();
+    if ((KNOWN_FAMILIES as readonly string[]).includes(prefix)) {
+      enabledFamilies.add(prefix);
+      inspectorState.openFamilies.add(prefix);
+      refreshWorkspace();
+      setStatus(
+        `Family ${
+          prefix === UNPREFIXED_FAMILY ? "unprefixed" : prefix
+        } is already listed.`,
+      );
+    } else {
+      persistFamilyStore(addExtraFamily(familyStore, prefix));
+      setStatus(`Added family ${prefix}`);
     }
-    const keyInp = $("palette-key") as SlInput | null;
-    const valInp = $("palette-value") as SlInput | null;
-    if (keyInp) keyInp.value = "";
-    if (valInp) valInp.value = "";
+    const inp = $("add-family-prefix") as SlInput | null;
+    if (inp) inp.value = "";
   });
 
-  $("palette-download-btn")?.addEventListener("click", () => {
-    downloadText(exportPaletteJson(palette), "taaat-palette.json");
+  $("families-export-btn")?.addEventListener("click", () => {
+    downloadText(exportFamilyStoreJson(familyStore), "taaat-families.json");
   });
 
-  $("palette-upload-btn")?.addEventListener("click", () => {
-    $("palette-upload-input")?.click();
+  $("families-import-btn")?.addEventListener("click", () => {
+    $("families-upload-input")?.click();
   });
 
-  $("palette-upload-input")?.addEventListener("change", async (e) => {
+  $("families-upload-input")?.addEventListener("change", async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
     try {
-      palette = parsePaletteJson(await file.text());
-      savePalette(palette);
-      refreshPaletteUi();
-      setStatus("Palette imported");
+      persistFamilyStore(parseFamilyStoreJson(await file.text()));
+      setStatus("Families imported");
     } catch (err) {
-      setStatus(`Invalid palette file: ${(err as Error).message}`, true);
+      setStatus(`Invalid families file: ${(err as Error).message}`, true);
     }
     (e.target as HTMLInputElement).value = "";
   });
@@ -602,7 +676,10 @@ function setupGitHubAuth(): void {
   $("github-login-btn")?.addEventListener("click", async () => {
     const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
     if (!token) {
-      setStatus("Paste a GitHub personal access token with contents:write.", true);
+      setStatus(
+        "Paste a GitHub personal access token with contents:write.",
+        true,
+      );
       return;
     }
     try {
@@ -640,8 +717,9 @@ function setupGitHubAuth(): void {
         });
         sha = current.sha;
       }
-      const message =
-        `Annotate ${source.ref.path.split("/").pop() ?? source.ref.path} via TAAAT`;
+      const message = `Annotate ${
+        source.ref.path.split("/").pop() ?? source.ref.path
+      } via TAAAT`;
       const result = await commitGitHubFile({
         ref: source.ref,
         content,
@@ -707,15 +785,13 @@ export function reloadUi(): void {
 export function initApp(): void {
   setupLoadBar();
   setupFileSelect();
-  setupPaletteActions();
+  setupFamilyTools();
   setupDownload();
   setupGitHubAuth();
   setupFilter();
   setupLocalFiles();
-  refreshPaletteUi();
-  renderLegend();
+  refreshWorkspace();
   updateGitHubActionState();
-  setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 
 if (typeof document !== "undefined") {

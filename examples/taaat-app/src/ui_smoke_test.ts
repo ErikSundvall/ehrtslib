@@ -34,13 +34,45 @@ Deno.test({
     assertEquals(res?.status(), 200);
 
     await page.waitForFunction(() => !!customElements.get("sl-button"));
+    await page.waitForSelector("#source-mode");
+    await page.waitForSelector("#github-workflow");
     await page.waitForSelector("#load-github-btn");
     await page.waitForSelector("#download-file-btn");
     await page.waitForSelector("#github-commit-btn");
     await page.waitForSelector("#github-token");
+    await page.waitForSelector("#github-token-help");
+    await page.waitForSelector("#github-example");
     await page.waitForSelector("#tree-container");
     await page.waitForSelector("#facet-legend");
     assertEquals(await page.locator("#add-language").count(), 0);
+    assertEquals(await page.locator("#palette-list").count(), 0);
+
+    const exampleLabels = await page.locator("#github-example sl-option")
+      .allTextContents();
+    assert(
+      exampleLabels.some((t) => t.includes("Accident report")),
+      "example picker should list Accident report + vital signs",
+    );
+    assert(
+      exampleLabels.some((t) => t.includes("Simple diagnose")),
+      "example picker should list Simple diagnose and vitals",
+    );
+    const tokenHelp = await page.locator("#github-token-help").getAttribute(
+      "href",
+    );
+    assert(
+      tokenHelp?.includes("managing-your-personal-access-tokens") === true,
+      "token help should point at GitHub PAT docs",
+    );
+
+    await page.locator('#source-mode sl-radio-button[value="local"]').click();
+    await page.waitForSelector("#local-workflow:not([hidden])");
+    assertEquals(await page.locator("#github-workflow").isHidden(), true);
+    await page.waitForSelector("#local-files-btn");
+
+    await page.locator('#source-mode sl-radio-button[value="github"]').click();
+    await page.waitForSelector("#github-workflow:not([hidden])");
+    assertEquals(await page.locator("#local-workflow").isHidden(), true);
 
     await page.evaluate((adlText: string) => {
       const t = (globalThis as {
@@ -110,8 +142,30 @@ Deno.test({
     assertEquals(await l10nChip.getAttribute("aria-pressed"), "true");
     assert((await page.locator(".ann-pill").count()) >= 1);
 
-    const paletteCount = await page.locator("#palette-list li").count();
-    assert(paletteCount >= 1, "palette should list favourites");
+    const paletteCount = await page.locator(
+      'sl-details.family-acc[data-family="a."] .family-favourites .fav-key',
+    ).count();
+    assert(paletteCount >= 1, "a. family should list automation favourites");
+    const aKeys = await page.locator(
+      'sl-details.family-acc[data-family="a."] .family-favourites .fav-key',
+    ).allTextContents();
+    assert(
+      aKeys.some((t) => t.trim() === "a.id"),
+      "a. favourites include a.id",
+    );
+    assertEquals(
+      await page.locator(
+        'sl-details.family-acc[data-family="L10n."] .family-favourites',
+      ).count(),
+      0,
+      "L10n family keeps generate panel instead of favourites",
+    );
+
+    await page.locator("#add-family-prefix").evaluate((el) => {
+      (el as HTMLElement & { value: string }).value = "fhir";
+    });
+    await page.locator("#add-family-btn").click();
+    await page.waitForSelector('sl-details.family-acc[data-family="fhir."]');
 
     const l10nHref = await page.locator(".legend-refs a").first().getAttribute(
       "href",
