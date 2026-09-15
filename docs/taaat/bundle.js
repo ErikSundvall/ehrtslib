@@ -249,10 +249,10 @@ var require_validator = __commonJS({
       return char === " " || char === "	" || char === "\n" || char === "\r";
     }
     function readPI(xmlData, i2) {
-      const start2 = i2;
+      const start = i2;
       for (; i2 < xmlData.length; i2++) {
         if (xmlData[i2] == "?" || xmlData[i2] == " ") {
-          const tagname = xmlData.substr(start2, i2 - start2);
+          const tagname = xmlData.substr(start, i2 - start);
           if (i2 > 5 && tagname === "xml") {
             return getErrorObject("InvalidXml", "XML declaration allowed only at the start of the document.", getLineNumberForPosition(xmlData, i2));
           } else if (xmlData[i2] == "?" && xmlData[i2 + 1] == ">") {
@@ -372,9 +372,9 @@ var require_validator = __commonJS({
         i2++;
         return validateNumberAmpersand(xmlData, i2);
       }
-      let count2 = 0;
-      for (; i2 < xmlData.length; i2++, count2++) {
-        if (xmlData[i2].match(/\w/) && count2 < 20)
+      let count = 0;
+      for (; i2 < xmlData.length; i2++, count++) {
+        if (xmlData[i2].match(/\w/) && count < 20)
           continue;
         if (xmlData[i2] === ";")
           break;
@@ -703,7 +703,7 @@ var require_DocTypeReader = __commonJS({
         }
         return { notationName, publicIdentifier, systemIdentifier, index: --i2 };
       }
-      readIdentifierVal(xmlData, i2, type2) {
+      readIdentifierVal(xmlData, i2, type) {
         let identifierVal = "";
         const startChar = xmlData[i2];
         if (startChar !== '"' && startChar !== "'") {
@@ -715,7 +715,7 @@ var require_DocTypeReader = __commonJS({
           i2++;
         }
         if (xmlData[i2] !== startChar) {
-          throw new Error(`Unterminated ${type2} value`);
+          throw new Error(`Unterminated ${type} value`);
         }
         i2++;
         return [i2, identifierVal];
@@ -2565,8 +2565,8 @@ var String2 = class _String extends Ordered {
    * @param end - End index (1-based)
    * @returns Result value
    */
-  substring(start2, end) {
-    const startIdx = (start2.value || 1) - 1;
+  substring(start, end) {
+    const startIdx = (start.value || 1) - 1;
     const endIdx = end.value || (this.value || "").length;
     return _String.from((this.value || "").substring(startIdx, endIdx));
   }
@@ -11581,24 +11581,24 @@ var C_DURATION = class extends C_PRIMITIVE {
 var TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
 var TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
 var COMPONENT_TERM_DEFINITIONS_KEY = "opt_component_term_definitions";
-function applyOperationalTemplateTermScopes(opt, language2 = "en") {
+function applyOperationalTemplateTermScopes(opt, language = "en") {
   const index = {
     ...opt.archetype_term_definitions ?? {}
   };
   if (opt.definition) {
-    walkTermScopes(opt.definition, void 0, language2, index);
+    walkTermScopes(opt.definition, void 0, language, index);
   }
   opt.archetype_term_definitions = index;
 }
-function walkTermScopes(obj, inheritedScope, language2, index) {
+function walkTermScopes(obj, inheritedScope, language, index) {
   let scope = inheritedScope;
   if (obj instanceof C_ARCHETYPE_ROOT && obj.archetype_ref) {
     scope = obj.archetype_ref;
     const local = obj[COMPONENT_TERM_DEFINITIONS_KEY];
     if (local && Object.keys(local).length) {
       index[scope] ??= {};
-      index[scope][language2] = {
-        ...index[scope][language2] ?? {},
+      index[scope][language] = {
+        ...index[scope][language] ?? {},
         ...local
       };
     }
@@ -11608,11 +11608,11 @@ function walkTermScopes(obj, inheritedScope, language2, index) {
   }
   if (obj instanceof C_COMPLEX_OBJECT) {
     for (const attr of obj.attributes ?? []) {
-      const children2 = attr.children;
-      if (!children2)
+      const children = attr.children;
+      if (!children)
         continue;
-      for (const child of children2) {
-        walkTermScopes(child, scope, language2, index);
+      for (const child of children) {
+        walkTermScopes(child, scope, language, index);
       }
     }
   }
@@ -11690,10 +11690,10 @@ function copyComplexFields(src, dest) {
 }
 function cloneComplexObject(obj) {
   if (obj instanceof C_ARCHETYPE_ROOT) {
-    const root2 = new C_ARCHETYPE_ROOT();
-    copyComplexFields(obj, root2);
-    root2.archetype_ref = obj.archetype_ref;
-    return root2;
+    const root = new C_ARCHETYPE_ROOT();
+    copyComplexFields(obj, root);
+    root.archetype_ref = obj.archetype_ref;
+    return root;
   }
   const out = new C_COMPLEX_OBJECT();
   copyComplexFields(obj, out);
@@ -11709,17 +11709,17 @@ function cloneAttribute(attr) {
   if (attr instanceof C_MULTIPLE_ATTRIBUTE && attr.cardinality) {
     const ma2 = out;
     const card = new CARDINALITY();
-    const interval2 = attr.cardinality.interval ?? attr.cardinality.interval;
-    if (interval2) {
-      card.interval = cloneMultiplicity(interval2);
+    const interval = attr.cardinality.interval ?? attr.cardinality.interval;
+    if (interval) {
+      card.interval = cloneMultiplicity(interval);
     }
     card.is_ordered = attr.cardinality.is_ordered;
     card.is_unique = attr.cardinality.is_unique;
     ma2.cardinality = card;
   }
-  const children2 = attr.children;
-  if (children2) {
-    out.children = children2.map(
+  const children = attr.children;
+  if (children) {
+    out.children = children.map(
       cloneCObject
     );
   }
@@ -11768,10 +11768,10 @@ function buildArchetypeTermIndex(resolver, inlinedArchetypes) {
   for (const arch of inlinedArchetypes) {
     if (!arch)
       continue;
-    const id2 = archetypeIdString(arch);
-    if (!id2 || index[id2])
+    const id = archetypeIdString(arch);
+    if (!id || index[id])
       continue;
-    index[id2] = termTableForArchetype(arch, resolver);
+    index[id] = termTableForArchetype(arch, resolver);
   }
   return index;
 }
@@ -11796,8 +11796,8 @@ function applyMergedTerminology(target, merged) {
 function attributeChildren(attr) {
   return attr.children ?? [];
 }
-function setAttributeChildren(attr, children2) {
-  attr.children = children2;
+function setAttributeChildren(attr, children) {
+  attr.children = children;
 }
 function findAttribute(obj, name) {
   return obj.attributes?.find((a2) => a2.rm_attribute_name === name);
@@ -11884,7 +11884,7 @@ function flattenArchetypeDefinition(archetype, resolver, inlined = []) {
   }
   return resolveSlotsInTree(flat, resolver, inlined);
 }
-function resolveSlotsInTree(root2, resolver, inlined) {
+function resolveSlotsInTree(root, resolver, inlined) {
   const walkObject = (obj) => {
     if (obj instanceof ARCHETYPE_SLOT) {
       return resolveArchetypeSlot(obj, resolver, inlined);
@@ -11896,27 +11896,27 @@ function resolveSlotsInTree(root2, resolver, inlined) {
       if (!obj.attributes)
         return obj;
       for (const attr of obj.attributes) {
-        const children2 = attr.children;
-        if (!children2)
+        const children = attr.children;
+        if (!children)
           continue;
-        attr.children = children2.map(
+        attr.children = children.map(
           walkObject
         );
       }
     }
     return obj;
   };
-  if (!root2.attributes)
-    return root2;
-  for (const attr of root2.attributes) {
-    const children2 = attr.children;
-    if (!children2)
+  if (!root.attributes)
+    return root;
+  for (const attr of root.attributes) {
+    const children = attr.children;
+    if (!children)
       continue;
-    attr.children = children2.map(
+    attr.children = children.map(
       walkObject
     );
   }
-  return root2;
+  return root;
 }
 function archetypeIdFromRef(ref) {
   return ref?.trim() || void 0;
@@ -11932,10 +11932,10 @@ function tagTermScopeDescendants(obj, archetypeId) {
   if (!(obj instanceof C_COMPLEX_OBJECT))
     return;
   for (const attr of obj.attributes ?? []) {
-    const children2 = attr.children;
-    if (!children2)
+    const children = attr.children;
+    if (!children)
       continue;
-    for (const child of children2) {
+    for (const child of children) {
       const meta2 = child;
       meta2[TERM_ARCHETYPE_SCOPE_KEY] ??= archetypeId;
       tagTermScopeDescendants(child, archetypeId);
@@ -11969,22 +11969,22 @@ function resolveArchetypeSlot(slot, resolver, inlined) {
   tagInlinedArchetype(result, archId, arch.definition?.node_id);
   return result;
 }
-function inlineArchetypeRoot(root2, resolver, inlined) {
-  const ref = root2.archetype_ref;
+function inlineArchetypeRoot(root, resolver, inlined) {
+  const ref = root.archetype_ref;
   if (!ref)
-    return root2;
+    return root;
   const arch = resolver.resolve(ref);
   if (!arch?.definition)
-    return root2;
+    return root;
   inlined.push(arch);
   const filler = flattenArchetypeDefinition(arch, resolver, inlined) ?? arch.definition;
   const result = cloneComplexObject(filler);
-  result.node_id = root2.node_id ?? result.node_id;
-  result.rm_type_name = root2.rm_type_name ?? result.rm_type_name;
-  if (root2.occurrences)
-    result.occurrences = root2.occurrences;
-  if (root2.attributes?.length) {
-    const specialized = specializeComplexObject(result, root2);
+  result.node_id = root.node_id ?? result.node_id;
+  result.rm_type_name = root.rm_type_name ?? result.rm_type_name;
+  if (root.occurrences)
+    result.occurrences = root.occurrences;
+  if (root.attributes?.length) {
+    const specialized = specializeComplexObject(result, root);
     const archId2 = archetypeIdFromRef(ref) ?? archetypeIdString2(arch);
     if (archId2)
       tagInlinedArchetype(specialized, archId2, arch.definition?.node_id);
@@ -12065,7 +12065,7 @@ var ADL2Tokenizer = class {
     return this.tokens;
   }
   nextToken() {
-    const start2 = this.position;
+    const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
     const char = this.peek();
@@ -12332,12 +12332,12 @@ var ADL2Tokenizer = class {
       value += this.peek();
       this.advance();
     }
-    const type2 = this.getKeywordType(value);
-    return this.makeToken(type2, value, startLine, startColumn);
+    const type = this.getKeywordType(value);
+    return this.makeToken(type, value, startLine, startColumn);
   }
   getKeywordType(value) {
-    const lower2 = value.toLowerCase();
-    switch (lower2) {
+    const lower = value.toLowerCase();
+    switch (lower) {
       case "for_all":
         return "FOR_ALL" /* FOR_ALL */;
       case "there_exists":
@@ -12441,10 +12441,10 @@ var ADL2Tokenizer = class {
     return this.input[this.position - 1];
   }
   previousCharsMatch(length, text) {
-    const start2 = this.position - length;
-    if (start2 < 0)
+    const start = this.position - length;
+    if (start < 0)
       return false;
-    return this.input.slice(start2, this.position) === text;
+    return this.input.slice(start, this.position) === text;
   }
   peek() {
     if (this.isAtEnd())
@@ -12480,8 +12480,8 @@ var ADL2Tokenizer = class {
   isIdentifierPart(char) {
     return this.isAlphaNumeric(char) || char === "_" || char === "-" || char === "?" || char === "X" || this.isUnicodeLetter(char);
   }
-  makeToken(type2, value, line, column) {
-    return { type: type2, value, line, column };
+  makeToken(type, value, line, column) {
+    return { type, value, line, column };
   }
 };
 
@@ -12506,7 +12506,7 @@ var OdinParser = class {
     return this.isIdentifierLike() && this.checkAhead("EQUALS" /* EQUALS */, 1);
   }
   parseTopLevelAssignments() {
-    const root2 = {};
+    const root = {};
     while (!this.isAtEnd()) {
       this.skipWhitespace();
       if (!this.isIdentifierLike() || !this.checkAhead("EQUALS" /* EQUALS */, 1)) {
@@ -12516,10 +12516,10 @@ var OdinParser = class {
       this.skipWhitespace();
       this.consume("EQUALS" /* EQUALS */, "Expected '=' after attribute name");
       this.skipWhitespace();
-      root2[attr.value] = this.parseValue();
+      root[attr.value] = this.parseValue();
       this.skipWhitespace();
     }
-    return root2;
+    return root;
   }
   parseValue() {
     this.skipWhitespace();
@@ -12682,38 +12682,38 @@ var OdinParser = class {
   }
   parseInterval() {
     this.consume("PIPE" /* PIPE */, "Expected '|' to start interval");
-    const interval2 = {
+    const interval = {
       _type: "interval"
     };
     if (this.check("LANGLE" /* LANGLE */)) {
       this.advance();
-      interval2.lowerIncluded = false;
+      interval.lowerIncluded = false;
       if (!this.check("EQUALS" /* EQUALS */)) {
-        interval2.lower = this.parsePrimitiveValue();
+        interval.lower = this.parsePrimitiveValue();
       }
     } else if (this.check("IDENTIFIER" /* IDENTIFIER */) && this.peek().value === "undefined") {
       this.advance();
-      interval2.lowerUnbounded = true;
+      interval.lowerUnbounded = true;
     } else {
-      interval2.lowerIncluded = true;
-      interval2.lower = this.parsePrimitiveValue();
+      interval.lowerIncluded = true;
+      interval.lower = this.parsePrimitiveValue();
     }
     if (this.check("ELLIPSIS" /* ELLIPSIS */)) {
       this.advance();
       if (this.check("RANGLE" /* RANGLE */) && this.checkAhead("PIPE" /* PIPE */)) {
         this.advance();
-        interval2.upperIncluded = false;
-        interval2.upper = this.parsePrimitiveValue();
+        interval.upperIncluded = false;
+        interval.upper = this.parsePrimitiveValue();
       } else if (this.check("IDENTIFIER" /* IDENTIFIER */) && this.peek().value === "undefined") {
         this.advance();
-        interval2.upperUnbounded = true;
+        interval.upperUnbounded = true;
       } else {
-        interval2.upperIncluded = true;
-        interval2.upper = this.parsePrimitiveValue();
+        interval.upperIncluded = true;
+        interval.upper = this.parsePrimitiveValue();
       }
     }
     this.consume("PIPE" /* PIPE */, "Expected '|' to close interval");
-    return interval2;
+    return interval;
   }
   parsePrimitive() {
     return this.parsePrimitiveValue();
@@ -12751,24 +12751,24 @@ var OdinParser = class {
     return token.type === "IDENTIFIER" /* IDENTIFIER */ || token.type === "DESCRIPTION" /* DESCRIPTION */ || token.type === "LANGUAGE" /* LANGUAGE */ || token.type === "DEFINITION" /* DEFINITION */ || token.type === "TERMINOLOGY" /* TERMINOLOGY */ || token.type === "ARCHETYPE" /* ARCHETYPE */ || token.type === "RULES" /* RULES */ || token.type === "ANNOTATIONS" /* ANNOTATIONS */;
   }
   // Token navigation helpers
-  check(type2) {
+  check(type) {
     if (this.isAtEnd())
       return false;
-    return this.peek().type === type2;
+    return this.peek().type === type;
   }
-  checkAhead(type2, offset = 0) {
+  checkAhead(type, offset = 0) {
     const pos = this.position + offset;
     if (pos >= this.tokens.length)
       return false;
-    return this.tokens[pos].type === type2;
+    return this.tokens[pos].type === type;
   }
   advance() {
     if (!this.isAtEnd())
       this.position++;
     return this.previous();
   }
-  consume(type2, message) {
-    if (this.check(type2))
+  consume(type, message) {
+    if (this.check(type))
       return this.advance();
     throw this.error(message);
   }
@@ -12948,24 +12948,24 @@ var CadlParser = class {
   parseCArchetypeRoot() {
     this.consumeKeyword("use");
     this.consumeKeyword("archetype");
-    const root2 = new C_ARCHETYPE_ROOT();
-    return this.parseArchetypeRootTail(root2);
+    const root = new C_ARCHETYPE_ROOT();
+    return this.parseArchetypeRootTail(root);
   }
-  parseArchetypeRootTail(root2) {
+  parseArchetypeRootTail(root) {
     const typeId = this.consume("IDENTIFIER" /* IDENTIFIER */, "Expected type identifier");
-    root2.rm_type_name = typeId.value;
+    root.rm_type_name = typeId.value;
     this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
-    root2.node_id = this.consume(
+    root.node_id = this.consume(
       "ID_CODE" /* ID_CODE */,
       "Expected id code"
     ).value;
     if (this.check("COMMA" /* COMMA */)) {
       this.advance();
-      root2.archetype_ref = this.consumeArchetypeRef();
+      root.archetype_ref = this.consumeArchetypeRef();
     }
     this.consume("RBRACKET" /* RBRACKET */, "Expected ']'");
     if (this.check("OCCURRENCES" /* OCCURRENCES */)) {
-      this.parseOccurrences(root2);
+      this.parseOccurrences(root);
     }
     if (this.check("MATCHES" /* MATCHES */)) {
       this.advance();
@@ -12973,14 +12973,14 @@ var CadlParser = class {
       while (!this.check("RBRACE" /* RBRACE */) && !this.isAtEnd()) {
         const attribute = this.parseAttribute();
         if (attribute) {
-          if (!root2.attributes)
-            root2.attributes = [];
-          root2.attributes.push(attribute);
+          if (!root.attributes)
+            root.attributes = [];
+          root.attributes.push(attribute);
         }
       }
       this.consume("RBRACE" /* RBRACE */, "Expected '}'");
     }
-    return root2;
+    return root;
   }
   isAllowArchetype() {
     if (this.checkIdentifier("allow_archetype"))
@@ -13190,17 +13190,17 @@ var CadlParser = class {
     this.consume("EXISTENCE" /* EXISTENCE */, "Expected 'existence'");
     this.consume("MATCHES" /* MATCHES */, "Expected 'matches'");
     this.consume("LBRACE" /* LBRACE */, "Expected '{'");
-    const interval2 = this.parseMultiplicity();
+    const interval = this.parseMultiplicity();
     this.consume("RBRACE" /* RBRACE */, "Expected '}'");
-    return interval2;
+    return interval;
   }
   parseCardinality() {
     this.consume("CARDINALITY" /* CARDINALITY */, "Expected 'cardinality'");
     this.consume("MATCHES" /* MATCHES */, "Expected 'matches'");
     this.consume("LBRACE" /* LBRACE */, "Expected '{'");
     const card = new CARDINALITY();
-    const interval2 = this.parseMultiplicity();
-    card.interval = interval2;
+    const interval = this.parseMultiplicity();
+    card.interval = interval;
     while (this.check("SEMICOLON" /* SEMICOLON */)) {
       this.advance();
       if (this.checkKeyword("ordered")) {
@@ -13227,34 +13227,34 @@ var CadlParser = class {
     this.consume("RBRACE" /* RBRACE */, "Expected '}'");
   }
   parseMultiplicity() {
-    const interval2 = new Multiplicity_interval();
+    const interval = new Multiplicity_interval();
     if (this.check("INTEGER" /* INTEGER */)) {
-      const lower2 = parseInt(this.advance().value, 10);
+      const lower = parseInt(this.advance().value, 10);
       if (this.check("ELLIPSIS" /* ELLIPSIS */)) {
         this.advance();
         if (this.check("STAR" /* STAR */)) {
           this.advance();
-          interval2.lower = lower2;
-          interval2.upper = void 0;
+          interval.lower = lower;
+          interval.upper = void 0;
         } else if (this.check("INTEGER" /* INTEGER */)) {
-          interval2.lower = lower2;
-          interval2.upper = parseInt(this.advance().value, 10);
+          interval.lower = lower;
+          interval.upper = parseInt(this.advance().value, 10);
         } else {
-          interval2.lower = lower2;
-          interval2.upper = void 0;
+          interval.lower = lower;
+          interval.upper = void 0;
         }
       } else {
-        interval2.lower = lower2;
-        interval2.upper = lower2;
+        interval.lower = lower;
+        interval.upper = lower;
       }
     } else if (this.check("STAR" /* STAR */)) {
       this.advance();
-      interval2.lower = 0;
-      interval2.upper = void 0;
+      interval.lower = 0;
+      interval.upper = void 0;
     } else {
       throw this.error("Expected multiplicity");
     }
-    return interval2;
+    return interval;
   }
   skipComments() {
     while (this.check("COMMENT" /* COMMENT */))
@@ -13271,18 +13271,18 @@ var CadlParser = class {
     }
     this.advance();
   }
-  check(type2) {
+  check(type) {
     if (this.isAtEnd())
       return false;
-    return this.peek().type === type2;
+    return this.peek().type === type;
   }
   advance() {
     if (!this.isAtEnd())
       this.position++;
     return this.previous();
   }
-  consume(type2, message) {
-    if (this.check(type2))
+  consume(type, message) {
+    if (this.check(type))
       return this.advance();
     throw this.error(message);
   }
@@ -13638,7 +13638,7 @@ var RulesParser = class {
     return -1;
   }
   splitOutsideParens(text, sep) {
-    const lower2 = text.toLowerCase();
+    const lower = text.toLowerCase();
     const needle = sep.toLowerCase();
     let depth = 0;
     for (let i2 = 0; i2 <= text.length - needle.length; i2++) {
@@ -13647,7 +13647,7 @@ var RulesParser = class {
         depth++;
       else if (c2 === ")")
         depth--;
-      else if (depth === 0 && lower2.slice(i2, i2 + needle.length) === needle && (i2 === 0 || /\s/.test(text[i2 - 1])) && (i2 + needle.length >= text.length || /\s/.test(text[i2 + needle.length]))) {
+      else if (depth === 0 && lower.slice(i2, i2 + needle.length) === needle && (i2 === 0 || /\s/.test(text[i2 - 1])) && (i2 + needle.length >= text.length || /\s/.test(text[i2 + needle.length]))) {
         return [
           text.slice(0, i2).trim(),
           text.slice(i2 + needle.length).trim()
@@ -13827,22 +13827,22 @@ var ADL2Parser = class {
     return metadata;
   }
   parseArchetypeId() {
-    let id2 = "";
+    let id = "";
     while (!this.isAtEnd()) {
       if (this.check("IDENTIFIER" /* IDENTIFIER */)) {
-        id2 += this.advance().value;
+        id += this.advance().value;
       } else if (this.check("DOT" /* DOT */)) {
-        id2 += this.advance().value;
+        id += this.advance().value;
       } else if (this.check("REAL" /* REAL */)) {
-        id2 += this.advance().value;
+        id += this.advance().value;
       } else {
         break;
       }
     }
-    if (!id2) {
+    if (!id) {
       throw this.error("Expected archetype ID");
     }
-    return id2;
+    return id;
   }
   parseLanguageSection(archetype) {
     this.consumeKeyword("LANGUAGE" /* LANGUAGE */, "Expected 'language' keyword");
@@ -14016,23 +14016,23 @@ var ADL2Parser = class {
     }
   }
   // Token navigation helpers
-  check(type2) {
+  check(type) {
     if (this.isAtEnd())
       return false;
-    return this.peek().type === type2;
+    return this.peek().type === type;
   }
   advance() {
     if (!this.isAtEnd())
       this.position++;
     return this.previous();
   }
-  consume(type2, message) {
-    if (this.check(type2))
+  consume(type, message) {
+    if (this.check(type))
       return this.advance();
     throw this.error(message);
   }
-  consumeKeyword(type2, message) {
-    if (this.check(type2))
+  consumeKeyword(type, message) {
+    if (this.check(type))
       return this.advance();
     throw this.error(message);
   }
@@ -14501,11 +14501,11 @@ function parseLegacyTemplateXml(xml) {
     }
   });
   const doc = parser.parse(xml);
-  const root2 = doc.template ?? doc.OPERATIONALTEMPLATE ?? doc.operationaltemplate;
-  if (!root2 || typeof root2 !== "object") {
+  const root = doc.template ?? doc.OPERATIONALTEMPLATE ?? doc.operationaltemplate;
+  if (!root || typeof root !== "object") {
     throw new Error("Expected root <template> element");
   }
-  return root2;
+  return root;
 }
 function asArray(value) {
   if (value === void 0 || value === null)
@@ -14550,25 +14550,25 @@ function parseMultiplicity(node) {
   if (!node || typeof node !== "object")
     return void 0;
   const n2 = node;
-  const interval2 = n2.interval ?? n2;
+  const interval = n2.interval ?? n2;
   const m2 = new Multiplicity_interval();
-  if (interval2.lower !== void 0) {
-    setBound(m2, "lower", Number(interval2.lower));
+  if (interval.lower !== void 0) {
+    setBound(m2, "lower", Number(interval.lower));
   }
-  if (interval2.upper !== void 0) {
-    setBound(m2, "upper", Number(interval2.upper));
+  if (interval.upper !== void 0) {
+    setBound(m2, "upper", Number(interval.upper));
   }
-  if (interval2.lower_unbounded !== void 0) {
-    m2.lower_unbounded = interval2.lower_unbounded === true || interval2.lower_unbounded === "true";
+  if (interval.lower_unbounded !== void 0) {
+    m2.lower_unbounded = interval.lower_unbounded === true || interval.lower_unbounded === "true";
   }
-  if (interval2.upper_unbounded !== void 0) {
-    m2.upper_unbounded = interval2.upper_unbounded === true || interval2.upper_unbounded === "true";
+  if (interval.upper_unbounded !== void 0) {
+    m2.upper_unbounded = interval.upper_unbounded === true || interval.upper_unbounded === "true";
   }
-  if (interval2.lower_included !== void 0) {
-    m2.lower_included = interval2.lower_included === true || interval2.lower_included === "true";
+  if (interval.lower_included !== void 0) {
+    m2.lower_included = interval.lower_included === true || interval.lower_included === "true";
   }
-  if (interval2.upper_included !== void 0) {
-    m2.upper_included = interval2.upper_included === true || interval2.upper_included === "true";
+  if (interval.upper_included !== void 0) {
+    m2.upper_included = interval.upper_included === true || interval.upper_included === "true";
   }
   return m2;
 }
@@ -14588,10 +14588,10 @@ function parseCardinality(node) {
 }
 function defaultContainerCardinality() {
   const card = new CARDINALITY();
-  const interval2 = new Multiplicity_interval();
-  setBound(interval2, "lower", 0);
-  interval2.upper_unbounded = true;
-  card.interval = interval2;
+  const interval = new Multiplicity_interval();
+  setBound(interval, "lower", 0);
+  interval.upper_unbounded = true;
+  card.interval = interval;
   return card;
 }
 function mapPrimitiveType(xsi) {
@@ -14625,18 +14625,18 @@ function parseCObject(node) {
     throw new Error("Invalid C_OBJECT node");
   }
   const n2 = node;
-  const type2 = (xsiType(n2) || amFieldString(n2, "rm_type_name", "rmTypeName")) ?? "C_COMPLEX_OBJECT";
+  const type = (xsiType(n2) || amFieldString(n2, "rm_type_name", "rmTypeName")) ?? "C_COMPLEX_OBJECT";
   const hasArchetypeId = !!(textValue(n2.archetype_id) ?? textValue(n2.archetype_ref) ?? textValue(n2.archetypeRef));
-  if (type2 === "C_ARCHETYPE_ROOT" || hasArchetypeId) {
+  if (type === "C_ARCHETYPE_ROOT" || hasArchetypeId) {
     return parseCArchetypeRoot(n2);
   }
-  if (type2 === "C_COMPLEX_OBJECT" || !type2.startsWith("C_")) {
+  if (type === "C_COMPLEX_OBJECT" || !type.startsWith("C_")) {
     return parseCComplexObject(n2);
   }
-  if (type2 === "C_PRIMITIVE_OBJECT") {
+  if (type === "C_PRIMITIVE_OBJECT") {
     return parseCPrimitiveObject(n2);
   }
-  const mapped = mapPrimitiveType(type2);
+  const mapped = mapPrimitiveType(type);
   if (mapped === "C_QUANTITY")
     return parseCQuantity(n2);
   if (mapped === "C_TERMINOLOGY_CODE")
@@ -14650,7 +14650,7 @@ function parseCObject(node) {
     return primitive;
   }
   const fallback = new C_PRIMITIVE_OBJECT();
-  fallback.rm_type_name = String(n2.rm_type_name ?? type2.replace(/^C_/, "DV_"));
+  fallback.rm_type_name = String(n2.rm_type_name ?? type.replace(/^C_/, "DV_"));
   return fallback;
 }
 function parseCPrimitiveObject(n2) {
@@ -14742,19 +14742,19 @@ function parseCComplexObject(n2) {
   return obj;
 }
 function parseCArchetypeRoot(n2) {
-  const root2 = new C_ARCHETYPE_ROOT();
-  applyOccurrence(root2, n2);
-  root2.archetype_ref = textValue(n2.archetype_id) ?? textValue(n2.archetype_ref) ?? textValue(n2.archetypeRef);
-  root2.attributes = asArray(n2.attributes).map(
-    (attr) => parseAttribute(attr, root2.rm_type_name)
+  const root = new C_ARCHETYPE_ROOT();
+  applyOccurrence(root, n2);
+  root.archetype_ref = textValue(n2.archetype_id) ?? textValue(n2.archetype_ref) ?? textValue(n2.archetypeRef);
+  root.attributes = asArray(n2.attributes).map(
+    (attr) => parseAttribute(attr, root.rm_type_name)
   ).filter(
     Boolean
   );
   const localTerms = collectLocalTermDefinitions(n2);
   if (Object.keys(localTerms).length) {
-    root2[COMPONENT_TERM_DEFINITIONS_KEY] = localTerms;
+    root[COMPONENT_TERM_DEFINITIONS_KEY] = localTerms;
   }
-  return root2;
+  return root;
 }
 var CONTAINER_RM_ATTRIBUTES = {
   COMPOSITION: ["content"],
@@ -14778,18 +14778,18 @@ function parseAttribute(node, parentRmType) {
   if (!node || typeof node !== "object")
     return null;
   const n2 = node;
-  const type2 = xsiType(n2);
+  const type = xsiType(n2);
   const attrName = amFieldString(n2, "rm_attribute_name", "rmAttributeName") ?? "";
-  const useMultiple = type2 === "C_MULTIPLE_ATTRIBUTE" || (type2 === "C_ATTRIBUTE" || type2 === "") && isContainerRmAttribute(parentRmType, attrName);
+  const useMultiple = type === "C_MULTIPLE_ATTRIBUTE" || (type === "C_ATTRIBUTE" || type === "") && isContainerRmAttribute(parentRmType, attrName);
   const attr = useMultiple ? new C_MULTIPLE_ATTRIBUTE() : new C_SINGLE_ATTRIBUTE();
   attr.rm_attribute_name = attrName;
   attr.existence = parseOccurrencesOrMultiplicity(n2.existence);
   if (attr instanceof C_MULTIPLE_ATTRIBUTE) {
     attr.cardinality = parseCardinality(n2.cardinality) ?? defaultContainerCardinality();
   }
-  const children2 = asArray(n2.children).map(parseCObject);
-  if (children2.length) {
-    attr.children = children2;
+  const children = asArray(n2.children).map(parseCObject);
+  if (children.length) {
+    attr.children = children;
   }
   return attr;
 }
@@ -15074,29 +15074,29 @@ function parseNumericInterval(node) {
   if (!node || typeof node !== "object")
     return void 0;
   const rec = node;
-  const interval2 = {};
-  const lower2 = optionalNumber(rec.lower);
+  const interval = {};
+  const lower = optionalNumber(rec.lower);
   const upper = optionalNumber(rec.upper);
-  if (lower2 !== void 0)
-    interval2.lower = lower2;
+  if (lower !== void 0)
+    interval.lower = lower;
   if (upper !== void 0)
-    interval2.upper = upper;
+    interval.upper = upper;
   if (rec.lower_unbounded !== void 0) {
-    interval2.lower_unbounded = rec.lower_unbounded === true || rec.lower_unbounded === "true";
+    interval.lower_unbounded = rec.lower_unbounded === true || rec.lower_unbounded === "true";
   }
   if (rec.upper_unbounded !== void 0) {
-    interval2.upper_unbounded = rec.upper_unbounded === true || rec.upper_unbounded === "true";
+    interval.upper_unbounded = rec.upper_unbounded === true || rec.upper_unbounded === "true";
   }
   if (rec.lower_included !== void 0) {
-    interval2.lower_included = rec.lower_included === true || rec.lower_included === "true";
+    interval.lower_included = rec.lower_included === true || rec.lower_included === "true";
   }
   if (rec.upper_included !== void 0) {
-    interval2.upper_included = rec.upper_included === true || rec.upper_included === "true";
+    interval.upper_included = rec.upper_included === true || rec.upper_included === "true";
   }
-  if (interval2.lower === void 0 && interval2.upper === void 0 && interval2.lower_unbounded === void 0 && interval2.upper_unbounded === void 0) {
+  if (interval.lower === void 0 && interval.upper === void 0 && interval.lower_unbounded === void 0 && interval.upper_unbounded === void 0) {
     return void 0;
   }
-  return interval2;
+  return interval;
 }
 function optionalNumber(value) {
   if (value === void 0 || value === null || value === "")
@@ -15157,13 +15157,13 @@ function collectLocalTermDefinitions(n2) {
     const entry = {};
     for (const it2 of items) {
       const item = it2;
-      const id2 = String(item["@_id"] ?? item.id ?? "");
+      const id = String(item["@_id"] ?? item.id ?? "");
       const val = textValue(item);
       if (!val)
         continue;
-      if (id2 === "text")
+      if (id === "text")
         entry.text = val;
-      if (id2 === "description")
+      if (id === "description")
         entry.description = val;
     }
     if (entry.text || entry.description)
@@ -15192,7 +15192,7 @@ function collectTermDefinitions(node, bag) {
 
 // generation/opt_l10n.ts
 var OPT_ANNOTATION_LANG = "_";
-function ensureOptAnnotations(opt, language2 = OPT_ANNOTATION_LANG) {
+function ensureOptAnnotations(opt, language = OPT_ANNOTATION_LANG) {
   let ann = opt.annotations;
   if (!ann) {
     ann = new RESOURCE_ANNOTATIONS();
@@ -15200,21 +15200,21 @@ function ensureOptAnnotations(opt, language2 = OPT_ANNOTATION_LANG) {
   }
   const bag = ann;
   bag.documentation ??= {};
-  bag.documentation[language2] ??= {};
+  bag.documentation[language] ??= {};
   return bag.documentation;
 }
-function setOptPathAnnotationItems(opt, path, items, language2 = OPT_ANNOTATION_LANG) {
+function setOptPathAnnotationItems(opt, path, items, language = OPT_ANNOTATION_LANG) {
   if (!Object.keys(items).length)
     return;
-  const doc = ensureOptAnnotations(opt, language2);
-  doc[language2] ??= {};
-  doc[language2][path] = { ...doc[language2][path] ?? {}, ...items };
+  const doc = ensureOptAnnotations(opt, language);
+  doc[language] ??= {};
+  doc[language][path] = { ...doc[language][path] ?? {}, ...items };
 }
 
 // parser/legacy/opt_xml_parser.ts
-function setArchetypeId(target, id2) {
+function setArchetypeId(target, id) {
   const aid = new ARCHETYPE_ID();
-  aid.value = id2;
+  aid.value = id;
   target.archetype_id = aid;
 }
 function isOptXml(source) {
@@ -15227,20 +15227,20 @@ function isOptXml(source) {
 }
 function parseOptXml(source) {
   const warnings = [];
-  const root2 = parseLegacyTemplateXml(source);
+  const root = parseLegacyTemplateXml(source);
   const opt = new OPERATIONAL_TEMPLATE();
   opt.adl_version = "1.4";
   opt.rm_release = "1.0.4";
-  const templateId = textValue(root2.template_id);
+  const templateId = textValue(root.template_id);
   if (templateId)
     setArchetypeId(opt, templateId);
   const langCode = textValue(
-    root2.language?.code_string ?? root2.language
+    root.language?.code_string ?? root.language
   );
   if (langCode) {
     opt.original_language = langCode;
   }
-  const defNode = root2.definition;
+  const defNode = root.definition;
   if (!defNode || typeof defNode !== "object") {
     throw new Error("OPT missing <definition>");
   }
@@ -15264,14 +15264,14 @@ function parseOptXml(source) {
     opt.ontology = ontology;
   }
   applyOperationalTemplateTermScopes(opt, "en");
-  parseOptAnnotations(root2, opt);
-  if (root2.concept) {
+  parseOptAnnotations(root, opt);
+  if (root.concept) {
     warnings.push("OPT concept metadata preserved in description only (not full round-trip).");
   }
   return { operationalTemplate: opt, warnings };
 }
-function parseOptAnnotations(root2, opt) {
-  for (const raw of asArray(root2.annotations)) {
+function parseOptAnnotations(root, opt) {
+  for (const raw of asArray(root.annotations)) {
     if (!raw || typeof raw !== "object")
       continue;
     const rec = raw;
@@ -15283,11 +15283,11 @@ function parseOptAnnotations(root2, opt) {
       if (!it2 || typeof it2 !== "object")
         continue;
       const item = it2;
-      const id2 = String(item["@_id"] ?? item.id ?? "").trim();
+      const id = String(item["@_id"] ?? item.id ?? "").trim();
       const val = textValue(item);
-      if (!id2 || !val)
+      if (!id || !val)
         continue;
-      items[id2] = val;
+      items[id] = val;
     }
     setOptPathAnnotationItems(opt, path, items);
   }
@@ -15312,10 +15312,10 @@ function parseOetXmlDocument(xml) {
     }
   });
   const doc = parser.parse(xml);
-  const root2 = doc.template;
-  if (!root2 || typeof root2 !== "object")
+  const root = doc.template;
+  if (!root || typeof root !== "object")
     throw new Error("Expected OET <template> root");
-  return root2;
+  return root;
 }
 function parseRule(node) {
   const rule = { path: String(node["@_path"] ?? node.path ?? "") };
@@ -15345,11 +15345,11 @@ function parseItems(node) {
 }
 function parseOetXml(source) {
   const warnings = [];
-  const root2 = parseOetXmlDocument(source);
-  const def = root2.definition;
+  const root = parseOetXmlDocument(source);
+  const def = root.definition;
   const document2 = {
-    id: textValue(root2.id) ?? String(root2.id ?? ""),
-    name: String(root2.name ?? ""),
+    id: textValue(root.id) ?? String(root.id ?? ""),
+    name: String(root.name ?? ""),
     rules: [],
     items: []
   };
@@ -15391,17 +15391,17 @@ function parseArchetypeIdField(node) {
   if (!node)
     return void 0;
   if (typeof node === "string") {
-    const id2 = new ARCHETYPE_ID();
-    id2.value = node;
-    return id2;
+    const id = new ARCHETYPE_ID();
+    id.value = node;
+    return id;
   }
   if (typeof node === "object") {
     const rec = node;
     const v2 = textValue(rec.value) ?? textValue(rec);
     if (v2) {
-      const id2 = new ARCHETYPE_ID();
-      id2.value = v2;
-      return id2;
+      const id = new ARCHETYPE_ID();
+      id.value = v2;
+      return id;
     }
   }
   return void 0;
@@ -15456,8 +15456,8 @@ var PROPERTY_ALIASES = {
   isOrdered: "is_ordered",
   isUnique: "is_unique"
 };
-function normalizeBetterTemplateJson(root2) {
-  return normalizeNode(root2);
+function normalizeBetterTemplateJson(root) {
+  return normalizeNode(root);
 }
 function normalizeNode(value) {
   if (value === null || value === void 0)
@@ -15468,8 +15468,8 @@ function normalizeNode(value) {
     return value;
   const rec = value;
   const typeRaw = String(rec["@type"] ?? rec["@_type"] ?? rec._type ?? "");
-  const type2 = typeRaw.replace(/^.*:/, "");
-  if (type2 === "BINARY_OPERATOR") {
+  const type = typeRaw.replace(/^.*:/, "");
+  if (type === "BINARY_OPERATOR") {
     return normalizeBinaryOperator(rec);
   }
   const out = {};
@@ -15496,7 +15496,7 @@ function normalizeNode(value) {
       normVal = tid.value ?? tid;
     }
     if (normKey === "constraint" && Array.isArray(normVal)) {
-      normVal = normalizeConstraintArray(normVal, type2);
+      normVal = normalizeConstraintArray(normVal, type);
     }
     out[normKey] = normVal;
   }
@@ -15587,8 +15587,8 @@ function isTemplateJson(source) {
     return false;
   try {
     const obj = JSON.parse(t2);
-    const type2 = jsonType(obj);
-    return type2 === "TEMPLATE" || type2 === "OPERATIONAL_TEMPLATE";
+    const type = jsonType(obj);
+    return type === "TEMPLATE" || type === "OPERATIONAL_TEMPLATE";
   } catch {
     return false;
   }
@@ -15596,67 +15596,86 @@ function isTemplateJson(source) {
 function parseTemplateJson(source) {
   const warnings = [];
   const raw = JSON.parse(source);
-  const root2 = normalizeBetterTemplateJson(raw);
+  const root = normalizeBetterTemplateJson(raw);
   warnings.push(...collectBetterJsonLintWarnings(raw));
-  const type2 = jsonType(root2);
-  if (type2 === "OPERATIONAL_TEMPLATE") {
-    warnings.push("JSON operational template treated as template for flattening");
+  const type = jsonType(root);
+  if (type === "OPERATIONAL_TEMPLATE") {
+    warnings.push(
+      "JSON operational template treated as template for flattening"
+    );
   }
-  const template = parseTemplateObject(root2, warnings);
+  const template = parseTemplateObject(root, warnings);
   const overlays = [];
-  for (const raw2 of asArray(root2.template_overlays ?? root2.templateOverlays)) {
+  for (const raw2 of asArray(root.template_overlays ?? root.templateOverlays)) {
     if (!raw2 || typeof raw2 !== "object")
       continue;
     const rec = raw2;
     if (jsonType(rec) !== "TEMPLATE_OVERLAY") {
-      warnings.push(`Skipped non-overlay in templateOverlays: ${jsonType(rec)}`);
+      warnings.push(
+        `Skipped non-overlay in templateOverlays: ${jsonType(rec)}`
+      );
       continue;
     }
     overlays.push(parseTemplateOverlay(rec, warnings));
   }
   return { template, overlays, warnings };
 }
-function parseTemplateObject(root2, warnings) {
+function parseTemplateObject(root, warnings) {
   const template = new TEMPLATE();
-  applyAuthoredArchetypeFields(template, root2, warnings);
-  const tplId = root2.template_id ?? root2.templateId;
+  applyAuthoredArchetypeFields(template, root, warnings);
+  const tplId = root.template_id ?? root.templateId;
   if (tplId !== void 0) {
     template.template_id = String(tplId);
   }
   return template;
 }
-function parseTemplateOverlay(root2, warnings) {
+function parseTemplateOverlay(root, warnings) {
   const overlay = new TEMPLATE_OVERLAY();
-  applyAuthoredArchetypeFields(overlay, root2, warnings);
+  applyAuthoredArchetypeFields(overlay, root, warnings);
   return overlay;
 }
-function applyAuthoredArchetypeFields(target, root2, warnings) {
-  if (root2.uid !== void 0) {
+function applyAuthoredArchetypeFields(target, root, warnings) {
+  if (root.uid !== void 0) {
     const uid = new HIER_OBJECT_ID();
-    uid.value = String(root2.uid);
+    uid.value = String(root.uid);
     target.uid = uid;
   }
   target.archetype_id = parseArchetypeIdField(
-    root2.archetypeId ?? root2.archetype_id
+    root.archetypeId ?? root.archetype_id
   );
   target.parent_archetype_id = parseArchetypeIdField(
-    root2.parentArchetypeId ?? root2.parent_archetype_id
+    root.parentArchetypeId ?? root.parent_archetype_id
   );
-  if (root2.adlVersion !== void 0)
-    target.adl_version = String(root2.adlVersion);
-  if (root2.adl_version !== void 0)
-    target.adl_version = String(root2.adl_version);
-  const def = root2.definition;
+  if (root.adlVersion !== void 0) {
+    target.adl_version = String(root.adlVersion);
+  }
+  if (root.adl_version !== void 0) {
+    target.adl_version = String(root.adl_version);
+  }
+  if (root.description && typeof root.description === "object") {
+    target.description = root.description;
+  }
+  if (root.translations !== void 0) {
+    target.translations = root.translations;
+  }
+  const annotations = root.annotations;
+  if (annotations && typeof annotations === "object") {
+    applyAnnotationsOdin(target, annotations);
+  }
+  const def = root.definition;
   if (def && typeof def === "object") {
     target.definition = parseCObject(
       normalizeJsonNode(def)
     );
   }
-  const term = root2.terminology;
+  const term = root.terminology;
   if (term && typeof term === "object") {
-    target.ontology = parseJsonOntology(term, warnings);
+    target.ontology = parseJsonOntology(
+      term,
+      warnings
+    );
   }
-  const originalLanguage = root2.originalLanguage ?? root2.original_language;
+  const originalLanguage = root.originalLanguage ?? root.original_language;
   if (originalLanguage && typeof originalLanguage === "object") {
     const lang = parseCodePhrase(originalLanguage);
     if (lang) {
@@ -15714,8 +15733,8 @@ var ArchetypeRepository = class _ArchetypeRepository {
   getTemplate(templateId) {
     return this.templates.get(templateId) ?? this.templates.get(templateId.replace(/\.v[\d.]+$/, ""));
   }
-  getOperationalTemplate(id2) {
-    return this.operational.get(id2) ?? this.operational.get(id2.replace(/\.v[\d.]+$/, ""));
+  getOperationalTemplate(id) {
+    return this.operational.get(id) ?? this.operational.get(id.replace(/\.v[\d.]+$/, ""));
   }
   /** Flatten an ADL2 source template using archetypes in this repository. */
   flattenTemplate(template) {
@@ -15781,45 +15800,45 @@ var ArchetypeRepository = class _ArchetypeRepository {
     for (const overlay of overlays) {
       this.add(overlay);
     }
-    const id2 = template.archetype_id?.value ?? path;
-    this.templates.set(id2, template);
-    const base = id2.replace(/\.v[\d.]+$/, "");
+    const id = template.archetype_id?.value ?? path;
+    this.templates.set(id, template);
+    const base = id.replace(/\.v[\d.]+$/, "");
     if (!this.templates.has(base))
       this.templates.set(base, template);
     for (const w2 of warnings) {
       this.warnings.push(`${path}: ${w2}`);
     }
-    return { path, kind: "template_json", archetypeId: id2 };
+    return { path, kind: "template_json", archetypeId: id };
   }
   ingestParseResult(path, parsed) {
     if (parsed.kind === "archetype" && parsed.archetype) {
       this.add(parsed.archetype);
-      const id2 = parsed.archetype.archetype_id?.value ?? path;
-      return { path, kind: "archetype", archetypeId: id2 };
+      const id = parsed.archetype.archetype_id?.value ?? path;
+      return { path, kind: "archetype", archetypeId: id };
     }
     if (parsed.kind === "template" && parsed.template) {
-      const id2 = parsed.template.archetype_id?.value ?? path;
-      this.templates.set(id2, parsed.template);
-      const base = id2.replace(/\.v[\d.]+$/, "");
+      const id = parsed.template.archetype_id?.value ?? path;
+      this.templates.set(id, parsed.template);
+      const base = id.replace(/\.v[\d.]+$/, "");
       if (!this.templates.has(base))
         this.templates.set(base, parsed.template);
-      return { path, kind: "template", archetypeId: id2 };
+      return { path, kind: "template", archetypeId: id };
     }
     if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
-      const id2 = parsed.operationalTemplate.archetype_id?.value ?? path;
-      this.operational.set(id2, parsed.operationalTemplate);
-      const base = id2.replace(/\.v[\d.]+$/, "");
+      const id = parsed.operationalTemplate.archetype_id?.value ?? path;
+      this.operational.set(id, parsed.operationalTemplate);
+      const base = id.replace(/\.v[\d.]+$/, "");
       if (!this.operational.has(base))
         this.operational.set(base, parsed.operationalTemplate);
-      return { path, kind: "operational_template", archetypeId: id2 };
+      return { path, kind: "operational_template", archetypeId: id };
     }
     return { path, kind: "skipped", message: `unsupported kind: ${parsed.kind}` };
   }
   add(archetype) {
-    const id2 = archetype.archetype_id?.value;
-    if (id2)
-      this.byId.set(id2, archetype);
-    const base = id2?.replace(/\.v[\d.]+$/, "");
+    const id = archetype.archetype_id?.value;
+    if (id)
+      this.byId.set(id, archetype);
+    const base = id?.replace(/\.v[\d.]+$/, "");
     if (base && !this.byId.has(base))
       this.byId.set(base, archetype);
   }
@@ -15859,9 +15878,9 @@ function normalizeNodeId(nodeId) {
     variants.add(`id${n2}`);
     variants.add(`at${String(n2).padStart(4, "0")}`);
   }
-  const id2 = /^id(\d+(?:\.\d+)*)$/i.exec(trimmed);
-  if (id2) {
-    variants.add(`at${id2[1].replace(/\./g, "").padStart(4, "0")}`);
+  const id = /^id(\d+(?:\.\d+)*)$/i.exec(trimmed);
+  if (id) {
+    variants.add(`at${id[1].replace(/\./g, "").padStart(4, "0")}`);
     variants.add(adlNodeIdToAtCode(trimmed));
   }
   return [...variants];
@@ -15908,25 +15927,25 @@ function findAttribute2(obj, name) {
   return obj.attributes?.find((a2) => a2.rm_attribute_name === name);
 }
 function findChildByNodeId(attr, nodeId) {
-  const children2 = attr.children ?? [];
+  const children = attr.children ?? [];
   if (!nodeId) {
-    if (children2.length === 1)
-      return { child: children2[0], index: 0 };
+    if (children.length === 1)
+      return { child: children[0], index: 0 };
     return void 0;
   }
-  for (let i2 = 0; i2 < children2.length; i2++) {
-    if (nodeIdsMatch(children2[i2].node_id, nodeId)) {
-      return { child: children2[i2], index: i2 };
+  for (let i2 = 0; i2 < children.length; i2++) {
+    if (nodeIdsMatch(children[i2].node_id, nodeId)) {
+      return { child: children[i2], index: i2 };
     }
   }
   return void 0;
 }
-function resolveAomPath(root2, path) {
+function resolveAomPath(root, path) {
   const segments = splitArchetypePath(path);
   if (segments.length === 0) {
-    return { object: root2 };
+    return { object: root };
   }
-  let current = root2;
+  let current = root;
   let parentObject;
   let parentAttribute;
   let childIndex;
@@ -15954,27 +15973,27 @@ function resolveAomPath(root2, path) {
     childIndex
   };
 }
-function replaceAtAomPath(root2, path, replacement) {
-  const match = resolveAomPath(root2, path);
+function replaceAtAomPath(root, path, replacement) {
+  const match = resolveAomPath(root, path);
   if (!match?.parentAttribute || match.childIndex === void 0)
     return false;
-  const children2 = match.parentAttribute.children;
-  if (!children2)
+  const children = match.parentAttribute.children;
+  if (!children)
     return false;
-  children2[match.childIndex] = replacement;
+  children[match.childIndex] = replacement;
   return true;
 }
 
 // parser/legacy/oet_compiler.ts
-function multiplicityFromMaxMin(max2, min2) {
+function multiplicityFromMaxMin(max, min) {
   const m2 = new Multiplicity_interval();
-  m2.lower = min2 ?? 0;
-  m2.upper = max2 ?? 1;
+  m2.lower = min ?? 0;
+  m2.upper = max ?? 1;
   m2.lower_included = true;
   m2.upper_included = true;
   m2.lower_unbounded = false;
-  m2.upper_unbounded = max2 === void 0 || max2 < 0;
-  if (max2 === 0) {
+  m2.upper_unbounded = max === void 0 || max < 0;
+  if (max === 0) {
     m2.upper = 0;
     m2.lower = 0;
   }
@@ -15989,11 +16008,11 @@ function joinArchetypePaths(base, relative) {
     return r2;
   return `${b2}/${r2}`;
 }
-function applyRule(root2, rule, warnings, pathPrefix = "") {
+function applyRule(root, rule, warnings, pathPrefix = "") {
   const fullPath = joinArchetypePaths(pathPrefix, rule.path);
   if (!fullPath)
     return;
-  const match = resolveAomPath(root2, fullPath);
+  const match = resolveAomPath(root, fullPath);
   if (!match) {
     warnings.push(`OET rule path not found: ${fullPath}`);
     return;
@@ -16017,7 +16036,7 @@ function applyRule(root2, rule, warnings, pathPrefix = "") {
     }
   }
 }
-function applyItem(root2, item, resolver, warnings, pathPrefix = "") {
+function applyItem(root, item, resolver, warnings, pathPrefix = "") {
   const itemPath = joinArchetypePaths(pathPrefix, item.path);
   if (itemPath && item.archetypeId) {
     const arch = resolver.resolve(item.archetypeId);
@@ -16030,15 +16049,15 @@ function applyItem(root2, item, resolver, warnings, pathPrefix = "") {
       if (item.max !== void 0 || item.min !== void 0) {
         filler.occurrences = multiplicityFromMaxMin(item.max, item.min);
       }
-      if (!replaceAtAomPath(root2, itemPath, filler)) {
+      if (!replaceAtAomPath(root, itemPath, filler)) {
         warnings.push(`OET item path not found: ${itemPath}`);
       }
     }
   }
   for (const rule of item.rules)
-    applyRule(root2, rule, warnings, itemPath);
+    applyRule(root, rule, warnings, itemPath);
   for (const child of item.items)
-    applyItem(root2, child, resolver, warnings, itemPath);
+    applyItem(root, child, resolver, warnings, itemPath);
 }
 function compileOetToOperational(oet, options) {
   const warnings = [...oet.warnings];
@@ -16048,7 +16067,7 @@ function compileOetToOperational(oet, options) {
     throw new Error("OET missing definition archetype_id");
   }
   const resolver = {
-    resolve: (id2) => options.repository.get(id2)
+    resolve: (id) => options.repository.get(id)
   };
   const base = options.repository.get(archetypeId);
   if (!base?.definition) {
@@ -16342,12 +16361,12 @@ var TemplateWorkspace = class _TemplateWorkspace {
       `Cannot resolve operational template: ${ops.length} operational, ${templates.length} source templates. Select a generation root file (radio) or pass templateId.`
     );
   }
-  resolveByTemplateId(id2, warnings) {
-    const opt = this.repository.getOperationalTemplate(id2);
+  resolveByTemplateId(id, warnings) {
+    const opt = this.repository.getOperationalTemplate(id);
     if (opt) {
       return { operationalTemplate: opt, sourceKind: "operational_template", warnings };
     }
-    const tmpl = this.repository.getTemplate(id2);
+    const tmpl = this.repository.getTemplate(id);
     if (tmpl) {
       return {
         operationalTemplate: this.repository.flattenTemplate(tmpl),
@@ -16440,10 +16459,10 @@ function isOetXmlContent(text) {
 // parser/clinical_model_paths.ts
 var CLINICAL_MODEL_EXTENSIONS = /\.(adl|adls|opt|oet|t\.json|xml)$/i;
 function isClinicalModelPath(path) {
-  const lower2 = path.toLowerCase();
-  if (lower2.includes("__macosx"))
+  const lower = path.toLowerCase();
+  if (lower.includes("__macosx"))
     return false;
-  return CLINICAL_MODEL_EXTENSIONS.test(lower2);
+  return CLINICAL_MODEL_EXTENSIONS.test(lower);
 }
 function normalizeClinicalModelPath(path) {
   return path.replace(/\\/g, "/").replace(/^\/+/, "");
@@ -16579,9 +16598,9 @@ function archetypeIdValue(node) {
   }
   return void 0;
 }
-function overlayRecords(root2) {
+function overlayRecords(root) {
   const out = [];
-  for (const raw of asArray(root2.templateOverlays ?? root2.template_overlays)) {
+  for (const raw of asArray(root.templateOverlays ?? root.template_overlays)) {
     if (!raw || typeof raw !== "object")
       continue;
     const ov = raw;
@@ -16591,17 +16610,17 @@ function overlayRecords(root2) {
   }
   return out;
 }
-function collectTemplateJsonOverlayIds(root2) {
+function collectTemplateJsonOverlayIds(root) {
   const overlayIds = /* @__PURE__ */ new Set();
-  for (const ov of overlayRecords(root2)) {
-    const id2 = archetypeIdValue(ov.archetypeId ?? ov.archetype_id);
-    if (id2)
-      overlayIds.add(id2);
+  for (const ov of overlayRecords(root)) {
+    const id = archetypeIdValue(ov.archetypeId ?? ov.archetype_id);
+    if (id)
+      overlayIds.add(id);
   }
   return overlayIds;
 }
-function collectTemplateJsonExternalRefs(root2) {
-  const overlayIds = collectTemplateJsonOverlayIds(root2);
+function collectTemplateJsonExternalRefs(root) {
+  const overlayIds = collectTemplateJsonOverlayIds(root);
   const external = /* @__PURE__ */ new Set();
   function considerRef(ref) {
     if (!ref)
@@ -16620,8 +16639,8 @@ function collectTemplateJsonExternalRefs(root2) {
       return;
     }
     const rec = node;
-    const type2 = jsonType(rec);
-    if (type2 === "C_ARCHETYPE_ROOT") {
+    const type = jsonType(rec);
+    if (type === "C_ARCHETYPE_ROOT") {
       considerRef(
         textValue(rec.archetypeRef) ?? textValue(rec.archetype_ref) ?? (typeof rec.archetypeRef === "string" ? rec.archetypeRef : void 0)
       );
@@ -16630,16 +16649,16 @@ function collectTemplateJsonExternalRefs(root2) {
       walk(v2);
   }
   considerRef(
-    archetypeIdValue(root2.parentArchetypeId ?? root2.parent_archetype_id)
+    archetypeIdValue(root.parentArchetypeId ?? root.parent_archetype_id)
   );
-  const overlays = overlayRecords(root2);
+  const overlays = overlayRecords(root);
   for (const ov of overlays) {
     considerRef(
       archetypeIdValue(ov.parentArchetypeId ?? ov.parent_archetype_id)
     );
     walk(ov.definition);
   }
-  walk(root2.definition);
+  walk(root.definition);
   return [...external];
 }
 function collectTemplateJsonExternalRefsFromText(source) {
@@ -16647,11 +16666,11 @@ function collectTemplateJsonExternalRefsFromText(source) {
   if (!trimmed.startsWith("{"))
     return [];
   try {
-    const root2 = JSON.parse(trimmed);
-    const type2 = jsonType(root2);
-    if (type2 !== "TEMPLATE" && type2 !== "OPERATIONAL_TEMPLATE")
+    const root = JSON.parse(trimmed);
+    const type = jsonType(root);
+    if (type !== "TEMPLATE" && type !== "OPERATIONAL_TEMPLATE")
       return [];
-    return collectTemplateJsonExternalRefs(root2);
+    return collectTemplateJsonExternalRefs(root);
   } catch {
     return [];
   }
@@ -16913,140 +16932,13 @@ async function loadGitHubClinicalModelClosure(fileUrl, options) {
   });
   return {
     rootPath: fileRef.path,
+    source: fileRef,
     entries: [...entries.values()],
     warnings,
     fetched: entries.size,
     skipped
   };
 }
-
-// parser/clinical_model_workspace.ts
-var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
-  workspace = new TemplateWorkspace();
-  dirtyPaths = /* @__PURE__ */ new Set();
-  get repository() {
-    return this.workspace.repository;
-  }
-  getWarnings() {
-    return this.workspace.getWarnings();
-  }
-  listFiles() {
-    return this.workspace.listFiles().map((f2) => ({
-      ...f2,
-      dirty: this.dirtyPaths.has(f2.path)
-    }));
-  }
-  getFile(path) {
-    const f2 = this.workspace.getFile(path);
-    if (!f2)
-      return void 0;
-    return { ...f2, dirty: this.dirtyPaths.has(f2.path) };
-  }
-  getActivePath() {
-    return this.workspace.getActivePath();
-  }
-  setActivePath(path) {
-    this.workspace.setActivePath(path);
-  }
-  getGenerationRootPath() {
-    return this.workspace.getGenerationRootPath();
-  }
-  setGenerationRootPath(path) {
-    this.workspace.setGenerationRootPath(path);
-  }
-  /** Underlying workspace (e.g. for demo converter integration). */
-  get templateWorkspace() {
-    return this.workspace;
-  }
-  addFile(path, content) {
-    const result = this.workspace.addFile(path, content);
-    this.dirtyPaths.delete(normalizeClinicalModelPath(path));
-    return result;
-  }
-  addFiles(entries) {
-    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
-    return results;
-  }
-  /**
-   * Update editor content and re-parse into the repository.
-   * Marks the file dirty until replaced by `addFile` from external source.
-   */
-  updateFileContent(path, content) {
-    const normalized = normalizeClinicalModelPath(path);
-    this.dirtyPaths.add(normalized);
-    return this.workspace.addFile(normalized, content);
-  }
-  /** Current text for download / save (edited content if dirty). */
-  exportFile(path) {
-    return this.workspace.getFile(path)?.content;
-  }
-  exportEntries() {
-    return this.workspace.listFiles().map((f2) => ({
-      path: f2.path,
-      content: f2.content
-    }));
-  }
-  /** Build a ZIP-friendly map path → content. */
-  exportAsMap() {
-    const out = {};
-    for (const { path, content } of this.exportEntries()) {
-      out[path] = content;
-    }
-    return out;
-  }
-  clear() {
-    this.workspace.clear();
-    this.dirtyPaths.clear();
-  }
-  static suggestGenerationRoot(files) {
-    return TemplateWorkspace.suggestGenerationRoot(files);
-  }
-  resolveOperational(options) {
-    return this.workspace.resolveOperational(options);
-  }
-  /**
-   * Load a filtered file tree from a public GitHub repo branch (read-only).
-   */
-  async loadFromGitHub(spec, options) {
-    const ref = typeof spec === "string" ? parseGitHubRepoSpec(spec) : spec;
-    const tree = await loadGitHubRepoTree(ref, options);
-    const loadResults = this.addFiles(tree.entries);
-    if (!this.getGenerationRootPath()) {
-      const suggested = _ClinicalModelWorkspace.suggestGenerationRoot(
-        this.listFiles()
-      );
-      if (suggested)
-        this.setGenerationRootPath(suggested);
-    }
-    return { ...tree, loadResults };
-  }
-  /**
-   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
-   * nested templates, archetypes, and parent archetype chains from the same branch.
-   */
-  async loadFromGitHubTemplateUrl(templateUrl, options) {
-    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
-  }
-  /**
-   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
-   * recursively fetch dependencies from the same branch.
-   */
-  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
-    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
-    const loadResults = this.addFiles(closure.entries);
-    this.setGenerationRootPath(closure.rootPath);
-    this.setActivePath(closure.rootPath);
-    return { ...closure, loadResults };
-  }
-  /** Load entries extracted from a ZIP (same filter as GitHub loader). */
-  loadFromZipEntries(entries) {
-    const batch = entries.filter((e2) => isClinicalModelPath(e2.path)).map((e2) => ({
-      path: normalizeClinicalModelPath(e2.path),
-      content: e2.content
-    }));
-    return this.addFiles(batch);
-  }
-};
 
 // parser/odin_serializer.ts
 function escapeString(s2) {
@@ -17233,10 +17125,10 @@ var ADL2Serializer = class {
     const indent = this.getIndent(level);
     let adl = `${indent}${cObject.rm_type_name}[${cObject.node_id}]`;
     if (cObject.occurrences) {
-      const lower2 = cObject.occurrences.lower ?? 0;
+      const lower = cObject.occurrences.lower ?? 0;
       const upper = cObject.occurrences.upper;
       const upperStr = upper === void 0 ? "*" : String(upper);
-      adl += ` occurrences matches {${lower2}..${upperStr}}`;
+      adl += ` occurrences matches {${lower}..${upperStr}}`;
     }
     const attrs = cObject.attributes;
     if (attrs && attrs.length > 0) {
@@ -17260,16 +17152,16 @@ var ADL2Serializer = class {
       adl += ` existence matches {${existence.lower}..${u2}}`;
     }
     if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE && cAttribute.cardinality) {
-      const interval2 = cAttribute.cardinality.interval;
-      if (interval2) {
-        const upperStr = interval2.upper === void 0 ? "*" : String(interval2.upper);
-        adl += ` cardinality matches {${interval2.lower}..${upperStr}}`;
+      const interval = cAttribute.cardinality.interval;
+      if (interval) {
+        const upperStr = interval.upper === void 0 ? "*" : String(interval.upper);
+        adl += ` cardinality matches {${interval.lower}..${upperStr}}`;
       }
     }
-    const children2 = cAttribute.children;
-    if (children2 && children2.length > 0) {
+    const children = cAttribute.children;
+    if (children && children.length > 0) {
       adl += " matches {\n";
-      for (const child of children2) {
+      for (const child of children) {
         if (child instanceof C_COMPLEX_OBJECT) {
           adl += this.serializeDefinition(child, level + 1);
         } else if (child instanceof C_PRIMITIVE_OBJECT) {
@@ -17299,6 +17191,9 @@ var ADL2Serializer = class {
 };
 
 // parser/clinical_model_annotations.ts
+function annotationPathOf(node) {
+  return node.annotationPath ?? node.path;
+}
 function asAnnotationDocumentation(doc) {
   if (!doc || typeof doc !== "object")
     return void 0;
@@ -17332,24 +17227,24 @@ function countAnnotationKeysAtPath(doc, path) {
   }
   return total;
 }
-function getPathAnnotations(doc, path, language2 = "en") {
-  return { ...doc?.[language2]?.[path] ?? {} };
+function getPathAnnotations(doc, path, language = "en") {
+  return { ...doc?.[language]?.[path] ?? {} };
 }
-function setPathAnnotation(resource, path, key, value, language2 = "en") {
+function setPathAnnotation(resource, path, key, value, language = "en") {
   const doc = ensureResourceAnnotations(resource);
-  if (!doc[language2])
-    doc[language2] = {};
-  if (!doc[language2][path])
-    doc[language2][path] = {};
-  doc[language2][path][key] = value;
+  if (!doc[language])
+    doc[language] = {};
+  if (!doc[language][path])
+    doc[language][path] = {};
+  doc[language][path][key] = value;
 }
-function removePathAnnotation(resource, path, key, language2 = "en") {
+function removePathAnnotation(resource, path, key, language = "en") {
   const doc = getResourceDocumentation(resource);
-  if (!doc?.[language2]?.[path])
+  if (!doc?.[language]?.[path])
     return;
-  delete doc[language2][path][key];
-  if (Object.keys(doc[language2][path]).length === 0) {
-    delete doc[language2][path];
+  delete doc[language][path][key];
+  if (Object.keys(doc[language][path]).length === 0) {
+    delete doc[language][path];
   }
 }
 function joinConstraintPath(parentPath, attributeName, nodeId) {
@@ -17363,16 +17258,68 @@ function readAttributes(obj) {
   return attrs ?? [];
 }
 function readAttributeChildren(attr) {
-  const children2 = attr.children;
-  return children2 ?? [];
+  const children = attr.children;
+  return children ?? [];
 }
-function buildObjectSubtree(obj, parentPath, doc) {
+function overlayRelativePath(fullPath, overlayRootPath) {
+  if (!overlayRootPath)
+    return void 0;
+  if (fullPath === overlayRootPath)
+    return "";
+  if (fullPath.startsWith(overlayRootPath)) {
+    return fullPath.slice(overlayRootPath.length);
+  }
+  return void 0;
+}
+function childrenOfComplex(obj, parentPath, doc, ctx) {
+  const children = [];
+  for (const attr of readAttributes(obj)) {
+    const attrName = attr.rm_attribute_name ?? "attr";
+    for (const child of readAttributeChildren(attr)) {
+      const childPath = joinConstraintPath(
+        parentPath,
+        attrName,
+        child.node_id ?? "?"
+      );
+      children.push(buildObjectSubtree(child, childPath, doc, ctx));
+    }
+  }
+  return children;
+}
+function finishNode(node, ctx) {
+  const annotationPath = overlayRelativePath(node.path, ctx.overlayRootPath);
+  if (ctx.overlayId)
+    node.overlayId = ctx.overlayId;
+  if (annotationPath !== void 0)
+    node.annotationPath = annotationPath;
+  return node;
+}
+function buildObjectSubtree(obj, parentPath, doc, ctx) {
   if (obj instanceof C_ARCHETYPE_ROOT) {
     const path2 = parentPath;
     const keyCount2 = countAnnotationKeysAtPath(doc, path2);
     const ref = obj.archetype_ref;
     const label = ref ? `use ${ref}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    return {
+    let children = childrenOfComplex(obj, parentPath, doc, ctx);
+    if (!children.length && ref && ctx.resolveArchetype) {
+      const filled = ctx.resolveArchetype(ref);
+      const overlayDef = filled?.definition;
+      if (overlayDef) {
+        const overlayDoc = getResourceDocumentation(filled);
+        const overlayCtx = {
+          resolveArchetype: ctx.resolveArchetype,
+          overlayId: filled.archetype_id?.value ?? ref,
+          overlayRootPath: path2
+        };
+        children = childrenOfComplex(
+          overlayDef,
+          parentPath,
+          overlayDoc,
+          overlayCtx
+        );
+      }
+    }
+    return finishNode({
       id: path2 || "/root",
       path: path2,
       label,
@@ -17382,26 +17329,15 @@ function buildObjectSubtree(obj, parentPath, doc) {
       annotationKeyCount: keyCount2,
       isArchetypeRoot: true,
       archetypeRef: ref,
-      children: []
-    };
+      children
+    }, ctx);
   }
   if (obj instanceof C_COMPLEX_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
-    const children2 = [];
-    for (const attr of readAttributes(obj)) {
-      const attrName = attr.rm_attribute_name ?? "attr";
-      for (const child of readAttributeChildren(attr)) {
-        const childPath = joinConstraintPath(
-          parentPath,
-          attrName,
-          child.node_id ?? "?"
-        );
-        children2.push(buildObjectSubtree(child, childPath, doc));
-      }
-    }
+    const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
+    const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
     const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
-    return {
+    return finishNode({
       id: path2 || "/root",
       path: path2,
       label,
@@ -17409,13 +17345,14 @@ function buildObjectSubtree(obj, parentPath, doc) {
       nodeId: obj.node_id,
       hasAnnotations: keyCount2 > 0,
       annotationKeyCount: keyCount2,
-      children: children2
-    };
+      children: childrenOfComplex(obj, parentPath, doc, ctx)
+    }, ctx);
   }
   if (obj instanceof C_PRIMITIVE_OBJECT) {
     const path2 = parentPath;
-    const keyCount2 = countAnnotationKeysAtPath(doc, path2);
-    return {
+    const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
+    const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
+    return finishNode({
       id: path2,
       path: path2,
       label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
@@ -17424,25 +17361,28 @@ function buildObjectSubtree(obj, parentPath, doc) {
       hasAnnotations: keyCount2 > 0,
       annotationKeyCount: keyCount2,
       children: []
-    };
+    }, ctx);
   }
   const path = parentPath;
-  const keyCount = countAnnotationKeysAtPath(doc, path);
-  return {
+  const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
+  const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
+  return finishNode({
     id: path || "/unknown",
     path,
     label: "constraint",
     hasAnnotations: keyCount > 0,
     annotationKeyCount: keyCount,
     children: []
-  };
+  }, ctx);
 }
-function buildDefinitionTree(resource) {
+function buildDefinitionTree(resource, options = {}) {
   const definition = resource.definition;
   if (!definition)
     return void 0;
   const doc = getResourceDocumentation(resource);
-  return buildObjectSubtree(definition, "", doc);
+  return buildObjectSubtree(definition, "", doc, {
+    resolveArchetype: options.resolveArchetype
+  });
 }
 function serializeAnnotatedResource(resource) {
   return new ADL2Serializer().serialize(resource);
@@ -17450,20 +17390,507 @@ function serializeAnnotatedResource(resource) {
 function resolveAnnotatedResource(repository, loadResult) {
   if (!loadResult?.archetypeId && !loadResult?.path)
     return void 0;
-  const id2 = loadResult.archetypeId;
-  if (!id2)
+  const id = loadResult.archetypeId;
+  if (!id)
     return void 0;
   switch (loadResult.kind) {
     case "archetype":
-      return repository.get(id2);
+      return repository.get(id);
     case "template":
     case "template_json":
-      return repository.getTemplate(id2);
+      return repository.getTemplate(id);
     case "operational_template":
-      return repository.getOperationalTemplate(id2);
+      return repository.getOperationalTemplate(id);
     default:
-      return repository.get(id2) ?? repository.getTemplate(id2);
+      return repository.get(id) ?? repository.getTemplate(id);
   }
+}
+
+// parser/template_json_annotations.ts
+function archetypeIdFromJsonField(value) {
+  if (typeof value === "string" && value.trim())
+    return value.trim();
+  if (value && typeof value === "object") {
+    const v2 = value.value;
+    if (typeof v2 === "string" && v2.trim())
+      return v2.trim();
+  }
+  return void 0;
+}
+function documentationToBetterAnnotations(documentation) {
+  if (!documentation)
+    return void 0;
+  const languages = Object.keys(documentation);
+  if (!languages.length)
+    return void 0;
+  let keyCount = 0;
+  for (const lang of languages) {
+    const paths = documentation[lang] ?? {};
+    for (const path of Object.keys(paths)) {
+      keyCount += Object.keys(paths[path] ?? {}).length;
+    }
+  }
+  if (keyCount === 0)
+    return void 0;
+  return {
+    "@type": "RESOURCE_ANNOTATIONS",
+    documentation: structuredClone(documentation)
+  };
+}
+function applyAnnotationsToNode(node, documentation) {
+  const next = documentationToBetterAnnotations(documentation);
+  if (next)
+    node.annotations = next;
+  else
+    delete node.annotations;
+}
+function patchTemplateJsonAnnotations(originalText, documentationByArchetypeId) {
+  const root = JSON.parse(originalText);
+  const rootId = archetypeIdFromJsonField(
+    root.archetypeId ?? root.archetype_id
+  );
+  if (rootId && documentationByArchetypeId.has(rootId)) {
+    applyAnnotationsToNode(root, documentationByArchetypeId.get(rootId));
+  }
+  const overlays = root.templateOverlays ?? root.template_overlays;
+  if (Array.isArray(overlays)) {
+    for (const raw of overlays) {
+      if (!raw || typeof raw !== "object")
+        continue;
+      const overlay = raw;
+      const id = archetypeIdFromJsonField(
+        overlay.archetypeId ?? overlay.archetype_id
+      );
+      if (!id || !documentationByArchetypeId.has(id))
+        continue;
+      applyAnnotationsToNode(overlay, documentationByArchetypeId.get(id));
+    }
+  }
+  return `${JSON.stringify(root, null, 2)}
+`;
+}
+function listTemplateJsonArchetypeIds(text) {
+  const root = JSON.parse(text);
+  const ids = [];
+  const rootId = archetypeIdFromJsonField(
+    root.archetypeId ?? root.archetype_id
+  );
+  if (rootId)
+    ids.push(rootId);
+  const overlays = root.templateOverlays ?? root.template_overlays;
+  if (Array.isArray(overlays)) {
+    for (const raw of overlays) {
+      if (!raw || typeof raw !== "object")
+        continue;
+      const id = archetypeIdFromJsonField(
+        raw.archetypeId ?? raw.archetype_id
+      );
+      if (id)
+        ids.push(id);
+    }
+  }
+  return ids;
+}
+
+// parser/clinical_model_workspace.ts
+var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
+  workspace = new TemplateWorkspace();
+  dirtyPaths = /* @__PURE__ */ new Set();
+  githubSource;
+  get repository() {
+    return this.workspace.repository;
+  }
+  getWarnings() {
+    return this.workspace.getWarnings();
+  }
+  listFiles() {
+    return this.workspace.listFiles().map((f2) => ({
+      ...f2,
+      dirty: this.dirtyPaths.has(f2.path)
+    }));
+  }
+  getFile(path) {
+    const f2 = this.workspace.getFile(path);
+    if (!f2)
+      return void 0;
+    return { ...f2, dirty: this.dirtyPaths.has(f2.path) };
+  }
+  getActivePath() {
+    return this.workspace.getActivePath();
+  }
+  setActivePath(path) {
+    this.workspace.setActivePath(path);
+  }
+  getGenerationRootPath() {
+    return this.workspace.getGenerationRootPath();
+  }
+  setGenerationRootPath(path) {
+    this.workspace.setGenerationRootPath(path);
+  }
+  /** Underlying workspace (e.g. for demo converter integration). */
+  get templateWorkspace() {
+    return this.workspace;
+  }
+  addFile(path, content) {
+    const result = this.workspace.addFile(path, content);
+    this.dirtyPaths.delete(normalizeClinicalModelPath(path));
+    return result;
+  }
+  addFiles(entries) {
+    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
+    return results;
+  }
+  /**
+   * Update editor content and re-parse into the repository.
+   * Marks the file dirty until replaced by `addFile` from external source.
+   */
+  updateFileContent(path, content) {
+    const normalized = normalizeClinicalModelPath(path);
+    this.dirtyPaths.add(normalized);
+    return this.workspace.addFile(normalized, content);
+  }
+  /** Current text for download / save (edited content if dirty). */
+  exportFile(path) {
+    return this.workspace.getFile(path)?.content;
+  }
+  exportEntries() {
+    return this.workspace.listFiles().map((f2) => ({
+      path: f2.path,
+      content: f2.content
+    }));
+  }
+  /** Build a ZIP-friendly map path → content. */
+  exportAsMap() {
+    const out = {};
+    for (const { path, content } of this.exportEntries()) {
+      out[path] = content;
+    }
+    return out;
+  }
+  clear() {
+    this.workspace.clear();
+    this.dirtyPaths.clear();
+    this.githubSource = void 0;
+  }
+  static suggestGenerationRoot(files) {
+    return TemplateWorkspace.suggestGenerationRoot(files);
+  }
+  resolveOperational(options) {
+    return this.workspace.resolveOperational(options);
+  }
+  /**
+   * Load a filtered file tree from a public GitHub repo branch (read-only).
+   */
+  async loadFromGitHub(spec, options) {
+    const ref = typeof spec === "string" ? parseGitHubRepoSpec(spec) : spec;
+    const tree = await loadGitHubRepoTree(ref, options);
+    const loadResults = this.addFiles(tree.entries);
+    if (!this.getGenerationRootPath()) {
+      const suggested = _ClinicalModelWorkspace.suggestGenerationRoot(
+        this.listFiles()
+      );
+      if (suggested)
+        this.setGenerationRootPath(suggested);
+    }
+    return { ...tree, loadResults };
+  }
+  /**
+   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
+   * nested templates, archetypes, and parent archetype chains from the same branch.
+   */
+  async loadFromGitHubTemplateUrl(templateUrl, options) {
+    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
+  }
+  /**
+   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
+   * recursively fetch dependencies from the same branch.
+   */
+  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
+    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
+    const loadResults = this.addFiles(closure.entries);
+    this.setGenerationRootPath(closure.rootPath);
+    this.setActivePath(closure.rootPath);
+    this.githubSource = { url: fileUrl, ref: closure.source };
+    return { ...closure, loadResults };
+  }
+  getGitHubSource() {
+    return this.githubSource ? { ...this.githubSource, ref: { ...this.githubSource.ref } } : void 0;
+  }
+  setGitHubBlobSha(sha) {
+    if (!this.githubSource)
+      return;
+    this.githubSource = { ...this.githubSource, blobSha: sha };
+  }
+  isDirty(path) {
+    if (path)
+      return this.dirtyPaths.has(normalizeClinicalModelPath(path));
+    return this.dirtyPaths.size > 0;
+  }
+  /**
+   * Serialize the active annotations back into file text.
+   * ADL/ADLS → ADL2 text; `.t.json` → annotation-only patch of the stored JSON.
+   */
+  exportAnnotatedFile(path) {
+    const file = this.getFile(path);
+    if (!file)
+      return void 0;
+    const lower = path.toLowerCase();
+    if (lower.endsWith(".t.json")) {
+      const docs = /* @__PURE__ */ new Map();
+      for (const id of listTemplateJsonArchetypeIds(file.content)) {
+        const res = this.repository.get(id) ?? this.repository.getTemplate(id);
+        docs.set(id, res ? getResourceDocumentation(res) : void 0);
+      }
+      return patchTemplateJsonAnnotations(file.content, docs);
+    }
+    if (/\.(adl|adls)$/i.test(path)) {
+      const id = file.loadResult?.archetypeId;
+      if (!id)
+        return file.content;
+      const res = this.repository.get(id) ?? this.repository.getTemplate(id);
+      if (!res)
+        return file.content;
+      return serializeAnnotatedResource(res);
+    }
+    return file.content;
+  }
+  /** Persist annotated content for `path` back into the workspace (marks dirty). */
+  persistAnnotatedFile(path) {
+    const text = this.exportAnnotatedFile(path);
+    if (text === void 0)
+      return void 0;
+    return this.updateFileContent(path, text);
+  }
+  /** Load entries extracted from a ZIP (same filter as GitHub loader). */
+  loadFromZipEntries(entries) {
+    const batch = entries.filter((e2) => isClinicalModelPath(e2.path)).map((e2) => ({
+      path: normalizeClinicalModelPath(e2.path),
+      content: e2.content
+    }));
+    return this.addFiles(batch);
+  }
+};
+
+// parser/annotation_families.ts
+var UNPREFIXED_FAMILY = "(unprefixed)";
+var KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY];
+function annotationFamily(key) {
+  const m2 = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
+  return m2 ? `${m2[1]}.` : UNPREFIXED_FAMILY;
+}
+function languageCode(raw) {
+  if (raw == null)
+    return void 0;
+  if (typeof raw === "object") {
+    const o2 = raw;
+    return languageCode(
+      o2.code_string ?? o2.codeString ?? o2.value ?? o2.language
+    );
+  }
+  const s2 = String(raw).trim();
+  if (!s2)
+    return void 0;
+  const m2 = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s2);
+  const code = (m2?.[1] ?? "").toLowerCase();
+  return /^[a-z]{2,8}$/.test(code) ? code : void 0;
+}
+function addLang(set, raw) {
+  const code = languageCode(raw);
+  if (code)
+    set.add(code);
+}
+function addTranslationEntry(set, entry) {
+  if (entry == null)
+    return;
+  if (typeof entry === "string") {
+    addLang(set, entry);
+    return;
+  }
+  if (typeof entry !== "object")
+    return;
+  const o2 = entry;
+  addLang(set, o2.language);
+  addLang(set, o2.code_string);
+  addLang(set, o2.codeString);
+}
+function listResourceLanguages(resource) {
+  const set = /* @__PURE__ */ new Set();
+  if (!resource || typeof resource !== "object")
+    return [];
+  const rec = resource;
+  addLang(set, rec.original_language);
+  addLang(set, rec.originalLanguage);
+  const translations = rec.translations;
+  if (Array.isArray(translations)) {
+    for (const t2 of translations)
+      addTranslationEntry(set, t2);
+  } else if (translations && typeof translations === "object") {
+    for (const [k2, v2] of Object.entries(translations)) {
+      addLang(set, k2);
+      addTranslationEntry(set, v2);
+    }
+  }
+  const desc = rec.description;
+  if (desc && typeof desc === "object") {
+    const details = desc.details;
+    if (details && typeof details === "object" && !Array.isArray(details)) {
+      for (const k2 of Object.keys(details))
+        addLang(set, k2);
+    }
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      addLang(set, other.original_language);
+    }
+  }
+  const onto = rec.ontology;
+  const term = onto?.term_definitions ?? onto?.termDefinitions ?? rec.term_definitions ?? rec.termDefinitions;
+  if (term && typeof term === "object" && !Array.isArray(term)) {
+    for (const k2 of Object.keys(term))
+      addLang(set, k2);
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function listLanguageBags(doc, extra = []) {
+  const set = /* @__PURE__ */ new Set();
+  for (const lang of extra) {
+    if (lang.trim())
+      set.add(lang.trim());
+  }
+  if (doc) {
+    for (const lang of Object.keys(doc)) {
+      if (lang.trim())
+        set.add(lang);
+    }
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function listFamilies(doc) {
+  const set = new Set(KNOWN_FAMILIES);
+  if (doc) {
+    for (const bag of Object.values(doc)) {
+      for (const atPath of Object.values(bag ?? {})) {
+        for (const key of Object.keys(atPath ?? {})) {
+          set.add(annotationFamily(key));
+        }
+      }
+    }
+  }
+  const known = KNOWN_FAMILIES;
+  const rest = [...set].filter((f2) => !known.includes(f2)).sort();
+  return [...known, ...rest];
+}
+function pillsAtPath(doc, path) {
+  if (!doc)
+    return [];
+  const pills = [];
+  for (const language of listLanguageBags(doc)) {
+    const items = doc[language]?.[path] ?? {};
+    for (const [key, value] of Object.entries(items)) {
+      pills.push({
+        language,
+        key,
+        value,
+        family: annotationFamily(key)
+      });
+    }
+  }
+  return pills.sort(
+    (a2, b2) => a2.family.localeCompare(b2.family) || a2.key.localeCompare(b2.key) || a2.language.localeCompare(b2.language)
+  );
+}
+function flattenDefinitionTree(node, out = []) {
+  out.push(node);
+  for (const child of node.children)
+    flattenDefinitionTree(child, out);
+  return out;
+}
+function mergeDocumentation(docs) {
+  const out = {};
+  for (const doc of docs) {
+    if (!doc)
+      continue;
+    for (const [lang, paths] of Object.entries(doc)) {
+      out[lang] ??= {};
+      for (const [path, keys] of Object.entries(paths ?? {})) {
+        out[lang][path] = { ...out[lang][path], ...keys };
+      }
+    }
+  }
+  return out;
+}
+function documentationViewForTree(tree, getDoc) {
+  const out = {};
+  for (const node of flattenDefinitionTree(tree)) {
+    const src = getDoc(node);
+    if (!src)
+      continue;
+    const srcPath = annotationPathOf(node);
+    for (const [lang, paths] of Object.entries(src)) {
+      const items = paths?.[srcPath];
+      if (!items)
+        continue;
+      out[lang] ??= {};
+      out[lang][node.path] = { ...out[lang][node.path], ...items };
+    }
+  }
+  return out;
+}
+function l10nSourcesFromTree(tree, doc) {
+  return flattenDefinitionTree(tree).map((node) => {
+    const localizedNames = {};
+    if (doc) {
+      for (const bag of Object.values(doc)) {
+        const items = bag?.[node.path] ?? {};
+        for (const [key, value] of Object.entries(items)) {
+          const m2 = /^L10n\.(.+)$/i.exec(key);
+          if (m2 && value.trim())
+            localizedNames[m2[1].toLowerCase()] = value;
+        }
+      }
+    }
+    return {
+      path: node.path,
+      archetypeRef: node.archetypeRef,
+      localizedNames
+    };
+  });
+}
+var LANGUAGE_OUTLINE = {
+  en: "#2563eb",
+  sv: "#ca8a04",
+  de: "#dc2626",
+  fr: "#16a34a",
+  nb: "#7c3aed",
+  nn: "#6d28d9",
+  da: "#db2777",
+  fi: "#0891b2",
+  es: "#ea580c",
+  it: "#0d9488",
+  nl: "#4f46e5",
+  pt: "#c026d3"
+};
+var FAMILY_FILL = {
+  "L10n.": "#ede9fe",
+  "a.": "#d1fae5",
+  [UNPREFIXED_FAMILY]: "#e2e8f0"
+};
+function hashHue(s2) {
+  let h2 = 0;
+  for (let i2 = 0; i2 < s2.length; i2++)
+    h2 = h2 * 31 + s2.charCodeAt(i2) >>> 0;
+  return h2 % 360;
+}
+function languageOutlineColor(language) {
+  const key = language.toLowerCase();
+  return LANGUAGE_OUTLINE[key] ?? `hsl(${hashHue(key)} 70% 38%)`;
+}
+function familyFillColor(family) {
+  return FAMILY_FILL[family] ?? `hsl(${hashHue(family)} 45% 90%)`;
+}
+function familyLegendLabel(family) {
+  if (family === UNPREFIXED_FAMILY)
+    return "unprefixed";
+  return family;
 }
 
 // examples/taaat-app/src/palette.ts
@@ -17495,6 +17922,9 @@ function defaultPalette() {
     { key: "design note" },
     { key: "requirements note" },
     { key: "ui", value: "passthrough" },
+    { key: "a.id" },
+    { key: "a.rule" },
+    { key: "L10n.sv" },
     { key: "medline ref" }
   ];
 }
@@ -17517,2990 +17947,591 @@ function exportPaletteJson(entries) {
   return JSON.stringify(entries, null, 2);
 }
 
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-dispatch@3.0.1/node_modules/d3-dispatch/src/dispatch.js
-var noop = { value: () => {
-} };
-function dispatch() {
-  for (var i2 = 0, n2 = arguments.length, _2 = {}, t2; i2 < n2; ++i2) {
-    if (!(t2 = arguments[i2] + "") || t2 in _2 || /[\s.]/.test(t2))
-      throw new Error("illegal type: " + t2);
-    _2[t2] = [];
-  }
-  return new Dispatch(_2);
-}
-function Dispatch(_2) {
-  this._ = _2;
-}
-function parseTypenames(typenames, types) {
-  return typenames.trim().split(/^|\s+/).map(function(t2) {
-    var name = "", i2 = t2.indexOf(".");
-    if (i2 >= 0)
-      name = t2.slice(i2 + 1), t2 = t2.slice(0, i2);
-    if (t2 && !types.hasOwnProperty(t2))
-      throw new Error("unknown type: " + t2);
-    return { type: t2, name };
-  });
-}
-Dispatch.prototype = dispatch.prototype = {
-  constructor: Dispatch,
-  on: function(typename, callback) {
-    var _2 = this._, T2 = parseTypenames(typename + "", _2), t2, i2 = -1, n2 = T2.length;
-    if (arguments.length < 2) {
-      while (++i2 < n2)
-        if ((t2 = (typename = T2[i2]).type) && (t2 = get(_2[t2], typename.name)))
-          return t2;
-      return;
-    }
-    if (callback != null && typeof callback !== "function")
-      throw new Error("invalid callback: " + callback);
-    while (++i2 < n2) {
-      if (t2 = (typename = T2[i2]).type)
-        _2[t2] = set(_2[t2], typename.name, callback);
-      else if (callback == null)
-        for (t2 in _2)
-          _2[t2] = set(_2[t2], typename.name, null);
-    }
-    return this;
-  },
-  copy: function() {
-    var copy = {}, _2 = this._;
-    for (var t2 in _2)
-      copy[t2] = _2[t2].slice();
-    return new Dispatch(copy);
-  },
-  call: function(type2, that) {
-    if ((n2 = arguments.length - 2) > 0)
-      for (var args = new Array(n2), i2 = 0, n2, t2; i2 < n2; ++i2)
-        args[i2] = arguments[i2 + 2];
-    if (!this._.hasOwnProperty(type2))
-      throw new Error("unknown type: " + type2);
-    for (t2 = this._[type2], i2 = 0, n2 = t2.length; i2 < n2; ++i2)
-      t2[i2].value.apply(that, args);
-  },
-  apply: function(type2, that, args) {
-    if (!this._.hasOwnProperty(type2))
-      throw new Error("unknown type: " + type2);
-    for (var t2 = this._[type2], i2 = 0, n2 = t2.length; i2 < n2; ++i2)
-      t2[i2].value.apply(that, args);
-  }
-};
-function get(type2, name) {
-  for (var i2 = 0, n2 = type2.length, c2; i2 < n2; ++i2) {
-    if ((c2 = type2[i2]).name === name) {
-      return c2.value;
-    }
-  }
-}
-function set(type2, name, callback) {
-  for (var i2 = 0, n2 = type2.length; i2 < n2; ++i2) {
-    if (type2[i2].name === name) {
-      type2[i2] = noop, type2 = type2.slice(0, i2).concat(type2.slice(i2 + 1));
-      break;
-    }
-  }
-  if (callback != null)
-    type2.push({ name, value: callback });
-  return type2;
-}
-var dispatch_default = dispatch;
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/namespaces.js
-var xhtml = "http://www.w3.org/1999/xhtml";
-var namespaces_default = {
-  svg: "http://www.w3.org/2000/svg",
-  xhtml,
-  xlink: "http://www.w3.org/1999/xlink",
-  xml: "http://www.w3.org/XML/1998/namespace",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/namespace.js
-function namespace_default(name) {
-  var prefix = name += "", i2 = prefix.indexOf(":");
-  if (i2 >= 0 && (prefix = name.slice(0, i2)) !== "xmlns")
-    name = name.slice(i2 + 1);
-  return namespaces_default.hasOwnProperty(prefix) ? { space: namespaces_default[prefix], local: name } : name;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/creator.js
-function creatorInherit(name) {
-  return function() {
-    var document2 = this.ownerDocument, uri = this.namespaceURI;
-    return uri === xhtml && document2.documentElement.namespaceURI === xhtml ? document2.createElement(name) : document2.createElementNS(uri, name);
-  };
-}
-function creatorFixed(fullname) {
-  return function() {
-    return this.ownerDocument.createElementNS(fullname.space, fullname.local);
-  };
-}
-function creator_default(name) {
-  var fullname = namespace_default(name);
-  return (fullname.local ? creatorFixed : creatorInherit)(fullname);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selector.js
-function none() {
-}
-function selector_default(selector) {
-  return selector == null ? none : function() {
-    return this.querySelector(selector);
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/select.js
-function select_default(select) {
-  if (typeof select !== "function")
-    select = selector_default(select);
-  for (var groups = this._groups, m2 = groups.length, subgroups = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, subgroup = subgroups[j2] = new Array(n2), node, subnode, i2 = 0; i2 < n2; ++i2) {
-      if ((node = group[i2]) && (subnode = select.call(node, node.__data__, i2, group))) {
-        if ("__data__" in node)
-          subnode.__data__ = node.__data__;
-        subgroup[i2] = subnode;
-      }
-    }
-  }
-  return new Selection(subgroups, this._parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/array.js
-function array(x2) {
-  return x2 == null ? [] : Array.isArray(x2) ? x2 : Array.from(x2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selectorAll.js
-function empty() {
-  return [];
-}
-function selectorAll_default(selector) {
-  return selector == null ? empty : function() {
-    return this.querySelectorAll(selector);
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/selectAll.js
-function arrayAll(select) {
-  return function() {
-    return array(select.apply(this, arguments));
-  };
-}
-function selectAll_default(select) {
-  if (typeof select === "function")
-    select = arrayAll(select);
-  else
-    select = selectorAll_default(select);
-  for (var groups = this._groups, m2 = groups.length, subgroups = [], parents = [], j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group[i2]) {
-        subgroups.push(select.call(node, node.__data__, i2, group));
-        parents.push(node);
-      }
-    }
-  }
-  return new Selection(subgroups, parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/matcher.js
-function matcher_default(selector) {
-  return function() {
-    return this.matches(selector);
-  };
-}
-function childMatcher(selector) {
-  return function(node) {
-    return node.matches(selector);
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/selectChild.js
-var find = Array.prototype.find;
-function childFind(match) {
-  return function() {
-    return find.call(this.children, match);
-  };
-}
-function childFirst() {
-  return this.firstElementChild;
-}
-function selectChild_default(match) {
-  return this.select(match == null ? childFirst : childFind(typeof match === "function" ? match : childMatcher(match)));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/selectChildren.js
-var filter = Array.prototype.filter;
-function children() {
-  return Array.from(this.children);
-}
-function childrenFilter(match) {
-  return function() {
-    return filter.call(this.children, match);
-  };
-}
-function selectChildren_default(match) {
-  return this.selectAll(match == null ? children : childrenFilter(typeof match === "function" ? match : childMatcher(match)));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/filter.js
-function filter_default(match) {
-  if (typeof match !== "function")
-    match = matcher_default(match);
-  for (var groups = this._groups, m2 = groups.length, subgroups = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, subgroup = subgroups[j2] = [], node, i2 = 0; i2 < n2; ++i2) {
-      if ((node = group[i2]) && match.call(node, node.__data__, i2, group)) {
-        subgroup.push(node);
-      }
-    }
-  }
-  return new Selection(subgroups, this._parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/sparse.js
-function sparse_default(update) {
-  return new Array(update.length);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/enter.js
-function enter_default() {
-  return new Selection(this._enter || this._groups.map(sparse_default), this._parents);
-}
-function EnterNode(parent, datum2) {
-  this.ownerDocument = parent.ownerDocument;
-  this.namespaceURI = parent.namespaceURI;
-  this._next = null;
-  this._parent = parent;
-  this.__data__ = datum2;
-}
-EnterNode.prototype = {
-  constructor: EnterNode,
-  appendChild: function(child) {
-    return this._parent.insertBefore(child, this._next);
-  },
-  insertBefore: function(child, next) {
-    return this._parent.insertBefore(child, next);
-  },
-  querySelector: function(selector) {
-    return this._parent.querySelector(selector);
-  },
-  querySelectorAll: function(selector) {
-    return this._parent.querySelectorAll(selector);
-  }
-};
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/constant.js
-function constant_default(x2) {
-  return function() {
-    return x2;
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/data.js
-function bindIndex(parent, group, enter, update, exit, data) {
-  var i2 = 0, node, groupLength = group.length, dataLength = data.length;
-  for (; i2 < dataLength; ++i2) {
-    if (node = group[i2]) {
-      node.__data__ = data[i2];
-      update[i2] = node;
-    } else {
-      enter[i2] = new EnterNode(parent, data[i2]);
-    }
-  }
-  for (; i2 < groupLength; ++i2) {
-    if (node = group[i2]) {
-      exit[i2] = node;
-    }
-  }
-}
-function bindKey(parent, group, enter, update, exit, data, key) {
-  var i2, node, nodeByKeyValue = /* @__PURE__ */ new Map(), groupLength = group.length, dataLength = data.length, keyValues = new Array(groupLength), keyValue;
-  for (i2 = 0; i2 < groupLength; ++i2) {
-    if (node = group[i2]) {
-      keyValues[i2] = keyValue = key.call(node, node.__data__, i2, group) + "";
-      if (nodeByKeyValue.has(keyValue)) {
-        exit[i2] = node;
-      } else {
-        nodeByKeyValue.set(keyValue, node);
-      }
-    }
-  }
-  for (i2 = 0; i2 < dataLength; ++i2) {
-    keyValue = key.call(parent, data[i2], i2, data) + "";
-    if (node = nodeByKeyValue.get(keyValue)) {
-      update[i2] = node;
-      node.__data__ = data[i2];
-      nodeByKeyValue.delete(keyValue);
-    } else {
-      enter[i2] = new EnterNode(parent, data[i2]);
-    }
-  }
-  for (i2 = 0; i2 < groupLength; ++i2) {
-    if ((node = group[i2]) && nodeByKeyValue.get(keyValues[i2]) === node) {
-      exit[i2] = node;
-    }
-  }
-}
-function datum(node) {
-  return node.__data__;
-}
-function data_default(value, key) {
-  if (!arguments.length)
-    return Array.from(this, datum);
-  var bind = key ? bindKey : bindIndex, parents = this._parents, groups = this._groups;
-  if (typeof value !== "function")
-    value = constant_default(value);
-  for (var m2 = groups.length, update = new Array(m2), enter = new Array(m2), exit = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    var parent = parents[j2], group = groups[j2], groupLength = group.length, data = arraylike(value.call(parent, parent && parent.__data__, j2, parents)), dataLength = data.length, enterGroup = enter[j2] = new Array(dataLength), updateGroup = update[j2] = new Array(dataLength), exitGroup = exit[j2] = new Array(groupLength);
-    bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
-    for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
-      if (previous = enterGroup[i0]) {
-        if (i0 >= i1)
-          i1 = i0 + 1;
-        while (!(next = updateGroup[i1]) && ++i1 < dataLength)
-          ;
-        previous._next = next || null;
-      }
-    }
-  }
-  update = new Selection(update, parents);
-  update._enter = enter;
-  update._exit = exit;
-  return update;
-}
-function arraylike(data) {
-  return typeof data === "object" && "length" in data ? data : Array.from(data);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/exit.js
-function exit_default() {
-  return new Selection(this._exit || this._groups.map(sparse_default), this._parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/join.js
-function join_default(onenter, onupdate, onexit) {
-  var enter = this.enter(), update = this, exit = this.exit();
-  if (typeof onenter === "function") {
-    enter = onenter(enter);
-    if (enter)
-      enter = enter.selection();
-  } else {
-    enter = enter.append(onenter + "");
-  }
-  if (onupdate != null) {
-    update = onupdate(update);
-    if (update)
-      update = update.selection();
-  }
-  if (onexit == null)
-    exit.remove();
-  else
-    onexit(exit);
-  return enter && update ? enter.merge(update).order() : update;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/merge.js
-function merge_default(context) {
-  var selection2 = context.selection ? context.selection() : context;
-  for (var groups0 = this._groups, groups1 = selection2._groups, m0 = groups0.length, m1 = groups1.length, m2 = Math.min(m0, m1), merges = new Array(m0), j2 = 0; j2 < m2; ++j2) {
-    for (var group0 = groups0[j2], group1 = groups1[j2], n2 = group0.length, merge = merges[j2] = new Array(n2), node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group0[i2] || group1[i2]) {
-        merge[i2] = node;
-      }
-    }
-  }
-  for (; j2 < m0; ++j2) {
-    merges[j2] = groups0[j2];
-  }
-  return new Selection(merges, this._parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/order.js
-function order_default() {
-  for (var groups = this._groups, j2 = -1, m2 = groups.length; ++j2 < m2; ) {
-    for (var group = groups[j2], i2 = group.length - 1, next = group[i2], node; --i2 >= 0; ) {
-      if (node = group[i2]) {
-        if (next && node.compareDocumentPosition(next) ^ 4)
-          next.parentNode.insertBefore(node, next);
-        next = node;
-      }
-    }
-  }
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/sort.js
-function sort_default(compare) {
-  if (!compare)
-    compare = ascending;
-  function compareNode(a2, b2) {
-    return a2 && b2 ? compare(a2.__data__, b2.__data__) : !a2 - !b2;
-  }
-  for (var groups = this._groups, m2 = groups.length, sortgroups = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, sortgroup = sortgroups[j2] = new Array(n2), node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group[i2]) {
-        sortgroup[i2] = node;
-      }
-    }
-    sortgroup.sort(compareNode);
-  }
-  return new Selection(sortgroups, this._parents).order();
-}
-function ascending(a2, b2) {
-  return a2 < b2 ? -1 : a2 > b2 ? 1 : a2 >= b2 ? 0 : NaN;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/call.js
-function call_default() {
-  var callback = arguments[0];
-  arguments[0] = this;
-  callback.apply(null, arguments);
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/nodes.js
-function nodes_default() {
-  return Array.from(this);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/node.js
-function node_default() {
-  for (var groups = this._groups, j2 = 0, m2 = groups.length; j2 < m2; ++j2) {
-    for (var group = groups[j2], i2 = 0, n2 = group.length; i2 < n2; ++i2) {
-      var node = group[i2];
-      if (node)
-        return node;
-    }
-  }
-  return null;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/size.js
-function size_default() {
-  let size = 0;
-  for (const node of this)
-    ++size;
-  return size;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/empty.js
-function empty_default() {
-  return !this.node();
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/each.js
-function each_default(callback) {
-  for (var groups = this._groups, j2 = 0, m2 = groups.length; j2 < m2; ++j2) {
-    for (var group = groups[j2], i2 = 0, n2 = group.length, node; i2 < n2; ++i2) {
-      if (node = group[i2])
-        callback.call(node, node.__data__, i2, group);
-    }
-  }
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/attr.js
-function attrRemove(name) {
-  return function() {
-    this.removeAttribute(name);
-  };
-}
-function attrRemoveNS(fullname) {
-  return function() {
-    this.removeAttributeNS(fullname.space, fullname.local);
-  };
-}
-function attrConstant(name, value) {
-  return function() {
-    this.setAttribute(name, value);
-  };
-}
-function attrConstantNS(fullname, value) {
-  return function() {
-    this.setAttributeNS(fullname.space, fullname.local, value);
-  };
-}
-function attrFunction(name, value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    if (v2 == null)
-      this.removeAttribute(name);
-    else
-      this.setAttribute(name, v2);
-  };
-}
-function attrFunctionNS(fullname, value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    if (v2 == null)
-      this.removeAttributeNS(fullname.space, fullname.local);
-    else
-      this.setAttributeNS(fullname.space, fullname.local, v2);
-  };
-}
-function attr_default(name, value) {
-  var fullname = namespace_default(name);
-  if (arguments.length < 2) {
-    var node = this.node();
-    return fullname.local ? node.getAttributeNS(fullname.space, fullname.local) : node.getAttribute(fullname);
-  }
-  return this.each((value == null ? fullname.local ? attrRemoveNS : attrRemove : typeof value === "function" ? fullname.local ? attrFunctionNS : attrFunction : fullname.local ? attrConstantNS : attrConstant)(fullname, value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/window.js
-function window_default(node) {
-  return node.ownerDocument && node.ownerDocument.defaultView || node.document && node || node.defaultView;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/style.js
-function styleRemove(name) {
-  return function() {
-    this.style.removeProperty(name);
-  };
-}
-function styleConstant(name, value, priority) {
-  return function() {
-    this.style.setProperty(name, value, priority);
-  };
-}
-function styleFunction(name, value, priority) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    if (v2 == null)
-      this.style.removeProperty(name);
-    else
-      this.style.setProperty(name, v2, priority);
-  };
-}
-function style_default(name, value, priority) {
-  return arguments.length > 1 ? this.each((value == null ? styleRemove : typeof value === "function" ? styleFunction : styleConstant)(name, value, priority == null ? "" : priority)) : styleValue(this.node(), name);
-}
-function styleValue(node, name) {
-  return node.style.getPropertyValue(name) || window_default(node).getComputedStyle(node, null).getPropertyValue(name);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/property.js
-function propertyRemove(name) {
-  return function() {
-    delete this[name];
-  };
-}
-function propertyConstant(name, value) {
-  return function() {
-    this[name] = value;
-  };
-}
-function propertyFunction(name, value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    if (v2 == null)
-      delete this[name];
-    else
-      this[name] = v2;
-  };
-}
-function property_default(name, value) {
-  return arguments.length > 1 ? this.each((value == null ? propertyRemove : typeof value === "function" ? propertyFunction : propertyConstant)(name, value)) : this.node()[name];
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/classed.js
-function classArray(string) {
-  return string.trim().split(/^|\s+/);
-}
-function classList(node) {
-  return node.classList || new ClassList(node);
-}
-function ClassList(node) {
-  this._node = node;
-  this._names = classArray(node.getAttribute("class") || "");
-}
-ClassList.prototype = {
-  add: function(name) {
-    var i2 = this._names.indexOf(name);
-    if (i2 < 0) {
-      this._names.push(name);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  remove: function(name) {
-    var i2 = this._names.indexOf(name);
-    if (i2 >= 0) {
-      this._names.splice(i2, 1);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  contains: function(name) {
-    return this._names.indexOf(name) >= 0;
-  }
-};
-function classedAdd(node, names) {
-  var list = classList(node), i2 = -1, n2 = names.length;
-  while (++i2 < n2)
-    list.add(names[i2]);
-}
-function classedRemove(node, names) {
-  var list = classList(node), i2 = -1, n2 = names.length;
-  while (++i2 < n2)
-    list.remove(names[i2]);
-}
-function classedTrue(names) {
-  return function() {
-    classedAdd(this, names);
-  };
-}
-function classedFalse(names) {
-  return function() {
-    classedRemove(this, names);
-  };
-}
-function classedFunction(names, value) {
-  return function() {
-    (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
-  };
-}
-function classed_default(name, value) {
-  var names = classArray(name + "");
-  if (arguments.length < 2) {
-    var list = classList(this.node()), i2 = -1, n2 = names.length;
-    while (++i2 < n2)
-      if (!list.contains(names[i2]))
-        return false;
-    return true;
-  }
-  return this.each((typeof value === "function" ? classedFunction : value ? classedTrue : classedFalse)(names, value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/text.js
-function textRemove() {
-  this.textContent = "";
-}
-function textConstant(value) {
-  return function() {
-    this.textContent = value;
-  };
-}
-function textFunction(value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    this.textContent = v2 == null ? "" : v2;
-  };
-}
-function text_default(value) {
-  return arguments.length ? this.each(value == null ? textRemove : (typeof value === "function" ? textFunction : textConstant)(value)) : this.node().textContent;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/html.js
-function htmlRemove() {
-  this.innerHTML = "";
-}
-function htmlConstant(value) {
-  return function() {
-    this.innerHTML = value;
-  };
-}
-function htmlFunction(value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    this.innerHTML = v2 == null ? "" : v2;
-  };
-}
-function html_default(value) {
-  return arguments.length ? this.each(value == null ? htmlRemove : (typeof value === "function" ? htmlFunction : htmlConstant)(value)) : this.node().innerHTML;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/raise.js
-function raise() {
-  if (this.nextSibling)
-    this.parentNode.appendChild(this);
-}
-function raise_default() {
-  return this.each(raise);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/lower.js
-function lower() {
-  if (this.previousSibling)
-    this.parentNode.insertBefore(this, this.parentNode.firstChild);
-}
-function lower_default() {
-  return this.each(lower);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/append.js
-function append_default(name) {
-  var create2 = typeof name === "function" ? name : creator_default(name);
-  return this.select(function() {
-    return this.appendChild(create2.apply(this, arguments));
-  });
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/insert.js
-function constantNull() {
-  return null;
-}
-function insert_default(name, before) {
-  var create2 = typeof name === "function" ? name : creator_default(name), select = before == null ? constantNull : typeof before === "function" ? before : selector_default(before);
-  return this.select(function() {
-    return this.insertBefore(create2.apply(this, arguments), select.apply(this, arguments) || null);
-  });
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/remove.js
-function remove() {
-  var parent = this.parentNode;
-  if (parent)
-    parent.removeChild(this);
-}
-function remove_default() {
-  return this.each(remove);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/clone.js
-function selection_cloneShallow() {
-  var clone = this.cloneNode(false), parent = this.parentNode;
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
-}
-function selection_cloneDeep() {
-  var clone = this.cloneNode(true), parent = this.parentNode;
-  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
-}
-function clone_default(deep) {
-  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/datum.js
-function datum_default(value) {
-  return arguments.length ? this.property("__data__", value) : this.node().__data__;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/on.js
-function contextListener(listener) {
-  return function(event) {
-    listener.call(this, event, this.__data__);
-  };
-}
-function parseTypenames2(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function(t2) {
-    var name = "", i2 = t2.indexOf(".");
-    if (i2 >= 0)
-      name = t2.slice(i2 + 1), t2 = t2.slice(0, i2);
-    return { type: t2, name };
-  });
-}
-function onRemove(typename) {
-  return function() {
-    var on2 = this.__on;
-    if (!on2)
-      return;
-    for (var j2 = 0, i2 = -1, m2 = on2.length, o2; j2 < m2; ++j2) {
-      if (o2 = on2[j2], (!typename.type || o2.type === typename.type) && o2.name === typename.name) {
-        this.removeEventListener(o2.type, o2.listener, o2.options);
-      } else {
-        on2[++i2] = o2;
-      }
-    }
-    if (++i2)
-      on2.length = i2;
-    else
-      delete this.__on;
-  };
-}
-function onAdd(typename, value, options) {
-  return function() {
-    var on2 = this.__on, o2, listener = contextListener(value);
-    if (on2)
-      for (var j2 = 0, m2 = on2.length; j2 < m2; ++j2) {
-        if ((o2 = on2[j2]).type === typename.type && o2.name === typename.name) {
-          this.removeEventListener(o2.type, o2.listener, o2.options);
-          this.addEventListener(o2.type, o2.listener = listener, o2.options = options);
-          o2.value = value;
-          return;
-        }
-      }
-    this.addEventListener(typename.type, listener, options);
-    o2 = { type: typename.type, name: typename.name, value, listener, options };
-    if (!on2)
-      this.__on = [o2];
-    else
-      on2.push(o2);
-  };
-}
-function on_default(typename, value, options) {
-  var typenames = parseTypenames2(typename + ""), i2, n2 = typenames.length, t2;
-  if (arguments.length < 2) {
-    var on2 = this.node().__on;
-    if (on2)
-      for (var j2 = 0, m2 = on2.length, o2; j2 < m2; ++j2) {
-        for (i2 = 0, o2 = on2[j2]; i2 < n2; ++i2) {
-          if ((t2 = typenames[i2]).type === o2.type && t2.name === o2.name) {
-            return o2.value;
-          }
-        }
-      }
-    return;
-  }
-  on2 = value ? onAdd : onRemove;
-  for (i2 = 0; i2 < n2; ++i2)
-    this.each(on2(typenames[i2], value, options));
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/dispatch.js
-function dispatchEvent(node, type2, params) {
-  var window2 = window_default(node), event = window2.CustomEvent;
-  if (typeof event === "function") {
-    event = new event(type2, params);
-  } else {
-    event = window2.document.createEvent("Event");
-    if (params)
-      event.initEvent(type2, params.bubbles, params.cancelable), event.detail = params.detail;
-    else
-      event.initEvent(type2, false, false);
-  }
-  node.dispatchEvent(event);
-}
-function dispatchConstant(type2, params) {
-  return function() {
-    return dispatchEvent(this, type2, params);
-  };
-}
-function dispatchFunction(type2, params) {
-  return function() {
-    return dispatchEvent(this, type2, params.apply(this, arguments));
-  };
-}
-function dispatch_default2(type2, params) {
-  return this.each((typeof params === "function" ? dispatchFunction : dispatchConstant)(type2, params));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/iterator.js
-function* iterator_default() {
-  for (var groups = this._groups, j2 = 0, m2 = groups.length; j2 < m2; ++j2) {
-    for (var group = groups[j2], i2 = 0, n2 = group.length, node; i2 < n2; ++i2) {
-      if (node = group[i2])
-        yield node;
-    }
-  }
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/selection/index.js
-var root = [null];
-function Selection(groups, parents) {
-  this._groups = groups;
-  this._parents = parents;
-}
-function selection() {
-  return new Selection([[document.documentElement]], root);
-}
-function selection_selection() {
-  return this;
-}
-Selection.prototype = selection.prototype = {
-  constructor: Selection,
-  select: select_default,
-  selectAll: selectAll_default,
-  selectChild: selectChild_default,
-  selectChildren: selectChildren_default,
-  filter: filter_default,
-  data: data_default,
-  enter: enter_default,
-  exit: exit_default,
-  join: join_default,
-  merge: merge_default,
-  selection: selection_selection,
-  order: order_default,
-  sort: sort_default,
-  call: call_default,
-  nodes: nodes_default,
-  node: node_default,
-  size: size_default,
-  empty: empty_default,
-  each: each_default,
-  attr: attr_default,
-  style: style_default,
-  property: property_default,
-  classed: classed_default,
-  text: text_default,
-  html: html_default,
-  raise: raise_default,
-  lower: lower_default,
-  append: append_default,
-  insert: insert_default,
-  remove: remove_default,
-  clone: clone_default,
-  datum: datum_default,
-  on: on_default,
-  dispatch: dispatch_default2,
-  [Symbol.iterator]: iterator_default
-};
-var selection_default = selection;
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-selection@3.0.0/node_modules/d3-selection/src/select.js
-function select_default2(selector) {
-  return typeof selector === "string" ? new Selection([[document.querySelector(selector)]], [document.documentElement]) : new Selection([[selector]], root);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-color@3.1.0/node_modules/d3-color/src/define.js
-function define_default(constructor, factory, prototype) {
-  constructor.prototype = factory.prototype = prototype;
-  prototype.constructor = constructor;
-}
-function extend(parent, definition) {
-  var prototype = Object.create(parent.prototype);
-  for (var key in definition)
-    prototype[key] = definition[key];
-  return prototype;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-color@3.1.0/node_modules/d3-color/src/color.js
-function Color() {
-}
-var darker = 0.7;
-var brighter = 1 / darker;
-var reI = "\\s*([+-]?\\d+)\\s*";
-var reN = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)\\s*";
-var reP = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)%\\s*";
-var reHex = /^#([0-9a-f]{3,8})$/;
-var reRgbInteger = new RegExp(`^rgb\\(${reI},${reI},${reI}\\)$`);
-var reRgbPercent = new RegExp(`^rgb\\(${reP},${reP},${reP}\\)$`);
-var reRgbaInteger = new RegExp(`^rgba\\(${reI},${reI},${reI},${reN}\\)$`);
-var reRgbaPercent = new RegExp(`^rgba\\(${reP},${reP},${reP},${reN}\\)$`);
-var reHslPercent = new RegExp(`^hsl\\(${reN},${reP},${reP}\\)$`);
-var reHslaPercent = new RegExp(`^hsla\\(${reN},${reP},${reP},${reN}\\)$`);
-var named = {
-  aliceblue: 15792383,
-  antiquewhite: 16444375,
-  aqua: 65535,
-  aquamarine: 8388564,
-  azure: 15794175,
-  beige: 16119260,
-  bisque: 16770244,
-  black: 0,
-  blanchedalmond: 16772045,
-  blue: 255,
-  blueviolet: 9055202,
-  brown: 10824234,
-  burlywood: 14596231,
-  cadetblue: 6266528,
-  chartreuse: 8388352,
-  chocolate: 13789470,
-  coral: 16744272,
-  cornflowerblue: 6591981,
-  cornsilk: 16775388,
-  crimson: 14423100,
-  cyan: 65535,
-  darkblue: 139,
-  darkcyan: 35723,
-  darkgoldenrod: 12092939,
-  darkgray: 11119017,
-  darkgreen: 25600,
-  darkgrey: 11119017,
-  darkkhaki: 12433259,
-  darkmagenta: 9109643,
-  darkolivegreen: 5597999,
-  darkorange: 16747520,
-  darkorchid: 10040012,
-  darkred: 9109504,
-  darksalmon: 15308410,
-  darkseagreen: 9419919,
-  darkslateblue: 4734347,
-  darkslategray: 3100495,
-  darkslategrey: 3100495,
-  darkturquoise: 52945,
-  darkviolet: 9699539,
-  deeppink: 16716947,
-  deepskyblue: 49151,
-  dimgray: 6908265,
-  dimgrey: 6908265,
-  dodgerblue: 2003199,
-  firebrick: 11674146,
-  floralwhite: 16775920,
-  forestgreen: 2263842,
-  fuchsia: 16711935,
-  gainsboro: 14474460,
-  ghostwhite: 16316671,
-  gold: 16766720,
-  goldenrod: 14329120,
-  gray: 8421504,
-  green: 32768,
-  greenyellow: 11403055,
-  grey: 8421504,
-  honeydew: 15794160,
-  hotpink: 16738740,
-  indianred: 13458524,
-  indigo: 4915330,
-  ivory: 16777200,
-  khaki: 15787660,
-  lavender: 15132410,
-  lavenderblush: 16773365,
-  lawngreen: 8190976,
-  lemonchiffon: 16775885,
-  lightblue: 11393254,
-  lightcoral: 15761536,
-  lightcyan: 14745599,
-  lightgoldenrodyellow: 16448210,
-  lightgray: 13882323,
-  lightgreen: 9498256,
-  lightgrey: 13882323,
-  lightpink: 16758465,
-  lightsalmon: 16752762,
-  lightseagreen: 2142890,
-  lightskyblue: 8900346,
-  lightslategray: 7833753,
-  lightslategrey: 7833753,
-  lightsteelblue: 11584734,
-  lightyellow: 16777184,
-  lime: 65280,
-  limegreen: 3329330,
-  linen: 16445670,
-  magenta: 16711935,
-  maroon: 8388608,
-  mediumaquamarine: 6737322,
-  mediumblue: 205,
-  mediumorchid: 12211667,
-  mediumpurple: 9662683,
-  mediumseagreen: 3978097,
-  mediumslateblue: 8087790,
-  mediumspringgreen: 64154,
-  mediumturquoise: 4772300,
-  mediumvioletred: 13047173,
-  midnightblue: 1644912,
-  mintcream: 16121850,
-  mistyrose: 16770273,
-  moccasin: 16770229,
-  navajowhite: 16768685,
-  navy: 128,
-  oldlace: 16643558,
-  olive: 8421376,
-  olivedrab: 7048739,
-  orange: 16753920,
-  orangered: 16729344,
-  orchid: 14315734,
-  palegoldenrod: 15657130,
-  palegreen: 10025880,
-  paleturquoise: 11529966,
-  palevioletred: 14381203,
-  papayawhip: 16773077,
-  peachpuff: 16767673,
-  peru: 13468991,
-  pink: 16761035,
-  plum: 14524637,
-  powderblue: 11591910,
-  purple: 8388736,
-  rebeccapurple: 6697881,
-  red: 16711680,
-  rosybrown: 12357519,
-  royalblue: 4286945,
-  saddlebrown: 9127187,
-  salmon: 16416882,
-  sandybrown: 16032864,
-  seagreen: 3050327,
-  seashell: 16774638,
-  sienna: 10506797,
-  silver: 12632256,
-  skyblue: 8900331,
-  slateblue: 6970061,
-  slategray: 7372944,
-  slategrey: 7372944,
-  snow: 16775930,
-  springgreen: 65407,
-  steelblue: 4620980,
-  tan: 13808780,
-  teal: 32896,
-  thistle: 14204888,
-  tomato: 16737095,
-  turquoise: 4251856,
-  violet: 15631086,
-  wheat: 16113331,
-  white: 16777215,
-  whitesmoke: 16119285,
-  yellow: 16776960,
-  yellowgreen: 10145074
-};
-define_default(Color, color, {
-  copy(channels) {
-    return Object.assign(new this.constructor(), this, channels);
-  },
-  displayable() {
-    return this.rgb().displayable();
-  },
-  hex: color_formatHex,
-  // Deprecated! Use color.formatHex.
-  formatHex: color_formatHex,
-  formatHex8: color_formatHex8,
-  formatHsl: color_formatHsl,
-  formatRgb: color_formatRgb,
-  toString: color_formatRgb
-});
-function color_formatHex() {
-  return this.rgb().formatHex();
-}
-function color_formatHex8() {
-  return this.rgb().formatHex8();
-}
-function color_formatHsl() {
-  return hslConvert(this).formatHsl();
-}
-function color_formatRgb() {
-  return this.rgb().formatRgb();
-}
-function color(format) {
-  var m2, l2;
-  format = (format + "").trim().toLowerCase();
-  return (m2 = reHex.exec(format)) ? (l2 = m2[1].length, m2 = parseInt(m2[1], 16), l2 === 6 ? rgbn(m2) : l2 === 3 ? new Rgb(m2 >> 8 & 15 | m2 >> 4 & 240, m2 >> 4 & 15 | m2 & 240, (m2 & 15) << 4 | m2 & 15, 1) : l2 === 8 ? rgba(m2 >> 24 & 255, m2 >> 16 & 255, m2 >> 8 & 255, (m2 & 255) / 255) : l2 === 4 ? rgba(m2 >> 12 & 15 | m2 >> 8 & 240, m2 >> 8 & 15 | m2 >> 4 & 240, m2 >> 4 & 15 | m2 & 240, ((m2 & 15) << 4 | m2 & 15) / 255) : null) : (m2 = reRgbInteger.exec(format)) ? new Rgb(m2[1], m2[2], m2[3], 1) : (m2 = reRgbPercent.exec(format)) ? new Rgb(m2[1] * 255 / 100, m2[2] * 255 / 100, m2[3] * 255 / 100, 1) : (m2 = reRgbaInteger.exec(format)) ? rgba(m2[1], m2[2], m2[3], m2[4]) : (m2 = reRgbaPercent.exec(format)) ? rgba(m2[1] * 255 / 100, m2[2] * 255 / 100, m2[3] * 255 / 100, m2[4]) : (m2 = reHslPercent.exec(format)) ? hsla(m2[1], m2[2] / 100, m2[3] / 100, 1) : (m2 = reHslaPercent.exec(format)) ? hsla(m2[1], m2[2] / 100, m2[3] / 100, m2[4]) : named.hasOwnProperty(format) ? rgbn(named[format]) : format === "transparent" ? new Rgb(NaN, NaN, NaN, 0) : null;
-}
-function rgbn(n2) {
-  return new Rgb(n2 >> 16 & 255, n2 >> 8 & 255, n2 & 255, 1);
-}
-function rgba(r2, g2, b2, a2) {
-  if (a2 <= 0)
-    r2 = g2 = b2 = NaN;
-  return new Rgb(r2, g2, b2, a2);
-}
-function rgbConvert(o2) {
-  if (!(o2 instanceof Color))
-    o2 = color(o2);
-  if (!o2)
-    return new Rgb();
-  o2 = o2.rgb();
-  return new Rgb(o2.r, o2.g, o2.b, o2.opacity);
-}
-function rgb(r2, g2, b2, opacity) {
-  return arguments.length === 1 ? rgbConvert(r2) : new Rgb(r2, g2, b2, opacity == null ? 1 : opacity);
-}
-function Rgb(r2, g2, b2, opacity) {
-  this.r = +r2;
-  this.g = +g2;
-  this.b = +b2;
-  this.opacity = +opacity;
-}
-define_default(Rgb, rgb, extend(Color, {
-  brighter(k2) {
-    k2 = k2 == null ? brighter : Math.pow(brighter, k2);
-    return new Rgb(this.r * k2, this.g * k2, this.b * k2, this.opacity);
-  },
-  darker(k2) {
-    k2 = k2 == null ? darker : Math.pow(darker, k2);
-    return new Rgb(this.r * k2, this.g * k2, this.b * k2, this.opacity);
-  },
-  rgb() {
-    return this;
-  },
-  clamp() {
-    return new Rgb(clampi(this.r), clampi(this.g), clampi(this.b), clampa(this.opacity));
-  },
-  displayable() {
-    return -0.5 <= this.r && this.r < 255.5 && (-0.5 <= this.g && this.g < 255.5) && (-0.5 <= this.b && this.b < 255.5) && (0 <= this.opacity && this.opacity <= 1);
-  },
-  hex: rgb_formatHex,
-  // Deprecated! Use color.formatHex.
-  formatHex: rgb_formatHex,
-  formatHex8: rgb_formatHex8,
-  formatRgb: rgb_formatRgb,
-  toString: rgb_formatRgb
-}));
-function rgb_formatHex() {
-  return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}`;
-}
-function rgb_formatHex8() {
-  return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}${hex((isNaN(this.opacity) ? 1 : this.opacity) * 255)}`;
-}
-function rgb_formatRgb() {
-  const a2 = clampa(this.opacity);
-  return `${a2 === 1 ? "rgb(" : "rgba("}${clampi(this.r)}, ${clampi(this.g)}, ${clampi(this.b)}${a2 === 1 ? ")" : `, ${a2})`}`;
-}
-function clampa(opacity) {
-  return isNaN(opacity) ? 1 : Math.max(0, Math.min(1, opacity));
-}
-function clampi(value) {
-  return Math.max(0, Math.min(255, Math.round(value) || 0));
-}
-function hex(value) {
-  value = clampi(value);
-  return (value < 16 ? "0" : "") + value.toString(16);
-}
-function hsla(h2, s2, l2, a2) {
-  if (a2 <= 0)
-    h2 = s2 = l2 = NaN;
-  else if (l2 <= 0 || l2 >= 1)
-    h2 = s2 = NaN;
-  else if (s2 <= 0)
-    h2 = NaN;
-  return new Hsl(h2, s2, l2, a2);
-}
-function hslConvert(o2) {
-  if (o2 instanceof Hsl)
-    return new Hsl(o2.h, o2.s, o2.l, o2.opacity);
-  if (!(o2 instanceof Color))
-    o2 = color(o2);
-  if (!o2)
-    return new Hsl();
-  if (o2 instanceof Hsl)
-    return o2;
-  o2 = o2.rgb();
-  var r2 = o2.r / 255, g2 = o2.g / 255, b2 = o2.b / 255, min2 = Math.min(r2, g2, b2), max2 = Math.max(r2, g2, b2), h2 = NaN, s2 = max2 - min2, l2 = (max2 + min2) / 2;
-  if (s2) {
-    if (r2 === max2)
-      h2 = (g2 - b2) / s2 + (g2 < b2) * 6;
-    else if (g2 === max2)
-      h2 = (b2 - r2) / s2 + 2;
-    else
-      h2 = (r2 - g2) / s2 + 4;
-    s2 /= l2 < 0.5 ? max2 + min2 : 2 - max2 - min2;
-    h2 *= 60;
-  } else {
-    s2 = l2 > 0 && l2 < 1 ? 0 : h2;
-  }
-  return new Hsl(h2, s2, l2, o2.opacity);
-}
-function hsl(h2, s2, l2, opacity) {
-  return arguments.length === 1 ? hslConvert(h2) : new Hsl(h2, s2, l2, opacity == null ? 1 : opacity);
-}
-function Hsl(h2, s2, l2, opacity) {
-  this.h = +h2;
-  this.s = +s2;
-  this.l = +l2;
-  this.opacity = +opacity;
-}
-define_default(Hsl, hsl, extend(Color, {
-  brighter(k2) {
-    k2 = k2 == null ? brighter : Math.pow(brighter, k2);
-    return new Hsl(this.h, this.s, this.l * k2, this.opacity);
-  },
-  darker(k2) {
-    k2 = k2 == null ? darker : Math.pow(darker, k2);
-    return new Hsl(this.h, this.s, this.l * k2, this.opacity);
-  },
-  rgb() {
-    var h2 = this.h % 360 + (this.h < 0) * 360, s2 = isNaN(h2) || isNaN(this.s) ? 0 : this.s, l2 = this.l, m2 = l2 + (l2 < 0.5 ? l2 : 1 - l2) * s2, m1 = 2 * l2 - m2;
-    return new Rgb(
-      hsl2rgb(h2 >= 240 ? h2 - 240 : h2 + 120, m1, m2),
-      hsl2rgb(h2, m1, m2),
-      hsl2rgb(h2 < 120 ? h2 + 240 : h2 - 120, m1, m2),
-      this.opacity
-    );
-  },
-  clamp() {
-    return new Hsl(clamph(this.h), clampt(this.s), clampt(this.l), clampa(this.opacity));
-  },
-  displayable() {
-    return (0 <= this.s && this.s <= 1 || isNaN(this.s)) && (0 <= this.l && this.l <= 1) && (0 <= this.opacity && this.opacity <= 1);
-  },
-  formatHsl() {
-    const a2 = clampa(this.opacity);
-    return `${a2 === 1 ? "hsl(" : "hsla("}${clamph(this.h)}, ${clampt(this.s) * 100}%, ${clampt(this.l) * 100}%${a2 === 1 ? ")" : `, ${a2})`}`;
-  }
-}));
-function clamph(value) {
-  value = (value || 0) % 360;
-  return value < 0 ? value + 360 : value;
-}
-function clampt(value) {
-  return Math.max(0, Math.min(1, value || 0));
-}
-function hsl2rgb(h2, m1, m2) {
-  return (h2 < 60 ? m1 + (m2 - m1) * h2 / 60 : h2 < 180 ? m2 : h2 < 240 ? m1 + (m2 - m1) * (240 - h2) / 60 : m1) * 255;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/basis.js
-function basis(t1, v0, v1, v2, v3) {
-  var t2 = t1 * t1, t3 = t2 * t1;
-  return ((1 - 3 * t1 + 3 * t2 - t3) * v0 + (4 - 6 * t2 + 3 * t3) * v1 + (1 + 3 * t1 + 3 * t2 - 3 * t3) * v2 + t3 * v3) / 6;
-}
-function basis_default(values) {
-  var n2 = values.length - 1;
-  return function(t2) {
-    var i2 = t2 <= 0 ? t2 = 0 : t2 >= 1 ? (t2 = 1, n2 - 1) : Math.floor(t2 * n2), v1 = values[i2], v2 = values[i2 + 1], v0 = i2 > 0 ? values[i2 - 1] : 2 * v1 - v2, v3 = i2 < n2 - 1 ? values[i2 + 2] : 2 * v2 - v1;
-    return basis((t2 - i2 / n2) * n2, v0, v1, v2, v3);
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/basisClosed.js
-function basisClosed_default(values) {
-  var n2 = values.length;
-  return function(t2) {
-    var i2 = Math.floor(((t2 %= 1) < 0 ? ++t2 : t2) * n2), v0 = values[(i2 + n2 - 1) % n2], v1 = values[i2 % n2], v2 = values[(i2 + 1) % n2], v3 = values[(i2 + 2) % n2];
-    return basis((t2 - i2 / n2) * n2, v0, v1, v2, v3);
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/constant.js
-var constant_default2 = (x2) => () => x2;
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/color.js
-function linear(a2, d2) {
-  return function(t2) {
-    return a2 + t2 * d2;
-  };
-}
-function exponential(a2, b2, y2) {
-  return a2 = Math.pow(a2, y2), b2 = Math.pow(b2, y2) - a2, y2 = 1 / y2, function(t2) {
-    return Math.pow(a2 + t2 * b2, y2);
-  };
-}
-function gamma(y2) {
-  return (y2 = +y2) === 1 ? nogamma : function(a2, b2) {
-    return b2 - a2 ? exponential(a2, b2, y2) : constant_default2(isNaN(a2) ? b2 : a2);
-  };
-}
-function nogamma(a2, b2) {
-  var d2 = b2 - a2;
-  return d2 ? linear(a2, d2) : constant_default2(isNaN(a2) ? b2 : a2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/rgb.js
-var rgb_default = function rgbGamma(y2) {
-  var color2 = gamma(y2);
-  function rgb2(start2, end) {
-    var r2 = color2((start2 = rgb(start2)).r, (end = rgb(end)).r), g2 = color2(start2.g, end.g), b2 = color2(start2.b, end.b), opacity = nogamma(start2.opacity, end.opacity);
-    return function(t2) {
-      start2.r = r2(t2);
-      start2.g = g2(t2);
-      start2.b = b2(t2);
-      start2.opacity = opacity(t2);
-      return start2 + "";
-    };
-  }
-  rgb2.gamma = rgbGamma;
-  return rgb2;
-}(1);
-function rgbSpline(spline) {
-  return function(colors) {
-    var n2 = colors.length, r2 = new Array(n2), g2 = new Array(n2), b2 = new Array(n2), i2, color2;
-    for (i2 = 0; i2 < n2; ++i2) {
-      color2 = rgb(colors[i2]);
-      r2[i2] = color2.r || 0;
-      g2[i2] = color2.g || 0;
-      b2[i2] = color2.b || 0;
-    }
-    r2 = spline(r2);
-    g2 = spline(g2);
-    b2 = spline(b2);
-    color2.opacity = 1;
-    return function(t2) {
-      color2.r = r2(t2);
-      color2.g = g2(t2);
-      color2.b = b2(t2);
-      return color2 + "";
-    };
-  };
-}
-var rgbBasis = rgbSpline(basis_default);
-var rgbBasisClosed = rgbSpline(basisClosed_default);
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/number.js
-function number_default(a2, b2) {
-  return a2 = +a2, b2 = +b2, function(t2) {
-    return a2 * (1 - t2) + b2 * t2;
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/string.js
-var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g;
-var reB = new RegExp(reA.source, "g");
-function zero(b2) {
-  return function() {
-    return b2;
-  };
-}
-function one(b2) {
-  return function(t2) {
-    return b2(t2) + "";
-  };
-}
-function string_default(a2, b2) {
-  var bi2 = reA.lastIndex = reB.lastIndex = 0, am, bm, bs, i2 = -1, s2 = [], q2 = [];
-  a2 = a2 + "", b2 = b2 + "";
-  while ((am = reA.exec(a2)) && (bm = reB.exec(b2))) {
-    if ((bs = bm.index) > bi2) {
-      bs = b2.slice(bi2, bs);
-      if (s2[i2])
-        s2[i2] += bs;
-      else
-        s2[++i2] = bs;
-    }
-    if ((am = am[0]) === (bm = bm[0])) {
-      if (s2[i2])
-        s2[i2] += bm;
-      else
-        s2[++i2] = bm;
-    } else {
-      s2[++i2] = null;
-      q2.push({ i: i2, x: number_default(am, bm) });
-    }
-    bi2 = reB.lastIndex;
-  }
-  if (bi2 < b2.length) {
-    bs = b2.slice(bi2);
-    if (s2[i2])
-      s2[i2] += bs;
-    else
-      s2[++i2] = bs;
-  }
-  return s2.length < 2 ? q2[0] ? one(q2[0].x) : zero(b2) : (b2 = q2.length, function(t2) {
-    for (var i3 = 0, o2; i3 < b2; ++i3)
-      s2[(o2 = q2[i3]).i] = o2.x(t2);
-    return s2.join("");
-  });
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/transform/decompose.js
-var degrees = 180 / Math.PI;
-var identity = {
-  translateX: 0,
-  translateY: 0,
-  rotate: 0,
-  skewX: 0,
-  scaleX: 1,
-  scaleY: 1
-};
-function decompose_default(a2, b2, c2, d2, e2, f2) {
-  var scaleX, scaleY, skewX;
-  if (scaleX = Math.sqrt(a2 * a2 + b2 * b2))
-    a2 /= scaleX, b2 /= scaleX;
-  if (skewX = a2 * c2 + b2 * d2)
-    c2 -= a2 * skewX, d2 -= b2 * skewX;
-  if (scaleY = Math.sqrt(c2 * c2 + d2 * d2))
-    c2 /= scaleY, d2 /= scaleY, skewX /= scaleY;
-  if (a2 * d2 < b2 * c2)
-    a2 = -a2, b2 = -b2, skewX = -skewX, scaleX = -scaleX;
-  return {
-    translateX: e2,
-    translateY: f2,
-    rotate: Math.atan2(b2, a2) * degrees,
-    skewX: Math.atan(skewX) * degrees,
-    scaleX,
-    scaleY
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/transform/parse.js
-var svgNode;
-function parseCss(value) {
-  const m2 = new (typeof DOMMatrix === "function" ? DOMMatrix : WebKitCSSMatrix)(value + "");
-  return m2.isIdentity ? identity : decompose_default(m2.a, m2.b, m2.c, m2.d, m2.e, m2.f);
-}
-function parseSvg(value) {
-  if (value == null)
-    return identity;
-  if (!svgNode)
-    svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  svgNode.setAttribute("transform", value);
-  if (!(value = svgNode.transform.baseVal.consolidate()))
-    return identity;
-  value = value.matrix;
-  return decompose_default(value.a, value.b, value.c, value.d, value.e, value.f);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-interpolate@3.0.1/node_modules/d3-interpolate/src/transform/index.js
-function interpolateTransform(parse, pxComma, pxParen, degParen) {
-  function pop(s2) {
-    return s2.length ? s2.pop() + " " : "";
-  }
-  function translate(xa, ya2, xb, yb, s2, q2) {
-    if (xa !== xb || ya2 !== yb) {
-      var i2 = s2.push("translate(", null, pxComma, null, pxParen);
-      q2.push({ i: i2 - 4, x: number_default(xa, xb) }, { i: i2 - 2, x: number_default(ya2, yb) });
-    } else if (xb || yb) {
-      s2.push("translate(" + xb + pxComma + yb + pxParen);
-    }
-  }
-  function rotate(a2, b2, s2, q2) {
-    if (a2 !== b2) {
-      if (a2 - b2 > 180)
-        b2 += 360;
-      else if (b2 - a2 > 180)
-        a2 += 360;
-      q2.push({ i: s2.push(pop(s2) + "rotate(", null, degParen) - 2, x: number_default(a2, b2) });
-    } else if (b2) {
-      s2.push(pop(s2) + "rotate(" + b2 + degParen);
-    }
-  }
-  function skewX(a2, b2, s2, q2) {
-    if (a2 !== b2) {
-      q2.push({ i: s2.push(pop(s2) + "skewX(", null, degParen) - 2, x: number_default(a2, b2) });
-    } else if (b2) {
-      s2.push(pop(s2) + "skewX(" + b2 + degParen);
-    }
-  }
-  function scale(xa, ya2, xb, yb, s2, q2) {
-    if (xa !== xb || ya2 !== yb) {
-      var i2 = s2.push(pop(s2) + "scale(", null, ",", null, ")");
-      q2.push({ i: i2 - 4, x: number_default(xa, xb) }, { i: i2 - 2, x: number_default(ya2, yb) });
-    } else if (xb !== 1 || yb !== 1) {
-      s2.push(pop(s2) + "scale(" + xb + "," + yb + ")");
-    }
-  }
-  return function(a2, b2) {
-    var s2 = [], q2 = [];
-    a2 = parse(a2), b2 = parse(b2);
-    translate(a2.translateX, a2.translateY, b2.translateX, b2.translateY, s2, q2);
-    rotate(a2.rotate, b2.rotate, s2, q2);
-    skewX(a2.skewX, b2.skewX, s2, q2);
-    scale(a2.scaleX, a2.scaleY, b2.scaleX, b2.scaleY, s2, q2);
-    a2 = b2 = null;
-    return function(t2) {
-      var i2 = -1, n2 = q2.length, o2;
-      while (++i2 < n2)
-        s2[(o2 = q2[i2]).i] = o2.x(t2);
-      return s2.join("");
-    };
-  };
-}
-var interpolateTransformCss = interpolateTransform(parseCss, "px, ", "px)", "deg)");
-var interpolateTransformSvg = interpolateTransform(parseSvg, ", ", ")", ")");
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-timer@3.0.1/node_modules/d3-timer/src/timer.js
-var frame = 0;
-var timeout = 0;
-var interval = 0;
-var pokeDelay = 1e3;
-var taskHead;
-var taskTail;
-var clockLast = 0;
-var clockNow = 0;
-var clockSkew = 0;
-var clock = typeof performance === "object" && performance.now ? performance : Date;
-var setFrame = typeof window === "object" && window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(f2) {
-  setTimeout(f2, 17);
-};
-function now() {
-  return clockNow || (setFrame(clearNow), clockNow = clock.now() + clockSkew);
-}
-function clearNow() {
-  clockNow = 0;
-}
-function Timer() {
-  this._call = this._time = this._next = null;
-}
-Timer.prototype = timer.prototype = {
-  constructor: Timer,
-  restart: function(callback, delay, time) {
-    if (typeof callback !== "function")
-      throw new TypeError("callback is not a function");
-    time = (time == null ? now() : +time) + (delay == null ? 0 : +delay);
-    if (!this._next && taskTail !== this) {
-      if (taskTail)
-        taskTail._next = this;
-      else
-        taskHead = this;
-      taskTail = this;
-    }
-    this._call = callback;
-    this._time = time;
-    sleep();
-  },
-  stop: function() {
-    if (this._call) {
-      this._call = null;
-      this._time = Infinity;
-      sleep();
-    }
-  }
-};
-function timer(callback, delay, time) {
-  var t2 = new Timer();
-  t2.restart(callback, delay, time);
-  return t2;
-}
-function timerFlush() {
-  now();
-  ++frame;
-  var t2 = taskHead, e2;
-  while (t2) {
-    if ((e2 = clockNow - t2._time) >= 0)
-      t2._call.call(void 0, e2);
-    t2 = t2._next;
-  }
-  --frame;
-}
-function wake() {
-  clockNow = (clockLast = clock.now()) + clockSkew;
-  frame = timeout = 0;
-  try {
-    timerFlush();
-  } finally {
-    frame = 0;
-    nap();
-    clockNow = 0;
-  }
-}
-function poke() {
-  var now2 = clock.now(), delay = now2 - clockLast;
-  if (delay > pokeDelay)
-    clockSkew -= delay, clockLast = now2;
-}
-function nap() {
-  var t0, t1 = taskHead, t2, time = Infinity;
-  while (t1) {
-    if (t1._call) {
-      if (time > t1._time)
-        time = t1._time;
-      t0 = t1, t1 = t1._next;
-    } else {
-      t2 = t1._next, t1._next = null;
-      t1 = t0 ? t0._next = t2 : taskHead = t2;
-    }
-  }
-  taskTail = t0;
-  sleep(time);
-}
-function sleep(time) {
-  if (frame)
-    return;
-  if (timeout)
-    timeout = clearTimeout(timeout);
-  var delay = time - clockNow;
-  if (delay > 24) {
-    if (time < Infinity)
-      timeout = setTimeout(wake, time - clock.now() - clockSkew);
-    if (interval)
-      interval = clearInterval(interval);
-  } else {
-    if (!interval)
-      clockLast = clock.now(), interval = setInterval(poke, pokeDelay);
-    frame = 1, setFrame(wake);
-  }
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-timer@3.0.1/node_modules/d3-timer/src/timeout.js
-function timeout_default(callback, delay, time) {
-  var t2 = new Timer();
-  delay = delay == null ? 0 : +delay;
-  t2.restart((elapsed) => {
-    t2.stop();
-    callback(elapsed + delay);
-  }, delay, time);
-  return t2;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/schedule.js
-var emptyOn = dispatch_default("start", "end", "cancel", "interrupt");
-var emptyTween = [];
-var CREATED = 0;
-var SCHEDULED = 1;
-var STARTING = 2;
-var STARTED = 3;
-var RUNNING = 4;
-var ENDING = 5;
-var ENDED = 6;
-function schedule_default(node, name, id2, index, group, timing) {
-  var schedules = node.__transition;
-  if (!schedules)
-    node.__transition = {};
-  else if (id2 in schedules)
-    return;
-  create(node, id2, {
-    name,
-    index,
-    // For context during callback.
-    group,
-    // For context during callback.
-    on: emptyOn,
-    tween: emptyTween,
-    time: timing.time,
-    delay: timing.delay,
-    duration: timing.duration,
-    ease: timing.ease,
-    timer: null,
-    state: CREATED
-  });
-}
-function init(node, id2) {
-  var schedule = get2(node, id2);
-  if (schedule.state > CREATED)
-    throw new Error("too late; already scheduled");
-  return schedule;
-}
-function set2(node, id2) {
-  var schedule = get2(node, id2);
-  if (schedule.state > STARTED)
-    throw new Error("too late; already running");
-  return schedule;
-}
-function get2(node, id2) {
-  var schedule = node.__transition;
-  if (!schedule || !(schedule = schedule[id2]))
-    throw new Error("transition not found");
-  return schedule;
-}
-function create(node, id2, self) {
-  var schedules = node.__transition, tween;
-  schedules[id2] = self;
-  self.timer = timer(schedule, 0, self.time);
-  function schedule(elapsed) {
-    self.state = SCHEDULED;
-    self.timer.restart(start2, self.delay, self.time);
-    if (self.delay <= elapsed)
-      start2(elapsed - self.delay);
-  }
-  function start2(elapsed) {
-    var i2, j2, n2, o2;
-    if (self.state !== SCHEDULED)
-      return stop();
-    for (i2 in schedules) {
-      o2 = schedules[i2];
-      if (o2.name !== self.name)
-        continue;
-      if (o2.state === STARTED)
-        return timeout_default(start2);
-      if (o2.state === RUNNING) {
-        o2.state = ENDED;
-        o2.timer.stop();
-        o2.on.call("interrupt", node, node.__data__, o2.index, o2.group);
-        delete schedules[i2];
-      } else if (+i2 < id2) {
-        o2.state = ENDED;
-        o2.timer.stop();
-        o2.on.call("cancel", node, node.__data__, o2.index, o2.group);
-        delete schedules[i2];
-      }
-    }
-    timeout_default(function() {
-      if (self.state === STARTED) {
-        self.state = RUNNING;
-        self.timer.restart(tick, self.delay, self.time);
-        tick(elapsed);
-      }
-    });
-    self.state = STARTING;
-    self.on.call("start", node, node.__data__, self.index, self.group);
-    if (self.state !== STARTING)
-      return;
-    self.state = STARTED;
-    tween = new Array(n2 = self.tween.length);
-    for (i2 = 0, j2 = -1; i2 < n2; ++i2) {
-      if (o2 = self.tween[i2].value.call(node, node.__data__, self.index, self.group)) {
-        tween[++j2] = o2;
-      }
-    }
-    tween.length = j2 + 1;
-  }
-  function tick(elapsed) {
-    var t2 = elapsed < self.duration ? self.ease.call(null, elapsed / self.duration) : (self.timer.restart(stop), self.state = ENDING, 1), i2 = -1, n2 = tween.length;
-    while (++i2 < n2) {
-      tween[i2].call(node, t2);
-    }
-    if (self.state === ENDING) {
-      self.on.call("end", node, node.__data__, self.index, self.group);
-      stop();
-    }
-  }
-  function stop() {
-    self.state = ENDED;
-    self.timer.stop();
-    delete schedules[id2];
-    for (var i2 in schedules)
-      return;
-    delete node.__transition;
-  }
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/interrupt.js
-function interrupt_default(node, name) {
-  var schedules = node.__transition, schedule, active, empty2 = true, i2;
-  if (!schedules)
-    return;
-  name = name == null ? null : name + "";
-  for (i2 in schedules) {
-    if ((schedule = schedules[i2]).name !== name) {
-      empty2 = false;
+// examples/taaat-app/src/outline-tree.ts
+function escapeHtml(s2) {
+  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function depthOf(path) {
+  if (!path || path === "/")
+    return 0;
+  return path.split("/").filter(Boolean).length;
+}
+function visiblePills(pills, enabledLanguages2, enabledFamilies2) {
+  return pills.filter(
+    (p2) => enabledLanguages2.has(p2.language) && enabledFamilies2.has(p2.family)
+  );
+}
+function pillHtml(pill) {
+  const fill = familyFillColor(pill.family);
+  const outline = languageOutlineColor(pill.language);
+  const title = `${pill.language} / ${pill.key} = ${pill.value}`;
+  return `<span class="ann-pill" title="${escapeHtml(title)}" style="background:${fill};border-color:${outline}">
+    <span class="ann-pill-lang">${escapeHtml(pill.language)}</span>
+    <span class="ann-pill-key">${escapeHtml(pill.key)}</span>
+    <span class="ann-pill-val">${escapeHtml(pill.value)}</span>
+  </span>`;
+}
+function renderOutline(options) {
+  const { container, tree, doc, selectedPath, filterText: filterText2, onSelect } = options;
+  const scroll = container.scrollTop;
+  container.innerHTML = "";
+  const list = document.createElement("div");
+  list.className = "outline-list";
+  const q2 = filterText2.trim().toLowerCase();
+  const nodes = flattenDefinitionTree(tree);
+  let shown = 0;
+  for (const node of nodes) {
+    const hay = `${node.label} ${node.rmType ?? ""} ${node.archetypeRef ?? ""} ${node.path}`.toLowerCase();
+    if (q2 && !hay.includes(q2))
       continue;
-    }
-    active = schedule.state > STARTING && schedule.state < ENDING;
-    schedule.state = ENDED;
-    schedule.timer.stop();
-    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group);
-    delete schedules[i2];
+    shown++;
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "outline-row";
+    if (node.path === selectedPath)
+      row.classList.add("is-selected");
+    if (node.isArchetypeRoot)
+      row.classList.add("is-archetype-root");
+    row.style.setProperty("--depth", String(depthOf(node.path)));
+    const ownerDoc = options.documentationForNode?.(node) ?? doc;
+    const pills = visiblePills(
+      pillsAtPath(ownerDoc, annotationPathOf(node)),
+      options.enabledLanguages,
+      options.enabledFamilies
+    );
+    const rm = node.rmType ? `<span class="rm-chip">${escapeHtml(node.rmType)}</span>` : "";
+    row.innerHTML = `
+      <span class="outline-main">
+        <span class="outline-name">${escapeHtml(node.label)}</span>
+        ${rm}
+      </span>
+      <span class="outline-pills">${pills.map(pillHtml).join("")}</span>
+    `;
+    row.addEventListener("click", () => onSelect(node));
+    list.appendChild(row);
   }
-  if (empty2)
-    delete node.__transition;
+  if (!shown) {
+    const empty = document.createElement("p");
+    empty.className = "tree-empty";
+    empty.textContent = q2 ? "No nodes match the filter." : "Empty definition tree.";
+    container.appendChild(empty);
+    return;
+  }
+  container.appendChild(list);
+  container.scrollTop = scroll;
 }
 
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/selection/interrupt.js
-function interrupt_default2(name) {
-  return this.each(function() {
-    interrupt_default(this, name);
+// parser/l10n_annotation_generate.ts
+function l10nAnnotationKey(language) {
+  return `L10n.${language}`;
+}
+function isL10nKey(key) {
+  return /^L10n\./i.test(key);
+}
+function countArchetypeRefs(nodes) {
+  const counts = /* @__PURE__ */ new Map();
+  for (const node of nodes) {
+    const ref = node.archetypeRef?.trim();
+    if (!ref)
+      continue;
+    counts.set(ref, (counts.get(ref) ?? 0) + 1);
+  }
+  return counts;
+}
+function eligibleNodes(nodes, repeatedOnly) {
+  if (!repeatedOnly) {
+    return nodes.filter((n2) => n2.path && n2.localizedNames);
+  }
+  const counts = countArchetypeRefs(nodes);
+  return nodes.filter((n2) => {
+    if (!n2.path || !n2.localizedNames)
+      return false;
+    const ref = n2.archetypeRef?.trim();
+    return !!ref && (counts.get(ref) ?? 0) > 1;
   });
 }
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/tween.js
-function tweenRemove(id2, name) {
-  var tween0, tween1;
-  return function() {
-    var schedule = set2(this, id2), tween = schedule.tween;
-    if (tween !== tween0) {
-      tween1 = tween0 = tween;
-      for (var i2 = 0, n2 = tween1.length; i2 < n2; ++i2) {
-        if (tween1[i2].name === name) {
-          tween1 = tween1.slice();
-          tween1.splice(i2, 1);
-          break;
+function proposeL10nWrites(doc, nodes, options) {
+  const bags = [...new Set(
+    options.languageBags.map((l2) => l2.trim()).filter(Boolean)
+  )];
+  if (!bags.length)
+    return [];
+  const repeatedOnly = options.repeatedOccurrencesOnly !== false;
+  const writes = [];
+  for (const node of eligibleNodes(nodes, repeatedOnly)) {
+    const names = node.localizedNames ?? {};
+    for (const [lang, text] of Object.entries(names)) {
+      const value = text?.trim();
+      if (!value)
+        continue;
+      const key = l10nAnnotationKey(lang);
+      if (!isL10nKey(key))
+        continue;
+      const targetBags = options.copyToAllLanguageBags === false ? bags.filter((b2) => b2.toLowerCase() === lang.toLowerCase()) : bags;
+      if (!targetBags.length)
+        continue;
+      for (const bag of targetBags) {
+        const existing = doc?.[bag]?.[node.path]?.[key];
+        if (existing === void 0) {
+          writes.push({
+            languageBag: bag,
+            path: node.path,
+            key,
+            value,
+            kind: "add"
+          });
+          continue;
         }
-      }
-    }
-    schedule.tween = tween1;
-  };
-}
-function tweenFunction(id2, name, value) {
-  var tween0, tween1;
-  if (typeof value !== "function")
-    throw new Error();
-  return function() {
-    var schedule = set2(this, id2), tween = schedule.tween;
-    if (tween !== tween0) {
-      tween1 = (tween0 = tween).slice();
-      for (var t2 = { name, value }, i2 = 0, n2 = tween1.length; i2 < n2; ++i2) {
-        if (tween1[i2].name === name) {
-          tween1[i2] = t2;
-          break;
+        if (existing === value) {
+          writes.push({
+            languageBag: bag,
+            path: node.path,
+            key,
+            value,
+            kind: "unchanged",
+            existingValue: existing
+          });
+          continue;
         }
-      }
-      if (i2 === n2)
-        tween1.push(t2);
-    }
-    schedule.tween = tween1;
-  };
-}
-function tween_default(name, value) {
-  var id2 = this._id;
-  name += "";
-  if (arguments.length < 2) {
-    var tween = get2(this.node(), id2).tween;
-    for (var i2 = 0, n2 = tween.length, t2; i2 < n2; ++i2) {
-      if ((t2 = tween[i2]).name === name) {
-        return t2.value;
-      }
-    }
-    return null;
-  }
-  return this.each((value == null ? tweenRemove : tweenFunction)(id2, name, value));
-}
-function tweenValue(transition2, name, value) {
-  var id2 = transition2._id;
-  transition2.each(function() {
-    var schedule = set2(this, id2);
-    (schedule.value || (schedule.value = {}))[name] = value.apply(this, arguments);
-  });
-  return function(node) {
-    return get2(node, id2).value[name];
-  };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/interpolate.js
-function interpolate_default(a2, b2) {
-  var c2;
-  return (typeof b2 === "number" ? number_default : b2 instanceof color ? rgb_default : (c2 = color(b2)) ? (b2 = c2, rgb_default) : string_default)(a2, b2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/attr.js
-function attrRemove2(name) {
-  return function() {
-    this.removeAttribute(name);
-  };
-}
-function attrRemoveNS2(fullname) {
-  return function() {
-    this.removeAttributeNS(fullname.space, fullname.local);
-  };
-}
-function attrConstant2(name, interpolate, value1) {
-  var string00, string1 = value1 + "", interpolate0;
-  return function() {
-    var string0 = this.getAttribute(name);
-    return string0 === string1 ? null : string0 === string00 ? interpolate0 : interpolate0 = interpolate(string00 = string0, value1);
-  };
-}
-function attrConstantNS2(fullname, interpolate, value1) {
-  var string00, string1 = value1 + "", interpolate0;
-  return function() {
-    var string0 = this.getAttributeNS(fullname.space, fullname.local);
-    return string0 === string1 ? null : string0 === string00 ? interpolate0 : interpolate0 = interpolate(string00 = string0, value1);
-  };
-}
-function attrFunction2(name, interpolate, value) {
-  var string00, string10, interpolate0;
-  return function() {
-    var string0, value1 = value(this), string1;
-    if (value1 == null)
-      return void this.removeAttribute(name);
-    string0 = this.getAttribute(name);
-    string1 = value1 + "";
-    return string0 === string1 ? null : string0 === string00 && string1 === string10 ? interpolate0 : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
-  };
-}
-function attrFunctionNS2(fullname, interpolate, value) {
-  var string00, string10, interpolate0;
-  return function() {
-    var string0, value1 = value(this), string1;
-    if (value1 == null)
-      return void this.removeAttributeNS(fullname.space, fullname.local);
-    string0 = this.getAttributeNS(fullname.space, fullname.local);
-    string1 = value1 + "";
-    return string0 === string1 ? null : string0 === string00 && string1 === string10 ? interpolate0 : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
-  };
-}
-function attr_default2(name, value) {
-  var fullname = namespace_default(name), i2 = fullname === "transform" ? interpolateTransformSvg : interpolate_default;
-  return this.attrTween(name, typeof value === "function" ? (fullname.local ? attrFunctionNS2 : attrFunction2)(fullname, i2, tweenValue(this, "attr." + name, value)) : value == null ? (fullname.local ? attrRemoveNS2 : attrRemove2)(fullname) : (fullname.local ? attrConstantNS2 : attrConstant2)(fullname, i2, value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/attrTween.js
-function attrInterpolate(name, i2) {
-  return function(t2) {
-    this.setAttribute(name, i2.call(this, t2));
-  };
-}
-function attrInterpolateNS(fullname, i2) {
-  return function(t2) {
-    this.setAttributeNS(fullname.space, fullname.local, i2.call(this, t2));
-  };
-}
-function attrTweenNS(fullname, value) {
-  var t0, i0;
-  function tween() {
-    var i2 = value.apply(this, arguments);
-    if (i2 !== i0)
-      t0 = (i0 = i2) && attrInterpolateNS(fullname, i2);
-    return t0;
-  }
-  tween._value = value;
-  return tween;
-}
-function attrTween(name, value) {
-  var t0, i0;
-  function tween() {
-    var i2 = value.apply(this, arguments);
-    if (i2 !== i0)
-      t0 = (i0 = i2) && attrInterpolate(name, i2);
-    return t0;
-  }
-  tween._value = value;
-  return tween;
-}
-function attrTween_default(name, value) {
-  var key = "attr." + name;
-  if (arguments.length < 2)
-    return (key = this.tween(key)) && key._value;
-  if (value == null)
-    return this.tween(key, null);
-  if (typeof value !== "function")
-    throw new Error();
-  var fullname = namespace_default(name);
-  return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/delay.js
-function delayFunction(id2, value) {
-  return function() {
-    init(this, id2).delay = +value.apply(this, arguments);
-  };
-}
-function delayConstant(id2, value) {
-  return value = +value, function() {
-    init(this, id2).delay = value;
-  };
-}
-function delay_default(value) {
-  var id2 = this._id;
-  return arguments.length ? this.each((typeof value === "function" ? delayFunction : delayConstant)(id2, value)) : get2(this.node(), id2).delay;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/duration.js
-function durationFunction(id2, value) {
-  return function() {
-    set2(this, id2).duration = +value.apply(this, arguments);
-  };
-}
-function durationConstant(id2, value) {
-  return value = +value, function() {
-    set2(this, id2).duration = value;
-  };
-}
-function duration_default(value) {
-  var id2 = this._id;
-  return arguments.length ? this.each((typeof value === "function" ? durationFunction : durationConstant)(id2, value)) : get2(this.node(), id2).duration;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/ease.js
-function easeConstant(id2, value) {
-  if (typeof value !== "function")
-    throw new Error();
-  return function() {
-    set2(this, id2).ease = value;
-  };
-}
-function ease_default(value) {
-  var id2 = this._id;
-  return arguments.length ? this.each(easeConstant(id2, value)) : get2(this.node(), id2).ease;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/easeVarying.js
-function easeVarying(id2, value) {
-  return function() {
-    var v2 = value.apply(this, arguments);
-    if (typeof v2 !== "function")
-      throw new Error();
-    set2(this, id2).ease = v2;
-  };
-}
-function easeVarying_default(value) {
-  if (typeof value !== "function")
-    throw new Error();
-  return this.each(easeVarying(this._id, value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/filter.js
-function filter_default2(match) {
-  if (typeof match !== "function")
-    match = matcher_default(match);
-  for (var groups = this._groups, m2 = groups.length, subgroups = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, subgroup = subgroups[j2] = [], node, i2 = 0; i2 < n2; ++i2) {
-      if ((node = group[i2]) && match.call(node, node.__data__, i2, group)) {
-        subgroup.push(node);
-      }
-    }
-  }
-  return new Transition(subgroups, this._parents, this._name, this._id);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/merge.js
-function merge_default2(transition2) {
-  if (transition2._id !== this._id)
-    throw new Error();
-  for (var groups0 = this._groups, groups1 = transition2._groups, m0 = groups0.length, m1 = groups1.length, m2 = Math.min(m0, m1), merges = new Array(m0), j2 = 0; j2 < m2; ++j2) {
-    for (var group0 = groups0[j2], group1 = groups1[j2], n2 = group0.length, merge = merges[j2] = new Array(n2), node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group0[i2] || group1[i2]) {
-        merge[i2] = node;
-      }
-    }
-  }
-  for (; j2 < m0; ++j2) {
-    merges[j2] = groups0[j2];
-  }
-  return new Transition(merges, this._parents, this._name, this._id);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/on.js
-function start(name) {
-  return (name + "").trim().split(/^|\s+/).every(function(t2) {
-    var i2 = t2.indexOf(".");
-    if (i2 >= 0)
-      t2 = t2.slice(0, i2);
-    return !t2 || t2 === "start";
-  });
-}
-function onFunction(id2, name, listener) {
-  var on0, on1, sit = start(name) ? init : set2;
-  return function() {
-    var schedule = sit(this, id2), on2 = schedule.on;
-    if (on2 !== on0)
-      (on1 = (on0 = on2).copy()).on(name, listener);
-    schedule.on = on1;
-  };
-}
-function on_default2(name, listener) {
-  var id2 = this._id;
-  return arguments.length < 2 ? get2(this.node(), id2).on.on(name) : this.each(onFunction(id2, name, listener));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/remove.js
-function removeFunction(id2) {
-  return function() {
-    var parent = this.parentNode;
-    for (var i2 in this.__transition)
-      if (+i2 !== id2)
-        return;
-    if (parent)
-      parent.removeChild(this);
-  };
-}
-function remove_default2() {
-  return this.on("end.remove", removeFunction(this._id));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/select.js
-function select_default3(select) {
-  var name = this._name, id2 = this._id;
-  if (typeof select !== "function")
-    select = selector_default(select);
-  for (var groups = this._groups, m2 = groups.length, subgroups = new Array(m2), j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, subgroup = subgroups[j2] = new Array(n2), node, subnode, i2 = 0; i2 < n2; ++i2) {
-      if ((node = group[i2]) && (subnode = select.call(node, node.__data__, i2, group))) {
-        if ("__data__" in node)
-          subnode.__data__ = node.__data__;
-        subgroup[i2] = subnode;
-        schedule_default(subgroup[i2], name, id2, i2, subgroup, get2(node, id2));
-      }
-    }
-  }
-  return new Transition(subgroups, this._parents, name, id2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/selectAll.js
-function selectAll_default2(select) {
-  var name = this._name, id2 = this._id;
-  if (typeof select !== "function")
-    select = selectorAll_default(select);
-  for (var groups = this._groups, m2 = groups.length, subgroups = [], parents = [], j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group[i2]) {
-        for (var children2 = select.call(node, node.__data__, i2, group), child, inherit2 = get2(node, id2), k2 = 0, l2 = children2.length; k2 < l2; ++k2) {
-          if (child = children2[k2]) {
-            schedule_default(child, name, id2, k2, children2, inherit2);
-          }
-        }
-        subgroups.push(children2);
-        parents.push(node);
-      }
-    }
-  }
-  return new Transition(subgroups, parents, name, id2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/selection.js
-var Selection2 = selection_default.prototype.constructor;
-function selection_default2() {
-  return new Selection2(this._groups, this._parents);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/style.js
-function styleNull(name, interpolate) {
-  var string00, string10, interpolate0;
-  return function() {
-    var string0 = styleValue(this, name), string1 = (this.style.removeProperty(name), styleValue(this, name));
-    return string0 === string1 ? null : string0 === string00 && string1 === string10 ? interpolate0 : interpolate0 = interpolate(string00 = string0, string10 = string1);
-  };
-}
-function styleRemove2(name) {
-  return function() {
-    this.style.removeProperty(name);
-  };
-}
-function styleConstant2(name, interpolate, value1) {
-  var string00, string1 = value1 + "", interpolate0;
-  return function() {
-    var string0 = styleValue(this, name);
-    return string0 === string1 ? null : string0 === string00 ? interpolate0 : interpolate0 = interpolate(string00 = string0, value1);
-  };
-}
-function styleFunction2(name, interpolate, value) {
-  var string00, string10, interpolate0;
-  return function() {
-    var string0 = styleValue(this, name), value1 = value(this), string1 = value1 + "";
-    if (value1 == null)
-      string1 = value1 = (this.style.removeProperty(name), styleValue(this, name));
-    return string0 === string1 ? null : string0 === string00 && string1 === string10 ? interpolate0 : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
-  };
-}
-function styleMaybeRemove(id2, name) {
-  var on0, on1, listener0, key = "style." + name, event = "end." + key, remove2;
-  return function() {
-    var schedule = set2(this, id2), on2 = schedule.on, listener = schedule.value[key] == null ? remove2 || (remove2 = styleRemove2(name)) : void 0;
-    if (on2 !== on0 || listener0 !== listener)
-      (on1 = (on0 = on2).copy()).on(event, listener0 = listener);
-    schedule.on = on1;
-  };
-}
-function style_default2(name, value, priority) {
-  var i2 = (name += "") === "transform" ? interpolateTransformCss : interpolate_default;
-  return value == null ? this.styleTween(name, styleNull(name, i2)).on("end.style." + name, styleRemove2(name)) : typeof value === "function" ? this.styleTween(name, styleFunction2(name, i2, tweenValue(this, "style." + name, value))).each(styleMaybeRemove(this._id, name)) : this.styleTween(name, styleConstant2(name, i2, value), priority).on("end.style." + name, null);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/styleTween.js
-function styleInterpolate(name, i2, priority) {
-  return function(t2) {
-    this.style.setProperty(name, i2.call(this, t2), priority);
-  };
-}
-function styleTween(name, value, priority) {
-  var t2, i0;
-  function tween() {
-    var i2 = value.apply(this, arguments);
-    if (i2 !== i0)
-      t2 = (i0 = i2) && styleInterpolate(name, i2, priority);
-    return t2;
-  }
-  tween._value = value;
-  return tween;
-}
-function styleTween_default(name, value, priority) {
-  var key = "style." + (name += "");
-  if (arguments.length < 2)
-    return (key = this.tween(key)) && key._value;
-  if (value == null)
-    return this.tween(key, null);
-  if (typeof value !== "function")
-    throw new Error();
-  return this.tween(key, styleTween(name, value, priority == null ? "" : priority));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/text.js
-function textConstant2(value) {
-  return function() {
-    this.textContent = value;
-  };
-}
-function textFunction2(value) {
-  return function() {
-    var value1 = value(this);
-    this.textContent = value1 == null ? "" : value1;
-  };
-}
-function text_default2(value) {
-  return this.tween("text", typeof value === "function" ? textFunction2(tweenValue(this, "text", value)) : textConstant2(value == null ? "" : value + ""));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/textTween.js
-function textInterpolate(i2) {
-  return function(t2) {
-    this.textContent = i2.call(this, t2);
-  };
-}
-function textTween(value) {
-  var t0, i0;
-  function tween() {
-    var i2 = value.apply(this, arguments);
-    if (i2 !== i0)
-      t0 = (i0 = i2) && textInterpolate(i2);
-    return t0;
-  }
-  tween._value = value;
-  return tween;
-}
-function textTween_default(value) {
-  var key = "text";
-  if (arguments.length < 1)
-    return (key = this.tween(key)) && key._value;
-  if (value == null)
-    return this.tween(key, null);
-  if (typeof value !== "function")
-    throw new Error();
-  return this.tween(key, textTween(value));
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/transition.js
-function transition_default() {
-  var name = this._name, id0 = this._id, id1 = newId();
-  for (var groups = this._groups, m2 = groups.length, j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group[i2]) {
-        var inherit2 = get2(node, id0);
-        schedule_default(node, name, id1, i2, group, {
-          time: inherit2.time + inherit2.delay + inherit2.duration,
-          delay: 0,
-          duration: inherit2.duration,
-          ease: inherit2.ease
+        writes.push({
+          languageBag: bag,
+          path: node.path,
+          key,
+          value,
+          kind: "conflict",
+          existingValue: existing
         });
       }
     }
   }
-  return new Transition(groups, this._parents, name, id1);
+  return writes;
 }
 
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/end.js
-function end_default() {
-  var on0, on1, that = this, id2 = that._id, size = that.size();
-  return new Promise(function(resolve, reject) {
-    var cancel = { value: reject }, end = { value: function() {
-      if (--size === 0)
-        resolve();
-    } };
-    that.each(function() {
-      var schedule = set2(this, id2), on2 = schedule.on;
-      if (on2 !== on0) {
-        on1 = (on0 = on2).copy();
-        on1._.cancel.push(cancel);
-        on1._.interrupt.push(cancel);
-        on1._.end.push(end);
-      }
-      schedule.on = on1;
+// examples/taaat-app/src/sl.ts
+function slEl(tag, props = {}) {
+  const el = document.createElement(tag);
+  applySl(el, props);
+  return el;
+}
+function applySl(el, props) {
+  for (const [k2, v2] of Object.entries(props)) {
+    if (v2 === void 0)
+      continue;
+    if (k2 === "className" || k2 === "class")
+      el.className = String(v2);
+    else if (k2 === "text")
+      el.textContent = String(v2);
+    else if (k2 === "html")
+      el.innerHTML = String(v2);
+    else if (k2 === "style" && typeof v2 === "string") {
+      el.setAttribute("style", v2);
+    } else {
+      el[k2] = v2;
+    }
+  }
+}
+function slValue(el) {
+  if (!el)
+    return "";
+  return String(el.value ?? "");
+}
+
+// examples/taaat-app/src/inspector.ts
+function createInspectorState() {
+  return {
+    overwriteL10n: false,
+    repeatedOnly: true,
+    copyToAllBags: true,
+    lastWrites: [],
+    openFamilies: /* @__PURE__ */ new Set(["L10n.", "a.", UNPREFIXED_FAMILY])
+  };
+}
+function escapeHtml2(s2) {
+  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function familyHelp(family) {
+  if (family === "L10n.") {
+    return `Better/AD workaround for repeated renamed nodes in ADL 1.4 OPT: key <code>L10n.{lang}</code> = translated occurrence name. Generation copies those keys into every language bag and never touches the definition tree. <a href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760" target="_blank" rel="noopener">discourse #2760</a>`;
+  }
+  if (family === "a.") {
+    return `Automation / UI-hint namespace (letter \u201Ca\u201D from \u201Cautomation\u201D). Examples: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>. Prefix avoids clashes in Ocean Template Designer. <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>`;
+  }
+  return `Keys without a dotted prefix (<code>comment</code>, <code>design note</code>, <code>ui</code>, \u2026).`;
+}
+function setOnEnabledBags(resource, path, key, value, bags) {
+  for (const lang of bags) {
+    setPathAnnotation(resource, path, key, value, lang);
+  }
+}
+function defaultKeyForFamily(family, languages) {
+  if (family === UNPREFIXED_FAMILY)
+    return "comment";
+  if (family === "L10n.") {
+    const lang = languages[0] ?? "en";
+    return `L10n.${lang}`;
+  }
+  if (family === "a.")
+    return "a.id";
+  return `${family}key`;
+}
+function renderRowsForFamily(opts, family, body) {
+  const { resource, node, doc, languages, enabledLanguages: enabledLanguages2, onChange } = opts;
+  const path = annotationPathOf(node);
+  const bags = languages.filter((l2) => enabledLanguages2.has(l2));
+  const writeBags = bags.length ? bags : languages;
+  const pills = pillsAtPath(doc, path).filter((p2) => p2.family === family);
+  const keys = [...new Set(pills.map((p2) => p2.key))];
+  const table = document.createElement("table");
+  table.className = "family-table";
+  table.innerHTML = `<thead><tr><th>Key</th>${writeBags.map(
+    (l2) => `<th><span class="lang-swatch" style="border-color:${languageOutlineColor(l2)}"></span>${escapeHtml2(l2)}</th>`
+  ).join("")}<th></th></tr></thead><tbody></tbody>`;
+  const tbody = table.querySelector("tbody");
+  const addRow = (key) => {
+    const tr2 = document.createElement("tr");
+    const keyTd = document.createElement("td");
+    const keyInp = slEl("sl-input", {
+      className: "ann-key",
+      size: "small",
+      value: key
     });
-    if (size === 0)
-      resolve();
-  });
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/transition/index.js
-var id = 0;
-function Transition(groups, parents, name, id2) {
-  this._groups = groups;
-  this._parents = parents;
-  this._name = name;
-  this._id = id2;
-}
-function transition(name) {
-  return selection_default().transition(name);
-}
-function newId() {
-  return ++id;
-}
-var selection_prototype = selection_default.prototype;
-Transition.prototype = transition.prototype = {
-  constructor: Transition,
-  select: select_default3,
-  selectAll: selectAll_default2,
-  selectChild: selection_prototype.selectChild,
-  selectChildren: selection_prototype.selectChildren,
-  filter: filter_default2,
-  merge: merge_default2,
-  selection: selection_default2,
-  transition: transition_default,
-  call: selection_prototype.call,
-  nodes: selection_prototype.nodes,
-  node: selection_prototype.node,
-  size: selection_prototype.size,
-  empty: selection_prototype.empty,
-  each: selection_prototype.each,
-  on: on_default2,
-  attr: attr_default2,
-  attrTween: attrTween_default,
-  style: style_default2,
-  styleTween: styleTween_default,
-  text: text_default2,
-  textTween: textTween_default,
-  remove: remove_default2,
-  tween: tween_default,
-  delay: delay_default,
-  duration: duration_default,
-  ease: ease_default,
-  easeVarying: easeVarying_default,
-  end: end_default,
-  [Symbol.iterator]: selection_prototype[Symbol.iterator]
-};
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-ease@3.0.1/node_modules/d3-ease/src/cubic.js
-function cubicInOut(t2) {
-  return ((t2 *= 2) <= 1 ? t2 * t2 * t2 : (t2 -= 2) * t2 * t2 + 2) / 2;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/selection/transition.js
-var defaultTiming = {
-  time: null,
-  // Set on use.
-  delay: 0,
-  duration: 250,
-  ease: cubicInOut
-};
-function inherit(node, id2) {
-  var timing;
-  while (!(timing = node.__transition) || !(timing = timing[id2])) {
-    if (!(node = node.parentNode)) {
-      throw new Error(`transition ${id2} not found`);
+    keyTd.appendChild(keyInp);
+    tr2.appendChild(keyTd);
+    const values = {};
+    for (const lang of writeBags) {
+      const td = document.createElement("td");
+      const inp = slEl("sl-input", {
+        size: "small",
+        value: getPathAnnotations(doc, path, lang)[key] ?? "",
+        style: `border-left: 3px solid ${languageOutlineColor(lang)}`
+      });
+      values[lang] = inp;
+      td.appendChild(inp);
+      tr2.appendChild(td);
     }
-  }
-  return timing;
-}
-function transition_default2(name) {
-  var id2, timing;
-  if (name instanceof Transition) {
-    id2 = name._id, name = name._name;
+    const delTd = document.createElement("td");
+    const del = slEl("sl-button", {
+      variant: "text",
+      size: "small",
+      text: "\xD7"
+    });
+    del.title = "Remove this key from enabled language bags";
+    del.addEventListener("click", () => {
+      const k2 = keyInp.value.trim() || key;
+      for (const lang of writeBags) {
+        removePathAnnotation(resource, path, k2, lang);
+      }
+      onChange();
+    });
+    delTd.appendChild(del);
+    tr2.appendChild(delTd);
+    const commit = () => {
+      const nextKey = keyInp.value.trim();
+      if (!nextKey)
+        return;
+      if (nextKey !== key) {
+        for (const lang of writeBags) {
+          removePathAnnotation(resource, path, key, lang);
+        }
+      }
+      for (const lang of writeBags) {
+        setPathAnnotation(
+          resource,
+          path,
+          nextKey,
+          values[lang].value,
+          lang
+        );
+      }
+      onChange();
+    };
+    keyInp.addEventListener("sl-change", commit);
+    for (const inp of Object.values(values)) {
+      inp.addEventListener("sl-change", commit);
+    }
+    tbody.appendChild(tr2);
+  };
+  for (const key of keys)
+    addRow(key);
+  if (!keys.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "No keys in this family on the selected node.";
+    body.appendChild(empty);
   } else {
-    id2 = newId(), (timing = defaultTiming).time = now(), name = name == null ? null : name + "";
+    body.appendChild(table);
   }
-  for (var groups = this._groups, m2 = groups.length, j2 = 0; j2 < m2; ++j2) {
-    for (var group = groups[j2], n2 = group.length, node, i2 = 0; i2 < n2; ++i2) {
-      if (node = group[i2]) {
-        schedule_default(node, name, id2, i2, group, timing || inherit(node, id2));
-      }
-    }
-  }
-  return new Transition(groups, this._parents, name, id2);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition/src/selection/index.js
-selection_default.prototype.interrupt = interrupt_default2;
-selection_default.prototype.transition = transition_default2;
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-brush@3.0.0/node_modules/d3-brush/src/brush.js
-var { abs, max, min } = Math;
-function number1(e2) {
-  return [+e2[0], +e2[1]];
-}
-function number2(e2) {
-  return [number1(e2[0]), number1(e2[1])];
-}
-var X2 = {
-  name: "x",
-  handles: ["w", "e"].map(type),
-  input: function(x2, e2) {
-    return x2 == null ? null : [[+x2[0], e2[0][1]], [+x2[1], e2[1][1]]];
-  },
-  output: function(xy) {
-    return xy && [xy[0][0], xy[1][0]];
-  }
-};
-var Y2 = {
-  name: "y",
-  handles: ["n", "s"].map(type),
-  input: function(y2, e2) {
-    return y2 == null ? null : [[e2[0][0], +y2[0]], [e2[1][0], +y2[1]]];
-  },
-  output: function(xy) {
-    return xy && [xy[0][1], xy[1][1]];
-  }
-};
-var XY = {
-  name: "xy",
-  handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
-  input: function(xy) {
-    return xy == null ? null : number2(xy);
-  },
-  output: function(xy) {
-    return xy;
-  }
-};
-function type(t2) {
-  return { type: t2 };
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/count.js
-function count(node) {
-  var sum = 0, children2 = node.children, i2 = children2 && children2.length;
-  if (!i2)
-    sum = 1;
-  else
-    while (--i2 >= 0)
-      sum += children2[i2].value;
-  node.value = sum;
-}
-function count_default() {
-  return this.eachAfter(count);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/each.js
-function each_default2(callback, that) {
-  let index = -1;
-  for (const node of this) {
-    callback.call(that, node, ++index, this);
-  }
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/eachBefore.js
-function eachBefore_default(callback, that) {
-  var node = this, nodes = [node], children2, i2, index = -1;
-  while (node = nodes.pop()) {
-    callback.call(that, node, ++index, this);
-    if (children2 = node.children) {
-      for (i2 = children2.length - 1; i2 >= 0; --i2) {
-        nodes.push(children2[i2]);
-      }
-    }
-  }
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/eachAfter.js
-function eachAfter_default(callback, that) {
-  var node = this, nodes = [node], next = [], children2, i2, n2, index = -1;
-  while (node = nodes.pop()) {
-    next.push(node);
-    if (children2 = node.children) {
-      for (i2 = 0, n2 = children2.length; i2 < n2; ++i2) {
-        nodes.push(children2[i2]);
-      }
-    }
-  }
-  while (node = next.pop()) {
-    callback.call(that, node, ++index, this);
-  }
-  return this;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/find.js
-function find_default(callback, that) {
-  let index = -1;
-  for (const node of this) {
-    if (callback.call(that, node, ++index, this)) {
-      return node;
-    }
-  }
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/sum.js
-function sum_default(value) {
-  return this.eachAfter(function(node) {
-    var sum = +value(node.data) || 0, children2 = node.children, i2 = children2 && children2.length;
-    while (--i2 >= 0)
-      sum += children2[i2].value;
-    node.value = sum;
+  const addBtn = slEl("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Add key"
   });
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/sort.js
-function sort_default2(compare) {
-  return this.eachBefore(function(node) {
-    if (node.children) {
-      node.children.sort(compare);
+  addBtn.addEventListener("click", () => {
+    if (!writeBags.length)
+      return;
+    const defaultKey = defaultKeyForFamily(family, languages);
+    let next = defaultKey;
+    let n2 = 2;
+    while (writeBags.some((l2) => getPathAnnotations(doc, path, l2)[next] !== void 0)) {
+      next = `${defaultKey}-${n2++}`;
     }
+    setOnEnabledBags(resource, path, next, "", writeBags);
+    onChange();
   });
+  body.appendChild(addBtn);
 }
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/path.js
-function path_default(end) {
-  var start2 = this, ancestor = leastCommonAncestor(start2, end), nodes = [start2];
-  while (start2 !== ancestor) {
-    start2 = start2.parent;
-    nodes.push(start2);
-  }
-  var k2 = nodes.length;
-  while (end !== ancestor) {
-    nodes.splice(k2, 0, end);
-    end = end.parent;
-  }
-  return nodes;
-}
-function leastCommonAncestor(a2, b2) {
-  if (a2 === b2)
-    return a2;
-  var aNodes = a2.ancestors(), bNodes = b2.ancestors(), c2 = null;
-  a2 = aNodes.pop();
-  b2 = bNodes.pop();
-  while (a2 === b2) {
-    c2 = a2;
-    a2 = aNodes.pop();
-    b2 = bNodes.pop();
-  }
-  return c2;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/ancestors.js
-function ancestors_default() {
-  var node = this, nodes = [node];
-  while (node = node.parent) {
-    nodes.push(node);
-  }
-  return nodes;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/descendants.js
-function descendants_default() {
-  return Array.from(this);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/leaves.js
-function leaves_default() {
-  var leaves = [];
-  this.eachBefore(function(node) {
-    if (!node.children) {
-      leaves.push(node);
+function renderL10nGenerate(opts, body) {
+  const box = document.createElement("div");
+  box.className = "l10n-generate";
+  const heading = document.createElement("h4");
+  heading.textContent = "Generate L10n annotations";
+  const help = document.createElement("p");
+  help.className = "muted";
+  help.innerHTML = "Writes only <code>L10n.*</code> keys from names already present as <code>L10n.{lang}</code> on repeated archetype occurrences. Other families and the constraint tree are left alone.";
+  box.append(heading, help);
+  const flags = [
+    {
+      field: "repeatedOnly",
+      label: "Repeated archetype occurrences only"
+    },
+    {
+      field: "copyToAllBags",
+      label: "Copy into every language bag"
+    },
+    {
+      field: "overwriteL10n",
+      label: "Overwrite existing L10n.* values that differ"
     }
+  ];
+  for (const flag of flags) {
+    const cb = slEl("sl-checkbox", {
+      checked: opts.state[flag.field],
+      text: flag.label
+    });
+    cb.addEventListener("sl-change", () => {
+      opts.state[flag.field] = cb.checked;
+    });
+    box.appendChild(cb);
+  }
+  const actions = document.createElement("div");
+  actions.className = "gen-actions";
+  const previewBtn = slEl("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Preview writes"
   });
-  return leaves;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/links.js
-function links_default() {
-  var root2 = this, links = [];
-  root2.each(function(node) {
-    if (node !== root2) {
-      links.push({ source: node.parent, target: node });
-    }
+  const applyBtn = slEl("sl-button", {
+    variant: "primary",
+    size: "small",
+    text: "Apply L10n"
   });
-  return links;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/iterator.js
-function* iterator_default2() {
-  var node = this, current, next = [node], children2, i2, n2;
-  do {
-    current = next.reverse(), next = [];
-    while (node = current.pop()) {
-      yield node;
-      if (children2 = node.children) {
-        for (i2 = 0, n2 = children2.length; i2 < n2; ++i2) {
-          next.push(children2[i2]);
-        }
+  actions.append(previewBtn, applyBtn);
+  box.appendChild(actions);
+  const preview = document.createElement("div");
+  preview.className = "gen-preview";
+  box.appendChild(preview);
+  const run = (apply) => {
+    const getDoc = opts.documentationForNode ?? (() => opts.doc);
+    const viewDoc = documentationViewForTree(opts.tree, getDoc);
+    const sources = l10nSourcesFromTree(opts.tree, viewDoc);
+    const writes = proposeL10nWrites(viewDoc, sources, {
+      languageBags: opts.languages,
+      overwrite: opts.state.overwriteL10n,
+      repeatedOccurrencesOnly: opts.state.repeatedOnly,
+      copyToAllLanguageBags: opts.state.copyToAllBags
+    });
+    opts.state.lastWrites = writes;
+    if (apply) {
+      for (const w2 of writes) {
+        if (w2.kind === "unchanged")
+          continue;
+        if (w2.kind === "conflict" && !opts.state.overwriteL10n)
+          continue;
+        if (!/^L10n\./i.test(w2.key))
+          continue;
+        const targetNode = flattenDefinitionTree(opts.tree).find(
+          (n2) => n2.path === w2.path
+        );
+        const owner = targetNode && opts.resourceForNode ? opts.resourceForNode(targetNode) : opts.resource;
+        const writePath = targetNode ? annotationPathOf(targetNode) : w2.path;
+        setPathAnnotation(owner, writePath, w2.key, w2.value, w2.languageBag);
       }
-    }
-  } while (next.length);
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/hierarchy/index.js
-function hierarchy(data, children2) {
-  if (data instanceof Map) {
-    data = [void 0, data];
-    if (children2 === void 0)
-      children2 = mapChildren;
-  } else if (children2 === void 0) {
-    children2 = objectChildren;
-  }
-  var root2 = new Node(data), node, nodes = [root2], child, childs, i2, n2;
-  while (node = nodes.pop()) {
-    if ((childs = children2(node.data)) && (n2 = (childs = Array.from(childs)).length)) {
-      node.children = childs;
-      for (i2 = n2 - 1; i2 >= 0; --i2) {
-        nodes.push(child = childs[i2] = new Node(childs[i2]));
-        child.parent = node;
-        child.depth = node.depth + 1;
-      }
-    }
-  }
-  return root2.eachBefore(computeHeight);
-}
-function node_copy() {
-  return hierarchy(this).eachBefore(copyData);
-}
-function objectChildren(d2) {
-  return d2.children;
-}
-function mapChildren(d2) {
-  return Array.isArray(d2) ? d2[1] : null;
-}
-function copyData(node) {
-  if (node.data.value !== void 0)
-    node.value = node.data.value;
-  node.data = node.data.data;
-}
-function computeHeight(node) {
-  var height = 0;
-  do
-    node.height = height;
-  while ((node = node.parent) && node.height < ++height);
-}
-function Node(data) {
-  this.data = data;
-  this.depth = this.height = 0;
-  this.parent = null;
-}
-Node.prototype = hierarchy.prototype = {
-  constructor: Node,
-  count: count_default,
-  each: each_default2,
-  eachAfter: eachAfter_default,
-  eachBefore: eachBefore_default,
-  find: find_default,
-  sum: sum_default,
-  sort: sort_default2,
-  path: path_default,
-  ancestors: ancestors_default,
-  descendants: descendants_default,
-  leaves: leaves_default,
-  links: links_default,
-  copy: node_copy,
-  [Symbol.iterator]: iterator_default2
-};
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-hierarchy@3.1.2/node_modules/d3-hierarchy/src/tree.js
-function defaultSeparation(a2, b2) {
-  return a2.parent === b2.parent ? 1 : 2;
-}
-function nextLeft(v2) {
-  var children2 = v2.children;
-  return children2 ? children2[0] : v2.t;
-}
-function nextRight(v2) {
-  var children2 = v2.children;
-  return children2 ? children2[children2.length - 1] : v2.t;
-}
-function moveSubtree(wm, wp, shift) {
-  var change = shift / (wp.i - wm.i);
-  wp.c -= change;
-  wp.s += shift;
-  wm.c += change;
-  wp.z += shift;
-  wp.m += shift;
-}
-function executeShifts(v2) {
-  var shift = 0, change = 0, children2 = v2.children, i2 = children2.length, w2;
-  while (--i2 >= 0) {
-    w2 = children2[i2];
-    w2.z += shift;
-    w2.m += shift;
-    shift += w2.s + (change += w2.c);
-  }
-}
-function nextAncestor(vim, v2, ancestor) {
-  return vim.a.parent === v2.parent ? vim.a : ancestor;
-}
-function TreeNode(node, i2) {
-  this._ = node;
-  this.parent = null;
-  this.children = null;
-  this.A = null;
-  this.a = this;
-  this.z = 0;
-  this.m = 0;
-  this.c = 0;
-  this.s = 0;
-  this.t = null;
-  this.i = i2;
-}
-TreeNode.prototype = Object.create(Node.prototype);
-function treeRoot(root2) {
-  var tree = new TreeNode(root2, 0), node, nodes = [tree], child, children2, i2, n2;
-  while (node = nodes.pop()) {
-    if (children2 = node._.children) {
-      node.children = new Array(n2 = children2.length);
-      for (i2 = n2 - 1; i2 >= 0; --i2) {
-        nodes.push(child = node.children[i2] = new TreeNode(children2[i2], i2));
-        child.parent = node;
-      }
-    }
-  }
-  (tree.parent = new TreeNode(null, 0)).children = [tree];
-  return tree;
-}
-function tree_default() {
-  var separation = defaultSeparation, dx = 1, dy = 1, nodeSize = null;
-  function tree(root2) {
-    var t2 = treeRoot(root2);
-    t2.eachAfter(firstWalk), t2.parent.m = -t2.z;
-    t2.eachBefore(secondWalk);
-    if (nodeSize)
-      root2.eachBefore(sizeNode);
-    else {
-      var left = root2, right = root2, bottom = root2;
-      root2.eachBefore(function(node) {
-        if (node.x < left.x)
-          left = node;
-        if (node.x > right.x)
-          right = node;
-        if (node.depth > bottom.depth)
-          bottom = node;
-      });
-      var s2 = left === right ? 1 : separation(left, right) / 2, tx = s2 - left.x, kx = dx / (right.x + s2 + tx), ky = dy / (bottom.depth || 1);
-      root2.eachBefore(function(node) {
-        node.x = (node.x + tx) * kx;
-        node.y = node.depth * ky;
-      });
-    }
-    return root2;
-  }
-  function firstWalk(v2) {
-    var children2 = v2.children, siblings = v2.parent.children, w2 = v2.i ? siblings[v2.i - 1] : null;
-    if (children2) {
-      executeShifts(v2);
-      var midpoint = (children2[0].z + children2[children2.length - 1].z) / 2;
-      if (w2) {
-        v2.z = w2.z + separation(v2._, w2._);
-        v2.m = v2.z - midpoint;
-      } else {
-        v2.z = midpoint;
-      }
-    } else if (w2) {
-      v2.z = w2.z + separation(v2._, w2._);
-    }
-    v2.parent.A = apportion(v2, w2, v2.parent.A || siblings[0]);
-  }
-  function secondWalk(v2) {
-    v2._.x = v2.z + v2.parent.m;
-    v2.m += v2.parent.m;
-  }
-  function apportion(v2, w2, ancestor) {
-    if (w2) {
-      var vip = v2, vop = v2, vim = w2, vom = vip.parent.children[0], sip = vip.m, sop = vop.m, sim = vim.m, som = vom.m, shift;
-      while (vim = nextRight(vim), vip = nextLeft(vip), vim && vip) {
-        vom = nextLeft(vom);
-        vop = nextRight(vop);
-        vop.a = v2;
-        shift = vim.z + sim - vip.z - sip + separation(vim._, vip._);
-        if (shift > 0) {
-          moveSubtree(nextAncestor(vim, v2, ancestor), v2, shift);
-          sip += shift;
-          sop += shift;
-        }
-        sim += vim.m;
-        sip += vip.m;
-        som += vom.m;
-        sop += vop.m;
-      }
-      if (vim && !nextRight(vop)) {
-        vop.t = vim;
-        vop.m += sim - sop;
-      }
-      if (vip && !nextLeft(vom)) {
-        vom.t = vip;
-        vom.m += sip - som;
-        ancestor = v2;
-      }
-    }
-    return ancestor;
-  }
-  function sizeNode(node) {
-    node.x *= dx;
-    node.y = node.depth * dy;
-  }
-  tree.separation = function(x2) {
-    return arguments.length ? (separation = x2, tree) : separation;
-  };
-  tree.size = function(x2) {
-    return arguments.length ? (nodeSize = false, dx = +x2[0], dy = +x2[1], tree) : nodeSize ? null : [dx, dy];
-  };
-  tree.nodeSize = function(x2) {
-    return arguments.length ? (nodeSize = true, dx = +x2[0], dy = +x2[1], tree) : nodeSize ? [dx, dy] : null;
-  };
-  return tree;
-}
-
-// ../home/ubuntu/.cache/deno/deno_esbuild/d3-zoom@3.0.0/node_modules/d3-zoom/src/transform.js
-function Transform(k2, x2, y2) {
-  this.k = k2;
-  this.x = x2;
-  this.y = y2;
-}
-Transform.prototype = {
-  constructor: Transform,
-  scale: function(k2) {
-    return k2 === 1 ? this : new Transform(this.k * k2, this.x, this.y);
-  },
-  translate: function(x2, y2) {
-    return x2 === 0 & y2 === 0 ? this : new Transform(this.k, this.x + this.k * x2, this.y + this.k * y2);
-  },
-  apply: function(point) {
-    return [point[0] * this.k + this.x, point[1] * this.k + this.y];
-  },
-  applyX: function(x2) {
-    return x2 * this.k + this.x;
-  },
-  applyY: function(y2) {
-    return y2 * this.k + this.y;
-  },
-  invert: function(location) {
-    return [(location[0] - this.x) / this.k, (location[1] - this.y) / this.k];
-  },
-  invertX: function(x2) {
-    return (x2 - this.x) / this.k;
-  },
-  invertY: function(y2) {
-    return (y2 - this.y) / this.k;
-  },
-  rescaleX: function(x2) {
-    return x2.copy().domain(x2.range().map(this.invertX, this).map(x2.invert, x2));
-  },
-  rescaleY: function(y2) {
-    return y2.copy().domain(y2.range().map(this.invertY, this).map(y2.invert, y2));
-  },
-  toString: function() {
-    return "translate(" + this.x + "," + this.y + ") scale(" + this.k + ")";
-  }
-};
-var identity2 = new Transform(1, 0, 0);
-transform.prototype = Transform.prototype;
-function transform(node) {
-  while (!node.__zoom)
-    if (!(node = node.parentNode))
-      return identity2;
-  return node.__zoom;
-}
-
-// examples/taaat-app/src/tree-view.ts
-var DefinitionTreeView = class {
-  svg;
-  g;
-  root;
-  options;
-  width = 400;
-  height = 400;
-  constructor(options) {
-    this.options = options;
-    this.svg = select_default2(options.container).append("svg").attr("class", "definition-tree-svg");
-    this.g = this.svg.append("g").attr("transform", "translate(8,12)");
-  }
-  resize() {
-    const rect = this.options.container.getBoundingClientRect();
-    this.width = Math.max(200, rect.width - 16);
-    this.height = Math.max(200, rect.height - 24);
-    this.svg.attr("width", this.width).attr("height", this.height);
-    if (this.root)
-      this.render();
-  }
-  setData(tree) {
-    if (!tree) {
-      this.options.container.querySelector(".tree-empty")?.remove();
-      const msg = document.createElement("p");
-      msg.className = "tree-empty";
-      msg.textContent = "No definition tree (empty or unparsed model).";
-      this.options.container.appendChild(msg);
-      this.svg.style("display", "none");
+      opts.onChange();
       return;
     }
-    this.options.container.querySelector(".tree-empty")?.remove();
-    this.svg.style("display", null);
-    const hierarchy2 = hierarchy(tree, (d2) => d2.children);
-    hierarchy2.x0 = 0;
-    hierarchy2.y0 = 0;
-    this.root = hierarchy2;
-    this.root.x0 = this.height / 2;
-    this.root.y0 = 0;
-    if (this.root.children) {
-      this.root.children.forEach((c2) => this.collapse(c2));
-    }
-    this.resize();
+    paintPreview(preview, writes);
+  };
+  previewBtn.addEventListener("click", () => run(false));
+  applyBtn.addEventListener("click", () => run(true));
+  if (opts.state.lastWrites.length) {
+    paintPreview(preview, opts.state.lastWrites);
   }
-  collapse(d2) {
-    if (d2.children) {
-      d2._children = d2.children;
-      d2._children.forEach((c2) => this.collapse(c2));
-      d2.children = void 0;
-    }
-  }
-  click(event, d2) {
-    if (d2.children) {
-      d2._children = d2.children;
-      d2.children = void 0;
-    } else if (d2._children) {
-      d2.children = d2._children;
-      d2._children = void 0;
-    }
-    this.options.onSelect(d2.data);
-    this.render();
-    event.stopPropagation();
-  }
-  render() {
-    const duration = 200;
-    const treeLayout = tree_default().size([
-      this.height - 40,
-      this.width - 120
-    ]);
-    const root2 = this.root;
-    treeLayout(root2);
-    const nodes = root2.descendants();
-    const links = root2.links();
-    const node = this.g.selectAll("g.node").data(nodes, (d2) => d2.data.id);
-    const nodeEnter = node.enter().append("g").attr("class", (d2) => {
-      const classes = ["node"];
-      if (d2.data.hasAnnotations)
-        classes.push("has-annotations");
-      if (d2.data.path === this.options.selectedPath)
-        classes.push("selected");
-      return classes.join(" ");
-    }).attr("transform", (d2) => `translate(${d2.y},${d2.x})`).on("click", (event, d2) => this.click(event, d2));
-    nodeEnter.append("circle").attr("r", 4).attr("class", (d2) => d2.data.hasAnnotations ? "annotated" : "");
-    nodeEnter.append("text").attr("dy", "0.32em").attr("x", (d2) => d2.children || d2._children ? -8 : 8).attr("text-anchor", (d2) => d2.children || d2._children ? "end" : "start").text((d2) => {
-      const suffix = d2.data.annotationKeyCount > 0 ? ` (${d2.data.annotationKeyCount})` : "";
-      const short = d2.data.label.length > 36 ? d2.data.label.slice(0, 34) + "\u2026" : d2.data.label;
-      return short + suffix;
+  body.appendChild(box);
+}
+function paintPreview(el, writes) {
+  const add = writes.filter((w2) => w2.kind === "add").length;
+  const same = writes.filter((w2) => w2.kind === "unchanged").length;
+  const conflict = writes.filter((w2) => w2.kind === "conflict").length;
+  const rows = writes.filter((w2) => w2.kind !== "unchanged").slice(0, 40);
+  el.innerHTML = `
+    <p class="gen-counts">add ${add} \xB7 unchanged ${same} \xB7 conflict ${conflict}</p>
+    <table class="gen-table">
+      <thead><tr><th>kind</th><th>bag</th><th>key</th><th>value</th></tr></thead>
+      <tbody>
+        ${rows.map(
+    (w2) => `<tr class="kind-${w2.kind}"><td>${w2.kind}</td><td>${escapeHtml2(w2.languageBag)}</td><td>${escapeHtml2(w2.key)}</td><td>${escapeHtml2(w2.value)}</td></tr>`
+  ).join("")}
+      </tbody>
+    </table>
+  `;
+}
+function renderInspector(opts) {
+  const { host, doc, node, state } = opts;
+  const families = listFamilies(doc);
+  host.innerHTML = "";
+  for (const family of families) {
+    const details = slEl("sl-details", {
+      className: "family-acc",
+      open: state.openFamilies.has(family)
     });
-    const nodeUpdate = nodeEnter.merge(node);
-    nodeUpdate.attr("class", (d2) => {
-      const classes = ["node"];
-      if (d2.data.hasAnnotations)
-        classes.push("has-annotations");
-      if (d2.data.path === this.options.selectedPath)
-        classes.push("selected");
-      return classes.join(" ");
-    }).transition().duration(duration).attr("transform", (d2) => `translate(${d2.y},${d2.x})`);
-    node.exit().remove();
-    const link = this.g.selectAll("path.link").data(links, (d2) => d2.target.data.id);
-    const linkEnter = link.enter().insert("path", "g").attr("class", "link").attr("d", () => {
-      const o2 = { x: root2.x0, y: root2.y0 };
-      return this.diagonal(o2, o2);
+    details.addEventListener("sl-show", () => {
+      state.openFamilies.add(family);
     });
-    linkEnter.merge(link).transition().duration(duration).attr("d", (d2) => this.diagonal(d2.source, d2.target));
-    link.exit().remove();
+    details.addEventListener("sl-hide", () => {
+      state.openFamilies.delete(family);
+    });
+    const summary = document.createElement("span");
+    summary.slot = "summary";
+    summary.className = "family-summary";
+    const count = pillsAtPath(doc, annotationPathOf(node)).filter(
+      (p2) => p2.family === family
+    ).length;
+    summary.innerHTML = `
+      <span class="family-swatch" style="background:${familyFillColor(family)}"></span>
+      <span>${escapeHtml2(familyLegendLabel(family))}</span>
+      <span class="family-count">${count}</span>
+    `;
+    const body = document.createElement("div");
+    body.className = "family-acc-body";
+    const help = document.createElement("p");
+    help.className = "family-help";
+    help.innerHTML = familyHelp(family);
+    body.appendChild(help);
+    renderRowsForFamily(opts, family, body);
+    if (family === "L10n.") {
+      renderL10nGenerate(opts, body);
+    }
+    details.append(summary, body);
+    host.appendChild(details);
   }
-  setSelectedPath(path) {
-    this.options.selectedPath = path;
-    if (this.root)
-      this.render();
+}
+function currentLanguageBags(doc, modelLanguages2 = []) {
+  return listLanguageBags(doc, modelLanguages2);
+}
+
+// parser/github_contents.ts
+function apiHeaders(token) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "ehrtslib-taaat",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  if (token)
+    headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+function encodeUtf8Base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  const chunk = 32768;
+  for (let i2 = 0; i2 < bytes.length; i2 += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i2, i2 + chunk));
   }
-  diagonal(s2, d2) {
-    return `M ${s2.y} ${s2.x}
-      C ${(s2.y + d2.y) / 2} ${s2.x},
-        ${(s2.y + d2.y) / 2} ${d2.x},
-        ${d2.y} ${d2.x}`;
+  return btoa(binary);
+}
+function decodeUtf8Base64(b64) {
+  const binary = atob(b64.replace(/\n/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i2 = 0; i2 < binary.length; i2++)
+    bytes[i2] = binary.charCodeAt(i2);
+  return new TextDecoder().decode(bytes);
+}
+function contentsUrl(ref) {
+  const path = ref.path.split("/").map(encodeURIComponent).join("/");
+  const q2 = new URLSearchParams({ ref: ref.ref });
+  return `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents/${path}?${q2}`;
+}
+async function getGitHubFileContents(ref, options) {
+  const fetchFn = options?.fetch ?? globalThis.fetch;
+  const res = await fetchFn(contentsUrl(ref), {
+    headers: apiHeaders(options?.token)
+  });
+  if (!res.ok) {
+    throw new Error(
+      `GitHub contents ${ref.owner}/${ref.repo}/${ref.path}@${ref.ref}: ${res.status} ${res.statusText}`
+    );
   }
-};
+  const json = await res.json();
+  if (!json.sha || json.content == null) {
+    throw new Error("GitHub contents response missing sha/content");
+  }
+  const encoding = json.encoding === "base64" ? "base64" : "utf-8";
+  const content = encoding === "base64" ? decodeUtf8Base64(json.content) : json.content;
+  return {
+    path: json.path ?? ref.path,
+    sha: json.sha,
+    content,
+    encoding,
+    htmlUrl: json.html_url
+  };
+}
+async function commitGitHubFile(input) {
+  const fetchFn = input.fetch ?? globalThis.fetch;
+  const path = input.ref.path.split("/").map(encodeURIComponent).join("/");
+  const url = `https://api.github.com/repos/${input.ref.owner}/${input.ref.repo}/contents/${path}`;
+  const res = await fetchFn(url, {
+    method: "PUT",
+    headers: {
+      ...apiHeaders(input.token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: input.message,
+      content: encodeUtf8Base64(input.content),
+      sha: input.sha,
+      branch: input.ref.ref
+    })
+  });
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const err = await res.json();
+      if (err.message)
+        detail = `${detail}: ${err.message}`;
+    } catch {
+    }
+    throw new Error(`GitHub commit failed: ${detail}`);
+  }
+  const json = await res.json();
+  return {
+    contentSha: json.content?.sha ?? "",
+    commitSha: json.commit?.sha ?? "",
+    htmlUrl: json.content?.html_url
+  };
+}
+async function getGitHubAuthenticatedUser(token, options) {
+  const fetchFn = options?.fetch ?? globalThis.fetch;
+  const res = await fetchFn("https://api.github.com/user", {
+    headers: apiHeaders(token)
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub auth failed: ${res.status} ${res.statusText}`);
+  }
+  const json = await res.json();
+  if (!json.login)
+    throw new Error("GitHub /user response missing login");
+  return { login: json.login };
+}
 
 // examples/taaat-app/src/main.ts
 var workspace = new ClinicalModelWorkspace();
@@ -20508,21 +18539,27 @@ var activeFilePath;
 var activeResource;
 var selectedNode;
 var palette = loadPalette();
-var language = "en";
-var treeView;
-var $2 = (id2) => document.getElementById(id2);
+var filterText = "";
+var enabledLanguages = /* @__PURE__ */ new Set();
+var enabledFamilies = /* @__PURE__ */ new Set();
+var knownLanguages = /* @__PURE__ */ new Set();
+var knownFamilies = /* @__PURE__ */ new Set();
+var inspectorState = createInspectorState();
+var GITHUB_TOKEN_KEY = "taaat-github-token";
+var githubToken = sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? void 0;
+var githubLogin;
+var $2 = (id) => document.getElementById(id);
 function getLoadMode() {
-  const checked = document.querySelector(
-    'input[name="load-mode"]:checked'
-  );
-  return checked?.value === "archetype" ? "archetype" : "template";
+  const group = $2("load-mode");
+  return group?.value === "archetype" ? "archetype" : "template";
 }
 function setStatus(msg, isError = false) {
   const el = $2("status-bar");
   if (!el)
     return;
   el.textContent = msg;
-  el.classList.toggle("is-error", isError);
+  el.variant = isError ? "danger" : "primary";
+  el.open = true;
 }
 function listEditableFiles() {
   return workspace.listFiles().filter((f2) => {
@@ -20539,17 +18576,19 @@ function refreshFileSelect() {
     return;
   const files = listEditableFiles();
   select.innerHTML = "";
-  for (const f2 of files) {
-    const opt = document.createElement("option");
-    opt.value = f2.path;
+  files.forEach((f2, i2) => {
+    const opt = document.createElement("sl-option");
     opt.textContent = `${f2.path} (${f2.kind})`;
     select.appendChild(opt);
-  }
-  if (activeFilePath && files.some((f2) => f2.path === activeFilePath)) {
-    select.value = activeFilePath;
-  } else if (files.length) {
-    activeFilePath = files[0].path;
-    select.value = activeFilePath;
+    opt.value = String(i2);
+  });
+  const idx = files.findIndex((f2) => f2.path === activeFilePath);
+  const nextIdx = idx >= 0 ? idx : files.length ? 0 : -1;
+  if (nextIdx >= 0) {
+    activeFilePath = files[nextIdx].path;
+    select.value = String(nextIdx);
+  } else {
+    select.value = "";
   }
 }
 function loadActiveResource() {
@@ -20565,109 +18604,227 @@ function loadActiveResource() {
   );
 }
 function persistResourceToWorkspace() {
-  if (!activeResource || !activeFilePath)
+  if (!activeFilePath)
     return;
-  const path = activeFilePath.toLowerCase();
-  if (/\.(adl|adls)$/i.test(path)) {
-    const adl = serializeAnnotatedResource(activeResource);
-    workspace.updateFileContent(activeFilePath, adl);
+  workspace.persistAnnotatedFile(activeFilePath);
+  updateGitHubActionState();
+}
+function resetFacets() {
+  enabledLanguages.clear();
+  enabledFamilies.clear();
+  knownLanguages.clear();
+  knownFamilies.clear();
+}
+function modelLanguages() {
+  const set = /* @__PURE__ */ new Set();
+  const addFrom = (res) => {
+    for (const lang of listResourceLanguages(res))
+      set.add(lang);
+  };
+  if (activeResource)
+    addFrom(activeResource);
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    if (arch)
+      addFrom(arch);
   }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function workspaceLanguages() {
+  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+}
+function syncFacets() {
+  for (const l2 of workspaceLanguages()) {
+    if (!knownLanguages.has(l2)) {
+      knownLanguages.add(l2);
+      enabledLanguages.add(l2);
+    }
+  }
+  for (const f2 of listFamilies(workspaceDocumentation())) {
+    if (!knownFamilies.has(f2)) {
+      knownFamilies.add(f2);
+      enabledFamilies.add(f2);
+    }
+  }
+}
+function currentTree() {
+  if (!activeResource)
+    return void 0;
+  return buildDefinitionTree(activeResource, {
+    resolveArchetype: (id) => workspace.repository.get(id)
+  });
+}
+function ownerForNode(node) {
+  if (node.overlayId) {
+    const overlay = workspace.repository.get(node.overlayId);
+    if (overlay)
+      return overlay;
+  }
+  return activeResource;
+}
+function documentationForNode(node) {
+  const owner = ownerForNode(node);
+  return owner ? getResourceDocumentation(owner) : void 0;
+}
+function workspaceDocumentation() {
+  const docs = [];
+  if (activeResource)
+    docs.push(getResourceDocumentation(activeResource));
+  const seen = /* @__PURE__ */ new Set();
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    const key = arch?.archetype_id?.value ?? id;
+    if (!arch || seen.has(key) || arch === activeResource)
+      continue;
+    seen.add(key);
+    docs.push(getResourceDocumentation(arch));
+  }
+  return mergeDocumentation(docs);
+}
+function renderLegend() {
+  syncFacets();
+  const langHost = $2("legend-languages");
+  const famHost = $2("legend-families");
+  if (langHost) {
+    langHost.innerHTML = "";
+    for (const lang of workspaceLanguages()) {
+      const btn = slEl("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-lang",
+        text: lang
+      });
+      btn.setAttribute(
+        "aria-pressed",
+        enabledLanguages.has(lang) ? "true" : "false"
+      );
+      btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
+      btn.title = `Language bag ${lang} \u2014 from the model's supported languages`;
+      btn.addEventListener("click", () => {
+        if (enabledLanguages.has(lang) && enabledLanguages.size === 1)
+          return;
+        if (enabledLanguages.has(lang))
+          enabledLanguages.delete(lang);
+        else
+          enabledLanguages.add(lang);
+        refreshWorkspace();
+      });
+      langHost.appendChild(btn);
+    }
+  }
+  if (famHost) {
+    famHost.innerHTML = "";
+    for (const family of listFamilies(workspaceDocumentation())) {
+      const btn = slEl("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-family",
+        text: familyLegendLabel(family)
+      });
+      btn.setAttribute(
+        "aria-pressed",
+        enabledFamilies.has(family) ? "true" : "false"
+      );
+      btn.style.setProperty("--family-fill", familyFillColor(family));
+      btn.title = `Family ${familyLegendLabel(family)} \u2014 fill colour on pills`;
+      btn.addEventListener("click", () => {
+        if (enabledFamilies.has(family) && enabledFamilies.size === 1)
+          return;
+        if (enabledFamilies.has(family))
+          enabledFamilies.delete(family);
+        else
+          enabledFamilies.add(family);
+        refreshWorkspace();
+      });
+      famHost.appendChild(btn);
+    }
+  }
+}
+function flattenFind(node, path) {
+  if (node.path === path)
+    return node;
+  for (const child of node.children) {
+    const hit = flattenFind(child, path);
+    if (hit)
+      return hit;
+  }
+  return void 0;
 }
 function refreshTree() {
   const container = $2("tree-container");
   if (!container)
     return;
-  container.innerHTML = "";
   if (!activeResource) {
     container.innerHTML = '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
-  treeView = new DefinitionTreeView({
+  const tree = currentTree();
+  if (!tree) {
+    container.innerHTML = '<p class="tree-empty">No definition tree (empty or unparsed model).</p>';
+    return;
+  }
+  if (selectedNode) {
+    selectedNode = flattenFind(tree, selectedNode.path) ?? selectedNode;
+  }
+  renderOutline({
     container,
+    tree,
+    doc: getResourceDocumentation(activeResource),
+    documentationForNode,
     selectedPath: selectedNode?.path,
+    filterText,
+    enabledLanguages,
+    enabledFamilies,
     onSelect: (node) => {
       selectedNode = node;
-      treeView?.setSelectedPath(node.path);
-      refreshAnnotationEditor();
-      updatePathLabel();
+      refreshWorkspace();
     }
   });
-  treeView.setData(tree);
-  window.requestAnimationFrame(() => treeView?.resize());
 }
-function updatePathLabel() {
-  const el = $2("selected-path");
-  if (!el)
+function refreshInspector() {
+  const title = $2("selected-title");
+  const pathEl = $2("selected-path");
+  const host = $2("family-accordions");
+  if (!host)
     return;
-  if (!selectedNode) {
-    el.textContent = "Select a node in the tree";
+  if (!activeResource || !selectedNode) {
+    if (title)
+      title.textContent = "Annotations";
+    if (pathEl)
+      pathEl.textContent = "Select a node in the tree";
+    host.innerHTML = '<p class="tree-empty">Select a node to edit family sections.</p>';
     return;
   }
-  const pathDisplay = selectedNode.path || "(definition root)";
-  el.textContent = pathDisplay;
-}
-function refreshAnnotationEditor() {
-  const tbody = $2("annotation-rows");
-  if (!tbody)
+  const tree = currentTree();
+  if (!tree)
     return;
-  tbody.innerHTML = "";
-  if (!activeResource || !selectedNode)
-    return;
-  const doc = getResourceDocumentation(activeResource);
-  const path = selectedNode.path;
-  const anns = getPathAnnotations(doc, path, language);
-  for (const [key, value] of Object.entries(anns)) {
-    tbody.appendChild(createAnnotationRow(key, value));
-  }
-}
-function createAnnotationRow(key, value) {
-  const tr2 = document.createElement("tr");
-  tr2.innerHTML = `
-    <td><input type="text" class="ann-key" value="${escapeAttr(key)}" /></td>
-    <td><input type="text" class="ann-value" value="${escapeAttr(value)}" /></td>
-    <td><button type="button" class="btn btn-sm btn-danger ann-remove" title="Remove">\xD7</button></td>
-  `;
-  tr2.querySelector(".ann-remove")?.addEventListener("click", () => {
-    if (!activeResource || !selectedNode)
-      return;
-    const k2 = tr2.querySelector(".ann-key")?.value.trim();
-    if (k2) {
-      removePathAnnotation(activeResource, selectedNode.path, k2, language);
+  const owner = ownerForNode(selectedNode) ?? activeResource;
+  const bag = ensureResourceAnnotations(owner);
+  if (title)
+    title.textContent = selectedNode.label;
+  if (pathEl)
+    pathEl.textContent = selectedNode.path || "(definition root)";
+  renderInspector({
+    host,
+    resource: owner,
+    tree,
+    node: selectedNode,
+    doc: bag,
+    languages: workspaceLanguages(),
+    enabledLanguages,
+    state: inspectorState,
+    resourceForNode: (node) => ownerForNode(node) ?? owner,
+    documentationForNode,
+    onChange: () => {
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
+      refreshWorkspace();
     }
   });
-  const onChange = () => {
-    if (!activeResource || !selectedNode)
-      return;
-    const k2 = tr2.querySelector(".ann-key")?.value.trim();
-    const v2 = tr2.querySelector(".ann-value")?.value ?? "";
-    if (!k2)
-      return;
-    setPathAnnotation(activeResource, selectedNode.path, k2, v2, language);
-    persistResourceToWorkspace();
-    refreshTree();
-  };
-  tr2.querySelectorAll("input").forEach((inp) => {
-    inp.addEventListener("change", onChange);
-  });
-  return tr2;
 }
-function escapeAttr(s2) {
-  return s2.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-function addAnnotationRow(key = "", value = "") {
-  const tbody = $2("annotation-rows");
-  if (!tbody || !activeResource || !selectedNode)
-    return;
-  if (key) {
-    setPathAnnotation(activeResource, selectedNode.path, key, value, language);
-    persistResourceToWorkspace();
-  }
-  tbody.appendChild(createAnnotationRow(key, value));
+function refreshWorkspace() {
+  renderLegend();
   refreshTree();
+  refreshInspector();
 }
 function refreshPaletteUi() {
   const list = $2("palette-list");
@@ -20677,31 +18834,49 @@ function refreshPaletteUi() {
   for (const entry of palette) {
     const li2 = document.createElement("li");
     const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
-    li2.innerHTML = `
-      <button type="button" class="palette-apply" title="Apply to selected node">${escapeAttr(label)}</button>
-      <button type="button" class="palette-remove" title="Remove from favourites">\xD7</button>
-    `;
-    li2.querySelector(".palette-apply")?.addEventListener("click", () => {
+    const apply = slEl("sl-button", {
+      size: "small",
+      variant: "default",
+      className: "palette-apply",
+      text: label
+    });
+    apply.title = "Apply to selected node";
+    const remove = slEl("sl-button", {
+      size: "small",
+      variant: "text",
+      className: "palette-remove",
+      text: "\xD7"
+    });
+    remove.title = "Remove from favourites";
+    apply.addEventListener("click", () => {
       if (!activeResource || !selectedNode) {
-        alert("Select a tree node first.");
+        setStatus("Select a tree node first.", true);
         return;
       }
-      setPathAnnotation(
-        activeResource,
-        selectedNode.path,
-        entry.key,
-        entry.value ?? "",
-        language
+      const owner = ownerForNode(selectedNode) ?? activeResource;
+      const bags = [...enabledLanguages];
+      const langs = bags.length ? bags : currentLanguageBags(
+        ensureResourceAnnotations(owner),
+        modelLanguages()
       );
+      for (const lang of langs) {
+        setPathAnnotation(
+          owner,
+          annotationPathOf(selectedNode),
+          entry.key,
+          entry.value ?? "",
+          lang
+        );
+      }
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
+      refreshWorkspace();
     });
-    li2.querySelector(".palette-remove")?.addEventListener("click", () => {
+    remove.addEventListener("click", () => {
       palette = palette.filter((p2) => p2.key !== entry.key);
       savePalette(palette);
       refreshPaletteUi();
     });
+    li2.append(apply, remove);
     list.appendChild(li2);
   }
 }
@@ -20715,28 +18890,37 @@ function setupLoadBar() {
   const updatePlaceholder = () => {
     const mode = getLoadMode();
     urlInput.placeholder = mode === "template" ? "GitHub URL to a .t.json template\u2026" : "GitHub URL to an .adl / .adls archetype\u2026";
-    if (!urlInput.value.trim()) {
+    if (!slValue(urlInput).trim()) {
       urlInput.value = mode === "template" ? templateDefault : archetypeDefault;
     }
   };
-  document.querySelectorAll('input[name="load-mode"]').forEach((el) => {
-    el.addEventListener("change", updatePlaceholder);
-  });
+  $2("load-mode")?.addEventListener("sl-change", updatePlaceholder);
   updatePlaceholder();
   loadBtn.addEventListener("click", async () => {
-    const url = urlInput.value.trim();
+    const url = slValue(urlInput).trim();
     if (!url) {
-      alert("Paste a GitHub blob or raw URL.");
+      setStatus("Paste a GitHub blob or raw URL.", true);
       return;
     }
-    loadBtn.setAttribute("disabled", "true");
+    loadBtn.loading = true;
     setStatus("Loading\u2026");
     try {
       workspace.clear();
       const result = await workspace.loadFromGitHubClinicalModelUrl(url, {
         maxFiles: 200,
+        githubToken,
         onProgress: (e2) => setStatus(e2.message)
       });
+      try {
+        if (githubToken && result.source) {
+          const meta2 = await getGitHubFileContents(result.source, {
+            token: githubToken
+          });
+          workspace.setGitHubBlobSha(meta2.sha);
+        }
+      } catch {
+      }
+      updateGitHubActionState();
       const mode = getLoadMode();
       const files = listEditableFiles();
       if (mode === "template") {
@@ -20746,56 +18930,37 @@ function setupLoadBar() {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      if (activeFilePath) {
-        const sel = $2("file-select");
-        if (sel)
-          sel.value = activeFilePath;
-      }
+      resetFacets();
       loadActiveResource();
       selectedNode = void 0;
-      refreshTree();
-      refreshAnnotationEditor();
-      updatePathLabel();
+      refreshWorkspace();
       const warn = result.warnings.length ? ` (${result.warnings.length} warnings)` : "";
       setStatus(`Loaded ${result.fetched} files${warn}`);
     } catch (e2) {
       setStatus(e2.message, true);
-      alert(`Load failed: ${e2.message}`);
     } finally {
-      loadBtn.removeAttribute("disabled");
+      loadBtn.loading = false;
     }
   });
 }
 function setupFileSelect() {
-  $2("file-select")?.addEventListener("change", (e2) => {
-    activeFilePath = e2.target.value;
+  $2("file-select")?.addEventListener("sl-change", (e2) => {
+    const idx = Number(slValue(e2.target));
+    const files = listEditableFiles();
+    activeFilePath = Number.isFinite(idx) ? files[idx]?.path : void 0;
     loadActiveResource();
     selectedNode = void 0;
-    refreshTree();
-    refreshAnnotationEditor();
-    updatePathLabel();
-    setStatus(`Editing ${activeFilePath}`);
-  });
-}
-function setupAnnotationActions() {
-  $2("add-annotation-btn")?.addEventListener("click", () => addAnnotationRow());
-  $2("language-select")?.addEventListener("change", (e2) => {
-    language = e2.target.value;
-    refreshAnnotationEditor();
-  });
-  $2("download-adl-btn")?.addEventListener("click", () => {
-    if (!activeResource || !activeFilePath)
-      return;
-    const text = serializeAnnotatedResource(activeResource);
-    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
+    resetFacets();
+    refreshWorkspace();
+    setStatus(activeFilePath ? `Editing ${activeFilePath}` : "No file selected");
   });
 }
 function setupPaletteActions() {
   $2("palette-add-btn")?.addEventListener("click", () => {
-    const key = $2("palette-key")?.value.trim();
-    const value = $2("palette-value")?.value.trim();
+    const key = slValue($2("palette-key")).trim();
+    const value = slValue($2("palette-value")).trim();
     if (!key) {
-      alert("Enter an annotation key.");
+      setStatus("Enter an annotation key.", true);
       return;
     }
     if (!palette.some((p2) => p2.key === key)) {
@@ -20813,6 +18978,9 @@ function setupPaletteActions() {
   $2("palette-download-btn")?.addEventListener("click", () => {
     downloadText(exportPaletteJson(palette), "taaat-palette.json");
   });
+  $2("palette-upload-btn")?.addEventListener("click", () => {
+    $2("palette-upload-input")?.click();
+  });
   $2("palette-upload-input")?.addEventListener("change", async (e2) => {
     const file = e2.target.files?.[0];
     if (!file)
@@ -20823,7 +18991,7 @@ function setupPaletteActions() {
       refreshPaletteUi();
       setStatus("Palette imported");
     } catch (err) {
-      alert(`Invalid palette file: ${err.message}`);
+      setStatus(`Invalid palette file: ${err.message}`, true);
     }
     e2.target.value = "";
   });
@@ -20836,20 +19004,123 @@ function downloadText(content, filename) {
   a2.click();
   URL.revokeObjectURL(a2.href);
 }
-function setupResize() {
-  window.addEventListener("resize", () => treeView?.resize());
+function downloadFileName(path) {
+  const base = path.split("/").pop() ?? path;
+  return base;
 }
-function reloadUi() {
-  loadActiveResource();
-  refreshFileSelect();
-  refreshTree();
-  refreshAnnotationEditor();
-  updatePathLabel();
+function setupDownload() {
+  $2("download-file-btn")?.addEventListener("click", () => {
+    if (!activeFilePath)
+      return;
+    const text = workspace.exportAnnotatedFile(activeFilePath);
+    if (text == null) {
+      setStatus("Nothing to download.", true);
+      return;
+    }
+    downloadText(text, downloadFileName(activeFilePath));
+    setStatus(`Downloaded ${downloadFileName(activeFilePath)}`);
+  });
+}
+function updateGitHubActionState() {
+  const commitBtn = $2("github-commit-btn");
+  const userEl = $2("github-user");
+  const source = workspace.getGitHubSource();
+  const canCommit = Boolean(
+    githubToken && source && activeFilePath && (activeFilePath === source.ref.path || activeFilePath.endsWith("/" + source.ref.path) || source.ref.path.endsWith(activeFilePath))
+  );
+  if (commitBtn)
+    commitBtn.disabled = !canCommit;
+  if (userEl) {
+    if (githubLogin) {
+      userEl.hidden = false;
+      userEl.textContent = `Signed in as ${githubLogin}`;
+    } else {
+      userEl.hidden = true;
+      userEl.textContent = "";
+    }
+  }
+}
+function setupGitHubAuth() {
+  const tokenInput = $2("github-token");
+  if (tokenInput && githubToken)
+    tokenInput.value = githubToken;
+  $2("github-login-btn")?.addEventListener("click", async () => {
+    const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
+    if (!token) {
+      setStatus("Paste a GitHub personal access token with contents:write.", true);
+      return;
+    }
+    try {
+      const user = await getGitHubAuthenticatedUser(token);
+      githubToken = token;
+      githubLogin = user.login;
+      sessionStorage.setItem(GITHUB_TOKEN_KEY, token);
+      setStatus(`GitHub: signed in as ${user.login}`);
+      updateGitHubActionState();
+    } catch (e2) {
+      githubLogin = void 0;
+      setStatus(e2.message, true);
+      updateGitHubActionState();
+    }
+  });
+  $2("github-commit-btn")?.addEventListener("click", async () => {
+    const source = workspace.getGitHubSource();
+    if (!githubToken || !source || !activeFilePath) {
+      setStatus("Load from GitHub and sign in before committing.", true);
+      return;
+    }
+    const content = workspace.exportAnnotatedFile(activeFilePath);
+    if (content == null) {
+      setStatus("Nothing to commit.", true);
+      return;
+    }
+    const commitBtn = $2("github-commit-btn");
+    if (commitBtn)
+      commitBtn.loading = true;
+    try {
+      let sha = source.blobSha;
+      if (!sha) {
+        const current = await getGitHubFileContents(source.ref, {
+          token: githubToken
+        });
+        sha = current.sha;
+      }
+      const message = `Annotate ${source.ref.path.split("/").pop() ?? source.ref.path} via TAAAT`;
+      const result = await commitGitHubFile({
+        ref: source.ref,
+        content,
+        message,
+        sha,
+        token: githubToken
+      });
+      workspace.setGitHubBlobSha(result.contentSha || void 0);
+      workspace.updateFileContent(activeFilePath, content);
+      workspace.addFile(activeFilePath, content);
+      setStatus(
+        `Committed to ${source.ref.owner}/${source.ref.repo}@${source.ref.ref}` + (result.commitSha ? ` (${result.commitSha.slice(0, 7)})` : "")
+      );
+      updateGitHubActionState();
+    } catch (e2) {
+      setStatus(e2.message, true);
+    } finally {
+      if (commitBtn)
+        commitBtn.loading = false;
+    }
+  });
+  updateGitHubActionState();
+}
+function setupFilter() {
+  $2("tree-filter")?.addEventListener("sl-input", (e2) => {
+    filterText = slValue(e2.target);
+    refreshTree();
+  });
 }
 function setupLocalFiles() {
   const input = $2("local-files");
+  const btn = $2("local-files-btn");
   if (!input)
     return;
+  btn?.addEventListener("click", () => input.click());
   input.addEventListener("change", async () => {
     const files = input.files;
     if (!files?.length)
@@ -20860,21 +19131,29 @@ function setupLocalFiles() {
     }
     const editable = listEditableFiles();
     activeFilePath = editable[0]?.path;
+    resetFacets();
     refreshFileSelect();
     reloadUi();
     setStatus(`Loaded ${files.length} local file(s)`);
     input.value = "";
   });
 }
+function reloadUi() {
+  loadActiveResource();
+  refreshFileSelect();
+  refreshWorkspace();
+}
 function initApp() {
   setupLoadBar();
   setupFileSelect();
-  setupAnnotationActions();
   setupPaletteActions();
+  setupDownload();
+  setupGitHubAuth();
+  setupFilter();
   setupLocalFiles();
-  setupResize();
   refreshPaletteUi();
-  updatePathLabel();
+  renderLegend();
+  updateGitHubActionState();
   setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 if (typeof document !== "undefined") {
@@ -20883,7 +19162,9 @@ if (typeof document !== "undefined") {
     workspace,
     reloadUi,
     getActiveResource: () => activeResource,
-    getSelectedNode: () => selectedNode
+    getSelectedNode: () => selectedNode,
+    exportAnnotatedFile: (path) => workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
+    getGitHubSource: () => workspace.getGitHubSource()
   };
 }
 export {

@@ -19,10 +19,20 @@ import {
 import {
   loadGitHubClinicalModelClosure,
   loadGitHubTemplateClosure,
+  type GitHubFileRef,
   type GitHubTemplateClosureResult,
   type GitHubTemplateClosureOptions,
 } from "./github_template_closure.ts";
 import { isClinicalModelPath, normalizeClinicalModelPath } from "./clinical_model_paths.ts";
+import {
+  getResourceDocumentation,
+  serializeAnnotatedResource,
+  type AnnotatedResource,
+} from "./clinical_model_annotations.ts";
+import {
+  listTemplateJsonArchetypeIds,
+  patchTemplateJsonAnnotations,
+} from "./template_json_annotations.ts";
 
 export type { TemplateWorkspaceFile, ResolveOperationalOptions, ResolveOperationalResult };
 export { canBeGenerationRoot } from "./template_workspace.ts";
@@ -37,6 +47,14 @@ export interface ClinicalModelExportEntry {
   content: string;
 }
 
+/** Origin of the last GitHub clinical-model load (optional commit-back target). */
+export interface ClinicalModelGitHubSource {
+  url: string;
+  ref: GitHubFileRef;
+  /** Contents-API blob SHA for `ref.path`, when known. */
+  blobSha?: string;
+}
+
 /**
  * File-set workspace for clinical models. Wraps {@link TemplateWorkspace} and adds
  * export/update helpers for future annotation editors and download flows.
@@ -44,6 +62,7 @@ export interface ClinicalModelExportEntry {
 export class ClinicalModelWorkspace {
   private readonly workspace = new TemplateWorkspace();
   private dirtyPaths = new Set<string>();
+  private githubSource: ClinicalModelGitHubSource | undefined;
 
   get repository() {
     return this.workspace.repository;
@@ -132,6 +151,7 @@ export class ClinicalModelWorkspace {
   clear(): void {
     this.workspace.clear();
     this.dirtyPaths.clear();
+    this.githubSource = undefined;
   }
 
   static suggestGenerationRoot(files: ClinicalModelFile[]): string | undefined {
@@ -186,7 +206,62 @@ export class ClinicalModelWorkspace {
     const loadResults = this.addFiles(closure.entries);
     this.setGenerationRootPath(closure.rootPath);
     this.setActivePath(closure.rootPath);
+    this.githubSource = { url: fileUrl, ref: closure.source };
     return { ...closure, loadResults };
+  }
+
+
+  getGitHubSource(): ClinicalModelGitHubSource | undefined {
+    return this.githubSource ? { ...this.githubSource, ref: { ...this.githubSource.ref } } : undefined;
+  }
+
+  setGitHubBlobSha(sha: string | undefined): void {
+    if (!this.githubSource) return;
+    this.githubSource = { ...this.githubSource, blobSha: sha };
+  }
+
+  isDirty(path?: string): boolean {
+    if (path) return this.dirtyPaths.has(normalizeClinicalModelPath(path));
+    return this.dirtyPaths.size > 0;
+  }
+
+  /**
+   * Serialize the active annotations back into file text.
+   * ADL/ADLS → ADL2 text; `.t.json` → annotation-only patch of the stored JSON.
+   */
+  exportAnnotatedFile(path: string): string | undefined {
+    const file = this.getFile(path);
+    if (!file) return undefined;
+    const lower = path.toLowerCase();
+    if (lower.endsWith(".t.json")) {
+      const docs = new Map<string, ReturnType<typeof getResourceDocumentation>>();
+      for (const id of listTemplateJsonArchetypeIds(file.content)) {
+        const res = (
+          this.repository.get(id) ??
+          this.repository.getTemplate(id)
+        ) as AnnotatedResource | undefined;
+        docs.set(id, res ? getResourceDocumentation(res) : undefined);
+      }
+      return patchTemplateJsonAnnotations(file.content, docs);
+    }
+    if (/\.(adl|adls)$/i.test(path)) {
+      const id = file.loadResult?.archetypeId;
+      if (!id) return file.content;
+      const res = (
+        this.repository.get(id) ??
+        this.repository.getTemplate(id)
+      ) as AnnotatedResource | undefined;
+      if (!res) return file.content;
+      return serializeAnnotatedResource(res);
+    }
+    return file.content;
+  }
+
+  /** Persist annotated content for `path` back into the workspace (marks dirty). */
+  persistAnnotatedFile(path: string): LoadFileResult | undefined {
+    const text = this.exportAnnotatedFile(path);
+    if (text === undefined) return undefined;
+    return this.updateFileContent(path, text);
   }
 
   /** Load entries extracted from a ZIP (same filter as GitHub loader). */

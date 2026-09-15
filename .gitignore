@@ -14,5 +14,11 @@ examples/demo-app/dist/
 # GitHub Pages demo app build output (generated during CI via `deno task build:demo`)
 docs/demo/
 
+# Assembled GitHub Pages tree (CI only)
+dist-pages/
+
+# Local assemble / scratch output
+tmp/
+
 # temp test files
 serialization/zipehr/examples/

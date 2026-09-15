@@ -4,24 +4,54 @@
 
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
+  type AnnotatedResource,
+  type AnnotationDocumentation,
+  annotationPathOf,
   buildDefinitionTree,
-  getPathAnnotations,
+  type DefinitionTreeNode,
+  ensureResourceAnnotations,
   getResourceDocumentation,
-  removePathAnnotation,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
   setPathAnnotation,
-  type AnnotatedResource,
-  type DefinitionTreeNode,
 } from "../../../parser/clinical_model_annotations.ts";
+import {
+  familyFillColor,
+  familyLegendLabel,
+  languageOutlineColor,
+  listFamilies,
+  listLanguageBags,
+  listResourceLanguages,
+  mergeDocumentation,
+} from "../../../parser/annotation_families.ts";
 import {
   exportPaletteJson,
   loadPalette,
+  type PaletteEntry,
   parsePaletteJson,
   savePalette,
-  type PaletteEntry,
 } from "./palette.ts";
-import { DefinitionTreeView } from "./tree-view.ts";
+import { renderOutline } from "./outline-tree.ts";
+import {
+  createInspectorState,
+  currentLanguageBags,
+  type InspectorState,
+  renderInspector,
+} from "./inspector.ts";
+import {
+  type SlAlert,
+  type SlButton,
+  type SlInput,
+  type SlSelect,
+  slEl,
+  slValue,
+} from "./sl.ts";
+
+import {
+  commitGitHubFile,
+  getGitHubAuthenticatedUser,
+  getGitHubFileContents,
+} from "../../../parser/github_contents.ts";
 
 export type LoadMode = "template" | "archetype";
 
@@ -30,24 +60,33 @@ let activeFilePath: string | undefined;
 let activeResource: AnnotatedResource | undefined;
 let selectedNode: DefinitionTreeNode | undefined;
 let palette: PaletteEntry[] = loadPalette();
-let language = "en";
-let treeView: DefinitionTreeView | undefined;
+let filterText = "";
+const enabledLanguages = new Set<string>();
+const enabledFamilies = new Set<string>();
+const knownLanguages = new Set<string>();
+const knownFamilies = new Set<string>();
+const inspectorState: InspectorState = createInspectorState();
+
+const GITHUB_TOKEN_KEY = "taaat-github-token";
+let githubToken: string | undefined =
+  sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? undefined;
+let githubLogin: string | undefined;
+
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
 
 function getLoadMode(): LoadMode {
-  const checked = document.querySelector<HTMLInputElement>(
-    'input[name="load-mode"]:checked',
-  );
-  return checked?.value === "archetype" ? "archetype" : "template";
+  const group = $("load-mode") as HTMLElement & { value?: string } | null;
+  return group?.value === "archetype" ? "archetype" : "template";
 }
 
 function setStatus(msg: string, isError = false): void {
-  const el = $("status-bar");
+  const el = $("status-bar") as SlAlert | null;
   if (!el) return;
   el.textContent = msg;
-  el.classList.toggle("is-error", isError);
+  el.variant = isError ? "danger" : "primary";
+  el.open = true;
 }
 
 function listEditableFiles(): { path: string; kind: string }[] {
@@ -63,21 +102,26 @@ function listEditableFiles(): { path: string; kind: string }[] {
 }
 
 function refreshFileSelect(): void {
-  const select = $("file-select") as HTMLSelectElement | null;
+  const select = $("file-select") as SlSelect | null;
   if (!select) return;
   const files = listEditableFiles();
   select.innerHTML = "";
-  for (const f of files) {
-    const opt = document.createElement("option");
-    opt.value = f.path;
+  files.forEach((f, i) => {
+    const opt = document.createElement("sl-option") as HTMLElement & {
+      value: string;
+    };
     opt.textContent = `${f.path} (${f.kind})`;
     select.appendChild(opt);
-  }
-  if (activeFilePath && files.some((f) => f.path === activeFilePath)) {
-    select.value = activeFilePath;
-  } else if (files.length) {
-    activeFilePath = files[0].path;
-    select.value = activeFilePath;
+    // Index values avoid Shoelace's space-separated value parsing.
+    opt.value = String(i);
+  });
+  const idx = files.findIndex((f) => f.path === activeFilePath);
+  const nextIdx = idx >= 0 ? idx : files.length ? 0 : -1;
+  if (nextIdx >= 0) {
+    activeFilePath = files[nextIdx].path;
+    select.value = String(nextIdx);
+  } else {
+    select.value = "";
   }
 }
 
@@ -95,108 +139,225 @@ function loadActiveResource(): void {
 }
 
 function persistResourceToWorkspace(): void {
-  if (!activeResource || !activeFilePath) return;
-  const path = activeFilePath.toLowerCase();
-  if (/\.(adl|adls)$/i.test(path)) {
-    const adl = serializeAnnotatedResource(activeResource);
-    workspace.updateFileContent(activeFilePath, adl);
+  if (!activeFilePath) return;
+  workspace.persistAnnotatedFile(activeFilePath);
+  updateGitHubActionState();
+}
+
+function resetFacets(): void {
+  enabledLanguages.clear();
+  enabledFamilies.clear();
+  knownLanguages.clear();
+  knownFamilies.clear();
+}
+
+function modelLanguages(): string[] {
+  const set = new Set<string>();
+  const addFrom = (res: unknown) => {
+    for (const lang of listResourceLanguages(res)) set.add(lang);
+  };
+  if (activeResource) addFrom(activeResource);
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    if (arch) addFrom(arch);
   }
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+function workspaceLanguages(): string[] {
+  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+}
+
+function syncFacets(): void {
+  for (const l of workspaceLanguages()) {
+    if (!knownLanguages.has(l)) {
+      knownLanguages.add(l);
+      enabledLanguages.add(l);
+    }
+  }
+  for (const f of listFamilies(workspaceDocumentation())) {
+    if (!knownFamilies.has(f)) {
+      knownFamilies.add(f);
+      enabledFamilies.add(f);
+    }
+  }
+}
+
+function currentTree(): DefinitionTreeNode | undefined {
+  if (!activeResource) return undefined;
+  return buildDefinitionTree(activeResource, {
+    resolveArchetype: (id) => workspace.repository.get(id),
+  });
+}
+
+function ownerForNode(node: DefinitionTreeNode): AnnotatedResource | undefined {
+  if (node.overlayId) {
+    const overlay = workspace.repository.get(node.overlayId);
+    if (overlay) return overlay;
+  }
+  return activeResource;
+}
+
+function documentationForNode(
+  node: DefinitionTreeNode,
+): AnnotationDocumentation | undefined {
+  const owner = ownerForNode(node);
+  return owner ? getResourceDocumentation(owner) : undefined;
+}
+
+function workspaceDocumentation(): AnnotationDocumentation {
+  const docs: Array<AnnotationDocumentation | undefined> = [];
+  if (activeResource) docs.push(getResourceDocumentation(activeResource));
+  const seen = new Set<string>();
+  for (const id of workspace.repository.listIds()) {
+    const arch = workspace.repository.get(id);
+    const key = arch?.archetype_id?.value ?? id;
+    if (!arch || seen.has(key) || arch === activeResource) continue;
+    seen.add(key);
+    docs.push(getResourceDocumentation(arch));
+  }
+  return mergeDocumentation(docs);
+}
+
+function renderLegend(): void {
+  syncFacets();
+  const langHost = $("legend-languages");
+  const famHost = $("legend-families");
+  if (langHost) {
+    langHost.innerHTML = "";
+    for (const lang of workspaceLanguages()) {
+      const btn = slEl<SlButton>("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-lang",
+        text: lang,
+      });
+      btn.setAttribute(
+        "aria-pressed",
+        enabledLanguages.has(lang) ? "true" : "false",
+      );
+      btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
+      btn.title = `Language bag ${lang} — from the model's supported languages`;
+      btn.addEventListener("click", () => {
+        if (enabledLanguages.has(lang) && enabledLanguages.size === 1) return;
+        if (enabledLanguages.has(lang)) enabledLanguages.delete(lang);
+        else enabledLanguages.add(lang);
+        refreshWorkspace();
+      });
+      langHost.appendChild(btn);
+    }
+  }
+  if (famHost) {
+    famHost.innerHTML = "";
+    for (const family of listFamilies(workspaceDocumentation())) {
+      const btn = slEl<SlButton>("sl-button", {
+        size: "small",
+        pill: true,
+        className: "legend-chip legend-family",
+        text: familyLegendLabel(family),
+      });
+      btn.setAttribute(
+        "aria-pressed",
+        enabledFamilies.has(family) ? "true" : "false",
+      );
+      btn.style.setProperty("--family-fill", familyFillColor(family));
+      btn.title = `Family ${familyLegendLabel(family)} — fill colour on pills`;
+      btn.addEventListener("click", () => {
+        if (enabledFamilies.has(family) && enabledFamilies.size === 1) return;
+        if (enabledFamilies.has(family)) enabledFamilies.delete(family);
+        else enabledFamilies.add(family);
+        refreshWorkspace();
+      });
+      famHost.appendChild(btn);
+    }
+  }
+}
+
+function flattenFind(
+  node: DefinitionTreeNode,
+  path: string,
+): DefinitionTreeNode | undefined {
+  if (node.path === path) return node;
+  for (const child of node.children) {
+    const hit = flattenFind(child, path);
+    if (hit) return hit;
+  }
+  return undefined;
 }
 
 function refreshTree(): void {
   const container = $("tree-container");
   if (!container) return;
-  container.innerHTML = "";
   if (!activeResource) {
-    container.innerHTML = "<p class=\"tree-empty\">Load a model to see the tree.</p>";
+    container.innerHTML =
+      '<p class="tree-empty">Load a model to see the tree.</p>';
     return;
   }
-  const tree = buildDefinitionTree(activeResource);
-  treeView = new DefinitionTreeView({
+  const tree = currentTree();
+  if (!tree) {
+    container.innerHTML =
+      '<p class="tree-empty">No definition tree (empty or unparsed model).</p>';
+    return;
+  }
+  if (selectedNode) {
+    selectedNode = flattenFind(tree, selectedNode.path) ?? selectedNode;
+  }
+  renderOutline({
     container,
+    tree,
+    doc: getResourceDocumentation(activeResource),
+    documentationForNode,
     selectedPath: selectedNode?.path,
+    filterText,
+    enabledLanguages,
+    enabledFamilies,
     onSelect: (node) => {
       selectedNode = node;
-      treeView?.setSelectedPath(node.path);
-      refreshAnnotationEditor();
-      updatePathLabel();
+      refreshWorkspace();
     },
   });
-  treeView.setData(tree);
-  window.requestAnimationFrame(() => treeView?.resize());
 }
 
-function updatePathLabel(): void {
-  const el = $("selected-path");
-  if (!el) return;
-  if (!selectedNode) {
-    el.textContent = "Select a node in the tree";
+function refreshInspector(): void {
+  const title = $("selected-title");
+  const pathEl = $("selected-path");
+  const host = $("family-accordions");
+  if (!host) return;
+  if (!activeResource || !selectedNode) {
+    if (title) title.textContent = "Annotations";
+    if (pathEl) pathEl.textContent = "Select a node in the tree";
+    host.innerHTML =
+      '<p class="tree-empty">Select a node to edit family sections.</p>';
     return;
   }
-  const pathDisplay = selectedNode.path || "(definition root)";
-  el.textContent = pathDisplay;
-}
-
-function refreshAnnotationEditor(): void {
-  const tbody = $("annotation-rows");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  if (!activeResource || !selectedNode) return;
-
-  const doc = getResourceDocumentation(activeResource);
-  const path = selectedNode.path;
-  const anns = getPathAnnotations(doc, path, language);
-
-  for (const [key, value] of Object.entries(anns)) {
-    tbody.appendChild(createAnnotationRow(key, value));
-  }
-}
-
-function createAnnotationRow(key: string, value: string): HTMLTableRowElement {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td><input type="text" class="ann-key" value="${escapeAttr(key)}" /></td>
-    <td><input type="text" class="ann-value" value="${escapeAttr(value)}" /></td>
-    <td><button type="button" class="btn btn-sm btn-danger ann-remove" title="Remove">×</button></td>
-  `;
-  tr.querySelector(".ann-remove")?.addEventListener("click", () => {
-    if (!activeResource || !selectedNode) return;
-    const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
-    if (k) {
-      removePathAnnotation(activeResource, selectedNode.path, k, language);
+  const tree = currentTree();
+  if (!tree) return;
+  const owner = ownerForNode(selectedNode) ?? activeResource;
+  const bag = ensureResourceAnnotations(owner);
+  if (title) title.textContent = selectedNode.label;
+  if (pathEl) pathEl.textContent = selectedNode.path || "(definition root)";
+  renderInspector({
+    host,
+    resource: owner,
+    tree,
+    node: selectedNode,
+    doc: bag,
+    languages: workspaceLanguages(),
+    enabledLanguages,
+    state: inspectorState,
+    resourceForNode: (node) => ownerForNode(node) ?? owner,
+    documentationForNode,
+    onChange: () => {
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
-    }
+      refreshWorkspace();
+    },
   });
-  const onChange = () => {
-    if (!activeResource || !selectedNode) return;
-    const k = tr.querySelector<HTMLInputElement>(".ann-key")?.value.trim();
-    const v = tr.querySelector<HTMLInputElement>(".ann-value")?.value ?? "";
-    if (!k) return;
-    setPathAnnotation(activeResource, selectedNode.path, k, v, language);
-    persistResourceToWorkspace();
-    refreshTree();
-  };
-  tr.querySelectorAll("input").forEach((inp) => {
-    inp.addEventListener("change", onChange);
-  });
-  return tr;
 }
 
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
-
-function addAnnotationRow(key = "", value = ""): void {
-  const tbody = $("annotation-rows");
-  if (!tbody || !activeResource || !selectedNode) return;
-  if (key) {
-    setPathAnnotation(activeResource, selectedNode.path, key, value, language);
-    persistResourceToWorkspace();
-  }
-  tbody.appendChild(createAnnotationRow(key, value));
+function refreshWorkspace(): void {
+  renderLegend();
   refreshTree();
+  refreshInspector();
 }
 
 function refreshPaletteUi(): void {
@@ -206,38 +367,58 @@ function refreshPaletteUi(): void {
   for (const entry of palette) {
     const li = document.createElement("li");
     const label = entry.value ? `${entry.key} = ${entry.value}` : entry.key;
-    li.innerHTML = `
-      <button type="button" class="palette-apply" title="Apply to selected node">${escapeAttr(label)}</button>
-      <button type="button" class="palette-remove" title="Remove from favourites">×</button>
-    `;
-    li.querySelector(".palette-apply")?.addEventListener("click", () => {
+    const apply = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "default",
+      className: "palette-apply",
+      text: label,
+    });
+    apply.title = "Apply to selected node";
+    const remove = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "text",
+      className: "palette-remove",
+      text: "×",
+    });
+    remove.title = "Remove from favourites";
+    apply.addEventListener("click", () => {
       if (!activeResource || !selectedNode) {
-        alert("Select a tree node first.");
+        setStatus("Select a tree node first.", true);
         return;
       }
-      setPathAnnotation(
-        activeResource,
-        selectedNode.path,
-        entry.key,
-        entry.value ?? "",
-        language,
-      );
+      const owner = ownerForNode(selectedNode) ?? activeResource;
+      const bags = [...enabledLanguages];
+      const langs = bags.length
+        ? bags
+        : currentLanguageBags(
+          ensureResourceAnnotations(owner),
+          modelLanguages(),
+        );
+      for (const lang of langs) {
+        setPathAnnotation(
+          owner,
+          annotationPathOf(selectedNode),
+          entry.key,
+          entry.value ?? "",
+          lang,
+        );
+      }
       persistResourceToWorkspace();
-      refreshTree();
-      refreshAnnotationEditor();
+      refreshWorkspace();
     });
-    li.querySelector(".palette-remove")?.addEventListener("click", () => {
+    remove.addEventListener("click", () => {
       palette = palette.filter((p) => p.key !== entry.key);
       savePalette(palette);
       refreshPaletteUi();
     });
+    li.append(apply, remove);
     list.appendChild(li);
   }
 }
 
 function setupLoadBar(): void {
-  const loadBtn = $("load-github-btn");
-  const urlInput = $("github-url") as HTMLInputElement | null;
+  const loadBtn = $("load-github-btn") as SlButton | null;
+  const urlInput = $("github-url") as SlInput | null;
   if (!loadBtn || !urlInput) return;
 
   const templateDefault =
@@ -250,30 +431,41 @@ function setupLoadBar(): void {
     urlInput.placeholder = mode === "template"
       ? "GitHub URL to a .t.json template…"
       : "GitHub URL to an .adl / .adls archetype…";
-    if (!urlInput.value.trim()) {
+    if (!slValue(urlInput).trim()) {
       urlInput.value = mode === "template" ? templateDefault : archetypeDefault;
     }
   };
 
-  document.querySelectorAll('input[name="load-mode"]').forEach((el) => {
-    el.addEventListener("change", updatePlaceholder);
-  });
+  $("load-mode")?.addEventListener("sl-change", updatePlaceholder);
   updatePlaceholder();
 
   loadBtn.addEventListener("click", async () => {
-    const url = urlInput.value.trim();
+    const url = slValue(urlInput).trim();
     if (!url) {
-      alert("Paste a GitHub blob or raw URL.");
+      setStatus("Paste a GitHub blob or raw URL.", true);
       return;
     }
-    loadBtn.setAttribute("disabled", "true");
+    loadBtn.loading = true;
     setStatus("Loading…");
     try {
       workspace.clear();
       const result = await workspace.loadFromGitHubClinicalModelUrl(url, {
         maxFiles: 200,
+        githubToken,
         onProgress: (e) => setStatus(e.message),
       });
+      // Prefer Contents API SHA when signed in (needed for commit-back).
+      try {
+        if (githubToken && result.source) {
+          const meta = await getGitHubFileContents(result.source, {
+            token: githubToken,
+          });
+          workspace.setGitHubBlobSha(meta.sha);
+        }
+      } catch {
+        // Public raw load still works; commit will fetch SHA later.
+      }
+      updateGitHubActionState();
       const mode = getLoadMode();
       const files = listEditableFiles();
       if (mode === "template") {
@@ -283,59 +475,41 @@ function setupLoadBar(): void {
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
-      if (activeFilePath) {
-        const sel = $("file-select") as HTMLSelectElement | null;
-        if (sel) sel.value = activeFilePath;
-      }
+      resetFacets();
       loadActiveResource();
       selectedNode = undefined;
-      refreshTree();
-      refreshAnnotationEditor();
-      updatePathLabel();
+      refreshWorkspace();
       const warn = result.warnings.length
         ? ` (${result.warnings.length} warnings)`
         : "";
       setStatus(`Loaded ${result.fetched} files${warn}`);
     } catch (e) {
       setStatus((e as Error).message, true);
-      alert(`Load failed: ${(e as Error).message}`);
     } finally {
-      loadBtn.removeAttribute("disabled");
+      loadBtn.loading = false;
     }
   });
 }
 
 function setupFileSelect(): void {
-  $("file-select")?.addEventListener("change", (e) => {
-    activeFilePath = (e.target as HTMLSelectElement).value;
+  $("file-select")?.addEventListener("sl-change", (e) => {
+    const idx = Number(slValue(e.target as Element));
+    const files = listEditableFiles();
+    activeFilePath = Number.isFinite(idx) ? files[idx]?.path : undefined;
     loadActiveResource();
     selectedNode = undefined;
-    refreshTree();
-    refreshAnnotationEditor();
-    updatePathLabel();
-    setStatus(`Editing ${activeFilePath}`);
-  });
-}
-
-function setupAnnotationActions(): void {
-  $("add-annotation-btn")?.addEventListener("click", () => addAnnotationRow());
-  $("language-select")?.addEventListener("change", (e) => {
-    language = (e.target as HTMLSelectElement).value;
-    refreshAnnotationEditor();
-  });
-  $("download-adl-btn")?.addEventListener("click", () => {
-    if (!activeResource || !activeFilePath) return;
-    const text = serializeAnnotatedResource(activeResource);
-    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
+    resetFacets();
+    refreshWorkspace();
+    setStatus(activeFilePath ? `Editing ${activeFilePath}` : "No file selected");
   });
 }
 
 function setupPaletteActions(): void {
   $("palette-add-btn")?.addEventListener("click", () => {
-    const key = ($("palette-key") as HTMLInputElement | null)?.value.trim();
-    const value = ($("palette-value") as HTMLInputElement | null)?.value.trim();
+    const key = slValue($("palette-key")).trim();
+    const value = slValue($("palette-value")).trim();
     if (!key) {
-      alert("Enter an annotation key.");
+      setStatus("Enter an annotation key.", true);
       return;
     }
     if (!palette.some((p) => p.key === key)) {
@@ -343,14 +517,18 @@ function setupPaletteActions(): void {
       savePalette(palette);
       refreshPaletteUi();
     }
-    const keyInp = $("palette-key") as HTMLInputElement | null;
-    const valInp = $("palette-value") as HTMLInputElement | null;
+    const keyInp = $("palette-key") as SlInput | null;
+    const valInp = $("palette-value") as SlInput | null;
     if (keyInp) keyInp.value = "";
     if (valInp) valInp.value = "";
   });
 
   $("palette-download-btn")?.addEventListener("click", () => {
     downloadText(exportPaletteJson(palette), "taaat-palette.json");
+  });
+
+  $("palette-upload-btn")?.addEventListener("click", () => {
+    $("palette-upload-input")?.click();
   });
 
   $("palette-upload-input")?.addEventListener("change", async (e) => {
@@ -362,7 +540,7 @@ function setupPaletteActions(): void {
       refreshPaletteUi();
       setStatus("Palette imported");
     } catch (err) {
-      alert(`Invalid palette file: ${(err as Error).message}`);
+      setStatus(`Invalid palette file: ${(err as Error).message}`, true);
     }
     (e.target as HTMLInputElement).value = "";
   });
@@ -377,21 +555,132 @@ function downloadText(content: string, filename: string): void {
   URL.revokeObjectURL(a.href);
 }
 
-function setupResize(): void {
-  window.addEventListener("resize", () => treeView?.resize());
+function downloadFileName(path: string): string {
+  const base = path.split("/").pop() ?? path;
+  return base;
 }
 
-export function reloadUi(): void {
-  loadActiveResource();
-  refreshFileSelect();
-  refreshTree();
-  refreshAnnotationEditor();
-  updatePathLabel();
+function setupDownload(): void {
+  $("download-file-btn")?.addEventListener("click", () => {
+    if (!activeFilePath) return;
+    const text = workspace.exportAnnotatedFile(activeFilePath);
+    if (text == null) {
+      setStatus("Nothing to download.", true);
+      return;
+    }
+    downloadText(text, downloadFileName(activeFilePath));
+    setStatus(`Downloaded ${downloadFileName(activeFilePath)}`);
+  });
+}
+
+function updateGitHubActionState(): void {
+  const commitBtn = $("github-commit-btn") as SlButton | null;
+  const userEl = $("github-user");
+  const source = workspace.getGitHubSource();
+  const canCommit = Boolean(
+    githubToken && source && activeFilePath &&
+      (activeFilePath === source.ref.path ||
+        activeFilePath.endsWith("/" + source.ref.path) ||
+        source.ref.path.endsWith(activeFilePath)),
+  );
+  if (commitBtn) commitBtn.disabled = !canCommit;
+  if (userEl) {
+    if (githubLogin) {
+      userEl.hidden = false;
+      userEl.textContent = `Signed in as ${githubLogin}`;
+    } else {
+      userEl.hidden = true;
+      userEl.textContent = "";
+    }
+  }
+}
+
+function setupGitHubAuth(): void {
+  const tokenInput = $("github-token") as SlInput | null;
+  if (tokenInput && githubToken) tokenInput.value = githubToken;
+
+  $("github-login-btn")?.addEventListener("click", async () => {
+    const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
+    if (!token) {
+      setStatus("Paste a GitHub personal access token with contents:write.", true);
+      return;
+    }
+    try {
+      const user = await getGitHubAuthenticatedUser(token);
+      githubToken = token;
+      githubLogin = user.login;
+      sessionStorage.setItem(GITHUB_TOKEN_KEY, token);
+      setStatus(`GitHub: signed in as ${user.login}`);
+      updateGitHubActionState();
+    } catch (e) {
+      githubLogin = undefined;
+      setStatus((e as Error).message, true);
+      updateGitHubActionState();
+    }
+  });
+
+  $("github-commit-btn")?.addEventListener("click", async () => {
+    const source = workspace.getGitHubSource();
+    if (!githubToken || !source || !activeFilePath) {
+      setStatus("Load from GitHub and sign in before committing.", true);
+      return;
+    }
+    const content = workspace.exportAnnotatedFile(activeFilePath);
+    if (content == null) {
+      setStatus("Nothing to commit.", true);
+      return;
+    }
+    const commitBtn = $("github-commit-btn") as SlButton | null;
+    if (commitBtn) commitBtn.loading = true;
+    try {
+      let sha = source.blobSha;
+      if (!sha) {
+        const current = await getGitHubFileContents(source.ref, {
+          token: githubToken,
+        });
+        sha = current.sha;
+      }
+      const message =
+        `Annotate ${source.ref.path.split("/").pop() ?? source.ref.path} via TAAAT`;
+      const result = await commitGitHubFile({
+        ref: source.ref,
+        content,
+        message,
+        sha,
+        token: githubToken,
+      });
+      workspace.setGitHubBlobSha(result.contentSha || undefined);
+      // Keep workspace content aligned with what we pushed.
+      workspace.updateFileContent(activeFilePath, content);
+      // updateFileContent marks dirty; clear dirty by re-add equivalent:
+      workspace.addFile(activeFilePath, content);
+      setStatus(
+        `Committed to ${source.ref.owner}/${source.ref.repo}@${source.ref.ref}` +
+          (result.commitSha ? ` (${result.commitSha.slice(0, 7)})` : ""),
+      );
+      updateGitHubActionState();
+    } catch (e) {
+      setStatus((e as Error).message, true);
+    } finally {
+      if (commitBtn) commitBtn.loading = false;
+    }
+  });
+
+  updateGitHubActionState();
+}
+
+function setupFilter(): void {
+  $("tree-filter")?.addEventListener("sl-input", (e) => {
+    filterText = slValue(e.target as Element);
+    refreshTree();
+  });
 }
 
 function setupLocalFiles(): void {
   const input = $("local-files") as HTMLInputElement | null;
+  const btn = $("local-files-btn");
   if (!input) return;
+  btn?.addEventListener("click", () => input.click());
   input.addEventListener("change", async () => {
     const files = input.files;
     if (!files?.length) return;
@@ -401,6 +690,7 @@ function setupLocalFiles(): void {
     }
     const editable = listEditableFiles();
     activeFilePath = editable[0]?.path;
+    resetFacets();
     refreshFileSelect();
     reloadUi();
     setStatus(`Loaded ${files.length} local file(s)`);
@@ -408,15 +698,23 @@ function setupLocalFiles(): void {
   });
 }
 
+export function reloadUi(): void {
+  loadActiveResource();
+  refreshFileSelect();
+  refreshWorkspace();
+}
+
 export function initApp(): void {
   setupLoadBar();
   setupFileSelect();
-  setupAnnotationActions();
   setupPaletteActions();
+  setupDownload();
+  setupGitHubAuth();
+  setupFilter();
   setupLocalFiles();
-  setupResize();
   refreshPaletteUi();
-  updatePathLabel();
+  renderLegend();
+  updateGitHubActionState();
   setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 
@@ -427,5 +725,8 @@ if (typeof document !== "undefined") {
     reloadUi,
     getActiveResource: () => activeResource,
     getSelectedNode: () => selectedNode,
+    exportAnnotatedFile: (path?: string) =>
+      workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
+    getGitHubSource: () => workspace.getGitHubSource(),
   };
 }

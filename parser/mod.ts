@@ -2,107 +2,140 @@
  * ADL parsing (ADL 1.4 and ADL 2).
  */
 
-export { ADL2Tokenizer, TokenType, type Token } from "./adl2_tokenizer.ts";
+export { ADL2Tokenizer, type Token, TokenType } from "./adl2_tokenizer.ts";
 export { ADL2Parser, type ADL2ParseResult } from "./adl2_parser.ts";
-export { parseAdl, type ParseAdlOptions, type ParseAdlResult } from "./parse_adl.ts";
 export {
-  convertAdl14ToAdl2,
+  parseAdl,
+  type ParseAdlOptions,
+  type ParseAdlResult,
+} from "./parse_adl.ts";
+export {
   type Adl14ConversionOptions,
   type Adl14ConversionResult,
+  convertAdl14ToAdl2,
 } from "./adl14_to_adl2_converter.ts";
 export {
+  type AdlDetectedVersion,
   detectAdlVersion,
   isAdl14,
-  type AdlDetectedVersion,
 } from "./adl_version.ts";
 export {
-  detectTemplateInputFormat,
-  getOperationalTemplateFromInput,
-  isOptXml,
-  isOetXml,
-  parseOptXml,
-  parseOetXml,
-  parseTemplateInput,
-  isTemplateJson,
-  parseTemplateJson,
   ArchetypeRepository,
   compileOetToOperational,
+  detectTemplateInputFormat,
+  getOperationalTemplateFromInput,
+  isOetXml,
+  isOptXml,
+  isTemplateJson,
+  parseOetXml,
+  parseOptXml,
+  parseTemplateInput,
   type ParseTemplateInputOptions,
   type ParseTemplateInputResult,
+  parseTemplateJson,
   type TemplateInputFormat,
   type TemplateJsonParseResult,
 } from "./legacy/mod.ts";
 export { RulesParser } from "./rules_parser.ts";
 export { serializeRulesSection } from "./rules_serializer.ts";
 export {
-  TemplateWorkspace,
-  resolveToOperationalTemplate,
+  canBeGenerationRoot,
   getOperationalTemplateFromWorkspace,
-  type TemplateWorkspaceFile,
   type ResolveOperationalOptions,
   type ResolveOperationalResult,
-  canBeGenerationRoot,
+  resolveToOperationalTemplate,
+  TemplateWorkspace,
+  type TemplateWorkspaceFile,
 } from "./template_workspace.ts";
 export {
-  ClinicalModelWorkspace,
-  type ClinicalModelFile,
   type ClinicalModelExportEntry,
+  type ClinicalModelFile,
+  ClinicalModelWorkspace,
 } from "./clinical_model_workspace.ts";
 export {
+  type GitHubFileEntry,
+  type GitHubRepoRef,
+  type GitHubTreeLoadResult,
   loadGitHubRepoTree,
   parseGitHubRepoSpec,
-  type GitHubRepoRef,
-  type GitHubFileEntry,
-  type GitHubTreeLoadResult,
 } from "./github_repo_loader.ts";
 export {
-  loadGitHubTemplateClosure,
-  loadGitHubClinicalModelClosure,
-  parseGitHubTemplateFileUrl,
-  parseGitHubClinicalModelFileUrl,
   buildClinicalModelPathIndex,
-  resolveClinicalModelRef,
-  type GitHubFileRef,
-  type GitHubTemplateClosureResult,
-  type GitHubTemplateClosureOptions,
-  type GitHubTemplateLoadProgress,
   type ClinicalModelPathIndex,
+  type GitHubFileRef,
+  type GitHubTemplateClosureOptions,
+  type GitHubTemplateClosureResult,
+  type GitHubTemplateLoadProgress,
+  loadGitHubClinicalModelClosure,
+  loadGitHubTemplateClosure,
+  parseGitHubClinicalModelFileUrl,
+  parseGitHubTemplateFileUrl,
+  resolveClinicalModelRef,
 } from "./github_template_closure.ts";
 export {
+  type AnnotatedResource,
+  type AnnotationDocumentation,
+  annotationPathOf,
   buildDefinitionTree,
+  type BuildDefinitionTreeOptions,
+  countAnnotationKeysAtPath,
+  type DefinitionTreeNode,
   ensureResourceAnnotations,
-  getResourceDocumentation,
   getPathAnnotations,
-  setPathAnnotation,
-  removePathAnnotation,
-  removeAllPathAnnotations,
+  getResourceDocumentation,
+  joinConstraintPath,
   listAnnotatedPaths,
   pathHasAnnotations,
-  countAnnotationKeysAtPath,
-  joinConstraintPath,
+  removeAllPathAnnotations,
+  removePathAnnotation,
   resolveAnnotatedResource,
   serializeAnnotatedResource,
-  type AnnotationDocumentation,
-  type DefinitionTreeNode,
-  type AnnotatedResource,
+  setPathAnnotation,
 } from "./clinical_model_annotations.ts";
 export {
-  proposeL10nWrites,
+  type ApplyL10nResult,
   applyL10nWrites,
   generateL10nAnnotations,
-  type L10nSourceNode,
   type GenerateL10nOptions,
+  type L10nSourceNode,
   type L10nWrite,
   type L10nWriteKind,
-  type ApplyL10nResult,
+  proposeL10nWrites,
 } from "./l10n_annotation_generate.ts";
 export {
-  collectTemplateJsonOverlayIds,
+  annotationFamily,
+  type AnnotationPill,
+  documentationViewForTree,
+  familyFillColor,
+  familyLegendLabel,
+  flattenDefinitionTree,
+  KNOWN_FAMILIES,
+  l10nSourcesFromTree,
+  languageCode,
+  languageOutlineColor,
+  listFamilies,
+  listLanguageBags,
+  listResourceLanguages,
+  mergeDocumentation,
+  pillsAtPath,
+  UNPREFIXED_FAMILY,
+} from "./annotation_families.ts";
+export {
   collectTemplateJsonExternalRefs,
   collectTemplateJsonExternalRefsFromText,
+  collectTemplateJsonOverlayIds,
 } from "./template_json_dependencies.ts";
 export {
   CLINICAL_MODEL_EXTENSIONS,
   isClinicalModelPath,
   normalizeClinicalModelPath,
 } from "./clinical_model_paths.ts";
+
+export {
+  documentationToBetterAnnotations, patchTemplateJsonAnnotations, listTemplateJsonArchetypeIds,
+} from "./template_json_annotations.ts";
+export {
+  encodeUtf8Base64, decodeUtf8Base64, getGitHubFileContents, commitGitHubFile, getGitHubAuthenticatedUser,
+  type GitHubContentsFile, type GitHubCommitFileInput, type GitHubCommitFileResult,
+} from "./github_contents.ts";
+export type { ClinicalModelGitHubSource } from "./clinical_model_workspace.ts";

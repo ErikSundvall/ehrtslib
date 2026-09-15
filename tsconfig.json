@@ -26,7 +26,8 @@
     "generation/**/*.ts",
     "meta/**/*.ts",
     "spec/**/*.ts",
-    "test_data/tests/**/*.ts"
+    "test_data/tests/**/*.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules"

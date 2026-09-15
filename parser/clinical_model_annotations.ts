@@ -4,9 +4,7 @@
 
 import * as openehr_am from "../am/openehr_am.ts";
 import * as openehr_base from "../base/openehr_base.ts";
-import {
-  getAnnotationsDocumentation,
-} from "./aom_odin_sections.ts";
+import { getAnnotationsDocumentation } from "./aom_odin_sections.ts";
 import { ADL2Serializer } from "../generation/adl2_serializer.ts";
 import type { ArchetypeRepository } from "./legacy/archetype_repository.ts";
 import type { LoadFileResult } from "./legacy/archetype_repository.ts";
@@ -30,7 +28,31 @@ export interface DefinitionTreeNode {
   annotationKeyCount: number;
   isArchetypeRoot?: boolean;
   archetypeRef?: string;
+  /**
+   * Overlay archetype id when this node was grafted from a template overlay
+   * (Better AD `.t.json` keeps nested constraints and path annotations there).
+   */
+  overlayId?: string;
+  /** Path in the annotation owner's `documentation` map (overlay-relative when grafted). */
+  annotationPath?: string;
   children: DefinitionTreeNode[];
+}
+
+export interface BuildDefinitionTreeOptions {
+  /** Resolve `C_ARCHETYPE_ROOT.archetype_ref` (overlays / filled archetypes). */
+  resolveArchetype?: (
+    archetypeId: string,
+  ) => openehr_am.ARCHETYPE | undefined;
+}
+
+interface BuildTreeContext {
+  resolveArchetype?: BuildDefinitionTreeOptions["resolveArchetype"];
+  overlayId?: string;
+  overlayRootPath?: string;
+}
+
+export function annotationPathOf(node: DefinitionTreeNode): string {
+  return node.annotationPath ?? node.path;
 }
 
 export type AnnotatedResource =
@@ -173,10 +195,56 @@ function readAttributeChildren(
   return children ?? [];
 }
 
+function overlayRelativePath(
+  fullPath: string,
+  overlayRootPath: string | undefined,
+): string | undefined {
+  if (!overlayRootPath) return undefined;
+  if (fullPath === overlayRootPath) return "";
+  if (fullPath.startsWith(overlayRootPath)) {
+    return fullPath.slice(overlayRootPath.length);
+  }
+  return undefined;
+}
+
+function childrenOfComplex(
+  obj: openehr_am.C_COMPLEX_OBJECT,
+  parentPath: string,
+  doc: AnnotationDocumentation | undefined,
+  ctx: BuildTreeContext,
+): DefinitionTreeNode[] {
+  const children: DefinitionTreeNode[] = [];
+  for (const attr of readAttributes(obj)) {
+    const attrName = attr.rm_attribute_name ?? "attr";
+    for (const child of readAttributeChildren(attr)) {
+      const childPath = joinConstraintPath(
+        parentPath,
+        attrName,
+        child.node_id ?? "?",
+      );
+      children.push(buildObjectSubtree(child, childPath, doc, ctx));
+    }
+  }
+  return children;
+}
+
+function finishNode(
+  node: Omit<DefinitionTreeNode, "children"> & {
+    children: DefinitionTreeNode[];
+  },
+  ctx: BuildTreeContext,
+): DefinitionTreeNode {
+  const annotationPath = overlayRelativePath(node.path, ctx.overlayRootPath);
+  if (ctx.overlayId) node.overlayId = ctx.overlayId;
+  if (annotationPath !== undefined) node.annotationPath = annotationPath;
+  return node;
+}
+
 function buildObjectSubtree(
   obj: openehr_am.C_OBJECT,
   parentPath: string,
   doc: AnnotationDocumentation | undefined,
+  ctx: BuildTreeContext,
 ): DefinitionTreeNode {
   if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
     const path = parentPath;
@@ -185,7 +253,26 @@ function buildObjectSubtree(
     const label = ref
       ? `use ${ref}`
       : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    return {
+    let children = childrenOfComplex(obj, parentPath, doc, ctx);
+    if (!children.length && ref && ctx.resolveArchetype) {
+      const filled = ctx.resolveArchetype(ref);
+      const overlayDef = filled?.definition;
+      if (overlayDef) {
+        const overlayDoc = getResourceDocumentation(filled);
+        const overlayCtx: BuildTreeContext = {
+          resolveArchetype: ctx.resolveArchetype,
+          overlayId: filled.archetype_id?.value ?? ref,
+          overlayRootPath: path,
+        };
+        children = childrenOfComplex(
+          overlayDef,
+          parentPath,
+          overlayDoc,
+          overlayCtx,
+        );
+      }
+    }
+    return finishNode({
       id: path || "/root",
       path,
       label,
@@ -195,27 +282,16 @@ function buildObjectSubtree(
       annotationKeyCount: keyCount,
       isArchetypeRoot: true,
       archetypeRef: ref,
-      children: [],
-    };
+      children,
+    }, ctx);
   }
 
   if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
     const path = parentPath;
-    const keyCount = countAnnotationKeysAtPath(doc, path);
-    const children: DefinitionTreeNode[] = [];
-    for (const attr of readAttributes(obj)) {
-      const attrName = attr.rm_attribute_name ?? "attr";
-      for (const child of readAttributeChildren(attr)) {
-        const childPath = joinConstraintPath(
-          parentPath,
-          attrName,
-          child.node_id ?? "?",
-        );
-        children.push(buildObjectSubtree(child, childPath, doc));
-      }
-    }
+    const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
+    const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
     const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
-    return {
+    return finishNode({
       id: path || "/root",
       path,
       label,
@@ -223,14 +299,15 @@ function buildObjectSubtree(
       nodeId: obj.node_id,
       hasAnnotations: keyCount > 0,
       annotationKeyCount: keyCount,
-      children,
-    };
+      children: childrenOfComplex(obj, parentPath, doc, ctx),
+    }, ctx);
   }
 
   if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {
     const path = parentPath;
-    const keyCount = countAnnotationKeysAtPath(doc, path);
-    return {
+    const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
+    const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
+    return finishNode({
       id: path,
       path,
       label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
@@ -239,29 +316,33 @@ function buildObjectSubtree(
       hasAnnotations: keyCount > 0,
       annotationKeyCount: keyCount,
       children: [],
-    };
+    }, ctx);
   }
 
   const path = parentPath;
-  const keyCount = countAnnotationKeysAtPath(doc, path);
-  return {
+  const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
+  const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
+  return finishNode({
     id: path || "/unknown",
     path,
     label: "constraint",
     hasAnnotations: keyCount > 0,
     annotationKeyCount: keyCount,
     children: [],
-  };
+  }, ctx);
 }
 
 /** Build a hierarchical definition tree with per-node annotation flags. */
 export function buildDefinitionTree(
   resource: AnnotatedResource,
+  options: BuildDefinitionTreeOptions = {},
 ): DefinitionTreeNode | undefined {
   const definition = resource.definition;
   if (!definition) return undefined;
   const doc = getResourceDocumentation(resource);
-  return buildObjectSubtree(definition, "", doc);
+  return buildObjectSubtree(definition, "", doc, {
+    resolveArchetype: options.resolveArchetype,
+  });
 }
 
 /** Serialize an authored resource (archetype or template) to ADL2 text. */

@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta
       name="description"
-      content="TAAAT — Template and Archetype Annotation Tool for openEHR models"
+      content="TAAAT — Template &amp; Archetype Annotation Tool for openEHR models"
     >
     <title>TAAAT — Template &amp; Archetype Annotation Tool</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"
+    >
     <link rel="stylesheet" href="styles.css">
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"
+    ></script>
   </head>
   <body>
     <header class="app-header">
@@ -16,109 +24,164 @@
         <h1>TAAAT</h1>
         <p class="tagline">Template and Archetype Annotation Tool</p>
         <nav class="header-nav">
-          <a href="../">ehrtslib home</a>
-          <a href="../demo/">Format converter demo</a>
-          <a href="./prototype.html">UI prototypes</a>
-          <a href="https://specifications.openehr.org/" target="_blank" rel="noopener"
-          >openEHR specs</a>
+          <sl-button variant="text" size="small" href="../">ehrtslib home</sl-button>
+          <sl-button variant="text" size="small" href="../demo/">Format converter demo</sl-button>
+          <sl-button
+            variant="text"
+            size="small"
+            href="https://specifications.openehr.org/"
+            target="_blank"
+          >openEHR specs</sl-button>
         </nav>
       </div>
     </header>
 
     <section class="load-bar" aria-label="Load model">
-      <fieldset class="mode-fieldset">
-        <legend>Mode</legend>
-        <label class="mode-option">
-          <input type="radio" name="load-mode" value="template" checked>
-          Template
-        </label>
-        <label class="mode-option">
-          <input type="radio" name="load-mode" value="archetype">
-          Archetype
-        </label>
-      </fieldset>
-      <input
-        type="url"
+      <sl-radio-group id="load-mode" size="small" value="template">
+        <sl-radio-button value="template">Template</sl-radio-button>
+        <sl-radio-button value="archetype">Archetype</sl-radio-button>
+      </sl-radio-group>
+      <sl-input
         id="github-url"
-        class="url-input"
+        type="url"
+        size="small"
         spellcheck="false"
         autocomplete="off"
+        class="url-input"
+      ></sl-input>
+      <sl-button type="button" id="load-github-btn" variant="primary" size="small">
+        Load from GitHub
+      </sl-button>
+      <sl-button
+        type="button"
+        id="local-files-btn"
+        variant="default"
+        size="small"
+        title="Load .adl, .adls, or .t.json from disk"
       >
-      <button type="button" id="load-github-btn" class="btn btn-primary">Load from GitHub</button>
-      <label class="btn btn-secondary upload-label" title="Load .adl, .adls, or .t.json from disk">
         Local files
-        <input
-          type="file"
-          id="local-files"
-          accept=".adl,.adls,.t.json,application/json,text/plain"
-          multiple
-          hidden
-        >
-      </label>
-      <label class="file-label" for="file-select">File</label>
-      <select id="file-select" class="file-select" aria-label="Active file in workspace">
-        <option value="">—</option>
-      </select>
+      </sl-button>
+      <input
+        type="file"
+        id="local-files"
+        accept=".adl,.adls,.t.json,application/json,text/plain"
+        multiple
+        hidden
+      >
+      <sl-select
+        id="file-select"
+        size="small"
+        placeholder="—"
+        hoist
+        class="file-select"
+        aria-label="Active file in workspace"
+      >
+        <sl-option value="">—</sl-option>
+      </sl-select>
+      <sl-button type="button" id="download-file-btn" variant="default" size="small">
+        Download
+      </sl-button>
+      <sl-input
+        id="github-token"
+        type="password"
+        size="small"
+        password-toggle
+        placeholder="GitHub token (optional)"
+        class="token-input"
+        autocomplete="off"
+      ></sl-input>
+      <sl-button type="button" id="github-login-btn" variant="default" size="small">
+        GitHub login
+      </sl-button>
+      <sl-button type="button" id="github-commit-btn" variant="success" size="small" disabled>
+        Commit to GitHub
+      </sl-button>
+      <span id="github-user" class="github-user" hidden></span>
     </section>
 
-    <main class="workspace">
-      <aside class="panel tree-panel" aria-label="Definition tree">
-        <h2>Definition tree</h2>
-        <p class="hint">Nodes with annotations show a filled marker and count.</p>
+    <section class="facet-legend" id="facet-legend" aria-label="Annotation facets">
+      <div class="legend-block">
+        <h2>Languages</h2>
+        <p class="legend-hint">
+          From the openEHR template or archetype (original language, translations,
+          description details). Outline colour on pills. Click to show or hide a bag.
+        </p>
+        <div id="legend-languages" class="legend-pills"></div>
+      </div>
+      <div class="legend-block">
+        <h2>Families</h2>
+        <p class="legend-hint">Fill colour. Click to show/hide a key-prefix family.</p>
+        <div id="legend-families" class="legend-pills"></div>
+      </div>
+      <p class="legend-refs">
+        Families are dotted key prefixes such as
+        <code>L10n.</code>
+        (<a
+          href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760"
+          target="_blank"
+          rel="noopener"
+        >OPT multilingual workaround</a>)
+        and
+        <code>a.</code>
+        (<a
+          href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19"
+          target="_blank"
+          rel="noopener"
+        >UI-hint / automation annotations</a>).
+        Unprefixed keys (<code>comment</code>, <code>design note</code>, <code>ui</code>) stay in their own family.
+        Language bags cannot be added here — they follow the model's supported languages.
+      </p>
+    </section>
+
+    <sl-split-panel class="workspace" position="58">
+      <aside slot="start" class="panel tree-panel" aria-label="Definition tree">
+        <div class="tree-toolbar">
+          <h2>Definition tree</h2>
+          <sl-input
+            id="tree-filter"
+            size="small"
+            clearable
+            placeholder="Filter outline…"
+            autocomplete="off"
+            class="tree-filter"
+          ></sl-input>
+        </div>
+        <p class="hint">
+          Every node stays visible. Pills show annotation values from every enabled
+          language bag; extra pills wrap onto more rows.
+        </p>
         <div id="tree-container" class="tree-container"></div>
       </aside>
 
-      <section class="panel detail-panel" aria-label="Annotations">
-        <h2>Annotations</h2>
-        <p id="selected-path" class="selected-path"></p>
-        <div class="lang-row">
-          <label for="language-select">Language</label>
-          <select id="language-select">
-            <option value="en" selected>en</option>
-            <option value="sv">sv</option>
-            <option value="de">de</option>
-          </select>
-          <button type="button" id="add-annotation-btn" class="btn btn-secondary btn-sm">
-            Add row
-          </button>
-          <button type="button" id="download-adl-btn" class="btn btn-secondary btn-sm">
-            Download ADL
-          </button>
-        </div>
-        <table class="annotation-table">
-          <thead>
-            <tr>
-              <th>Key</th>
-              <th>Value</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="annotation-rows"></tbody>
-        </table>
-      </section>
-
-      <aside class="panel palette-panel" aria-label="Annotation palette">
-        <h2>Favourites</h2>
-        <p class="hint">Saved in this browser. Import/export JSON lists.</p>
-        <ul id="palette-list" class="palette-list"></ul>
-        <div class="palette-add">
-          <input type="text" id="palette-key" placeholder="Key" class="palette-input">
-          <input type="text" id="palette-value" placeholder="Value (optional)" class="palette-input">
-          <button type="button" id="palette-add-btn" class="btn btn-secondary btn-sm">Add</button>
-        </div>
-        <div class="palette-io">
-          <button type="button" id="palette-download-btn" class="btn btn-secondary btn-sm">
-            Export palette
-          </button>
-          <label class="btn btn-secondary btn-sm upload-label">
-            Import palette
+      <section slot="end" class="panel detail-panel" aria-label="Annotation families">
+        <header class="inspector-head">
+          <h2 id="selected-title">Annotations</h2>
+          <p id="selected-path" class="selected-path">Select a node in the tree</p>
+        </header>
+        <div id="family-accordions" class="family-accordions"></div>
+        <aside class="palette-panel" aria-label="Annotation palette">
+          <h3>Favourites</h3>
+          <p class="hint">Saved in this browser. Apply adds the key on the selected node in every enabled language bag.</p>
+          <ul id="palette-list" class="palette-list"></ul>
+          <div class="palette-add">
+            <sl-input id="palette-key" size="small" placeholder="Key" class="palette-input"></sl-input>
+            <sl-input id="palette-value" size="small" placeholder="Value (optional)" class="palette-input"></sl-input>
+            <sl-button type="button" id="palette-add-btn" variant="default" size="small">Add</sl-button>
+          </div>
+          <div class="palette-io">
+            <sl-button type="button" id="palette-download-btn" variant="default" size="small">
+              Export palette
+            </sl-button>
+            <sl-button type="button" id="palette-upload-btn" variant="default" size="small">
+              Import palette
+            </sl-button>
             <input type="file" id="palette-upload-input" accept="application/json,.json" hidden>
-          </label>
-        </div>
-      </aside>
-    </main>
+          </div>
+        </aside>
+      </section>
+    </sl-split-panel>
 
-    <footer id="status-bar" class="status-bar" role="status"></footer>
+    <sl-alert id="status-bar" variant="primary" open></sl-alert>
 
     <script type="module" src="bundle.js"></script>
   </body>

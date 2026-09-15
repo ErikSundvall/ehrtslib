@@ -35,6 +35,8 @@ export interface GitHubTemplateLoadProgress {
 
 export interface GitHubTemplateClosureResult {
   rootPath: string;
+  /** Parsed GitHub location of the root clinical-model file (for commit-back). */
+  source: GitHubFileRef;
   entries: GitHubFileEntry[];
   warnings: string[];
   fetched: number;
@@ -374,6 +376,7 @@ export async function loadGitHubClinicalModelClosure(
 
   return {
     rootPath: fileRef.path,
+    source: fileRef,
     entries: [...entries.values()],
     warnings,
     fetched: entries.size,

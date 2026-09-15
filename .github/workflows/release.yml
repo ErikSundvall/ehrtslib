@@ -1,0 +1,122 @@
+# Publish a GitHub Release and freeze a GitHub Pages subdirectory for demo / TAAAT.
+# Triggered by `deno task release` (annotated tag) or workflow_dispatch.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+      - "demo-v[0-9]*"
+      - "taaat-v[0-9]*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag (e.g. v0.1, demo-v0.2, taaat-v0.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Resolve release tag
+        id: rel
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          case "$TAG" in
+            demo-v*) echo "package=demo" >> "$GITHUB_OUTPUT"; echo "dist=docs/demo" >> "$GITHUB_OUTPUT" ;;
+            taaat-v*) echo "package=taaat" >> "$GITHUB_OUTPUT"; echo "dist=docs/taaat" >> "$GITHUB_OUTPUT" ;;
+            v*) echo "package=library" >> "$GITHUB_OUTPUT"; echo "dist=-" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Unknown tag $TAG" >&2; exit 1 ;;
+          esac
+
+      - name: Build demo
+        if: steps.rel.outputs.package == 'demo'
+        run: deno task build:demo
+
+      - name: Build TAAAT
+        if: steps.rel.outputs.package == 'taaat'
+        run: deno task build:taaat
+
+      - name: Assemble versioned GitHub Pages tree
+        run: >
+          deno run -A scripts/assemble-pages.ts release
+          "${{ steps.rel.outputs.package }}"
+          "${{ steps.rel.outputs.tag }}"
+          "${{ steps.rel.outputs.dist }}"
+          dist-pages
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-pages
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.rel.outputs.tag }}"
+          PKG="${{ steps.rel.outputs.package }}"
+          PAGES="https://eriksundvall.github.io/ehrtslib"
+          {
+            echo "## ${PKG} ${TAG}"
+            echo
+            case "$PKG" in
+              library)
+                echo "ehrtslib TypeScript library ${TAG#v}."
+                echo
+                echo "Import from this tag in Deno, or clone the tree at \`$TAG\`."
+                ;;
+              demo)
+                echo "Format converter demo frozen at [${PAGES}/${TAG}/](${PAGES}/${TAG}/)."
+                echo
+                echo "- **This version (immutable):** [${PAGES}/${TAG}/](${PAGES}/${TAG}/)"
+                echo "- **Bleeding edge (main):** [${PAGES}/demo/](${PAGES}/demo/)"
+                ;;
+              taaat)
+                echo "TAAAT (Template and Archetype Annotation Tool) frozen at [${PAGES}/${TAG}/](${PAGES}/${TAG}/)."
+                echo
+                echo "- **This version (immutable):** [${PAGES}/${TAG}/](${PAGES}/${TAG}/)"
+                echo "- **Bleeding edge (main):** [${PAGES}/taaat/](${PAGES}/taaat/)"
+                ;;
+            esac
+            echo
+            echo "Library, demo, and TAAAT have independent version numbers. Older webapp builds stay under their original subdirectory URLs."
+          } > /tmp/release-notes.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — notes only"
+          else
+            gh release create "$TAG" \
+              --title "$PKG $TAG" \
+              --notes-file /tmp/release-notes.md
+          fi

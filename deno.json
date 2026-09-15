@@ -1,4 +1,7 @@
 {
+  "name": "ehrtslib",
+  "version": "0.0.0",
+  "exports": "./mod.ts",
   "nodeModulesDir": "auto",
   "imports": {
     "@lezer/highlight": "npm:@lezer/highlight@^1.2.1",
@@ -13,7 +16,10 @@
     "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",
     "yaml": "npm:yaml@^2.3.4",
     "fflate": "npm:fflate@^0.8.2",
-    "d3": "npm:d3@7.9.0"
+    "d3": "npm:d3@7.9.0",
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/fs": "jsr:@std/fs@1",
+    "@std/path": "jsr:@std/path@1"
   },
   "tasks": {
     "test": "deno test --allow-read",
@@ -26,6 +32,8 @@
     "dev:demo": "deno run -A examples/demo-app/scripts/dev-server.ts",
     "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts",
     "dev:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
-    "proto:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts"
+    "proto:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
+    "release": "deno run -A scripts/release.ts",
+    "pages:assemble": "deno run -A scripts/assemble-pages.ts"
   }
 }

@@ -68,6 +68,7 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 | Demo unit tests | `deno test --allow-read --no-check examples/demo-app/src/converter.template.test.ts` |
 | Build static demo | `deno task build:demo` → output in `docs/demo/` |
 | Demo dev server | `deno task dev:demo` (or `cd examples/demo-app && deno task dev`) → **http://127.0.0.1:8000** |
+| Cut a library / demo / TAAAT release | `deno task release -- --package library\|demo\|taaat --version X.Y.Z` (see [`docs/maintainers/releases.md`](docs/maintainers/releases.md)) |
 | Recommended lib tests | `deno test test_data/tests/ --allow-read --no-check` |
 
 **Tests vs `deno task test`:** `deno task test` runs without `--no-check` and currently fails type-checking on many test files (~300 errors). Use `--no-check` as documented in [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md). Expect some failing cases in the full suite (fixture/archie benchmarks); demo and `deno task check` are reliable smoke checks.
@@ -80,8 +81,8 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 
 **Test import paths:** files under `test_data/tests/` import the library through ordinary relative paths to the repo root (`../../../parser/mod.ts` and so on). No symlinks or hardlinks under `test_data/` are needed any more — delete any left over from earlier checkouts.
 
-**Lint/format:** `deno fmt --check` and `deno lint` include generated `docs/demo/bundle.js` and report thousands of issues. Lint source only: `deno lint base rm am lang term parser serialization validation generation meta examples/demo-app/src test_data/tests`.
+**Lint/format:** `deno fmt --check` and `deno lint` include generated `docs/demo/bundle.js` and report thousands of issues. Lint source only: `deno lint base rm am lang term parser serialization validation generation meta examples/demo-app/src test_data/tests scripts`.
 
-**No Docker/DB:** This repo is a library + static demo; CI ([`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)) only builds the demo for GitHub Pages.
+**No Docker/DB:** This repo is a library + static demos. CI ([`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)) builds demo + TAAAT and wget-mirrors frozen `/demo-v*` / `/taaat-v*` subdirs so old webapp releases stay put. Cut releases with `deno task release` ([`docs/maintainers/releases.md`](docs/maintainers/releases.md)).
 
 **MCP:** Enable servers from [`.cursor/mcp.json`](.cursor/mcp.json) at [cursor.com/agents](https://cursor.com/agents) per [`docs/maintainers/cursor-cloud-setup.md`](docs/maintainers/cursor-cloud-setup.md) for openEHR modeling tasks.
