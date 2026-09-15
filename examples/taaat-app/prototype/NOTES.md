@@ -20,4 +20,4 @@ Switcher: `?variant=A|B|C`, ← → keys, floating bar. Run: `deno task proto:ta
 
 ## Verdict
 
-_Awaiting review: pick a variant (or mix, e.g. “outline from A, generate/diff from C”) then delete `examples/taaat-app/src/prototype/` and fold the winner into the live TAAAT page._
+**Verdict:** Outline explorer, now the live TAAAT page. Family accordion uses Shoelace `sl-details`; language bags come from the template/archetype, not a TAAAT “add bag” control. Earlier B/C variants remain at `prototype.html` for reference until deleted.

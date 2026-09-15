@@ -66,9 +66,17 @@ EHRTSLIB
                     class="cmd">ls -l</span></div>
             <div class="output ls">
                 <div><span class="perm">drwxr-xr-x</span> 2 user user <span class="date">4096</span> <a href="demo/"
-                        class="dir">demo/</a> <span class="date">— format converter</span></div>
+                        class="dir">demo/</a> <span class="date">— format converter (main / bleeding edge)</span></div>
                 <div><span class="perm">drwxr-xr-x</span> 2 user user <span class="date">4096</span> <a href="taaat/"
-                        class="dir">taaat/</a> <span class="date">— archetype &amp; template annotations</span></div>
+                        class="dir">taaat/</a> <span class="date">— archetype &amp; template annotations (main / bleeding edge)</span></div>
+            </div>
+        </div>
+
+        <div class="line">
+            <div class="prompt"><span class="user">user</span>@<span class="host">ehrtslib</span>:~$ <span
+                    class="cmd">cat versions.json</span></div>
+            <div class="output" id="versions-output">
+                <p>Released webapps stay at their original subdirectory URLs when newer builds ship.</p>
             </div>
         </div>
 
@@ -101,6 +109,35 @@ EHRTSLIB
                     class="cursor">_</span></div>
         </div>
     </main>
+    <script>
+      (function () {
+        var host = document.getElementById("versions-output");
+        if (!host) return;
+        function linkList(label, versions, recommended) {
+          if (!versions || !versions.length) {
+            return "<p>" + label + ": no frozen releases yet.</p>";
+          }
+          var items = versions.map(function (tag) {
+            var rec = tag === recommended ? " (recommended)" : "";
+            return '<a href="' + tag + '/">' + tag + "</a>" + rec;
+          }).join(" · ");
+          return "<p>" + label + ": " + items + "</p>";
+        }
+        fetch("versions.json", { cache: "no-store" })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (!data) return;
+            var html = "";
+            if (data.library && data.library.current) {
+              html += "<p>library current: " + data.library.current + "</p>";
+            }
+            html += linkList("demo", data.demo && data.demo.versions, data.demo && data.demo.recommended);
+            html += linkList("TAAAT", data.taaat && data.taaat.versions, data.taaat && data.taaat.recommended);
+            host.innerHTML = html;
+          })
+          .catch(function () { /* keep the static hint */ });
+      })();
+    </script>
 </body>
 
 </html>
