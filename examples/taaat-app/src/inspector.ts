@@ -18,12 +18,14 @@ import {
   familyFillColor,
   familyLegendLabel,
   flattenDefinitionTree,
+  isLanguageIndependentFamily,
   KNOWN_FAMILIES,
   L10N_FAMILY,
   l10nSourcesFromTree,
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
+  orderLanguagesWithOriginal,
   pillsAtPath,
   qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
@@ -83,6 +85,8 @@ export interface InspectorOptions {
   doc: AnnotationDocumentation;
   languages: string[];
   enabledLanguages: Set<string>;
+  /** Authored original language of the active template/archetype. */
+  originalLanguage?: string;
   state: InspectorState;
   familyStore: FamilyStore;
   onChange: () => void;
@@ -98,7 +102,7 @@ function familyHelp(family: string): string {
     return `Better/AD workaround for repeated renamed nodes in ADL 1.4 OPT: key <code>L10n.{lang}</code> = translated occurrence name. Generation copies those keys into every language bag and never touches the definition tree. <a href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760" target="_blank" rel="noopener">discourse #2760</a>`;
   }
   if (family === "a.") {
-    return `Automation / UI-hint namespace (letter “a” from “automation”). Favourites below follow the tobacco-use examples on <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>, <code>a.rule.adl2</code>, Cambio- and Better-style rules.`;
+    return `Automation / UI-hint namespace (letter “a” from “automation”). These keys are language-independent: maintain them in the original language, then use <strong>Copy original to…</strong> when an export needs another language bag. Favourites below follow the tobacco-use examples on <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>, <code>a.rule.adl2</code>, Cambio- and Better-style rules.`;
   }
   if (family === UNPREFIXED_FAMILY) {
     return `Keys without a dotted prefix (<code>comment</code>, <code>design note</code>, <code>ui</code>, …). Favourites for this family are stored in this browser.`;
@@ -135,12 +139,38 @@ function defaultKeyForFamily(family: string, languages: string[]): string {
   return `${family}key`;
 }
 
+function displayBagsForFamily(
+  family: string,
+  languages: string[],
+  enabledLanguages: Set<string>,
+  originalLanguage?: string,
+): string[] {
+  let bags = languages.filter((l) => enabledLanguages.has(l));
+  const logic = isLanguageIndependentFamily(family);
+  if (logic && originalLanguage) {
+    if (!bags.includes(originalLanguage)) bags = [originalLanguage, ...bags];
+  }
+  bags = orderLanguagesWithOriginal(bags, originalLanguage);
+  if (!bags.length) {
+    bags = orderLanguagesWithOriginal(languages, originalLanguage);
+  }
+  return bags;
+}
+
 function renderRowsForFamily(
   opts: InspectorOptions,
   family: string,
   body: HTMLElement,
 ): void {
-  const { resource, node, doc, languages, onChange } = opts;
+  const {
+    resource,
+    node,
+    doc,
+    languages,
+    enabledLanguages,
+    originalLanguage,
+    onChange,
+  } = opts;
   if (!resource || !node) {
     const hint = document.createElement("p");
     hint.className = "muted";
@@ -149,18 +179,30 @@ function renderRowsForFamily(
     return;
   }
   const path = annotationPathOf(node);
-  const writeBags = writeBagsFor(opts);
+  const displayBags = displayBagsForFamily(
+    family,
+    languages,
+    enabledLanguages,
+    originalLanguage,
+  );
+  const logicFamily = isLanguageIndependentFamily(family);
+  const addBags = logicFamily && originalLanguage
+    ? [originalLanguage]
+    : displayBags;
   const pills = pillsAtPath(doc, path).filter((p) => p.family === family);
   const keys = [...new Set(pills.map((p) => p.key))];
 
   const table = document.createElement("table");
   table.className = "family-table";
   table.innerHTML = `<thead><tr><th>Key</th>${
-    writeBags.map((l) =>
-      `<th><span class="lang-swatch" style="border-color:${
+    displayBags.map((l) => {
+      const isOrig = Boolean(originalLanguage && l === originalLanguage);
+      const origClass = isOrig ? " is-original" : "";
+      const title = isOrig ? ' title="Original language"' : "";
+      return `<th${title}><span class="lang-swatch${origClass}" style="border-color:${
         languageOutlineColor(l)
-      }"></span>${escapeHtml(l)}</th>`
-    ).join("")
+      }"></span>${escapeHtml(l)}</th>`;
+    }).join("")
   }<th></th></tr></thead><tbody></tbody>`;
   const tbody = table.querySelector("tbody")!;
 
@@ -175,13 +217,21 @@ function renderRowsForFamily(
     keyTd.appendChild(keyInp);
     tr.appendChild(keyTd);
     const values: Record<string, SlInput> = {};
-    for (const lang of writeBags) {
+    for (const lang of displayBags) {
       const td = document.createElement("td");
+      const copyOnly = Boolean(
+        logicFamily && originalLanguage && lang !== originalLanguage,
+      );
       const inp = slEl<SlInput>("sl-input", {
         size: "small",
         value: getPathAnnotations(doc, path, lang)[key] ?? "",
         style: `border-left: 3px solid ${languageOutlineColor(lang)}`,
       });
+      if (copyOnly) {
+        (inp as HTMLElement & { disabled: boolean }).disabled = true;
+        inp.title =
+          "Language-independent key — edit in the original language, then copy";
+      }
       values[lang] = inp;
       td.appendChild(inp);
       tr.appendChild(td);
@@ -192,10 +242,12 @@ function renderRowsForFamily(
       size: "small",
       text: "×",
     });
-    del.title = "Remove this key from enabled language bags";
+    del.title = logicFamily
+      ? "Remove this key from the original language and any copied bags"
+      : "Remove this key from enabled language bags";
     del.addEventListener("click", () => {
       const k = keyInp.value.trim() || key;
-      for (const lang of writeBags) {
+      for (const lang of displayBags) {
         removePathAnnotation(resource, path, k, lang);
       }
       onChange();
@@ -203,15 +255,21 @@ function renderRowsForFamily(
     delTd.appendChild(del);
     tr.appendChild(delTd);
 
+    const writableBags = (bags: string[]) =>
+      bags.filter((lang) =>
+        !(logicFamily && originalLanguage && lang !== originalLanguage)
+      );
+
     const commit = () => {
       const nextKey = keyInp.value.trim();
       if (!nextKey) return;
+      const mutate = writableBags(displayBags);
       if (nextKey !== key) {
-        for (const lang of writeBags) {
+        for (const lang of displayBags) {
           removePathAnnotation(resource, path, key, lang);
         }
       }
-      for (const lang of writeBags) {
+      for (const lang of mutate) {
         setPathAnnotation(
           resource,
           path,
@@ -223,7 +281,10 @@ function renderRowsForFamily(
       onChange();
     };
     keyInp.addEventListener("sl-change", commit);
-    for (const inp of Object.values(values)) {
+    for (const [lang, inp] of Object.entries(values)) {
+      if (logicFamily && originalLanguage && lang !== originalLanguage) {
+        continue;
+      }
       inp.addEventListener("sl-change", commit);
     }
     tbody.appendChild(tr);
@@ -245,18 +306,16 @@ function renderRowsForFamily(
     text: "Add key",
   });
   addBtn.addEventListener("click", () => {
-    if (!writeBags.length) return;
+    if (!addBags.length) return;
     const defaultKey = defaultKeyForFamily(family, languages);
     let next = defaultKey;
     let n = 2;
     while (
-      writeBags.some((l) =>
-        getPathAnnotations(doc, path, l)[next] !== undefined
-      )
+      addBags.some((l) => getPathAnnotations(doc, path, l)[next] !== undefined)
     ) {
       next = `${defaultKey}-${n++}`;
     }
-    setOnEnabledBags(resource, path, next, "", writeBags);
+    setOnEnabledBags(resource, path, next, "", addBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -396,8 +455,9 @@ function renderFamilyFavourites(
   heading.textContent = "Favourites";
   const hint = document.createElement("p");
   hint.className = "muted";
-  hint.textContent =
-    "Saved in this browser. Apply writes the key (and the selected value, if any) onto the selected node in every enabled language bag.";
+  hint.textContent = isLanguageIndependentFamily(family)
+    ? "Saved in this browser. Apply writes onto the original-language bag; copy to other bags with Copy original to…"
+    : "Saved in this browser. Apply writes the key (and the selected value, if any) onto the selected node in every enabled language bag.";
   box.append(heading, hint);
 
   const entries = favouritesForFamily(opts.familyStore, family);
@@ -409,7 +469,9 @@ function renderFamilyFavourites(
   }
 
   const canApply = Boolean(opts.resource && opts.node);
-  const writeBags = writeBagsFor(opts);
+  const writeBags = isLanguageIndependentFamily(family) && opts.originalLanguage
+    ? [opts.originalLanguage]
+    : writeBagsFor(opts);
 
   for (const entry of entries) {
     const row = document.createElement("div");

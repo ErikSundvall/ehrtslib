@@ -109,9 +109,11 @@ export {
   familyFillColor,
   familyLegendLabel,
   flattenDefinitionTree,
+  isLanguageIndependentFamily,
   KNOWN_FAMILIES,
   L10N_FAMILY,
   l10nSourcesFromTree,
+  LANGUAGE_INDEPENDENT_FAMILIES,
   languageCode,
   languageOutlineColor,
   listFamilies,
@@ -119,10 +121,21 @@ export {
   listResourceLanguages,
   mergeDocumentation,
   normalizeFamilyPrefix,
+  orderLanguagesWithOriginal,
+  originalLanguageOf,
   pillsAtPath,
   qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
 } from "./annotation_families.ts";
+export {
+  type AnnotationCopyItem,
+  applyCopyItems,
+  applyCopyItemsToDocumentation,
+  copyItemId,
+  defaultCopySelection,
+  groupCopyItemsByFamily,
+  listCopyItemsFromDocumentation,
+} from "./copy_original_annotations.ts";
 export {
   collectTemplateJsonExternalRefs,
   collectTemplateJsonExternalRefsFromText,

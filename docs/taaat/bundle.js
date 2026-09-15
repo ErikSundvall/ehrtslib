@@ -17674,6 +17674,10 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
 // parser/annotation_families.ts
 var UNPREFIXED_FAMILY = "(unprefixed)";
 var KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY];
+var LANGUAGE_INDEPENDENT_FAMILIES = ["a."];
+function isLanguageIndependentFamily(family) {
+  return LANGUAGE_INDEPENDENT_FAMILIES.includes(family);
+}
 var L10N_FAMILY = "L10n.";
 function normalizeFamilyPrefix(raw) {
   const t2 = raw.trim();
@@ -17773,6 +17777,32 @@ function listResourceLanguages(resource) {
       addLang(set, k2);
   }
   return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function originalLanguageOf(resource) {
+  if (!resource || typeof resource !== "object")
+    return void 0;
+  const rec = resource;
+  const direct = languageCode(rec.original_language) ?? languageCode(rec.originalLanguage);
+  if (direct)
+    return direct;
+  const desc = rec.description;
+  if (desc && typeof desc === "object") {
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      const fromOther = languageCode(
+        other.original_language
+      );
+      if (fromOther)
+        return fromOther;
+    }
+  }
+  return void 0;
+}
+function orderLanguagesWithOriginal(languages, original) {
+  const rest = languages.filter((l2) => l2 !== original).sort((a2, b2) => a2.localeCompare(b2));
+  if (original && languages.includes(original))
+    return [original, ...rest];
+  return rest;
 }
 function listLanguageBags(doc, extra = []) {
   const set = /* @__PURE__ */ new Set();
@@ -17924,6 +17954,77 @@ function familyLegendLabel(family) {
   if (family === UNPREFIXED_FAMILY)
     return "unprefixed";
   return family;
+}
+
+// parser/copy_original_annotations.ts
+function copyItemId(item) {
+  return `${item.ownerId ?? ""}
+${item.path}
+${item.key}`;
+}
+function listCopyItemsFromDocumentation(doc, sourceLanguage, targetLanguage, ownerId) {
+  if (!doc || !sourceLanguage || !targetLanguage)
+    return [];
+  if (sourceLanguage === targetLanguage)
+    return [];
+  const src = doc[sourceLanguage];
+  if (!src)
+    return [];
+  const items = [];
+  for (const path of Object.keys(src).sort((a2, b2) => a2.localeCompare(b2))) {
+    const keys = src[path] ?? {};
+    for (const key of Object.keys(keys).sort((a2, b2) => a2.localeCompare(b2))) {
+      const value = keys[key] ?? "";
+      if (!value.trim())
+        continue;
+      const existing = doc[targetLanguage]?.[path]?.[key];
+      items.push({
+        path,
+        key,
+        family: annotationFamily(key),
+        value,
+        ownerId,
+        existingTargetValue: existing
+      });
+    }
+  }
+  return items;
+}
+function groupCopyItemsByFamily(items) {
+  const byFamily = /* @__PURE__ */ new Map();
+  for (const item of items) {
+    const list = byFamily.get(item.family) ?? [];
+    list.push(item);
+    byFamily.set(item.family, list);
+  }
+  const known = listFamilies(void 0);
+  const families = [
+    ...known.filter((f2) => byFamily.has(f2)),
+    ...[...byFamily.keys()].filter((f2) => !known.includes(f2)).sort()
+  ];
+  return families.map((family) => ({
+    family,
+    items: byFamily.get(family) ?? []
+  }));
+}
+function defaultCopySelection(items) {
+  return new Set(
+    items.filter((item) => isLanguageIndependentFamily(item.family)).map(copyItemId)
+  );
+}
+function applyCopyItems(resource, items, targetLanguage) {
+  if (!targetLanguage)
+    return 0;
+  for (const item of items) {
+    setPathAnnotation(
+      resource,
+      item.path,
+      item.key,
+      item.value,
+      targetLanguage
+    );
+  }
+  return items.length;
 }
 
 // examples/taaat-app/src/family_store.ts
@@ -18234,11 +18335,15 @@ function visiblePills(pills, enabledLanguages2, enabledFamilies2) {
     (p2) => enabledLanguages2.has(p2.language) && enabledFamilies2.has(p2.family)
   );
 }
-function pillHtml(pill) {
+function pillHtml(pill, originalLanguage) {
   const fill = familyFillColor(pill.family);
   const outline = languageOutlineColor(pill.language);
-  const title = `${pill.language} / ${pill.key} = ${pill.value}`;
-  return `<span class="ann-pill" title="${escapeHtml(title)}" style="background:${fill};border-color:${outline}">
+  const isOriginal = Boolean(
+    originalLanguage && pill.language === originalLanguage
+  );
+  const title = `${pill.language} / ${pill.key} = ${pill.value}${isOriginal ? " (original language)" : ""}`;
+  const origClass = isOriginal ? " is-original" : "";
+  return `<span class="ann-pill${origClass}" title="${escapeHtml(title)}" style="background:${fill};border-color:${outline}">
     <span class="ann-pill-lang">${escapeHtml(pill.language)}</span>
     <span class="ann-pill-key">${escapeHtml(pill.key)}</span>
     <span class="ann-pill-val">${escapeHtml(pill.value)}</span>
@@ -18278,7 +18383,7 @@ function renderOutline(options) {
         <span class="outline-name">${escapeHtml(node.label)}</span>
         ${rm}
       </span>
-      <span class="outline-pills">${pills.map(pillHtml).join("")}</span>
+      <span class="outline-pills">${pills.map((p2) => pillHtml(p2, options.originalLanguage)).join("")}</span>
     `;
     row.addEventListener("click", () => onSelect(node));
     list.appendChild(row);
@@ -18427,7 +18532,7 @@ function familyHelp(family) {
     return `Better/AD workaround for repeated renamed nodes in ADL 1.4 OPT: key <code>L10n.{lang}</code> = translated occurrence name. Generation copies those keys into every language bag and never touches the definition tree. <a href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760" target="_blank" rel="noopener">discourse #2760</a>`;
   }
   if (family === "a.") {
-    return `Automation / UI-hint namespace (letter \u201Ca\u201D from \u201Cautomation\u201D). Favourites below follow the tobacco-use examples on <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>, <code>a.rule.adl2</code>, Cambio- and Better-style rules.`;
+    return `Automation / UI-hint namespace (letter \u201Ca\u201D from \u201Cautomation\u201D). These keys are language-independent: maintain them in the original language, then use <strong>Copy original to\u2026</strong> when an export needs another language bag. Favourites below follow the tobacco-use examples on <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>, <code>a.rule.adl2</code>, Cambio- and Better-style rules.`;
   }
   if (family === UNPREFIXED_FAMILY) {
     return `Keys without a dotted prefix (<code>comment</code>, <code>design note</code>, <code>ui</code>, \u2026). Favourites for this family are stored in this browser.`;
@@ -18454,8 +18559,29 @@ function defaultKeyForFamily(family, languages) {
     return "a.id";
   return `${family}key`;
 }
+function displayBagsForFamily(family, languages, enabledLanguages2, originalLanguage) {
+  let bags = languages.filter((l2) => enabledLanguages2.has(l2));
+  const logic = isLanguageIndependentFamily(family);
+  if (logic && originalLanguage) {
+    if (!bags.includes(originalLanguage))
+      bags = [originalLanguage, ...bags];
+  }
+  bags = orderLanguagesWithOriginal(bags, originalLanguage);
+  if (!bags.length) {
+    bags = orderLanguagesWithOriginal(languages, originalLanguage);
+  }
+  return bags;
+}
 function renderRowsForFamily(opts, family, body) {
-  const { resource, node, doc, languages, onChange } = opts;
+  const {
+    resource,
+    node,
+    doc,
+    languages,
+    enabledLanguages: enabledLanguages2,
+    originalLanguage,
+    onChange
+  } = opts;
   if (!resource || !node) {
     const hint = document.createElement("p");
     hint.className = "muted";
@@ -18464,14 +18590,24 @@ function renderRowsForFamily(opts, family, body) {
     return;
   }
   const path = annotationPathOf(node);
-  const writeBags = writeBagsFor(opts);
+  const displayBags = displayBagsForFamily(
+    family,
+    languages,
+    enabledLanguages2,
+    originalLanguage
+  );
+  const logicFamily = isLanguageIndependentFamily(family);
+  const addBags = logicFamily && originalLanguage ? [originalLanguage] : displayBags;
   const pills = pillsAtPath(doc, path).filter((p2) => p2.family === family);
   const keys = [...new Set(pills.map((p2) => p2.key))];
   const table = document.createElement("table");
   table.className = "family-table";
-  table.innerHTML = `<thead><tr><th>Key</th>${writeBags.map(
-    (l2) => `<th><span class="lang-swatch" style="border-color:${languageOutlineColor(l2)}"></span>${escapeHtml2(l2)}</th>`
-  ).join("")}<th></th></tr></thead><tbody></tbody>`;
+  table.innerHTML = `<thead><tr><th>Key</th>${displayBags.map((l2) => {
+    const isOrig = Boolean(originalLanguage && l2 === originalLanguage);
+    const origClass = isOrig ? " is-original" : "";
+    const title = isOrig ? ' title="Original language"' : "";
+    return `<th${title}><span class="lang-swatch${origClass}" style="border-color:${languageOutlineColor(l2)}"></span>${escapeHtml2(l2)}</th>`;
+  }).join("")}<th></th></tr></thead><tbody></tbody>`;
   const tbody = table.querySelector("tbody");
   const addRow = (key) => {
     const tr2 = document.createElement("tr");
@@ -18484,13 +18620,20 @@ function renderRowsForFamily(opts, family, body) {
     keyTd.appendChild(keyInp);
     tr2.appendChild(keyTd);
     const values = {};
-    for (const lang of writeBags) {
+    for (const lang of displayBags) {
       const td = document.createElement("td");
+      const copyOnly = Boolean(
+        logicFamily && originalLanguage && lang !== originalLanguage
+      );
       const inp = slEl("sl-input", {
         size: "small",
         value: getPathAnnotations(doc, path, lang)[key] ?? "",
         style: `border-left: 3px solid ${languageOutlineColor(lang)}`
       });
+      if (copyOnly) {
+        inp.disabled = true;
+        inp.title = "Language-independent key \u2014 edit in the original language, then copy";
+      }
       values[lang] = inp;
       td.appendChild(inp);
       tr2.appendChild(td);
@@ -18501,26 +18644,30 @@ function renderRowsForFamily(opts, family, body) {
       size: "small",
       text: "\xD7"
     });
-    del.title = "Remove this key from enabled language bags";
+    del.title = logicFamily ? "Remove this key from the original language and any copied bags" : "Remove this key from enabled language bags";
     del.addEventListener("click", () => {
       const k2 = keyInp.value.trim() || key;
-      for (const lang of writeBags) {
+      for (const lang of displayBags) {
         removePathAnnotation(resource, path, k2, lang);
       }
       onChange();
     });
     delTd.appendChild(del);
     tr2.appendChild(delTd);
+    const writableBags = (bags) => bags.filter(
+      (lang) => !(logicFamily && originalLanguage && lang !== originalLanguage)
+    );
     const commit = () => {
       const nextKey = keyInp.value.trim();
       if (!nextKey)
         return;
+      const mutate = writableBags(displayBags);
       if (nextKey !== key) {
-        for (const lang of writeBags) {
+        for (const lang of displayBags) {
           removePathAnnotation(resource, path, key, lang);
         }
       }
-      for (const lang of writeBags) {
+      for (const lang of mutate) {
         setPathAnnotation(
           resource,
           path,
@@ -18532,7 +18679,10 @@ function renderRowsForFamily(opts, family, body) {
       onChange();
     };
     keyInp.addEventListener("sl-change", commit);
-    for (const inp of Object.values(values)) {
+    for (const [lang, inp] of Object.entries(values)) {
+      if (logicFamily && originalLanguage && lang !== originalLanguage) {
+        continue;
+      }
       inp.addEventListener("sl-change", commit);
     }
     tbody.appendChild(tr2);
@@ -18553,17 +18703,15 @@ function renderRowsForFamily(opts, family, body) {
     text: "Add key"
   });
   addBtn.addEventListener("click", () => {
-    if (!writeBags.length)
+    if (!addBags.length)
       return;
     const defaultKey = defaultKeyForFamily(family, languages);
     let next = defaultKey;
     let n2 = 2;
-    while (writeBags.some(
-      (l2) => getPathAnnotations(doc, path, l2)[next] !== void 0
-    )) {
+    while (addBags.some((l2) => getPathAnnotations(doc, path, l2)[next] !== void 0)) {
       next = `${defaultKey}-${n2++}`;
     }
-    setOnEnabledBags(resource, path, next, "", writeBags);
+    setOnEnabledBags(resource, path, next, "", addBags);
     onChange();
   });
   body.appendChild(addBtn);
@@ -18688,7 +18836,7 @@ function renderFamilyFavourites(opts, family, body) {
   heading.textContent = "Favourites";
   const hint = document.createElement("p");
   hint.className = "muted";
-  hint.textContent = "Saved in this browser. Apply writes the key (and the selected value, if any) onto the selected node in every enabled language bag.";
+  hint.textContent = isLanguageIndependentFamily(family) ? "Saved in this browser. Apply writes onto the original-language bag; copy to other bags with Copy original to\u2026" : "Saved in this browser. Apply writes the key (and the selected value, if any) onto the selected node in every enabled language bag.";
   box.append(heading, hint);
   const entries = favouritesForFamily(opts.familyStore, family);
   if (!entries.length) {
@@ -18698,7 +18846,7 @@ function renderFamilyFavourites(opts, family, body) {
     box.appendChild(empty);
   }
   const canApply = Boolean(opts.resource && opts.node);
-  const writeBags = writeBagsFor(opts);
+  const writeBags = isLanguageIndependentFamily(family) && opts.originalLanguage ? [opts.originalLanguage] : writeBagsFor(opts);
   for (const entry of entries) {
     const row = document.createElement("div");
     row.className = "fav-row";
@@ -18847,6 +18995,218 @@ function renderInspector(opts) {
     details.append(summary, body);
     host.appendChild(details);
   }
+}
+
+// examples/taaat-app/src/copy-dialog.ts
+function escapeHtml3(s2) {
+  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function itemLabel(item, target, showOwner) {
+  const path = item.path || "(definition root)";
+  const owner = showOwner && item.ownerId ? `${item.ownerId} \xB7 ` : "";
+  let extra = "";
+  if (item.existingTargetValue != null) {
+    extra = item.existingTargetValue === item.value ? ` \u2014 ${target} already matches` : ` \u2014 ${target} currently \u201C${item.existingTargetValue}\u201D`;
+  }
+  return `${owner}${item.key} @ ${path} = ${item.value}${extra}`;
+}
+function mountCopyOriginalDialog(host) {
+  const dialog = slEl("sl-dialog", {
+    className: "copy-original-dialog"
+  });
+  dialog.id = "copy-original-dialog";
+  dialog.label = "Copy original-language annotations";
+  const body = document.createElement("div");
+  body.className = "copy-dialog-body";
+  dialog.appendChild(body);
+  const cancel = slEl("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Cancel"
+  });
+  cancel.slot = "footer";
+  const apply = slEl("sl-button", {
+    variant: "primary",
+    size: "small",
+    text: "Copy selected"
+  });
+  apply.slot = "footer";
+  apply.id = "copy-original-apply";
+  dialog.append(cancel, apply);
+  let items = [];
+  let selected = /* @__PURE__ */ new Set();
+  let target = "";
+  const setAll = (ids, on2) => {
+    for (const id of ids) {
+      if (on2)
+        selected.add(id);
+      else
+        selected.delete(id);
+    }
+  };
+  const paint = () => {
+    const source = host.sourceLanguage() ?? "";
+    const targets = host.targetLanguages();
+    if (!target || !targets.includes(target))
+      target = targets[0] ?? "";
+    items = target ? host.collectItems(target) : [];
+    const knownIds = new Set(items.map(copyItemId));
+    selected = new Set([...selected].filter((id) => knownIds.has(id)));
+    body.innerHTML = "";
+    const lead = document.createElement("p");
+    lead.className = "copy-dialog-lead";
+    lead.innerHTML = `Copy from original language <strong>${escapeHtml3(source || "?")}</strong> into another bag. Language-independent families such as <code>a.</code> are selected by default; natural-language keys stay unchecked.`;
+    body.appendChild(lead);
+    const targetRow = document.createElement("div");
+    targetRow.className = "copy-target-row";
+    const targetLabel = document.createElement("label");
+    targetLabel.textContent = "Target language";
+    const select = slEl("sl-select", {
+      size: "small",
+      hoist: true,
+      className: "copy-target-select"
+    });
+    select.id = "copy-original-target";
+    select.value = target;
+    for (const lang of targets) {
+      const opt = document.createElement("sl-option");
+      opt.value = lang;
+      opt.textContent = lang;
+      select.appendChild(opt);
+    }
+    select.addEventListener("sl-change", () => {
+      target = slValue(select);
+      selected = defaultCopySelection(host.collectItems(target));
+      paint();
+    });
+    targetRow.append(targetLabel, select);
+    body.appendChild(targetRow);
+    const globalBtns = document.createElement("div");
+    globalBtns.className = "copy-select-bar";
+    const allBtn = slEl("sl-button", {
+      size: "small",
+      variant: "default",
+      text: "Select all"
+    });
+    allBtn.id = "copy-select-all";
+    allBtn.addEventListener("click", () => {
+      setAll(items.map(copyItemId), true);
+      paint();
+    });
+    const noneBtn = slEl("sl-button", {
+      size: "small",
+      variant: "default",
+      text: "Select none"
+    });
+    noneBtn.id = "copy-select-none";
+    noneBtn.addEventListener("click", () => {
+      selected.clear();
+      paint();
+    });
+    const count = document.createElement("span");
+    count.className = "muted";
+    count.textContent = `${selected.size} of ${items.length} selected`;
+    globalBtns.append(allBtn, noneBtn, count);
+    body.appendChild(globalBtns);
+    if (!targets.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No other language bags on this model.";
+      body.appendChild(empty);
+      apply.disabled = true;
+      return;
+    }
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "The original language bag has no annotation values to copy.";
+      body.appendChild(empty);
+      apply.disabled = true;
+      return;
+    }
+    apply.disabled = selected.size === 0;
+    const showOwner = new Set(items.map((i2) => i2.ownerId ?? "")).size > 1;
+    const groups = groupCopyItemsByFamily(items);
+    for (const group of groups) {
+      const details = document.createElement("sl-details");
+      details.className = "copy-family";
+      details.open = true;
+      const ids = group.items.map(copyItemId);
+      const nOn = ids.filter((id) => selected.has(id)).length;
+      const summary = document.createElement("span");
+      summary.slot = "summary";
+      summary.className = "copy-family-summary";
+      summary.innerHTML = `<span>${escapeHtml3(familyLegendLabel(group.family))}</span><span class="copy-family-count">${nOn}/${ids.length}</span>`;
+      details.appendChild(summary);
+      const famBar = document.createElement("div");
+      famBar.className = "copy-select-bar copy-family-bar";
+      const famAll = slEl("sl-button", {
+        size: "small",
+        variant: "text",
+        text: "All in family"
+      });
+      famAll.dataset.family = group.family;
+      famAll.addEventListener("click", () => {
+        setAll(ids, true);
+        paint();
+      });
+      const famNone = slEl("sl-button", {
+        size: "small",
+        variant: "text",
+        text: "None in family"
+      });
+      famNone.dataset.family = group.family;
+      famNone.addEventListener("click", () => {
+        setAll(ids, false);
+        paint();
+      });
+      famBar.append(famAll, famNone);
+      details.appendChild(famBar);
+      const list = document.createElement("div");
+      list.className = "copy-item-list";
+      for (const item of group.items) {
+        const id = copyItemId(item);
+        const cb = slEl("sl-checkbox", {
+          checked: selected.has(id),
+          text: itemLabel(item, target, showOwner)
+        });
+        cb.dataset.copyId = id;
+        cb.addEventListener("sl-change", () => {
+          if (cb.checked)
+            selected.add(id);
+          else
+            selected.delete(id);
+          apply.disabled = selected.size === 0;
+          count.textContent = `${selected.size} of ${items.length} selected`;
+          const on2 = ids.filter((fid) => selected.has(fid)).length;
+          summary.querySelector(".copy-family-count").textContent = `${on2}/${ids.length}`;
+        });
+        list.appendChild(cb);
+      }
+      details.appendChild(list);
+      body.appendChild(details);
+    }
+  };
+  cancel.addEventListener("click", () => dialog.hide());
+  apply.addEventListener("click", () => {
+    const chosen = items.filter((item) => selected.has(copyItemId(item)));
+    if (!target || !chosen.length)
+      return;
+    host.applyItems(target, chosen);
+    dialog.hide();
+  });
+  document.body.appendChild(dialog);
+  return {
+    dialog,
+    open: () => {
+      target = host.targetLanguages()[0] ?? "";
+      items = target ? host.collectItems(target) : [];
+      selected = defaultCopySelection(items);
+      paint();
+      dialog.label = `Copy original (${host.sourceLanguage() ?? "?"}) annotations`;
+      dialog.show();
+    }
+  };
 }
 
 // parser/github_contents.ts
@@ -19049,6 +19409,93 @@ function persistResourceToWorkspace() {
   workspace.persistAnnotatedFile(activeFilePath);
   updateGitHubActionState();
 }
+function resourcesForCopy() {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  const add = (res, id) => {
+    if (!res || seen.has(res))
+      return;
+    seen.add(res);
+    out.push({ id, resource: res });
+  };
+  add(activeResource, activeFilePath ?? "active");
+  const tree = currentTree();
+  if (tree) {
+    for (const node of flattenDefinitionTree(tree)) {
+      add(
+        ownerForNode(node),
+        node.overlayId ?? activeFilePath ?? "active"
+      );
+    }
+  }
+  return out;
+}
+function collectCopyItems(targetLanguage) {
+  const source = currentOriginalLanguage();
+  if (!source)
+    return [];
+  const items = [];
+  for (const { id, resource } of resourcesForCopy()) {
+    items.push(
+      ...listCopyItemsFromDocumentation(
+        getResourceDocumentation(resource),
+        source,
+        targetLanguage,
+        id
+      )
+    );
+  }
+  return items;
+}
+function applyCopySelection(targetLanguage, items) {
+  const byOwner = /* @__PURE__ */ new Map();
+  for (const item of items) {
+    const id = item.ownerId ?? "";
+    const list = byOwner.get(id) ?? [];
+    list.push(item);
+    byOwner.set(id, list);
+  }
+  for (const { id, resource } of resourcesForCopy()) {
+    const group = byOwner.get(id) ?? [];
+    if (group.length)
+      applyCopyItems(resource, group, targetLanguage);
+  }
+  const persistPaths = /* @__PURE__ */ new Set();
+  if (activeFilePath)
+    persistPaths.add(activeFilePath);
+  for (const file of listEditableFiles()) {
+    const loaded = workspace.getFile(file.path);
+    const res = resolveAnnotatedResource(
+      workspace.repository,
+      loaded?.loadResult
+    );
+    if (res && resourcesForCopy().some((r2) => r2.resource === res)) {
+      persistPaths.add(file.path);
+    }
+  }
+  for (const path of persistPaths)
+    workspace.persistAnnotatedFile(path);
+  updateGitHubActionState();
+  refreshWorkspace();
+  setStatus(
+    `Copied ${items.length} annotation${items.length === 1 ? "" : "s"} from ${currentOriginalLanguage() ?? "?"} to ${targetLanguage}`
+  );
+}
+function setupCopyOriginal() {
+  const mounted = mountCopyOriginalDialog({
+    sourceLanguage: () => currentOriginalLanguage(),
+    targetLanguages: () => workspaceLanguages().filter((l2) => l2 !== currentOriginalLanguage()),
+    collectItems: collectCopyItems,
+    applyItems: applyCopySelection
+  });
+  $2("copy-original-btn")?.addEventListener("click", () => {
+    if (!currentOriginalLanguage()) {
+      setStatus("Load a model with an original language first.", true);
+      return;
+    }
+    mounted.open();
+  });
+}
 function resetFacets() {
   enabledLanguages.clear();
   enabledFamilies.clear();
@@ -19070,8 +19517,14 @@ function modelLanguages() {
   }
   return [...set].sort((a2, b2) => a2.localeCompare(b2));
 }
+function currentOriginalLanguage() {
+  return originalLanguageOf(activeResource);
+}
 function workspaceLanguages() {
-  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+  return orderLanguagesWithOriginal(
+    listLanguageBags(workspaceDocumentation(), modelLanguages()),
+    currentOriginalLanguage()
+  );
 }
 function syncFacets() {
   for (const l2 of workspaceLanguages()) {
@@ -19126,15 +19579,17 @@ function workspaceDocumentation() {
 }
 function renderLegend() {
   syncFacets();
+  const original = currentOriginalLanguage();
   const langHost = $2("legend-languages");
   const famHost = $2("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
     for (const lang of workspaceLanguages()) {
+      const isOriginal = Boolean(original && lang === original);
       const btn = slEl("sl-button", {
         size: "small",
         pill: true,
-        className: "legend-chip legend-lang",
+        className: `legend-chip legend-lang${isOriginal ? " is-original" : ""}`,
         text: lang
       });
       btn.setAttribute(
@@ -19142,7 +19597,7 @@ function renderLegend() {
         enabledLanguages.has(lang) ? "true" : "false"
       );
       btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
-      btn.title = `Language bag ${lang} \u2014 from the model's supported languages`;
+      btn.title = isOriginal ? `Original language ${lang} \u2014 thicker outline; logic/UI keys are maintained here` : `Language bag ${lang} \u2014 from the model's supported languages`;
       btn.addEventListener("click", () => {
         if (enabledLanguages.has(lang) && enabledLanguages.size === 1)
           return;
@@ -19154,6 +19609,12 @@ function renderLegend() {
       });
       langHost.appendChild(btn);
     }
+  }
+  const copyBtn = $2("copy-original-btn");
+  if (copyBtn) {
+    const targets = workspaceLanguages().filter((l2) => l2 !== original);
+    copyBtn.disabled = !original || targets.length === 0;
+    copyBtn.title = original ? `Copy annotations from original language ${original} into another bag` : "Load a model with an original language and at least one translation";
   }
   if (famHost) {
     famHost.innerHTML = "";
@@ -19221,6 +19682,7 @@ function refreshTree() {
     filterText,
     enabledLanguages,
     enabledFamilies,
+    originalLanguage: currentOriginalLanguage(),
     onSelect: (node) => {
       selectedNode = node;
       refreshWorkspace();
@@ -19286,6 +19748,7 @@ function refreshInspector() {
     doc: bag,
     languages: workspaceLanguages(),
     enabledLanguages,
+    originalLanguage: currentOriginalLanguage(),
     state: inspectorState,
     familyStore,
     resourceForNode: (node) => ownerForNode(node) ?? owner,
@@ -19629,6 +20092,7 @@ function initApp() {
   setupGitHubAuth();
   setupFilter();
   setupLocalFiles();
+  setupCopyOriginal();
   refreshWorkspace();
   updateGitHubActionState();
 }
@@ -19640,7 +20104,8 @@ if (typeof document !== "undefined") {
     getActiveResource: () => activeResource,
     getSelectedNode: () => selectedNode,
     exportAnnotatedFile: (path) => workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
-    getGitHubSource: () => workspace.getGitHubSource()
+    getGitHubSource: () => workspace.getGitHubSource(),
+    originalLanguage: () => currentOriginalLanguage()
   };
 }
 export {

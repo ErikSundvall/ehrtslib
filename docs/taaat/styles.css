@@ -136,6 +136,13 @@ body {
   align-items: center;
 }
 
+.legend-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 sl-button.legend-chip::part(base) {
   font-size: 0.75rem;
   font-weight: 600;
@@ -146,6 +153,11 @@ sl-button.legend-lang::part(base) {
   border: 2px solid var(--lang-outline, #64748b);
   background: #fff;
   color: var(--text);
+}
+
+sl-button.legend-lang.is-original::part(base) {
+  border-width: 4px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lang-outline, #64748b) 35%, transparent);
 }
 
 sl-button.legend-family::part(base) {
@@ -298,6 +310,10 @@ sl-split-panel.workspace {
   line-height: 1.35;
 }
 
+.ann-pill.is-original {
+  border-width: 4px;
+}
+
 .ann-pill-lang {
   font-weight: 700;
   text-transform: lowercase;
@@ -422,6 +438,12 @@ sl-details.family-acc::part(header) {
   border-radius: 999px;
   margin-right: 0.25rem;
   vertical-align: middle;
+}
+
+.lang-swatch.is-original {
+  border-width: 4px;
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .l10n-generate {
@@ -553,4 +575,66 @@ sl-details.family-acc::part(header) {
   font-size: 0.8rem;
   color: var(--sl-color-neutral-600);
   white-space: nowrap;
+}
+
+sl-dialog.copy-original-dialog::part(panel) {
+  max-width: 42rem;
+  width: min(42rem, 96vw);
+}
+
+.copy-dialog-lead {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.copy-target-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.copy-target-select {
+  min-width: 8rem;
+}
+
+.copy-select-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.copy-family {
+  margin-bottom: 0.4rem;
+}
+
+.copy-family-summary {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+}
+
+.copy-family-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.copy-family-bar {
+  margin: 0.15rem 0 0.25rem;
+}
+
+.copy-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.copy-item-list sl-checkbox {
+  font-size: 0.78rem;
 }

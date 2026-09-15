@@ -10,6 +10,12 @@ export type SlSelect = HTMLElement & { value: string };
 export type SlRadioGroup = HTMLElement & { value: string };
 export type SlCheckbox = HTMLElement & { checked: boolean };
 export type SlDetails = HTMLElement & { open: boolean };
+export type SlDialog = HTMLElement & {
+  open: boolean;
+  label: string;
+  show: () => void;
+  hide: () => void;
+};
 export type SlAlert = HTMLElement & {
   open: boolean;
   variant: string;

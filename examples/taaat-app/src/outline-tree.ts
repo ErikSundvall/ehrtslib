@@ -27,6 +27,8 @@ export interface OutlineRenderOptions {
   filterText: string;
   enabledLanguages: Set<string>;
   enabledFamilies: Set<string>;
+  /** Resource original language — thicker pill outline. */
+  originalLanguage?: string;
   onSelect: (node: DefinitionTreeNode) => void;
 }
 
@@ -53,11 +55,17 @@ function visiblePills(
   );
 }
 
-function pillHtml(pill: AnnotationPill): string {
+function pillHtml(pill: AnnotationPill, originalLanguage?: string): string {
   const fill = familyFillColor(pill.family);
   const outline = languageOutlineColor(pill.language);
-  const title = `${pill.language} / ${pill.key} = ${pill.value}`;
-  return `<span class="ann-pill" title="${
+  const isOriginal = Boolean(
+    originalLanguage && pill.language === originalLanguage,
+  );
+  const title = `${pill.language} / ${pill.key} = ${pill.value}${
+    isOriginal ? " (original language)" : ""
+  }`;
+  const origClass = isOriginal ? " is-original" : "";
+  return `<span class="ann-pill${origClass}" title="${
     escapeHtml(title)
   }" style="background:${fill};border-color:${outline}">
     <span class="ann-pill-lang">${escapeHtml(pill.language)}</span>
@@ -102,7 +110,9 @@ export function renderOutline(options: OutlineRenderOptions): void {
         <span class="outline-name">${escapeHtml(node.label)}</span>
         ${rm}
       </span>
-      <span class="outline-pills">${pills.map(pillHtml).join("")}</span>
+      <span class="outline-pills">${
+      pills.map((p) => pillHtml(p, options.originalLanguage)).join("")
+    }</span>
     `;
     row.addEventListener("click", () => onSelect(node));
     list.appendChild(row);

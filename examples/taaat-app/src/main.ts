@@ -15,6 +15,7 @@ import {
 import {
   familyFillColor,
   familyLegendLabel,
+  flattenDefinitionTree,
   KNOWN_FAMILIES,
   languageOutlineColor,
   listFamilies,
@@ -22,8 +23,15 @@ import {
   listResourceLanguages,
   mergeDocumentation,
   normalizeFamilyPrefix,
+  orderLanguagesWithOriginal,
+  originalLanguageOf,
   UNPREFIXED_FAMILY,
 } from "../../../parser/annotation_families.ts";
+import {
+  type AnnotationCopyItem,
+  applyCopyItems,
+  listCopyItemsFromDocumentation,
+} from "../../../parser/copy_original_annotations.ts";
 import {
   addExtraFamily,
   exportFamilyStoreJson,
@@ -53,6 +61,7 @@ import {
   type SlSelect,
   slValue,
 } from "./sl.ts";
+import { mountCopyOriginalDialog } from "./copy-dialog.ts";
 
 import {
   commitGitHubFile,
@@ -172,6 +181,98 @@ function persistResourceToWorkspace(): void {
   updateGitHubActionState();
 }
 
+function resourcesForCopy(): { id: string; resource: AnnotatedResource }[] {
+  const out: { id: string; resource: AnnotatedResource }[] = [];
+  const seen = new Set<AnnotatedResource>();
+  const add = (res: AnnotatedResource | undefined, id: string) => {
+    if (!res || seen.has(res)) return;
+    seen.add(res);
+    out.push({ id, resource: res });
+  };
+  add(activeResource, activeFilePath ?? "active");
+  const tree = currentTree();
+  if (tree) {
+    for (const node of flattenDefinitionTree(tree)) {
+      add(
+        ownerForNode(node),
+        node.overlayId ?? activeFilePath ?? "active",
+      );
+    }
+  }
+  return out;
+}
+
+function collectCopyItems(targetLanguage: string): AnnotationCopyItem[] {
+  const source = currentOriginalLanguage();
+  if (!source) return [];
+  const items: AnnotationCopyItem[] = [];
+  for (const { id, resource } of resourcesForCopy()) {
+    items.push(
+      ...listCopyItemsFromDocumentation(
+        getResourceDocumentation(resource),
+        source,
+        targetLanguage,
+        id,
+      ),
+    );
+  }
+  return items;
+}
+
+function applyCopySelection(
+  targetLanguage: string,
+  items: AnnotationCopyItem[],
+): void {
+  const byOwner = new Map<string, AnnotationCopyItem[]>();
+  for (const item of items) {
+    const id = item.ownerId ?? "";
+    const list = byOwner.get(id) ?? [];
+    list.push(item);
+    byOwner.set(id, list);
+  }
+  for (const { id, resource } of resourcesForCopy()) {
+    const group = byOwner.get(id) ?? [];
+    if (group.length) applyCopyItems(resource, group, targetLanguage);
+  }
+  const persistPaths = new Set<string>();
+  if (activeFilePath) persistPaths.add(activeFilePath);
+  for (const file of listEditableFiles()) {
+    const loaded = workspace.getFile(file.path);
+    const res = resolveAnnotatedResource(
+      workspace.repository,
+      loaded?.loadResult,
+    );
+    if (res && resourcesForCopy().some((r) => r.resource === res)) {
+      persistPaths.add(file.path);
+    }
+  }
+  for (const path of persistPaths) workspace.persistAnnotatedFile(path);
+  updateGitHubActionState();
+  refreshWorkspace();
+  setStatus(
+    `Copied ${items.length} annotation${items.length === 1 ? "" : "s"} from ${
+      currentOriginalLanguage() ?? "?"
+    } to ${targetLanguage}`,
+  );
+}
+
+function setupCopyOriginal(): void {
+  const mounted = mountCopyOriginalDialog({
+    sourceLanguage: () => currentOriginalLanguage(),
+    targetLanguages: () =>
+      workspaceLanguages().filter((l) => l !== currentOriginalLanguage()),
+    collectItems: collectCopyItems,
+    applyItems: applyCopySelection,
+  });
+  $("copy-original-btn")?.addEventListener("click", () => {
+    if (!currentOriginalLanguage()) {
+      setStatus("Load a model with an original language first.", true);
+      return;
+    }
+    mounted.open();
+  });
+}
+
 function resetFacets(): void {
   enabledLanguages.clear();
   enabledFamilies.clear();
@@ -192,8 +293,15 @@ function modelLanguages(): string[] {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
+function currentOriginalLanguage(): string | undefined {
+  return originalLanguageOf(activeResource);
+}
+
 function workspaceLanguages(): string[] {
-  return listLanguageBags(workspaceDocumentation(), modelLanguages());
+  return orderLanguagesWithOriginal(
+    listLanguageBags(workspaceDocumentation(), modelLanguages()),
+    currentOriginalLanguage(),
+  );
 }
 
 function syncFacets(): void {
@@ -254,15 +362,17 @@ function workspaceDocumentation(): AnnotationDocumentation {
 
 function renderLegend(): void {
   syncFacets();
+  const original = currentOriginalLanguage();
   const langHost = $("legend-languages");
   const famHost = $("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
     for (const lang of workspaceLanguages()) {
+      const isOriginal = Boolean(original && lang === original);
       const btn = slEl<SlButton>("sl-button", {
         size: "small",
         pill: true,
-        className: "legend-chip legend-lang",
+        className: `legend-chip legend-lang${isOriginal ? " is-original" : ""}`,
         text: lang,
       });
       btn.setAttribute(
@@ -270,7 +380,9 @@ function renderLegend(): void {
         enabledLanguages.has(lang) ? "true" : "false",
       );
       btn.style.setProperty("--lang-outline", languageOutlineColor(lang));
-      btn.title = `Language bag ${lang} — from the model's supported languages`;
+      btn.title = isOriginal
+        ? `Original language ${lang} — thicker outline; logic/UI keys are maintained here`
+        : `Language bag ${lang} — from the model's supported languages`;
       btn.addEventListener("click", () => {
         if (enabledLanguages.has(lang) && enabledLanguages.size === 1) return;
         if (enabledLanguages.has(lang)) enabledLanguages.delete(lang);
@@ -279,6 +391,14 @@ function renderLegend(): void {
       });
       langHost.appendChild(btn);
     }
+  }
+  const copyBtn = $("copy-original-btn") as SlButton | null;
+  if (copyBtn) {
+    const targets = workspaceLanguages().filter((l) => l !== original);
+    copyBtn.disabled = !original || targets.length === 0;
+    copyBtn.title = original
+      ? `Copy annotations from original language ${original} into another bag`
+      : "Load a model with an original language and at least one translation";
   }
   if (famHost) {
     famHost.innerHTML = "";
@@ -349,6 +469,7 @@ function refreshTree(): void {
     filterText,
     enabledLanguages,
     enabledFamilies,
+    originalLanguage: currentOriginalLanguage(),
     onSelect: (node) => {
       selectedNode = node;
       refreshWorkspace();
@@ -414,6 +535,7 @@ function refreshInspector(): void {
     doc: bag,
     languages: workspaceLanguages(),
     enabledLanguages,
+    originalLanguage: currentOriginalLanguage(),
     state: inspectorState,
     familyStore,
     resourceForNode: (node) => ownerForNode(node) ?? owner,
@@ -790,6 +912,7 @@ export function initApp(): void {
   setupGitHubAuth();
   setupFilter();
   setupLocalFiles();
+  setupCopyOriginal();
   refreshWorkspace();
   updateGitHubActionState();
 }
@@ -804,5 +927,6 @@ if (typeof document !== "undefined") {
     exportAnnotatedFile: (path?: string) =>
       workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
     getGitHubSource: () => workspace.getGitHubSource(),
+    originalLanguage: () => currentOriginalLanguage(),
   };
 }

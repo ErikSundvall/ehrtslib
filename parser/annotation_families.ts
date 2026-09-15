@@ -18,6 +18,17 @@ export const UNPREFIXED_FAMILY = "(unprefixed)";
 /** Always listed in the TAAAT legend, even when unused on the current model. */
 export const KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY] as const;
 
+/**
+ * Families whose values are logic/UI, not natural-language text.
+ * Authored in the resource original language; copy into another bag only
+ * when an export will use that bag as primary.
+ */
+export const LANGUAGE_INDEPENDENT_FAMILIES = ["a."] as const;
+
+export function isLanguageIndependentFamily(family: string): boolean {
+  return (LANGUAGE_INDEPENDENT_FAMILIES as readonly string[]).includes(family);
+}
+
 export const L10N_FAMILY = "L10n.";
 
 /** Turn `fhir`, `fhir.` or `(unprefixed)` into a canonical family id. */
@@ -136,6 +147,41 @@ export function listResourceLanguages(resource: unknown): string[] {
     for (const k of Object.keys(term as object)) addLang(set, k);
   }
   return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Authored original language of an archetype or template (`original_language`
+ * / `originalLanguage`, then description other-details). Not translations.
+ */
+export function originalLanguageOf(resource: unknown): string | undefined {
+  if (!resource || typeof resource !== "object") return undefined;
+  const rec = resource as Record<string, unknown>;
+  const direct = languageCode(rec.original_language) ??
+    languageCode(rec.originalLanguage);
+  if (direct) return direct;
+  const desc = rec.description as Record<string, unknown> | undefined;
+  if (desc && typeof desc === "object") {
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      const fromOther = languageCode(
+        (other as Record<string, unknown>).original_language,
+      );
+      if (fromOther) return fromOther;
+    }
+  }
+  return undefined;
+}
+
+/** Original language first, then the remaining codes alphabetically. */
+export function orderLanguagesWithOriginal(
+  languages: string[],
+  original?: string,
+): string[] {
+  const rest = languages
+    .filter((l) => l !== original)
+    .sort((a, b) => a.localeCompare(b));
+  if (original && languages.includes(original)) return [original, ...rest];
+  return rest;
 }
 
 export function listLanguageBags(
