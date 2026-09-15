@@ -16,6 +16,7 @@ Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 | Archie test-data attribution | [archie-attribution.md](archie-attribution.md) |
 | Veredictum CNF fixture attribution | [veredictum-attribution.md](veredictum-attribution.md) |
 | Cursor Cloud / MCP | [cursor-cloud-setup.md](cursor-cloud-setup.md) |
+| Library / demo / TAAAT releases | [releases.md](releases.md) |
 | Agent runtime notes | [../../AGENTS.md](../../AGENTS.md) |
 | Test fixtures | [../../test_data/README.md](../../test_data/README.md) |
 | Offline vendor specs | [../vendor/](../vendor/) |
