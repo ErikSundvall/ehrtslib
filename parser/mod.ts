@@ -130,3 +130,12 @@ export {
   isClinicalModelPath,
   normalizeClinicalModelPath,
 } from "./clinical_model_paths.ts";
+
+export {
+  documentationToBetterAnnotations, patchTemplateJsonAnnotations, listTemplateJsonArchetypeIds,
+} from "./template_json_annotations.ts";
+export {
+  encodeUtf8Base64, decodeUtf8Base64, getGitHubFileContents, commitGitHubFile, getGitHubAuthenticatedUser,
+  type GitHubContentsFile, type GitHubCommitFileInput, type GitHubCommitFileResult,
+} from "./github_contents.ts";
+export type { ClinicalModelGitHubSource } from "./clinical_model_workspace.ts";

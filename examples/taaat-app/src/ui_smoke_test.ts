@@ -35,6 +35,9 @@ Deno.test({
 
     await page.waitForFunction(() => !!customElements.get("sl-button"));
     await page.waitForSelector("#load-github-btn");
+    await page.waitForSelector("#download-file-btn");
+    await page.waitForSelector("#github-commit-btn");
+    await page.waitForSelector("#github-token");
     await page.waitForSelector("#tree-container");
     await page.waitForSelector("#facet-legend");
     assertEquals(await page.locator("#add-language").count(), 0);

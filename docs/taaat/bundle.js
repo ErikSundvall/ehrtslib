@@ -16932,140 +16932,13 @@ async function loadGitHubClinicalModelClosure(fileUrl, options) {
   });
   return {
     rootPath: fileRef.path,
+    source: fileRef,
     entries: [...entries.values()],
     warnings,
     fetched: entries.size,
     skipped
   };
 }
-
-// parser/clinical_model_workspace.ts
-var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
-  workspace = new TemplateWorkspace();
-  dirtyPaths = /* @__PURE__ */ new Set();
-  get repository() {
-    return this.workspace.repository;
-  }
-  getWarnings() {
-    return this.workspace.getWarnings();
-  }
-  listFiles() {
-    return this.workspace.listFiles().map((f2) => ({
-      ...f2,
-      dirty: this.dirtyPaths.has(f2.path)
-    }));
-  }
-  getFile(path) {
-    const f2 = this.workspace.getFile(path);
-    if (!f2)
-      return void 0;
-    return { ...f2, dirty: this.dirtyPaths.has(f2.path) };
-  }
-  getActivePath() {
-    return this.workspace.getActivePath();
-  }
-  setActivePath(path) {
-    this.workspace.setActivePath(path);
-  }
-  getGenerationRootPath() {
-    return this.workspace.getGenerationRootPath();
-  }
-  setGenerationRootPath(path) {
-    this.workspace.setGenerationRootPath(path);
-  }
-  /** Underlying workspace (e.g. for demo converter integration). */
-  get templateWorkspace() {
-    return this.workspace;
-  }
-  addFile(path, content) {
-    const result = this.workspace.addFile(path, content);
-    this.dirtyPaths.delete(normalizeClinicalModelPath(path));
-    return result;
-  }
-  addFiles(entries) {
-    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
-    return results;
-  }
-  /**
-   * Update editor content and re-parse into the repository.
-   * Marks the file dirty until replaced by `addFile` from external source.
-   */
-  updateFileContent(path, content) {
-    const normalized = normalizeClinicalModelPath(path);
-    this.dirtyPaths.add(normalized);
-    return this.workspace.addFile(normalized, content);
-  }
-  /** Current text for download / save (edited content if dirty). */
-  exportFile(path) {
-    return this.workspace.getFile(path)?.content;
-  }
-  exportEntries() {
-    return this.workspace.listFiles().map((f2) => ({
-      path: f2.path,
-      content: f2.content
-    }));
-  }
-  /** Build a ZIP-friendly map path → content. */
-  exportAsMap() {
-    const out = {};
-    for (const { path, content } of this.exportEntries()) {
-      out[path] = content;
-    }
-    return out;
-  }
-  clear() {
-    this.workspace.clear();
-    this.dirtyPaths.clear();
-  }
-  static suggestGenerationRoot(files) {
-    return TemplateWorkspace.suggestGenerationRoot(files);
-  }
-  resolveOperational(options) {
-    return this.workspace.resolveOperational(options);
-  }
-  /**
-   * Load a filtered file tree from a public GitHub repo branch (read-only).
-   */
-  async loadFromGitHub(spec, options) {
-    const ref = typeof spec === "string" ? parseGitHubRepoSpec(spec) : spec;
-    const tree = await loadGitHubRepoTree(ref, options);
-    const loadResults = this.addFiles(tree.entries);
-    if (!this.getGenerationRootPath()) {
-      const suggested = _ClinicalModelWorkspace.suggestGenerationRoot(
-        this.listFiles()
-      );
-      if (suggested)
-        this.setGenerationRootPath(suggested);
-    }
-    return { ...tree, loadResults };
-  }
-  /**
-   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
-   * nested templates, archetypes, and parent archetype chains from the same branch.
-   */
-  async loadFromGitHubTemplateUrl(templateUrl, options) {
-    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
-  }
-  /**
-   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
-   * recursively fetch dependencies from the same branch.
-   */
-  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
-    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
-    const loadResults = this.addFiles(closure.entries);
-    this.setGenerationRootPath(closure.rootPath);
-    this.setActivePath(closure.rootPath);
-    return { ...closure, loadResults };
-  }
-  /** Load entries extracted from a ZIP (same filter as GitHub loader). */
-  loadFromZipEntries(entries) {
-    const batch = entries.filter((e2) => isClinicalModelPath(e2.path)).map((e2) => ({
-      path: normalizeClinicalModelPath(e2.path),
-      content: e2.content
-    }));
-    return this.addFiles(batch);
-  }
-};
 
 // parser/odin_serializer.ts
 function escapeString(s2) {
@@ -17532,6 +17405,271 @@ function resolveAnnotatedResource(repository, loadResult) {
       return repository.get(id) ?? repository.getTemplate(id);
   }
 }
+
+// parser/template_json_annotations.ts
+function archetypeIdFromJsonField(value) {
+  if (typeof value === "string" && value.trim())
+    return value.trim();
+  if (value && typeof value === "object") {
+    const v2 = value.value;
+    if (typeof v2 === "string" && v2.trim())
+      return v2.trim();
+  }
+  return void 0;
+}
+function documentationToBetterAnnotations(documentation) {
+  if (!documentation)
+    return void 0;
+  const languages = Object.keys(documentation);
+  if (!languages.length)
+    return void 0;
+  let keyCount = 0;
+  for (const lang of languages) {
+    const paths = documentation[lang] ?? {};
+    for (const path of Object.keys(paths)) {
+      keyCount += Object.keys(paths[path] ?? {}).length;
+    }
+  }
+  if (keyCount === 0)
+    return void 0;
+  return {
+    "@type": "RESOURCE_ANNOTATIONS",
+    documentation: structuredClone(documentation)
+  };
+}
+function applyAnnotationsToNode(node, documentation) {
+  const next = documentationToBetterAnnotations(documentation);
+  if (next)
+    node.annotations = next;
+  else
+    delete node.annotations;
+}
+function patchTemplateJsonAnnotations(originalText, documentationByArchetypeId) {
+  const root = JSON.parse(originalText);
+  const rootId = archetypeIdFromJsonField(
+    root.archetypeId ?? root.archetype_id
+  );
+  if (rootId && documentationByArchetypeId.has(rootId)) {
+    applyAnnotationsToNode(root, documentationByArchetypeId.get(rootId));
+  }
+  const overlays = root.templateOverlays ?? root.template_overlays;
+  if (Array.isArray(overlays)) {
+    for (const raw of overlays) {
+      if (!raw || typeof raw !== "object")
+        continue;
+      const overlay = raw;
+      const id = archetypeIdFromJsonField(
+        overlay.archetypeId ?? overlay.archetype_id
+      );
+      if (!id || !documentationByArchetypeId.has(id))
+        continue;
+      applyAnnotationsToNode(overlay, documentationByArchetypeId.get(id));
+    }
+  }
+  return `${JSON.stringify(root, null, 2)}
+`;
+}
+function listTemplateJsonArchetypeIds(text) {
+  const root = JSON.parse(text);
+  const ids = [];
+  const rootId = archetypeIdFromJsonField(
+    root.archetypeId ?? root.archetype_id
+  );
+  if (rootId)
+    ids.push(rootId);
+  const overlays = root.templateOverlays ?? root.template_overlays;
+  if (Array.isArray(overlays)) {
+    for (const raw of overlays) {
+      if (!raw || typeof raw !== "object")
+        continue;
+      const id = archetypeIdFromJsonField(
+        raw.archetypeId ?? raw.archetype_id
+      );
+      if (id)
+        ids.push(id);
+    }
+  }
+  return ids;
+}
+
+// parser/clinical_model_workspace.ts
+var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
+  workspace = new TemplateWorkspace();
+  dirtyPaths = /* @__PURE__ */ new Set();
+  githubSource;
+  get repository() {
+    return this.workspace.repository;
+  }
+  getWarnings() {
+    return this.workspace.getWarnings();
+  }
+  listFiles() {
+    return this.workspace.listFiles().map((f2) => ({
+      ...f2,
+      dirty: this.dirtyPaths.has(f2.path)
+    }));
+  }
+  getFile(path) {
+    const f2 = this.workspace.getFile(path);
+    if (!f2)
+      return void 0;
+    return { ...f2, dirty: this.dirtyPaths.has(f2.path) };
+  }
+  getActivePath() {
+    return this.workspace.getActivePath();
+  }
+  setActivePath(path) {
+    this.workspace.setActivePath(path);
+  }
+  getGenerationRootPath() {
+    return this.workspace.getGenerationRootPath();
+  }
+  setGenerationRootPath(path) {
+    this.workspace.setGenerationRootPath(path);
+  }
+  /** Underlying workspace (e.g. for demo converter integration). */
+  get templateWorkspace() {
+    return this.workspace;
+  }
+  addFile(path, content) {
+    const result = this.workspace.addFile(path, content);
+    this.dirtyPaths.delete(normalizeClinicalModelPath(path));
+    return result;
+  }
+  addFiles(entries) {
+    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
+    return results;
+  }
+  /**
+   * Update editor content and re-parse into the repository.
+   * Marks the file dirty until replaced by `addFile` from external source.
+   */
+  updateFileContent(path, content) {
+    const normalized = normalizeClinicalModelPath(path);
+    this.dirtyPaths.add(normalized);
+    return this.workspace.addFile(normalized, content);
+  }
+  /** Current text for download / save (edited content if dirty). */
+  exportFile(path) {
+    return this.workspace.getFile(path)?.content;
+  }
+  exportEntries() {
+    return this.workspace.listFiles().map((f2) => ({
+      path: f2.path,
+      content: f2.content
+    }));
+  }
+  /** Build a ZIP-friendly map path → content. */
+  exportAsMap() {
+    const out = {};
+    for (const { path, content } of this.exportEntries()) {
+      out[path] = content;
+    }
+    return out;
+  }
+  clear() {
+    this.workspace.clear();
+    this.dirtyPaths.clear();
+    this.githubSource = void 0;
+  }
+  static suggestGenerationRoot(files) {
+    return TemplateWorkspace.suggestGenerationRoot(files);
+  }
+  resolveOperational(options) {
+    return this.workspace.resolveOperational(options);
+  }
+  /**
+   * Load a filtered file tree from a public GitHub repo branch (read-only).
+   */
+  async loadFromGitHub(spec, options) {
+    const ref = typeof spec === "string" ? parseGitHubRepoSpec(spec) : spec;
+    const tree = await loadGitHubRepoTree(ref, options);
+    const loadResults = this.addFiles(tree.entries);
+    if (!this.getGenerationRootPath()) {
+      const suggested = _ClinicalModelWorkspace.suggestGenerationRoot(
+        this.listFiles()
+      );
+      if (suggested)
+        this.setGenerationRootPath(suggested);
+    }
+    return { ...tree, loadResults };
+  }
+  /**
+   * Load a single `.t.json` from a GitHub blob/raw URL and recursively fetch
+   * nested templates, archetypes, and parent archetype chains from the same branch.
+   */
+  async loadFromGitHubTemplateUrl(templateUrl, options) {
+    return this.loadFromGitHubClinicalModelUrl(templateUrl, options);
+  }
+  /**
+   * Load a clinical model file (`.t.json`, `.adl`, `.adls`) from GitHub and
+   * recursively fetch dependencies from the same branch.
+   */
+  async loadFromGitHubClinicalModelUrl(fileUrl, options) {
+    const closure = await loadGitHubClinicalModelClosure(fileUrl, options);
+    const loadResults = this.addFiles(closure.entries);
+    this.setGenerationRootPath(closure.rootPath);
+    this.setActivePath(closure.rootPath);
+    this.githubSource = { url: fileUrl, ref: closure.source };
+    return { ...closure, loadResults };
+  }
+  getGitHubSource() {
+    return this.githubSource ? { ...this.githubSource, ref: { ...this.githubSource.ref } } : void 0;
+  }
+  setGitHubBlobSha(sha) {
+    if (!this.githubSource)
+      return;
+    this.githubSource = { ...this.githubSource, blobSha: sha };
+  }
+  isDirty(path) {
+    if (path)
+      return this.dirtyPaths.has(normalizeClinicalModelPath(path));
+    return this.dirtyPaths.size > 0;
+  }
+  /**
+   * Serialize the active annotations back into file text.
+   * ADL/ADLS → ADL2 text; `.t.json` → annotation-only patch of the stored JSON.
+   */
+  exportAnnotatedFile(path) {
+    const file = this.getFile(path);
+    if (!file)
+      return void 0;
+    const lower = path.toLowerCase();
+    if (lower.endsWith(".t.json")) {
+      const docs = /* @__PURE__ */ new Map();
+      for (const id of listTemplateJsonArchetypeIds(file.content)) {
+        const res = this.repository.get(id) ?? this.repository.getTemplate(id);
+        docs.set(id, res ? getResourceDocumentation(res) : void 0);
+      }
+      return patchTemplateJsonAnnotations(file.content, docs);
+    }
+    if (/\.(adl|adls)$/i.test(path)) {
+      const id = file.loadResult?.archetypeId;
+      if (!id)
+        return file.content;
+      const res = this.repository.get(id) ?? this.repository.getTemplate(id);
+      if (!res)
+        return file.content;
+      return serializeAnnotatedResource(res);
+    }
+    return file.content;
+  }
+  /** Persist annotated content for `path` back into the workspace (marks dirty). */
+  persistAnnotatedFile(path) {
+    const text = this.exportAnnotatedFile(path);
+    if (text === void 0)
+      return void 0;
+    return this.updateFileContent(path, text);
+  }
+  /** Load entries extracted from a ZIP (same filter as GitHub loader). */
+  loadFromZipEntries(entries) {
+    const batch = entries.filter((e2) => isClinicalModelPath(e2.path)).map((e2) => ({
+      path: normalizeClinicalModelPath(e2.path),
+      content: e2.content
+    }));
+    return this.addFiles(batch);
+  }
+};
 
 // parser/annotation_families.ts
 var UNPREFIXED_FAMILY = "(unprefixed)";
@@ -18291,6 +18429,110 @@ function currentLanguageBags(doc, modelLanguages2 = []) {
   return listLanguageBags(doc, modelLanguages2);
 }
 
+// parser/github_contents.ts
+function apiHeaders(token) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "ehrtslib-taaat",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  if (token)
+    headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+function encodeUtf8Base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  const chunk = 32768;
+  for (let i2 = 0; i2 < bytes.length; i2 += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i2, i2 + chunk));
+  }
+  return btoa(binary);
+}
+function decodeUtf8Base64(b64) {
+  const binary = atob(b64.replace(/\n/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i2 = 0; i2 < binary.length; i2++)
+    bytes[i2] = binary.charCodeAt(i2);
+  return new TextDecoder().decode(bytes);
+}
+function contentsUrl(ref) {
+  const path = ref.path.split("/").map(encodeURIComponent).join("/");
+  const q2 = new URLSearchParams({ ref: ref.ref });
+  return `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents/${path}?${q2}`;
+}
+async function getGitHubFileContents(ref, options) {
+  const fetchFn = options?.fetch ?? globalThis.fetch;
+  const res = await fetchFn(contentsUrl(ref), {
+    headers: apiHeaders(options?.token)
+  });
+  if (!res.ok) {
+    throw new Error(
+      `GitHub contents ${ref.owner}/${ref.repo}/${ref.path}@${ref.ref}: ${res.status} ${res.statusText}`
+    );
+  }
+  const json = await res.json();
+  if (!json.sha || json.content == null) {
+    throw new Error("GitHub contents response missing sha/content");
+  }
+  const encoding = json.encoding === "base64" ? "base64" : "utf-8";
+  const content = encoding === "base64" ? decodeUtf8Base64(json.content) : json.content;
+  return {
+    path: json.path ?? ref.path,
+    sha: json.sha,
+    content,
+    encoding,
+    htmlUrl: json.html_url
+  };
+}
+async function commitGitHubFile(input) {
+  const fetchFn = input.fetch ?? globalThis.fetch;
+  const path = input.ref.path.split("/").map(encodeURIComponent).join("/");
+  const url = `https://api.github.com/repos/${input.ref.owner}/${input.ref.repo}/contents/${path}`;
+  const res = await fetchFn(url, {
+    method: "PUT",
+    headers: {
+      ...apiHeaders(input.token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: input.message,
+      content: encodeUtf8Base64(input.content),
+      sha: input.sha,
+      branch: input.ref.ref
+    })
+  });
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const err = await res.json();
+      if (err.message)
+        detail = `${detail}: ${err.message}`;
+    } catch {
+    }
+    throw new Error(`GitHub commit failed: ${detail}`);
+  }
+  const json = await res.json();
+  return {
+    contentSha: json.content?.sha ?? "",
+    commitSha: json.commit?.sha ?? "",
+    htmlUrl: json.content?.html_url
+  };
+}
+async function getGitHubAuthenticatedUser(token, options) {
+  const fetchFn = options?.fetch ?? globalThis.fetch;
+  const res = await fetchFn("https://api.github.com/user", {
+    headers: apiHeaders(token)
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub auth failed: ${res.status} ${res.statusText}`);
+  }
+  const json = await res.json();
+  if (!json.login)
+    throw new Error("GitHub /user response missing login");
+  return { login: json.login };
+}
+
 // examples/taaat-app/src/main.ts
 var workspace = new ClinicalModelWorkspace();
 var activeFilePath;
@@ -18303,6 +18545,9 @@ var enabledFamilies = /* @__PURE__ */ new Set();
 var knownLanguages = /* @__PURE__ */ new Set();
 var knownFamilies = /* @__PURE__ */ new Set();
 var inspectorState = createInspectorState();
+var GITHUB_TOKEN_KEY = "taaat-github-token";
+var githubToken = sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? void 0;
+var githubLogin;
 var $2 = (id) => document.getElementById(id);
 function getLoadMode() {
   const group = $2("load-mode");
@@ -18359,13 +18604,10 @@ function loadActiveResource() {
   );
 }
 function persistResourceToWorkspace() {
-  if (!activeResource || !activeFilePath)
+  if (!activeFilePath)
     return;
-  const path = activeFilePath.toLowerCase();
-  if (/\.(adl|adls)$/i.test(path)) {
-    const adl = serializeAnnotatedResource(activeResource);
-    workspace.updateFileContent(activeFilePath, adl);
-  }
+  workspace.persistAnnotatedFile(activeFilePath);
+  updateGitHubActionState();
 }
 function resetFacets() {
   enabledLanguages.clear();
@@ -18666,8 +18908,19 @@ function setupLoadBar() {
       workspace.clear();
       const result = await workspace.loadFromGitHubClinicalModelUrl(url, {
         maxFiles: 200,
+        githubToken,
         onProgress: (e2) => setStatus(e2.message)
       });
+      try {
+        if (githubToken && result.source) {
+          const meta2 = await getGitHubFileContents(result.source, {
+            token: githubToken
+          });
+          workspace.setGitHubBlobSha(meta2.sha);
+        }
+      } catch {
+      }
+      updateGitHubActionState();
       const mode = getLoadMode();
       const files = listEditableFiles();
       if (mode === "template") {
@@ -18751,13 +19004,110 @@ function downloadText(content, filename) {
   a2.click();
   URL.revokeObjectURL(a2.href);
 }
+function downloadFileName(path) {
+  const base = path.split("/").pop() ?? path;
+  return base;
+}
 function setupDownload() {
-  $2("download-adl-btn")?.addEventListener("click", () => {
-    if (!activeResource || !activeFilePath)
+  $2("download-file-btn")?.addEventListener("click", () => {
+    if (!activeFilePath)
       return;
-    const text = serializeAnnotatedResource(activeResource);
-    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
+    const text = workspace.exportAnnotatedFile(activeFilePath);
+    if (text == null) {
+      setStatus("Nothing to download.", true);
+      return;
+    }
+    downloadText(text, downloadFileName(activeFilePath));
+    setStatus(`Downloaded ${downloadFileName(activeFilePath)}`);
   });
+}
+function updateGitHubActionState() {
+  const commitBtn = $2("github-commit-btn");
+  const userEl = $2("github-user");
+  const source = workspace.getGitHubSource();
+  const canCommit = Boolean(
+    githubToken && source && activeFilePath && (activeFilePath === source.ref.path || activeFilePath.endsWith("/" + source.ref.path) || source.ref.path.endsWith(activeFilePath))
+  );
+  if (commitBtn)
+    commitBtn.disabled = !canCommit;
+  if (userEl) {
+    if (githubLogin) {
+      userEl.hidden = false;
+      userEl.textContent = `Signed in as ${githubLogin}`;
+    } else {
+      userEl.hidden = true;
+      userEl.textContent = "";
+    }
+  }
+}
+function setupGitHubAuth() {
+  const tokenInput = $2("github-token");
+  if (tokenInput && githubToken)
+    tokenInput.value = githubToken;
+  $2("github-login-btn")?.addEventListener("click", async () => {
+    const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
+    if (!token) {
+      setStatus("Paste a GitHub personal access token with contents:write.", true);
+      return;
+    }
+    try {
+      const user = await getGitHubAuthenticatedUser(token);
+      githubToken = token;
+      githubLogin = user.login;
+      sessionStorage.setItem(GITHUB_TOKEN_KEY, token);
+      setStatus(`GitHub: signed in as ${user.login}`);
+      updateGitHubActionState();
+    } catch (e2) {
+      githubLogin = void 0;
+      setStatus(e2.message, true);
+      updateGitHubActionState();
+    }
+  });
+  $2("github-commit-btn")?.addEventListener("click", async () => {
+    const source = workspace.getGitHubSource();
+    if (!githubToken || !source || !activeFilePath) {
+      setStatus("Load from GitHub and sign in before committing.", true);
+      return;
+    }
+    const content = workspace.exportAnnotatedFile(activeFilePath);
+    if (content == null) {
+      setStatus("Nothing to commit.", true);
+      return;
+    }
+    const commitBtn = $2("github-commit-btn");
+    if (commitBtn)
+      commitBtn.loading = true;
+    try {
+      let sha = source.blobSha;
+      if (!sha) {
+        const current = await getGitHubFileContents(source.ref, {
+          token: githubToken
+        });
+        sha = current.sha;
+      }
+      const message = `Annotate ${source.ref.path.split("/").pop() ?? source.ref.path} via TAAAT`;
+      const result = await commitGitHubFile({
+        ref: source.ref,
+        content,
+        message,
+        sha,
+        token: githubToken
+      });
+      workspace.setGitHubBlobSha(result.contentSha || void 0);
+      workspace.updateFileContent(activeFilePath, content);
+      workspace.addFile(activeFilePath, content);
+      setStatus(
+        `Committed to ${source.ref.owner}/${source.ref.repo}@${source.ref.ref}` + (result.commitSha ? ` (${result.commitSha.slice(0, 7)})` : "")
+      );
+      updateGitHubActionState();
+    } catch (e2) {
+      setStatus(e2.message, true);
+    } finally {
+      if (commitBtn)
+        commitBtn.loading = false;
+    }
+  });
+  updateGitHubActionState();
 }
 function setupFilter() {
   $2("tree-filter")?.addEventListener("sl-input", (e2) => {
@@ -18798,10 +19148,12 @@ function initApp() {
   setupFileSelect();
   setupPaletteActions();
   setupDownload();
+  setupGitHubAuth();
   setupFilter();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();
+  updateGitHubActionState();
   setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 if (typeof document !== "undefined") {
@@ -18810,7 +19162,9 @@ if (typeof document !== "undefined") {
     workspace,
     reloadUi,
     getActiveResource: () => activeResource,
-    getSelectedNode: () => selectedNode
+    getSelectedNode: () => selectedNode,
+    exportAnnotatedFile: (path) => workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
+    getGitHubSource: () => workspace.getGitHubSource()
   };
 }
 export {

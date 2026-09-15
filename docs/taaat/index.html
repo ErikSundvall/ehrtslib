@@ -78,9 +78,25 @@
       >
         <sl-option value="">—</sl-option>
       </sl-select>
-      <sl-button type="button" id="download-adl-btn" variant="default" size="small">
-        Download ADL
+      <sl-button type="button" id="download-file-btn" variant="default" size="small">
+        Download
       </sl-button>
+      <sl-input
+        id="github-token"
+        type="password"
+        size="small"
+        password-toggle
+        placeholder="GitHub token (optional)"
+        class="token-input"
+        autocomplete="off"
+      ></sl-input>
+      <sl-button type="button" id="github-login-btn" variant="default" size="small">
+        GitHub login
+      </sl-button>
+      <sl-button type="button" id="github-commit-btn" variant="success" size="small" disabled>
+        Commit to GitHub
+      </sl-button>
+      <span id="github-user" class="github-user" hidden></span>
     </section>
 
     <section class="facet-legend" id="facet-legend" aria-label="Annotation facets">

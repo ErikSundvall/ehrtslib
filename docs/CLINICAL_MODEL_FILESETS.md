@@ -49,10 +49,11 @@ await ws.loadFromGitHubTemplateUrl(
   },
 );
 
-// Edit + export (annotation editor / download flows)
-ws.updateFileContent("local/Care unit v2.t.json", newText);
-const blob = ws.exportFile("local/Care unit v2.t.json");
+// Edit annotations then export (preserves Better `.t.json` structure)
+ws.persistAnnotatedFile("local/Care unit v2.t.json");
+const blob = ws.exportAnnotatedFile("local/Care unit v2.t.json");
 const all = ws.exportEntries();
+// After loadFromGitHubClinicalModelUrl(...), optional commit-back uses ws.getGitHubSource()
 
 const opt = ws.resolveOperational().operationalTemplate;
 ```
@@ -75,6 +76,8 @@ On **Template from AD@git**:
 
 1. Choose a curated example (Ehrlibs first) or paste a GitHub **blob** / **raw** `.t.json` URL
 2. Click **Load** — progress log shows fetch/parse steps; file set opens on **Template (schema)**
+
+On **TAAAT** (Template & Archetype Annotation Tool): edit path annotations, **Download** the active file (ADL or `.t.json`), optionally sign in with a GitHub PAT, and **Commit to GitHub** to write the annotation-updated file back to the same blob path.
 
 Select the **generation root** radio on a template file to drive example / FLAT / Web Template output.
 

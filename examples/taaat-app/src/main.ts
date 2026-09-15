@@ -47,6 +47,12 @@ import {
   slValue,
 } from "./sl.ts";
 
+import {
+  commitGitHubFile,
+  getGitHubAuthenticatedUser,
+  getGitHubFileContents,
+} from "../../../parser/github_contents.ts";
+
 export type LoadMode = "template" | "archetype";
 
 const workspace = new ClinicalModelWorkspace();
@@ -60,6 +66,12 @@ const enabledFamilies = new Set<string>();
 const knownLanguages = new Set<string>();
 const knownFamilies = new Set<string>();
 const inspectorState: InspectorState = createInspectorState();
+
+const GITHUB_TOKEN_KEY = "taaat-github-token";
+let githubToken: string | undefined =
+  sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? undefined;
+let githubLogin: string | undefined;
+
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
@@ -127,12 +139,9 @@ function loadActiveResource(): void {
 }
 
 function persistResourceToWorkspace(): void {
-  if (!activeResource || !activeFilePath) return;
-  const path = activeFilePath.toLowerCase();
-  if (/\.(adl|adls)$/i.test(path)) {
-    const adl = serializeAnnotatedResource(activeResource);
-    workspace.updateFileContent(activeFilePath, adl);
-  }
+  if (!activeFilePath) return;
+  workspace.persistAnnotatedFile(activeFilePath);
+  updateGitHubActionState();
 }
 
 function resetFacets(): void {
@@ -442,8 +451,21 @@ function setupLoadBar(): void {
       workspace.clear();
       const result = await workspace.loadFromGitHubClinicalModelUrl(url, {
         maxFiles: 200,
+        githubToken,
         onProgress: (e) => setStatus(e.message),
       });
+      // Prefer Contents API SHA when signed in (needed for commit-back).
+      try {
+        if (githubToken && result.source) {
+          const meta = await getGitHubFileContents(result.source, {
+            token: githubToken,
+          });
+          workspace.setGitHubBlobSha(meta.sha);
+        }
+      } catch {
+        // Public raw load still works; commit will fetch SHA later.
+      }
+      updateGitHubActionState();
       const mode = getLoadMode();
       const files = listEditableFiles();
       if (mode === "template") {
@@ -533,12 +555,118 @@ function downloadText(content: string, filename: string): void {
   URL.revokeObjectURL(a.href);
 }
 
+function downloadFileName(path: string): string {
+  const base = path.split("/").pop() ?? path;
+  return base;
+}
+
 function setupDownload(): void {
-  $("download-adl-btn")?.addEventListener("click", () => {
-    if (!activeResource || !activeFilePath) return;
-    const text = serializeAnnotatedResource(activeResource);
-    downloadText(text, activeFilePath.replace(/\.[^.]+$/, "") + ".adl");
+  $("download-file-btn")?.addEventListener("click", () => {
+    if (!activeFilePath) return;
+    const text = workspace.exportAnnotatedFile(activeFilePath);
+    if (text == null) {
+      setStatus("Nothing to download.", true);
+      return;
+    }
+    downloadText(text, downloadFileName(activeFilePath));
+    setStatus(`Downloaded ${downloadFileName(activeFilePath)}`);
   });
+}
+
+function updateGitHubActionState(): void {
+  const commitBtn = $("github-commit-btn") as SlButton | null;
+  const userEl = $("github-user");
+  const source = workspace.getGitHubSource();
+  const canCommit = Boolean(
+    githubToken && source && activeFilePath &&
+      (activeFilePath === source.ref.path ||
+        activeFilePath.endsWith("/" + source.ref.path) ||
+        source.ref.path.endsWith(activeFilePath)),
+  );
+  if (commitBtn) commitBtn.disabled = !canCommit;
+  if (userEl) {
+    if (githubLogin) {
+      userEl.hidden = false;
+      userEl.textContent = `Signed in as ${githubLogin}`;
+    } else {
+      userEl.hidden = true;
+      userEl.textContent = "";
+    }
+  }
+}
+
+function setupGitHubAuth(): void {
+  const tokenInput = $("github-token") as SlInput | null;
+  if (tokenInput && githubToken) tokenInput.value = githubToken;
+
+  $("github-login-btn")?.addEventListener("click", async () => {
+    const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
+    if (!token) {
+      setStatus("Paste a GitHub personal access token with contents:write.", true);
+      return;
+    }
+    try {
+      const user = await getGitHubAuthenticatedUser(token);
+      githubToken = token;
+      githubLogin = user.login;
+      sessionStorage.setItem(GITHUB_TOKEN_KEY, token);
+      setStatus(`GitHub: signed in as ${user.login}`);
+      updateGitHubActionState();
+    } catch (e) {
+      githubLogin = undefined;
+      setStatus((e as Error).message, true);
+      updateGitHubActionState();
+    }
+  });
+
+  $("github-commit-btn")?.addEventListener("click", async () => {
+    const source = workspace.getGitHubSource();
+    if (!githubToken || !source || !activeFilePath) {
+      setStatus("Load from GitHub and sign in before committing.", true);
+      return;
+    }
+    const content = workspace.exportAnnotatedFile(activeFilePath);
+    if (content == null) {
+      setStatus("Nothing to commit.", true);
+      return;
+    }
+    const commitBtn = $("github-commit-btn") as SlButton | null;
+    if (commitBtn) commitBtn.loading = true;
+    try {
+      let sha = source.blobSha;
+      if (!sha) {
+        const current = await getGitHubFileContents(source.ref, {
+          token: githubToken,
+        });
+        sha = current.sha;
+      }
+      const message =
+        `Annotate ${source.ref.path.split("/").pop() ?? source.ref.path} via TAAAT`;
+      const result = await commitGitHubFile({
+        ref: source.ref,
+        content,
+        message,
+        sha,
+        token: githubToken,
+      });
+      workspace.setGitHubBlobSha(result.contentSha || undefined);
+      // Keep workspace content aligned with what we pushed.
+      workspace.updateFileContent(activeFilePath, content);
+      // updateFileContent marks dirty; clear dirty by re-add equivalent:
+      workspace.addFile(activeFilePath, content);
+      setStatus(
+        `Committed to ${source.ref.owner}/${source.ref.repo}@${source.ref.ref}` +
+          (result.commitSha ? ` (${result.commitSha.slice(0, 7)})` : ""),
+      );
+      updateGitHubActionState();
+    } catch (e) {
+      setStatus((e as Error).message, true);
+    } finally {
+      if (commitBtn) commitBtn.loading = false;
+    }
+  });
+
+  updateGitHubActionState();
 }
 
 function setupFilter(): void {
@@ -581,10 +709,12 @@ export function initApp(): void {
   setupFileSelect();
   setupPaletteActions();
   setupDownload();
+  setupGitHubAuth();
   setupFilter();
   setupLocalFiles();
   refreshPaletteUi();
   renderLegend();
+  updateGitHubActionState();
   setStatus("Paste a GitHub URL or choose local .adl / .t.json files.");
 }
 
@@ -595,5 +725,8 @@ if (typeof document !== "undefined") {
     reloadUi,
     getActiveResource: () => activeResource,
     getSelectedNode: () => selectedNode,
+    exportAnnotatedFile: (path?: string) =>
+      workspace.exportAnnotatedFile(path ?? activeFilePath ?? ""),
+    getGitHubSource: () => workspace.getGitHubSource(),
   };
 }

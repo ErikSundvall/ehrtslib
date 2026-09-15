@@ -509,3 +509,15 @@ sl-details.family-acc::part(header) {
     grid-template-columns: 1fr;
   }
 }
+
+
+.token-input {
+  min-width: 12rem;
+  max-width: 16rem;
+}
+
+.github-user {
+  font-size: 0.8rem;
+  color: var(--sl-color-neutral-600);
+  white-space: nowrap;
+}

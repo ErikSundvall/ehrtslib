@@ -1,6 +1,6 @@
 # TAAAT — Template and Archetype Annotation Tool
 
-Browser demo for viewing and editing openEHR `annotations.documentation` on archetypes and templates loaded from GitHub (recursive closure) or local files.
+Browser demo for viewing and editing openEHR `annotations.documentation` on archetypes and templates loaded from GitHub (recursive closure) or local files. Supports **Download** of the annotated file and optional **GitHub PAT login + commit** back to the same path.
 
 ## Build
 
