@@ -7,6 +7,7 @@ export type SlButton = HTMLElement & {
   variant: string;
 };
 export type SlSelect = HTMLElement & { value: string };
+export type SlRadioGroup = HTMLElement & { value: string };
 export type SlCheckbox = HTMLElement & { checked: boolean };
 export type SlDetails = HTMLElement & { open: boolean };
 export type SlAlert = HTMLElement & {

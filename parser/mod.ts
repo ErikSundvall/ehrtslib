@@ -110,6 +110,7 @@ export {
   familyLegendLabel,
   flattenDefinitionTree,
   KNOWN_FAMILIES,
+  L10N_FAMILY,
   l10nSourcesFromTree,
   languageCode,
   languageOutlineColor,
@@ -117,7 +118,9 @@ export {
   listLanguageBags,
   listResourceLanguages,
   mergeDocumentation,
+  normalizeFamilyPrefix,
   pillsAtPath,
+  qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
 } from "./annotation_families.ts";
 export {
@@ -132,10 +135,18 @@ export {
 } from "./clinical_model_paths.ts";
 
 export {
-  documentationToBetterAnnotations, patchTemplateJsonAnnotations, listTemplateJsonArchetypeIds,
+  documentationToBetterAnnotations,
+  listTemplateJsonArchetypeIds,
+  patchTemplateJsonAnnotations,
 } from "./template_json_annotations.ts";
 export {
-  encodeUtf8Base64, decodeUtf8Base64, getGitHubFileContents, commitGitHubFile, getGitHubAuthenticatedUser,
-  type GitHubContentsFile, type GitHubCommitFileInput, type GitHubCommitFileResult,
+  commitGitHubFile,
+  decodeUtf8Base64,
+  encodeUtf8Base64,
+  getGitHubAuthenticatedUser,
+  getGitHubFileContents,
+  type GitHubCommitFileInput,
+  type GitHubCommitFileResult,
+  type GitHubContentsFile,
 } from "./github_contents.ts";
 export type { ClinicalModelGitHubSource } from "./clinical_model_workspace.ts";

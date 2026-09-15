@@ -77,7 +77,7 @@ On **Template from AD@git**:
 1. Choose a curated example (Ehrlibs first) or paste a GitHub **blob** / **raw** `.t.json` URL
 2. Click **Load** — progress log shows fetch/parse steps; file set opens on **Template (schema)**
 
-On **TAAAT** (Template & Archetype Annotation Tool): edit path annotations, **Download** the active file (ADL or `.t.json`), optionally sign in with a GitHub PAT, and **Commit to GitHub** to write the annotation-updated file back to the same blob path.
+On **TAAAT** (Template & Archetype Annotation Tool): choose **Local files** or **GitHub**. Local workflow downloads annotated `.adl` / `.t.json`. GitHub workflow loads a curated example (Ehrlibs Accident report, Simple diagnose and vitals, or Region Stockholm MDT) or any blob/raw URL, optionally signs in with a GitHub PAT, and can **Commit to GitHub** back to the same blob path.
 
 Select the **generation root** radio on a template file to drive example / FLAT / Web Template output.
 
