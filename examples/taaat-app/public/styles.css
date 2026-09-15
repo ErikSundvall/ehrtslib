@@ -88,6 +88,24 @@ body {
   max-width: 320px;
 }
 
+.load-bar sl-select.example-select {
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.workflow-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.workflow-fields[hidden] {
+  display: none !important;
+}
+
 .facet-legend {
   flex-shrink: 0;
   display: grid;
@@ -190,7 +208,6 @@ sl-split-panel.workspace {
 
 .tree-toolbar h2,
 .inspector-head h2,
-.palette-panel h3,
 .panel h2 {
   font-size: 0.85rem;
   font-weight: 600;
@@ -465,50 +482,62 @@ sl-details.family-acc::part(header) {
   background: #fef3c7;
 }
 
-.palette-panel {
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-  max-height: 28%;
-  overflow: auto;
-}
-
-.palette-panel h3 {
-  padding: 0.4rem 0.75rem 0;
-}
-
-.palette-list {
-  list-style: none;
-  padding: 0.25rem 0.5rem;
-}
-
-.palette-list li {
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.25rem;
-  align-items: center;
-}
-
-.palette-apply {
-  flex: 1;
-}
-
-.palette-apply::part(base) {
-  justify-content: flex-start;
-  font-family: ui-monospace, monospace;
-  font-size: 0.75rem;
-}
-
-.palette-add,
-.palette-io {
-  padding: 0.35rem 0.75rem 0.5rem;
+.family-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  align-items: center;
+  margin-top: 0.35rem;
 }
 
-.palette-input {
+.family-prefix-input {
+  width: 8rem;
+}
+
+.family-favourites {
+  margin-top: 0.6rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--border);
+}
+
+.family-favourites h4 {
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.family-favourites .muted {
+  padding: 0 0 0.35rem;
+}
+
+.fav-row {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.fav-key {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  min-width: 5.5rem;
+  flex-shrink: 0;
+}
+
+.fav-values {
   flex: 1;
-  min-width: 80px;
+  min-width: 0;
+}
+
+.fav-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.fav-add sl-input {
+  flex: 1;
+  min-width: 7rem;
 }
 
 #status-bar {
@@ -532,10 +561,14 @@ sl-details.family-acc::part(header) {
   }
 }
 
-
 .token-input {
   min-width: 12rem;
   max-width: 16rem;
+}
+
+#github-token-help::part(base) {
+  font-size: 0.75rem;
+  color: var(--accent);
 }
 
 .github-user {

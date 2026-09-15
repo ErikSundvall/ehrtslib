@@ -111,6 +111,7 @@ export {
   flattenDefinitionTree,
   isLanguageIndependentFamily,
   KNOWN_FAMILIES,
+  L10N_FAMILY,
   l10nSourcesFromTree,
   LANGUAGE_INDEPENDENT_FAMILIES,
   languageCode,
@@ -119,9 +120,11 @@ export {
   listLanguageBags,
   listResourceLanguages,
   mergeDocumentation,
+  normalizeFamilyPrefix,
   orderLanguagesWithOriginal,
   originalLanguageOf,
   pillsAtPath,
+  qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
 } from "./annotation_families.ts";
 export {

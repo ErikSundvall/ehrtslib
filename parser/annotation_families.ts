@@ -29,6 +29,37 @@ export function isLanguageIndependentFamily(family: string): boolean {
   return (LANGUAGE_INDEPENDENT_FAMILIES as readonly string[]).includes(family);
 }
 
+export const L10N_FAMILY = "L10n.";
+
+/** Turn `fhir`, `fhir.` or `(unprefixed)` into a canonical family id. */
+export function normalizeFamilyPrefix(raw: string): string | undefined {
+  const t = raw.trim();
+  if (!t) return undefined;
+  if (t === UNPREFIXED_FAMILY || /^unprefixed$/i.test(t)) {
+    return UNPREFIXED_FAMILY;
+  }
+  const m = t.match(/^([A-Za-z][A-Za-z0-9]*)\.?$/);
+  return m ? `${m[1]}.` : undefined;
+}
+
+/**
+ * Bind a typed key to a family: `id` in `a.` → `a.id`.
+ * Rejects keys that already belong to a different family.
+ */
+export function qualifyKeyForFamily(
+  key: string,
+  family: string,
+): string | undefined {
+  const k = key.trim();
+  if (!k) return undefined;
+  if (family === UNPREFIXED_FAMILY) {
+    return annotationFamily(k) === UNPREFIXED_FAMILY ? k : undefined;
+  }
+  if (annotationFamily(k) === family) return k;
+  if (!k.includes(".")) return `${family}${k}`;
+  return undefined;
+}
+
 export interface AnnotationPill {
   language: string;
   key: string;
@@ -171,8 +202,16 @@ export function listLanguageBags(
 
 export function listFamilies(
   doc: AnnotationDocumentation | undefined,
+  extra: string[] = [],
 ): string[] {
   const set = new Set<string>(KNOWN_FAMILIES);
+  const extraNorm: string[] = [];
+  for (const f of extra) {
+    const n = normalizeFamilyPrefix(f);
+    if (!n || set.has(n)) continue;
+    set.add(n);
+    extraNorm.push(n);
+  }
   if (doc) {
     for (const bag of Object.values(doc)) {
       for (const atPath of Object.values(bag ?? {})) {
@@ -183,8 +222,10 @@ export function listFamilies(
     }
   }
   const known = KNOWN_FAMILIES as readonly string[];
-  const rest = [...set].filter((f) => !known.includes(f)).sort();
-  return [...known, ...rest];
+  const extras = extraNorm.filter((f) => !known.includes(f)).sort();
+  const rest = [...set].filter((f) => !known.includes(f) && !extras.includes(f))
+    .sort();
+  return [...known, ...extras, ...rest];
 }
 
 /** Every language bag × key at a path (nothing collapsed). */

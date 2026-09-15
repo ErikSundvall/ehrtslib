@@ -7,9 +7,11 @@ import {
   listFamilies,
   listLanguageBags,
   listResourceLanguages,
+  normalizeFamilyPrefix,
   orderLanguagesWithOriginal,
   originalLanguageOf,
   pillsAtPath,
+  qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
 } from "../../../parser/mod.ts";
 import { ArchetypeRepository } from "../../../parser/legacy/archetype_repository.ts";
@@ -55,6 +57,24 @@ Deno.test("languageCode normalises ISO tags and objects", () => {
   );
   assertEquals(languageCode("0"), undefined);
   assertEquals(languageCode(""), undefined);
+});
+
+Deno.test("normalizeFamilyPrefix and qualifyKeyForFamily", () => {
+  assertEquals(normalizeFamilyPrefix("fhir"), "fhir.");
+  assertEquals(normalizeFamilyPrefix("fhir."), "fhir.");
+  assertEquals(normalizeFamilyPrefix("unprefixed"), UNPREFIXED_FAMILY);
+  assertEquals(normalizeFamilyPrefix("1bad"), undefined);
+  assertEquals(qualifyKeyForFamily("id", "a."), "a.id");
+  assertEquals(qualifyKeyForFamily("a.rule.adl", "a."), "a.rule.adl");
+  assertEquals(qualifyKeyForFamily("L10n.sv", "a."), undefined);
+  assertEquals(qualifyKeyForFamily("comment", UNPREFIXED_FAMILY), "comment");
+  assertEquals(qualifyKeyForFamily("a.id", UNPREFIXED_FAMILY), undefined);
+});
+
+Deno.test("listFamilies includes extra prefixes", () => {
+  const families = listFamilies(undefined, ["fhir.", "a."]);
+  assertEquals(families.includes("fhir."), true);
+  assertEquals(families.indexOf("L10n.") < families.indexOf("fhir."), true);
 });
 
 Deno.test("listResourceLanguages reads Care unit template languages", async () => {

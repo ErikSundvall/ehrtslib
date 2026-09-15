@@ -19,12 +19,15 @@ import {
   familyLegendLabel,
   flattenDefinitionTree,
   isLanguageIndependentFamily,
+  KNOWN_FAMILIES,
+  L10N_FAMILY,
   l10nSourcesFromTree,
   languageOutlineColor,
   listFamilies,
   listLanguageBags,
   orderLanguagesWithOriginal,
   pillsAtPath,
+  qualifyKeyForFamily,
   UNPREFIXED_FAMILY,
 } from "../../../parser/annotation_families.ts";
 import {
@@ -32,11 +35,20 @@ import {
   proposeL10nWrites,
 } from "../../../parser/l10n_annotation_generate.ts";
 import {
+  type FamilyStore,
+  favouritesForFamily,
+  removeExtraFamily,
+  removeFavourite,
+  upsertFavourite,
+} from "./family_store.ts";
+import {
   type SlButton,
   type SlCheckbox,
   type SlDetails,
   slEl,
   type SlInput,
+  type SlSelect,
+  slValue,
 } from "./sl.ts";
 
 export interface InspectorState {
@@ -53,7 +65,7 @@ export function createInspectorState(): InspectorState {
     repeatedOnly: true,
     copyToAllBags: true,
     lastWrites: [],
-    openFamilies: new Set(["L10n.", "a.", UNPREFIXED_FAMILY]),
+    openFamilies: new Set([L10N_FAMILY, "a.", UNPREFIXED_FAMILY]),
   };
 }
 
@@ -67,16 +79,18 @@ function escapeHtml(s: string): string {
 
 export interface InspectorOptions {
   host: HTMLElement;
-  resource: AnnotatedResource;
-  tree: DefinitionTreeNode;
-  node: DefinitionTreeNode;
+  resource?: AnnotatedResource;
+  tree?: DefinitionTreeNode;
+  node?: DefinitionTreeNode;
   doc: AnnotationDocumentation;
   languages: string[];
   enabledLanguages: Set<string>;
   /** Authored original language of the active template/archetype. */
   originalLanguage?: string;
   state: InspectorState;
+  familyStore: FamilyStore;
   onChange: () => void;
+  onFamilyStoreChange: (store: FamilyStore) => void;
   resourceForNode?: (node: DefinitionTreeNode) => AnnotatedResource;
   documentationForNode?: (
     node: DefinitionTreeNode,
@@ -84,13 +98,23 @@ export interface InspectorOptions {
 }
 
 function familyHelp(family: string): string {
-  if (family === "L10n.") {
+  if (family === L10N_FAMILY) {
     return `Better/AD workaround for repeated renamed nodes in ADL 1.4 OPT: key <code>L10n.{lang}</code> = translated occurrence name. Generation copies those keys into every language bag and never touches the definition tree. <a href="https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760" target="_blank" rel="noopener">discourse #2760</a>`;
   }
   if (family === "a.") {
-    return `Automation / UI-hint namespace (letter “a” from “automation”). Examples: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>. These keys are language-independent: maintain them in the original language, then use <strong>Copy original to…</strong> when an export needs another language bag. Prefix avoids clashes in Ocean Template Designer. <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>`;
+    return `Automation / UI-hint namespace (letter “a” from “automation”). These keys are language-independent: maintain them in the original language, then use <strong>Copy original to…</strong> when an export needs another language bag. Favourites below follow the tobacco-use examples on <a href="https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19" target="_blank" rel="noopener">discourse #2406/19</a>: <code>a.id</code>, <code>a.rule</code>, <code>a.rule.adl</code>, <code>a.rule.adl2</code>, Cambio- and Better-style rules.`;
   }
-  return `Keys without a dotted prefix (<code>comment</code>, <code>design note</code>, <code>ui</code>, …).`;
+  if (family === UNPREFIXED_FAMILY) {
+    return `Keys without a dotted prefix (<code>comment</code>, <code>design note</code>, <code>ui</code>, …). Favourites for this family are stored in this browser.`;
+  }
+  return `Keys prefixed with <code>${
+    escapeHtml(family)
+  }</code>. Favourites for this family are stored in this browser.`;
+}
+
+function writeBagsFor(opts: InspectorOptions): string[] {
+  const bags = opts.languages.filter((l) => opts.enabledLanguages.has(l));
+  return bags.length ? bags : opts.languages;
 }
 
 function setOnEnabledBags(
@@ -107,7 +131,7 @@ function setOnEnabledBags(
 
 function defaultKeyForFamily(family: string, languages: string[]): string {
   if (family === UNPREFIXED_FAMILY) return "comment";
-  if (family === "L10n.") {
+  if (family === L10N_FAMILY) {
     const lang = languages[0] ?? "en";
     return `L10n.${lang}`;
   }
@@ -147,6 +171,13 @@ function renderRowsForFamily(
     originalLanguage,
     onChange,
   } = opts;
+  if (!resource || !node) {
+    const hint = document.createElement("p");
+    hint.className = "muted";
+    hint.textContent = "Select a node to edit keys on this family.";
+    body.appendChild(hint);
+    return;
+  }
   const path = annotationPathOf(node);
   const displayBags = displayBagsForFamily(
     family,
@@ -331,15 +362,17 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
 
   const actions = document.createElement("div");
   actions.className = "gen-actions";
-  const previewBtn = slEl<SlButton>("sl-button", {
-    variant: "default",
-    size: "small",
-    text: "Preview writes",
-  });
   const applyBtn = slEl<SlButton>("sl-button", {
     variant: "primary",
     size: "small",
     text: "Apply L10n",
+    disabled: !opts.tree || !opts.resource,
+  });
+  const previewBtn = slEl<SlButton>("sl-button", {
+    variant: "default",
+    size: "small",
+    text: "Preview writes",
+    disabled: !opts.tree,
   });
   actions.append(previewBtn, applyBtn);
   box.appendChild(actions);
@@ -349,6 +382,7 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
   box.appendChild(preview);
 
   const run = (apply: boolean) => {
+    if (!opts.tree || !opts.resource) return;
     const getDoc = opts.documentationForNode ?? (() => opts.doc);
     const viewDoc = documentationViewForTree(opts.tree, getDoc);
     const sources = l10nSourcesFromTree(opts.tree, viewDoc);
@@ -370,6 +404,7 @@ function renderL10nGenerate(opts: InspectorOptions, body: HTMLElement): void {
         const owner = targetNode && opts.resourceForNode
           ? opts.resourceForNode(targetNode)
           : opts.resource;
+        if (!owner) continue;
         const writePath = targetNode ? annotationPathOf(targetNode) : w.path;
         setPathAnnotation(owner, writePath, w.key, w.value, w.languageBag);
       }
@@ -408,15 +443,163 @@ function paintPreview(el: HTMLElement, writes: L10nWrite[]): void {
   `;
 }
 
+function renderFamilyFavourites(
+  opts: InspectorOptions,
+  family: string,
+  body: HTMLElement,
+): void {
+  if (family === L10N_FAMILY) return;
+  const box = document.createElement("div");
+  box.className = "family-favourites";
+  const heading = document.createElement("h4");
+  heading.textContent = "Favourites";
+  const hint = document.createElement("p");
+  hint.className = "muted";
+  hint.textContent = isLanguageIndependentFamily(family)
+    ? "Saved in this browser. Apply writes onto the original-language bag; copy to other bags with Copy original to…"
+    : "Saved in this browser. Apply writes the key (and the selected value, if any) onto the selected node in every enabled language bag.";
+  box.append(heading, hint);
+
+  const entries = favouritesForFamily(opts.familyStore, family);
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "No favourites in this family yet.";
+    box.appendChild(empty);
+  }
+
+  const canApply = Boolean(opts.resource && opts.node);
+  const writeBags = isLanguageIndependentFamily(family) && opts.originalLanguage
+    ? [opts.originalLanguage]
+    : writeBagsFor(opts);
+
+  for (const entry of entries) {
+    const row = document.createElement("div");
+    row.className = "fav-row";
+    const keyEl = document.createElement("code");
+    keyEl.className = "fav-key";
+    keyEl.textContent = entry.key;
+    row.appendChild(keyEl);
+
+    let valueSelect: SlSelect | undefined;
+    if (entry.values.length) {
+      valueSelect = slEl<SlSelect>("sl-select", {
+        size: "small",
+        hoist: true,
+        className: "fav-values",
+        value: entry.values[0],
+      });
+      valueSelect.setAttribute("aria-label", `Values for ${entry.key}`);
+      for (const value of entry.values) {
+        const opt = document.createElement("sl-option") as HTMLElement & {
+          value: string;
+        };
+        opt.value = value;
+        opt.textContent = value;
+        valueSelect.appendChild(opt);
+      }
+      row.appendChild(valueSelect);
+    }
+
+    const apply = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "default",
+      text: "Apply",
+      disabled: !canApply || !writeBags.length,
+    });
+    apply.title = canApply
+      ? "Apply to selected node"
+      : "Select a tree node first";
+    apply.addEventListener("click", () => {
+      if (!opts.resource || !opts.node || !writeBags.length) return;
+      const value = valueSelect ? slValue(valueSelect) : "";
+      setOnEnabledBags(
+        opts.resource,
+        annotationPathOf(opts.node),
+        entry.key,
+        value,
+        writeBags,
+      );
+      opts.onChange();
+    });
+    const remove = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "text",
+      text: "×",
+    });
+    remove.title = "Remove favourite key";
+    remove.addEventListener("click", () => {
+      opts.onFamilyStoreChange(
+        removeFavourite(opts.familyStore, family, entry.key),
+      );
+    });
+    row.append(apply, remove);
+    box.appendChild(row);
+  }
+
+  const add = document.createElement("div");
+  add.className = "fav-add";
+  const keyInp = slEl<SlInput>("sl-input", {
+    size: "small",
+    placeholder: family === UNPREFIXED_FAMILY ? "Key" : "Key (id or a.id)",
+    className: "fav-add-key",
+  });
+  const valInp = slEl<SlInput>("sl-input", {
+    size: "small",
+    placeholder: "Value (optional; adds to this key’s list)",
+    className: "fav-add-value",
+  });
+  const addBtn = slEl<SlButton>("sl-button", {
+    size: "small",
+    variant: "default",
+    text: "Add favourite",
+  });
+  addBtn.addEventListener("click", () => {
+    const qualified = qualifyKeyForFamily(slValue(keyInp), family);
+    if (!qualified) {
+      keyInp.setAttribute(
+        "help-text",
+        family === UNPREFIXED_FAMILY
+          ? "Use an unprefixed key, or pick another family."
+          : `Key must belong to ${family}`,
+      );
+      return;
+    }
+    opts.onFamilyStoreChange(
+      upsertFavourite(opts.familyStore, family, qualified, slValue(valInp)),
+    );
+  });
+  add.append(keyInp, valInp, addBtn);
+  box.appendChild(add);
+
+  const isKnown = (KNOWN_FAMILIES as readonly string[]).includes(family);
+  const isExtra = opts.familyStore.extraFamilies.includes(family);
+  if (!isKnown && isExtra) {
+    const removeFam = slEl<SlButton>("sl-button", {
+      size: "small",
+      variant: "text",
+      text: "Remove family",
+      className: "fav-remove-family",
+    });
+    removeFam.addEventListener("click", () => {
+      opts.onFamilyStoreChange(removeExtraFamily(opts.familyStore, family));
+    });
+    box.appendChild(removeFam);
+  }
+
+  body.appendChild(box);
+}
+
 export function renderInspector(opts: InspectorOptions): void {
-  const { host, doc, node, state } = opts;
-  const families = listFamilies(doc);
+  const { host, doc, node, state, familyStore } = opts;
+  const families = listFamilies(doc, familyStore.extraFamilies);
   host.innerHTML = "";
   for (const family of families) {
     const details = slEl<SlDetails>("sl-details", {
       className: "family-acc",
       open: state.openFamilies.has(family),
     });
+    details.dataset.family = family;
     details.addEventListener("sl-show", () => {
       state.openFamilies.add(family);
     });
@@ -426,9 +609,11 @@ export function renderInspector(opts: InspectorOptions): void {
     const summary = document.createElement("span");
     summary.slot = "summary";
     summary.className = "family-summary";
-    const count = pillsAtPath(doc, annotationPathOf(node)).filter((p) =>
-      p.family === family
-    ).length;
+    const count = node
+      ? pillsAtPath(doc, annotationPathOf(node)).filter((p) =>
+        p.family === family
+      ).length
+      : 0;
     summary.innerHTML = `
       <span class="family-swatch" style="background:${
       familyFillColor(family)
@@ -443,8 +628,10 @@ export function renderInspector(opts: InspectorOptions): void {
     help.innerHTML = familyHelp(family);
     body.appendChild(help);
     renderRowsForFamily(opts, family, body);
-    if (family === "L10n.") {
+    if (family === L10N_FAMILY) {
       renderL10nGenerate(opts, body);
+    } else {
+      renderFamilyFavourites(opts, family, body);
     }
     details.append(summary, body);
     host.appendChild(details);
