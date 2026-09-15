@@ -113,6 +113,6 @@ Deno.test("taaat_langs fixture original language is en with sv translation", asy
     items.filter((i) => i.family === "a."),
     "sv",
   );
-  assertEquals(doc.sv["/data[id2]"]["a.id"], "encounter-form");
-  assertEquals(doc.sv["/data[id2]"]?.comment, undefined);
+  assertEquals(doc.sv[""]["a.id"], "encounter-form");
+  assertEquals(doc.sv[""]?.comment, undefined);
 });

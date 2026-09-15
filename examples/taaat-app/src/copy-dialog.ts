@@ -33,9 +33,13 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function itemLabel(item: AnnotationCopyItem, target: string): string {
+function itemLabel(
+  item: AnnotationCopyItem,
+  target: string,
+  showOwner: boolean,
+): string {
   const path = item.path || "(definition root)";
-  const owner = item.ownerId ? `${item.ownerId} · ` : "";
+  const owner = showOwner && item.ownerId ? `${item.ownerId} · ` : "";
   let extra = "";
   if (item.existingTargetValue != null) {
     extra = item.existingTargetValue === item.value
@@ -174,6 +178,7 @@ export function mountCopyOriginalDialog(
     }
 
     apply.disabled = selected.size === 0;
+    const showOwner = new Set(items.map((i) => i.ownerId ?? "")).size > 1;
     const groups = groupCopyItemsByFamily(items);
     for (const group of groups) {
       const details = document.createElement("sl-details") as HTMLElement & {
@@ -222,7 +227,7 @@ export function mountCopyOriginalDialog(
         const id = copyItemId(item);
         const cb = slEl<SlCheckbox>("sl-checkbox", {
           checked: selected.has(id),
-          text: itemLabel(item, target),
+          text: itemLabel(item, target, showOwner),
         });
         cb.dataset.copyId = id;
         cb.addEventListener("sl-change", () => {

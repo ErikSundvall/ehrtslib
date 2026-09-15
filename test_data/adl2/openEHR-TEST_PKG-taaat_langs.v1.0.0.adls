@@ -50,7 +50,7 @@ terminology
 annotations
     documentation = <
         ["en"] = <
-            ["/data[id2]"] = <
+            [""] = <
                 ["a.id"] = <"encounter-form">
                 ["a.rule"] = <"show-when-adult">
                 ["comment"] = <"author note in English">

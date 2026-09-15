@@ -260,10 +260,10 @@ Deno.test({
       const t = (globalThis as { __TAAAT__?: TaaatHarness }).__TAAAT__;
       const doc = t?.getActiveResource()?.annotations?.documentation;
       return {
-        id: doc?.sv?.["/data[id2]"]?.["a.id"],
-        rule: doc?.sv?.["/data[id2]"]?.["a.rule"],
-        comment: doc?.sv?.["/data[id2]"]?.comment,
-        enComment: doc?.en?.["/data[id2]"]?.comment,
+        id: doc?.sv?.[""]?.["a.id"],
+        rule: doc?.sv?.[""]?.["a.rule"],
+        comment: doc?.sv?.[""]?.comment,
+        enComment: doc?.en?.[""]?.comment,
       };
     });
     assertEquals(copied.id, "encounter-form");
