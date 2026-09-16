@@ -174,13 +174,43 @@ export class RESOURCE_DESCRIPTION {
    */
   other_contributors?: undefined;
   /**
-   * Lifecycle state of the resource, typically including states such as: initial, in_development, in_review, published, superseded, obsolete.
+   * Lifecycle state of the resource, typically using macro-states such as: unmanaged, in_development, release_candidate, published, rejected, deprecated.
    */
   lifecycle_state?: Terminology_code;
   /**
    * Reference to owning resource.
    */
   parent_resource?: AUTHORED_RESOURCE;
+
+  /**
+   * Invariant Original_author_valid: `not original_author.is_empty`.
+   */
+  Original_author_valid(): Boolean {
+    const author = this.original_author as unknown;
+    if (author == null) return Boolean.from(false);
+    if (typeof author === "object" && typeof (author as { size?: unknown }).size === "number") {
+      return Boolean.from(((author as { size: number }).size) > 0);
+    }
+    return Boolean.from(true);
+  }
+
+  /**
+   * Invariant Lifecycle_state_valid: `not lifecycle_state.is_empty`.
+   */
+  Lifecycle_state_valid(): Boolean {
+    const state = this.lifecycle_state;
+    if (!state) return Boolean.from(false);
+    const code = state.code_string ?? "";
+    return Boolean.from(code.length > 0);
+  }
+
+  /**
+   * Invariant Parent_resource_valid: parent_resource /= Void implies parent_resource.description = self.
+   */
+  Parent_resource_valid(): Boolean {
+    if (!this.parent_resource) return Boolean.from(true);
+    return Boolean.from(this.parent_resource.description === this);
+  }
   /**
    * Internal storage for custodian_namespace
    * @protected

@@ -31,7 +31,8 @@ Each file corresponds to one openEHR BMM package:
 - `openehr_rm.ts` - Reference Model classes
 - `openehr_am.ts` - Archetype Model classes
 - `openehr_term.ts` - Terminology service types
-- `openehr_lang.ts` - Language and localization types
+- `openehr_lang.ts` - Language / classic BMM + P_BMM + BEOM
+- `openehr_lang_bmm3.ts` - LANG BMM3 sibling schema (`openehr_lang_1.1.0-bmm3`)
 - `rm_attribute_meta.ts` - RM/BASE attribute metadata tables (also copied to `meta/rm_attribute_meta.generated.ts`); regenerate with `tasks/generate_rm_meta.ts`
 - `spec_docs.ts` - class/attribute specification descriptions (also copied to `spec/spec_docs.generated.ts`); regenerate with `tasks/generate_spec_docs.ts`
 

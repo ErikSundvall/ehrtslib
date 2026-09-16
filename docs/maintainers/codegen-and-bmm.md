@@ -77,8 +77,10 @@ The generator script performs the following steps:
    inter-package dependencies
 3. **Topological sorting**: Orders packages so dependencies are generated before
    packages that depend on them (e.g., `openehr_base` before `openehr_rm`)
-4. **Downloads BMM files**: Fetches the corresponding BMM JSON files from the
-   `sebastian-iancu/code-generator` GitHub repository
+4. **Downloads BMM files**: Fetches the corresponding BMM JSON files from
+   official openEHR repositories (working copies under
+   `openEHR/specifications-<COMPONENT>/computable/BMM/`, falling back to
+   published JSON in [`openEHR/specifications-ITS-BMM`](https://github.com/openEHR/specifications-ITS-BMM))
 5. **Generates TypeScript code**:
    - Creates TypeScript classes and interfaces for each BMM package
    - Includes comprehensive JSDoc comments extracted from BMM documentation
@@ -94,13 +96,22 @@ The generator script performs the following steps:
 If new versions of BMM files are published, update the versions by running:
 
 ```bash
+deno run --allow-net --allow-write tasks/get_latest_bmm_versions.ts
 deno run --allow-net --allow-write tasks/extract_dependencies.ts
 ```
 
-This will:
+`get_latest_bmm_versions.ts` will:
 
-- Discover the latest versions of all BMM packages
+- List JSON schemas from [`openEHR/specifications-ITS-BMM`](https://github.com/openEHR/specifications-ITS-BMM) (`components/<COMPONENT>/json/`)
+- Prefer the matching working copy in `openEHR/specifications-<COMPONENT>/computable/BMM/` when that file exists (ITS-BMM import can lag)
+- Record `openehr_lang_1.1.0-bmm3` separately as `openehr_lang_bmm3` (same schema id as classic LANG 1.1.0; do not merge the two files — see the ITS-BMM `AGENTS.md`)
+- Keep only packages ehrtslib currently consumes (`base`, `rm`, `am`, `lang`, `lang_bmm3`, `term`); other ITS-BMM components are logged and skipped
 - Update `tasks/bmm_versions.json`
+
+Official AM 2.4.0 `includes` both `openehr_base_1.3.0` and `openehr_lang_1.1.0` (AOM2 rule nodes such as `EXPR_CONSTRAINT` inherit from LANG BEOM). `extract_dependencies.ts` records that.
+
+`extract_dependencies.ts` then:
+
 - Extract and update inter-package dependencies in `tasks/bmm_dependencies.json`
 
 Then regenerate the TypeScript libraries using the generation command above.
@@ -162,12 +173,13 @@ implementations or enhancements you've made.
 First, discover if new versions are available:
 
 ```bash
+deno run --allow-net --allow-write tasks/get_latest_bmm_versions.ts
 deno run --allow-net --allow-write tasks/extract_dependencies.ts
 ```
 
 This command will:
 
-- Query the BMM repository for the latest versions
+- Query the official ITS-BMM catalog (and working copies) for the latest versions
 - Update `tasks/bmm_versions.json` with any new version numbers
 - Update `tasks/bmm_dependencies.json` if dependencies have changed
 
@@ -185,8 +197,8 @@ new BMM version using the comparison utility:
 ```bash
 # Compare two specific versions (openehr_base used as an example)
 deno run --allow-read --allow-net --allow-write tasks/compare_bmm_versions.ts openehr_base \
-  https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json \
-  https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.4.0.bmm.json
+  https://raw.githubusercontent.com/openEHR/specifications-BASE/master/computable/BMM/openehr_base_1.3.0.bmm.json \
+  https://raw.githubusercontent.com/openEHR/specifications-ITS-BMM/master/components/BASE/json/openehr_base_1.3.0.bmm.json
 ```
 
 This generates a detailed comparison report showing:
@@ -356,7 +368,9 @@ Before adding a new BMM file, ensure:
 
 1. **The BMM file exists** in the source repository:
    - Check
-     https://github.com/sebastian-iancu/code-generator/tree/master/code/BMM-JSON
+     https://github.com/openEHR/specifications-ITS-BMM/tree/master/components
+     (published JSON) and the matching `openEHR/specifications-*/computable/BMM/`
+     working copy
    - Identify the exact filename (e.g., `openehr_proc_1.0.0.bmm.json` - used as
      example only)
 
@@ -379,9 +393,9 @@ hypothetical `openehr_proc` package):
 
 ```json
 {
-  "openehr_base": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json",
-  "openehr_rm": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.3.0.bmm.json",
-  "openehr_proc": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_proc_1.0.0.bmm.json"
+  "openehr_base": "https://raw.githubusercontent.com/openEHR/specifications-BASE/master/computable/BMM/openehr_base_1.3.0.bmm.json",
+  "openehr_rm": "https://raw.githubusercontent.com/openEHR/specifications-RM/master/computable/BMM/openehr_rm_1.2.0.bmm.json",
+  "openehr_proc": "https://raw.githubusercontent.com/openEHR/specifications-ITS-BMM/master/components/PROC/json/openehr_proc_1.0.0.bmm.json"
 }
 ```
 

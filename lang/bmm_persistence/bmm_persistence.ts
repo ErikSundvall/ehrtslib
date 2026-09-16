@@ -3,8 +3,8 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import type { BMM_CLASS, BMM_CONTAINER_TYPE, BMM_ENUMERATION, BMM_ENUMERATION_INTEGER, BMM_ENUMERATION_STRING, BMM_GENERIC_TYPE, BMM_INDEXED_CONTAINER_TYPE, BMM_PARAMETER_TYPE, BMM_SIMPLE_TYPE, BMM_TYPE } from "../_shared.ts";
-import { BMM_GENERIC_CLASS, BMM_SIMPLE_CLASS } from "../_unassigned.ts";
+import type { BMM_CLASS, BMM_CONTAINER_TYPE, BMM_ENUMERATION, BMM_ENUMERATION_INTEGER, BMM_ENUMERATION_STRING, BMM_GENERIC_TYPE, BMM_INDEXED_CONTAINER_TYPE, BMM_SIMPLE_TYPE, BMM_TYPE } from "../_shared.ts";
+import { BMM_GENERIC_CLASS, BMM_PARAMETER_TYPE, BMM_SIMPLE_CLASS } from "../_shared.ts";
 import { BMM_CONTAINER_PROPERTY, BMM_UNITARY_PROPERTY } from "../bmm/core/feature.ts";
 import type { BMM_INDEXED_CONTAINER_PROPERTY, BMM_PROPERTY } from "../bmm/core/feature.ts";
 import { BMM_PACKAGE } from "../bmm/core/model.ts";
@@ -699,10 +699,9 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
     // Create BMM_PARAMETER_TYPE from this persistent form
     // For now, we create a parameter type representation
     // The actual BMM_PARAMETER_TYPE would need proper definition
-    const paramType: BMM_PARAMETER_TYPE = {
-      name: this.name || "",
-      conforms_to_type: this.conforms_to_type,
-    };
+    const paramType = new BMM_PARAMETER_TYPE();
+    paramType.name = this.name || "";
+    paramType.conforms_to_type = this.conforms_to_type;
     this.bmm_generic_parameter = paramType;
   }
 }
@@ -950,7 +949,7 @@ export class P_BMM_OPEN_TYPE extends P_BMM_BASE_TYPE {
   /**
    * Result of \`_create_bmm_type()_\` call.
    */
-  override bmm_type?: openehr_base.Any = undefined;
+  override bmm_type?: BMM_TYPE = undefined;
 }
 
 /**
@@ -1353,3 +1352,62 @@ export class P_BMM_INDEXED_CONTAINER_TYPE extends P_BMM_CONTAINER_TYPE {
    */
   override bmm_type?: BMM_INDEXED_CONTAINER_TYPE = undefined;
 }
+
+/**
+ * Persistent form of a BMM function (routine) definition within a class (SPECLANG-16).
+ */
+export class P_BMM_FUNCTION extends P_BMM_MODEL_ELEMENT {
+  name?: string | openehr_base.String;
+  aliases?: Map<string, string>;
+  is_abstract?: boolean | openehr_base.Boolean;
+  parameters?: Map<string, P_BMM_FUNCTION_PARAMETER>;
+  pre_conditions?: Map<string, string>;
+  post_conditions?: Map<string, string>;
+  result?: P_BMM_TYPE;
+  is_nullable?: boolean | openehr_base.Boolean;
+}
+
+/**
+ * Persistent form of a named function parameter.
+ */
+export abstract class P_BMM_FUNCTION_PARAMETER extends P_BMM_MODEL_ELEMENT {
+  name?: string | openehr_base.String;
+  is_nullable?: boolean | openehr_base.Boolean;
+}
+
+/** Parameter whose type is a simple named type. */
+export class P_BMM_SINGLE_FUNCTION_PARAMETER extends P_BMM_FUNCTION_PARAMETER {
+  type?: string | openehr_base.String;
+}
+
+/** Parameter whose type is an open generic parameter (`T`, `U`, …). */
+export class P_BMM_SINGLE_FUNCTION_PARAMETER_OPEN
+  extends P_BMM_FUNCTION_PARAMETER {
+  type?: string | openehr_base.String;
+}
+
+/** Parameter whose type is a generic type such as `FUNCTION<TUPLE1<T>, Boolean>`. */
+export class P_BMM_GENERIC_FUNCTION_PARAMETER extends P_BMM_FUNCTION_PARAMETER {
+  type_def?: P_BMM_GENERIC_TYPE;
+}
+
+/** Parameter whose type is a container type. */
+export class P_BMM_CONTAINER_FUNCTION_PARAMETER
+  extends P_BMM_FUNCTION_PARAMETER {
+  type_def?: P_BMM_CONTAINER_TYPE;
+  cardinality?: { lower: number; upper?: number; upper_unbounded?: boolean };
+}
+
+/** Persistent form of a BMM constant. */
+export class P_BMM_CONSTANT extends P_BMM_MODEL_ELEMENT {
+  name?: string | openehr_base.String;
+  type?: string | openehr_base.String;
+  value?: string | openehr_base.String;
+}
+
+/** Persistent form of a BMM interface (function group). */
+export class P_BMM_INTERFACE extends P_BMM_MODEL_ELEMENT {
+  name?: string | openehr_base.String;
+  functions?: Map<string, P_BMM_FUNCTION>;
+}
+

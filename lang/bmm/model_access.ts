@@ -112,6 +112,9 @@ export class BMM_MODEL_ACCESS {
   }
 }
 
+/** Classic BMM 2 name for `BMM_MODEL_ACCESS` (official `openehr_lang_1.1.0`). */
+export { BMM_MODEL_ACCESS as REFERENCE_MODEL_ACCESS };
+
 /**
  * Descriptor for a BMM schema. Contains a meta-data table of attributes obtained from a mini-ODIN parse of the  schema file.
  */
@@ -272,6 +275,28 @@ export abstract class BMM_SCHEMA_DESCRIPTOR {
     if (this.bmm_schema.model_name !== undefined) {
       this.bmm_model.model_name = this.bmm_schema.model_name;
     }
+  }
+}
+
+/**
+ * Classic BMM 2 concrete schema descriptor (official `openehr_lang_1.1.0`
+ * name `SCHEMA_DESCRIPTOR`). BMM3 uses `BMM_SCHEMA_DESCRIPTOR`.
+ */
+export class SCHEMA_DESCRIPTOR extends BMM_SCHEMA_DESCRIPTOR {
+  /** Classic name for the persistent schema (`bmm_schema` in BMM3). */
+  get p_schema(): BMM_SCHEMA | undefined {
+    return this.bmm_schema;
+  }
+  set p_schema(val: BMM_SCHEMA | undefined) {
+    this.bmm_schema = val;
+  }
+
+  /** Classic name for the computable model (`bmm_model` in BMM3). */
+  get schema(): BMM_MODEL | undefined {
+    return this.bmm_model;
+  }
+  set schema(val: BMM_MODEL | undefined) {
+    this.bmm_model = val;
   }
 }
 
