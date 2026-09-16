@@ -3,8 +3,7 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import type { BMM_SIMPLE_TYPE } from "../_shared.ts";
-import { BMM_SIMPLE_CLASS } from "../_unassigned.ts";
+import { BMM_SIMPLE_CLASS, BMM_SIMPLE_TYPE } from "../_shared.ts";
 import * as openehr_base from "../../base/mod.ts";
 
 /**
@@ -28,7 +27,9 @@ export class BMM_DEFINITIONS extends openehr_base.BASIC_DEFINITIONS {
    * @returns Result value
    */
   Any_type(): BMM_SIMPLE_TYPE {
-    return { base_class: this.Any_class() } as BMM_SIMPLE_TYPE;
+    const t = new BMM_SIMPLE_TYPE();
+    t.base_class = this.Any_class();
+    return t;
   }
 
   /**

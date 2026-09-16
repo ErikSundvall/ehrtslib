@@ -7,8 +7,8 @@
 // BMM Version: 2.4
 // Schema Revision: 2.4.0.2
 // Description: openEHR Archetype Model
-// Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json
-// Last synced with BMM: 2025-11-14
+// Source: https://raw.githubusercontent.com/openEHR/specifications-AM/master/computable/BMM/openehr_am_2.4.0.bmm.json
+// Last synced with BMM: 2026-09-16
 //
 // ✅ ENHANCED IMPLEMENTATION
 // This file contains fully implemented methods and additional functionality beyond the BMM specification.

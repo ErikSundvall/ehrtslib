@@ -3,6 +3,9 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
+export * from "./element.ts";
+export * from "./entity.ts";
+export * from "./classic.ts";
 export * from "./literal_value.ts";
 export * from "./feature.ts";
 export * from "./model.ts";

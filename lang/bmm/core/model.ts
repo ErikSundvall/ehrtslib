@@ -3,8 +3,8 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import type { BMM_CLASS, BMM_ENUMERATION, BMM_MODULE, BMM_SIMPLE_TYPE } from "../../_shared.ts";
-import { BMM_SIMPLE_CLASS } from "../../_unassigned.ts";
+import type { BMM_CLASS, BMM_ENUMERATION, BMM_MODULE } from "../../_shared.ts";
+import { BMM_SIMPLE_CLASS, BMM_SIMPLE_TYPE } from "../../_shared.ts";
 import { BMM_MODEL_ELEMENT } from "../core.ts";
 import type { EL_PROCEDURE_AGENT } from "../expression.ts";
 import type { BMM_PROPERTY } from "./feature.ts";
@@ -82,6 +82,9 @@ export class BMM_MODEL_METADATA {
     }
   }
 }
+
+/** Classic BMM 2 name for `BMM_MODEL_METADATA` (official `openehr_lang_1.1.0`). */
+export { BMM_MODEL_METADATA as BMM_SCHEMA_CORE };
 
 /**
  * A BMM model component that contains packages and classes.
@@ -283,7 +286,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
     const primitives: string[] = [];
     if (this.class_definitions) {
       for (const [key, cls] of this.class_definitions) {
-        if (cls.is_primitive?.value === true) {
+        if (cls.is_primitive === true) {
           primitives.push(key);
         }
       }
@@ -340,9 +343,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
       const msTypeStr = a_ms_property_name?.value || String(a_ms_property_name);
 
       // Check if property exists and types conform
-      if (classDef.flat_properties) {
-        const prop = (classDef.flat_properties as Map<string, BMM_PROPERTY>)
-          .get(propNameStr.toUpperCase());
+      if (classDef.properties) {
+        const prop = classDef.properties.get(propNameStr) ??
+          classDef.properties.get(propNameStr.toUpperCase());
         if (prop && prop.type) {
           const propTypeName = prop.type.type_name?.()?.value || "";
           // Simple conformance check - exact match or ancestor
@@ -390,9 +393,9 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
 
     for (const part of parts.slice(0, -1)) {
       // Look up property in current class
-      if (currentClass.flat_properties) {
-        const prop = (currentClass.flat_properties as Map<string, BMM_PROPERTY>)
-          .get(part.toUpperCase());
+      if (currentClass.properties) {
+        const prop = currentClass.properties.get(part) ??
+          currentClass.properties.get(part.toUpperCase());
         if (prop && prop.type) {
           const typeName = prop.type.type_name?.();
           if (typeName) {
@@ -414,7 +417,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
     try {
       const classDef = this.class_definition(a_class);
       if (classDef.ancestors) {
-        const ancestorDefs = classDef.ancestors as Map<string, BMM_CLASS>;
+        const ancestorDefs = classDef.ancestors;
         for (const [ancName, _ancClass] of ancestorDefs) {
           ancestors.push(ancName);
           // Recursively get ancestors of ancestors
@@ -534,7 +537,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
    * @returns Result value
    */
   any_type_definition(): BMM_SIMPLE_TYPE {
-    const anyType = {} as BMM_SIMPLE_TYPE;
+    const anyType = new BMM_SIMPLE_TYPE();
     anyType.base_class = this.any_class_definition();
     return anyType;
   }
@@ -544,8 +547,7 @@ export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
    * @returns Result value
    */
   boolean_type_definition(): BMM_SIMPLE_TYPE {
-    // Try to find "Boolean" class in definitions
-    const boolType = {} as BMM_SIMPLE_TYPE;
+    const boolType = new BMM_SIMPLE_TYPE();
     if (this.class_definitions?.has("BOOLEAN")) {
       boolType.base_class = this.class_definitions.get(
         "BOOLEAN",

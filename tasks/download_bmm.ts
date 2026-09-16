@@ -1,7 +1,14 @@
-// tasks/download_bmm.ts
-const bmmUrl =
-  "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json";
-const outputPath = "tasks/test_bmm.json";
+// Download one BMM JSON file from tasks/bmm_versions.json (default: openehr_base).
+const packageName = Deno.args[0] ?? "openehr_base";
+const outputPath = Deno.args[1] ?? "tasks/test_bmm.json";
+
+const bmmVersions = JSON.parse(
+  await Deno.readTextFile("./tasks/bmm_versions.json"),
+) as Record<string, string>;
+const bmmUrl = bmmVersions[packageName];
+if (!bmmUrl) {
+  throw new Error(`No BMM URL for ${packageName} in tasks/bmm_versions.json`);
+}
 
 try {
   const response = await fetch(bmmUrl);
@@ -12,5 +19,7 @@ try {
   await Deno.writeTextFile(outputPath, bmmContent);
   console.log(`Successfully downloaded ${bmmUrl} to ${outputPath}`);
 } catch (error) {
-  console.error(`Error downloading BMM file: ${error.message}`);
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Error downloading BMM file: ${message}`);
+  Deno.exit(1);
 }
