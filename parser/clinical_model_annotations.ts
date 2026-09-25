@@ -3,9 +3,20 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
+import type { TermBag } from "../am/util/ontology_merge.ts";
 import * as openehr_base from "../base/openehr_base.ts";
 import { getAnnotationsDocumentation } from "./aom_odin_sections.ts";
 import { ADL2Serializer } from "../generation/adl2_serializer.ts";
+import {
+  applyOperationalTemplateTermScopes,
+  archetypeTermBagsForLanguage,
+  type OperationalTemplateWithTermScopes,
+  resolveLocatableLabel,
+  TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_NAME_FALLBACK_NODE_ID_KEY,
+  type TermScopeMeta,
+} from "../generation/term_scope.ts";
+import { originalLanguageOf } from "./annotation_families.ts";
 import type { ArchetypeRepository } from "./legacy/archetype_repository.ts";
 import type { LoadFileResult } from "./legacy/archetype_repository.ts";
 
@@ -43,12 +54,154 @@ export interface BuildDefinitionTreeOptions {
   resolveArchetype?: (
     archetypeId: string,
   ) => openehr_am.ARCHETYPE | undefined;
+  /** Language for ontology / archetype-scoped term lookup (default: model original). */
+  language?: string;
 }
 
 interface BuildTreeContext {
   resolveArchetype?: BuildDefinitionTreeOptions["resolveArchetype"];
   overlayId?: string;
   overlayRootPath?: string;
+  language: string;
+  templateTerms: TermBag;
+  archetypeTerms: Record<string, TermBag>;
+  /** Inherited archetype id when nodes lack `term_archetype_scope`. */
+  termScope?: string;
+}
+
+function termBagForLanguage(
+  table: Record<string, TermBag> | undefined,
+  language: string,
+): TermBag {
+  if (!table) return {};
+  return table[language] ?? table.en ?? Object.values(table)[0] ?? {};
+}
+
+function collectTemplateTerms(
+  resource: AnnotatedResource,
+  language: string,
+): TermBag {
+  const ontology = (resource as { ontology?: { term_definitions?: Record<string, TermBag> } })
+    .ontology;
+  return termBagForLanguage(ontology?.term_definitions, language);
+}
+
+function collectArchetypeTerms(
+  resource: AnnotatedResource,
+  language: string,
+): Record<string, TermBag> {
+  return archetypeTermBagsForLanguage(
+    resource as OperationalTemplateWithTermScopes,
+    language,
+  );
+}
+
+function mergeArchetypeOntologyTerms(
+  archetypeTerms: Record<string, TermBag>,
+  archetypeId: string,
+  archetype: openehr_am.ARCHETYPE,
+  language: string,
+): void {
+  if (archetypeTerms[archetypeId] && Object.keys(archetypeTerms[archetypeId]).length) {
+    return;
+  }
+  const ontology = archetype.ontology as
+    | { term_definitions?: Record<string, TermBag> }
+    | undefined;
+  const bag = termBagForLanguage(ontology?.term_definitions, language);
+  if (!Object.keys(bag).length) return;
+  archetypeTerms[archetypeId] = { ...(archetypeTerms[archetypeId] ?? {}), ...bag };
+}
+
+function clinicalLabelForObject(
+  obj: openehr_am.C_OBJECT,
+  ctx: BuildTreeContext,
+): string | undefined {
+  const meta = obj as TermScopeMeta;
+  return resolveLocatableLabel(
+    obj.node_id,
+    meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+    ctx.templateTerms,
+    ctx.archetypeTerms,
+    meta[TERM_ARCHETYPE_SCOPE_KEY] ?? ctx.termScope,
+  );
+}
+
+function definitionNodeLabel(
+  obj: openehr_am.C_OBJECT,
+  ctx: BuildTreeContext,
+  technical: string,
+): string {
+  return clinicalLabelForObject(obj, ctx) ?? technical;
+}
+
+function seedArchetypeTermsFromResolver(
+  archetypeTerms: Record<string, TermBag>,
+  archetypeIds: Array<string | undefined>,
+  resolveArchetype: BuildDefinitionTreeOptions["resolveArchetype"],
+  language: string,
+): void {
+  if (!resolveArchetype) return;
+  for (const id of archetypeIds) {
+    if (!id) continue;
+    const arch = resolveArchetype(id);
+    if (arch) mergeArchetypeOntologyTerms(archetypeTerms, id, arch, language);
+  }
+}
+
+function stampTermScopeOnSubtree(
+  obj: openehr_am.C_OBJECT,
+  scope: string,
+): void {
+  const meta = obj as TermScopeMeta;
+  if (!meta[TERM_ARCHETYPE_SCOPE_KEY]) {
+    meta[TERM_ARCHETYPE_SCOPE_KEY] = scope;
+  }
+  if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
+    for (const attr of readAttributes(obj)) {
+      for (const child of readAttributeChildren(attr)) {
+        stampTermScopeOnSubtree(child, scope);
+      }
+    }
+  }
+}
+
+function prepareTemplateTermContext(
+  resource: AnnotatedResource,
+  language: string,
+  archetypeTerms: Record<string, TermBag>,
+  resolveArchetype: BuildDefinitionTreeOptions["resolveArchetype"],
+): string | undefined {
+  if (
+    !(resource instanceof openehr_am.TEMPLATE ||
+      resource instanceof openehr_am.OPERATIONAL_TEMPLATE)
+  ) {
+    return undefined;
+  }
+  applyOperationalTemplateTermScopes(
+    resource as OperationalTemplateWithTermScopes,
+    language,
+  );
+  Object.assign(
+    archetypeTerms,
+    collectArchetypeTerms(resource, language),
+  );
+  if (resource instanceof openehr_am.TEMPLATE) {
+    const parentId = resource.parent_archetype_id?.value;
+    const specializedId = resource.archetype_id?.value;
+    seedArchetypeTermsFromResolver(
+      archetypeTerms,
+      [parentId, specializedId],
+      resolveArchetype,
+      language,
+    );
+    const scope = parentId ?? specializedId;
+    if (scope && resource.definition) {
+      stampTermScopeOnSubtree(resource.definition, scope);
+    }
+    return scope;
+  }
+  return undefined;
 }
 
 export function annotationPathOf(node: DefinitionTreeNode): string {
@@ -250,19 +403,31 @@ function buildObjectSubtree(
     const path = parentPath;
     const keyCount = countAnnotationKeysAtPath(doc, path);
     const ref = obj.archetype_ref;
-    const label = ref
+    const scope = ref ?? ctx.termScope;
+    const nodeCtx: BuildTreeContext = scope ? { ...ctx, termScope: scope } : ctx;
+    const technical = ref
       ? `use ${ref}`
       : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    let children = childrenOfComplex(obj, parentPath, doc, ctx);
+    const label = definitionNodeLabel(obj, nodeCtx, technical);
+    let children = childrenOfComplex(obj, parentPath, doc, nodeCtx);
     if (!children.length && ref && ctx.resolveArchetype) {
       const filled = ctx.resolveArchetype(ref);
       const overlayDef = filled?.definition;
       if (overlayDef) {
         const overlayDoc = getResourceDocumentation(filled);
+        const overlayId = filled.archetype_id?.value ?? ref;
+        mergeArchetypeOntologyTerms(
+          ctx.archetypeTerms,
+          overlayId,
+          filled,
+          ctx.language,
+        );
         const overlayCtx: BuildTreeContext = {
+          ...ctx,
           resolveArchetype: ctx.resolveArchetype,
-          overlayId: filled.archetype_id?.value ?? ref,
+          overlayId,
           overlayRootPath: path,
+          termScope: overlayId,
         };
         children = childrenOfComplex(
           overlayDef,
@@ -290,7 +455,8 @@ function buildObjectSubtree(
     const path = parentPath;
     const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
     const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
-    const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+    const technical = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+    const label = definitionNodeLabel(obj, ctx, technical);
     return finishNode({
       id: path || "/root",
       path,
@@ -307,10 +473,12 @@ function buildObjectSubtree(
     const path = parentPath;
     const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
     const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
+    const technical = `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`;
+    const label = definitionNodeLabel(obj, ctx, technical);
     return finishNode({
       id: path,
       path,
-      label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
+      label,
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
       hasAnnotations: keyCount > 0,
@@ -340,8 +508,36 @@ export function buildDefinitionTree(
   const definition = resource.definition;
   if (!definition) return undefined;
   const doc = getResourceDocumentation(resource);
+  const language = options.language ?? originalLanguageOf(resource) ?? "en";
+  const templateTerms = collectTemplateTerms(resource, language);
+  const archetypeTerms = collectArchetypeTerms(resource, language);
+  const templateScope = prepareTemplateTermContext(
+    resource,
+    language,
+    archetypeTerms,
+    options.resolveArchetype,
+  );
+  let termScope = templateScope;
+  if (
+    !termScope && resource instanceof openehr_am.ARCHETYPE &&
+    !(resource instanceof openehr_am.TEMPLATE)
+  ) {
+    termScope = resource.archetype_id?.value;
+    if (termScope) {
+      mergeArchetypeOntologyTerms(
+        archetypeTerms,
+        termScope,
+        resource,
+        language,
+      );
+    }
+  }
   return buildObjectSubtree(definition, "", doc, {
     resolveArchetype: options.resolveArchetype,
+    language,
+    templateTerms,
+    archetypeTerms,
+    termScope,
   });
 }
 
