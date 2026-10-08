@@ -22,7 +22,7 @@ Check these consumers when the public API changes:
 
 - Removed `Iso8601_date.timezone()`. Timezone stays on `Iso8601_date_time` and `Iso8601_time`.
 
-## After 0.2.0 (not yet tagged)
+## 0.3.0 (tag `v0.3`)
 
 Classic BMM 2 names that shipped on tag `v0.2` are removed from the hand-written API.
 
