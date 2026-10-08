@@ -99,6 +99,10 @@ Deno.test("flatten expands a Better template referenced by template id", () => {
     { path: "ChemoForm.t.json", content: rootTemplate() },
     { path: "nested/ChemoQ-fatigue.t.json", content: clusterTemplate() },
   ]);
+  assertEquals(withNested.listTemplateIds().sort(), [
+    "openEHR-EHR-CLUSTER.symptom_sign.v1",
+    "openEHR-EHR-COMPOSITION.chemo_form.v1",
+  ]);
   assert(withNested.resolve(NESTED_ID) instanceof openehr_am.TEMPLATE);
   assertEquals(
     withNested.resolve(NESTED_ID)?.archetype_id?.value,
@@ -123,6 +127,9 @@ Deno.test("template lookup accepts the file basename without .t.json", () => {
         `"templateId":"other-id"`,
       ),
     },
+  ]);
+  assertEquals(repo.listTemplateIds(), [
+    "openEHR-EHR-CLUSTER.symptom_sign.v1",
   ]);
   assert(repo.getTemplate("ChemoQ-fatigue.v8"));
   assert(repo.resolve("ChemoQ-fatigue.v8") instanceof openehr_am.TEMPLATE);

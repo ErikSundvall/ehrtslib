@@ -65,8 +65,20 @@ export class ArchetypeRepository implements ArchetypeResolver {
     return [...this.loadedPaths];
   }
 
+  /**
+   * One id per loaded template. Alias keys (`template_id`, basename,
+   * version-stripped id) point at the same object and are not extra templates.
+   */
   listTemplateIds(): string[] {
-    return [...this.templates.keys()].sort();
+    const seen = new Set<openehr_am.TEMPLATE>();
+    const ids: string[] = [];
+    for (const template of this.templates.values()) {
+      if (seen.has(template)) continue;
+      seen.add(template);
+      const id = template.archetype_id?.value ?? templateIdOf(template);
+      if (id) ids.push(id);
+    }
+    return ids.sort();
   }
 
   listOperationalIds(): string[] {
