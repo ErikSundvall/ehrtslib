@@ -6,13 +6,13 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { Env } from "../../../base/base_types/builtins.ts";
 import { builtinTemporal } from "../../../base/foundation_types/temporal_api.ts";
 import {
+  Env,
   Iso8601_date,
   Iso8601_date_time,
   Iso8601_duration,
-} from "../../../base/foundation_types/time.ts";
+} from "../../../openehr_base.ts";
 
 function date(value: string): Iso8601_date {
   const result = new Iso8601_date();
@@ -78,16 +78,17 @@ Deno.test("Iso8601_duration add and subtract", () => {
 });
 
 Deno.test("Env.current_date returns today's Iso8601_date", () => {
-  const today = Env.current_date();
+  const env = new Env();
+  const today = env.current_date();
   assert(today instanceof Iso8601_date);
   const clock = builtinTemporal();
   assertEquals(today.value, clock.Now.plainDateISO().toString());
   assertEquals(today.month().value, clock.Now.plainDateISO().month);
 
-  const now = Env.current_date_time();
+  const now = env.current_date_time();
   assert(now instanceof Iso8601_date_time);
   assert(now.value?.startsWith(today.value + "T"));
 
-  const zone = Env.current_time_zone();
+  const zone = env.current_time_zone();
   assertEquals(zone.value, clock.Now.zonedDateTimeISO().offset);
 });

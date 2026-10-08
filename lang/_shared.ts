@@ -4,53 +4,53 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 // Hand-written implementation based on BMM schema: lang v1.1.0
+// plus official BMM3 sibling schema openehr_lang_1.1.0-bmm3
 // BMM Version: 2.4
 // Schema Revision: 1.1.0.2
 // Description: lang
-// Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json
-// Last synced with BMM: 2025-11-14
+// Source: https://raw.githubusercontent.com/openEHR/specifications-LANG/master/computable/BMM/openehr_lang_1.1.0.bmm.json
+// BMM3: https://raw.githubusercontent.com/openEHR/specifications-LANG/master/computable/BMM/openehr_lang_1.1.0-bmm3.bmm.json
+// Last synced with BMM: 2026-09-16
 //
 // ✅ ENHANCED IMPLEMENTATION
 // This file contains fully implemented methods and additional functionality beyond the BMM specification.
 // It is safe to edit this file - your changes will not be overwritten by the generator.
 //
 // The generator outputs to /generated directory. To update this file for a new BMM version:
-// 1. Run generator to update /generated/openehr_lang.ts
+// 1. Run generator to update /generated/openehr_lang.ts (and openehr_lang_bmm3.ts)
 // 2. Compare changes using: deno run --allow-read tasks/compare_bmm_versions.ts
 // 3. Manually merge relevant changes into this file
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
-// Unknown types - defined as 'any' for now
-export type BMM_CLASS = any;
-
-export type BMM_MODULE = any;
-
-export type BMM_ROUTINE_TYPE = any;
-
-export type BMM_SIGNATURE = any;
-
-export type BMM_CONTAINER_TYPE = any;
-
-export type BMM_ENUMERATION = any;
-
-export type BMM_ENUMERATION_INTEGER = any;
-
-export type BMM_ENUMERATION_STRING = any;
-
-export type BMM_GENERIC_TYPE = any;
-
-export type BMM_INDEXED_CONTAINER_TYPE = any;
-
-export type BMM_PARAMETER_TYPE = any;
-
-export type BMM_SIMPLE_TYPE = any;
-
-export type BMM_STATUS_TYPE = any;
-
-export type BMM_TYPE = any;
-
-export type BMM_UNITARY_TYPE = any;
+export {
+  BMM_BUILTIN_TYPE,
+  BMM_CLASS,
+  BMM_CONTAINER_TYPE,
+  BMM_EFFECTIVE_TYPE,
+  BMM_ENTITY_METATYPE,
+  BMM_ENUMERATION,
+  BMM_ENUMERATION_INTEGER,
+  BMM_ENUMERATION_STRING,
+  BMM_FUNCTION_TYPE,
+  BMM_GENERIC_CLASS,
+  BMM_GENERIC_TYPE,
+  BMM_INDEXED_CONTAINER_TYPE,
+  BMM_MODEL_TYPE,
+  BMM_MODULE,
+  BMM_PARAMETER_TYPE,
+  BMM_PROCEDURE_TYPE,
+  BMM_PROPERTY_TYPE,
+  BMM_ROUTINE_TYPE,
+  BMM_SIGNATURE,
+  BMM_SIMPLE_CLASS,
+  BMM_SIMPLE_TYPE,
+  BMM_STATUS_TYPE,
+  BMM_TUPLE_TYPE,
+  BMM_TYPE,
+  BMM_UNITARY_TYPE,
+  BMM_VALUE_SET_SPEC,
+} from "./bmm/core/entity.ts";
 
 export type C_OBJECT = any;
 

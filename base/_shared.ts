@@ -7,8 +7,8 @@
 // BMM Version: 2.4
 // Schema Revision: 1.3.0.2
 // Description: openEHR base types.
-// Source: https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json
-// Last synced with BMM: 2025-11-14
+// Source: https://raw.githubusercontent.com/openEHR/specifications-BASE/master/computable/BMM/openehr_base_1.3.0.bmm.json
+// Last synced with BMM: 2026-09-16
 //
 // ✅ ENHANCED IMPLEMENTATION
 // This file contains fully implemented methods and additional functionality beyond the BMM specification.
@@ -30,7 +30,9 @@ import type { Boolean } from "./foundation_types/primitive_types.ts";
 // Unknown types - defined as 'any' for now
 export type T = any;
 
-// Type alias for function predicates used in container operations
+// Type alias for container predicates. Official BASE BMM (SPECBASE-48) types
+// these as FUNCTION<TUPLE1<T>, Boolean>; a TypeScript `(v: T) => Boolean` is
+// the equivalent callable form.
 export type Operation<T = any> = (v: T) => Boolean;
 
 // Type registry for dynamic type instantiation via instance_of()

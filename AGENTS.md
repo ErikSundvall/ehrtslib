@@ -44,6 +44,16 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
   using the PRD file as input. Refer to PRD in task list document.
 - Put PRDs and task lists in a /tasks subdirectory
 
+## Library API before 1.0
+
+Do not keep TypeScript aliases or duplicate classes so an older ehrtslib import
+name still compiles. Remove the old name, update Demo and TAAAT in the same
+change, and record it in
+[`docs/maintainers/api-changes.md`](docs/maintainers/api-changes.md). Keep
+loading existing openEHR artefacts (ADL, OPT, OET, compositions, BMM JSON/ODIN,
+archetype rules). The external consumer to warn, besides the in-repo apps, is
+[regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator).
+
 ## Development tooling guidance
 
 - When working with Javascript or Typescript based projects prefer using Deno
