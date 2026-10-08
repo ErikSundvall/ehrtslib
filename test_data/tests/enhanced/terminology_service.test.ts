@@ -4,22 +4,15 @@
  * Tests for the terminology service that provides access to openEHR's
  * internal terminologies and code sets loaded from the official XML files.
  *
- * Note: The service uses deno_dom which doesn't support "text/xml" parsing.
- * Tests are designed to handle this gracefully and pass regardless of
- * whether XML data was successfully loaded.
+ * Official terminology XML is parsed without a DOM/CSS engine. These tests
+ * require the files under terminology_data/ and run from the repository root.
  */
 
 import {
   assert,
   assertEquals,
-  assertNotEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import {
-  OpenEHRTerminologyService,
-  CodeSet,
-  TerminologyGroup,
-  Terminology,
-} from "../../../term/terminology_service.ts";
+import { OpenEHRTerminologyService } from "../../../term/terminology_service.ts";
 
 // ===== Singleton Tests =====
 
@@ -83,7 +76,8 @@ Deno.test("OpenEHRTerminologyService - getCodeSetIdentifiers returns array", asy
 
   const identifiers = service.getCodeSetIdentifiers();
   assert(Array.isArray(identifiers));
-  // Note: May be empty if XML parsing failed
+  assert(identifiers.includes("compression_algorithms"));
+  assert(identifiers.includes("countries"));
 });
 
 Deno.test("OpenEHRTerminologyService - getAllCodes returns empty array for unknown", async () => {
@@ -118,7 +112,7 @@ Deno.test("OpenEHRTerminologyService - getGroupIdentifiers returns array", async
 
   const identifiers = service.getGroupIdentifiers();
   assert(Array.isArray(identifiers));
-  // Note: May be empty if XML parsing failed
+  assert(identifiers.includes("null_flavours"));
 });
 
 // ===== Concept Tests =====
@@ -160,120 +154,41 @@ Deno.test("OpenEHRTerminologyService - getGroupIdByName returns undefined for un
   assert(result === undefined);
 });
 
-// ===== Conditional Tests (only run if data was loaded) =====
-
-Deno.test("OpenEHRTerminologyService - code sets available when XML parsing works", async () => {
+Deno.test("OpenEHRTerminologyService - loads code sets from official XML", async () => {
   const service = OpenEHRTerminologyService.getInstance();
   await service.initialize();
 
-  const identifiers = service.getCodeSetIdentifiers();
+  const compression = service.getCodeSet("compression_algorithms");
+  assert(compression !== undefined);
+  assertEquals(compression.issuer, "openehr");
+  assertEquals(compression.name, "compression algorithms");
+  assert(compression.codes.some((code) => code.code === "gzip"));
 
-  if (identifiers.length > 0) {
-    // XML parsing worked, verify code set functionality
-    assert(service.hasCodeSet(identifiers[0]), "Should have at least one code set");
-
-    // Verify getCodeSet returns a valid object
-    const codeSet = service.getCodeSet(identifiers[0]);
-    assert(codeSet !== undefined);
-    assert(codeSet.openehr_id !== undefined);
-  } else {
-    // XML parsing failed (deno_dom doesn't support text/xml)
-    console.log("Note: XML parsing unavailable - skipping code set verification");
-  }
+  const countries = service.getCodeSet("countries");
+  assert(countries !== undefined);
+  const cote = countries.codes.find((code) => code.code === "CI");
+  assertEquals(cote?.description, "CÔTE D'IVOIRE");
 });
 
-Deno.test("OpenEHRTerminologyService - groups available when XML parsing works", async () => {
+Deno.test("OpenEHRTerminologyService - loads groups and decodes rubric entities", async () => {
   const service = OpenEHRTerminologyService.getInstance();
   await service.initialize();
 
-  const identifiers = service.getGroupIdentifiers();
+  const nullFlavours = service.getGroup("null_flavours");
+  assert(nullFlavours !== undefined);
+  assertEquals(nullFlavours.name, "null flavours");
+  assertEquals(
+    service.getConceptRubric("null_flavours", "271"),
+    "no information",
+  );
+  assertEquals(service.getRubricForCode("271"), "no information");
+  assertEquals(service.getGroupIdByName("null flavours"), "null_flavours");
 
-  if (identifiers.length > 0) {
-    // XML parsing worked, verify group functionality
-    assert(service.hasGroup(identifiers[0]), "Should have at least one group");
+  const property = service.getGroup("property");
+  assert(property !== undefined);
+  assertEquals(property.concepts.get("118"), "<not set>");
 
-    // Verify getGroup returns a valid object
-    const group = service.getGroup(identifiers[0]);
-    assert(group !== undefined);
-    assert(group.openehr_id !== undefined);
-  } else {
-    // XML parsing failed (deno_dom doesn't support text/xml)
-    console.log("Note: XML parsing unavailable - skipping group verification");
-  }
-});
-
-Deno.test("OpenEHRTerminologyService - concept rubric lookup when data available", async () => {
-  const service = OpenEHRTerminologyService.getInstance();
-  await service.initialize();
-
-  const groupIds = service.getGroupIdentifiers();
-
-  if (groupIds.length > 0) {
-    const group = service.getGroup(groupIds[0]);
-    if (group && group.concepts.size > 0) {
-      // Get first concept from the group
-      const conceptId = Array.from(group.concepts.keys())[0];
-      const rubric = service.getConceptRubric(group.openehr_id, conceptId);
-      assert(rubric !== undefined, "Should get rubric for known concept");
-    }
-  } else {
-    console.log("Note: XML parsing unavailable - skipping concept rubric verification");
-  }
-});
-
-Deno.test("OpenEHRTerminologyService - getRubricForCode when data available", async () => {
-  const service = OpenEHRTerminologyService.getInstance();
-  await service.initialize();
-
-  const groupIds = service.getGroupIdentifiers();
-
-  if (groupIds.length > 0) {
-    // Find a group with concepts
-    for (const groupId of groupIds) {
-      const group = service.getGroup(groupId);
-      if (group && group.concepts.size > 0) {
-        const conceptId = Array.from(group.concepts.keys())[0];
-        const rubric = service.getRubricForCode(conceptId);
-        assert(rubric !== undefined, "Should find rubric for code that exists in a group");
-        break;
-      }
-    }
-  } else {
-    console.log("Note: XML parsing unavailable - skipping getRubricForCode verification");
-  }
-});
-
-Deno.test("OpenEHRTerminologyService - getAllCodes returns codes when data available", async () => {
-  const service = OpenEHRTerminologyService.getInstance();
-  await service.initialize();
-
-  const codeSetIds = service.getCodeSetIdentifiers();
-
-  if (codeSetIds.length > 0) {
-    const codes = service.getAllCodes(codeSetIds[0]);
-    assert(Array.isArray(codes));
-    assert(codes.length > 0, "Code set should have codes");
-  } else {
-    console.log("Note: XML parsing unavailable - skipping getAllCodes verification");
-  }
-});
-
-Deno.test("OpenEHRTerminologyService - getCodesForGroup returns codes when data available", async () => {
-  const service = OpenEHRTerminologyService.getInstance();
-  await service.initialize();
-
-  const groupIds = service.getGroupIdentifiers();
-
-  if (groupIds.length > 0) {
-    // Find a group with concepts
-    for (const groupId of groupIds) {
-      const codes = service.getCodesForGroup(groupId);
-      if (codes.length > 0) {
-        assert(Array.isArray(codes));
-        break;
-      }
-    }
-  } else {
-    console.log("Note: XML parsing unavailable - skipping getCodesForGroup verification");
-  }
+  const codes = service.getCodesForGroup("null_flavours");
+  assert(codes.includes("271"));
+  assert(service.getAllCodes("compression_algorithms").includes("deflate"));
 });
