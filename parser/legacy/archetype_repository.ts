@@ -3,11 +3,14 @@
  */
 
 import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
-import { flattenToOperationalTemplate, type ArchetypeResolver } from "../../am/util/flattening/template_flattener.ts";
+import {
+  type ArchetypeResolver,
+  flattenToOperationalTemplate,
+} from "../../am/util/flattening/template_flattener.ts";
 import { isOptXml } from "./opt_xml_parser.ts";
 import { isOetXml } from "./oet_xml_parser.ts";
 import { isTemplateJson, parseTemplateJson } from "./template_json_parser.ts";
-import * as openehr_am from "../../am/openehr_am.ts";
+import type * as openehr_am from "../../am/openehr_am.ts";
 
 export interface ArchetypeRepositoryOptions {
   /** Directory containing `.adl` / `.adls` files (searched recursively). */
@@ -62,8 +65,20 @@ export class ArchetypeRepository implements ArchetypeResolver {
     return [...this.loadedPaths];
   }
 
+  /**
+   * One id per loaded template. Alias keys (`template_id`, basename,
+   * version-stripped id) point at the same object and are not extra templates.
+   */
   listTemplateIds(): string[] {
-    return [...this.templates.keys()].sort();
+    const seen = new Set<openehr_am.TEMPLATE>();
+    const ids: string[] = [];
+    for (const template of this.templates.values()) {
+      if (seen.has(template)) continue;
+      seen.add(template);
+      const id = template.archetype_id?.value ?? templateIdOf(template);
+      if (id) ids.push(id);
+    }
+    return ids.sort();
   }
 
   listOperationalIds(): string[] {
@@ -75,18 +90,23 @@ export class ArchetypeRepository implements ArchetypeResolver {
       this.templates.get(templateId.replace(/\.v[\d.]+$/, ""));
   }
 
-  getOperationalTemplate(id: string): openehr_am.OPERATIONAL_TEMPLATE | undefined {
+  getOperationalTemplate(
+    id: string,
+  ): openehr_am.OPERATIONAL_TEMPLATE | undefined {
     return this.operational.get(id) ??
       this.operational.get(id.replace(/\.v[\d.]+$/, ""));
   }
 
   /** Flatten an ADL2 source template using archetypes in this repository. */
-  flattenTemplate(template: openehr_am.TEMPLATE): openehr_am.OPERATIONAL_TEMPLATE {
+  flattenTemplate(
+    template: openehr_am.TEMPLATE,
+  ): openehr_am.OPERATIONAL_TEMPLATE {
     return flattenToOperationalTemplate(template, this);
   }
 
   resolve(archetypeId: string): openehr_am.ARCHETYPE | undefined {
-    return this.get(archetypeId);
+    // A nested Better template is referenced by template id, not archetype id.
+    return this.get(archetypeId) ?? this.getTemplate(archetypeId);
   }
 
   async loadDirectory(rootDir: string): Promise<void> {
@@ -114,7 +134,10 @@ export class ArchetypeRepository implements ArchetypeResolver {
         return { path, kind: "skipped", message: "empty file" };
       }
 
-      if (trimmed.startsWith("{") && (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))) {
+      if (
+        trimmed.startsWith("{") &&
+        (isTemplateJson(trimmed) || /\.t\.json$/i.test(path))
+      ) {
         return this.ingestTemplateJson(path, trimmed);
       }
 
@@ -150,37 +173,62 @@ export class ArchetypeRepository implements ArchetypeResolver {
     for (const overlay of overlays) {
       this.add(overlay);
     }
-    const id = template.archetype_id?.value ?? path;
-    this.templates.set(id, template);
-    const base = id.replace(/\.v[\d.]+$/, "");
-    if (!this.templates.has(base)) this.templates.set(base, template);
+    this.indexTemplate(template, path);
     for (const w of warnings) {
       this.warnings.push(`${path}: ${w}`);
     }
+    const id = template.archetype_id?.value ?? templateIdOf(template) ?? path;
     return { path, kind: "template_json", archetypeId: id };
   }
 
-  private ingestParseResult(path: string, parsed: ParseAdlResult): LoadFileResult {
+  private ingestParseResult(
+    path: string,
+    parsed: ParseAdlResult,
+  ): LoadFileResult {
     if (parsed.kind === "archetype" && parsed.archetype) {
       this.add(parsed.archetype);
       const id = parsed.archetype.archetype_id?.value ?? path;
       return { path, kind: "archetype", archetypeId: id };
     }
     if (parsed.kind === "template" && parsed.template) {
+      this.indexTemplate(parsed.template, path);
       const id = parsed.template.archetype_id?.value ?? path;
-      this.templates.set(id, parsed.template);
-      const base = id.replace(/\.v[\d.]+$/, "");
-      if (!this.templates.has(base)) this.templates.set(base, parsed.template);
       return { path, kind: "template", archetypeId: id };
     }
     if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
       const id = parsed.operationalTemplate.archetype_id?.value ?? path;
       this.operational.set(id, parsed.operationalTemplate);
       const base = id.replace(/\.v[\d.]+$/, "");
-      if (!this.operational.has(base)) this.operational.set(base, parsed.operationalTemplate);
+      if (!this.operational.has(base)) {
+        this.operational.set(base, parsed.operationalTemplate);
+      }
       return { path, kind: "operational_template", archetypeId: id };
     }
-    return { path, kind: "skipped", message: `unsupported kind: ${parsed.kind}` };
+    return {
+      path,
+      kind: "skipped",
+      message: `unsupported kind: ${parsed.kind}`,
+    };
+  }
+
+  /**
+   * Index a source template by archetype id, Better `template_id`, and the
+   * file basename (`ChemoQ-fatigue.t.json` → `ChemoQ-fatigue`).
+   */
+  private indexTemplate(template: openehr_am.TEMPLATE, path: string): void {
+    const id = template.archetype_id?.value ?? path;
+    const keys = new Set<string>([id]);
+    const templateId = templateIdOf(template);
+    if (templateId) keys.add(templateId);
+    const baseName = templateBasename(path);
+    if (baseName) keys.add(baseName);
+    for (const key of keys) this.rememberTemplate(key, template);
+  }
+
+  private rememberTemplate(id: string, template: openehr_am.TEMPLATE): void {
+    this.templates.set(id, template);
+    const base = id.replace(/\.v[\d.]+$/, "");
+    if (base && !this.templates.has(base)) this.templates.set(base, template);
   }
 
   add(archetype: openehr_am.ARCHETYPE): void {
@@ -214,4 +262,17 @@ export class ArchetypeRepository implements ArchetypeResolver {
 
 export function parseArchetypeFile(text: string): ParseAdlResult {
   return parseAdl(text, { convertAdl14: true });
+}
+
+function templateIdOf(template: openehr_am.TEMPLATE): string | undefined {
+  const id = (template as { template_id?: unknown }).template_id;
+  return typeof id === "string" && id.length > 0 ? id : undefined;
+}
+
+/** `dir/ChemoQ-fatigue.v8.t.json` → `ChemoQ-fatigue.v8`. */
+function templateBasename(path: string): string | undefined {
+  const name = path.split(/[/\\]/).pop();
+  if (!name) return undefined;
+  const stem = name.replace(/\.t\.json$/i, "").replace(/\.adls?$/i, "");
+  return stem.length > 0 && stem !== name ? stem : undefined;
 }
