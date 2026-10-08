@@ -14,7 +14,7 @@ assistance; the generator never overwrites it.
 
 | Path | Role |
 |------|------|
-| `base/` | BASE model (`org.openehr.base.*`), plus `init_helpers.ts` and `temporal_polyfill.ts` |
+| `base/` | BASE model (`org.openehr.base.*`), plus `init_helpers.ts`. ISO 8601 arithmetic uses Deno's built-in `Temporal` (2.7+); `foundation_types/temporal_api.ts` types that global for the repo `tsconfig.json`. |
 | `rm/` | Reference Model (`org.openehr.rm.*`) |
 | `am/` | Archetype Model (`org.openehr.am.*`); AOM utilities (flattening, cloning, path navigation) in `am/util/` |
 | `lang/` | LANG / BMM model (`org.openehr.lang.*`) |

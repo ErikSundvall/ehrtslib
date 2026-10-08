@@ -4,13 +4,13 @@
 
 import type { Numeric } from "../foundation_types/primitive_types.ts";
 import { Terminology_code } from "../foundation_types/terminology.ts";
+import { builtinTemporal } from "../foundation_types/temporal_api.ts";
 import {
   Iso8601_date,
   Iso8601_date_time,
   Iso8601_time,
   Iso8601_timezone,
 } from "../foundation_types/time.ts";
-import { Temporal as TemporalAPI } from "../temporal_polyfill.ts";
 
 const GMath = globalThis.Math;
 
@@ -34,30 +34,35 @@ function toNumbers(
 /**
  * Class representing the real-world environment, providing basic information
  * like current time, date, etc.
+ *
+ * The clock reads Deno's built-in `Temporal` global (stable since Deno 2.7).
  */
 export class Env {
   current_date(): Iso8601_date {
     const d = new Iso8601_date();
-    d.value = TemporalAPI.Now.plainDateISO().toString();
+    d.value = builtinTemporal().Now.plainDateISO().toString();
     return d;
   }
 
   current_time(): Iso8601_time {
     const t = new Iso8601_time();
-    t.value = TemporalAPI.Now.plainTimeISO().toString();
+    t.value = builtinTemporal().Now.plainTimeISO().toString({
+      smallestUnit: "second",
+    });
     return t;
   }
 
   current_date_time(): Iso8601_date_time {
+    const zoned = builtinTemporal().Now.zonedDateTimeISO();
     const dt = new Iso8601_date_time();
-    dt.value = TemporalAPI.Now.zonedDateTimeISO().toString();
+    dt.value = zoned.toPlainDateTime().toString({ smallestUnit: "second" }) +
+      zoned.offset;
     return dt;
   }
 
   current_time_zone(): Iso8601_timezone {
     const tz = new Iso8601_timezone();
-    const offset = TemporalAPI.Now.zonedDateTimeISO().offset;
-    tz.value = offset === "+00:00" ? "Z" : offset;
+    tz.value = builtinTemporal().Now.zonedDateTimeISO().offset;
     return tz;
   }
 }

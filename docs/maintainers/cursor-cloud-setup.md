@@ -12,6 +12,8 @@ Cloud agents clone this repo but **do not** read `~/.cursor/mcp.json` or global 
 | Cloud VM install (Deno) | [`.cursor/environment.json`](../.cursor/environment.json) |
 | Agent instructions | [`AGENTS.md`](../AGENTS.md) |
 
+The install script takes the current Deno stable release. ISO 8601 code needs the built-in `Temporal` global, which is unflagged from Deno 2.7. `denoland/setup-deno` `v2.x` in CI installs a newer 2.x, so it does not need a pin.
+
 After changing skills locally, re-sync into the repo:
 
 ```powershell

@@ -4,9 +4,13 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import { TYPE_REGISTRY } from "../_shared.ts";
-import { Temporal as TemporalAPI } from "../temporal_polyfill.ts";
 import type { Any } from "./foundation_types.ts";
 import { Boolean, Integer, Ordered, String } from "./primitive_types.ts";
+import { builtinTemporal } from "./temporal_api.ts";
+
+// The class in this file is also named Temporal, so the TC39 global is aliased.
+// Deno 2.7+ provides this global with no flag (https://deno.com/blog/v2.7).
+const TemporalAPI = builtinTemporal();
 
 /**
  * Abstract ancestor of time-related classes.
@@ -675,10 +679,10 @@ export class Iso8601_date_time extends Iso8601_type {
     if (!(other instanceof Iso8601_date_time)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const dt1 = TemporalAPI.PlainDateTime.from(val);
       const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
@@ -698,10 +702,10 @@ export class Iso8601_date_time extends Iso8601_type {
     if (!(other instanceof Iso8601_date_time)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const dt1 = TemporalAPI.PlainDateTime.from(val);
       const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
@@ -1091,13 +1095,17 @@ export class Iso8601_duration extends Iso8601_type {
     if (!(other instanceof Iso8601_duration)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
-      const dur1 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(val));
-      const dur2 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(otherVal));
+      const dur1 = TemporalAPI.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      const dur2 = TemporalAPI.Duration.from(
+        Iso8601_duration.normalizeWeeks(otherVal),
+      );
       // Compare total seconds as a simple approximation
       const total1 = dur1.total({ unit: "seconds" });
       const total2 = dur2.total({ unit: "seconds" });
@@ -1117,13 +1125,17 @@ export class Iso8601_duration extends Iso8601_type {
     if (!(other instanceof Iso8601_duration)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
-      const dur1 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(val));
-      const dur2 = TemporalAPI.Duration.from(Iso8601_duration.normalizeWeeks(otherVal));
+      const dur1 = TemporalAPI.Duration.from(
+        Iso8601_duration.normalizeWeeks(val),
+      );
+      const dur2 = TemporalAPI.Duration.from(
+        Iso8601_duration.normalizeWeeks(otherVal),
+      );
       // Compare total seconds
       const total1 = dur1.total({ unit: "seconds" });
       const total2 = dur2.total({ unit: "seconds" });
@@ -1375,10 +1387,10 @@ export class Iso8601_time extends Iso8601_type {
     if (!(other instanceof Iso8601_time)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const time1 = TemporalAPI.PlainTime.from(val);
       const time2 = TemporalAPI.PlainTime.from(otherVal);
@@ -1398,10 +1410,10 @@ export class Iso8601_time extends Iso8601_type {
     if (!(other instanceof Iso8601_time)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const time1 = TemporalAPI.PlainTime.from(val);
       const time2 = TemporalAPI.PlainTime.from(otherVal);
@@ -1669,10 +1681,10 @@ export class Iso8601_date extends Iso8601_type {
     if (!(other instanceof Iso8601_date)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const date1 = TemporalAPI.PlainDate.from(val);
       const date2 = TemporalAPI.PlainDate.from(otherVal);
@@ -1692,10 +1704,10 @@ export class Iso8601_date extends Iso8601_type {
     if (!(other instanceof Iso8601_date)) {
       return new Boolean(false);
     }
-    
+
     const val = this.value || "";
     const otherVal = other.value || "";
-    
+
     try {
       const date1 = TemporalAPI.PlainDate.from(val);
       const date2 = TemporalAPI.PlainDate.from(otherVal);
@@ -1818,7 +1830,7 @@ export class Iso8601_timezone extends Iso8601_type {
   as_string(): String {
     const val = this.value || "";
     if (val === "Z") return String.from("Z");
-    
+
     const match = val.match(/([+-])(\d{2}):?(\d{2})?/);
     if (match) {
       const sign = match[1];
@@ -1840,19 +1852,19 @@ export class Iso8601_timezone extends Iso8601_type {
     if (!(other instanceof Iso8601_timezone)) {
       return new Boolean(false);
     }
-    
+
     // Calculate total offset in minutes for this timezone
     const thisSign = this.sign().value || 1;
     const thisHour = this.hour().value || 0;
     const thisMinute = this.minute().value || 0;
     const thisOffset = thisSign * (thisHour * 60 + thisMinute);
-    
+
     // Calculate total offset in minutes for other timezone
     const otherSign = other.sign().value || 1;
     const otherHour = other.hour().value || 0;
     const otherMinute = other.minute().value || 0;
     const otherOffset = otherSign * (otherHour * 60 + otherMinute);
-    
+
     return new Boolean(thisOffset < otherOffset);
   }
 
@@ -1865,18 +1877,18 @@ export class Iso8601_timezone extends Iso8601_type {
     if (!(other instanceof Iso8601_timezone)) {
       return new Boolean(false);
     }
-    
+
     // Compare by offset in minutes
     const thisSign = this.sign().value || 1;
     const thisHour = this.hour().value || 0;
     const thisMinute = this.minute().value || 0;
     const thisOffset = thisSign * (thisHour * 60 + thisMinute);
-    
+
     const otherSign = other.sign().value || 1;
     const otherHour = other.hour().value || 0;
     const otherMinute = other.minute().value || 0;
     const otherOffset = otherSign * (otherHour * 60 + otherMinute);
-    
+
     return new Boolean(thisOffset === otherOffset);
   }
 }
