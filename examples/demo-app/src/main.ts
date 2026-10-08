@@ -46,6 +46,11 @@ import type {
   YamlSerializationConfig,
 } from "../../../serialization/yaml/mod.ts";
 
+import {
+  bindRecommendedVersionNotice,
+  detectAppDeployment,
+  formatBuildLabel,
+} from "../../shared/recommended_version.ts";
 import type { MarkdownSerializationConfig } from "../../../serialization/markdown/mod.ts";
 import type { AsciidocSerializationConfig } from "../../../serialization/asciidoc/mod.ts";
 
@@ -93,7 +98,11 @@ const simplifiedWorkspace = new ClinicalModelWorkspace();
 declare const __BUILD_INFO__: {
   timestamp: string;
   buildId: string;
+  version: string;
 };
+
+const DEMO_README_URL =
+  "https://github.com/ErikSundvall/ehrtslib/blob/main/examples/demo-app/README.md";
 
 /**
  * Initialize the application when DOM is loaded
@@ -110,8 +119,13 @@ function init() {
     return;
   }
 
-  // Display build info
+  // Display build info and, on GitHub Pages, the recommended-release notice.
   displayBuildInfo();
+  void bindRecommendedVersionNotice(document, {
+    app: "demo",
+    tutorialUrl: `${DEMO_README_URL}#using-the-converter`,
+    readmeUrl: DEMO_README_URL,
+  });
 
   initDemoEditors({
     instanceInitial:
@@ -3081,11 +3095,12 @@ function setupCollapsibleSections() {
 function displayBuildInfo() {
   const buildInfoElem = document.getElementById("build-info");
   if (buildInfoElem && typeof __BUILD_INFO__ !== "undefined") {
-    const date = new Date(__BUILD_INFO__.timestamp);
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString();
-    buildInfoElem.textContent =
-      `Build: ${__BUILD_INFO__.buildId} (${dateStr} ${timeStr})`;
+    const deployment = detectAppDeployment(globalThis.location?.pathname ?? "");
+    buildInfoElem.textContent = formatBuildLabel(
+      "Format converter",
+      __BUILD_INFO__,
+      deployment?.app === "demo" ? deployment : null,
+    );
   }
 }
 

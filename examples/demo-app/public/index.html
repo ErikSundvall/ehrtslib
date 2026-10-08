@@ -1994,7 +1994,15 @@
     <!-- Footer Section -->
     <footer class="app-footer">
       <div class="footer-content">
-        <p id="build-info" class="build-info"></p>
+        <div class="build-meta">
+          <p id="build-info" class="build-info"></p>
+          <a
+            id="recommended-version-footer-link"
+            class="recommended-version-footer-link"
+            hidden
+            href="#"
+          ></a>
+        </div>
         <div class="footer-settings" aria-label="Editor settings">
           <span class="footer-settings-label">Settings:</span>
           <label class="checkbox-label footer-setting">
@@ -2021,7 +2029,33 @@
       </div>
     </footer>
 
-    <!-- Note: JavaScript functionality will be added in the implementation phase -->
+    <dialog id="dialog-recommended-version" class="version-dialog">
+      <form method="dialog" class="version-dialog-form">
+        <h2>Not on the recommended version</h2>
+        <p id="recommended-version-message"></p>
+        <p><a id="recommended-version-link" href="#"></a></p>
+        <p>
+          Prefer to experiment? The bleeding-edge build (updated on every
+          change to main) is at
+          <a id="recommended-version-bleeding-edge-link" href="#">the latest
+            main build</a>.
+        </p>
+        <p>
+          New here? Read the
+          <a id="recommended-version-tutorial-link" href="#">tutorial</a>
+          or the
+          <a id="recommended-version-readme-link" href="#">README</a>.
+        </p>
+        <label class="version-dialog-check">
+          <input id="recommended-version-dont-show-again" type="checkbox">
+          <span>Don't show this again for this recommended version</span>
+        </label>
+        <div class="version-dialog-actions">
+          <button type="submit" id="recommended-version-dismiss">Dismiss</button>
+        </div>
+      </form>
+    </dialog>
+
     <script type="module" src="bundle.js"></script>
   </body>
 </html>

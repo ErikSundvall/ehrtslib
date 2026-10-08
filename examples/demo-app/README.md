@@ -13,6 +13,13 @@ Browser demo that converts openEHR RM instances and generates examples from temp
 - Curated model catalog — **[Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples) first**, then Region Stockholm MDT and others
 - Instance preset **Accident report + vitals (Ehrlibs FLAT)** matching that template’s Web Template paths
 
+## Using the converter
+
+1. Open the [bleeding-edge demo](https://eriksundvall.github.io/ehrtslib/demo/) or a frozen `/demo-vX.Y/` release. The lower-left footer shows the package version and build id.
+2. Pick an instance preset, or paste JSON, XML, or YAML. For FLAT / STRUCTURED output, load a template (upload, or **Template from AD@git**).
+3. Choose output formats. With auto-convert on, the outputs update as you edit.
+4. On GitHub Pages, a page that is not the recommended stable release shows a notice with a link to that release, the bleeding-edge `/demo/` build, this tutorial, and this README. Dismissing it with “don’t show again” applies only to that recommended tag; the footer keeps a switch link. Add `?version-warning=preview` on any host to review the notice.
+
 ## Build / run
 
 From repo root:

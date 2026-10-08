@@ -50,6 +50,8 @@ Every push to `main` (except `chore: release` commits, which the release workflo
 | https://eriksundvall.github.io/ehrtslib/taaat/ | Latest `main` TAAAT |
 | https://eriksundvall.github.io/ehrtslib/taaat-v0.1/ | Immutable TAAAT `0.1.0` |
 
+The format converter and TAAAT read this manifest when they are opened on GitHub Pages. If the page is not that app’s `recommended` tag, a dialog links to the frozen release, the bleeding-edge `/demo/` or `/taaat/` build, the tutorial, and the README. The lower-left footer always shows the package version and build id, and keeps a switch link after the dialog is dismissed.
+
 Pin a recommended webapp tag (while a newer one is still shaking out) by committing `RECOMMENDED_VERSIONS.json` at the repo root:
 
 ```json

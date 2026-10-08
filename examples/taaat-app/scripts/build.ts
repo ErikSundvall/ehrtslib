@@ -25,6 +25,13 @@ const jsonAsModulePlugin = {
   },
 };
 
+const appVersion = await readAppVersion(rootDir);
+const buildInfo = JSON.stringify({
+  timestamp: new Date().toISOString(),
+  buildId: Math.random().toString(36).substring(2, 10).toUpperCase(),
+  version: appVersion,
+});
+
 try {
   await ensureDir(outDir);
 
@@ -41,6 +48,7 @@ try {
     minify: false,
     define: {
       "process.env.NODE_ENV": '"production"',
+      "__BUILD_INFO__": buildInfo,
     },
   };
 
@@ -67,4 +75,15 @@ try {
   Deno.exit(1);
 } finally {
   esbuild.stop();
+}
+
+async function readAppVersion(appRoot: string): Promise<string> {
+  try {
+    const raw = JSON.parse(await Deno.readTextFile(join(appRoot, "deno.json")));
+    return typeof raw.version === "string" && raw.version.trim()
+      ? raw.version.trim()
+      : "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
 }
