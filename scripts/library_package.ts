@@ -398,7 +398,8 @@ export function renderLibraryReleaseNotes(version: string): string {
   const bundleRows = assets.bundles.map((bundle) => {
     const pages = `${loc.pagesDir}/${bundle.file}`;
     const download = `${loc.downloadDir}/${bundle.file}`;
-    return `| ${bundle.label} | [${bundle.file}](${pages}) | [${bundle.file}](${download}) |`;
+    const cdn = `${loc.cdnDir}/${bundle.entry}`;
+    return `| ${bundle.label} | [${bundle.file}](${pages}) | [${bundle.file}](${download}) | [\`${bundle.entry}\`](${cdn}) |`;
   }).join("\n");
 
   return `# ehrtslib ${version} (\`${loc.tag}\`)
@@ -426,10 +427,13 @@ import { rm, parser, serialization, generation, validation, meta } from "ehrtsli
 import * as spec from "ehrtslib/spec/mod.ts";
 \`\`\`
 
-The same modules are importable from the git tag. [jsDelivr](https://www.jsdelivr.com/github) is a CDN in front of GitHub:
+The same modules are importable from the git tag. [jsDelivr](https://www.jsdelivr.com/github) is a CDN in front of GitHub. Any path in the source package uses that prefix:
 
 \`\`\`ts
 import { rm } from "${loc.cdnDir}/mod.ts";
+import * as am from "${loc.cdnDir}/openehr_am.ts";
+import { attributesFor } from "${loc.cdnDir}/meta/mod.ts";
+import { classSpec } from "${loc.cdnDir}/spec/mod.ts";
 \`\`\`
 
 [\`${assets.importMap}\`](${loc.downloadDir}/${assets.importMap}) maps \`ehrtslib/\` to that CDN URL and pins \`yaml\` and \`fast-xml-parser\` to the versions in \`deno.json\`.
@@ -446,10 +450,12 @@ GitHub raw files (no extra CDN): \`${loc.rawDir}/mod.ts\`
 
 Single-file ESM for a web page or a one-URL Deno import. Minified for transfer size (whitespace and syntax). Identifiers stay readable. Prefer the source package when the application has its own bundler.
 
-GitHub Pages serves the files with a JavaScript content type at [\`${loc.pagesDir}/\`](${loc.pagesDir}/). The copies on this Release download from \`${loc.downloadDir}/\` (GitHub redirects those to its release-asset host).
+GitHub Pages serves the minified files with a JavaScript content type at [\`${loc.pagesDir}/\`](${loc.pagesDir}/). The copies on this Release download from \`${loc.downloadDir}/\` (GitHub redirects those to its release-asset host).
 
-| Bundle | GitHub Pages | Release download |
-| --- | --- | --- |
+The jsDelivr column is the TypeScript entry on the git tag, for Deno and other TypeScript loaders. jsDelivr does not host the minified \`.min.js\` attachments; those stay on Pages and the Release download.
+
+| Bundle | GitHub Pages | Release download | jsDelivr |
+| --- | --- | --- | --- |
 ${bundleRows}
 
 \`\`\`html
@@ -460,6 +466,11 @@ ${bundleRows}
 
 \`\`\`ts
 import { parseAdl } from "${loc.pagesDir}/${assets.bundles[2].file}";
+import { parseAdl as parseAdlFromCdn } from "${loc.cdnDir}/parser/mod.ts";
+import * as rmOnly from "${loc.cdnDir}/openehr_rm.ts";
+import {
+  JsonCanonicalSerializer,
+} from "${loc.cdnDir}/serialization/mod.ts";
 \`\`\`
 `;
 }
@@ -468,9 +479,12 @@ export function renderLibraryWebIndex(version: string): string {
   const loc = libraryLocations(version);
   const { assets } = loc;
   const rows = assets.bundles.map((bundle) => {
-    return `<li><a href="${esc(bundle.file)}">${esc(bundle.file)}</a> — ${
-      esc(bundle.label)
-    }</li>`;
+    const cdn = `${loc.cdnDir}/${bundle.entry}`;
+    return `<tr>
+      <td>${esc(bundle.label)}</td>
+      <td><a href="${esc(bundle.file)}">${esc(bundle.file)}</a></td>
+      <td><a href="${esc(cdn)}"><code>${esc(bundle.entry)}</code></a></td>
+    </tr>`;
   }).join("\n");
   const full = assets.bundles[0].file;
   const parser = assets.bundles[2].file;
@@ -484,6 +498,8 @@ export function renderLibraryWebIndex(version: string): string {
     body { font: 16px/1.5 system-ui, sans-serif; max-width: 72ch; margin: 2rem auto; padding: 0 1rem; color: #1f2328; }
     code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
     pre { background: #f6f8fa; padding: 0.75rem 1rem; overflow: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #d0d7de; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
     a { color: #0969da; }
   </style>
 </head>
@@ -494,20 +510,27 @@ export function renderLibraryWebIndex(version: string): string {
   }</code>. These files are minified for transfer size. Applications that bundle their own code should use the source package and tree-shake. <a href="${
     esc(loc.guideUrl)
   }">Package guide</a>.</p>
-  <ul>
+  <table>
+    <thead>
+      <tr><th>Bundle</th><th>GitHub Pages (minified)</th><th>jsDelivr (TypeScript on the git tag)</th></tr>
+    </thead>
+    <tbody>
     ${rows}
-    <li><a href="${esc(assets.importMap)}">${
+    </tbody>
+  </table>
+  <p><a href="${esc(assets.importMap)}">${
     esc(assets.importMap)
-  }</a> — Deno import map for the git tag on jsDelivr</li>
-  </ul>
+  }</a> — Deno import map for the git tag on jsDelivr.</p>
   <h2>Web page</h2>
   <pre><code>&lt;script type="module"&gt;
   import { rm } from "${esc(loc.pagesDir)}/${esc(full)}";
 &lt;/script&gt;</code></pre>
   <h2>Deno</h2>
-  <pre><code>import { parseAdl } from "${esc(loc.pagesDir)}/${
-    esc(parser)
-  }";</code></pre>
+  <pre><code>import { parseAdl } from "${esc(loc.pagesDir)}/${esc(parser)}";
+import { parseAdl as parseAdlFromCdn } from "${esc(loc.cdnDir)}/parser/mod.ts";
+import * as am from "${esc(loc.cdnDir)}/openehr_am.ts";
+import { attributesFor } from "${esc(loc.cdnDir)}/meta/mod.ts";
+import { classSpec } from "${esc(loc.cdnDir)}/spec/mod.ts";</code></pre>
   <h2>Source on the git tag</h2>
   <p>jsDelivr CDN: <a href="${esc(loc.cdnDir)}/mod.ts"><code>${
     esc(loc.cdnDir)
