@@ -2,12 +2,10 @@
 
 /**
  * OpenEHR Terminology Service Implementation
- * 
+ *
  * This module provides access to openEHR's internal terminologies and code sets
  * loaded from the official XML files.
  */
-
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 
 export interface TermCode {
   code: string;
@@ -45,136 +43,137 @@ export class OpenEHRTerminologyService {
   private static instance: OpenEHRTerminologyService;
   private terminologies: Map<string, Terminology> = new Map();
   private externalTerminology?: Terminology;
-  
+
   private constructor() {
     // Private constructor for singleton
   }
-  
+
   public static getInstance(): OpenEHRTerminologyService {
     if (!OpenEHRTerminologyService.instance) {
       OpenEHRTerminologyService.instance = new OpenEHRTerminologyService();
     }
     return OpenEHRTerminologyService.instance;
   }
-  
+
   /**
    * Initialize the terminology service by loading XML files
    */
   public async initialize(): Promise<void> {
-    const languages = ['en', 'es', 'pt'];
-    
+    const languages = ["en", "es", "pt"];
+
     for (const lang of languages) {
       try {
-        const xml = await Deno.readTextFile(`terminology_data/openehr_terminology_${lang}.xml`);
+        const xml = await Deno.readTextFile(
+          `terminology_data/openehr_terminology_${lang}.xml`,
+        );
         const terminology = this.parseTerminologyXml(xml);
         this.terminologies.set(lang, terminology);
       } catch (error) {
         console.warn(`Failed to load terminology for language ${lang}:`, error);
       }
     }
-    
+
     // Load external terminologies
     try {
-      const xml = await Deno.readTextFile('terminology_data/openehr_external_terminologies.xml');
+      const xml = await Deno.readTextFile(
+        "terminology_data/openehr_external_terminologies.xml",
+      );
       this.externalTerminology = this.parseTerminologyXml(xml);
     } catch (error) {
-      console.warn('Failed to load external terminologies:', error);
+      console.warn("Failed to load external terminologies:", error);
     }
   }
-  
+
   /**
-   * Parse terminology XML file
+   * Parse official openEHR terminology XML.
+   *
+   * The documents only contain `terminology`, `codeset`/`code`, and
+   * `group`/`concept` elements, and callers only read attributes. A small
+   * reader keeps a CSS selector engine out of reference-model bundles.
    */
   private parseTerminologyXml(xmlContent: string): Terminology {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlContent, "text/xml");
-    
-    if (!doc) {
-      throw new Error("Failed to parse XML");
-    }
-    
-    const root = doc.querySelector("terminology");
-    if (!root) {
+    const rootMatch = xmlContent.match(/<terminology\b([^>]*)>/);
+    if (!rootMatch) {
       throw new Error("No terminology element found in XML");
     }
-    
+    const rootAttrs = readXmlAttributes(rootMatch[1]);
+
     const terminology: Terminology = {
-      name: root.getAttribute("name") || "",
-      language: root.getAttribute("language") || "",
-      version: root.getAttribute("version") || "",
-      date: root.getAttribute("date") || "",
+      name: rootAttrs.get("name") || "",
+      language: rootAttrs.get("language") || "",
+      version: rootAttrs.get("version") || "",
+      date: rootAttrs.get("date") || "",
       codeSets: new Map(),
       groups: new Map(),
     };
-    
-    // Parse code sets
-    const codeSets = Array.from(doc.querySelectorAll("codeset")) as any[];
-    for (const codeSetEl of codeSets) {
+
+    const codeSetRe = /<codeset\b([^>]*)>([\s\S]*?)<\/codeset>/g;
+    for (const codeSetMatch of xmlContent.matchAll(codeSetRe)) {
+      const codeSetAttrs = readXmlAttributes(codeSetMatch[1]);
       const codeSet: CodeSet = {
-        issuer: codeSetEl.getAttribute("issuer") || "",
-        openehr_id: codeSetEl.getAttribute("openehr_id") || "",
-        name: codeSetEl.getAttribute("name") || "",
-        external_id: codeSetEl.getAttribute("external_id") || "",
+        issuer: codeSetAttrs.get("issuer") || "",
+        openehr_id: codeSetAttrs.get("openehr_id") || "",
+        name: codeSetAttrs.get("name") || "",
+        external_id: codeSetAttrs.get("external_id") || "",
         codes: [],
       };
-      
-      const codes = Array.from(codeSetEl.querySelectorAll("code")) as any[];
-      for (const codeEl of codes) {
+
+      const codeRe = /<code\b([^>]*?)\/?>/g;
+      for (const codeMatch of codeSetMatch[2].matchAll(codeRe)) {
+        const codeAttrs = readXmlAttributes(codeMatch[1]);
         codeSet.codes.push({
-          code: codeEl.getAttribute("value") || "",
-          description: codeEl.getAttribute("description") || undefined,
+          code: codeAttrs.get("value") || "",
+          description: codeAttrs.get("description") || undefined,
         });
       }
-      
+
       terminology.codeSets.set(codeSet.openehr_id, codeSet);
     }
-    
-    // Parse groups
-    const groups = Array.from(doc.querySelectorAll("group")) as any[];
-    for (const groupEl of groups) {
+
+    const groupRe = /<group\b([^>]*)>([\s\S]*?)<\/group>/g;
+    for (const groupMatch of xmlContent.matchAll(groupRe)) {
+      const groupAttrs = readXmlAttributes(groupMatch[1]);
       const group: TerminologyGroup = {
-        openehr_id: groupEl.getAttribute("openehr_id") || "",
-        name: groupEl.getAttribute("name") || "",
+        openehr_id: groupAttrs.get("openehr_id") || "",
+        name: groupAttrs.get("name") || "",
         concepts: new Map(),
       };
-      
-      const concepts = Array.from(groupEl.querySelectorAll("concept")) as any[];
-      for (const conceptEl of concepts) {
-        const id = conceptEl.getAttribute("id") || "";
-        const rubric = conceptEl.getAttribute("rubric") || "";
+
+      const conceptRe = /<concept\b([^>]*?)\/?>/g;
+      for (const conceptMatch of groupMatch[2].matchAll(conceptRe)) {
+        const conceptAttrs = readXmlAttributes(conceptMatch[1]);
+        const id = conceptAttrs.get("id") || "";
+        const rubric = conceptAttrs.get("rubric") || "";
         group.concepts.set(id, rubric);
       }
-      
+
       terminology.groups.set(group.openehr_id, group);
     }
-    
+
     return terminology;
   }
-  
+
   /**
    * Get terminology by name (currently only "openehr" is supported)
    */
   public hasTerminology(name: string): boolean {
     return name.toLowerCase() === "openehr";
   }
-  
+
   /**
    * Get code set by openEHR internal ID
    */
   public getCodeSet(id: string, language: string = "en"): CodeSet | undefined {
     const terminology = this.terminologies.get(language);
-    if (terminology) {
-      return terminology.codeSets.get(id);
+    const fromLanguage = terminology?.codeSets.get(id);
+    if (fromLanguage) {
+      return fromLanguage;
     }
-    
-    // Try external terminologies
-    if (this.externalTerminology) {
-      return this.externalTerminology.codeSets.get(id);
-    }
-    
-    return undefined;
+
+    // External code sets (countries, languages, …) are not in the language files.
+    return this.externalTerminology?.codeSets.get(id);
   }
-  
+
   /**
    * Check if a code set exists
    */
@@ -185,22 +184,25 @@ export class OpenEHRTerminologyService {
         return true;
       }
     }
-    
+
     if (this.externalTerminology && this.externalTerminology.codeSets.has(id)) {
       return true;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Get terminology group
    */
-  public getGroup(groupId: string, language: string = "en"): TerminologyGroup | undefined {
+  public getGroup(
+    groupId: string,
+    language: string = "en",
+  ): TerminologyGroup | undefined {
     const terminology = this.terminologies.get(language);
     return terminology?.groups.get(groupId);
   }
-  
+
   /**
    * Check if a terminology group exists
    */
@@ -212,59 +214,63 @@ export class OpenEHRTerminologyService {
     }
     return false;
   }
-  
+
   /**
    * Get all code set identifiers
    */
   public getCodeSetIdentifiers(): string[] {
     const identifiers = new Set<string>();
-    
+
     for (const terminology of this.terminologies.values()) {
       for (const id of terminology.codeSets.keys()) {
         identifiers.add(id);
       }
     }
-    
+
     if (this.externalTerminology) {
       for (const id of this.externalTerminology.codeSets.keys()) {
         identifiers.add(id);
       }
     }
-    
+
     return Array.from(identifiers);
   }
-  
+
   /**
    * Get all terminology group identifiers
    */
   public getGroupIdentifiers(): string[] {
     const identifiers = new Set<string>();
-    
+
     for (const terminology of this.terminologies.values()) {
       for (const id of terminology.groups.keys()) {
         identifiers.add(id);
       }
     }
-    
+
     return Array.from(identifiers);
   }
-  
+
   /**
    * Get all codes from a code set
    */
   public getAllCodes(codeSetId: string, language: string = "en"): string[] {
     const codeSet = this.getCodeSet(codeSetId, language);
-    return codeSet ? codeSet.codes.map(c => c.code) : [];
+    return codeSet ? codeSet.codes.map((c) => c.code) : [];
   }
-  
+
   /**
    * Get concept rubric from group
    */
-  public getConceptRubric(groupId: string, conceptId: string, language: string = "en"): string | undefined {
+  public getConceptRubric(
+    groupId: string,
+    conceptId: string,
+    language: string = "en",
+  ): string | undefined {
     const group = this.getGroup(groupId, language);
     return group?.concepts.get(conceptId);
   }
-  
+
   /**
    * Get all codes for a specific terminology group
    */
@@ -275,16 +281,19 @@ export class OpenEHRTerminologyService {
     }
     return Array.from(group.concepts.keys());
   }
-  
+
   /**
    * Get group ID by name in a specific language
    */
-  public getGroupIdByName(name: string, language: string = "en"): string | undefined {
+  public getGroupIdByName(
+    name: string,
+    language: string = "en",
+  ): string | undefined {
     const terminology = this.terminologies.get(language);
     if (!terminology) {
       return undefined;
     }
-    
+
     // Search for group by name (case-insensitive)
     const normalizedName = name.toLowerCase();
     for (const [id, group] of terminology.groups) {
@@ -292,20 +301,23 @@ export class OpenEHRTerminologyService {
         return id;
       }
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Get rubric (human-readable term) for a specific code
    * Searches across all groups to find the rubric
    */
-  public getRubricForCode(code: string, language: string = "en"): string | undefined {
+  public getRubricForCode(
+    code: string,
+    language: string = "en",
+  ): string | undefined {
     const terminology = this.terminologies.get(language);
     if (!terminology) {
       return undefined;
     }
-    
+
     // Search all groups for the code
     for (const group of terminology.groups.values()) {
       const rubric = group.concepts.get(code);
@@ -313,15 +325,53 @@ export class OpenEHRTerminologyService {
         return rubric;
       }
     }
-    
+
     // Also check code sets
     for (const codeSet of terminology.codeSets.values()) {
-      const codeEntry = codeSet.codes.find(c => c.code === code);
+      const codeEntry = codeSet.codes.find((c) => c.code === code);
       if (codeEntry?.description) {
         return codeEntry.description;
       }
     }
-    
+
     return undefined;
   }
+}
+
+/** Decode the entities used in the official terminology XML files. */
+function decodeXmlEntities(text: string): string {
+  return text.replace(
+    /&(#x[0-9a-fA-F]+|#\d+|lt|gt|quot|apos|amp);/g,
+    (entity) => {
+      switch (entity) {
+        case "&lt;":
+          return "<";
+        case "&gt;":
+          return ">";
+        case "&quot;":
+          return '"';
+        case "&apos;":
+          return "'";
+        case "&amp;":
+          return "&";
+        default: {
+          const hex = entity.match(/^&#x([0-9a-fA-F]+);$/);
+          if (hex) return String.fromCodePoint(parseInt(hex[1], 16));
+          const dec = entity.match(/^&#(\d+);$/);
+          if (dec) return String.fromCodePoint(parseInt(dec[1], 10));
+          return entity;
+        }
+      }
+    },
+  );
+}
+
+/** Read double-quoted attributes from the inside of an opening tag. */
+function readXmlAttributes(attrText: string): Map<string, string> {
+  const attrs = new Map<string, string>();
+  const attrRe = /([A-Za-z_][\w:.-]*)\s*=\s*"([^"]*)"/g;
+  for (const match of attrText.matchAll(attrRe)) {
+    attrs.set(match[1], decodeXmlEntities(match[2]));
+  }
+  return attrs;
 }
