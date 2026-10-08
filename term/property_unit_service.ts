@@ -139,10 +139,9 @@ export class PropertyUnitDataService {
    * Parse PropertyUnitData.xml content using regex-based parsing
    * Note: Deliberately ignores conversion and coefficient attributes
    *
-   * Implementation Note: This uses regex-based parsing instead of DOM parsing
-   * because deno_dom does not support "text/xml" parsing. The PropertyUnitData.xml
-   * format is simple and well-structured, making regex parsing reliable for this
-   * specific use case. For more complex XML, a full XML parser should be used.
+   * Implementation Note: PropertyUnitData.xml is a small, regular document, so
+   * this reads attributes with a regular expression and skips conversion
+   * factors. For more complex XML, a full XML parser should be used.
    */
   private parseXml(xmlContent: string): void {
     // Clear existing data
