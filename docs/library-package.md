@@ -70,6 +70,9 @@ can import them without unpacking the zip.
 
 ```ts
 import { rm } from "https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts";
+import * as am from "https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_am.ts";
+import { attributesFor } from "https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/meta/mod.ts";
+import { classSpec } from "https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/spec/mod.ts";
 ```
 
 Replace `v0.3.1` with the tag. GitHub's own raw host, without that CDN, is:
@@ -98,14 +101,24 @@ left out; those have their own `demo-v*` and `taaat-v*` releases.
 ## Runtime bundles
 
 These ESM files are minified for transfer size (whitespace and syntax).
-Identifiers stay readable. Each file is one entry:
+Identifiers stay readable. Each file is one entry. The jsDelivr column is the
+TypeScript module on the git tag (Deno). jsDelivr does not host the `.min.js`
+attachments; those are on GitHub Pages and the Release download.
 
-| File                                      | Entry                  |
-| ----------------------------------------- | ---------------------- |
-| `ehrtslib-<version>.min.js`               | `mod.ts`               |
-| `ehrtslib-<version>-rm.min.js`            | `openehr_rm.ts`        |
-| `ehrtslib-<version>-parser.min.js`        | `parser/mod.ts`        |
-| `ehrtslib-<version>-serialization.min.js` | `serialization/mod.ts` |
+| File                                      | Entry                  | jsDelivr (git tag)                                                              |
+| ----------------------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| `ehrtslib-<version>.min.js`               | `mod.ts`               | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts`               |
+| `ehrtslib-<version>-rm.min.js`            | `openehr_rm.ts`        | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_rm.ts`        |
+| `ehrtslib-<version>-parser.min.js`        | `parser/mod.ts`        | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/parser/mod.ts`        |
+| `ehrtslib-<version>-serialization.min.js` | `serialization/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/mod.ts` |
+
+The full barrel also exports `am`, `base`, `lang`, `term`, `generation`, `meta`,
+and `validation`. Those namespaces do not have their own `.min.js` files. `spec`
+(`classSpec`, `attributeSpec`) is omitted from `mod.ts` and from every minified
+file; import `spec/mod.ts` from the source package or from jsDelivr.
+`serialization/xml/mod.ts` and `serialization/typescript/mod.ts` are the same:
+they are in the source package and on jsDelivr, and they are not exports of the
+serialization bundle.
 
 GitHub Pages serves them with a JavaScript content type:
 
@@ -121,6 +134,7 @@ import { rm } from "https://eriksundvall.github.io/ehrtslib/lib/v0.3.1/ehrtslib-
 
 ```ts
 import { parseAdl } from "https://eriksundvall.github.io/ehrtslib/lib/v0.3.1/ehrtslib-0.3.1-parser.min.js";
+import { parseAdl as parseAdlFromCdn } from "https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/parser/mod.ts";
 ```
 
 The same filenames are attached to the GitHub Release. Those download URLs

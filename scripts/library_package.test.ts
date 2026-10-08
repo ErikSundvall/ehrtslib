@@ -121,14 +121,28 @@ Deno.test("release notes and Pages index name the archives and import URLs", asy
   assert(notes.includes(loc.assets.sourceZip));
   assert(notes.includes(loc.assets.devZip));
   assert(notes.includes(`${loc.cdnDir}/mod.ts`));
+  assert(notes.includes(`${loc.cdnDir}/openehr_am.ts`));
+  assert(notes.includes(`${loc.cdnDir}/meta/mod.ts`));
+  assert(notes.includes(`${loc.cdnDir}/spec/mod.ts`));
   assert(notes.includes(`${loc.pagesDir}/`));
   assert(notes.includes(`${loc.rawDir}/mod.ts`));
   assert(notes.includes("tree-shake"));
-  assert(notes.includes(loc.assets.bundles[0].file));
+  assert(
+    notes.includes("| Bundle | GitHub Pages | Release download | jsDelivr |"),
+  );
+  for (const bundle of loc.assets.bundles) {
+    assert(notes.includes(`[${bundle.file}](${loc.pagesDir}/${bundle.file})`));
+    assert(
+      notes.includes(`[\`${bundle.entry}\`](${loc.cdnDir}/${bundle.entry})`),
+    );
+  }
 
   const html = renderLibraryWebIndex(version);
   assert(html.includes(loc.assets.bundles[0].file));
   assert(html.includes(loc.assets.importMap));
   assert(html.includes("tree-shake"));
   assert(html.includes(`<a href="${loc.assets.bundles[2].file}">`));
+  assert(html.includes(`${loc.cdnDir}/parser/mod.ts`));
+  assert(html.includes(`${loc.cdnDir}/openehr_am.ts`));
+  assert(html.includes("jsDelivr (TypeScript on the git tag)"));
 });

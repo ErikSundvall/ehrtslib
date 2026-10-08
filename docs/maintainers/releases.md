@@ -113,7 +113,13 @@ Import URLs:
 
 | Use                                                         | URL                                                                                       |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Source module via jsDelivr (CDN in front of the git tag)    | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts`                         |
+| Full barrel via jsDelivr                                    | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts`                         |
+| Reference Model via jsDelivr                                | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_rm.ts`                  |
+| Archetype Model via jsDelivr                                | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_am.ts`                  |
+| Parser via jsDelivr                                         | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/parser/mod.ts`                  |
+| Serializers via jsDelivr                                    | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/mod.ts`           |
+| RM attribute lookup via jsDelivr (`meta`)                   | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/meta/mod.ts`                    |
+| Class specification lookup via jsDelivr (`spec`)            | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/spec/mod.ts`                    |
 | Source module via GitHub raw                                | `https://raw.githubusercontent.com/ErikSundvall/ehrtslib/v0.3.1/mod.ts`                   |
 | Runtime bundle on GitHub Pages                              | `https://eriksundvall.github.io/ehrtslib/lib/v0.3.1/`                                     |
 | Release download (redirects to GitHub's release-asset host) | `https://github.com/ErikSundvall/ehrtslib/releases/download/v0.3.1/ehrtslib-0.3.1.min.js` |
