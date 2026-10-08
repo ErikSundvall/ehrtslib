@@ -17,6 +17,9 @@ docs/demo/
 # Assembled GitHub Pages tree (CI only)
 dist-pages/
 
+# Library release packs (`deno task pack:library`)
+dist/
+
 # Local assemble / scratch output
 tmp/
 

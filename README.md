@@ -35,6 +35,7 @@ const json = new JsonConfigurableSerializer({ prettyPrint: true })
 | Topic | Doc |
 | ----- | --- |
 | Hello world, packages, limitations | [docs/getting-started.md](docs/getting-started.md) |
+| Pinned library release (source zip, CDN, runtime bundles) | [docs/library-package.md](docs/library-package.md) |
 | Dual accessors (`name` vs `$name`) | [docs/user/dual-accessors.md](docs/user/dual-accessors.md) |
 | Constructors + terse codes | [docs/user/brief-property-styles.md](docs/user/brief-property-styles.md) |
 | Serialization formats | [serialization/README.md](serialization/README.md) |

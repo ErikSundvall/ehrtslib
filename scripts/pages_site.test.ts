@@ -212,3 +212,78 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "library runtime bundles stay at /lib/<tag>/ across a main rebuild",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const dir = await Deno.makeTempDir({ prefix: "ehrtslib-lib-pages-" });
+    const liveRoot = join(dir, "live");
+    const site = join(liveRoot, "ehrtslib");
+    const docs = join(dir, "docs");
+    const web = join(dir, "web");
+    const out = join(dir, "out");
+    await writeFile(join(site, "index.html"), "<h1>root-live</h1>");
+    await writeFile(join(docs, "index.html"), "<h1>root-docs</h1>");
+    await writeFile(join(docs, "demo/index.html"), "<h1>demo</h1>");
+    await writeFile(join(docs, "taaat/index.html"), "<h1>taaat</h1>");
+    await writeFile(
+      join(site, VERSIONS_MANIFEST),
+      JSON.stringify({
+        library: { current: "0.9.0", versions: ["v0.1"] },
+        demo: { versions: [] },
+        taaat: { versions: [] },
+      }),
+    );
+    await writeFile(
+      join(web, "index.html"),
+      '<h1>lib-v0.9</h1><a href="ehrtslib.min.js">bundle</a>',
+    );
+    await writeFile(join(web, "ehrtslib.min.js"), "export const rm = {};\n");
+
+    const live = startServer(liveRoot);
+    try {
+      const released = await assembleReleasePagesSite({
+        baseUrl: live.url,
+        pkg: "library",
+        versionTag: "v0.9",
+        appDist: web,
+        outDir: out,
+        docsDir: docs,
+      });
+      assert(released.library.versions.includes("v0.9"));
+      assert(released.library.versions.includes("v0.1"));
+      assertEquals(
+        await Deno.readTextFile(join(out, "lib/v0.9/index.html")),
+        '<h1>lib-v0.9</h1><a href="ehrtslib.min.js">bundle</a>',
+      );
+      assertEquals(
+        await Deno.readTextFile(join(out, "lib/v0.9/ehrtslib.min.js")),
+        "export const rm = {};\n",
+      );
+
+      await Deno.remove(site, { recursive: true });
+      await Deno.mkdir(site, { recursive: true });
+      await copyDirContents(out, site);
+
+      const mainOut = join(dir, "out-main");
+      const rebuilt = await assembleMainPagesSite({
+        baseUrl: live.url,
+        docsDir: docs,
+        outDir: mainOut,
+      });
+      assert(rebuilt.library.versions.includes("v0.9"));
+      assertEquals(
+        await Deno.readTextFile(join(mainOut, "demo/index.html")),
+        "<h1>demo</h1>",
+      );
+      assertEquals(
+        await Deno.readTextFile(join(mainOut, "lib/v0.9/ehrtslib.min.js")),
+        "export const rm = {};\n",
+      );
+    } finally {
+      live.abort();
+    }
+  },
+});

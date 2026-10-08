@@ -33,6 +33,7 @@
     "build:taaat": "deno run -A examples/taaat-app/scripts/build.ts",
     "dev:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
     "proto:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
+    "pack:library": "deno run -A scripts/pack_library.ts",
     "release": "deno run -A scripts/release.ts",
     "pages:assemble": "deno run -A scripts/assemble-pages.ts"
   }

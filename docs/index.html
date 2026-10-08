@@ -91,6 +91,9 @@ EHRTSLIB
                         href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/getting-started.md"
                         target="_blank" rel="noopener" class="file">getting-started.md</a></div>
                 <div><span class="perm">-rw-r--r--</span> 1 user user <span class="date">----</span> <a
+                        href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/library-package.md"
+                        target="_blank" rel="noopener" class="file">library-package.md</a></div>
+                <div><span class="perm">-rw-r--r--</span> 1 user user <span class="date">----</span> <a
                         href="https://github.com/ErikSundvall/ehrtslib/blob/main/README.md" target="_blank"
                         rel="noopener" class="file">README.md</a></div>
             </div>
@@ -116,6 +119,16 @@ EHRTSLIB
       (function () {
         var host = document.getElementById("versions-output");
         if (!host) return;
+        function ghReleaseLinks(label, versions, recommended) {
+          if (!versions || !versions.length) {
+            return "<p>" + label + ": no GitHub Releases yet.</p>";
+          }
+          var items = versions.map(function (tag) {
+            var rec = tag === recommended ? " (recommended)" : "";
+            return '<a href="https://github.com/ErikSundvall/ehrtslib/releases/tag/' + tag + '">' + tag + "</a>" + rec;
+          }).join(" · ");
+          return "<p>" + label + " releases: " + items + "</p>";
+        }
         function linkList(label, versions, recommended) {
           if (!versions || !versions.length) {
             return "<p>" + label + ": no frozen releases yet.</p>";
@@ -132,8 +145,10 @@ EHRTSLIB
             if (!data) return;
             var html = "";
             if (data.library && data.library.current) {
-              html += "<p>library current: " + data.library.current + "</p>";
+              var libRec = data.library.recommended ? " (recommended " + data.library.recommended + ")" : "";
+              html += "<p>library current: " + data.library.current + libRec + "</p>";
             }
+            html += ghReleaseLinks("library", data.library && data.library.versions, data.library && data.library.recommended);
             html += linkList("demo", data.demo && data.demo.versions, data.demo && data.demo.recommended);
             html += linkList("TAAAT", data.taaat && data.taaat.versions, data.taaat && data.taaat.recommended);
             host.innerHTML = html;

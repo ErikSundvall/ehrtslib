@@ -46,6 +46,8 @@ import * as openehr_base from "./openehr_base.ts";
 import { base, rm, parser, serialization } from "./mod.ts";
 ```
 
+A published library tag also ships a source zip, a development zip (source plus docs), and minified single-file bundles. Applications that bundle their own code should use the source zip and tree-shake. Import URLs (jsDelivr in front of the git tag, GitHub raw, and GitHub Pages for the bundles) are in [Library releases](library-package.md).
+
 ## "Hello World" - Simplest Possible COMPOSITION
 
 Here's the minimal code to create a COMPOSITION using [constructor initialization with nested objects](user/brief-property-styles.md#constructor-initialization) (see [Brief property styles](user/brief-property-styles.md) for terse formats and more patterns):

@@ -81,6 +81,7 @@ ISO 8601 date/time classes use the built-in `Temporal` global. That global is st
 | Build static demo | `deno task build:demo` → output in `docs/demo/` |
 | Demo dev server | `deno task dev:demo` (or `cd examples/demo-app && deno task dev`) → **http://127.0.0.1:8000** |
 | Cut a library / demo / TAAAT release | `deno task release -- --package library\|demo\|taaat --version X.Y.Z` (see [`docs/maintainers/releases.md`](docs/maintainers/releases.md)) |
+| Pack library source, dev, and runtime bundles | `deno task pack:library` → `dist/library-release/` |
 | Recommended lib tests | `deno test test_data/tests/ --allow-read --no-check` |
 
 **Tests vs `deno task test`:** `deno task test` runs without `--no-check` and currently fails type-checking on many test files (~300 errors). Use `--no-check` as documented in [`docs/ADL_SUPPORT.md`](docs/ADL_SUPPORT.md). Expect some failing cases in the full suite (fixture/archie benchmarks); demo and `deno task check` are reliable smoke checks.
