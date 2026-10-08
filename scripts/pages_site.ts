@@ -164,12 +164,11 @@ export async function versionHasIndex(
   root: string,
   tag: string,
 ): Promise<boolean> {
-  try {
-    const st = await Deno.stat(join(root, tag, "index.html"));
-    return st.isFile;
-  } catch {
-    return false;
-  }
+  return await fileExists(join(root, tag, "index.html"));
+}
+
+async function directoryHasIndex(dir: string): Promise<boolean> {
+  return await fileExists(join(dir, "index.html"));
 }
 
 export async function copyDirContents(
@@ -234,6 +233,68 @@ export async function mirrorVersionSubdir(
     throw new Error(
       `Failed to mirror frozen Pages version /${tag}/ — index.html missing after wget`,
     );
+  }
+}
+
+/**
+ * Mirror one library runtime-bundle directory (`/lib/<tag>/`) from the live site.
+ * Older library tags have no bundle directory; callers treat failure as "skip".
+ */
+export async function mirrorLibraryWeb(
+  baseUrl: string,
+  tag: string,
+  destRoot: string,
+): Promise<void> {
+  const dest = join(destRoot, "lib", tag);
+  await emptyDir(dest);
+  await ensureDir(dest);
+  const cut = pagesRepoPathDepth(baseUrl) + 2;
+  const args = [
+    "-q",
+    "-r",
+    "-np",
+    "-nH",
+    `--cut-dirs=${cut}`,
+    "-P",
+    dest,
+    `${baseUrl}/lib/${tag}/`,
+  ];
+  await runWget(args);
+  const repoSeg = new URL(baseUrl).pathname.replace(/^\/+|\/+$/g, "")
+    .split("/").filter(Boolean).pop();
+  if (repoSeg) await flattenWgetNest(dest, repoSeg);
+  await flattenWgetNest(dest, "lib");
+  await flattenWgetNest(dest, tag);
+
+  if (!(await directoryHasIndex(dest))) {
+    throw new Error(
+      `Failed to mirror library web bundle /lib/${tag}/ — index.html missing after wget`,
+    );
+  }
+}
+
+async function preserveLibraryWebBundles(
+  baseUrl: string,
+  outDir: string,
+  tags: string[],
+): Promise<void> {
+  for (const tag of tags) {
+    const dest = join(outDir, "lib", tag);
+    if (await directoryHasIndex(dest)) continue;
+    try {
+      await mirrorLibraryWeb(baseUrl, tag, outDir);
+    } catch (error) {
+      console.warn(
+        `No frozen library web bundle /lib/${tag}/: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      try {
+        await Deno.remove(dest, { recursive: true });
+      } catch {
+        // ignore cleanup errors
+      }
+    }
   }
 }
 
@@ -310,6 +371,11 @@ export async function assembleMainPagesSite(opts: {
     opts.outDir,
     listed.taaat.versions,
   );
+  await preserveLibraryWebBundles(
+    opts.baseUrl,
+    opts.outDir,
+    listed.library.versions,
+  );
 
   const manifest = normalizeManifest({
     library: {
@@ -337,13 +403,14 @@ export async function assembleMainPagesSite(opts: {
 
 /**
  * Release deploy: add an immutable version subdirectory without replacing
- * other frozen copies. Library releases only update the manifest.
+ * other frozen copies. A library release also publishes `/lib/<tag>/` when
+ * `appDist` is the runtime-bundle directory.
  */
 export async function assembleReleasePagesSite(opts: {
   baseUrl: string;
   pkg: ReleasePackage;
   versionTag: string;
-  /** Built webapp dir (`docs/demo` or `docs/taaat`); unused for library. */
+  /** Built webapp dir, or the library runtime-bundle directory for a `v*` tag. */
   appDist?: string;
   outDir: string;
   docsDir: string;
@@ -389,6 +456,26 @@ export async function assembleReleasePagesSite(opts: {
     opts.outDir,
     listed.taaat.versions,
   );
+  await preserveLibraryWebBundles(
+    opts.baseUrl,
+    opts.outDir,
+    listed.library.versions,
+  );
+
+  if (key === "library" && opts.appDist) {
+    const dest = join(opts.outDir, "lib", opts.versionTag);
+    if (await directoryHasIndex(dest)) {
+      throw new Error(
+        `GitHub Pages path /lib/${opts.versionTag}/ already exists — release web builds are immutable`,
+      );
+    }
+    await copyDirContents(opts.appDist, dest);
+    if (!(await directoryHasIndex(dest))) {
+      throw new Error(
+        `Library web dist for ${opts.versionTag} is missing index.html`,
+      );
+    }
+  }
 
   if (key !== "library") {
     if (await versionHasIndex(opts.outDir, opts.versionTag)) {

@@ -132,10 +132,19 @@ if (cfg.buildTask) {
   await run("deno", ["task", cfg.buildTask]);
 }
 
+if (args.pkg === "library") {
+  await run("deno", [
+    "run",
+    "-A",
+    "scripts/pack_library.ts",
+    "dist/library-release",
+  ]);
+}
+
 if (args.dryRun) {
   const pages = cfg.pagesDir
     ? `https://eriksundvall.github.io/ehrtslib/${releaseTag}/`
-    : "(library — GitHub Release only)";
+    : `https://eriksundvall.github.io/ehrtslib/lib/${releaseTag}/ plus the source, development, and runtime assets on the GitHub Release`;
   console.log("Dry run complete — no commit, tag, or push performed.");
   console.log(
     `Would tag ${releaseTag} and push to origin; Actions publishes ${pages}`,
@@ -165,5 +174,7 @@ if (cfg.pagesDir) {
     `GitHub Actions will freeze https://eriksundvall.github.io/ehrtslib/${releaseTag}/`,
   );
 } else {
-  console.log("GitHub Actions will create the library GitHub Release.");
+  console.log(
+    "GitHub Actions will attach the source zip, development zip, and runtime bundles to the library GitHub Release.",
+  );
 }

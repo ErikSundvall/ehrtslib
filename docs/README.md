@@ -9,6 +9,7 @@
 | Goal | Doc |
 | ---- | --- |
 | Hello world / packages | [getting-started.md](getting-started.md) |
+| Pinned release: source zip, CDN import, runtime bundles | [library-package.md](library-package.md) |
 | Brief property styles (constructors + terse codes) | [user/brief-property-styles.md](user/brief-property-styles.md) |
 | Dual getters (`name` vs `$name`) | [user/dual-accessors.md](user/dual-accessors.md) |
 | FLAT / STRUCTURED / Web Template | [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md) |
