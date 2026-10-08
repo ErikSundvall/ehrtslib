@@ -2,6 +2,11 @@
  * TAAAT — Template and Archetype Annotation Tool
  */
 
+import {
+  bindRecommendedVersionNotice,
+  detectAppDeployment,
+  formatBuildLabel,
+} from "../../shared/recommended_version.ts";
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import {
   type AnnotatedResource,
@@ -905,7 +910,33 @@ export function reloadUi(): void {
   refreshWorkspace();
 }
 
+declare const __BUILD_INFO__: {
+  timestamp: string;
+  buildId: string;
+  version: string;
+};
+
+const TAAAT_README_URL =
+  "https://github.com/ErikSundvall/ehrtslib/blob/main/examples/taaat-app/README.md";
+
+function displayBuildInfo(): void {
+  const buildInfoElem = document.getElementById("build-info");
+  if (!buildInfoElem || typeof __BUILD_INFO__ === "undefined") return;
+  const deployment = detectAppDeployment(globalThis.location?.pathname ?? "");
+  buildInfoElem.textContent = formatBuildLabel(
+    "TAAAT",
+    __BUILD_INFO__,
+    deployment?.app === "taaat" ? deployment : null,
+  );
+}
+
 export function initApp(): void {
+  displayBuildInfo();
+  void bindRecommendedVersionNotice(document, {
+    app: "taaat",
+    tutorialUrl: `${TAAAT_README_URL}#tutorial`,
+    readmeUrl: TAAAT_README_URL,
+  });
   setupLoadBar();
   setupFileSelect();
   setupFamilyTools();

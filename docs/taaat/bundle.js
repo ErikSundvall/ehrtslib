@@ -4,16 +4,19 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __copyProps = (to2, from, except, desc) => {
+var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to2, key) && key !== except)
-        __defProp(to2, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
   }
-  return to2;
+  return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
   // If the importer is in node compatibility mode or this is not an ESM
@@ -24,10 +27,19 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// <define:__BUILD_INFO__>
+var define_BUILD_INFO_default;
+var init_define_BUILD_INFO = __esm({
+  "<define:__BUILD_INFO__>"() {
+    define_BUILD_INFO_default = { timestamp: "2026-10-08T07:53:08.370Z", buildId: "FN8M9VKX", version: "0.1.0" };
+  }
+});
+
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/util.js
 var require_util = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/util.js"(exports) {
     "use strict";
+    init_define_BUILD_INFO();
     var nameStartChar = ":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
     var nameChar = nameStartChar + "\\-.\\d\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
     var nameRegexp = "[" + nameStartChar + "][" + nameChar + "]*";
@@ -51,28 +63,28 @@ var require_util = __commonJS({
       const match = regexName.exec(string);
       return !(match === null || typeof match === "undefined");
     };
-    exports.isExist = function(v2) {
-      return typeof v2 !== "undefined";
+    exports.isExist = function(v) {
+      return typeof v !== "undefined";
     };
     exports.isEmptyObject = function(obj) {
       return Object.keys(obj).length === 0;
     };
-    exports.merge = function(target, a2, arrayMode) {
-      if (a2) {
-        const keys = Object.keys(a2);
+    exports.merge = function(target, a, arrayMode) {
+      if (a) {
+        const keys = Object.keys(a);
         const len = keys.length;
-        for (let i2 = 0; i2 < len; i2++) {
+        for (let i = 0; i < len; i++) {
           if (arrayMode === "strict") {
-            target[keys[i2]] = [a2[keys[i2]]];
+            target[keys[i]] = [a[keys[i]]];
           } else {
-            target[keys[i2]] = a2[keys[i2]];
+            target[keys[i]] = a[keys[i]];
           }
         }
       }
     };
-    exports.getValue = function(v2) {
-      if (exports.isExist(v2)) {
-        return v2;
+    exports.getValue = function(v) {
+      if (exports.isExist(v)) {
+        return v;
       } else {
         return "";
       }
@@ -102,6 +114,7 @@ var require_util = __commonJS({
 var require_validator = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/validator.js"(exports) {
     "use strict";
+    init_define_BUILD_INFO();
     var util = require_util();
     var defaultOptions = {
       allowBooleanAttributes: false,
@@ -116,32 +129,32 @@ var require_validator = __commonJS({
       if (xmlData[0] === "\uFEFF") {
         xmlData = xmlData.substr(1);
       }
-      for (let i2 = 0; i2 < xmlData.length; i2++) {
-        if (xmlData[i2] === "<" && xmlData[i2 + 1] === "?") {
-          i2 += 2;
-          i2 = readPI(xmlData, i2);
-          if (i2.err)
-            return i2;
-        } else if (xmlData[i2] === "<") {
-          let tagStartPos = i2;
-          i2++;
-          if (xmlData[i2] === "!") {
-            i2 = readCommentAndCDATA(xmlData, i2);
+      for (let i = 0; i < xmlData.length; i++) {
+        if (xmlData[i] === "<" && xmlData[i + 1] === "?") {
+          i += 2;
+          i = readPI(xmlData, i);
+          if (i.err)
+            return i;
+        } else if (xmlData[i] === "<") {
+          let tagStartPos = i;
+          i++;
+          if (xmlData[i] === "!") {
+            i = readCommentAndCDATA(xmlData, i);
             continue;
           } else {
             let closingTag = false;
-            if (xmlData[i2] === "/") {
+            if (xmlData[i] === "/") {
               closingTag = true;
-              i2++;
+              i++;
             }
             let tagName = "";
-            for (; i2 < xmlData.length && xmlData[i2] !== ">" && xmlData[i2] !== " " && xmlData[i2] !== "	" && xmlData[i2] !== "\n" && xmlData[i2] !== "\r"; i2++) {
-              tagName += xmlData[i2];
+            for (; i < xmlData.length && xmlData[i] !== ">" && xmlData[i] !== " " && xmlData[i] !== "	" && xmlData[i] !== "\n" && xmlData[i] !== "\r"; i++) {
+              tagName += xmlData[i];
             }
             tagName = tagName.trim();
             if (tagName[tagName.length - 1] === "/") {
               tagName = tagName.substring(0, tagName.length - 1);
-              i2--;
+              i--;
             }
             if (!validateTagName(tagName)) {
               let msg;
@@ -150,16 +163,16 @@ var require_validator = __commonJS({
               } else {
                 msg = "Tag '" + tagName + "' is an invalid name.";
               }
-              return getErrorObject("InvalidTag", msg, getLineNumberForPosition(xmlData, i2));
+              return getErrorObject("InvalidTag", msg, getLineNumberForPosition(xmlData, i));
             }
-            const result = readAttributeStr(xmlData, i2);
+            const result = readAttributeStr(xmlData, i);
             if (result === false) {
-              return getErrorObject("InvalidAttr", "Attributes for '" + tagName + "' have open quote.", getLineNumberForPosition(xmlData, i2));
+              return getErrorObject("InvalidAttr", "Attributes for '" + tagName + "' have open quote.", getLineNumberForPosition(xmlData, i));
             }
             let attrStr = result.value;
-            i2 = result.index;
+            i = result.index;
             if (attrStr[attrStr.length - 1] === "/") {
-              const attrStrStart = i2 - attrStr.length;
+              const attrStrStart = i - attrStr.length;
               attrStr = attrStr.substring(0, attrStr.length - 1);
               const isValid = validateAttributeString(attrStr, options);
               if (isValid === true) {
@@ -169,7 +182,7 @@ var require_validator = __commonJS({
               }
             } else if (closingTag) {
               if (!result.tagClosed) {
-                return getErrorObject("InvalidTag", "Closing tag '" + tagName + "' doesn't have proper closing.", getLineNumberForPosition(xmlData, i2));
+                return getErrorObject("InvalidTag", "Closing tag '" + tagName + "' doesn't have proper closing.", getLineNumberForPosition(xmlData, i));
               } else if (attrStr.trim().length > 0) {
                 return getErrorObject("InvalidTag", "Closing tag '" + tagName + "' can't have attributes or invalid starting.", getLineNumberForPosition(xmlData, tagStartPos));
               } else if (tags.length === 0) {
@@ -191,49 +204,49 @@ var require_validator = __commonJS({
             } else {
               const isValid = validateAttributeString(attrStr, options);
               if (isValid !== true) {
-                return getErrorObject(isValid.err.code, isValid.err.msg, getLineNumberForPosition(xmlData, i2 - attrStr.length + isValid.err.line));
+                return getErrorObject(isValid.err.code, isValid.err.msg, getLineNumberForPosition(xmlData, i - attrStr.length + isValid.err.line));
               }
               if (reachedRoot === true) {
-                return getErrorObject("InvalidXml", "Multiple possible root nodes found.", getLineNumberForPosition(xmlData, i2));
+                return getErrorObject("InvalidXml", "Multiple possible root nodes found.", getLineNumberForPosition(xmlData, i));
               } else if (options.unpairedTags.indexOf(tagName) !== -1) {
               } else {
                 tags.push({ tagName, tagStartPos });
               }
               tagFound = true;
             }
-            for (i2++; i2 < xmlData.length; i2++) {
-              if (xmlData[i2] === "<") {
-                if (xmlData[i2 + 1] === "!") {
-                  i2++;
-                  i2 = readCommentAndCDATA(xmlData, i2);
+            for (i++; i < xmlData.length; i++) {
+              if (xmlData[i] === "<") {
+                if (xmlData[i + 1] === "!") {
+                  i++;
+                  i = readCommentAndCDATA(xmlData, i);
                   continue;
-                } else if (xmlData[i2 + 1] === "?") {
-                  i2 = readPI(xmlData, ++i2);
-                  if (i2.err)
-                    return i2;
+                } else if (xmlData[i + 1] === "?") {
+                  i = readPI(xmlData, ++i);
+                  if (i.err)
+                    return i;
                 } else {
                   break;
                 }
-              } else if (xmlData[i2] === "&") {
-                const afterAmp = validateAmpersand(xmlData, i2);
+              } else if (xmlData[i] === "&") {
+                const afterAmp = validateAmpersand(xmlData, i);
                 if (afterAmp == -1)
-                  return getErrorObject("InvalidChar", "char '&' is not expected.", getLineNumberForPosition(xmlData, i2));
-                i2 = afterAmp;
+                  return getErrorObject("InvalidChar", "char '&' is not expected.", getLineNumberForPosition(xmlData, i));
+                i = afterAmp;
               } else {
-                if (reachedRoot === true && !isWhiteSpace(xmlData[i2])) {
-                  return getErrorObject("InvalidXml", "Extra text at the end", getLineNumberForPosition(xmlData, i2));
+                if (reachedRoot === true && !isWhiteSpace(xmlData[i])) {
+                  return getErrorObject("InvalidXml", "Extra text at the end", getLineNumberForPosition(xmlData, i));
                 }
               }
             }
-            if (xmlData[i2] === "<") {
-              i2--;
+            if (xmlData[i] === "<") {
+              i--;
             }
           }
         } else {
-          if (isWhiteSpace(xmlData[i2])) {
+          if (isWhiteSpace(xmlData[i])) {
             continue;
           }
-          return getErrorObject("InvalidChar", "char '" + xmlData[i2] + "' is not expected.", getLineNumberForPosition(xmlData, i2));
+          return getErrorObject("InvalidChar", "char '" + xmlData[i] + "' is not expected.", getLineNumberForPosition(xmlData, i));
         }
       }
       if (!tagFound) {
@@ -241,88 +254,88 @@ var require_validator = __commonJS({
       } else if (tags.length == 1) {
         return getErrorObject("InvalidTag", "Unclosed tag '" + tags[0].tagName + "'.", getLineNumberForPosition(xmlData, tags[0].tagStartPos));
       } else if (tags.length > 0) {
-        return getErrorObject("InvalidXml", "Invalid '" + JSON.stringify(tags.map((t2) => t2.tagName), null, 4).replace(/\r?\n/g, "") + "' found.", { line: 1, col: 1 });
+        return getErrorObject("InvalidXml", "Invalid '" + JSON.stringify(tags.map((t) => t.tagName), null, 4).replace(/\r?\n/g, "") + "' found.", { line: 1, col: 1 });
       }
       return true;
     };
     function isWhiteSpace(char) {
       return char === " " || char === "	" || char === "\n" || char === "\r";
     }
-    function readPI(xmlData, i2) {
-      const start = i2;
-      for (; i2 < xmlData.length; i2++) {
-        if (xmlData[i2] == "?" || xmlData[i2] == " ") {
-          const tagname = xmlData.substr(start, i2 - start);
-          if (i2 > 5 && tagname === "xml") {
-            return getErrorObject("InvalidXml", "XML declaration allowed only at the start of the document.", getLineNumberForPosition(xmlData, i2));
-          } else if (xmlData[i2] == "?" && xmlData[i2 + 1] == ">") {
-            i2++;
+    function readPI(xmlData, i) {
+      const start = i;
+      for (; i < xmlData.length; i++) {
+        if (xmlData[i] == "?" || xmlData[i] == " ") {
+          const tagname = xmlData.substr(start, i - start);
+          if (i > 5 && tagname === "xml") {
+            return getErrorObject("InvalidXml", "XML declaration allowed only at the start of the document.", getLineNumberForPosition(xmlData, i));
+          } else if (xmlData[i] == "?" && xmlData[i + 1] == ">") {
+            i++;
             break;
           } else {
             continue;
           }
         }
       }
-      return i2;
+      return i;
     }
-    function readCommentAndCDATA(xmlData, i2) {
-      if (xmlData.length > i2 + 5 && xmlData[i2 + 1] === "-" && xmlData[i2 + 2] === "-") {
-        for (i2 += 3; i2 < xmlData.length; i2++) {
-          if (xmlData[i2] === "-" && xmlData[i2 + 1] === "-" && xmlData[i2 + 2] === ">") {
-            i2 += 2;
+    function readCommentAndCDATA(xmlData, i) {
+      if (xmlData.length > i + 5 && xmlData[i + 1] === "-" && xmlData[i + 2] === "-") {
+        for (i += 3; i < xmlData.length; i++) {
+          if (xmlData[i] === "-" && xmlData[i + 1] === "-" && xmlData[i + 2] === ">") {
+            i += 2;
             break;
           }
         }
-      } else if (xmlData.length > i2 + 8 && xmlData[i2 + 1] === "D" && xmlData[i2 + 2] === "O" && xmlData[i2 + 3] === "C" && xmlData[i2 + 4] === "T" && xmlData[i2 + 5] === "Y" && xmlData[i2 + 6] === "P" && xmlData[i2 + 7] === "E") {
+      } else if (xmlData.length > i + 8 && xmlData[i + 1] === "D" && xmlData[i + 2] === "O" && xmlData[i + 3] === "C" && xmlData[i + 4] === "T" && xmlData[i + 5] === "Y" && xmlData[i + 6] === "P" && xmlData[i + 7] === "E") {
         let angleBracketsCount = 1;
-        for (i2 += 8; i2 < xmlData.length; i2++) {
-          if (xmlData[i2] === "<") {
+        for (i += 8; i < xmlData.length; i++) {
+          if (xmlData[i] === "<") {
             angleBracketsCount++;
-          } else if (xmlData[i2] === ">") {
+          } else if (xmlData[i] === ">") {
             angleBracketsCount--;
             if (angleBracketsCount === 0) {
               break;
             }
           }
         }
-      } else if (xmlData.length > i2 + 9 && xmlData[i2 + 1] === "[" && xmlData[i2 + 2] === "C" && xmlData[i2 + 3] === "D" && xmlData[i2 + 4] === "A" && xmlData[i2 + 5] === "T" && xmlData[i2 + 6] === "A" && xmlData[i2 + 7] === "[") {
-        for (i2 += 8; i2 < xmlData.length; i2++) {
-          if (xmlData[i2] === "]" && xmlData[i2 + 1] === "]" && xmlData[i2 + 2] === ">") {
-            i2 += 2;
+      } else if (xmlData.length > i + 9 && xmlData[i + 1] === "[" && xmlData[i + 2] === "C" && xmlData[i + 3] === "D" && xmlData[i + 4] === "A" && xmlData[i + 5] === "T" && xmlData[i + 6] === "A" && xmlData[i + 7] === "[") {
+        for (i += 8; i < xmlData.length; i++) {
+          if (xmlData[i] === "]" && xmlData[i + 1] === "]" && xmlData[i + 2] === ">") {
+            i += 2;
             break;
           }
         }
       }
-      return i2;
+      return i;
     }
     var doubleQuote = '"';
     var singleQuote = "'";
-    function readAttributeStr(xmlData, i2) {
+    function readAttributeStr(xmlData, i) {
       let attrStr = "";
       let startChar = "";
       let tagClosed = false;
-      for (; i2 < xmlData.length; i2++) {
-        if (xmlData[i2] === doubleQuote || xmlData[i2] === singleQuote) {
+      for (; i < xmlData.length; i++) {
+        if (xmlData[i] === doubleQuote || xmlData[i] === singleQuote) {
           if (startChar === "") {
-            startChar = xmlData[i2];
-          } else if (startChar !== xmlData[i2]) {
+            startChar = xmlData[i];
+          } else if (startChar !== xmlData[i]) {
           } else {
             startChar = "";
           }
-        } else if (xmlData[i2] === ">") {
+        } else if (xmlData[i] === ">") {
           if (startChar === "") {
             tagClosed = true;
             break;
           }
         }
-        attrStr += xmlData[i2];
+        attrStr += xmlData[i];
       }
       if (startChar !== "") {
         return false;
       }
       return {
         value: attrStr,
-        index: i2,
+        index: i,
         tagClosed
       };
     }
@@ -330,57 +343,57 @@ var require_validator = __commonJS({
     function validateAttributeString(attrStr, options) {
       const matches = util.getAllMatches(attrStr, validAttrStrRegxp);
       const attrNames = {};
-      for (let i2 = 0; i2 < matches.length; i2++) {
-        if (matches[i2][1].length === 0) {
-          return getErrorObject("InvalidAttr", "Attribute '" + matches[i2][2] + "' has no space in starting.", getPositionFromMatch(matches[i2]));
-        } else if (matches[i2][3] !== void 0 && matches[i2][4] === void 0) {
-          return getErrorObject("InvalidAttr", "Attribute '" + matches[i2][2] + "' is without value.", getPositionFromMatch(matches[i2]));
-        } else if (matches[i2][3] === void 0 && !options.allowBooleanAttributes) {
-          return getErrorObject("InvalidAttr", "boolean attribute '" + matches[i2][2] + "' is not allowed.", getPositionFromMatch(matches[i2]));
+      for (let i = 0; i < matches.length; i++) {
+        if (matches[i][1].length === 0) {
+          return getErrorObject("InvalidAttr", "Attribute '" + matches[i][2] + "' has no space in starting.", getPositionFromMatch(matches[i]));
+        } else if (matches[i][3] !== void 0 && matches[i][4] === void 0) {
+          return getErrorObject("InvalidAttr", "Attribute '" + matches[i][2] + "' is without value.", getPositionFromMatch(matches[i]));
+        } else if (matches[i][3] === void 0 && !options.allowBooleanAttributes) {
+          return getErrorObject("InvalidAttr", "boolean attribute '" + matches[i][2] + "' is not allowed.", getPositionFromMatch(matches[i]));
         }
-        const attrName = matches[i2][2];
+        const attrName = matches[i][2];
         if (!validateAttrName(attrName)) {
-          return getErrorObject("InvalidAttr", "Attribute '" + attrName + "' is an invalid name.", getPositionFromMatch(matches[i2]));
+          return getErrorObject("InvalidAttr", "Attribute '" + attrName + "' is an invalid name.", getPositionFromMatch(matches[i]));
         }
         if (!attrNames.hasOwnProperty(attrName)) {
           attrNames[attrName] = 1;
         } else {
-          return getErrorObject("InvalidAttr", "Attribute '" + attrName + "' is repeated.", getPositionFromMatch(matches[i2]));
+          return getErrorObject("InvalidAttr", "Attribute '" + attrName + "' is repeated.", getPositionFromMatch(matches[i]));
         }
       }
       return true;
     }
-    function validateNumberAmpersand(xmlData, i2) {
-      let re2 = /\d/;
-      if (xmlData[i2] === "x") {
-        i2++;
-        re2 = /[\da-fA-F]/;
+    function validateNumberAmpersand(xmlData, i) {
+      let re = /\d/;
+      if (xmlData[i] === "x") {
+        i++;
+        re = /[\da-fA-F]/;
       }
-      for (; i2 < xmlData.length; i2++) {
-        if (xmlData[i2] === ";")
-          return i2;
-        if (!xmlData[i2].match(re2))
+      for (; i < xmlData.length; i++) {
+        if (xmlData[i] === ";")
+          return i;
+        if (!xmlData[i].match(re))
           break;
       }
       return -1;
     }
-    function validateAmpersand(xmlData, i2) {
-      i2++;
-      if (xmlData[i2] === ";")
+    function validateAmpersand(xmlData, i) {
+      i++;
+      if (xmlData[i] === ";")
         return -1;
-      if (xmlData[i2] === "#") {
-        i2++;
-        return validateNumberAmpersand(xmlData, i2);
+      if (xmlData[i] === "#") {
+        i++;
+        return validateNumberAmpersand(xmlData, i);
       }
       let count = 0;
-      for (; i2 < xmlData.length; i2++, count++) {
-        if (xmlData[i2].match(/\w/) && count < 20)
+      for (; i < xmlData.length; i++, count++) {
+        if (xmlData[i].match(/\w/) && count < 20)
           continue;
-        if (xmlData[i2] === ";")
+        if (xmlData[i] === ";")
           break;
         return -1;
       }
-      return i2;
+      return i;
     }
     function getErrorObject(code, message, lineNumber) {
       return {
@@ -415,6 +428,7 @@ var require_validator = __commonJS({
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js
 var require_OptionsBuilder = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/OptionsBuilder.js"(exports) {
+    init_define_BUILD_INFO();
     var { DANGEROUS_PROPERTY_NAMES, criticalProperties } = require_util();
     var defaultOnDangerousProperty = (name) => {
       if (DANGEROUS_PROPERTY_NAMES.includes(name)) {
@@ -542,6 +556,7 @@ var require_OptionsBuilder = __commonJS({
 var require_xmlNode = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/xmlNode.js"(exports, module) {
     "use strict";
+    init_define_BUILD_INFO();
     var XmlNode = class {
       constructor(tagname) {
         this.tagname = tagname;
@@ -570,26 +585,27 @@ var require_xmlNode = __commonJS({
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js
 var require_DocTypeReader = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/DocTypeReader.js"(exports, module) {
+    init_define_BUILD_INFO();
     var util = require_util();
     var DocTypeReader = class {
       constructor(options) {
         this.suppressValidationErr = !options;
         this.options = options || {};
       }
-      readDocType(xmlData, i2) {
+      readDocType(xmlData, i) {
         const entities = /* @__PURE__ */ Object.create(null);
         let entityCount = 0;
-        if (xmlData[i2 + 3] === "O" && xmlData[i2 + 4] === "C" && xmlData[i2 + 5] === "T" && xmlData[i2 + 6] === "Y" && xmlData[i2 + 7] === "P" && xmlData[i2 + 8] === "E") {
-          i2 = i2 + 9;
+        if (xmlData[i + 3] === "O" && xmlData[i + 4] === "C" && xmlData[i + 5] === "T" && xmlData[i + 6] === "Y" && xmlData[i + 7] === "P" && xmlData[i + 8] === "E") {
+          i = i + 9;
           let angleBracketsCount = 1;
           let hasBody = false, comment = false;
           let exp = "";
-          for (; i2 < xmlData.length; i2++) {
-            if (xmlData[i2] === "<" && !comment) {
-              if (hasBody && hasSeq(xmlData, "!ENTITY", i2)) {
-                i2 += 7;
+          for (; i < xmlData.length; i++) {
+            if (xmlData[i] === "<" && !comment) {
+              if (hasBody && hasSeq(xmlData, "!ENTITY", i)) {
+                i += 7;
                 let entityName, val;
-                [entityName, val, i2] = this.readEntityExp(xmlData, i2 + 1, this.suppressValidationErr);
+                [entityName, val, i] = this.readEntityExp(xmlData, i + 1, this.suppressValidationErr);
                 if (val.indexOf("&") === -1) {
                   if (this.options.enabled !== false && this.options.maxEntityCount != null && entityCount >= this.options.maxEntityCount) {
                     throw new Error(
@@ -603,26 +619,26 @@ var require_DocTypeReader = __commonJS({
                   };
                   entityCount++;
                 }
-              } else if (hasBody && hasSeq(xmlData, "!ELEMENT", i2)) {
-                i2 += 8;
-                const { index } = this.readElementExp(xmlData, i2 + 1);
-                i2 = index;
-              } else if (hasBody && hasSeq(xmlData, "!ATTLIST", i2)) {
-                i2 += 8;
-              } else if (hasBody && hasSeq(xmlData, "!NOTATION", i2)) {
-                i2 += 9;
-                const { index } = this.readNotationExp(xmlData, i2 + 1, this.suppressValidationErr);
-                i2 = index;
-              } else if (hasSeq(xmlData, "!--", i2)) {
+              } else if (hasBody && hasSeq(xmlData, "!ELEMENT", i)) {
+                i += 8;
+                const { index } = this.readElementExp(xmlData, i + 1);
+                i = index;
+              } else if (hasBody && hasSeq(xmlData, "!ATTLIST", i)) {
+                i += 8;
+              } else if (hasBody && hasSeq(xmlData, "!NOTATION", i)) {
+                i += 9;
+                const { index } = this.readNotationExp(xmlData, i + 1, this.suppressValidationErr);
+                i = index;
+              } else if (hasSeq(xmlData, "!--", i)) {
                 comment = true;
               } else {
                 throw new Error(`Invalid DOCTYPE`);
               }
               angleBracketsCount++;
               exp = "";
-            } else if (xmlData[i2] === ">") {
+            } else if (xmlData[i] === ">") {
               if (comment) {
-                if (xmlData[i2 - 1] === "-" && xmlData[i2 - 2] === "-") {
+                if (xmlData[i - 1] === "-" && xmlData[i - 2] === "-") {
                   comment = false;
                   angleBracketsCount--;
                 }
@@ -632,10 +648,10 @@ var require_DocTypeReader = __commonJS({
               if (angleBracketsCount === 0) {
                 break;
               }
-            } else if (xmlData[i2] === "[") {
+            } else if (xmlData[i] === "[") {
               hasBody = true;
             } else {
-              exp += xmlData[i2];
+              exp += xmlData[i];
             }
           }
           if (angleBracketsCount !== 0) {
@@ -644,192 +660,192 @@ var require_DocTypeReader = __commonJS({
         } else {
           throw new Error(`Invalid Tag instead of DOCTYPE`);
         }
-        return { entities, i: i2 };
+        return { entities, i };
       }
-      readEntityExp(xmlData, i2) {
-        i2 = skipWhitespace(xmlData, i2);
+      readEntityExp(xmlData, i) {
+        i = skipWhitespace(xmlData, i);
         let entityName = "";
-        while (i2 < xmlData.length && !/\s/.test(xmlData[i2]) && xmlData[i2] !== '"' && xmlData[i2] !== "'") {
-          entityName += xmlData[i2];
-          i2++;
+        while (i < xmlData.length && !/\s/.test(xmlData[i]) && xmlData[i] !== '"' && xmlData[i] !== "'") {
+          entityName += xmlData[i];
+          i++;
         }
         validateEntityName(entityName);
-        i2 = skipWhitespace(xmlData, i2);
+        i = skipWhitespace(xmlData, i);
         if (!this.suppressValidationErr) {
-          if (xmlData.substring(i2, i2 + 6).toUpperCase() === "SYSTEM") {
+          if (xmlData.substring(i, i + 6).toUpperCase() === "SYSTEM") {
             throw new Error("External entities are not supported");
-          } else if (xmlData[i2] === "%") {
+          } else if (xmlData[i] === "%") {
             throw new Error("Parameter entities are not supported");
           }
         }
         let entityValue = "";
-        [i2, entityValue] = this.readIdentifierVal(xmlData, i2, "entity");
+        [i, entityValue] = this.readIdentifierVal(xmlData, i, "entity");
         if (this.options.enabled !== false && this.options.maxEntitySize != null && entityValue.length > this.options.maxEntitySize) {
           throw new Error(
             `Entity "${entityName}" size (${entityValue.length}) exceeds maximum allowed size (${this.options.maxEntitySize})`
           );
         }
-        i2--;
-        return [entityName, entityValue, i2];
+        i--;
+        return [entityName, entityValue, i];
       }
-      readNotationExp(xmlData, i2) {
-        i2 = skipWhitespace(xmlData, i2);
+      readNotationExp(xmlData, i) {
+        i = skipWhitespace(xmlData, i);
         let notationName = "";
-        while (i2 < xmlData.length && !/\s/.test(xmlData[i2])) {
-          notationName += xmlData[i2];
-          i2++;
+        while (i < xmlData.length && !/\s/.test(xmlData[i])) {
+          notationName += xmlData[i];
+          i++;
         }
         !this.suppressValidationErr && validateEntityName(notationName);
-        i2 = skipWhitespace(xmlData, i2);
-        const identifierType = xmlData.substring(i2, i2 + 6).toUpperCase();
+        i = skipWhitespace(xmlData, i);
+        const identifierType = xmlData.substring(i, i + 6).toUpperCase();
         if (!this.suppressValidationErr && identifierType !== "SYSTEM" && identifierType !== "PUBLIC") {
           throw new Error(`Expected SYSTEM or PUBLIC, found "${identifierType}"`);
         }
-        i2 += identifierType.length;
-        i2 = skipWhitespace(xmlData, i2);
+        i += identifierType.length;
+        i = skipWhitespace(xmlData, i);
         let publicIdentifier = null;
         let systemIdentifier = null;
         if (identifierType === "PUBLIC") {
-          [i2, publicIdentifier] = this.readIdentifierVal(xmlData, i2, "publicIdentifier");
-          i2 = skipWhitespace(xmlData, i2);
-          if (xmlData[i2] === '"' || xmlData[i2] === "'") {
-            [i2, systemIdentifier] = this.readIdentifierVal(xmlData, i2, "systemIdentifier");
+          [i, publicIdentifier] = this.readIdentifierVal(xmlData, i, "publicIdentifier");
+          i = skipWhitespace(xmlData, i);
+          if (xmlData[i] === '"' || xmlData[i] === "'") {
+            [i, systemIdentifier] = this.readIdentifierVal(xmlData, i, "systemIdentifier");
           }
         } else if (identifierType === "SYSTEM") {
-          [i2, systemIdentifier] = this.readIdentifierVal(xmlData, i2, "systemIdentifier");
+          [i, systemIdentifier] = this.readIdentifierVal(xmlData, i, "systemIdentifier");
           if (!this.suppressValidationErr && !systemIdentifier) {
             throw new Error("Missing mandatory system identifier for SYSTEM notation");
           }
         }
-        return { notationName, publicIdentifier, systemIdentifier, index: --i2 };
+        return { notationName, publicIdentifier, systemIdentifier, index: --i };
       }
-      readIdentifierVal(xmlData, i2, type) {
+      readIdentifierVal(xmlData, i, type) {
         let identifierVal = "";
-        const startChar = xmlData[i2];
+        const startChar = xmlData[i];
         if (startChar !== '"' && startChar !== "'") {
           throw new Error(`Expected quoted string, found "${startChar}"`);
         }
-        i2++;
-        while (i2 < xmlData.length && xmlData[i2] !== startChar) {
-          identifierVal += xmlData[i2];
-          i2++;
+        i++;
+        while (i < xmlData.length && xmlData[i] !== startChar) {
+          identifierVal += xmlData[i];
+          i++;
         }
-        if (xmlData[i2] !== startChar) {
+        if (xmlData[i] !== startChar) {
           throw new Error(`Unterminated ${type} value`);
         }
-        i2++;
-        return [i2, identifierVal];
+        i++;
+        return [i, identifierVal];
       }
-      readElementExp(xmlData, i2) {
-        i2 = skipWhitespace(xmlData, i2);
+      readElementExp(xmlData, i) {
+        i = skipWhitespace(xmlData, i);
         let elementName = "";
-        while (i2 < xmlData.length && !/\s/.test(xmlData[i2])) {
-          elementName += xmlData[i2];
-          i2++;
+        while (i < xmlData.length && !/\s/.test(xmlData[i])) {
+          elementName += xmlData[i];
+          i++;
         }
         if (!this.suppressValidationErr && !util.isName(elementName)) {
           throw new Error(`Invalid element name: "${elementName}"`);
         }
-        i2 = skipWhitespace(xmlData, i2);
+        i = skipWhitespace(xmlData, i);
         let contentModel = "";
-        if (xmlData[i2] === "E" && hasSeq(xmlData, "MPTY", i2)) {
-          i2 += 4;
-        } else if (xmlData[i2] === "A" && hasSeq(xmlData, "NY", i2)) {
-          i2 += 2;
-        } else if (xmlData[i2] === "(") {
-          i2++;
-          while (i2 < xmlData.length && xmlData[i2] !== ")") {
-            contentModel += xmlData[i2];
-            i2++;
+        if (xmlData[i] === "E" && hasSeq(xmlData, "MPTY", i)) {
+          i += 4;
+        } else if (xmlData[i] === "A" && hasSeq(xmlData, "NY", i)) {
+          i += 2;
+        } else if (xmlData[i] === "(") {
+          i++;
+          while (i < xmlData.length && xmlData[i] !== ")") {
+            contentModel += xmlData[i];
+            i++;
           }
-          if (xmlData[i2] !== ")") {
+          if (xmlData[i] !== ")") {
             throw new Error("Unterminated content model");
           }
         } else if (!this.suppressValidationErr) {
-          throw new Error(`Invalid Element Expression, found "${xmlData[i2]}"`);
+          throw new Error(`Invalid Element Expression, found "${xmlData[i]}"`);
         }
         return {
           elementName,
           contentModel: contentModel.trim(),
-          index: i2
+          index: i
         };
       }
-      readAttlistExp(xmlData, i2) {
-        i2 = skipWhitespace(xmlData, i2);
+      readAttlistExp(xmlData, i) {
+        i = skipWhitespace(xmlData, i);
         let elementName = "";
-        while (i2 < xmlData.length && !/\s/.test(xmlData[i2])) {
-          elementName += xmlData[i2];
-          i2++;
+        while (i < xmlData.length && !/\s/.test(xmlData[i])) {
+          elementName += xmlData[i];
+          i++;
         }
         validateEntityName(elementName);
-        i2 = skipWhitespace(xmlData, i2);
+        i = skipWhitespace(xmlData, i);
         let attributeName = "";
-        while (i2 < xmlData.length && !/\s/.test(xmlData[i2])) {
-          attributeName += xmlData[i2];
-          i2++;
+        while (i < xmlData.length && !/\s/.test(xmlData[i])) {
+          attributeName += xmlData[i];
+          i++;
         }
         if (!validateEntityName(attributeName)) {
           throw new Error(`Invalid attribute name: "${attributeName}"`);
         }
-        i2 = skipWhitespace(xmlData, i2);
+        i = skipWhitespace(xmlData, i);
         let attributeType = "";
-        if (xmlData.substring(i2, i2 + 8).toUpperCase() === "NOTATION") {
+        if (xmlData.substring(i, i + 8).toUpperCase() === "NOTATION") {
           attributeType = "NOTATION";
-          i2 += 8;
-          i2 = skipWhitespace(xmlData, i2);
-          if (xmlData[i2] !== "(") {
-            throw new Error(`Expected '(', found "${xmlData[i2]}"`);
+          i += 8;
+          i = skipWhitespace(xmlData, i);
+          if (xmlData[i] !== "(") {
+            throw new Error(`Expected '(', found "${xmlData[i]}"`);
           }
-          i2++;
+          i++;
           let allowedNotations = [];
-          while (i2 < xmlData.length && xmlData[i2] !== ")") {
+          while (i < xmlData.length && xmlData[i] !== ")") {
             let notation = "";
-            while (i2 < xmlData.length && xmlData[i2] !== "|" && xmlData[i2] !== ")") {
-              notation += xmlData[i2];
-              i2++;
+            while (i < xmlData.length && xmlData[i] !== "|" && xmlData[i] !== ")") {
+              notation += xmlData[i];
+              i++;
             }
             notation = notation.trim();
             if (!validateEntityName(notation)) {
               throw new Error(`Invalid notation name: "${notation}"`);
             }
             allowedNotations.push(notation);
-            if (xmlData[i2] === "|") {
-              i2++;
-              i2 = skipWhitespace(xmlData, i2);
+            if (xmlData[i] === "|") {
+              i++;
+              i = skipWhitespace(xmlData, i);
             }
           }
-          if (xmlData[i2] !== ")") {
+          if (xmlData[i] !== ")") {
             throw new Error("Unterminated list of notations");
           }
-          i2++;
+          i++;
           attributeType += " (" + allowedNotations.join("|") + ")";
         } else {
-          while (i2 < xmlData.length && !/\s/.test(xmlData[i2])) {
-            attributeType += xmlData[i2];
-            i2++;
+          while (i < xmlData.length && !/\s/.test(xmlData[i])) {
+            attributeType += xmlData[i];
+            i++;
           }
           const validTypes = ["CDATA", "ID", "IDREF", "IDREFS", "ENTITY", "ENTITIES", "NMTOKEN", "NMTOKENS"];
           if (!this.suppressValidationErr && !validTypes.includes(attributeType.toUpperCase())) {
             throw new Error(`Invalid attribute type: "${attributeType}"`);
           }
         }
-        i2 = skipWhitespace(xmlData, i2);
+        i = skipWhitespace(xmlData, i);
         let defaultValue = "";
-        if (xmlData.substring(i2, i2 + 8).toUpperCase() === "#REQUIRED") {
+        if (xmlData.substring(i, i + 8).toUpperCase() === "#REQUIRED") {
           defaultValue = "#REQUIRED";
-          i2 += 8;
-        } else if (xmlData.substring(i2, i2 + 7).toUpperCase() === "#IMPLIED") {
+          i += 8;
+        } else if (xmlData.substring(i, i + 7).toUpperCase() === "#IMPLIED") {
           defaultValue = "#IMPLIED";
-          i2 += 7;
+          i += 7;
         } else {
-          [i2, defaultValue] = this.readIdentifierVal(xmlData, i2, "ATTLIST");
+          [i, defaultValue] = this.readIdentifierVal(xmlData, i, "ATTLIST");
         }
         return {
           elementName,
           attributeName,
           attributeType,
           defaultValue,
-          index: i2
+          index: i
         };
       }
     };
@@ -839,9 +855,9 @@ var require_DocTypeReader = __commonJS({
       }
       return index;
     };
-    function hasSeq(data, seq, i2) {
-      for (let j2 = 0; j2 < seq.length; j2++) {
-        if (seq[j2] !== data[i2 + j2 + 1])
+    function hasSeq(data, seq, i) {
+      for (let j = 0; j < seq.length; j++) {
+        if (seq[j] !== data[i + j + 1])
           return false;
       }
       return true;
@@ -859,6 +875,7 @@ var require_DocTypeReader = __commonJS({
 // ../home/ubuntu/.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js
 var require_strnum = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/strnum@1.1.2/node_modules/strnum/strnum.js"(exports, module) {
+    init_define_BUILD_INFO();
     var hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
     var numRegex = /^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/;
     var consider = {
@@ -869,7 +886,7 @@ var require_strnum = __commonJS({
       eNotation: true
       //skipLike: /regex/
     };
-    function toNumber2(str, options = {}) {
+    function toNumber(str, options = {}) {
       options = Object.assign({}, consider, options);
       if (!str || typeof str !== "string")
         return str;
@@ -959,13 +976,14 @@ var require_strnum = __commonJS({
       else
         throw new Error("parseInt, Number.parseInt, window.parseInt are not supported");
     }
-    module.exports = toNumber2;
+    module.exports = toNumber;
   }
 });
 
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/ignoreAttributes.js
 var require_ignoreAttributes = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/ignoreAttributes.js"(exports, module) {
+    init_define_BUILD_INFO();
     function getIgnoreAttributesFn(ignoreAttributes) {
       if (typeof ignoreAttributes === "function") {
         return ignoreAttributes;
@@ -992,10 +1010,11 @@ var require_ignoreAttributes = __commonJS({
 var require_OrderedObjParser = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/OrderedObjParser.js"(exports, module) {
     "use strict";
+    init_define_BUILD_INFO();
     var util = require_util();
     var xmlNode = require_xmlNode();
     var DocTypeReader = require_DocTypeReader();
-    var toNumber2 = require_strnum();
+    var toNumber = require_strnum();
     var getIgnoreAttributesFn = require_ignoreAttributes();
     var OrderedObjParser = class {
       constructor(options) {
@@ -1024,8 +1043,8 @@ var require_OrderedObjParser = __commonJS({
           "copyright": { regex: /&(copy|#169);/g, val: "\xA9" },
           "reg": { regex: /&(reg|#174);/g, val: "\xAE" },
           "inr": { regex: /&(inr|#8377);/g, val: "\u20B9" },
-          "num_dec": { regex: /&#([0-9]{1,7});/g, val: (_2, str) => fromCodePoint(str, 10, "&#") },
-          "num_hex": { regex: /&#x([0-9a-fA-F]{1,6});/g, val: (_2, str) => fromCodePoint(str, 16, "&#x") }
+          "num_dec": { regex: /&#([0-9]{1,7});/g, val: (_, str) => fromCodePoint(str, 10, "&#") },
+          "num_hex": { regex: /&#x([0-9a-fA-F]{1,6});/g, val: (_, str) => fromCodePoint(str, 16, "&#x") }
         };
         this.addExternalEntities = addExternalEntities;
         this.parseXml = parseXml;
@@ -1043,8 +1062,8 @@ var require_OrderedObjParser = __commonJS({
         if (this.options.stopNodes && this.options.stopNodes.length > 0) {
           this.stopNodesExact = /* @__PURE__ */ new Set();
           this.stopNodesWildcard = /* @__PURE__ */ new Set();
-          for (let i2 = 0; i2 < this.options.stopNodes.length; i2++) {
-            const stopNodeExp = this.options.stopNodes[i2];
+          for (let i = 0; i < this.options.stopNodes.length; i++) {
+            const stopNodeExp = this.options.stopNodes[i];
             if (typeof stopNodeExp !== "string")
               continue;
             if (stopNodeExp.startsWith("*.")) {
@@ -1058,8 +1077,8 @@ var require_OrderedObjParser = __commonJS({
     };
     function addExternalEntities(externalEntities) {
       const entKeys = Object.keys(externalEntities);
-      for (let i2 = 0; i2 < entKeys.length; i2++) {
-        const ent = entKeys[i2];
+      for (let i = 0; i < entKeys.length; i++) {
+        const ent = entKeys[i];
         const escaped = ent.replace(/[.\-+*:]/g, "\\.");
         this.lastEntities[ent] = {
           regex: new RegExp("&" + escaped + ";", "g"),
@@ -1112,12 +1131,12 @@ var require_OrderedObjParser = __commonJS({
         const matches = util.getAllMatches(attrStr, attrsRegx);
         const len = matches.length;
         const attrs = {};
-        for (let i2 = 0; i2 < len; i2++) {
-          const attrName = this.resolveNameSpace(matches[i2][1]);
+        for (let i = 0; i < len; i++) {
+          const attrName = this.resolveNameSpace(matches[i][1]);
           if (this.ignoreAttributesFn(attrName, jPath)) {
             continue;
           }
-          let oldVal = matches[i2][4];
+          let oldVal = matches[i][4];
           let aName = this.options.attributeNamePrefix + attrName;
           if (attrName.length) {
             if (this.options.transformAttributeName) {
@@ -1166,12 +1185,12 @@ var require_OrderedObjParser = __commonJS({
       this.entityExpansionCount = 0;
       this.currentExpandedLength = 0;
       const docTypeReader = new DocTypeReader(this.options.processEntities);
-      for (let i2 = 0; i2 < xmlData.length; i2++) {
-        const ch = xmlData[i2];
+      for (let i = 0; i < xmlData.length; i++) {
+        const ch = xmlData[i];
         if (ch === "<") {
-          if (xmlData[i2 + 1] === "/") {
-            const closeIndex = findClosingIndex(xmlData, ">", i2, "Closing Tag is not closed.");
-            let tagName = xmlData.substring(i2 + 2, closeIndex).trim();
+          if (xmlData[i + 1] === "/") {
+            const closeIndex = findClosingIndex(xmlData, ">", i, "Closing Tag is not closed.");
+            let tagName = xmlData.substring(i + 2, closeIndex).trim();
             if (this.options.removeNSPrefix) {
               const colonIndex = tagName.indexOf(":");
               if (colonIndex !== -1) {
@@ -1198,9 +1217,9 @@ var require_OrderedObjParser = __commonJS({
             jPath = jPath.substring(0, propIndex);
             currentNode = this.tagsNodeStack.pop();
             textData = "";
-            i2 = closeIndex;
-          } else if (xmlData[i2 + 1] === "?") {
-            let tagData = readTagExp(xmlData, i2, false, "?>");
+            i = closeIndex;
+          } else if (xmlData[i + 1] === "?") {
+            let tagData = readTagExp(xmlData, i, false, "?>");
             if (!tagData)
               throw new Error("Pi Tag is not closed.");
             textData = this.saveTextToParentTag(textData, currentNode, jPath);
@@ -1211,24 +1230,24 @@ var require_OrderedObjParser = __commonJS({
               if (tagData.tagName !== tagData.tagExp && tagData.attrExpPresent) {
                 childNode[":@"] = this.buildAttributesMap(tagData.tagExp, jPath, tagData.tagName);
               }
-              this.addChild(currentNode, childNode, jPath, i2);
+              this.addChild(currentNode, childNode, jPath, i);
             }
-            i2 = tagData.closeIndex + 1;
-          } else if (xmlData.substr(i2 + 1, 3) === "!--") {
-            const endIndex = findClosingIndex(xmlData, "-->", i2 + 4, "Comment is not closed.");
+            i = tagData.closeIndex + 1;
+          } else if (xmlData.substr(i + 1, 3) === "!--") {
+            const endIndex = findClosingIndex(xmlData, "-->", i + 4, "Comment is not closed.");
             if (this.options.commentPropName) {
-              const comment = xmlData.substring(i2 + 4, endIndex - 2);
+              const comment = xmlData.substring(i + 4, endIndex - 2);
               textData = this.saveTextToParentTag(textData, currentNode, jPath);
               currentNode.add(this.options.commentPropName, [{ [this.options.textNodeName]: comment }]);
             }
-            i2 = endIndex;
-          } else if (xmlData.substr(i2 + 1, 2) === "!D") {
-            const result = docTypeReader.readDocType(xmlData, i2);
+            i = endIndex;
+          } else if (xmlData.substr(i + 1, 2) === "!D") {
+            const result = docTypeReader.readDocType(xmlData, i);
             this.docTypeEntities = result.entities;
-            i2 = result.i;
-          } else if (xmlData.substr(i2 + 1, 2) === "![") {
-            const closeIndex = findClosingIndex(xmlData, "]]>", i2, "CDATA is not closed.") - 2;
-            const tagExp = xmlData.substring(i2 + 9, closeIndex);
+            i = result.i;
+          } else if (xmlData.substr(i + 1, 2) === "![") {
+            const closeIndex = findClosingIndex(xmlData, "]]>", i, "CDATA is not closed.") - 2;
+            const tagExp = xmlData.substring(i + 9, closeIndex);
             textData = this.saveTextToParentTag(textData, currentNode, jPath);
             let val = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true, true);
             if (val == void 0)
@@ -1238,9 +1257,9 @@ var require_OrderedObjParser = __commonJS({
             } else {
               currentNode.add(this.options.textNodeName, val);
             }
-            i2 = closeIndex + 2;
+            i = closeIndex + 2;
           } else {
-            let result = readTagExp(xmlData, i2, this.options.removeNSPrefix);
+            let result = readTagExp(xmlData, i, this.options.removeNSPrefix);
             let tagName = result.tagName;
             const rawTagName = result.rawTagName;
             let tagExp = result.tagExp;
@@ -1269,7 +1288,7 @@ var require_OrderedObjParser = __commonJS({
             if (tagName !== xmlObj.tagname) {
               jPath += jPath ? "." + tagName : tagName;
             }
-            const startIndex = i2;
+            const startIndex = i;
             if (this.isItStopNode(this.stopNodesExact, this.stopNodesWildcard, jPath, tagName)) {
               let tagContent = "";
               if (tagExp.length > 0 && tagExp.lastIndexOf("/") === tagExp.length - 1) {
@@ -1280,14 +1299,14 @@ var require_OrderedObjParser = __commonJS({
                 } else {
                   tagExp = tagExp.substr(0, tagExp.length - 1);
                 }
-                i2 = result.closeIndex;
+                i = result.closeIndex;
               } else if (this.options.unpairedTags.indexOf(tagName) !== -1) {
-                i2 = result.closeIndex;
+                i = result.closeIndex;
               } else {
                 const result2 = this.readStopNodeData(xmlData, rawTagName, closeIndex + 1);
                 if (!result2)
                   throw new Error(`Unexpected end of ${rawTagName}`);
-                i2 = result2.i;
+                i = result2.i;
                 tagContent = result2.tagContent;
               }
               const childNode = new xmlNode(tagName);
@@ -1329,7 +1348,7 @@ var require_OrderedObjParser = __commonJS({
                 }
                 this.addChild(currentNode, childNode, jPath, startIndex);
                 jPath = jPath.substr(0, jPath.lastIndexOf("."));
-                i2 = result.closeIndex;
+                i = result.closeIndex;
                 continue;
               } else {
                 const childNode = new xmlNode(tagName);
@@ -1344,11 +1363,11 @@ var require_OrderedObjParser = __commonJS({
                 currentNode = childNode;
               }
               textData = "";
-              i2 = closeIndex;
+              i = closeIndex;
             }
           }
         } else {
-          textData += xmlData[i2];
+          textData += xmlData[i];
         }
       }
       return xmlObj.child;
@@ -1465,10 +1484,10 @@ var require_OrderedObjParser = __commonJS({
         return true;
       return false;
     }
-    function tagExpWithClosingIndex(xmlData, i2, closingChar = ">") {
+    function tagExpWithClosingIndex(xmlData, i, closingChar = ">") {
       let attrBoundary;
       let tagExp = "";
-      for (let index = i2; index < xmlData.length; index++) {
+      for (let index = i; index < xmlData.length; index++) {
         let ch = xmlData[index];
         if (attrBoundary) {
           if (ch === attrBoundary)
@@ -1495,16 +1514,16 @@ var require_OrderedObjParser = __commonJS({
         tagExp += ch;
       }
     }
-    function findClosingIndex(xmlData, str, i2, errMsg) {
-      const closingIndex = xmlData.indexOf(str, i2);
+    function findClosingIndex(xmlData, str, i, errMsg) {
+      const closingIndex = xmlData.indexOf(str, i);
       if (closingIndex === -1) {
         throw new Error(errMsg);
       } else {
         return closingIndex + str.length - 1;
       }
     }
-    function readTagExp(xmlData, i2, removeNSPrefix, closingChar = ">") {
-      const result = tagExpWithClosingIndex(xmlData, i2 + 1, closingChar);
+    function readTagExp(xmlData, i, removeNSPrefix, closingChar = ">") {
+      const result = tagExpWithClosingIndex(xmlData, i + 1, closingChar);
       if (!result)
         return;
       let tagExp = result.data;
@@ -1532,41 +1551,41 @@ var require_OrderedObjParser = __commonJS({
         rawTagName
       };
     }
-    function readStopNodeData(xmlData, tagName, i2) {
-      const startIndex = i2;
+    function readStopNodeData(xmlData, tagName, i) {
+      const startIndex = i;
       let openTagCount = 1;
-      for (; i2 < xmlData.length; i2++) {
-        if (xmlData[i2] === "<") {
-          if (xmlData[i2 + 1] === "/") {
-            const closeIndex = findClosingIndex(xmlData, ">", i2, `${tagName} is not closed`);
-            let closeTagName = xmlData.substring(i2 + 2, closeIndex).trim();
+      for (; i < xmlData.length; i++) {
+        if (xmlData[i] === "<") {
+          if (xmlData[i + 1] === "/") {
+            const closeIndex = findClosingIndex(xmlData, ">", i, `${tagName} is not closed`);
+            let closeTagName = xmlData.substring(i + 2, closeIndex).trim();
             if (closeTagName === tagName) {
               openTagCount--;
               if (openTagCount === 0) {
                 return {
-                  tagContent: xmlData.substring(startIndex, i2),
+                  tagContent: xmlData.substring(startIndex, i),
                   i: closeIndex
                 };
               }
             }
-            i2 = closeIndex;
-          } else if (xmlData[i2 + 1] === "?") {
-            const closeIndex = findClosingIndex(xmlData, "?>", i2 + 1, "StopNode is not closed.");
-            i2 = closeIndex;
-          } else if (xmlData.substr(i2 + 1, 3) === "!--") {
-            const closeIndex = findClosingIndex(xmlData, "-->", i2 + 3, "StopNode is not closed.");
-            i2 = closeIndex;
-          } else if (xmlData.substr(i2 + 1, 2) === "![") {
-            const closeIndex = findClosingIndex(xmlData, "]]>", i2, "StopNode is not closed.") - 2;
-            i2 = closeIndex;
+            i = closeIndex;
+          } else if (xmlData[i + 1] === "?") {
+            const closeIndex = findClosingIndex(xmlData, "?>", i + 1, "StopNode is not closed.");
+            i = closeIndex;
+          } else if (xmlData.substr(i + 1, 3) === "!--") {
+            const closeIndex = findClosingIndex(xmlData, "-->", i + 3, "StopNode is not closed.");
+            i = closeIndex;
+          } else if (xmlData.substr(i + 1, 2) === "![") {
+            const closeIndex = findClosingIndex(xmlData, "]]>", i, "StopNode is not closed.") - 2;
+            i = closeIndex;
           } else {
-            const tagData = readTagExp(xmlData, i2, ">");
+            const tagData = readTagExp(xmlData, i, ">");
             if (tagData) {
               const openTagName = tagData && tagData.tagName;
               if (openTagName === tagName && tagData.tagExp[tagData.tagExp.length - 1] !== "/") {
                 openTagCount++;
               }
-              i2 = tagData.closeIndex;
+              i = tagData.closeIndex;
             }
           }
         }
@@ -1580,7 +1599,7 @@ var require_OrderedObjParser = __commonJS({
         else if (newval === "false")
           return false;
         else
-          return toNumber2(val, options);
+          return toNumber(val, options);
       } else {
         if (util.isExist(val)) {
           return val;
@@ -1613,14 +1632,15 @@ var require_OrderedObjParser = __commonJS({
 var require_node2json = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
+    init_define_BUILD_INFO();
     function prettify(node, options) {
       return compress(node, options);
     }
     function compress(arr, options, jPath) {
       let text;
       const compressedObj = {};
-      for (let i2 = 0; i2 < arr.length; i2++) {
-        const tagObj = arr[i2];
+      for (let i = 0; i < arr.length; i++) {
+        const tagObj = arr[i];
         const property = propName(tagObj);
         let newJpath = "";
         if (jPath === void 0)
@@ -1670,8 +1690,8 @@ var require_node2json = __commonJS({
     }
     function propName(obj) {
       const keys = Object.keys(obj);
-      for (let i2 = 0; i2 < keys.length; i2++) {
-        const key = keys[i2];
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
         if (key !== ":@")
           return key;
       }
@@ -1680,8 +1700,8 @@ var require_node2json = __commonJS({
       if (attrMap) {
         const keys = Object.keys(attrMap);
         const len = keys.length;
-        for (let i2 = 0; i2 < len; i2++) {
-          const atrrName = keys[i2];
+        for (let i = 0; i < len; i++) {
+          const atrrName = keys[i];
           if (options.isArray(atrrName, jpath + "." + atrrName, true, true)) {
             obj[atrrName] = [attrMap[atrrName]];
           } else {
@@ -1708,6 +1728,7 @@ var require_node2json = __commonJS({
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js
 var require_XMLParser = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlparser/XMLParser.js"(exports, module) {
+    init_define_BUILD_INFO();
     var { buildOptions } = require_OptionsBuilder();
     var OrderedObjParser = require_OrderedObjParser();
     var { prettify } = require_node2json();
@@ -1769,6 +1790,7 @@ var require_XMLParser = __commonJS({
 // ../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js
 var require_orderedJs2Xml = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlbuilder/orderedJs2Xml.js"(exports, module) {
+    init_define_BUILD_INFO();
     var EOL = "\n";
     function toXml(jArray, options) {
       let indentation = "";
@@ -1788,8 +1810,8 @@ var require_orderedJs2Xml = __commonJS({
         }
         return "";
       }
-      for (let i2 = 0; i2 < arr.length; i2++) {
-        const tagObj = arr[i2];
+      for (let i = 0; i < arr.length; i++) {
+        const tagObj = arr[i];
         const tagName = propName(tagObj);
         if (tagName === void 0)
           continue;
@@ -1863,8 +1885,8 @@ var require_orderedJs2Xml = __commonJS({
     }
     function propName(obj) {
       const keys = Object.keys(obj);
-      for (let i2 = 0; i2 < keys.length; i2++) {
-        const key = keys[i2];
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
         if (!Object.prototype.hasOwnProperty.call(obj, key))
           continue;
         if (key !== ":@")
@@ -1899,8 +1921,8 @@ var require_orderedJs2Xml = __commonJS({
     }
     function replaceEntitiesValue(textValue2, options) {
       if (textValue2 && textValue2.length > 0 && options.processEntities) {
-        for (let i2 = 0; i2 < options.entities.length; i2++) {
-          const entity = options.entities[i2];
+        for (let i = 0; i < options.entities.length; i++) {
+          const entity = options.entities[i];
           textValue2 = textValue2.replace(entity.regex, entity.val);
         }
       }
@@ -1914,6 +1936,7 @@ var require_orderedJs2Xml = __commonJS({
 var require_json2xml = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/xmlbuilder/json2xml.js"(exports, module) {
     "use strict";
+    init_define_BUILD_INFO();
     var buildFromOrderedJs = require_orderedJs2Xml();
     var getIgnoreAttributesFn = require_ignoreAttributes();
     var defaultOptions = {
@@ -1927,11 +1950,11 @@ var require_json2xml = __commonJS({
       suppressEmptyNode: false,
       suppressUnpairedNode: true,
       suppressBooleanAttributes: true,
-      tagValueProcessor: function(key, a2) {
-        return a2;
+      tagValueProcessor: function(key, a) {
+        return a;
       },
-      attributeValueProcessor: function(attrName, a2) {
-        return a2;
+      attributeValueProcessor: function(attrName, a) {
+        return a;
       },
       preserveOrder: false,
       commentPropName: false,
@@ -2025,8 +2048,8 @@ var require_json2xml = __commonJS({
           const arrLen = jObj[key].length;
           let listTagVal = "";
           let listTagAttr = "";
-          for (let j2 = 0; j2 < arrLen; j2++) {
-            const item = jObj[key][j2];
+          for (let j = 0; j < arrLen; j++) {
+            const item = jObj[key][j];
             if (typeof item === "undefined") {
             } else if (item === null) {
               if (key[0] === "?")
@@ -2060,9 +2083,9 @@ var require_json2xml = __commonJS({
         } else {
           if (this.options.attributesGroupName && key === this.options.attributesGroupName) {
             const Ks = Object.keys(jObj[key]);
-            const L2 = Ks.length;
-            for (let j2 = 0; j2 < L2; j2++) {
-              attrStr += this.buildAttrPairStr(Ks[j2], "" + jObj[key][Ks[j2]]);
+            const L = Ks.length;
+            for (let j = 0; j < L; j++) {
+              attrStr += this.buildAttrPairStr(Ks[j], "" + jObj[key][Ks[j]]);
             }
           } else {
             val += this.processTextOrObjNode(jObj[key], key, level, ajPath);
@@ -2144,8 +2167,8 @@ var require_json2xml = __commonJS({
     };
     Builder.prototype.replaceEntitiesValue = function(textValue2) {
       if (textValue2 && textValue2.length > 0 && this.options.processEntities) {
-        for (let i2 = 0; i2 < this.options.entities.length; i2++) {
-          const entity = this.options.entities[i2];
+        for (let i = 0; i < this.options.entities.length; i++) {
+          const entity = this.options.entities[i];
           textValue2 = textValue2.replace(entity.regex, entity.val);
         }
       }
@@ -2169,6 +2192,7 @@ var require_json2xml = __commonJS({
 var require_fxp = __commonJS({
   "../home/ubuntu/.cache/deno/deno_esbuild/fast-xml-parser@4.5.7/node_modules/fast-xml-parser/src/fxp.js"(exports, module) {
     "use strict";
+    init_define_BUILD_INFO();
     var validator = require_validator();
     var XMLParser3 = require_XMLParser();
     var XMLBuilder = require_json2xml();
@@ -2180,10 +2204,272 @@ var require_fxp = __commonJS({
   }
 });
 
+// examples/taaat-app/src/main.ts
+init_define_BUILD_INFO();
+
+// examples/shared/recommended_version.ts
+init_define_BUILD_INFO();
+var VERSIONS_MANIFEST_FILENAME = "versions.json";
+var PAGES_VERSIONS_URL = "https://eriksundvall.github.io/ehrtslib/versions.json";
+var RECOMMENDED_POPUP_DISMISS_PREFIX = "ehrtslib-dismiss-recommended-";
+var APP_DIR_RE = /^(demo|taaat)(?:-v\d+(?:\.\d+){0,2})?$/;
+var APP_LABEL = {
+  demo: "format converter",
+  taaat: "TAAAT"
+};
+function dismissStorageKey(app) {
+  return `${RECOMMENDED_POPUP_DISMISS_PREFIX}${app}`;
+}
+function isGithubPagesHost(hostname) {
+  return /\.github\.io$/i.test(hostname);
+}
+function detectAppDeployment(pathname) {
+  const segments = pathname.split("/").filter(Boolean);
+  if (!segments.length)
+    return null;
+  let index = segments.length - 1;
+  if (segments[index] === "index.html") {
+    if (segments.length < 2)
+      return null;
+    index -= 1;
+  }
+  const dir = segments[index];
+  const match = APP_DIR_RE.exec(dir);
+  if (!match)
+    return null;
+  const app = match[1];
+  return {
+    app,
+    tag: dir === app ? null : dir,
+    segmentIndex: index
+  };
+}
+function resolveVersionsManifestUrl(href, deployment) {
+  const url = new URL(href);
+  const segments = url.pathname.split("/").filter(Boolean);
+  const parent = segments.slice(0, deployment.segmentIndex);
+  url.pathname = `/${[...parent, VERSIONS_MANIFEST_FILENAME].join("/")}`;
+  url.search = "";
+  url.hash = "";
+  return url.href;
+}
+function bleedingEdgeUrlFromManifestUrl(manifestUrl, app) {
+  return new URL(`${app}/`, manifestUrl).href;
+}
+function recommendedUrlFromManifestUrl(manifestUrl, recommendedTag) {
+  return new URL(`${recommendedTag}/`, manifestUrl).href;
+}
+function versionWarningPreview(search, app) {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const params = new URLSearchParams(raw);
+  if (params.get("version-warning") !== "preview")
+    return null;
+  const fallback = app === "demo" ? "demo-v0.1" : "taaat-v0.1";
+  const recommended = params.get("recommended")?.trim() || fallback;
+  const currentRaw = params.get("current");
+  const currentTag = currentRaw === null || currentRaw === "" ? null : currentRaw;
+  return { recommended, currentTag };
+}
+function shouldShowRecommendedPopup(input) {
+  if (!input.recommended)
+    return false;
+  if (input.forcePreview)
+    return true;
+  if (!input.isGithubPages || !input.app)
+    return false;
+  if (input.currentTag === input.recommended)
+    return false;
+  if (input.dismissedFor && input.dismissedFor === input.recommended) {
+    return false;
+  }
+  return true;
+}
+function recommendedPopupMessage(app, currentTag, recommendedTag) {
+  const label = APP_LABEL[app];
+  return currentTag ? `You are using the ${label} ${currentTag}, which is not the recommended version (${recommendedTag}).` : `You are using the bleeding-edge ${label} (updated on every change to main), not the recommended stable version (${recommendedTag}).`;
+}
+function formatBuildLabel(appLabel, info, deployment) {
+  const date = new Date(info.timestamp);
+  const when = Number.isNaN(date.getTime()) ? info.timestamp : `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  const where = deployment?.tag ?? (deployment ? "bleeding edge" : `v${info.version}`);
+  const versionBit = deployment ? `v${info.version} \xB7 ${where}` : where;
+  return `${appLabel} ${versionBit} \xB7 Build ${info.buildId} (${when})`;
+}
+function fillNotice(els, opts, notice, storage) {
+  const recommendedHref = recommendedUrlFromManifestUrl(
+    notice.manifestUrl,
+    notice.recommended
+  );
+  const bleedingHref = bleedingEdgeUrlFromManifestUrl(
+    notice.manifestUrl,
+    opts.app
+  );
+  const onRecommended = notice.currentTag === notice.recommended;
+  if (els.footerLink) {
+    if (onRecommended) {
+      els.footerLink.hidden = true;
+    } else {
+      els.footerLink.hidden = false;
+      els.footerLink.href = recommendedHref;
+      els.footerLink.textContent = `Switch to recommended ${notice.recommended}`;
+    }
+  }
+  const dismissedFor = storage?.getItem(dismissStorageKey(opts.app)) ?? null;
+  if (!shouldShowRecommendedPopup({
+    isGithubPages: true,
+    app: opts.app,
+    currentTag: notice.currentTag,
+    recommended: notice.recommended,
+    dismissedFor,
+    forcePreview: notice.preview
+  })) {
+    return;
+  }
+  els.message.textContent = recommendedPopupMessage(
+    opts.app,
+    notice.currentTag,
+    notice.recommended
+  );
+  els.recommendedLink.href = recommendedHref;
+  els.recommendedLink.textContent = `Open recommended ${notice.recommended}`;
+  els.bleedingEdgeLink.href = bleedingHref;
+  els.tutorialLink.href = opts.tutorialUrl;
+  els.readmeLink.href = opts.readmeUrl;
+  const recommendedTag = notice.recommended;
+  els.dismissButton.addEventListener("click", () => {
+    if (storage && els.dontShowAgainCheckbox?.checked && !notice.preview) {
+      storage.setItem(dismissStorageKey(opts.app), recommendedTag);
+    }
+  }, { once: true });
+  if (!els.dialog.open)
+    els.dialog.showModal();
+}
+async function installRecommendedVersionNotice(els, opts) {
+  const loc = opts.location ?? globalThis.location;
+  if (!loc)
+    return;
+  const preview = versionWarningPreview(loc.search ?? "", opts.app);
+  const onPages = isGithubPagesHost(loc.hostname);
+  if (!preview && !onPages)
+    return;
+  const deployment = detectAppDeployment(loc.pathname);
+  if (!preview && (!deployment || deployment.app !== opts.app))
+    return;
+  const storage = opts.storage ?? (typeof localStorage === "undefined" ? void 0 : localStorage);
+  if (preview) {
+    fillNotice(els, opts, {
+      currentTag: preview.currentTag,
+      recommended: preview.recommended,
+      manifestUrl: PAGES_VERSIONS_URL,
+      preview: true
+    }, storage);
+    return;
+  }
+  const manifestUrl = resolveVersionsManifestUrl(loc.href, deployment);
+  let manifest;
+  try {
+    const res = await (opts.fetchImpl ?? fetch)(manifestUrl, {
+      cache: "no-store"
+    });
+    if (!res.ok)
+      return;
+    manifest = await res.json();
+  } catch {
+    return;
+  }
+  const recommended = manifest[opts.app]?.recommended;
+  if (!recommended)
+    return;
+  fillNotice(els, opts, {
+    currentTag: deployment.tag,
+    recommended,
+    manifestUrl,
+    preview: false
+  }, storage);
+}
+function required(doc, id, ctor) {
+  const el = doc.getElementById(id);
+  return el instanceof ctor ? el : void 0;
+}
+function bindRecommendedVersionNotice(doc, opts) {
+  const dialog = required(doc, "dialog-recommended-version", HTMLDialogElement);
+  const message = required(doc, "recommended-version-message", HTMLElement);
+  const recommendedLink = required(
+    doc,
+    "recommended-version-link",
+    HTMLAnchorElement
+  );
+  const bleedingEdgeLink = required(
+    doc,
+    "recommended-version-bleeding-edge-link",
+    HTMLAnchorElement
+  );
+  const tutorialLink = required(
+    doc,
+    "recommended-version-tutorial-link",
+    HTMLAnchorElement
+  );
+  const readmeLink = required(
+    doc,
+    "recommended-version-readme-link",
+    HTMLAnchorElement
+  );
+  const dismissButton = required(
+    doc,
+    "recommended-version-dismiss",
+    HTMLButtonElement
+  );
+  if (!dialog || !message || !recommendedLink || !bleedingEdgeLink || !tutorialLink || !readmeLink || !dismissButton) {
+    return Promise.resolve();
+  }
+  const dontShow = doc.getElementById("recommended-version-dont-show-again");
+  const footer = doc.getElementById("recommended-version-footer-link");
+  return installRecommendedVersionNotice({
+    dialog,
+    message,
+    recommendedLink,
+    bleedingEdgeLink,
+    tutorialLink,
+    readmeLink,
+    dismissButton,
+    dontShowAgainCheckbox: dontShow instanceof HTMLInputElement ? dontShow : null,
+    footerLink: footer instanceof HTMLAnchorElement ? footer : null
+  }, opts);
+}
+
+// parser/clinical_model_workspace.ts
+init_define_BUILD_INFO();
+
+// parser/template_workspace.ts
+init_define_BUILD_INFO();
+
+// am/util/flattening/template_flattener.ts
+init_define_BUILD_INFO();
+
+// am/openehr_am.ts
+init_define_BUILD_INFO();
+
+// am/mod.ts
+init_define_BUILD_INFO();
+
+// am/aom2/mod.ts
+init_define_BUILD_INFO();
+
+// am/aom2/constraint_model.ts
+init_define_BUILD_INFO();
+
+// base/mod.ts
+init_define_BUILD_INFO();
+
+// base/foundation_types/primitive_types.ts
+init_define_BUILD_INFO();
+
 // base/_shared.ts
+init_define_BUILD_INFO();
 var TYPE_REGISTRY = /* @__PURE__ */ new Map();
 
 // base/foundation_types/foundation_types.ts
+init_define_BUILD_INFO();
 var Any = class {
   /**
    * Reference equality for reference types, value equality for value types.
@@ -2234,6 +2520,7 @@ var Any = class {
 };
 
 // base/foundation_types/structure.ts
+init_define_BUILD_INFO();
 var Container = class extends Any {
 };
 var List = class _List extends Container {
@@ -2241,9 +2528,9 @@ var List = class _List extends Container {
   /**
    * Test for membership of a value.
    */
-  has(v2) {
+  has(v) {
     for (const item of this._items) {
-      if (item.is_equal(v2).value === true) {
+      if (item.is_equal(v).value === true) {
         return new Boolean2(true);
       }
     }
@@ -2288,8 +2575,8 @@ var List = class _List extends Container {
   /**
    * Get the item at index i (0-based).
    */
-  item(i2) {
-    const idx = i2.value;
+  item(i) {
+    const idx = i.value;
     if (idx === void 0 || idx < 0 || idx >= this._items.length) {
       throw new Error(`Index out of bounds: ${idx}`);
     }
@@ -2318,14 +2605,14 @@ var List = class _List extends Container {
   /**
    * Add an item to the end of the list.
    */
-  append(v2) {
-    this._items.push(v2);
+  append(v) {
+    this._items.push(v);
   }
   /**
    * Add an item to the beginning of the list.
    */
-  prepend(v2) {
-    this._items.unshift(v2);
+  prepend(v) {
+    this._items.unshift(v);
   }
   /**
    * Append all items from another list.
@@ -2333,9 +2620,9 @@ var List = class _List extends Container {
   extend(other) {
     const otherCount = other.count().value;
     if (otherCount !== void 0) {
-      for (let i2 = 0; i2 < otherCount; i2++) {
+      for (let i = 0; i < otherCount; i++) {
         const idx = new Integer();
-        idx.value = i2;
+        idx.value = i;
         this._items.push(other.item(idx));
       }
     }
@@ -2343,8 +2630,8 @@ var List = class _List extends Container {
   /**
    * Remove the item at index i.
    */
-  remove(i2) {
-    const idx = i2.value;
+  remove(i) {
+    const idx = i.value;
     if (idx === void 0 || idx < 0 || idx >= this._items.length) {
       throw new Error(`Index out of bounds: ${idx}`);
     }
@@ -2354,11 +2641,11 @@ var List = class _List extends Container {
    * Find the index of the first occurrence of a value.
    * Returns -1 if not found.
    */
-  index_of(v2) {
-    for (let i2 = 0; i2 < this._items.length; i2++) {
-      if (this._items[i2].is_equal(v2).value === true) {
+  index_of(v) {
+    for (let i = 0; i < this._items.length; i++) {
+      if (this._items[i].is_equal(v).value === true) {
         const idx2 = new Integer();
-        idx2.value = i2;
+        idx2.value = i;
         return idx2;
       }
     }
@@ -2376,8 +2663,8 @@ var List = class _List extends Container {
     if (this._items.length !== other._items.length) {
       return new Boolean2(false);
     }
-    for (let i2 = 0; i2 < this._items.length; i2++) {
-      if (!this._items[i2].is_equal(other._items[i2]).value) {
+    for (let i = 0; i < this._items.length; i++) {
+      if (!this._items[i].is_equal(other._items[i]).value) {
         return new Boolean2(false);
       }
     }
@@ -3303,7 +3590,11 @@ var Integer64 = class _Integer64 extends Ordered_Numeric {
   }
 };
 
+// base/foundation_types/mod.ts
+init_define_BUILD_INFO();
+
 // base/foundation_types/interval.ts
+init_define_BUILD_INFO();
 var Interval = class _Interval extends Any {
   /**
    * Lower bound.
@@ -3480,23 +3771,23 @@ var Proper_interval = class extends Interval {
    * @param e - Parameter
    * @returns Result value
    */
-  has(e2) {
+  has(e) {
     if (!this.lower_unbounded && this.lower !== void 0) {
-      const cmp = e2.less_than(this.lower);
+      const cmp = e.less_than(this.lower);
       if (cmp.value === true)
         return new Boolean2(false);
       if (!this.lower_included) {
-        const eq = e2.is_equal(this.lower);
+        const eq = e.is_equal(this.lower);
         if (eq.value === true)
           return new Boolean2(false);
       }
     }
     if (!this.upper_unbounded && this.upper !== void 0) {
-      const cmp = this.upper.less_than(e2);
+      const cmp = this.upper.less_than(e);
       if (cmp.value === true)
         return new Boolean2(false);
       if (!this.upper_included) {
-        const eq = e2.is_equal(this.upper);
+        const eq = e.is_equal(this.upper);
         if (eq.value === true)
           return new Boolean2(false);
       }
@@ -3615,7 +3906,11 @@ var Multiplicity_interval = class _Multiplicity_interval extends Proper_interval
   }
 };
 
+// base/foundation_types/terminology.ts
+init_define_BUILD_INFO();
+
 // base/base_types/identification.ts
+init_define_BUILD_INFO();
 var OBJECT_ID = class {
   /**
    * Internal storage for value
@@ -4116,3716 +4411,17 @@ var CODE_PHRASE = class _CODE_PHRASE {
   }
 };
 
-// ../home/ubuntu/.cache/deno/deno_esbuild/temporal-polyfill@0.3.0/node_modules/temporal-polyfill/chunks/internal.js
-function clampProp(e2, n2, t2, o2, r2) {
-  return clampEntity(n2, ((e3, n3) => {
-    const t3 = e3[n3];
-    if (void 0 === t3) {
-      throw new TypeError(missingField(n3));
-    }
-    return t3;
-  })(e2, n2), t2, o2, r2);
-}
-function clampEntity(e2, n2, t2, o2, r2, i2) {
-  const a2 = clampNumber(n2, t2, o2);
-  if (r2 && n2 !== a2) {
-    throw new RangeError(numberOutOfRange(e2, n2, t2, o2, i2));
-  }
-  return a2;
-}
-function s(e2) {
-  return null !== e2 && /object|function/.test(typeof e2);
-}
-function on(e2, n2 = Map) {
-  const t2 = new n2();
-  return (n3, ...o2) => {
-    if (t2.has(n3)) {
-      return t2.get(n3);
-    }
-    const r2 = e2(n3, ...o2);
-    return t2.set(n3, r2), r2;
-  };
-}
-function r(e2) {
-  return n({
-    name: e2
-  }, 1);
-}
-function n(n2, t2) {
-  return e((e2) => ({
-    value: e2,
-    configurable: 1,
-    writable: !t2
-  }), n2);
-}
-function t(n2) {
-  return e((e2) => ({
-    get: e2,
-    configurable: 1
-  }), n2);
-}
-function o(e2) {
-  return {
-    [Symbol.toStringTag]: {
-      value: e2,
-      configurable: 1
-    }
-  };
-}
-function zipProps(e2, n2) {
-  const t2 = {};
-  let o2 = e2.length;
-  for (const r2 of n2) {
-    t2[e2[--o2]] = r2;
-  }
-  return t2;
-}
-function e(e2, n2, t2) {
-  const o2 = {};
-  for (const r2 in n2) {
-    o2[r2] = e2(n2[r2], r2, t2);
-  }
-  return o2;
-}
-function g(e2, n2, t2) {
-  const o2 = {};
-  for (let r2 = 0; r2 < n2.length; r2++) {
-    const i2 = n2[r2];
-    o2[i2] = e2(i2, r2, t2);
-  }
-  return o2;
-}
-function remapProps(e2, n2, t2) {
-  const o2 = {};
-  for (let r2 = 0; r2 < e2.length; r2++) {
-    o2[n2[r2]] = t2[e2[r2]];
-  }
-  return o2;
-}
-function nn(e2, n2) {
-  const t2 = /* @__PURE__ */ Object.create(null);
-  for (const o2 of e2) {
-    t2[o2] = n2[o2];
-  }
-  return t2;
-}
-function hasAnyPropsByName(e2, n2) {
-  for (const t2 of n2) {
-    if (t2 in e2) {
-      return 1;
-    }
-  }
-  return 0;
-}
-function allPropsEqual(e2, n2, t2) {
-  for (const o2 of e2) {
-    if (n2[o2] !== t2[o2]) {
-      return 0;
-    }
-  }
-  return 1;
-}
-function zeroOutProps(e2, n2, t2) {
-  const o2 = {
-    ...t2
-  };
-  for (let t3 = 0; t3 < n2; t3++) {
-    o2[e2[t3]] = 0;
-  }
-  return o2;
-}
-function Pt(e2, ...n2) {
-  return (...t2) => e2(...n2, ...t2);
-}
-function capitalize(e2) {
-  return e2[0].toUpperCase() + e2.substring(1);
-}
-function sortStrings(e2) {
-  return e2.slice().sort();
-}
-function padNumber(e2, n2) {
-  return String(n2).padStart(e2, "0");
-}
-function compareNumbers(e2, n2) {
-  return Math.sign(e2 - n2);
-}
-function clampNumber(e2, n2, t2) {
-  return Math.min(Math.max(e2, n2), t2);
-}
-function divModFloor(e2, n2) {
-  return [Math.floor(e2 / n2), modFloor(e2, n2)];
-}
-function modFloor(e2, n2) {
-  return (e2 % n2 + n2) % n2;
-}
-function divModTrunc(e2, n2) {
-  return [divTrunc(e2, n2), modTrunc(e2, n2)];
-}
-function divTrunc(e2, n2) {
-  return Math.trunc(e2 / n2) || 0;
-}
-function modTrunc(e2, n2) {
-  return e2 % n2 || 0;
-}
-function hasHalf(e2) {
-  return 0.5 === Math.abs(e2 % 1);
-}
-function givenFieldsToBigNano(e2, n2, t2) {
-  let o2 = 0, r2 = 0;
-  for (let i3 = 0; i3 <= n2; i3++) {
-    const n3 = e2[t2[i3]], a3 = Ao[i3], s2 = Uo / a3, [c2, u2] = divModTrunc(n3, s2);
-    o2 += u2 * a3, r2 += c2;
-  }
-  const [i2, a2] = divModTrunc(o2, Uo);
-  return [r2 + i2, a2];
-}
-function nanoToGivenFields(e2, n2, t2) {
-  const o2 = {};
-  for (let r2 = n2; r2 >= 0; r2--) {
-    const n3 = Ao[r2];
-    o2[t2[r2]] = divTrunc(e2, n3), e2 = modTrunc(e2, n3);
-  }
-  return o2;
-}
-function d(e2) {
-  if (void 0 !== e2) {
-    return m(e2);
-  }
-}
-function P(e2) {
-  if (void 0 !== e2) {
-    return h(e2);
-  }
-}
-function S(e2) {
-  if (void 0 !== e2) {
-    return T(e2);
-  }
-}
-function h(e2) {
-  return requireNumberIsPositive(T(e2));
-}
-function T(e2) {
-  return ze(cr(e2));
-}
-function requirePropDefined(e2, n2) {
-  if (null == n2) {
-    throw new RangeError(missingField(e2));
-  }
-  return n2;
-}
-function requireObjectLike(e2) {
-  if (!s(e2)) {
-    throw new TypeError(oo);
-  }
-  return e2;
-}
-function requireType(e2, n2, t2 = e2) {
-  if (typeof n2 !== e2) {
-    throw new TypeError(invalidEntity(t2, n2));
-  }
-  return n2;
-}
-function ze(e2, n2 = "number") {
-  if (!Number.isInteger(e2)) {
-    throw new RangeError(expectedInteger(n2, e2));
-  }
-  return e2 || 0;
-}
-function requireNumberIsPositive(e2, n2 = "number") {
-  if (e2 <= 0) {
-    throw new RangeError(expectedPositive(n2, e2));
-  }
-  return e2;
-}
-function toString(e2) {
-  if ("symbol" == typeof e2) {
-    throw new TypeError(no);
-  }
-  return String(e2);
-}
-function toStringViaPrimitive(e2, n2) {
-  return s(e2) ? String(e2) : m(e2, n2);
-}
-function toBigInt(e2) {
-  if ("string" == typeof e2) {
-    return BigInt(e2);
-  }
-  if ("bigint" != typeof e2) {
-    throw new TypeError(invalidBigInt(e2));
-  }
-  return e2;
-}
-function toNumber(e2, n2 = "number") {
-  if ("bigint" == typeof e2) {
-    throw new TypeError(forbiddenBigIntToNumber(n2));
-  }
-  if (e2 = Number(e2), !Number.isFinite(e2)) {
-    throw new RangeError(expectedFinite(n2, e2));
-  }
-  return e2;
-}
-function toInteger(e2, n2) {
-  return Math.trunc(toNumber(e2, n2)) || 0;
-}
-function toStrictInteger(e2, n2) {
-  return ze(toNumber(e2, n2), n2);
-}
-function toPositiveInteger(e2, n2) {
-  return requireNumberIsPositive(toInteger(e2, n2), n2);
-}
-function createBigNano(e2, n2) {
-  let [t2, o2] = divModTrunc(n2, Uo), r2 = e2 + t2;
-  const i2 = Math.sign(r2);
-  return i2 && i2 === -Math.sign(o2) && (r2 -= i2, o2 += i2 * Uo), [r2, o2];
-}
-function addBigNanos(e2, n2, t2 = 1) {
-  return createBigNano(e2[0] + n2[0] * t2, e2[1] + n2[1] * t2);
-}
-function moveBigNano(e2, n2) {
-  return createBigNano(e2[0], e2[1] + n2);
-}
-function diffBigNanos(e2, n2) {
-  return addBigNanos(n2, e2, -1);
-}
-function compareBigNanos(e2, n2) {
-  return compareNumbers(e2[0], n2[0]) || compareNumbers(e2[1], n2[1]);
-}
-function bigNanoOutside(e2, n2, t2) {
-  return -1 === compareBigNanos(e2, n2) || 1 === compareBigNanos(e2, t2);
-}
-function bigIntToBigNano(e2, n2 = 1) {
-  const t2 = BigInt(Uo / n2);
-  return [Number(e2 / t2), Number(e2 % t2) * n2];
-}
-function Ge(e2, n2 = 1) {
-  const t2 = Uo / n2, [o2, r2] = divModTrunc(e2, t2);
-  return [o2, r2 * n2];
-}
-function bigNanoToNumber(e2, n2 = 1, t2) {
-  const [o2, r2] = e2, [i2, a2] = divModTrunc(r2, n2);
-  return o2 * (Uo / n2) + (i2 + (t2 ? a2 / n2 : 0));
-}
-function divModBigNano(e2, n2, t2 = divModFloor) {
-  const [o2, r2] = e2, [i2, a2] = t2(r2, n2);
-  return [o2 * (Uo / n2) + i2, a2];
-}
-function checkIsoYearMonthInBounds(e2) {
-  return clampProp(e2, "isoYear", wr, Fr, 1), e2.isoYear === wr ? clampProp(e2, "isoMonth", 4, 12, 1) : e2.isoYear === Fr && clampProp(e2, "isoMonth", 1, 9, 1), e2;
-}
-function checkIsoDateInBounds(e2) {
-  return checkIsoDateTimeInBounds({
-    ...e2,
-    ...Nt,
-    isoHour: 12
-  }), e2;
-}
-function checkIsoDateTimeInBounds(e2) {
-  const n2 = clampProp(e2, "isoYear", wr, Fr, 1), t2 = n2 === wr ? 1 : n2 === Fr ? -1 : 0;
-  return t2 && checkEpochNanoInBounds(isoToEpochNano({
-    ...e2,
-    isoDay: e2.isoDay + t2,
-    isoNanosecond: e2.isoNanosecond - t2
-  })), e2;
-}
-function checkEpochNanoInBounds(e2) {
-  if (!e2 || bigNanoOutside(e2, Sr, Er)) {
-    throw new RangeError(Io);
-  }
-  return e2;
-}
-function isoTimeFieldsToNano(e2) {
-  return givenFieldsToBigNano(e2, 5, w)[1];
-}
-function nanoToIsoTimeAndDay(e2) {
-  const [n2, t2] = divModFloor(e2, Uo);
-  return [nanoToGivenFields(t2, 5, w), n2];
-}
-function epochNanoToSecMod(e2) {
-  return divModBigNano(e2, Ro);
-}
-function isoToEpochMilli(e2) {
-  return isoArgsToEpochMilli(e2.isoYear, e2.isoMonth, e2.isoDay, e2.isoHour, e2.isoMinute, e2.isoSecond, e2.isoMillisecond);
-}
-function isoToEpochNano(e2) {
-  const n2 = isoToEpochMilli(e2);
-  if (void 0 !== n2) {
-    const [t2, o2] = divModTrunc(n2, ko);
-    return [t2, o2 * Qe + (e2.isoMicrosecond || 0) * Yo + (e2.isoNanosecond || 0)];
-  }
-}
-function isoToEpochNanoWithOffset(e2, n2) {
-  const [t2, o2] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) - n2);
-  return checkEpochNanoInBounds(isoToEpochNano({
-    ...e2,
-    isoDay: e2.isoDay + o2,
-    ...t2
-  }));
-}
-function isoArgsToEpochSec(...e2) {
-  return isoArgsToEpochMilli(...e2) / Co;
-}
-function isoArgsToEpochMilli(...e2) {
-  const [n2, t2] = isoToLegacyDate(...e2), o2 = n2.valueOf();
-  if (!isNaN(o2)) {
-    return o2 - t2 * ko;
-  }
-}
-function isoToLegacyDate(e2, n2 = 1, t2 = 1, o2 = 0, r2 = 0, i2 = 0, a2 = 0) {
-  const s2 = e2 === wr ? 1 : e2 === Fr ? -1 : 0, c2 = /* @__PURE__ */ new Date();
-  return c2.setUTCHours(o2, r2, i2, a2), c2.setUTCFullYear(e2, n2 - 1, t2 + s2), [c2, s2];
-}
-function epochNanoToIso(e2, n2) {
-  let [t2, o2] = moveBigNano(e2, n2);
-  o2 < 0 && (o2 += Uo, t2 -= 1);
-  const [r2, i2] = divModFloor(o2, Qe), [a2, s2] = divModFloor(i2, Yo);
-  return epochMilliToIso(t2 * ko + r2, a2, s2);
-}
-function epochMilliToIso(e2, n2 = 0, t2 = 0) {
-  const o2 = Math.ceil(Math.max(0, Math.abs(e2) - Pr) / ko) * Math.sign(e2), r2 = new Date(e2 - o2 * ko);
-  return zipProps(Tr, [r2.getUTCFullYear(), r2.getUTCMonth() + 1, r2.getUTCDate() + o2, r2.getUTCHours(), r2.getUTCMinutes(), r2.getUTCSeconds(), r2.getUTCMilliseconds(), n2, t2]);
-}
-function hashIntlFormatParts(e2, n2) {
-  if (n2 < -Pr) {
-    throw new RangeError(Io);
-  }
-  const t2 = e2.formatToParts(n2), o2 = {};
-  for (const e3 of t2) {
-    o2[e3.type] = e3.value;
-  }
-  return o2;
-}
-function computeIsoDateParts(e2) {
-  return [e2.isoYear, e2.isoMonth, e2.isoDay];
-}
-function computeIsoMonthCodeParts(e2, n2) {
-  return [n2, 0];
-}
-function computeIsoMonthsInYear() {
-  return kr;
-}
-function computeIsoDaysInMonth(e2, n2) {
-  switch (n2) {
-    case 2:
-      return computeIsoInLeapYear(e2) ? 29 : 28;
-    case 4:
-    case 6:
-    case 9:
-    case 11:
-      return 30;
-  }
-  return 31;
-}
-function computeIsoDaysInYear(e2) {
-  return computeIsoInLeapYear(e2) ? 366 : 365;
-}
-function computeIsoInLeapYear(e2) {
-  return e2 % 4 == 0 && (e2 % 100 != 0 || e2 % 400 == 0);
-}
-function computeIsoDayOfWeek(e2) {
-  const [n2, t2] = isoToLegacyDate(e2.isoYear, e2.isoMonth, e2.isoDay);
-  return modFloor(n2.getUTCDay() - t2, 7) || 7;
-}
-function computeIsoEraParts(e2) {
-  return this.id === or ? (({ isoYear: e3 }) => e3 < 1 ? ["gregory-inverse", 1 - e3] : ["gregory", e3])(e2) : this.id === rr ? Yr(e2) : [];
-}
-function computeJapaneseEraParts(e2) {
-  const n2 = isoToEpochMilli(e2);
-  if (n2 < Cr) {
-    const { isoYear: n3 } = e2;
-    return n3 < 1 ? ["japanese-inverse", 1 - n3] : ["japanese", n3];
-  }
-  const t2 = hashIntlFormatParts(Ci(rr), n2), { era: o2, eraYear: r2 } = parseIntlYear(t2, rr);
-  return [o2, r2];
-}
-function checkIsoDateTimeFields(e2) {
-  return checkIsoDateFields(e2), constrainIsoTimeFields(e2, 1), e2;
-}
-function checkIsoDateFields(e2) {
-  return constrainIsoDateFields(e2, 1), e2;
-}
-function isIsoDateFieldsValid(e2) {
-  return allPropsEqual(Dr, e2, constrainIsoDateFields(e2));
-}
-function constrainIsoDateFields(e2, n2) {
-  const { isoYear: t2 } = e2, o2 = clampProp(e2, "isoMonth", 1, computeIsoMonthsInYear(), n2);
-  return {
-    isoYear: t2,
-    isoMonth: o2,
-    isoDay: clampProp(e2, "isoDay", 1, computeIsoDaysInMonth(t2, o2), n2)
-  };
-}
-function constrainIsoTimeFields(e2, n2) {
-  return zipProps(w, [clampProp(e2, "isoHour", 0, 23, n2), clampProp(e2, "isoMinute", 0, 59, n2), clampProp(e2, "isoSecond", 0, 59, n2), clampProp(e2, "isoMillisecond", 0, 999, n2), clampProp(e2, "isoMicrosecond", 0, 999, n2), clampProp(e2, "isoNanosecond", 0, 999, n2)]);
-}
-function mt(e2) {
-  return void 0 === e2 ? 0 : Xr(requireObjectLike(e2));
-}
-function je(e2, n2 = 0) {
-  e2 = normalizeOptions(e2);
-  const t2 = ei(e2), o2 = ni(e2, n2);
-  return [Xr(e2), o2, t2];
-}
-function refineDiffOptions(e2, n2, t2, o2 = 9, r2 = 0, i2 = 4) {
-  n2 = normalizeOptions(n2);
-  let a2 = Kr(n2, o2, r2), s2 = parseRoundingIncInteger(n2), c2 = ii(n2, i2);
-  const u2 = Jr(n2, o2, r2, 1);
-  return null == a2 ? a2 = Math.max(t2, u2) : checkLargestSmallestUnit(a2, u2), s2 = refineRoundingInc(s2, u2, 1), e2 && (c2 = ((e3) => e3 < 4 ? (e3 + 2) % 4 : e3)(c2)), [a2, u2, s2, c2];
-}
-function refineRoundingOptions(e2, n2 = 6, t2) {
-  let o2 = parseRoundingIncInteger(e2 = normalizeOptionsOrString(e2, Rr));
-  const r2 = ii(e2, 7);
-  let i2 = Jr(e2, n2);
-  return i2 = requirePropDefined(Rr, i2), o2 = refineRoundingInc(o2, i2, void 0, t2), [i2, o2, r2];
-}
-function refineDateDisplayOptions(e2) {
-  return ti(normalizeOptions(e2));
-}
-function refineTimeDisplayOptions(e2, n2) {
-  return refineTimeDisplayTuple(normalizeOptions(e2), n2);
-}
-function Me(e2) {
-  const n2 = normalizeOptionsOrString(e2, qr), t2 = refineChoiceOption(qr, _r, n2, 0);
-  if (!t2) {
-    throw new RangeError(invalidEntity(qr, t2));
-  }
-  return t2;
-}
-function refineTimeDisplayTuple(e2, n2 = 4) {
-  const t2 = refineSubsecDigits(e2);
-  return [ii(e2, 4), ...refineSmallestUnitAndSubsecDigits(Jr(e2, n2), t2)];
-}
-function refineSmallestUnitAndSubsecDigits(e2, n2) {
-  return null != e2 ? [Ao[e2], e2 < 4 ? 9 - 3 * e2 : -1] : [void 0 === n2 ? 1 : 10 ** (9 - n2), n2];
-}
-function parseRoundingIncInteger(e2) {
-  const n2 = e2[zr];
-  return void 0 === n2 ? 1 : toInteger(n2, zr);
-}
-function refineRoundingInc(e2, n2, t2, o2) {
-  const r2 = o2 ? Uo : Ao[n2 + 1];
-  if (r2) {
-    const t3 = Ao[n2];
-    if (r2 % ((e2 = clampEntity(zr, e2, 1, r2 / t3 - (o2 ? 0 : 1), 1)) * t3)) {
-      throw new RangeError(invalidEntity(zr, e2));
-    }
-  } else {
-    e2 = clampEntity(zr, e2, 1, t2 ? 10 ** 9 : 1, 1);
-  }
-  return e2;
-}
-function refineSubsecDigits(e2) {
-  let n2 = e2[Ur];
-  if (void 0 !== n2) {
-    if ("number" != typeof n2) {
-      if ("auto" === toString(n2)) {
-        return;
-      }
-      throw new RangeError(invalidEntity(Ur, n2));
-    }
-    n2 = clampEntity(Ur, Math.floor(n2), 0, 9, 1);
-  }
-  return n2;
-}
-function normalizeOptions(e2) {
-  return void 0 === e2 ? {} : requireObjectLike(e2);
-}
-function normalizeOptionsOrString(e2, n2) {
-  return "string" == typeof e2 ? {
-    [n2]: e2
-  } : requireObjectLike(e2);
-}
-function fabricateOverflowOptions(e2) {
-  return {
-    overflow: jr[e2]
-  };
-}
-function refineUnitOption(e2, n2, t2 = 9, o2 = 0, r2) {
-  let i2 = n2[e2];
-  if (void 0 === i2) {
-    return r2 ? o2 : void 0;
-  }
-  if (i2 = toString(i2), "auto" === i2) {
-    return r2 ? o2 : null;
-  }
-  let a2 = Oo[i2];
-  if (void 0 === a2 && (a2 = mr[i2]), void 0 === a2) {
-    throw new RangeError(invalidChoice(e2, i2, Oo));
-  }
-  return clampEntity(e2, a2, o2, t2, 1, Bo), a2;
-}
-function refineChoiceOption(e2, n2, t2, o2 = 0) {
-  const r2 = t2[e2];
-  if (void 0 === r2) {
-    return o2;
-  }
-  const i2 = toString(r2), a2 = n2[i2];
-  if (void 0 === a2) {
-    throw new RangeError(invalidChoice(e2, i2, n2));
-  }
-  return a2;
-}
-function checkLargestSmallestUnit(e2, n2) {
-  if (n2 > e2) {
-    throw new RangeError(Eo);
-  }
-}
-function xe(e2) {
-  return {
-    branding: Re,
-    epochNanoseconds: e2
-  };
-}
-function _e(e2, n2, t2) {
-  return {
-    branding: z,
-    calendar: t2,
-    timeZone: n2,
-    epochNanoseconds: e2
-  };
-}
-function jt(e2, n2 = e2.calendar) {
-  return {
-    branding: x,
-    calendar: n2,
-    ...nn(Nr, e2)
-  };
-}
-function W(e2, n2 = e2.calendar) {
-  return {
-    branding: G,
-    calendar: n2,
-    ...nn(Ir, e2)
-  };
-}
-function createPlainYearMonthSlots(e2, n2 = e2.calendar) {
-  return {
-    branding: Ut,
-    calendar: n2,
-    ...nn(Ir, e2)
-  };
-}
-function createPlainMonthDaySlots(e2, n2 = e2.calendar) {
-  return {
-    branding: qt,
-    calendar: n2,
-    ...nn(Ir, e2)
-  };
-}
-function St(e2) {
-  return {
-    branding: ft,
-    ...nn(Mr, e2)
-  };
-}
-function Oe(e2) {
-  return {
-    branding: N,
-    sign: computeDurationSign(e2),
-    ...nn(ur, e2)
-  };
-}
-function I(e2) {
-  return divModBigNano(e2.epochNanoseconds, Qe)[0];
-}
-function v(e2) {
-  return ((e3, n2 = 1) => {
-    const [t2, o2] = e3, r2 = Math.floor(o2 / n2), i2 = Uo / n2;
-    return BigInt(t2) * BigInt(i2) + BigInt(r2);
-  })(e2.epochNanoseconds);
-}
-function extractEpochNano(e2) {
-  return e2.epochNanoseconds;
-}
-function J(e2, n2, t2, o2, r2) {
-  const i2 = getMaxDurationUnit(o2), [a2, s2] = ((e3, n3) => {
-    const t3 = n3((e3 = normalizeOptionsOrString(e3, Zr))[Ar]);
-    let o3 = Qr(e3);
-    return o3 = requirePropDefined(Zr, o3), [o3, t3];
-  })(r2, e2), c2 = Math.max(a2, i2);
-  if (!s2 && isUniformUnit(c2, s2)) {
-    return totalDayTimeDuration(o2, a2);
-  }
-  if (!s2) {
-    throw new RangeError(yo);
-  }
-  if (!o2.sign) {
-    return 0;
-  }
-  const [u2, f2, l2] = createMarkerSystem(n2, t2, s2), d2 = createMarkerToEpochNano(l2), m2 = createMoveMarker(l2), h2 = createDiffMarkers(l2), g2 = m2(f2, u2, o2);
-  isZonedEpochSlots(s2) || (checkIsoDateTimeInBounds(u2), checkIsoDateTimeInBounds(g2));
-  const D2 = h2(f2, u2, g2, a2);
-  return isUniformUnit(a2, s2) ? totalDayTimeDuration(D2, a2) : ((e3, n3, t3, o3, r3, i3, a3) => {
-    const s3 = computeDurationSign(e3), [c3, u3] = clampRelativeDuration(o3, gr(t3, e3), t3, s3, r3, i3, a3), f3 = computeEpochNanoFrac(n3, c3, u3);
-    return e3[p[t3]] + f3 * s3;
-  })(D2, d2(g2), a2, f2, u2, d2, m2);
-}
-function totalDayTimeDuration(e2, n2) {
-  return bigNanoToNumber(durationFieldsToBigNano(e2), Ao[n2], 1);
-}
-function clampRelativeDuration(e2, n2, t2, o2, r2, i2, a2) {
-  const s2 = p[t2], c2 = {
-    ...n2,
-    [s2]: n2[s2] + o2
-  }, u2 = a2(e2, r2, n2), f2 = a2(e2, r2, c2);
-  return [i2(u2), i2(f2)];
-}
-function computeEpochNanoFrac(e2, n2, t2) {
-  const o2 = bigNanoToNumber(diffBigNanos(n2, t2));
-  if (!o2) {
-    throw new RangeError(fo);
-  }
-  return bigNanoToNumber(diffBigNanos(n2, e2)) / o2;
-}
-function Le(e2, n2) {
-  const [t2, o2, r2] = refineRoundingOptions(n2, 5, 1);
-  return xe(roundBigNano(e2.epochNanoseconds, t2, o2, r2, 1));
-}
-function Ie(e2, n2, t2) {
-  let { epochNanoseconds: o2, timeZone: r2, calendar: i2 } = n2;
-  const [a2, s2, c2] = refineRoundingOptions(t2);
-  if (0 === a2 && 1 === s2) {
-    return n2;
-  }
-  const u2 = e2(r2);
-  if (6 === a2) {
-    o2 = ((e3, n3, t3, o3) => {
-      const r3 = he(t3, n3), [i3, a3] = e3(r3), s3 = t3.epochNanoseconds, c3 = getStartOfDayInstantFor(n3, i3), u3 = getStartOfDayInstantFor(n3, a3);
-      if (bigNanoOutside(s3, c3, u3)) {
-        throw new RangeError(fo);
-      }
-      return roundWithMode(computeEpochNanoFrac(s3, c3, u3), o3) ? u3 : c3;
-    })(computeDayInterval, u2, n2, c2);
-  } else {
-    const e3 = u2.R(o2);
-    o2 = getMatchingInstantFor(u2, roundDateTime(epochNanoToIso(o2, e3), a2, s2, c2), e3, 2, 0, 1);
-  }
-  return _e(o2, r2, i2);
-}
-function vt(e2, n2) {
-  return jt(roundDateTime(e2, ...refineRoundingOptions(n2)), e2.calendar);
-}
-function lt(e2, n2) {
-  const [t2, o2, r2] = refineRoundingOptions(n2, 5);
-  var i2;
-  return St((i2 = r2, roundTimeToNano(e2, computeNanoInc(t2, o2), i2)[0]));
-}
-function Te(e2, n2) {
-  const t2 = e2(n2.timeZone), o2 = he(n2, t2), [r2, i2] = computeDayInterval(o2), a2 = bigNanoToNumber(diffBigNanos(getStartOfDayInstantFor(t2, r2), getStartOfDayInstantFor(t2, i2)), zo, 1);
-  if (a2 <= 0) {
-    throw new RangeError(fo);
-  }
-  return a2;
-}
-function ve(e2, n2) {
-  const { timeZone: t2, calendar: o2 } = n2, r2 = ((e3, n3, t3) => getStartOfDayInstantFor(n3, e3(he(t3, n3))))(computeDayFloor, e2(t2), n2);
-  return _e(r2, t2, o2);
-}
-function roundDateTime(e2, n2, t2, o2) {
-  return roundDateTimeToNano(e2, computeNanoInc(n2, t2), o2);
-}
-function roundDateTimeToNano(e2, n2, t2) {
-  const [o2, r2] = roundTimeToNano(e2, n2, t2);
-  return checkIsoDateTimeInBounds({
-    ...moveByDays(e2, r2),
-    ...o2
-  });
-}
-function roundTimeToNano(e2, n2, t2) {
-  return nanoToIsoTimeAndDay(roundByInc(isoTimeFieldsToNano(e2), n2, t2));
-}
-function roundToMinute(e2) {
-  return roundByInc(e2, Zo, 7);
-}
-function computeNanoInc(e2, n2) {
-  return Ao[e2] * n2;
-}
-function computeDayInterval(e2) {
-  const n2 = computeDayFloor(e2);
-  return [n2, moveByDays(n2, 1)];
-}
-function computeDayFloor(e2) {
-  return yr(6, e2);
-}
-function roundDayTimeDurationByInc(e2, n2, t2) {
-  const o2 = Math.min(getMaxDurationUnit(e2), 6);
-  return nanoToDurationDayTimeFields(roundBigNanoByInc(durationFieldsToBigNano(e2, o2), n2, t2), o2);
-}
-function roundRelativeDuration(e2, n2, t2, o2, r2, i2, a2, s2, c2, u2) {
-  if (0 === o2 && 1 === r2) {
-    return e2;
-  }
-  const f2 = isUniformUnit(o2, s2) ? isZonedEpochSlots(s2) && o2 < 6 && t2 >= 6 ? nudgeZonedTimeDuration : nudgeDayTimeDuration : nudgeRelativeDuration;
-  let [l2, d2, m2] = f2(e2, n2, t2, o2, r2, i2, a2, s2, c2, u2);
-  return m2 && 7 !== o2 && (l2 = ((e3, n3, t3, o3, r3, i3, a3, s3) => {
-    const c3 = computeDurationSign(e3);
-    for (let u3 = o3 + 1; u3 <= t3; u3++) {
-      if (7 === u3 && 7 !== t3) {
-        continue;
-      }
-      const o4 = gr(u3, e3);
-      o4[p[u3]] += c3;
-      const f3 = bigNanoToNumber(diffBigNanos(a3(s3(r3, i3, o4)), n3));
-      if (f3 && Math.sign(f3) !== c3) {
-        break;
-      }
-      e3 = o4;
-    }
-    return e3;
-  })(l2, d2, t2, Math.max(6, o2), a2, s2, c2, u2)), l2;
-}
-function roundBigNano(e2, n2, t2, o2, r2) {
-  if (6 === n2) {
-    const n3 = ((e3) => e3[0] + e3[1] / Uo)(e2);
-    return [roundByInc(n3, t2, o2), 0];
-  }
-  return roundBigNanoByInc(e2, computeNanoInc(n2, t2), o2, r2);
-}
-function roundBigNanoByInc(e2, n2, t2, o2) {
-  let [r2, i2] = e2;
-  o2 && i2 < 0 && (i2 += Uo, r2 -= 1);
-  const [a2, s2] = divModFloor(roundByInc(i2, n2, t2), Uo);
-  return createBigNano(r2 + a2, s2);
-}
-function roundByInc(e2, n2, t2) {
-  return roundWithMode(e2 / n2, t2) * n2;
-}
-function roundWithMode(e2, n2) {
-  return ai[n2](e2);
-}
-function nudgeDayTimeDuration(e2, n2, t2, o2, r2, i2) {
-  const a2 = computeDurationSign(e2), s2 = durationFieldsToBigNano(e2), c2 = roundBigNano(s2, o2, r2, i2), u2 = diffBigNanos(s2, c2), f2 = Math.sign(c2[0] - s2[0]) === a2, l2 = nanoToDurationDayTimeFields(c2, Math.min(t2, 6));
-  return [{
-    ...e2,
-    ...l2
-  }, addBigNanos(n2, u2), f2];
-}
-function nudgeZonedTimeDuration(e2, n2, t2, o2, r2, i2, a2, s2, c2, u2) {
-  const f2 = computeDurationSign(e2) || 1, l2 = bigNanoToNumber(durationFieldsToBigNano(e2, 5)), d2 = computeNanoInc(o2, r2);
-  let m2 = roundByInc(l2, d2, i2);
-  const [p2, h2] = clampRelativeDuration(a2, {
-    ...e2,
-    ...hr
-  }, 6, f2, s2, c2, u2), g2 = m2 - bigNanoToNumber(diffBigNanos(p2, h2));
-  let D2 = 0;
-  g2 && Math.sign(g2) !== f2 ? n2 = moveBigNano(p2, m2) : (D2 += f2, m2 = roundByInc(g2, d2, i2), n2 = moveBigNano(h2, m2));
-  const T2 = nanoToDurationTimeFields(m2);
-  return [{
-    ...e2,
-    ...T2,
-    days: e2.days + D2
-  }, n2, Boolean(D2)];
-}
-function nudgeRelativeDuration(e2, n2, t2, o2, r2, i2, a2, s2, c2, u2) {
-  const f2 = computeDurationSign(e2), l2 = p[o2], d2 = gr(o2, e2);
-  7 === o2 && (e2 = {
-    ...e2,
-    weeks: e2.weeks + Math.trunc(e2.days / 7)
-  });
-  const m2 = divTrunc(e2[l2], r2) * r2;
-  d2[l2] = m2;
-  const [h2, g2] = clampRelativeDuration(a2, d2, o2, r2 * f2, s2, c2, u2), D2 = m2 + computeEpochNanoFrac(n2, h2, g2) * f2 * r2, T2 = roundByInc(D2, r2, i2), I2 = Math.sign(T2 - D2) === f2;
-  return d2[l2] = T2, [d2, I2 ? g2 : h2, I2];
-}
-function ke(e2, n2, t2, o2) {
-  const [r2, i2, a2, s2] = ((e3) => {
-    const n3 = refineTimeDisplayTuple(e3 = normalizeOptions(e3));
-    return [e3.timeZone, ...n3];
-  })(o2), c2 = void 0 !== r2;
-  return ((e3, n3, t3, o3, r3, i3) => {
-    t3 = roundBigNanoByInc(t3, r3, o3, 1);
-    const a3 = n3.R(t3);
-    return formatIsoDateTimeFields(epochNanoToIso(t3, a3), i3) + (e3 ? Se(roundToMinute(a3)) : "Z");
-  })(c2, n2(c2 ? e2(r2) : si), t2.epochNanoseconds, i2, a2, s2);
-}
-function Fe(e2, n2, t2) {
-  const [o2, r2, i2, a2, s2, c2] = ((e3) => {
-    e3 = normalizeOptions(e3);
-    const n3 = ti(e3), t3 = refineSubsecDigits(e3), o3 = ri(e3), r3 = ii(e3, 4), i3 = Jr(e3, 4);
-    return [n3, oi(e3), o3, r3, ...refineSmallestUnitAndSubsecDigits(i3, t3)];
-  })(t2);
-  return ((e3, n3, t3, o3, r3, i3, a3, s3, c3, u2) => {
-    o3 = roundBigNanoByInc(o3, c3, s3, 1);
-    const f2 = e3(t3).R(o3);
-    return formatIsoDateTimeFields(epochNanoToIso(o3, f2), u2) + Se(roundToMinute(f2), a3) + ((e4, n4) => 1 !== n4 ? "[" + (2 === n4 ? "!" : "") + e4 + "]" : "")(t3, i3) + formatCalendar(n3, r3);
-  })(e2, n2.calendar, n2.timeZone, n2.epochNanoseconds, o2, r2, i2, a2, s2, c2);
-}
-function Ft(e2, n2) {
-  const [t2, o2, r2, i2] = ((e3) => (e3 = normalizeOptions(e3), [ti(e3), ...refineTimeDisplayTuple(e3)]))(n2);
-  return a2 = e2.calendar, s2 = t2, c2 = i2, formatIsoDateTimeFields(roundDateTimeToNano(e2, r2, o2), c2) + formatCalendar(a2, s2);
-  var a2, s2, c2;
-}
-function ce(e2, n2) {
-  return t2 = e2.calendar, o2 = e2, r2 = refineDateDisplayOptions(n2), formatIsoDateFields(o2) + formatCalendar(t2, r2);
-  var t2, o2, r2;
-}
-function Kt(e2, n2) {
-  return formatDateLikeIso(e2.calendar, formatIsoYearMonthFields, e2, refineDateDisplayOptions(n2));
-}
-function Jt(e2, n2) {
-  return formatDateLikeIso(e2.calendar, formatIsoMonthDayFields, e2, refineDateDisplayOptions(n2));
-}
-function ct(e2, n2) {
-  const [t2, o2, r2] = refineTimeDisplayOptions(n2);
-  return i2 = r2, formatIsoTimeFields(roundTimeToNano(e2, o2, t2)[0], i2);
-  var i2;
-}
-function k(e2, n2) {
-  const [t2, o2, r2] = refineTimeDisplayOptions(n2, 3);
-  return o2 > 1 && checkDurationUnits(e2 = {
-    ...e2,
-    ...roundDayTimeDurationByInc(e2, o2, t2)
-  }), ((e3, n3) => {
-    const { sign: t3 } = e3, o3 = -1 === t3 ? negateDurationFields(e3) : e3, { hours: r3, minutes: i2 } = o3, [a2, s2] = divModBigNano(durationFieldsToBigNano(o3, 3), Ro, divModTrunc);
-    checkDurationTimeUnit(a2);
-    const c2 = formatSubsecNano(s2, n3), u2 = n3 >= 0 || !t3 || c2;
-    return (t3 < 0 ? "-" : "") + "P" + formatDurationFragments({
-      Y: formatDurationNumber(o3.years),
-      M: formatDurationNumber(o3.months),
-      W: formatDurationNumber(o3.weeks),
-      D: formatDurationNumber(o3.days)
-    }) + (r3 || i2 || a2 || u2 ? "T" + formatDurationFragments({
-      H: formatDurationNumber(r3),
-      M: formatDurationNumber(i2),
-      S: formatDurationNumber(a2, u2) + c2
-    }) : "");
-  })(e2, r2);
-}
-function formatDateLikeIso(e2, n2, t2, o2) {
-  const r2 = o2 > 1 || 0 === o2 && e2 !== l;
-  return 1 === o2 ? e2 === l ? n2(t2) : formatIsoDateFields(t2) : r2 ? formatIsoDateFields(t2) + formatCalendarId(e2, 2 === o2) : n2(t2);
-}
-function formatDurationFragments(e2) {
-  const n2 = [];
-  for (const t2 in e2) {
-    const o2 = e2[t2];
-    o2 && n2.push(o2, t2);
-  }
-  return n2.join("");
-}
-function formatIsoDateTimeFields(e2, n2) {
-  return formatIsoDateFields(e2) + "T" + formatIsoTimeFields(e2, n2);
-}
-function formatIsoDateFields(e2) {
-  return formatIsoYearMonthFields(e2) + "-" + bo(e2.isoDay);
-}
-function formatIsoYearMonthFields(e2) {
-  const { isoYear: n2 } = e2;
-  return (n2 < 0 || n2 > 9999 ? getSignStr(n2) + padNumber(6, Math.abs(n2)) : padNumber(4, n2)) + "-" + bo(e2.isoMonth);
-}
-function formatIsoMonthDayFields(e2) {
-  return bo(e2.isoMonth) + "-" + bo(e2.isoDay);
-}
-function formatIsoTimeFields(e2, n2) {
-  const t2 = [bo(e2.isoHour), bo(e2.isoMinute)];
-  return -1 !== n2 && t2.push(bo(e2.isoSecond) + ((e3, n3, t3, o2) => formatSubsecNano(e3 * Qe + n3 * Yo + t3, o2))(e2.isoMillisecond, e2.isoMicrosecond, e2.isoNanosecond, n2)), t2.join(":");
-}
-function Se(e2, n2 = 0) {
-  if (1 === n2) {
-    return "";
-  }
-  const [t2, o2] = divModFloor(Math.abs(e2), zo), [r2, i2] = divModFloor(o2, Zo), [a2, s2] = divModFloor(i2, Ro);
-  return getSignStr(e2) + bo(t2) + ":" + bo(r2) + (a2 || s2 ? ":" + bo(a2) + formatSubsecNano(s2) : "");
-}
-function formatCalendar(e2, n2) {
-  return 1 !== n2 && (n2 > 1 || 0 === n2 && e2 !== l) ? formatCalendarId(e2, 2 === n2) : "";
-}
-function formatCalendarId(e2, n2) {
-  return "[" + (n2 ? "!" : "") + "u-ca=" + e2 + "]";
-}
-function formatSubsecNano(e2, n2) {
-  let t2 = padNumber(9, e2);
-  return t2 = void 0 === n2 ? t2.replace(li, "") : t2.slice(0, n2), t2 ? "." + t2 : "";
-}
-function getSignStr(e2) {
-  return e2 < 0 ? "-" : "+";
-}
-function formatDurationNumber(e2, n2) {
-  return e2 || n2 ? e2.toLocaleString("fullwide", {
-    useGrouping: 0
-  }) : "";
-}
-function _zonedEpochSlotsToIso(e2, n2) {
-  const { epochNanoseconds: t2 } = e2, o2 = (n2.R ? n2 : n2(e2.timeZone)).R(t2), r2 = epochNanoToIso(t2, o2);
-  return {
-    calendar: e2.calendar,
-    ...r2,
-    offsetNanoseconds: o2
-  };
-}
-function getMatchingInstantFor(e2, n2, t2, o2 = 0, r2 = 0, i2, a2) {
-  if (void 0 !== t2 && 1 === o2 && (1 === o2 || a2)) {
-    return isoToEpochNanoWithOffset(n2, t2);
-  }
-  const s2 = e2.I(n2);
-  if (void 0 !== t2 && 3 !== o2) {
-    const e3 = ((e4, n3, t3, o3) => {
-      const r3 = isoToEpochNano(n3);
-      o3 && (t3 = roundToMinute(t3));
-      for (const n4 of e4) {
-        let e5 = bigNanoToNumber(diffBigNanos(n4, r3));
-        if (o3 && (e5 = roundToMinute(e5)), e5 === t3) {
-          return n4;
-        }
-      }
-    })(s2, n2, t2, i2);
-    if (void 0 !== e3) {
-      return e3;
-    }
-    if (0 === o2) {
-      throw new RangeError(Do);
-    }
-  }
-  return a2 ? isoToEpochNano(n2) : getSingleInstantFor(e2, n2, r2, s2);
-}
-function getSingleInstantFor(e2, n2, t2 = 0, o2 = e2.I(n2)) {
-  if (1 === o2.length) {
-    return o2[0];
-  }
-  if (1 === t2) {
-    throw new RangeError(To);
-  }
-  if (o2.length) {
-    return o2[3 === t2 ? 1 : 0];
-  }
-  const r2 = isoToEpochNano(n2), i2 = ((e3, n3) => {
-    const t3 = e3.R(moveBigNano(n3, -Uo));
-    return ((e4) => {
-      if (e4 > Uo) {
-        throw new RangeError(go);
-      }
-      return e4;
-    })(e3.R(moveBigNano(n3, Uo)) - t3);
-  })(e2, r2), a2 = i2 * (2 === t2 ? -1 : 1);
-  return (o2 = e2.I(epochNanoToIso(r2, a2)))[2 === t2 ? 0 : o2.length - 1];
-}
-function getStartOfDayInstantFor(e2, n2) {
-  const t2 = e2.I(n2);
-  if (t2.length) {
-    return t2[0];
-  }
-  const o2 = moveBigNano(isoToEpochNano(n2), -Uo);
-  return e2.O(o2, 1);
-}
-function Ye(e2, n2, t2) {
-  return xe(checkEpochNanoInBounds(addBigNanos(n2.epochNanoseconds, ((e3) => {
-    if (durationHasDateParts(e3)) {
-      throw new RangeError(vo);
-    }
-    return durationFieldsToBigNano(e3, 5);
-  })(e2 ? negateDurationFields(t2) : t2))));
-}
-function pe(e2, n2, t2, o2, r2, i2 = /* @__PURE__ */ Object.create(null)) {
-  const a2 = n2(o2.timeZone), s2 = e2(o2.calendar);
-  return {
-    ...o2,
-    ...moveZonedEpochs(a2, s2, o2, t2 ? negateDurationFields(r2) : r2, i2)
-  };
-}
-function wt(e2, n2, t2, o2, r2 = /* @__PURE__ */ Object.create(null)) {
-  const { calendar: i2 } = t2;
-  return jt(moveDateTime(e2(i2), t2, n2 ? negateDurationFields(o2) : o2, r2), i2);
-}
-function ne(e2, n2, t2, o2, r2) {
-  const { calendar: i2 } = t2;
-  return W(moveDate(e2(i2), t2, n2 ? negateDurationFields(o2) : o2, r2), i2);
-}
-function Gt(e2, n2, t2, o2, r2) {
-  const i2 = t2.calendar, a2 = e2(i2);
-  let s2 = checkIsoDateInBounds(moveToDayOfMonthUnsafe(a2, t2));
-  n2 && (o2 = B(o2)), o2.sign < 0 && (s2 = a2.P(s2, {
-    ...pr,
-    months: 1
-  }), s2 = moveByDays(s2, -1));
-  const c2 = a2.P(s2, o2, r2);
-  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(a2, c2), i2);
-}
-function at(e2, n2, t2) {
-  return St(moveTime(n2, e2 ? negateDurationFields(t2) : t2)[0]);
-}
-function moveZonedEpochs(e2, n2, t2, o2, r2) {
-  const i2 = durationFieldsToBigNano(o2, 5);
-  let a2 = t2.epochNanoseconds;
-  if (durationHasDateParts(o2)) {
-    const s2 = he(t2, e2);
-    a2 = addBigNanos(getSingleInstantFor(e2, {
-      ...moveDate(n2, s2, {
-        ...o2,
-        ...hr
-      }, r2),
-      ...nn(w, s2)
-    }), i2);
-  } else {
-    a2 = addBigNanos(a2, i2), mt(r2);
-  }
-  return {
-    epochNanoseconds: checkEpochNanoInBounds(a2)
-  };
-}
-function moveDateTime(e2, n2, t2, o2) {
-  const [r2, i2] = moveTime(n2, t2);
-  return checkIsoDateTimeInBounds({
-    ...moveDate(e2, n2, {
-      ...t2,
-      ...hr,
-      days: t2.days + i2
-    }, o2),
-    ...r2
-  });
-}
-function moveDate(e2, n2, t2, o2) {
-  if (t2.years || t2.months || t2.weeks) {
-    return e2.P(n2, t2, o2);
-  }
-  mt(o2);
-  const r2 = t2.days + durationFieldsToBigNano(t2, 5)[0];
-  return r2 ? checkIsoDateInBounds(moveByDays(n2, r2)) : n2;
-}
-function moveToDayOfMonthUnsafe(e2, n2, t2 = 1) {
-  return moveByDays(n2, t2 - e2.day(n2));
-}
-function moveTime(e2, n2) {
-  const [t2, o2] = durationFieldsToBigNano(n2, 5), [r2, i2] = nanoToIsoTimeAndDay(isoTimeFieldsToNano(e2) + o2);
-  return [r2, t2 + i2];
-}
-function moveByDays(e2, n2) {
-  return n2 ? {
-    ...e2,
-    ...epochMilliToIso(isoToEpochMilli(e2) + n2 * ko)
-  } : e2;
-}
-function createMarkerSystem(e2, n2, t2) {
-  const o2 = e2(t2.calendar);
-  return isZonedEpochSlots(t2) ? [t2, o2, n2(t2.timeZone)] : [{
-    ...t2,
-    ...Nt
-  }, o2];
-}
-function createMarkerToEpochNano(e2) {
-  return e2 ? extractEpochNano : isoToEpochNano;
-}
-function createMoveMarker(e2) {
-  return e2 ? Pt(moveZonedEpochs, e2) : moveDateTime;
-}
-function createDiffMarkers(e2) {
-  return e2 ? Pt(diffZonedEpochsExact, e2) : diffDateTimesExact;
-}
-function isZonedEpochSlots(e2) {
-  return e2 && e2.epochNanoseconds;
-}
-function isUniformUnit(e2, n2) {
-  return e2 <= 6 - (isZonedEpochSlots(n2) ? 1 : 0);
-}
-function E(e2, n2, t2, o2, r2, i2, a2) {
-  const s2 = e2(normalizeOptions(a2).relativeTo), c2 = Math.max(getMaxDurationUnit(r2), getMaxDurationUnit(i2));
-  if (isUniformUnit(c2, s2)) {
-    return Oe(checkDurationUnits(((e3, n3, t3, o3) => {
-      const r3 = addBigNanos(durationFieldsToBigNano(e3), durationFieldsToBigNano(n3), o3 ? -1 : 1);
-      if (!Number.isFinite(r3[0])) {
-        throw new RangeError(Io);
-      }
-      return {
-        ...pr,
-        ...nanoToDurationDayTimeFields(r3, t3)
-      };
-    })(r2, i2, c2, o2)));
-  }
-  if (!s2) {
-    throw new RangeError(yo);
-  }
-  o2 && (i2 = negateDurationFields(i2));
-  const [u2, f2, l2] = createMarkerSystem(n2, t2, s2), d2 = createMoveMarker(l2), m2 = createDiffMarkers(l2), p2 = d2(f2, u2, r2);
-  return Oe(m2(f2, u2, d2(f2, p2, i2), c2));
-}
-function V(e2, n2, t2, o2, r2) {
-  const i2 = getMaxDurationUnit(o2), [a2, s2, c2, u2, f2] = ((e3, n3, t3) => {
-    e3 = normalizeOptionsOrString(e3, Rr);
-    let o3 = Kr(e3);
-    const r3 = t3(e3[Ar]);
-    let i3 = parseRoundingIncInteger(e3);
-    const a3 = ii(e3, 7);
-    let s3 = Jr(e3);
-    if (void 0 === o3 && void 0 === s3) {
-      throw new RangeError(Po);
-    }
-    if (null == s3 && (s3 = 0), null == o3 && (o3 = Math.max(s3, n3)), checkLargestSmallestUnit(o3, s3), i3 = refineRoundingInc(i3, s3, 1), i3 > 1 && s3 > 5 && o3 !== s3) {
-      throw new RangeError("For calendar units with roundingIncrement > 1, use largestUnit = smallestUnit");
-    }
-    return [o3, s3, i3, a3, r3];
-  })(r2, i2, e2), l2 = Math.max(i2, a2);
-  if (!f2 && l2 <= 6) {
-    return Oe(checkDurationUnits(((e3, n3, t3, o3, r3) => {
-      const i3 = roundBigNano(durationFieldsToBigNano(e3), t3, o3, r3);
-      return {
-        ...pr,
-        ...nanoToDurationDayTimeFields(i3, n3)
-      };
-    })(o2, a2, s2, c2, u2)));
-  }
-  if (!isZonedEpochSlots(f2) && !o2.sign) {
-    return o2;
-  }
-  if (!f2) {
-    throw new RangeError(yo);
-  }
-  const [d2, m2, p2] = createMarkerSystem(n2, t2, f2), h2 = createMarkerToEpochNano(p2), g2 = createMoveMarker(p2), D2 = createDiffMarkers(p2), T2 = g2(m2, d2, o2);
-  isZonedEpochSlots(f2) || (checkIsoDateTimeInBounds(d2), checkIsoDateTimeInBounds(T2));
-  let I2 = D2(m2, d2, T2, a2);
-  const M2 = o2.sign, N2 = computeDurationSign(I2);
-  if (M2 && N2 && M2 !== N2) {
-    throw new RangeError(fo);
-  }
-  return I2 = roundRelativeDuration(I2, h2(T2), a2, s2, c2, u2, m2, d2, h2, g2), Oe(I2);
-}
-function Y(e2) {
-  return -1 === e2.sign ? B(e2) : e2;
-}
-function B(e2) {
-  return Oe(negateDurationFields(e2));
-}
-function negateDurationFields(e2) {
-  const n2 = {};
-  for (const t2 of p) {
-    n2[t2] = -1 * e2[t2] || 0;
-  }
-  return n2;
-}
-function y(e2) {
-  return !e2.sign;
-}
-function computeDurationSign(e2, n2 = p) {
-  let t2 = 0;
-  for (const o2 of n2) {
-    const n3 = Math.sign(e2[o2]);
-    if (n3) {
-      if (t2 && t2 !== n3) {
-        throw new RangeError(No);
-      }
-      t2 = n3;
-    }
-  }
-  return t2;
-}
-function checkDurationUnits(e2) {
-  for (const n2 of dr) {
-    clampEntity(n2, e2[n2], -di, di, 1);
-  }
-  return checkDurationTimeUnit(bigNanoToNumber(durationFieldsToBigNano(e2), Ro)), e2;
-}
-function checkDurationTimeUnit(e2) {
-  if (!Number.isSafeInteger(e2)) {
-    throw new RangeError(Mo);
-  }
-}
-function durationFieldsToBigNano(e2, n2 = 6) {
-  return givenFieldsToBigNano(e2, n2, p);
-}
-function nanoToDurationDayTimeFields(e2, n2 = 6) {
-  const [t2, o2] = e2, r2 = nanoToGivenFields(o2, n2, p);
-  if (r2[p[n2]] += t2 * (Uo / Ao[n2]), !Number.isFinite(r2[p[n2]])) {
-    throw new RangeError(Io);
-  }
-  return r2;
-}
-function nanoToDurationTimeFields(e2, n2 = 5) {
-  return nanoToGivenFields(e2, n2, p);
-}
-function durationHasDateParts(e2) {
-  return Boolean(computeDurationSign(e2, lr));
-}
-function getMaxDurationUnit(e2) {
-  let n2 = 9;
-  for (; n2 > 0 && !e2[p[n2]]; n2--) {
-  }
-  return n2;
-}
-function createSplitTuple(e2, n2) {
-  return [e2, n2];
-}
-function computePeriod(e2) {
-  const n2 = Math.floor(e2 / ci) * ci;
-  return [n2, n2 + ci];
-}
-function We(e2) {
-  const n2 = parseDateTimeLike(e2 = toStringViaPrimitive(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  let t2;
-  if (n2.j) {
-    t2 = 0;
-  } else {
-    if (!n2.offset) {
-      throw new RangeError(failedParse(e2));
-    }
-    t2 = parseOffsetNano(n2.offset);
-  }
-  return n2.timeZone && parseOffsetNanoMaybe(n2.timeZone, 1), xe(isoToEpochNanoWithOffset(checkIsoDateTimeFields(n2), t2));
-}
-function H(e2) {
-  const n2 = parseDateTimeLike(m(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  if (n2.timeZone) {
-    return finalizeZonedDateTime(n2, n2.offset ? parseOffsetNano(n2.offset) : void 0);
-  }
-  if (n2.j) {
-    throw new RangeError(failedParse(e2));
-  }
-  return finalizeDate(n2);
-}
-function Ae(e2, n2) {
-  const t2 = parseDateTimeLike(m(e2));
-  if (!t2 || !t2.timeZone) {
-    throw new RangeError(failedParse(e2));
-  }
-  const { offset: o2 } = t2, r2 = o2 ? parseOffsetNano(o2) : void 0, [, i2, a2] = je(n2);
-  return finalizeZonedDateTime(t2, r2, i2, a2);
-}
-function parseOffsetNano(e2) {
-  const n2 = parseOffsetNanoMaybe(e2);
-  if (void 0 === n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  return n2;
-}
-function Bt(e2) {
-  const n2 = parseDateTimeLike(m(e2));
-  if (!n2 || n2.j) {
-    throw new RangeError(failedParse(e2));
-  }
-  return jt(finalizeDateTime(n2));
-}
-function de(e2, n2, t2) {
-  let o2 = parseDateTimeLike(m(e2));
-  if (!o2 || o2.j) {
-    throw new RangeError(failedParse(e2));
-  }
-  return n2 ? o2.calendar === l && (o2 = -271821 === o2.isoYear && 4 === o2.isoMonth ? {
-    ...o2,
-    isoDay: 20,
-    ...Nt
-  } : {
-    ...o2,
-    isoDay: 1,
-    ...Nt
-  }) : t2 && o2.calendar === l && (o2 = {
-    ...o2,
-    isoYear: Br
-  }), W(o2.C ? finalizeDateTime(o2) : finalizeDate(o2));
-}
-function _t(e2, n2) {
-  const t2 = parseYearMonthOnly(m(n2));
-  if (t2) {
-    return requireIsoCalendar(t2), createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields(t2)));
-  }
-  const o2 = de(n2, 1);
-  return createPlainYearMonthSlots(moveToDayOfMonthUnsafe(e2(o2.calendar), o2));
-}
-function requireIsoCalendar(e2) {
-  if (e2.calendar !== l) {
-    throw new RangeError(invalidSubstring(e2.calendar));
-  }
-}
-function xt(e2, n2) {
-  const t2 = parseMonthDayOnly(m(n2));
-  if (t2) {
-    return requireIsoCalendar(t2), createPlainMonthDaySlots(checkIsoDateFields(t2));
-  }
-  const o2 = de(n2, 0, 1), { calendar: r2 } = o2, i2 = e2(r2), [a2, s2, c2] = i2.v(o2), [u2, f2] = i2.q(a2, s2), [l2, d2] = i2.G(u2, f2, c2);
-  return createPlainMonthDaySlots(checkIsoDateInBounds(i2.V(l2, d2, c2)), r2);
-}
-function ht(e2) {
-  let n2, t2 = ((e3) => {
-    const n3 = Pi.exec(e3);
-    return n3 ? (organizeAnnotationParts(n3[10]), organizeTimeParts(n3)) : void 0;
-  })(m(e2));
-  if (!t2) {
-    if (t2 = parseDateTimeLike(e2), !t2) {
-      throw new RangeError(failedParse(e2));
-    }
-    if (!t2.C) {
-      throw new RangeError(failedParse(e2));
-    }
-    if (t2.j) {
-      throw new RangeError(invalidSubstring("Z"));
-    }
-    requireIsoCalendar(t2);
-  }
-  if ((n2 = parseYearMonthOnly(e2)) && isIsoDateFieldsValid(n2)) {
-    throw new RangeError(failedParse(e2));
-  }
-  if ((n2 = parseMonthDayOnly(e2)) && isIsoDateFieldsValid(n2)) {
-    throw new RangeError(failedParse(e2));
-  }
-  return St(constrainIsoTimeFields(t2, 1));
-}
-function R(e2) {
-  const n2 = ((e3) => {
-    const n3 = Fi.exec(e3);
-    return n3 ? ((e4) => {
-      function parseUnit(e5, r3, i2) {
-        let a2 = 0, s2 = 0;
-        if (i2 && ([a2, o2] = divModFloor(o2, Ao[i2])), void 0 !== e5) {
-          if (t2) {
-            throw new RangeError(invalidSubstring(e5));
-          }
-          s2 = ((e6) => {
-            const n5 = parseInt(e6);
-            if (!Number.isFinite(n5)) {
-              throw new RangeError(invalidSubstring(e6));
-            }
-            return n5;
-          })(e5), n4 = 1, r3 && (o2 = parseSubsecNano(r3) * (Ao[i2] / Ro), t2 = 1);
-        }
-        return a2 + s2;
-      }
-      let n4 = 0, t2 = 0, o2 = 0, r2 = {
-        ...zipProps(p, [parseUnit(e4[2]), parseUnit(e4[3]), parseUnit(e4[4]), parseUnit(e4[5]), parseUnit(e4[6], e4[7], 5), parseUnit(e4[8], e4[9], 4), parseUnit(e4[10], e4[11], 3)]),
-        ...nanoToGivenFields(o2, 2, p)
-      };
-      if (!n4) {
-        throw new RangeError(noValidFields(p));
-      }
-      return parseSign(e4[1]) < 0 && (r2 = negateDurationFields(r2)), r2;
-    })(n3) : void 0;
-  })(m(e2));
-  if (!n2) {
-    throw new RangeError(failedParse(e2));
-  }
-  return Oe(checkDurationUnits(n2));
-}
-function f(e2) {
-  const n2 = parseDateTimeLike(e2) || parseYearMonthOnly(e2) || parseMonthDayOnly(e2);
-  return n2 ? n2.calendar : e2;
-}
-function Z(e2) {
-  const n2 = parseDateTimeLike(e2);
-  return n2 && (n2.timeZone || n2.j && si || n2.offset) || e2;
-}
-function finalizeZonedDateTime(e2, n2, t2 = 0, o2 = 0) {
-  const r2 = M(e2.timeZone), i2 = L(r2);
-  let a2;
-  return checkIsoDateTimeFields(e2), a2 = e2.C ? getMatchingInstantFor(i2, e2, n2, t2, o2, !i2.$, e2.j) : getStartOfDayInstantFor(i2, e2), _e(a2, r2, u(e2.calendar));
-}
-function finalizeDateTime(e2) {
-  return resolveSlotsCalendar(checkIsoDateTimeInBounds(checkIsoDateTimeFields(e2)));
-}
-function finalizeDate(e2) {
-  return resolveSlotsCalendar(checkIsoDateInBounds(checkIsoDateFields(e2)));
-}
-function resolveSlotsCalendar(e2) {
-  return {
-    ...e2,
-    calendar: u(e2.calendar)
-  };
-}
-function parseDateTimeLike(e2) {
-  const n2 = vi.exec(e2);
-  return n2 ? ((e3) => {
-    const n3 = e3[10], t2 = "Z" === (n3 || "").toUpperCase();
-    return {
-      isoYear: organizeIsoYearParts(e3),
-      isoMonth: parseInt(e3[4]),
-      isoDay: parseInt(e3[5]),
-      ...organizeTimeParts(e3.slice(5)),
-      ...organizeAnnotationParts(e3[16]),
-      C: Boolean(e3[6]),
-      j: t2,
-      offset: t2 ? void 0 : n3
-    };
-  })(n2) : void 0;
-}
-function parseYearMonthOnly(e2) {
-  const n2 = Ni.exec(e2);
-  return n2 ? ((e3) => ({
-    isoYear: organizeIsoYearParts(e3),
-    isoMonth: parseInt(e3[4]),
-    isoDay: 1,
-    ...organizeAnnotationParts(e3[5])
-  }))(n2) : void 0;
-}
-function parseMonthDayOnly(e2) {
-  const n2 = yi.exec(e2);
-  return n2 ? ((e3) => ({
-    isoYear: Br,
-    isoMonth: parseInt(e3[1]),
-    isoDay: parseInt(e3[2]),
-    ...organizeAnnotationParts(e3[3])
-  }))(n2) : void 0;
-}
-function parseOffsetNanoMaybe(e2, n2) {
-  const t2 = Ei.exec(e2);
-  return t2 ? ((e3, n3) => {
-    const t3 = e3[4] || e3[5];
-    if (n3 && t3) {
-      throw new RangeError(invalidSubstring(t3));
-    }
-    return ((e4) => {
-      if (Math.abs(e4) >= Uo) {
-        throw new RangeError(ho);
-      }
-      return e4;
-    })((parseInt0(e3[2]) * zo + parseInt0(e3[3]) * Zo + parseInt0(e3[4]) * Ro + parseSubsecNano(e3[5] || "")) * parseSign(e3[1]));
-  })(t2, n2) : void 0;
-}
-function organizeIsoYearParts(e2) {
-  const n2 = parseSign(e2[1]), t2 = parseInt(e2[2] || e2[3]);
-  if (n2 < 0 && !t2) {
-    throw new RangeError(invalidSubstring(-0));
-  }
-  return n2 * t2;
-}
-function organizeTimeParts(e2) {
-  const n2 = parseInt0(e2[3]);
-  return {
-    ...nanoToIsoTimeAndDay(parseSubsecNano(e2[4] || ""))[0],
-    isoHour: parseInt0(e2[1]),
-    isoMinute: parseInt0(e2[2]),
-    isoSecond: 60 === n2 ? 59 : n2
-  };
-}
-function organizeAnnotationParts(e2) {
-  let n2, t2;
-  const o2 = [];
-  if (e2.replace(Si, (e3, r2, i2) => {
-    const a2 = Boolean(r2), [s2, c2] = i2.split("=").reverse();
-    if (c2) {
-      if ("u-ca" === c2) {
-        o2.push(s2), n2 || (n2 = a2);
-      } else if (a2 || /[A-Z]/.test(c2)) {
-        throw new RangeError(invalidSubstring(e3));
-      }
-    } else {
-      if (t2) {
-        throw new RangeError(invalidSubstring(e3));
-      }
-      t2 = s2;
-    }
-    return "";
-  }), o2.length > 1 && n2) {
-    throw new RangeError(invalidSubstring(e2));
-  }
-  return {
-    timeZone: t2,
-    calendar: o2[0] || l
-  };
-}
-function parseSubsecNano(e2) {
-  return parseInt(e2.padEnd(9, "0"));
-}
-function createRegExp(e2) {
-  return new RegExp(`^${e2}$`, "i");
-}
-function parseSign(e2) {
-  return e2 && "+" !== e2 ? -1 : 1;
-}
-function parseInt0(e2) {
-  return void 0 === e2 ? 0 : parseInt(e2);
-}
-function Ze(e2) {
-  return M(m(e2));
-}
-function M(e2) {
-  const n2 = getTimeZoneEssence(e2);
-  return "number" == typeof n2 ? Se(n2) : n2 ? ((e3) => {
-    if (Oi.test(e3)) {
-      throw new RangeError(F(e3));
-    }
-    if (bi.test(e3)) {
-      throw new RangeError(po);
-    }
-    return e3.toLowerCase().split("/").map((e4, n3) => (e4.length <= 3 || /\d/.test(e4)) && !/etc|yap/.test(e4) ? e4.toUpperCase() : e4.replace(/baja|dumont|[a-z]+/g, (e5, t2) => e5.length <= 2 && !n3 || "in" === e5 || "chat" === e5 ? e5.toUpperCase() : e5.length > 2 || !t2 ? capitalize(e5).replace(/island|noronha|murdo|rivadavia|urville/, capitalize) : e5)).join("/");
-  })(e2) : si;
-}
-function getTimeZoneAtomic(e2) {
-  const n2 = getTimeZoneEssence(e2);
-  return "number" == typeof n2 ? n2 : n2 ? n2.resolvedOptions().timeZone : si;
-}
-function getTimeZoneEssence(e2) {
-  const n2 = parseOffsetNanoMaybe(e2 = e2.toUpperCase(), 1);
-  return void 0 !== n2 ? n2 : e2 !== si ? wi(e2) : void 0;
-}
-function Ke(e2, n2) {
-  return compareBigNanos(e2.epochNanoseconds, n2.epochNanoseconds);
-}
-function Be(e2, n2) {
-  return compareBigNanos(e2.epochNanoseconds, n2.epochNanoseconds);
-}
-function K(e2, n2, t2, o2, r2, i2) {
-  const a2 = e2(normalizeOptions(i2).relativeTo), s2 = Math.max(getMaxDurationUnit(o2), getMaxDurationUnit(r2));
-  if (allPropsEqual(p, o2, r2)) {
-    return 0;
-  }
-  if (isUniformUnit(s2, a2)) {
-    return compareBigNanos(durationFieldsToBigNano(o2), durationFieldsToBigNano(r2));
-  }
-  if (!a2) {
-    throw new RangeError(yo);
-  }
-  const [c2, u2, f2] = createMarkerSystem(n2, t2, a2), l2 = createMarkerToEpochNano(f2), d2 = createMoveMarker(f2);
-  return compareBigNanos(l2(d2(u2, c2, o2)), l2(d2(u2, c2, r2)));
-}
-function Yt(e2, n2) {
-  return te(e2, n2) || Dt(e2, n2);
-}
-function te(e2, n2) {
-  return compareNumbers(isoToEpochMilli(e2), isoToEpochMilli(n2));
-}
-function Dt(e2, n2) {
-  return compareNumbers(isoTimeFieldsToNano(e2), isoTimeFieldsToNano(n2));
-}
-function Ve(e2, n2) {
-  return !Ke(e2, n2);
-}
-function Ce(e2, n2) {
-  return !Be(e2, n2) && !!isTimeZoneIdsEqual(e2.timeZone, n2.timeZone) && e2.calendar === n2.calendar;
-}
-function Ct(e2, n2) {
-  return !Yt(e2, n2) && e2.calendar === n2.calendar;
-}
-function re(e2, n2) {
-  return !te(e2, n2) && e2.calendar === n2.calendar;
-}
-function $t(e2, n2) {
-  return !te(e2, n2) && e2.calendar === n2.calendar;
-}
-function Lt(e2, n2) {
-  return !te(e2, n2) && e2.calendar === n2.calendar;
-}
-function st(e2, n2) {
-  return !Dt(e2, n2);
-}
-function isTimeZoneIdsEqual(e2, n2) {
-  if (e2 === n2) {
-    return 1;
-  }
-  try {
-    return getTimeZoneAtomic(e2) === getTimeZoneAtomic(n2);
-  } catch (e3) {
-  }
-}
-function Ee(e2, n2, t2, o2) {
-  const r2 = refineDiffOptions(e2, o2, 3, 5), i2 = diffEpochNanos(n2.epochNanoseconds, t2.epochNanoseconds, ...r2);
-  return Oe(e2 ? negateDurationFields(i2) : i2);
-}
-function we(e2, n2, t2, o2, r2, i2) {
-  const a2 = getCommonCalendarId(o2.calendar, r2.calendar), [s2, c2, u2, f2] = refineDiffOptions(t2, i2, 5), l2 = o2.epochNanoseconds, d2 = r2.epochNanoseconds, m2 = compareBigNanos(d2, l2);
-  let p2;
-  if (m2) {
-    if (s2 < 6) {
-      p2 = diffEpochNanos(l2, d2, s2, c2, u2, f2);
-    } else {
-      const t3 = n2(((e3, n3) => {
-        if (!isTimeZoneIdsEqual(e3, n3)) {
-          throw new RangeError(mo);
-        }
-        return e3;
-      })(o2.timeZone, r2.timeZone)), l3 = e2(a2);
-      p2 = diffZonedEpochsBig(l3, t3, o2, r2, m2, s2, i2), p2 = roundRelativeDuration(p2, d2, s2, c2, u2, f2, l3, o2, extractEpochNano, Pt(moveZonedEpochs, t3));
-    }
-  } else {
-    p2 = pr;
-  }
-  return Oe(t2 ? negateDurationFields(p2) : p2);
-}
-function It(e2, n2, t2, o2, r2) {
-  const i2 = getCommonCalendarId(t2.calendar, o2.calendar), [a2, s2, c2, u2] = refineDiffOptions(n2, r2, 6), f2 = isoToEpochNano(t2), l2 = isoToEpochNano(o2), d2 = compareBigNanos(l2, f2);
-  let m2;
-  if (d2) {
-    if (a2 <= 6) {
-      m2 = diffEpochNanos(f2, l2, a2, s2, c2, u2);
-    } else {
-      const n3 = e2(i2);
-      m2 = diffDateTimesBig(n3, t2, o2, d2, a2, r2), m2 = roundRelativeDuration(m2, l2, a2, s2, c2, u2, n3, t2, isoToEpochNano, moveDateTime);
-    }
-  } else {
-    m2 = pr;
-  }
-  return Oe(n2 ? negateDurationFields(m2) : m2);
-}
-function oe(e2, n2, t2, o2, r2) {
-  const i2 = getCommonCalendarId(t2.calendar, o2.calendar);
-  return diffDateLike(n2, () => e2(i2), t2, o2, ...refineDiffOptions(n2, r2, 6, 9, 6));
-}
-function zt(e2, n2, t2, o2, r2) {
-  const i2 = getCommonCalendarId(t2.calendar, o2.calendar), a2 = refineDiffOptions(n2, r2, 9, 9, 8), s2 = e2(i2), c2 = moveToDayOfMonthUnsafe(s2, t2), u2 = moveToDayOfMonthUnsafe(s2, o2);
-  return c2.isoYear === u2.isoYear && c2.isoMonth === u2.isoMonth && c2.isoDay === u2.isoDay ? Oe(pr) : diffDateLike(n2, () => s2, checkIsoDateInBounds(c2), checkIsoDateInBounds(u2), ...a2, 8);
-}
-function diffDateLike(e2, n2, t2, o2, r2, i2, a2, s2, c2 = 6) {
-  const u2 = isoToEpochNano(t2), f2 = isoToEpochNano(o2);
-  if (void 0 === u2 || void 0 === f2) {
-    throw new RangeError(Io);
-  }
-  let l2;
-  if (compareBigNanos(f2, u2)) {
-    if (6 === r2) {
-      l2 = diffEpochNanos(u2, f2, r2, i2, a2, s2);
-    } else {
-      const e3 = n2();
-      l2 = e3.N(t2, o2, r2), i2 === c2 && 1 === a2 || (l2 = roundRelativeDuration(l2, f2, r2, i2, a2, s2, e3, t2, isoToEpochNano, moveDate));
-    }
-  } else {
-    l2 = pr;
-  }
-  return Oe(e2 ? negateDurationFields(l2) : l2);
-}
-function it(e2, n2, t2, o2) {
-  const [r2, i2, a2, s2] = refineDiffOptions(e2, o2, 5, 5), c2 = roundByInc(diffTimes(n2, t2), computeNanoInc(i2, a2), s2), u2 = {
-    ...pr,
-    ...nanoToDurationTimeFields(c2, r2)
-  };
-  return Oe(e2 ? negateDurationFields(u2) : u2);
-}
-function diffZonedEpochsExact(e2, n2, t2, o2, r2, i2) {
-  const a2 = compareBigNanos(o2.epochNanoseconds, t2.epochNanoseconds);
-  return a2 ? r2 < 6 ? diffEpochNanosExact(t2.epochNanoseconds, o2.epochNanoseconds, r2) : diffZonedEpochsBig(n2, e2, t2, o2, a2, r2, i2) : pr;
-}
-function diffDateTimesExact(e2, n2, t2, o2, r2) {
-  const i2 = isoToEpochNano(n2), a2 = isoToEpochNano(t2), s2 = compareBigNanos(a2, i2);
-  return s2 ? o2 <= 6 ? diffEpochNanosExact(i2, a2, o2) : diffDateTimesBig(e2, n2, t2, s2, o2, r2) : pr;
-}
-function diffZonedEpochsBig(e2, n2, t2, o2, r2, i2, a2) {
-  const [s2, c2, u2] = ((e3, n3, t3, o3) => {
-    function updateMid() {
-      return f3 = {
-        ...moveByDays(a3, c3++ * -o3),
-        ...i3
-      }, l3 = getSingleInstantFor(e3, f3), compareBigNanos(s3, l3) === -o3;
-    }
-    const r3 = he(n3, e3), i3 = nn(w, r3), a3 = he(t3, e3), s3 = t3.epochNanoseconds;
-    let c3 = 0;
-    const u3 = diffTimes(r3, a3);
-    let f3, l3;
-    if (Math.sign(u3) === -o3 && c3++, updateMid() && (-1 === o3 || updateMid())) {
-      throw new RangeError(fo);
-    }
-    const d2 = bigNanoToNumber(diffBigNanos(l3, s3));
-    return [r3, f3, d2];
-  })(n2, t2, o2, r2);
-  var f2, l2;
-  return {
-    ...6 === i2 ? (f2 = s2, l2 = c2, {
-      ...pr,
-      days: diffDays(f2, l2)
-    }) : e2.N(s2, c2, i2, a2),
-    ...nanoToDurationTimeFields(u2)
-  };
-}
-function diffDateTimesBig(e2, n2, t2, o2, r2, i2) {
-  const [a2, s2, c2] = ((e3, n3, t3) => {
-    let o3 = n3, r3 = diffTimes(e3, n3);
-    return Math.sign(r3) === -t3 && (o3 = moveByDays(n3, -t3), r3 += Uo * t3), [e3, o3, r3];
-  })(n2, t2, o2);
-  return {
-    ...e2.N(a2, s2, r2, i2),
-    ...nanoToDurationTimeFields(c2)
-  };
-}
-function diffEpochNanos(e2, n2, t2, o2, r2, i2) {
-  return {
-    ...pr,
-    ...nanoToDurationDayTimeFields(roundBigNano(diffBigNanos(e2, n2), o2, r2, i2), t2)
-  };
-}
-function diffEpochNanosExact(e2, n2, t2) {
-  return {
-    ...pr,
-    ...nanoToDurationDayTimeFields(diffBigNanos(e2, n2), t2)
-  };
-}
-function diffDays(e2, n2) {
-  return diffEpochMilliByDay(isoToEpochMilli(e2), isoToEpochMilli(n2));
-}
-function diffEpochMilliByDay(e2, n2) {
-  return Math.trunc((n2 - e2) / ko);
-}
-function diffTimes(e2, n2) {
-  return isoTimeFieldsToNano(n2) - isoTimeFieldsToNano(e2);
-}
-function getCommonCalendarId(e2, n2) {
-  if (e2 !== n2) {
-    throw new RangeError(lo);
-  }
-  return e2;
-}
-function computeNativeWeekOfYear(e2) {
-  return this.m(e2)[0];
-}
-function computeNativeYearOfWeek(e2) {
-  return this.m(e2)[1];
-}
-function computeNativeDayOfYear(e2) {
-  const [n2] = this.v(e2);
-  return diffEpochMilliByDay(this.p(n2), isoToEpochMilli(e2)) + 1;
-}
-function parseMonthCode(e2) {
-  const n2 = Bi.exec(e2);
-  if (!n2) {
-    throw new RangeError(invalidMonthCode(e2));
-  }
-  return [parseInt(n2[1]), Boolean(n2[2])];
-}
-function formatMonthCode(e2, n2) {
-  return "M" + bo(e2) + (n2 ? "L" : "");
-}
-function monthCodeNumberToMonth(e2, n2, t2) {
-  return e2 + (n2 || t2 && e2 >= t2 ? 1 : 0);
-}
-function monthToMonthCodeNumber(e2, n2) {
-  return e2 - (n2 && e2 >= n2 ? 1 : 0);
-}
-function eraYearToYear(e2, n2) {
-  return (n2 + e2) * (Math.sign(n2) || 1) || 0;
-}
-function getCalendarEraOrigins(e2) {
-  return ir[getCalendarIdBase(e2)];
-}
-function getCalendarLeapMonthMeta(e2) {
-  return sr[getCalendarIdBase(e2)];
-}
-function getCalendarIdBase(e2) {
-  return computeCalendarIdBase(e2.id || l);
-}
-function createIntlCalendar(e2) {
-  function epochMilliToIntlFields(e3) {
-    return ((e4, n3) => ({
-      ...parseIntlYear(e4, n3),
-      o: e4.month,
-      day: parseInt(e4.day)
-    }))(hashIntlFormatParts(n2, e3), t2);
-  }
-  const n2 = Ci(e2), t2 = computeCalendarIdBase(e2);
-  return {
-    id: e2,
-    h: createIntlFieldCache(epochMilliToIntlFields),
-    l: createIntlYearDataCache(epochMilliToIntlFields)
-  };
-}
-function createIntlFieldCache(e2) {
-  return on((n2) => {
-    const t2 = isoToEpochMilli(n2);
-    return e2(t2);
-  }, WeakMap);
-}
-function createIntlYearDataCache(e2) {
-  const n2 = e2(0).year - Or;
-  return on((t2) => {
-    let o2, r2 = isoArgsToEpochMilli(t2 - n2), i2 = 0;
-    const a2 = [], s2 = [];
-    do {
-      r2 += 400 * ko;
-    } while ((o2 = e2(r2)).year <= t2);
-    do {
-      if (r2 += (1 - o2.day) * ko, o2.year === t2 && (a2.push(r2), s2.push(o2.o)), r2 -= ko, ++i2 > 100 || r2 < -Pr) {
-        throw new RangeError(fo);
-      }
-    } while ((o2 = e2(r2)).year >= t2);
-    return {
-      i: a2.reverse(),
-      u: Fo(s2.reverse())
-    };
-  });
-}
-function parseIntlYear(e2, n2) {
-  let t2, o2, r2 = parseIntlPartsYear(e2);
-  if (e2.era) {
-    const i2 = ir[n2], a2 = ar[n2] || {};
-    void 0 !== i2 && (t2 = "islamic" === n2 ? "ah" : e2.era.normalize("NFD").toLowerCase().replace(/[^a-z0-9]/g, ""), "bc" === t2 || "b" === t2 ? t2 = "bce" : "ad" === t2 || "a" === t2 ? t2 = "ce" : "beforeroc" === t2 && (t2 = "broc"), t2 = a2[t2] || t2, o2 = r2, r2 = eraYearToYear(o2, i2[t2] || 0));
-  }
-  return {
-    era: t2,
-    eraYear: o2,
-    year: r2
-  };
-}
-function parseIntlPartsYear(e2) {
-  return parseInt(e2.relatedYear || e2.year);
-}
-function computeIntlDateParts(e2) {
-  const { year: n2, o: t2, day: o2 } = this.h(e2), { u: r2 } = this.l(n2);
-  return [n2, r2[t2] + 1, o2];
-}
-function computeIntlEpochMilli(e2, n2 = 1, t2 = 1) {
-  return this.l(e2).i[n2 - 1] + (t2 - 1) * ko;
-}
-function computeIntlMonthCodeParts(e2, n2) {
-  const t2 = computeIntlLeapMonth.call(this, e2);
-  return [monthToMonthCodeNumber(n2, t2), t2 === n2];
-}
-function computeIntlLeapMonth(e2) {
-  const n2 = queryMonthStrings(this, e2), t2 = queryMonthStrings(this, e2 - 1), o2 = n2.length;
-  if (o2 > t2.length) {
-    const e3 = getCalendarLeapMonthMeta(this);
-    if (e3 < 0) {
-      return -e3;
-    }
-    for (let e4 = 0; e4 < o2; e4++) {
-      if (n2[e4] !== t2[e4]) {
-        return e4 + 1;
-      }
-    }
-  }
-}
-function computeIntlDaysInYear(e2) {
-  return diffEpochMilliByDay(computeIntlEpochMilli.call(this, e2), computeIntlEpochMilli.call(this, e2 + 1));
-}
-function computeIntlDaysInMonth(e2, n2) {
-  const { i: t2 } = this.l(e2);
-  let o2 = n2 + 1, r2 = t2;
-  return o2 > t2.length && (o2 = 1, r2 = this.l(e2 + 1).i), diffEpochMilliByDay(t2[n2 - 1], r2[o2 - 1]);
-}
-function computeIntlMonthsInYear(e2) {
-  return this.l(e2).i.length;
-}
-function computeIntlEraParts(e2) {
-  const n2 = this.h(e2);
-  return [n2.era, n2.eraYear];
-}
-function queryMonthStrings(e2, n2) {
-  return Object.keys(e2.l(n2).u);
-}
-function Mt(e2) {
-  return u(m(e2));
-}
-function u(e2) {
-  if ((e2 = e2.toLowerCase()) !== l && e2 !== or) {
-    const n2 = Ci(e2).resolvedOptions().calendar;
-    if (computeCalendarIdBase(e2) !== computeCalendarIdBase(n2)) {
-      throw new RangeError(c(e2));
-    }
-    return n2;
-  }
-  return e2;
-}
-function computeCalendarIdBase(e2) {
-  return "islamicc" === e2 && (e2 = "islamic"), e2.split("-")[0];
-}
-function createNativeOpsCreator(e2, n2) {
-  return (t2) => t2 === l ? e2 : t2 === or || t2 === rr ? Object.assign(Object.create(e2), {
-    id: t2
-  }) : Object.assign(Object.create(n2), ki(t2));
-}
-function $(e2, n2, t2, o2) {
-  const r2 = refineCalendarFields(t2, o2, Xo, [], xo);
-  if (void 0 !== r2.timeZone) {
-    const o3 = t2.F(r2), i2 = refineTimeBag(r2), a2 = e2(r2.timeZone);
-    return {
-      epochNanoseconds: getMatchingInstantFor(n2(a2), {
-        ...o3,
-        ...i2
-      }, void 0 !== r2.offset ? parseOffsetNano(r2.offset) : void 0),
-      timeZone: a2
-    };
-  }
-  return {
-    ...t2.F(r2),
-    ...Nt
-  };
-}
-function Ne(e2, n2, t2, o2, r2, i2) {
-  const a2 = refineCalendarFields(t2, r2, Xo, jo, xo), s2 = e2(a2.timeZone), [c2, u2, f2] = je(i2), l2 = t2.F(a2, fabricateOverflowOptions(c2)), d2 = refineTimeBag(a2, c2);
-  return _e(getMatchingInstantFor(n2(s2), {
-    ...l2,
-    ...d2
-  }, void 0 !== a2.offset ? parseOffsetNano(a2.offset) : void 0, u2, f2), s2, o2);
-}
-function At(e2, n2, t2) {
-  const o2 = refineCalendarFields(e2, n2, Xo, [], O), r2 = mt(t2);
-  return jt(checkIsoDateTimeInBounds({
-    ...e2.F(o2, fabricateOverflowOptions(r2)),
-    ...refineTimeBag(o2, r2)
-  }));
-}
-function me(e2, n2, t2, o2 = []) {
-  const r2 = refineCalendarFields(e2, n2, Xo, o2);
-  return e2.F(r2, t2);
-}
-function Xt(e2, n2, t2, o2) {
-  const r2 = refineCalendarFields(e2, n2, Ko, o2);
-  return e2.K(r2, t2);
-}
-function Rt(e2, n2, t2, o2) {
-  const r2 = refineCalendarFields(e2, t2, Xo, Jo);
-  return n2 && void 0 !== r2.month && void 0 === r2.monthCode && void 0 === r2.year && (r2.year = Br), e2._(r2, o2);
-}
-function Tt(e2, n2) {
-  return St(refineTimeBag(refineFields(e2, qo, [], 1), mt(n2)));
-}
-function q(e2) {
-  const n2 = refineFields(e2, ur);
-  return Oe(checkDurationUnits({
-    ...pr,
-    ...n2
-  }));
-}
-function refineCalendarFields(e2, n2, t2, o2 = [], r2 = []) {
-  return refineFields(n2, [...e2.fields(t2), ...r2].sort(), o2);
-}
-function refineFields(e2, n2, t2, o2 = !t2) {
-  const r2 = {};
-  let i2, a2 = 0;
-  for (const o3 of n2) {
-    if (o3 === i2) {
-      throw new RangeError(duplicateFields(o3));
-    }
-    if ("constructor" === o3 || "__proto__" === o3) {
-      throw new RangeError(forbiddenField(o3));
-    }
-    let n3 = e2[o3];
-    if (void 0 !== n3) {
-      a2 = 1, Li[o3] && (n3 = Li[o3](n3, o3)), r2[o3] = n3;
-    } else if (t2) {
-      if (t2.includes(o3)) {
-        throw new TypeError(missingField(o3));
-      }
-      r2[o3] = tr[o3];
-    }
-    i2 = o3;
-  }
-  if (o2 && !a2) {
-    throw new TypeError(noValidFields(n2));
-  }
-  return r2;
-}
-function refineTimeBag(e2, n2) {
-  return constrainIsoTimeFields(xi({
-    ...tr,
-    ...e2
-  }), n2);
-}
-function De(e2, n2, t2, o2, r2) {
-  const { calendar: i2, timeZone: a2 } = t2, s2 = e2(i2), c2 = n2(a2), u2 = [...s2.fields(Xo), ...Lo].sort(), f2 = ((e3) => {
-    const n3 = he(e3, L), t3 = Se(n3.offsetNanoseconds), o3 = ji(e3.calendar), [r3, i3, a3] = o3.v(n3), [s3, c3] = o3.q(r3, i3), u3 = formatMonthCode(s3, c3);
-    return {
-      ...$i(n3),
-      year: r3,
-      monthCode: u3,
-      day: a3,
-      offset: t3
-    };
-  })(t2), l2 = refineFields(o2, u2), d2 = s2.k(f2, l2), m2 = {
-    ...f2,
-    ...l2
-  }, [p2, h2, g2] = je(r2, 2);
-  return _e(getMatchingInstantFor(c2, {
-    ...s2.F(d2, fabricateOverflowOptions(p2)),
-    ...constrainIsoTimeFields(xi(m2), p2)
-  }, parseOffsetNano(m2.offset), h2, g2), a2, i2);
-}
-function gt(e2, n2, t2, o2) {
-  const r2 = e2(n2.calendar), i2 = [...r2.fields(Xo), ...O].sort(), a2 = {
-    ...computeDateEssentials(s2 = n2),
-    hour: s2.isoHour,
-    minute: s2.isoMinute,
-    second: s2.isoSecond,
-    millisecond: s2.isoMillisecond,
-    microsecond: s2.isoMicrosecond,
-    nanosecond: s2.isoNanosecond
-  };
-  var s2;
-  const c2 = refineFields(t2, i2), u2 = mt(o2), f2 = r2.k(a2, c2), l2 = {
-    ...a2,
-    ...c2
-  };
-  return jt(checkIsoDateTimeInBounds({
-    ...r2.F(f2, fabricateOverflowOptions(u2)),
-    ...constrainIsoTimeFields(xi(l2), u2)
-  }));
-}
-function ee(e2, n2, t2, o2) {
-  const r2 = e2(n2.calendar), i2 = r2.fields(Xo).sort(), a2 = computeDateEssentials(n2), s2 = refineFields(t2, i2), c2 = r2.k(a2, s2);
-  return r2.F(c2, o2);
-}
-function Wt(e2, n2, t2, o2) {
-  const r2 = e2(n2.calendar), i2 = r2.fields(Ko).sort(), a2 = ((e3) => {
-    const n3 = ji(e3.calendar), [t3, o3] = n3.v(e3), [r3, i3] = n3.q(t3, o3);
-    return {
-      year: t3,
-      monthCode: formatMonthCode(r3, i3)
-    };
-  })(n2), s2 = refineFields(t2, i2), c2 = r2.k(a2, s2);
-  return r2.K(c2, o2);
-}
-function Et(e2, n2, t2, o2) {
-  const r2 = e2(n2.calendar), i2 = r2.fields(Xo).sort(), a2 = ((e3) => {
-    const n3 = ji(e3.calendar), [t3, o3, r3] = n3.v(e3), [i3, a3] = n3.q(t3, o3);
-    return {
-      monthCode: formatMonthCode(i3, a3),
-      day: r3
-    };
-  })(n2), s2 = refineFields(t2, i2), c2 = r2.k(a2, s2);
-  return r2._(c2, o2);
-}
-function rt(e2, n2, t2) {
-  return St(((e3, n3, t3) => refineTimeBag({
-    ...nn(qo, e3),
-    ...refineFields(n3, qo)
-  }, mt(t3)))(e2, n2, t2));
-}
-function A(e2, n2) {
-  return Oe((t2 = e2, o2 = n2, checkDurationUnits({
-    ...t2,
-    ...refineFields(o2, ur)
-  })));
-  var t2, o2;
-}
-function convertToIso(e2, n2, t2, o2, r2) {
-  n2 = nn(t2 = e2.fields(t2), n2), o2 = refineFields(o2, r2 = e2.fields(r2), []);
-  let i2 = e2.k(n2, o2);
-  return i2 = refineFields(i2, [...t2, ...r2].sort(), []), e2.F(i2);
-}
-function refineYear(e2, n2) {
-  const t2 = getCalendarEraOrigins(e2), o2 = ar[e2.id || ""] || {};
-  let { era: r2, eraYear: i2, year: a2 } = n2;
-  if (void 0 !== r2 || void 0 !== i2) {
-    if (void 0 === r2 || void 0 === i2) {
-      throw new TypeError(io);
-    }
-    if (!t2) {
-      throw new RangeError(ro);
-    }
-    const e3 = t2[o2[r2] || r2];
-    if (void 0 === e3) {
-      throw new RangeError(invalidEra(r2));
-    }
-    const n3 = eraYearToYear(i2, e3);
-    if (void 0 !== a2 && a2 !== n3) {
-      throw new RangeError(ao);
-    }
-    a2 = n3;
-  } else if (void 0 === a2) {
-    throw new TypeError(missingYear(t2));
-  }
-  return a2;
-}
-function refineMonth(e2, n2, t2, o2) {
-  let { month: r2, monthCode: i2 } = n2;
-  if (void 0 !== i2) {
-    const n3 = ((e3, n4, t3, o3) => {
-      const r3 = e3.L(t3), [i3, a2] = parseMonthCode(n4);
-      let s2 = monthCodeNumberToMonth(i3, a2, r3);
-      if (a2) {
-        const n5 = getCalendarLeapMonthMeta(e3);
-        if (void 0 === n5) {
-          throw new RangeError(uo);
-        }
-        if (n5 > 0) {
-          if (s2 > n5) {
-            throw new RangeError(uo);
-          }
-          if (void 0 === r3) {
-            if (1 === o3) {
-              throw new RangeError(uo);
-            }
-            s2--;
-          }
-        } else {
-          if (s2 !== -n5) {
-            throw new RangeError(uo);
-          }
-          if (void 0 === r3 && 1 === o3) {
-            throw new RangeError(uo);
-          }
-        }
-      }
-      return s2;
-    })(e2, i2, t2, o2);
-    if (void 0 !== r2 && r2 !== n3) {
-      throw new RangeError(so);
-    }
-    r2 = n3, o2 = 1;
-  } else if (void 0 === r2) {
-    throw new TypeError(co);
-  }
-  return clampEntity("month", r2, 1, e2.B(t2), o2);
-}
-function refineDay(e2, n2, t2, o2, r2) {
-  return clampProp(n2, "day", 1, e2.U(o2, t2), r2);
-}
-function spliceFields(e2, n2, t2, o2) {
-  let r2 = 0;
-  const i2 = [];
-  for (const e3 of t2) {
-    void 0 !== n2[e3] ? r2 = 1 : i2.push(e3);
-  }
-  if (Object.assign(e2, n2), r2) {
-    for (const n3 of o2 || i2) {
-      delete e2[n3];
-    }
-  }
-}
-function computeDateEssentials(e2) {
-  const n2 = ji(e2.calendar), [t2, o2, r2] = n2.v(e2), [i2, a2] = n2.q(t2, o2);
-  return {
-    year: t2,
-    monthCode: formatMonthCode(i2, a2),
-    day: r2
-  };
-}
-function qe(e2) {
-  return xe(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
-}
-function ye(e2, n2, t2, o2, r2 = l) {
-  return _e(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(t2))), n2(o2), e2(r2));
-}
-function Zt(n2, t2, o2, r2, i2 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0, f2 = 0, d2 = l) {
-  return jt(checkIsoDateTimeInBounds(checkIsoDateTimeFields(e(toInteger, zipProps(Tr, [t2, o2, r2, i2, a2, s2, c2, u2, f2])))), n2(d2));
-}
-function ue(n2, t2, o2, r2, i2 = l) {
-  return W(checkIsoDateInBounds(checkIsoDateFields(e(toInteger, {
-    isoYear: t2,
-    isoMonth: o2,
-    isoDay: r2
-  }))), n2(i2));
-}
-function Qt(e2, n2, t2, o2 = l, r2 = 1) {
-  const i2 = toInteger(n2), a2 = toInteger(t2), s2 = e2(o2);
-  return createPlainYearMonthSlots(checkIsoYearMonthInBounds(checkIsoDateFields({
-    isoYear: i2,
-    isoMonth: a2,
-    isoDay: toInteger(r2)
-  })), s2);
-}
-function kt(e2, n2, t2, o2 = l, r2 = Br) {
-  const i2 = toInteger(n2), a2 = toInteger(t2), s2 = e2(o2);
-  return createPlainMonthDaySlots(checkIsoDateInBounds(checkIsoDateFields({
-    isoYear: toInteger(r2),
-    isoMonth: i2,
-    isoDay: a2
-  })), s2);
-}
-function ut(n2 = 0, t2 = 0, o2 = 0, r2 = 0, i2 = 0, a2 = 0) {
-  return St(constrainIsoTimeFields(e(toInteger, zipProps(w, [n2, t2, o2, r2, i2, a2])), 1));
-}
-function j(n2 = 0, t2 = 0, o2 = 0, r2 = 0, i2 = 0, a2 = 0, s2 = 0, c2 = 0, u2 = 0, f2 = 0) {
-  return Oe(checkDurationUnits(e(toStrictInteger, zipProps(p, [n2, t2, o2, r2, i2, a2, s2, c2, u2, f2]))));
-}
-function Je(e2, n2, t2 = l) {
-  return _e(e2.epochNanoseconds, n2, t2);
-}
-function be(e2) {
-  return xe(e2.epochNanoseconds);
-}
-function yt(e2, n2) {
-  return jt(he(n2, e2));
-}
-function fe(e2, n2) {
-  return W(he(n2, e2));
-}
-function dt(e2, n2) {
-  return St(he(n2, e2));
-}
-function bt(e2, n2, t2, o2) {
-  const r2 = ((e3, n3, t3, o3) => {
-    const r3 = ((e4) => ei(normalizeOptions(e4)))(o3);
-    return getSingleInstantFor(e3(n3), t3, r3);
-  })(e2, t2, n2, o2);
-  return _e(checkEpochNanoInBounds(r2), t2, n2.calendar);
-}
-function ae(e2, n2, t2, o2, r2) {
-  const i2 = e2(r2.timeZone), a2 = r2.plainTime, s2 = void 0 !== a2 ? n2(a2) : void 0, c2 = t2(i2);
-  let u2;
-  return u2 = s2 ? getSingleInstantFor(c2, {
-    ...o2,
-    ...s2
-  }) : getStartOfDayInstantFor(c2, {
-    ...o2,
-    ...Nt
-  }), _e(u2, i2, o2.calendar);
-}
-function ie(e2, n2 = Nt) {
-  return jt(checkIsoDateTimeInBounds({
-    ...e2,
-    ...n2
-  }));
-}
-function le(e2, n2, t2) {
-  return ((e3, n3) => {
-    const t3 = refineCalendarFields(e3, n3, Qo);
-    return e3.K(t3, void 0);
-  })(e2(n2.calendar), t2);
-}
-function se(e2, n2, t2) {
-  return ((e3, n3) => {
-    const t3 = refineCalendarFields(e3, n3, nr);
-    return e3._(t3);
-  })(e2(n2.calendar), t2);
-}
-function Ht(e2, n2, t2, o2) {
-  return ((e3, n3, t3) => convertToIso(e3, n3, Qo, requireObjectLike(t3), Jo))(e2(n2.calendar), t2, o2);
-}
-function Vt(e2, n2, t2, o2) {
-  return ((e3, n3, t3) => convertToIso(e3, n3, nr, requireObjectLike(t3), Go))(e2(n2.calendar), t2, o2);
-}
-function $e(e2) {
-  return xe(checkEpochNanoInBounds(Ge(toStrictInteger(e2), Qe)));
-}
-function He(e2) {
-  return xe(checkEpochNanoInBounds(bigIntToBigNano(toBigInt(e2))));
-}
-function createOptionsTransformer(e2, n2, t2) {
-  const o2 = new Set(t2);
-  return (r2, i2) => {
-    const a2 = t2 && hasAnyPropsByName(r2, t2);
-    if (!hasAnyPropsByName(r2 = ((e3, n3) => {
-      const t3 = {};
-      for (const o3 in n3) {
-        e3.has(o3) || (t3[o3] = n3[o3]);
-      }
-      return t3;
-    })(o2, r2), e2)) {
-      if (i2 && a2) {
-        throw new TypeError("Invalid formatting options");
-      }
-      r2 = {
-        ...n2,
-        ...r2
-      };
-    }
-    return t2 && (r2.timeZone = si, ["full", "long"].includes(r2.J) && (r2.J = "medium")), r2;
-  };
-}
-function Q(e2, n2 = an, t2 = 0) {
-  const [o2, , , r2] = e2;
-  return (i2, a2 = Na, ...s2) => {
-    const c2 = n2(r2 && r2(...s2), i2, a2, o2, t2), u2 = c2.resolvedOptions();
-    return [c2, ...toEpochMillis(e2, u2, s2)];
-  };
-}
-function an(e2, n2, t2, o2, r2) {
-  if (t2 = o2(t2, r2), e2) {
-    if (void 0 !== t2.timeZone) {
-      throw new TypeError(So);
-    }
-    t2.timeZone = e2;
-  }
-  return new en(n2, t2);
-}
-function toEpochMillis(e2, n2, t2) {
-  const [, o2, r2] = e2;
-  return t2.map((e3) => (e3.calendar && ((e4, n3, t3) => {
-    if ((t3 || e4 !== l) && e4 !== n3) {
-      throw new RangeError(lo);
-    }
-  })(e3.calendar, n2.calendar, r2), o2(e3, n2)));
-}
-function ge(e2, n2, t2) {
-  const o2 = n2.timeZone, r2 = e2(o2), i2 = {
-    ...he(n2, r2),
-    ...t2 || Nt
-  };
-  let a2;
-  return a2 = t2 ? getMatchingInstantFor(r2, i2, i2.offsetNanoseconds, 2) : getStartOfDayInstantFor(r2, i2), _e(a2, o2, n2.calendar);
-}
-function Ot(e2, n2 = Nt) {
-  return jt(checkIsoDateTimeInBounds({
-    ...e2,
-    ...n2
-  }));
-}
-function pt(e2, n2) {
-  return {
-    ...e2,
-    calendar: n2
-  };
-}
-function Pe(e2, n2) {
-  return {
-    ...e2,
-    timeZone: n2
-  };
-}
-function tn(e2) {
-  const n2 = Xe();
-  return epochNanoToIso(n2, e2.R(n2));
-}
-function Xe() {
-  return Ge(Date.now(), Qe);
-}
-function Ue() {
-  return va || (va = new en().resolvedOptions().timeZone);
-}
-var expectedInteger = (e2, n2) => `Non-integer ${e2}: ${n2}`;
-var expectedPositive = (e2, n2) => `Non-positive ${e2}: ${n2}`;
-var expectedFinite = (e2, n2) => `Non-finite ${e2}: ${n2}`;
-var forbiddenBigIntToNumber = (e2) => `Cannot convert bigint to ${e2}`;
-var invalidBigInt = (e2) => `Invalid bigint: ${e2}`;
-var no = "Cannot convert Symbol to string";
-var oo = "Invalid object";
-var numberOutOfRange = (e2, n2, t2, o2, r2) => r2 ? numberOutOfRange(e2, r2[n2], r2[t2], r2[o2]) : invalidEntity(e2, n2) + `; must be between ${t2}-${o2}`;
-var invalidEntity = (e2, n2) => `Invalid ${e2}: ${n2}`;
-var missingField = (e2) => `Missing ${e2}`;
-var forbiddenField = (e2) => `Invalid field ${e2}`;
-var duplicateFields = (e2) => `Duplicate field ${e2}`;
-var noValidFields = (e2) => "No valid fields: " + e2.join();
-var i = "Invalid bag";
-var invalidChoice = (e2, n2, t2) => invalidEntity(e2, n2) + "; must be " + Object.keys(t2).join();
-var b = "Cannot use valueOf";
-var a = "Invalid calling context";
-var ro = "Forbidden era/eraYear";
-var io = "Mismatching era/eraYear";
-var ao = "Mismatching year/eraYear";
-var invalidEra = (e2) => `Invalid era: ${e2}`;
-var missingYear = (e2) => "Missing year" + (e2 ? "/era/eraYear" : "");
-var invalidMonthCode = (e2) => `Invalid monthCode: ${e2}`;
-var so = "Mismatching month/monthCode";
-var co = "Missing month/monthCode";
-var uo = "Invalid leap month";
-var fo = "Invalid protocol results";
-var c = (e2) => invalidEntity("Calendar", e2);
-var lo = "Mismatching Calendars";
-var F = (e2) => invalidEntity("TimeZone", e2);
-var mo = "Mismatching TimeZones";
-var po = "Forbidden ICU TimeZone";
-var ho = "Out-of-bounds offset";
-var go = "Out-of-bounds TimeZone gap";
-var Do = "Invalid TimeZone offset";
-var To = "Ambiguous offset";
-var Io = "Out-of-bounds date";
-var Mo = "Out-of-bounds duration";
-var No = "Cannot mix duration signs";
-var yo = "Missing relativeTo";
-var vo = "Cannot use large units";
-var Po = "Required smallestUnit or largestUnit";
-var Eo = "smallestUnit > largestUnit";
-var failedParse = (e2) => `Cannot parse: ${e2}`;
-var invalidSubstring = (e2) => `Invalid substring: ${e2}`;
-var rn = (e2) => `Cannot format ${e2}`;
-var ln = "Mismatching types for formatting";
-var So = "Cannot specify TimeZone";
-var Fo = /* @__PURE__ */ Pt(g, (e2, n2) => n2);
-var wo = /* @__PURE__ */ Pt(g, (e2, n2, t2) => t2);
-var bo = /* @__PURE__ */ Pt(padNumber, 2);
-var Oo = {
-  nanosecond: 0,
-  microsecond: 1,
-  millisecond: 2,
-  second: 3,
-  minute: 4,
-  hour: 5,
-  day: 6,
-  week: 7,
-  month: 8,
-  year: 9
-};
-var Bo = /* @__PURE__ */ Object.keys(Oo);
-var ko = 864e5;
-var Co = 1e3;
-var Yo = 1e3;
-var Qe = 1e6;
-var Ro = 1e9;
-var Zo = 6e10;
-var zo = 36e11;
-var Uo = 864e11;
-var Ao = [1, Yo, Qe, Ro, Zo, zo, Uo];
-var O = /* @__PURE__ */ Bo.slice(0, 6);
-var qo = /* @__PURE__ */ sortStrings(O);
-var Wo = ["offset"];
-var jo = ["timeZone"];
-var Lo = /* @__PURE__ */ O.concat(Wo);
-var xo = /* @__PURE__ */ Lo.concat(jo);
-var $o = ["era", "eraYear"];
-var Ho = /* @__PURE__ */ $o.concat(["year"]);
-var Go = ["year"];
-var Vo = ["monthCode"];
-var _o = /* @__PURE__ */ ["month"].concat(Vo);
-var Jo = ["day"];
-var Ko = /* @__PURE__ */ _o.concat(Go);
-var Qo = /* @__PURE__ */ Vo.concat(Go);
-var Xo = /* @__PURE__ */ Jo.concat(Ko);
-var er = /* @__PURE__ */ Jo.concat(_o);
-var nr = /* @__PURE__ */ Jo.concat(Vo);
-var tr = /* @__PURE__ */ wo(O, 0);
-var l = "iso8601";
-var or = "gregory";
-var rr = "japanese";
-var ir = {
-  [or]: {
-    "gregory-inverse": -1,
-    gregory: 0
-  },
-  [rr]: {
-    "japanese-inverse": -1,
-    japanese: 0,
-    meiji: 1867,
-    taisho: 1911,
-    showa: 1925,
-    heisei: 1988,
-    reiwa: 2018
-  },
-  ethiopic: {
-    ethioaa: 0,
-    ethiopic: 5500
-  },
-  coptic: {
-    "coptic-inverse": -1,
-    coptic: 0
-  },
-  roc: {
-    "roc-inverse": -1,
-    roc: 0
-  },
-  buddhist: {
-    be: 0
-  },
-  islamic: {
-    ah: 0
-  },
-  indian: {
-    saka: 0
-  },
-  persian: {
-    ap: 0
-  }
-};
-var ar = {
-  [or]: {
-    bce: "gregory-inverse",
-    ce: "gregory"
-  },
-  [rr]: {
-    bce: "japanese-inverse",
-    ce: "japanese"
-  },
-  ethiopic: {
-    era0: "ethioaa",
-    era1: "ethiopic"
-  },
-  coptic: {
-    era0: "coptic-inverse",
-    era1: "coptic"
-  },
-  roc: {
-    broc: "roc-inverse",
-    minguo: "roc"
-  }
-};
-var sr = {
-  chinese: 13,
-  dangi: 13,
-  hebrew: -6
-};
-var m = /* @__PURE__ */ Pt(requireType, "string");
-var D = /* @__PURE__ */ Pt(requireType, "boolean");
-var cr = /* @__PURE__ */ Pt(requireType, "number");
-var p = /* @__PURE__ */ Bo.map((e2) => e2 + "s");
-var ur = /* @__PURE__ */ sortStrings(p);
-var fr = /* @__PURE__ */ p.slice(0, 6);
-var lr = /* @__PURE__ */ p.slice(6);
-var dr = /* @__PURE__ */ lr.slice(1);
-var mr = /* @__PURE__ */ Fo(p);
-var pr = /* @__PURE__ */ wo(p, 0);
-var hr = /* @__PURE__ */ wo(fr, 0);
-var gr = /* @__PURE__ */ Pt(zeroOutProps, p);
-var w = ["isoNanosecond", "isoMicrosecond", "isoMillisecond", "isoSecond", "isoMinute", "isoHour"];
-var Dr = ["isoDay", "isoMonth", "isoYear"];
-var Tr = /* @__PURE__ */ w.concat(Dr);
-var Ir = /* @__PURE__ */ sortStrings(Dr);
-var Mr = /* @__PURE__ */ sortStrings(w);
-var Nr = /* @__PURE__ */ sortStrings(Tr);
-var Nt = /* @__PURE__ */ wo(Mr, 0);
-var yr = /* @__PURE__ */ Pt(zeroOutProps, Tr);
-var vr = 1e8;
-var Pr = vr * ko;
-var Er = [vr, 0];
-var Sr = [-vr, 0];
-var Fr = 275760;
-var wr = -271821;
-var en = Intl.DateTimeFormat;
-var br = "en-GB";
-var Or = 1970;
-var Br = 1972;
-var kr = 12;
-var Cr = /* @__PURE__ */ isoArgsToEpochMilli(1868, 9, 8);
-var Yr = /* @__PURE__ */ on(computeJapaneseEraParts, WeakMap);
-var Rr = "smallestUnit";
-var Zr = "unit";
-var zr = "roundingIncrement";
-var Ur = "fractionalSecondDigits";
-var Ar = "relativeTo";
-var qr = "direction";
-var Wr = {
-  constrain: 0,
-  reject: 1
-};
-var jr = /* @__PURE__ */ Object.keys(Wr);
-var Lr = {
-  compatible: 0,
-  reject: 1,
-  earlier: 2,
-  later: 3
-};
-var xr = {
-  reject: 0,
-  use: 1,
-  prefer: 2,
-  ignore: 3
-};
-var $r = {
-  auto: 0,
-  never: 1,
-  critical: 2,
-  always: 3
-};
-var Hr = {
-  auto: 0,
-  never: 1,
-  critical: 2
-};
-var Gr = {
-  auto: 0,
-  never: 1
-};
-var Vr = {
-  floor: 0,
-  halfFloor: 1,
-  ceil: 2,
-  halfCeil: 3,
-  trunc: 4,
-  halfTrunc: 5,
-  expand: 6,
-  halfExpand: 7,
-  halfEven: 8
-};
-var _r = {
-  previous: -1,
-  next: 1
-};
-var Jr = /* @__PURE__ */ Pt(refineUnitOption, Rr);
-var Kr = /* @__PURE__ */ Pt(refineUnitOption, "largestUnit");
-var Qr = /* @__PURE__ */ Pt(refineUnitOption, Zr);
-var Xr = /* @__PURE__ */ Pt(refineChoiceOption, "overflow", Wr);
-var ei = /* @__PURE__ */ Pt(refineChoiceOption, "disambiguation", Lr);
-var ni = /* @__PURE__ */ Pt(refineChoiceOption, "offset", xr);
-var ti = /* @__PURE__ */ Pt(refineChoiceOption, "calendarName", $r);
-var oi = /* @__PURE__ */ Pt(refineChoiceOption, "timeZoneName", Hr);
-var ri = /* @__PURE__ */ Pt(refineChoiceOption, "offset", Gr);
-var ii = /* @__PURE__ */ Pt(refineChoiceOption, "roundingMode", Vr);
-var Ut = "PlainYearMonth";
-var qt = "PlainMonthDay";
-var G = "PlainDate";
-var x = "PlainDateTime";
-var ft = "PlainTime";
-var z = "ZonedDateTime";
-var Re = "Instant";
-var N = "Duration";
-var ai = [Math.floor, (e2) => hasHalf(e2) ? Math.floor(e2) : Math.round(e2), Math.ceil, (e2) => hasHalf(e2) ? Math.ceil(e2) : Math.round(e2), Math.trunc, (e2) => hasHalf(e2) ? Math.trunc(e2) || 0 : Math.round(e2), (e2) => e2 < 0 ? Math.floor(e2) : Math.ceil(e2), (e2) => Math.sign(e2) * Math.round(Math.abs(e2)) || 0, (e2) => hasHalf(e2) ? (e2 = Math.trunc(e2) || 0) + e2 % 2 : Math.round(e2)];
-var si = "UTC";
-var ci = 5184e3;
-var ui = /* @__PURE__ */ isoArgsToEpochSec(1847);
-var fi = /* @__PURE__ */ isoArgsToEpochSec(/* @__PURE__ */ (/* @__PURE__ */ new Date()).getUTCFullYear() + 10);
-var li = /0+$/;
-var he = /* @__PURE__ */ on(_zonedEpochSlotsToIso, WeakMap);
-var di = 2 ** 32 - 1;
-var L = /* @__PURE__ */ on((e2) => {
-  const n2 = getTimeZoneEssence(e2);
-  return "object" == typeof n2 ? new IntlTimeZone(n2) : new FixedTimeZone(n2 || 0);
-});
-var FixedTimeZone = class {
-  constructor(e2) {
-    this.$ = e2;
-  }
-  R() {
-    return this.$;
-  }
-  I(e2) {
-    return ((e3) => {
-      const n2 = isoToEpochNano({
-        ...e3,
-        ...Nt
-      });
-      if (!n2 || Math.abs(n2[0]) > 1e8) {
-        throw new RangeError(Io);
-      }
-    })(e2), [isoToEpochNanoWithOffset(e2, this.$)];
-  }
-  O() {
-  }
-};
-var IntlTimeZone = class {
-  constructor(e2) {
-    this.nn = ((e3) => {
-      function getOffsetSec(e4) {
-        const i2 = clampNumber(e4, o2, r2), [a2, s2] = computePeriod(i2), c2 = n2(a2), u2 = n2(s2);
-        return c2 === u2 ? c2 : pinch(t2(a2, s2), c2, u2, e4);
-      }
-      function pinch(n3, t3, o3, r3) {
-        let i2, a2;
-        for (; (void 0 === r3 || void 0 === (i2 = r3 < n3[0] ? t3 : r3 >= n3[1] ? o3 : void 0)) && (a2 = n3[1] - n3[0]); ) {
-          const t4 = n3[0] + Math.floor(a2 / 2);
-          e3(t4) === o3 ? n3[1] = t4 : n3[0] = t4 + 1;
-        }
-        return i2;
-      }
-      const n2 = on(e3), t2 = on(createSplitTuple);
-      let o2 = ui, r2 = fi;
-      return {
-        tn(e4) {
-          const n3 = getOffsetSec(e4 - 86400), t3 = getOffsetSec(e4 + 86400), o3 = e4 - n3, r3 = e4 - t3;
-          if (n3 === t3) {
-            return [o3];
-          }
-          const i2 = getOffsetSec(o3);
-          return i2 === getOffsetSec(r3) ? [e4 - i2] : n3 > t3 ? [o3, r3] : [];
-        },
-        rn: getOffsetSec,
-        O(e4, i2) {
-          const a2 = clampNumber(e4, o2, r2);
-          let [s2, c2] = computePeriod(a2);
-          const u2 = ci * i2, f2 = i2 < 0 ? () => c2 > o2 || (o2 = a2, 0) : () => s2 < r2 || (r2 = a2, 0);
-          for (; f2(); ) {
-            const o3 = n2(s2), r3 = n2(c2);
-            if (o3 !== r3) {
-              const n3 = t2(s2, c2);
-              pinch(n3, o3, r3);
-              const a3 = n3[0];
-              if ((compareNumbers(a3, e4) || 1) === i2) {
-                return a3;
-              }
-            }
-            s2 += u2, c2 += u2;
-          }
-        }
-      };
-    })(/* @__PURE__ */ ((e3) => (n2) => {
-      const t2 = hashIntlFormatParts(e3, n2 * Co);
-      return isoArgsToEpochSec(parseIntlPartsYear(t2), parseInt(t2.month), parseInt(t2.day), parseInt(t2.hour), parseInt(t2.minute), parseInt(t2.second)) - n2;
-    })(e2));
-  }
-  R(e2) {
-    return this.nn.rn(((e3) => epochNanoToSecMod(e3)[0])(e2)) * Ro;
-  }
-  I(e2) {
-    const [n2, t2] = [isoArgsToEpochSec((o2 = e2).isoYear, o2.isoMonth, o2.isoDay, o2.isoHour, o2.isoMinute, o2.isoSecond), o2.isoMillisecond * Qe + o2.isoMicrosecond * Yo + o2.isoNanosecond];
-    var o2;
-    return this.nn.tn(n2).map((e3) => checkEpochNanoInBounds(moveBigNano(Ge(e3, Ro), t2)));
-  }
-  O(e2, n2) {
-    const [t2, o2] = epochNanoToSecMod(e2), r2 = this.nn.O(t2 + (n2 > 0 || o2 ? 1 : 0), n2);
-    if (void 0 !== r2) {
-      return Ge(r2, Ro);
-    }
-  }
-};
-var mi = "([+-])";
-var pi = "(?:[.,](\\d{1,9}))?";
-var hi = `(?:(?:${mi}(\\d{6}))|(\\d{4}))-?(\\d{2})`;
-var gi = "(\\d{2})(?::?(\\d{2})(?::?(\\d{2})" + pi + ")?)?";
-var Di = mi + gi;
-var Ti = hi + "-?(\\d{2})(?:[T ]" + gi + "(Z|" + Di + ")?)?";
-var Ii = "\\[(!?)([^\\]]*)\\]";
-var Mi = `((?:${Ii}){0,9})`;
-var Ni = /* @__PURE__ */ createRegExp(hi + Mi);
-var yi = /* @__PURE__ */ createRegExp("(?:--)?(\\d{2})-?(\\d{2})" + Mi);
-var vi = /* @__PURE__ */ createRegExp(Ti + Mi);
-var Pi = /* @__PURE__ */ createRegExp("T?" + gi + "(?:" + Di + ")?" + Mi);
-var Ei = /* @__PURE__ */ createRegExp(Di);
-var Si = /* @__PURE__ */ new RegExp(Ii, "g");
-var Fi = /* @__PURE__ */ createRegExp(`${mi}?P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(?:T(?:(\\d+)${pi}H)?(?:(\\d+)${pi}M)?(?:(\\d+)${pi}S)?)?`);
-var wi = /* @__PURE__ */ on((e2) => new en(br, {
-  timeZone: e2,
-  era: "short",
-  year: "numeric",
-  month: "numeric",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
-  second: "numeric"
-}));
-var bi = /^(AC|AE|AG|AR|AS|BE|BS|CA|CN|CS|CT|EA|EC|IE|IS|JS|MI|NE|NS|PL|PN|PR|PS|SS|VS)T$/;
-var Oi = /[^\w\/:+-]+/;
-var Bi = /^M(\d{2})(L?)$/;
-var ki = /* @__PURE__ */ on(createIntlCalendar);
-var Ci = /* @__PURE__ */ on((e2) => new en(br, {
-  calendar: e2,
-  timeZone: si,
-  era: "short",
-  year: "numeric",
-  month: "short",
-  day: "numeric"
-}));
-var Yi = {
-  P(e2, n2, t2) {
-    const o2 = mt(t2);
-    let r2, { years: i2, months: a2, weeks: s2, days: c2 } = n2;
-    if (c2 += durationFieldsToBigNano(n2, 5)[0], i2 || a2) {
-      r2 = ((e3, n3, t3, o3, r3) => {
-        let [i3, a3, s3] = e3.v(n3);
-        if (t3) {
-          const [n4, o4] = e3.q(i3, a3);
-          i3 += t3, a3 = monthCodeNumberToMonth(n4, o4, e3.L(i3)), a3 = clampEntity("month", a3, 1, e3.B(i3), r3);
-        }
-        return o3 && ([i3, a3] = e3.un(i3, a3, o3)), s3 = clampEntity("day", s3, 1, e3.U(i3, a3), r3), e3.p(i3, a3, s3);
-      })(this, e2, i2, a2, o2);
-    } else {
-      if (!s2 && !c2) {
-        return e2;
-      }
-      r2 = isoToEpochMilli(e2);
-    }
-    if (void 0 === r2) {
-      throw new RangeError(Io);
-    }
-    return r2 += (7 * s2 + c2) * ko, checkIsoDateInBounds(epochMilliToIso(r2));
-  },
-  N(e2, n2, t2) {
-    if (t2 <= 7) {
-      let o3 = 0, r3 = diffDays({
-        ...e2,
-        ...Nt
-      }, {
-        ...n2,
-        ...Nt
-      });
-      return 7 === t2 && ([o3, r3] = divModTrunc(r3, 7)), {
-        ...pr,
-        weeks: o3,
-        days: r3
-      };
-    }
-    const o2 = this.v(e2), r2 = this.v(n2);
-    let [i2, a2, s2] = ((e3, n3, t3, o3, r3, i3, a3) => {
-      let s3 = r3 - n3, c2 = i3 - t3, u2 = a3 - o3;
-      if (s3 || c2) {
-        const f2 = Math.sign(s3 || c2);
-        let l2 = e3.U(r3, i3), d2 = 0;
-        if (Math.sign(u2) === -f2) {
-          const o4 = l2;
-          [r3, i3] = e3.un(r3, i3, -f2), s3 = r3 - n3, c2 = i3 - t3, l2 = e3.U(r3, i3), d2 = f2 < 0 ? -o4 : l2;
-        }
-        if (u2 = a3 - Math.min(o3, l2) + d2, s3) {
-          const [o4, a4] = e3.q(n3, t3), [u3, l3] = e3.q(r3, i3);
-          if (c2 = u3 - o4 || Number(l3) - Number(a4), Math.sign(c2) === -f2) {
-            const t4 = f2 < 0 && -e3.B(r3);
-            s3 = (r3 -= f2) - n3, c2 = i3 - monthCodeNumberToMonth(o4, a4, e3.L(r3)) + (t4 || e3.B(r3));
-          }
-        }
-      }
-      return [s3, c2, u2];
-    })(this, ...o2, ...r2);
-    return 8 === t2 && (a2 += this.cn(i2, o2[0]), i2 = 0), {
-      ...pr,
-      years: i2,
-      months: a2,
-      days: s2
-    };
-  },
-  F(e2, n2) {
-    const t2 = mt(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t2), i2 = refineDay(this, e2, r2, o2, t2);
-    return W(checkIsoDateInBounds(this.V(o2, r2, i2)), this.id || l);
-  },
-  K(e2, n2) {
-    const t2 = mt(n2), o2 = refineYear(this, e2), r2 = refineMonth(this, e2, o2, t2);
-    return createPlainYearMonthSlots(checkIsoYearMonthInBounds(this.V(o2, r2, 1)), this.id || l);
-  },
-  _(e2, n2) {
-    const t2 = mt(n2);
-    let o2, r2, i2, a2 = void 0 !== e2.eraYear || void 0 !== e2.year ? refineYear(this, e2) : void 0;
-    const s2 = !this.id;
-    if (void 0 === a2 && s2 && (a2 = Br), void 0 !== a2) {
-      const n3 = refineMonth(this, e2, a2, t2);
-      o2 = refineDay(this, e2, n3, a2, t2);
-      const s3 = this.L(a2);
-      r2 = monthToMonthCodeNumber(n3, s3), i2 = n3 === s3;
-    } else {
-      if (void 0 === e2.monthCode) {
-        throw new TypeError(co);
-      }
-      if ([r2, i2] = parseMonthCode(e2.monthCode), this.id && this.id !== or && this.id !== rr) {
-        if (this.id && "coptic" === computeCalendarIdBase(this.id) && 0 === t2) {
-          const n3 = i2 || 13 !== r2 ? 30 : 6;
-          o2 = e2.day, o2 = clampNumber(o2, 1, n3);
-        } else if (this.id && "chinese" === computeCalendarIdBase(this.id) && 0 === t2) {
-          const n3 = !i2 || 1 !== r2 && 9 !== r2 && 10 !== r2 && 11 !== r2 && 12 !== r2 ? 30 : 29;
-          o2 = e2.day, o2 = clampNumber(o2, 1, n3);
-        } else {
-          o2 = e2.day;
-        }
-      } else {
-        o2 = refineDay(this, e2, refineMonth(this, e2, Br, t2), Br, t2);
-      }
-    }
-    const c2 = this.G(r2, i2, o2);
-    if (!c2) {
-      throw new RangeError("Cannot guess year");
-    }
-    const [u2, f2] = c2;
-    return createPlainMonthDaySlots(checkIsoDateInBounds(this.V(u2, f2, o2)), this.id || l);
-  },
-  fields(e2) {
-    return getCalendarEraOrigins(this) && e2.includes("year") ? [...e2, ...$o] : e2;
-  },
-  k(e2, n2) {
-    const t2 = Object.assign(/* @__PURE__ */ Object.create(null), e2);
-    return spliceFields(t2, n2, _o), getCalendarEraOrigins(this) && (spliceFields(t2, n2, Ho), this.id === rr && spliceFields(t2, n2, er, $o)), t2;
-  },
-  inLeapYear(e2) {
-    const [n2] = this.v(e2);
-    return this.sn(n2);
-  },
-  monthsInYear(e2) {
-    const [n2] = this.v(e2);
-    return this.B(n2);
-  },
-  daysInMonth(e2) {
-    const [n2, t2] = this.v(e2);
-    return this.U(n2, t2);
-  },
-  daysInYear(e2) {
-    const [n2] = this.v(e2);
-    return this.fn(n2);
-  },
-  dayOfYear: computeNativeDayOfYear,
-  era(e2) {
-    return this.hn(e2)[0];
-  },
-  eraYear(e2) {
-    return this.hn(e2)[1];
-  },
-  monthCode(e2) {
-    const [n2, t2] = this.v(e2), [o2, r2] = this.q(n2, t2);
-    return formatMonthCode(o2, r2);
-  },
-  dayOfWeek: computeIsoDayOfWeek,
-  daysInWeek() {
-    return 7;
-  }
-};
-var Ri = {
-  v: computeIsoDateParts,
-  hn: computeIsoEraParts,
-  q: computeIsoMonthCodeParts
-};
-var Zi = {
-  dayOfYear: computeNativeDayOfYear,
-  v: computeIsoDateParts,
-  p: isoArgsToEpochMilli
-};
-var zi = /* @__PURE__ */ Object.assign({}, Zi, {
-  weekOfYear: computeNativeWeekOfYear,
-  yearOfWeek: computeNativeYearOfWeek,
-  m(e2) {
-    function computeWeekShift(e3) {
-      return (7 - e3 < n2 ? 7 : 0) - e3;
-    }
-    function computeWeeksInYear(e3) {
-      const n3 = computeIsoDaysInYear(f2 + e3), t3 = e3 || 1, o3 = computeWeekShift(modFloor(a2 + n3 * t3, 7));
-      return c2 = (n3 + (o3 - s2) * t3) / 7;
-    }
-    const n2 = this.id ? 1 : 4, t2 = computeIsoDayOfWeek(e2), o2 = this.dayOfYear(e2), r2 = modFloor(t2 - 1, 7), i2 = o2 - 1, a2 = modFloor(r2 - i2, 7), s2 = computeWeekShift(a2);
-    let c2, u2 = Math.floor((i2 - s2) / 7) + 1, f2 = e2.isoYear;
-    return u2 ? u2 > computeWeeksInYear(0) && (u2 = 1, f2++) : (u2 = computeWeeksInYear(-1), f2--), [u2, f2, c2];
-  }
-});
-var Ui = /* @__PURE__ */ Object.assign({}, Yi, zi, {
-  v: computeIsoDateParts,
-  hn: computeIsoEraParts,
-  q: computeIsoMonthCodeParts,
-  G(e2, n2) {
-    if (!n2) {
-      return [Br, e2];
-    }
-  },
-  sn: computeIsoInLeapYear,
-  L() {
-  },
-  B: computeIsoMonthsInYear,
-  cn: (e2) => e2 * kr,
-  U: computeIsoDaysInMonth,
-  fn: computeIsoDaysInYear,
-  V: (e2, n2, t2) => ({
-    isoYear: e2,
-    isoMonth: n2,
-    isoDay: t2
-  }),
-  p: isoArgsToEpochMilli,
-  un: (e2, n2, t2) => (e2 += divTrunc(t2, kr), (n2 += modTrunc(t2, kr)) < 1 ? (e2--, n2 += kr) : n2 > kr && (e2++, n2 -= kr), [e2, n2]),
-  year(e2) {
-    return e2.isoYear;
-  },
-  month(e2) {
-    return e2.isoMonth;
-  },
-  day: (e2) => e2.isoDay
-});
-var Ai = {
-  v: computeIntlDateParts,
-  hn: computeIntlEraParts,
-  q: computeIntlMonthCodeParts
-};
-var qi = {
-  dayOfYear: computeNativeDayOfYear,
-  v: computeIntlDateParts,
-  p: computeIntlEpochMilli,
-  weekOfYear: computeNativeWeekOfYear,
-  yearOfWeek: computeNativeYearOfWeek,
-  m() {
-    return [];
-  }
-};
-var Wi = /* @__PURE__ */ Object.assign({}, Yi, qi, {
-  v: computeIntlDateParts,
-  hn: computeIntlEraParts,
-  q: computeIntlMonthCodeParts,
-  G(e2, n2, t2) {
-    const o2 = this.id && "chinese" === computeCalendarIdBase(this.id) ? ((e3, n3, t3) => {
-      if (n3) {
-        switch (e3) {
-          case 1:
-            return 1651;
-          case 2:
-            return t3 < 30 ? 1947 : 1765;
-          case 3:
-            return t3 < 30 ? 1966 : 1955;
-          case 4:
-            return t3 < 30 ? 1963 : 1944;
-          case 5:
-            return t3 < 30 ? 1971 : 1952;
-          case 6:
-            return t3 < 30 ? 1960 : 1941;
-          case 7:
-            return t3 < 30 ? 1968 : 1938;
-          case 8:
-            return t3 < 30 ? 1957 : 1718;
-          case 9:
-            return 1832;
-          case 10:
-            return 1870;
-          case 11:
-            return 1814;
-          case 12:
-            return 1890;
-        }
-      }
-      return 1972;
-    })(e2, n2, t2) : Br;
-    let [r2, i2, a2] = computeIntlDateParts.call(this, {
-      isoYear: o2,
-      isoMonth: kr,
-      isoDay: 31
-    });
-    const s2 = computeIntlLeapMonth.call(this, r2), c2 = i2 === s2;
-    1 === (compareNumbers(e2, monthToMonthCodeNumber(i2, s2)) || compareNumbers(Number(n2), Number(c2)) || compareNumbers(t2, a2)) && r2--;
-    for (let o3 = 0; o3 < 100; o3++) {
-      const i3 = r2 - o3, a3 = computeIntlLeapMonth.call(this, i3), s3 = monthCodeNumberToMonth(e2, n2, a3);
-      if (n2 === (s3 === a3) && t2 <= computeIntlDaysInMonth.call(this, i3, s3)) {
-        return [i3, s3];
-      }
-    }
-  },
-  sn(e2) {
-    const n2 = computeIntlDaysInYear.call(this, e2);
-    return n2 > computeIntlDaysInYear.call(this, e2 - 1) && n2 > computeIntlDaysInYear.call(this, e2 + 1);
-  },
-  L: computeIntlLeapMonth,
-  B: computeIntlMonthsInYear,
-  cn(e2, n2) {
-    const t2 = n2 + e2, o2 = Math.sign(e2), r2 = o2 < 0 ? -1 : 0;
-    let i2 = 0;
-    for (let e3 = n2; e3 !== t2; e3 += o2) {
-      i2 += computeIntlMonthsInYear.call(this, e3 + r2);
-    }
-    return i2;
-  },
-  U: computeIntlDaysInMonth,
-  fn: computeIntlDaysInYear,
-  V(e2, n2, t2) {
-    return epochMilliToIso(computeIntlEpochMilli.call(this, e2, n2, t2));
-  },
-  p: computeIntlEpochMilli,
-  un(e2, n2, t2) {
-    if (t2) {
-      if (n2 += t2, !Number.isSafeInteger(n2)) {
-        throw new RangeError(Io);
-      }
-      if (t2 < 0) {
-        for (; n2 < 1; ) {
-          n2 += computeIntlMonthsInYear.call(this, --e2);
-        }
-      } else {
-        let t3;
-        for (; n2 > (t3 = computeIntlMonthsInYear.call(this, e2)); ) {
-          n2 -= t3, e2++;
-        }
-      }
-    }
-    return [e2, n2];
-  },
-  year(e2) {
-    return this.h(e2).year;
-  },
-  month(e2) {
-    const { year: n2, o: t2 } = this.h(e2), { u: o2 } = this.l(n2);
-    return o2[t2] + 1;
-  },
-  day(e2) {
-    return this.h(e2).day;
-  }
-});
-var ji = /* @__PURE__ */ createNativeOpsCreator(Ri, Ai);
-var C = /* @__PURE__ */ createNativeOpsCreator(Ui, Wi);
-var Li = {
-  ...{
-    era: toStringViaPrimitive,
-    eraYear: toInteger,
-    year: toInteger,
-    month: toPositiveInteger,
-    monthCode(e2) {
-      const n2 = toStringViaPrimitive(e2);
-      return parseMonthCode(n2), n2;
-    },
-    day: toPositiveInteger
-  },
-  .../* @__PURE__ */ wo(O, toInteger),
-  .../* @__PURE__ */ wo(p, toStrictInteger),
-  offset(e2) {
-    const n2 = toStringViaPrimitive(e2);
-    return parseOffsetNano(n2), n2;
-  }
-};
-var xi = /* @__PURE__ */ Pt(remapProps, O, w);
-var $i = /* @__PURE__ */ Pt(remapProps, w, O);
-var Hi = "numeric";
-var Gi = ["timeZoneName"];
-var Vi = {
-  month: Hi,
-  day: Hi
-};
-var _i = {
-  year: Hi,
-  month: Hi
-};
-var Ji = /* @__PURE__ */ Object.assign({}, _i, {
-  day: Hi
-});
-var Ki = {
-  hour: Hi,
-  minute: Hi,
-  second: Hi
-};
-var Qi = /* @__PURE__ */ Object.assign({}, Ji, Ki);
-var Xi = /* @__PURE__ */ Object.assign({}, Qi, {
-  timeZoneName: "short"
-});
-var ea = /* @__PURE__ */ Object.keys(_i);
-var na = /* @__PURE__ */ Object.keys(Vi);
-var ta = /* @__PURE__ */ Object.keys(Ji);
-var oa = /* @__PURE__ */ Object.keys(Ki);
-var ra = ["dateStyle"];
-var ia = /* @__PURE__ */ ea.concat(ra);
-var aa = /* @__PURE__ */ na.concat(ra);
-var sa = /* @__PURE__ */ ta.concat(ra, ["weekday"]);
-var ca = /* @__PURE__ */ oa.concat(["dayPeriod", "timeStyle", "fractionalSecondDigits"]);
-var ua = /* @__PURE__ */ sa.concat(ca);
-var fa = /* @__PURE__ */ Gi.concat(ca);
-var la = /* @__PURE__ */ Gi.concat(sa);
-var da = /* @__PURE__ */ Gi.concat(["day", "weekday"], ca);
-var ma = /* @__PURE__ */ Gi.concat(["year", "weekday"], ca);
-var pa = /* @__PURE__ */ createOptionsTransformer(ua, Qi);
-var ha = /* @__PURE__ */ createOptionsTransformer(ua, Xi);
-var ga = /* @__PURE__ */ createOptionsTransformer(ua, Qi, Gi);
-var Da = /* @__PURE__ */ createOptionsTransformer(sa, Ji, fa);
-var Ta = /* @__PURE__ */ createOptionsTransformer(ca, Ki, la);
-var Ia = /* @__PURE__ */ createOptionsTransformer(ia, _i, da);
-var Ma = /* @__PURE__ */ createOptionsTransformer(aa, Vi, ma);
-var Na = {};
-var ya = new en(void 0, {
-  calendar: l
-}).resolvedOptions().calendar === l;
-var U = [pa, I];
-var ot = [ha, I, 0, (e2, n2) => {
-  const t2 = e2.timeZone;
-  if (n2 && n2.timeZone !== t2) {
-    throw new RangeError(mo);
-  }
-  return t2;
-}];
-var X = [ga, isoToEpochMilli];
-var _ = [Da, isoToEpochMilli];
-var tt = [Ta, (e2) => isoTimeFieldsToNano(e2) / Qe];
-var et = [Ia, isoToEpochMilli, ya];
-var nt = [Ma, isoToEpochMilli, ya];
-var va;
+// base/foundation_types/time.ts
+init_define_BUILD_INFO();
 
-// ../home/ubuntu/.cache/deno/deno_esbuild/temporal-polyfill@0.3.0/node_modules/temporal-polyfill/chunks/classApi.js
-function createSlotClass(i2, l2, s2, c2, u2) {
-  function Class(...t2) {
-    if (!(this instanceof Class)) {
-      throw new TypeError(a);
-    }
-    un(this, l2(...t2));
-  }
-  function bindMethod(t2, e2) {
-    return Object.defineProperties(function(...e3) {
-      return t2.call(this, getSpecificSlots(this), ...e3);
-    }, r(e2));
-  }
-  function getSpecificSlots(t2) {
-    const e2 = cn(t2);
-    if (!e2 || e2.branding !== i2) {
-      throw new TypeError(a);
-    }
-    return e2;
-  }
-  return Object.defineProperties(Class.prototype, {
-    ...t(e(bindMethod, s2)),
-    ...n(e(bindMethod, c2)),
-    ...o("Temporal." + i2)
-  }), Object.defineProperties(Class, {
-    ...n(u2),
-    ...r(i2)
-  }), [Class, (t2) => {
-    const e2 = Object.create(Class.prototype);
-    return un(e2, t2), e2;
-  }, getSpecificSlots];
+// base/foundation_types/temporal_api.ts
+init_define_BUILD_INFO();
+function builtinTemporal() {
+  return globalThis.Temporal;
 }
-function rejectInvalidBag(t2) {
-  if (cn(t2) || void 0 !== t2.calendar || void 0 !== t2.timeZone) {
-    throw new TypeError(i);
-  }
-  return t2;
-}
-function getCalendarIdFromBag(t2) {
-  return extractCalendarIdFromBag(t2) || l;
-}
-function extractCalendarIdFromBag(t2) {
-  const { calendar: e2 } = t2;
-  if (void 0 !== e2) {
-    return refineCalendarArg(e2);
-  }
-}
-function refineCalendarArg(t2) {
-  if (s(t2)) {
-    const { calendar: e2 } = cn(t2) || {};
-    if (!e2) {
-      throw new TypeError(c(t2));
-    }
-    return e2;
-  }
-  return ((t3) => u(f(m(t3))))(t2);
-}
-function createCalendarGetters(t2) {
-  const e2 = {};
-  for (const n2 in t2) {
-    e2[n2] = (t3) => {
-      const { calendar: e3 } = t3;
-      return C(e3)[n2](t3);
-    };
-  }
-  return e2;
-}
-function neverValueOf() {
-  throw new TypeError(b);
-}
-function refineTimeZoneArg(t2) {
-  if (s(t2)) {
-    const { timeZone: e2 } = cn(t2) || {};
-    if (!e2) {
-      throw new TypeError(F(t2));
-    }
-    return e2;
-  }
-  return ((t3) => M(Z(m(t3))))(t2);
-}
-function toDurationSlots(t2) {
-  if (s(t2)) {
-    const e2 = cn(t2);
-    return e2 && e2.branding === N ? e2 : q(t2);
-  }
-  return R(t2);
-}
-function refinePublicRelativeTo(t2) {
-  if (void 0 !== t2) {
-    if (s(t2)) {
-      const e2 = cn(t2) || {};
-      switch (e2.branding) {
-        case z:
-        case G:
-          return e2;
-        case x:
-          return W(e2);
-      }
-      const n2 = getCalendarIdFromBag(t2);
-      return {
-        ...$(refineTimeZoneArg, L, C(n2), t2),
-        calendar: n2
-      };
-    }
-    return H(t2);
-  }
-}
-function toPlainTimeSlots(t2, e2) {
-  if (s(t2)) {
-    const n3 = cn(t2) || {};
-    switch (n3.branding) {
-      case ft:
-        return mt(e2), n3;
-      case x:
-        return mt(e2), St(n3);
-      case z:
-        return mt(e2), dt(L, n3);
-    }
-    return Tt(t2, e2);
-  }
-  const n2 = ht(t2);
-  return mt(e2), n2;
-}
-function optionalToPlainTimeFields(t2) {
-  return void 0 === t2 ? void 0 : toPlainTimeSlots(t2);
-}
-function toPlainDateTimeSlots(t2, e2) {
-  if (s(t2)) {
-    const n3 = cn(t2) || {};
-    switch (n3.branding) {
-      case x:
-        return mt(e2), n3;
-      case G:
-        return mt(e2), jt({
-          ...n3,
-          ...Nt
-        });
-      case z:
-        return mt(e2), yt(L, n3);
-    }
-    return At(C(getCalendarIdFromBag(t2)), t2, e2);
-  }
-  const n2 = Bt(t2);
-  return mt(e2), n2;
-}
-function toPlainMonthDaySlots(t2, e2) {
-  if (s(t2)) {
-    const n3 = cn(t2);
-    if (n3 && n3.branding === qt) {
-      return mt(e2), n3;
-    }
-    const o2 = extractCalendarIdFromBag(t2);
-    return Rt(C(o2 || l), !o2, t2, e2);
-  }
-  const n2 = xt(C, t2);
-  return mt(e2), n2;
-}
-function toPlainYearMonthSlots(t2, e2) {
-  if (s(t2)) {
-    const n3 = cn(t2);
-    return n3 && n3.branding === Ut ? (mt(e2), n3) : Xt(C(getCalendarIdFromBag(t2)), t2, e2);
-  }
-  const n2 = _t(C, t2);
-  return mt(e2), n2;
-}
-function toPlainDateSlots(t2, e2) {
-  if (s(t2)) {
-    const n3 = cn(t2) || {};
-    switch (n3.branding) {
-      case G:
-        return mt(e2), n3;
-      case x:
-        return mt(e2), W(n3);
-      case z:
-        return mt(e2), fe(L, n3);
-    }
-    return me(C(getCalendarIdFromBag(t2)), t2, e2);
-  }
-  const n2 = de(t2);
-  return mt(e2), n2;
-}
-function toZonedDateTimeSlots(t2, e2) {
-  if (s(t2)) {
-    const n2 = cn(t2);
-    if (n2 && n2.branding === z) {
-      return je(e2), n2;
-    }
-    const o2 = getCalendarIdFromBag(t2);
-    return Ne(refineTimeZoneArg, L, C(o2), o2, t2, e2);
-  }
-  return Ae(t2, e2);
-}
-function adaptDateMethods(t2) {
-  return e((t3) => (e2) => t3(slotsToIso(e2)), t2);
-}
-function slotsToIso(t2) {
-  return he(t2, L);
-}
-function toInstantSlots(t2) {
-  if (s(t2)) {
-    const e2 = cn(t2);
-    if (e2) {
-      switch (e2.branding) {
-        case Re:
-          return e2;
-        case z:
-          return xe(e2.epochNanoseconds);
-      }
-    }
-  }
-  return We(t2);
-}
-function createDateTimeFormatClass() {
-  function DateTimeFormatFunc(t3, e3) {
-    return new DateTimeFormatNew(t3, e3);
-  }
-  function DateTimeFormatNew(t3, e3 = /* @__PURE__ */ Object.create(null)) {
-    to.set(this, ((t4, e4) => {
-      const n3 = new en(t4, e4), o2 = n3.resolvedOptions(), r2 = o2.locale, a2 = nn(Object.keys(e4), o2), i2 = on(createFormatPrepperForBranding), prepFormat = (t5, ...e5) => {
-        if (t5) {
-          if (2 !== e5.length) {
-            throw new TypeError(ln);
-          }
-          for (const t6 of e5) {
-            if (void 0 === t6) {
-              throw new TypeError(ln);
-            }
-          }
-        }
-        t5 || void 0 !== e5[0] || (e5 = []);
-        const o3 = e5.map((t6) => cn(t6) || Number(t6));
-        let l2, s2 = 0;
-        for (const t6 of o3) {
-          const e6 = "object" == typeof t6 ? t6.branding : void 0;
-          if (s2++ && e6 !== l2) {
-            throw new TypeError(ln);
-          }
-          l2 = e6;
-        }
-        return l2 ? i2(l2)(r2, a2, ...o3) : [n3, ...o3];
-      };
-      return prepFormat.X = n3, prepFormat;
-    })(t3, e3));
-  }
-  const t2 = en.prototype, e2 = Object.getOwnPropertyDescriptors(t2), n2 = Object.getOwnPropertyDescriptors(en);
-  for (const t3 in e2) {
-    const n3 = e2[t3], o2 = t3.startsWith("format") && createFormatMethod(t3);
-    "function" == typeof n3.value ? n3.value = "constructor" === t3 ? DateTimeFormatFunc : o2 || createProxiedMethod(t3) : o2 && (n3.get = function() {
-      if (!to.has(this)) {
-        throw new TypeError(a);
-      }
-      return (...t4) => o2.apply(this, t4);
-    }, Object.defineProperties(n3.get, r(`get ${t3}`)));
-  }
-  return n2.prototype.value = DateTimeFormatNew.prototype = Object.create({}, e2), Object.defineProperties(DateTimeFormatFunc, n2), DateTimeFormatFunc;
-}
-function createFormatMethod(t2) {
-  return Object.defineProperties(function(...e2) {
-    const n2 = to.get(this), [o2, ...r2] = n2(t2.includes("Range"), ...e2);
-    return o2[t2](...r2);
-  }, r(t2));
-}
-function createProxiedMethod(t2) {
-  return Object.defineProperties(function(...e2) {
-    return to.get(this).X[t2](...e2);
-  }, r(t2));
-}
-function createFormatPrepperForBranding(t2) {
-  const e2 = Cn[t2];
-  if (!e2) {
-    throw new TypeError(rn(t2));
-  }
-  return Q(e2, on(an), 1);
-}
-var sn = /* @__PURE__ */ new WeakMap();
-var cn = /* @__PURE__ */ sn.get.bind(sn);
-var un = /* @__PURE__ */ sn.set.bind(sn);
-var fn = {
-  era: d,
-  eraYear: S,
-  year: T,
-  month: h,
-  daysInMonth: h,
-  daysInYear: h,
-  inLeapYear: D,
-  monthsInYear: h
-};
-var mn = {
-  monthCode: m
-};
-var dn = {
-  day: h
-};
-var Sn = {
-  dayOfWeek: h,
-  dayOfYear: h,
-  weekOfYear: P,
-  yearOfWeek: S,
-  daysInWeek: h
-};
-var Tn = /* @__PURE__ */ createCalendarGetters(/* @__PURE__ */ Object.assign({}, fn, mn, dn, Sn));
-var hn = /* @__PURE__ */ createCalendarGetters({
-  ...fn,
-  ...mn
-});
-var Dn = /* @__PURE__ */ createCalendarGetters({
-  ...mn,
-  ...dn
-});
-var Pn = {
-  calendarId: (t2) => t2.calendar
-};
-var gn = /* @__PURE__ */ g((t2) => (e2) => e2[t2], p.concat("sign"));
-var pn = /* @__PURE__ */ g((t2, e2) => (t3) => t3[w[e2]], O);
-var On = {
-  epochMilliseconds: I,
-  epochNanoseconds: v
-};
-var [wn, In, vn] = createSlotClass(N, j, {
-  ...gn,
-  blank: y
-}, {
-  with: (t2, e2) => In(A(t2, e2)),
-  negated: (t2) => In(B(t2)),
-  abs: (t2) => In(Y(t2)),
-  add: (t2, e2, n2) => In(E(refinePublicRelativeTo, C, L, 0, t2, toDurationSlots(e2), n2)),
-  subtract: (t2, e2, n2) => In(E(refinePublicRelativeTo, C, L, 1, t2, toDurationSlots(e2), n2)),
-  round: (t2, e2) => In(V(refinePublicRelativeTo, C, L, t2, e2)),
-  total: (t2, e2) => J(refinePublicRelativeTo, C, L, t2, e2),
-  toLocaleString(t2, e2, n2) {
-    return Intl.DurationFormat ? new Intl.DurationFormat(e2, n2).format(this) : k(t2);
-  },
-  toString: k,
-  toJSON: (t2) => k(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2) => In(toDurationSlots(t2)),
-  compare: (t2, e2, n2) => K(refinePublicRelativeTo, C, L, toDurationSlots(t2), toDurationSlots(e2), n2)
-});
-var Cn = {
-  Instant: U,
-  PlainDateTime: X,
-  PlainDate: _,
-  PlainTime: tt,
-  PlainYearMonth: et,
-  PlainMonthDay: nt
-};
-var bn = /* @__PURE__ */ Q(U);
-var Fn = /* @__PURE__ */ Q(ot);
-var Mn = /* @__PURE__ */ Q(X);
-var Zn = /* @__PURE__ */ Q(_);
-var yn = /* @__PURE__ */ Q(tt);
-var jn = /* @__PURE__ */ Q(et);
-var Nn = /* @__PURE__ */ Q(nt);
-var [An, Bn] = createSlotClass(ft, ut, pn, {
-  with(t2, e2, n2) {
-    return Bn(rt(this, rejectInvalidBag(e2), n2));
-  },
-  add: (t2, e2) => Bn(at(0, t2, toDurationSlots(e2))),
-  subtract: (t2, e2) => Bn(at(1, t2, toDurationSlots(e2))),
-  until: (t2, e2, n2) => In(it(0, t2, toPlainTimeSlots(e2), n2)),
-  since: (t2, e2, n2) => In(it(1, t2, toPlainTimeSlots(e2), n2)),
-  round: (t2, e2) => Bn(lt(t2, e2)),
-  equals: (t2, e2) => st(t2, toPlainTimeSlots(e2)),
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = yn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: ct,
-  toJSON: (t2) => ct(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2, e2) => Bn(toPlainTimeSlots(t2, e2)),
-  compare: (t2, e2) => Dt(toPlainTimeSlots(t2), toPlainTimeSlots(e2))
-});
-var [Yn, En] = createSlotClass(x, Pt(Zt, Mt), {
-  ...Pn,
-  ...Tn,
-  ...pn
-}, {
-  with: (t2, e2, n2) => En(gt(C, t2, rejectInvalidBag(e2), n2)),
-  withCalendar: (t2, e2) => En(pt(t2, refineCalendarArg(e2))),
-  withPlainTime: (t2, e2) => En(Ot(t2, optionalToPlainTimeFields(e2))),
-  add: (t2, e2, n2) => En(wt(C, 0, t2, toDurationSlots(e2), n2)),
-  subtract: (t2, e2, n2) => En(wt(C, 1, t2, toDurationSlots(e2), n2)),
-  until: (t2, e2, n2) => In(It(C, 0, t2, toPlainDateTimeSlots(e2), n2)),
-  since: (t2, e2, n2) => In(It(C, 1, t2, toPlainDateTimeSlots(e2), n2)),
-  round: (t2, e2) => En(vt(t2, e2)),
-  equals: (t2, e2) => Ct(t2, toPlainDateTimeSlots(e2)),
-  toZonedDateTime: (t2, e2, n2) => $n(bt(L, t2, refineTimeZoneArg(e2), n2)),
-  toPlainDate: (t2) => Wn(W(t2)),
-  toPlainTime: (t2) => Bn(St(t2)),
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = Mn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: Ft,
-  toJSON: (t2) => Ft(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2, e2) => En(toPlainDateTimeSlots(t2, e2)),
-  compare: (t2, e2) => Yt(toPlainDateTimeSlots(t2), toPlainDateTimeSlots(e2))
-});
-var [Ln, Vn, Jn] = createSlotClass(qt, Pt(kt, Mt), {
-  ...Pn,
-  ...Dn
-}, {
-  with: (t2, e2, n2) => Vn(Et(C, t2, rejectInvalidBag(e2), n2)),
-  equals: (t2, e2) => Lt(t2, toPlainMonthDaySlots(e2)),
-  toPlainDate(t2, e2) {
-    return Wn(Vt(C, t2, this, e2));
-  },
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = Nn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: Jt,
-  toJSON: (t2) => Jt(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2, e2) => Vn(toPlainMonthDaySlots(t2, e2))
-});
-var [kn, qn, Rn] = createSlotClass(Ut, Pt(Qt, Mt), {
-  ...Pn,
-  ...hn
-}, {
-  with: (t2, e2, n2) => qn(Wt(C, t2, rejectInvalidBag(e2), n2)),
-  add: (t2, e2, n2) => qn(Gt(C, 0, t2, toDurationSlots(e2), n2)),
-  subtract: (t2, e2, n2) => qn(Gt(C, 1, t2, toDurationSlots(e2), n2)),
-  until: (t2, e2, n2) => In(zt(C, 0, t2, toPlainYearMonthSlots(e2), n2)),
-  since: (t2, e2, n2) => In(zt(C, 1, t2, toPlainYearMonthSlots(e2), n2)),
-  equals: (t2, e2) => $t(t2, toPlainYearMonthSlots(e2)),
-  toPlainDate(t2, e2) {
-    return Wn(Ht(C, t2, this, e2));
-  },
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = jn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: Kt,
-  toJSON: (t2) => Kt(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2, e2) => qn(toPlainYearMonthSlots(t2, e2)),
-  compare: (t2, e2) => te(toPlainYearMonthSlots(t2), toPlainYearMonthSlots(e2))
-});
-var [xn, Wn, Gn] = createSlotClass(G, Pt(ue, Mt), {
-  ...Pn,
-  ...Tn
-}, {
-  with: (t2, e2, n2) => Wn(ee(C, t2, rejectInvalidBag(e2), n2)),
-  withCalendar: (t2, e2) => Wn(pt(t2, refineCalendarArg(e2))),
-  add: (t2, e2, n2) => Wn(ne(C, 0, t2, toDurationSlots(e2), n2)),
-  subtract: (t2, e2, n2) => Wn(ne(C, 1, t2, toDurationSlots(e2), n2)),
-  until: (t2, e2, n2) => In(oe(C, 0, t2, toPlainDateSlots(e2), n2)),
-  since: (t2, e2, n2) => In(oe(C, 1, t2, toPlainDateSlots(e2), n2)),
-  equals: (t2, e2) => re(t2, toPlainDateSlots(e2)),
-  toZonedDateTime(t2, e2) {
-    const n2 = s(e2) ? e2 : {
-      timeZone: e2
-    };
-    return $n(ae(refineTimeZoneArg, toPlainTimeSlots, L, t2, n2));
-  },
-  toPlainDateTime: (t2, e2) => En(ie(t2, optionalToPlainTimeFields(e2))),
-  toPlainYearMonth(t2) {
-    return qn(le(C, t2, this));
-  },
-  toPlainMonthDay(t2) {
-    return Vn(se(C, t2, this));
-  },
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = Zn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: ce,
-  toJSON: (t2) => ce(t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2, e2) => Wn(toPlainDateSlots(t2, e2)),
-  compare: (t2, e2) => te(toPlainDateSlots(t2), toPlainDateSlots(e2))
-});
-var [zn, $n] = createSlotClass(z, Pt(ye, Mt, Ze), {
-  ...On,
-  ...Pn,
-  ...adaptDateMethods(Tn),
-  ...adaptDateMethods(pn),
-  offset: (t2) => Se(slotsToIso(t2).offsetNanoseconds),
-  offsetNanoseconds: (t2) => slotsToIso(t2).offsetNanoseconds,
-  timeZoneId: (t2) => t2.timeZone,
-  hoursInDay: (t2) => Te(L, t2)
-}, {
-  with: (t2, e2, n2) => $n(De(C, L, t2, rejectInvalidBag(e2), n2)),
-  withCalendar: (t2, e2) => $n(pt(t2, refineCalendarArg(e2))),
-  withTimeZone: (t2, e2) => $n(Pe(t2, refineTimeZoneArg(e2))),
-  withPlainTime: (t2, e2) => $n(ge(L, t2, optionalToPlainTimeFields(e2))),
-  add: (t2, e2, n2) => $n(pe(C, L, 0, t2, toDurationSlots(e2), n2)),
-  subtract: (t2, e2, n2) => $n(pe(C, L, 1, t2, toDurationSlots(e2), n2)),
-  until: (t2, e2, n2) => In(Oe(we(C, L, 0, t2, toZonedDateTimeSlots(e2), n2))),
-  since: (t2, e2, n2) => In(Oe(we(C, L, 1, t2, toZonedDateTimeSlots(e2), n2))),
-  round: (t2, e2) => $n(Ie(L, t2, e2)),
-  startOfDay: (t2) => $n(ve(L, t2)),
-  equals: (t2, e2) => Ce(t2, toZonedDateTimeSlots(e2)),
-  toInstant: (t2) => Kn(be(t2)),
-  toPlainDateTime: (t2) => En(yt(L, t2)),
-  toPlainDate: (t2) => Wn(fe(L, t2)),
-  toPlainTime: (t2) => Bn(dt(L, t2)),
-  toLocaleString(t2, e2, n2 = {}) {
-    const [o2, r2] = Fn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: (t2, e2) => Fe(L, t2, e2),
-  toJSON: (t2) => Fe(L, t2),
-  valueOf: neverValueOf,
-  getTimeZoneTransition(t2, e2) {
-    const { timeZone: n2, epochNanoseconds: o2 } = t2, r2 = Me(e2), a2 = L(n2).O(o2, r2);
-    return a2 ? $n({
-      ...t2,
-      epochNanoseconds: a2
-    }) : null;
-  }
-}, {
-  from: (t2, e2) => $n(toZonedDateTimeSlots(t2, e2)),
-  compare: (t2, e2) => Be(toZonedDateTimeSlots(t2), toZonedDateTimeSlots(e2))
-});
-var [Hn, Kn, Qn] = createSlotClass(Re, qe, On, {
-  add: (t2, e2) => Kn(Ye(0, t2, toDurationSlots(e2))),
-  subtract: (t2, e2) => Kn(Ye(1, t2, toDurationSlots(e2))),
-  until: (t2, e2, n2) => In(Ee(0, t2, toInstantSlots(e2), n2)),
-  since: (t2, e2, n2) => In(Ee(1, t2, toInstantSlots(e2), n2)),
-  round: (t2, e2) => Kn(Le(t2, e2)),
-  equals: (t2, e2) => Ve(t2, toInstantSlots(e2)),
-  toZonedDateTimeISO: (t2, e2) => $n(Je(t2, refineTimeZoneArg(e2))),
-  toLocaleString(t2, e2, n2) {
-    const [o2, r2] = bn(e2, n2, t2);
-    return o2.format(r2);
-  },
-  toString: (t2, e2) => ke(refineTimeZoneArg, L, t2, e2),
-  toJSON: (t2) => ke(refineTimeZoneArg, L, t2),
-  valueOf: neverValueOf
-}, {
-  from: (t2) => Kn(toInstantSlots(t2)),
-  fromEpochMilliseconds: (t2) => Kn($e(t2)),
-  fromEpochNanoseconds: (t2) => Kn(He(t2)),
-  compare: (t2, e2) => Ke(toInstantSlots(t2), toInstantSlots(e2))
-});
-var Un = /* @__PURE__ */ Object.defineProperties({}, {
-  ...o("Temporal.Now"),
-  ...n({
-    timeZoneId: () => Ue(),
-    instant: () => Kn(xe(Xe())),
-    zonedDateTimeISO: (t2 = Ue()) => $n(_e(Xe(), refineTimeZoneArg(t2), l)),
-    plainDateTimeISO: (t2 = Ue()) => En(jt(tn(L(refineTimeZoneArg(t2))), l)),
-    plainDateISO: (t2 = Ue()) => Wn(W(tn(L(refineTimeZoneArg(t2))), l)),
-    plainTimeISO: (t2 = Ue()) => Bn(St(tn(L(refineTimeZoneArg(t2)))))
-  })
-});
-var Xn = /* @__PURE__ */ Object.defineProperties({}, {
-  ...o("Temporal"),
-  ...n({
-    PlainYearMonth: kn,
-    PlainMonthDay: Ln,
-    PlainDate: xn,
-    PlainTime: An,
-    PlainDateTime: Yn,
-    ZonedDateTime: zn,
-    Instant: Hn,
-    Duration: wn,
-    Now: Un
-  })
-});
-var _n = /* @__PURE__ */ createDateTimeFormatClass();
-var to = /* @__PURE__ */ new WeakMap();
-var eo = /* @__PURE__ */ Object.defineProperties(Object.create(Intl), n({
-  DateTimeFormat: _n
-}));
 
 // base/foundation_types/time.ts
+var TemporalAPI = builtinTemporal();
 var Temporal = class extends Ordered {
 };
 var Iso8601_type = class extends Temporal {
@@ -7873,8 +4469,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   year() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.year);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.year);
     } catch {
       try {
         const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
@@ -7895,8 +4491,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   month() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.month);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.month);
     } catch {
       try {
         const match = val.match(/^(\d{4})-?(\d{2})?/);
@@ -7917,8 +4513,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   day() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.day);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.day);
     } catch {
       try {
         const match = val.match(/^(\d{4})-?(\d{2})?-?(\d{2})?/);
@@ -7939,8 +4535,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   hour() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.hour);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.hour);
     } catch {
     }
     return Integer.from(0);
@@ -7954,8 +4550,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   minute() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.minute);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.minute);
     } catch {
     }
     return Integer.from(0);
@@ -7969,8 +4565,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   second() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return Integer.from(dt2.second);
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return Integer.from(dt.second);
     } catch {
     }
     return Integer.from(0);
@@ -7984,8 +4580,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   fractional_second() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return dt2.millisecond / 1e3 + dt2.microsecond / 1e6 + dt2.nanosecond / 1e9;
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return dt.millisecond / 1e3 + dt.microsecond / 1e6 + dt.nanosecond / 1e9;
     } catch {
     }
     return 0;
@@ -8077,8 +4673,8 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
   as_string() {
     const val = this.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      return String2.from(dt2.toString());
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      return String2.from(dt.toString());
     } catch {
       return String2.from(val);
     }
@@ -8092,16 +4688,16 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      const dur = Xn.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
-      const result = dt2.add(dur);
+      const result = dt.add(dur);
       const newDateTime = new _Iso8601_date_time();
       newDateTime.value = result.toString();
       return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to date_time: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add duration to date_time: ${e}`);
     }
   }
   /**
@@ -8113,16 +4709,16 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      const dur = Xn.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
-      const result = dt2.subtract(dur);
+      const result = dt.subtract(dur);
       const newDateTime = new _Iso8601_date_time();
       newDateTime.value = result.toString();
       return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from date_time: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from date_time: ${e}`);
     }
   }
   /**
@@ -8134,14 +4730,14 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_date_time.value || "";
     try {
-      const dt1 = Xn.PlainDateTime.from(val);
-      const dt2 = Xn.PlainDateTime.from(otherVal);
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
       const diff = dt1.since(dt2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
       return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate difference: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to calculate difference: ${e}`);
     }
   }
   /**
@@ -8153,16 +4749,16 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      const dur = Xn.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
-      const result = dt2.add(dur);
+      const result = dt.add(dur);
       const newDateTime = new Iso8601_date();
       newDateTime.value = result.toPlainDate().toString();
       return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to add nominal duration: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add nominal duration: ${e}`);
     }
   }
   /**
@@ -8174,16 +4770,16 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const dt2 = Xn.PlainDateTime.from(val);
-      const dur = Xn.Duration.from(
+      const dt = TemporalAPI.PlainDateTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
-      const result = dt2.subtract(dur);
+      const result = dt.subtract(dur);
       const newDateTime = new Iso8601_date();
       newDateTime.value = result.toPlainDate().toString();
       return newDateTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract nominal duration: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract nominal duration: ${e}`);
     }
   }
   /**
@@ -8198,9 +4794,9 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const dt1 = Xn.PlainDateTime.from(val);
-      const dt2 = Xn.PlainDateTime.from(otherVal);
-      return new Boolean2(Xn.PlainDateTime.compare(dt1, dt2) < 0);
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainDateTime.compare(dt1, dt2) < 0);
     } catch {
       return new Boolean2(val < otherVal);
     }
@@ -8217,9 +4813,9 @@ var Iso8601_date_time = class _Iso8601_date_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const dt1 = Xn.PlainDateTime.from(val);
-      const dt2 = Xn.PlainDateTime.from(otherVal);
-      return new Boolean2(Xn.PlainDateTime.compare(dt1, dt2) === 0);
+      const dt1 = TemporalAPI.PlainDateTime.from(val);
+      const dt2 = TemporalAPI.PlainDateTime.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainDateTime.compare(dt1, dt2) === 0);
     } catch {
       return new Boolean2(val === otherVal);
     }
@@ -8278,7 +4874,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   years() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.years || 0);
     } catch {
       return Integer.from(0);
@@ -8291,7 +4887,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   months() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.months || 0);
     } catch {
       return Integer.from(0);
@@ -8306,7 +4902,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     try {
       const normalized = _Iso8601_duration.normalizeWeeks(val);
-      const dur = Xn.Duration.from(normalized);
+      const dur = TemporalAPI.Duration.from(normalized);
       return Integer.from(dur.days || 0);
     } catch {
       const daysMatch = val.match(/(\d+(?:\.\d+)?)D/);
@@ -8323,7 +4919,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   hours() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.hours || 0);
     } catch {
       return Integer.from(0);
@@ -8336,7 +4932,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   minutes() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.minutes || 0);
     } catch {
       return Integer.from(0);
@@ -8349,7 +4945,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   seconds() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return Integer.from(dur.seconds || 0);
     } catch {
       return Integer.from(0);
@@ -8362,7 +4958,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   fractional_seconds() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       return (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
     } catch {
       return 0;
@@ -8395,7 +4991,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   to_seconds() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(val);
+      const dur = TemporalAPI.Duration.from(val);
       const totalSeconds = (dur.years || 0) * 31536e3 + (dur.months || 0) * 2592e3 + (dur.weeks || 0) * 604800 + (dur.days || 0) * 86400 + (dur.hours || 0) * 3600 + (dur.minutes || 0) * 60 + (dur.seconds || 0) + (dur.milliseconds || 0) / 1e3 + (dur.microseconds || 0) / 1e6 + (dur.nanoseconds || 0) / 1e9;
       return totalSeconds;
     } catch {
@@ -8409,7 +5005,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   as_string() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
       return String2.from(dur.toString());
@@ -8426,18 +5022,18 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_val.value || "";
     try {
-      const dur1 = Xn.Duration.from(
+      const dur1 = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
-      const dur2 = Xn.Duration.from(
+      const dur2 = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(otherVal)
       );
       const result = dur1.add(dur2);
       const newDuration = new _Iso8601_duration();
       newDuration.value = result.toString();
       return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to add durations: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add durations: ${e}`);
     }
   }
   /**
@@ -8449,18 +5045,18 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_val.value || "";
     try {
-      const dur1 = Xn.Duration.from(
+      const dur1 = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
-      const dur2 = Xn.Duration.from(
+      const dur2 = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(otherVal)
       );
       const result = dur1.subtract(dur2);
       const newDuration = new _Iso8601_duration();
       newDuration.value = result.toString();
       return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to subtract durations: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract durations: ${e}`);
     }
   }
   /**
@@ -8471,7 +5067,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   multiply(a_val) {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
       const result = dur.add(dur.negated()).add({
@@ -8489,8 +5085,8 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
       const newDuration = new _Iso8601_duration();
       newDuration.value = result.toString();
       return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to multiply duration: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to multiply duration: ${e}`);
     }
   }
   /**
@@ -8504,7 +5100,7 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     }
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
       const result = dur.add(dur.negated()).add({
@@ -8522,8 +5118,8 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
       const newDuration = new _Iso8601_duration();
       newDuration.value = result.toString();
       return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to divide duration: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to divide duration: ${e}`);
     }
   }
   /**
@@ -8533,15 +5129,15 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
   negative() {
     const val = this.value || "";
     try {
-      const dur = Xn.Duration.from(
+      const dur = TemporalAPI.Duration.from(
         _Iso8601_duration.normalizeWeeks(val)
       );
       const result = dur.negated();
       const newDuration = new _Iso8601_duration();
       newDuration.value = result.toString();
       return newDuration;
-    } catch (e2) {
-      throw new Error(`Failed to negate duration: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to negate duration: ${e}`);
     }
   }
   /**
@@ -8556,8 +5152,12 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const dur1 = Xn.Duration.from(_Iso8601_duration.normalizeWeeks(val));
-      const dur2 = Xn.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
+      const dur1 = TemporalAPI.Duration.from(
+        _Iso8601_duration.normalizeWeeks(val)
+      );
+      const dur2 = TemporalAPI.Duration.from(
+        _Iso8601_duration.normalizeWeeks(otherVal)
+      );
       const total1 = dur1.total({ unit: "seconds" });
       const total2 = dur2.total({ unit: "seconds" });
       return new Boolean2(total1 < total2);
@@ -8577,8 +5177,12 @@ var Iso8601_duration = class _Iso8601_duration extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const dur1 = Xn.Duration.from(_Iso8601_duration.normalizeWeeks(val));
-      const dur2 = Xn.Duration.from(_Iso8601_duration.normalizeWeeks(otherVal));
+      const dur1 = TemporalAPI.Duration.from(
+        _Iso8601_duration.normalizeWeeks(val)
+      );
+      const dur2 = TemporalAPI.Duration.from(
+        _Iso8601_duration.normalizeWeeks(otherVal)
+      );
       const total1 = dur1.total({ unit: "seconds" });
       const total2 = dur2.total({ unit: "seconds" });
       return new Boolean2(total1 === total2);
@@ -8598,7 +5202,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
   hour() {
     const val = this.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.hour);
     } catch {
       const match = val.match(/^(\d{2})/);
@@ -8615,7 +5219,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
   minute() {
     const val = this.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.minute);
     } catch {
     }
@@ -8628,7 +5232,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
   second() {
     const val = this.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return Integer.from(time.second);
     } catch {
     }
@@ -8641,7 +5245,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
   fractional_second() {
     const val = this.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return time.millisecond / 1e3 + time.microsecond / 1e6 + time.nanosecond / 1e9;
     } catch {
     }
@@ -8717,7 +5321,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
   as_string() {
     const val = this.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
+      const time = TemporalAPI.PlainTime.from(val);
       return String2.from(time.toString());
     } catch {
       return String2.from(val);
@@ -8732,16 +5336,16 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
-      const dur = Xn.Duration.from(
+      const time = TemporalAPI.PlainTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = time.add(dur);
       const newTime = new _Iso8601_time();
       newTime.value = result.toString();
       return newTime;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to time: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add duration to time: ${e}`);
     }
   }
   /**
@@ -8753,16 +5357,16 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const time = Xn.PlainTime.from(val);
-      const dur = Xn.Duration.from(
+      const time = TemporalAPI.PlainTime.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = time.subtract(dur);
       const newTime = new _Iso8601_time();
       newTime.value = result.toString();
       return newTime;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from time: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from time: ${e}`);
     }
   }
   /**
@@ -8774,14 +5378,14 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_time.value || "";
     try {
-      const time1 = Xn.PlainTime.from(val);
-      const time2 = Xn.PlainTime.from(otherVal);
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
       const diff = time1.since(time2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
       return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate time difference: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to calculate time difference: ${e}`);
     }
   }
   /**
@@ -8796,9 +5400,9 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const time1 = Xn.PlainTime.from(val);
-      const time2 = Xn.PlainTime.from(otherVal);
-      return new Boolean2(Xn.PlainTime.compare(time1, time2) < 0);
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainTime.compare(time1, time2) < 0);
     } catch {
       return new Boolean2(val < otherVal);
     }
@@ -8815,9 +5419,9 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const time1 = Xn.PlainTime.from(val);
-      const time2 = Xn.PlainTime.from(otherVal);
-      return new Boolean2(Xn.PlainTime.compare(time1, time2) === 0);
+      const time1 = TemporalAPI.PlainTime.from(val);
+      const time2 = TemporalAPI.PlainTime.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainTime.compare(time1, time2) === 0);
     } catch {
       return new Boolean2(val === otherVal);
     }
@@ -8836,7 +5440,7 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
   year() {
     const val = this.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.year);
     } catch {
       const match = val.match(/^(\d{4})/);
@@ -8855,11 +5459,11 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
   month() {
     const val = this.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.month);
     } catch {
       try {
-        const ym = Xn.PlainYearMonth.from(val);
+        const ym = TemporalAPI.PlainYearMonth.from(val);
         return Integer.from(ym.month);
       } catch {
       }
@@ -8875,7 +5479,7 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
   day() {
     const val = this.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return Integer.from(date.day);
     } catch {
     }
@@ -8935,11 +5539,11 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
   as_string() {
     const val = this.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
+      const date = TemporalAPI.PlainDate.from(val);
       return String2.from(date.toString());
     } catch {
       try {
-        const ym = Xn.PlainYearMonth.from(val);
+        const ym = TemporalAPI.PlainYearMonth.from(val);
         return String2.from(ym.toString());
       } catch {
         return String2.from(val);
@@ -8955,16 +5559,16 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
-      const dur = Xn.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = date.add(dur);
       const newDate = new _Iso8601_date();
       newDate.value = result.toString();
       return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to add duration to date: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add duration to date: ${e}`);
     }
   }
   /**
@@ -8976,16 +5580,16 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
-      const dur = Xn.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = date.subtract(dur);
       const newDate = new _Iso8601_date();
       newDate.value = result.toString();
       return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to subtract duration from date: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract duration from date: ${e}`);
     }
   }
   /**
@@ -8997,14 +5601,14 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const otherVal = a_date.value || "";
     try {
-      const date1 = Xn.PlainDate.from(val);
-      const date2 = Xn.PlainDate.from(otherVal);
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
       const diff = date1.since(date2);
       const duration = new Iso8601_duration();
       duration.value = diff.toString();
       return duration;
-    } catch (e2) {
-      throw new Error(`Failed to calculate date difference: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to calculate date difference: ${e}`);
     }
   }
   /**
@@ -9020,16 +5624,16 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
-      const dur = Xn.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = date.add(dur, { overflow: "constrain" });
       const newDate = new _Iso8601_date();
       newDate.value = result.toString();
       return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to add nominal duration to date: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to add nominal duration to date: ${e}`);
     }
   }
   /**
@@ -9041,16 +5645,16 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const diffVal = a_diff.value || "";
     try {
-      const date = Xn.PlainDate.from(val);
-      const dur = Xn.Duration.from(
+      const date = TemporalAPI.PlainDate.from(val);
+      const dur = TemporalAPI.Duration.from(
         Iso8601_duration.normalizeWeeks(diffVal)
       );
       const result = date.subtract(dur, { overflow: "constrain" });
       const newDate = new _Iso8601_date();
       newDate.value = result.toString();
       return newDate;
-    } catch (e2) {
-      throw new Error(`Failed to subtract nominal duration from date: ${e2}`);
+    } catch (e) {
+      throw new Error(`Failed to subtract nominal duration from date: ${e}`);
     }
   }
   /**
@@ -9065,9 +5669,9 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const date1 = Xn.PlainDate.from(val);
-      const date2 = Xn.PlainDate.from(otherVal);
-      return new Boolean2(Xn.PlainDate.compare(date1, date2) < 0);
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainDate.compare(date1, date2) < 0);
     } catch {
       return new Boolean2(val < otherVal);
     }
@@ -9084,9 +5688,9 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     const val = this.value || "";
     const otherVal = other.value || "";
     try {
-      const date1 = Xn.PlainDate.from(val);
-      const date2 = Xn.PlainDate.from(otherVal);
-      return new Boolean2(Xn.PlainDate.compare(date1, date2) === 0);
+      const date1 = TemporalAPI.PlainDate.from(val);
+      const date2 = TemporalAPI.PlainDate.from(otherVal);
+      return new Boolean2(TemporalAPI.PlainDate.compare(date1, date2) === 0);
     } catch {
       return new Boolean2(val === otherVal);
     }
@@ -9238,7 +5842,20 @@ var Iso8601_timezone = class _Iso8601_timezone extends Iso8601_type {
   }
 };
 
+// base/base_types/mod.ts
+init_define_BUILD_INFO();
+
+// base/base_types/definitions.ts
+init_define_BUILD_INFO();
+
+// base/base_types/builtins.ts
+init_define_BUILD_INFO();
+
+// base/resource/mod.ts
+init_define_BUILD_INFO();
+
 // base/resource/resource.ts
+init_define_BUILD_INFO();
 var AUTHORED_RESOURCE = class {
   /**
    * Unique identifier of the family of archetypes having the same interface identifier (same major version).
@@ -9582,6 +6199,7 @@ var RESOURCE_ANNOTATIONS = class {
 };
 
 // base/_unassigned.ts
+init_define_BUILD_INFO();
 var Byte = class _Byte extends Ordered {
   static {
     TYPE_REGISTRY.set("BYTE", _Byte);
@@ -9909,7 +6527,11 @@ var ARCHETYPE_ID_CONSTRAINT = class {
   constraint;
 };
 
+// am/aom2/terminology.ts
+init_define_BUILD_INFO();
+
 // am/aom2/archetype.ts
+init_define_BUILD_INFO();
 var ARCHETYPE = class extends AUTHORED_RESOURCE {
   /**
    * Root node of the definition of this archetype.
@@ -10192,7 +6814,14 @@ var OPERATIONAL_TEMPLATE = class extends AUTHORED_ARCHETYPE {
 var TEMPLATE_OVERLAY = class extends ARCHETYPE {
 };
 
+// am/aom2/definitions.ts
+init_define_BUILD_INFO();
+
+// am/aom2/profile.ts
+init_define_BUILD_INFO();
+
 // am/aom2/rm_overlay.ts
+init_define_BUILD_INFO();
 var RM_OVERLAY = class {
   /**
    * Optional structure in which visibility and aliasing of reference model elements can be specified. Key is path to an RM attribute, which is typically formed from a path to an archetyped node concatenated with a further pure RM attribute path; may also refer to a non-archetyped attribute.
@@ -10200,7 +6829,11 @@ var RM_OVERLAY = class {
   rm_visibility;
 };
 
+// am/aom2/rules.ts
+init_define_BUILD_INFO();
+
 // am/_unassigned.ts
+init_define_BUILD_INFO();
 var C_PRIMITIVE = class {
   /**
    * Value to be assumed if none sent in data.
@@ -10874,7 +7507,17 @@ var ARCHETYPE_ONTOLOGY = class {
   }
 };
 
+// lang/mod.ts
+init_define_BUILD_INFO();
+
+// lang/beom/mod.ts
+init_define_BUILD_INFO();
+
+// lang/beom/types.ts
+init_define_BUILD_INFO();
+
 // lang/beom/core.ts
+init_define_BUILD_INFO();
 var EXPR_VALUE = class {
   /**
    * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
@@ -10901,6 +7544,45 @@ var EXPR_LEAF = class extends EXPRESSION {
 };
 var EXPR_VALUE_REF = class extends EXPR_LEAF {
 };
+
+// lang/bmm/mod.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/bmm.ts
+init_define_BUILD_INFO();
+
+// lang/_unassigned.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/core.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/expression.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/model_access.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/core/model.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/statement.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/core/mod.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/core/literal_value.ts
+init_define_BUILD_INFO();
+
+// lang/bmm/core/feature.ts
+init_define_BUILD_INFO();
+
+// lang/bmm_persistence/mod.ts
+init_define_BUILD_INFO();
+
+// lang/bmm_persistence/bmm_persistence.ts
+init_define_BUILD_INFO();
 
 // am/aom2/rules.ts
 var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
@@ -10936,7 +7618,11 @@ var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
   }
 };
 
+// am/aom2/constraint_model/mod.ts
+init_define_BUILD_INFO();
+
 // am/aom2/constraint_model/primitive.ts
+init_define_BUILD_INFO();
 var C_BOOLEAN = class extends C_PRIMITIVE {
   /**
    * Internal storage for true_valid
@@ -11577,13 +8263,41 @@ var C_DURATION = class extends C_PRIMITIVE {
   assumed_value = void 0;
 };
 
+// am/aom2/persistence/mod.ts
+init_define_BUILD_INFO();
+
+// am/aom2/persistence/constraint_model.ts
+init_define_BUILD_INFO();
+
+// am/aom2/persistence/terminology.ts
+init_define_BUILD_INFO();
+
+// am/aom2/persistence/archetype.ts
+init_define_BUILD_INFO();
+
+// am/aom2/persistence/primitive.ts
+init_define_BUILD_INFO();
+
+// am/util/aom_clone.ts
+init_define_BUILD_INFO();
+
+// base/openehr_base.ts
+init_define_BUILD_INFO();
+
+// generation/term_scope.ts
+init_define_BUILD_INFO();
+
+// generation/term_codes.ts
+init_define_BUILD_INFO();
+
 // serialization/simplified/normalize.ts
+init_define_BUILD_INFO();
 function nodeIdToAtCode(nodeId) {
   if (!nodeId)
     return "";
-  const m2 = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
-  if (m2) {
-    const digits = m2[1].replace(/\./g, "");
+  const m = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
+  if (m) {
+    const digits = m[1].replace(/\./g, "");
     return `at${digits.padStart(4, "0")}`;
   }
   return nodeId;
@@ -11614,8 +8328,8 @@ function termLabel(val) {
   if (typeof val === "string" && val && val !== "[object Object]")
     return val;
   if (val && typeof val === "object") {
-    const o2 = val;
-    return termLabel(o2.value) ?? termLabel(o2.text) ?? termLabel(o2["#text"]);
+    const o = val;
+    return termLabel(o.value) ?? termLabel(o.text) ?? termLabel(o["#text"]);
   }
   return void 0;
 }
@@ -11638,7 +8352,7 @@ function lookupTermEntryInBag(bag, code) {
   }
   const bases = new Set(termCodeCandidates(code));
   for (const base of bases) {
-    const dotted = Object.keys(bag).filter((k2) => k2.startsWith(`${base}.`)).sort((a2, b2) => a2.length - b2.length);
+    const dotted = Object.keys(bag).filter((k) => k.startsWith(`${base}.`)).sort((a, b) => a.length - b.length);
     if (dotted.length === 1) {
       if (base === "at0002")
         continue;
@@ -11661,7 +8375,7 @@ function resolveTermEntry(nodeId, nameFallbackNodeId, templateTerms, archetypeTe
       return slot;
   }
   const codes = [nodeId, nameFallbackNodeId].filter(
-    (c2) => typeof c2 === "string" && c2.length > 0
+    (c) => typeof c === "string" && c.length > 0
   );
   if (archetypeScope && archetypeTerms[archetypeScope]) {
     const scopedBag = archetypeTerms[archetypeScope];
@@ -11763,12 +8477,12 @@ function isTemplateSlotId(code) {
 function cloneMultiplicity(src) {
   if (!src)
     return void 0;
-  const m2 = new Multiplicity_interval();
-  m2.lower = src.lower;
-  m2.upper = src.upper;
-  m2.lower_unbounded = src.lower_unbounded;
-  m2.upper_unbounded = src.upper_unbounded;
-  return m2;
+  const m = new Multiplicity_interval();
+  m.lower = src.lower;
+  m.upper = src.upper;
+  m.lower_unbounded = src.lower_unbounded;
+  m.upper_unbounded = src.upper_unbounded;
+  return m;
 }
 function cloneCObject(obj) {
   if (obj instanceof C_COMPLEX_OBJECT) {
@@ -11794,12 +8508,12 @@ function cloneCObject(obj) {
   }
   return obj;
 }
-function cloneArchetypeIdConstraint(c2) {
+function cloneArchetypeIdConstraint(c) {
   const out = new ARCHETYPE_ID_CONSTRAINT();
-  if (c2.constraint) {
-    const s2 = new C_STRING();
-    s2.pattern = c2.constraint.pattern;
-    out.constraint = s2;
+  if (c.constraint) {
+    const s = new C_STRING();
+    s.pattern = c.constraint.pattern;
+    out.constraint = s;
   }
   return out;
 }
@@ -11848,7 +8562,7 @@ function cloneAttribute(attr) {
     out.existence = cloneMultiplicity(existence);
   }
   if (attr instanceof C_MULTIPLE_ATTRIBUTE && attr.cardinality) {
-    const ma2 = out;
+    const ma = out;
     const card = new CARDINALITY();
     const interval = attr.cardinality.interval ?? attr.cardinality.interval;
     if (interval) {
@@ -11856,7 +8570,7 @@ function cloneAttribute(attr) {
     }
     card.is_ordered = attr.cardinality.is_ordered;
     card.is_unique = attr.cardinality.is_unique;
-    ma2.cardinality = card;
+    ma.cardinality = card;
   }
   const children = attr.children;
   if (children) {
@@ -11868,6 +8582,7 @@ function cloneAttribute(attr) {
 }
 
 // am/util/ontology_merge.ts
+init_define_BUILD_INFO();
 function mergeTermDefinitionTables(target, source) {
   if (!source)
     return;
@@ -11934,6 +8649,7 @@ function applyMergedTerminology(target, merged) {
 }
 
 // am/util/flattening/specialize.ts
+init_define_BUILD_INFO();
 function attributeChildren(attr) {
   return attr.children ?? [];
 }
@@ -11941,7 +8657,7 @@ function setAttributeChildren(attr, children) {
   attr.children = children;
 }
 function findAttribute(obj, name) {
-  return obj.attributes?.find((a2) => a2.rm_attribute_name === name);
+  return obj.attributes?.find((a) => a.rm_attribute_name === name);
 }
 function mergeCObject(parent, child) {
   if (child instanceof C_COMPLEX_OBJECT && parent instanceof C_COMPLEX_OBJECT) {
@@ -11976,9 +8692,9 @@ function specializeComplexObject(parentFlat, differential) {
         existing.existence = existence;
       }
       if (diffAttr instanceof C_MULTIPLE_ATTRIBUTE) {
-        const ma2 = existing;
+        const ma = existing;
         if (diffAttr.cardinality) {
-          ma2.cardinality = diffAttr.cardinality;
+          ma.cardinality = diffAttr.cardinality;
         }
       }
       continue;
@@ -11990,7 +8706,7 @@ function specializeComplexObject(parentFlat, differential) {
         mergedChildren.push(cloneCObject(diffChild));
         continue;
       }
-      const idx = mergedChildren.findIndex((c2) => c2.node_id === nodeId);
+      const idx = mergedChildren.findIndex((c) => c.node_id === nodeId);
       if (idx < 0) {
         mergedChildren.push(cloneCObject(diffChild));
         continue;
@@ -12169,7 +8885,14 @@ function flattenToOperationalTemplate(source, resolver) {
   return opt;
 }
 
+// parser/legacy/archetype_repository.ts
+init_define_BUILD_INFO();
+
+// parser/parse_adl.ts
+init_define_BUILD_INFO();
+
 // parser/adl2_tokenizer.ts
+init_define_BUILD_INFO();
 var ADL2Tokenizer = class {
   input;
   position = 0;
@@ -12626,7 +9349,11 @@ var ADL2Tokenizer = class {
   }
 };
 
+// parser/adl2_parser.ts
+init_define_BUILD_INFO();
+
 // parser/odin_parser.ts
+init_define_BUILD_INFO();
 var OdinParser = class {
   tokens;
   position = 0;
@@ -12749,13 +9476,13 @@ var OdinParser = class {
     return obj;
   }
   looksLikeKeyedObjectBlock() {
-    let i2 = this.position + 1;
-    while (i2 < this.tokens.length && this.tokens[i2].type !== "RBRACKET" /* RBRACKET */) {
-      i2++;
+    let i = this.position + 1;
+    while (i < this.tokens.length && this.tokens[i].type !== "RBRACKET" /* RBRACKET */) {
+      i++;
     }
-    if (i2 >= this.tokens.length)
+    if (i >= this.tokens.length)
       return false;
-    return this.tokens[i2 + 1]?.type === "EQUALS" /* EQUALS */;
+    return this.tokens[i + 1]?.type === "EQUALS" /* EQUALS */;
   }
   parseBracketedCode() {
     this.consume("LBRACKET" /* LBRACKET */, "Expected '['");
@@ -12933,6 +9660,7 @@ var OdinParser = class {
 };
 
 // parser/odin_aom_mapper.ts
+init_define_BUILD_INFO();
 function odinString(value) {
   if (typeof value === "string") {
     return value.replace(/^["']|["']$/g, "");
@@ -13007,10 +9735,10 @@ function mapTermDefinitions(termDefs) {
       if (!termObj || typeof termObj !== "object" || Array.isArray(termObj)) {
         continue;
       }
-      const t2 = termObj;
+      const t = termObj;
       table[lang][code] = {
-        text: odinString(t2.text),
-        description: odinString(t2.description)
+        text: odinString(t.text),
+        description: odinString(t.description)
       };
     }
   }
@@ -13036,6 +9764,7 @@ function applyTerminologyOdin(archetype, terminologyData) {
 }
 
 // parser/cadl_parser.ts
+init_define_BUILD_INFO();
 var CadlParser = class {
   tokens;
   position = 0;
@@ -13451,6 +10180,7 @@ var CadlParser = class {
 };
 
 // parser/rules_parser.ts
+init_define_BUILD_INFO();
 var RULE_TYPE_NAMES = /* @__PURE__ */ new Set([
   "Integer",
   "Real",
@@ -13468,7 +10198,7 @@ var RulesParser = class {
   warnings = [];
   constructor(tokens) {
     this.tokens = tokens.filter(
-      (t2) => t2.type !== "COMMENT" /* COMMENT */ && t2.type !== "WHITESPACE" /* WHITESPACE */
+      (t) => t.type !== "COMMENT" /* COMMENT */ && t.type !== "WHITESPACE" /* WHITESPACE */
     );
   }
   parse() {
@@ -13481,9 +10211,9 @@ var RulesParser = class {
         continue;
       try {
         assertions.push(this.parseStatement(trimmed));
-      } catch (e2) {
+      } catch (e) {
         this.warnings.push(
-          `Rules statement parse error: ${e2 instanceof Error ? e2.message : String(e2)} \u2014 stored as raw text`
+          `Rules statement parse error: ${e instanceof Error ? e.message : String(e)} \u2014 stored as raw text`
         );
         const fallback = new ASSERTION();
         fallback.string_expression = trimmed;
@@ -13495,31 +10225,31 @@ var RulesParser = class {
   /** Reconstruct source with newlines at token line boundaries. */
   tokensToSource() {
     const byLine = /* @__PURE__ */ new Map();
-    for (const t2 of this.tokens) {
-      if (t2.type === "EOF" /* EOF */)
+    for (const t of this.tokens) {
+      if (t.type === "EOF" /* EOF */)
         break;
-      const line = byLine.get(t2.line) ?? [];
-      line.push(t2);
-      byLine.set(t2.line, line);
+      const line = byLine.get(t.line) ?? [];
+      line.push(t);
+      byLine.set(t.line, line);
     }
     const lines = [];
-    for (const lineNo of [...byLine.keys()].sort((a2, b2) => a2 - b2)) {
+    for (const lineNo of [...byLine.keys()].sort((a, b) => a - b)) {
       lines.push(this.joinLineTokens(byLine.get(lineNo)));
     }
     return lines.join("\n");
   }
   joinLineTokens(tokens) {
     let out = "";
-    for (let i2 = 0; i2 < tokens.length; i2++) {
-      const t2 = tokens[i2];
-      if (i2 > 0 && this.needsSpaceBetween(tokens[i2 - 1], t2)) {
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (i > 0 && this.needsSpaceBetween(tokens[i - 1], t)) {
         out += " ";
       }
-      out += this.tokenText(t2);
+      out += this.tokenText(t);
     }
     return out;
   }
-  needsSpaceBetween(a2, b2) {
+  needsSpaceBetween(a, b) {
     const keywordAfterPath = /* @__PURE__ */ new Set([
       "IMPLIES" /* IMPLIES */,
       "FOR_ALL" /* FOR_ALL */,
@@ -13530,7 +10260,7 @@ var RulesParser = class {
       "XOR" /* XOR */,
       "NOT" /* NOT */
     ]);
-    if (keywordAfterPath.has(b2.type))
+    if (keywordAfterPath.has(b.type))
       return true;
     const pathGlue = /* @__PURE__ */ new Set([
       "LBRACKET" /* LBRACKET */,
@@ -13538,42 +10268,42 @@ var RulesParser = class {
       "SLASH" /* SLASH */,
       "DOT" /* DOT */
     ]);
-    if (pathGlue.has(b2.type))
+    if (pathGlue.has(b.type))
       return false;
-    if (a2.type === "VARIABLE" /* VARIABLE */ && b2.type === "COLON" /* COLON */)
+    if (a.type === "VARIABLE" /* VARIABLE */ && b.type === "COLON" /* COLON */)
       return false;
-    if (a2.type === "COLON" /* COLON */ && b2.type === "ASSIGN" /* ASSIGN */)
+    if (a.type === "COLON" /* COLON */ && b.type === "ASSIGN" /* ASSIGN */)
       return false;
-    if (a2.type === "IDENTIFIER" /* IDENTIFIER */ && b2.type === "LBRACKET" /* LBRACKET */) {
-      return false;
-    }
-    if (a2.type === "LBRACKET" /* LBRACKET */ && (b2.type === "IDENTIFIER" /* IDENTIFIER */ || b2.type === "INTEGER" /* INTEGER */)) {
+    if (a.type === "IDENTIFIER" /* IDENTIFIER */ && b.type === "LBRACKET" /* LBRACKET */) {
       return false;
     }
-    if (a2.type === "IDENTIFIER" /* IDENTIFIER */ && b2.type === "RBRACKET" /* RBRACKET */) {
+    if (a.type === "LBRACKET" /* LBRACKET */ && (b.type === "IDENTIFIER" /* IDENTIFIER */ || b.type === "INTEGER" /* INTEGER */)) {
       return false;
     }
-    if (a2.type === "RBRACKET" /* RBRACKET */ && b2.type === "SLASH" /* SLASH */)
-      return false;
-    if (a2.type === "SLASH" /* SLASH */ && (b2.type === "IDENTIFIER" /* IDENTIFIER */ || b2.type === "VARIABLE" /* VARIABLE */)) {
+    if (a.type === "IDENTIFIER" /* IDENTIFIER */ && b.type === "RBRACKET" /* RBRACKET */) {
       return false;
     }
-    if (pathGlue.has(a2.type) && b2.type !== "COLON" /* COLON */)
+    if (a.type === "RBRACKET" /* RBRACKET */ && b.type === "SLASH" /* SLASH */)
+      return false;
+    if (a.type === "SLASH" /* SLASH */ && (b.type === "IDENTIFIER" /* IDENTIFIER */ || b.type === "VARIABLE" /* VARIABLE */)) {
+      return false;
+    }
+    if (pathGlue.has(a.type) && b.type !== "COLON" /* COLON */)
       return false;
     return true;
   }
-  tokenText(t2) {
-    switch (t2.type) {
+  tokenText(t) {
+    switch (t.type) {
       case "STRING" /* STRING */:
-        return `"${t2.value}"`;
+        return `"${t.value}"`;
       case "AT_CODE" /* AT_CODE */:
-        return `[${t2.value}]`;
+        return `[${t.value}]`;
       case "ASSIGN" /* ASSIGN */:
         return ":=";
       case "NOT_EQUALS" /* NOT_EQUALS */:
-        return t2.value;
+        return t.value;
       default:
-        return t2.value;
+        return t.value;
     }
   }
   /** Group physical lines into logical statements (handles indented continuations). */
@@ -13618,10 +10348,10 @@ var RulesParser = class {
     const assertion = new ASSERTION();
     const varDecl = /^\$([A-Za-z_]\w*)\s*:\s*([A-Za-z_][\w.]*)\s*:=\s*(.+)$/i.exec(text);
     if (varDecl) {
-      const v2 = new ASSERTION_VARIABLE();
-      v2.name = `$${varDecl[1]}`;
-      v2.definition = `${varDecl[2]} := ${varDecl[3].trim()}`;
-      assertion.variables = [v2];
+      const v = new ASSERTION_VARIABLE();
+      v.name = `$${varDecl[1]}`;
+      v.definition = `${varDecl[2]} := ${varDecl[3].trim()}`;
+      assertion.variables = [v];
       assertion.string_expression = text;
       return assertion;
     }
@@ -13717,25 +10447,25 @@ var RulesParser = class {
     return void 0;
   }
   stripOuterParens(text) {
-    let e2 = text.trim();
-    while (e2.startsWith("(") && e2.endsWith(")")) {
+    let e = text.trim();
+    while (e.startsWith("(") && e.endsWith(")")) {
       let depth = 0;
       let wrapped = true;
-      for (let i2 = 0; i2 < e2.length; i2++) {
-        if (e2[i2] === "(")
+      for (let i = 0; i < e.length; i++) {
+        if (e[i] === "(")
           depth++;
-        else if (e2[i2] === ")")
+        else if (e[i] === ")")
           depth--;
-        if (depth === 0 && i2 < e2.length - 1) {
+        if (depth === 0 && i < e.length - 1) {
           wrapped = false;
           break;
         }
       }
       if (!wrapped)
         break;
-      e2 = e2.slice(1, -1).trim();
+      e = e.slice(1, -1).trim();
     }
-    return e2;
+    return e;
   }
   quantified(op, collectionPath, condition) {
     const bin = new EXPR_BINARY_OPERATOR();
@@ -13759,21 +10489,21 @@ var RulesParser = class {
   }
   findOperator(text, op) {
     let depth = 0;
-    for (let i2 = 0; i2 <= text.length - op.length; i2++) {
-      const c2 = text[i2];
-      if (c2 === "(")
+    for (let i = 0; i <= text.length - op.length; i++) {
+      const c = text[i];
+      if (c === "(")
         depth++;
-      else if (c2 === ")")
+      else if (c === ")")
         depth--;
-      else if (depth === 0 && text.slice(i2, i2 + op.length) === op) {
+      else if (depth === 0 && text.slice(i, i + op.length) === op) {
         if (op === "=") {
-          if (i2 > 0 && (text[i2 - 1] === ">" || text[i2 - 1] === "<" || text[i2 - 1] === "!")) {
+          if (i > 0 && (text[i - 1] === ">" || text[i - 1] === "<" || text[i - 1] === "!")) {
             continue;
           }
-          if (i2 + 1 < text.length && text[i2 + 1] === "=")
+          if (i + 1 < text.length && text[i + 1] === "=")
             continue;
         }
-        return i2;
+        return i;
       }
     }
     return -1;
@@ -13782,16 +10512,16 @@ var RulesParser = class {
     const lower = text.toLowerCase();
     const needle = sep.toLowerCase();
     let depth = 0;
-    for (let i2 = 0; i2 <= text.length - needle.length; i2++) {
-      const c2 = text[i2];
-      if (c2 === "(")
+    for (let i = 0; i <= text.length - needle.length; i++) {
+      const c = text[i];
+      if (c === "(")
         depth++;
-      else if (c2 === ")")
+      else if (c === ")")
         depth--;
-      else if (depth === 0 && lower.slice(i2, i2 + needle.length) === needle && (i2 === 0 || /\s/.test(text[i2 - 1])) && (i2 + needle.length >= text.length || /\s/.test(text[i2 + needle.length]))) {
+      else if (depth === 0 && lower.slice(i, i + needle.length) === needle && (i === 0 || /\s/.test(text[i - 1])) && (i + needle.length >= text.length || /\s/.test(text[i + needle.length]))) {
         return [
-          text.slice(0, i2).trim(),
-          text.slice(i2 + needle.length).trim()
+          text.slice(0, i).trim(),
+          text.slice(i + needle.length).trim()
         ];
       }
     }
@@ -13807,6 +10537,7 @@ var RulesParser = class {
 };
 
 // parser/aom_odin_sections.ts
+init_define_BUILD_INFO();
 function applyAnnotationsOdin(archetype, data) {
   const ann = new RESOURCE_ANNOTATIONS();
   const bag = ann;
@@ -14010,8 +10741,8 @@ var ADL2Parser = class {
     try {
       const definition = cadlParser.parseComplexObject();
       archetype.definition = definition;
-    } catch (e2) {
-      this.warnings.push(`Definition section parsing error: ${e2.message}`);
+    } catch (e) {
+      this.warnings.push(`Definition section parsing error: ${e.message}`);
       const definition = new C_COMPLEX_OBJECT();
       archetype.definition = definition;
     }
@@ -14077,9 +10808,9 @@ var ADL2Parser = class {
       const odinParser = new OdinParser(odinTokens);
       const terminologyData = odinParser.parse();
       applyTerminologyOdin(archetype, terminologyData);
-    } catch (e2) {
+    } catch (e) {
       this.warnings.push(
-        `Terminology section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+        `Terminology section parse error: ${e instanceof Error ? e.message : String(e)}`
       );
       archetype.ontology = archetype.ontology ?? new ARCHETYPE_ONTOLOGY();
     }
@@ -14094,9 +10825,9 @@ var ADL2Parser = class {
       const odinParser = new OdinParser(odinTokens);
       const data = odinParser.parse();
       applyAnnotationsOdin(archetype, data);
-    } catch (e2) {
+    } catch (e) {
       this.warnings.push(
-        `Annotations section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+        `Annotations section parse error: ${e instanceof Error ? e.message : String(e)}`
       );
     }
   }
@@ -14110,9 +10841,9 @@ var ADL2Parser = class {
       const odinParser = new OdinParser(odinTokens);
       const data = odinParser.parse();
       applyRmOverlayOdin(archetype, data);
-    } catch (e2) {
+    } catch (e) {
       this.warnings.push(
-        `rm_overlay section parse error: ${e2 instanceof Error ? e2.message : String(e2)}`
+        `rm_overlay section parse error: ${e instanceof Error ? e.message : String(e)}`
       );
     }
   }
@@ -14194,7 +10925,11 @@ var ADL2Parser = class {
   }
 };
 
+// parser/adl14_to_adl2_converter.ts
+init_define_BUILD_INFO();
+
 // parser/adl_version.ts
+init_define_BUILD_INFO();
 function hasSectionHeader(source, section) {
   return new RegExp(`^[ \\t]*${section}\\b`, "im").test(source);
 }
@@ -14202,10 +10937,10 @@ function detectAdlVersion(source) {
   const head = source.slice(0, 1200);
   const meta2 = head.match(/adl_version\s*=\s*([\d.]+)/i);
   if (meta2) {
-    const v2 = meta2[1];
-    if (v2.startsWith("2"))
+    const v = meta2[1];
+    if (v.startsWith("2"))
       return "2.x";
-    if (v2.startsWith("1.4") || v2.startsWith("1.5"))
+    if (v.startsWith("1.4") || v.startsWith("1.5"))
       return "1.4";
   }
   const hasTerminology = hasSectionHeader(source, "terminology");
@@ -14264,8 +10999,8 @@ function normalizeArchetypeHeader(text, opts, warnings) {
   const lines = text.split("\n");
   const out = [];
   let headerDone = false;
-  for (let i2 = 0; i2 < lines.length; i2++) {
-    const line = lines[i2];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const trimmed = line.trim();
     if (!headerDone && /^archetype\b/i.test(trimmed)) {
       if (trimmed.includes("(") && /adl_version/i.test(trimmed)) {
@@ -14301,21 +11036,21 @@ function normalizeArchetypeHeader(text, opts, warnings) {
 function removeStandaloneSections(text, sectionNames, warnings) {
   let result = text;
   for (const name of sectionNames) {
-    const re2 = new RegExp(
+    const re = new RegExp(
       `^([ \\t]*)${name}[ \\t]*\\n([\\s\\S]*?)(?=^[ \\t]*(?:language|description|definition|ontology|terminology|rules|annotations|rm_overlay|concept|revision|archetype|template|operational_template)\\b|\\Z)`,
       "gim"
     );
-    if (re2.test(result)) {
+    if (re.test(result)) {
       warnings.push(`Removed ADL 1.4 '${name}' section.`);
-      result = result.replace(re2, "");
+      result = result.replace(re, "");
     }
   }
   return result;
 }
-function renameSectionKeyword(text, from, to2) {
+function renameSectionKeyword(text, from, to) {
   return text.replace(
     new RegExp(`^([ \\t]*)${from}\\b`, "gim"),
-    `$1${to2}`
+    `$1${to}`
   );
 }
 function stripTerminologiesAvailable(text) {
@@ -14328,7 +11063,7 @@ function flattenTermDefinitionItemsWrappers(text) {
   return text.replace(
     /^([ \t]*)items\s*=\s*<\s*\n([\s\S]*?)^\1>/gm,
     (_match, indent, body) => {
-      const inner = body.split("\n").map((l2) => `${indent}    ${l2.trimStart()}`);
+      const inner = body.split("\n").map((l) => `${indent}    ${l.trimStart()}`);
       return inner.join("\n") + "\n";
     }
   );
@@ -14360,9 +11095,9 @@ function convertAcCodeKeysInTerminologyBody(body) {
   );
 }
 function acCodeToIdKey(code) {
-  const at2 = /^at(\d+)$/i.exec(code);
-  if (at2)
-    return `id${parseInt(at2[1], 10)}`;
+  const at = /^at(\d+)$/i.exec(code);
+  if (at)
+    return `id${parseInt(at[1], 10)}`;
   const ac = /^ac([\d.]+)$/i.exec(code);
   if (ac)
     return `ac${ac[1]}`;
@@ -14370,27 +11105,27 @@ function acCodeToIdKey(code) {
 }
 function parseTermTableEntries(block) {
   const entries = [];
-  const re2 = /\["([^"]+)"\]\s*=\s*</g;
-  let m2;
-  while ((m2 = re2.exec(block)) !== null) {
-    const open = block.indexOf("<", m2.index);
+  const re = /\["([^"]+)"\]\s*=\s*</g;
+  let m;
+  while ((m = re.exec(block)) !== null) {
+    const open = block.indexOf("<", m.index);
     let depth = 0;
     let close = open;
-    for (let i2 = open; i2 < block.length; i2++) {
-      if (block[i2] === "<")
+    for (let i = open; i < block.length; i++) {
+      if (block[i] === "<")
         depth++;
-      else if (block[i2] === ">") {
+      else if (block[i] === ">") {
         depth--;
         if (depth === 0) {
-          close = i2;
+          close = i;
           break;
         }
       }
     }
     const body = block.slice(open + 1, close).trim();
     entries.push({
-      code: m2[1],
-      lines: body ? body.split("\n").map((l2) => l2.trimEnd()) : []
+      code: m[1],
+      lines: body ? body.split("\n").map((l) => l.trimEnd()) : []
     });
   }
   return entries;
@@ -14413,18 +11148,18 @@ function mergeTermEntryLines(existing, incoming) {
 }
 function parseLanguageBlocks(block) {
   const langs = /* @__PURE__ */ new Map();
-  const re2 = /\["([^"]+)"\]\s*=\s*</g;
-  let m2;
-  while ((m2 = re2.exec(block)) !== null) {
-    const open = block.indexOf("<", m2.index);
+  const re = /\["([^"]+)"\]\s*=\s*</g;
+  let m;
+  while ((m = re.exec(block)) !== null) {
+    const open = block.indexOf("<", m.index);
     let depth = 0;
-    for (let i2 = open; i2 < block.length; i2++) {
-      if (block[i2] === "<")
+    for (let i = open; i < block.length; i++) {
+      if (block[i] === "<")
         depth++;
-      else if (block[i2] === ">") {
+      else if (block[i] === ">") {
         depth--;
         if (depth === 0) {
-          langs.set(m2[1], block.slice(open + 1, i2));
+          langs.set(m[1], block.slice(open + 1, i));
           break;
         }
       }
@@ -14439,20 +11174,20 @@ function mergeLanguageTermBlocks(termDefsBlock, constraintDefsBlock) {
     const termInner = termLangs.get(lang) ?? "";
     const termEntries = parseTermTableEntries(termInner);
     const constraintEntries = parseTermTableEntries(constraintInner);
-    const byCode = new Map(termEntries.map((e2) => [e2.code, e2]));
-    for (const ce2 of constraintEntries) {
-      const idCode = acCodeToIdKey(ce2.code);
-      const existing = byCode.get(idCode) ?? byCode.get(ce2.code);
+    const byCode = new Map(termEntries.map((e) => [e.code, e]));
+    for (const ce of constraintEntries) {
+      const idCode = acCodeToIdKey(ce.code);
+      const existing = byCode.get(idCode) ?? byCode.get(ce.code);
       if (existing) {
-        existing.lines = mergeTermEntryLines(existing.lines, ce2.lines);
+        existing.lines = mergeTermEntryLines(existing.lines, ce.lines);
         byCode.set(existing.code, existing);
       } else {
-        byCode.set(idCode, { code: idCode, lines: ce2.lines });
+        byCode.set(idCode, { code: idCode, lines: ce.lines });
       }
     }
-    const mergedEntries = [...byCode.values()].map((e2) => {
-      const inner = e2.lines.map((l2) => `            ${l2.trim()}`).join("\n");
-      return `        ["${e2.code}"] = <
+    const mergedEntries = [...byCode.values()].map((e) => {
+      const inner = e.lines.map((l) => `            ${l.trim()}`).join("\n");
+      return `        ["${e.code}"] = <
 ${inner}
         >`;
     }).join("\n");
@@ -14466,19 +11201,19 @@ ${body}
   }).join("\n");
 }
 function extractOdinAssignmentBlock(text, key) {
-  const re2 = new RegExp(`\\b${key}\\s*=\\s*<`, "i");
-  const match = re2.exec(text);
+  const re = new RegExp(`\\b${key}\\s*=\\s*<`, "i");
+  const match = re.exec(text);
   if (!match)
     return void 0;
   const open = text.indexOf("<", match.index);
   let depth = 0;
-  for (let i2 = open; i2 < text.length; i2++) {
-    if (text[i2] === "<")
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === "<")
       depth++;
-    else if (text[i2] === ">") {
+    else if (text[i] === ">") {
       depth--;
       if (depth === 0)
-        return text.slice(open + 1, i2);
+        return text.slice(open + 1, i);
     }
   }
   return void 0;
@@ -14497,13 +11232,13 @@ function mergeConstraintDefinitionsIntoTermDefinitions(text, warnings) {
   const termOpen = text.indexOf("<", termStart);
   let depth = 0;
   let termClose = -1;
-  for (let i2 = termOpen; i2 < text.length; i2++) {
-    if (text[i2] === "<")
+  for (let i = termOpen; i < text.length; i++) {
+    if (text[i] === "<")
       depth++;
-    else if (text[i2] === ">") {
+    else if (text[i] === ">") {
       depth--;
       if (depth === 0) {
-        termClose = i2;
+        termClose = i;
         break;
       }
     }
@@ -14519,11 +11254,11 @@ ${merged}
     ${withoutConstraint}`;
 }
 function migrateValueSetsSection(text, warnings) {
-  const re2 = /^([ \t]*)value_sets\s*=\s*<\s*\n([\s\S]*?)^\1>/gim;
-  if (!re2.test(text))
+  const re = /^([ \t]*)value_sets\s*=\s*<\s*\n([\s\S]*?)^\1>/gim;
+  if (!re.test(text))
     return text;
   warnings.push("Normalised value_sets block under terminology.");
-  return text.replace(re2, (_full, indent, body) => {
+  return text.replace(re, (_full, indent, body) => {
     const inner = body.replace(
       /\[(at\d+|ac[\d.]+)\]/gi,
       (_m, code) => `[${acCodeToIdKey(code)}]`
@@ -14567,22 +11302,22 @@ function splitTopLevelSections(text) {
   let currentBody = [];
   let startIdx = 0;
   const isSectionStart = (trimmed) => /^(archetype|template|operational_template|language|description|definition|ontology|terminology|rules|annotations|rm_overlay)\b/i.test(trimmed);
-  for (let i2 = 0; i2 < lines.length; i2++) {
-    const trimmed = lines[i2].trim();
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
     if (isSectionStart(trimmed)) {
       if (currentHeader || currentBody.length) {
-        const raw = lines.slice(startIdx, i2).join("\n");
+        const raw = lines.slice(startIdx, i).join("\n");
         slices.push({
           header: currentHeader,
           body: currentBody.join("\n"),
           raw
         });
       }
-      currentHeader = lines[i2];
+      currentHeader = lines[i];
       currentBody = [];
-      startIdx = i2;
+      startIdx = i;
     } else if (currentHeader) {
-      currentBody.push(lines[i2]);
+      currentBody.push(lines[i]);
     }
   }
   if (currentHeader || currentBody.length) {
@@ -14626,7 +11361,11 @@ function parseAdl(source, options) {
   };
 }
 
+// parser/legacy/opt_xml_parser.ts
+init_define_BUILD_INFO();
+
 // parser/legacy/xml_aom_mapper.ts
+init_define_BUILD_INFO();
 var import_fast_xml_parser = __toESM(require_fxp());
 function parseLegacyTemplateXml(xml) {
   const parser = new import_fast_xml_parser.XMLParser({
@@ -14636,9 +11375,9 @@ function parseLegacyTemplateXml(xml) {
     parseTagValue: true,
     trimValues: true,
     isArray: (_name, jpath) => {
-      const p2 = jpath;
-      return p2.endsWith(".attributes") || p2.endsWith(".children") || p2.endsWith(".code_list") || p2.endsWith(".list") || p2.endsWith(".term_definitions") || p2.endsWith(".items") || // Top-level OPT `<annotations path="...">` repeats as siblings.
-      p2 === "template.annotations" || p2.endsWith(".annotations");
+      const p = jpath;
+      return p.endsWith(".attributes") || p.endsWith(".children") || p.endsWith(".code_list") || p.endsWith(".list") || p.endsWith(".term_definitions") || p.endsWith(".items") || // Top-level OPT `<annotations path="...">` repeats as siblings.
+      p === "template.annotations" || p.endsWith(".annotations");
     }
   });
   const doc = parser.parse(xml);
@@ -14681,50 +11420,50 @@ function textValue(node, key = "value") {
   return void 0;
 }
 function xsiType(node) {
-  const t2 = node["@_type"] ?? node["@_xsi:type"] ?? "";
-  return String(t2).replace(/^.*:/, "");
+  const t = node["@_type"] ?? node["@_xsi:type"] ?? "";
+  return String(t).replace(/^.*:/, "");
 }
-function setBound(m2, key, value) {
-  m2[key] = value;
+function setBound(m, key, value) {
+  m[key] = value;
 }
 function parseMultiplicity(node) {
   if (!node || typeof node !== "object")
     return void 0;
-  const n2 = node;
-  const interval = n2.interval ?? n2;
-  const m2 = new Multiplicity_interval();
+  const n = node;
+  const interval = n.interval ?? n;
+  const m = new Multiplicity_interval();
   if (interval.lower !== void 0) {
-    setBound(m2, "lower", Number(interval.lower));
+    setBound(m, "lower", Number(interval.lower));
   }
   if (interval.upper !== void 0) {
-    setBound(m2, "upper", Number(interval.upper));
+    setBound(m, "upper", Number(interval.upper));
   }
   if (interval.lower_unbounded !== void 0) {
-    m2.lower_unbounded = interval.lower_unbounded === true || interval.lower_unbounded === "true";
+    m.lower_unbounded = interval.lower_unbounded === true || interval.lower_unbounded === "true";
   }
   if (interval.upper_unbounded !== void 0) {
-    m2.upper_unbounded = interval.upper_unbounded === true || interval.upper_unbounded === "true";
+    m.upper_unbounded = interval.upper_unbounded === true || interval.upper_unbounded === "true";
   }
   if (interval.lower_included !== void 0) {
-    m2.lower_included = interval.lower_included === true || interval.lower_included === "true";
+    m.lower_included = interval.lower_included === true || interval.lower_included === "true";
   }
   if (interval.upper_included !== void 0) {
-    m2.upper_included = interval.upper_included === true || interval.upper_included === "true";
+    m.upper_included = interval.upper_included === true || interval.upper_included === "true";
   }
-  return m2;
+  return m;
 }
 function parseCardinality(node) {
   if (!node || typeof node !== "object")
     return void 0;
-  const n2 = node;
+  const n = node;
   const card = new CARDINALITY();
-  if (n2.is_ordered !== void 0) {
-    card.is_ordered = n2.is_ordered === true || n2.is_ordered === "true";
+  if (n.is_ordered !== void 0) {
+    card.is_ordered = n.is_ordered === true || n.is_ordered === "true";
   }
-  if (n2.is_unique !== void 0) {
-    card.is_unique = n2.is_unique === true || n2.is_unique === "true";
+  if (n.is_unique !== void 0) {
+    card.is_unique = n.is_unique === true || n.is_unique === "true";
   }
-  card.interval = parseMultiplicity(n2.interval ?? n2);
+  card.interval = parseMultiplicity(n.interval ?? n);
   return card;
 }
 function defaultContainerCardinality() {
@@ -14765,42 +11504,42 @@ function parseCObject(node) {
   if (!node || typeof node !== "object") {
     throw new Error("Invalid C_OBJECT node");
   }
-  const n2 = node;
-  const type = (xsiType(n2) || amFieldString(n2, "rm_type_name", "rmTypeName")) ?? "C_COMPLEX_OBJECT";
-  const hasArchetypeId = !!(textValue(n2.archetype_id) ?? textValue(n2.archetype_ref) ?? textValue(n2.archetypeRef));
+  const n = node;
+  const type = (xsiType(n) || amFieldString(n, "rm_type_name", "rmTypeName")) ?? "C_COMPLEX_OBJECT";
+  const hasArchetypeId = !!(textValue(n.archetype_id) ?? textValue(n.archetype_ref) ?? textValue(n.archetypeRef));
   if (type === "C_ARCHETYPE_ROOT" || hasArchetypeId) {
-    return parseCArchetypeRoot(n2);
+    return parseCArchetypeRoot(n);
   }
   if (type === "C_COMPLEX_OBJECT" || !type.startsWith("C_")) {
-    return parseCComplexObject(n2);
+    return parseCComplexObject(n);
   }
   if (type === "C_PRIMITIVE_OBJECT") {
-    return parseCPrimitiveObject(n2);
+    return parseCPrimitiveObject(n);
   }
   const mapped = mapPrimitiveType(type);
   if (mapped === "C_QUANTITY")
-    return parseCQuantity(n2);
+    return parseCQuantity(n);
   if (mapped === "C_TERMINOLOGY_CODE")
-    return parseCTerminologyCode(n2);
+    return parseCTerminologyCode(n);
   if (mapped === "C_CODED_TEXT")
-    return parseCCodedText(n2);
+    return parseCCodedText(n);
   if (mapped === "C_ORDINAL")
-    return parseCOrdinal(n2);
-  const primitive = parsePrimitiveItem(n2, mapped);
+    return parseCOrdinal(n);
+  const primitive = parsePrimitiveItem(n, mapped);
   if (primitive) {
     return primitive;
   }
   const fallback = new C_PRIMITIVE_OBJECT();
-  fallback.rm_type_name = String(n2.rm_type_name ?? type.replace(/^C_/, "DV_"));
+  fallback.rm_type_name = String(n.rm_type_name ?? type.replace(/^C_/, "DV_"));
   return fallback;
 }
-function parseCPrimitiveObject(n2) {
+function parseCPrimitiveObject(n) {
   const obj = new C_PRIMITIVE_OBJECT();
-  applyOccurrence(obj, n2);
+  applyOccurrence(obj, n);
   if (!obj.rm_type_name) {
-    obj.rm_type_name = String(n2.rm_type_name ?? "Any");
+    obj.rm_type_name = String(n.rm_type_name ?? "Any");
   }
-  const itemNode = n2.item;
+  const itemNode = n.item;
   if (itemNode && typeof itemNode === "object") {
     const rec = itemNode;
     const itemType = xsiType(rec) || amFieldString(rec, "rm_type_name", "rmTypeName") || "";
@@ -14811,51 +11550,51 @@ function parseCPrimitiveObject(n2) {
   }
   return obj;
 }
-function parsePrimitiveItem(n2, mapped) {
+function parsePrimitiveItem(n, mapped) {
   if (mapped === "C_STRING")
-    return parseCString(n2);
+    return parseCString(n);
   if (mapped === "C_INTEGER")
-    return parseCInteger(n2);
+    return parseCInteger(n);
   if (mapped === "C_REAL")
-    return parseCReal(n2);
+    return parseCReal(n);
   if (mapped === "C_BOOLEAN")
-    return parseCBoolean(n2);
+    return parseCBoolean(n);
   if (mapped === "C_DATE")
-    return parseCDate(n2);
+    return parseCDate(n);
   if (mapped === "C_TIME")
-    return parseCTime(n2);
+    return parseCTime(n);
   if (mapped === "C_DATE_TIME")
-    return parseCDateTime(n2);
+    return parseCDateTime(n);
   if (mapped === "C_DURATION")
-    return parseCDuration(n2);
+    return parseCDuration(n);
   return void 0;
 }
 function parseOccurrencesOrMultiplicity(val) {
   if (typeof val === "string") {
-    const s2 = val.trim();
-    const star = s2.match(/^(\d+|\*)\.\.(\d+|\*)$/);
+    const s = val.trim();
+    const star = s.match(/^(\d+|\*)\.\.(\d+|\*)$/);
     if (star) {
-      const m2 = new Multiplicity_interval();
-      const lo2 = star[1];
-      const hi2 = star[2];
-      if (lo2 === "*")
-        m2.lower_unbounded = true;
+      const m = new Multiplicity_interval();
+      const lo = star[1];
+      const hi = star[2];
+      if (lo === "*")
+        m.lower_unbounded = true;
       else
-        setBound(m2, "lower", Number(lo2));
-      if (hi2 === "*")
-        m2.upper_unbounded = true;
+        setBound(m, "lower", Number(lo));
+      if (hi === "*")
+        m.upper_unbounded = true;
       else
-        setBound(m2, "upper", Number(hi2));
-      return m2;
+        setBound(m, "upper", Number(hi));
+      return m;
     }
   }
   return parseMultiplicity(val);
 }
-function amFieldString(n2, ...keys) {
-  for (const k2 of keys) {
-    const v2 = n2[k2];
-    if (v2 !== void 0 && v2 !== null && String(v2).trim() !== "") {
-      return String(v2);
+function amFieldString(n, ...keys) {
+  for (const k of keys) {
+    const v = n[k];
+    if (v !== void 0 && v !== null && String(v).trim() !== "") {
+      return String(v);
     }
   }
   return void 0;
@@ -14863,35 +11602,35 @@ function amFieldString(n2, ...keys) {
 function meta(target) {
   return target;
 }
-function applyOccurrence(target, n2) {
-  const rm = amFieldString(n2, "rm_type_name", "rmTypeName");
+function applyOccurrence(target, n) {
+  const rm = amFieldString(n, "rm_type_name", "rmTypeName");
   if (rm)
     target.rm_type_name = rm;
-  const nodeId = amFieldString(n2, "node_id", "nodeId");
+  const nodeId = amFieldString(n, "node_id", "nodeId");
   if (nodeId)
     target.node_id = nodeId;
-  target.occurrences = parseOccurrencesOrMultiplicity(n2.occurrences);
+  target.occurrences = parseOccurrencesOrMultiplicity(n.occurrences);
 }
-function parseCComplexObject(n2) {
+function parseCComplexObject(n) {
   const obj = new C_COMPLEX_OBJECT();
-  applyOccurrence(obj, n2);
-  obj.attributes = asArray(n2.attributes).map(
+  applyOccurrence(obj, n);
+  obj.attributes = asArray(n.attributes).map(
     (attr) => parseAttribute(attr, obj.rm_type_name)
   ).filter(
     Boolean
   );
   return obj;
 }
-function parseCArchetypeRoot(n2) {
+function parseCArchetypeRoot(n) {
   const root = new C_ARCHETYPE_ROOT();
-  applyOccurrence(root, n2);
-  root.archetype_ref = textValue(n2.archetype_id) ?? textValue(n2.archetype_ref) ?? textValue(n2.archetypeRef);
-  root.attributes = asArray(n2.attributes).map(
+  applyOccurrence(root, n);
+  root.archetype_ref = textValue(n.archetype_id) ?? textValue(n.archetype_ref) ?? textValue(n.archetypeRef);
+  root.attributes = asArray(n.attributes).map(
     (attr) => parseAttribute(attr, root.rm_type_name)
   ).filter(
     Boolean
   );
-  const localTerms = collectLocalTermDefinitions(n2);
+  const localTerms = collectLocalTermDefinitions(n);
   if (Object.keys(localTerms).length) {
     root[COMPONENT_TERM_DEFINITIONS_KEY] = localTerms;
   }
@@ -14918,41 +11657,41 @@ function isContainerRmAttribute(parentRmType, attrName) {
 function parseAttribute(node, parentRmType) {
   if (!node || typeof node !== "object")
     return null;
-  const n2 = node;
-  const type = xsiType(n2);
-  const attrName = amFieldString(n2, "rm_attribute_name", "rmAttributeName") ?? "";
+  const n = node;
+  const type = xsiType(n);
+  const attrName = amFieldString(n, "rm_attribute_name", "rmAttributeName") ?? "";
   const useMultiple = type === "C_MULTIPLE_ATTRIBUTE" || (type === "C_ATTRIBUTE" || type === "") && isContainerRmAttribute(parentRmType, attrName);
   const attr = useMultiple ? new C_MULTIPLE_ATTRIBUTE() : new C_SINGLE_ATTRIBUTE();
   attr.rm_attribute_name = attrName;
-  attr.existence = parseOccurrencesOrMultiplicity(n2.existence);
+  attr.existence = parseOccurrencesOrMultiplicity(n.existence);
   if (attr instanceof C_MULTIPLE_ATTRIBUTE) {
-    attr.cardinality = parseCardinality(n2.cardinality) ?? defaultContainerCardinality();
+    attr.cardinality = parseCardinality(n.cardinality) ?? defaultContainerCardinality();
   }
-  const children = asArray(n2.children).map(parseCObject);
+  const children = asArray(n.children).map(parseCObject);
   if (children.length) {
     attr.children = children;
   }
   return attr;
 }
-function parseCString(n2) {
-  const s2 = new C_STRING();
-  applyOccurrence(meta(s2), n2);
-  if (!meta(s2).rm_type_name)
-    meta(s2).rm_type_name = "STRING";
-  if (n2.pattern)
-    s2.pattern = String(n2.pattern);
-  const lists = asArray(n2.list).map(
-    (x2) => String(x2.value ?? x2)
+function parseCString(n) {
+  const s = new C_STRING();
+  applyOccurrence(meta(s), n);
+  if (!meta(s).rm_type_name)
+    meta(s).rm_type_name = "STRING";
+  if (n.pattern)
+    s.pattern = String(n.pattern);
+  const lists = asArray(n.list).map(
+    (x) => String(x.value ?? x)
   );
   if (lists.length)
-    s2.list = lists;
-  return s2;
+    s.list = lists;
+  return s;
 }
-function constraintToRange(n2) {
-  const direct = parseOccurrencesOrMultiplicity(n2.range);
+function constraintToRange(n) {
+  const direct = parseOccurrencesOrMultiplicity(n.range);
   if (direct)
     return direct;
-  const constraints = asArray(n2.constraint);
+  const constraints = asArray(n.constraint);
   if (!constraints.length)
     return void 0;
   const first = constraints[0];
@@ -14961,121 +11700,121 @@ function constraintToRange(n2) {
   }
   return void 0;
 }
-function numericList(n2) {
-  return asArray(n2.list).map((x2) => {
-    if (typeof x2 === "number")
-      return x2;
-    const rec = x2;
-    return Number(rec.value ?? x2);
-  }).filter((x2) => Number.isFinite(x2));
+function numericList(n) {
+  return asArray(n.list).map((x) => {
+    if (typeof x === "number")
+      return x;
+    const rec = x;
+    return Number(rec.value ?? x);
+  }).filter((x) => Number.isFinite(x));
 }
-function parseCInteger(n2) {
-  const i2 = new C_INTEGER();
-  applyOccurrence(meta(i2), n2);
-  if (!meta(i2).rm_type_name)
-    meta(i2).rm_type_name = "INTEGER";
-  const range = constraintToRange(n2);
+function parseCInteger(n) {
+  const i = new C_INTEGER();
+  applyOccurrence(meta(i), n);
+  if (!meta(i).rm_type_name)
+    meta(i).rm_type_name = "INTEGER";
+  const range = constraintToRange(n);
   if (range) {
-    meta(i2).range = range;
-    i2.range = range;
+    meta(i).range = range;
+    i.range = range;
   }
-  const lists = numericList(n2);
+  const lists = numericList(n);
   if (lists.length)
-    i2.list = lists;
-  return i2;
+    i.list = lists;
+  return i;
 }
-function parseCReal(n2) {
-  const r2 = new C_REAL();
-  applyOccurrence(meta(r2), n2);
-  if (!meta(r2).rm_type_name)
-    meta(r2).rm_type_name = "REAL";
-  const range = constraintToRange(n2);
+function parseCReal(n) {
+  const r = new C_REAL();
+  applyOccurrence(meta(r), n);
+  if (!meta(r).rm_type_name)
+    meta(r).rm_type_name = "REAL";
+  const range = constraintToRange(n);
   if (range) {
-    meta(r2).range = range;
-    r2.range = range;
+    meta(r).range = range;
+    r.range = range;
   }
-  const lists = numericList(n2);
+  const lists = numericList(n);
   if (lists.length)
-    r2.list = lists;
-  return r2;
+    r.list = lists;
+  return r;
 }
-function applyTemporalPattern(target, n2) {
-  const pattern = n2.pattern ?? n2.pattern_constraint;
+function applyTemporalPattern(target, n) {
+  const pattern = n.pattern ?? n.pattern_constraint;
   if (pattern !== void 0 && pattern !== null && String(pattern).length) {
     target.pattern = String(pattern);
   }
-  const range = parseOrderedRange(n2);
+  const range = parseOrderedRange(n);
   if (range)
     target.range = range;
 }
-function parseOrderedRange(n2) {
-  const direct = n2.range;
+function parseOrderedRange(n) {
+  const direct = n.range;
   if (!direct || typeof direct !== "object")
-    return constraintToRange(n2);
+    return constraintToRange(n);
   const rec = direct;
-  const m2 = new Multiplicity_interval();
+  const m = new Multiplicity_interval();
   if (rec.lower !== void 0) {
-    m2.lower = rec.lower;
+    m.lower = rec.lower;
   }
   if (rec.upper !== void 0) {
-    m2.upper = rec.upper;
+    m.upper = rec.upper;
   }
   if (rec.lower_unbounded !== void 0) {
-    m2.lower_unbounded = rec.lower_unbounded === true || rec.lower_unbounded === "true";
+    m.lower_unbounded = rec.lower_unbounded === true || rec.lower_unbounded === "true";
   }
   if (rec.upper_unbounded !== void 0) {
-    m2.upper_unbounded = rec.upper_unbounded === true || rec.upper_unbounded === "true";
+    m.upper_unbounded = rec.upper_unbounded === true || rec.upper_unbounded === "true";
   }
   if (rec.lower_included !== void 0) {
-    m2.lower_included = rec.lower_included === true || rec.lower_included === "true";
+    m.lower_included = rec.lower_included === true || rec.lower_included === "true";
   }
   if (rec.upper_included !== void 0) {
-    m2.upper_included = rec.upper_included === true || rec.upper_included === "true";
+    m.upper_included = rec.upper_included === true || rec.upper_included === "true";
   }
-  return m2;
+  return m;
 }
-function parseCDate(n2) {
-  const d2 = new C_DATE();
-  applyOccurrence(meta(d2), n2);
-  if (!meta(d2).rm_type_name)
-    meta(d2).rm_type_name = "DATE";
-  applyTemporalPattern(d2, n2);
-  return d2;
+function parseCDate(n) {
+  const d = new C_DATE();
+  applyOccurrence(meta(d), n);
+  if (!meta(d).rm_type_name)
+    meta(d).rm_type_name = "DATE";
+  applyTemporalPattern(d, n);
+  return d;
 }
-function parseCTime(n2) {
-  const t2 = new C_TIME();
-  applyOccurrence(meta(t2), n2);
-  if (!meta(t2).rm_type_name)
-    meta(t2).rm_type_name = "TIME";
-  applyTemporalPattern(t2, n2);
-  return t2;
+function parseCTime(n) {
+  const t = new C_TIME();
+  applyOccurrence(meta(t), n);
+  if (!meta(t).rm_type_name)
+    meta(t).rm_type_name = "TIME";
+  applyTemporalPattern(t, n);
+  return t;
 }
-function parseCDateTime(n2) {
-  const t2 = new C_DATE_TIME();
-  applyOccurrence(meta(t2), n2);
-  if (!meta(t2).rm_type_name)
-    meta(t2).rm_type_name = "DATE_TIME";
-  applyTemporalPattern(t2, n2);
-  return t2;
+function parseCDateTime(n) {
+  const t = new C_DATE_TIME();
+  applyOccurrence(meta(t), n);
+  if (!meta(t).rm_type_name)
+    meta(t).rm_type_name = "DATE_TIME";
+  applyTemporalPattern(t, n);
+  return t;
 }
-function parseCDuration(n2) {
-  const d2 = new C_DURATION();
-  applyOccurrence(meta(d2), n2);
-  if (!meta(d2).rm_type_name)
-    meta(d2).rm_type_name = "DURATION";
-  applyTemporalPattern(d2, n2);
-  return d2;
+function parseCDuration(n) {
+  const d = new C_DURATION();
+  applyOccurrence(meta(d), n);
+  if (!meta(d).rm_type_name)
+    meta(d).rm_type_name = "DURATION";
+  applyTemporalPattern(d, n);
+  return d;
 }
-function parseCBoolean(n2) {
-  const b2 = new C_BOOLEAN();
-  applyOccurrence(meta(b2), n2);
-  if (n2.true_valid !== void 0) {
-    b2.true_valid = n2.true_valid === true || n2.true_valid === "true";
+function parseCBoolean(n) {
+  const b = new C_BOOLEAN();
+  applyOccurrence(meta(b), n);
+  if (n.true_valid !== void 0) {
+    b.true_valid = n.true_valid === true || n.true_valid === "true";
   }
-  if (n2.false_valid !== void 0) {
-    b2.false_valid = n2.false_valid === true || n2.false_valid === "true";
+  if (n.false_valid !== void 0) {
+    b.false_valid = n.false_valid === true || n.false_valid === "true";
   }
-  return b2;
+  return b;
 }
 function terminologyIdValue(tid) {
   if (typeof tid === "string")
@@ -15099,57 +11838,57 @@ function parseAssumedTerminologyCode(node) {
     tc.terminology_id = tid;
   return tc;
 }
-function parseCTerminologyCode(n2) {
-  const t2 = new C_TERMINOLOGY_CODE();
-  applyOccurrence(t2, n2);
-  t2.rm_type_name = "CODE_PHRASE";
-  const tid = terminologyIdValue(n2.terminology_id ?? n2.terminologyId);
+function parseCTerminologyCode(n) {
+  const t = new C_TERMINOLOGY_CODE();
+  applyOccurrence(t, n);
+  t.rm_type_name = "CODE_PHRASE";
+  const tid = terminologyIdValue(n.terminology_id ?? n.terminologyId);
   if (tid)
-    t2.terminology_id = tid;
-  const fromList = asArray(n2.code_list).map(String);
-  const fromConstraint = asArray(n2.constraint).filter(
-    (x2) => typeof x2 === "string"
+    t.terminology_id = tid;
+  const fromList = asArray(n.code_list).map(String);
+  const fromConstraint = asArray(n.constraint).filter(
+    (x) => typeof x === "string"
   ).map(String);
   const codes = fromList.length ? fromList : fromConstraint;
   if (codes.length === 1)
-    t2.constraint = codes[0];
+    t.constraint = codes[0];
   if (codes.length)
-    t2.code_list = codes;
-  if (!t2.constraint && !t2.code_list?.length) {
-    const ext = asArray(n2.includedExternalTerminologyCodes);
+    t.code_list = codes;
+  if (!t.constraint && !t.code_list?.length) {
+    const ext = asArray(n.includedExternalTerminologyCodes);
     for (const entry of ext) {
       if (!entry || typeof entry !== "object")
         continue;
       const code = entry.code;
       if (code !== void 0) {
-        t2.constraint = String(code);
-        t2.code_list = [t2.constraint];
+        t.constraint = String(code);
+        t.code_list = [t.constraint];
         break;
       }
     }
   }
-  const assumed = parseAssumedTerminologyCode(n2.assumed_value);
+  const assumed = parseAssumedTerminologyCode(n.assumed_value);
   if (assumed)
-    t2.assumed_value = assumed;
-  return t2;
+    t.assumed_value = assumed;
+  return t;
 }
-function parseCCodedText(n2) {
-  const defining = n2.defining_code ?? n2.definingCode;
-  const nestedAttrs = asArray(n2.attributes);
-  const ownCodes = asArray(n2.code_list);
-  if (defining || nestedAttrs.length || ownCodes.length || n2.terminology_id || n2.terminologyId || n2.assumed_value) {
+function parseCCodedText(n) {
+  const defining = n.defining_code ?? n.definingCode;
+  const nestedAttrs = asArray(n.attributes);
+  const ownCodes = asArray(n.code_list);
+  if (defining || nestedAttrs.length || ownCodes.length || n.terminology_id || n.terminologyId || n.assumed_value) {
     const obj = new C_COMPLEX_OBJECT();
-    applyOccurrence(obj, n2);
+    applyOccurrence(obj, n);
     if (!obj.rm_type_name)
       obj.rm_type_name = "DV_CODED_TEXT";
     const attributes = nestedAttrs.map(
       (attr) => parseAttribute(attr, obj.rm_type_name)
     ).filter(Boolean);
     const hasDefining = attributes.some(
-      (a2) => a2.rm_attribute_name === "defining_code"
+      (a) => a.rm_attribute_name === "defining_code"
     );
     if (!hasDefining) {
-      const source = defining && typeof defining === "object" ? defining : n2;
+      const source = defining && typeof defining === "object" ? defining : n;
       const attr = new C_SINGLE_ATTRIBUTE();
       attr.rm_attribute_name = "defining_code";
       attr.children = [
@@ -15160,9 +11899,9 @@ function parseCCodedText(n2) {
     obj.attributes = attributes;
     return obj;
   }
-  const c2 = new C_CODED_TEXT();
-  applyOccurrence(c2, n2);
-  return c2;
+  const c = new C_CODED_TEXT();
+  applyOccurrence(c, n);
+  return c;
 }
 function parseOrdinalSymbol(node) {
   if (!node || typeof node !== "object")
@@ -15177,12 +11916,12 @@ function parseOrdinalSymbol(node) {
   ) ?? "local";
   return CODE_PHRASE.from(tid, code);
 }
-function parseCOrdinal(n2) {
-  const o2 = new C_ORDINAL();
-  applyOccurrence(o2, n2);
-  o2.rm_type_name = n2.rm_type_name ? String(n2.rm_type_name) : "DV_ORDINAL";
+function parseCOrdinal(n) {
+  const o = new C_ORDINAL();
+  applyOccurrence(o, n);
+  o.rm_type_name = n.rm_type_name ? String(n.rm_type_name) : "DV_ORDINAL";
   const items = [];
-  for (const entry of asArray(n2.list)) {
+  for (const entry of asArray(n.list)) {
     if (!entry || typeof entry !== "object")
       continue;
     const rec = entry;
@@ -15196,8 +11935,8 @@ function parseCOrdinal(n2) {
     items.push(ord);
   }
   if (items.length)
-    o2.list = items;
-  const assumed = n2.assumed_value;
+    o.list = items;
+  const assumed = n.assumed_value;
   if (assumed && typeof assumed === "object") {
     const rec = assumed;
     const av = new ORDINAL();
@@ -15207,9 +11946,9 @@ function parseCOrdinal(n2) {
     const symbol = parseOrdinalSymbol(rec.symbol ?? rec);
     if (symbol)
       av.symbol = symbol;
-    o2.assumed_value = av;
+    o.assumed_value = av;
   }
-  return o2;
+  return o;
 }
 function parseNumericInterval(node) {
   if (!node || typeof node !== "object")
@@ -15242,8 +11981,8 @@ function parseNumericInterval(node) {
 function optionalNumber(value) {
   if (value === void 0 || value === null || value === "")
     return void 0;
-  const n2 = Number(value);
-  return Number.isFinite(n2) ? n2 : void 0;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : void 0;
 }
 function parseQuantityAssumedValue(node) {
   if (!node || typeof node !== "object")
@@ -15257,15 +11996,15 @@ function parseQuantityAssumedValue(node) {
   }
   return { magnitude, units, precision };
 }
-function parseCQuantity(n2) {
-  const q2 = new C_QUANTITY();
-  applyOccurrence(q2, n2);
-  q2.rm_type_name = "DV_QUANTITY";
-  const prop = n2.property;
+function parseCQuantity(n) {
+  const q = new C_QUANTITY();
+  applyOccurrence(q, n);
+  q.rm_type_name = "DV_QUANTITY";
+  const prop = n.property;
   if (prop) {
-    q2.property = textValue(prop.code_string) ?? textValue(prop);
+    q.property = textValue(prop.code_string) ?? textValue(prop);
   }
-  const items = asArray(n2.list).map((entry) => {
+  const items = asArray(n.list).map((entry) => {
     const item = new C_QUANTITY_ITEM();
     const rec = entry;
     const units = textValue(rec.units) ?? (typeof rec.units === "string" ? rec.units : void 0) ?? (typeof entry === "string" ? entry : void 0);
@@ -15280,24 +12019,24 @@ function parseCQuantity(n2) {
     return item;
   });
   if (items.length)
-    q2.list = items;
-  const assumed = parseQuantityAssumedValue(n2.assumed_value);
+    q.list = items;
+  const assumed = parseQuantityAssumedValue(n.assumed_value);
   if (assumed) {
-    q2.assumed_value = assumed;
+    q.assumed_value = assumed;
   }
-  return q2;
+  return q;
 }
-function collectLocalTermDefinitions(n2) {
+function collectLocalTermDefinitions(n) {
   const bag = {};
-  for (const td of asArray(n2.term_definitions)) {
+  for (const td of asArray(n.term_definitions)) {
     const rec = td;
     const code = String(rec["@_code"] ?? rec.code ?? "");
     if (!code)
       continue;
     const items = asArray(rec.items);
     const entry = {};
-    for (const it2 of items) {
-      const item = it2;
+    for (const it of items) {
+      const item = it;
       const id = String(item["@_id"] ?? item.id ?? "");
       const val = textValue(item);
       if (!val)
@@ -15315,23 +12054,24 @@ function collectLocalTermDefinitions(n2) {
 function collectTermDefinitions(node, bag) {
   if (!node || typeof node !== "object")
     return;
-  const n2 = node;
-  const local = collectLocalTermDefinitions(n2);
+  const n = node;
+  const local = collectLocalTermDefinitions(n);
   if (Object.keys(local).length) {
     if (!bag.en)
       bag.en = {};
     Object.assign(bag.en, local);
   }
-  for (const child of asArray(n2.children))
+  for (const child of asArray(n.children))
     collectTermDefinitions(child, bag);
-  for (const attr of asArray(n2.attributes)) {
-    for (const c2 of asArray(attr.children)) {
-      collectTermDefinitions(c2, bag);
+  for (const attr of asArray(n.attributes)) {
+    for (const c of asArray(attr.children)) {
+      collectTermDefinitions(c, bag);
     }
   }
 }
 
 // generation/opt_l10n.ts
+init_define_BUILD_INFO();
 var OPT_ANNOTATION_LANG = "_";
 function ensureOptAnnotations(opt, language = OPT_ANNOTATION_LANG) {
   let ann = opt.annotations;
@@ -15359,12 +12099,12 @@ function setArchetypeId(target, id) {
   target.archetype_id = aid;
 }
 function isOptXml(source) {
-  const t2 = source.trimStart();
-  if (!t2.startsWith("<?xml") && !t2.startsWith("<"))
+  const t = source.trimStart();
+  if (!t.startsWith("<?xml") && !t.startsWith("<"))
     return false;
-  if (t2.includes("openEHR/v1/Template"))
+  if (t.includes("openEHR/v1/Template"))
     return false;
-  return /<template[\s>]/i.test(t2) && (t2.includes("schemas.openehr.org/v1") || t2.includes("C_ARCHETYPE_ROOT") || t2.includes("C_COMPLEX_OBJECT") || t2.includes("template_id"));
+  return /<template[\s>]/i.test(t) && (t.includes("schemas.openehr.org/v1") || t.includes("C_ARCHETYPE_ROOT") || t.includes("C_COMPLEX_OBJECT") || t.includes("template_id"));
 }
 function parseOptXml(source) {
   const warnings = [];
@@ -15420,10 +12160,10 @@ function parseOptAnnotations(root, opt) {
     if (!path)
       continue;
     const items = {};
-    for (const it2 of asArray(rec.items)) {
-      if (!it2 || typeof it2 !== "object")
+    for (const it of asArray(rec.items)) {
+      if (!it || typeof it !== "object")
         continue;
-      const item = it2;
+      const item = it;
       const id = String(item["@_id"] ?? item.id ?? "").trim();
       const val = textValue(item);
       if (!id || !val)
@@ -15435,10 +12175,11 @@ function parseOptAnnotations(root, opt) {
 }
 
 // parser/legacy/oet_xml_parser.ts
+init_define_BUILD_INFO();
 var import_fast_xml_parser2 = __toESM(require_fxp());
 function isOetXml(source) {
-  const t2 = source.trimStart();
-  return (t2.startsWith("<?xml") || t2.startsWith("<")) && /<template[\s>]/i.test(t2) && t2.includes("openEHR/v1/Template");
+  const t = source.trimStart();
+  return (t.startsWith("<?xml") || t.startsWith("<")) && /<template[\s>]/i.test(t) && t.includes("openEHR/v1/Template");
 }
 function parseOetXmlDocument(xml) {
   const parser = new import_fast_xml_parser2.XMLParser({
@@ -15447,9 +12188,9 @@ function parseOetXmlDocument(xml) {
     removeNSPrefix: true,
     parseTagValue: true,
     trimValues: true,
-    isArray: (_n2, jpath) => {
-      const p2 = jpath;
-      return p2.endsWith(".Rule") || p2.endsWith(".Items") || p2.endsWith(".item") || p2.endsWith(".includedValues");
+    isArray: (_n, jpath) => {
+      const p = jpath;
+      return p.endsWith(".Rule") || p.endsWith(".Items") || p.endsWith(".item") || p.endsWith(".includedValues");
     }
   });
   const doc = parser.parse(xml);
@@ -15474,8 +12215,8 @@ function parseItems(node) {
   const item = {
     path: String(node["@_path"] ?? ""),
     archetypeId: String(node["@_archetype_id"] ?? node.archetype_id ?? ""),
-    rules: asArray(node.Rule).map((r2) => parseRule(r2)),
-    items: asArray(node.Items).map((c2) => parseItems(c2))
+    rules: asArray(node.Rule).map((r) => parseRule(r)),
+    items: asArray(node.Items).map((c) => parseItems(c))
   };
   if (node["@_max"] !== void 0)
     item.max = Number(node["@_max"]);
@@ -15498,8 +12239,8 @@ function parseOetXml(source) {
     document2.definitionArchetypeId = String(def["@_archetype_id"] ?? def.archetype_id ?? "");
     document2.conceptName = String(def["@_concept_name"] ?? def.concept_name ?? "");
     document2.definitionName = String(def["@_name"] ?? def.name ?? "");
-    document2.rules = asArray(def.Rule).map((r2) => parseRule(r2));
-    document2.items = asArray(def.Items).map((i2) => parseItems(i2));
+    document2.rules = asArray(def.Rule).map((r) => parseRule(r));
+    document2.items = asArray(def.Items).map((i) => parseItems(i));
   }
   const template = new TEMPLATE();
   if (document2.definitionArchetypeId) {
@@ -15517,10 +12258,14 @@ function parseOetXml(source) {
   return { document: document2, template, warnings };
 }
 
+// parser/legacy/template_json_parser.ts
+init_define_BUILD_INFO();
+
 // parser/legacy/json_aom_util.ts
+init_define_BUILD_INFO();
 function jsonType(node) {
-  const t2 = node["@type"] ?? node["@_type"] ?? "";
-  return String(t2).replace(/^.*:/, "");
+  const t = node["@type"] ?? node["@_type"] ?? "";
+  return String(t).replace(/^.*:/, "");
 }
 function normalizeJsonNode(node) {
   const out = { ...node };
@@ -15538,10 +12283,10 @@ function parseArchetypeIdField(node) {
   }
   if (typeof node === "object") {
     const rec = node;
-    const v2 = textValue(rec.value) ?? textValue(rec);
-    if (v2) {
+    const v = textValue(rec.value) ?? textValue(rec);
+    if (v) {
       const id = new ARCHETYPE_ID();
-      id.value = v2;
+      id.value = v;
       return id;
     }
   }
@@ -15550,23 +12295,24 @@ function parseArchetypeIdField(node) {
 function parseCodePhrase(node) {
   if (!node || typeof node !== "object")
     return void 0;
-  const n2 = node;
+  const n = node;
   const cp = new CODE_PHRASE();
-  if (n2.codeString !== void 0)
-    cp.code_string = String(n2.codeString);
-  if (n2.code_string !== void 0)
-    cp.code_string = String(n2.code_string);
-  const tid = n2.terminologyId ?? n2.terminology_id;
+  if (n.codeString !== void 0)
+    cp.code_string = String(n.codeString);
+  if (n.code_string !== void 0)
+    cp.code_string = String(n.code_string);
+  const tid = n.terminologyId ?? n.terminology_id;
   if (tid && typeof tid === "object") {
-    const t2 = tid;
+    const t = tid;
     const termId = new TERMINOLOGY_ID();
-    termId.value = textValue(t2.value) ?? String(t2.value ?? "");
+    termId.value = textValue(t.value) ?? String(t.value ?? "");
     cp.terminology_id = termId;
   }
   return cp;
 }
 
 // parser/legacy/template_json_normalize.ts
+init_define_BUILD_INFO();
 var PROPERTY_ALIASES = {
   rmTypeName: "rm_type_name",
   rmAttributeName: "rm_attribute_name",
@@ -15688,11 +12434,11 @@ function normalizeBinaryOperator(rec) {
   } else if (op && typeof op === "object") {
     out.operator_def = normalizeNode(op);
   }
-  for (const [k2, v2] of Object.entries(rec)) {
-    if (k2 === "operator" || k2 === "@type" || k2 === "@_type")
+  for (const [k, v] of Object.entries(rec)) {
+    if (k === "operator" || k === "@type" || k === "@_type")
       continue;
-    const nk = PROPERTY_ALIASES[k2] ?? k2;
-    out[nk] = normalizeNode(v2);
+    const nk = PROPERTY_ALIASES[k] ?? k;
+    out[nk] = normalizeNode(v);
   }
   return out;
 }
@@ -15705,7 +12451,7 @@ function walkLint(node, path, warnings) {
   if (!node || typeof node !== "object")
     return;
   if (Array.isArray(node)) {
-    node.forEach((c2, i2) => walkLint(c2, `${path}[${i2}]`, warnings));
+    node.forEach((c, i) => walkLint(c, `${path}[${i}]`, warnings));
     return;
   }
   const rec = node;
@@ -15714,20 +12460,20 @@ function walkLint(node, path, warnings) {
       warnings.push(`${path}: unmapped Better field "${key}" (normaliser gap)`);
     }
   }
-  for (const [k2, v2] of Object.entries(rec)) {
-    if (k2 === "@type" || k2 === "@_type")
+  for (const [k, v] of Object.entries(rec)) {
+    if (k === "@type" || k === "@_type")
       continue;
-    walkLint(v2, path ? `${path}.${k2}` : k2, warnings);
+    walkLint(v, path ? `${path}.${k}` : k, warnings);
   }
 }
 
 // parser/legacy/template_json_parser.ts
 function isTemplateJson(source) {
-  const t2 = source.trimStart();
-  if (!t2.startsWith("{"))
+  const t = source.trimStart();
+  if (!t.startsWith("{"))
     return false;
   try {
-    const obj = JSON.parse(t2);
+    const obj = JSON.parse(t);
     const type = jsonType(obj);
     return type === "TEMPLATE" || type === "OPERATIONAL_TEMPLATE";
   } catch {
@@ -15882,7 +12628,7 @@ var ArchetypeRepository = class _ArchetypeRepository {
     return flattenToOperationalTemplate(template, this);
   }
   resolve(archetypeId) {
-    return this.get(archetypeId);
+    return this.get(archetypeId) ?? this.getTemplate(archetypeId);
   }
   async loadDirectory(rootDir) {
     for await (const entry of Deno.readDir(rootDir)) {
@@ -15896,8 +12642,8 @@ var ArchetypeRepository = class _ArchetypeRepository {
       try {
         const text = await Deno.readTextFile(path);
         this.loadFile(path, text);
-      } catch (e2) {
-        this.warnings.push(`Failed ${path}: ${e2.message}`);
+      } catch (e) {
+        this.warnings.push(`Failed ${path}: ${e.message}`);
       }
     }
   }
@@ -15930,8 +12676,8 @@ var ArchetypeRepository = class _ArchetypeRepository {
       }
       const parsed = parseAdl(text, { convertAdl14: true });
       return this.ingestParseResult(path, parsed);
-    } catch (e2) {
-      const message = e2.message;
+    } catch (e) {
+      const message = e.message;
       this.warnings.push(`Failed ${path}: ${message}`);
       return { path, kind: "error", message };
     }
@@ -15941,14 +12687,11 @@ var ArchetypeRepository = class _ArchetypeRepository {
     for (const overlay of overlays) {
       this.add(overlay);
     }
-    const id = template.archetype_id?.value ?? path;
-    this.templates.set(id, template);
-    const base = id.replace(/\.v[\d.]+$/, "");
-    if (!this.templates.has(base))
-      this.templates.set(base, template);
-    for (const w2 of warnings) {
-      this.warnings.push(`${path}: ${w2}`);
+    this.indexTemplate(template, path);
+    for (const w of warnings) {
+      this.warnings.push(`${path}: ${w}`);
     }
+    const id = template.archetype_id?.value ?? templateIdOf(template) ?? path;
     return { path, kind: "template_json", archetypeId: id };
   }
   ingestParseResult(path, parsed) {
@@ -15958,22 +12701,46 @@ var ArchetypeRepository = class _ArchetypeRepository {
       return { path, kind: "archetype", archetypeId: id };
     }
     if (parsed.kind === "template" && parsed.template) {
+      this.indexTemplate(parsed.template, path);
       const id = parsed.template.archetype_id?.value ?? path;
-      this.templates.set(id, parsed.template);
-      const base = id.replace(/\.v[\d.]+$/, "");
-      if (!this.templates.has(base))
-        this.templates.set(base, parsed.template);
       return { path, kind: "template", archetypeId: id };
     }
     if (parsed.kind === "operational_template" && parsed.operationalTemplate) {
       const id = parsed.operationalTemplate.archetype_id?.value ?? path;
       this.operational.set(id, parsed.operationalTemplate);
       const base = id.replace(/\.v[\d.]+$/, "");
-      if (!this.operational.has(base))
+      if (!this.operational.has(base)) {
         this.operational.set(base, parsed.operationalTemplate);
+      }
       return { path, kind: "operational_template", archetypeId: id };
     }
-    return { path, kind: "skipped", message: `unsupported kind: ${parsed.kind}` };
+    return {
+      path,
+      kind: "skipped",
+      message: `unsupported kind: ${parsed.kind}`
+    };
+  }
+  /**
+   * Index a source template by archetype id, Better `template_id`, and the
+   * file basename (`ChemoQ-fatigue.t.json` → `ChemoQ-fatigue`).
+   */
+  indexTemplate(template, path) {
+    const id = template.archetype_id?.value ?? path;
+    const keys = /* @__PURE__ */ new Set([id]);
+    const templateId = templateIdOf(template);
+    if (templateId)
+      keys.add(templateId);
+    const baseName = templateBasename(path);
+    if (baseName)
+      keys.add(baseName);
+    for (const key of keys)
+      this.rememberTemplate(key, template);
+  }
+  rememberTemplate(id, template) {
+    this.templates.set(id, template);
+    const base = id.replace(/\.v[\d.]+$/, "");
+    if (base && !this.templates.has(base))
+      this.templates.set(base, template);
   }
   add(archetype) {
     const id = archetype.archetype_id?.value;
@@ -16000,12 +12767,33 @@ var ArchetypeRepository = class _ArchetypeRepository {
     this.loadedPaths = [];
   }
 };
+function templateIdOf(template) {
+  const id = template.template_id;
+  return typeof id === "string" && id.length > 0 ? id : void 0;
+}
+function templateBasename(path) {
+  const name = path.split(/[/\\]/).pop();
+  if (!name)
+    return void 0;
+  const stem = name.replace(/\.t\.json$/i, "").replace(/\.adls?$/i, "");
+  return stem.length > 0 && stem !== name ? stem : void 0;
+}
+
+// parser/legacy/parse_template_input.ts
+init_define_BUILD_INFO();
+
+// parser/legacy/oet_compiler.ts
+init_define_BUILD_INFO();
+
+// am/util/aom_path_navigator.ts
+init_define_BUILD_INFO();
 
 // validation/archetype_path_resolver.ts
+init_define_BUILD_INFO();
 function adlNodeIdToAtCode(nodeId) {
-  const m2 = /^id(\d+)$/i.exec(nodeId.trim());
-  if (m2)
-    return `at${m2[1].padStart(4, "0")}`;
+  const m = /^id(\d+)$/i.exec(nodeId.trim());
+  if (m)
+    return `at${m[1].padStart(4, "0")}`;
   return nodeId;
 }
 
@@ -16013,11 +12801,11 @@ function adlNodeIdToAtCode(nodeId) {
 function normalizeNodeId(nodeId) {
   const trimmed = nodeId.trim();
   const variants = /* @__PURE__ */ new Set([trimmed]);
-  const at2 = /^at(\d+)$/i.exec(trimmed);
-  if (at2) {
-    const n2 = parseInt(at2[1], 10);
-    variants.add(`id${n2}`);
-    variants.add(`at${String(n2).padStart(4, "0")}`);
+  const at = /^at(\d+)$/i.exec(trimmed);
+  if (at) {
+    const n = parseInt(at[1], 10);
+    variants.add(`id${n}`);
+    variants.add(`at${String(n).padStart(4, "0")}`);
   }
   const id = /^id(\d+(?:\.\d+)*)$/i.exec(trimmed);
   if (id) {
@@ -16026,18 +12814,18 @@ function normalizeNodeId(nodeId) {
   }
   return [...variants];
 }
-function nodeIdsMatch(a2, b2) {
-  if (!a2 || !b2)
+function nodeIdsMatch(a, b) {
+  if (!a || !b)
     return false;
-  const va2 = normalizeNodeId(a2);
-  const vb = normalizeNodeId(b2);
-  return va2.some((x2) => vb.includes(x2));
+  const va = normalizeNodeId(a);
+  const vb = normalizeNodeId(b);
+  return va.some((x) => vb.includes(x));
 }
 function parsePathSegment(segment) {
-  const m2 = /^([A-Za-z_][\w]*)(?:\[([^\]]+)\])?$/.exec(segment);
-  if (!m2)
+  const m = /^([A-Za-z_][\w]*)(?:\[([^\]]+)\])?$/.exec(segment);
+  if (!m)
     return {};
-  return { attrName: m2[1], nodeId: m2[2] };
+  return { attrName: m[1], nodeId: m[2] };
 }
 function splitArchetypePath(path) {
   const trimmed = path.trim();
@@ -16047,17 +12835,17 @@ function splitArchetypePath(path) {
   const segments = [];
   let buf = "";
   let depth = 0;
-  for (const c2 of normalized) {
-    if (c2 === "[")
+  for (const c of normalized) {
+    if (c === "[")
       depth++;
-    else if (c2 === "]")
+    else if (c === "]")
       depth--;
-    if (c2 === "/" && depth === 0) {
+    if (c === "/" && depth === 0) {
       if (buf)
         segments.push(buf);
       buf = "";
     } else {
-      buf += c2;
+      buf += c;
     }
   }
   if (buf)
@@ -16065,7 +12853,7 @@ function splitArchetypePath(path) {
   return segments;
 }
 function findAttribute2(obj, name) {
-  return obj.attributes?.find((a2) => a2.rm_attribute_name === name);
+  return obj.attributes?.find((a) => a.rm_attribute_name === name);
 }
 function findChildByNodeId(attr, nodeId) {
   const children = attr.children ?? [];
@@ -16074,9 +12862,9 @@ function findChildByNodeId(attr, nodeId) {
       return { child: children[0], index: 0 };
     return void 0;
   }
-  for (let i2 = 0; i2 < children.length; i2++) {
-    if (nodeIdsMatch(children[i2].node_id, nodeId)) {
-      return { child: children[i2], index: i2 };
+  for (let i = 0; i < children.length; i++) {
+    if (nodeIdsMatch(children[i].node_id, nodeId)) {
+      return { child: children[i], index: i };
     }
   }
   return void 0;
@@ -16127,27 +12915,27 @@ function replaceAtAomPath(root, path, replacement) {
 
 // parser/legacy/oet_compiler.ts
 function multiplicityFromMaxMin(max, min) {
-  const m2 = new Multiplicity_interval();
-  m2.lower = min ?? 0;
-  m2.upper = max ?? 1;
-  m2.lower_included = true;
-  m2.upper_included = true;
-  m2.lower_unbounded = false;
-  m2.upper_unbounded = max === void 0 || max < 0;
+  const m = new Multiplicity_interval();
+  m.lower = min ?? 0;
+  m.upper = max ?? 1;
+  m.lower_included = true;
+  m.upper_included = true;
+  m.lower_unbounded = false;
+  m.upper_unbounded = max === void 0 || max < 0;
   if (max === 0) {
-    m2.upper = 0;
-    m2.lower = 0;
+    m.upper = 0;
+    m.lower = 0;
   }
-  return m2;
+  return m;
 }
 function joinArchetypePaths(base, relative) {
-  const b2 = base.trim().replace(/\/+$/, "");
-  const r2 = relative.trim();
-  if (!r2)
-    return b2;
-  if (r2.startsWith("/"))
-    return r2;
-  return `${b2}/${r2}`;
+  const b = base.trim().replace(/\/+$/, "");
+  const r = relative.trim();
+  if (!r)
+    return b;
+  if (r.startsWith("/"))
+    return r;
+  return `${b}/${r}`;
 }
 function applyRule(root, rule, warnings, pathPrefix = "") {
   const fullPath = joinArchetypePaths(pathPrefix, rule.path);
@@ -16234,32 +13022,32 @@ function compileOetToOperational(oet, options) {
 
 // parser/legacy/parse_template_input.ts
 function detectTemplateInputFormat(source) {
-  const t2 = source.trim();
-  if (!t2)
+  const t = source.trim();
+  if (!t)
     return "unknown";
-  if (isTemplateJson(t2))
+  if (isTemplateJson(t))
     return "template_json";
-  if (isOetXml(t2))
+  if (isOetXml(t))
     return "oet_xml";
-  if (isOptXml(t2))
+  if (isOptXml(t))
     return "opt_xml";
-  if (t2.startsWith("operational_template") || t2.startsWith("template") || t2.startsWith("archetype")) {
-    const v3 = detectAdlVersion(t2);
-    if (v3 === "1.4")
+  if (t.startsWith("operational_template") || t.startsWith("template") || t.startsWith("archetype")) {
+    const v2 = detectAdlVersion(t);
+    if (v2 === "1.4")
       return "adl14";
-    if (v3 === "2.x")
+    if (v2 === "2.x")
       return "adl2";
   }
-  if (t2.startsWith("<?xml") || t2.startsWith("<")) {
-    if (isOptXml(t2))
+  if (t.startsWith("<?xml") || t.startsWith("<")) {
+    if (isOptXml(t))
       return "opt_xml";
-    if (isOetXml(t2))
+    if (isOetXml(t))
       return "oet_xml";
   }
-  const v2 = detectAdlVersion(t2);
-  if (v2 === "1.4")
+  const v = detectAdlVersion(t);
+  if (v === "1.4")
     return "adl14";
-  if (v2 === "2.x")
+  if (v === "2.x")
     return "adl2";
   return "unknown";
 }
@@ -16267,12 +13055,12 @@ function parseTemplateInput(source, options) {
   const format = detectTemplateInputFormat(source);
   const warnings = [];
   if (format === "opt_xml") {
-    const { operationalTemplate, warnings: w2 } = parseOptXml(source);
+    const { operationalTemplate, warnings: w } = parseOptXml(source);
     return {
       format,
       kind: "operational_template",
       operationalTemplate,
-      warnings: [...w2]
+      warnings: [...w]
     };
   }
   if (format === "oet_xml") {
@@ -16289,7 +13077,7 @@ function parseTemplateInput(source, options) {
           oet,
           warnings: compiled.warnings
         };
-      } catch (e2) {
+      } catch (e) {
         return {
           format,
           kind: "oet_document",
@@ -16297,7 +13085,7 @@ function parseTemplateInput(source, options) {
           oet,
           warnings: [
             ...oet.warnings,
-            `OET compile failed: ${e2.message}`
+            `OET compile failed: ${e.message}`
           ]
         };
       }
@@ -16311,8 +13099,8 @@ function parseTemplateInput(source, options) {
     };
   }
   if (format === "template_json") {
-    const { template, overlays, warnings: w2 } = parseTemplateJson(source);
-    warnings.push(...w2);
+    const { template, overlays, warnings: w } = parseTemplateJson(source);
+    warnings.push(...w);
     if (options?.archetypeRepository) {
       for (const overlay of overlays) {
         options.archetypeRepository.add(overlay);
@@ -16329,8 +13117,8 @@ function parseTemplateInput(source, options) {
           template,
           warnings
         };
-      } catch (e2) {
-        warnings.push(`Flatten failed: ${e2.message}`);
+      } catch (e) {
+        warnings.push(`Flatten failed: ${e.message}`);
       }
     }
     return {
@@ -16401,7 +13189,7 @@ var TemplateWorkspace = class _TemplateWorkspace {
     return [...this.warnings, ...this.repository.getWarnings()];
   }
   listFiles() {
-    return [...this.files.values()].sort((a2, b2) => a2.path.localeCompare(b2.path));
+    return [...this.files.values()].sort((a, b) => a.path.localeCompare(b.path));
   }
   getFile(path) {
     return this.files.get(path);
@@ -16432,7 +13220,7 @@ var TemplateWorkspace = class _TemplateWorkspace {
   }
   /** Load many files (e.g. from ZIP extraction). */
   addFiles(entries) {
-    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
+    const results = entries.map((e) => this.addFile(e.path, e.content));
     if (!this.generationRootPath) {
       const suggested = _TemplateWorkspace.suggestGenerationRoot(this.listFiles());
       if (suggested)
@@ -16442,15 +13230,15 @@ var TemplateWorkspace = class _TemplateWorkspace {
   }
   /** Pick a sensible default generation root from loaded files. */
   static suggestGenerationRoot(files) {
-    for (const f2 of files) {
-      const k2 = f2.loadResult?.kind;
-      if (k2 === "template" || k2 === "operational_template" || k2 === "template_json" || k2 === "oet_xml" || k2 === "opt_xml") {
-        return f2.path;
+    for (const f of files) {
+      const k = f.loadResult?.kind;
+      if (k === "template" || k === "operational_template" || k === "template_json" || k === "oet_xml" || k === "opt_xml") {
+        return f.path;
       }
     }
-    for (const f2 of files) {
-      if (/\.(opt|oet|t\.json)$/i.test(f2.path))
-        return f2.path;
+    for (const f of files) {
+      if (/\.(opt|oet|t\.json)$/i.test(f.path))
+        return f.path;
     }
     return files[0]?.path;
   }
@@ -16525,8 +13313,8 @@ var TemplateWorkspace = class _TemplateWorkspace {
     if (!trimmed)
       return void 0;
     if (isOptXmlContent(trimmed)) {
-      const { operationalTemplate, warnings: w2 } = parseOptXml(trimmed);
-      warnings.push(...w2);
+      const { operationalTemplate, warnings: w } = parseOptXml(trimmed);
+      warnings.push(...w);
       return {
         operationalTemplate,
         sourcePath: path,
@@ -16597,7 +13385,11 @@ function isOetXmlContent(text) {
   return /openEHR\/v1\/Template/i.test(text);
 }
 
+// parser/github_repo_loader.ts
+init_define_BUILD_INFO();
+
 // parser/clinical_model_paths.ts
+init_define_BUILD_INFO();
 var CLINICAL_MODEL_EXTENSIONS = /\.(adl|adls|opt|oet|t\.json|xml)$/i;
 function isClinicalModelPath(path) {
   const lower = path.toLowerCase();
@@ -16629,11 +13421,11 @@ function parseGitHubRepoSpec(spec) {
     pathPrefix = rest.slice(colon + 1).replace(/^\/+/, "");
     rest = rest.slice(0, colon);
   }
-  const at2 = rest.lastIndexOf("@");
+  const at = rest.lastIndexOf("@");
   let ref;
-  if (at2 > 0) {
-    ref = rest.slice(at2 + 1);
-    rest = rest.slice(0, at2);
+  if (at > 0) {
+    ref = rest.slice(at + 1);
+    rest = rest.slice(0, at);
   }
   const [owner, repo] = rest.split("/");
   if (!owner || !repo) {
@@ -16714,8 +13506,8 @@ async function loadGitHubRepoTree(ref, options) {
         path: normalizeClinicalModelPath(path),
         content: await res.text()
       });
-    } catch (e2) {
-      warnings.push(`Failed ${path}: ${e2.message}`);
+    } catch (e) {
+      warnings.push(`Failed ${path}: ${e.message}`);
       skipped++;
     }
   }
@@ -16728,7 +13520,11 @@ async function loadGitHubRepoTree(ref, options) {
   };
 }
 
+// parser/github_template_closure.ts
+init_define_BUILD_INFO();
+
 // parser/template_json_dependencies.ts
+init_define_BUILD_INFO();
 function archetypeIdValue(node) {
   if (!node)
     return void 0;
@@ -16786,8 +13582,8 @@ function collectTemplateJsonExternalRefs(root) {
         textValue(rec.archetypeRef) ?? textValue(rec.archetype_ref) ?? (typeof rec.archetypeRef === "string" ? rec.archetypeRef : void 0)
       );
     }
-    for (const v2 of Object.values(rec))
-      walk(v2);
+    for (const v of Object.values(rec))
+      walk(v);
   }
   considerRef(
     archetypeIdValue(root.parentArchetypeId ?? root.parent_archetype_id)
@@ -16910,7 +13706,7 @@ function resolveClinicalModelRef(ref, index, contextDir) {
     if (index.paths.includes(ctxPath))
       return ctxPath;
     const suffix2 = `/${base}`.toLowerCase();
-    return index.paths.find((p2) => p2.toLowerCase().endsWith(suffix2));
+    return index.paths.find((p) => p.toLowerCase().endsWith(suffix2));
   }
   const idLower = trimmed.toLowerCase();
   const direct = index.byArchetypeIdLower.get(idLower);
@@ -16921,7 +13717,7 @@ function resolveClinicalModelRef(ref, index, contextDir) {
   if (baseHit)
     return baseHit;
   const suffix = `/${adlName}`.toLowerCase();
-  return index.paths.find((p2) => p2.toLowerCase().endsWith(suffix));
+  return index.paths.find((p) => p.toLowerCase().endsWith(suffix));
 }
 async function fetchGitHubTreePaths(fileRef, fetchFn, headers) {
   const branchRes = await fetchFn(
@@ -17054,9 +13850,9 @@ async function loadGitHubClinicalModelClosure(fileUrl, options) {
       for (const ref of collectDependenciesFromContent(path, content)) {
         enqueueRef(ref);
       }
-    } catch (e2) {
+    } catch (e) {
       skipped++;
-      const msg = `Failed ${path}: ${e2.message}`;
+      const msg = `Failed ${path}: ${e.message}`;
       warnings.push(msg);
       emit(options, { phase: "fetch", message: msg, path });
     }
@@ -17081,9 +13877,16 @@ async function loadGitHubClinicalModelClosure(fileUrl, options) {
   };
 }
 
+// parser/clinical_model_annotations.ts
+init_define_BUILD_INFO();
+
+// generation/adl2_serializer.ts
+init_define_BUILD_INFO();
+
 // parser/odin_serializer.ts
-function escapeString(s2) {
-  return `"${s2.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+init_define_BUILD_INFO();
+function escapeString(s) {
+  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 function serializeOdinValue(value, indent, level) {
   const pad = indent.repeat(level);
@@ -17097,14 +13900,14 @@ function serializeOdinValue(value, indent, level) {
     return `<${String(value)}>`;
   }
   if (Array.isArray(value)) {
-    const parts = value.map((v2) => serializeOdinPrimitiveInline(v2));
+    const parts = value.map((v) => serializeOdinPrimitiveInline(v));
     return `<${parts.join(", ")}>`;
   }
   if (typeof value === "object" && value._type === "interval") {
     return "<|...|>";
   }
   const obj = value;
-  const isKeyed = Object.keys(obj).every((k2) => k2.startsWith("[") || !k2.includes("="));
+  const isKeyed = Object.keys(obj).every((k) => k.startsWith("[") || !k.includes("="));
   let out = "<\n";
   for (const [key, val] of Object.entries(obj)) {
     if (key.includes("[") || Object.keys(obj).length > 0 && typeof val === "object" && !Array.isArray(val)) {
@@ -17161,11 +13964,11 @@ function serializeTerminologySection(ontology, indent) {
   const keyed = {};
   for (const [lang, terms] of Object.entries(table)) {
     keyed[lang] = Object.fromEntries(
-      Object.entries(terms).map(([code, t2]) => [
+      Object.entries(terms).map(([code, t]) => [
         code,
         {
-          text: t2.text ?? "",
-          ...t2.description ? { description: t2.description } : {}
+          text: t.text ?? "",
+          ...t.description ? { description: t.description } : {}
         }
       ])
     );
@@ -17194,6 +13997,7 @@ function serializeRmOverlaySection(rmVisibility, indent) {
 }
 
 // parser/rules_serializer.ts
+init_define_BUILD_INFO();
 function serializeRulesSection(invariants, indent) {
   if (!invariants?.length)
     return "";
@@ -17289,8 +14093,8 @@ var ADL2Serializer = class {
     let adl = `${indent}${cAttribute.rm_attribute_name}`;
     const existence = cAttribute.existence;
     if (existence) {
-      const u2 = existence.upper ?? existence.lower;
-      adl += ` existence matches {${existence.lower}..${u2}}`;
+      const u = existence.upper ?? existence.lower;
+      adl += ` existence matches {${existence.lower}..${u}}`;
     }
     if (cAttribute instanceof C_MULTIPLE_ATTRIBUTE && cAttribute.cardinality) {
       const interval = cAttribute.cardinality.interval;
@@ -17332,6 +14136,7 @@ var ADL2Serializer = class {
 };
 
 // parser/annotation_families.ts
+init_define_BUILD_INFO();
 var UNPREFIXED_FAMILY = "(unprefixed)";
 var KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY];
 var LANGUAGE_INDEPENDENT_FAMILIES = ["a."];
@@ -17340,46 +14145,46 @@ function isLanguageIndependentFamily(family) {
 }
 var L10N_FAMILY = "L10n.";
 function normalizeFamilyPrefix(raw) {
-  const t2 = raw.trim();
-  if (!t2)
+  const t = raw.trim();
+  if (!t)
     return void 0;
-  if (t2 === UNPREFIXED_FAMILY || /^unprefixed$/i.test(t2)) {
+  if (t === UNPREFIXED_FAMILY || /^unprefixed$/i.test(t)) {
     return UNPREFIXED_FAMILY;
   }
-  const m2 = t2.match(/^([A-Za-z][A-Za-z0-9]*)\.?$/);
-  return m2 ? `${m2[1]}.` : void 0;
+  const m = t.match(/^([A-Za-z][A-Za-z0-9]*)\.?$/);
+  return m ? `${m[1]}.` : void 0;
 }
 function qualifyKeyForFamily(key, family) {
-  const k2 = key.trim();
-  if (!k2)
+  const k = key.trim();
+  if (!k)
     return void 0;
   if (family === UNPREFIXED_FAMILY) {
-    return annotationFamily(k2) === UNPREFIXED_FAMILY ? k2 : void 0;
+    return annotationFamily(k) === UNPREFIXED_FAMILY ? k : void 0;
   }
-  if (annotationFamily(k2) === family)
-    return k2;
-  if (!k2.includes("."))
-    return `${family}${k2}`;
+  if (annotationFamily(k) === family)
+    return k;
+  if (!k.includes("."))
+    return `${family}${k}`;
   return void 0;
 }
 function annotationFamily(key) {
-  const m2 = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
-  return m2 ? `${m2[1]}.` : UNPREFIXED_FAMILY;
+  const m = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
+  return m ? `${m[1]}.` : UNPREFIXED_FAMILY;
 }
 function languageCode(raw) {
   if (raw == null)
     return void 0;
   if (typeof raw === "object") {
-    const o2 = raw;
+    const o = raw;
     return languageCode(
-      o2.code_string ?? o2.codeString ?? o2.value ?? o2.language
+      o.code_string ?? o.codeString ?? o.value ?? o.language
     );
   }
-  const s2 = String(raw).trim();
-  if (!s2)
+  const s = String(raw).trim();
+  if (!s)
     return void 0;
-  const m2 = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s2);
-  const code = (m2?.[1] ?? "").toLowerCase();
+  const m = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s);
+  const code = (m?.[1] ?? "").toLowerCase();
   return /^[a-z]{2,8}$/.test(code) ? code : void 0;
 }
 function addLang(set, raw) {
@@ -17396,10 +14201,10 @@ function addTranslationEntry(set, entry) {
   }
   if (typeof entry !== "object")
     return;
-  const o2 = entry;
-  addLang(set, o2.language);
-  addLang(set, o2.code_string);
-  addLang(set, o2.codeString);
+  const o = entry;
+  addLang(set, o.language);
+  addLang(set, o.code_string);
+  addLang(set, o.codeString);
 }
 function listResourceLanguages(resource) {
   const set = /* @__PURE__ */ new Set();
@@ -17410,20 +14215,20 @@ function listResourceLanguages(resource) {
   addLang(set, rec.originalLanguage);
   const translations = rec.translations;
   if (Array.isArray(translations)) {
-    for (const t2 of translations)
-      addTranslationEntry(set, t2);
+    for (const t of translations)
+      addTranslationEntry(set, t);
   } else if (translations && typeof translations === "object") {
-    for (const [k2, v2] of Object.entries(translations)) {
-      addLang(set, k2);
-      addTranslationEntry(set, v2);
+    for (const [k, v] of Object.entries(translations)) {
+      addLang(set, k);
+      addTranslationEntry(set, v);
     }
   }
   const desc = rec.description;
   if (desc && typeof desc === "object") {
     const details = desc.details;
     if (details && typeof details === "object" && !Array.isArray(details)) {
-      for (const k2 of Object.keys(details))
-        addLang(set, k2);
+      for (const k of Object.keys(details))
+        addLang(set, k);
     }
     const other = desc.otherDetails ?? desc.other_details;
     if (other && typeof other === "object") {
@@ -17433,10 +14238,10 @@ function listResourceLanguages(resource) {
   const onto = rec.ontology;
   const term = onto?.term_definitions ?? onto?.termDefinitions ?? rec.term_definitions ?? rec.termDefinitions;
   if (term && typeof term === "object" && !Array.isArray(term)) {
-    for (const k2 of Object.keys(term))
-      addLang(set, k2);
+    for (const k of Object.keys(term))
+      addLang(set, k);
   }
-  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 function originalLanguageOf(resource) {
   if (!resource || typeof resource !== "object")
@@ -17459,7 +14264,7 @@ function originalLanguageOf(resource) {
   return void 0;
 }
 function orderLanguagesWithOriginal(languages, original) {
-  const rest = languages.filter((l2) => l2 !== original).sort((a2, b2) => a2.localeCompare(b2));
+  const rest = languages.filter((l) => l !== original).sort((a, b) => a.localeCompare(b));
   if (original && languages.includes(original))
     return [original, ...rest];
   return rest;
@@ -17476,17 +14281,17 @@ function listLanguageBags(doc, extra = []) {
         set.add(lang);
     }
   }
-  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 function listFamilies(doc, extra = []) {
   const set = new Set(KNOWN_FAMILIES);
   const extraNorm = [];
-  for (const f2 of extra) {
-    const n2 = normalizeFamilyPrefix(f2);
-    if (!n2 || set.has(n2))
+  for (const f of extra) {
+    const n = normalizeFamilyPrefix(f);
+    if (!n || set.has(n))
       continue;
-    set.add(n2);
-    extraNorm.push(n2);
+    set.add(n);
+    extraNorm.push(n);
   }
   if (doc) {
     for (const bag of Object.values(doc)) {
@@ -17498,8 +14303,8 @@ function listFamilies(doc, extra = []) {
     }
   }
   const known = KNOWN_FAMILIES;
-  const extras = extraNorm.filter((f2) => !known.includes(f2)).sort();
-  const rest = [...set].filter((f2) => !known.includes(f2) && !extras.includes(f2)).sort();
+  const extras = extraNorm.filter((f) => !known.includes(f)).sort();
+  const rest = [...set].filter((f) => !known.includes(f) && !extras.includes(f)).sort();
   return [...known, ...extras, ...rest];
 }
 function pillsAtPath(doc, path) {
@@ -17518,7 +14323,7 @@ function pillsAtPath(doc, path) {
     }
   }
   return pills.sort(
-    (a2, b2) => a2.family.localeCompare(b2.family) || a2.key.localeCompare(b2.key) || a2.language.localeCompare(b2.language)
+    (a, b) => a.family.localeCompare(b.family) || a.key.localeCompare(b.key) || a.language.localeCompare(b.language)
   );
 }
 function flattenDefinitionTree(node, out = []) {
@@ -17565,9 +14370,9 @@ function l10nSourcesFromTree(tree, doc) {
       for (const bag of Object.values(doc)) {
         const items = bag?.[node.path] ?? {};
         for (const [key, value] of Object.entries(items)) {
-          const m2 = /^L10n\.(.+)$/i.exec(key);
-          if (m2 && value.trim())
-            localizedNames[m2[1].toLowerCase()] = value;
+          const m = /^L10n\.(.+)$/i.exec(key);
+          if (m && value.trim())
+            localizedNames[m[1].toLowerCase()] = value;
         }
       }
     }
@@ -17597,11 +14402,11 @@ var FAMILY_FILL = {
   "a.": "#d1fae5",
   [UNPREFIXED_FAMILY]: "#e2e8f0"
 };
-function hashHue(s2) {
-  let h2 = 0;
-  for (let i2 = 0; i2 < s2.length; i2++)
-    h2 = h2 * 31 + s2.charCodeAt(i2) >>> 0;
-  return h2 % 360;
+function hashHue(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++)
+    h = h * 31 + s.charCodeAt(i) >>> 0;
+  return h % 360;
 }
 function languageOutlineColor(language) {
   const key = language.toLowerCase();
@@ -17964,13 +14769,14 @@ function resolveAnnotatedResource(repository, loadResult) {
 }
 
 // parser/template_json_annotations.ts
+init_define_BUILD_INFO();
 function archetypeIdFromJsonField(value) {
   if (typeof value === "string" && value.trim())
     return value.trim();
   if (value && typeof value === "object") {
-    const v2 = value.value;
-    if (typeof v2 === "string" && v2.trim())
-      return v2.trim();
+    const v = value.value;
+    if (typeof v === "string" && v.trim())
+      return v.trim();
   }
   return void 0;
 }
@@ -18061,16 +14867,16 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
     return this.workspace.getWarnings();
   }
   listFiles() {
-    return this.workspace.listFiles().map((f2) => ({
-      ...f2,
-      dirty: this.dirtyPaths.has(f2.path)
+    return this.workspace.listFiles().map((f) => ({
+      ...f,
+      dirty: this.dirtyPaths.has(f.path)
     }));
   }
   getFile(path) {
-    const f2 = this.workspace.getFile(path);
-    if (!f2)
+    const f = this.workspace.getFile(path);
+    if (!f)
       return void 0;
-    return { ...f2, dirty: this.dirtyPaths.has(f2.path) };
+    return { ...f, dirty: this.dirtyPaths.has(f.path) };
   }
   getActivePath() {
     return this.workspace.getActivePath();
@@ -18094,7 +14900,7 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
     return result;
   }
   addFiles(entries) {
-    const results = entries.map((e2) => this.addFile(e2.path, e2.content));
+    const results = entries.map((e) => this.addFile(e.path, e.content));
     return results;
   }
   /**
@@ -18111,9 +14917,9 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
     return this.workspace.getFile(path)?.content;
   }
   exportEntries() {
-    return this.workspace.listFiles().map((f2) => ({
-      path: f2.path,
-      content: f2.content
+    return this.workspace.listFiles().map((f) => ({
+      path: f.path,
+      content: f.content
     }));
   }
   /** Build a ZIP-friendly map path → content. */
@@ -18220,15 +15026,16 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
   }
   /** Load entries extracted from a ZIP (same filter as GitHub loader). */
   loadFromZipEntries(entries) {
-    const batch = entries.filter((e2) => isClinicalModelPath(e2.path)).map((e2) => ({
-      path: normalizeClinicalModelPath(e2.path),
-      content: e2.content
+    const batch = entries.filter((e) => isClinicalModelPath(e.path)).map((e) => ({
+      path: normalizeClinicalModelPath(e.path),
+      content: e.content
     }));
     return this.addFiles(batch);
   }
 };
 
 // parser/copy_original_annotations.ts
+init_define_BUILD_INFO();
 function copyItemId(item) {
   return `${item.ownerId ?? ""}
 ${item.path}
@@ -18243,9 +15050,9 @@ function listCopyItemsFromDocumentation(doc, sourceLanguage, targetLanguage, own
   if (!src)
     return [];
   const items = [];
-  for (const path of Object.keys(src).sort((a2, b2) => a2.localeCompare(b2))) {
+  for (const path of Object.keys(src).sort((a, b) => a.localeCompare(b))) {
     const keys = src[path] ?? {};
-    for (const key of Object.keys(keys).sort((a2, b2) => a2.localeCompare(b2))) {
+    for (const key of Object.keys(keys).sort((a, b) => a.localeCompare(b))) {
       const value = keys[key] ?? "";
       if (!value.trim())
         continue;
@@ -18271,8 +15078,8 @@ function groupCopyItemsByFamily(items) {
   }
   const known = listFamilies(void 0);
   const families = [
-    ...known.filter((f2) => byFamily.has(f2)),
-    ...[...byFamily.keys()].filter((f2) => !known.includes(f2)).sort()
+    ...known.filter((f) => byFamily.has(f)),
+    ...[...byFamily.keys()].filter((f) => !known.includes(f)).sort()
   ];
   return families.map((family) => ({
     family,
@@ -18300,6 +15107,7 @@ function applyCopyItems(resource, items, targetLanguage) {
 }
 
 // examples/taaat-app/src/family_store.ts
+init_define_BUILD_INFO();
 var FAMILY_STORE_KEY = "ehrtslib-taaat-families-v2";
 var LEGACY_PALETTE_KEY = "ehrtslib-taaat-palette-v1";
 function defaultAutomationFavourites() {
@@ -18363,12 +15171,12 @@ function asFavouriteEntry(raw) {
     return void 0;
   const values = [];
   if (Array.isArray(rec.values)) {
-    for (const v2 of rec.values) {
-      if (v2 == null)
+    for (const v of rec.values) {
+      if (v == null)
         continue;
-      const s2 = String(v2).trim();
-      if (s2 && !values.includes(s2))
-        values.push(s2);
+      const s = String(v).trim();
+      if (s && !values.includes(s))
+        values.push(s);
     }
   } else if (typeof rec.value === "string" && rec.value.trim()) {
     values.push(rec.value.trim());
@@ -18378,7 +15186,7 @@ function asFavouriteEntry(raw) {
 function normalizeStore(raw) {
   const extra = [
     ...new Set(
-      raw.extraFamilies.map((f2) => f2.trim()).filter((f2) => f2.length > 0)
+      raw.extraFamilies.map((f) => f.trim()).filter((f) => f.length > 0)
     )
   ];
   const palettes = {};
@@ -18387,11 +15195,11 @@ function normalizeStore(raw) {
       continue;
     const seen = /* @__PURE__ */ new Set();
     const list = [];
-    for (const e2 of entries ?? []) {
-      if (seen.has(e2.key))
+    for (const e of entries ?? []) {
+      if (seen.has(e.key))
         continue;
-      seen.add(e2.key);
-      list.push({ key: e2.key, values: [...e2.values] });
+      seen.add(e.key);
+      list.push({ key: e.key, values: [...e.values] });
     }
     palettes[family] = list;
   }
@@ -18421,11 +15229,11 @@ function migrateLegacyPalette(raw) {
       if (family === L10N_FAMILY)
         continue;
       palettes[family] ??= [];
-      const existing = palettes[family].find((e2) => e2.key === entry.key);
+      const existing = palettes[family].find((e) => e.key === entry.key);
       if (existing) {
-        for (const v2 of entry.values) {
-          if (!existing.values.includes(v2))
-            existing.values.push(v2);
+        for (const v of entry.values) {
+          if (!existing.values.includes(v))
+            existing.values.push(v);
         }
       } else {
         palettes[family].push(entry);
@@ -18461,7 +15269,7 @@ function coerceStore(parsed) {
     return defaultFamilyStore();
   }
   const rec = parsed;
-  const extraFamilies = Array.isArray(rec.extraFamilies) ? rec.extraFamilies.filter((f2) => typeof f2 === "string") : [];
+  const extraFamilies = Array.isArray(rec.extraFamilies) ? rec.extraFamilies.filter((f) => typeof f === "string") : [];
   const palettes = {};
   const rawPalettes = rec.palettes;
   if (rawPalettes && typeof rawPalettes === "object") {
@@ -18470,7 +15278,7 @@ function coerceStore(parsed) {
     )) {
       if (!Array.isArray(entries))
         continue;
-      palettes[family] = entries.map(asFavouriteEntry).filter((e2) => !!e2);
+      palettes[family] = entries.map(asFavouriteEntry).filter((e) => !!e);
     }
   }
   return { extraFamilies, palettes };
@@ -18487,7 +15295,7 @@ function parseFamilyStoreJson(text) {
     throw new Error("No valid family favourites");
   }
   const store = withDefaultPalettes(normalizeStore(coerceStore(parsed)));
-  const hasEntries = Object.values(store.palettes).some((e2) => e2.length > 0) || store.extraFamilies.length > 0;
+  const hasEntries = Object.values(store.palettes).some((e) => e.length > 0) || store.extraFamilies.length > 0;
   if (!hasEntries)
     throw new Error("No valid family favourites");
   return store;
@@ -18505,13 +15313,13 @@ function upsertFavourite(store, family, key, value) {
     return store;
   const palettes = { ...store.palettes };
   const entries = [...palettes[family] ?? []];
-  const i2 = entries.findIndex((e2) => e2.key === key);
+  const i = entries.findIndex((e) => e.key === key);
   const nextValue = value?.trim() || void 0;
-  if (i2 >= 0) {
-    const values = [...entries[i2].values];
+  if (i >= 0) {
+    const values = [...entries[i].values];
     if (nextValue && !values.includes(nextValue))
       values.push(nextValue);
-    entries[i2] = { key, values };
+    entries[i] = { key, values };
   } else {
     entries.push({ key, values: nextValue ? [nextValue] : [] });
   }
@@ -18520,7 +15328,7 @@ function upsertFavourite(store, family, key, value) {
 }
 function removeFavourite(store, family, key) {
   const palettes = { ...store.palettes };
-  palettes[family] = (palettes[family] ?? []).filter((e2) => e2.key !== key);
+  palettes[family] = (palettes[family] ?? []).filter((e) => e.key !== key);
   return { ...store, palettes };
 }
 function addExtraFamily(store, family) {
@@ -18538,12 +15346,13 @@ function removeExtraFamily(store, family) {
   const palettes = { ...store.palettes };
   delete palettes[family];
   return {
-    extraFamilies: store.extraFamilies.filter((f2) => f2 !== family),
+    extraFamilies: store.extraFamilies.filter((f) => f !== family),
     palettes
   };
 }
 
 // examples/taaat-app/src/examples.ts
+init_define_BUILD_INFO();
 var TAAAT_EXAMPLES = [
   {
     id: "accident-report-vitals",
@@ -18573,11 +15382,11 @@ var TAAAT_EXAMPLES = [
 var DEFAULT_TEMPLATE_EXAMPLE_ID = "accident-report-vitals";
 var DEFAULT_ARCHETYPE_EXAMPLE_ID = "composition-review";
 function examplesForKind(kind) {
-  return TAAAT_EXAMPLES.filter((e2) => e2.kind === kind);
+  return TAAAT_EXAMPLES.filter((e) => e.kind === kind);
 }
 function getExample(id, kind) {
   return TAAAT_EXAMPLES.find(
-    (e2) => e2.id === id && (kind == null || e2.kind === kind)
+    (e) => e.id === id && (kind == null || e.kind === kind)
   );
 }
 function exampleMatchingUrl(url, kind) {
@@ -18585,7 +15394,7 @@ function exampleMatchingUrl(url, kind) {
   if (!trimmed)
     return void 0;
   return TAAAT_EXAMPLES.find(
-    (e2) => e2.url === trimmed && (kind == null || e2.kind === kind)
+    (e) => e.url === trimmed && (kind == null || e.kind === kind)
   );
 }
 function defaultExampleUrl(kind) {
@@ -18594,8 +15403,9 @@ function defaultExampleUrl(kind) {
 }
 
 // examples/taaat-app/src/outline-tree.ts
-function escapeHtml(s2) {
-  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+init_define_BUILD_INFO();
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 function depthOf(path) {
   if (!path || path === "/")
@@ -18604,7 +15414,7 @@ function depthOf(path) {
 }
 function visiblePills(pills, enabledLanguages2, enabledFamilies2) {
   return pills.filter(
-    (p2) => enabledLanguages2.has(p2.language) && enabledFamilies2.has(p2.family)
+    (p) => enabledLanguages2.has(p.language) && enabledFamilies2.has(p.family)
   );
 }
 function pillHtml(pill, originalLanguage) {
@@ -18627,12 +15437,12 @@ function renderOutline(options) {
   container.innerHTML = "";
   const list = document.createElement("div");
   list.className = "outline-list";
-  const q2 = filterText2.trim().toLowerCase();
+  const q = filterText2.trim().toLowerCase();
   const nodes = flattenDefinitionTree(tree);
   let shown = 0;
   for (const node of nodes) {
     const hay = `${node.label} ${node.rmType ?? ""} ${node.archetypeRef ?? ""} ${node.path}`.toLowerCase();
-    if (q2 && !hay.includes(q2))
+    if (q && !hay.includes(q))
       continue;
     shown++;
     const row = document.createElement("button");
@@ -18655,7 +15465,7 @@ function renderOutline(options) {
         <span class="outline-name">${escapeHtml(node.label)}</span>
         ${rm}
       </span>
-      <span class="outline-pills">${pills.map((p2) => pillHtml(p2, options.originalLanguage)).join("")}</span>
+      <span class="outline-pills">${pills.map((p) => pillHtml(p, options.originalLanguage)).join("")}</span>
     `;
     row.addEventListener("click", () => onSelect(node));
     list.appendChild(row);
@@ -18663,7 +15473,7 @@ function renderOutline(options) {
   if (!shown) {
     const empty = document.createElement("p");
     empty.className = "tree-empty";
-    empty.textContent = q2 ? "No nodes match the filter." : "Empty definition tree.";
+    empty.textContent = q ? "No nodes match the filter." : "Empty definition tree.";
     container.appendChild(empty);
     return;
   }
@@ -18671,7 +15481,11 @@ function renderOutline(options) {
   container.scrollTop = scroll;
 }
 
+// examples/taaat-app/src/inspector.ts
+init_define_BUILD_INFO();
+
 // parser/l10n_annotation_generate.ts
+init_define_BUILD_INFO();
 function l10nAnnotationKey(language) {
   return `L10n.${language}`;
 }
@@ -18690,19 +15504,19 @@ function countArchetypeRefs(nodes) {
 }
 function eligibleNodes(nodes, repeatedOnly) {
   if (!repeatedOnly) {
-    return nodes.filter((n2) => n2.path && n2.localizedNames);
+    return nodes.filter((n) => n.path && n.localizedNames);
   }
   const counts = countArchetypeRefs(nodes);
-  return nodes.filter((n2) => {
-    if (!n2.path || !n2.localizedNames)
+  return nodes.filter((n) => {
+    if (!n.path || !n.localizedNames)
       return false;
-    const ref = n2.archetypeRef?.trim();
+    const ref = n.archetypeRef?.trim();
     return !!ref && (counts.get(ref) ?? 0) > 1;
   });
 }
 function proposeL10nWrites(doc, nodes, options) {
   const bags = [...new Set(
-    options.languageBags.map((l2) => l2.trim()).filter(Boolean)
+    options.languageBags.map((l) => l.trim()).filter(Boolean)
   )];
   if (!bags.length)
     return [];
@@ -18717,7 +15531,7 @@ function proposeL10nWrites(doc, nodes, options) {
       const key = l10nAnnotationKey(lang);
       if (!isL10nKey(key))
         continue;
-      const targetBags = options.copyToAllLanguageBags === false ? bags.filter((b2) => b2.toLowerCase() === lang.toLowerCase()) : bags;
+      const targetBags = options.copyToAllLanguageBags === false ? bags.filter((b) => b.toLowerCase() === lang.toLowerCase()) : bags;
       if (!targetBags.length)
         continue;
       for (const bag of targetBags) {
@@ -18758,25 +15572,26 @@ function proposeL10nWrites(doc, nodes, options) {
 }
 
 // examples/taaat-app/src/sl.ts
+init_define_BUILD_INFO();
 function slEl(tag, props = {}) {
   const el = document.createElement(tag);
   applySl(el, props);
   return el;
 }
 function applySl(el, props) {
-  for (const [k2, v2] of Object.entries(props)) {
-    if (v2 === void 0)
+  for (const [k, v] of Object.entries(props)) {
+    if (v === void 0)
       continue;
-    if (k2 === "className" || k2 === "class")
-      el.className = String(v2);
-    else if (k2 === "text")
-      el.textContent = String(v2);
-    else if (k2 === "html")
-      el.innerHTML = String(v2);
-    else if (k2 === "style" && typeof v2 === "string") {
-      el.setAttribute("style", v2);
+    if (k === "className" || k === "class")
+      el.className = String(v);
+    else if (k === "text")
+      el.textContent = String(v);
+    else if (k === "html")
+      el.innerHTML = String(v);
+    else if (k === "style" && typeof v === "string") {
+      el.setAttribute("style", v);
     } else {
-      el[k2] = v2;
+      el[k] = v;
     }
   }
 }
@@ -18796,8 +15611,8 @@ function createInspectorState() {
     openFamilies: /* @__PURE__ */ new Set([L10N_FAMILY, "a.", UNPREFIXED_FAMILY])
   };
 }
-function escapeHtml2(s2) {
-  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function escapeHtml2(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 function familyHelp(family) {
   if (family === L10N_FAMILY) {
@@ -18812,7 +15627,7 @@ function familyHelp(family) {
   return `Keys prefixed with <code>${escapeHtml2(family)}</code>. Favourites for this family are stored in this browser.`;
 }
 function writeBagsFor(opts) {
-  const bags = opts.languages.filter((l2) => opts.enabledLanguages.has(l2));
+  const bags = opts.languages.filter((l) => opts.enabledLanguages.has(l));
   return bags.length ? bags : opts.languages;
 }
 function setOnEnabledBags(resource, path, key, value, bags) {
@@ -18832,7 +15647,7 @@ function defaultKeyForFamily(family, languages) {
   return `${family}key`;
 }
 function displayBagsForFamily(family, languages, enabledLanguages2, originalLanguage) {
-  let bags = languages.filter((l2) => enabledLanguages2.has(l2));
+  let bags = languages.filter((l) => enabledLanguages2.has(l));
   const logic = isLanguageIndependentFamily(family);
   if (logic && originalLanguage) {
     if (!bags.includes(originalLanguage))
@@ -18870,19 +15685,19 @@ function renderRowsForFamily(opts, family, body) {
   );
   const logicFamily = isLanguageIndependentFamily(family);
   const addBags = logicFamily && originalLanguage ? [originalLanguage] : displayBags;
-  const pills = pillsAtPath(doc, path).filter((p2) => p2.family === family);
-  const keys = [...new Set(pills.map((p2) => p2.key))];
+  const pills = pillsAtPath(doc, path).filter((p) => p.family === family);
+  const keys = [...new Set(pills.map((p) => p.key))];
   const table = document.createElement("table");
   table.className = "family-table";
-  table.innerHTML = `<thead><tr><th>Key</th>${displayBags.map((l2) => {
-    const isOrig = Boolean(originalLanguage && l2 === originalLanguage);
+  table.innerHTML = `<thead><tr><th>Key</th>${displayBags.map((l) => {
+    const isOrig = Boolean(originalLanguage && l === originalLanguage);
     const origClass = isOrig ? " is-original" : "";
     const title = isOrig ? ' title="Original language"' : "";
-    return `<th${title}><span class="lang-swatch${origClass}" style="border-color:${languageOutlineColor(l2)}"></span>${escapeHtml2(l2)}</th>`;
+    return `<th${title}><span class="lang-swatch${origClass}" style="border-color:${languageOutlineColor(l)}"></span>${escapeHtml2(l)}</th>`;
   }).join("")}<th></th></tr></thead><tbody></tbody>`;
   const tbody = table.querySelector("tbody");
   const addRow = (key) => {
-    const tr2 = document.createElement("tr");
+    const tr = document.createElement("tr");
     const keyTd = document.createElement("td");
     const keyInp = slEl("sl-input", {
       className: "ann-key",
@@ -18890,7 +15705,7 @@ function renderRowsForFamily(opts, family, body) {
       value: key
     });
     keyTd.appendChild(keyInp);
-    tr2.appendChild(keyTd);
+    tr.appendChild(keyTd);
     const values = {};
     for (const lang of displayBags) {
       const td = document.createElement("td");
@@ -18908,7 +15723,7 @@ function renderRowsForFamily(opts, family, body) {
       }
       values[lang] = inp;
       td.appendChild(inp);
-      tr2.appendChild(td);
+      tr.appendChild(td);
     }
     const delTd = document.createElement("td");
     const del = slEl("sl-button", {
@@ -18918,14 +15733,14 @@ function renderRowsForFamily(opts, family, body) {
     });
     del.title = logicFamily ? "Remove this key from the original language and any copied bags" : "Remove this key from enabled language bags";
     del.addEventListener("click", () => {
-      const k2 = keyInp.value.trim() || key;
+      const k = keyInp.value.trim() || key;
       for (const lang of displayBags) {
-        removePathAnnotation(resource, path, k2, lang);
+        removePathAnnotation(resource, path, k, lang);
       }
       onChange();
     });
     delTd.appendChild(del);
-    tr2.appendChild(delTd);
+    tr.appendChild(delTd);
     const writableBags = (bags) => bags.filter(
       (lang) => !(logicFamily && originalLanguage && lang !== originalLanguage)
     );
@@ -18957,7 +15772,7 @@ function renderRowsForFamily(opts, family, body) {
       }
       inp.addEventListener("sl-change", commit);
     }
-    tbody.appendChild(tr2);
+    tbody.appendChild(tr);
   };
   for (const key of keys)
     addRow(key);
@@ -18979,9 +15794,9 @@ function renderRowsForFamily(opts, family, body) {
       return;
     const defaultKey = defaultKeyForFamily(family, languages);
     let next = defaultKey;
-    let n2 = 2;
-    while (addBags.some((l2) => getPathAnnotations(doc, path, l2)[next] !== void 0)) {
-      next = `${defaultKey}-${n2++}`;
+    let n = 2;
+    while (addBags.some((l) => getPathAnnotations(doc, path, l)[next] !== void 0)) {
+      next = `${defaultKey}-${n++}`;
     }
     setOnEnabledBags(resource, path, next, "", addBags);
     onChange();
@@ -19054,21 +15869,21 @@ function renderL10nGenerate(opts, body) {
     });
     opts.state.lastWrites = writes;
     if (apply) {
-      for (const w2 of writes) {
-        if (w2.kind === "unchanged")
+      for (const w of writes) {
+        if (w.kind === "unchanged")
           continue;
-        if (w2.kind === "conflict" && !opts.state.overwriteL10n)
+        if (w.kind === "conflict" && !opts.state.overwriteL10n)
           continue;
-        if (!/^L10n\./i.test(w2.key))
+        if (!/^L10n\./i.test(w.key))
           continue;
         const targetNode = flattenDefinitionTree(opts.tree).find(
-          (n2) => n2.path === w2.path
+          (n) => n.path === w.path
         );
         const owner = targetNode && opts.resourceForNode ? opts.resourceForNode(targetNode) : opts.resource;
         if (!owner)
           continue;
-        const writePath = targetNode ? annotationPathOf(targetNode) : w2.path;
-        setPathAnnotation(owner, writePath, w2.key, w2.value, w2.languageBag);
+        const writePath = targetNode ? annotationPathOf(targetNode) : w.path;
+        setPathAnnotation(owner, writePath, w.key, w.value, w.languageBag);
       }
       opts.onChange();
       return;
@@ -19083,17 +15898,17 @@ function renderL10nGenerate(opts, body) {
   body.appendChild(box);
 }
 function paintPreview(el, writes) {
-  const add = writes.filter((w2) => w2.kind === "add").length;
-  const same = writes.filter((w2) => w2.kind === "unchanged").length;
-  const conflict = writes.filter((w2) => w2.kind === "conflict").length;
-  const rows = writes.filter((w2) => w2.kind !== "unchanged").slice(0, 40);
+  const add = writes.filter((w) => w.kind === "add").length;
+  const same = writes.filter((w) => w.kind === "unchanged").length;
+  const conflict = writes.filter((w) => w.kind === "conflict").length;
+  const rows = writes.filter((w) => w.kind !== "unchanged").slice(0, 40);
   el.innerHTML = `
     <p class="gen-counts">add ${add} \xB7 unchanged ${same} \xB7 conflict ${conflict}</p>
     <table class="gen-table">
       <thead><tr><th>kind</th><th>bag</th><th>key</th><th>value</th></tr></thead>
       <tbody>
         ${rows.map(
-    (w2) => `<tr class="kind-${w2.kind}"><td>${w2.kind}</td><td>${escapeHtml2(w2.languageBag)}</td><td>${escapeHtml2(w2.key)}</td><td>${escapeHtml2(w2.value)}</td></tr>`
+    (w) => `<tr class="kind-${w.kind}"><td>${w.kind}</td><td>${escapeHtml2(w.languageBag)}</td><td>${escapeHtml2(w.key)}</td><td>${escapeHtml2(w.value)}</td></tr>`
   ).join("")}
       </tbody>
     </table>
@@ -19245,7 +16060,7 @@ function renderInspector(opts) {
     summary.slot = "summary";
     summary.className = "family-summary";
     const count = node ? pillsAtPath(doc, annotationPathOf(node)).filter(
-      (p2) => p2.family === family
+      (p) => p.family === family
     ).length : 0;
     summary.innerHTML = `
       <span class="family-swatch" style="background:${familyFillColor(family)}"></span>
@@ -19270,8 +16085,9 @@ function renderInspector(opts) {
 }
 
 // examples/taaat-app/src/copy-dialog.ts
-function escapeHtml3(s2) {
-  return s2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+init_define_BUILD_INFO();
+function escapeHtml3(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 function itemLabel(item, target, showOwner) {
   const path = item.path || "(definition root)";
@@ -19308,9 +16124,9 @@ function mountCopyOriginalDialog(host) {
   let items = [];
   let selected = /* @__PURE__ */ new Set();
   let target = "";
-  const setAll = (ids, on2) => {
+  const setAll = (ids, on) => {
     for (const id of ids) {
-      if (on2)
+      if (on)
         selected.add(id);
       else
         selected.delete(id);
@@ -19397,7 +16213,7 @@ function mountCopyOriginalDialog(host) {
       return;
     }
     apply.disabled = selected.size === 0;
-    const showOwner = new Set(items.map((i2) => i2.ownerId ?? "")).size > 1;
+    const showOwner = new Set(items.map((i) => i.ownerId ?? "")).size > 1;
     const groups = groupCopyItemsByFamily(items);
     for (const group of groups) {
       const details = document.createElement("sl-details");
@@ -19450,8 +16266,8 @@ function mountCopyOriginalDialog(host) {
             selected.delete(id);
           apply.disabled = selected.size === 0;
           count.textContent = `${selected.size} of ${items.length} selected`;
-          const on2 = ids.filter((fid) => selected.has(fid)).length;
-          summary.querySelector(".copy-family-count").textContent = `${on2}/${ids.length}`;
+          const on = ids.filter((fid) => selected.has(fid)).length;
+          summary.querySelector(".copy-family-count").textContent = `${on}/${ids.length}`;
         });
         list.appendChild(cb);
       }
@@ -19482,6 +16298,7 @@ function mountCopyOriginalDialog(host) {
 }
 
 // parser/github_contents.ts
+init_define_BUILD_INFO();
 function apiHeaders(token) {
   const headers = {
     Accept: "application/vnd.github+json",
@@ -19496,22 +16313,22 @@ function encodeUtf8Base64(text) {
   const bytes = new TextEncoder().encode(text);
   let binary = "";
   const chunk = 32768;
-  for (let i2 = 0; i2 < bytes.length; i2 += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i2, i2 + chunk));
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
   }
   return btoa(binary);
 }
 function decodeUtf8Base64(b64) {
   const binary = atob(b64.replace(/\n/g, ""));
   const bytes = new Uint8Array(binary.length);
-  for (let i2 = 0; i2 < binary.length; i2++)
-    bytes[i2] = binary.charCodeAt(i2);
+  for (let i = 0; i < binary.length; i++)
+    bytes[i] = binary.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
 function contentsUrl(ref) {
   const path = ref.path.split("/").map(encodeURIComponent).join("/");
-  const q2 = new URLSearchParams({ ref: ref.ref });
-  return `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents/${path}?${q2}`;
+  const q = new URLSearchParams({ ref: ref.ref });
+  return `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents/${path}?${q}`;
 }
 async function getGitHubFileContents(ref, options) {
   const fetchFn = options?.fetch ?? globalThis.fetch;
@@ -19601,21 +16418,21 @@ var GITHUB_TOKEN_KEY = "taaat-github-token";
 var SOURCE_MODE_KEY = "taaat-source-mode";
 var githubToken = sessionStorage.getItem(GITHUB_TOKEN_KEY) ?? void 0;
 var githubLogin;
-var $2 = (id) => document.getElementById(id);
+var $ = (id) => document.getElementById(id);
 function getLoadMode() {
-  const group = $2("load-mode");
+  const group = $("load-mode");
   return group?.value === "archetype" ? "archetype" : "template";
 }
 function getSourceMode() {
-  const group = $2("source-mode");
+  const group = $("source-mode");
   return group?.value === "local" ? "local" : "github";
 }
 function applySourceMode(mode) {
-  const group = $2("source-mode");
+  const group = $("source-mode");
   if (group)
     group.value = mode;
-  const local = $2("local-workflow");
-  const github = $2("github-workflow");
+  const local = $("local-workflow");
+  const github = $("github-workflow");
   if (local)
     local.hidden = mode !== "local";
   if (github)
@@ -19626,7 +16443,7 @@ function applySourceMode(mode) {
   );
 }
 function setStatus(msg, isError = false) {
-  const el = $2("status-bar");
+  const el = $("status-bar");
   if (!el)
     return;
   el.textContent = msg;
@@ -19634,27 +16451,27 @@ function setStatus(msg, isError = false) {
   el.open = true;
 }
 function listEditableFiles() {
-  return workspace.listFiles().filter((f2) => {
-    const k2 = f2.loadResult?.kind;
-    return k2 === "archetype" || k2 === "template" || k2 === "template_json";
-  }).map((f2) => ({
-    path: f2.path,
-    kind: f2.loadResult?.kind ?? "?"
+  return workspace.listFiles().filter((f) => {
+    const k = f.loadResult?.kind;
+    return k === "archetype" || k === "template" || k === "template_json";
+  }).map((f) => ({
+    path: f.path,
+    kind: f.loadResult?.kind ?? "?"
   }));
 }
 function refreshFileSelect() {
-  const select = $2("file-select");
+  const select = $("file-select");
   if (!select)
     return;
   const files = listEditableFiles();
   select.innerHTML = "";
-  files.forEach((f2, i2) => {
+  files.forEach((f, i) => {
     const opt = document.createElement("sl-option");
-    opt.textContent = `${f2.path} (${f2.kind})`;
+    opt.textContent = `${f.path} (${f.kind})`;
     select.appendChild(opt);
-    opt.value = String(i2);
+    opt.value = String(i);
   });
-  const idx = files.findIndex((f2) => f2.path === activeFilePath);
+  const idx = files.findIndex((f) => f.path === activeFilePath);
   const nextIdx = idx >= 0 ? idx : files.length ? 0 : -1;
   if (nextIdx >= 0) {
     activeFilePath = files[nextIdx].path;
@@ -19741,7 +16558,7 @@ function applyCopySelection(targetLanguage, items) {
       workspace.repository,
       loaded?.loadResult
     );
-    if (res && resourcesForCopy().some((r2) => r2.resource === res)) {
+    if (res && resourcesForCopy().some((r) => r.resource === res)) {
       persistPaths.add(file.path);
     }
   }
@@ -19756,11 +16573,11 @@ function applyCopySelection(targetLanguage, items) {
 function setupCopyOriginal() {
   const mounted = mountCopyOriginalDialog({
     sourceLanguage: () => currentOriginalLanguage(),
-    targetLanguages: () => workspaceLanguages().filter((l2) => l2 !== currentOriginalLanguage()),
+    targetLanguages: () => workspaceLanguages().filter((l) => l !== currentOriginalLanguage()),
     collectItems: collectCopyItems,
     applyItems: applyCopySelection
   });
-  $2("copy-original-btn")?.addEventListener("click", () => {
+  $("copy-original-btn")?.addEventListener("click", () => {
     if (!currentOriginalLanguage()) {
       setStatus("Load a model with an original language first.", true);
       return;
@@ -19787,7 +16604,7 @@ function modelLanguages() {
     if (arch)
       addFrom(arch);
   }
-  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 function currentOriginalLanguage() {
   return originalLanguageOf(activeResource);
@@ -19799,19 +16616,19 @@ function workspaceLanguages() {
   );
 }
 function syncFacets() {
-  for (const l2 of workspaceLanguages()) {
-    if (!knownLanguages.has(l2)) {
-      knownLanguages.add(l2);
-      enabledLanguages.add(l2);
+  for (const l of workspaceLanguages()) {
+    if (!knownLanguages.has(l)) {
+      knownLanguages.add(l);
+      enabledLanguages.add(l);
     }
   }
-  for (const f2 of listFamilies(
+  for (const f of listFamilies(
     workspaceDocumentation(),
     familyStore.extraFamilies
   )) {
-    if (!knownFamilies.has(f2)) {
-      knownFamilies.add(f2);
-      enabledFamilies.add(f2);
+    if (!knownFamilies.has(f)) {
+      knownFamilies.add(f);
+      enabledFamilies.add(f);
     }
   }
 }
@@ -19853,8 +16670,8 @@ function workspaceDocumentation() {
 function renderLegend() {
   syncFacets();
   const original = currentOriginalLanguage();
-  const langHost = $2("legend-languages");
-  const famHost = $2("legend-families");
+  const langHost = $("legend-languages");
+  const famHost = $("legend-families");
   if (langHost) {
     langHost.innerHTML = "";
     for (const lang of workspaceLanguages()) {
@@ -19883,9 +16700,9 @@ function renderLegend() {
       langHost.appendChild(btn);
     }
   }
-  const copyBtn = $2("copy-original-btn");
+  const copyBtn = $("copy-original-btn");
   if (copyBtn) {
-    const targets = workspaceLanguages().filter((l2) => l2 !== original);
+    const targets = workspaceLanguages().filter((l) => l !== original);
     copyBtn.disabled = !original || targets.length === 0;
     copyBtn.title = original ? `Copy annotations from original language ${original} into another bag` : "Load a model with an original language and at least one translation";
   }
@@ -19931,7 +16748,7 @@ function flattenFind(node, path) {
   return void 0;
 }
 function refreshTree() {
-  const container = $2("tree-container");
+  const container = $("tree-container");
   if (!container)
     return;
   if (!activeResource) {
@@ -19965,19 +16782,19 @@ function refreshTree() {
 function persistFamilyStore(next) {
   familyStore = next;
   saveFamilyStore(familyStore);
-  for (const f2 of familyStore.extraFamilies) {
-    if (!knownFamilies.has(f2)) {
-      knownFamilies.add(f2);
-      enabledFamilies.add(f2);
+  for (const f of familyStore.extraFamilies) {
+    if (!knownFamilies.has(f)) {
+      knownFamilies.add(f);
+      enabledFamilies.add(f);
     }
-    inspectorState.openFamilies.add(f2);
+    inspectorState.openFamilies.add(f);
   }
   refreshWorkspace();
 }
 function refreshInspector() {
-  const title = $2("selected-title");
-  const pathEl = $2("selected-path");
-  const host = $2("family-accordions");
+  const title = $("selected-title");
+  const pathEl = $("selected-path");
+  const host = $("family-accordions");
   if (!host)
     return;
   const tree = currentTree();
@@ -20039,10 +16856,10 @@ function refreshWorkspace() {
   refreshInspector();
 }
 function populateExampleSelect(kind) {
-  const select = $2("github-example");
+  const select = $("github-example");
   if (!select)
     return;
-  const currentUrl = slValue($2("github-url"));
+  const currentUrl = slValue($("github-url"));
   select.innerHTML = "";
   const custom = document.createElement("sl-option");
   custom.value = "";
@@ -20059,8 +16876,8 @@ function populateExampleSelect(kind) {
   select.value = match?.id ?? "";
 }
 function syncUrlFromKind(kind) {
-  const urlInput = $2("github-url");
-  const exampleSelect = $2("github-example");
+  const urlInput = $("github-url");
+  const exampleSelect = $("github-example");
   if (!urlInput)
     return;
   urlInput.placeholder = kind === "template" ? "GitHub URL to a .t.json template\u2026" : "GitHub URL to an .adl / .adls archetype\u2026";
@@ -20075,26 +16892,26 @@ function syncUrlFromKind(kind) {
   }
 }
 function setupLoadBar() {
-  const loadBtn = $2("load-github-btn");
-  const urlInput = $2("github-url");
-  const exampleSelect = $2("github-example");
+  const loadBtn = $("load-github-btn");
+  const urlInput = $("github-url");
+  const exampleSelect = $("github-example");
   if (!loadBtn || !urlInput)
     return;
   const storedSource = sessionStorage.getItem(SOURCE_MODE_KEY);
   applySourceMode(storedSource === "local" ? "local" : "github");
-  $2("source-mode")?.addEventListener("sl-change", () => {
+  $("source-mode")?.addEventListener("sl-change", () => {
     applySourceMode(getSourceMode());
   });
   populateExampleSelect(getLoadMode());
   syncUrlFromKind(getLoadMode());
-  $2("load-mode")?.addEventListener("sl-change", () => {
+  $("load-mode")?.addEventListener("sl-change", () => {
     const kind = getLoadMode();
     populateExampleSelect(kind);
     syncUrlFromKind(kind);
   });
   exampleSelect?.addEventListener("sl-change", () => {
     const id = slValue(exampleSelect);
-    const example = examplesForKind(getLoadMode()).find((e2) => e2.id === id);
+    const example = examplesForKind(getLoadMode()).find((e) => e.id === id);
     if (example)
       urlInput.value = example.url;
   });
@@ -20117,7 +16934,7 @@ function setupLoadBar() {
       const result = await workspace.loadFromGitHubClinicalModelUrl(url, {
         maxFiles: 200,
         githubToken,
-        onProgress: (e2) => setStatus(e2.message)
+        onProgress: (e) => setStatus(e.message)
       });
       try {
         if (githubToken && result.source) {
@@ -20134,7 +16951,7 @@ function setupLoadBar() {
       if (mode === "template") {
         activeFilePath = result.rootPath;
       } else {
-        const arch = files.find((f2) => f2.kind === "archetype");
+        const arch = files.find((f) => f.kind === "archetype");
         activeFilePath = arch?.path ?? result.rootPath;
       }
       refreshFileSelect();
@@ -20144,16 +16961,16 @@ function setupLoadBar() {
       refreshWorkspace();
       const warn = result.warnings.length ? ` (${result.warnings.length} warnings)` : "";
       setStatus(`Loaded ${result.fetched} files${warn}`);
-    } catch (e2) {
-      setStatus(e2.message, true);
+    } catch (e) {
+      setStatus(e.message, true);
     } finally {
       loadBtn.loading = false;
     }
   });
 }
 function setupFileSelect() {
-  $2("file-select")?.addEventListener("sl-change", (e2) => {
-    const idx = Number(slValue(e2.target));
+  $("file-select")?.addEventListener("sl-change", (e) => {
+    const idx = Number(slValue(e.target));
     const files = listEditableFiles();
     activeFilePath = Number.isFinite(idx) ? files[idx]?.path : void 0;
     loadActiveResource();
@@ -20166,8 +16983,8 @@ function setupFileSelect() {
   });
 }
 function setupFamilyTools() {
-  $2("add-family-btn")?.addEventListener("click", () => {
-    const raw = slValue($2("add-family-prefix"));
+  $("add-family-btn")?.addEventListener("click", () => {
+    const raw = slValue($("add-family-prefix"));
     const prefix = normalizeFamilyPrefix(raw);
     if (!prefix) {
       setStatus("Use a prefix like fhir. or ui.", true);
@@ -20184,18 +17001,18 @@ function setupFamilyTools() {
       persistFamilyStore(addExtraFamily(familyStore, prefix));
       setStatus(`Added family ${prefix}`);
     }
-    const inp = $2("add-family-prefix");
+    const inp = $("add-family-prefix");
     if (inp)
       inp.value = "";
   });
-  $2("families-export-btn")?.addEventListener("click", () => {
+  $("families-export-btn")?.addEventListener("click", () => {
     downloadText(exportFamilyStoreJson(familyStore), "taaat-families.json");
   });
-  $2("families-import-btn")?.addEventListener("click", () => {
-    $2("families-upload-input")?.click();
+  $("families-import-btn")?.addEventListener("click", () => {
+    $("families-upload-input")?.click();
   });
-  $2("families-upload-input")?.addEventListener("change", async (e2) => {
-    const file = e2.target.files?.[0];
+  $("families-upload-input")?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
     if (!file)
       return;
     try {
@@ -20204,23 +17021,23 @@ function setupFamilyTools() {
     } catch (err) {
       setStatus(`Invalid families file: ${err.message}`, true);
     }
-    e2.target.value = "";
+    e.target.value = "";
   });
 }
 function downloadText(content, filename) {
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const a2 = document.createElement("a");
-  a2.href = URL.createObjectURL(blob);
-  a2.download = filename;
-  a2.click();
-  URL.revokeObjectURL(a2.href);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 function downloadFileName(path) {
   const base = path.split("/").pop() ?? path;
   return base;
 }
 function setupDownload() {
-  $2("download-file-btn")?.addEventListener("click", () => {
+  $("download-file-btn")?.addEventListener("click", () => {
     if (!activeFilePath)
       return;
     const text = workspace.exportAnnotatedFile(activeFilePath);
@@ -20233,8 +17050,8 @@ function setupDownload() {
   });
 }
 function updateGitHubActionState() {
-  const commitBtn = $2("github-commit-btn");
-  const userEl = $2("github-user");
+  const commitBtn = $("github-commit-btn");
+  const userEl = $("github-user");
   const source = workspace.getGitHubSource();
   const canCommit = Boolean(
     githubToken && source && activeFilePath && (activeFilePath === source.ref.path || activeFilePath.endsWith("/" + source.ref.path) || source.ref.path.endsWith(activeFilePath))
@@ -20252,10 +17069,10 @@ function updateGitHubActionState() {
   }
 }
 function setupGitHubAuth() {
-  const tokenInput = $2("github-token");
+  const tokenInput = $("github-token");
   if (tokenInput && githubToken)
     tokenInput.value = githubToken;
-  $2("github-login-btn")?.addEventListener("click", async () => {
+  $("github-login-btn")?.addEventListener("click", async () => {
     const token = (tokenInput ? slValue(tokenInput) : "").trim() || githubToken;
     if (!token) {
       setStatus(
@@ -20271,13 +17088,13 @@ function setupGitHubAuth() {
       sessionStorage.setItem(GITHUB_TOKEN_KEY, token);
       setStatus(`GitHub: signed in as ${user.login}`);
       updateGitHubActionState();
-    } catch (e2) {
+    } catch (e) {
       githubLogin = void 0;
-      setStatus(e2.message, true);
+      setStatus(e.message, true);
       updateGitHubActionState();
     }
   });
-  $2("github-commit-btn")?.addEventListener("click", async () => {
+  $("github-commit-btn")?.addEventListener("click", async () => {
     const source = workspace.getGitHubSource();
     if (!githubToken || !source || !activeFilePath) {
       setStatus("Load from GitHub and sign in before committing.", true);
@@ -20288,7 +17105,7 @@ function setupGitHubAuth() {
       setStatus("Nothing to commit.", true);
       return;
     }
-    const commitBtn = $2("github-commit-btn");
+    const commitBtn = $("github-commit-btn");
     if (commitBtn)
       commitBtn.loading = true;
     try {
@@ -20314,8 +17131,8 @@ function setupGitHubAuth() {
         `Committed to ${source.ref.owner}/${source.ref.repo}@${source.ref.ref}` + (result.commitSha ? ` (${result.commitSha.slice(0, 7)})` : "")
       );
       updateGitHubActionState();
-    } catch (e2) {
-      setStatus(e2.message, true);
+    } catch (e) {
+      setStatus(e.message, true);
     } finally {
       if (commitBtn)
         commitBtn.loading = false;
@@ -20324,14 +17141,14 @@ function setupGitHubAuth() {
   updateGitHubActionState();
 }
 function setupFilter() {
-  $2("tree-filter")?.addEventListener("sl-input", (e2) => {
-    filterText = slValue(e2.target);
+  $("tree-filter")?.addEventListener("sl-input", (e) => {
+    filterText = slValue(e.target);
     refreshTree();
   });
 }
 function setupLocalFiles() {
-  const input = $2("local-files");
-  const btn = $2("local-files-btn");
+  const input = $("local-files");
+  const btn = $("local-files-btn");
   if (!input)
     return;
   btn?.addEventListener("click", () => input.click());
@@ -20357,7 +17174,25 @@ function reloadUi() {
   refreshFileSelect();
   refreshWorkspace();
 }
+var TAAAT_README_URL = "https://github.com/ErikSundvall/ehrtslib/blob/main/examples/taaat-app/README.md";
+function displayBuildInfo() {
+  const buildInfoElem = document.getElementById("build-info");
+  if (!buildInfoElem || typeof define_BUILD_INFO_default === "undefined")
+    return;
+  const deployment = detectAppDeployment(globalThis.location?.pathname ?? "");
+  buildInfoElem.textContent = formatBuildLabel(
+    "TAAAT",
+    define_BUILD_INFO_default,
+    deployment?.app === "taaat" ? deployment : null
+  );
+}
 function initApp() {
+  displayBuildInfo();
+  void bindRecommendedVersionNotice(document, {
+    app: "taaat",
+    tutorialUrl: `${TAAAT_README_URL}#tutorial`,
+    readmeUrl: TAAAT_README_URL
+  });
   setupLoadBar();
   setupFileSelect();
   setupFamilyTools();

@@ -18,6 +18,68 @@ added from the legend. Favourites — including a list of suggested values per k
 `a.` family is pre-filled from the
 [UI-hint / automation examples](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19).
 
+## Tutorial
+
+The live page is
+[https://eriksundvall.github.io/ehrtslib/taaat/](https://eriksundvall.github.io/ehrtslib/taaat/)
+(bleeding edge). Frozen releases stay at `/taaat-vX.Y/`. The lower-left footer
+shows the package version and build id. On GitHub Pages, a build that is not
+the recommended stable release offers a link to switch to it, and also links
+here. Add `?version-warning=preview` on any host to review that notice.
+
+### Open a model
+
+**Local files.** Choose **Local files**, then **Choose local files**, and pick
+one or more `.adl`, `.adls`, or `.t.json` files. The file menu selects which
+model is on screen. **Download** saves the annotated file.
+
+**GitHub.** Choose **GitHub**. Pick a curated example (Ehrlibs Accident report,
+Simple diagnose and vitals, Region Stockholm MDT) or paste a blob or raw URL,
+then **Load from GitHub**. A
+[personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+with Contents read and write is optional until you **Commit to GitHub**.
+
+### Read the outline
+
+Every definition-tree node stays visible. **Filter outline** narrows the list.
+Pills on a node show annotation values from the language bags and families that
+are switched on. Click a language chip or a family chip to show or hide that
+bag or family. The original language uses a thicker outline.
+
+### Edit annotations
+
+Select a node. The right pane is one section per family.
+
+- Add a dotted prefix (for example `fhir.`) with **Add family**.
+- Inside a family other than L10n, favourite keys can carry a list of suggested
+  values. **Export families** / **Import families** saves that legend as JSON.
+- Keys without a prefix (`comment`, `design note`, `ui`) stay in their own
+  family.
+- Language bags come from the loaded model (original language, translations,
+  description details, terminology). There is no control to add a bag.
+- Logic and UI keys (`a.*`) are kept in the original language. Use **Copy
+  original to…** when an export will treat another bag as primary.
+
+### L10n is a workaround for older OPT export
+
+The **L10n** family is partly a workaround for older openEHR ADL operational
+template (OPT) formats, not a general design for localisation.
+
+ADL 1.4 OPT cannot carry multilingual names for repeated, renamed parts of the
+same archetype. That limit, and the case for language-neutral annotations, is
+described in
+[Limitation preventing multilingual repeated parts in the OPT operational template export format](https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760).
+Better Archetype Designer stores those occurrence names as language-specific
+`annotations.documentation` keys of the form `L10n.{lang}`.
+
+**Generate L10n annotations** writes only `L10n.*` keys, can copy them into
+every language bag (AD treats annotations as language-specific), and does not
+change the constraint tree or any other family. Existing `L10n.*` values are
+left alone unless you opt into overwrite. A language-neutral annotation type
+is what that discussion asks for; current AD and OPT tooling still consume the
+`L10n.*` keys. See
+[ADR 0001](../../docs/adr/0001-l10n-annotation-generation.md).
+
 ## Build
 
 ```bash

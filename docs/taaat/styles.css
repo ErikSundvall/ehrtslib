@@ -540,6 +540,73 @@ sl-details.family-acc::part(header) {
   min-width: 7rem;
 }
 
+.app-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.28rem 0.75rem;
+  background: #eef2f7;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.build-info {
+  margin: 0;
+}
+
+.recommended-version-footer-link {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.version-dialog {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.15rem 1.3rem;
+  max-width: 36rem;
+  color: var(--text);
+  background: #fff;
+}
+
+.version-dialog::backdrop {
+  background: rgb(15 23 42 / 0.45);
+}
+
+.version-dialog h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.55rem;
+}
+
+.version-dialog p {
+  margin: 0 0 0.7rem;
+  line-height: 1.45;
+}
+
+.version-dialog a {
+  color: var(--accent);
+}
+
+.version-dialog-check {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  margin: 0.35rem 0 0.85rem;
+}
+
+.version-dialog-actions button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
 #status-bar {
   flex-shrink: 0;
   margin: 0;
