@@ -9,26 +9,22 @@ import {
   Iso8601_date,
   Math as OpenEhrMath,
   RESOURCE_DESCRIPTION,
-  String as EhrString,
   Terminology_code,
   TUPLE1,
 } from "../../../openehr_base.ts";
 import {
-  BMM_CLASSIFIER,
   BMM_CONTAINER_TYPE,
   BMM_GENERIC_CLASS,
-  BMM_GENERIC_PARAMETER,
-  BMM_OPEN_TYPE,
-  BMM_SCHEMA_CORE,
+  BMM_PARAMETER_TYPE,
   BMM_SIGNATURE,
   BMM_SIMPLE_CLASS,
   BMM_SIMPLE_TYPE,
   P_BMM_CLASS,
   P_BMM_FUNCTION,
   P_BMM_GENERIC_FUNCTION_PARAMETER,
+  P_BMM_GENERIC_PARAMETER,
   P_BMM_GENERIC_TYPE,
-  REFERENCE_MODEL_ACCESS,
-  SCHEMA_DESCRIPTOR,
+  P_BMM_OPEN_TYPE,
 } from "../../../openehr_lang.ts";
 import { EXPR_CONSTRAINT } from "../../../openehr_am.ts";
 
@@ -141,26 +137,19 @@ Deno.test("BASE Math.ln of e is approximately 1", () => {
   assert(Math.abs(v - 1) < 1e-10);
 });
 
-Deno.test("classic LANG BMM_GENERIC_PARAMETER and BMM_OPEN_TYPE", () => {
-  const param = new BMM_GENERIC_PARAMETER();
+Deno.test("BMM3 BMM_PARAMETER_TYPE is the open type parameter", () => {
+  const param = new BMM_PARAMETER_TYPE();
   param.name = "T";
-  const open = new BMM_OPEN_TYPE();
-  open.generic_constraint = param;
-  assert(param instanceof BMM_CLASSIFIER);
-  assertEquals(open.type_name().value, "T");
+  assertEquals(param.type_name().value, "T");
   assertEquals(param.type_signature().value, "T");
 });
 
-Deno.test("classic LANG SCHEMA_DESCRIPTOR and REFERENCE_MODEL_ACCESS aliases", () => {
-  const desc = new SCHEMA_DESCRIPTOR();
-  desc.schema_id = "openehr_rm_1.2.0";
-  assertEquals(desc.schema_id, "openehr_rm_1.2.0");
-  assertEquals(desc.is_top_level().value, false);
-  const access = new REFERENCE_MODEL_ACCESS();
-  assertEquals(access.has_bmm_model(EhrString.from("missing")).value, false);
-  const core = new BMM_SCHEMA_CORE();
-  core.rm_publisher = "openehr";
-  assertEquals(core.rm_publisher, "openehr");
+Deno.test("P_BMM open type and generic parameter still construct", () => {
+  const open = new P_BMM_OPEN_TYPE();
+  const param = new P_BMM_GENERIC_PARAMETER();
+  param.name = "T";
+  assertEquals(param.name, "T");
+  assert(open instanceof P_BMM_OPEN_TYPE);
 });
 
 Deno.test("AOM2 EXPR_CONSTRAINT extends LANG EXPR_LEAF", () => {

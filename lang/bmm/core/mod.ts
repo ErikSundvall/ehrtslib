@@ -5,7 +5,6 @@
 
 export * from "./element.ts";
 export * from "./entity.ts";
-export * from "./classic.ts";
 export * from "./literal_value.ts";
 export * from "./feature.ts";
 export * from "./model.ts";

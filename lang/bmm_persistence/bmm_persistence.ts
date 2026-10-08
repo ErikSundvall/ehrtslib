@@ -615,7 +615,7 @@ export abstract class P_BMM_PROPERTY extends P_BMM_MODEL_ELEMENT {
 }
 
 /**
- * Persistent form of \`BMM_GENERIC_PARAMETER\`.
+ * Persistent form of a generic parameter (\`BMM_PARAMETER_TYPE\`).
  */
 export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
   /**
@@ -687,7 +687,7 @@ export class P_BMM_GENERIC_PARAMETER extends P_BMM_MODEL_ELEMENT {
   }
 
   /**
-   * \`BMM_GENERIC_PARAMETER\` created by \`_create_bmm_generic_parameter_\`.
+   * \`BMM_PARAMETER_TYPE\` created by \`create_bmm_generic_parameter\`.
    */
   bmm_generic_parameter?: BMM_PARAMETER_TYPE;
   /**

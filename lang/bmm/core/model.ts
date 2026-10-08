@@ -83,9 +83,6 @@ export class BMM_MODEL_METADATA {
   }
 }
 
-/** Classic BMM 2 name for `BMM_MODEL_METADATA` (official `openehr_lang_1.1.0`). */
-export { BMM_MODEL_METADATA as BMM_SCHEMA_CORE };
-
 /**
  * A BMM model component that contains packages and classes.
  */
@@ -156,7 +153,7 @@ export abstract class BMM_PACKAGE_CONTAINER extends BMM_MODEL_ELEMENT {
 }
 
 /**
- * Definition of the root of a BMM model (along with what is inherited from \`BMM_SCHEMA_CORE\`).
+ * Definition of the root of a BMM model (metadata lives on \`BMM_MODEL_METADATA\`).
  */
 export class BMM_MODEL extends BMM_PACKAGE_CONTAINER {
   /**

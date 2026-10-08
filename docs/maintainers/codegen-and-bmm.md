@@ -104,7 +104,7 @@ deno run --allow-net --allow-write tasks/extract_dependencies.ts
 
 - List JSON schemas from [`openEHR/specifications-ITS-BMM`](https://github.com/openEHR/specifications-ITS-BMM) (`components/<COMPONENT>/json/`)
 - Prefer the matching working copy in `openEHR/specifications-<COMPONENT>/computable/BMM/` when that file exists (ITS-BMM import can lag)
-- Record `openehr_lang_1.1.0-bmm3` separately as `openehr_lang_bmm3` (same schema id as classic LANG 1.1.0; do not merge the two files — see the ITS-BMM `AGENTS.md`)
+- Record `openehr_lang_1.1.0-bmm3` separately as `openehr_lang_bmm3` (same schema id as classic LANG 1.1.0; do not merge the two files — see the ITS-BMM `AGENTS.md`). Generated stubs may still name classic BMM 2 classes. The hand-written API does not re-export those names; see [api-changes.md](api-changes.md)
 - Keep only packages ehrtslib currently consumes (`base`, `rm`, `am`, `lang`, `lang_bmm3`, `term`); other ITS-BMM components are logged and skipped
 - Update `tasks/bmm_versions.json`
 
