@@ -1,9 +1,9 @@
 /**
  * RM Specification Validator
- * 
+ *
  * Validates instances against openEHR Reference Model specification constraints.
  * These are constraints defined in the RM specification itself, not in archetypes.
- * 
+ *
  * References:
  * - openEHR RM Specification: https://specifications.openehr.org/releases/RM/latest/
  * - openEHR Terminology: https://specifications.openehr.org/releases/TERM/latest/SupportTerminology.html
@@ -16,11 +16,16 @@ import {
   isDataValueType,
   isSubtypeOf,
 } from "../meta/mod.ts";
+import {
+  attributeNamesInExpression,
+  evaluateBmmExpression,
+} from "./bmm_invariant_eval.ts";
+import { BMM_INVARIANTS } from "./bmm_invariants.generated.ts";
 import type { ValidationMessage } from "./template_validator.ts";
 
 /**
  * RM specification constraints knowledge base
- * 
+ *
  * Based on openEHR RM specification and internal terminology.
  * Sources: Archie's RMObjectValidator, openEHR terminology XML files
  */
@@ -30,21 +35,37 @@ const RM_CONSTRAINTS = {
   "COMPOSITION.category": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
-    allowed_codes: ["431", "433", "451"],  // persistent, event, episodic
+    allowed_codes: ["431", "433", "451"], // persistent, event, episodic
     code_meanings: {
       "431": "persistent",
       "433": "event",
       "451": "episodic",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
-  
+
   // EVENT_CONTEXT.setting - RM 1.1.0 Section 5.1.3
   // https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class
   "EVENT_CONTEXT.setting": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
-    allowed_codes: ["225", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "802"],
+    allowed_codes: [
+      "225",
+      "227",
+      "228",
+      "229",
+      "230",
+      "231",
+      "232",
+      "233",
+      "234",
+      "235",
+      "236",
+      "237",
+      "238",
+      "802",
+    ],
     code_meanings: {
       "225": "home",
       "227": "emergency care",
@@ -61,9 +82,10 @@ const RM_CONSTRAINTS = {
       "238": "other care",
       "802": "mental healthcare",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_event_context_class",
   },
-  
+
   // DV_ORDERED.normal_status - RM 1.1.0 Section 8.2.1
   // https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class
   "DV_ORDERED.normal_status": {
@@ -79,9 +101,10 @@ const RM_CONSTRAINTS = {
       "LL": "very low",
       "LLL": "critically low",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ordered_class",
   },
-  
+
   // ATTESTATION.reason - RM 1.1.0 Section 10.3.2
   // https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class
   "ATTESTATION.reason": {
@@ -92,9 +115,10 @@ const RM_CONSTRAINTS = {
       "240": "signed",
       "648": "witnessed",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/common.html#_attestation_class",
   },
-  
+
   // AUDIT_DETAILS.change_type - RM 1.1.0 Section 10.3.1
   // https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class
   "AUDIT_DETAILS.change_type": {
@@ -110,48 +134,57 @@ const RM_CONSTRAINTS = {
       "523": "deleted",
       "666": "attestation",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/common.html#_audit_details_class",
   },
-  
+
   "DV_TEXT.value": {
     type: "non_empty_string",
     message: "DV_TEXT.value must be a non-empty string",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_text_class",
   },
   "DV_CODED_TEXT.value": {
     type: "non_empty_string",
     message: "DV_CODED_TEXT.value must be a non-empty string when present",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class",
   },
   "DV_URI.value": {
     type: "uri",
     message: "DV_URI.value must be an RFC 3986 URI",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_uri_class",
   },
   "DV_EHR_URI.value": {
     type: "uri",
     message: "DV_EHR_URI.value must be an RFC 3986 URI",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_ehr_uri_class",
   },
   "DV_COUNT.magnitude": {
     type: "required",
     message: "DV_COUNT.magnitude is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_count_class",
   },
   "DV_QUANTITY.magnitude": {
     type: "required",
     message: "DV_QUANTITY.magnitude is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
   },
   "DV_QUANTITY.units": {
     type: "required",
     message: "DV_QUANTITY.units is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_quantity_class",
   },
   "DV_BOOLEAN.value": {
     type: "required",
     message: "DV_BOOLEAN.value is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_boolean_class",
   },
 
   // INTERVAL_EVENT.math_function - RM 1.1.0 Section 4.5.3
@@ -159,7 +192,19 @@ const RM_CONSTRAINTS = {
   "INTERVAL_EVENT.math_function": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
-    allowed_codes: ["144", "145", "146", "147", "148", "149", "267", "268", "521", "522", "640"],
+    allowed_codes: [
+      "144",
+      "145",
+      "146",
+      "147",
+      "148",
+      "149",
+      "267",
+      "268",
+      "521",
+      "522",
+      "640",
+    ],
     code_meanings: {
       "144": "maximum",
       "145": "minimum",
@@ -173,16 +218,28 @@ const RM_CONSTRAINTS = {
       "522": "increase",
       "640": "actual",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_interval_event_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_interval_event_class",
   },
-  
+
   // ISM_TRANSITION.current_state - RM 1.1.0 Section 7.3.2
   // https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class
   "ISM_TRANSITION.current_state": {
     type: "coded_text_value_set",
     terminology_id: "openehr",
     // Instruction state machine codes (524-533)
-    allowed_codes: ["245", "524", "526", "527", "528", "529", "530", "531", "532", "533"],
+    allowed_codes: [
+      "245",
+      "524",
+      "526",
+      "527",
+      "528",
+      "529",
+      "530",
+      "531",
+      "532",
+      "533",
+    ],
     code_meanings: {
       "245": "active",
       "524": "initial",
@@ -195,9 +252,10 @@ const RM_CONSTRAINTS = {
       "532": "aborted",
       "533": "completed",
     },
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class",
   },
-  
+
   // Required attributes
   // COMPOSITION.language - RM 1.1.0 (openEHR languages code set / ISO 639-1)
   "COMPOSITION.language": {
@@ -205,30 +263,34 @@ const RM_CONSTRAINTS = {
     terminology_id: "ISO_639-1",
     codeset: "iso_639_1",
     message: "COMPOSITION.language is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
-  
+
   // COMPOSITION.territory - RM 1.1.0 (openEHR countries / ISO 3166-1)
   "COMPOSITION.territory": {
     type: "required_code_phrase",
     terminology_id: "ISO_3166-1",
     codeset: "iso_3166_1",
     message: "COMPOSITION.territory is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
-  
+
   // COMPOSITION.composer - RM 1.1.0
   "COMPOSITION.composer": {
     type: "required",
     message: "COMPOSITION.composer is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_composition_class",
   },
-  
+
   // ENTRY.subject - RM 1.1.0 (inherited by OBSERVATION, EVALUATION, …)
   "ENTRY.subject": {
     type: "required",
     message: "ENTRY.subject is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
   },
 
   "ENTRY.language": {
@@ -236,35 +298,40 @@ const RM_CONSTRAINTS = {
     terminology_id: "ISO_639-1",
     codeset: "iso_639_1",
     message: "ENTRY.language is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_entry_class",
   },
 
   // OBSERVATION.data - RM 1.1.0
   "OBSERVATION.data": {
     type: "required",
     message: "OBSERVATION.data is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_observation_class",
   },
-  
+
   // INSTRUCTION.narrative - RM 1.1.0
   "INSTRUCTION.narrative": {
     type: "required",
     message: "INSTRUCTION.narrative is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_instruction_class",
   },
-  
+
   // ACTION.time - RM 1.1.0
   "ACTION.time": {
     type: "required",
     message: "ACTION.time is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/ehr.html#_action_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/ehr.html#_action_class",
   },
-  
+
   // HISTORY.origin - RM 1.1.0
   "HISTORY.origin": {
     type: "required",
     message: "HISTORY.origin is required by RM specification",
-    spec_ref: "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_history_class",
+    spec_ref:
+      "https://specifications.openehr.org/releases/RM/latest/data_structures.html#_history_class",
   },
 };
 
@@ -273,14 +340,14 @@ const RM_CONSTRAINTS = {
  */
 export class RMSpecificationValidator {
   private enabled: boolean;
-  
+
   constructor(enabled: boolean = true) {
     this.enabled = enabled;
   }
-  
+
   /**
    * Validate an RM instance against specification constraints
-   * 
+   *
    * @param rmValue - The RM instance
    * @param rmTypeName - The RM type name (e.g., "COMPOSITION")
    * @param attributeName - The attribute name (e.g., "category")
@@ -291,16 +358,17 @@ export class RMSpecificationValidator {
     rmValue: any,
     rmTypeName: string,
     attributeName: string,
-    path: string
+    path: string,
   ): ValidationMessage[] {
     if (!this.enabled) {
       return [];
     }
-    
+
     const messages: ValidationMessage[] = [];
     const constraintKey = `${rmTypeName}.${attributeName}`;
-    const constraint = RM_CONSTRAINTS[constraintKey as keyof typeof RM_CONSTRAINTS];
-    
+    const constraint =
+      RM_CONSTRAINTS[constraintKey as keyof typeof RM_CONSTRAINTS];
+
     if (!constraint) {
       return messages;
     }
@@ -346,7 +414,8 @@ export class RMSpecificationValidator {
       ) {
         messages.push({
           path,
-          message: (constraint.message as string) || `${constraintKey} is required`,
+          message: (constraint.message as string) ||
+            `${constraintKey} is required`,
           severity: "error",
           constraintType: "rm_specification",
         });
@@ -360,7 +429,8 @@ export class RMSpecificationValidator {
       if (typeof rmValue === "string" && rmValue.length === 0) {
         messages.push({
           path,
-          message: (constraint.message as string) || `${constraintKey} must not be empty`,
+          message: (constraint.message as string) ||
+            `${constraintKey} must not be empty`,
           severity: "error",
           constraintType: "rm_invariant",
         });
@@ -368,10 +438,14 @@ export class RMSpecificationValidator {
       return;
     }
     if (type === "uri") {
-      if (typeof rmValue === "string" && rmValue.length > 0 && !isRfc3986Uri(rmValue)) {
+      if (
+        typeof rmValue === "string" && rmValue.length > 0 &&
+        !isRfc3986Uri(rmValue)
+      ) {
         messages.push({
           path,
-          message: (constraint.message as string) || `${constraintKey} is not a valid URI`,
+          message: (constraint.message as string) ||
+            `${constraintKey} is not a valid URI`,
           severity: "error",
           constraintType: "rm_schema",
         });
@@ -440,12 +514,19 @@ export class RMSpecificationValidator {
     const skipRequired = !shouldCheckRequired(rmValue, rmType);
     const owners = new Set(ancestorsOf(rmType));
     owners.add(rmType);
+    const coveredByBmm = this.applyBmmInvariants(
+      rmValue,
+      owners,
+      path,
+      messages,
+    );
     for (const [key, constraint] of Object.entries(RM_CONSTRAINTS)) {
       const dot = key.indexOf(".");
       if (dot < 0) continue;
       const owner = key.slice(0, dot);
       const attr = key.slice(dot + 1);
       if (!owners.has(owner) && !isSubtypeOf(rmType, owner)) continue;
+      if (coveredByBmm.has(key)) continue;
       this.applyConstraint(
         rmValue[attr],
         constraint as Record<string, unknown>,
@@ -455,6 +536,40 @@ export class RMSpecificationValidator {
         { skipRequired },
       );
     }
+  }
+
+  /**
+   * RM and BASE class invariants from the generated BMM catalogue, including
+   * ancestors. AM and LANG rows stay in the catalogue and are not applied here.
+   * A conclusive result replaces the hand-written RM_CONSTRAINTS entry for the
+   * same class attribute.
+   */
+  private applyBmmInvariants(
+    rmValue: Record<string, unknown>,
+    owners: Set<string>,
+    path: string,
+    messages: ValidationMessage[],
+  ): Set<string> {
+    const covered = new Set<string>();
+    for (const row of BMM_INVARIANTS) {
+      if (row.schema !== "rm" && row.schema !== "base") continue;
+      if (!owners.has(row.className)) continue;
+      if (!row.expression.trim()) continue;
+      const result = evaluateBmmExpression(row.expression, rmValue);
+      if (result === undefined) continue;
+      for (const name of attributeNamesInExpression(row.expression)) {
+        covered.add(`${row.className}.${name}`);
+      }
+      if (!result) {
+        messages.push({
+          path,
+          message: `${row.className}.${row.name} failed: ${row.expression}`,
+          severity: "error",
+          constraintType: "rm_invariant",
+        });
+      }
+    }
+    return covered;
   }
 
   private validateCodePhraseCodeset(
@@ -471,10 +586,9 @@ export class RMSpecificationValidator {
     if (codeset === "iso_639_1" && !isIso6391Language(code)) {
       messages.push({
         path,
-        message:
-          `Language code "${code}" is not a valid ISO 639-1 code (see ${
-            constraint.spec_ref ?? "RM COMPOSITION.language"
-          })`,
+        message: `Language code "${code}" is not a valid ISO 639-1 code (see ${
+          constraint.spec_ref ?? "RM COMPOSITION.language"
+        })`,
         severity: "error",
         constraintType: "rm_specification",
       });
@@ -491,7 +605,7 @@ export class RMSpecificationValidator {
       });
     }
   }
-  
+
   /**
    * Validate coded text against a value set
    */
@@ -499,14 +613,14 @@ export class RMSpecificationValidator {
     rmValue: any,
     constraint: any,
     path: string,
-    messages: ValidationMessage[]
+    messages: ValidationMessage[],
   ): void {
     if (!rmValue) {
       return;
     }
-    
+
     // Handle terse string format: "terminology::code|value|"
-    if (typeof rmValue === 'string') {
+    if (typeof rmValue === "string") {
       const match = rmValue.match(/^([^:]+)::(\w+)\|?([^|]*)?\|?$/);
       if (match) {
         const [, terminology, code] = match;
@@ -514,18 +628,18 @@ export class RMSpecificationValidator {
         return;
       }
     }
-    
+
     // Handle DV_CODED_TEXT object
-    if (typeof rmValue === 'object') {
+    if (typeof rmValue === "object") {
       const code = this.extractCode(rmValue);
       const terminology = this.extractTerminologyId(rmValue);
-      
+
       if (code && terminology) {
         this.checkCodeValue(terminology, code, constraint, path, messages);
       }
     }
   }
-  
+
   /**
    * Check if code is valid for the constraint
    */
@@ -534,37 +648,43 @@ export class RMSpecificationValidator {
     code: string,
     constraint: any,
     path: string,
-    messages: ValidationMessage[]
+    messages: ValidationMessage[],
   ): void {
     // Check terminology ID matches
-    if (constraint.terminology_id && terminology !== constraint.terminology_id) {
+    if (
+      constraint.terminology_id && terminology !== constraint.terminology_id
+    ) {
       messages.push({
         path,
-        message: `Terminology ID "${terminology}" does not match required "${constraint.terminology_id}"`,
+        message:
+          `Terminology ID "${terminology}" does not match required "${constraint.terminology_id}"`,
         severity: "error",
         constraintType: "rm_specification",
       });
       return;
     }
-    
+
     // Check code is in allowed list
     if (constraint.allowed_codes && !constraint.allowed_codes.includes(code)) {
       const allowedList = constraint.allowed_codes.map((c: string) => {
         const meaning = constraint.code_meanings?.[c];
         return meaning ? `${c}|${meaning}|` : c;
       }).join(", ");
-      
-      const specRef = constraint.spec_ref ? ` (see ${constraint.spec_ref})` : "";
-      
+
+      const specRef = constraint.spec_ref
+        ? ` (see ${constraint.spec_ref})`
+        : "";
+
       messages.push({
         path,
-        message: `Code "${code}" not allowed by RM specification. Allowed values: ${allowedList}${specRef}`,
+        message:
+          `Code "${code}" not allowed by RM specification. Allowed values: ${allowedList}${specRef}`,
         severity: "error",
         constraintType: "rm_specification",
       });
     }
   }
-  
+
   /**
    * Extract code from DV_CODED_TEXT
    */
@@ -573,10 +693,10 @@ export class RMSpecificationValidator {
     if (codedText.code_string) {
       return codedText.code_string;
     }
-    
+
     // Via defining_code
     if (codedText.defining_code) {
-      if (typeof codedText.defining_code === 'string') {
+      if (typeof codedText.defining_code === "string") {
         // Terse format
         const match = codedText.defining_code.match(/::(\w+)/);
         return match ? match[1] : null;
@@ -585,33 +705,33 @@ export class RMSpecificationValidator {
         return codedText.defining_code.code_string;
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Extract terminology ID from DV_CODED_TEXT
    */
   private extractTerminologyId(codedText: any): string | null {
     // Direct terminology_id property
     if (codedText.terminology_id) {
-      if (typeof codedText.terminology_id === 'string') {
+      if (typeof codedText.terminology_id === "string") {
         return codedText.terminology_id;
       }
       if (codedText.terminology_id.value) {
         return codedText.terminology_id.value;
       }
     }
-    
+
     // Via defining_code
     if (codedText.defining_code) {
-      if (typeof codedText.defining_code === 'string') {
+      if (typeof codedText.defining_code === "string") {
         // Terse format: "terminology::code"
         const match = codedText.defining_code.match(/^([^:]+)::/);
         return match ? match[1] : null;
       }
       if (codedText.defining_code.terminology_id) {
-        if (typeof codedText.defining_code.terminology_id === 'string') {
+        if (typeof codedText.defining_code.terminology_id === "string") {
           return codedText.defining_code.terminology_id;
         }
         if (codedText.defining_code.terminology_id.value) {
@@ -619,7 +739,7 @@ export class RMSpecificationValidator {
         }
       }
     }
-    
+
     return null;
   }
 
