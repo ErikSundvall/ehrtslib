@@ -7,6 +7,10 @@ import { TYPE_REGISTRY } from "./_shared.ts";
 import type { Any } from "./foundation_types/foundation_types.ts";
 import { Boolean, Ordered } from "./foundation_types/primitive_types.ts";
 
+/**
+ * 8-bit unsigned integer. Retained for compatibility: official BASE 1.3.0
+ * working copies no longer list this class (Octet remains).
+ */
 export class Byte extends Ordered {
   // Lazy type registration - only runs when class is actually used
   static {

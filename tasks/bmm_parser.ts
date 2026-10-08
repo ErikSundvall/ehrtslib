@@ -10,9 +10,10 @@ export interface BmmTypeReference {
 }
 
 export interface BmmFunctionParameter {
-  _type: string; // e.g., "P_BMM_SINGLE_FUNCTION_PARAMETER"
+  _type: string; // e.g., "P_BMM_SINGLE_FUNCTION_PARAMETER", "P_BMM_GENERIC_FUNCTION_PARAMETER"
   name: string;
-  type: string; // Type name as string
+  type?: string; // Simple type name; omitted when type_def is used
+  type_def?: BmmTypeReference; // Generic / container parameter types (SPECBASE-48, SPECLANG-16)
 }
 
 export interface BmmFunction {

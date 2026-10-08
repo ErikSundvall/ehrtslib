@@ -6155,7 +6155,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     return new Boolean2(!hasMinutes);
   }
   /**
-   * Indicates whether second is unknown. If so and month is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
+   * Indicates whether second is unknown. If so and minute is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
    * @returns Result value
    */
   second_unknown() {
@@ -6364,22 +6364,6 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     } catch {
     }
     return Integer.from(0);
-  }
-  /**
-   * Timezone; may be Void.
-   *
-   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
-   * @returns Result value
-   */
-  timezone() {
-    const val = this.value || "";
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in date");
   }
   /**
    * Indicates whether month in year is unknown. If so, the date is of the form \`"YYYY"\`.
@@ -6722,6 +6706,9 @@ var Iso8601_timezone = class _Iso8601_timezone extends Iso8601_type {
   }
 };
 
+// base/base_types/builtins.ts
+var GMath = globalThis.Math;
+
 // base/_unassigned.ts
 var Byte = class _Byte extends Ordered {
   static {
@@ -6778,6 +6765,14 @@ var Byte = class _Byte extends Ordered {
     }
     return new Boolean2(false);
   }
+};
+
+// parser/annotation_families.ts
+var UNPREFIXED_FAMILY = "(unprefixed)";
+var FAMILY_FILL = {
+  "L10n.": "#ede9fe",
+  "a.": "#d1fae5",
+  [UNPREFIXED_FAMILY]: "#e2e8f0"
 };
 
 // parser/l10n_annotation_generate.ts

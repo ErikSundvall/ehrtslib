@@ -1,9 +1,15 @@
 {
   "openehr_am": [
-    "openehr_base_1.3.0"
+    "openehr_base_1.3.0",
+    "openehr_lang_1.1.0"
   ],
   "openehr_base": [],
-  "openehr_lang": [],
+  "openehr_lang": [
+    "openehr_base_1.3.0"
+  ],
+  "openehr_lang_bmm3": [
+    "openehr_base_1.3.0"
+  ],
   "openehr_rm": [
     "openehr_base_1.3.0"
   ],

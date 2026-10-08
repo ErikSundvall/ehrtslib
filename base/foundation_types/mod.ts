@@ -12,6 +12,7 @@ import "./structure.ts";
 export * from "./structure.ts";
 export * from "./primitive_types.ts";
 export * from "./foundation_types.ts";
+export * from "./functional.ts";
 export * from "./interval.ts";
 export * from "./terminology.ts";
 export * from "./time.ts";

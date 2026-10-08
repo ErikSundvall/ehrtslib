@@ -17,6 +17,7 @@ Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 | Veredictum CNF fixture attribution | [veredictum-attribution.md](veredictum-attribution.md) |
 | Cursor Cloud / MCP | [cursor-cloud-setup.md](cursor-cloud-setup.md) |
 | Library / demo / TAAAT releases | [releases.md](releases.md) |
+| Pre-1.0 API removals and renames | [api-changes.md](api-changes.md) |
 | Agent runtime notes | [../../AGENTS.md](../../AGENTS.md) |
 | Test fixtures | [../../test_data/README.md](../../test_data/README.md) |
 | Offline vendor specs | [../vendor/](../vendor/) |

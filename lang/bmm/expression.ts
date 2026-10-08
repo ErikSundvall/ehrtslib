@@ -3,8 +3,13 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import type { BMM_ROUTINE_TYPE, BMM_SIMPLE_TYPE, BMM_TYPE, C_OBJECT, T } from "../_shared.ts";
-import { BMM_FUNCTION_TYPE, BMM_PROCEDURE_TYPE, BMM_SIMPLE_CLASS, BMM_TUPLE_TYPE } from "../_unassigned.ts";
+import type { BMM_ROUTINE_TYPE, BMM_TYPE, C_OBJECT, T } from "../_shared.ts";
+import {
+  BMM_FUNCTION_TYPE,
+  BMM_PROCEDURE_TYPE,
+  BMM_SIMPLE_TYPE,
+  BMM_TUPLE_TYPE,
+} from "../_shared.ts";
 import type { BMM_FUNCTION, BMM_OPERATOR, BMM_PROCEDURE, BMM_PROPERTY, BMM_READONLY_VARIABLE, BMM_ROUTINE, BMM_STATIC, BMM_WRITABLE_VARIABLE } from "./core/feature.ts";
 import type { BMM_LITERAL_VALUE } from "./core/literal_value.ts";
 import * as openehr_base from "../../base/mod.ts";
@@ -20,7 +25,7 @@ export abstract class EL_EXPRESSION {
    * @returns Result value
    */
   eval_type(): BMM_TYPE {
-    return {} as BMM_TYPE;
+    return BMM_SIMPLE_TYPE.named("Any");
   }
 
   /**
@@ -184,7 +189,7 @@ export class EL_LITERAL extends EL_SIMPLE {
   /**
    * The reference item from which the value of this node can be computed.
    */
-  value?: BMM_LITERAL_VALUE<unknown>;
+  value?: BMM_LITERAL_VALUE<BMM_TYPE>;
   /**
    * Return \`_value.type_\`.
    * @returns Result value
@@ -194,11 +199,7 @@ export class EL_LITERAL extends EL_SIMPLE {
       return this.value.type;
     }
     // Return a default Any type if no value set
-    const anyType = {} as BMM_SIMPLE_TYPE;
-    const anyClass = new BMM_SIMPLE_CLASS();
-    anyClass.name = "Any";
-    anyType.base_class = anyClass;
-    return anyType;
+    return BMM_SIMPLE_TYPE.named("Any");
   }
 }
 
@@ -357,11 +358,7 @@ export class EL_PROPERTY_REF extends EL_FEATURE_REF {
       return this.definition.type;
     }
     // Return Any type if no definition
-    const anyType = {} as BMM_SIMPLE_TYPE;
-    const anyClass = new BMM_SIMPLE_CLASS();
-    anyClass.name = "Any";
-    anyType.base_class = anyClass;
-    return anyType;
+    return BMM_SIMPLE_TYPE.named("Any");
   }
 }
 
@@ -379,11 +376,7 @@ export abstract class EL_PREDICATE extends EL_SIMPLE {
    */
   eval_type(): BMM_SIMPLE_TYPE {
     // Predicates always return Boolean type
-    const boolType = {} as BMM_SIMPLE_TYPE;
-    const boolClass = new BMM_SIMPLE_CLASS();
-    boolClass.name = "Boolean";
-    boolType.base_class = boolClass;
-    return boolType;
+    return BMM_SIMPLE_TYPE.named("Boolean");
   }
 }
 
@@ -454,11 +447,7 @@ export class EL_FUNCTION_CALL extends EL_FEATURE_REF {
       return this.agent.definition.type;
     }
     // Return Any type if no agent definition
-    const anyType = {} as BMM_SIMPLE_TYPE;
-    const anyClass = new BMM_SIMPLE_CLASS();
-    anyClass.name = "Any";
-    anyType.base_class = anyClass;
-    return anyType;
+    return BMM_SIMPLE_TYPE.named("Any");
   }
 
   /**
@@ -786,11 +775,7 @@ export class EL_TYPE_REF extends EL_VALUE_GENERATOR {
     if (this.type) {
       return this.type;
     }
-    const anyType = {} as BMM_SIMPLE_TYPE;
-    const anyClass = new BMM_SIMPLE_CLASS();
-    anyClass.name = "Any";
-    anyType.base_class = anyClass;
-    return anyType;
+    return BMM_SIMPLE_TYPE.named("Any");
   }
 }
 
