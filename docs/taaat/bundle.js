@@ -8671,7 +8671,7 @@ var Iso8601_time = class _Iso8601_time extends Iso8601_type {
     return new Boolean2(!hasMinutes);
   }
   /**
-   * Indicates whether second is unknown. If so and month is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
+   * Indicates whether second is unknown. If so and minute is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
    * @returns Result value
    */
   second_unknown() {
@@ -8880,22 +8880,6 @@ var Iso8601_date = class _Iso8601_date extends Iso8601_type {
     } catch {
     }
     return Integer.from(0);
-  }
-  /**
-   * Timezone; may be Void.
-   *
-   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
-   * @returns Result value
-   */
-  timezone() {
-    const val = this.value || "";
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in date");
   }
   /**
    * Indicates whether month in year is unknown. If so, the date is of the form \`"YYYY"\`.
@@ -9238,6 +9222,9 @@ var Iso8601_timezone = class _Iso8601_timezone extends Iso8601_type {
   }
 };
 
+// base/base_types/builtins.ts
+var GMath = globalThis.Math;
+
 // base/resource/resource.ts
 var AUTHORED_RESOURCE = class {
   /**
@@ -9381,13 +9368,43 @@ var RESOURCE_DESCRIPTION = class {
    */
   other_contributors;
   /**
-   * Lifecycle state of the resource, typically including states such as: initial, in_development, in_review, published, superseded, obsolete.
+   * Lifecycle state of the resource, typically using macro-states such as: unmanaged, in_development, release_candidate, published, rejected, deprecated.
    */
   lifecycle_state;
   /**
    * Reference to owning resource.
    */
   parent_resource;
+  /**
+   * Invariant Original_author_valid: `not original_author.is_empty`.
+   */
+  Original_author_valid() {
+    const author = this.original_author;
+    if (author == null)
+      return Boolean2.from(false);
+    if (typeof author === "object" && typeof author.size === "number") {
+      return Boolean2.from(author.size > 0);
+    }
+    return Boolean2.from(true);
+  }
+  /**
+   * Invariant Lifecycle_state_valid: `not lifecycle_state.is_empty`.
+   */
+  Lifecycle_state_valid() {
+    const state = this.lifecycle_state;
+    if (!state)
+      return Boolean2.from(false);
+    const code = state.code_string ?? "";
+    return Boolean2.from(code.length > 0);
+  }
+  /**
+   * Invariant Parent_resource_valid: parent_resource /= Void implies parent_resource.description = self.
+   */
+  Parent_resource_valid() {
+    if (!this.parent_resource)
+      return Boolean2.from(true);
+    return Boolean2.from(this.parent_resource.description === this);
+  }
   /**
    * Internal storage for custodian_namespace
    * @protected
@@ -10200,6 +10217,68 @@ var RM_OVERLAY = class {
   rm_visibility;
 };
 
+// lang/beom/core.ts
+var EXPR_VALUE = class {
+  /**
+   * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
+   * @returns Result value
+   */
+  value() {
+    throw new Error("Method value not yet implemented.");
+  }
+};
+var EXPRESSION = class extends EXPR_VALUE {
+  /**
+   * The primitive type of this node, which must be determined by redefinitions in concrete classes.
+   * @returns Result value
+   */
+  type() {
+    throw new Error("Method type not yet implemented.");
+  }
+};
+var EXPR_LEAF = class extends EXPRESSION {
+  /**
+   * The reference item from which the value of this node can be computed.
+   */
+  item;
+};
+var EXPR_VALUE_REF = class extends EXPR_LEAF {
+};
+
+// am/aom2/rules.ts
+var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
+  /**
+   * Internal storage for path
+   * @protected
+   */
+  _path;
+  /**
+   * The path to the archetype node.
+   */
+  get path() {
+    return this._path?.value;
+  }
+  /**
+   * Gets the openehr_base.String wrapper object for path.
+   * Use this to access openehr_base.String methods.
+   */
+  get $path() {
+    return this._path;
+  }
+  /**
+   * Sets path from either a primitive value or openehr_base.String wrapper.
+   */
+  set path(val) {
+    if (val === void 0 || val === null) {
+      this._path = void 0;
+    } else if (typeof val === "string") {
+      this._path = String2.from(val);
+    } else {
+      this._path = val;
+    }
+  }
+};
+
 // am/_unassigned.ts
 var C_PRIMITIVE = class {
   /**
@@ -10871,68 +10950,6 @@ var ARCHETYPE_ONTOLOGY = class {
    */
   constraint_binding(a_terminology_id, a_code) {
     throw new Error("Method constraint_binding not yet implemented.");
-  }
-};
-
-// lang/beom/core.ts
-var EXPR_VALUE = class {
-  /**
-   * The computed value of this node as a result of the nodes below it, for operator nodes, or else statically set or otherwise derived values.
-   * @returns Result value
-   */
-  value() {
-    throw new Error("Method value not yet implemented.");
-  }
-};
-var EXPRESSION = class extends EXPR_VALUE {
-  /**
-   * The primitive type of this node, which must be determined by redefinitions in concrete classes.
-   * @returns Result value
-   */
-  type() {
-    throw new Error("Method type not yet implemented.");
-  }
-};
-var EXPR_LEAF = class extends EXPRESSION {
-  /**
-   * The reference item from which the value of this node can be computed.
-   */
-  item;
-};
-var EXPR_VALUE_REF = class extends EXPR_LEAF {
-};
-
-// am/aom2/rules.ts
-var EXPR_ARCHETYPE_REF = class extends EXPR_VALUE_REF {
-  /**
-   * Internal storage for path
-   * @protected
-   */
-  _path;
-  /**
-   * The path to the archetype node.
-   */
-  get path() {
-    return this._path?.value;
-  }
-  /**
-   * Gets the openehr_base.String wrapper object for path.
-   * Use this to access openehr_base.String methods.
-   */
-  get $path() {
-    return this._path;
-  }
-  /**
-   * Sets path from either a primitive value or openehr_base.String wrapper.
-   */
-  set path(val) {
-    if (val === void 0 || val === null) {
-      this._path = void 0;
-    } else if (typeof val === "string") {
-      this._path = String2.from(val);
-    } else {
-      this._path = val;
-    }
   }
 };
 
