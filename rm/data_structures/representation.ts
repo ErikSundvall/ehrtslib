@@ -45,7 +45,9 @@ export class ELEMENT extends ITEM {
    * @returns Result value
    */
   is_null(): openehr_base.Boolean {
-    // Element is null if value is not set or null_flavour is set
-    return openehr_base.Boolean.from(this.value === undefined || this.null_flavour !== undefined);
+    // Inv_is_null_valid: is_null() = (value = Void). null_flavour is separate.
+    return openehr_base.Boolean.from(
+      this.value === undefined || this.value === null,
+    );
   }
 }

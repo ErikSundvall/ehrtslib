@@ -6,7 +6,14 @@
  *   deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts
  *   deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts ./generated
  */
-import { buildRmMetaTables, emitRmMetaTypeScript } from "./rm_meta_generator.ts";
+import {
+  buildRmMetaTables,
+  emitRmMetaTypeScript,
+} from "./rm_meta_generator.ts";
+import {
+  catalogueFromBmm,
+  emitBmmInvariantModule,
+} from "./bmm_invariant_catalogue.ts";
 
 const outputDir = Deno.args[0] || "./generated";
 const metaOut = "./meta/rm_attribute_meta.generated.ts";
@@ -52,4 +59,45 @@ console.log(
   `Classes: ${Object.keys(tables.classes).length}, types with attributes: ${
     Object.keys(tables.ownAttributes).length
   }`,
+);
+
+const invariantPackages = [
+  "openehr_base",
+  "openehr_rm",
+  "openehr_am",
+  "openehr_lang",
+] as const;
+const fetched = new Map(models.map((entry) => [entry.source, entry.model]));
+const catalogues = [];
+for (const pkg of invariantPackages) {
+  const url = bmmVersions[pkg];
+  if (!url) throw new Error(`Missing BMM URL for ${pkg}`);
+  let model = fetched.get(url);
+  if (!model) {
+    console.log(`Fetching ${pkg} invariants from ${url}...`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${pkg}: HTTP ${response.status}`);
+    }
+    model = JSON.parse(await response.text());
+  }
+  catalogues.push(catalogueFromBmm(model as Record<string, unknown>));
+}
+
+const invariantModule = emitBmmInvariantModule(catalogues);
+const invariantPaths = [
+  "./validation/bmm_invariants.generated.ts",
+  `${outputDir}/bmm_invariants.ts`,
+];
+for (const path of invariantPaths) {
+  await Deno.writeTextFile(path, invariantModule);
+  console.log(`Wrote ${path}`);
+}
+const elementRows = catalogues
+  .flatMap((c) => c.invariants)
+  .filter((row) => row.className === "ELEMENT");
+console.log(
+  `Invariants: ${
+    catalogues.reduce((n, c) => n + c.invariants.length, 0)
+  } (ELEMENT ${elementRows.length})`,
 );
