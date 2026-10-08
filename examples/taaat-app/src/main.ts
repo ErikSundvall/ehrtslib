@@ -328,6 +328,7 @@ function currentTree(): DefinitionTreeNode | undefined {
   if (!activeResource) return undefined;
   return buildDefinitionTree(activeResource, {
     resolveArchetype: (id) => workspace.repository.get(id),
+    language: currentOriginalLanguage(),
   });
 }
 

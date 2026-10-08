@@ -70,7 +70,7 @@ Deno.test("buildDefinitionTree marks annotated paths", async () => {
   const archetype = parsed.archetype!;
   const tree = buildDefinitionTree(archetype);
 
-  assertEquals(tree?.label.includes("WHOLE"), true);
+  assertEquals(tree?.label, "whole");
   assertEquals(
     listAnnotatedPaths(getResourceDocumentation(archetype)).includes(
       "/data[id2]",
@@ -104,6 +104,7 @@ Deno.test("buildDefinitionTree grafts overlay children and L10n pills", async ()
       n.path.endsWith("/items[at0003.1]"))
   );
   assertEquals(!!grafted, true);
+  assertEquals(grafted!.label, "Identifierare");
   const overlay = repo.get(grafted!.overlayId!);
   const pills = pillsAtPath(
     getResourceDocumentation(overlay!),

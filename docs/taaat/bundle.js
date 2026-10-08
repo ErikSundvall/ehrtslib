@@ -11577,10 +11577,140 @@ var C_DURATION = class extends C_PRIMITIVE {
   assumed_value = void 0;
 };
 
+// serialization/simplified/normalize.ts
+function nodeIdToAtCode(nodeId) {
+  if (!nodeId)
+    return "";
+  const m2 = /^id(\d+(?:\.\d+)*)$/i.exec(nodeId);
+  if (m2) {
+    const digits = m2[1].replace(/\./g, "");
+    return `at${digits.padStart(4, "0")}`;
+  }
+  return nodeId;
+}
+
+// generation/term_codes.ts
+function termCodeCandidates(nodeId) {
+  const out = /* @__PURE__ */ new Set();
+  out.add(nodeId);
+  out.add(nodeIdToAtCode(nodeId));
+  const dotted = /^at(\d+)\.(\d+(?:\.\d+)*)$/i.exec(nodeId);
+  if (dotted && dotted[1].length < 4) {
+    const padded = dotted[1].padStart(4, "0");
+    out.add(`at${padded}`);
+    out.add(`at${padded}.${dotted[2]}`);
+  }
+  const base = nodeId.replace(/\.\d+(?:\.\d+)*$/, "");
+  if (base !== nodeId)
+    out.add(base);
+  return [...out];
+}
+
 // generation/term_scope.ts
 var TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
 var TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
 var COMPONENT_TERM_DEFINITIONS_KEY = "opt_component_term_definitions";
+function termLabel(val) {
+  if (typeof val === "string" && val && val !== "[object Object]")
+    return val;
+  if (val && typeof val === "object") {
+    const o2 = val;
+    return termLabel(o2.value) ?? termLabel(o2.text) ?? termLabel(o2["#text"]);
+  }
+  return void 0;
+}
+function termEntryFromRaw(raw) {
+  if (!raw)
+    return void 0;
+  const text = termLabel(raw.text);
+  const description = termLabel(raw.description);
+  if (!text && !description)
+    return void 0;
+  return { text, description };
+}
+function lookupTermEntryInBag(bag, code) {
+  if (!code)
+    return void 0;
+  for (const candidate of termCodeCandidates(code)) {
+    const entry = termEntryFromRaw(bag[candidate]);
+    if (entry?.text)
+      return entry;
+  }
+  const bases = new Set(termCodeCandidates(code));
+  for (const base of bases) {
+    const dotted = Object.keys(bag).filter((k2) => k2.startsWith(`${base}.`)).sort((a2, b2) => a2.length - b2.length);
+    if (dotted.length === 1) {
+      if (base === "at0002")
+        continue;
+      const entry = termEntryFromRaw(bag[dotted[0]]);
+      if (entry?.text)
+        return entry;
+    }
+  }
+  return void 0;
+}
+function lookupExactTermEntryInBag(bag, code) {
+  if (!code)
+    return void 0;
+  return termEntryFromRaw(bag[code]);
+}
+function resolveTermEntry(nodeId, nameFallbackNodeId, templateTerms, archetypeTerms, archetypeScope) {
+  if (nodeId && isTemplateSlotId(nodeId)) {
+    const slot = lookupExactTermEntryInBag(templateTerms, nodeId);
+    if (slot?.text)
+      return slot;
+  }
+  const codes = [nodeId, nameFallbackNodeId].filter(
+    (c2) => typeof c2 === "string" && c2.length > 0
+  );
+  if (archetypeScope && archetypeTerms[archetypeScope]) {
+    const scopedBag = archetypeTerms[archetypeScope];
+    for (const code of codes) {
+      const entry = lookupTermEntryInBag(scopedBag, code);
+      if (entry?.text)
+        return entry;
+    }
+    for (const code of codes) {
+      if (isSpecialisedAtCode(code)) {
+        const entry = lookupExactTermEntryInBag(templateTerms, code);
+        if (entry?.text)
+          return entry;
+      }
+    }
+    const localId = nodeId ?? nameFallbackNodeId;
+    if (localId && isArchetypeLocalCode(localId))
+      return void 0;
+  }
+  for (const code of codes) {
+    if (isTemplateSlotId(code)) {
+      const entry2 = lookupExactTermEntryInBag(templateTerms, code);
+      if (entry2?.text)
+        return entry2;
+      continue;
+    }
+    const entry = lookupTermEntryInBag(templateTerms, code);
+    if (entry?.text)
+      return entry;
+  }
+  return void 0;
+}
+function resolveLocatableLabel(nodeId, nameFallbackNodeId, templateTerms, archetypeTerms, archetypeScope) {
+  return resolveTermEntry(
+    nodeId,
+    nameFallbackNodeId,
+    templateTerms,
+    archetypeTerms,
+    archetypeScope
+  )?.text;
+}
+function archetypeTermBagsForLanguage(template, language) {
+  const index = template.archetype_term_definitions ?? {};
+  const out = {};
+  for (const [archId, table] of Object.entries(index)) {
+    out[archId] = table[language] ?? table.en ?? Object.values(table)[0] ?? {};
+  }
+  return out;
+}
 function applyOperationalTemplateTermScopes(opt, language = "en") {
   const index = {
     ...opt.archetype_term_definitions ?? {}
@@ -11616,6 +11746,17 @@ function walkTermScopes(obj, inheritedScope, language, index) {
       }
     }
   }
+}
+function isArchetypeLocalCode(code) {
+  if (/^at0\.\d/i.test(code))
+    return false;
+  return /^at\d/i.test(code);
+}
+function isSpecialisedAtCode(code) {
+  return /^at\d{4,}\.\d+(?:\.\d+)*$/i.test(code);
+}
+function isTemplateSlotId(code) {
+  return /^at0\.\d/i.test(code);
 }
 
 // am/util/aom_clone.ts
@@ -17190,7 +17331,383 @@ var ADL2Serializer = class {
   }
 };
 
+// parser/annotation_families.ts
+var UNPREFIXED_FAMILY = "(unprefixed)";
+var KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY];
+var LANGUAGE_INDEPENDENT_FAMILIES = ["a."];
+function isLanguageIndependentFamily(family) {
+  return LANGUAGE_INDEPENDENT_FAMILIES.includes(family);
+}
+var L10N_FAMILY = "L10n.";
+function normalizeFamilyPrefix(raw) {
+  const t2 = raw.trim();
+  if (!t2)
+    return void 0;
+  if (t2 === UNPREFIXED_FAMILY || /^unprefixed$/i.test(t2)) {
+    return UNPREFIXED_FAMILY;
+  }
+  const m2 = t2.match(/^([A-Za-z][A-Za-z0-9]*)\.?$/);
+  return m2 ? `${m2[1]}.` : void 0;
+}
+function qualifyKeyForFamily(key, family) {
+  const k2 = key.trim();
+  if (!k2)
+    return void 0;
+  if (family === UNPREFIXED_FAMILY) {
+    return annotationFamily(k2) === UNPREFIXED_FAMILY ? k2 : void 0;
+  }
+  if (annotationFamily(k2) === family)
+    return k2;
+  if (!k2.includes("."))
+    return `${family}${k2}`;
+  return void 0;
+}
+function annotationFamily(key) {
+  const m2 = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
+  return m2 ? `${m2[1]}.` : UNPREFIXED_FAMILY;
+}
+function languageCode(raw) {
+  if (raw == null)
+    return void 0;
+  if (typeof raw === "object") {
+    const o2 = raw;
+    return languageCode(
+      o2.code_string ?? o2.codeString ?? o2.value ?? o2.language
+    );
+  }
+  const s2 = String(raw).trim();
+  if (!s2)
+    return void 0;
+  const m2 = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s2);
+  const code = (m2?.[1] ?? "").toLowerCase();
+  return /^[a-z]{2,8}$/.test(code) ? code : void 0;
+}
+function addLang(set, raw) {
+  const code = languageCode(raw);
+  if (code)
+    set.add(code);
+}
+function addTranslationEntry(set, entry) {
+  if (entry == null)
+    return;
+  if (typeof entry === "string") {
+    addLang(set, entry);
+    return;
+  }
+  if (typeof entry !== "object")
+    return;
+  const o2 = entry;
+  addLang(set, o2.language);
+  addLang(set, o2.code_string);
+  addLang(set, o2.codeString);
+}
+function listResourceLanguages(resource) {
+  const set = /* @__PURE__ */ new Set();
+  if (!resource || typeof resource !== "object")
+    return [];
+  const rec = resource;
+  addLang(set, rec.original_language);
+  addLang(set, rec.originalLanguage);
+  const translations = rec.translations;
+  if (Array.isArray(translations)) {
+    for (const t2 of translations)
+      addTranslationEntry(set, t2);
+  } else if (translations && typeof translations === "object") {
+    for (const [k2, v2] of Object.entries(translations)) {
+      addLang(set, k2);
+      addTranslationEntry(set, v2);
+    }
+  }
+  const desc = rec.description;
+  if (desc && typeof desc === "object") {
+    const details = desc.details;
+    if (details && typeof details === "object" && !Array.isArray(details)) {
+      for (const k2 of Object.keys(details))
+        addLang(set, k2);
+    }
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      addLang(set, other.original_language);
+    }
+  }
+  const onto = rec.ontology;
+  const term = onto?.term_definitions ?? onto?.termDefinitions ?? rec.term_definitions ?? rec.termDefinitions;
+  if (term && typeof term === "object" && !Array.isArray(term)) {
+    for (const k2 of Object.keys(term))
+      addLang(set, k2);
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function originalLanguageOf(resource) {
+  if (!resource || typeof resource !== "object")
+    return void 0;
+  const rec = resource;
+  const direct = languageCode(rec.original_language) ?? languageCode(rec.originalLanguage);
+  if (direct)
+    return direct;
+  const desc = rec.description;
+  if (desc && typeof desc === "object") {
+    const other = desc.otherDetails ?? desc.other_details;
+    if (other && typeof other === "object") {
+      const fromOther = languageCode(
+        other.original_language
+      );
+      if (fromOther)
+        return fromOther;
+    }
+  }
+  return void 0;
+}
+function orderLanguagesWithOriginal(languages, original) {
+  const rest = languages.filter((l2) => l2 !== original).sort((a2, b2) => a2.localeCompare(b2));
+  if (original && languages.includes(original))
+    return [original, ...rest];
+  return rest;
+}
+function listLanguageBags(doc, extra = []) {
+  const set = /* @__PURE__ */ new Set();
+  for (const lang of extra) {
+    if (lang.trim())
+      set.add(lang.trim());
+  }
+  if (doc) {
+    for (const lang of Object.keys(doc)) {
+      if (lang.trim())
+        set.add(lang);
+    }
+  }
+  return [...set].sort((a2, b2) => a2.localeCompare(b2));
+}
+function listFamilies(doc, extra = []) {
+  const set = new Set(KNOWN_FAMILIES);
+  const extraNorm = [];
+  for (const f2 of extra) {
+    const n2 = normalizeFamilyPrefix(f2);
+    if (!n2 || set.has(n2))
+      continue;
+    set.add(n2);
+    extraNorm.push(n2);
+  }
+  if (doc) {
+    for (const bag of Object.values(doc)) {
+      for (const atPath of Object.values(bag ?? {})) {
+        for (const key of Object.keys(atPath ?? {})) {
+          set.add(annotationFamily(key));
+        }
+      }
+    }
+  }
+  const known = KNOWN_FAMILIES;
+  const extras = extraNorm.filter((f2) => !known.includes(f2)).sort();
+  const rest = [...set].filter((f2) => !known.includes(f2) && !extras.includes(f2)).sort();
+  return [...known, ...extras, ...rest];
+}
+function pillsAtPath(doc, path) {
+  if (!doc)
+    return [];
+  const pills = [];
+  for (const language of listLanguageBags(doc)) {
+    const items = doc[language]?.[path] ?? {};
+    for (const [key, value] of Object.entries(items)) {
+      pills.push({
+        language,
+        key,
+        value,
+        family: annotationFamily(key)
+      });
+    }
+  }
+  return pills.sort(
+    (a2, b2) => a2.family.localeCompare(b2.family) || a2.key.localeCompare(b2.key) || a2.language.localeCompare(b2.language)
+  );
+}
+function flattenDefinitionTree(node, out = []) {
+  out.push(node);
+  for (const child of node.children)
+    flattenDefinitionTree(child, out);
+  return out;
+}
+function mergeDocumentation(docs) {
+  const out = {};
+  for (const doc of docs) {
+    if (!doc)
+      continue;
+    for (const [lang, paths] of Object.entries(doc)) {
+      out[lang] ??= {};
+      for (const [path, keys] of Object.entries(paths ?? {})) {
+        out[lang][path] = { ...out[lang][path], ...keys };
+      }
+    }
+  }
+  return out;
+}
+function documentationViewForTree(tree, getDoc) {
+  const out = {};
+  for (const node of flattenDefinitionTree(tree)) {
+    const src = getDoc(node);
+    if (!src)
+      continue;
+    const srcPath = annotationPathOf(node);
+    for (const [lang, paths] of Object.entries(src)) {
+      const items = paths?.[srcPath];
+      if (!items)
+        continue;
+      out[lang] ??= {};
+      out[lang][node.path] = { ...out[lang][node.path], ...items };
+    }
+  }
+  return out;
+}
+function l10nSourcesFromTree(tree, doc) {
+  return flattenDefinitionTree(tree).map((node) => {
+    const localizedNames = {};
+    if (doc) {
+      for (const bag of Object.values(doc)) {
+        const items = bag?.[node.path] ?? {};
+        for (const [key, value] of Object.entries(items)) {
+          const m2 = /^L10n\.(.+)$/i.exec(key);
+          if (m2 && value.trim())
+            localizedNames[m2[1].toLowerCase()] = value;
+        }
+      }
+    }
+    return {
+      path: node.path,
+      archetypeRef: node.archetypeRef,
+      localizedNames
+    };
+  });
+}
+var LANGUAGE_OUTLINE = {
+  en: "#2563eb",
+  sv: "#ca8a04",
+  de: "#dc2626",
+  fr: "#16a34a",
+  nb: "#7c3aed",
+  nn: "#6d28d9",
+  da: "#db2777",
+  fi: "#0891b2",
+  es: "#ea580c",
+  it: "#0d9488",
+  nl: "#4f46e5",
+  pt: "#c026d3"
+};
+var FAMILY_FILL = {
+  "L10n.": "#ede9fe",
+  "a.": "#d1fae5",
+  [UNPREFIXED_FAMILY]: "#e2e8f0"
+};
+function hashHue(s2) {
+  let h2 = 0;
+  for (let i2 = 0; i2 < s2.length; i2++)
+    h2 = h2 * 31 + s2.charCodeAt(i2) >>> 0;
+  return h2 % 360;
+}
+function languageOutlineColor(language) {
+  const key = language.toLowerCase();
+  return LANGUAGE_OUTLINE[key] ?? `hsl(${hashHue(key)} 70% 38%)`;
+}
+function familyFillColor(family) {
+  return FAMILY_FILL[family] ?? `hsl(${hashHue(family)} 45% 90%)`;
+}
+function familyLegendLabel(family) {
+  if (family === UNPREFIXED_FAMILY)
+    return "unprefixed";
+  return family;
+}
+
 // parser/clinical_model_annotations.ts
+function termBagForLanguage(table, language) {
+  if (!table)
+    return {};
+  return table[language] ?? table.en ?? Object.values(table)[0] ?? {};
+}
+function collectTemplateTerms(resource, language) {
+  const ontology = resource.ontology;
+  return termBagForLanguage(ontology?.term_definitions, language);
+}
+function collectArchetypeTerms(resource, language) {
+  return archetypeTermBagsForLanguage(
+    resource,
+    language
+  );
+}
+function mergeArchetypeOntologyTerms(archetypeTerms, archetypeId, archetype, language) {
+  if (archetypeTerms[archetypeId] && Object.keys(archetypeTerms[archetypeId]).length) {
+    return;
+  }
+  const ontology = archetype.ontology;
+  const bag = termBagForLanguage(ontology?.term_definitions, language);
+  if (!Object.keys(bag).length)
+    return;
+  archetypeTerms[archetypeId] = { ...archetypeTerms[archetypeId] ?? {}, ...bag };
+}
+function clinicalLabelForObject(obj, ctx) {
+  const meta2 = obj;
+  return resolveLocatableLabel(
+    obj.node_id,
+    meta2[TERM_NAME_FALLBACK_NODE_ID_KEY],
+    ctx.templateTerms,
+    ctx.archetypeTerms,
+    meta2[TERM_ARCHETYPE_SCOPE_KEY] ?? ctx.termScope
+  );
+}
+function definitionNodeLabel(obj, ctx, technical) {
+  return clinicalLabelForObject(obj, ctx) ?? technical;
+}
+function seedArchetypeTermsFromResolver(archetypeTerms, archetypeIds, resolveArchetype, language) {
+  if (!resolveArchetype)
+    return;
+  for (const id of archetypeIds) {
+    if (!id)
+      continue;
+    const arch = resolveArchetype(id);
+    if (arch)
+      mergeArchetypeOntologyTerms(archetypeTerms, id, arch, language);
+  }
+}
+function stampTermScopeOnSubtree(obj, scope) {
+  const meta2 = obj;
+  if (!meta2[TERM_ARCHETYPE_SCOPE_KEY]) {
+    meta2[TERM_ARCHETYPE_SCOPE_KEY] = scope;
+  }
+  if (obj instanceof C_COMPLEX_OBJECT) {
+    for (const attr of readAttributes(obj)) {
+      for (const child of readAttributeChildren(attr)) {
+        stampTermScopeOnSubtree(child, scope);
+      }
+    }
+  }
+}
+function prepareTemplateTermContext(resource, language, archetypeTerms, resolveArchetype) {
+  if (!(resource instanceof TEMPLATE || resource instanceof OPERATIONAL_TEMPLATE)) {
+    return void 0;
+  }
+  applyOperationalTemplateTermScopes(
+    resource,
+    language
+  );
+  Object.assign(
+    archetypeTerms,
+    collectArchetypeTerms(resource, language)
+  );
+  if (resource instanceof TEMPLATE) {
+    const parentId = resource.parent_archetype_id?.value;
+    const specializedId = resource.archetype_id?.value;
+    seedArchetypeTermsFromResolver(
+      archetypeTerms,
+      [parentId, specializedId],
+      resolveArchetype,
+      language
+    );
+    const scope = parentId ?? specializedId;
+    if (scope && resource.definition) {
+      stampTermScopeOnSubtree(resource.definition, scope);
+    }
+    return scope;
+  }
+  return void 0;
+}
 function annotationPathOf(node) {
   return node.annotationPath ?? node.path;
 }
@@ -17299,17 +17816,29 @@ function buildObjectSubtree(obj, parentPath, doc, ctx) {
     const path2 = parentPath;
     const keyCount2 = countAnnotationKeysAtPath(doc, path2);
     const ref = obj.archetype_ref;
-    const label = ref ? `use ${ref}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    let children = childrenOfComplex(obj, parentPath, doc, ctx);
+    const scope = ref ?? ctx.termScope;
+    const nodeCtx = scope ? { ...ctx, termScope: scope } : ctx;
+    const technical = ref ? `use ${ref}` : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
+    const label = definitionNodeLabel(obj, nodeCtx, technical);
+    let children = childrenOfComplex(obj, parentPath, doc, nodeCtx);
     if (!children.length && ref && ctx.resolveArchetype) {
       const filled = ctx.resolveArchetype(ref);
       const overlayDef = filled?.definition;
       if (overlayDef) {
         const overlayDoc = getResourceDocumentation(filled);
+        const overlayId = filled.archetype_id?.value ?? ref;
+        mergeArchetypeOntologyTerms(
+          ctx.archetypeTerms,
+          overlayId,
+          filled,
+          ctx.language
+        );
         const overlayCtx = {
+          ...ctx,
           resolveArchetype: ctx.resolveArchetype,
-          overlayId: filled.archetype_id?.value ?? ref,
-          overlayRootPath: path2
+          overlayId,
+          overlayRootPath: path2,
+          termScope: overlayId
         };
         children = childrenOfComplex(
           overlayDef,
@@ -17336,7 +17865,8 @@ function buildObjectSubtree(obj, parentPath, doc, ctx) {
     const path2 = parentPath;
     const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
     const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
-    const label = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+    const technical = `${obj.rm_type_name ?? "OBJECT"}[${obj.node_id ?? "?"}]`;
+    const label = definitionNodeLabel(obj, ctx, technical);
     return finishNode({
       id: path2 || "/root",
       path: path2,
@@ -17352,10 +17882,12 @@ function buildObjectSubtree(obj, parentPath, doc, ctx) {
     const path2 = parentPath;
     const lookupPath2 = overlayRelativePath(path2, ctx.overlayRootPath) ?? path2;
     const keyCount2 = countAnnotationKeysAtPath(doc, lookupPath2);
+    const technical = `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`;
+    const label = definitionNodeLabel(obj, ctx, technical);
     return finishNode({
       id: path2,
       path: path2,
-      label: `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`,
+      label,
       rmType: obj.rm_type_name,
       nodeId: obj.node_id,
       hasAnnotations: keyCount2 > 0,
@@ -17380,8 +17912,33 @@ function buildDefinitionTree(resource, options = {}) {
   if (!definition)
     return void 0;
   const doc = getResourceDocumentation(resource);
+  const language = options.language ?? originalLanguageOf(resource) ?? "en";
+  const templateTerms = collectTemplateTerms(resource, language);
+  const archetypeTerms = collectArchetypeTerms(resource, language);
+  const templateScope = prepareTemplateTermContext(
+    resource,
+    language,
+    archetypeTerms,
+    options.resolveArchetype
+  );
+  let termScope = templateScope;
+  if (!termScope && resource instanceof ARCHETYPE && !(resource instanceof TEMPLATE)) {
+    termScope = resource.archetype_id?.value;
+    if (termScope) {
+      mergeArchetypeOntologyTerms(
+        archetypeTerms,
+        termScope,
+        resource,
+        language
+      );
+    }
+  }
   return buildObjectSubtree(definition, "", doc, {
-    resolveArchetype: options.resolveArchetype
+    resolveArchetype: options.resolveArchetype,
+    language,
+    templateTerms,
+    archetypeTerms,
+    termScope
   });
 }
 function serializeAnnotatedResource(resource) {
@@ -17670,291 +18227,6 @@ var ClinicalModelWorkspace = class _ClinicalModelWorkspace {
     return this.addFiles(batch);
   }
 };
-
-// parser/annotation_families.ts
-var UNPREFIXED_FAMILY = "(unprefixed)";
-var KNOWN_FAMILIES = ["L10n.", "a.", UNPREFIXED_FAMILY];
-var LANGUAGE_INDEPENDENT_FAMILIES = ["a."];
-function isLanguageIndependentFamily(family) {
-  return LANGUAGE_INDEPENDENT_FAMILIES.includes(family);
-}
-var L10N_FAMILY = "L10n.";
-function normalizeFamilyPrefix(raw) {
-  const t2 = raw.trim();
-  if (!t2)
-    return void 0;
-  if (t2 === UNPREFIXED_FAMILY || /^unprefixed$/i.test(t2)) {
-    return UNPREFIXED_FAMILY;
-  }
-  const m2 = t2.match(/^([A-Za-z][A-Za-z0-9]*)\.?$/);
-  return m2 ? `${m2[1]}.` : void 0;
-}
-function qualifyKeyForFamily(key, family) {
-  const k2 = key.trim();
-  if (!k2)
-    return void 0;
-  if (family === UNPREFIXED_FAMILY) {
-    return annotationFamily(k2) === UNPREFIXED_FAMILY ? k2 : void 0;
-  }
-  if (annotationFamily(k2) === family)
-    return k2;
-  if (!k2.includes("."))
-    return `${family}${k2}`;
-  return void 0;
-}
-function annotationFamily(key) {
-  const m2 = key.trim().match(/^([A-Za-z][A-Za-z0-9]*)\./);
-  return m2 ? `${m2[1]}.` : UNPREFIXED_FAMILY;
-}
-function languageCode(raw) {
-  if (raw == null)
-    return void 0;
-  if (typeof raw === "object") {
-    const o2 = raw;
-    return languageCode(
-      o2.code_string ?? o2.codeString ?? o2.value ?? o2.language
-    );
-  }
-  const s2 = String(raw).trim();
-  if (!s2)
-    return void 0;
-  const m2 = /(?:ISO_639(?:-[13])?::)?([A-Za-z]{2,8})$/.exec(s2);
-  const code = (m2?.[1] ?? "").toLowerCase();
-  return /^[a-z]{2,8}$/.test(code) ? code : void 0;
-}
-function addLang(set, raw) {
-  const code = languageCode(raw);
-  if (code)
-    set.add(code);
-}
-function addTranslationEntry(set, entry) {
-  if (entry == null)
-    return;
-  if (typeof entry === "string") {
-    addLang(set, entry);
-    return;
-  }
-  if (typeof entry !== "object")
-    return;
-  const o2 = entry;
-  addLang(set, o2.language);
-  addLang(set, o2.code_string);
-  addLang(set, o2.codeString);
-}
-function listResourceLanguages(resource) {
-  const set = /* @__PURE__ */ new Set();
-  if (!resource || typeof resource !== "object")
-    return [];
-  const rec = resource;
-  addLang(set, rec.original_language);
-  addLang(set, rec.originalLanguage);
-  const translations = rec.translations;
-  if (Array.isArray(translations)) {
-    for (const t2 of translations)
-      addTranslationEntry(set, t2);
-  } else if (translations && typeof translations === "object") {
-    for (const [k2, v2] of Object.entries(translations)) {
-      addLang(set, k2);
-      addTranslationEntry(set, v2);
-    }
-  }
-  const desc = rec.description;
-  if (desc && typeof desc === "object") {
-    const details = desc.details;
-    if (details && typeof details === "object" && !Array.isArray(details)) {
-      for (const k2 of Object.keys(details))
-        addLang(set, k2);
-    }
-    const other = desc.otherDetails ?? desc.other_details;
-    if (other && typeof other === "object") {
-      addLang(set, other.original_language);
-    }
-  }
-  const onto = rec.ontology;
-  const term = onto?.term_definitions ?? onto?.termDefinitions ?? rec.term_definitions ?? rec.termDefinitions;
-  if (term && typeof term === "object" && !Array.isArray(term)) {
-    for (const k2 of Object.keys(term))
-      addLang(set, k2);
-  }
-  return [...set].sort((a2, b2) => a2.localeCompare(b2));
-}
-function originalLanguageOf(resource) {
-  if (!resource || typeof resource !== "object")
-    return void 0;
-  const rec = resource;
-  const direct = languageCode(rec.original_language) ?? languageCode(rec.originalLanguage);
-  if (direct)
-    return direct;
-  const desc = rec.description;
-  if (desc && typeof desc === "object") {
-    const other = desc.otherDetails ?? desc.other_details;
-    if (other && typeof other === "object") {
-      const fromOther = languageCode(
-        other.original_language
-      );
-      if (fromOther)
-        return fromOther;
-    }
-  }
-  return void 0;
-}
-function orderLanguagesWithOriginal(languages, original) {
-  const rest = languages.filter((l2) => l2 !== original).sort((a2, b2) => a2.localeCompare(b2));
-  if (original && languages.includes(original))
-    return [original, ...rest];
-  return rest;
-}
-function listLanguageBags(doc, extra = []) {
-  const set = /* @__PURE__ */ new Set();
-  for (const lang of extra) {
-    if (lang.trim())
-      set.add(lang.trim());
-  }
-  if (doc) {
-    for (const lang of Object.keys(doc)) {
-      if (lang.trim())
-        set.add(lang);
-    }
-  }
-  return [...set].sort((a2, b2) => a2.localeCompare(b2));
-}
-function listFamilies(doc, extra = []) {
-  const set = new Set(KNOWN_FAMILIES);
-  const extraNorm = [];
-  for (const f2 of extra) {
-    const n2 = normalizeFamilyPrefix(f2);
-    if (!n2 || set.has(n2))
-      continue;
-    set.add(n2);
-    extraNorm.push(n2);
-  }
-  if (doc) {
-    for (const bag of Object.values(doc)) {
-      for (const atPath of Object.values(bag ?? {})) {
-        for (const key of Object.keys(atPath ?? {})) {
-          set.add(annotationFamily(key));
-        }
-      }
-    }
-  }
-  const known = KNOWN_FAMILIES;
-  const extras = extraNorm.filter((f2) => !known.includes(f2)).sort();
-  const rest = [...set].filter((f2) => !known.includes(f2) && !extras.includes(f2)).sort();
-  return [...known, ...extras, ...rest];
-}
-function pillsAtPath(doc, path) {
-  if (!doc)
-    return [];
-  const pills = [];
-  for (const language of listLanguageBags(doc)) {
-    const items = doc[language]?.[path] ?? {};
-    for (const [key, value] of Object.entries(items)) {
-      pills.push({
-        language,
-        key,
-        value,
-        family: annotationFamily(key)
-      });
-    }
-  }
-  return pills.sort(
-    (a2, b2) => a2.family.localeCompare(b2.family) || a2.key.localeCompare(b2.key) || a2.language.localeCompare(b2.language)
-  );
-}
-function flattenDefinitionTree(node, out = []) {
-  out.push(node);
-  for (const child of node.children)
-    flattenDefinitionTree(child, out);
-  return out;
-}
-function mergeDocumentation(docs) {
-  const out = {};
-  for (const doc of docs) {
-    if (!doc)
-      continue;
-    for (const [lang, paths] of Object.entries(doc)) {
-      out[lang] ??= {};
-      for (const [path, keys] of Object.entries(paths ?? {})) {
-        out[lang][path] = { ...out[lang][path], ...keys };
-      }
-    }
-  }
-  return out;
-}
-function documentationViewForTree(tree, getDoc) {
-  const out = {};
-  for (const node of flattenDefinitionTree(tree)) {
-    const src = getDoc(node);
-    if (!src)
-      continue;
-    const srcPath = annotationPathOf(node);
-    for (const [lang, paths] of Object.entries(src)) {
-      const items = paths?.[srcPath];
-      if (!items)
-        continue;
-      out[lang] ??= {};
-      out[lang][node.path] = { ...out[lang][node.path], ...items };
-    }
-  }
-  return out;
-}
-function l10nSourcesFromTree(tree, doc) {
-  return flattenDefinitionTree(tree).map((node) => {
-    const localizedNames = {};
-    if (doc) {
-      for (const bag of Object.values(doc)) {
-        const items = bag?.[node.path] ?? {};
-        for (const [key, value] of Object.entries(items)) {
-          const m2 = /^L10n\.(.+)$/i.exec(key);
-          if (m2 && value.trim())
-            localizedNames[m2[1].toLowerCase()] = value;
-        }
-      }
-    }
-    return {
-      path: node.path,
-      archetypeRef: node.archetypeRef,
-      localizedNames
-    };
-  });
-}
-var LANGUAGE_OUTLINE = {
-  en: "#2563eb",
-  sv: "#ca8a04",
-  de: "#dc2626",
-  fr: "#16a34a",
-  nb: "#7c3aed",
-  nn: "#6d28d9",
-  da: "#db2777",
-  fi: "#0891b2",
-  es: "#ea580c",
-  it: "#0d9488",
-  nl: "#4f46e5",
-  pt: "#c026d3"
-};
-var FAMILY_FILL = {
-  "L10n.": "#ede9fe",
-  "a.": "#d1fae5",
-  [UNPREFIXED_FAMILY]: "#e2e8f0"
-};
-function hashHue(s2) {
-  let h2 = 0;
-  for (let i2 = 0; i2 < s2.length; i2++)
-    h2 = h2 * 31 + s2.charCodeAt(i2) >>> 0;
-  return h2 % 360;
-}
-function languageOutlineColor(language) {
-  const key = language.toLowerCase();
-  return LANGUAGE_OUTLINE[key] ?? `hsl(${hashHue(key)} 70% 38%)`;
-}
-function familyFillColor(family) {
-  return FAMILY_FILL[family] ?? `hsl(${hashHue(family)} 45% 90%)`;
-}
-function familyLegendLabel(family) {
-  if (family === UNPREFIXED_FAMILY)
-    return "unprefixed";
-  return family;
-}
 
 // parser/copy_original_annotations.ts
 function copyItemId(item) {
@@ -19547,7 +19819,8 @@ function currentTree() {
   if (!activeResource)
     return void 0;
   return buildDefinitionTree(activeResource, {
-    resolveArchetype: (id) => workspace.repository.get(id)
+    resolveArchetype: (id) => workspace.repository.get(id),
+    language: currentOriginalLanguage()
   });
 }
 function ownerForNode(node) {
