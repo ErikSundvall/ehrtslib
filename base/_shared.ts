@@ -21,8 +21,8 @@
 //
 // For more information about openEHR specifications, visit: https://specifications.openehr.org/
 
-// Import Temporal API polyfill for date/time operations
-// See: https://tc39.es/proposal-temporal/ and https://docs.deno.com/api/web/temporal
+// ISO 8601 arithmetic uses Deno's built-in Temporal global (2.7+, no flag).
+// See: https://docs.deno.com/api/web/temporal
 
 import type { Any } from "./foundation_types/foundation_types.ts";
 import type { Boolean } from "./foundation_types/primitive_types.ts";

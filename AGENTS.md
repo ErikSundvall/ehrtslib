@@ -58,6 +58,8 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 
 **Runtime:** Deno 2.x is installed via [`.cursor/environment.json`](.cursor/environment.json) (`$HOME/.deno/bin`). Cloud VMs should already have `deno` on `PATH` after the environment install step.
 
+ISO 8601 date/time classes use the built-in `Temporal` global. That global is stable, with no `--unstable-temporal` flag, from **Deno 2.7** ([Deno 2.7 release notes](https://deno.com/blog/v2.7)). CI installs `denoland/setup-deno` `v2.x`, which tracks the latest 2.x and is newer than 2.7, so the workflows stay unpinned.
+
 **Primary commands** (repo root, see [`deno.json`](deno.json)):
 
 | Goal | Command |
