@@ -33,7 +33,8 @@ The model components are split by BMM package under each directory (see
 [`../../tasks/bmm_package_map.json`](../../tasks/bmm_package_map.json) and
 [`../../tasks/bmm_package_split.md`](../../tasks/bmm_package_split.md)).
 `<component>/mod.ts` barrels re-export the full public API; `<component>/openehr_<component>.ts`
-shims remain for older import paths.
+file-path shims remain for older import paths. Class-name aliases for older
+ehrtslib releases do not; record removals in [api-changes.md](api-changes.md).
 
 ## Import guidelines
 

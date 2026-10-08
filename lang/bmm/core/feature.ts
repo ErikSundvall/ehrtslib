@@ -4,7 +4,7 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import type { BMM_CLASS, BMM_CONTAINER_TYPE, BMM_INDEXED_CONTAINER_TYPE, BMM_STATUS_TYPE, BMM_TYPE, BMM_UNITARY_TYPE } from "../../_shared.ts";
-import { BMM_PROCEDURE_TYPE } from "../../_unassigned.ts";
+import { BMM_PROCEDURE_TYPE } from "../../_shared.ts";
 import { BMM_FORMAL_ELEMENT } from "../core.ts";
 import type { BMM_STATEMENT_BLOCK } from "../statement.ts";
 import type { BMM_LITERAL_VALUE } from "./literal_value.ts";

@@ -1,7 +1,8 @@
 {
-  "openehr_am": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_am_2.4.0.bmm.json",
-  "openehr_base": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_base_1.3.0.bmm.json",
-  "openehr_lang": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_lang_1.1.0.bmm.json",
-  "openehr_rm": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_rm_1.2.0.bmm.json",
-  "openehr_term": "https://raw.githubusercontent.com/sebastian-iancu/code-generator/master/code/BMM-JSON/openehr_term_3.1.0.bmm.json"
+  "openehr_am": "https://raw.githubusercontent.com/openEHR/specifications-AM/master/computable/BMM/openehr_am_2.4.0.bmm.json",
+  "openehr_base": "https://raw.githubusercontent.com/openEHR/specifications-BASE/master/computable/BMM/openehr_base_1.3.0.bmm.json",
+  "openehr_lang": "https://raw.githubusercontent.com/openEHR/specifications-LANG/master/computable/BMM/openehr_lang_1.1.0.bmm.json",
+  "openehr_lang_bmm3": "https://raw.githubusercontent.com/openEHR/specifications-LANG/master/computable/BMM/openehr_lang_1.1.0-bmm3.bmm.json",
+  "openehr_rm": "https://raw.githubusercontent.com/openEHR/specifications-RM/master/computable/BMM/openehr_rm_1.2.0.bmm.json",
+  "openehr_term": "https://raw.githubusercontent.com/openEHR/specifications-TERM/master/computable/BMM/openehr_term_3.1.0.bmm.json"
 }

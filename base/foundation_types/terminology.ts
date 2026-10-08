@@ -230,6 +230,10 @@ export class Terminology_term extends Any {
  * A fully coordinated (i.e. all coordination has been performed) term from a terminology service (as distinct from a particular terminology).
  *
  * Retain for LEGACY only, while ADL1.4 requires CODE_PHRASE.
+ *
+ * SPECAM-82 moved this class from `foundation_types.terminology` to
+ * `base_types.terminology` in the BMM package map; the TypeScript module
+ * path is unchanged so existing imports keep working.
  */
 export class CODE_PHRASE {
   /**

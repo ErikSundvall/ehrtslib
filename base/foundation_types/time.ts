@@ -1244,7 +1244,7 @@ export class Iso8601_time extends Iso8601_type {
   }
 
   /**
-   * Indicates whether second is unknown. If so and month is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
+   * Indicates whether second is unknown. If so and minute is known, the time is of the form \`"hh:mm"\` or \`"hhmm"\`.
    * @returns Result value
    */
   second_unknown(): Boolean {
@@ -1487,24 +1487,6 @@ export class Iso8601_date extends Iso8601_type {
       // Return 0 if parsing fails or no day component
     }
     return Integer.from(0);
-  }
-
-  /**
-   * Timezone; may be Void.
-   *
-   * NOTE: ISO 8601 dates typically don't have timezones, but this checks for them.
-   * @returns Result value
-   */
-  timezone(): Iso8601_timezone {
-    const val = this.value || "";
-    // Match timezone: Z or ±hh:mm or ±hhmm (rare for pure dates)
-    const match = val.match(/(Z|[+-]\d{2}:?\d{2})$/);
-    if (match) {
-      const tz = new Iso8601_timezone();
-      tz.value = match[1];
-      return tz;
-    }
-    throw new Error("No timezone present in date");
   }
 
   /**

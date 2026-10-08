@@ -3,14 +3,15 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import { EXPR_LEAF } from "../_unassigned.ts";
 import * as openehr_base from "../../base/mod.ts";
 import * as openehr_lang from "../../lang/mod.ts";
 
 /**
  * Expression tree leaf item representing a constraint on a primitive type, expressed in the form of a concrete subtype of C_PRIMITIVE_OBJECT.
+ *
+ * Official AM 2.4 (which includes LANG) extends `openehr_lang.EXPR_LEAF`.
  */
-export class EXPR_CONSTRAINT extends EXPR_LEAF {
+export class EXPR_CONSTRAINT extends openehr_lang.EXPR_LEAF {
   /**
    * The constraint.
    */

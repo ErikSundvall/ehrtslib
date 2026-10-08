@@ -18,6 +18,7 @@
 | ADL2 round-trip fidelity | [ADL2_ROUNDTRIP.md](ADL2_ROUNDTRIP.md) |
 | RM attribute introspection API | [RM_ATTRIBUTES.md](RM_ATTRIBUTES.md) |
 | Validation gaps | [VALIDATION_LIMITATIONS.md](VALIDATION_LIMITATIONS.md) |
+| Pre-1.0 API removals and renames | [maintainers/api-changes.md](maintainers/api-changes.md) |
 
 ## Serialization formats
 
