@@ -26,6 +26,18 @@ Better Archetype Designer can store **TEMPLATE_OVERLAY** objects two ways:
 
 `collectTemplateJsonExternalRefs` therefore enqueues overlay `parentArchetypeId` values (while still skipping inlined overlay ids such as `ovl-…`). ADL `parent_archetype_id` chains are followed after a parent file is fetched.
 
+### Nested templates that share an archetype id
+
+A slot may point at another `.t.json` by Better `templateId` (`C_ARCHETYPE_ROOT.archetypeRef` + `referenceType: "templateId"`), not by archetype id. Symptom templates such as `ChemoQ-fatigue` and `ChemoQ-weight` often specialise one cluster archetype and reuse `at0005.1` for different questions.
+
+After `resolveOperational()` / `flattenToOperationalTemplate`:
+
+- `archetype_term_definitions["ChemoQ-fatigue"]` and `["ChemoQ-weight"]` each hold that template's texts (including `sv` when the file has them)
+- the use-site node `at0039.1` is named from the embedded concept (`Fatigue` / `Trötthet`), via `term_name_fallback_node_id`
+- `operationalTemplate.template_id` is the root Better id (`ChemoForm-MBA.v8`), and that is what Web Template `templateId` and OPT XML `<template_id>` emit
+
+TAAAT's outline resolves those slots through `ArchetypeRepository.resolve` (archetype id **or** template id) and labels each embedded tree from its own bag. The demo language menu drives both example-data names and Web Template node names.
+
 ## API
 
 ```typescript

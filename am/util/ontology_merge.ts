@@ -66,17 +66,65 @@ export function termTableForArchetype(
   return merged;
 }
 
-/** Per-archetype terminology (parent chain + archetype) for scoped lookup during generation. */
+/**
+ * Better `templateId` or an OBJECT_ID-shaped `{ value }` on a template / OPT.
+ * Empty strings are ignored.
+ */
+export function readTemplateId(
+  source: {
+    template_id?: unknown;
+  } | undefined,
+): string | undefined {
+  const id = source?.template_id;
+  if (typeof id === "string") {
+    const trimmed = id.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (id && typeof id === "object" && "value" in id) {
+    const value = (id as { value?: unknown }).value;
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Per-archetype terminology (parent chain + archetype) for scoped lookup.
+ *
+ * Each inlined template is stored under every id the flattener may stamp as
+ * `term_archetype_scope`: archetype id, Better `template_id`, and any extra
+ * lookup key (`.t.json` basename, `archetypeRef`). A second template that
+ * specialises the same archetype id is not dropped — only the shared key is
+ * left with the first occupant. Distinct template ids each keep their bag.
+ */
 export function buildArchetypeTermIndex(
   resolver: ArchetypeResolver,
   inlinedArchetypes: Iterable<openehr_am.ARCHETYPE | undefined>,
+  scopeKeys?: WeakMap<openehr_am.ARCHETYPE, ReadonlySet<string>>,
 ): Record<string, TermDefinitionTable> {
   const index: Record<string, TermDefinitionTable> = {};
+  const owner = new Map<string, openehr_am.ARCHETYPE>();
   for (const arch of inlinedArchetypes) {
     if (!arch) continue;
-    const id = archetypeIdString(arch);
-    if (!id || index[id]) continue;
-    index[id] = termTableForArchetype(arch, resolver);
+    const table = termTableForArchetype(arch, resolver);
+    const keys = new Set<string>();
+    const archetypeId = archetypeIdString(arch);
+    const templateId = readTemplateId(arch);
+    if (archetypeId) keys.add(archetypeId);
+    if (templateId) keys.add(templateId);
+    const extra = scopeKeys?.get(arch);
+    if (extra) {
+      for (const key of extra) {
+        if (key) keys.add(key);
+      }
+    }
+    for (const key of keys) {
+      const existing = owner.get(key);
+      if (existing && existing !== arch) continue;
+      index[key] = table;
+      owner.set(key, arch);
+    }
   }
   return index;
 }

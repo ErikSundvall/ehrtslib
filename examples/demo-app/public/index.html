@@ -349,7 +349,7 @@
                 </div>
                 <div class="form-group form-group-inline">
                   <label for="template-generation-language">language:</label>
-                  <select id="template-generation-language" class="config-dropdown"></select>
+                  <select id="template-generation-language" class="config-dropdown" title="Ontology language for example data names and Web Template node names"></select>
                 </div>
                 <input
                   type="file"
@@ -488,6 +488,10 @@
                 <input type="checkbox" id="output-opt-xml">
                 <span>OPT XML</span>
               </label>
+              <label class="checkbox-label" title="Web Template JSON from the operational template. Node names use template-scoped terminology, including nested Better templates that share an archetype id.">
+                <input type="checkbox" id="output-webtemplate">
+                <span>Web Template</span>
+              </label>
               <label class="checkbox-label" title="ZipEHR compact format with emoji type symbols">
                 <input type="checkbox" id="output-zipehr" checked>
                 <span>ZipEHR</span>
@@ -524,6 +528,7 @@
               <button class="tab" data-tab="simplified">Simplified</button>
               <button class="tab" data-tab="opt-html5">OPT HTML5</button>
               <button class="tab" data-tab="opt-xml">OPT XML</button>
+              <button class="tab hidden" data-tab="webtemplate">Web Template</button>
               <button class="tab" data-tab="zipehr">ZipEHR</button>
             </div>
           </div>

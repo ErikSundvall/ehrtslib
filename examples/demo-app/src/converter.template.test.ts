@@ -4,13 +4,13 @@ import {
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { ClinicalModelWorkspace } from "../../../parser/mod.ts";
 import {
+  type ConversionOptions,
   convert,
   getAsciidocConfigPreset,
   getJsonConfigPreset,
   getJsonDeserializeConfigPreset,
   getMarkdownConfigPreset,
   getYamlConfigPreset,
-  type ConversionOptions,
   validateTemplateInput,
   workspaceForConversion,
 } from "./converter.ts";
@@ -618,8 +618,9 @@ const WEB_TEMPLATE_ONLY_JSON = JSON.stringify({
 });
 
 function convertTestOptions(
-  overrides: Partial<ConversionOptions> &
-    Pick<ConversionOptions, "inputMode" | "outputFormats">,
+  overrides:
+    & Partial<ConversionOptions>
+    & Pick<ConversionOptions, "inputMode" | "outputFormats">,
 ): ConversionOptions {
   return {
     inputFormat: "json",
@@ -655,7 +656,11 @@ Deno.test("workspaceForConversion uses clinical file set for template and AD@git
   const templateWs = workspaceForConversion("template", clinical, simplified);
   assertEquals(templateWs.listFiles()[0]?.path, "lung.opt");
 
-  const adgitWs = workspaceForConversion("template-adgit", clinical, simplified);
+  const adgitWs = workspaceForConversion(
+    "template-adgit",
+    clinical,
+    simplified,
+  );
   assertEquals(adgitWs.listFiles()[0]?.path, "lung.opt");
 
   const instanceWs = workspaceForConversion("instance", clinical, simplified);
@@ -704,4 +709,155 @@ Deno.test("convert template-adgit with clinical workspace is not shadowed by a W
   const generated = JSON.parse(result.outputs?.json || "{}");
   assertEquals(generated._type, "COMPOSITION");
   assertEquals(generated.name?.value, "Demo composition");
+});
+
+const SHARED_SYMPTOM_ARCHETYPE = "openEHR-EHR-CLUSTER.symptom_sign.v1";
+
+function symptomQuestionTemplate(
+  templateId: string,
+  labels: {
+    enConcept: string;
+    enQuestion: string;
+    svConcept: string;
+    svQuestion: string;
+  },
+): string {
+  return JSON.stringify({
+    "@type": "TEMPLATE",
+    templateId,
+    archetypeId: { "@type": "ARCHETYPE_HRID", value: SHARED_SYMPTOM_ARCHETYPE },
+    definition: {
+      "@type": "C_COMPLEX_OBJECT",
+      rmTypeName: "CLUSTER",
+      nodeId: "at0000.1",
+      attributes: [{
+        "@type": "C_ATTRIBUTE",
+        rmAttributeName: "items",
+        children: [{
+          "@type": "C_COMPLEX_OBJECT",
+          rmTypeName: "ELEMENT",
+          nodeId: "at0005.1",
+        }],
+      }],
+    },
+    terminology: {
+      "@type": "ARCHETYPE_TERMINOLOGY",
+      termDefinitions: {
+        en: {
+          "at0000.1": { text: labels.enConcept },
+          "at0005.1": { text: labels.enQuestion },
+        },
+        sv: {
+          "at0000.1": { text: labels.svConcept },
+          "at0005.1": { text: labels.svQuestion },
+        },
+      },
+    },
+  });
+}
+
+Deno.test("demo names nested Better templates that share an archetype id", async () => {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile(
+    "ChemoForm-MBA.v8.t.json",
+    JSON.stringify({
+      "@type": "TEMPLATE",
+      templateId: "ChemoForm-MBA.v8",
+      archetypeId: {
+        "@type": "ARCHETYPE_HRID",
+        value: "openEHR-EHR-COMPOSITION.t_self_reported_data.v1",
+      },
+      definition: {
+        "@type": "C_COMPLEX_OBJECT",
+        rmTypeName: "COMPOSITION",
+        nodeId: "at0000",
+        attributes: [{
+          "@type": "C_ATTRIBUTE",
+          rmAttributeName: "content",
+          children: [
+            {
+              "@type": "C_ARCHETYPE_ROOT",
+              rmTypeName: "CLUSTER",
+              nodeId: "at0039.1",
+              archetypeRef: "ChemoQ-fatigue",
+              referenceType: "templateId",
+            },
+            {
+              "@type": "C_ARCHETYPE_ROOT",
+              rmTypeName: "CLUSTER",
+              nodeId: "at0039.2",
+              archetypeRef: "ChemoQ-weight",
+              referenceType: "templateId",
+            },
+          ],
+        }],
+      },
+    }),
+  );
+  workspace.addFile(
+    "ChemoQ-fatigue.t.json",
+    symptomQuestionTemplate("ChemoQ-fatigue", {
+      enConcept: "Fatigue",
+      enQuestion: "Do you experience fatigue that affects your daily life?",
+      svConcept: "Trötthet",
+      svQuestion: "Upplever du trötthet som påverkar ditt dagliga liv?",
+    }),
+  );
+  workspace.addFile(
+    "ChemoQ-weight.t.json",
+    symptomQuestionTemplate("ChemoQ-weight", {
+      enConcept: "Weight",
+      enQuestion: "Have your weight changed in recent weeks?",
+      svConcept: "Vikt",
+      svQuestion: "Har din vikt förändrats de senaste veckorna?",
+    }),
+  );
+
+  const validation = validateTemplateInput("", workspace);
+  assertEquals(validation.valid, true);
+  assert(validation.message.includes("ChemoForm-MBA.v8"));
+  assert(
+    validation.message.includes(
+      "openEHR-EHR-COMPOSITION.t_self_reported_data.v1",
+    ),
+  );
+
+  const english = await convert(
+    "",
+    convertTestOptions({
+      inputMode: "template",
+      outputFormats: ["webtemplate"],
+      templateLanguage: "en",
+      templateWorkspace: workspace,
+    }),
+  );
+  assertEquals(english.success, true, english.error);
+  const webTemplate = JSON.parse(english.outputs?.webtemplate || "{}");
+  assertEquals(webTemplate.templateId, "ChemoForm-MBA.v8");
+  const englishText = JSON.stringify(webTemplate);
+  assert(englishText.includes('"Fatigue"'));
+  assert(englishText.includes(
+    "Do you experience fatigue that affects your daily life?",
+  ));
+  assert(englishText.includes('"Weight"'));
+  assert(englishText.includes("Have your weight changed in recent weeks?"));
+
+  const swedish = await convert(
+    "",
+    convertTestOptions({
+      inputMode: "template",
+      outputFormats: ["webtemplate"],
+      templateLanguage: "sv",
+      templateWorkspace: workspace,
+    }),
+  );
+  assertEquals(swedish.success, true, swedish.error);
+  const swedishText = swedish.outputs?.webtemplate || "";
+  assert(swedishText.includes("Trötthet"));
+  assert(swedishText.includes(
+    "Upplever du trötthet som påverkar ditt dagliga liv?",
+  ));
+  assert(swedishText.includes("Vikt"));
+  assert(swedishText.includes("Har din vikt förändrats de senaste veckorna?"));
+  assert(!swedishText.includes("Do you experience fatigue"));
 });

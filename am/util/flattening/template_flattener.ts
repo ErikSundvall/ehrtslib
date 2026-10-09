@@ -11,6 +11,7 @@ import {
   applyMergedTerminology,
   buildArchetypeTermIndex,
   buildMergedTerminology,
+  readTemplateId,
 } from "../ontology_merge.ts";
 import { specializeComplexObject } from "./specialize.ts";
 
@@ -33,41 +34,66 @@ export function flattenArchetypeDefinition(
   archetype: openehr_am.ARCHETYPE,
   resolver: ArchetypeResolver,
   inlined: openehr_am.ARCHETYPE[] = [],
+  scopeKeys?: ScopeKeyMap,
 ): openehr_am.C_COMPLEX_OBJECT | undefined {
   if (!archetype.definition) return undefined;
+  const keys = scopeKeys ?? new WeakMap();
 
-  let flat: openehr_am.C_COMPLEX_OBJECT = cloneComplexObject(archetype.definition);
+  let flat: openehr_am.C_COMPLEX_OBJECT = cloneComplexObject(
+    archetype.definition,
+  );
 
   const parentId = archetype.parent_archetype_id?.value ??
     archetype.parent_archetype_id?.toString();
   if (parentId) {
     const parent = resolver.resolve(parentId);
     if (parent?.definition) {
-      const parentFlat = flattenArchetypeDefinition(parent, resolver, inlined) ??
-        parent.definition;
+      const parentFlat =
+        flattenArchetypeDefinition(parent, resolver, inlined, keys) ??
+          parent.definition;
       flat = specializeComplexObject(parentFlat, archetype.definition);
     }
   }
 
-  return resolveSlotsInTree(flat, resolver, inlined);
+  return resolveSlotsInTree(flat, resolver, inlined, keys);
+}
+
+type ScopeKeyMap = WeakMap<openehr_am.ARCHETYPE, Set<string>>;
+
+function noteInlined(
+  arch: openehr_am.ARCHETYPE,
+  lookupKey: string | undefined,
+  inlined: openehr_am.ARCHETYPE[],
+  scopeKeys: ScopeKeyMap,
+): void {
+  inlined.push(arch);
+  if (!lookupKey) return;
+  let keys = scopeKeys.get(arch);
+  if (!keys) {
+    keys = new Set();
+    scopeKeys.set(arch, keys);
+  }
+  keys.add(lookupKey);
 }
 
 function resolveSlotsInTree(
   root: openehr_am.C_COMPLEX_OBJECT,
   resolver: ArchetypeResolver,
   inlined: openehr_am.ARCHETYPE[],
+  scopeKeys: ScopeKeyMap,
 ): openehr_am.C_COMPLEX_OBJECT {
   const walkObject = (obj: openehr_am.C_OBJECT): openehr_am.C_OBJECT => {
     if (obj instanceof openehr_am.ARCHETYPE_SLOT) {
-      return resolveArchetypeSlot(obj, resolver, inlined);
+      return resolveArchetypeSlot(obj, resolver, inlined, scopeKeys);
     }
     if (obj instanceof openehr_am.C_ARCHETYPE_ROOT) {
-      return inlineArchetypeRoot(obj, resolver, inlined);
+      return inlineArchetypeRoot(obj, resolver, inlined, scopeKeys);
     }
     if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
       if (!obj.attributes) return obj;
       for (const attr of obj.attributes) {
-        const children = (attr as { children?: openehr_am.C_OBJECT[] }).children;
+        const children =
+          (attr as { children?: openehr_am.C_OBJECT[] }).children;
         if (!children) continue;
         (attr as { children: openehr_am.C_OBJECT[] }).children = children.map(
           walkObject,
@@ -99,7 +125,10 @@ function tagTermScopeRoot(
 ): void {
   const meta = obj as TermScopeMeta & openehr_am.C_OBJECT;
   meta[TERM_ARCHETYPE_SCOPE_KEY] = archetypeId;
-  if (nameFallbackNodeId && /^at0\./i.test(obj.node_id ?? "")) {
+  // Concept fallback for every inlined root, including specialised use-site
+  // ids (`at0039.1`) and template slot ids (`at0.1`). Lookup still prefers the
+  // use-site id when that code exists in the scoped bag.
+  if (nameFallbackNodeId) {
     meta[TERM_NAME_FALLBACK_NODE_ID_KEY] = nameFallbackNodeId;
   }
 }
@@ -153,6 +182,7 @@ function resolveArchetypeSlot(
   slot: openehr_am.ARCHETYPE_SLOT,
   resolver: ArchetypeResolver,
   inlined: openehr_am.ARCHETYPE[],
+  scopeKeys: ScopeKeyMap,
 ): openehr_am.C_OBJECT {
   const pattern = firstIncludePattern(slot);
   if (!pattern) return slot;
@@ -160,9 +190,10 @@ function resolveArchetypeSlot(
   const arch = resolver.resolve(pattern);
   if (!arch?.definition) return slot;
 
-  inlined.push(arch);
-  const filler = flattenArchetypeDefinition(arch, resolver, inlined) ??
-    arch.definition;
+  noteInlined(arch, pattern, inlined, scopeKeys);
+  const filler =
+    flattenArchetypeDefinition(arch, resolver, inlined, scopeKeys) ??
+      arch.definition;
   const result = cloneComplexObject(filler);
   result.node_id = slot.node_id ?? result.node_id;
   result.rm_type_name = slot.rm_type_name ?? result.rm_type_name;
@@ -176,6 +207,7 @@ function inlineArchetypeRoot(
   root: openehr_am.C_ARCHETYPE_ROOT,
   resolver: ArchetypeResolver,
   inlined: openehr_am.ARCHETYPE[],
+  scopeKeys: ScopeKeyMap,
 ): openehr_am.C_OBJECT {
   const ref = root.archetype_ref;
   if (!ref) return root;
@@ -183,9 +215,10 @@ function inlineArchetypeRoot(
   const arch = resolver.resolve(ref);
   if (!arch?.definition) return root;
 
-  inlined.push(arch);
-  const filler = flattenArchetypeDefinition(arch, resolver, inlined) ??
-    arch.definition;
+  noteInlined(arch, ref, inlined, scopeKeys);
+  const filler =
+    flattenArchetypeDefinition(arch, resolver, inlined, scopeKeys) ??
+      arch.definition;
   const result = cloneComplexObject(filler);
   result.node_id = root.node_id ?? result.node_id;
   result.rm_type_name = root.rm_type_name ?? result.rm_type_name;
@@ -193,7 +226,9 @@ function inlineArchetypeRoot(
   if (root.attributes?.length) {
     const specialized = specializeComplexObject(result, root);
     const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
-    if (archId) tagInlinedArchetype(specialized, archId, arch.definition?.node_id);
+    if (archId) {
+      tagInlinedArchetype(specialized, archId, arch.definition?.node_id);
+    }
     return specialized;
   }
   const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
@@ -222,26 +257,54 @@ export function flattenToOperationalTemplate(
   opt.is_generated = true;
 
   const inlinedArchetypes: openehr_am.ARCHETYPE[] = [];
+  const scopeKeys: ScopeKeyMap = new WeakMap();
   if (source instanceof openehr_am.TEMPLATE) {
+    const templateId = readTemplateId(source);
+    if (templateId) opt.template_id = templateId;
     opt.definition = source.definition
       ? resolveSlotsInTree(
         cloneComplexObject(source.definition),
         resolver,
         inlinedArchetypes,
+        scopeKeys,
       )
       : undefined;
   } else {
-    opt.definition = flattenArchetypeDefinition(source, resolver, inlinedArchetypes);
+    opt.definition = flattenArchetypeDefinition(
+      source,
+      resolver,
+      inlinedArchetypes,
+      scopeKeys,
+    );
   }
 
   applyMergedTerminology(
     opt,
     buildMergedTerminology(source, resolver, inlinedArchetypes),
   );
-  (opt as { archetype_term_definitions?: ReturnType<typeof buildArchetypeTermIndex> })
+  // Scope the root to its own archetype so at0000 does not suffix-match a
+  // nested template's at0000.1 in the flat ontology. Inlined nodes already
+  // carry their template-id scope and are left in place.
+  const rootScope = archetypeIdString(source);
+  if (rootScope && opt.definition) {
+    tagTermScopeRoot(opt.definition, rootScope);
+    tagTermScopeDescendants(opt.definition, rootScope);
+    let rootKeys = scopeKeys.get(source);
+    if (!rootKeys) {
+      rootKeys = new Set();
+      scopeKeys.set(source, rootKeys);
+    }
+    rootKeys.add(rootScope);
+    const templateId = readTemplateId(source);
+    if (templateId) rootKeys.add(templateId);
+  }
+  (opt as {
+    archetype_term_definitions?: ReturnType<typeof buildArchetypeTermIndex>;
+  })
     .archetype_term_definitions = buildArchetypeTermIndex(
       resolver,
-      inlinedArchetypes,
+      [source, ...inlinedArchetypes],
+      scopeKeys,
     );
 
   return opt;
@@ -277,8 +340,10 @@ function objectsStructurallyEqual(
         (x) => x.rm_attribute_name === attrA.rm_attribute_name,
       );
       if (!attrB) return false;
-      const chA = (attrA as { children?: openehr_am.C_OBJECT[] }).children ?? [];
-      const chB = (attrB as { children?: openehr_am.C_OBJECT[] }).children ?? [];
+      const chA = (attrA as { children?: openehr_am.C_OBJECT[] }).children ??
+        [];
+      const chB = (attrB as { children?: openehr_am.C_OBJECT[] }).children ??
+        [];
       if (chA.length !== chB.length) return false;
       for (let i = 0; i < chA.length; i++) {
         if (!objectsStructurallyEqual(chA[i], chB[i])) return false;
@@ -336,7 +401,9 @@ export function extractDifferentialDefinition(
           p.rm_type_name === flatChild.rm_type_name,
       );
       if (!match) {
-        childDiffs.push(cloneComplexObject(flatChild as openehr_am.C_COMPLEX_OBJECT));
+        childDiffs.push(
+          cloneComplexObject(flatChild as openehr_am.C_COMPLEX_OBJECT),
+        );
         continue;
       }
       if (

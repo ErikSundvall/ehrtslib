@@ -103,6 +103,7 @@ import {
   zipehrTextToCanonical,
 } from "../../../serialization/zipehr/mod.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
+import { readTemplateId } from "../../../am/util/ontology_merge.ts";
 
 // Import RM and Base modules for type registration
 import * as openehr_rm from "../../../rm/openehr_rm.ts";
@@ -369,7 +370,7 @@ function writeOptXmlOutput(
   const includeAnnotations = options.optXmlIncludeAnnotations ?? true;
   const emitL10n = options.optXmlEmitL10n ?? true;
   const l10nFromWebTemplate = includeAnnotations && emitL10n
-    ? buildWebTemplate(opt)
+    ? buildWebTemplate(opt, { defaultLanguage: options.templateLanguage })
     : undefined;
   outputs["opt.xml"] = new OptXmlSerializer({
     includeAnnotations,
@@ -425,7 +426,9 @@ export function resolveWebTemplate(
 
   try {
     const { operationalTemplate } = ws.resolveOperational();
-    return buildWebTemplate(operationalTemplate);
+    return buildWebTemplate(operationalTemplate, {
+      defaultLanguage: options.templateLanguage,
+    });
   } catch (error) {
     throw new Error(
       `${MISSING_WEB_TEMPLATE_ERROR} (${
@@ -704,7 +707,7 @@ async function convertTemplateInput(
 
   writeSimplifiedOutputs(
     generatedInstance,
-    buildWebTemplate(template),
+    buildWebTemplate(template, { defaultLanguage: options.templateLanguage }),
     options.outputFormats,
     outputs,
   );
@@ -733,8 +736,7 @@ export function validateTemplateInput(
   try {
     if (workspace?.listFiles().length) {
       const resolved = workspace.resolveOperational();
-      const id = resolved.operationalTemplate.archetype_id?.value ??
-        "operational template";
+      const id = displayOperationalId(resolved.operationalTemplate);
       const kind = resolved.sourceKind;
       const fileCount = workspace.listFiles().length;
       const archCount = workspace.repository.listIds().length;
@@ -780,6 +782,15 @@ export function validateTemplateInput(
       message: `Invalid template: ${(error as Error).message}`,
     };
   }
+}
+
+function displayOperationalId(opt: openehr_am.OPERATIONAL_TEMPLATE): string {
+  const templateId = readTemplateId(opt);
+  const archetypeId = opt.archetype_id?.value;
+  if (templateId && archetypeId && templateId !== archetypeId) {
+    return `${templateId} (${archetypeId})`;
+  }
+  return templateId ?? archetypeId ?? "operational template";
 }
 
 function formatLabelForLoadKind(

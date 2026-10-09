@@ -338,6 +338,11 @@ export class TEMPLATE extends AUTHORED_ARCHETYPE {
    * Overlay archetypes, i.e. partial archetypes that include full definition and terminology, but logically derive all their meta-data from the owning template.
    */
   overlays?: undefined;
+  /**
+   * Better / ADL 1.4 template identifier (`ChemoForm-MBA.v8`).
+   * Several templates may specialise one `archetype_id`; this id keeps them apart.
+   */
+  template_id?: string;
 }
 
 /**
@@ -346,6 +351,12 @@ export class TEMPLATE extends AUTHORED_ARCHETYPE {
  * An operational template is used for generating and validating RM-canonical instance data, and also as a source artefact for generating other downstream technical artefacts, including XML schemas, APIs and UI form definitions.
  */
 export class OPERATIONAL_TEMPLATE extends AUTHORED_ARCHETYPE {
+  /**
+   * Better / ADL 1.4 template identifier copied from the source template during
+   * flatten (`ChemoForm-MBA.v8`). Web Template `templateId` and OPT XML
+   * `<template_id>` prefer this over `archetype_id` when it is set.
+   */
+  template_id?: string;
   /**
    * Compendium of flattened terminologies of archetypes  referenced from this template, keyed by archetype identifier. This will almost always be present in a template.
    */

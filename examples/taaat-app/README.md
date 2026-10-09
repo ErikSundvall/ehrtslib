@@ -5,7 +5,9 @@ archetypes and templates. Choose **Local files** or **GitHub**, then only the
 controls for that workflow are shown.
 
 - **Local files** — pick `.adl` / `.adls` / `.t.json` from disk and **Download**
-  the annotated file.
+  the annotated file. Nested Better templates (slots whose `archetypeRef` is a
+  template id) are expanded in the outline. Templates that share an archetype
+  id keep their own names, so a fatigue slot is not labelled as weight.
 - **GitHub** — pick a curated example (Ehrlibs Accident report, Simple diagnose
   and vitals, Region Stockholm MDT) or paste a blob/raw URL, optionally sign in
   with a
