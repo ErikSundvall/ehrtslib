@@ -7,6 +7,7 @@ import {
   type ArchetypeResolver,
   flattenToOperationalTemplate,
 } from "../../am/util/flattening/template_flattener.ts";
+import { readTemplateId } from "../../am/util/ontology_merge.ts";
 import { isOptXml } from "./opt_xml_parser.ts";
 import { isOetXml } from "./oet_xml_parser.ts";
 import { isTemplateJson, parseTemplateJson } from "./template_json_parser.ts";
@@ -70,15 +71,28 @@ export class ArchetypeRepository implements ArchetypeResolver {
    * version-stripped id) point at the same object and are not extra templates.
    */
   listTemplateIds(): string[] {
-    const seen = new Set<openehr_am.TEMPLATE>();
     const ids: string[] = [];
-    for (const template of this.templates.values()) {
-      if (seen.has(template)) continue;
-      seen.add(template);
+    for (const template of this.listTemplates()) {
       const id = template.archetype_id?.value ?? templateIdOf(template);
       if (id) ids.push(id);
     }
     return ids.sort();
+  }
+
+  /**
+   * Each loaded template once. Alias keys (`template_id`, basename) are not
+   * extra templates. Two Better templates that share an archetype id are both
+   * returned.
+   */
+  listTemplates(): openehr_am.TEMPLATE[] {
+    const seen = new Set<openehr_am.TEMPLATE>();
+    const templates: openehr_am.TEMPLATE[] = [];
+    for (const template of this.templates.values()) {
+      if (seen.has(template)) continue;
+      seen.add(template);
+      templates.push(template);
+    }
+    return templates;
   }
 
   listOperationalIds(): string[] {
@@ -265,8 +279,7 @@ export function parseArchetypeFile(text: string): ParseAdlResult {
 }
 
 function templateIdOf(template: openehr_am.TEMPLATE): string | undefined {
-  const id = (template as { template_id?: unknown }).template_id;
-  return typeof id === "string" && id.length > 0 ? id : undefined;
+  return readTemplateId(template);
 }
 
 /** `dir/ChemoQ-fatigue.v8.t.json` → `ChemoQ-fatigue.v8`. */

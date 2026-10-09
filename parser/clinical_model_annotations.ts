@@ -3,7 +3,11 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
-import type { TermBag } from "../am/util/ontology_merge.ts";
+import {
+  readTemplateId,
+  type TermBag,
+  termTableForArchetype,
+} from "../am/util/ontology_merge.ts";
 import * as openehr_base from "../base/openehr_base.ts";
 import { getAnnotationsDocumentation } from "./aom_odin_sections.ts";
 import { ADL2Serializer } from "../generation/adl2_serializer.ts";
@@ -81,8 +85,9 @@ function collectTemplateTerms(
   resource: AnnotatedResource,
   language: string,
 ): TermBag {
-  const ontology = (resource as { ontology?: { term_definitions?: Record<string, TermBag> } })
-    .ontology;
+  const ontology =
+    (resource as { ontology?: { term_definitions?: Record<string, TermBag> } })
+      .ontology;
   return termBagForLanguage(ontology?.term_definitions, language);
 }
 
@@ -102,7 +107,10 @@ function mergeArchetypeOntologyTerms(
   archetype: openehr_am.ARCHETYPE,
   language: string,
 ): void {
-  if (archetypeTerms[archetypeId] && Object.keys(archetypeTerms[archetypeId]).length) {
+  if (
+    archetypeTerms[archetypeId] &&
+    Object.keys(archetypeTerms[archetypeId]).length
+  ) {
     return;
   }
   const ontology = archetype.ontology as
@@ -110,17 +118,21 @@ function mergeArchetypeOntologyTerms(
     | undefined;
   const bag = termBagForLanguage(ontology?.term_definitions, language);
   if (!Object.keys(bag).length) return;
-  archetypeTerms[archetypeId] = { ...(archetypeTerms[archetypeId] ?? {}), ...bag };
+  archetypeTerms[archetypeId] = {
+    ...(archetypeTerms[archetypeId] ?? {}),
+    ...bag,
+  };
 }
 
 function clinicalLabelForObject(
   obj: openehr_am.C_OBJECT,
   ctx: BuildTreeContext,
+  nameFallbackNodeId?: string,
 ): string | undefined {
   const meta = obj as TermScopeMeta;
   return resolveLocatableLabel(
     obj.node_id,
-    meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+    nameFallbackNodeId ?? meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
     ctx.templateTerms,
     ctx.archetypeTerms,
     meta[TERM_ARCHETYPE_SCOPE_KEY] ?? ctx.termScope,
@@ -131,8 +143,58 @@ function definitionNodeLabel(
   obj: openehr_am.C_OBJECT,
   ctx: BuildTreeContext,
   technical: string,
+  nameFallbackNodeId?: string,
 ): string {
-  return clinicalLabelForObject(obj, ctx) ?? technical;
+  return clinicalLabelForObject(obj, ctx, nameFallbackNodeId) ?? technical;
+}
+
+/**
+ * Store the filled archetype's terminology under the reference used as
+ * `term_archetype_scope`. A second template with the same archetype id gets
+ * its own key and does not replace the first bag.
+ */
+function installResolvedTermBags(
+  ctx: BuildTreeContext,
+  ref: string,
+  filled: openehr_am.ARCHETYPE,
+): string | undefined {
+  const table = termTableForArchetype(filled, {
+    resolve: (id) => ctx.resolveArchetype?.(id),
+  });
+  const bag = termBagForLanguage(table, ctx.language);
+  if (Object.keys(bag).length) {
+    ctx.archetypeTerms[ref] = bag;
+    const templateId = readTemplateId(filled);
+    if (templateId && templateId !== ref) ctx.archetypeTerms[templateId] = bag;
+    const archetypeId = filled.archetype_id?.value;
+    if (
+      archetypeId && archetypeId !== ref && archetypeId !== templateId &&
+      !Object.keys(ctx.archetypeTerms[archetypeId] ?? {}).length
+    ) {
+      ctx.archetypeTerms[archetypeId] = bag;
+    }
+  }
+  return conceptNodeId(bag, filled.definition?.node_id);
+}
+
+function conceptNodeId(
+  bag: TermBag,
+  definitionNodeId?: string,
+): string | undefined {
+  if (definitionNodeId && bag[definitionNodeId]?.text) return definitionNodeId;
+  if (bag["at0000.1"]?.text) return "at0000.1";
+  if (bag["at0000"]?.text) return "at0000";
+  return definitionNodeId;
+}
+
+function overlayOwnerId(
+  filled: openehr_am.ARCHETYPE,
+  ref: string,
+): string {
+  if (filled instanceof openehr_am.TEMPLATE) {
+    return readTemplateId(filled) ?? ref;
+  }
+  return filled.archetype_id?.value ?? ref;
 }
 
 function seedArchetypeTermsFromResolver(
@@ -403,39 +465,37 @@ function buildObjectSubtree(
     const path = parentPath;
     const keyCount = countAnnotationKeysAtPath(doc, path);
     const ref = obj.archetype_ref;
+    const filled = ref && ctx.resolveArchetype
+      ? ctx.resolveArchetype(ref)
+      : undefined;
+    const conceptFallback = filled && ref
+      ? installResolvedTermBags(ctx, ref, filled)
+      : undefined;
     const scope = ref ?? ctx.termScope;
-    const nodeCtx: BuildTreeContext = scope ? { ...ctx, termScope: scope } : ctx;
+    const nodeCtx: BuildTreeContext = scope
+      ? { ...ctx, termScope: scope }
+      : ctx;
     const technical = ref
       ? `use ${ref}`
       : `${obj.rm_type_name ?? "ARCHETYPE_ROOT"}[${obj.node_id ?? "?"}]`;
-    const label = definitionNodeLabel(obj, nodeCtx, technical);
+    const label = definitionNodeLabel(obj, nodeCtx, technical, conceptFallback);
     let children = childrenOfComplex(obj, parentPath, doc, nodeCtx);
-    if (!children.length && ref && ctx.resolveArchetype) {
-      const filled = ctx.resolveArchetype(ref);
-      const overlayDef = filled?.definition;
-      if (overlayDef) {
-        const overlayDoc = getResourceDocumentation(filled);
-        const overlayId = filled.archetype_id?.value ?? ref;
-        mergeArchetypeOntologyTerms(
-          ctx.archetypeTerms,
-          overlayId,
-          filled,
-          ctx.language,
-        );
-        const overlayCtx: BuildTreeContext = {
-          ...ctx,
-          resolveArchetype: ctx.resolveArchetype,
-          overlayId,
-          overlayRootPath: path,
-          termScope: overlayId,
-        };
-        children = childrenOfComplex(
-          overlayDef,
-          parentPath,
-          overlayDoc,
-          overlayCtx,
-        );
-      }
+    if (!children.length && filled?.definition && ref) {
+      const overlayDoc = getResourceDocumentation(filled);
+      const overlayId = overlayOwnerId(filled, ref);
+      const overlayCtx: BuildTreeContext = {
+        ...ctx,
+        resolveArchetype: ctx.resolveArchetype,
+        overlayId,
+        overlayRootPath: path,
+        termScope: ref,
+      };
+      children = childrenOfComplex(
+        filled.definition,
+        parentPath,
+        overlayDoc,
+        overlayCtx,
+      );
     }
     return finishNode({
       id: path || "/root",
@@ -473,7 +533,9 @@ function buildObjectSubtree(
     const path = parentPath;
     const lookupPath = overlayRelativePath(path, ctx.overlayRootPath) ?? path;
     const keyCount = countAnnotationKeysAtPath(doc, lookupPath);
-    const technical = `${obj.rm_type_name ?? "PRIMITIVE"}[${obj.node_id ?? "?"}]`;
+    const technical = `${obj.rm_type_name ?? "PRIMITIVE"}[${
+      obj.node_id ?? "?"
+    }]`;
     const label = definitionNodeLabel(obj, ctx, technical);
     return finishNode({
       id: path,

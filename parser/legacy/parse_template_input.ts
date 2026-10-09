@@ -5,13 +5,18 @@
  * `term_archetype_scope` and fills `archetype_term_definitions`, matching the
  * flattening path used for `.t.json` / ADL templates. Prefer those scoped
  * tables over the merged `ontology.term_definitions` map, which still last-wins
- * on colliding at-codes such as `at0001`.
+ * on colliding at-codes such as `at0001`. Nested Better templates are keyed by
+ * template id as well as archetype id.
  */
 
 import { parseAdl, type ParseAdlResult } from "../parse_adl.ts";
 import { detectAdlVersion } from "../adl_version.ts";
 import { isOptXml, parseOptXml } from "./opt_xml_parser.ts";
-import { isOetXml, parseOetXml, type OetParseResult } from "./oet_xml_parser.ts";
+import {
+  isOetXml,
+  type OetParseResult,
+  parseOetXml,
+} from "./oet_xml_parser.ts";
 import { compileOetToOperational } from "./oet_compiler.ts";
 import { isTemplateJson, parseTemplateJson } from "./template_json_parser.ts";
 import { flattenToOperationalTemplate } from "../../am/util/flattening/template_flattener.ts";
@@ -46,8 +51,10 @@ export function detectTemplateInputFormat(source: string): TemplateInputFormat {
   if (isTemplateJson(t)) return "template_json";
   if (isOetXml(t)) return "oet_xml";
   if (isOptXml(t)) return "opt_xml";
-  if (t.startsWith("operational_template") || t.startsWith("template") ||
-    t.startsWith("archetype")) {
+  if (
+    t.startsWith("operational_template") || t.startsWith("template") ||
+    t.startsWith("archetype")
+  ) {
     const v = detectAdlVersion(t);
     if (v === "1.4") return "adl14";
     if (v === "2.x") return "adl2";
@@ -201,7 +208,10 @@ export function getOperationalTemplateFromInput(
 ): openehr_am.OPERATIONAL_TEMPLATE {
   const parsed = parseTemplateInput(source, options);
   if (parsed.operationalTemplate) return parsed.operationalTemplate;
-  if (parsed.kind === "template" && parsed.template && options?.archetypeRepository) {
+  if (
+    parsed.kind === "template" && parsed.template &&
+    options?.archetypeRepository
+  ) {
     return flattenToOperationalTemplate(
       parsed.template,
       options.archetypeRepository,

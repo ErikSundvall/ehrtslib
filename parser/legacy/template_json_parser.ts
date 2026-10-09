@@ -74,7 +74,7 @@ function parseTemplateObject(
   applyAuthoredArchetypeFields(template, root, warnings);
   const tplId = root.template_id ?? root.templateId;
   if (tplId !== undefined) {
-    (template as { template_id?: string }).template_id = String(tplId);
+    template.template_id = String(tplId);
   }
   return template;
 }

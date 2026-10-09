@@ -84,9 +84,10 @@ Archetype at-codes (`at0001`, `at0000`, …) are **local to one archetype**. A b
 
 `RMInstanceGenerator.locatableLabel` looks up labels with:
 
-1. `term_archetype_scope` on the constraint node (which archetype this node came from)
-2. `archetype_term_definitions[archetypeId][language][atCode]` (per-archetype bags)
-3. only then the merged `ontology.term_definitions` map
+1. `term_archetype_scope` on the constraint node (archetype id, or a Better template id such as `ChemoQ-fatigue` when the slot's `archetypeRef` is a template id)
+2. `archetype_term_definitions[scope][language][atCode]` — one bag per scope key. A second template that specialises the same archetype id keeps its own bag under its `templateId` (and under the `.t.json` basename when that string was the reference). The shared archetype id keeps the first bag and does not erase the others
+3. `term_name_fallback_node_id` on an inlined root, the embedded concept code (`at0000` / `at0000.1`), so a use-site id such as `at0039.1` is named **Fatigue** rather than left as a raw id or another template's question
+4. only then the merged `ontology.term_definitions` map
 
 Those scoped fields are filled by:
 
@@ -98,7 +99,9 @@ Those scoped fields are filled by:
 
 Do **not** treat `opt.ontology.term_definitions.en.at0001` as the name of a specific node. That flat map still last-wins when the same at-code appears in several inlined archetypes. It remains for consumers that only need a merged dictionary.
 
-`buildWebTemplate` uses the same scoped lookup as the generator, so Web Template node `name` / `localizedName` stay correct even when at-codes collide. The reconstructed OPT's flat ontology from `webTemplateToOpt` is still last-wins; use `archetype_term_definitions` or the names already on the Web Template tree.
+`buildWebTemplate` uses the same scoped lookup as the generator, so Web Template node `name` / `localizedName` stay correct even when at-codes collide across archetypes **or** across Better templates that share one archetype id. Pass `defaultLanguage` to read another language bag (`sv` → `Trötthet`). The reconstructed OPT's flat ontology from `webTemplateToOpt` is still last-wins; use `archetype_term_definitions` or the names already on the Web Template tree.
+
+Flatten copies the source Better `templateId` onto `OPERATIONAL_TEMPLATE.template_id`. Web Template `templateId` and OPT XML `<template_id>` use that value when it is set, so a ChemoForm export is `ChemoForm-MBA.v8` rather than the composition archetype id. Archetype id stays on `archetype_id`.
 
 `OptXmlSerializer` emits `xsi:type="C_ARCHETYPE_ROOT"` (the subclass must be tested **before** `C_COMPLEX_OBJECT`) and writes that root's `<term_definitions>`. It does not serialize term bindings or value sets.
 

@@ -30,7 +30,7 @@ import {
   type TermEntry,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
-import type { TermBag } from "../../am/util/ontology_merge.ts";
+import { readTemplateId, type TermBag } from "../../am/util/ontology_merge.ts";
 import {
   annotationsForAqlPath,
   applyL10nToLocalizedNames,
@@ -370,7 +370,8 @@ export class WebTemplateBuilder {
   }
 
   build(opt: openehr_am.OPERATIONAL_TEMPLATE): WebTemplate {
-    const templateId = opt.archetype_id?.value ?? "template.en.v1";
+    const templateId = readTemplateId(opt) ?? opt.archetype_id?.value ??
+      "template.en.v1";
 
     const origLang = opt.original_language;
     const defaultLanguage =
@@ -520,11 +521,7 @@ export class WebTemplateBuilder {
               this.buildElement(
                 child,
                 childPath,
-                nodeShell(node, {
-                  id: normalizeWebTemplateId(childLabel),
-                  rmType: "ELEMENT",
-                  aqlPath: childPath,
-                }),
+                this.elementShell(child, childPath),
               ),
             );
           } else {
@@ -569,11 +566,7 @@ export class WebTemplateBuilder {
             out.push(this.buildElement(
               child,
               childPath,
-              nodeShell(parent, {
-                id: normalizeWebTemplateId(itemLabel),
-                rmType: "ELEMENT",
-                aqlPath: childPath,
-              }),
+              this.elementShell(child, childPath),
             ));
           } else {
             out.push(this.buildFromComplex(
@@ -649,6 +642,30 @@ export class WebTemplateBuilder {
       id: normalizeWebTemplateId(shell.id || "history"),
       children: eventNodes.length ? eventNodes : undefined,
     });
+  }
+
+  /** ELEMENT shell uses the element's own term and node id, not the parent's. */
+  private elementShell(
+    child: openehr_am.C_OBJECT,
+    aqlPath: string,
+  ): WebTemplateNode {
+    const term = this.termFor(child);
+    const label = term.text ?? child.rm_type_name?.toLowerCase() ?? "element";
+    const { min, max } = multiplicityBounds(child.occurrences);
+    return {
+      id: normalizeWebTemplateId(label),
+      name: term.text ?? label,
+      localizedName: term.text,
+      rmType: "ELEMENT",
+      nodeId: constraintNodeId(child),
+      min,
+      max,
+      aqlPath,
+      localizedNames: term.text ? { [this.lang]: term.text } : undefined,
+      localizedDescriptions: term.description
+        ? { [this.lang]: term.description }
+        : undefined,
+    };
   }
 
   private buildElement(

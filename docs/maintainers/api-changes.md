@@ -18,6 +18,10 @@ Check these consumers when the public API changes:
 - `examples/taaat-app`
 - [regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator)
 
+## Unreleased
+
+Flatten of a Better `.t.json` keeps a separate `archetype_term_definitions` bag per template id when several templates specialise one archetype (issue #110). `OPERATIONAL_TEMPLATE.template_id` carries that Better id. Web Template `templateId` and OPT XML `<template_id>` use it when set; `archetype_id` is unchanged. Applications that rebuilt those bags themselves (including [regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator)) can read the operational template directly.
+
 ## 0.2.0 (tag `v0.2`)
 
 - Removed `Iso8601_date.timezone()`. Timezone stays on `Iso8601_date_time` and `Iso8601_time`.

@@ -13,7 +13,7 @@
 import { XMLBuilder } from "fast-xml-parser";
 import * as openehr_am from "../am/openehr_am.ts";
 import * as openehr_base from "../base/openehr_base.ts";
-import type { TermBag } from "../am/util/ontology_merge.ts";
+import { readTemplateId, type TermBag } from "../am/util/ontology_merge.ts";
 import {
   COMPONENT_TERM_DEFINITIONS_KEY,
   type OperationalTemplateWithTermScopes,
@@ -412,7 +412,8 @@ export class OptXmlSerializer {
       annotationSource = shell;
     }
 
-    const templateId = opt.archetype_id?.value ?? "template.en.v1";
+    const templateId = readTemplateId(opt) ?? opt.archetype_id?.value ??
+      "template.en.v1";
     const ctx: SerializeCtx = {
       termsByArchetype: termsByArchetypeFromOpt(opt),
     };

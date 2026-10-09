@@ -5,10 +5,20 @@
  * (set during flattening or OPT XML parse). `at0001` is local to an archetype,
  * so a flat `ontology.term_definitions` map keyed only on at-code is not a
  * reliable lookup: the last colliding code wins.
+ *
+ * Better `.t.json` nests are scoped by template id (`ChemoQ-fatigue`), not
+ * only by archetype id. Several templates can specialise one archetype, so
+ * `archetype_term_definitions` keeps a bag per template id (and per basename
+ * used as `archetypeRef`). `term_name_fallback_node_id` on an inlined root
+ * points at that template's concept code (`at0000` / `at0000.1`) when the
+ * use-site id (`at0039.1`) is not itself in the bag.
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
-import type { TermBag, TermDefinitionTable } from "../am/util/ontology_merge.ts";
+import type {
+  TermBag,
+  TermDefinitionTable,
+} from "../am/util/ontology_merge.ts";
 import { termCodeCandidates } from "./term_codes.ts";
 
 export const TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
@@ -81,7 +91,10 @@ export function lookupTermEntryInBag(
 }
 
 /** Lookup a label in one terminology bag, including single-suffix matches (at0003 → at0003.1). */
-export function lookupTermInBag(bag: TermBag, code?: string): string | undefined {
+export function lookupTermInBag(
+  bag: TermBag,
+  code?: string,
+): string | undefined {
   return lookupTermEntryInBag(bag, code)?.text;
 }
 

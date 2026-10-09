@@ -22,6 +22,8 @@ JSON serialisation of an AOM **`TEMPLATE`** (and embedded **`TEMPLATE_OVERLAY`**
 
 *Not the same as* **Web Template** (ITS-REST simplified schema used for FLAT/STRUCTURED).
 
+A file may nest other templates by `templateId`. Those nests keep separate terminology even when they specialise one archetype id. See [Clinical model file sets](docs/CLINICAL_MODEL_FILESETS.md#nested-templates-that-share-an-archetype-id).
+
 ## Web Template
 
 JSON tree derived from an **operational template** for simplified composition serialisation (FLAT/STRUCTURED). Built in ehrtslib by `buildWebTemplate()` from OPT/AOM operational templates.

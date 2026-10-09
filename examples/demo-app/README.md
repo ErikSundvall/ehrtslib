@@ -9,6 +9,8 @@ Browser demo that converts openEHR RM instances and generates examples from temp
 - Convert among JSON, XML, YAML, Markdown, AsciiDoc, ZipEHR, and TypeScript constructor source
 - FLAT / STRUCTURED simplified I/O (needs a loaded template / Web Template) — [docs/SIMPLIFIED_FORMATS.md](../../docs/SIMPLIFIED_FORMATS.md)
 - Template file sets: upload `.adl` / `.opt` / `.oet` / `.t.json` / ZIP; generation modes `minimal` / `example` / `maximal`
+- **Language** on the template tab names example data and Web Template nodes. Nested Better templates that share an archetype id keep their own question text, and the status line shows the Better template id (`ChemoForm-MBA.v8`) as well as the archetype id
+- **Web Template** output checkbox shows that JSON. Node names follow the selected language
 - **Template from AD@git** — load Better `.t.json` + dependencies from GitHub ([docs/CLINICAL_MODEL_FILESETS.md](../../docs/CLINICAL_MODEL_FILESETS.md))
 - Curated model catalog — **[Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples) first**, then Region Stockholm MDT and others
 - Instance preset **Accident report + vitals (Ehrlibs FLAT)** matching that template’s Web Template paths

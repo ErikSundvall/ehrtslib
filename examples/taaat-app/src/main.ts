@@ -295,6 +295,9 @@ function modelLanguages(): string[] {
     const arch = workspace.repository.get(id);
     if (arch) addFrom(arch);
   }
+  for (const template of workspace.repository.listTemplates()) {
+    addFrom(template);
+  }
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
@@ -332,14 +335,15 @@ function syncFacets(): void {
 function currentTree(): DefinitionTreeNode | undefined {
   if (!activeResource) return undefined;
   return buildDefinitionTree(activeResource, {
-    resolveArchetype: (id) => workspace.repository.get(id),
+    // resolve() also finds Better templates nested by template id.
+    resolveArchetype: (id) => workspace.repository.resolve(id),
     language: currentOriginalLanguage(),
   });
 }
 
 function ownerForNode(node: DefinitionTreeNode): AnnotatedResource | undefined {
   if (node.overlayId) {
-    const overlay = workspace.repository.get(node.overlayId);
+    const overlay = workspace.repository.resolve(node.overlayId);
     if (overlay) return overlay;
   }
   return activeResource;
@@ -362,6 +366,12 @@ function workspaceDocumentation(): AnnotationDocumentation {
     if (!arch || seen.has(key) || arch === activeResource) continue;
     seen.add(key);
     docs.push(getResourceDocumentation(arch));
+  }
+  for (const template of workspace.repository.listTemplates()) {
+    const key = template.template_id ?? template.archetype_id?.value ?? "";
+    if (!key || seen.has(key) || template === activeResource) continue;
+    seen.add(key);
+    docs.push(getResourceDocumentation(template));
   }
   return mergeDocumentation(docs);
 }
