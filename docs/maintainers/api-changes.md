@@ -16,7 +16,6 @@ Check these consumers when the public API changes:
 
 - `examples/demo-app`
 - `examples/taaat-app`
-- [regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator)
 
 ## Unreleased
 
