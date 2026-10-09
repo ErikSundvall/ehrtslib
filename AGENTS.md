@@ -51,8 +51,7 @@ name still compiles. Remove the old name, update Demo and TAAAT in the same
 change, and record it in
 [`docs/maintainers/api-changes.md`](docs/maintainers/api-changes.md). Keep
 loading existing openEHR artefacts (ADL, OPT, OET, compositions, BMM JSON/ODIN,
-archetype rules). The external consumer to warn, besides the in-repo apps, is
-[regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator).
+archetype rules).
 
 ## Development tooling guidance
 
