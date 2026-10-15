@@ -29,6 +29,12 @@ export interface ADL2ParseResult {
   archetype?: openehr_am.ARCHETYPE;
   template?: openehr_am.TEMPLATE;
   operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE;
+  /**
+   * Fatal parse problems (e.g. cADL definition failure). Non-empty means the
+   * result must not be treated as a successful parse; prefer checking this
+   * or catching the thrown error from {@link ADL2Parser.parse}.
+   */
+  errors: string[];
   warnings: string[];
 }
 
@@ -38,6 +44,7 @@ export interface ADL2ParseResult {
 export class ADL2Parser {
   private tokens: Token[];
   private position: number = 0;
+  private errors: string[] = [];
   private warnings: string[] = [];
 
   constructor(tokens: Token[]) {
@@ -55,19 +62,20 @@ export class ADL2Parser {
     const keyword = this.peek().type;
     if (keyword === TokenType.TEMPLATE) {
       const template = this.parseTemplate();
-      return { kind: "template", template, warnings: this.warnings };
+      return { kind: "template", template, errors: this.errors, warnings: this.warnings };
     }
     if (keyword === TokenType.OPERATIONAL_TEMPLATE) {
       const operationalTemplate = this.parseOperationalTemplate();
       return {
         kind: "operational_template",
         operationalTemplate,
+        errors: this.errors,
         warnings: this.warnings,
       };
     }
     if (keyword === TokenType.ARCHETYPE) {
       const archetype = this.parseArchetype();
-      return { kind: "archetype", archetype, warnings: this.warnings };
+      return { kind: "archetype", archetype, errors: this.errors, warnings: this.warnings };
     }
 
     throw this.error(
@@ -258,10 +266,15 @@ export class ADL2Parser {
       const definition = cadlParser.parseComplexObject();
       archetype.definition = definition;
     } catch (e) {
-      this.warnings.push(`Definition section parsing error: ${e.message}`);
-      // Create minimal definition as fallback
-      const definition = new openehr_am.C_COMPLEX_OBJECT();
-      archetype.definition = definition;
+      // Fatal: an empty/fallback definition would serialize as
+      // `definition undefined[undefined]` (see issue #113).
+      const message = e instanceof Error ? e.message : String(e);
+      const fatal =
+        `Definition section parsing error: ${message}`;
+      this.errors.push(fatal);
+      throw this.error(
+        `Failed to parse definition section (fatal cADL error): ${message}`,
+      );
     }
   }
 

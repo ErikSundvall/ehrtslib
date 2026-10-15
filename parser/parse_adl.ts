@@ -51,6 +51,7 @@ export function parseAdl(
 
   return {
     ...parseResult,
+    errors: [...parseResult.errors],
     warnings: [...conversionWarnings, ...parseResult.warnings],
     detectedVersion,
     convertedFrom14,
