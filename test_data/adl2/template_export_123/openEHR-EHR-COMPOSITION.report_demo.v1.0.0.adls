@@ -1,0 +1,63 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-COMPOSITION.report_demo.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			author = <
+				["name"] = <"Test">
+			>
+		>
+	>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"Ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Demo report">
+		>
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			purpose = <"Demo report (sv)">
+		>
+	>
+
+definition
+	COMPOSITION[id1] matches {	-- Report
+		category matches {
+			DV_CODED_TEXT[id9001] matches {
+				defining_code matches {[at9000]}
+			}
+		}
+		content cardinality matches {0..*; unordered} matches {
+			allow_archetype OBSERVATION[id2] occurrences matches {0..*} matches {
+				include
+					archetype_id/value matches {/.*/}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Report"> description = <"A report.">>
+			["id2"] = <text = <"Content"> description = <"Content slot.">>
+			["at9000"] = <text = <"event"> description = <"event">>
+		>
+		["sv"] = <
+			["id1"] = <text = <"Rapport"> description = <"En rapport.">>
+			["id2"] = <text = <"Innehåll"> description = <"Innehållsslot.">>
+			["at9000"] = <text = <"händelse"> description = <"händelse">>
+		>
+	>
+	term_bindings = <
+		["openehr"] = <
+			["at9000"] = <http://openehr.org/id/433>
+		>
+	>

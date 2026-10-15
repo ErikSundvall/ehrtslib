@@ -1,0 +1,101 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-CLUSTER.analyte_demo.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			author = <
+				["name"] = <"Test">
+			>
+		>
+	>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"Ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Demo analyte">
+		>
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			purpose = <"Demo analyte (sv)">
+		>
+	>
+
+definition
+	CLUSTER[id1] matches {	-- Analyte
+		items cardinality matches {1..*; unordered} matches {
+			ELEMENT[id2] occurrences matches {0..1} matches {	-- Analyte name
+				value matches {
+					DV_TEXT[id9001]
+				}
+			}
+			ELEMENT[id3] occurrences matches {0..1} matches {	-- Result
+				value matches {
+					DV_QUANTITY[id9002] matches {
+						property matches {[at9000]}
+						units matches {"mmol/l"}
+						magnitude matches {|>=0.0|}
+					}
+					DV_COUNT[id9003] matches {
+						magnitude matches {|0..1000|}
+					}
+				}
+			}
+			ELEMENT[id4] occurrences matches {0..1} matches {	-- Status
+				value matches {
+					DV_CODED_TEXT[id9004] matches {
+						defining_code matches {[ac1]}
+					}
+				}
+			}
+			ELEMENT[id5] occurrences matches {0..1} matches {	-- Comment
+				value matches {
+					DV_TEXT[id9005]
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Analyte"> description = <"Analyte result.">>
+			["id2"] = <text = <"Analyte name"> description = <"Name.">>
+			["id3"] = <text = <"Result"> description = <"Result value.">>
+			["id4"] = <text = <"Status"> description = <"Result status.">>
+			["id5"] = <text = <"Comment"> description = <"Comment.">>
+			["at1"] = <text = <"Preliminary"> description = <"Preliminary.">>
+			["at2"] = <text = <"Final"> description = <"Final.">>
+			["ac1"] = <text = <"Status values"> description = <"Status values.">>
+			["at9000"] = <text = <"Concentration"> description = <"Concentration">>
+		>
+		["sv"] = <
+			["id1"] = <text = <"Analyt"> description = <"Analytresultat.">>
+			["id2"] = <text = <"Analytnamn"> description = <"Namn.">>
+			["id3"] = <text = <"Resultat"> description = <"Resultatvärde.">>
+			["id4"] = <text = <"Status"> description = <"Resultatstatus.">>
+			["id5"] = <text = <"Kommentar"> description = <"Kommentar.">>
+			["at1"] = <text = <"Preliminär"> description = <"Preliminär.">>
+			["at2"] = <text = <"Slutlig"> description = <"Slutlig.">>
+			["ac1"] = <text = <"Statusvärden"> description = <"Statusvärden.">>
+			["at9000"] = <text = <"Koncentration"> description = <"Koncentration">>
+		>
+	>
+	term_bindings = <
+		["openehr"] = <
+			["at9000"] = <http://openehr.org/id/119>
+		>
+	>
+	value_sets = <
+		["ac1"] = <
+			id = <"ac1">
+			members = <"at1", "at2">
+		>
+	>

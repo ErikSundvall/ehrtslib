@@ -1,0 +1,76 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-OBSERVATION.lab_demo.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			author = <
+				["name"] = <"Test">
+			>
+		>
+	>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"Ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Demo lab result">
+		>
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			purpose = <"Demo lab result (sv)">
+		>
+	>
+
+definition
+	OBSERVATION[id1] matches {	-- Lab result
+		data matches {
+			HISTORY[id2] matches {
+				events cardinality matches {1..*; unordered} matches {
+					EVENT[id3] occurrences matches {0..*} matches {
+						data matches {
+							ITEM_TREE[id4] matches {
+								items cardinality matches {0..*; unordered} matches {
+									ELEMENT[id5] occurrences matches {0..1} matches {	-- Test name
+										value matches {
+											DV_TEXT[id9002]
+										}
+									}
+									allow_archetype CLUSTER[id6] occurrences matches {0..*} matches {	-- Analyte
+										include
+											archetype_id/value matches {/openEHR-EHR-CLUSTER\.analyte_demo(-[a-zA-Z0-9_]+)*\.v1\..*/}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Lab result"> description = <"Laboratory result.">>
+			["id2"] = <text = <"History"> description = <"History.">>
+			["id3"] = <text = <"Any event"> description = <"Any event.">>
+			["id4"] = <text = <"Tree"> description = <"Tree.">>
+			["id5"] = <text = <"Test name"> description = <"Name of the test.">>
+			["id6"] = <text = <"Analyte"> description = <"Analyte slot.">>
+		>
+		["sv"] = <
+			["id1"] = <text = <"Labbresultat"> description = <"Laboratorieresultat.">>
+			["id2"] = <text = <"Historik"> description = <"Historik.">>
+			["id3"] = <text = <"Valfri händelse"> description = <"Valfri händelse.">>
+			["id4"] = <text = <"Träd"> description = <"Träd.">>
+			["id5"] = <text = <"Testnamn"> description = <"Testets namn.">>
+			["id6"] = <text = <"Analyt"> description = <"Analytslot.">>
+		>
+	>

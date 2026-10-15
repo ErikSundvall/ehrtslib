@@ -35,6 +35,7 @@
     "proto:taaat": "deno run -A examples/taaat-app/scripts/dev-server.ts",
     "pack:library": "deno run -A scripts/pack_library.ts",
     "release": "deno run -A scripts/release.ts",
-    "pages:assemble": "deno run -A scripts/assemble-pages.ts"
+    "pages:assemble": "deno run -A scripts/assemble-pages.ts",
+    "export:opt14": "deno run --allow-read --allow-write tasks/export_adl2_template.ts"
   }
 }

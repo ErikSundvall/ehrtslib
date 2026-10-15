@@ -11,7 +11,11 @@ import {
   parseLegacyTemplateXml,
   textValue,
 } from "./xml_aom_mapper.ts";
-import { applyOperationalTemplateTermScopes } from "../../generation/term_scope.ts";
+import {
+  applyOperationalTemplateTermScopes,
+  type OperationalTemplateWithTermScopes,
+} from "../../generation/term_scope.ts";
+import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
 import { setOptPathAnnotationItems } from "../../generation/opt_l10n.ts";
 
 export interface OptXmlParseResult {
@@ -78,6 +82,24 @@ export function parseOptXml(source: string): OptXmlParseResult {
 
   const termBag: Record<string, Record<string, { text?: string; description?: string }>> = {};
   collectTermDefinitions(defNode, termBag);
+  // Per-root <term_definitions> carry the template's original language.
+  const origLang = langCode || "en";
+  if (origLang !== "en" && termBag.en) {
+    termBag[origLang] = termBag.en;
+    delete termBag.en;
+  }
+
+  // `<component_ontologies archetype_id="…">` hold all languages per archetype
+  // id (one block per id — see discourse.openehr.org/t/2760).
+  const componentTerms = parseComponentOntologies(root);
+  if (Object.keys(componentTerms).length) {
+    (opt as OperationalTemplateWithTermScopes).archetype_term_definitions =
+      componentTerms;
+    const rootTables = archId ? componentTerms[archId] : undefined;
+    for (const [lang, bag] of Object.entries(rootTables ?? {})) {
+      termBag[lang] = { ...bag, ...(termBag[lang] ?? {}) };
+    }
+  }
   if (Object.keys(termBag).length) {
     const ontology = new openehr_am.ARCHETYPE_ONTOLOGY();
     ontology.term_definitions = termBag;
@@ -89,7 +111,7 @@ export function parseOptXml(source: string): OptXmlParseResult {
 
   // Per-archetype bags + term_archetype_scope on every inlined node.
   // The merged ontology above is last-wins on colliding at-codes.
-  applyOperationalTemplateTermScopes(opt, "en");
+  applyOperationalTemplateTermScopes(opt, origLang);
 
   // Path annotations (including Better/AD `L10n.{lang}` name overrides).
   parseOptAnnotations(root, opt);
@@ -125,4 +147,47 @@ function parseOptAnnotations(
     }
     setOptPathAnnotationItems(opt, path, items);
   }
+}
+
+/**
+ * Parse `<component_ontologies archetype_id="…">` (also accepts
+ * `component_terminologies`) into archetype id → language → code → term.
+ */
+export function parseComponentOntologies(
+  root: Record<string, unknown>,
+): Record<string, TermDefinitionTable> {
+  const out: Record<string, TermDefinitionTable> = {};
+  const blocks = [
+    ...asArray(root.component_ontologies),
+    ...asArray(root.component_terminologies),
+  ];
+  for (const raw of blocks) {
+    if (!raw || typeof raw !== "object") continue;
+    const rec = raw as Record<string, unknown>;
+    const archId = String(rec["@_archetype_id"] ?? "").trim();
+    if (!archId) continue;
+    for (const td of asArray(rec.term_definitions)) {
+      const t = td as Record<string, unknown>;
+      const lang = String(t["@_language"] ?? "").trim();
+      if (!lang) continue;
+      const bag: Record<string, { text?: string; description?: string }> = {};
+      for (const it of asArray(t.items)) {
+        const item = it as Record<string, unknown>;
+        const code = String(item["@_code"] ?? "").trim();
+        if (!code) continue;
+        const entry: { text?: string; description?: string } = {};
+        for (const sub of asArray(item.items)) {
+          const si = sub as Record<string, unknown>;
+          const id = String(si["@_id"] ?? "");
+          const val = textValue(si);
+          if (id === "text" && val) entry.text = val;
+          if (id === "description" && val) entry.description = val;
+        }
+        if (entry.text || entry.description) bag[code] = entry;
+      }
+      out[archId] ??= {};
+      out[archId][lang] = { ...(out[archId][lang] ?? {}), ...bag };
+    }
+  }
+  return out;
 }
