@@ -4,6 +4,13 @@
 
 import * as openehr_am from "../am/openehr_am.ts";
 import { ADL2Serializer } from "./adl2_serializer.ts";
+import {
+  expandAcConstraintsInAdl,
+  idToAtCode,
+  rewriteOntologyTermKeys,
+  stripValueSetsBlock,
+  type ValueSetBag,
+} from "./id_to_at_code.ts";
 
 export interface Adl14SerializerConfig {
   indent?: string;
@@ -30,6 +37,12 @@ export class ADL14Serializer {
     adl = adl.replace(/\bterminology\b/g, "ontology");
     adl = adl.replace(/\bterm_bindings\b/g, "constraint_bindings");
     adl = this.convertNodeIdsToAtCodes(adl);
+    adl = rewriteOntologyTermKeys(adl);
+    const valueSets = (archetype.ontology as { value_sets?: ValueSetBag } | undefined)
+      ?.value_sets;
+    const expanded = expandAcConstraintsInAdl(adl, valueSets);
+    adl = expanded.adl;
+    adl = stripValueSetsBlock(adl);
     adl = this.wrapTermDefinitionItems(adl);
     return adl.trimEnd() + "\n";
   }
@@ -125,13 +138,8 @@ export class ADL14Serializer {
     return conceptCode;
   }
 
-  /** Best-effort idN → atNNNN (specialised id1.1 → at0001.1). Full mapping in #116. */
   private idToAtCode(code: string): string {
-    const m = /^(id|at|ac)(\d+)((?:\.\d+)*)$/i.exec(code);
-    if (!m) return code || "at0000";
-    if (m[1].toLowerCase() === "ac") return code;
-    const padded = m[2].padStart(4, "0");
-    return `at${padded}${m[3] ?? ""}`;
+    return idToAtCode(code) || "at0000";
   }
 
   /**
