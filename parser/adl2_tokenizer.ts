@@ -404,11 +404,23 @@ export class ADL2Tokenizer {
         this.position += 2;
         
         if (!this.isAtEnd() && this.isDigit(this.peek())) {
-          // It's a code
+          // It's a code (optional .N specialisation suffixes: at0.1, ac9001.1)
           let code = prefix;
           while (!this.isAtEnd() && this.isDigit(this.peek())) {
             code += this.peek();
             this.advance();
+          }
+          while (
+            !this.isAtEnd() &&
+            this.peek() === "." &&
+            this.isDigit(this.peekNext())
+          ) {
+            code += this.peek(); // '.'
+            this.advance();
+            while (!this.isAtEnd() && this.isDigit(this.peek())) {
+              code += this.peek();
+              this.advance();
+            }
           }
           return this.makeToken(
             next === "t" ? TokenType.AT_CODE : TokenType.AC_CODE,
@@ -429,10 +441,23 @@ export class ADL2Tokenizer {
       this.position += 2;
       
       if (!this.isAtEnd() && this.isDigit(this.peek())) {
+        // idN with optional .N specialisation suffixes (id1.1, id0.1)
         let code = "id";
         while (!this.isAtEnd() && this.isDigit(this.peek())) {
           code += this.peek();
           this.advance();
+        }
+        while (
+          !this.isAtEnd() &&
+          this.peek() === "." &&
+          this.isDigit(this.peekNext())
+        ) {
+          code += this.peek(); // '.'
+          this.advance();
+          while (!this.isAtEnd() && this.isDigit(this.peek())) {
+            code += this.peek();
+            this.advance();
+          }
         }
         return this.makeToken(TokenType.ID_CODE, code, startLine, startColumn);
       }
