@@ -46,16 +46,49 @@ function isPlainObject(value: OdinValue): value is OdinObject {
     (value as { _type?: string })._type !== "interval";
 }
 
-function shouldQuoteOdinKey(key: string, val: OdinValue, obj: OdinObject): boolean {
+/** Known ODIN / resource attribute names — keep bare (not ["key"]). */
+const SCHEMA_ATTR_KEYS = new Set([
+  "language",
+  "author",
+  "text",
+  "description",
+  "purpose",
+  "use",
+  "misuse",
+  "keywords",
+  "copyright",
+  "id",
+  "members",
+  "lifecycle_state",
+  "original_language",
+  "translations",
+  "original_author",
+  "details",
+  "other_details",
+  "other_contributors",
+  "licence",
+  "license",
+  "custodian_namespace",
+  "custodian_organisation",
+  "custodian_organization",
+  "references",
+  "ip_acknowledgements",
+  "resource_package_uri",
+  "conversion_details",
+  "terminologies_available",
+  "term_definitions",
+  "term_bindings",
+  "constraint_bindings",
+  "value_sets",
+  "items",
+]);
+
+function shouldQuoteOdinKey(key: string, _val: OdinValue, _obj: OdinObject): boolean {
   if (key.startsWith("[") || key.includes("[")) return true;
-  if (isPlainObject(val)) return true;
-  // Hash maps of primitives (original_author, author, …) use ["name"] keys.
-  const values = Object.values(obj);
-  return values.length > 0 &&
-    values.every((v) =>
-      v === null || v === undefined ||
-      typeof v === "string" || typeof v === "number" || typeof v === "boolean"
-    );
+  // Schema attributes stay bare: author = <…>, language = <…>
+  if (SCHEMA_ATTR_KEYS.has(key)) return false;
+  // Hash / map keys (lang codes, term codes, name/email/…): ["sv"], ["name"]
+  return true;
 }
 
 export function serializeOdinValue(

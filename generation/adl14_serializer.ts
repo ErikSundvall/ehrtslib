@@ -192,18 +192,56 @@ export class ADL14Serializer {
     return out.join("\n");
   }
 
+  /**
+   * ADL 1.4 ontology: ["en"] = < items = < … > >.
+   * Port of Archie's line-based wrapTermDefinitionItems.
+   */
   private wrapTermDefinitionItems(adl: string): string {
-    return adl.replace(
-      /^([ \t]*)term_definitions\s*=\s*<\s*\n([\s\S]*?)^\1>/gm,
-      (_full, indent: string, body: string) => {
-        // Already wrapped?
-        if (/^\s*items\s*=\s*</m.test(body)) {
-          return `${indent}term_definitions = <\n${body}${indent}>`;
+    const td = adl.indexOf("term_definitions");
+    if (td < 0) return adl;
+    if (adl.slice(td).includes("items = <")) return adl;
+
+    const head = adl.slice(0, td);
+    const rest = adl.slice(td);
+    const lines = rest.split("\n");
+    const out: string[] = [];
+    let inTermDefs = false;
+    let langIndent: string | null = null;
+    let openedItems = false;
+
+    for (const line of lines) {
+      if (/^\s*term_definitions\s*=\s*<\s*$/.test(line)) {
+        inTermDefs = true;
+        out.push(line);
+        continue;
+      }
+      if (inTermDefs) {
+        const lm = /^([ \t]*)\["([^"]+)"\]\s*=\s*<\s*$/.exec(line);
+        if (lm && !openedItems) {
+          langIndent = lm[1];
+          out.push(line);
+          out.push(`${langIndent}    items = <`);
+          openedItems = true;
+          continue;
         }
-        return `${indent}term_definitions = <\n${indent}    items = <\n${body}${indent}    >\n${indent}>`;
-      },
-    );
+        if (openedItems && langIndent !== null) {
+          if (line === `${langIndent}>` || line === `${langIndent}>\r`) {
+            out.push(`${langIndent}    >`);
+            out.push(line);
+            openedItems = false;
+            langIndent = null;
+            continue;
+          }
+        }
+        if (/^\s*>\s*$/.test(line) && !openedItems) {
+          inTermDefs = false;
+        }
+      }
+      out.push(line);
+    }
+    return head + out.join("\n");
   }
+
 }
 
 /** Round-trip metrics for tests. */

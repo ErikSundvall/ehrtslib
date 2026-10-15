@@ -153,19 +153,31 @@ export class ADL2Serializer {
 
     const children = (cAttribute as { children?: openehr_am.C_OBJECT[] }).children;
     if (children && children.length > 0) {
-      adl += " matches {\n";
-      for (const child of children) {
-        if (child instanceof openehr_am.ARCHETYPE_SLOT) {
-          adl += this.serializeSlot(child, level + 1);
-        } else if (child instanceof openehr_am.C_TERMINOLOGY_CODE) {
-          adl += this.serializeTerminologyCode(child, level + 1);
-        } else if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
-          adl += this.serializeDefinition(child, level + 1);
-        } else if (child instanceof openehr_am.C_PRIMITIVE_OBJECT) {
-          adl += this.serializePrimitiveObject(child, level + 1);
+      // Inline interval constraint: magnitude matches {|>0|}
+      if (
+        children.length === 1 &&
+        children[0] instanceof openehr_am.C_PRIMITIVE_OBJECT &&
+        !(children[0] instanceof openehr_am.C_TERMINOLOGY_CODE) &&
+        !children[0].node_id &&
+        children[0].item instanceof openehr_am.C_STRING &&
+        children[0].item.pattern
+      ) {
+        adl += ` matches {|${children[0].item.pattern}|}\n`;
+      } else {
+        adl += " matches {\n";
+        for (const child of children) {
+          if (child instanceof openehr_am.ARCHETYPE_SLOT) {
+            adl += this.serializeSlot(child, level + 1);
+          } else if (child instanceof openehr_am.C_TERMINOLOGY_CODE) {
+            adl += this.serializeTerminologyCode(child, level + 1);
+          } else if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
+            adl += this.serializeDefinition(child, level + 1);
+          } else if (child instanceof openehr_am.C_PRIMITIVE_OBJECT) {
+            adl += this.serializePrimitiveObject(child, level + 1);
+          }
         }
+        adl += `${indent}}\n`;
       }
-      adl += `${indent}}\n`;
     } else {
       adl += "\n";
     }
