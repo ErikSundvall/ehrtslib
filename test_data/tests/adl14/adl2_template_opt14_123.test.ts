@@ -100,16 +100,24 @@ Deno.test("#123 OPT 1.4 export without workaround warns about lost translations"
   assert(w.includes("sv"), w);
 });
 
+function xsdPath(): string | undefined {
+  try {
+    return Deno.env.get("OPENEHR_OPT14_XSD");
+  } catch {
+    return undefined; // no --allow-env: skip
+  }
+}
+
 Deno.test({
   name: "#123 OPT 1.4 export validates against XSD (OPENEHR_OPT14_XSD)",
-  ignore: !Deno.env.get("OPENEHR_OPT14_XSD"),
+  ignore: !xsdPath(),
   permissions: { read: true, write: true, run: true, env: true },
   async fn() {
     const { lib, tid } = load();
     const f = await Deno.makeTempFile({ suffix: ".opt" });
     await Deno.writeTextFile(f, exportAdl2TemplateToOpt14(lib, tid).xml);
     const out = await new Deno.Command("xmllint", {
-      args: ["--noout", "--schema", Deno.env.get("OPENEHR_OPT14_XSD")!, f],
+      args: ["--noout", "--schema", xsdPath()!, f],
     }).output();
     assert(out.success, new TextDecoder().decode(out.stderr));
   },
