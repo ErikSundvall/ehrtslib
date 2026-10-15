@@ -23,6 +23,7 @@ export class ADL14Serializer {
   }
 
   serialize(archetype: openehr_am.ARCHETYPE): string {
+    this.assertSerializableDefinition(archetype);
     let adl = this.inner.serialize(archetype);
     adl = this.toAdl14Header(adl, archetype);
     adl = adl.replace(/\bterminology\b/g, "ontology");
@@ -40,6 +41,23 @@ export class ADL14Serializer {
       /(\s+)(openEHR[^\s]+)\.v(\d+)\.(\d+)\.(\d+)/g,
       (_m, indent: string, base: string, maj: string) => `${indent}${base}.v${maj}`,
     );
+  }
+
+
+  /**
+   * Refuse to emit invalid ADL 1.4 when the AOM definition is missing or empty.
+   * Without this guard, ADL2Serializer writes `definition undefined[undefined]`.
+   * (@see https://github.com/ErikSundvall/ehrtslib/issues/113)
+   */
+  private assertSerializableDefinition(archetype: openehr_am.ARCHETYPE): void {
+    const def = archetype.definition;
+    if (!def || !def.rm_type_name || !def.node_id) {
+      throw new Error(
+        "ADL14Serializer: refuse to serialize archetype with empty or incomplete definition " +
+          "(missing rm_type_name/node_id). This usually means cADL parsing failed; " +
+          "see parse result errors / issue #113.",
+      );
+    }
   }
 
   private convertNodeIdsToAtCodes(adl: string): string {
