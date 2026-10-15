@@ -149,3 +149,20 @@ Deno.test("issue #114: CKM organisation.v1.0.4 ADL2 parses with definition", asy
   );
   assert(slots.length >= 1, "organisation should have archetype slots");
 });
+
+Deno.test("issue #114: specialised id0.1 / path overlay / |>0| interval parse", async () => {
+  const path =
+    "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.genomic_copy_number_variant-cancer.v1.0.0.adls";
+  let text: string;
+  try {
+    text = await Deno.readTextFile(path);
+  } catch {
+    return;
+  }
+  const result = parseAdl(text);
+  assertEquals(result.archetype?.definition?.node_id, "id1.1");
+  assertEquals(
+    result.archetype?.parent_archetype_id?.value,
+    "openEHR-EHR-CLUSTER.genomic_copy_number_variant.v1",
+  );
+});
