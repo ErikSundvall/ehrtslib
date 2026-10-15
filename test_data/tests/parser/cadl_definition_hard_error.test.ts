@@ -15,46 +15,37 @@ import { ADL14Serializer } from "../../../generation/adl14_serializer.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
 /**
- * Minimal ADL2 whose definition uses `DV_CODED_TEXT[id] matches {…}`.
- * Ehrtslib's cADL parser currently rejects that form; #113 requires the
- * failure to be fatal rather than a warning + empty definition.
+ * Minimal ADL2 whose definition has a stray identifier where a typed node is expected.
+ * #113 requires the failure to be fatal rather than a warning + empty
+ * definition. (Archie-valid DV_CODED_TEXT / slot forms are covered by #114.)
  */
 const FATAL_DEFINITION_ADL = `archetype (adl_version=2.0.6; rm_release=1.1.0)
-\topenEHR-EHR-CLUSTER.cadl_hard_error_probe.v1.0.0
+	openEHR-EHR-CLUSTER.cadl_hard_error_probe.v1.0.0
 
 language
-\toriginal_language = <[ISO_639-1::en]>
+	original_language = <[ISO_639-1::en]>
 
 definition
-\tCLUSTER[id1] matches {
-\t\titems matches {
-\t\t\tELEMENT[id2] matches {
-\t\t\t\tvalue matches {
-\t\t\t\t\tDV_CODED_TEXT[id3] matches {
-\t\t\t\t\t\tdefining_code matches {[ac1]}
-\t\t\t\t\t}
-\t\t\t\t}
-\t\t\t}
-\t\t}
-\t}
+	CLUSTER[id1] matches {
+		items matches {
+			ELEMENT[id2] matches {
+				value matches {
+					DV_TEXT[id3]
+					definitely_not_valid_token_here
+				}
+			}
+		}
+	}
 
 terminology
-\tterm_definitions = <
-\t\t["en"] = <
-\t\t\t["id1"] = <
-\t\t\t\ttext = <"Probe">
-\t\t\t\tdescription = <"Probe">
-\t\t\t>
-\t\t\t["id2"] = <
-\t\t\t\ttext = <"Item">
-\t\t\t\tdescription = <"Item">
-\t\t\t>
-\t\t\t["id3"] = <
-\t\t\t\ttext = <"Code">
-\t\t\t\tdescription = <"Code">
-\t\t\t>
-\t\t>
-\t>
+	term_definitions = <
+		["en"] = <
+			["id1"] = <
+				text = <"Probe">
+				description = <"Probe">
+			>
+		>
+	>
 `;
 
 Deno.test("issue #113: cADL definition failure throws (hard error)", () => {

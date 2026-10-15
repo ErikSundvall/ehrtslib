@@ -143,7 +143,7 @@ Deno.test("cADL - cardinality creates multiple attribute", () => {
   assertEquals(interval?.upper, undefined);
 });
 
-Deno.test("cADL - primitive DV_TEXT", () => {
+Deno.test("cADL - DV_TEXT as complex object (Archie style)", () => {
   const input = `ELEMENT[id5] matches {
     value matches {
       DV_TEXT[id6]
@@ -152,8 +152,10 @@ Deno.test("cADL - primitive DV_TEXT", () => {
   const result = parseCadl(input);
   const valueAttr = result.attributes?.[0];
   const child = (valueAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
-  assert(child instanceof openehr_am.C_PRIMITIVE_OBJECT);
+  // DV_* leaf types are C_COMPLEX_OBJECT in Archie-serialised ADL2 (#114).
+  assert(child instanceof openehr_am.C_COMPLEX_OBJECT);
   assertEquals(child.rm_type_name, "DV_TEXT");
+  assertEquals(child.node_id, "id6");
 });
 
 console.log("\n✅ cADL Parser tests completed");

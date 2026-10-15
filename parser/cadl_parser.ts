@@ -203,9 +203,40 @@ export class CadlParser {
       !this.checkKeyword("exclude") &&
       !this.isAtEnd()
     ) {
+      this.skipComments();
       const constraint = new openehr_am.ARCHETYPE_ID_CONSTRAINT();
       const str = new openehr_am.C_STRING();
-      if (this.check(TokenType.STRING)) {
+      // Archie / CKM form:
+      //   archetype_id/value matches {/openEHR-EHR-CLUSTER\..+\.v1/}
+      if (
+        this.check(TokenType.IDENTIFIER) &&
+        this.peek().value.toLowerCase() === "archetype_id"
+      ) {
+        this.advance(); // archetype_id
+        if (this.check(TokenType.SLASH)) {
+          this.advance();
+          if (
+            this.check(TokenType.IDENTIFIER) &&
+            this.peek().value.toLowerCase() === "value"
+          ) {
+            this.advance();
+          }
+        }
+        this.consume(TokenType.MATCHES, "Expected 'matches' after archetype_id/value");
+        this.consume(TokenType.LBRACE, "Expected '{' after matches");
+        if (this.check(TokenType.REGEX)) {
+          str.pattern = this.advance().value;
+        } else if (this.check(TokenType.STRING)) {
+          str.pattern = this.advance().value;
+        } else {
+          throw this.error(
+            "Expected archetype id regex or string constraint",
+          );
+        }
+        this.consume(TokenType.RBRACE, "Expected '}' to close archetype id constraint");
+      } else if (this.check(TokenType.REGEX)) {
+        str.pattern = this.advance().value;
+      } else if (this.check(TokenType.STRING)) {
         str.pattern = this.advance().value;
       } else if (this.check(TokenType.IDENTIFIER)) {
         str.pattern = this.advance().value;
@@ -237,9 +268,10 @@ export class CadlParser {
     if (!this.check(TokenType.IDENTIFIER)) return null;
 
     let attributeName = this.advance().value;
+    // ADL path segment, e.g. archetype_id/value
     if (this.check(TokenType.SLASH) && this.checkAhead(TokenType.IDENTIFIER, 1)) {
+      this.advance(); // '/'
       attributeName += "/" + this.advance().value;
-      this.advance(); // second part of path e.g. archetype_id/value
     }
     const hasCardinality = this.check(TokenType.CARDINALITY);
     const attribute: openehr_am.C_ATTRIBUTE = hasCardinality
@@ -267,24 +299,19 @@ export class CadlParser {
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         this.skipComments();
         const posBefore = this.position;
+        const termChild = this.tryParseTerminologyConstraint();
+        if (termChild) {
+          this.pushAttributeChild(attribute, termChild);
+          continue;
+        }
         const stringChild = this.tryParseStringConstraint();
         if (stringChild) {
-          if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
-            (attribute as { children: openehr_am.C_OBJECT[] }).children = [];
-          }
-          (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(
-            stringChild,
-          );
+          this.pushAttributeChild(attribute, stringChild);
           continue;
         }
         const child = this.parseChildObject();
         if (child) {
-          if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
-            (attribute as { children: openehr_am.C_OBJECT[] }).children = [];
-          }
-          (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(
-            child,
-          );
+          this.pushAttributeChild(attribute, child);
         } else if (this.position === posBefore) {
           if (this.check(TokenType.RBRACE)) break;
           this.advance();
@@ -317,6 +344,8 @@ export class CadlParser {
 
   private parseChildObject(): openehr_am.C_OBJECT | null {
     if (this.check(TokenType.RBRACE)) return null;
+    const termChild = this.tryParseTerminologyConstraint();
+    if (termChild) return termChild;
     const stringChild = this.tryParseStringConstraint();
     if (stringChild) return stringChild;
     if (this.check(TokenType.REGEX)) {
@@ -341,27 +370,45 @@ export class CadlParser {
       this.skipIncludeExcludeBlock();
       return null;
     }
-    if (this.isPrimitiveType(this.peek().value)) {
-      return this.parsePrimitiveObject();
-    }
+    // DV_* / CODE_PHRASE with optional matches { … } are C_COMPLEX_OBJECT in
+    // Archie-serialised ADL2 (e.g. DV_CODED_TEXT[id] matches { defining_code … }).
+    // Leaf RM types without a following matches block still parse as complex
+    // objects with no attributes.
     return this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
   }
 
-  private isPrimitiveType(typeName: string): boolean {
-    return typeName.startsWith("DV_") || typeName === "CODE_PHRASE";
+  /**
+   * `[ac1]` / `[at0001]` / `[id1]` terminology constraints inside attribute
+   * matches blocks (defining_code matches {[ac1]}).
+   */
+  private tryParseTerminologyConstraint(): openehr_am.C_TERMINOLOGY_CODE | null {
+    if (!this.check(TokenType.LBRACKET)) return null;
+    const next = this.peekAhead(1);
+    if (
+      !next ||
+      (next.type !== TokenType.AC_CODE &&
+        next.type !== TokenType.AT_CODE &&
+        next.type !== TokenType.ID_CODE)
+    ) {
+      return null;
+    }
+    this.advance(); // '['
+    const code = this.advance().value;
+    this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
+    const term = new openehr_am.C_TERMINOLOGY_CODE();
+    term.rm_type_name = "CODE_PHRASE";
+    term.constraint = code;
+    return term;
   }
 
-  private parsePrimitiveObject(): openehr_am.C_PRIMITIVE_OBJECT {
-    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
-    const typeId = this.consume(TokenType.IDENTIFIER, "Expected primitive type");
-    prim.rm_type_name = typeId.value;
-    this.consume(TokenType.LBRACKET, "Expected '['");
-    prim.node_id = this.peek().type === TokenType.AT_CODE ||
-        this.peek().type === TokenType.ID_CODE
-      ? this.advance().value
-      : this.consume(TokenType.ID_CODE, "Expected node id").value;
-    this.consume(TokenType.RBRACKET, "Expected ']'");
-    return prim;
+  private pushAttributeChild(
+    attribute: openehr_am.C_ATTRIBUTE,
+    child: openehr_am.C_OBJECT,
+  ): void {
+    if (!(attribute as { children?: openehr_am.C_OBJECT[] }).children) {
+      (attribute as { children: openehr_am.C_OBJECT[] }).children = [];
+    }
+    (attribute as { children: openehr_am.C_OBJECT[] }).children!.push(child);
   }
 
   private parseExistence(): openehr_base.Multiplicity_interval {
@@ -483,6 +530,12 @@ export class CadlParser {
     const idx = this.position + offset;
     if (idx >= this.tokens.length) return undefined;
     return this.tokens[idx];
+  }
+
+  private checkAhead(type: TokenType, offset: number = 1): boolean {
+    const pos = this.position + offset;
+    if (pos >= this.tokens.length) return false;
+    return this.tokens[pos].type === type;
   }
 
   private previous(): Token {
