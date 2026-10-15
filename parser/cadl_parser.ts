@@ -127,6 +127,14 @@ export class CadlParser {
     return root;
   }
 
+  private isKeywordAttributeName(): boolean {
+    const v = this.peek()?.value ?? "";
+    if (!/^[a-z_][a-z0-9_]*$/.test(v)) return false;
+    const next = this.peekAhead(1)?.type;
+    return next === TokenType.MATCHES || next === TokenType.EXISTENCE ||
+      next === TokenType.CARDINALITY;
+  }
+
   /** ADL2 `use_archetype` (single token) or legacy `use archetype`. */
   private isUseArchetype(): boolean {
     if (this.checkIdentifier("use_archetype")) return true;
@@ -350,7 +358,12 @@ export class CadlParser {
     if (this.check(TokenType.SLASH)) {
       return this.parsePathAttribute();
     }
-    if (!this.check(TokenType.IDENTIFIER)) return null;
+    // RM attribute names can collide with ADL section keywords, e.g.
+    // ACTIVITY.description or ENTRY.language; accept any word token that is
+    // followed by an attribute continuation.
+    if (!this.check(TokenType.IDENTIFIER) && !this.isKeywordAttributeName()) {
+      return null;
+    }
 
     let attributeName = this.advance().value;
     // ADL path segment, e.g. archetype_id/value
