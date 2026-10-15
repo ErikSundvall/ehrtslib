@@ -122,3 +122,41 @@ Deno.test({
     assert(out.success, new TextDecoder().decode(out.stderr));
   },
 });
+
+Deno.test("cADL: RM attribute named like a section keyword (ACTIVITY.description)", async () => {
+  const { parseAdl } = await import("../../../parser/mod.ts");
+  const adl = `archetype (adl_version=2.0.6; rm_release=1.1.0)
+    openEHR-EHR-INSTRUCTION.kw_probe.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+definition
+    INSTRUCTION[id1] matches {
+        activities matches {
+            ACTIVITY[id2] matches {
+                description matches {
+                    ITEM_TREE[id3]
+                }
+            }
+        }
+        protocol matches {
+            ITEM_TREE[id4]
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = <text = <"Probe"> description = <"Probe">>
+        >
+    >
+`;
+  // deno-lint-ignore no-explicit-any
+  const r: any = parseAdl(adl);
+  const names = r.archetype.definition.attributes.map(
+    // deno-lint-ignore no-explicit-any
+    (a: any) => a.rm_attribute_name,
+  );
+  assertEquals(names, ["activities", "protocol"]);
+});
