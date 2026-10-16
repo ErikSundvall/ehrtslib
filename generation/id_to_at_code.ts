@@ -57,7 +57,8 @@ export const DROPPED_NODE_ID = "";
  * 2. A node id whose shifted code equals a value code's shifted code shares
  *    it when both have identical terms in every language (they came from one
  *    ADL 1.4 code, as Archie's 1.4 → 2 converter produces); otherwise the
- *    node gets the next unused `at9000+` code and a warning is emitted.
+ *    node gets the next unused `at9000+` code at the same specialisation level
+ *    (`at0.9000+` in a specialised archetype) and a warning is emitted.
  *    Exception: root node codes (`id1{.1}*` → `at0000{.1}*`, AOM2 VARCN) never
  *    move; a value code that would take the root code is renumbered instead.
  * 3. Synthetic node ids (`id9000+` without any term, created by 1.4 → 2
@@ -91,12 +92,19 @@ export function buildAdl14CodeMap(
 
   const map = new Map<string, string>();
   const used = new Set<string>();
-  let next = 9000;
-  const nextFree = () => {
-    while (used.has(`at${next}`)) next++;
-    const t = `at${next++}`;
-    used.add(t);
-    return t;
+  // Next unused code ≥ 9000 at the same specialisation level as `t`
+  // (`at0003` → `at9000`; `at0.3` → `at0.9000`), so specialised archetypes
+  // keep valid code depth.
+  const nextFree = (t: string) => {
+    const segs = t.replace(/^at/i, "").split(".");
+    const prefix = segs.length > 1 ? segs.slice(0, -1).join(".") + "." : "";
+    for (let n = 9000;; n++) {
+      const c = `at${prefix}${n}`;
+      if (!used.has(c)) {
+        used.add(c);
+        return c;
+      }
+    }
   };
   // Root node codes (id1, id1.1, …) must stay at0000{.1}* (AOM2 VARCN).
   const isRoot = (c: string) => /^id1(\.1)*$/i.test(normalise(c));
@@ -117,7 +125,7 @@ export function buildAdl14CodeMap(
     if (rootTargets.has(t)) {
       // Only case where a value code moves: it would take the root code.
       const key = normalise(c);
-      t = rootMoved.get(key) ?? nextFree();
+      t = rootMoved.get(key) ?? nextFree(t);
       if (!rootMoved.has(key)) {
         rootMoved.set(key, t);
         opts.warn?.(`value code ${c} would collide with the root node code; renumbered to ${t}`);
@@ -144,7 +152,7 @@ export function buildAdl14CodeMap(
       map.set(c, t); // same ADL 1.4 code, used as node and value
       continue;
     }
-    const r = nextFree();
+    const r = nextFree(t);
     map.set(c, r);
     opts.warn?.(
       `node id ${c} → ${t} would collide with value code ${v} → ${t}; node renumbered to ${r}`,

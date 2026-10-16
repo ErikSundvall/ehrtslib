@@ -110,3 +110,13 @@ Deno.test("#127 CKM organisation: 1.4 → Archie ADL2 → Ehrtslib 1.4 keeps CKM
   const out = new ADL14Serializer().serialize(r.archetype);
   assertEquals([...new Set(atCodes(out))].sort(), [...new Set(atCodes(ckm))].sort());
 });
+
+Deno.test("#127 specialised archetype: colliding new node moves to at0.9000+", () => {
+  const map = buildAdl14CodeMap(["id1.1", "id0.3", "id0.10", "at0.3", "at0.10"], {
+    terms: { en: { "id0.3": { text: "N3" }, "at0.3": { text: "V3" }, "id0.10": { text: "N10" }, "at0.10": { text: "V10" } } },
+  });
+  assertEquals(map.get("at0.3"), "at0.3");
+  assertEquals(map.get("id0.3"), "at0.9000");
+  assertEquals(map.get("id0.10"), "at0.9001"); // segment-wise numeric order: 0.3 < 0.10
+  assertEquals(map.get("id1.1"), "at0000.1");
+});
