@@ -245,6 +245,46 @@ function constraintNodeId(obj: openehr_am.C_OBJECT): string | undefined {
   return nodeIdToAtCode(obj.node_id) || undefined;
 }
 
+/**
+ * Single fixed value of a `name` constraint (`name/value matches {"X"}`), as
+ * written by template tools for renamed archetype occurrences.
+ */
+export function fixedNameConstraint(
+  obj: openehr_am.C_OBJECT,
+): string | undefined {
+  const attrs = (obj as { attributes?: openehr_am.C_ATTRIBUTE[] }).attributes;
+  const nameAttr = attrs?.find((a) => a.rm_attribute_name === "name");
+  const dv = (nameAttr as { children?: openehr_am.C_OBJECT[] } | undefined)
+    ?.children?.[0] as { attributes?: openehr_am.C_ATTRIBUTE[] } | undefined;
+  const valueAttr = dv?.attributes?.find((a) => a.rm_attribute_name === "value");
+  const prim = (valueAttr as { children?: unknown[] } | undefined)
+    ?.children?.[0] as
+      | { list?: unknown; item?: { list?: unknown } }
+      | undefined;
+  const list = prim?.item?.list ?? prim?.list;
+  if (Array.isArray(list) && list.length === 1 && typeof list[0] === "string") {
+    return list[0];
+  }
+  return undefined;
+}
+
+/**
+ * AQL path predicate for a child: node id, plus `and name/value='…'` when a
+ * sibling shares the node id and the child has a fixed name constraint
+ * (repeated, renamed archetype occurrences).
+ */
+function childPathPredicate(
+  child: openehr_am.C_OBJECT,
+  siblings: openehr_am.C_OBJECT[],
+): string | undefined {
+  const id = constraintNodeId(child);
+  if (!id) return undefined;
+  const name = fixedNameConstraint(child);
+  if (!name) return id;
+  const same = siblings.filter((s) => constraintNodeId(s) === id).length;
+  return same > 1 ? `${id} and name/value='${name}'` : id;
+}
+
 /** Copy node metadata without inheriting `children`/`inputs` from base. */
 function nodeShell(
   base: WebTemplateNode,
@@ -282,6 +322,7 @@ export class WebTemplateBuilder {
   private terms: TermBag = {};
   private archetypeTerms: Record<string, TermBag> = {};
   private pathAnnotations: OptPathAnnotationMap = {};
+  private originalLang = "en";
 
   constructor(options?: WebTemplateBuilderOptions) {
     this.requestedLang = options?.defaultLanguage;
@@ -337,6 +378,21 @@ export class WebTemplateBuilder {
 
   private termFor(obj: openehr_am.C_OBJECT): TermEntry {
     const meta = obj as TermScopeMeta;
+    // A fixed name constraint is the occurrence's name in the template's
+    // original language (per-archetype-id term bags collide when repeated).
+    const fixed = this.lang === this.originalLang
+      ? fixedNameConstraint(obj)
+      : undefined;
+    if (fixed) {
+      const base = resolveTermEntry(
+        obj.node_id,
+        meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+        this.terms,
+        this.archetypeTerms,
+        meta[TERM_ARCHETYPE_SCOPE_KEY],
+      );
+      return { ...base, text: fixed };
+    }
     return resolveTermEntry(
       obj.node_id,
       meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
@@ -390,6 +446,7 @@ export class WebTemplateBuilder {
     this.lang = [this.requestedLang, defaultLanguage, ...available].find(
       (l): l is string => !!l && !!termDefs[l],
     ) ?? this.requestedLang ?? defaultLanguage;
+    this.originalLang = defaultLanguage;
     this.terms = termDefs[this.lang] ?? {};
     this.archetypeTerms = archetypeTermBagsForLanguage(
       opt as OperationalTemplateWithTermScopes,
@@ -492,7 +549,7 @@ export class WebTemplateBuilder {
         (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
 
       for (const child of children) {
-        const childId = constraintNodeId(child);
+        const childId = childPathPredicate(child, children);
         const childPath = joinAqlPath(
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
@@ -553,7 +610,7 @@ export class WebTemplateBuilder {
       const children =
         (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
       for (const child of children) {
-        const childId = constraintNodeId(child);
+        const childId = childPathPredicate(child, children);
         const childPath = joinAqlPath(
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,

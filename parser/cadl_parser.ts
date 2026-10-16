@@ -24,7 +24,7 @@ export class CadlParser {
    * Parse root c_object (complex, use archetype, allow archetype).
    */
   parseComplexObject(): openehr_am.C_COMPLEX_OBJECT {
-    if (this.checkKeyword("use") && this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+    if (this.isUseArchetype()) {
       return this.parseCArchetypeRoot();
     }
     return this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
@@ -78,8 +78,12 @@ export class CadlParser {
   }
 
   private parseCArchetypeRoot(): openehr_am.C_ARCHETYPE_ROOT {
-    this.consumeKeyword("use");
-    this.consumeKeyword("archetype");
+    if (this.checkIdentifier("use_archetype")) {
+      this.advance();
+    } else {
+      this.consumeKeyword("use");
+      this.consumeKeyword("archetype");
+    }
     const root = new openehr_am.C_ARCHETYPE_ROOT();
     return this.parseArchetypeRootTail(root);
   }
@@ -121,6 +125,21 @@ export class CadlParser {
     }
 
     return root;
+  }
+
+  private isKeywordAttributeName(): boolean {
+    const v = this.peek()?.value ?? "";
+    if (!/^[a-z_][a-z0-9_]*$/.test(v)) return false;
+    const next = this.peekAhead(1)?.type;
+    return next === TokenType.MATCHES || next === TokenType.EXISTENCE ||
+      next === TokenType.CARDINALITY;
+  }
+
+  /** ADL2 `use_archetype` (single token) or legacy `use archetype`. */
+  private isUseArchetype(): boolean {
+    if (this.checkIdentifier("use_archetype")) return true;
+    return this.checkKeyword("use") &&
+      this.peekAhead(1)?.value.toLowerCase() === "archetype";
   }
 
   private isAllowArchetype(): boolean {
@@ -339,7 +358,12 @@ export class CadlParser {
     if (this.check(TokenType.SLASH)) {
       return this.parsePathAttribute();
     }
-    if (!this.check(TokenType.IDENTIFIER)) return null;
+    // RM attribute names can collide with ADL section keywords, e.g.
+    // ACTIVITY.description or ENTRY.language; accept any word token that is
+    // followed by an attribute continuation.
+    if (!this.check(TokenType.IDENTIFIER) && !this.isKeywordAttributeName()) {
+      return null;
+    }
 
     let attributeName = this.advance().value;
     // ADL path segment, e.g. archetype_id/value
@@ -404,6 +428,37 @@ export class CadlParser {
   }
 
   /** `matches { "literal" }` string constraint (BOOK archetype style). */
+  /** Boolean primitive constraint: `True`, `False`, `True, False`. */
+  private tryParseBooleanConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    const isBool = (v?: string) => /^(true|false)$/i.test(v ?? "");
+    if (!this.check(TokenType.IDENTIFIER) || !isBool(this.peek().value)) {
+      return null;
+    }
+    const next = this.peekAhead(1);
+    if (next && next.type !== TokenType.COMMA && next.type !== TokenType.RBRACE) {
+      return null;
+    }
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "BOOLEAN";
+    const b = new openehr_am.C_BOOLEAN();
+    b.true_valid = false;
+    b.false_valid = false;
+    for (;;) {
+      const v = this.advance().value.toLowerCase();
+      if (v === "true") b.true_valid = true;
+      else b.false_valid = true;
+      if (
+        this.check(TokenType.COMMA) && isBool(this.peekAhead(1)?.value)
+      ) {
+        this.advance();
+        continue;
+      }
+      break;
+    }
+    prim.item = b;
+    return prim;
+  }
+
   private tryParseStringConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
     if (!this.check(TokenType.STRING)) return null;
     const prim = new openehr_am.C_PRIMITIVE_OBJECT();
@@ -427,6 +482,8 @@ export class CadlParser {
     if (termChild) return termChild;
     const stringChild = this.tryParseStringConstraint();
     if (stringChild) return stringChild;
+    const boolChild = this.tryParseBooleanConstraint();
+    if (boolChild) return boolChild;
     if (this.check(TokenType.REGEX)) {
       const prim = new openehr_am.C_PRIMITIVE_OBJECT();
       prim.rm_type_name = "STRING";
@@ -438,8 +495,7 @@ export class CadlParser {
     if (!this.check(TokenType.IDENTIFIER)) {
       throw this.error(`Unexpected token: ${this.peek().value}`);
     }
-    if (this.checkKeyword("use") &&
-      this.peekAhead(1)?.value.toLowerCase() === "archetype") {
+    if (this.isUseArchetype()) {
       return this.parseCArchetypeRoot();
     }
     if (this.isAllowArchetype()) {

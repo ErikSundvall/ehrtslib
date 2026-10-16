@@ -276,6 +276,19 @@ export class ADL2Tokenizer {
       return this.makeToken(TokenType.IDENTIFIER, char, startLine, startColumn);
     }
     
+    // Version qualifier after a numeric part, e.g. v0.0.1-alpha / v1.1.3-rc.2
+    if (
+      char === "-" && this.isDigit(this.charBefore() ?? "") &&
+      /[A-Za-z]/.test(this.peekNext())
+    ) {
+      let v = "";
+      do {
+        v += this.peek();
+        this.advance();
+      } while (!this.isAtEnd() && /[A-Za-z0-9_-]/.test(this.peek()));
+      return this.makeToken(TokenType.IDENTIFIER, v, startLine, startColumn);
+    }
+
     // Escaped character outside strings (e.g. regex \. in cADL)
     if (char === "\\" && !this.isAtEnd()) {
       this.advance();
@@ -472,6 +485,30 @@ export class ADL2Tokenizer {
       this.advance();
     }
     
+    // Generic RM type names in cADL, e.g. DV_INTERVAL<DV_COUNT>[id5]
+    if (
+      /^[A-Z][A-Z0-9_]*$/.test(value) && this.peek() === "<" &&
+      /[A-Z]/.test(this.peekNext())
+    ) {
+      let depth = 0;
+      let generic = "";
+      let p = this.position;
+      while (p < this.input.length) {
+        const c = this.input[p];
+        if (c === "<") depth++;
+        else if (c === ">") depth--;
+        else if (!/[A-Z0-9_,\s]/.test(c)) break;
+        generic += c;
+        p++;
+        if (depth === 0) break;
+      }
+      if (depth === 0 && generic.endsWith(">")) {
+        while (this.position < p) this.advance();
+        value += generic.replace(/\s+/g, "");
+        return this.makeToken(TokenType.IDENTIFIER, value, startLine, startColumn);
+      }
+    }
+
     // Check if it's a keyword
     const type = this.getKeywordType(value);
     return this.makeToken(type, value, startLine, startColumn);
