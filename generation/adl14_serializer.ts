@@ -7,6 +7,7 @@ import { ADL2Serializer } from "./adl2_serializer.ts";
 import {
   expandAcConstraintsInAdl,
   idToAtCode,
+  rewriteAdl2CodesInTextWithMap,
   rewriteOntologyTermKeys,
   stripValueSetsBlock,
   type ValueSetBag,
@@ -36,11 +37,19 @@ export class ADL14Serializer {
     adl = this.insertConceptSection(adl, archetype);
     adl = adl.replace(/\bterminology\b/g, "ontology");
     adl = adl.replace(/\bterm_bindings\b/g, "constraint_bindings");
+    // One collision-free id/at → 1.4 map for the whole archetype (spec rule:
+    // id1 → at0000; value codes renumbered if they would clash with a node).
+    const rewritten = rewriteAdl2CodesInTextWithMap(adl);
+    adl = rewritten.adl;
     adl = this.convertNodeIdsToAtCodes(adl);
     adl = rewriteOntologyTermKeys(adl);
     const valueSets = (archetype.ontology as { value_sets?: ValueSetBag } | undefined)
       ?.value_sets;
-    const expanded = expandAcConstraintsInAdl(adl, valueSets);
+    const expanded = expandAcConstraintsInAdl(
+      adl,
+      valueSets,
+      (c) => rewritten.map.get(c) ?? idToAtCode(c),
+    );
     adl = expanded.adl;
     adl = stripValueSetsBlock(adl);
     adl = this.wrapTermDefinitionItems(adl);

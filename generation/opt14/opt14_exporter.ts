@@ -15,6 +15,7 @@
  * affected nodes; with it off, a warning lists what is dropped.
  */
 
+import { buildAdl14CodeMap, idToAtCode } from "../id_to_at_code.ts";
 import { attributesFor } from "../../meta/rm_attributes.ts";
 import {
   type Adl2Artefact,
@@ -100,18 +101,9 @@ export function collapseCode(code: string, baseDepth: number): string {
   return m[1] + segs.join(".");
 }
 
-/**
- * ADL2 → ADL 1.4 code (Archie / openEHR convention: ADL2 codes are 1-based,
- * ADL 1.4 0-based; `id1` → `at0000`, `id5.2` → `at0004.2`, `id0.3` → `at0.3`,
- * value codes `at7` → `at0006`).
- */
+/** ADL2 → ADL 1.4 code; shared spec mapping from `generation/id_to_at_code.ts`. */
 export function adl2CodeToAdl14(code: string): string {
-  const m = CODE_RE.exec(code);
-  if (!m) return code;
-  const segs = m[2].split(".");
-  const first = segs[0] === "0" ? "0" : String(+segs[0] - 1).padStart(4, "0");
-  const prefix = m[1].toLowerCase() === "ac" ? "ac" : "at";
-  return prefix + [first, ...segs.slice(1)].join(".");
+  return idToAtCode(code);
 }
 
 /**
@@ -120,12 +112,9 @@ export function adl2CodeToAdl14(code: string): string {
  * value codes that would collide with a node code.
  */
 function buildCodeMap(flat: FlatArtefact, baseDepth: number): Map<string, string> {
-  const ids = new Set<string>();
-  const ats = new Set<string>();
+  const codes = new Set<string>();
   const add = (c?: string) => {
-    if (!c) return;
-    if (/^id\d/i.test(c)) ids.add(c);
-    else if (/^at\d/i.test(c)) ats.add(c);
+    if (c) codes.add(c);
   };
   for (const bag of Object.values(flat.terms)) Object.keys(bag ?? {}).forEach(add);
   for (const members of Object.values(flat.valueSets)) members.forEach(add);
@@ -135,32 +124,7 @@ function buildCodeMap(flat: FlatArtefact, baseDepth: number): Map<string, string
     for (const a of o.attrs ?? []) a.children.forEach(walk);
   };
   walk(flat.def);
-  const map = new Map<string, string>();
-  const nodeTargets = new Set<string>();
-  for (const c of ids) {
-    const t = adl2CodeToAdl14(collapseCode(c, baseDepth));
-    map.set(c, t);
-    nodeTargets.add(t);
-  }
-  const firstNum = (t: string) => +(/^at(\d+)/.exec(t)?.[1] ?? 0);
-  let next = Math.max(
-    0,
-    ...[...nodeTargets].map(firstNum).filter((n) => n < 9000),
-  ) + 1;
-  const sorted = [...ats].sort((a, b) =>
-    a.localeCompare(b, undefined, { numeric: true })
-  );
-  const valueTargets = new Map<string, string>();
-  for (const c of sorted) {
-    const collapsed = collapseCode(c, baseDepth);
-    let t = valueTargets.get(collapsed) ?? adl2CodeToAdl14(collapsed);
-    if (nodeTargets.has(t) && !valueTargets.has(collapsed)) {
-      t = "at" + String(next++).padStart(4, "0");
-    }
-    valueTargets.set(collapsed, t);
-    map.set(c, t);
-  }
-  return map;
+  return buildAdl14CodeMap(codes, (c) => collapseCode(c, baseDepth));
 }
 
 function esc(s: string): string {
