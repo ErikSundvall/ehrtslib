@@ -75,16 +75,19 @@ Deno.test("#123 OPT 1.4 export with workaround: en+sv round-trip", () => {
   assertEquals(new Set(paths.en).size, 2, "repeated roots get distinct paths");
 });
 
-Deno.test("#123 value codes never collide with node codes in 1.4", () => {
+Deno.test("#123/#127 value codes keep their code; colliding nodes move (per archetype)", () => {
   const { lib, tid } = load();
-  const { xml } = exportAdl2TemplateToOpt14(lib, tid);
-  const nodeIds = new Set(
-    [...xml.matchAll(/<node_id>(at\d{4})<\/node_id>/g)].map((m) => m[1]),
-  );
-  const values = [...xml.matchAll(/<code_list>(at\d{4})<\/code_list>/g)]
-    .map((m) => m[1]);
-  assert(values.length > 0);
-  for (const v of values) assert(!nodeIds.has(v), `collision on ${v}`);
+  const { xml, warnings } = exportAdl2TemplateToOpt14(lib, tid);
+  const start = xml.indexOf('archetype_id="openEHR-EHR-CLUSTER.analyte_demo.v1"');
+  assert(start > 0);
+  const block = xml.slice(start, xml.indexOf("</component_ontologies>", start));
+  const en = block.slice(block.indexOf('language="en"'), block.indexOf('language="sv"'));
+  const codeOf = (text: string) =>
+    new RegExp(`code="(at[0-9.]+)">\\s*<items id="text">${text}<`).exec(en)?.[1];
+  assertEquals(codeOf("Final"), "at0001"); // at2 keeps the shifted code
+  assertEquals(codeOf("Preliminary"), "at9000"); // at1 would take the root at0000
+  assertEquals(codeOf("Analyte name"), "at9001"); // node id2 moved off at0001
+  assert(warnings.some((w) => w.includes("analyte_demo") && w.includes("id2")), warnings.join("\n"));
 });
 
 Deno.test("#123 OPT 1.4 export without workaround warns about lost translations", () => {

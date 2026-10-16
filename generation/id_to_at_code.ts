@@ -27,54 +27,136 @@ export function idToAtCode(code: string | undefined | null): string {
   return `at${first}${m[3] ?? ""}`;
 }
 
+/** Term table shape: language → code → term (text/description/…). */
+export type Adl2TermTable = Record<string, Record<string, Record<string, unknown> | undefined> | undefined>;
+
+export interface Adl14CodeMapOptions {
+  /** Fold codes first (e.g. template overlay codes onto their base depth). */
+  normalise?: (code: string) => string;
+  /** ADL2 term_definitions, used to detect identical node/value terms and synthetic ids. */
+  terms?: Adl2TermTable;
+  /** Called for every renumbered or dropped node id. */
+  warn?: (message: string) => void;
+}
+
+/** Marker for a node id that is dropped in ADL 1.4 (no `[code]` emitted). */
+export const DROPPED_NODE_ID = "";
+
 /**
- * Build a collision-free ADL2 → ADL 1.4 code map for one archetype.
+ * Build a collision-free ADL2 → ADL 1.4 code map for one archetype
+ * (https://github.com/ErikSundvall/ehrtslib/issues/127).
  *
- * ADL2 keeps node ids (`idN`) and value codes (`atN`) in separate code
- * spaces; ADL 1.4 has a single at-code space. Node ids map with
- * {@link idToAtCode}. A value code whose mapped code would clash with a node
- * code is renumbered to the next free top-level at-code (codes ≥ 9000 are
- * ignored when choosing the next number). Archetypes converted from 1.4
- * never clash, so their codes round-trip unchanged.
+ * ADL2 id-coded archetypes keep node ids (`idN`) and value codes (`atN`) in
+ * separate spaces; ADL 1.4 / at-coded ADL2 have one at-code space (AOM 1.4:
+ * one term list per language). Rule, aligned with the parallel at-/id-coded
+ * examples in the ADL2 spec (master09.09: `DV_CODED_TEXT[id4]` ↔ `[at9000]`,
+ * value `at4` ↔ `at0003`):
  *
- * `normalise` lets callers fold codes first (e.g. template overlay codes
- * onto their base archetype depth); codes that normalise to the same value
- * get the same target.
+ * 1. Value codes always get the shifted code ({@link idToAtCode}) — they are
+ *    persisted in data (`DV_CODED_TEXT.defining_code`).
+ * 2. A node id whose shifted code equals a value code's shifted code shares
+ *    it when both have identical terms in every language (they came from one
+ *    ADL 1.4 code, as Archie's 1.4 → 2 converter produces); otherwise the
+ *    node gets the next unused `at9000+` code at the same specialisation level
+ *    (`at0.9000+` in a specialised archetype) and a warning is emitted.
+ *    Exception: root node codes (`id1{.1}*` → `at0000{.1}*`, AOM2 VARCN) never
+ *    move; a value code that would take the root code is renumbered instead.
+ * 3. Synthetic node ids (`id9000+` without any term, created by 1.4 → 2
+ *    converters for nodes that had no id in 1.4) are dropped
+ *    ({@link DROPPED_NODE_ID}) instead of becoming `at8999`….
  */
 export function buildAdl14CodeMap(
   codes: Iterable<string>,
-  normalise: (code: string) => string = (c) => c,
+  options: Adl14CodeMapOptions | ((code: string) => string) = {},
 ): Map<string, string> {
-  const ids = new Set<string>();
-  const ats = new Set<string>();
-  for (const c of codes) {
-    if (/^id\d/i.test(c)) ids.add(c);
-    else if (/^at\d/i.test(c)) ats.add(c);
+  const opts: Adl14CodeMapOptions = typeof options === "function"
+    ? { normalise: options }
+    : options;
+  const normalise = opts.normalise ?? ((c: string) => c);
+  const terms = opts.terms ?? {};
+  const langs = Object.keys(terms);
+  const termKey = (code: string): string | undefined => {
+    const parts = langs.map((l) => terms[l]?.[code]);
+    if (parts.every((p) => p === undefined)) return undefined;
+    return JSON.stringify(parts.map((p) => p ? { text: p.text, description: p.description } : null));
+  };
+  const ids: string[] = [];
+  const ats: string[] = [];
+  for (const c of new Set(codes)) {
+    if (/^id\d/i.test(c)) ids.push(c);
+    else if (/^at\d/i.test(c)) ats.push(c);
   }
+  const byNum = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
+  ids.sort(byNum);
+  ats.sort(byNum);
+
   const map = new Map<string, string>();
-  const nodeTargets = new Set<string>();
-  for (const c of ids) {
-    const t = idToAtCode(normalise(c));
-    map.set(c, t);
-    nodeTargets.add(t);
-  }
-  const firstNum = (t: string) => +(/^at(\d+)/.exec(t)?.[1] ?? 0);
-  let next = Math.max(
-    0,
-    ...[...nodeTargets].map(firstNum).filter((n) => n < 9000),
-  ) + 1;
-  const sorted = [...ats].sort((a, b) =>
-    a.localeCompare(b, undefined, { numeric: true })
-  );
-  const valueTargets = new Map<string, string>();
-  for (const c of sorted) {
-    const n = normalise(c);
-    let t = valueTargets.get(n) ?? idToAtCode(n);
-    if (nodeTargets.has(t) && !valueTargets.has(n)) {
-      t = "at" + String(next++).padStart(4, "0");
+  const used = new Set<string>();
+  // Next unused code ≥ 9000 at the same specialisation level as `t`
+  // (`at0003` → `at9000`; `at0.3` → `at0.9000`), so specialised archetypes
+  // keep valid code depth.
+  const nextFree = (t: string) => {
+    const segs = t.replace(/^at/i, "").split(".");
+    const prefix = segs.length > 1 ? segs.slice(0, -1).join(".") + "." : "";
+    for (let n = 9000;; n++) {
+      const c = `at${prefix}${n}`;
+      if (!used.has(c)) {
+        used.add(c);
+        return c;
+      }
     }
-    valueTargets.set(n, t);
+  };
+  // Root node codes (id1, id1.1, …) must stay at0000{.1}* (AOM2 VARCN).
+  const isRoot = (c: string) => /^id1(\.1)*$/i.test(normalise(c));
+  const rootTargets = new Set(ids.filter(isRoot).map((c) => idToAtCode(normalise(c))));
+  const nodeShift = new Map<string, string>();
+  for (const c of ids) nodeShift.set(c, idToAtCode(normalise(c)));
+  const isSynthetic = (c: string) => {
+    const n = normalise(c);
+    return +(/^id(\d+)/i.exec(n)?.[1] ?? 0) >= 9000 &&
+      termKey(c) === undefined && termKey(n) === undefined;
+  };
+  for (const [c, t] of nodeShift) if (!isSynthetic(c)) used.add(t);
+  for (const c of ats) used.add(idToAtCode(normalise(c)));
+  const valueSource = new Map<string, string>(); // 1.4 target → ADL2 value code
+  const rootMoved = new Map<string, string>();
+  for (const c of ats) {
+    let t = idToAtCode(normalise(c));
+    if (rootTargets.has(t)) {
+      // Only case where a value code moves: it would take the root code.
+      const key = normalise(c);
+      t = rootMoved.get(key) ?? nextFree(t);
+      if (!rootMoved.has(key)) {
+        rootMoved.set(key, t);
+        opts.warn?.(`value code ${c} would collide with the root node code; renumbered to ${t}`);
+      }
+    }
     map.set(c, t);
+    if (!valueSource.has(t)) valueSource.set(t, c);
+  }
+
+  for (const c of ids) {
+    const n = normalise(c);
+    if (isSynthetic(c)) {
+      map.set(c, DROPPED_NODE_ID);
+      continue;
+    }
+    const t = nodeShift.get(c)!;
+    const v = valueSource.get(t);
+    if (v === undefined || isRoot(c)) {
+      map.set(c, t);
+      continue;
+    }
+    const nk = termKey(c) ?? termKey(n);
+    if (nk !== undefined && nk === (termKey(v) ?? termKey(normalise(v)))) {
+      map.set(c, t); // same ADL 1.4 code, used as node and value
+      continue;
+    }
+    const r = nextFree(t);
+    map.set(c, r);
+    opts.warn?.(
+      `node id ${c} → ${t} would collide with value code ${v} → ${t}; node renumbered to ${r}`,
+    );
   }
   return map;
 }
@@ -83,13 +165,14 @@ export function buildAdl14CodeMap(
 const ADL_CODE_TOKEN = /(?<=[\["':,]\s*)(id|at)(\d+(?:\.\d+)*)(?=\s*[\]"',>])/gi;
 
 /** Rewrite every ADL2 id/at code token in ADL text using one collision-free map. */
-export function rewriteAdl2CodesInText(adl: string): string {
-  return rewriteAdl2CodesInTextWithMap(adl).adl;
+export function rewriteAdl2CodesInText(adl: string, options: Adl14CodeMapOptions = {}): string {
+  return rewriteAdl2CodesInTextWithMap(adl, options).adl;
 }
 
 /** As {@link rewriteAdl2CodesInText}, also returning the code map used. */
 export function rewriteAdl2CodesInTextWithMap(
   adl: string,
+  options: Adl14CodeMapOptions = {},
 ): { adl: string; map: Map<string, string> } {
   const codes = new Set<string>();
   for (const m of adl.matchAll(ADL_CODE_TOKEN)) {
@@ -97,8 +180,11 @@ export function rewriteAdl2CodesInTextWithMap(
     if (/^at0\d{3}/i.test(c)) continue; // already ADL 1.4
     codes.add(c);
   }
-  const map = buildAdl14CodeMap(codes);
-  return { adl: adl.replace(ADL_CODE_TOKEN, (c) => map.get(c) ?? c), map };
+  const map = buildAdl14CodeMap(codes, options);
+  let out = adl.replace(ADL_CODE_TOKEN, (c) => map.get(c) ?? c);
+  // Dropped node ids: `DV_TEXT[]` → `DV_TEXT`, `/value[]` → `/value`.
+  out = out.replace(/(?<=[\w>])\[\]/g, "");
+  return { adl: out, map };
 }
 
 /** Rewrite [idN] / bare id codes inside free-form text. */

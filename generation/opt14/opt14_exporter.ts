@@ -111,7 +111,11 @@ export function adl2CodeToAdl14(code: string): string {
  * ADL 1.4 has one at-code space. Map every code of a component and renumber
  * value codes that would collide with a node code.
  */
-function buildCodeMap(flat: FlatArtefact, baseDepth: number): Map<string, string> {
+function buildCodeMap(
+  flat: FlatArtefact,
+  baseDepth: number,
+  warn?: (m: string) => void,
+): Map<string, string> {
   const codes = new Set<string>();
   const add = (c?: string) => {
     if (c) codes.add(c);
@@ -124,7 +128,11 @@ function buildCodeMap(flat: FlatArtefact, baseDepth: number): Map<string, string
     for (const a of o.attrs ?? []) a.children.forEach(walk);
   };
   walk(flat.def);
-  return buildAdl14CodeMap(codes, (c) => collapseCode(c, baseDepth));
+  return buildAdl14CodeMap(codes, {
+    normalise: (c) => collapseCode(c, baseDepth),
+    terms: flat.terms,
+    warn,
+  });
 }
 
 function esc(s: string): string {
@@ -318,15 +326,21 @@ export class Opt14Exporter {
     ).length - 1;
     // Map codes from the base archetype first so every occurrence of the same
     // 1.4 archetype id gets identical at-codes; overlay-only codes extend it.
-    const codeMap = buildCodeMap(this.library.flatten(base), baseDepth);
+    const codeMap = buildCodeMap(
+      this.library.flatten(base),
+      baseDepth,
+      (m) => this.warn(`${base.id}: ${m}`),
+    );
     for (const [k, v] of buildCodeMap(flat, baseDepth)) {
       if (!codeMap.has(k)) {
         const collapsed = collapseCode(k, baseDepth);
         codeMap.set(k, codeMap.get(collapsed) ?? v);
       }
     }
-    const map = (c: string) =>
-      codeMap.get(c) ?? adl2CodeToAdl14(collapseCode(c, baseDepth));
+    const map = (c: string) => {
+      const m = codeMap.get(c);
+      return m !== undefined ? m : adl2CodeToAdl14(collapseCode(c, baseDepth));
+    };
     const terms14: TermTable = {};
     for (const lang of this.languages) {
       const src = flat.terms[lang];
@@ -379,8 +393,8 @@ export class Opt14Exporter {
   }
 
   private code14(comp: Component, code: string): string {
-    return comp.codeMap.get(code) ??
-      adl2CodeToAdl14(collapseCode(code, comp.baseDepth));
+    const m = comp.codeMap.get(code);
+    return m !== undefined ? m : adl2CodeToAdl14(collapseCode(code, comp.baseDepth));
   }
 
   /** Replace `use_archetype` roots by their flattened archetypes (recursive). */

@@ -131,7 +131,7 @@ ehrtslib support:
 
 #### Exporting ADL2 templates to OPT 1.4
 
-`exportAdl2TemplateToOpt14(library, templateId, options)` flattens an ADL2 template (overlays, specialisations, exclusions), maps codes to 1.4 form (`id1`→`at0000`, `id1.1`→`at0000.1`, `id0.1`→`at0.1`, overlay codes collapse onto the base archetype; ADL2 value codes that would clash with a node code in the single 1.4 at-code space are renumbered) and writes every language.
+`exportAdl2TemplateToOpt14(library, templateId, options)` flattens an ADL2 template (overlays, specialisations, exclusions), maps codes to 1.4 form (`id1`→`at0000`, `id1.1`→`at0000.1`, `id0.1`→`at0.1`, overlay codes collapse onto the base archetype; node/value code collisions in the single 1.4 at-code space follow #127: value codes keep the shifted code, a node and value code with identical terms share it, other clashing nodes move to `at9000+` with a warning, and synthetic `id9000+` ids without a term are dropped) and writes every language.
 
 Option `multilingualRepeatWorkaround` (**default `true`**; CLI `--no-multilingual-repeat-workaround` turns it off):
 
