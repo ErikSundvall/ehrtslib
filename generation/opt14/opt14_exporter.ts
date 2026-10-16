@@ -111,7 +111,7 @@ export function adl2CodeToAdl14(code: string): string {
  * ADL 1.4 has one at-code space. Map every code of a component and renumber
  * value codes that would collide with a node code.
  */
-function buildCodeMap(
+export function buildCodeMap(
   flat: FlatArtefact,
   baseDepth: number,
   warn?: (m: string) => void,
@@ -135,12 +135,12 @@ function buildCodeMap(
   });
 }
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
 
-class Xml {
+export class Xml {
   private lines: string[] = [];
   private depth = 0;
   open(tag: string, attrs = ""): void {
@@ -189,7 +189,7 @@ interface NumRange {
   upperIncl: boolean;
 }
 
-function parseRange(expr: string): NumRange | undefined {
+export function parseRange(expr: string): NumRange | undefined {
   const e = expr.replace(/\s+/g, "");
   let m = /^(>=|>|<=|<)(-?[\d.]+)$/.exec(e);
   if (m) {
@@ -241,7 +241,7 @@ function rmAttr(rm: string, name: string) {
   }
 }
 
-function isContainer(rm: string, a: PAttribute): boolean {
+export function isContainer(rm: string, a: PAttribute): boolean {
   if (a.multiple || a.cardinality) return true;
   const meta = rmAttr(rm, a.name);
   return !!meta && (meta.multiplicity.max === null ||

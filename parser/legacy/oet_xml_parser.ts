@@ -84,7 +84,7 @@ function parseItems(node: Record<string, unknown>): OetItem {
     path: String(node["@_path"] ?? ""),
     archetypeId: String(node["@_archetype_id"] ?? node.archetype_id ?? ""),
     rules: asArray(node.Rule).map((r) => parseRule(r as Record<string, unknown>)),
-    items: asArray(node.Items).map((c) => parseItems(c as Record<string, unknown>)),
+    items: [...asArray(node.Items), ...asArray(node.Item)].map((c) => parseItems(c as Record<string, unknown>)),
   };
   if (node["@_max"] !== undefined) item.max = Number(node["@_max"]);
   if (node["@_min"] !== undefined) item.min = Number(node["@_min"]);
@@ -109,7 +109,7 @@ export function parseOetXml(source: string): OetParseResult {
     document.conceptName = String(def["@_concept_name"] ?? def.concept_name ?? "");
     document.definitionName = String(def["@_name"] ?? def.name ?? "");
     document.rules = asArray(def.Rule).map((r) => parseRule(r as Record<string, unknown>));
-    document.items = asArray(def.Items).map((i) => parseItems(i as Record<string, unknown>));
+    document.items = [...asArray(def.Content), ...asArray(def.Items)].map((i) => parseItems(i as Record<string, unknown>));
   }
 
   const template = new openehr_am.TEMPLATE();

@@ -76,7 +76,7 @@ const xml = new OptXmlSerializer().serialize(opt!);
 
 | ADL 2 template + overlays → **OPT 1.4 XML** | `Adl2TemplateLibrary` + `exportAdl2TemplateToOpt14`, CLI `deno task export:opt14` | `.opt` text (all languages, `component_ontologies`, optional `L10n.*` annotations) | Web Template round-trip tests (#123) |
 
-| ADL 2 template → **OET 1.4 XML** | — | not yet implemented (#123) | — |
+| ADL 2 template + overlays → **OET 1.4 XML** | `Adl2TemplateLibrary` + `exportAdl2TemplateToOet14`, CLI `deno task export:oet14` | `.oet` text (original language, `Rule` deltas, optional `L10n.*` annotations) | Structure, OPT-consistency and XSD tests (#123) |
 
 
 
@@ -142,6 +142,17 @@ The default is on because readers that do not know the annotations ignore them, 
 
 Limits: tuples, ordinals and rules are not exported; filled slots are closed; there is no OPT 1.4 parser in Archie, so output is checked with the ITS-XML `Template.xsd` (test enabled with `OPENEHR_OPT14_XSD=<path to Template.xsd>`) and by the Ehrtslib OPT parser.
 
+#### Exporting ADL2 templates to OET 1.4
+
+`exportAdl2TemplateToOet14(library, templateId, options)` (CLI: `deno task export:oet14 --lib <dir> --template <file> [--out x.oet] [--no-multilingual-repeat-workaround] [--lang en,sv]`) writes an OET (`openEHR/v1/Template`, ITS-XML `CompositionTemplate.xsd`):
+
+- Each `use_archetype` becomes `Content` (under COMPOSITION `/content`), `Item` (under SECTION) or `Items` (other parents). It carries the 1.4 `archetype_id` of the published base archetype (the last non-template artefact in the specialisation chain), the slot `path` in its parent (1.4 codes), `name` when the overlay renames the root, and `max`/`min` from the use-site occurrences.
+- The flattened overlay is compared with the flattened base archetype. The differences are written as `Rule`s: `max="0"` for excluded nodes, `min`/`max` for changed occurrences, `name` for renamed nodes, and constraints: `textConstraint` (DV_TEXT value lists; `excludedValues local::atN` for narrowed local codes), `quantityConstraint`, `countConstraint` and `multipleConstraint` (narrowed DV type choice).
+- Codes go through the same spec-aligned id → at mapping as the OPT export (including the collision rule).
+- OET holds names in one language only, the template's original language. With `multilingualRepeatWorkaround` (**default `true`**), translations of renamed nodes and of repeated archetypes are written as `L10n.{lang}` path annotations. The path annotations are the same as in the OPT export, with the root archetype id as a prefix. When the option is off, a warning lists what is dropped and `translationsDropped` is set.
+
+Limits: OET cannot add nodes, so new nodes in an overlay only produce a warning. Constraints with no OET equivalent (for example ordinals, intervals, rules and terminology bindings) are warned about and only exist in the OPT export. Archetypes used outside `/content` of a COMPOSITION (for example in `context`) are not written. There is no independent OET → OPT compiler in the test chain. Output is checked with `CompositionTemplate.xsd` (test enabled with `OPENEHR_OET14_XSD=<path>`, needs python3 + lxml), by `parseOetXml`, and against the archetype roots and names of the direct OPT export.
+
 Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Background: [openEHR Discourse #2760](https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760).
 
 ## ADL 1.4 conversion
@@ -187,8 +198,8 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 | Path | Status | Notes |
 |------|--------|-------|
 | ADL2 `.adls` archetype → ADL 1.4 `.adl` | **Supported** via `ADL14Serializer` (see round-trip tests under `test_data/tests/adl14/`) | Prefer ADL2 as source of truth |
-| ADL2 `template` / `use_archetype` → OET 1.4 XML | **Not implemented** | Author templates in ADL2; build OET in an ADL 1.4 template editor, or flatten to OPT via existing OET/OPT tooling once archetypes are in 1.4 |
-| ADL2 template → OPT 1.4 XML | **Partial** | `OptXmlSerializer` works from operational template AOM; no direct ADL2-template → OPT down-convert yet |
+| ADL2 `template` / `use_archetype` → OET 1.4 XML | **Partial** (`exportAdl2TemplateToOet14`) | Exclusions, occurrences, renames, text/coded/quantity/count/type narrowing become `Rule`s; other constraints are reported as warnings and only exist in the OPT export |
+| ADL2 template → OPT 1.4 XML | **Yes** (`exportAdl2TemplateToOpt14`) | See "Exporting ADL2 templates to OPT 1.4" |
 | Interim flow for ADL 1.4-only CDRs | ADL2 authoring → `ADL14Serializer` for dependent archetypes → import into an ADL 1.4 template editor → build OET/OPT there | Tracked in #117 |
 
 
