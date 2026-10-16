@@ -117,9 +117,16 @@ Deno.test("ADL2 spec code rule: shared id/at → 1.4 map is collision-free", asy
   // Archetype converted from 1.4 (node at0000..at0002, value at0003/at0004):
   // id1..id3 and at4/at5 map back unchanged.
   const conv = buildAdl14CodeMap(["id1", "id2", "id3", "at4", "at5"]);
-  assertEquals([...conv.values()], ["at0000", "at0001", "at0002", "at0003", "at0004"]);
-  // Natively authored ADL2: at1/at2 would clash with id2/id3 → renumbered.
+  assertEquals(
+    ["id1", "id2", "id3", "at4", "at5"].map((c) => conv.get(c)),
+    ["at0000", "at0001", "at0002", "at0003", "at0004"],
+  );
+  // Natively authored ADL2 (#127): value codes keep the shift except where they
+  // would take the root code; colliding non-root nodes move to at9000+.
   const native = buildAdl14CodeMap(["id1", "id2", "id3", "at1", "at2"]);
-  assertEquals(native.get("at1"), "at0003");
-  assertEquals(native.get("at2"), "at0004");
+  assertEquals(native.get("id1"), "at0000");
+  assertEquals(native.get("at1"), "at9000");
+  assertEquals(native.get("at2"), "at0001");
+  assertEquals(native.get("id2"), "at9001");
+  assertEquals(native.get("id3"), "at0002");
 });

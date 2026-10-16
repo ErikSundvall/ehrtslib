@@ -8,6 +8,7 @@ import {
   expandAcConstraintsInAdl,
   idToAtCode,
   rewriteAdl2CodesInTextWithMap,
+  type Adl2TermTable,
   rewriteOntologyTermKeys,
   stripValueSetsBlock,
   type ValueSetBag,
@@ -21,6 +22,8 @@ export interface Adl14SerializerConfig {
 export class ADL14Serializer {
   private config: Required<Adl14SerializerConfig>;
   private inner: ADL2Serializer;
+  /** Warnings from the last {@link serialize} call (e.g. renumbered node ids, #127). */
+  warnings: string[] = [];
 
   constructor(config?: Adl14SerializerConfig) {
     this.config = {
@@ -31,6 +34,7 @@ export class ADL14Serializer {
   }
 
   serialize(archetype: openehr_am.ARCHETYPE): string {
+    this.warnings = [];
     this.assertSerializableDefinition(archetype);
     let adl = this.inner.serialize(archetype);
     adl = this.toAdl14Header(adl, archetype);
@@ -39,7 +43,11 @@ export class ADL14Serializer {
     adl = adl.replace(/\bterm_bindings\b/g, "constraint_bindings");
     // One collision-free id/at → 1.4 map for the whole archetype (spec rule:
     // id1 → at0000; value codes renumbered if they would clash with a node).
-    const rewritten = rewriteAdl2CodesInTextWithMap(adl);
+    const rewritten = rewriteAdl2CodesInTextWithMap(adl, {
+      terms: (archetype.ontology as { term_definitions?: Adl2TermTable } | undefined)
+        ?.term_definitions,
+      warn: (m) => this.warnings.push(m),
+    });
     adl = rewritten.adl;
     adl = this.convertNodeIdsToAtCodes(adl);
     adl = rewriteOntologyTermKeys(adl);
