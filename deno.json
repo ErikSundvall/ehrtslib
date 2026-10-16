@@ -36,6 +36,7 @@
     "pack:library": "deno run -A scripts/pack_library.ts",
     "release": "deno run -A scripts/release.ts",
     "pages:assemble": "deno run -A scripts/assemble-pages.ts",
-    "export:opt14": "deno run --allow-read --allow-write tasks/export_adl2_template.ts"
+    "export:opt14": "deno run --allow-read --allow-write tasks/export_adl2_template.ts",
+    "export:oet14": "deno run --allow-read --allow-write tasks/export_adl2_template.ts --format oet"
   }
 }
