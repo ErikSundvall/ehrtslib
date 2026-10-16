@@ -97,6 +97,24 @@ export class OdinParser {
       return {};
     }
 
+    // URI value: <http://openehr.org/id/380> (term bindings)
+    if (
+      this.check(TokenType.IDENTIFIER) && this.checkAhead(TokenType.COLON, 1) &&
+      this.checkAhead(TokenType.SLASH, 2)
+    ) {
+      let uri = "";
+      let prev: Token | undefined;
+      while (!this.check(TokenType.RANGLE) && !this.isAtEnd()) {
+        const t = this.advance();
+        // Keep source spacing out of URIs; tokens are contiguous.
+        if (prev && prev.line !== t.line) break;
+        uri += t.value;
+        prev = t;
+      }
+      this.consume(TokenType.RANGLE, "Expected '>' to close URI");
+      return uri;
+    }
+
     if (this.isPrimitive()) {
       return this.parsePrimitiveList();
     }

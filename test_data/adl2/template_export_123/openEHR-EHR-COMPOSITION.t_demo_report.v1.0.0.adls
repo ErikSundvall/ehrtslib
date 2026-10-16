@@ -1,0 +1,146 @@
+template (adl_version=2.0.6; rm_release=1.1.0; uid=7f0c7e8a-6a0e-4f43-9a52-2d8f7a0c1230)
+	openEHR-EHR-COMPOSITION.t_demo_report.v1.0.0
+
+specialize
+	openEHR-EHR-COMPOSITION.report_demo.v1
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			author = <
+				["name"] = <"Test">
+			>
+		>
+	>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"Ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Bilingual demo template for ADL2 → OPT 1.4 export (#123).">
+			keywords = <"test", "opt">
+		>
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			purpose = <"Tvåspråkig demomall för export ADL2 → OPT 1.4 (#123).">
+		>
+	>
+
+definition
+	COMPOSITION[id1.1] matches {	-- Demo report
+		/content[id2] matches {
+			use_archetype OBSERVATION[id2.1, openEHR-EHR-OBSERVATION.t_demo_lab.v1] occurrences matches {1}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1.1"] = <text = <"Demo report"> description = <"Demo report template.">>
+			["id2.1"] = <text = <"Demo lab result"> description = <"Lab result for the demo.">>
+		>
+		["sv"] = <
+			["id1.1"] = <text = <"Demorapport"> description = <"Mall för demorapport.">>
+			["id2.1"] = <text = <"Demo-labbresultat"> description = <"Labbresultat för demon.">>
+		>
+	>
+
+------------------------------------------------------------------------
+template_overlay
+	openEHR-EHR-OBSERVATION.t_demo_lab.v1.0.0
+
+specialize
+	openEHR-EHR-OBSERVATION.lab_demo.v1
+
+definition
+	OBSERVATION[id1.1] matches {	-- Demo lab result
+		/data[id2]/events[id3]/data[id4]/items matches {
+			ELEMENT[id5] occurrences matches {0}
+			use_archetype CLUSTER[id6.1, openEHR-EHR-CLUSTER.t_glucose.v1] occurrences matches {0..1}
+			use_archetype CLUSTER[id6.2, openEHR-EHR-CLUSTER.t_sodium.v1] occurrences matches {0..1}
+			use_archetype CLUSTER[id6.3, openEHR-EHR-CLUSTER.analyte_demo-genomic.v1] occurrences matches {0..*}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1.1"] = <text = <"Demo lab result"> description = <"Lab result for the demo.">>
+			["id6.1"] = <text = <"Glucose"> description = <"Glucose analyte.">>
+			["id6.2"] = <text = <"Sodium"> description = <"Sodium analyte.">>
+			["id6.3"] = <text = <"Gene analyte"> description = <"Genomic analyte.">>
+		>
+		["sv"] = <
+			["id1.1"] = <text = <"Demo-labbresultat"> description = <"Labbresultat för demon.">>
+			["id6.1"] = <text = <"Glukos"> description = <"Glukosanalyt.">>
+			["id6.2"] = <text = <"Natrium"> description = <"Natriumanalyt.">>
+			["id6.3"] = <text = <"Genanalyt"> description = <"Genomisk analyt.">>
+		>
+	>
+
+------------------------------------------------------------------------
+template_overlay
+	openEHR-EHR-CLUSTER.t_glucose.v1.0.0
+
+specialize
+	openEHR-EHR-CLUSTER.analyte_demo.v1
+
+definition
+	CLUSTER[id1.1] matches {	-- Glucose
+		/items[id2]/value matches {
+			DV_TEXT[id9001.1] matches {
+				value matches {"Glucose"}
+			}
+		}
+		/items matches {
+			ELEMENT[id5] occurrences matches {0}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1.1"] = <text = <"Glucose"> description = <"Glucose analyte.">>
+			["id3.1"] = <text = <"Glucose level"> description = <"Glucose concentration.">>
+		>
+		["sv"] = <
+			["id1.1"] = <text = <"Glukos"> description = <"Glukosanalyt.">>
+			["id3.1"] = <text = <"Glukosnivå"> description = <"Glukoskoncentration.">>
+		>
+	>
+
+------------------------------------------------------------------------
+template_overlay
+	openEHR-EHR-CLUSTER.t_sodium.v1.0.0
+
+specialize
+	openEHR-EHR-CLUSTER.analyte_demo.v1
+
+definition
+	CLUSTER[id1.1] matches {	-- Sodium
+		/items matches {
+			ELEMENT[id3.1] occurrences matches {1} matches {	-- Sodium level
+				value matches {
+					DV_QUANTITY[id9002]
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1.1"] = <text = <"Sodium"> description = <"Sodium analyte.">>
+			["id3.1"] = <text = <"Sodium level"> description = <"Sodium concentration.">>
+		>
+		["sv"] = <
+			["id1.1"] = <text = <"Natrium"> description = <"Natriumanalyt.">>
+			["id3.1"] = <text = <"Natriumnivå"> description = <"Natriumkoncentration.">>
+		>
+	>

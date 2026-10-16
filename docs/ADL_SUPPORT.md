@@ -74,6 +74,10 @@ const xml = new OptXmlSerializer().serialize(opt!);
 
 | ADL 1.4 serialize | `ADL14Serializer` | `.adl` text | Round-trip tests |
 
+| ADL 2 template + overlays → **OPT 1.4 XML** | `Adl2TemplateLibrary` + `exportAdl2TemplateToOpt14`, CLI `deno task export:opt14` | `.opt` text (all languages, `component_ontologies`, optional `L10n.*` annotations) | Web Template round-trip tests (#123) |
+
+| ADL 2 template → **OET 1.4 XML** | — | not yet implemented (#123) | — |
+
 
 
 Fixtures: [`test_data/README.md`](../test_data/README.md) — `opt14/` (20 OPT), `oet14/`, `adl14/`, `archie-tests/`.
@@ -124,6 +128,19 @@ ehrtslib support:
 | **Serialize** OPT XML | Emits annotations when present; `OptXmlSerializer({ l10nFromWebTemplate })` can synthesize `L10n.{lang}` from Web Template `localizedNames` |
 | **Web Template** | `buildWebTemplate` promotes `L10n.{lang}` into `node.localizedNames` and copies all path items onto `node.annotations` |
 | **Web Template → OPT** | `webTemplateToOpt` writes `L10n.*` path annotations from each node's `localizedNames` |
+
+#### Exporting ADL2 templates to OPT 1.4
+
+`exportAdl2TemplateToOpt14(library, templateId, options)` flattens an ADL2 template (overlays, specialisations, exclusions), maps codes to 1.4 form (`id1`→`at0000`, `id1.1`→`at0000.1`, `id0.1`→`at0.1`, overlay codes collapse onto the base archetype; ADL2 value codes that would clash with a node code in the single 1.4 at-code space are renumbered) and writes every language.
+
+Option `multilingualRepeatWorkaround` (**default `true`**; CLI `--no-multilingual-repeat-workaround` turns it off):
+
+- **on**: for every archetype used more than once whose texts differ between occurrences, `L10n.{lang}` path annotations are written for each occurrence, with `and name/value='…'` predicates. Repeated or renamed archetype roots also get a `name` constraint so paths stay distinct.
+- **off**: only the single `component_ontologies` block per archetype id is written; `warnings` names each archetype id, path and language whose text is lost, and `translationsDropped` is `true`.
+
+The default is on because readers that do not know the annotations ignore them, while leaving them out silently loses translations. `repeatedTranslationConflicts` lists the affected texts in both modes.
+
+Limits: tuples, ordinals and rules are not exported; filled slots are closed; there is no OPT 1.4 parser in Archie, so output is checked with the ITS-XML `Template.xsd` (test enabled with `OPENEHR_OPT14_XSD=<path to Template.xsd>`) and by the Ehrtslib OPT parser.
 
 Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Background: [openEHR Discourse #2760](https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760).
 
