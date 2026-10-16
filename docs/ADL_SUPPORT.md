@@ -163,7 +163,17 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 
 
 
-**ADL 1.4 down-convert:** `ADL14Serializer` emits `ontology`, `[at####]` node ids, and ADL 1.4 header for BAD/CKM compatibility.
+**ADL 1.4 down-convert:** `ADL14Serializer` emits `ontology`, `[at####]` node ids, ADL 1.4 header, `concept`, `language` (with translations), `specialize`, quoted ODIN keys, and expands `value_sets` to `[local::…]` (#113–#116).
+
+### ADL2 template → OET / OPT 1.4 (status)
+
+| Path | Status | Notes |
+|------|--------|-------|
+| ADL2 `.adls` archetype → ADL 1.4 `.adl` | **Supported** via `ADL14Serializer` (see round-trip tests under `test_data/tests/adl14/`) | Prefer ADL2 as source of truth |
+| ADL2 `template` / `use_archetype` → OET 1.4 XML | **Not implemented** | Author templates in ADL2; build OET in an ADL 1.4 template editor, or flatten to OPT via existing OET/OPT tooling once archetypes are in 1.4 |
+| ADL2 template → OPT 1.4 XML | **Partial** | `OptXmlSerializer` works from operational template AOM; no direct ADL2-template → OPT down-convert yet |
+| Interim flow for ADL 1.4-only CDRs | ADL2 authoring → `ADL14Serializer` for dependent archetypes → import into an ADL 1.4 template editor → build OET/OPT there | Tracked in #117 |
+
 
 
 

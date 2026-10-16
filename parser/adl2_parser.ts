@@ -239,6 +239,11 @@ export class ADL2Parser {
 
     const lang = mapOriginalLanguage(languageData);
     if (lang) archetype.original_language = lang;
+    // Preserve translations bag for round-trip / ADL 1.4 down-convert (#115).
+    if (languageData.translations !== undefined) {
+      (archetype as { translations?: unknown }).translations =
+        languageData.translations;
+    }
   }
 
   private parseDescriptionSection(archetype: openehr_am.ARCHETYPE): void {

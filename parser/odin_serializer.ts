@@ -1,5 +1,5 @@
 /**
- * Serialize ODIN-shaped values (from AOM mapper) back to ADL2 ODIN text.
+ * Serialize ODIN-shaped values (from AOM mapper) back to ADL2 / ADL 1.4 ODIN text.
  */
 
 import type { TermDefinitionTable } from "./odin_aom_mapper.ts";
@@ -10,12 +10,104 @@ function escapeString(s: string): string {
   return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 
-export function serializeOdinValue(value: OdinValue, indent: string, level: number): string {
+/** Terminology code phrase form, e.g. ISO_639-1::en → [ISO_639-1::en] */
+function looksLikeTerminologyCode(s: string): boolean {
+  return /^[A-Za-z][A-Za-z0-9_.-]*::.+$/.test(s);
+}
+
+function codeStringOf(
+  lang: openehr_base.Terminology_code | undefined,
+): string | undefined {
+  if (!lang) return undefined;
+  // Getters return plain strings (not String wrappers).
+  const code = lang.code_string;
+  return typeof code === "string" && code ? code : undefined;
+}
+
+function terminologyIdOf(
+  lang: openehr_base.Terminology_code | undefined,
+): string | undefined {
+  if (!lang) return undefined;
+  const id = lang.terminology_id;
+  return typeof id === "string" && id ? id : undefined;
+}
+
+function formatCodePhrase(
+  lang: openehr_base.Terminology_code | undefined,
+): string | undefined {
+  const code = codeStringOf(lang);
+  if (!code) return undefined;
+  const tid = terminologyIdOf(lang);
+  return tid ? `[${tid}::${code}]` : `[${code}]`;
+}
+
+function isPlainObject(value: OdinValue): value is OdinObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value) &&
+    (value as { _type?: string })._type !== "interval";
+}
+
+/** Known ODIN / resource attribute names — keep bare (not ["key"]). */
+const SCHEMA_ATTR_KEYS = new Set([
+  "language",
+  "author",
+  "text",
+  "description",
+  "purpose",
+  "use",
+  "misuse",
+  "keywords",
+  "copyright",
+  "id",
+  "members",
+  "lifecycle_state",
+  "original_language",
+  "translations",
+  "original_author",
+  "details",
+  "other_details",
+  "other_contributors",
+  "licence",
+  "license",
+  "custodian_namespace",
+  "custodian_organisation",
+  "custodian_organization",
+  "references",
+  "ip_acknowledgements",
+  "resource_package_uri",
+  "conversion_details",
+  "terminologies_available",
+  "term_definitions",
+  "term_bindings",
+  "constraint_bindings",
+  "value_sets",
+  "items",
+]);
+
+function shouldQuoteOdinKey(key: string, _val: OdinValue, _obj: OdinObject): boolean {
+  if (key.startsWith("[") || key.includes("[")) return true;
+  // Schema attributes stay bare: author = <…>, language = <…>
+  if (SCHEMA_ATTR_KEYS.has(key)) return false;
+  // Hash / map keys (lang codes, term codes, name/email/…): ["sv"], ["name"]
+  return true;
+}
+
+export function serializeOdinValue(
+  value: OdinValue,
+  indent: string,
+  level: number,
+  keyHint?: string,
+): string {
   const pad = indent.repeat(level);
   if (value === null || value === undefined) {
     return "<>";
   }
   if (typeof value === "string") {
+    if (
+      (keyHint === "language" || keyHint === "lifecycle_state") &&
+      looksLikeTerminologyCode(value)
+    ) {
+      return `<[${value}]>`;
+    }
     return `<${escapeString(value)}>`;
   }
   if (typeof value === "number" || typeof value === "boolean") {
@@ -29,14 +121,14 @@ export function serializeOdinValue(value: OdinValue, indent: string, level: numb
     return "<|...|>";
   }
   const obj = value as OdinObject;
-  const isKeyed = Object.keys(obj).every((k) => k.startsWith("[") || !k.includes("="));
   let out = "<\n";
   for (const [key, val] of Object.entries(obj)) {
-    if (key.includes("[") || Object.keys(obj).length > 0 && typeof val === "object" && !Array.isArray(val)) {
-      out += `${pad}${indent}[${escapeString(key)}] = ${serializeOdinValue(val, indent, level + 1).trimStart()}\n`;
-    } else {
-      out += `${pad}${indent}${key} = ${serializeOdinValue(val, indent, level + 1).trimStart()}\n`;
-    }
+    const keyText = shouldQuoteOdinKey(key, val, obj)
+      ? `[${escapeString(key)}]`
+      : key;
+    out += `${pad}${indent}${keyText} = ${
+      serializeOdinValue(val, indent, level + 1, key).trimStart()
+    }\n`;
   }
   out += `${pad}>`;
   return out;
@@ -50,14 +142,20 @@ function serializeOdinPrimitiveInline(value: OdinValue): string {
 export function serializeLanguageSection(
   lang: openehr_base.Terminology_code | undefined,
   indent: string,
+  translations?: OdinValue,
 ): string {
-  if (!lang?.code_string?.value) {
+  const phrase = formatCodePhrase(lang);
+  if (!phrase && translations === undefined) {
     return "";
   }
-  const code = lang.terminology_id?.value
-    ? `[${lang.terminology_id.value}::${lang.code_string.value}]`
-    : escapeString(lang.code_string.value);
-  return `language\n    original_language = <${code}>\n\n`;
+  let out = "language\n";
+  if (phrase) {
+    out += `    original_language = <${phrase}>\n`;
+  }
+  if (translations !== undefined) {
+    out += `    translations = ${serializeOdinValue(translations, indent, 2)}\n`;
+  }
+  return out + "\n";
 }
 
 export function serializeDescriptionSection(
@@ -75,8 +173,15 @@ export function serializeDescriptionSection(
   if (bag.details !== undefined) {
     out += `    details = ${serializeOdinValue(bag.details, indent, 2)}\n`;
   }
-  if (desc.lifecycle_state?.code_string?.value) {
-    out += `    lifecycle_state = <${escapeString(desc.lifecycle_state.code_string.value)}>\n`;
+  const lifeCode = codeStringOf(desc.lifecycle_state);
+  if (lifeCode) {
+    const lifeTid = terminologyIdOf(desc.lifecycle_state);
+    const life = lifeTid && !looksLikeTerminologyCode(lifeCode)
+      ? `[${lifeTid}::${lifeCode}]`
+      : looksLikeTerminologyCode(lifeCode)
+      ? `[${lifeCode}]`
+      : escapeString(lifeCode);
+    out += `    lifecycle_state = <${life}>\n`;
   }
   return out + "\n";
 }
