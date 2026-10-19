@@ -31,8 +31,13 @@ export interface ADL2SerializerConfig {
 /**
  * ADL2 Serializer
  */
+function formatNodeBracket(nodeId?: string): string {
+  if (nodeId === undefined || nodeId === null || nodeId === "") return "";
+  return `[${nodeId}]`;
+}
+
 export class ADL2Serializer {
-  private config: ADL2SerializerConfig;
+  protected config: ADL2SerializerConfig;
 
   constructor(config?: ADL2SerializerConfig) {
     this.config = {
@@ -74,7 +79,7 @@ export class ADL2Serializer {
 
     adl += "definition\n";
     if (archetype.definition) {
-      adl += this.serializeDefinition(archetype.definition, 1);
+      adl += this.serializeCObject(archetype.definition, 1);
     }
     adl += "\n";
 
@@ -95,35 +100,95 @@ export class ADL2Serializer {
     return adl;
   }
 
-  private serializeDefinition(
+  protected serializeCObject(
+    cObject: openehr_am.C_OBJECT,
+    level: number,
+  ): string {
+    if (cObject instanceof openehr_am.C_ARCHETYPE_ROOT) {
+      return this.serializeArchetypeRoot(cObject, level);
+    }
+    if (cObject instanceof openehr_am.C_COMPLEX_OBJECT) {
+      return this.serializeComplexObject(cObject, level);
+    }
+    if (cObject instanceof openehr_am.ARCHETYPE_SLOT) {
+      return this.serializeSlot(cObject, level);
+    }
+    if (cObject instanceof openehr_am.C_TERMINOLOGY_CODE) {
+      return this.serializeTerminologyCode(cObject, level);
+    }
+    if (cObject instanceof openehr_am.C_PRIMITIVE_OBJECT) {
+      return this.serializePrimitiveObject(cObject, level);
+    }
+    return "";
+  }
+
+  protected serializeComplexObject(
     cObject: openehr_am.C_COMPLEX_OBJECT,
     level: number,
   ): string {
     const indent = this.getIndent(level);
-    let adl = `${indent}${cObject.rm_type_name}[${cObject.node_id}]`;
+    let line = `${indent}${cObject.rm_type_name}${formatNodeBracket(cObject.node_id)}`;
+    line = this.decorateObjectLine(cObject, line);
 
     if (cObject.occurrences) {
       const lower = cObject.occurrences.lower ?? 0;
       const upper = cObject.occurrences.upper;
       const upperStr = upper === undefined ? "*" : String(upper);
-      adl += ` occurrences matches {${lower}..${upperStr}}`;
+      line += ` occurrences matches {${lower}..${upperStr}}`;
     }
 
     const attrs = cObject.attributes;
     if (attrs && attrs.length > 0) {
-      adl += " matches {\n";
+      let adl = line + " matches {\n";
       for (const attr of attrs) {
         adl += this.serializeAttribute(attr, level + 1);
       }
       adl += `${indent}}\n`;
-    } else {
-      adl += "\n";
+      return adl;
     }
-
-    return adl;
+    return line + "\n";
   }
 
-  private serializeAttribute(
+  protected serializeArchetypeRoot(
+    root: openehr_am.C_ARCHETYPE_ROOT,
+    level: number,
+  ): string {
+    const indent = this.getIndent(level);
+    let line = `${indent}use_archetype ${root.rm_type_name}${formatNodeBracket(root.node_id)}`;
+    if (root.archetype_ref) {
+      line += `, ${root.archetype_ref}`;
+    }
+    line += `]`;
+    line = this.decorateObjectLine(root, line);
+
+    if (root.occurrences) {
+      const lower = root.occurrences.lower ?? 0;
+      const upper = root.occurrences.upper;
+      const upperStr = upper === undefined ? "*" : String(upper);
+      line += ` occurrences matches {${lower}..${upperStr}}`;
+    }
+
+    const attrs = root.attributes;
+    if (attrs && attrs.length > 0) {
+      let adl = line + " matches {\n";
+      for (const attr of attrs) {
+        adl += this.serializeAttribute(attr, level + 1);
+      }
+      adl += `${indent}}\n`;
+      return adl;
+    }
+    return line + "\n";
+  }
+
+  /** Hook for OPT2 inline term labels (`-- …`). */
+  protected decorateObjectLine(
+    _node: openehr_am.C_OBJECT,
+    line: string,
+  ): string {
+    return line;
+  }
+
+  protected serializeAttribute(
     cAttribute: openehr_am.C_ATTRIBUTE,
     level: number,
   ): string {
@@ -153,7 +218,6 @@ export class ADL2Serializer {
 
     const children = (cAttribute as { children?: openehr_am.C_OBJECT[] }).children;
     if (children && children.length > 0) {
-      // Inline interval constraint: magnitude matches {|>0|}
       if (
         children.length === 1 &&
         children[0] instanceof openehr_am.C_PRIMITIVE_OBJECT &&
@@ -166,15 +230,7 @@ export class ADL2Serializer {
       } else {
         adl += " matches {\n";
         for (const child of children) {
-          if (child instanceof openehr_am.ARCHETYPE_SLOT) {
-            adl += this.serializeSlot(child, level + 1);
-          } else if (child instanceof openehr_am.C_TERMINOLOGY_CODE) {
-            adl += this.serializeTerminologyCode(child, level + 1);
-          } else if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
-            adl += this.serializeDefinition(child, level + 1);
-          } else if (child instanceof openehr_am.C_PRIMITIVE_OBJECT) {
-            adl += this.serializePrimitiveObject(child, level + 1);
-          }
+          adl += this.serializeCObject(child, level + 1);
         }
         adl += `${indent}}\n`;
       }
@@ -185,12 +241,12 @@ export class ADL2Serializer {
     return adl;
   }
 
-  private serializeSlot(
+  protected serializeSlot(
     slot: openehr_am.ARCHETYPE_SLOT,
     level: number,
   ): string {
     const indent = this.getIndent(level);
-    let adl = `${indent}allow_archetype ${slot.rm_type_name}[${slot.node_id}]`;
+    let adl = `${indent}allow_archetype ${slot.rm_type_name}${formatNodeBracket(slot.node_id)}`;
     if (slot.occurrences) {
       const lower = slot.occurrences.lower ?? 0;
       const upper = slot.occurrences.upper;
@@ -215,7 +271,7 @@ export class ADL2Serializer {
     return adl;
   }
 
-  private serializeTerminologyCode(
+  protected serializeTerminologyCode(
     term: openehr_am.C_TERMINOLOGY_CODE,
     level: number,
   ): string {
@@ -224,7 +280,7 @@ export class ADL2Serializer {
     return `${indent}[${code}]\n`;
   }
 
-  private serializePrimitiveObject(
+  protected serializePrimitiveObject(
     prim: openehr_am.C_PRIMITIVE_OBJECT,
     level: number,
   ): string {
@@ -236,16 +292,15 @@ export class ADL2Serializer {
       ? prim.item.pattern
       : undefined;
     if (!prim.node_id && pattern) {
-      // Interval-like leaf stored as C_STRING pattern (e.g. ">0")
       return `${indent}{|${pattern}|}\n`;
     }
     if (pattern && !pattern.includes("|")) {
-      return `${indent}${prim.rm_type_name}[${prim.node_id}] matches {${JSON.stringify(pattern)}}\n`;
+      return `${indent}${prim.rm_type_name}${formatNodeBracket(prim.node_id)} matches {${JSON.stringify(pattern)}}\n`;
     }
-    return `${indent}${prim.rm_type_name}[${prim.node_id}]\n`;
+    return `${indent}${prim.rm_type_name}${formatNodeBracket(prim.node_id)}\n`;
   }
 
-  private getIndent(level: number): string {
+  protected getIndent(level: number): string {
     return (this.config.indent || "    ").repeat(level);
   }
 }

@@ -186,6 +186,39 @@ export function serializeDescriptionSection(
   return out + "\n";
 }
 
+export function serializeComponentTerminologiesSection(
+  archetypeTermDefinitions: Record<
+    string,
+    Record<string, Record<string, { text?: string; description?: string }>>
+  > | undefined,
+  indent: string,
+): string {
+  if (!archetypeTermDefinitions || Object.keys(archetypeTermDefinitions).length === 0) {
+    return "";
+  }
+  const keyed: OdinObject = {};
+  for (const [archId, byLang] of Object.entries(archetypeTermDefinitions).sort(([a], [b]) =>
+    a.localeCompare(b)
+  )) {
+    const termDefs: OdinObject = {};
+    for (const [lang, terms] of Object.entries(byLang)) {
+      termDefs[lang] = Object.fromEntries(
+        Object.entries(terms).map(([code, t]) => [
+          code,
+          {
+            text: t.text ?? "",
+            ...(t.description ? { description: t.description } : {}),
+          },
+        ]),
+      );
+    }
+    keyed[archId] = { term_definitions: termDefs };
+  }
+  return `component_terminologies\n${
+    serializeOdinValue(keyed, indent, 2).trimStart()
+  }\n\n`;
+}
+
 export function serializeTerminologySection(
   ontology: Record<string, unknown> | undefined,
   indent: string,
