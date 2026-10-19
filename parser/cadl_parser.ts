@@ -36,19 +36,19 @@ export class CadlParser {
     const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
     cObject.rm_type_name = typeId.value;
 
-    this.consume(TokenType.LBRACKET, "Expected '[' for node id");
-
-    const nodeIdToken = this.peek();
-    if (
-      nodeIdToken.type === TokenType.ID_CODE ||
-      nodeIdToken.type === TokenType.AT_CODE
-    ) {
-      cObject.node_id = this.advance().value;
-    } else {
-      throw this.error("Expected node id code (id1, at0000, etc.)");
+    if (this.check(TokenType.LBRACKET)) {
+      this.advance();
+      const nodeIdToken = this.peek();
+      if (
+        nodeIdToken.type === TokenType.ID_CODE ||
+        nodeIdToken.type === TokenType.AT_CODE
+      ) {
+        cObject.node_id = this.advance().value;
+      } else {
+        throw this.error("Expected node id code (id1, at0000, etc.)");
+      }
+      this.consume(TokenType.RBRACKET, "Expected ']' after node id");
     }
-
-    this.consume(TokenType.RBRACKET, "Expected ']' after node id");
 
     if (this.check(TokenType.OCCURRENCES)) {
       this.parseOccurrences(cObject);
@@ -95,10 +95,15 @@ export class CadlParser {
     root.rm_type_name = typeId.value;
 
     this.consume(TokenType.LBRACKET, "Expected '['");
-    root.node_id = this.consume(
-      TokenType.ID_CODE,
-      "Expected id code",
-    ).value;
+    const nodeIdToken = this.peek();
+    if (
+      nodeIdToken.type === TokenType.ID_CODE ||
+      nodeIdToken.type === TokenType.AT_CODE
+    ) {
+      root.node_id = this.advance().value;
+    } else if (!this.check(TokenType.COMMA) && !this.check(TokenType.RBRACKET)) {
+      throw this.error("Expected node id code (id1, at0000, etc.)");
+    }
 
     if (this.check(TokenType.COMMA)) {
       this.advance();
