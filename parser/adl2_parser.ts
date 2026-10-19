@@ -11,7 +11,9 @@ import {
   applyTerminologyOdin,
   mapDescription,
   mapOriginalLanguage,
+  mapTermDefinitions,
 } from "./odin_aom_mapper.ts";
+import type { OperationalTemplateWithTermScopes } from "../generation/term_scope.ts";
 import { CadlParser } from "./cadl_parser.ts";
 import { RulesParser } from "./rules_parser.ts";
 import {
@@ -149,6 +151,12 @@ export class ADL2Parser {
         this.parseAnnotationsSection(archetype);
       } else if (this.check(TokenType.RM_OVERLAY)) {
         this.parseRmOverlaySection(archetype);
+      } else if (this.check(TokenType.COMPONENT_TERMINOLOGIES)) {
+        if (archetype instanceof openehr_am.OPERATIONAL_TEMPLATE) {
+          this.parseComponentTerminologiesSection(archetype);
+        } else {
+          this.skipToNextSection();
+        }
       } else {
         // Unknown section or end of file
         break;
@@ -342,7 +350,8 @@ export class ADL2Parser {
       if (
         token.type === TokenType.TERMINOLOGY ||
         token.type === TokenType.ANNOTATIONS ||
-        token.type === TokenType.RM_OVERLAY
+        token.type === TokenType.RM_OVERLAY ||
+        token.type === TokenType.COMPONENT_TERMINOLOGIES
       ) {
         break;
       }
@@ -355,6 +364,38 @@ export class ADL2Parser {
       column: this.peek().column,
     });
     return out;
+  }
+
+  private parseComponentTerminologiesSection(
+    opt: openehr_am.OPERATIONAL_TEMPLATE,
+  ): void {
+    this.consumeKeyword(
+      TokenType.COMPONENT_TERMINOLOGIES,
+      "Expected 'component_terminologies' keyword",
+    );
+    const odinTokens = this.collectOdinTokens();
+    try {
+      const odinParser = new OdinParser(odinTokens);
+      const data = odinParser.parse() as OdinObject;
+      const scoped = opt as OperationalTemplateWithTermScopes;
+      const index: Record<string, ReturnType<typeof mapTermDefinitions>> = {
+        ...(scoped.archetype_term_definitions ?? {}),
+      };
+      for (const [archId, bag] of Object.entries(data)) {
+        if (!bag || typeof bag !== "object" || Array.isArray(bag)) continue;
+        const termDefs = (bag as OdinObject).term_definitions;
+        if (termDefs === undefined) continue;
+        const table = mapTermDefinitions(termDefs);
+        index[archId] = { ...(index[archId] ?? {}), ...table };
+      }
+      scoped.archetype_term_definitions = index;
+    } catch (e) {
+      this.warnings.push(
+        `component_terminologies section parse error: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
   }
 
   private parseTerminologySection(archetype: openehr_am.ARCHETYPE): void {
@@ -449,7 +490,8 @@ export class ADL2Parser {
           token.type === TokenType.TERMINOLOGY ||
           token.type === TokenType.ONTOLOGY ||
           token.type === TokenType.ANNOTATIONS ||
-          token.type === TokenType.RM_OVERLAY)
+          token.type === TokenType.RM_OVERLAY ||
+          token.type === TokenType.COMPONENT_TERMINOLOGIES)
       ) {
         break;
       }
@@ -489,7 +531,9 @@ export class ADL2Parser {
           token.type === TokenType.DEFINITION ||
           token.type === TokenType.RULES ||
           token.type === TokenType.TERMINOLOGY ||
-          token.type === TokenType.ANNOTATIONS)
+          token.type === TokenType.ANNOTATIONS ||
+          token.type === TokenType.COMPONENT_TERMINOLOGIES ||
+          token.type === TokenType.RM_OVERLAY)
       ) {
         break;
       }

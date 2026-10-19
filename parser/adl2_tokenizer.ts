@@ -20,6 +20,7 @@ export enum TokenType {
   ONTOLOGY = "ONTOLOGY",
   ANNOTATIONS = "ANNOTATIONS",
   RM_OVERLAY = "RM_OVERLAY",
+  COMPONENT_TERMINOLOGIES = "COMPONENT_TERMINOLOGIES",
   MATCHES = "MATCHES",
   OCCURRENCES = "OCCURRENCES",
   CARDINALITY = "CARDINALITY",
@@ -564,6 +565,8 @@ export class ADL2Tokenizer {
         return TokenType.ANNOTATIONS;
       case "RM_OVERLAY":
         return TokenType.RM_OVERLAY;
+      case "COMPONENT_TERMINOLOGIES":
+        return TokenType.COMPONENT_TERMINOLOGIES;
       case "MATCHES":
         return TokenType.MATCHES;
       case "OCCURRENCES":

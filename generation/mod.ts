@@ -46,6 +46,14 @@ export type { TypeScriptGeneratorConfig } from "./typescript_generator.ts";
 export { ADL2Serializer } from "./adl2_serializer.ts";
 export type { ADL2SerializerConfig } from "./adl2_serializer.ts";
 
+export { OPT2Serializer, opt2SizeMetrics } from "./opt2_serializer.ts";
+export type {
+  CadlLabelContext,
+  OPT2SerializerConfig,
+  Opt2SerializeOptions,
+} from "./opt2_serializer.ts";
+export { filterOperationalTemplateLanguages } from "./opt2_trim.ts";
+
 export { ADL14Serializer, adl14RoundTripMetrics } from "./adl14_serializer.ts";
 export type { Adl14SerializerConfig } from "./adl14_serializer.ts";
 

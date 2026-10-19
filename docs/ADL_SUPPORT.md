@@ -14,7 +14,7 @@ ehrtslib parses **ADL 2** natively and accepts **ADL 1.4** via automatic convers
 
 import { parseAdl, parseTemplateInput, ArchetypeRepository } from "./parser/mod.ts";
 
-import { OptXmlSerializer } from "./generation/mod.ts";
+import { OptXmlSerializer, OPT2Serializer } from "./generation/mod.ts";
 
 
 
@@ -44,6 +44,23 @@ const compiled = parseTemplateInput(oetXml, { archetypeRepository: repo });
 
 const xml = new OptXmlSerializer().serialize(opt!);
 
+// Compact ADL2 operational_template (OPT2) for LLM / tooling (#130)
+
+const opt2 = new OPT2Serializer().serializeOperationalTemplate(opt!);
+
+// Optional: keep only selected languages in terminology / localized bags
+
+const enOnly = new OPT2Serializer().serializeOperationalTemplate(opt!, {
+  languages: ["en"],
+});
+
+// Optional enrichment: inline human-readable `--` labels on cADL nodes (adds bytes)
+
+const withLabels = new OPT2Serializer().serializeOperationalTemplate(opt!, {
+  inlineTermLabels: true,
+  inlineTermLabelLanguage: "en",
+});
+
 ```
 
 
@@ -69,6 +86,7 @@ const xml = new OptXmlSerializer().serialize(opt!);
 | ADL 1.4 `.adl` (convert → ADL2) | `parseAdl` | `ARCHETYPE` / template | After flatten |
 
 | Legacy **OPT XML** (`.opt`) | `parseOptXml` / `OptXmlSerializer` | `OPERATIONAL_TEMPLATE` | Yes |
+| **OPT2** (ADL2 `operational_template` text) | `OPT2Serializer` / `parseAdl` | `OPERATIONAL_TEMPLATE` | Yes (definition + terminology; see `test_data/tests/generation/opt2_serializer.test.ts`) |
 
 | **OET XML** (`.oet`, CKM) | `parseOetXml` / `compileOetToOperational` | `OPERATIONAL_TEMPLATE` (with repo) | Yes |
 
@@ -264,7 +282,7 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 From the repository root. Prefer `--no-check`; `deno task test` typechecks and currently fails on many test files.
 
 ```bash
-deno test test_data/tests/adl14/ test_data/tests/am/ test_data/tests/parser/ test_data/tests/validation/ --allow-read --no-check
+deno test test_data/tests/adl14/ test_data/tests/am/ test_data/tests/parser/ test_data/tests/generation/ test_data/tests/validation/ --allow-read --no-check
 
 deno test examples/demo-app/src/converter.template.test.ts --allow-read --no-check
 ```
