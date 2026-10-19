@@ -1,3 +1,11 @@
+export interface RegisterModuleOptions {
+  /**
+   * When set, only exports whose names match this pattern are registered.
+   * Use {@link OPENEHR_TYPE_NAME_PATTERN} when registering `base` or `rm` barrels.
+   */
+  typeNamePattern?: RegExp;
+}
+
 /**
  * TypeRegistry provides a bidirectional mapping between openEHR type names
  * and TypeScript class constructors. This is essential for deserialization
@@ -8,6 +16,7 @@ export class TypeRegistry {
   private static typeNameToConstructor = new Map<string, new () => any>();
   private static constructorToTypeName = new Map<new () => any, string>();
   private static instanceToTypeName = new WeakMap<object, string>();
+  private static openEhrModelTypesRegistered = false;
 
   /**
    * Register a class with its openEHR type name
@@ -102,6 +111,17 @@ export class TypeRegistry {
   static clear(): void {
     this.typeNameToConstructor.clear();
     this.constructorToTypeName.clear();
+    this.openEhrModelTypesRegistered = false;
+  }
+
+  /** @internal Used by {@link registerOpenEhrModelTypes}. */
+  static isOpenEhrModelTypesRegistered(): boolean {
+    return this.openEhrModelTypesRegistered;
+  }
+
+  /** @internal Used by {@link registerOpenEhrModelTypes}. */
+  static markOpenEhrModelTypesRegistered(): void {
+    this.openEhrModelTypesRegistered = true;
   }
 
   /**
@@ -110,8 +130,14 @@ export class TypeRegistry {
    * @param moduleExports - The module exports object (e.g., import * as rm from './openehr_rm.ts')
    * @throws Error if moduleExports contains values that are not functions with prototypes (class constructors)
    */
-  static registerModule(moduleExports: Record<string, any>): void {
+  static registerModule(
+    moduleExports: Record<string, any>,
+    options?: RegisterModuleOptions,
+  ): void {
     for (const [name, value] of Object.entries(moduleExports)) {
+      if (options?.typeNamePattern && !options.typeNamePattern.test(name)) {
+        continue;
+      }
       // Check if it's a function with prototype (class constructor)
       if (typeof value === 'function' && value.prototype) {
         // Register using the exported name as the type name

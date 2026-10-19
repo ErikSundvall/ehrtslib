@@ -25,6 +25,7 @@
  */
 
 import { TypeRegistry } from '../common/type_registry.ts';
+import { registerOpenEhrModelTypes } from '../common/openehr_model_registry.ts';
 import {
   DeserializationError,
   TypeNotFoundError,
@@ -45,6 +46,7 @@ export class JsonCanonicalDeserializer {
    * @throws TypeNotFoundError if type is not registered
    */
   deserialize<T = any>(json: string): T {
+    registerOpenEhrModelTypes();
     try {
       const parsed = JSON.parse(json);
       return this.fromJsonObject(parsed);

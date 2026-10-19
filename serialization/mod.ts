@@ -94,6 +94,10 @@ export {
 // Common utilities
 export {
   TypeRegistry,
+  registerOpenEhrModelTypes,
+  OPENEHR_TYPE_NAME_PATTERN,
+  collectTypeNamesFromJsonTree,
+  type RegisterModuleOptions,
   TypeInferenceEngine,
   HybridStyleFormatter,
   type HybridFormatterOptions,

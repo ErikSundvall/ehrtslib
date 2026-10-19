@@ -3,11 +3,8 @@
  * deserializers, with `_type` markers) into typed RM class instances via the
  * canonical JSON deserializer.
  *
- * The RM type registry must be populated first, e.g.:
- * ```ts
- * import * as rm from "../../rm/openehr_rm.ts";
- * TypeRegistry.registerModule(rm);
- * ```
+ * Types are registered automatically via {@link registerOpenEhrModelTypes}
+ * when using {@link JsonCanonicalDeserializer} (RM + BASE barrels).
  */
 
 import { JsonCanonicalDeserializer } from "../json/json_canonical_deserializer.ts";
