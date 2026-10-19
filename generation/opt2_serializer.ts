@@ -27,13 +27,26 @@ import {
 } from "./term_scope.ts";
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import type { TermBag } from "../am/util/ontology_merge.ts";
-import {
-  type Opt2LlmTrimOptions,
-  type Opt2SerializeOptions,
-  trimOperationalTemplateForLlm,
-} from "./opt2_trim.ts";
+import { filterOperationalTemplateLanguages } from "./opt2_trim.ts";
 
-export type { Opt2LlmTrimOptions, Opt2SerializeOptions };
+/** Options for {@link OPT2Serializer.serializeOperationalTemplate}. */
+export interface Opt2SerializeOptions {
+  indent?: string;
+  adlVersion?: string;
+  rmRelease?: string;
+  /**
+   * Keep only these language codes in terminology / component_terminologies /
+   * localized description and annotation bags (clone + filter before serialize).
+   */
+  languages?: string[];
+  /**
+   * Add human-readable `-- label` comments on cADL nodes using template /
+   * component terminology (increases output size; does not remove ODIN sections).
+   */
+  inlineTermLabels?: boolean;
+  /** Language for {@link Opt2SerializeOptions.inlineTermLabels}; defaults to first `languages` entry or template primary. */
+  inlineTermLabelLanguage?: string;
+}
 
 export interface CadlLabelContext {
   inlineLabels: boolean;
@@ -66,15 +79,14 @@ export class OPT2Serializer extends ADL2Serializer {
     opt: openehr_am.OPERATIONAL_TEMPLATE,
     options?: Opt2SerializeOptions,
   ): string {
-    const working = options?.llmTrim
-      ? trimOperationalTemplateForLlm(opt, options.llmTrim)
+    const working = options?.languages?.length
+      ? filterOperationalTemplateLanguages(opt, options.languages)
       : opt;
 
-    const inline = options?.llmTrim?.inlineTermLabels ?? false;
-    if (inline) {
+    if (options?.inlineTermLabels) {
       const language = resolveTemplateLanguage(
         working,
-        options?.llmTrim?.languages?.[0],
+        options.inlineTermLabelLanguage ?? options.languages?.[0],
       );
       const templateTerms = ((working.ontology as {
         term_definitions?: Record<string, TermBag>;

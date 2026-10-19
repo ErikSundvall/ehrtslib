@@ -7,9 +7,9 @@ import { parseTemplateInput } from "../../../parser/mod.ts";
 import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
 import { ADL2Parser } from "../../../parser/adl2_parser.ts";
 import {
+  filterOperationalTemplateLanguages,
   OPT2Serializer,
   opt2SizeMetrics,
-  trimOperationalTemplateForLlm,
 } from "../../../generation/mod.ts";
 
 const TEST_DATA = new URL("../../", import.meta.url);
@@ -58,30 +58,33 @@ Deno.test("OPT2 — blood pressure template smaller than legacy XML", async () =
 
   assertGreater(metrics.byteRatio, 2, `expected OPT2 much smaller: ${JSON.stringify(metrics)}`);
   assertGreater(metrics.lineRatio, 2);
-
-  const trimmed = serializer.serializeOperationalTemplate(opt, {
-    llmTrim: {
-      languages: ["en"],
-      stripDescriptionSection: true,
-      stripAnnotations: true,
-      stripTermDescriptions: true,
-      inlineTermLabels: true,
-      omitTerminology: true,
-      omitComponentTerminologies: true,
-    },
-  });
-  const trimmedMetrics = opt2SizeMetrics(xml, trimmed);
-  assertGreater(trimmedMetrics.opt2Bytes, 0);
-  assert(trimmedMetrics.opt2Bytes < metrics.opt2Bytes);
 });
 
-Deno.test("OPT2 — trimOperationalTemplateForLlm filters languages", async () => {
+Deno.test("OPT2 — filterOperationalTemplateLanguages keeps chosen languages", async () => {
   const xml = await Deno.readTextFile(
     new URL("opt14/language_test.opt", TEST_DATA),
   );
   const opt = parseTemplateInput(xml).operationalTemplate!;
-  const trimmed = trimOperationalTemplateForLlm(opt, { languages: ["en"] });
-  const defs = (trimmed.ontology as { term_definitions?: Record<string, unknown> })
+  const filtered = filterOperationalTemplateLanguages(opt, ["en"]);
+  const defs = (filtered.ontology as { term_definitions?: Record<string, unknown> })
     ?.term_definitions ?? {};
   assert("en" in defs || Object.keys(defs).length <= 1);
+  for (const lang of Object.keys(defs)) {
+    assertEquals(lang.toLowerCase(), "en");
+  }
+});
+
+Deno.test("OPT2 — inlineTermLabels adds comment enrichment", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("opt14/minimal_evaluation.opt", TEST_DATA),
+  );
+  const opt = parseTemplateInput(xml).operationalTemplate!;
+  const serializer = new OPT2Serializer();
+  const plain = serializer.serializeOperationalTemplate(opt);
+  const enriched = serializer.serializeOperationalTemplate(opt, {
+    inlineTermLabels: true,
+    inlineTermLabelLanguage: "en",
+  });
+  assertGreater(enriched.length, plain.length);
+  assert(enriched.includes(" -- "), "expected inline term label comments");
 });

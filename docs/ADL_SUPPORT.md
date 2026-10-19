@@ -47,17 +47,18 @@ const xml = new OptXmlSerializer().serialize(opt!);
 // Compact ADL2 operational_template (OPT2) for LLM / tooling (#130)
 
 const opt2 = new OPT2Serializer().serializeOperationalTemplate(opt!);
-// Optional LLM trim (single language, inline `--` labels, drop terminology blocks):
 
-const compact = new OPT2Serializer().serializeOperationalTemplate(opt!, {
-  llmTrim: {
-    languages: ["en"],
-    stripDescriptionSection: true,
-    stripAnnotations: true,
-    inlineTermLabels: true,
-    omitTerminology: true,
-    omitComponentTerminologies: true,
-  },
+// Optional: keep only selected languages in terminology / localized bags
+
+const enOnly = new OPT2Serializer().serializeOperationalTemplate(opt!, {
+  languages: ["en"],
+});
+
+// Optional enrichment: inline human-readable `--` labels on cADL nodes (adds bytes)
+
+const withLabels = new OPT2Serializer().serializeOperationalTemplate(opt!, {
+  inlineTermLabels: true,
+  inlineTermLabelLanguage: "en",
 });
 
 ```

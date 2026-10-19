@@ -19,7 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
-`OPT2Serializer`, `trimOperationalTemplateForLlm`, and `opt2SizeMetrics` in `generation/mod.ts` export in-memory `OPERATIONAL_TEMPLATE` to ADL2 `operational_template` text (OPT2) with optional LLM trimming (issue #130).
+`OPT2Serializer`, `filterOperationalTemplateLanguages`, and `opt2SizeMetrics` in `generation/mod.ts` export in-memory `OPERATIONAL_TEMPLATE` to ADL2 `operational_template` text (OPT2), with optional language filtering and separate `inlineTermLabels` enrichment (issue #130).
 
 Flatten of a Better `.t.json` keeps a separate `archetype_term_definitions` bag per template id when several templates specialise one archetype (issue #110). `OPERATIONAL_TEMPLATE.template_id` carries that Better id. Web Template `templateId` and OPT XML `<template_id>` use it when set; `archetype_id` is unchanged. Applications that rebuilt those bags themselves (including [regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator)) can read the operational template directly.
 
