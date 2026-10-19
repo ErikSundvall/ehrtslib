@@ -12,6 +12,7 @@
  */
 
 import { TypeRegistry } from '../common/type_registry.ts';
+import { registerOpenEhrModelTypes } from '../common/openehr_model_registry.ts';
 import { TypeInferenceEngine } from '../common/type_inference.ts';
 import {
   DeserializationError,
@@ -59,6 +60,7 @@ export class JsonConfigurableDeserializer {
    * @throws DeserializationError if deserialization fails
    */
   deserialize<T = any>(json: string): T {
+    registerOpenEhrModelTypes();
     try {
       const sourceIndex = buildJsonSourceIndex(json);
       const parsed = JSON.parse(json);

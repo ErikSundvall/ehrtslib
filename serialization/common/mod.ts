@@ -5,6 +5,12 @@
  */
 
 export { TypeRegistry } from './type_registry.ts';
+export type { RegisterModuleOptions } from './type_registry.ts';
+export {
+  collectTypeNamesFromJsonTree,
+  OPENEHR_TYPE_NAME_PATTERN,
+  registerOpenEhrModelTypes,
+} from './openehr_model_registry.ts';
 export {
   TypeInferenceEngine,
   normalizeRmTypeName,

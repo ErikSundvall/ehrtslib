@@ -197,15 +197,25 @@ try {
 
 ## Type Registration
 
-Before using serialization, ensure all RM types are registered:
+Before using serialization, register RM **and** BASE classes (canonical JSON embeds
+BASE identification types such as `TERMINOLOGY_ID` and `OBJECT_VERSION_ID`):
 
 ```typescript
-import { TypeRegistry } from './serialization/common/type_registry.ts';
-import * as rm from './openehr_rm.ts';
-import * as base from './openehr_base.ts';
+import { registerOpenEhrModelTypes } from './serialization/mod.ts';
 
-TypeRegistry.registerModule(rm);
-TypeRegistry.registerModule(base);
+registerOpenEhrModelTypes();
+```
+
+`JsonCanonicalDeserializer` and `JsonConfigurableDeserializer` call this automatically
+on `deserialize()`. For custom registry setup you can still use:
+
+```typescript
+import { TypeRegistry, OPENEHR_TYPE_NAME_PATTERN } from './serialization/mod.ts';
+import * as rm from './rm/mod.ts';
+import * as base from './base/mod.ts';
+
+TypeRegistry.registerModule(rm, { typeNamePattern: OPENEHR_TYPE_NAME_PATTERN });
+TypeRegistry.registerModule(base, { typeNamePattern: OPENEHR_TYPE_NAME_PATTERN });
 ```
 
 ## Compatibility
