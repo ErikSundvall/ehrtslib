@@ -1,6 +1,6 @@
 /**
  * ADL2 Tokenizer
- *
+ * 
  * Hand-written tokenizer for ADL2 syntax following the hybrid approach.
  * Converts ADL2 text into a stream of tokens for the parser.
  */
@@ -47,37 +47,37 @@ export enum TokenType {
   REAL = "REAL",
   /** ODIN URI value, `<scheme://…>` without the angle brackets. */
   URI = "URI",
-
+  
   // Delimiters
-  LPAREN = "LPAREN", // (
-  RPAREN = "RPAREN", // )
-  LBRACKET = "LBRACKET", // [
-  RBRACKET = "RBRACKET", // ]
-  LBRACE = "LBRACE", // {
-  RBRACE = "RBRACE", // }
-  LANGLE = "LANGLE", // <
-  RANGLE = "RANGLE", // >
-
+  LPAREN = "LPAREN",          // (
+  RPAREN = "RPAREN",          // )
+  LBRACKET = "LBRACKET",      // [
+  RBRACKET = "RBRACKET",      // ]
+  LBRACE = "LBRACE",          // {
+  RBRACE = "RBRACE",          // }
+  LANGLE = "LANGLE",          // <
+  RANGLE = "RANGLE",          // >
+  
   // Operators
-  DOT = "DOT", // .
-  COMMA = "COMMA", // ,
-  SEMICOLON = "SEMICOLON", // ;
-  COLON = "COLON", // :
+  DOT = "DOT",                // .
+  COMMA = "COMMA",            // ,
+  SEMICOLON = "SEMICOLON",    // ;
+  COLON = "COLON",            // :
   DOUBLE_COLON = "DOUBLE_COLON", // ::
-  EQUALS = "EQUALS", // =
-  ASSIGN = "ASSIGN", // :=
-  NOT_EQUALS = "NOT_EQUALS", // /=
-  PIPE = "PIPE", // |
-  ELLIPSIS = "ELLIPSIS", // ..
-  STAR = "STAR", // *
-  SLASH = "SLASH", // /
-
+  EQUALS = "EQUALS",          // =
+  ASSIGN = "ASSIGN",          // :=
+  NOT_EQUALS = "NOT_EQUALS",  // /=
+  PIPE = "PIPE",              // |
+  ELLIPSIS = "ELLIPSIS",      // ..
+  STAR = "STAR",              // *
+  SLASH = "SLASH",            // /
+  
   // Special
-  AT_CODE = "AT_CODE", // at0000
-  ID_CODE = "ID_CODE", // id1
-  AC_CODE = "AC_CODE", // ac0000
-  REGEX = "REGEX", // /pattern/
-
+  AT_CODE = "AT_CODE",        // at0000
+  ID_CODE = "ID_CODE",        // id1
+  AC_CODE = "AC_CODE",        // ac0000
+  REGEX = "REGEX",            // /pattern/
+  
   // Control
   NEWLINE = "NEWLINE",
   WHITESPACE = "WHITESPACE",
@@ -98,11 +98,11 @@ export class ADL2Tokenizer {
   private line: number = 1;
   private column: number = 1;
   private tokens: Token[] = [];
-
+  
   constructor(input: string) {
     this.input = input;
   }
-
+  
   /**
    * Tokenize the input ADL2 text
    */
@@ -117,13 +117,13 @@ export class ADL2Tokenizer {
     while (!this.isAtEnd()) {
       this.skipWhitespaceAndComments();
       if (this.isAtEnd()) break;
-
+      
       const token = this.nextToken();
       if (token) {
         this.tokens.push(token);
       }
     }
-
+    
     // Add EOF token
     this.tokens.push({
       type: TokenType.EOF,
@@ -131,17 +131,17 @@ export class ADL2Tokenizer {
       line: this.line,
       column: this.column,
     });
-
+    
     return this.tokens;
   }
-
+  
   private nextToken(): Token | null {
     const start = this.position;
     const startLine = this.line;
     const startColumn = this.column;
-
+    
     const char = this.peek();
-
+    
     // Single character tokens
     switch (char) {
       case "(":
@@ -167,20 +167,10 @@ export class ADL2Tokenizer {
           this.advance();
           if (this.peek() === "=") {
             this.advance();
-            return this.makeToken(
-              TokenType.IDENTIFIER,
-              "<=",
-              startLine,
-              startColumn,
-            );
+            return this.makeToken(TokenType.IDENTIFIER, "<=", startLine, startColumn);
           }
           if (this.isDigit(this.peek())) {
-            return this.makeToken(
-              TokenType.IDENTIFIER,
-              "<",
-              startLine,
-              startColumn,
-            );
+            return this.makeToken(TokenType.IDENTIFIER, "<", startLine, startColumn);
           }
         }
         const uri = this.scanOdinUri(startLine, startColumn);
@@ -194,20 +184,10 @@ export class ADL2Tokenizer {
           this.advance();
           if (this.peek() === "=") {
             this.advance();
-            return this.makeToken(
-              TokenType.IDENTIFIER,
-              ">=",
-              startLine,
-              startColumn,
-            );
+            return this.makeToken(TokenType.IDENTIFIER, ">=", startLine, startColumn);
           }
           if (this.isDigit(this.peek())) {
-            return this.makeToken(
-              TokenType.IDENTIFIER,
-              ">",
-              startLine,
-              startColumn,
-            );
+            return this.makeToken(TokenType.IDENTIFIER, ">", startLine, startColumn);
           }
         }
         this.advance();
@@ -226,12 +206,7 @@ export class ADL2Tokenizer {
         this.advance();
         if (this.peek() === "=") {
           this.advance();
-          return this.makeToken(
-            TokenType.NOT_EQUALS,
-            "!=",
-            startLine,
-            startColumn,
-          );
+          return this.makeToken(TokenType.NOT_EQUALS, "!=", startLine, startColumn);
         }
         return this.makeToken(TokenType.NOT, "!", startLine, startColumn);
       case "$": {
@@ -241,12 +216,7 @@ export class ADL2Tokenizer {
           varName += this.peek();
           this.advance();
         }
-        return this.makeToken(
-          TokenType.VARIABLE,
-          varName,
-          startLine,
-          startColumn,
-        );
+        return this.makeToken(TokenType.VARIABLE, varName, startLine, startColumn);
       }
       case "*":
         this.advance();
@@ -258,12 +228,7 @@ export class ADL2Tokenizer {
         this.advance();
         if (this.peek() === "=") {
           this.advance();
-          return this.makeToken(
-            TokenType.NOT_EQUALS,
-            "/=",
-            startLine,
-            startColumn,
-          );
+          return this.makeToken(TokenType.NOT_EQUALS, "/=", startLine, startColumn);
         }
         return this.makeToken(TokenType.SLASH, "/", startLine, startColumn);
       }
@@ -271,7 +236,7 @@ export class ADL2Tokenizer {
         this.advance();
         return this.makeToken(TokenType.PIPE, "|", startLine, startColumn);
     }
-
+    
     // Multi-character tokens
     if (char === ".") {
       this.advance();
@@ -281,7 +246,7 @@ export class ADL2Tokenizer {
       }
       return this.makeToken(TokenType.DOT, ".", startLine, startColumn);
     }
-
+    
     if (char === ":") {
       this.advance();
       if (this.peek() === "=") {
@@ -290,26 +255,21 @@ export class ADL2Tokenizer {
       }
       if (this.peek() === ":") {
         this.advance();
-        return this.makeToken(
-          TokenType.DOUBLE_COLON,
-          "::",
-          startLine,
-          startColumn,
-        );
+        return this.makeToken(TokenType.DOUBLE_COLON, "::", startLine, startColumn);
       }
       return this.makeToken(TokenType.COLON, ":", startLine, startColumn);
     }
-
+    
     // String literals
     if (char === '"') {
       return this.scanString(startLine, startColumn);
     }
-
+    
     // Numbers
     if (this.isDigit(char) || (char === "-" && this.isDigit(this.peekNext()))) {
       return this.scanNumber(startLine, startColumn);
     }
-
+    
     // Identifiers and keywords (including Unicode letters in ADL text)
     if (this.isIdentifierStart(char)) {
       return this.scanIdentifierOrKeyword(startLine, startColumn);
@@ -320,7 +280,7 @@ export class ADL2Tokenizer {
       this.advance();
       return this.makeToken(TokenType.IDENTIFIER, char, startLine, startColumn);
     }
-
+    
     // Version qualifier after a numeric part, e.g. v0.0.1-alpha / v1.1.3-rc.2
     if (
       char === "-" && this.isDigit(this.charBefore() ?? "") &&
@@ -338,32 +298,24 @@ export class ADL2Tokenizer {
     if (char === "\\" && !this.isAtEnd()) {
       this.advance();
       const escaped = this.advance();
-      return this.makeToken(
-        TokenType.IDENTIFIER,
-        `\\${escaped}`,
-        startLine,
-        startColumn,
-      );
+      return this.makeToken(TokenType.IDENTIFIER, `\\${escaped}`, startLine, startColumn);
     }
 
     throw new Error(
-      `Unexpected character '${char}' at line ${this.line}, column ${this.column}`,
+      `Unexpected character '${char}' at line ${this.line}, column ${this.column}`
     );
   }
-
+  
   /**
    * ODIN URI: `<` scheme `://` RFC 3986 body `>`.
    *
-   * Term bindings use this form (`<http://hl7.org/…#code>`, and query strings
-   * such as `<http://some.service.org?some%20query%20etc>`). The body is one
-   * token so `#`, `?`, `%`, `~` and the other RFC 3986 characters are not
-   * lexed as ADL punctuation. Returns undefined when `<` does not start a
-   * hierarchical URI (object blocks, code phrases, intervals).
+   * Term bindings use this form (`<http://hl7.org/…#fragment>`, and query
+   * strings such as `<http://some.service.org?some%20query%20etc>`). The body
+   * is one token so `#`, `?`, `%`, `~` and the other RFC 3986 characters are
+   * not lexed as ADL punctuation. Returns undefined when `<` does not start
+   * a hierarchical URI (object blocks, code phrases, intervals).
    */
-  private scanOdinUri(
-    startLine: number,
-    startColumn: number,
-  ): Token | undefined {
+  private scanOdinUri(startLine: number, startColumn: number): Token | undefined {
     if (this.peek() !== "<") return undefined;
     const rest = this.input.slice(this.position + 1);
     const scheme = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.exec(rest);
@@ -417,7 +369,7 @@ export class ADL2Tokenizer {
     }
     if (this.isAtEnd() || this.peek() !== "/") {
       throw new Error(
-        `Unterminated regex at line ${startLine}, column ${startColumn}`,
+        `Unterminated regex at line ${startLine}, column ${startColumn}`
       );
     }
     this.advance(); // closing /
@@ -427,7 +379,7 @@ export class ADL2Tokenizer {
   private scanString(startLine: number, startColumn: number): Token {
     this.advance(); // consume opening quote
     let value = "";
-
+    
     while (!this.isAtEnd() && this.peek() !== '"') {
       if (this.peek() === "\\") {
         this.advance();
@@ -458,31 +410,29 @@ export class ADL2Tokenizer {
         this.advance();
       }
     }
-
+    
     if (this.isAtEnd()) {
       throw new Error(
-        `Unterminated string at line ${startLine}, column ${startColumn}`,
+        `Unterminated string at line ${startLine}, column ${startColumn}`
       );
     }
-
+    
     this.advance(); // consume closing quote
     return this.makeToken(TokenType.STRING, value, startLine, startColumn);
   }
-
+  
   private scanNumber(startLine: number, startColumn: number): Token {
     let value = "";
     let hasDecimal = false;
-
+    
     // Handle negative sign
     if (this.peek() === "-") {
       value += this.peek();
       this.advance();
     }
-
+    
     // Scan digits - allow multiple dots for version numbers like 2.0.5
-    while (
-      !this.isAtEnd() && (this.isDigit(this.peek()) || this.peek() === ".")
-    ) {
+    while (!this.isAtEnd() && (this.isDigit(this.peek()) || this.peek() === ".")) {
       if (this.peek() === ".") {
         if (!this.isDigit(this.peekNext())) break; // Not followed by digit, stop
         hasDecimal = true;
@@ -490,21 +440,18 @@ export class ADL2Tokenizer {
       value += this.peek();
       this.advance();
     }
-
+    
     return this.makeToken(
       hasDecimal ? TokenType.REAL : TokenType.INTEGER,
       value,
       startLine,
-      startColumn,
+      startColumn
     );
   }
-
-  private scanIdentifierOrKeyword(
-    startLine: number,
-    startColumn: number,
-  ): Token {
+  
+  private scanIdentifierOrKeyword(startLine: number, startColumn: number): Token {
     let value = "";
-
+    
     // Check for special codes (at0000, id1, ac0000)
     if (this.peek() === "a") {
       const next = this.peekNext();
@@ -513,7 +460,7 @@ export class ADL2Tokenizer {
         const prefix = this.peek() + this.peekNext();
         const tempPos = this.position;
         this.position += 2;
-
+        
         if (!this.isAtEnd() && this.isDigit(this.peek())) {
           // It's a code (optional .N specialisation suffixes: at0.1, ac9001.1)
           let code = prefix;
@@ -537,20 +484,20 @@ export class ADL2Tokenizer {
             next === "t" ? TokenType.AT_CODE : TokenType.AC_CODE,
             code,
             startLine,
-            startColumn,
+            startColumn
           );
         }
-
+        
         // Not a code, restore position
         this.position = tempPos;
       }
     }
-
+    
     // Check for id code
     if (this.peek() === "i" && this.peekNext() === "d") {
       const tempPos = this.position;
       this.position += 2;
-
+      
       if (!this.isAtEnd() && this.isDigit(this.peek())) {
         // idN with optional .N specialisation suffixes (id1.1, id0.1)
         let code = "id";
@@ -572,17 +519,17 @@ export class ADL2Tokenizer {
         }
         return this.makeToken(TokenType.ID_CODE, code, startLine, startColumn);
       }
-
+      
       // Not an id code, restore position
       this.position = tempPos;
     }
-
+    
     // Regular identifier (hyphens for HRIDs; ?/X for cADL date/time patterns)
     while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
       value += this.peek();
       this.advance();
     }
-
+    
     // Generic RM type names in cADL, e.g. DV_INTERVAL<DV_COUNT>[id5]
     if (
       /^[A-Z][A-Z0-9_]*$/.test(value) && this.peek() === "<" &&
@@ -603,12 +550,7 @@ export class ADL2Tokenizer {
       if (depth === 0 && generic.endsWith(">")) {
         while (this.position < p) this.advance();
         value += generic.replace(/\s+/g, "");
-        return this.makeToken(
-          TokenType.IDENTIFIER,
-          value,
-          startLine,
-          startColumn,
-        );
+        return this.makeToken(TokenType.IDENTIFIER, value, startLine, startColumn);
       }
     }
 
@@ -616,7 +558,7 @@ export class ADL2Tokenizer {
     const type = this.getKeywordType(value);
     return this.makeToken(type, value, startLine, startColumn);
   }
-
+  
   private getKeywordType(value: string): TokenType {
     const lower = value.toLowerCase();
     switch (lower) {
@@ -694,24 +636,24 @@ export class ADL2Tokenizer {
         return TokenType.IDENTIFIER;
     }
   }
-
+  
   private skipWhitespaceAndComments(): void {
     while (!this.isAtEnd()) {
       const char = this.peek();
-
+      
       // Skip whitespace
       if (char === " " || char === "\t" || char === "\r") {
         this.advance();
         continue;
       }
-
+      
       if (char === "\n") {
         this.advance();
         this.line++;
         this.column = 1;
         continue;
       }
-
+      
       // Skip comments
       if (char === "-" && this.peekNext() === "-") {
         // Line comment
@@ -720,11 +662,11 @@ export class ADL2Tokenizer {
         }
         continue;
       }
-
+      
       break;
     }
   }
-
+  
   private isAtEnd(): boolean {
     return this.position >= this.input.length;
   }
@@ -739,32 +681,32 @@ export class ADL2Tokenizer {
     if (start < 0) return false;
     return this.input.slice(start, this.position) === text;
   }
-
+  
   private peek(): string {
     if (this.isAtEnd()) return "\0";
     return this.input[this.position];
   }
-
+  
   private peekNext(): string {
     if (this.position + 1 >= this.input.length) return "\0";
     return this.input[this.position + 1];
   }
-
+  
   private advance(): string {
     const char = this.input[this.position];
     this.position++;
     this.column++;
     return char;
   }
-
+  
   private isDigit(char: string): boolean {
     return char >= "0" && char <= "9";
   }
-
+  
   private isAlpha(char: string): boolean {
     return (char >= "a" && char <= "z") || (char >= "A" && char <= "Z");
   }
-
+  
   private isAlphaNumeric(char: string): boolean {
     return this.isAlpha(char) || this.isDigit(char);
   }
@@ -792,7 +734,7 @@ export class ADL2Tokenizer {
     type: TokenType,
     value: string,
     line: number,
-    column: number,
+    column: number
   ): Token {
     return { type, value, line, column };
   }
