@@ -3,8 +3,9 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
+import { ADL2Tokenizer, TokenType } from "../../../parser/adl2_tokenizer.ts";
 import { OdinParser } from "../../../parser/odin_parser.ts";
+import { parseAdl } from "../../../parser/mod.ts";
 
 function parseOdin(input: string) {
   const tokenizer = new ADL2Tokenizer(input);
@@ -128,6 +129,66 @@ Deno.test("ODIN - complex nested structure", () => {
   // Verify structure
   assertEquals(typeof result, "object");
   assertEquals("details" in result, true);
+});
+
+Deno.test("ODIN - hierarchical URI is one value, including fragment, query, and percent-encoding", () => {
+  const fragment =
+    "http://hl7.org/fhir/uv/genomics-reporting/CodeSystem/genomic-study-type-cs#alt-splc";
+  const query = "http://some.service.org?some%20query%20etc";
+  const both = "https://example.org/path?q=1&x=a+b#frag";
+  const tilde = "http://example.org/~user";
+  for (const uri of [fragment, query, both, tilde]) {
+    const tokens = new ADL2Tokenizer(`<${uri}>`).tokenize();
+    assertEquals(tokens[0].type, TokenType.URI);
+    assertEquals(tokens[0].value, uri);
+    assertEquals(tokens[1].type, TokenType.EOF);
+    assertEquals(parseOdin(`<${uri}>`), uri);
+  }
+});
+
+Deno.test("ODIN - term_bindings keep URI fragments (#133)", () => {
+  const uri =
+    "http://hl7.org/fhir/uv/genomics-reporting/CodeSystem/genomic-study-type-cs#alt-splc";
+  const adl = `archetype (adl_version=2.0.6; rm_release=1.1.0)
+    openEHR-EHR-CLUSTER.uri_probe.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+definition
+    CLUSTER[id1] matches {
+        items matches {
+            ELEMENT[id2] matches {
+                value matches {
+                    DV_TEXT
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = <text = <"Probe"> description = <"Probe">>
+            ["id2"] = <text = <"Item"> description = <"Item">>
+        >
+    >
+    term_bindings = <
+        ["HL7"] = <
+            ["at0.10"] = <${uri}>
+        >
+    >
+`;
+  // deno-lint-ignore no-explicit-any
+  const parsed: any = parseAdl(adl);
+  assertEquals(parsed.archetype.ontology.term_bindings.HL7["at0.10"], uri);
+});
+
+Deno.test("ODIN - a quoted string may contain an angle-bracket URI", () => {
+  const result = parseOdin(
+    `<"openEHR Foundation <http://www.openEHR.org/id/1#x>">`,
+  );
+  assertEquals(result, "openEHR Foundation <http://www.openEHR.org/id/1#x>");
 });
 
 console.log("\n✅ ODIN Parser tests completed");

@@ -45,6 +45,8 @@ export enum TokenType {
   STRING = "STRING",
   INTEGER = "INTEGER",
   REAL = "REAL",
+  /** ODIN URI value, `<scheme://…>` without the angle brackets. */
+  URI = "URI",
   
   // Delimiters
   LPAREN = "LPAREN",          // (
@@ -171,6 +173,8 @@ export class ADL2Tokenizer {
             return this.makeToken(TokenType.IDENTIFIER, "<", startLine, startColumn);
           }
         }
+        const uri = this.scanOdinUri(startLine, startColumn);
+        if (uri) return uri;
         this.advance();
         return this.makeToken(TokenType.LANGLE, "<", startLine, startColumn);
       }
@@ -302,6 +306,46 @@ export class ADL2Tokenizer {
     );
   }
   
+  /**
+   * ODIN URI: `<` scheme `://` RFC 3986 body `>`.
+   *
+   * Term bindings use this form (`<http://hl7.org/…#fragment>`, and query
+   * strings such as `<http://some.service.org?some%20query%20etc>`). The body
+   * is one token so `#`, `?`, `%`, `~` and the other RFC 3986 characters are
+   * not lexed as ADL punctuation. Returns undefined when `<` does not start
+   * a hierarchical URI (object blocks, code phrases, intervals).
+   */
+  private scanOdinUri(startLine: number, startColumn: number): Token | undefined {
+    if (this.peek() !== "<") return undefined;
+    const rest = this.input.slice(this.position + 1);
+    const scheme = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.exec(rest);
+    if (!scheme) return undefined;
+    // RFC 3986: unreserved, pct-encoded, sub-delims, and gen-delims except `>`.
+    const allowed = /[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]/;
+    let i = scheme[0].length;
+    while (i < rest.length && rest[i] !== ">") {
+      const c = rest[i];
+      if (!allowed.test(c)) {
+        throw new Error(
+          `Unexpected character '${c}' in URI at line ${startLine}, column ${
+            startColumn + 1 + i
+          }`,
+        );
+      }
+      i++;
+    }
+    if (rest[i] !== ">") {
+      throw new Error(
+        `Unterminated URI at line ${startLine}, column ${startColumn}`,
+      );
+    }
+    const body = rest.slice(0, i);
+    this.advance(); // <
+    for (let n = 0; n < body.length; n++) this.advance();
+    this.advance(); // >
+    return this.makeToken(TokenType.URI, body, startLine, startColumn);
+  }
+
   private scanRegex(startLine: number, startColumn: number): Token {
     this.advance(); // opening /
     let value = "";

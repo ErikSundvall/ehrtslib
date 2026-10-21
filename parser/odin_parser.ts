@@ -80,6 +80,11 @@ export class OdinParser {
   private parseValue(): OdinValue {
     this.skipWhitespace();
 
+    // `<scheme://…>` including fragment and query (one token from the lexer).
+    if (this.check(TokenType.URI)) {
+      return this.advance().value;
+    }
+
     // Check for angle brackets (object block)
     if (this.check(TokenType.LANGLE)) {
       return this.parseObjectBlock();

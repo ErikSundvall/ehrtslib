@@ -147,6 +147,24 @@ Deno.test("Tokenizer - archetype ID", () => {
   assertEquals(tokens[2].value, "blood_pressure");
 });
 
+Deno.test("Tokenizer - ODIN URI fragment and query are one token (#133)", () => {
+  const uri =
+    "http://hl7.org/fhir/uv/genomics-reporting/CodeSystem/genomic-study-type-cs#alt-splc";
+  const tokens = new ADL2Tokenizer(`binding = <${uri}>`).tokenize();
+  assertEquals(tokens.map((t) => t.type), [
+    TokenType.IDENTIFIER,
+    TokenType.EQUALS,
+    TokenType.URI,
+    TokenType.EOF,
+  ]);
+  assertEquals(tokens[2].value, uri);
+
+  const query = "http://snomed.info/sct?fhir_vs=isa/404684003";
+  const q = new ADL2Tokenizer(`<${query}>`).tokenize();
+  assertEquals(q[0].type, TokenType.URI);
+  assertEquals(q[0].value, query);
+});
+
 Deno.test("Tokenizer - line and column tracking", () => {
   const input = "archetype\n  definition";
   const tokenizer = new ADL2Tokenizer(input);
