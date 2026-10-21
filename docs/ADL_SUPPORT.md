@@ -158,6 +158,8 @@ Option `multilingualRepeatWorkaround` (**default `true`**; CLI `--no-multilingua
 
 The default is on because readers that do not know the annotations ignore them, while leaving them out silently loses translations. `repeatedTranslationConflicts` lists the affected texts in both modes.
 
+`component_ontologies` also writes `term_bindings`. `[terminology::code]`, `http(s)://<host>/id/<code>`, FHIR `…#code` URIs and OBO `…/obo/<PREFIX>_<id>` PURLs become a terminology id plus `code_string`. Path bindings and `ac` codes are skipped with a warning (OPT 1.4 item codes are at-codes, and there is no `constraint_bindings` section). Any other target is omitted with a warning.
+
 Limits: tuples, ordinals and rules are not exported; filled slots are closed; there is no OPT 1.4 parser in Archie, so output is checked with the ITS-XML `Template.xsd` (test enabled with `OPENEHR_OPT14_XSD=<path to Template.xsd>`) and by the Ehrtslib OPT parser.
 
 #### Exporting ADL2 templates to OET 1.4
@@ -217,7 +219,7 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 
 
 
-**ADL 1.4 down-convert:** `ADL14Serializer` emits `ontology`, `[at####]` node ids, ADL 1.4 header, `concept`, `language` (with translations), `specialize`, quoted ODIN keys, and expands `value_sets` to `[local::…]` (#113–#116).
+**ADL 1.4 down-convert:** `ADL14Serializer` emits `ontology`, `[at####]` node ids, ADL 1.4 header, `concept`, `language` (with translations), `specialize`, quoted ODIN keys, `term_bindings` (same mapping as the OPT export; path bindings stay, with id-codes rewritten to at-codes), `constraint_bindings` for `ac` codes, and expands `value_sets` to `[local::…]` (#113–#116, #141).
 
 ### ADL2 template → OET / OPT 1.4 (status)
 
