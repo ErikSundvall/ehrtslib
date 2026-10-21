@@ -7,7 +7,7 @@
 import { emptyDir, ensureDir, walk } from "@std/fs";
 import { dirname, join, relative, resolve } from "@std/path";
 import { zipSync } from "fflate";
-import { releaseTagForVersion } from "./release_version.ts";
+import { changelogUrlForTag, releaseTagForVersion } from "./release_version.ts";
 
 export const GITHUB_REPO = "ErikSundvall/ehrtslib";
 export const PAGES_ORIGIN = "https://eriksundvall.github.io/ehrtslib";
@@ -403,6 +403,8 @@ export function renderLibraryReleaseNotes(version: string): string {
   }).join("\n");
 
   return `# ehrtslib ${version} (\`${loc.tag}\`)
+
+Changes: [CHANGELOG.md](${changelogUrlForTag(loc.tag)})
 
 Three release sets are attached to this GitHub Release. A git checkout of \`${loc.tag}\` remains the developer tree (library, demo, TAAAT, tests, and maintainer scripts). Importing the library uses the sets below.
 

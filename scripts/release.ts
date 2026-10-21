@@ -23,6 +23,7 @@ import {
   relativeVersionFile,
   type ReleasePackage,
   releaseTagForVersion,
+  releaseTagMessage,
   run,
 } from "./release_version.ts";
 
@@ -114,7 +115,10 @@ if (args.useCurrent) {
 if (!releaseVersion) throw new Error("Release version is required");
 
 const releaseTag = releaseTagForVersion(args.pkg, releaseVersion);
-const tagMessage = args.message ?? `${cfg.label} ${releaseVersion}`;
+const tagMessage = releaseTagMessage(
+  args.message ?? `${cfg.label} ${releaseVersion}`,
+  releaseTag,
+);
 
 console.log(`Preparing ${cfg.label} release ${releaseVersion} (${releaseTag})`);
 

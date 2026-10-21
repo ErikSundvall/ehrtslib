@@ -287,8 +287,26 @@ function findChildForPath(
   attr: PAttribute,
   nodeId: string,
 ): PObject | undefined {
-  return attr.children.find((c) => c.nodeId === nodeId) ??
-    attr.children.find((c) => c.nodeId?.startsWith(nodeId + "."));
+  const exact = attr.children.find((c) => c.nodeId === nodeId);
+  if (exact) return exact;
+  const specialised = attr.children.find((c) =>
+    c.nodeId?.startsWith(nodeId + ".")
+  );
+  if (specialised) return specialised;
+  // The path names the specialised code (`id122.1`) of a node that still has
+  // the parent code (`id122`) on the flat parent. Adopt the specialised code
+  // so the rest of the path, and later segments, address that redefinition.
+  let code: string | undefined = nodeId;
+  while (code) {
+    code = parentCode(code);
+    if (!code) break;
+    const ancestor = attr.children.find((c) => c.nodeId === code);
+    if (ancestor) {
+      ancestor.nodeId = nodeId;
+      return ancestor;
+    }
+  }
+  return undefined;
 }
 
 /**

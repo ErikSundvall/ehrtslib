@@ -169,7 +169,15 @@ Limits: tuples, ordinals and rules are not exported; filled slots are closed; th
 - Codes go through the same spec-aligned id → at mapping as the OPT export (including the collision rule).
 - OET holds names in one language only, the template's original language. With `multilingualRepeatWorkaround` (**default `true`**), translations of renamed nodes and of repeated archetypes are written as `L10n.{lang}` path annotations. The path annotations are the same as in the OPT export, with the root archetype id as a prefix. When the option is off, a warning lists what is dropped and `translationsDropped` is set.
 
-Limits: OET cannot add nodes, so new nodes in an overlay only produce a warning. Constraints with no OET equivalent (for example ordinals, intervals, rules and terminology bindings) are warned about and only exist in the OPT export. Archetypes used outside `/content` of a COMPOSITION (for example in `context`) are not written. There is no independent OET → OPT compiler in the test chain. Output is checked with `CompositionTemplate.xsd` (test enabled with `OPENEHR_OET14_XSD=<path>`, needs python3 + lxml), by `parseOetXml`, and against the archetype roots and names of the direct OPT export.
+Limits: OET cannot add nodes, so new nodes in an overlay only produce a warning. Constraints with no OET equivalent (for example ordinals, intervals, rules and terminology bindings) are warned about and only exist in the OPT export. The exporter also returns those element paths on `optOnlyValuePaths`. Archetypes used outside `/content` of a COMPOSITION (for example in `context`) are not written. There is no independent OET → OPT compiler in the test chain. Output is checked with `CompositionTemplate.xsd` (test enabled with `OPENEHR_OET14_XSD=<path>`, needs python3 + lxml), by `parseOetXml`, and against the archetype roots and names of the direct OPT export.
+
+**Local coded-text redefinitions.** OET `textConstraint` can narrow a value set that already exists on the archetype, by listing `excludedValues` (`local::atN`) for codes the template drops. It cannot introduce a new local value set. When an overlay redefines a `DV_CODED_TEXT` with template-level codes (`at0.x` / `ac0.x`, or any codes that are not a subset of the parent value set), `exportAdl2TemplateToOet14` does not write a `textConstraint`. It records the ADL 1.4 element path on `optOnlyValuePaths` and warns:
+
+```
+<archetype id>: value constraint at <path> has no OET equivalent; kept only in the OPT export
+```
+
+That constraint is in the OPT 1.4 export (`exportAdl2TemplateToOpt14`), which is the complete artefact. This shows up on CLUSTER elements such as specimen type, collection method, and fixation method when the template supplies its own code list.
 
 Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Background: [openEHR Discourse #2760](https://discourse.openehr.org/t/limitation-preventing-multilingual-repeated-parts-in-the-opt-operational-template-export-format/2760).
 
@@ -216,7 +224,7 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 | Path | Status | Notes |
 |------|--------|-------|
 | ADL2 `.adls` archetype → ADL 1.4 `.adl` | **Supported** via `ADL14Serializer` (see round-trip tests under `test_data/tests/adl14/`) | Prefer ADL2 as source of truth |
-| ADL2 `template` / `use_archetype` → OET 1.4 XML | **Partial** (`exportAdl2TemplateToOet14`) | Exclusions, occurrences, renames, text/coded/quantity/count/type narrowing become `Rule`s; other constraints are reported as warnings and only exist in the OPT export |
+| ADL2 `template` / `use_archetype` → OET 1.4 XML | **Partial** (`exportAdl2TemplateToOet14`) | Exclusions, occurrences, renames, text/coded/quantity/count/type narrowing become `Rule`s. A new local coded-text value set is not an OET `textConstraint`; its path is returned on `optOnlyValuePaths` and the constraint exists only in the OPT export |
 | ADL2 template → OPT 1.4 XML | **Yes** (`exportAdl2TemplateToOpt14`) | See "Exporting ADL2 templates to OPT 1.4" |
 | Interim flow for ADL 1.4-only CDRs | ADL2 authoring → `ADL14Serializer` for dependent archetypes → import into an ADL 1.4 template editor → build OET/OPT there | Tracked in #117 |
 

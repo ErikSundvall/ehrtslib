@@ -43,6 +43,9 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
   https://raw.githubusercontent.com/snarktank/ai-dev-tasks/refs/heads/main/generate-tasks.md
   using the PRD file as input. Refer to PRD in task list document.
 - Put PRDs and task lists in a /tasks subdirectory
+- PRs that change user-visible behaviour add a line under **Unreleased** in
+  [`CHANGELOG.md`](CHANGELOG.md). The release PR renames that section to the
+  new version. See [`docs/maintainers/releases.md`](docs/maintainers/releases.md).
 
 ## Library API before 1.0
 

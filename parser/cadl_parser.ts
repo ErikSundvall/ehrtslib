@@ -214,13 +214,12 @@ export class CadlParser {
   }
 
   /**
-   * Specialised differential path attribute:
-   *   /items[id6]/value matches { … }
-   * Stored with rm_attribute_name equal to the path string.
+   * A differential-path segment. Section keywords (`description`, `language`)
+   * are RM attribute names inside a path; `matches` / `existence` /
+   * `cardinality` / `occurrences` end the path.
    */
-  private parsePathAttribute(): openehr_am.C_ATTRIBUTE {
-    let path = "";
-    while (
+  private isDifferentialPathToken(): boolean {
+    if (
       this.check(TokenType.SLASH) ||
       this.check(TokenType.IDENTIFIER) ||
       this.check(TokenType.LBRACKET) ||
@@ -231,6 +230,31 @@ export class CadlParser {
       this.check(TokenType.DOT) ||
       this.check(TokenType.INTEGER)
     ) {
+      return true;
+    }
+    const t = this.peek();
+    if (
+      !t ||
+      t.type === TokenType.MATCHES ||
+      t.type === TokenType.EXISTENCE ||
+      t.type === TokenType.CARDINALITY ||
+      t.type === TokenType.OCCURRENCES ||
+      t.type === TokenType.EOF
+    ) {
+      return false;
+    }
+    return /^[A-Za-z_][A-Za-z0-9_]*$/.test(t.value);
+  }
+
+  /**
+   * Specialised differential path attribute:
+   *   /items[id6]/value matches { … }
+   *   /activities[id2]/description[id10]/items[id63]/value matches { … }
+   * Stored with rm_attribute_name equal to the path string.
+   */
+  private parsePathAttribute(): openehr_am.C_ATTRIBUTE {
+    let path = "";
+    while (this.isDifferentialPathToken()) {
       path += this.advance().value;
     }
     const attribute: openehr_am.C_ATTRIBUTE = this.check(TokenType.CARDINALITY)
