@@ -127,6 +127,7 @@ Deno.test("release notes and Pages index name the archives and import URLs", asy
   assert(notes.includes(`${loc.pagesDir}/`));
   assert(notes.includes(`${loc.rawDir}/mod.ts`));
   assert(notes.includes("tree-shake"));
+  assert(notes.includes(`/blob/${loc.tag}/CHANGELOG.md`));
   assert(
     notes.includes("| Bundle | GitHub Pages | Release download | jsDelivr |"),
   );

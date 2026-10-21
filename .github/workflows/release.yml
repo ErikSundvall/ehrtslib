@@ -128,6 +128,10 @@ jobs:
             esac
             echo
             echo "Library, demo, and TAAAT have independent version numbers. Older webapp builds stay under their original subdirectory URLs."
+            echo
+            echo "### What's new"
+            echo
+            echo "See [CHANGELOG.md](https://github.com/ErikSundvall/ehrtslib/blob/${TAG}/CHANGELOG.md) for the changes in this release."
           } > /tmp/release-notes.md
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists — notes only"

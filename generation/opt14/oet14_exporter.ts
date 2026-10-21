@@ -56,6 +56,12 @@ export interface Oet14ExportResult {
   /** True when lostTranslations exist and were NOT written as L10n annotations. */
   translationsDropped: boolean;
   archetypeIds: string[];
+  /**
+   * ADL 1.4 paths whose value constraint has no OET equivalent (for example a
+   * template-local coded-text value set). The same constraint is in the OPT
+   * 1.4 export. Each path is also named in `warnings`.
+   */
+  optOnlyValuePaths: string[];
 }
 
 interface Comp {
@@ -132,6 +138,7 @@ export class Oet14Exporter {
   private lost: Oet14ExportResult["lostTranslations"] = [];
   private renameAnn = new Map<string, Record<string, string>>();
   private archetypeIds = new Set<string>();
+  private optOnlyValuePaths: string[] = [];
   private opts:
     & Required<Pick<Oet14ExportOptions, "multilingualRepeatWorkaround">>
     & Oet14ExportOptions;
@@ -149,6 +156,16 @@ export class Oet14Exporter {
 
   private warn(m: string): void {
     if (!this.warnings.includes(m)) this.warnings.push(m);
+  }
+
+  /** Value constraint that OET cannot express; the OPT export still has it. */
+  private noteOptOnly(c: Comp, path: string): void {
+    if (!this.optOnlyValuePaths.includes(path)) {
+      this.optOnlyValuePaths.push(path);
+    }
+    this.warn(
+      `${c.base.id}: value constraint at ${path} has no OET equivalent; kept only in the OPT export`,
+    );
   }
 
   private comp(art: Adl2Artefact, useSite?: PObject): Comp {
@@ -272,9 +289,7 @@ export class Oet14Exporter {
       );
       if (r) return r;
     }
-    this.warn(
-      `${c.base.id}: value constraint at ${path} has no OET equivalent; kept only in the OPT export`,
-    );
+    this.noteOptOnly(c, path);
     return undefined;
   }
 
@@ -658,6 +673,7 @@ export class Oet14Exporter {
       translationsDropped: this.lost.length > 0 &&
         !this.opts.multilingualRepeatWorkaround,
       archetypeIds: [...this.archetypeIds],
+      optOnlyValuePaths: this.optOnlyValuePaths,
     };
   }
 

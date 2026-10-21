@@ -82,6 +82,16 @@ export function releaseTagForVersion(
   return `${prefix}${major}.${minor}.${patch}`;
 }
 
+/** Tag-pinned changelog. The release PR renames Unreleased to this version. */
+export function changelogUrlForTag(tag: string): string {
+  return `https://github.com/ErikSundvall/ehrtslib/blob/${tag}/CHANGELOG.md`;
+}
+
+/** Annotated tag message. `--message` replaces the title, not the changelog link. */
+export function releaseTagMessage(title: string, tag: string): string {
+  return `${title}\n\nChangelog: ${changelogUrlForTag(tag)}`;
+}
+
 export function parseReleaseTag(
   tag: string,
 ): { pkg: ReleasePackage; version: string } {
