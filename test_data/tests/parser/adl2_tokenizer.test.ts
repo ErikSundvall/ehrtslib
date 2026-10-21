@@ -9,7 +9,7 @@ Deno.test("Tokenizer - basic keywords", () => {
   const input = "archetype language description definition terminology";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.ARCHETYPE);
   assertEquals(tokens[1].type, TokenType.LANGUAGE);
   assertEquals(tokens[2].type, TokenType.DESCRIPTION);
@@ -22,7 +22,7 @@ Deno.test("Tokenizer - identifiers", () => {
   const input = "OBSERVATION HISTORY EVENT DV_TEXT";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.IDENTIFIER);
   assertEquals(tokens[0].value, "OBSERVATION");
   assertEquals(tokens[1].type, TokenType.IDENTIFIER);
@@ -33,7 +33,7 @@ Deno.test("Tokenizer - node codes", () => {
   const input = "id1 id10 id100 at0000 at0001 ac0000";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.ID_CODE);
   assertEquals(tokens[0].value, "id1");
   assertEquals(tokens[1].type, TokenType.ID_CODE);
@@ -52,7 +52,7 @@ Deno.test("Tokenizer - delimiters", () => {
   const input = "()[]{}< >";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.LPAREN);
   assertEquals(tokens[1].type, TokenType.RPAREN);
   assertEquals(tokens[2].type, TokenType.LBRACKET);
@@ -67,7 +67,7 @@ Deno.test("Tokenizer - operators", () => {
   const input = ". , ; : :: = | .. *";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.DOT);
   assertEquals(tokens[1].type, TokenType.COMMA);
   assertEquals(tokens[2].type, TokenType.SEMICOLON);
@@ -83,7 +83,7 @@ Deno.test("Tokenizer - strings", () => {
   const input = `"simple string" "with \\"quotes\\"" "with\\nnewline"`;
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.STRING);
   assertEquals(tokens[0].value, "simple string");
   assertEquals(tokens[1].type, TokenType.STRING);
@@ -96,7 +96,7 @@ Deno.test("Tokenizer - numbers", () => {
   const input = "42 3.14 -10 -5.5";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.INTEGER);
   assertEquals(tokens[0].value, "42");
   assertEquals(tokens[1].type, TokenType.REAL);
@@ -113,7 +113,7 @@ Deno.test("Tokenizer - comments", () => {
   matches`;
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.ARCHETYPE);
   assertEquals(tokens[1].type, TokenType.DEFINITION);
   assertEquals(tokens[2].type, TokenType.MATCHES);
@@ -124,7 +124,7 @@ Deno.test("Tokenizer - simple ADL2 header", () => {
   const input = "archetype (adl_version=2.0.5; rm_release=1.0.2)";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].type, TokenType.ARCHETYPE);
   assertEquals(tokens[1].type, TokenType.LPAREN);
   assertEquals(tokens[2].type, TokenType.IDENTIFIER);
@@ -138,7 +138,7 @@ Deno.test("Tokenizer - archetype ID", () => {
   const input = "openEHR-EHR-OBSERVATION.blood_pressure.v1.0.0";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   // Archetype ID will be tokenized as single identifier with hyphens, then dots, then another identifier
   assertEquals(tokens[0].type, TokenType.IDENTIFIER);
   assertEquals(tokens[0].value, "openEHR-EHR-OBSERVATION");
@@ -147,11 +147,29 @@ Deno.test("Tokenizer - archetype ID", () => {
   assertEquals(tokens[2].value, "blood_pressure");
 });
 
+Deno.test("Tokenizer - ODIN URI fragment and query are one token (#133)", () => {
+  const uri =
+    "http://hl7.org/fhir/uv/genomics-reporting/CodeSystem/genomic-study-type-cs#alt-splc";
+  const tokens = new ADL2Tokenizer(`binding = <${uri}>`).tokenize();
+  assertEquals(tokens.map((t) => t.type), [
+    TokenType.IDENTIFIER,
+    TokenType.EQUALS,
+    TokenType.URI,
+    TokenType.EOF,
+  ]);
+  assertEquals(tokens[2].value, uri);
+
+  const query = "http://snomed.info/sct?fhir_vs=isa/404684003";
+  const q = new ADL2Tokenizer(`<${query}>`).tokenize();
+  assertEquals(q[0].type, TokenType.URI);
+  assertEquals(q[0].value, query);
+});
+
 Deno.test("Tokenizer - line and column tracking", () => {
   const input = "archetype\n  definition";
   const tokenizer = new ADL2Tokenizer(input);
   const tokens = tokenizer.tokenize();
-  
+
   assertEquals(tokens[0].line, 1);
   assertEquals(tokens[0].column, 1);
   assertEquals(tokens[1].line, 2);
