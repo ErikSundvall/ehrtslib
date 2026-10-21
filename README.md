@@ -42,6 +42,7 @@ const json = new JsonConfigurableSerializer({ prettyPrint: true })
 | FLAT / STRUCTURED / Web Template | [docs/SIMPLIFIED_FORMATS.md](docs/SIMPLIFIED_FORMATS.md) |
 | Clinical model file sets / GitHub load | [docs/CLINICAL_MODEL_FILESETS.md](docs/CLINICAL_MODEL_FILESETS.md) |
 | ADL 1.4 / 2 + OPT/OET + validation | [docs/ADL_SUPPORT.md](docs/ADL_SUPPORT.md) |
+| What changed in each release | [CHANGELOG.md](CHANGELOG.md) |
 | Terminology lookup (`at0001` is local) | [docs/ADL_SUPPORT.md](docs/ADL_SUPPORT.md#terminology-lookup-at0001-is-not-global) |
 | Validation gaps | [docs/VALIDATION_LIMITATIONS.md](docs/VALIDATION_LIMITATIONS.md) |
 | RM attribute introspection | [docs/RM_ATTRIBUTES.md](docs/RM_ATTRIBUTES.md) |
@@ -62,6 +63,7 @@ const result = validator.validate(rmInstance, template);
 - Browser converter: [examples/demo-app/README.md](examples/demo-app/README.md) — primary clinical models from [Ehrlibs/openEHR-model-examples](https://github.com/Ehrlibs/openEHR-model-examples)
 - TAAAT: [examples/taaat-app/README.md](examples/taaat-app/README.md)
 - Roadmap: [docs/maintainers/roadmap.md](docs/maintainers/roadmap.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 
 You can also visit [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ErikSundvall/ehrtslib) to ask about how to use and understand Ehrtslib.

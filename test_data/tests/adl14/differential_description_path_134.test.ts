@@ -9,6 +9,7 @@ import {
   assertEquals,
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { Adl2TemplateLibrary } from "../../../generation/opt14/adl2_template_library.ts";
+import { exportAdl2TemplateToOet14 } from "../../../generation/opt14/oet14_exporter.ts";
 import { exportAdl2TemplateToOpt14 } from "../../../generation/opt14/opt14_exporter.ts";
 import { type PObject, pWalk } from "../../../generation/opt14/p_model.ts";
 import { parseAdl } from "../../../parser/mod.ts";
@@ -155,6 +156,23 @@ Deno.test("#134 path through description constrains the element in OPT 1.4", () 
   assert(xml.includes("<rm_type_name>DV_CODED_TEXT</rm_type_name>"), xml);
   assert(xml.includes("<code_list>at0.1</code_list>"), xml);
   assert(xml.includes("<code_list>at0.2</code_list>"), xml);
+
+  const oet = exportAdl2TemplateToOet14(lib, tid);
+  assertEquals(oet.optOnlyValuePaths.length, 1);
+  assert(
+    oet.optOnlyValuePaths[0].includes("/items["),
+    oet.optOnlyValuePaths.join("\n"),
+  );
+  assert(
+    oet.warnings.some((w) =>
+      w.includes("no OET equivalent") && w.includes(oet.optOnlyValuePaths[0])
+    ),
+    oet.warnings.join("\n"),
+  );
+  assert(
+    !oet.xml.includes("textConstraint"),
+    "a new local value set is not written as an OET textConstraint",
+  );
 });
 
 Deno.test("#134 Archie request specialisation path through description flattens", () => {

@@ -36,7 +36,12 @@ deno task release -- --package taaat --version 0.1.0 --dry-run
 
 The script bumps the matching `deno.json`, builds the webapp when needed, packs
 the library when that is the package being released, commits `chore: release …`,
-tags, and pushes.
+tags, and pushes. The annotated tag message links
+[`CHANGELOG.md`](../../CHANGELOG.md) at that tag. In the release PR, rename
+`## [Unreleased]` to `## [<version>] - YYYY-MM-DD` and leave a new empty
+`## [Unreleased]` above it. `CHANGELOG.md` must contain a heading for the
+version in that package's `deno.json` (the library check is
+`scripts/release_version.test.ts`). `--message` sets the tag title only.
 [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
 1. Builds that webapp (demo / TAAAT).

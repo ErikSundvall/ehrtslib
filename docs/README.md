@@ -15,6 +15,7 @@
 | FLAT / STRUCTURED / Web Template | [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md) |
 | Load archetype/template file sets | [CLINICAL_MODEL_FILESETS.md](CLINICAL_MODEL_FILESETS.md) |
 | ADL 1.4 / 2 + OPT/OET | [ADL_SUPPORT.md](ADL_SUPPORT.md) |
+| Release notes | [../CHANGELOG.md](../CHANGELOG.md) |
 | Terminology lookup (scoped at-codes) | [ADL_SUPPORT.md](ADL_SUPPORT.md#terminology-lookup-at0001-is-not-global) |
 | ADL2 round-trip fidelity | [ADL2_ROUNDTRIP.md](ADL2_ROUNDTRIP.md) |
 | RM attribute introspection API | [RM_ATTRIBUTES.md](RM_ATTRIBUTES.md) |

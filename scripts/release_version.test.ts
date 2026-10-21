@@ -1,9 +1,13 @@
-import { assertEquals, assertThrows } from "@std/assert";
+import { assert, assertEquals, assertThrows } from "@std/assert";
 import {
   bumpVersionInText,
+  changelogUrlForTag,
   parseReleaseTag,
   parseSemver,
+  readPackageVersion,
   releaseTagForVersion,
+  releaseTagMessage,
+  REPO_ROOT,
 } from "./release_version.ts";
 import {
   emptyManifest,
@@ -69,4 +73,26 @@ Deno.test("pickRecommendedVersion prefers override, then previous, then newest",
   );
   assertEquals(pickRecommendedVersion(versions), "demo-v0.3");
   assertEquals(pickRecommendedVersion([]), undefined);
+});
+
+Deno.test("releaseTagMessage pins the changelog at the tag", () => {
+  assertEquals(
+    changelogUrlForTag("v0.5.2"),
+    "https://github.com/ErikSundvall/ehrtslib/blob/v0.5.2/CHANGELOG.md",
+  );
+  assertEquals(
+    releaseTagMessage("ehrtslib 0.5.2", "v0.5.2"),
+    "ehrtslib 0.5.2\n\nChangelog: https://github.com/ErikSundvall/ehrtslib/blob/v0.5.2/CHANGELOG.md",
+  );
+  assertEquals(
+    releaseTagMessage("custom title", "demo-v0.3"),
+    "custom title\n\nChangelog: https://github.com/ErikSundvall/ehrtslib/blob/demo-v0.3/CHANGELOG.md",
+  );
+});
+
+Deno.test("CHANGELOG.md names Unreleased and the current library version", async () => {
+  const version = await readPackageVersion("library");
+  const text = await Deno.readTextFile(`${REPO_ROOT}/CHANGELOG.md`);
+  assert(text.includes("## [Unreleased]"));
+  assert(text.includes(`## [${version}]`));
 });
