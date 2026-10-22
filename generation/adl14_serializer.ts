@@ -13,6 +13,12 @@ import {
   stripValueSetsBlock,
   type ValueSetBag,
 } from "./id_to_at_code.ts";
+import {
+  bindingKeyKind,
+  formatCodePhrase,
+  isBindingUri,
+  parseTermBinding,
+} from "./term_binding.ts";
 
 export interface Adl14SerializerConfig {
   indent?: string;
@@ -40,7 +46,6 @@ export class ADL14Serializer {
     adl = this.toAdl14Header(adl, archetype);
     adl = this.insertConceptSection(adl, archetype);
     adl = adl.replace(/\bterminology\b/g, "ontology");
-    adl = adl.replace(/\bterm_bindings\b/g, "constraint_bindings");
     // One collision-free id/at → 1.4 map for the whole archetype (spec rule:
     // id1 → at0000; value codes renumbered if they would clash with a node).
     const rewritten = rewriteAdl2CodesInTextWithMap(adl, {
@@ -61,6 +66,7 @@ export class ADL14Serializer {
     adl = expanded.adl;
     adl = stripValueSetsBlock(adl);
     adl = this.wrapTermDefinitionItems(adl);
+    adl = this.insertTermBindings(adl, archetype, rewritten.map);
     return adl.trimEnd() + "\n";
   }
 
@@ -259,6 +265,175 @@ export class ADL14Serializer {
     return head + out.join("\n");
   }
 
+  /**
+   * ADL2 `term_bindings` are not written by the ADL2 serializer. Emit ADL 1.4
+   * `term_bindings` (at/id codes and paths) and `constraint_bindings` (ac codes)
+   * from the archetype ontology (#141). Unmapped targets are skipped with a warning.
+   */
+  private insertTermBindings(
+    adl: string,
+    archetype: openehr_am.ARCHETYPE,
+    codeMap: Map<string, string>,
+  ): string {
+    const block = this.formatBindingBlocks(archetype, codeMap);
+    if (!block) return adl;
+    const ontologyAt = adl.search(/^ontology\b/m);
+    const next = /^(annotations|rm_overlay)\b/m.exec(adl);
+    if (ontologyAt >= 0 && next && next.index > ontologyAt) {
+      return adl.slice(0, next.index) + block + "\n" + adl.slice(next.index);
+    }
+    if (ontologyAt >= 0) {
+      return adl.trimEnd() + "\n" + block + "\n";
+    }
+    return adl.trimEnd() + "\n\nontology\n" + block + "\n";
+  }
+
+  private formatBindingBlocks(
+    archetype: openehr_am.ARCHETYPE,
+    codeMap: Map<string, string>,
+  ): string {
+    const raw = (archetype.ontology as {
+      term_bindings?: Record<string, Record<string, unknown>>;
+    } | undefined)?.term_bindings;
+    if (!raw) return "";
+    const terms = new Map<string, Array<{ key: string; value: string }>>();
+    const constraints = new Map<string, Array<{ key: string; value: string }>>();
+
+    for (const [termKey, bag] of Object.entries(raw)) {
+      if (!bag || typeof bag !== "object") continue;
+      for (const [code, value] of Object.entries(bag)) {
+        if (typeof value !== "string") {
+          this.warnings.push(
+            `Cannot export term binding ${termKey}[${code}]: target is not a string`,
+          );
+          continue;
+        }
+        const kind = bindingKeyKind(code);
+        const mappedKey = this.mapBindingKey(code, codeMap);
+        if (!mappedKey) {
+          this.warnings.push(
+            `Cannot export term binding ${termKey}[${code}]: code was dropped in ADL 1.4`,
+          );
+          continue;
+        }
+        const parsed = parseTermBinding(termKey, value);
+        const phrase = parsed.binding
+          ? formatCodePhrase(parsed.binding.terminology, parsed.binding.code)
+          : undefined;
+
+        if (kind === "constraint") {
+          const emitted = phrase ??
+            (isBindingUri(value) ? value.trim() : undefined);
+          if (!emitted) {
+            this.warnings.push(
+              `Cannot export term binding ${termKey}[${code}]: ${
+                parsed.warning ?? "unrecognized target"
+              }`,
+            );
+            continue;
+          }
+          pushBinding(constraints, termKey, mappedKey, emitted);
+          continue;
+        }
+
+        if (kind !== "code" && kind !== "path") {
+          this.warnings.push(
+            `Cannot export term binding ${termKey}[${code}]: unsupported key`,
+          );
+          continue;
+        }
+        if (phrase) {
+          pushBinding(terms, termKey, mappedKey, phrase);
+          continue;
+        }
+        if (kind === "path" && isBindingUri(value)) {
+          pushBinding(terms, termKey, mappedKey, value.trim());
+          continue;
+        }
+        this.warnings.push(
+          `Cannot export term binding ${termKey}[${code}]: ${
+            parsed.warning ?? "unrecognized target"
+          }`,
+        );
+      }
+    }
+
+    return [
+      formatBindingSection("term_bindings", terms),
+      formatBindingSection("constraint_bindings", constraints),
+    ].filter(Boolean).join("\n");
+  }
+
+  private mapBindingKey(
+    code: string,
+    codeMap: Map<string, string>,
+  ): string | undefined {
+    if (code.startsWith("/")) {
+      let dropped = false;
+      const path = code.replace(
+        /\[((?:id|at)\d+(?:\.\d+)*)\]/gi,
+        (_m, c: string) => {
+          const mapped = mappedCode(c, codeMap);
+          if (!mapped) {
+            dropped = true;
+            return "[]";
+          }
+          return `[${mapped}]`;
+        },
+      );
+      return dropped ? undefined : path;
+    }
+    return mappedCode(code, codeMap);
+  }
+
+}
+
+function mappedCode(
+  code: string,
+  codeMap: Map<string, string>,
+): string | undefined {
+  if (codeMap.has(code)) {
+    const v = codeMap.get(code) ?? "";
+    return v === "" ? undefined : v;
+  }
+  const shifted = idToAtCode(code);
+  return shifted === "" ? undefined : shifted;
+}
+
+function pushBinding(
+  groups: Map<string, Array<{ key: string; value: string }>>,
+  terminology: string,
+  key: string,
+  value: string,
+): void {
+  const list = groups.get(terminology) ?? [];
+  list.push({ key, value });
+  groups.set(terminology, list);
+}
+
+function odinKey(key: string): string {
+  return `["${key.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
+}
+
+function formatBindingSection(
+  name: "term_bindings" | "constraint_bindings",
+  groups: Map<string, Array<{ key: string; value: string }>>,
+): string {
+  if (groups.size === 0) return "";
+  const lines = [`    ${name} = <`];
+  for (const term of [...groups.keys()].sort()) {
+    lines.push(`        ${odinKey(term)} = <`);
+    lines.push(`            items = <`);
+    const items = groups.get(term) ?? [];
+    items.sort((a, b) => a.key.localeCompare(b.key));
+    for (const item of items) {
+      lines.push(`                ${odinKey(item.key)} = <${item.value}>`);
+    }
+    lines.push(`            >`);
+    lines.push(`        >`);
+  }
+  lines.push(`    >`);
+  return lines.join("\n");
 }
 
 /** Round-trip metrics for tests. */
