@@ -16,6 +16,7 @@
  */
 
 import { buildAdl14CodeMap, idToAtCode } from "../id_to_at_code.ts";
+import { bindingKeyKind, parseTermBinding } from "../term_binding.ts";
 import { attributesFor } from "../../meta/rm_attributes.ts";
 import {
   type Adl2Artefact,
@@ -248,28 +249,6 @@ export function isContainer(rm: string, a: PAttribute): boolean {
     /^(List|Set|Array|Hash)</.test(meta.typeName ?? ""));
 }
 
-/** Parse a binding URI / `[term::code]` into terminology + code. */
-function parseBinding(
-  terminologyKey: string,
-  v: string,
-): { terminology: string; code: string } | undefined {
-  const t = v.trim().replace(/^\[|\]$/g, "");
-  let m = /^([\w.\-]+)::(.+)$/.exec(t);
-  if (m) return { terminology: m[1], code: m[2] };
-  m = /^https?:\/\/[^/]+\/id\/(.+)$/.exec(t);
-  if (m) {
-    const tid = /openehr\.org/.test(t)
-      ? "openehr"
-      : /snomed/.test(t)
-      ? "SNOMED-CT"
-      : /loinc/.test(t)
-      ? "LOINC"
-      : terminologyKey;
-    return { terminology: tid, code: m[1] };
-  }
-  return undefined;
-}
-
 function bindingFor(
   bindings: BindingTable,
   code: string,
@@ -277,7 +256,7 @@ function bindingFor(
   for (const [t, bag] of Object.entries(bindings)) {
     const v = bag?.[code];
     if (typeof v === "string") {
-      const b = parseBinding(t, v);
+      const b = parseTermBinding(t, v).binding;
       if (b) return b;
     }
   }
@@ -613,12 +592,45 @@ export class Opt14Exporter {
     const byTerm = new Map<string, Array<[string, string]>>();
     for (const [t, bag] of Object.entries(c.flat.bindings ?? {})) {
       for (const [code, v] of Object.entries(bag ?? {})) {
-        if (!/^(id|at)\d/i.test(code) || typeof v !== "string") continue;
-        const b = parseBinding(t, v);
-        if (!b) continue;
-        const list = byTerm.get(b.terminology) ?? [];
-        list.push([this.code14(c, code), b.code]);
-        byTerm.set(b.terminology, list);
+        if (typeof v !== "string") {
+          this.warn(
+            `Cannot export term binding ${t}[${code}]: target is not a string`,
+          );
+          continue;
+        }
+        const kind = bindingKeyKind(code);
+        if (kind === "path") {
+          this.warn(
+            `Skipped path term binding ${t}[${code}]: OPT 1.4 item codes must be at-codes`,
+          );
+          continue;
+        }
+        if (kind === "constraint") {
+          this.warn(
+            `Skipped constraint binding ${t}[${code}]: OPT 1.4 has no constraint_bindings section`,
+          );
+          continue;
+        }
+        if (kind !== "code") {
+          this.warn(
+            `Cannot export term binding ${t}[${code}]: unsupported key`,
+          );
+          continue;
+        }
+        const parsed = parseTermBinding(t, v);
+        if (!parsed.binding) {
+          this.warn(
+            `Cannot export term binding ${t}[${code}]: ${
+              parsed.warning ?? "unrecognized target"
+            }`,
+          );
+          continue;
+        }
+        const at = this.code14(c, code);
+        if (!at) continue;
+        const list = byTerm.get(parsed.binding.terminology) ?? [];
+        list.push([at, parsed.binding.code]);
+        byTerm.set(parsed.binding.terminology, list);
       }
     }
     for (const [t, list] of byTerm) {
