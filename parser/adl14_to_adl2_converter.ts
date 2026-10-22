@@ -4,8 +4,9 @@
  * Based on openEHR ADL2 spec §7.13.5 and ADL 1.4 conversion notes (ontology → terminology,
  * merged term tables, id-codes for node ids, deprecated `matches {*}`, etc.).
  *
- * Semantic migration covers ac-code / value_sets reshaping in terminology sections and
- * merging `constraint_definitions` into `term_definitions` by code key.
+ * Semantic migration covers at-code → id-code shift (ADL 1.4 is 0-based, ADL2
+ * id-codes are 1-based: `at0000` → `id1`, `at0001` → `id2`), value_sets
+ * reshaping, and merging `constraint_definitions` into `term_definitions`.
  */
 
 import { detectAdlVersion } from "./adl_version.ts";
@@ -52,7 +53,7 @@ export function convertAdl14ToAdl2(
     );
   }
 
-  let text = source.replace(/\r\n/g, "\n");
+  let text = source.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
 
   text = normalizeArchetypeHeader(text, opts, warnings);
   text = removeStandaloneSections(text, ["concept", "revision"], warnings);
@@ -127,7 +128,7 @@ function removeStandaloneSections(
   let result = text;
   for (const name of sectionNames) {
     const re = new RegExp(
-      `^([ \\t]*)${name}[ \\t]*\\n([\\s\\S]*?)(?=^[ \\t]*(?:language|description|definition|ontology|terminology|rules|annotations|rm_overlay|concept|revision|archetype|template|operational_template)\\b|\\Z)`,
+      `^(${name})[ \\t]*\\n([\\s\\S]*?)(?=^(?:language|description|definition|ontology|terminology|rules|annotations|rm_overlay|concept|revision|archetype|template|operational_template)\\b|\\Z)`,
       "gim",
     );
     if (re.test(result)) {
@@ -179,7 +180,9 @@ function convertTerminologyAcCodes(text: string, warnings: string[]): string {
     return sec.header + "\n" + body;
   });
   if (changed) {
-    warnings.push("Converted ac-code keys in terminology to ADL2 id form.");
+    warnings.push(
+      "Converted ADL 1.4 at-codes in terminology to ADL2 id-codes (at0000 → id1).",
+    );
   }
   return converted.join("\n");
 }
@@ -187,18 +190,30 @@ function convertTerminologyAcCodes(text: string, warnings: string[]): string {
 function convertAcCodeKeysInTerminologyBody(body: string): string {
   return body
     .replace(
-      /\["(at\d+|ac[\d.]+)"\]/gi,
+      /\["(at\d+(?:\.\d+)*|ac[\d.]+)"\]/gi,
       (_m, code: string) => `["${acCodeToIdKey(code)}"]`,
     )
     .replace(
-      /\[(at\d+|ac[\d.]+)\]/gi,
+      /\[(at\d+(?:\.\d+)*|ac[\d.]+)\]/gi,
       (_m, code: string) => `[${acCodeToIdKey(code)}]`,
     );
 }
 
+/**
+ * ADL 1.4 at-code → ADL2 id-code. ADL 1.4 codes are 0-based and ADL2 id-codes
+ * are 1-based (`at0000` → `id1`, `at0003` → `id4`, `at0000.1` → `id1.1`),
+ * matching {@link idToAtCode} in reverse and Archie's `ADL14NodeIDConverter`.
+ * Codes minted in a specialisation (`at0.1`) are not shifted.
+ */
+export function adl14AtToId(code: string): string {
+  const m = /^at(\d+)((?:\.\d+)*)$/i.exec(code);
+  if (!m) return code;
+  if (/^at0\./i.test(code)) return `id0${m[2]}`;
+  return `id${parseInt(m[1], 10) + 1}${m[2] ?? ""}`;
+}
+
 function acCodeToIdKey(code: string): string {
-  const at = /^at(\d+)$/i.exec(code);
-  if (at) return `id${parseInt(at[1], 10)}`;
+  if (/^at/i.test(code)) return adl14AtToId(code);
   const ac = /^ac([\d.]+)$/i.exec(code);
   if (ac) return `ac${ac[1]}`;
   return code;
@@ -397,8 +412,8 @@ function convertDefinitionNodeIds(text: string): string {
 
 function convertAtNodeIdsInBody(body: string): string {
   return body.replace(
-    /\[(at)(\d+)\]/gi,
-    (_m, _at: string, digits: string) => `[id${parseInt(digits, 10)}]`,
+    /\[(at\d+(?:\.\d+)*)\]/gi,
+    (_m, code: string) => `[${adl14AtToId(code)}]`,
   );
 }
 
@@ -433,14 +448,17 @@ function splitTopLevelSections(text: string): SectionSlice[] {
   let currentHeader = "";
   let currentBody: string[] = [];
   let startIdx = 0;
+  const preamble: string[] = [];
 
-  const isSectionStart = (trimmed: string) =>
+  // Column 0 only. Indented `description = <…>` and `description matches {`
+  // are ODIN keys and RM attributes, not ADL sections (#142).
+  const isSectionStart = (line: string) =>
     /^(archetype|template|operational_template|language|description|definition|ontology|terminology|rules|annotations|rm_overlay)\b/i
-      .test(trimmed);
+      .test(line.replace(/^\uFEFF/, ""));
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (isSectionStart(trimmed)) {
+    const line = lines[i];
+    if (isSectionStart(line)) {
       if (currentHeader || currentBody.length) {
         const raw = lines.slice(startIdx, i).join("\n");
         slices.push({
@@ -454,6 +472,8 @@ function splitTopLevelSections(text: string): SectionSlice[] {
       startIdx = i;
     } else if (currentHeader) {
       currentBody.push(lines[i]);
+    } else {
+      preamble.push(line);
     }
   }
 
@@ -467,6 +487,10 @@ function splitTopLevelSections(text: string): SectionSlice[] {
 
   if (slices.length === 0) {
     return [{ header: "", body: text, raw: text }];
+  }
+  if (preamble.some((l) => l.trim() !== "")) {
+    const raw = preamble.join("\n");
+    slices.unshift({ header: "", body: "", raw });
   }
   return slices;
 }

@@ -14,7 +14,7 @@ import {
 } from "../../../generation/adl14_serializer.ts";
 import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 Deno.test("detectTemplateInputFormat - OPT XML", async () => {
   const xml = await Deno.readTextFile(new URL("opt14/minimal_evaluation.opt", TEST_DATA));

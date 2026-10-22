@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- OPT 1.4 export keeps a `term_definitions` entry for every locatable node, including structural `ITEM_TREE` and `HISTORY` nodes. ADL 1.4 → ADL2 conversion uses the 0-based to 1-based shift (`at0000` ↔ `id1`) and no longer treats an indented `description` key as a section break ([#142](https://github.com/ErikSundvall/ehrtslib/issues/142)).
 - ODIN URI values accept RFC 3986 fragments and query strings, so ADL2 terminology bindings such as FHIR CodeSystem URIs load ([#133](https://github.com/ErikSundvall/ehrtslib/issues/133)).
 - Differential paths through `description` (and other attribute names that are also ADL section keywords) resolve. A specialised code in the path redefines the node it addresses. The constraint is kept in the flattened template and in the OPT 1.4 export ([#134](https://github.com/ErikSundvall/ehrtslib/issues/134)).
 - OET 1.4 cannot carry a new local coded-text value set. Those element paths are returned on `optOnlyValuePaths` and named in the export warnings; the OPT 1.4 export is the complete artefact ([#135](https://github.com/ErikSundvall/ehrtslib/issues/135)). Documented in `docs/ADL_SUPPORT.md`.

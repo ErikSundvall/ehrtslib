@@ -203,13 +203,13 @@ Helpers live in [`generation/opt_l10n.ts`](../generation/opt_l10n.ts). Backgroun
 
 | `term_definitions` / `items` wrapper | Flattened (ADL 1.4 ODIN shape) |
 
-| **ac-code keys** | `[at0001]` / `[ac1]` → `[id1]` in terminology |
+| **at-code keys** | `[at0000]` → `[id1]`, `[at0001]` → `[id2]`, `[at0000.1]` → `[id1.1]` in terminology (same shift as node ids). `at0.1` is not shifted. Section boundaries are column 0, so an indented `description` key does not end the terminology block |
 
 | **constraint_definitions** | Merged into `term_definitions` by code key |
 
 | **value_sets** | ac-code keys normalised under terminology |
 
-| Node ids in definition/rules | `[at0001]` → `[id1]` |
+| Node ids in definition/rules | `[at0000]` → `[id1]`, `[at0003]` → `[id4]`, including nodes under `description matches` |
 
 | `matches {*}` | Removed (deprecated) |
 

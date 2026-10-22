@@ -11,7 +11,7 @@ import {
 import { ADL2Serializer } from "../../../generation/adl2_serializer.ts";
 import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 Deno.test("detectAdlVersion - ADL 1.4 ontology marker", async () => {
   const text = await Deno.readTextFile(
@@ -31,7 +31,7 @@ Deno.test("convertAdl14ToAdl2 - normalises header and terminology", async () => 
   assert(adl2Text.includes("adl_version=2"));
   assert(adl2Text.includes("terminology"));
   assert(!adl2Text.includes("\nontology\n"));
-  assert(adl2Text.includes("WHOLE[id1]"));
+  assert(adl2Text.includes("WHOLE[id2]"), "at0001 shifts to id2");
   assert(!adl2Text.includes("[at0001]"));
 });
 
@@ -43,12 +43,12 @@ Deno.test("parseAdl - ADL 1.4 fixture end-to-end", async () => {
   assertEquals(result.detectedVersion, "1.4");
   assert(result.convertedFrom14);
   assertEquals(result.kind, "archetype");
-  assertEquals(result.archetype?.definition?.node_id, "id1");
+  assertEquals(result.archetype?.definition?.node_id, "id2");
   assertEquals(result.archetype?.definition?.rm_type_name, "WHOLE");
 
   const ontology = result.archetype?.ontology as Record<string, unknown>;
   const en = (ontology?.term_definitions as Record<string, Record<string, { text?: string }>>)?.en;
-  assertEquals(en?.at0001?.text ?? en?.["at0001"]?.text, "whole");
+  assertEquals(en?.id2?.text, "whole");
 
   const aomCheck = new ArchetypeValidator().validate(result.archetype!);
   assertEquals(aomCheck.valid, true);
