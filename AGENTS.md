@@ -46,6 +46,14 @@ Before openEHR modeling tasks, use openehr-assistant MCP (`guide_search`, CKM, t
 - PRs that change user-visible behaviour add a line under **Unreleased** in
   [`CHANGELOG.md`](CHANGELOG.md). The release PR renames that section to the
   new version. See [`docs/maintainers/releases.md`](docs/maintainers/releases.md).
+- `Fixes #n` closes an issue on merge the same way `Closes #n` does. GitHub's
+  closing keywords are `close`/`closes`/`closed`, `fix`/`fixes`/`fixed`, and
+  `resolve`/`resolves`/`resolved`
+  ([linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)).
+  They are read only when the PR targets the default branch (`main`). A stacked
+  PR whose base is another feature branch does not link or close the issue.
+  After that PR is retargeted onto `main`, check the Development sidebar lists
+  the issue before merging; edit the description if it does not.
 
 ## Library API before 1.0
 
