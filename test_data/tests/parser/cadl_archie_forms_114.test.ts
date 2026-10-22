@@ -13,6 +13,10 @@ import {
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
+import {
+  GENOMIC_CNV_CANCER_ADL2,
+  ORGANISATION_ADL2_V104,
+} from "../fixtures/adl2_issue155.ts";
 
 const CARD_AND_SLOT = `archetype (adl_version=2.0.6; rm_release=1.1.0)
 \topenEHR-EHR-CLUSTER.archie_forms_probe.v1.0.0
@@ -130,15 +134,7 @@ Deno.test("issue #114: DV_CODED_TEXT defining_code matches {[ac1]} parses", () =
 });
 
 Deno.test("issue #114: CKM organisation.v1.0.4 ADL2 parses with definition", async () => {
-  const path =
-    "/workspace/openehr-genomik-templates/archetypes/ckm-adl2/openEHR-EHR-CLUSTER.organisation.v1.0.4.adls";
-  let text: string;
-  try {
-    text = await Deno.readTextFile(path);
-  } catch {
-    // Fixture may be absent outside the genomik workspace; skip quietly.
-    return;
-  }
+  const text = await Deno.readTextFile(ORGANISATION_ADL2_V104);
   const result = parseAdl(text);
   assertEquals(result.archetype?.definition?.rm_type_name, "CLUSTER");
   assertEquals(result.archetype?.definition?.node_id, "id1");
@@ -151,14 +147,7 @@ Deno.test("issue #114: CKM organisation.v1.0.4 ADL2 parses with definition", asy
 });
 
 Deno.test("issue #114: specialised id0.1 / path overlay / |>0| interval parse", async () => {
-  const path =
-    "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.genomic_copy_number_variant-cancer.v1.0.0.adls";
-  let text: string;
-  try {
-    text = await Deno.readTextFile(path);
-  } catch {
-    return;
-  }
+  const text = await Deno.readTextFile(GENOMIC_CNV_CANCER_ADL2);
   const result = parseAdl(text);
   assertEquals(result.archetype?.definition?.node_id, "id1.1");
   assertEquals(

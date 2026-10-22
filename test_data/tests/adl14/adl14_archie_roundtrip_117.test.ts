@@ -9,12 +9,15 @@ import {
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import { ADL14Serializer } from "../../../generation/adl14_serializer.ts";
+import { ARCHIE_DOWNCONVERT_FIXTURES } from "../fixtures/adl2_issue155.ts";
 
-const FIXTURES = [
-  "/workspace/openehr-genomik-templates/archetypes/ckm-adl2/openEHR-EHR-CLUSTER.organisation.v1.0.4.adls",
-  "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.variant_clinical_implication.v1.0.0.adls",
-  "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.genomic_copy_number_variant-cancer.v1.0.0.adls",
-];
+function env(name: string): string | undefined {
+  try {
+    return Deno.env.get(name);
+  } catch {
+    return undefined;
+  }
+}
 
 function hasSection(adl: string, name: string): boolean {
   return adl.split("\n").some((l) => {
@@ -25,14 +28,8 @@ function hasSection(adl: string, name: string): boolean {
 
 Deno.test("issue #117: ADL2 fixtures down-convert with required ADL 1.4 shape", async () => {
   const serializer = new ADL14Serializer();
-  let ran = 0;
-  for (const path of FIXTURES) {
-    let text: string;
-    try {
-      text = await Deno.readTextFile(path);
-    } catch {
-      continue;
-    }
+  for (const path of ARCHIE_DOWNCONVERT_FIXTURES) {
+    const text = await Deno.readTextFile(path);
     const parsed = parseAdl(text);
     assert(parsed.archetype, `parse failed: ${path}`);
     const adl14 = serializer.serialize(parsed.archetype!);
@@ -51,22 +48,21 @@ Deno.test("issue #117: ADL2 fixtures down-convert with required ADL 1.4 shape", 
       assert(hasSection(adl14, "specialize"), `${path}: missing specialize`);
     }
     assert(!/undefined\[undefined\]/.test(adl14), `${path}: empty definition`);
-    ran++;
   }
-  assert(ran >= 1, "no fixtures available — expected genomik workspace");
 });
 
 Deno.test("issue #117: write down-converted probes for Archie benchmark", async () => {
-  const outDir = "/workspace/openehr-genomik-templates/build/ehrtslib-adl14";
+  const outDir = env("EHRTSLIB_ARCHIE_PROBE_DIR");
+  if (!outDir) {
+    console.log(
+      "Skipping Archie benchmark probe write: set EHRTSLIB_ARCHIE_PROBE_DIR to an output directory.",
+    );
+    return;
+  }
   await Deno.mkdir(outDir, { recursive: true });
   const serializer = new ADL14Serializer();
-  for (const path of FIXTURES) {
-    let text: string;
-    try {
-      text = await Deno.readTextFile(path);
-    } catch {
-      continue;
-    }
+  for (const path of ARCHIE_DOWNCONVERT_FIXTURES) {
+    const text = await Deno.readTextFile(path);
     const name = path.split("/").pop()!.replace(/\.adls$/, ".adl");
     const adl14 = serializer.serialize(parseAdl(text).archetype!);
     await Deno.writeTextFile(`${outDir}/${name}`, adl14);

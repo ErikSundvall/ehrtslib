@@ -11,6 +11,10 @@ import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.t
 import { parseAdl } from "../../../parser/mod.ts";
 import { ADL14Serializer } from "../../../generation/adl14_serializer.ts";
 import { buildAdl14CodeMap } from "../../../generation/id_to_at_code.ts";
+import {
+  ORGANISATION_ADL14_V1,
+  ORGANISATION_ADL2_V104_CKM,
+} from "../fixtures/adl2_issue155.ts";
 
 const SPEC = new URL(
   "../../adl2/code_collision_127/openEHR-EHR-EVALUATION.code_list_parent.v1.0.0.adls",
@@ -97,14 +101,8 @@ terminology
 });
 
 Deno.test("#127 CKM organisation: 1.4 → Archie ADL2 → Ehrtslib 1.4 keeps CKM at-codes", () => {
-  const G = "/workspace/openehr-genomik-templates/archetypes";
-  let ckm: string, adl2: string;
-  try {
-    ckm = Deno.readTextFileSync(`${G}/ckm/openEHR-EHR-CLUSTER.organisation.v1.adl`);
-    adl2 = Deno.readTextFileSync(`${G}/ckm-adl2/openEHR-EHR-CLUSTER.organisation.v1.0.4.adls`);
-  } catch {
-    return; // fixtures not available outside the genomics workspace
-  }
+  const ckm = Deno.readTextFileSync(ORGANISATION_ADL14_V1);
+  const adl2 = Deno.readTextFileSync(ORGANISATION_ADL2_V104_CKM);
   // deno-lint-ignore no-explicit-any
   const r: any = parseAdl(adl2);
   const out = new ADL14Serializer().serialize(r.archetype);

@@ -1,0 +1,55 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-CLUSTER.variant_clinical_implication.v1.0.0
+
+specialize
+	openEHR-EHR-CLUSTER.variant_clinical_parent.v1
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			author = <
+				["name"] = <"Test">
+			>
+		>
+	>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"Ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Specialised demo analyte (genomic)">
+		>
+		["sv"] = <
+			language = <[ISO_639-1::sv]>
+			purpose = <"Specialised demo analyte (genomic) (sv)">
+		>
+	>
+
+definition
+	CLUSTER[id1.1] matches {	-- Clinical implication variant
+		/items matches {
+			ELEMENT[id0.1] occurrences matches {0..1} matches {	-- Gene symbol
+				value matches {
+					DV_TEXT[id0.2]
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1.1"] = <text = <"Clinical implication variant"> description = <"Analyte for genomic tests.">>
+			["id0.1"] = <text = <"Gene symbol"> description = <"HGNC gene symbol.">>
+		>
+		["sv"] = <
+			["id1.1"] = <text = <"Genomisk analyt"> description = <"Analyt för genomiska tester.">>
+			["id0.1"] = <text = <"Gensymbol"> description = <"HGNC-gensymbol.">>
+		>
+	>

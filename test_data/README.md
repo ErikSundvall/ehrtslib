@@ -7,6 +7,8 @@ Curated openEHR archetype and template fixtures for parser, validation, and seri
 | Directory | Format | Count (approx.) | Purpose |
 |-----------|--------|-----------------|---------|
 | `adl2/` | ADL 2 source (`.adl`, `.adls`) | Hand-picked + templates | Local ADL2 regression |
+| `adl2/archie_downconvert_117/` | ADL 2 `.adls` | 3 | Vendored CKM/specialised fixtures for #114–#117 (no external workspace) |
+| `adl2/ckm_roundtrip_127/` | ADL 1.4 `.adl` + ADL 2 `.adls` | 2 | Organisation CKM round-trip for #127 |
 | `adl2/templates/` | ADL 2 source templates | 4 | Single-file template examples from openEHR/adl-archetypes |
 | `adl14/` | ADL 1.4 source (`.adl`) | 1+ | Legacy syntactic conversion tests |
 | `archie-tests/` | ADL 2 `.adls` | 8 + 14 new | Archie-compatible parser/validator parity |
