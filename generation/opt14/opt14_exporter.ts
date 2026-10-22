@@ -237,6 +237,53 @@ function isDataValueish(rm: string): boolean {
     /^[A-Z][a-z]/.test(rm);
 }
 
+/**
+ * Short term text for a locatable whose ADL2 terminology has no entry.
+ * Item structures use the CKM internal names ("Tree", "List"); other
+ * locatables use the RM type as a phrase ("History", "Interval event").
+ */
+const LOCATABLE_TERM_TEXT: Record<string, string> = {
+  ITEM_TREE: "Tree",
+  ITEM_LIST: "List",
+  ITEM_TABLE: "Table",
+  ITEM_SINGLE: "Single",
+  ITEM_STRUCTURE: "Structure",
+  CLUSTER: "Cluster",
+  ELEMENT: "Element",
+  HISTORY: "History",
+  EVENT: "Event",
+  POINT_EVENT: "Point event",
+  INTERVAL_EVENT: "Interval event",
+  ACTIVITY: "Activity",
+  ACTION: "Action",
+  OBSERVATION: "Observation",
+  EVALUATION: "Evaluation",
+  INSTRUCTION: "Instruction",
+  ADMIN_ENTRY: "Admin entry",
+  GENERIC_ENTRY: "Generic entry",
+  SECTION: "Section",
+  COMPOSITION: "Composition",
+  FOLDER: "Folder",
+  CARE_ENTRY: "Care entry",
+  ENTRY: "Entry",
+  CONTENT_ITEM: "Content item",
+};
+
+function locatableTermText(rmType: string): string {
+  const base = rmType.replace(/<.*$/, "");
+  const known = LOCATABLE_TERM_TEXT[base];
+  if (known) return known;
+  const words = base.split("_").filter(Boolean);
+  if (!words.length) return base || "Node";
+  return words
+    .map((w, i) =>
+      i === 0
+        ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+        : w.toLowerCase()
+    )
+    .join(" ");
+}
+
 function rmBase(rm: string): string {
   return rm.replace(/<.*$/, "");
 }
@@ -381,6 +428,30 @@ export class Opt14Exporter {
   private code14(comp: Component, code: string): string {
     const m = comp.codeMap.get(code);
     return m !== undefined ? m : adl2CodeToAdl14(collapseCode(code, comp.baseDepth));
+  }
+
+  /**
+   * A locatable node id with no ADL2 term still needs a `term_definitions`
+   * entry. The openEHR Java SDK web-template parser rejects an OPT node id
+   * that has none (#145).
+   */
+  private ensureLocatableTerm(
+    comp: Component,
+    code: string,
+    rmType: string,
+    sourceCode: string | undefined,
+  ): void {
+    if (!code || comp.terms14[this.origLang]?.[code]?.text) return;
+    const text = locatableTermText(rmType);
+    for (const lang of this.languages) {
+      const bag = comp.terms14[lang] ?? {};
+      comp.terms14[lang] = bag;
+      if (!bag[code]?.text) bag[code] = { ...bag[code], text };
+    }
+    const where = sourceCode && sourceCode !== code ? `${sourceCode} → ${code}` : code;
+    this.warn(
+      `${comp.base.id}: no term for ${rmType}[${where}]; synthesised "${text}"`,
+    );
   }
 
   /** Replace `use_archetype` roots by their flattened archetypes (recursive). */
@@ -749,6 +820,7 @@ export class Opt14Exporter {
     const attrName = parent?.attr.name;
     if (isRoot) {
       nodeId = comp.rootCode14;
+      this.ensureLocatableTerm(comp, nodeId, o.rmType, o.nodeId);
       comp.path = isDefinition ? "/" : "";
       const repeatedSibling = (parent?.siblings ?? []).filter((s) =>
         this.comps.get(s)?.id14 === comp.id14
@@ -775,6 +847,7 @@ export class Opt14Exporter {
         !comp.terms14[this.origLang]?.[c14];
       if (c14 && !synthetic && !isDataValueish(o.rmType)) {
         nodeId = c14;
+        this.ensureLocatableTerm(comp, nodeId, o.rmType, o.nodeId);
         path = `${parentPath}/${attrName}[${nodeId}]`;
         comp.codePaths.set(nodeId, path);
       } else {
