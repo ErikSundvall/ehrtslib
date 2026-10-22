@@ -158,7 +158,9 @@ Option `multilingualRepeatWorkaround` (**default `true`**; CLI `--no-multilingua
 
 The default is on because readers that do not know the annotations ignore them, while leaving them out silently loses translations. `repeatedTranslationConflicts` lists the affected texts in both modes.
 
-`component_ontologies` also writes `term_bindings`. `[terminology::code]`, `http(s)://<host>[/ver/<version>]/id/<code>`, FHIR `…#code` URIs and OBO `…/obo/<PREFIX>_<id>` PURLs become a terminology id plus `code_string`. A `/ver/<version>` segment is kept as an ADL 1.4 terminology id, `LOINC(2.65)`. Path bindings and `ac` codes are skipped with a warning (OPT 1.4 item codes are at-codes, and there is no `constraint_bindings` section). Any other target is omitted with a warning.
+`component_ontologies` also writes `term_bindings`. `[terminology::code]`, `http(s)://<host>[/ver/<version>]/id/<code>`, FHIR `…#code` URIs and OBO `…/obo/<PREFIX>_<id>` PURLs become a terminology id plus `code_string`. A `/ver/<version>` segment is kept as an ADL 1.4 terminology id, `LOINC(2.65)`. An OBO PURL's code is the CURIE `PREFIX:id` (`SO:0001583`). Path bindings and `ac` codes are skipped with a warning (OPT 1.4 item codes are at-codes, and there is no `constraint_bindings` section). Any other target is omitted with a warning.
+
+A local value set (`ac` code with members) stays `terminology="local"` and lists the at-codes, including when every member has a term binding. The bindings are the `term_bindings` entries, which is what keeps the local texts (for example "missense_variant") available to a web template. Members that are synthetic `at9xxx` placeholders, and a single `at9xxx` constraint, are still replaced by the external code. `substituteBoundValueSets: true` restores replacement of an ordinary fully-bound value set.
 
 Limits: tuples, ordinals and rules are not exported; filled slots are closed; there is no OPT 1.4 parser in Archie, so output is checked with the ITS-XML `Template.xsd` (test enabled with `OPENEHR_OPT14_XSD=<path to Template.xsd>`) and by the Ehrtslib OPT parser.
 
