@@ -131,7 +131,7 @@ Deno.test("parseTermBinding maps FHIR, OBO, /id/ and [t::c] (#141)", () => {
     binding: { terminology: "HL7", code: "cnv" },
   });
   assertEquals(parseTermBinding("SO", OBO), {
-    binding: { terminology: "SO", code: "0001583" },
+    binding: { terminology: "SO", code: "SO:0001583" },
   });
   assertEquals(parseTermBinding("SNOMED-CT", SNOMED), {
     binding: { terminology: "SNOMED-CT", code: "258435002" },
@@ -174,7 +174,7 @@ Deno.test("#141 ADL 1.4 serializer emits term_bindings and constraint_bindings",
   const serializer = new ADL14Serializer();
   const adl = serializer.serialize(parsed.archetype);
   assert(adl.includes('["at0.10"] = <[HL7::cnv]>'), adl);
-  assert(adl.includes('["at0.20"] = <[SO::0001583]>'), adl);
+  assert(adl.includes('["at0.20"] = <[SO::SO:0001583]>'), adl);
   assert(adl.includes('["at0.30"] = <[SNOMED-CT::258435002]>'), adl);
   assert(adl.includes('["at0.50"] = <[ICD10::A00]>'), adl);
   assert(adl.includes('["at0.60"] = <[LOINC(2.65)::48018-6]>'), adl);
@@ -196,7 +196,7 @@ Deno.test("#141 OPT 1.4 export keeps mapped bindings and warns on the rest", () 
   const [tid] = lib.addSource(TEMPLATE, "template.adls");
   const r = exportAdl2TemplateToOpt14(lib, tid);
   assertEquals(codeString(r.xml, "HL7", "at0.10"), "cnv");
-  assertEquals(codeString(r.xml, "SO", "at0.20"), "0001583");
+  assertEquals(codeString(r.xml, "SO", "at0.20"), "SO:0001583");
   assertEquals(codeString(r.xml, "SNOMED-CT", "at0.30"), "258435002");
   assertEquals(codeString(r.xml, "ICD10", "at0.50"), "A00");
   assertEquals(codeString(r.xml, "LOINC\\(2\\.65\\)", "at0.60"), "48018-6");

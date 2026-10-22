@@ -52,6 +52,13 @@ export interface Opt14ExportOptions {
    * occurrences can be told apart in data and paths (default true).
    */
   nameConstraints?: boolean;
+  /**
+   * Replace a local value set with external codes when every member binds to
+   * one terminology (default false). Local at-codes and their texts stay in
+   * the OPT; the bindings are written as `term_bindings` (#147). Synthetic
+   * `at9xxx` placeholders are still substituted either way.
+   */
+  substituteBoundValueSets?: boolean;
 }
 
 export interface LostTranslation {
@@ -868,7 +875,12 @@ export class Opt14Exporter {
       if (members?.length) {
         const bound = members.map((m) => bindingFor(comp.flat.bindings, m));
         const terms = new Set(bound.map((b) => b?.terminology));
-        if (bound.every((b) => b) && terms.size === 1) {
+        const uniform = bound.every((b) => b) && terms.size === 1;
+        // Real local codes keep their at-codes and texts. Only synthetic
+        // at9xxx placeholders (or an explicit opt-in) are replaced by the
+        // external codes (#147).
+        const placeholders = members.every((m) => /^at9\d{3}/i.test(m));
+        if (uniform && (placeholders || this.opts.substituteBoundValueSets)) {
           return {
             terminology: bound[0]!.terminology,
             codes: bound.map((b) => b!.code),
