@@ -8,6 +8,7 @@ import {
 } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import { ADL14Serializer } from "../../../generation/adl14_serializer.ts";
+import { GENOMIC_CNV_CANCER_ADL2 } from "../fixtures/adl2_issue155.ts";
 
 const BILINGUAL = `archetype (adl_version=2.0.6; rm_release=1.1.0)
 \topenEHR-EHR-CLUSTER.header_probe.v1.0.0
@@ -117,14 +118,7 @@ Deno.test("issue #115: ADL14Serializer emits concept, language, specialize, quot
 });
 
 Deno.test("issue #115: specialised bilingual draft keeps specialize + sv", async () => {
-  const path =
-    "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.genomic_copy_number_variant-cancer.v1.0.0.adls";
-  let text: string;
-  try {
-    text = await Deno.readTextFile(path);
-  } catch {
-    return;
-  }
+  const text = await Deno.readTextFile(GENOMIC_CNV_CANCER_ADL2);
   const parsed = parseAdl(text);
   const adl14 = new ADL14Serializer().serialize(parsed.archetype!);
   assert(adl14.split('\n').some(l => /^concept\b/.test(l)));

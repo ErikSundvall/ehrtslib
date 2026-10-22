@@ -9,6 +9,7 @@ import {
 import { parseAdl } from "../../../parser/mod.ts";
 import { ADL14Serializer } from "../../../generation/adl14_serializer.ts";
 import { idToAtCode } from "../../../generation/id_to_at_code.ts";
+import { GENOMIC_CNV_CANCER_ADL2 } from "../fixtures/adl2_issue155.ts";
 
 Deno.test("issue #116: idToAtCode mapping", () => {
   // ADL2 spec 9.3/9.5: [at0000] ([id1]), [at0001] ([id2]), [at0000.1] ([id1.1])
@@ -98,14 +99,7 @@ Deno.test("issue #116: value_sets expand to local:: and id keys become at", () =
 });
 
 Deno.test("issue #116: specialised cancer CNV maps specialised codes", async () => {
-  const path =
-    "/workspace/openehr-genomik-templates/archetypes/drafts/openEHR-EHR-CLUSTER.genomic_copy_number_variant-cancer.v1.0.0.adls";
-  let text: string;
-  try {
-    text = await Deno.readTextFile(path);
-  } catch {
-    return;
-  }
+  const text = await Deno.readTextFile(GENOMIC_CNV_CANCER_ADL2);
   const parsed = parseAdl(text);
   const adl14 = new ADL14Serializer().serialize(parsed.archetype!);
   assert(adl14.includes("[at0000.1]"), "id1.1 → at0000.1 (ADL2 spec 9.3)");
