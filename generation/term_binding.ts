@@ -4,7 +4,9 @@
  *
  * Accepted targets:
  * - `[terminology::code]`
- * - `http(s)://<host>/id/<code>` (openEHR, SNOMED CT, LOINC, or the binding key)
+ * - `http(s)://<host>[/ver/<version>]/id/<code>` (openEHR, SNOMED CT, LOINC,
+ *   or the binding key). A version is kept as `name(version)` (`LOINC(2.65)`),
+ *   which is the ADL 1.4 `TERMINOLOGY_ID` form.
  * - FHIR code-system URIs `…#<code>` (terminology id is the binding key)
  * - OBO PURLs `http://purl.obolibrary.org/obo/<PREFIX>_<id>` (code is the
  *   numeric id; terminology id is the binding key)
@@ -45,7 +47,7 @@ export function parseTermBinding(
   }
 
   if (!/^https?:\/\//i.test(t)) {
-    const phrase = /^([\w.\-]+)::(.+)$/.exec(t);
+    const phrase = /^([\w.\-]+(?:\([\w.\-]+\))?)::(.+)$/.exec(t);
     if (phrase && phrase[2]) {
       return { binding: { terminology: phrase[1], code: phrase[2] } };
     }
@@ -58,16 +60,22 @@ export function parseTermBinding(
     return { binding: { terminology: terminologyKey, code: obo[1] } };
   }
 
-  const idUrl = /^https?:\/\/[^/\s]+\/id\/(.+)$/.exec(t);
+  const idUrl =
+    /^https?:\/\/([^/\s]+)(?:\/ver\/([^/\s]+))?\/id\/(.+)$/.exec(t);
   if (idUrl) {
-    const tid = /openehr\.org/i.test(t)
+    const host = idUrl[1];
+    const version = idUrl[2];
+    const base = /openehr\.org/i.test(host)
       ? "openehr"
-      : /snomed/i.test(t)
+      : /snomed/i.test(host)
       ? "SNOMED-CT"
-      : /loinc/i.test(t)
+      : /loinc/i.test(host)
       ? "LOINC"
       : terminologyKey;
-    return { binding: { terminology: tid, code: idUrl[1] } };
+    const terminology = version && /^[\w.\-]+$/.test(version)
+      ? `${base}(${version})`
+      : base;
+    return { binding: { terminology, code: idUrl[3] } };
   }
 
   const hash = /^https?:\/\/\S+#([^#/\s]+)$/.exec(t);
@@ -83,7 +91,8 @@ export function formatCodePhrase(
   terminology: string,
   code: string,
 ): string | undefined {
-  if (!/^[\w.\-]+$/.test(terminology)) return undefined;
+  // TERMINOLOGY_ID: name, or name(version) such as LOINC(2.65).
+  if (!/^[\w.\-]+(?:\([\w.\-]+\))?$/.test(terminology)) return undefined;
   if (!code || /[\]<>\s]/.test(code)) return undefined;
   return `[${terminology}::${code}]`;
 }

@@ -1,6 +1,8 @@
 /**
  * #141: OPT 1.4 and ADL 1.4 keep FHIR, OBO, and /id/ term bindings,
  * and warn when a target cannot be exported.
+ * #146: `/ver/<version>/id/<code>` (CKM LOINC and SNOMED CT) is kept as
+ * `name(version)` on the terminology id.
  */
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
@@ -13,6 +15,8 @@ const FHIR =
   "http://hl7.org/fhir/uv/genomics-reporting/CodeSystem/genomic-study-type-cs#cnv";
 const OBO = "http://purl.obolibrary.org/obo/SO_0001583";
 const SNOMED = "http://snomed.info/id/258435002";
+const LOINC_VER = "http://LOINC.org/ver/2.65/id/48018-6";
+const SNOMED_VER = "https://snomed.info/ver/20230901/id/258435002";
 const UNKNOWN = "http://example.org/codes/not-a-binding";
 const QUERY = "http://terminology.example/query?id=1";
 
@@ -49,6 +53,8 @@ terminology
             ["at0.30"] = <text = <"SNOMED"> description = <"SNOMED">>
             ["at0.40"] = <text = <"Unknown"> description = <"Unknown">>
             ["at0.50"] = <text = <"Phrase"> description = <"Phrase">>
+            ["at0.60"] = <text = <"LOINC ver"> description = <"LOINC ver">>
+            ["at0.70"] = <text = <"SNOMED ver"> description = <"SNOMED ver">>
         >
     >
     term_bindings = <
@@ -60,6 +66,7 @@ terminology
         >
         ["SNOMED-CT"] = <
             ["at0.30"] = <${SNOMED}>
+            ["at0.70"] = <${SNOMED_VER}>
             ["ac0.1"] = <http://snomed.info/id/999>
         >
         ["EXAMPLE"] = <
@@ -69,6 +76,7 @@ terminology
             ["at0.50"] = <[ICD10::A00]>
         >
         ["LOINC"] = <
+            ["at0.60"] = <${LOINC_VER}>
             ["/data[id2]/items[id3]"] = <http://loinc.org/id/1234-5>
         >
         ["QUERY"] = <
@@ -134,6 +142,27 @@ Deno.test("parseTermBinding maps FHIR, OBO, /id/ and [t::c] (#141)", () => {
   assertEquals(parseTermBinding("ICD10", "[ICD10::A00]"), {
     binding: { terminology: "ICD10", code: "A00" },
   });
+  assertEquals(parseTermBinding("LOINC", "[LOINC(2.65)::48018-6]"), {
+    binding: { terminology: "LOINC(2.65)", code: "48018-6" },
+  });
+  assertEquals(parseTermBinding("LOINC", LOINC_VER), {
+    binding: { terminology: "LOINC(2.65)", code: "48018-6" },
+  });
+  assertEquals(parseTermBinding("SNOMED-CT", SNOMED_VER), {
+    binding: { terminology: "SNOMED-CT(20230901)", code: "258435002" },
+  });
+  assertEquals(parseTermBinding("LOINC", "http://loinc.org/id/1234-5"), {
+    binding: { terminology: "LOINC", code: "1234-5" },
+  });
+  assertEquals(
+    parseTermBinding("EXAMPLE", "http://example.org/ver/v1/id/abc"),
+    { binding: { terminology: "EXAMPLE(v1)", code: "abc" } },
+  );
+  // A version that cannot be a TERMINOLOGY_ID is dropped; the code is kept.
+  assertEquals(
+    parseTermBinding("LOINC", "http://LOINC.org/ver/2.65%20beta/id/1"),
+    { binding: { terminology: "LOINC", code: "1" } },
+  );
   const unknown = parseTermBinding("EXAMPLE", UNKNOWN);
   assertEquals(unknown.binding, undefined);
   assert(unknown.warning?.includes("unrecognized"));
@@ -148,6 +177,8 @@ Deno.test("#141 ADL 1.4 serializer emits term_bindings and constraint_bindings",
   assert(adl.includes('["at0.20"] = <[SO::0001583]>'), adl);
   assert(adl.includes('["at0.30"] = <[SNOMED-CT::258435002]>'), adl);
   assert(adl.includes('["at0.50"] = <[ICD10::A00]>'), adl);
+  assert(adl.includes('["at0.60"] = <[LOINC(2.65)::48018-6]>'), adl);
+  assert(adl.includes('["at0.70"] = <[SNOMED-CT(20230901)::258435002]>'), adl);
   assert(adl.includes('["/data[at0001]/items[at0002]"] = <[LOINC::1234-5]>'), adl);
   assert(adl.includes("constraint_bindings"));
   assert(adl.includes('["ac0.1"] = <[SNOMED-CT::999]>'), adl);
@@ -168,6 +199,8 @@ Deno.test("#141 OPT 1.4 export keeps mapped bindings and warns on the rest", () 
   assertEquals(codeString(r.xml, "SO", "at0.20"), "0001583");
   assertEquals(codeString(r.xml, "SNOMED-CT", "at0.30"), "258435002");
   assertEquals(codeString(r.xml, "ICD10", "at0.50"), "A00");
+  assertEquals(codeString(r.xml, "LOINC\\(2\\.65\\)", "at0.60"), "48018-6");
+  assertEquals(codeString(r.xml, "SNOMED-CT\\(20230901\\)", "at0.70"), "258435002");
   assert(!r.xml.includes("example.org"), r.xml);
   assert(!r.xml.includes("1234-5"), r.xml);
   assert(!r.xml.includes(">999<"), r.xml);

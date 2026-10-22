@@ -158,7 +158,7 @@ Option `multilingualRepeatWorkaround` (**default `true`**; CLI `--no-multilingua
 
 The default is on because readers that do not know the annotations ignore them, while leaving them out silently loses translations. `repeatedTranslationConflicts` lists the affected texts in both modes.
 
-`component_ontologies` also writes `term_bindings`. `[terminology::code]`, `http(s)://<host>/id/<code>`, FHIR `…#code` URIs and OBO `…/obo/<PREFIX>_<id>` PURLs become a terminology id plus `code_string`. Path bindings and `ac` codes are skipped with a warning (OPT 1.4 item codes are at-codes, and there is no `constraint_bindings` section). Any other target is omitted with a warning.
+`component_ontologies` also writes `term_bindings`. `[terminology::code]`, `http(s)://<host>[/ver/<version>]/id/<code>`, FHIR `…#code` URIs and OBO `…/obo/<PREFIX>_<id>` PURLs become a terminology id plus `code_string`. A `/ver/<version>` segment is kept as an ADL 1.4 terminology id, `LOINC(2.65)`. Path bindings and `ac` codes are skipped with a warning (OPT 1.4 item codes are at-codes, and there is no `constraint_bindings` section). Any other target is omitted with a warning.
 
 Limits: tuples, ordinals and rules are not exported; filled slots are closed; there is no OPT 1.4 parser in Archie, so output is checked with the ITS-XML `Template.xsd` (test enabled with `OPENEHR_OPT14_XSD=<path to Template.xsd>`) and by the Ehrtslib OPT parser.
 

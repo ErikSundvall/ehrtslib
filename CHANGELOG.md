@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- OPT 1.4 and ADL 1.4 export accept versioned terminology URIs `http(s)://<host>/ver/<version>/id/<code>` (the CKM form for LOINC and SNOMED CT). The version stays on the terminology id as `LOINC(2.65)` ([#146](https://github.com/ErikSundvall/ehrtslib/issues/146)).
 - OPT 1.4 and ADL 1.4 export keep term bindings that are FHIR code-system URIs (`…#code`) or OBO PURLs (`…/obo/<PREFIX>_<id>`), as well as `[terminology::code]` and `http(s)://<host>/id/<code>`. A binding that cannot be mapped is omitted with a warning. ADL 1.4 writes `term_bindings`, and `ac`-coded targets go to `constraint_bindings` ([#141](https://github.com/ErikSundvall/ehrtslib/issues/141)).
 - OPT 1.4 export keeps a `term_definitions` entry for every locatable node, including structural `ITEM_TREE` and `HISTORY` nodes. ADL 1.4 → ADL2 conversion uses the 0-based to 1-based shift (`at0000` ↔ `id1`) and no longer treats an indented `description` key as a section break ([#142](https://github.com/ErikSundvall/ehrtslib/issues/142)).
 - ODIN URI values accept RFC 3986 fragments and query strings, so ADL2 terminology bindings such as FHIR CodeSystem URIs load ([#133](https://github.com/ErikSundvall/ehrtslib/issues/133)).
