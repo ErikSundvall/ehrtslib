@@ -9,7 +9,7 @@
  *   which is the ADL 1.4 `TERMINOLOGY_ID` form.
  * - FHIR code-system URIs `…#<code>` (terminology id is the binding key)
  * - OBO PURLs `http://purl.obolibrary.org/obo/<PREFIX>_<id>` (code is the
- *   numeric id; terminology id is the binding key)
+ *   CURIE `<PREFIX>:<id>`, e.g. `SO:0001583`; terminology id is the binding key)
  *
  * Anything else is not exported. Callers warn with {@link TermBindingParse.warning}.
  */
@@ -54,10 +54,12 @@ export function parseTermBinding(
   }
 
   const obo =
-    /^https?:\/\/purl\.obolibrary\.org\/obo\/[A-Za-z][A-Za-z0-9]*?_(\d+)$/i
+    /^https?:\/\/purl\.obolibrary\.org\/obo\/([A-Za-z][A-Za-z0-9]*)_(\d+)$/i
       .exec(t);
   if (obo) {
-    return { binding: { terminology: terminologyKey, code: obo[1] } };
+    return {
+      binding: { terminology: terminologyKey, code: `${obo[1]}:${obo[2]}` },
+    };
   }
 
   const idUrl =
