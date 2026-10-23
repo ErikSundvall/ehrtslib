@@ -11,6 +11,8 @@ import {
   OPT2Serializer,
   opt2SizeMetrics,
 } from "../../../generation/mod.ts";
+import * as openehr_am from "../../../am/openehr_am.ts";
+import { buildWebTemplate } from "../../../serialization/simplified/web_template_builder.ts";
 
 const TEST_DATA = new URL("../../", import.meta.url);
 
@@ -72,6 +74,119 @@ Deno.test("OPT2 — filterOperationalTemplateLanguages keeps chosen languages", 
   for (const lang of Object.keys(defs)) {
     assertEquals(lang.toLowerCase(), "en");
   }
+});
+
+function definitionSection(adl: string): string {
+  const start = adl.indexOf("\ndefinition\n");
+  if (start < 0) return "";
+  const rest = adl.slice(start + 1);
+  const next = rest.search(
+    /\n(?:terminology|rules|annotations|component_terminologies|rm_overlay)\n/,
+  );
+  return next < 0 ? rest : rest.slice(0, next);
+}
+
+function countInstances(node: unknown, pred: (value: object) => boolean): number {
+  const seen = new Set<object>();
+  let count = 0;
+  const walk = (value: unknown) => {
+    if (!value || typeof value !== "object" || seen.has(value)) return;
+    seen.add(value);
+    if (pred(value)) count++;
+    const rec = value as Record<string, unknown>;
+    if (Array.isArray(rec.children)) for (const child of rec.children) walk(child);
+    if (Array.isArray(rec.attributes)) for (const attr of rec.attributes) walk(attr);
+  };
+  walk(node);
+  return count;
+}
+
+Deno.test("OPT2 — language filter keeps definition prototypes (#157)", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("opt14/language_test.opt", TEST_DATA),
+  );
+  const opt = parseTemplateInput(xml).operationalTemplate!;
+  const filtered = filterOperationalTemplateLanguages(opt, ["en"]);
+  assert(filtered.definition instanceof openehr_am.C_OBJECT);
+  assertEquals(
+    Object.getPrototypeOf(filtered.definition).constructor,
+    Object.getPrototypeOf(opt.definition).constructor,
+  );
+
+  const serializer = new OPT2Serializer();
+  const all = serializer.serializeOperationalTemplate(opt);
+  const en = serializer.serializeOperationalTemplate(opt, { languages: ["en"] });
+  assertEquals(definitionSection(en), definitionSection(all));
+  assertGreater(definitionSection(en).split("\n").length, 2);
+
+  const web = buildWebTemplate(filtered);
+  assertGreater(JSON.stringify(web).length, 400);
+});
+
+Deno.test("OPT2 — constraints, slots, and id-coded root (#157)", async () => {
+  const xml = await Deno.readTextFile(
+    new URL("opt14/ehrbase_blood_pressure_simple.de.v0.opt", TEST_DATA),
+  );
+  const opt = parseTemplateInput(xml).operationalTemplate!;
+  const slots = countInstances(
+    opt.definition,
+    (value) => value instanceof openehr_am.ARCHETYPE_SLOT,
+  );
+  const quantities = countInstances(
+    opt.definition,
+    (value) => value instanceof openehr_am.C_QUANTITY,
+  );
+  assertGreater(slots, 0);
+  assertGreater(quantities, 0);
+
+  const opt2 = new OPT2Serializer().serializeOperationalTemplate(opt);
+  const definition = definitionSection(opt2);
+  assertEquals((definition.match(/allow_archetype/g) ?? []).length, slots);
+  assertGreater((definition.match(/DV_QUANTITY/g) ?? []).length, 0);
+  assert(definition.includes("magnitude"));
+  assert(definition.includes("units"));
+  assert(definition.includes("property"));
+  assert(/allow_archetype \w+.*matches \{\s*include/s.test(definition));
+  assert(/archetype_id\/value matches \{\/.*\/\}/.test(definition));
+
+  for (const line of definition.split("\n")) {
+    if (!line.includes("use_archetype")) continue;
+    assert(/use_archetype \w+\[[^\]]*\]/.test(line), line);
+    assert(!line.includes("],"), line);
+    assert(/\[id\d+/.test(line), line);
+  }
+  assert((definition.match(/\[id\d+/g) ?? []).length > 0);
+  assert(!definition.includes("[at0000]"));
+
+  const reparsed = parseOpt2(opt2);
+  assertEquals(reparsed.kind, "operational_template");
+  assert(reparsed.operationalTemplate?.definition);
+});
+
+Deno.test("OPT2 — ordinals, durations, and value codes stay at-codes (#157)", async () => {
+  const typesXml = await Deno.readTextFile(
+    new URL("opt14/Test_all_types.opt", TEST_DATA),
+  );
+  const types = new OPT2Serializer().serializeOperationalTemplate(
+    parseTemplateInput(typesXml).operationalTemplate!,
+  );
+  const typesDef = definitionSection(types);
+  assert(typesDef.includes("DV_ORDINAL"));
+  assert(typesDef.includes("[at0014]"));
+  assert(types.includes('["at0014"]') || types.includes("[at0014]"));
+  assert(/\[id\d+/.test(typesDef));
+  const typesParsed = parseOpt2(types);
+  assertEquals(typesParsed.kind, "operational_template");
+
+  const durationXml = await Deno.readTextFile(
+    new URL("opt14/duration_validation.opt", TEST_DATA),
+  );
+  const duration = new OPT2Serializer().serializeOperationalTemplate(
+    parseTemplateInput(durationXml).operationalTemplate!,
+  );
+  assert(definitionSection(duration).includes("|PT24H"));
+  const durationParsed = parseOpt2(duration);
+  assertEquals(durationParsed.kind, "operational_template");
 });
 
 Deno.test("OPT2 — inlineTermLabels adds comment enrichment", async () => {

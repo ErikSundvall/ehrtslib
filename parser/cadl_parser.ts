@@ -60,6 +60,10 @@ export class CadlParser {
 
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         this.skipComments();
+        if (this.check(TokenType.LBRACKET)) {
+          this.skipTupleAttribute();
+          continue;
+        }
         const posBefore = this.position;
         const attribute = this.parseAttribute();
         if (attribute) {
@@ -168,9 +172,19 @@ export class CadlParser {
     const slot = new openehr_am.ARCHETYPE_SLOT();
     const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
     slot.rm_type_name = typeId.value;
-    this.consume(TokenType.LBRACKET, "Expected '['");
-    slot.node_id = this.consume(TokenType.ID_CODE, "Expected id code").value;
-    this.consume(TokenType.RBRACKET, "Expected ']'");
+    if (this.check(TokenType.LBRACKET)) {
+      this.advance();
+      const nodeIdToken = this.peek();
+      if (
+        nodeIdToken.type === TokenType.ID_CODE ||
+        nodeIdToken.type === TokenType.AT_CODE
+      ) {
+        slot.node_id = this.advance().value;
+      } else if (!this.check(TokenType.RBRACKET)) {
+        throw this.error("Expected node id code (id1, at0000, etc.)");
+      }
+      this.consume(TokenType.RBRACKET, "Expected ']'");
+    }
 
     if (this.check(TokenType.OCCURRENCES)) {
       this.parseOccurrences(slot);
@@ -278,6 +292,8 @@ export class CadlParser {
       this.consume(TokenType.LBRACE, "Expected '{' after matches in path attribute");
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         this.skipComments();
+        while (this.check(TokenType.COMMA)) this.advance();
+        if (this.check(TokenType.RBRACE)) break;
         const posBefore = this.position;
         const termChild = this.tryParseTerminologyConstraint();
         if (termChild) {
@@ -425,6 +441,8 @@ export class CadlParser {
 
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         this.skipComments();
+        while (this.check(TokenType.COMMA)) this.advance();
+        if (this.check(TokenType.RBRACE)) break;
         const posBefore = this.position;
         const termChild = this.tryParseTerminologyConstraint();
         if (termChild) {
@@ -567,21 +585,77 @@ export class CadlParser {
   private tryParseTerminologyConstraint(): openehr_am.C_TERMINOLOGY_CODE | null {
     if (!this.check(TokenType.LBRACKET)) return null;
     const next = this.peekAhead(1);
+    if (!next) return null;
     if (
-      !next ||
-      (next.type !== TokenType.AC_CODE &&
-        next.type !== TokenType.AT_CODE &&
-        next.type !== TokenType.ID_CODE)
+      next.type === TokenType.AC_CODE ||
+      next.type === TokenType.AT_CODE ||
+      next.type === TokenType.ID_CODE
     ) {
-      return null;
+      this.advance(); // '['
+      const code = this.advance().value;
+      this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
+      const term = new openehr_am.C_TERMINOLOGY_CODE();
+      term.rm_type_name = "CODE_PHRASE";
+      term.constraint = code;
+      return term;
     }
-    this.advance(); // '['
-    const code = this.advance().value;
-    this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
-    const term = new openehr_am.C_TERMINOLOGY_CODE();
-    term.rm_type_name = "CODE_PHRASE";
-    term.constraint = code;
-    return term;
+    // `[openehr::433]` / `[openehr::433|label|]`
+    if (
+      next.type === TokenType.IDENTIFIER &&
+      this.peekAhead(2)?.type === TokenType.DOUBLE_COLON
+    ) {
+      this.advance(); // '['
+      const terminologyId = this.advance().value;
+      this.advance(); // '::'
+      let code = "";
+      while (
+        !this.check(TokenType.RBRACKET) &&
+        !this.check(TokenType.PIPE) &&
+        !this.isAtEnd()
+      ) {
+        code += this.advance().value;
+      }
+      if (this.check(TokenType.PIPE)) {
+        this.advance();
+        while (!this.check(TokenType.PIPE) && !this.isAtEnd()) this.advance();
+        if (this.check(TokenType.PIPE)) this.advance();
+      }
+      this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
+      const term = new openehr_am.C_TERMINOLOGY_CODE() as
+        & openehr_am.C_TERMINOLOGY_CODE
+        & { terminology_id?: string };
+      term.rm_type_name = "CODE_PHRASE";
+      term.terminology_id = terminologyId;
+      term.constraint = code;
+      return term;
+    }
+    return null;
+  }
+
+  /** `[units, magnitude] matches { … }` — kept in the text, not reified. */
+  private skipTupleAttribute(): void {
+    this.skipDelimited(TokenType.LBRACKET, TokenType.RBRACKET);
+    if (this.check(TokenType.MATCHES)) {
+      this.advance();
+      if (this.check(TokenType.LBRACE)) {
+        this.skipDelimited(TokenType.LBRACE, TokenType.RBRACE);
+      }
+    }
+  }
+
+  private skipDelimited(open: TokenType, close: TokenType): void {
+    if (!this.check(open)) return;
+    this.advance();
+    let depth = 1;
+    while (!this.isAtEnd() && depth > 0) {
+      if (this.check(TokenType.STRING) || this.check(TokenType.REGEX)) {
+        this.advance();
+        continue;
+      }
+      if (this.check(open)) depth++;
+      else if (this.check(close)) depth--;
+      this.advance();
+    }
   }
 
   private pushAttributeChild(

@@ -38,6 +38,25 @@ import {
   type OptPathAnnotationMap,
 } from "../../generation/opt_l10n.ts";
 
+/** Empty complex shell so a slot still appears as a node, as it did when OPT XML mapped slots to `C_COMPLEX_OBJECT`. */
+function complexShellFromSlot(
+  slot: openehr_am.ARCHETYPE_SLOT,
+): openehr_am.C_COMPLEX_OBJECT {
+  const obj = new openehr_am.C_COMPLEX_OBJECT();
+  obj.rm_type_name = slot.rm_type_name;
+  obj.node_id = slot.node_id;
+  obj.occurrences = slot.occurrences;
+  const src = slot as TermScopeMeta;
+  const dest = obj as TermScopeMeta;
+  if (src[TERM_ARCHETYPE_SCOPE_KEY]) {
+    dest[TERM_ARCHETYPE_SCOPE_KEY] = src[TERM_ARCHETYPE_SCOPE_KEY];
+  }
+  if (src[TERM_NAME_FALLBACK_NODE_ID_KEY]) {
+    dest[TERM_NAME_FALLBACK_NODE_ID_KEY] = src[TERM_NAME_FALLBACK_NODE_ID_KEY];
+  }
+  return obj;
+}
+
 export interface WebTemplateBuilderOptions {
   defaultLanguage?: string;
   /** Mark composition-level metadata nodes as ctx (for FLAT ctx/ prefix). */
@@ -557,14 +576,20 @@ export class WebTemplateBuilder {
         const childLabel = this.termFor(child).text ??
           child.rm_type_name?.toLowerCase() ??
           attrName;
-        if (child instanceof openehr_am.C_COMPLEX_OBJECT) {
-          if (SKIP_RM_TYPES.has(child.rm_type_name ?? "")) {
-            const flattened = this.flattenDataStructure(child, childPath, node);
+        if (
+          child instanceof openehr_am.C_COMPLEX_OBJECT ||
+          child instanceof openehr_am.ARCHETYPE_SLOT
+        ) {
+          const complex = child instanceof openehr_am.ARCHETYPE_SLOT
+            ? complexShellFromSlot(child)
+            : child;
+          if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
+            const flattened = this.flattenDataStructure(complex, childPath, node);
             node.children!.push(...flattened.children ?? []);
-          } else if (child.rm_type_name === "HISTORY") {
+          } else if (complex.rm_type_name === "HISTORY") {
             node.children!.push(
               this.flattenHistory(
-                child,
+                complex,
                 childPath,
                 nodeShell(node, {
                   id: normalizeWebTemplateId(attrName),
@@ -573,17 +598,17 @@ export class WebTemplateBuilder {
                 }),
               ),
             );
-          } else if (child.rm_type_name === "ELEMENT") {
+          } else if (complex.rm_type_name === "ELEMENT") {
             node.children!.push(
               this.buildElement(
-                child,
+                complex,
                 childPath,
-                this.elementShell(child, childPath),
+                this.elementShell(complex, childPath),
               ),
             );
           } else {
             node.children!.push(this.buildFromComplex(
-              child,
+              complex,
               childPath,
               childLabel,
             ));
@@ -617,17 +642,21 @@ export class WebTemplateBuilder {
         );
         const itemLabel = this.termFor(child).text ??
           attrName;
-        const isComplex = child instanceof openehr_am.C_COMPLEX_OBJECT;
-        if (isComplex) {
-          if (child.rm_type_name === "ELEMENT") {
+        const complex = child instanceof openehr_am.ARCHETYPE_SLOT
+          ? complexShellFromSlot(child)
+          : child instanceof openehr_am.C_COMPLEX_OBJECT
+          ? child
+          : undefined;
+        if (complex) {
+          if (complex.rm_type_name === "ELEMENT") {
             out.push(this.buildElement(
-              child,
+              complex,
               childPath,
-              this.elementShell(child, childPath),
+              this.elementShell(complex, childPath),
             ));
           } else {
             out.push(this.buildFromComplex(
-              child,
+              complex,
               childPath,
               itemLabel,
             ));

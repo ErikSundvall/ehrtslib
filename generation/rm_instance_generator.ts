@@ -147,6 +147,7 @@ export class RMInstanceGenerator {
     }
 
     const rmType = cObject.rm_type_name ?? "ITEM_TREE";
+    const isSlot = cObject instanceof openehr_am.ARCHETYPE_SLOT;
     const isComplex = cObject instanceof openehr_am.C_COMPLEX_OBJECT ||
       cObject instanceof openehr_am.C_ARCHETYPE_ROOT;
     const hasAttributes = isComplex &&
@@ -172,7 +173,7 @@ export class RMInstanceGenerator {
 
     if (isComplex) {
       this.generateAttributes(instance, cObject, depth, ctx);
-    } else {
+    } else if (!isSlot) {
       return this.generateDataValueByType(rmType, pathHint);
     }
 

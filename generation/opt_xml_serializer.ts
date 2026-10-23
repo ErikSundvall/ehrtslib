@@ -268,6 +268,24 @@ function serializeCOrdinal(
   return base;
 }
 
+function slotAssertionXml(
+  constraint: openehr_am.ARCHETYPE_ID_CONSTRAINT,
+): Record<string, unknown> {
+  return {
+    expression: {
+      "@_xsi:type": "EXPR_BINARY_OPERATOR",
+      operator: 2007,
+      right_operand: {
+        "@_xsi:type": "EXPR_LEAF",
+        item: {
+          "@_xsi:type": "C_STRING",
+          pattern: constraint.constraint?.pattern ?? "",
+        },
+      },
+    },
+  };
+}
+
 function serializeCObject(
   obj: openehr_am.C_OBJECT,
   ctx: SerializeCtx,
@@ -322,6 +340,17 @@ function serializeCObject(
 
   if (obj instanceof openehr_am.C_ORDINAL) {
     return serializeCOrdinal(obj as OrdinalRuntime, base);
+  }
+
+  if (obj instanceof openehr_am.ARCHETYPE_SLOT) {
+    base["@_xsi:type"] = "ARCHETYPE_SLOT";
+    const includes = (obj as { includes?: openehr_am.ARCHETYPE_ID_CONSTRAINT[] })
+      .includes;
+    const excludes = (obj as { excludes?: openehr_am.ARCHETYPE_ID_CONSTRAINT[] })
+      .excludes;
+    if (includes?.length) base.includes = includes.map(slotAssertionXml);
+    if (excludes?.length) base.excludes = excludes.map(slotAssertionXml);
+    return base;
   }
 
   if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {
