@@ -24,3 +24,23 @@ Deno.test("availableTemplateLanguages lists term_definitions keys with original 
   });
   assertEquals(langs, ["en", "sv"]);
 });
+
+Deno.test("availableTemplateLanguages includes archetype term bags in OPT order", () => {
+  const langs = availableTemplateLanguages({
+    original_language: "en",
+    ontology: {
+      term_definitions: {
+        en: { at0000: { text: "Encounter" } },
+      },
+    },
+    archetype_term_definitions: {
+      "openEHR-EHR-OBSERVATION.blood_pressure.v2": {
+        en: { at0004: { text: "Systolic" } },
+        sv: { at0004: { text: "Systoliskt" } },
+        de: { at0004: { text: "Systolisch" } },
+        qq: { at0004: { text: "Q-Systolic" } },
+      },
+    },
+  });
+  assertEquals(langs, ["en", "sv", "de", "qq"]);
+});

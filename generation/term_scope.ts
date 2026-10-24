@@ -19,7 +19,7 @@ import type {
   TermBag,
   TermDefinitionTable,
 } from "../am/util/ontology_merge.ts";
-import { termCodeCandidates } from "./term_codes.ts";
+import { languageCode, termCodeCandidates } from "./term_codes.ts";
 
 export const TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
 export const TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
@@ -180,16 +180,58 @@ export function resolveLocatableLabel(
   )?.text;
 }
 
+/**
+ * One language bag, with per-code fallback to `originalLanguage` when that
+ * differs from `language`. A missing language still falls back to `en`, then
+ * the first bag, matching the previous whole-bag lookup.
+ */
+export function selectTermBag(
+  table: Record<string, TermBag> | undefined,
+  language: string,
+  originalLanguage?: string,
+): TermBag {
+  if (!table) return {};
+  const primary = table[language];
+  const fallbackLang = originalLanguage && originalLanguage !== language
+    ? originalLanguage
+    : undefined;
+  const secondary = fallbackLang ? table[fallbackLang] : undefined;
+  if (primary && secondary) return mergeTermBag(secondary, primary);
+  if (primary) return primary;
+  if (secondary) return secondary;
+  if (table.en && Object.keys(table.en).length) return table.en;
+  return Object.values(table).find((bag) => bag && Object.keys(bag).length) ??
+    {};
+}
+
+/** `override` wins per code; `base` fills text or description the override lacks. */
+function mergeTermBag(base: TermBag, override: TermBag): TermBag {
+  const out: TermBag = { ...base };
+  for (const [code, entry] of Object.entries(override)) {
+    const prev = out[code];
+    if (!prev) {
+      out[code] = entry;
+      continue;
+    }
+    out[code] = {
+      text: entry.text ?? prev.text,
+      description: entry.description ?? prev.description,
+    };
+  }
+  return out;
+}
+
 /** Language-sliced per-archetype term bags from `archetype_term_definitions`. */
 export function archetypeTermBagsForLanguage(
   template: OperationalTemplateWithTermScopes,
   language: string,
+  originalLanguage?: string,
 ): Record<string, TermBag> {
   const index = template.archetype_term_definitions ?? {};
+  const original = originalLanguage ?? languageCode(template.original_language);
   const out: Record<string, TermBag> = {};
   for (const [archId, table] of Object.entries(index)) {
-    out[archId] = table[language] ?? table.en ??
-      Object.values(table)[0] ?? {};
+    out[archId] = selectTermBag(table, language, original);
   }
   return out;
 }
@@ -197,6 +239,12 @@ export function archetypeTermBagsForLanguage(
 /**
  * Tag constraint nodes with `term_archetype_scope` and build
  * `archetype_term_definitions` from per-`C_ARCHETYPE_ROOT` OPT XML term bags.
+ *
+ * Inline `<term_definitions>` on a `C_ARCHETYPE_ROOT` are the template's
+ * original language. They are stored under that language. `language` is used
+ * only when the template has no original language. Passing a display language
+ * such as `"sv"` does not relabel the inline terms or overwrite a translation
+ * already stored for that language.
  *
  * Safe to call on an OPT that already has a flattening-built index: existing
  * index entries are kept, and component bags overlay the same archetype id.
@@ -208,8 +256,10 @@ export function applyOperationalTemplateTermScopes(
   const index: Record<string, TermDefinitionTable> = {
     ...(opt.archetype_term_definitions ?? {}),
   };
+  const inlineLanguage = languageCode(opt.original_language) || language ||
+    "en";
   if (opt.definition) {
-    walkTermScopes(opt.definition, undefined, language, index);
+    walkTermScopes(opt.definition, undefined, inlineLanguage, index);
   }
   opt.archetype_term_definitions = index;
 }
