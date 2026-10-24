@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <language>
+    <terminology_id>
+      <value>ISO_639-1</value>
+    </terminology_id>
+    <code_string>en</code_string>
+  </language>
+  <description>
+    <original_author id="Original Author">ehrtslib</original_author>
+    <lifecycle_state>unmanaged</lifecycle_state>
+    <details>
+      <language>
+        <terminology_id>
+          <value>ISO_639-1</value>
+        </terminology_id>
+        <code_string>en</code_string>
+      </language>
+      <purpose>Minimal OPT 1.4 with en, sv, de and a non-ISO code.</purpose>
+    </details>
+  </description>
+  <template_id>
+    <value>multilingual_en_sv_de.v0</value>
+  </template_id>
+  <concept>multilingual_en_sv_de</concept>
+  <definition>
+    <rm_type_name>COMPOSITION</rm_type_name>
+    <node_id>at0000</node_id>
+    <archetype_id>
+      <value>openEHR-EHR-COMPOSITION.encounter.v1</value>
+    </archetype_id>
+    <term_definitions code="at0000">
+      <items id="text">Encounter</items>
+      <items id="description">A contact between a subject of care and a provider.</items>
+    </term_definitions>
+    <attributes xsi:type="C_MULTIPLE_ATTRIBUTE">
+      <rm_attribute_name>content</rm_attribute_name>
+      <children xsi:type="C_ARCHETYPE_ROOT">
+        <rm_type_name>OBSERVATION</rm_type_name>
+        <node_id>at0000</node_id>
+        <archetype_id>
+          <value>openEHR-EHR-OBSERVATION.blood_pressure.v2</value>
+        </archetype_id>
+        <term_definitions code="at0000">
+          <items id="text">Blood pressure</items>
+          <items id="description">Arterial blood pressure.</items>
+        </term_definitions>
+        <term_definitions code="at0004">
+          <items id="text">Systolic</items>
+          <items id="description">Peak systemic arterial blood pressure.</items>
+        </term_definitions>
+        <term_definitions code="at0006">
+          <items id="text">Any event</items>
+          <items id="description">Unspecified point in time.</items>
+        </term_definitions>
+        <term_definitions code="at0008">
+          <items id="text">Position</items>
+          <items id="description">Position of the subject.</items>
+        </term_definitions>
+        <term_definitions code="at1000">
+          <items id="text">Standing</items>
+          <items id="description">Standing position.</items>
+        </term_definitions>
+        <term_definitions code="at1001">
+          <items id="text">Sitting</items>
+          <items id="description">Sitting position.</items>
+        </term_definitions>
+        <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+          <rm_attribute_name>data</rm_attribute_name>
+          <children xsi:type="C_COMPLEX_OBJECT">
+            <rm_type_name>HISTORY</rm_type_name>
+            <node_id>at0001</node_id>
+            <attributes xsi:type="C_MULTIPLE_ATTRIBUTE">
+              <rm_attribute_name>events</rm_attribute_name>
+              <children xsi:type="C_COMPLEX_OBJECT">
+                <rm_type_name>POINT_EVENT</rm_type_name>
+                <node_id>at0006</node_id>
+                <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+                  <rm_attribute_name>data</rm_attribute_name>
+                  <children xsi:type="C_COMPLEX_OBJECT">
+                    <rm_type_name>ITEM_TREE</rm_type_name>
+                    <node_id>at0003</node_id>
+                    <attributes xsi:type="C_MULTIPLE_ATTRIBUTE">
+                      <rm_attribute_name>items</rm_attribute_name>
+                      <children xsi:type="C_COMPLEX_OBJECT">
+                        <rm_type_name>ELEMENT</rm_type_name>
+                        <node_id>at0004</node_id>
+                        <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+                          <rm_attribute_name>value</rm_attribute_name>
+                          <children xsi:type="C_COMPLEX_OBJECT">
+                            <rm_type_name>DV_QUANTITY</rm_type_name>
+                          </children>
+                        </attributes>
+                      </children>
+                      <children xsi:type="C_COMPLEX_OBJECT">
+                        <rm_type_name>ELEMENT</rm_type_name>
+                        <node_id>at0008</node_id>
+                        <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+                          <rm_attribute_name>value</rm_attribute_name>
+                          <children xsi:type="C_COMPLEX_OBJECT">
+                            <rm_type_name>DV_CODED_TEXT</rm_type_name>
+                            <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+                              <rm_attribute_name>defining_code</rm_attribute_name>
+                              <children xsi:type="C_CODE_PHRASE">
+                                <rm_type_name>CODE_PHRASE</rm_type_name>
+                                <terminology_id>
+                                  <value>local</value>
+                                </terminology_id>
+                                <code_list>at1000</code_list>
+                                <code_list>at1001</code_list>
+                              </children>
+                            </attributes>
+                          </children>
+                        </attributes>
+                      </children>
+                    </attributes>
+                  </children>
+                </attributes>
+              </children>
+            </attributes>
+          </children>
+        </attributes>
+      </children>
+    </attributes>
+  </definition>
+  <component_ontologies archetype_id="openEHR-EHR-OBSERVATION.blood_pressure.v2">
+    <term_definitions language="en">
+      <items code="at0000">
+        <items id="text">Blood pressure</items>
+        <items id="description">Arterial blood pressure.</items>
+      </items>
+      <items code="at0004">
+        <items id="text">Systolic</items>
+        <items id="description">Peak systemic arterial blood pressure.</items>
+      </items>
+      <items code="at0006">
+        <items id="text">Any event</items>
+        <items id="description">Unspecified point in time.</items>
+      </items>
+      <items code="at0008">
+        <items id="text">Position</items>
+        <items id="description">Position of the subject.</items>
+      </items>
+      <items code="at1000">
+        <items id="text">Standing</items>
+        <items id="description">Standing position.</items>
+      </items>
+      <items code="at1001">
+        <items id="text">Sitting</items>
+        <items id="description">Sitting position.</items>
+      </items>
+    </term_definitions>
+    <term_definitions language="sv">
+      <items code="at0000">
+        <items id="text">Blodtryck</items>
+        <items id="description">Arteriellt blodtryck.</items>
+      </items>
+      <items code="at0004">
+        <items id="text">Systoliskt</items>
+        <items id="description">Systoliskt blodtryck.</items>
+      </items>
+      <items code="at0008">
+        <items id="text">Position</items>
+        <items id="description">Personens position.</items>
+      </items>
+      <items code="at1000">
+        <items id="text">Stående</items>
+        <items id="description">Stående position.</items>
+      </items>
+      <items code="at1001">
+        <items id="text">Sittande</items>
+        <items id="description">Sittande position.</items>
+      </items>
+    </term_definitions>
+    <term_definitions language="de">
+      <items code="at0000">
+        <items id="text">Blutdruck</items>
+        <items id="description">Arterieller Blutdruck.</items>
+      </items>
+      <items code="at0004">
+        <items id="text">Systolisch</items>
+        <items id="description">Systolischer Blutdruck.</items>
+      </items>
+      <items code="at0006">
+        <items id="text">Beliebiges Ereignis</items>
+        <items id="description">Nicht näher bestimmtes Ereignis.</items>
+      </items>
+      <items code="at0008">
+        <items id="text">Position</items>
+        <items id="description">Position der Person.</items>
+      </items>
+      <items code="at1000">
+        <items id="text">Stehend</items>
+        <items id="description">Stehende Position.</items>
+      </items>
+      <items code="at1001">
+        <items id="text">Sitzend</items>
+        <items id="description">Sitzende Position.</items>
+      </items>
+    </term_definitions>
+    <term_definitions language="qq">
+      <items code="at0004">
+        <items id="text">Q-Systolic</items>
+        <items id="description">Not an ISO 639-1 code.</items>
+      </items>
+    </term_definitions>
+  </component_ontologies>
+</template>

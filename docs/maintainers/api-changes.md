@@ -19,6 +19,8 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+`buildWebTemplate` accepts `language` as an alias of `defaultLanguage` (issue #159). `defaultLanguage` still wins when both are set. Web Template `languages`, and per-node `localizedNames` / `localizedDescriptions` for every language that has a term, are filled from OPT 1.4 `<ontology>` and `<component_ontologies>` as well as the merged ontology. Node ids stay on the original language. `applyOperationalTemplateTermScopes(opt, language)` files inline OPT terms under the template's original language when that is known; `language` is only the inline-term language when the template has none.
+
 `OPT2Serializer`, `filterOperationalTemplateLanguages`, and `opt2SizeMetrics` in `generation/mod.ts` export in-memory `OPERATIONAL_TEMPLATE` to ADL2 `operational_template` text (OPT2), with optional language filtering and separate `inlineTermLabels` enrichment (issue #130).
 
 Flatten of a Better `.t.json` keeps a separate `archetype_term_definitions` bag per template id when several templates specialise one archetype (issue #110). `OPERATIONAL_TEMPLATE.template_id` carries that Better id. Web Template `templateId` and OPT XML `<template_id>` use it when set; `archetype_id` is unchanged. Applications that rebuilt those bags themselves (including [regionstockholm/intehrgrator](https://github.com/regionstockholm/intehrgrator)) can read the operational template directly.

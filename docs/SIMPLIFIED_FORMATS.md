@@ -10,7 +10,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 
 | Export | Purpose |
 |--------|---------|
-| `buildWebTemplate(opt)` | Build Web Template JSON from an operational template |
+| `buildWebTemplate(opt, { language })` | Build Web Template JSON from an operational template. `language` and `defaultLanguage` select the label language; ids and paths stay on the original language |
 | `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
 | `isWebTemplateJson(value)` | Detect Web Template JSON documents |
 | `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
