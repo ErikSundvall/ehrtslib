@@ -29,17 +29,54 @@ function filterTermTable(
 }
 
 /**
+ * Deep copy that keeps AOM class prototypes.
+ *
+ * `structuredClone` turns `definition` into a plain `Object`, and the ADL2
+ * serializer then emits nothing for it (`instanceof` checks fail).
+ */
+function clonePreservingPrototype<T>(
+  value: T,
+  seen = new WeakMap<object, unknown>(),
+): T {
+  if (typeof value !== "object" || value === null) return value;
+  const cached = seen.get(value);
+  if (cached !== undefined) return cached as T;
+  if (value instanceof Date) {
+    const copy = new Date(value.getTime());
+    seen.set(value, copy);
+    return copy as T;
+  }
+  if (Array.isArray(value)) {
+    const copy: unknown[] = [];
+    seen.set(value, copy);
+    for (const item of value) copy.push(clonePreservingPrototype(item, seen));
+    return copy as T;
+  }
+  const copy = Object.create(Object.getPrototypeOf(value));
+  seen.set(value, copy);
+  for (const key of Reflect.ownKeys(value)) {
+    const desc = Object.getOwnPropertyDescriptor(value, key);
+    if (!desc) continue;
+    if ("value" in desc) {
+      desc.value = clonePreservingPrototype(desc.value, seen);
+    }
+    Object.defineProperty(copy, key, desc);
+  }
+  return copy as T;
+}
+
+/**
  * Return a deep copy of `opt` keeping only the given languages in term-related
- * and localized metadata bags.
+ * and localized metadata bags. Constraint-tree class instances are preserved.
  */
 export function filterOperationalTemplateLanguages(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
   languages: string[],
 ): openehr_am.OPERATIONAL_TEMPLATE {
-  if (!languages.length) return structuredClone(opt) as openehr_am.OPERATIONAL_TEMPLATE;
+  const cloned = clonePreservingPrototype(opt);
+  if (!languages.length) return cloned;
 
   const keep = languageSet(languages);
-  const cloned = structuredClone(opt) as openehr_am.OPERATIONAL_TEMPLATE;
 
   const ontologyBag = cloned.ontology as Record<string, unknown> | undefined;
   if (ontologyBag?.term_definitions) {

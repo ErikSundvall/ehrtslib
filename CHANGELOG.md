@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- OPT2 keeps the definition when a language filter is applied, emits ADL2 leaf constraints (`DV_QUANTITY`, code phrases, strings, durations, ordinals) and `allow_archetype` slots, and writes a balanced `use_archetype` root with id-codes. Value-set at-codes and ac-codes stay value codes ([#157](https://github.com/ErikSundvall/ehrtslib/issues/157)).
 - OPT 1.4 export synthesises a term for a locatable node whose ADL2 terminology has none (`ITEM_TREE` → "Tree", `HISTORY` → "History", `ITEM_LIST` → "List", `CLUSTER` → "Cluster") and warns. The openEHR Java SDK web-template parser requires a term for every node id ([#145](https://github.com/ErikSundvall/ehrtslib/issues/145)).
 - OPT 1.4 keeps a local value set as `local` at-codes and writes the external mappings as `term_bindings`, so the value-set texts stay available. Substitution is limited to synthetic `at9xxx` placeholders unless `substituteBoundValueSets` is set. OBO PURLs export as a CURIE (`SO:0001583`) ([#147](https://github.com/ErikSundvall/ehrtslib/issues/147)).
 - OPT 1.4 and ADL 1.4 export accept versioned terminology URIs `http(s)://<host>/ver/<version>/id/<code>` (the CKM form for LOINC and SNOMED CT). The version stays on the terminology id as `LOINC(2.65)` ([#146](https://github.com/ErikSundvall/ehrtslib/issues/146)).

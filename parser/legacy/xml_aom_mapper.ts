@@ -191,6 +191,11 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   if (type === "C_ARCHETYPE_ROOT" || hasArchetypeId) {
     return parseCArchetypeRoot(n);
   }
+  // `ARCHETYPE_SLOT` does not start with `C_`. It must be recognised before
+  // the generic non-`C_` fallback, which would otherwise drop include/exclude.
+  if (type === "ARCHETYPE_SLOT") {
+    return parseArchetypeSlot(n);
+  }
   if (type === "C_COMPLEX_OBJECT" || !type.startsWith("C_")) {
     return parseCComplexObject(n);
   }
@@ -311,6 +316,54 @@ function applyOccurrence(
   const nodeId = amFieldString(n, "node_id", "nodeId");
   if (nodeId) target.node_id = nodeId;
   target.occurrences = parseOccurrencesOrMultiplicity(n.occurrences);
+}
+
+function collectSlotPatterns(node: unknown, out: string[]): void {
+  if (!node || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    for (const item of node) collectSlotPatterns(item, out);
+    return;
+  }
+  const rec = node as Record<string, unknown>;
+  if (typeof rec.pattern === "string" && rec.pattern.trim()) {
+    out.push(rec.pattern.trim());
+  }
+  for (const value of Object.values(rec)) {
+    if (value && typeof value === "object") collectSlotPatterns(value, out);
+  }
+}
+
+function slotAssertions(
+  node: unknown,
+): openehr_am.ARCHETYPE_ID_CONSTRAINT[] {
+  const patterns: string[] = [];
+  for (const entry of asArray(node)) collectSlotPatterns(entry, patterns);
+  return patterns.map((pattern) => {
+    const constraint = new openehr_am.ARCHETYPE_ID_CONSTRAINT();
+    const str = new openehr_am.C_STRING();
+    str.pattern = pattern;
+    constraint.constraint = str;
+    return constraint;
+  });
+}
+
+function parseArchetypeSlot(
+  n: Record<string, unknown>,
+): openehr_am.ARCHETYPE_SLOT {
+  const slot = new openehr_am.ARCHETYPE_SLOT();
+  applyOccurrence(slot, n);
+  if (!slot.rm_type_name) slot.rm_type_name = "CLUSTER";
+  const includes = slotAssertions(n.includes);
+  const excludes = slotAssertions(n.excludes);
+  if (includes.length) {
+    (slot as unknown as { includes: openehr_am.ARCHETYPE_ID_CONSTRAINT[] })
+      .includes = includes;
+  }
+  if (excludes.length) {
+    (slot as unknown as { excludes: openehr_am.ARCHETYPE_ID_CONSTRAINT[] })
+      .excludes = excludes;
+  }
+  return slot;
 }
 
 function parseCComplexObject(
@@ -813,6 +866,10 @@ function parseCQuantity(n: Record<string, unknown>): openehr_am.C_QUANTITY {
   const prop = n.property as Record<string, unknown> | undefined;
   if (prop) {
     q.property = textValue(prop.code_string) ?? textValue(prop);
+    const tid = terminologyIdValue(prop.terminology_id ?? prop.terminologyId);
+    if (tid) {
+      (q as { property_terminology_id?: string }).property_terminology_id = tid;
+    }
   }
   const items = asArray(n.list).map((entry) => {
     const item = new openehr_am.C_QUANTITY_ITEM() as QuantityItemRuntime;

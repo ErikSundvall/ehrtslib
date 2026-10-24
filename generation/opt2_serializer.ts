@@ -28,6 +28,7 @@ import {
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import type { TermBag } from "../am/util/ontology_merge.ts";
 import { filterOperationalTemplateLanguages } from "./opt2_trim.ts";
+import { adl14AtToId } from "../parser/adl14_to_adl2_converter.ts";
 
 /** Options for {@link OPT2Serializer.serializeOperationalTemplate}. */
 export interface Opt2SerializeOptions {
@@ -143,12 +144,20 @@ export class OPT2Serializer extends ADL2Serializer {
 
     adl += serializeRulesSection(working.invariants, indent);
 
+    const { nodeIds, valueCodes } = collectNodeAndValueCodes(working.definition);
     const ontologyBag = working.ontology as Record<string, unknown> | undefined;
-    adl += serializeTerminologySection(ontologyBag, indent);
+    adl += serializeTerminologySection(
+      remapOntologyNodeIds(ontologyBag, nodeIds, valueCodes),
+      indent,
+    );
 
     const scoped = working as OperationalTemplateWithTermScopes;
     adl += serializeComponentTerminologiesSection(
-      scoped.archetype_term_definitions,
+      remapComponentTerminologies(
+        scoped.archetype_term_definitions,
+        nodeIds,
+        valueCodes,
+      ),
       indent,
     );
 
@@ -164,6 +173,12 @@ export class OPT2Serializer extends ADL2Serializer {
     return adl;
   }
 
+  /** ADL 1.4 node ids are 0-based at-codes; ADL2 id-codes are 1-based. */
+  protected override formatNodeId(nodeId?: string): string {
+    if (!nodeId) return "";
+    return adl14AtToId(nodeId);
+  }
+
   protected override decorateObjectLine(
     node: openehr_am.C_OBJECT,
     line: string,
@@ -174,6 +189,98 @@ export class OPT2Serializer extends ADL2Serializer {
     const safe = label.replace(/\r?\n/g, " ").trim();
     return `${line}  -- ${safe}`;
   }
+}
+
+function collectNodeAndValueCodes(
+  node: unknown,
+  nodeIds = new Set<string>(),
+  valueCodes = new Set<string>(),
+  seen = new Set<object>(),
+): { nodeIds: Set<string>; valueCodes: Set<string> } {
+  if (!node || typeof node !== "object" || seen.has(node)) {
+    return { nodeIds, valueCodes };
+  }
+  seen.add(node);
+  const rec = node as Record<string, unknown>;
+  if (typeof rec.node_id === "string" && rec.node_id) nodeIds.add(rec.node_id);
+  if (node instanceof openehr_am.C_TERMINOLOGY_CODE) {
+    if (node.constraint) valueCodes.add(node.constraint);
+    const list = (node as { code_list?: string[] }).code_list;
+    for (const code of list ?? []) valueCodes.add(code);
+  }
+  if (node instanceof openehr_am.C_ORDINAL) {
+    const list = (node as {
+      list?: Array<{ symbol?: { code_string?: string } }>;
+    }).list;
+    for (const item of list ?? []) {
+      const code = item.symbol?.code_string;
+      if (code) valueCodes.add(code);
+    }
+  }
+  if (Array.isArray(rec.children)) {
+    for (const child of rec.children) {
+      collectNodeAndValueCodes(child, nodeIds, valueCodes, seen);
+    }
+  }
+  if (Array.isArray(rec.attributes)) {
+    for (const attr of rec.attributes) {
+      collectNodeAndValueCodes(attr, nodeIds, valueCodes, seen);
+    }
+  }
+  return { nodeIds, valueCodes };
+}
+
+function remapTermBag(
+  bag: TermBag,
+  nodeIds: Set<string>,
+  valueCodes: Set<string>,
+): TermBag {
+  const out: TermBag = {};
+  for (const [code, entry] of Object.entries(bag)) {
+    const idCode = adl14AtToId(code);
+    const converts = idCode !== code && nodeIds.has(code);
+    if (converts && !valueCodes.has(code)) {
+      out[idCode] = { ...entry };
+    } else if (converts) {
+      out[code] = { ...entry };
+      if (!out[idCode]) out[idCode] = { ...entry };
+    } else {
+      out[code] = { ...entry };
+    }
+  }
+  return out;
+}
+
+function remapOntologyNodeIds(
+  ontology: Record<string, unknown> | undefined,
+  nodeIds: Set<string>,
+  valueCodes: Set<string>,
+): Record<string, unknown> | undefined {
+  if (!ontology) return ontology;
+  const table = ontology.term_definitions as Record<string, TermBag> | undefined;
+  if (!table) return ontology;
+  const term_definitions: Record<string, TermBag> = {};
+  for (const [lang, bag] of Object.entries(table)) {
+    term_definitions[lang] = remapTermBag(bag, nodeIds, valueCodes);
+  }
+  return { ...ontology, term_definitions };
+}
+
+function remapComponentTerminologies(
+  index: OperationalTemplateWithTermScopes["archetype_term_definitions"],
+  nodeIds: Set<string>,
+  valueCodes: Set<string>,
+): OperationalTemplateWithTermScopes["archetype_term_definitions"] {
+  if (!index) return index;
+  const out: NonNullable<typeof index> = {};
+  for (const [archId, byLang] of Object.entries(index)) {
+    const langs: Record<string, TermBag> = {};
+    for (const [lang, bag] of Object.entries(byLang)) {
+      langs[lang] = remapTermBag(bag, nodeIds, valueCodes);
+    }
+    out[archId] = langs;
+  }
+  return out;
 }
 
 /** Byte / line size comparison for OPT XML vs OPT2 exports. */

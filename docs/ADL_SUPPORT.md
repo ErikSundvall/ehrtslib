@@ -44,7 +44,10 @@ const compiled = parseTemplateInput(oetXml, { archetypeRepository: repo });
 
 const xml = new OptXmlSerializer().serialize(opt!);
 
-// Compact ADL2 operational_template (OPT2) for LLM / tooling (#130)
+// Compact ADL2 operational_template (OPT2) for LLM / tooling (#130, #157).
+// Leaf constraints and archetype slots are included. Node ids are ADL2
+// id-codes (`at0000` → `id1`); value-set at-codes and ac-codes are unchanged.
+// `languages` filters terminology only and keeps the definition.
 
 const opt2 = new OPT2Serializer().serializeOperationalTemplate(opt!);
 
