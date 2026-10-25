@@ -12,6 +12,7 @@ Material for people who change ehrtslib itself (codegen, BMM, agents, roadmap).
 | Generated stubs (do not hand-edit) | [../../generated/README.md](../../generated/README.md) |
 | Domain glossary (agents) | [../../CONTEXT.md](../../CONTEXT.md) |
 | Roadmap | [roadmap.md](roadmap.md) · [archive](roadmap-archive.md) |
+| Contribution builder design (draft) | [contribution-builder-design.md](contribution-builder-design.md) · ADRs in [../adr/](../adr/) |
 | Changelog | [../../CHANGELOG.md](../../CHANGELOG.md) |
 | Spec vs impl notes | [inconsistencies.md](inconsistencies.md) |
 | Archie test-data attribution | [archie-attribution.md](archie-attribution.md) |

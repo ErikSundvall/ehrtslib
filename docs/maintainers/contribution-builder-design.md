@@ -1,0 +1,293 @@
+# Contribution Builder design
+
+Status: **draft for review.** Design only; nothing here is implemented yet.
+Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
+are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
+
+## 1. Product
+
+### 1.1 What it is
+
+The Contribution Builder (CB) is the part of ehrtslib that assembles an
+openEHR `CONTRIBUTION` on the client (browser, mobile app) or on a server
+before it is committed to a CDR. It holds the uncommitted versions, keeps
+them valid against their operational templates while they are edited, and
+produces a commit that any conforming openEHR REST server accepts.
+
+The idea comes from Sundvall et al., *Applying representational state
+transfer (REST) architecture to archetype-based electronic health record
+systems*, BMC Medical Informatics and Decision Making 13:57 (2013),
+<https://link.springer.com/article/10.1186/1472-6947-13-57>. Table 2 of that
+paper lists contribution-build operations. The CB keeps them as its public
+verbs:
+
+| Paper verb | CB meaning |
+| --- | --- |
+| new build | Start an empty contribution build for one EHR (or demographic store). |
+| update-version | Add a new version of an existing versioned object, starting from its latest committed version. |
+| copy-version | Start a new versioned object from a copy of an existing version (new identity, same content). |
+| from-form | Fill a version from a form engine payload (for example FLAT or STRUCTURED). |
+| from-ehr-path | Copy a sub-tree from existing EHR content (by path or uid) into a draft. |
+| from-instance-template | Start from a pre-filled instance (a template instance or a stored example). |
+| validate | Run the full check and return problems per node. |
+| commit | Build the `CONTRIBUTION` and send it to the CDR. |
+
+### 1.2 Who uses it
+
+- **App developers** who build openEHR forms or clinical apps and want to
+  send whole, valid contributions instead of hand-assembling JSON.
+- **Clinicians** who use those apps, indirectly: they get drafts that
+  survive reloads, live validation next to the field, and (in the
+  multi-user flavour) shared editing of one note by several people or
+  devices.
+- **Integrators and server-side services** (including the planned ehrtslib
+  CDR proxy) that need to batch several versions into one atomic commit.
+
+### 1.3 Scenarios
+
+1. A single web app fills a vital-signs composition, validates it as the
+   user types, and commits it.
+2. A nurse starts a note on a tablet, a physician finishes it on a desktop,
+   and both edit the same draft at the same time. Each value can be shown
+   with the colour of who entered it.
+3. A user saves an unfinished note as `incomplete` (lifecycle 553) and
+   another user completes it later.
+4. Between opening and committing, someone else commits a newer version.
+   The CB detects the conflict and returns it as data for a resolver UI
+   instead of overwriting.
+5. One contribution changes a composition, a folder and the `EHR_STATUS`
+   together, or a demographic `PARTY` and its relationships.
+6. An auditor replays the editing session that led to a commit.
+
+### 1.4 Why
+
+openEHR REST lets clients send whole contributions, but today every app
+re-implements draft handling, uid assignment, validation, attribution and
+conflict handling, usually partly. A shared builder makes these consistent
+and makes the editing history auditable.
+
+## 2. Scope
+
+The design covers **every versioned type** (`VERSION<T>` with `T` =
+`COMPOSITION`, `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, the demographic `PARTY`
+subtypes such as `PERSON`, `ORGANISATION` and `ROLE`, and any later
+versioned type). The operation log, the uid scheme and the commit envelope are generic
+over `VERSION<T>`. The implementation ships **COMPOSITION first**; the other
+types follow without format changes ([ADR 0002](../adr/0002-cb-core-model-and-scope.md)).
+
+Two flavours share one core:
+
+- **Single-app**: one process (for example one web app or one server
+  request) edits the draft. Operations are applied directly.
+- **Multi-user / multi-device**: operations are synchronised through a CRDT
+  so several users or devices edit the same draft, with presence, per-value
+  author colouring and session playback.
+
+Out of scope here: the merge-conflict resolver UI (separate project, see
+roadmap) and formal openEHR specification proposals (see section 11).
+
+## 3. Architecture overview
+
+```
+           from-form / from-ehr-path / FLAT import ...
+                          │ (adapters produce operations)
+                          ▼
+  ┌───────────────────────────────────────────────────────┐
+  │ ContributionBuild (core)                              │
+  │  ├─ drafts: VersionDraft<T>[]  (real RM objects)      │
+  │  ├─ operation log (append-only, author + time per op) │
+  │  ├─ template binding per draft (HRID + hash)          │
+  │  ├─ validation results by node uid                    │
+  │  └─ working state (temp ids, leases, attribution)     │
+  └───────────────────────────────────────────────────────┘
+        │ apply ops                     │ build
+        ▼                               ▼
+  single-app adapter        UPDATE_CONTRIBUTION → CDR (REST)
+  CRDT sync adapter  ◄──►   other replicas (ops as CRDT changes)
+  storage adapter    ──►    caller-chosen storage (drafts, log bytes)
+```
+
+- **One core model**, `ContributionBuild`, with adapters for single-app
+  and CRDT use.
+- **Commit shapes follow the REST ITS** `UPDATE_CONTRIBUTION`,
+  `UPDATE_VERSION` and `UPDATE_AUDIT`. Version `data` is always real RM
+  objects from ehrtslib's RM classes.
+- **Internal format is canonical RM JSON** (ehrtslib's canonical JSON
+  serialiser). FLAT, STRUCTURED and other simplified formats are import and
+  export adapters only.
+- **Working state is non-normative**: temporary ids, edit leases,
+  attribution history, presence and validation results belong to the
+  builder and never appear in committed RM data, except where a decision
+  below explicitly writes something (composer, participations, audit
+  description).
+
+## 4. Draft model
+
+A `VersionDraft<T>` holds:
+
+- `kind`: `create` (new versioned object), `modify` (new version of an
+  existing one, with `preceding_version_uid`) or `delete`.
+- `data`: the RM object of type `T` being built.
+- `lifecycleTarget`: `complete` (532) or `incomplete` (553).
+- `templateBinding`: see section 7.
+- `base`: for `modify`, the committed version the draft started from, kept
+  for conflict handling.
+
+A `ContributionBuild` holds one or more drafts for one EHR (or one
+demographic store), the shared operation log, and contribution-level audit
+input (committer, change type, description).
+
+## 5. Identity and uids
+
+Summary of [ADR 0003](../adr/0003-cb-identity-and-uids.md):
+
+- Every `LOCATABLE` node the builder creates gets a stable instance id in
+  `LOCATABLE.uid` of the form `<versioned-object-uuid>::<short key>`, for
+  example `8d2c…e1::a3.17`.
+- The short key is a **replica prefix plus a counter** (`a3` = replica,
+  `17` = 17th id minted by it), so devices offline mint unique ids without
+  coordination.
+- This fits `UID_BASED_ID`: the root must be a UUID, ISO OID or internet
+  id; the extension may be any string.
+- Content loaded without inner uids (from another client or a CDR that
+  drops them) gets uids assigned by an explicit `assign-uid` operation, so
+  the assignment is itself in the log.
+- Checked on the dev CDRs (section 10): EHRbase 2.36.0 and FerroEHR 5.4.1
+  both preserve inner uids, and AQL can filter on them.
+
+## 6. Operation log and sync
+
+Summary of [ADR 0004](../adr/0004-cb-operation-log-and-sync.md):
+
+- **Every change goes through one append-only operation log**, also in the
+  single-app flavour. Initial operations: `set-value`, `add-instance`,
+  `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
+  `set-participation`, `set-lifecycle`, `bind-template`,
+  `migrate-template`, `import` (adapter input recorded as operations).
+- Each operation records author, timestamp and replica, and **targets a
+  node uid, not a path**. Paths are derived for display and for fallback
+  matching only.
+- Single-app applies operations directly. Multi-user sends the same
+  operations through a CRDT.
+- **Session playback is replay of the log.** Any implementation must be
+  able to recreate the session from the log alone (plus the bound
+  template).
+- The design does **not bind to a CRDT library.** Requirements: replayable
+  full history, compact binary log, Deno and browser support, acceptable
+  licence. Automerge and Loro are preferred over Yjs; a spike picks one and
+  records it in its own ADR.
+
+## 7. Template binding
+
+Summary of [ADR 0007](../adr/0007-cb-template-binding.md):
+
+- Each draft is bound to **exactly one operational template**, used
+  internally as ADL2.
+- The binding records the template HRID with full version **and a sha256
+  hash of a canonical serialisation** of the operational template (not of
+  uploaded bytes). This detects templates re-uploaded under the same id with
+  changed content, and ADL 1.4 OPTs that have only an id string and no
+  version.
+- Changing template is an explicit `migrate-template` operation, never a
+  silent rebind.
+- For CDRs that need ADL 1.4 at-codes, the commit is down-converted with
+  ehrtslib's existing ADL2 → 1.4 code mapping (`generation/id_to_at_code.ts`)
+  and OPT 1.4 exporter (`exportAdl2TemplateToOpt14`).
+- ADL 1.4 sources: ehrtslib already converts ADL 1.4 **archetype** text to
+  ADL2 (`parser/adl14_to_adl2_converter.ts`). Whether a legacy OPT 1.4 XML
+  can be brought fully to an ADL2 operational template with id-codes is not
+  yet verified (the OPT XML parser keeps at-codes). This is only needed for
+  third-party templates that exist only as 1.4.
+
+## 8. Validation and lifecycle
+
+Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
+
+- After each operation: a quick constraint check on the changed nodes.
+- On `validate` and always before `commit`: the full check (cardinalities,
+  existence, invariants, lifecycle rules).
+- Results are attached to nodes by uid so a UI can show them by the field.
+- Two modes: **complete** (532), and **incomplete** (553), where existence
+  and cardinality lower bounds count as zero but content that is present
+  must be valid. Incomplete mode lists the missing required fields.
+- CDR behaviour differs today: EHRbase 2.36 rejects an incomplete version
+  that misses mandatory content (ehrbase#1630); FerroEHR accepts it.
+
+## 9. Attribution, conflicts, storage and commit
+
+- **Attribution** ([ADR 0006](../adr/0006-cb-attribution-and-composer.md)):
+  editors go in `other_participations` (function such as `data entry`);
+  `ENTRY.provider` only when the user explicitly records the information
+  source; `COMPOSITION.composer` is an explicit build field set before or at
+  commit; the committer is separate. Per-value author colouring comes only
+  from the log, never from RM data.
+- **Conflicts** ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)): on
+  HTTP 412 (`preceding_version_uid` is no longer the latest) the CB never
+  overwrites. It fetches the new version, replays the log by uid, falls back
+  to path matching where uids are missing, and returns conflicts as
+  structured data. The caller sends back a list of resolutions.
+- **Storage** ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)):
+  ehrtslib is policy-neutral. Storage is pluggable; local draft persistence
+  is off by default and encrypted at rest when on.
+- **Commit envelope and provenance**
+  ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)): the log
+  hash, the optional log URI and the builder name, version, log format and
+  CRDT library version go into `AUDIT_DETAILS.description`.
+
+### 9.1 Commit sequence
+
+1. Run full validation for every draft; stop on errors (complete mode) or
+   on invalid present content (incomplete mode).
+2. Set any missing build fields that the caller supplies at commit
+   (composer, committer).
+3. Down-convert codes if the target CDR needs ADL 1.4.
+4. Serialise the log, compute `sha256`, hand the bytes to the storage
+   adapter, and (if a URI comes back or is given) write the audit
+   description.
+5. Build `UPDATE_CONTRIBUTION` with one `UPDATE_VERSION` per draft and send
+   it.
+6. On 412, enter the conflict flow; on success, record the new version ids
+   as the new base and close or reset the build.
+
+## 10. Testing
+
+Development setup on the maintainer box (not needed for unit tests):
+
+| CDR | Version | Base URL |
+| --- | --- | --- |
+| EHRbase | 2.36.0 | `http://127.0.0.1:8080/ehrbase/rest/openehr/v1` |
+| FerroEHR | 5.4.1 | `http://127.0.0.1:8090/ferroehr/rest/openehr/v1` |
+
+Both run with their development default credentials. Planned test layers:
+
+- Unit tests: operations, replay determinism (same log ⇒ same RM JSON),
+  uid minting across replicas, canonical template hash stability,
+  validation in both modes.
+- CRDT tests: two or more replicas editing offline then merging; playback.
+- Integration tests against both CDRs (opt-in, skipped when the CDR is not
+  reachable): inner uid preservation, AQL on inner uids, 412 handling,
+  incomplete commits, ADL 1.4 down-conversion.
+
+## 11. Spec observations (informative)
+
+> **Placeholder.** This section will be written by the openEHR SEC Specs
+> assistant in a follow-up commit. It lists observations only. No formal
+> specification proposals will be made until the builder has been
+> implemented and tested.
+
+Candidate topics:
+
+- Wording on `uid` being allowed (and useful) on inner `LOCATABLE` nodes.
+- Incomplete lifecycle: RM versioning rules versus Conformance (CNF)
+  section 8 (see ADR 0008).
+- The RM Common section 6 sentence about not saving unfinished content
+  locally on the client (see ADR 0005).
+- Preservation of inner uids by clients and CDRs is not required by the
+  specifications (see ADR 0003 and 0009).
+- `ENTRY.provider` versus `other_participations` for data-entry editors
+  (see ADR 0006).
+- `FEEDER_AUDIT` is feeder-oriented and does not fit builder provenance
+  (see ADR 0010).
+- A structured field for the operation-log link and hash would be cleaner
+  than text in `AUDIT_DETAILS.description` (see ADR 0010).
