@@ -58,9 +58,15 @@ Every change must still go through the operation log and target a node uid
   `name` values, after the same normalisation that Web Template ids use
   (case-insensitive, whitespace and punctuation folded). Instance names that
   differ from the archetype term, such as a renamed `CLUSTER`, can be matched
-  with an explicit instance-name step.
-- **Repeated instances** are picked with an index step (`Event[2]`) or by
-  uid. The result of resolving an address is always a list of uids.
+  with an explicit instance-name step. Web Template node ids (Simplified
+  Formats section 4.2, including the `_1` suffix for duplicate sibling names)
+  are accepted as name-path steps too.
+- **Repeated instances** are picked with a 0-based index step (`event:1` for
+  the second event, as in FLAT paths) or by uid. The result of resolving an
+  address is always a list of uids.
+- **Address resolution lives in the core**, as a plain function from `uid`,
+  code path or name path to uids. It is useful without GraphQL, and the
+  add-on only wraps it.
 - **Ambiguity is never guessed in a mutation.** A query may return several
   matches. A mutation whose address matches more than one node, or none,
   fails with a structured error that lists the candidates (uid, code path and
@@ -71,6 +77,9 @@ Every change must still go through the operation log and target a node uid
   address to uids and append the matching operations to the log. The author
   comes from the GraphQL context, not from arguments. There is no
   GraphQL-only state.
+- **Data value choices are explicit.** Where a node allows several `DV_*`
+  types, `setValue` takes a one-of input with an explicit `rmType`, using
+  GraphQL `@oneOf` input objects if the chosen library supports them.
 - **Results carry validation.** Each mutation returns the changed nodes with
   their quick-check results ([ADR 0008](0008-cb-validation-and-lifecycle.md)).
   Each node in a query can return its own `problems`, and every node exposes
@@ -108,7 +117,9 @@ Every change must still go through the operation log and target a node uid
    generated per bound template with fields named after nodes, or a generic
    schema first with a generated schema later. Generated field names would
    depend on the chosen language and would need Web Template style
-   normalisation.
+   normalisation. Proposed: generic schema now, and an optional generated
+   schema later with ASCII-folded Web Template ids as field names and the
+   ADL2 code in a directive such as `@node(code: "id5")`.
 2. **Name-path syntax:** `/`-separated names as above, a list of steps in
    the input type, or both.
 3. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
