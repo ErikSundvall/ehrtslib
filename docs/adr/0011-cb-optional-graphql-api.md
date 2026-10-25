@@ -29,6 +29,13 @@ Every change must still go through the operation log and target a node uid
   exposes a GraphQL schema over one `ContributionBuild`. The core builder
   does not depend on it, and GraphQL libraries are only loaded by this
   module.
+- **Shipped as a separate add-on release file.** GraphQL is bloat for most
+  users, so the module is not exported from `mod.ts` and is not part of the
+  main `ehrtslib-<version>.min.js` bundle or the `-rm`, `-parser` and
+  `-serialization` bundles. It gets its own entry point and its own GitHub
+  Release asset, for example `ehrtslib-<version>-cb-graphql.min.js`, which
+  contains the GraphQL library and imports the core instead of bundling a
+  second copy of it.
 - **Transport-neutral.** The module executes GraphQL in process
   (`execute(build, query, variables, context)`). Serving it over HTTP or
   WebSocket is the caller's choice, for example in the planned CDR proxy.
@@ -79,7 +86,10 @@ Every change must still go through the operation log and target a node uid
 - Name paths depend on template translations. A translation change in a new
   template version can change name paths but never uids or code paths.
 - The module adds an optional dependency on a GraphQL implementation, which
-  must run in Deno and the browser and have an acceptable licence.
+  must run in Deno and the browser and have an acceptable licence. Users who
+  don't load the add-on file pay nothing in bundle size.
+- The release workflow needs one more bundle target, and the release docs
+  need one more asset row.
 
 ## Alternatives considered
 

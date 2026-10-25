@@ -63,7 +63,8 @@ The design covers every versioned type; delivery is staged:
 5. Optional GraphQL module over build content
    ([ADR 0011](../adr/0011-cb-optional-graphql-api.md)): addressing by uid,
    ADL2 code path, or node names in a chosen language. Every mutation goes
-   through the operation log.
+   through the operation log. Shipped as a separate add-on release file,
+   not in the main bundles.
 
 Open item: check whether legacy OPT 1.4 XML can be up-converted to an ADL2
 operational template with id-codes (archetype-level ADL 1.4 → ADL2 exists).

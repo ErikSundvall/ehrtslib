@@ -296,6 +296,9 @@ for review:
 
 - An optional module exposes one contribution build as a GraphQL schema,
   executed in process. HTTP or WebSocket serving is up to the caller.
+- It ships as a separate add-on release file (for example
+  `ehrtslib-<version>-cb-graphql.min.js`), not in `mod.ts` or the main
+  bundles, so users who don't need GraphQL don't carry it.
 - It covers uncommitted CB content only. Committed EHR data stays with AQL
   and REST.
 - A node is addressed by `uid`, by `codePath` (ADL2 id-codes, or at-codes
