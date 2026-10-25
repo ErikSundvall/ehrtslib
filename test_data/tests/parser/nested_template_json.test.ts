@@ -297,7 +297,7 @@ Deno.test("shared archetype id keeps a terminology bag per Better template id", 
   assertEquals(weightNode[TERM_ARCHETYPE_SCOPE_KEY], "ChemoQ-weight");
   assertEquals(weightNode.node_id, "at0039.2");
 
-  const english = buildWebTemplate(opt, { defaultLanguage: "en" });
+  const english = buildWebTemplate(opt, { languages: ["en"] });
   assertEquals(english.templateId, "ChemoForm-MBA.v8");
   const fatigueCluster = webNodes(english.tree, "at0039.1").find((node) =>
     node.rmType === "CLUSTER"
@@ -318,7 +318,7 @@ Deno.test("shared archetype id keeps a terminology bag per Better template id", 
     "Have your weight changed in recent weeks?",
   );
 
-  const swedish = buildWebTemplate(opt, { defaultLanguage: "sv" });
+  const swedish = buildWebTemplate(opt, { languages: ["sv"] });
   assertEquals(
     webNodes(swedish.tree, "at0039.1").find((node) => node.rmType === "CLUSTER")
       ?.name,

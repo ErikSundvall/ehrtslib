@@ -62,8 +62,7 @@ Deno.test("#123 OPT 1.4 export with workaround: en+sv round-trip", () => {
   const names: Record<string, string[]> = {};
   const paths: Record<string, string[]> = {};
   for (const lang of ["en", "sv"]) {
-    // deno-lint-ignore no-explicit-any
-    const wt = buildWebTemplate(opt!, { defaultLanguage: lang } as any);
+    const wt = buildWebTemplate(opt!, { languages: [lang] });
     const a = analytes(wt).filter((n) => !n.nodeId.includes("genomic"));
     names[lang] = a.map((n) => n.name).sort();
     // deno-lint-ignore no-explicit-any

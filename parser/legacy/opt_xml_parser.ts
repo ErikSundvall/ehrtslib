@@ -61,7 +61,8 @@ export function parseOptXml(source: string): OptXmlParseResult {
   if (langCode) {
     // Runtime convention across the codebase: plain language code string
     // (the generated type declares Terminology_code).
-    opt.original_language = langCode as unknown as openehr_base.Terminology_code;
+    opt.original_language =
+      langCode as unknown as openehr_base.Terminology_code;
   }
 
   const defNode = root.definition;
@@ -80,7 +81,10 @@ export function parseOptXml(source: string): OptXmlParseResult {
 
   opt.definition = definition;
 
-  const termBag: Record<string, Record<string, { text?: string; description?: string }>> = {};
+  const termBag: Record<
+    string,
+    Record<string, { text?: string; description?: string }>
+  > = {};
   collectTermDefinitions(defNode, termBag);
   // Per-root <term_definitions> carry the template's original language.
   const origLang = langCode || "en";
@@ -89,9 +93,9 @@ export function parseOptXml(source: string): OptXmlParseResult {
     delete termBag.en;
   }
 
-  // `<component_ontologies archetype_id="…">` hold all languages per archetype
-  // id (one block per id — see discourse.openehr.org/t/2760).
-  const componentTerms = parseComponentOntologies(root);
+  // Root `<ontology>` and `<component_ontologies archetype_id="…">` hold every
+  // language per archetype id (one block per id — see discourse.openehr.org/t/2760).
+  const componentTerms = parseComponentOntologies(root, archId);
   if (Object.keys(componentTerms).length) {
     (opt as OperationalTemplateWithTermScopes).archetype_term_definitions =
       componentTerms;
@@ -117,7 +121,9 @@ export function parseOptXml(source: string): OptXmlParseResult {
   parseOptAnnotations(root, opt);
 
   if (root.concept) {
-    warnings.push("OPT concept metadata preserved in description only (not full round-trip).");
+    warnings.push(
+      "OPT concept metadata preserved in description only (not full round-trip).",
+    );
   }
 
   return { operationalTemplate: opt, warnings };
@@ -150,21 +156,31 @@ function parseOptAnnotations(
 }
 
 /**
- * Parse `<component_ontologies archetype_id="…">` (also accepts
+ * Parse the root `<ontology archetype_id="…">` and each
+ * `<component_ontologies archetype_id="…">` (also accepts
  * `component_terminologies`) into archetype id → language → code → term.
+ *
+ * Languages stay as written on `language="…"`. A root ontology without
+ * `archetype_id` is filed under `rootArchetypeId`.
  */
 export function parseComponentOntologies(
   root: Record<string, unknown>,
+  rootArchetypeId?: string,
 ): Record<string, TermDefinitionTable> {
   const out: Record<string, TermDefinitionTable> = {};
-  const blocks = [
-    ...asArray(root.component_ontologies),
-    ...asArray(root.component_terminologies),
+  const blocks: Array<{ raw: unknown; fallbackId?: string }> = [
+    ...asArray(root.ontology).map((raw) => ({
+      raw,
+      fallbackId: rootArchetypeId,
+    })),
+    ...asArray(root.component_ontologies).map((raw) => ({ raw })),
+    ...asArray(root.component_terminologies).map((raw) => ({ raw })),
   ];
-  for (const raw of blocks) {
+  for (const { raw, fallbackId } of blocks) {
     if (!raw || typeof raw !== "object") continue;
     const rec = raw as Record<string, unknown>;
-    const archId = String(rec["@_archetype_id"] ?? "").trim();
+    const archId = String(rec["@_archetype_id"] ?? "").trim() || fallbackId ||
+      "";
     if (!archId) continue;
     for (const td of asArray(rec.term_definitions)) {
       const t = td as Record<string, unknown>;

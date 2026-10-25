@@ -28,17 +28,26 @@ export function resolveTemplateLanguage(
   template: {
     original_language?: unknown;
     ontology?: { original_language?: { code_string?: string } };
-    description?: { details?: Record<string, { language?: { codeString?: string; code_string?: string } }> };
+    description?: {
+      details?: Record<
+        string,
+        { language?: { codeString?: string; code_string?: string } }
+      >;
+    };
   },
   preferred?: string,
 ): string {
   if (preferred) return preferred;
-  if (typeof template.original_language === "string" && template.original_language) {
+  if (
+    typeof template.original_language === "string" && template.original_language
+  ) {
     return template.original_language;
   }
   const fromOntology = template.ontology?.original_language?.code_string;
   if (fromOntology) return fromOntology;
-  const defs = (template.ontology as { term_definitions?: Record<string, unknown> } | undefined)
+  const defs = (template.ontology as
+    | { term_definitions?: Record<string, unknown> }
+    | undefined)
     ?.term_definitions;
   if (defs) {
     const svCount = Object.keys(defs.sv ?? {}).length;
@@ -69,37 +78,90 @@ type TemplateLanguageSource = {
     term_definitions?: Record<string, unknown>;
   };
   description?: { details?: Record<string, unknown> };
+  /**
+   * Per-archetype term tables. OPT 1.4 stores translations here
+   * (`<ontology>` / `<component_ontologies>`), not only in the merged ontology.
+   */
+  archetype_term_definitions?: Record<
+    string,
+    Record<string, unknown> | undefined
+  >;
 };
 
-function templateOriginalLanguage(template: TemplateLanguageSource): string | undefined {
-  if (typeof template.original_language === "string" && template.original_language) {
-    return template.original_language;
+/**
+ * Language code as stored on a template: a plain string, `ISO_639-1::xx`
+ * left intact when it is already a string, or a terminology-code object's
+ * `code_string`. Codes are not rewritten or checked against ISO 639-1.
+ */
+export function languageCode(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || undefined;
   }
-  return template.ontology?.original_language?.code_string || undefined;
+  if (!value || typeof value !== "object") return undefined;
+  const rec = value as Record<string, unknown>;
+  if ("code_string" in rec || "codeString" in rec) {
+    return languageCode(rec.code_string ?? rec.codeString);
+  }
+  if ("value" in rec) return languageCode(rec.value);
+  return undefined;
+}
+
+function templateOriginalLanguage(
+  template: TemplateLanguageSource,
+): string | undefined {
+  return languageCode(template.original_language) ??
+    languageCode(template.ontology?.original_language);
+}
+
+function addLanguage(
+  langs: string[],
+  seen: Set<string>,
+  lang: string | undefined,
+): void {
+  if (!lang || seen.has(lang)) return;
+  seen.add(lang);
+  langs.push(lang);
+}
+
+function tableHasTerms(table: unknown): boolean {
+  return !!table && typeof table === "object" &&
+    Object.keys(table as object).length > 0;
 }
 
 /** Language codes present in operational template terminology. */
-export function availableTemplateLanguages(template: TemplateLanguageSource): string[] {
-  const langs = new Set<string>();
+export function availableTemplateLanguages(
+  template: TemplateLanguageSource,
+): string[] {
   const original = templateOriginalLanguage(template);
-  if (original) langs.add(original);
+  const ordered: string[] = [];
+  const seen = new Set<string>();
 
   const defs = template.ontology?.term_definitions;
   if (defs) {
     for (const [lang, table] of Object.entries(defs)) {
-      if (table && typeof table === "object" && Object.keys(table).length > 0) {
-        langs.add(lang);
+      if (tableHasTerms(table)) addLanguage(ordered, seen, lang);
+    }
+  }
+
+  // Archetype bags follow OPT document order (parser insertion order).
+  const scoped = template.archetype_term_definitions;
+  if (scoped) {
+    for (const table of Object.values(scoped)) {
+      if (!table || typeof table !== "object") continue;
+      for (const [lang, bag] of Object.entries(table)) {
+        if (tableHasTerms(bag)) addLanguage(ordered, seen, lang);
       }
     }
   }
 
   const details = template.description?.details;
   if (details) {
-    for (const lang of Object.keys(details)) langs.add(lang);
+    for (const lang of Object.keys(details)) addLanguage(ordered, seen, lang);
   }
 
   if (original) {
-    return [original, ...[...langs].filter((l) => l !== original)];
+    return [original, ...ordered.filter((lang) => lang !== original)];
   }
-  return [...langs];
+  return ordered;
 }

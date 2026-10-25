@@ -12,6 +12,7 @@ import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import type {
   WebTemplate,
   WebTemplateInput,
+  WebTemplateInputListItem,
   WebTemplateNode,
 } from "./types.ts";
 import {
@@ -22,7 +23,6 @@ import {
 } from "./normalize.ts";
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
 import {
-  archetypeTermBagsForLanguage,
   type OperationalTemplateWithTermScopes,
   resolveTermEntry,
   TERM_ARCHETYPE_SCOPE_KEY,
@@ -30,7 +30,12 @@ import {
   type TermEntry,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
-import { readTemplateId, type TermBag } from "../../am/util/ontology_merge.ts";
+import { languageCode } from "../../generation/term_codes.ts";
+import {
+  readTemplateId,
+  type TermBag,
+  type TermDefinitionTable,
+} from "../../am/util/ontology_merge.ts";
 import {
   annotationsForAqlPath,
   applyL10nToLocalizedNames,
@@ -57,8 +62,29 @@ function complexShellFromSlot(
   return obj;
 }
 
+/**
+ * Which language supplies Web Template node ids.
+ * `"primary"` slugs the resolved label (primary language, then the other
+ * listed languages, then `original_language`). `"original"` slugs
+ * `original_language` only.
+ */
+export type WebTemplateIdLanguage = "primary" | "original";
+
 export interface WebTemplateBuilderOptions {
-  defaultLanguage?: string;
+  /**
+   * Languages to include, in order. The first entry is the primary language:
+   * it drives labels and, unless `idLanguage` is `"original"`, node ids.
+   * Further entries are additional languages for `localizedNames`,
+   * `localizedDescriptions`, and coded-list `localizedLabels`.
+   * Omitted, or an empty list, means the template's `original_language` only.
+   */
+  languages?: string[];
+  /**
+   * Language used for node ids, and therefore FLAT path segments.
+   * Defaults to `"primary"`. AQL paths stay archetype node ids plus any
+   * fixed `name/value` predicate already written in the OPT.
+   */
+  idLanguage?: WebTemplateIdLanguage;
   /** Mark composition-level metadata nodes as ctx (for FLAT ctx/ prefix). */
   includeContextNodes?: boolean;
   /**
@@ -228,7 +254,11 @@ function applyOrdinalInputs(
 function applyTerminologyInputs(
   inputs: WebTemplateInput[],
   term: TerminologyCodeRuntime,
-  labelFor: (code: string, scope?: string) => string | undefined,
+  labelsFor: (code: string, scope?: string) => {
+    label?: string;
+    localizedLabels?: Record<string, string>;
+    localizedDescriptions?: Record<string, string>;
+  },
   scope?: string,
 ): void {
   const codeInput = inputs.find((i) => i.suffix === "code") ?? inputs[0];
@@ -238,8 +268,14 @@ function applyTerminologyInputs(
     : (term.constraint ? [term.constraint] : []);
   if (codes.length) {
     codeInput.list = codes.map((value) => {
-      const label = labelFor(value, scope);
-      return label ? { value, label } : { value };
+      const labels = labelsFor(value, scope);
+      const item: WebTemplateInputListItem = { value };
+      if (labels.label) item.label = labels.label;
+      if (labels.localizedLabels) item.localizedLabels = labels.localizedLabels;
+      if (labels.localizedDescriptions) {
+        item.localizedDescriptions = labels.localizedDescriptions;
+      }
+      return item;
     });
   }
   const assumed = term.assumed_value?.code_string;
@@ -275,7 +311,9 @@ export function fixedNameConstraint(
   const nameAttr = attrs?.find((a) => a.rm_attribute_name === "name");
   const dv = (nameAttr as { children?: openehr_am.C_OBJECT[] } | undefined)
     ?.children?.[0] as { attributes?: openehr_am.C_ATTRIBUTE[] } | undefined;
-  const valueAttr = dv?.attributes?.find((a) => a.rm_attribute_name === "value");
+  const valueAttr = dv?.attributes?.find((a) =>
+    a.rm_attribute_name === "value"
+  );
   const prim = (valueAttr as { children?: unknown[] } | undefined)
     ?.children?.[0] as
       | { list?: unknown; item?: { list?: unknown } }
@@ -333,31 +371,214 @@ function dedupeSiblingIds(node: WebTemplateNode): void {
   for (const child of node.children) dedupeSiblingIds(child);
 }
 
+/** Trim, drop empties, and keep the first occurrence of each language code. */
+function orderedLanguages(values: readonly string[] | undefined): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values ?? []) {
+    const lang = value.trim();
+    if (!lang || seen.has(lang)) continue;
+    seen.add(lang);
+    out.push(lang);
+  }
+  return out;
+}
+
 export class WebTemplateBuilder {
-  private lang: string;
-  private requestedLang?: string;
+  private lang = "en";
+  private options?: WebTemplateBuilderOptions;
   private includeContext: boolean;
   private applyL10n: boolean;
-  private terms: TermBag = {};
-  private archetypeTerms: Record<string, TermBag> = {};
+  private templateTerms: Record<string, TermBag> = {};
+  private archetypeTerms: Record<string, TermDefinitionTable> = {};
+  /** Primary language first, then the additional languages the caller included. */
+  private selectedLanguages: string[] = [];
+  private idLanguage: WebTemplateIdLanguage = "primary";
+  private bagCache = new Map<
+    string,
+    { template: TermBag; archetype: Record<string, TermBag> }
+  >();
   private pathAnnotations: OptPathAnnotationMap = {};
   private originalLang = "en";
 
   constructor(options?: WebTemplateBuilderOptions) {
-    this.requestedLang = options?.defaultLanguage;
-    this.lang = options?.defaultLanguage ?? "en";
+    this.options = options;
     this.includeContext = options?.includeContextNodes ?? true;
     this.applyL10n = options?.applyL10nAnnotations ?? true;
+    this.idLanguage = options?.idLanguage === "original"
+      ? "original"
+      : "primary";
   }
 
-  private labelForCode(code: string, scope?: string): string | undefined {
+  private bags(lang: string): {
+    template: TermBag;
+    archetype: Record<string, TermBag>;
+  } {
+    const cached = this.bagCache.get(lang);
+    if (cached) return cached;
+    const archetype: Record<string, TermBag> = {};
+    for (const [id, table] of Object.entries(this.archetypeTerms)) {
+      const bag = table?.[lang];
+      if (bag && Object.keys(bag).length) archetype[id] = bag;
+    }
+    const built = {
+      template: this.templateTerms[lang] ?? {},
+      archetype,
+    };
+    this.bagCache.set(lang, built);
+    return built;
+  }
+
+  private resolveIn(
+    obj: openehr_am.C_OBJECT,
+    lang: string,
+  ): TermEntry | undefined {
+    const bags = this.bags(lang);
+    const meta = obj as TermScopeMeta;
+    return resolveTermEntry(
+      obj.node_id,
+      meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
+      bags.template,
+      bags.archetype,
+      meta[TERM_ARCHETYPE_SCOPE_KEY],
+    ) ?? lookupTerm(bags.template, obj.node_id);
+  }
+
+  /** Term in one language. The original language also applies a fixed name. */
+  private labelTerm(obj: openehr_am.C_OBJECT, lang: string): TermEntry {
+    const resolved = this.resolveIn(obj, lang) ?? {};
+    if (lang === this.originalLang) {
+      const fixed = fixedNameConstraint(obj);
+      if (fixed) return { ...resolved, text: fixed };
+    }
+    return resolved;
+  }
+
+  /**
+   * Primary language, then the other listed languages, then
+   * `original_language` when it was not already listed.
+   */
+  private fallbackLanguages(): string[] {
+    if (this.selectedLanguages.includes(this.originalLang)) {
+      return this.selectedLanguages;
+    }
+    return [...this.selectedLanguages, this.originalLang];
+  }
+
+  /**
+   * Label for the primary language. Each missing text or description is
+   * filled from the next language in `fallbackLanguages()`.
+   */
+  private displayTerm(obj: openehr_am.C_OBJECT): TermEntry {
+    let text: string | undefined;
+    let description: string | undefined;
+    for (const lang of this.fallbackLanguages()) {
+      const term = this.labelTerm(obj, lang);
+      if (!text && term.text) text = term.text;
+      if (!description && term.description) description = term.description;
+      if (text && description) break;
+    }
+    return { text, description };
+  }
+
+  private localizedMaps(obj: openehr_am.C_OBJECT): {
+    names?: Record<string, string>;
+    descriptions?: Record<string, string>;
+  } {
+    const names: Record<string, string> = {};
+    const descriptions: Record<string, string> = {};
+    for (const lang of this.selectedLanguages) {
+      const term = this.labelTerm(obj, lang);
+      if (term.text) names[lang] = term.text;
+      if (term.description) descriptions[lang] = term.description;
+    }
+    return {
+      names: Object.keys(names).length ? names : undefined,
+      descriptions: Object.keys(descriptions).length ? descriptions : undefined,
+    };
+  }
+
+  private idText(
+    obj: openehr_am.C_OBJECT,
+    display: TermEntry,
+    idHint: string,
+  ): string {
+    if (this.idLanguage === "original") {
+      return this.labelTerm(obj, this.originalLang).text ?? idHint;
+    }
+    return display.text ?? idHint;
+  }
+
+  private termFields(
+    obj: openehr_am.C_OBJECT,
+    idHint: string,
+    nameFallback = true,
+  ): Pick<
+    WebTemplateNode,
+    "id" | "name" | "localizedName" | "localizedNames" | "localizedDescriptions"
+  > {
+    const display = this.displayTerm(obj);
+    const maps = this.localizedMaps(obj);
+    return {
+      id: normalizeWebTemplateId(this.idText(obj, display, idHint)),
+      name: display.text ?? (nameFallback ? idHint : undefined),
+      localizedName: display.text,
+      localizedNames: maps.names,
+      localizedDescriptions: maps.descriptions,
+    };
+  }
+
+  private textForCode(
+    code: string,
+    lang: string,
+    scope?: string,
+  ): TermEntry | undefined {
+    const bags = this.bags(lang);
     return resolveTermEntry(
       code,
       undefined,
-      this.terms,
-      this.archetypeTerms,
+      bags.template,
+      bags.archetype,
       scope,
-    )?.text;
+    );
+  }
+
+  private labelForCode(code: string, scope?: string): string | undefined {
+    for (const lang of this.fallbackLanguages()) {
+      const text = this.textForCode(code, lang, scope)?.text;
+      if (text) return text;
+    }
+    return undefined;
+  }
+
+  private codeLabels(
+    code: string,
+    scope?: string,
+  ): {
+    label?: string;
+    localizedLabels?: Record<string, string>;
+    localizedDescriptions?: Record<string, string>;
+  } {
+    const localizedLabels: Record<string, string> = {};
+    const localizedDescriptions: Record<string, string> = {};
+    for (const lang of this.selectedLanguages) {
+      const entry = this.textForCode(code, lang, scope);
+      if (entry?.text) localizedLabels[lang] = entry.text;
+      if (entry?.description) localizedDescriptions[lang] = entry.description;
+    }
+    // One language keeps the previous `{ value, label }` item. Extra maps
+    // are the EHRbase shape and only appear when another language exists.
+    const multi = Object.keys(localizedLabels).length > 1 ||
+      Object.keys(localizedDescriptions).length > 1;
+    return {
+      label: this.labelForCode(code, scope),
+      localizedLabels: multi && Object.keys(localizedLabels).length
+        ? localizedLabels
+        : undefined,
+      localizedDescriptions: multi && Object.keys(localizedDescriptions).length
+        ? localizedDescriptions
+        : undefined,
+    };
   }
 
   private buildInputs(
@@ -387,38 +608,12 @@ export class WebTemplateBuilder {
       applyTerminologyInputs(
         inputs,
         term,
-        (code, codeScope) => this.labelForCode(code, codeScope),
+        (code, codeScope) => this.codeLabels(code, codeScope ?? scope),
         scope,
       );
     }
 
     return inputs;
-  }
-
-  private termFor(obj: openehr_am.C_OBJECT): TermEntry {
-    const meta = obj as TermScopeMeta;
-    // A fixed name constraint is the occurrence's name in the template's
-    // original language (per-archetype-id term bags collide when repeated).
-    const fixed = this.lang === this.originalLang
-      ? fixedNameConstraint(obj)
-      : undefined;
-    if (fixed) {
-      const base = resolveTermEntry(
-        obj.node_id,
-        meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
-        this.terms,
-        this.archetypeTerms,
-        meta[TERM_ARCHETYPE_SCOPE_KEY],
-      );
-      return { ...base, text: fixed };
-    }
-    return resolveTermEntry(
-      obj.node_id,
-      meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
-      this.terms,
-      this.archetypeTerms,
-      meta[TERM_ARCHETYPE_SCOPE_KEY],
-    ) ?? lookupTerm(this.terms, obj.node_id);
   }
 
   /** Attach OPT path annotations and promote L10n.* into localizedNames. */
@@ -448,29 +643,22 @@ export class WebTemplateBuilder {
     const templateId = readTemplateId(opt) ?? opt.archetype_id?.value ??
       "template.en.v1";
 
-    const origLang = opt.original_language;
-    const defaultLanguage =
-      (typeof origLang === "string"
-        ? origLang
-        : (origLang as { code_string?: string } | undefined)?.code_string) ??
-        this.requestedLang ?? "en";
-
-    // Pick a term language that actually has definitions: the requested one,
-    // else the template's original language, else the first available.
-    const termDefs = (opt.ontology?.term_definitions ?? {}) as Record<
+    const scoped = opt as OperationalTemplateWithTermScopes;
+    this.originalLang = languageCode(opt.original_language) ??
+      languageCode(
+        (opt.ontology as { original_language?: unknown } | undefined)
+          ?.original_language,
+      ) ??
+      "en";
+    const listed = orderedLanguages(this.options?.languages);
+    this.selectedLanguages = listed.length ? listed : [this.originalLang];
+    this.lang = this.selectedLanguages[0];
+    this.templateTerms = (opt.ontology?.term_definitions ?? {}) as Record<
       string,
       TermBag
     >;
-    const available = Object.keys(termDefs);
-    this.lang = [this.requestedLang, defaultLanguage, ...available].find(
-      (l): l is string => !!l && !!termDefs[l],
-    ) ?? this.requestedLang ?? defaultLanguage;
-    this.originalLang = defaultLanguage;
-    this.terms = termDefs[this.lang] ?? {};
-    this.archetypeTerms = archetypeTermBagsForLanguage(
-      opt as OperationalTemplateWithTermScopes,
-      this.lang,
-    );
+    this.archetypeTerms = scoped.archetype_term_definitions ?? {};
+    this.bagCache.clear();
     this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};
 
     if (!opt.definition) {
@@ -510,7 +698,8 @@ export class WebTemplateBuilder {
     return {
       templateId,
       version: "1.0.0",
-      defaultLanguage,
+      defaultLanguage: this.lang,
+      languages: this.selectedLanguages,
       tree: fullTree,
     };
   }
@@ -521,23 +710,16 @@ export class WebTemplateBuilder {
     idHint: string,
     isCompositionRoot = false,
   ): WebTemplateNode {
-    const term = this.termFor(obj);
     const { min, max } = multiplicityBounds(obj.occurrences);
     const rmType = obj.rm_type_name ?? "COMPLEX";
 
     const node: WebTemplateNode = {
-      id: normalizeWebTemplateId(term.text ?? idHint ?? rmType),
-      name: term.text ?? idHint,
-      localizedName: term.text,
+      ...this.termFields(obj, idHint || rmType),
       rmType,
       nodeId: constraintNodeId(obj),
       min,
       max,
       aqlPath,
-      localizedNames: term.text ? { [this.lang]: term.text } : undefined,
-      localizedDescriptions: term.description
-        ? { [this.lang]: term.description }
-        : undefined,
       children: [],
     };
 
@@ -573,9 +755,7 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const childLabel = this.termFor(child).text ??
-          child.rm_type_name?.toLowerCase() ??
-          attrName;
+        const childLabel = child.rm_type_name?.toLowerCase() ?? attrName;
         if (
           child instanceof openehr_am.C_COMPLEX_OBJECT ||
           child instanceof openehr_am.ARCHETYPE_SLOT
@@ -584,7 +764,11 @@ export class WebTemplateBuilder {
             ? complexShellFromSlot(child)
             : child;
           if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
-            const flattened = this.flattenDataStructure(complex, childPath, node);
+            const flattened = this.flattenDataStructure(
+              complex,
+              childPath,
+              node,
+            );
             node.children!.push(...flattened.children ?? []);
           } else if (complex.rm_type_name === "HISTORY") {
             node.children!.push(
@@ -640,8 +824,7 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const itemLabel = this.termFor(child).text ??
-          attrName;
+        const itemLabel = attrName;
         const complex = child instanceof openehr_am.ARCHETYPE_SLOT
           ? complexShellFromSlot(child)
           : child instanceof openehr_am.C_COMPLEX_OBJECT
@@ -685,21 +868,14 @@ export class WebTemplateBuilder {
         aqlPath,
         `events[${nodeIdToAtCode(ev.node_id)}]`,
       );
-      const term = this.termFor(ev);
       const { min, max } = multiplicityBounds(ev.occurrences);
       const eventShell: WebTemplateNode = this.decorateWithAnnotations({
-        id: normalizeWebTemplateId(term.text ?? "event"),
-        name: term.text,
-        localizedName: term.text,
+        ...this.termFields(ev, "event", false),
         rmType: ev.rm_type_name ?? "EVENT",
         nodeId: constraintNodeId(ev),
         min,
         max,
         aqlPath: evPath,
-        localizedNames: term.text ? { [this.lang]: term.text } : undefined,
-        localizedDescriptions: term.description
-          ? { [this.lang]: term.description }
-          : undefined,
         children: [],
       });
       const eventChildren: WebTemplateNode[] = [];
@@ -735,22 +911,17 @@ export class WebTemplateBuilder {
     child: openehr_am.C_OBJECT,
     aqlPath: string,
   ): WebTemplateNode {
-    const term = this.termFor(child);
-    const label = term.text ?? child.rm_type_name?.toLowerCase() ?? "element";
     const { min, max } = multiplicityBounds(child.occurrences);
     return {
-      id: normalizeWebTemplateId(label),
-      name: term.text ?? label,
-      localizedName: term.text,
+      ...this.termFields(
+        child,
+        child.rm_type_name?.toLowerCase() ?? "element",
+      ),
       rmType: "ELEMENT",
       nodeId: constraintNodeId(child),
       min,
       max,
       aqlPath,
-      localizedNames: term.text ? { [this.lang]: term.text } : undefined,
-      localizedDescriptions: term.description
-        ? { [this.lang]: term.description }
-        : undefined,
     };
   }
 
@@ -771,15 +942,15 @@ export class WebTemplateBuilder {
       const elementNodeId = nodeIdToAtCode(obj.node_id);
       if (!leaf.nodeId && elementNodeId) {
         leaf.nodeId = elementNodeId;
-        const term = this.termFor(obj);
-        if (term.text && !leaf.localizedName) {
-          leaf.name = term.text;
-          leaf.localizedName = term.text;
-          leaf.id = normalizeWebTemplateId(term.text);
-          leaf.localizedNames = { [this.lang]: term.text };
+        const fields = this.termFields(obj, shell.id);
+        if (fields.localizedName && !leaf.localizedName) {
+          leaf.name = fields.name;
+          leaf.localizedName = fields.localizedName;
+          leaf.id = fields.id;
+          leaf.localizedNames = fields.localizedNames;
         }
-        if (term.description && !leaf.localizedDescriptions) {
-          leaf.localizedDescriptions = { [this.lang]: term.description };
+        if (fields.localizedDescriptions && !leaf.localizedDescriptions) {
+          leaf.localizedDescriptions = fields.localizedDescriptions;
         }
       }
       return leaf;
@@ -793,21 +964,14 @@ export class WebTemplateBuilder {
     idHint: string,
   ): WebTemplateNode {
     const rmType = obj.rm_type_name ?? "DV_TEXT";
-    const term = this.termFor(obj);
     const { min, max } = multiplicityBounds(obj.occurrences);
     return this.decorateWithAnnotations({
-      id: normalizeWebTemplateId(term.text ?? idHint),
-      name: term.text ?? idHint,
-      localizedName: term.text,
+      ...this.termFields(obj, idHint),
       rmType,
       nodeId: constraintNodeId(obj),
       min,
       max,
       aqlPath,
-      localizedNames: term.text ? { [this.lang]: term.text } : undefined,
-      localizedDescriptions: term.description
-        ? { [this.lang]: term.description }
-        : undefined,
       inputs: this.buildInputs(rmType, obj),
     });
   }
