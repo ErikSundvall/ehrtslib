@@ -245,7 +245,8 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   `originating_system_audit` (supplied by the caller) describes what created
   the content, with form name and version and renderer in `other_details`;
   `feeder_system_audit` (always set by the builder) has `system_id`
-  `ehrtslib-contribution-builder` and the builder version, log format and
+  set to the deploying organisation's system id, and the builder name
+  (`ehrtslib-contribution-builder`) and version, log format and
   CRDT library version in `other_details`. A missing
   `originating_system_audit` gives a warning that can be silenced.
 
@@ -491,12 +492,12 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   that the content passed through the builder. `FEEDER_AUDIT_DETAILS.system_id`
   identifies an organisation's IT system, so software names and versions go
   in `other_details` (`ITEM_STRUCTURE`, may be archetyped).
-- ADR 0010 sets `feeder_system_audit.system_id` to the builder's id. The
-  RM defines `system_id` as "the IT system owned by the organisation
-  legally responsible for handling the data", and the builder is a library
-  inside such a system rather than a system of its own, so this stretches
-  the definition. Recording the deployment's system id there, with the
-  builder identified only in `other_details`, would be the strict reading.
+- The RM defines `system_id` as "the IT system owned by the organisation
+  legally responsible for handling the data". The builder is a library
+  inside such a system, so ADR 0010 follows the strict reading (decided by
+  Erik, 2026-10-25): `feeder_system_audit.system_id` is the deployment's
+  system id, and the builder is identified by name and version in
+  `other_details`.
 - Accepted consequence: queries that look for imported data via
   `feeder_audit` also find builder commits.
 - Possible later clarification: informative guidance that `FEEDER_AUDIT`

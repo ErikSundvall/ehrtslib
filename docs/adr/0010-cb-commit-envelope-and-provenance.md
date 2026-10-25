@@ -57,9 +57,11 @@ The RM (Common, archetyped package) offers:
     name, form version and renderer (name and version) go in
     `other_details`.
   - `feeder_system_audit` records that the content ran through the
-    builder. The builder always sets it: `system_id` =
-    `ehrtslib-contribution-builder` (or the id of another builder
-    implementation); `other_details` holds the builder version (one value:
+    builder. The builder always sets it: `system_id` = the deploying
+    organisation's system id from config, following the RM definition
+    (decided by Erik, 2026-10-25); `other_details` holds the builder name
+    (`ehrtslib-contribution-builder`, or another builder implementation's
+    name), the builder version (one value:
     the ehrtslib release, which also fixes the CB version), the log format
     version and the CRDT library name and version. Decided by Erik
     (2026-10-25): the builder version must be readable from the committed
@@ -87,8 +89,8 @@ The RM (Common, archetyped package) offers:
 - **Accepted by the maintainer:** the RM frames `FEEDER_AUDIT` as describing
   content from feeder systems (imported or converted data). Queries that
   filter on the presence of `feeder_audit` to find "imported" data will
-  also match builder commits. Such queries should instead test
-  `feeder_system_audit/system_id`. See design section 11.6.
+  also match builder commits. Such queries should instead test the
+  builder name in `feeder_system_audit/other_details`. See design section 11.6.
 - Until the `other_details` archetype exists, the structures are
   builder-defined and must be documented with the builder.
 - The log link in `AUDIT_DETAILS.description` is still free text; design
