@@ -76,18 +76,9 @@ export interface WebTemplateBuilderOptions {
    * it drives labels and, unless `idLanguage` is `"original"`, node ids.
    * Further entries are additional languages for `localizedNames`,
    * `localizedDescriptions`, and coded-list `localizedLabels`.
-   * Omitted means `language`, then `defaultLanguage`, then the template's
-   * `original_language` alone.
+   * Omitted, or an empty list, means the template's `original_language` only.
    */
   languages?: string[];
-  /**
-   * Shorthand for `languages: [language]`. Ignored when `languages` is set.
-   */
-  language?: string;
-  /**
-   * Previous name of `language`. Ignored when `languages` or `language` is set.
-   */
-  defaultLanguage?: string;
   /**
    * Language used for node ids, and therefore FLAT path segments.
    * Defaults to `"primary"`. AQL paths stay archetype node ids plus any
@@ -660,11 +651,7 @@ export class WebTemplateBuilder {
       ) ??
       "en";
     const listed = orderedLanguages(this.options?.languages);
-    const single = this.options?.language?.trim() ||
-      this.options?.defaultLanguage?.trim();
-    this.selectedLanguages = listed.length
-      ? listed
-      : [single || this.originalLang];
+    this.selectedLanguages = listed.length ? listed : [this.originalLang];
     this.lang = this.selectedLanguages[0];
     this.templateTerms = (opt.ontology?.term_definitions ?? {}) as Record<
       string,

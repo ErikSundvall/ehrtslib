@@ -58,8 +58,8 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
 
   const english = buildWebTemplate(opt);
   const swedish = buildWebTemplate(opt, { languages: ["sv", "en"] });
-  const swedishOnly = buildWebTemplate(opt, { language: "sv" });
-  const german = buildWebTemplate(opt, { defaultLanguage: "de" });
+  const swedishOnly = buildWebTemplate(opt, { languages: ["sv"] });
+  const german = buildWebTemplate(opt, { languages: ["de"] });
   const swedishThenGerman = buildWebTemplate(opt, { languages: ["sv", "de"] });
   const swedishOriginalIds = buildWebTemplate(opt, {
     languages: ["sv", "en"],
@@ -196,18 +196,6 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
     en: "Sitting",
   });
 
-  const languagesWin = buildWebTemplate(opt, {
-    languages: ["de"],
-    language: "sv",
-  });
-  assertEquals(languagesWin.defaultLanguage, "de");
-  assertEquals(
-    nodesWith(languagesWin.tree, "at0004").find((n) =>
-      n.aqlPath === enSys.aqlPath
-    )?.name,
-    "Systolisch",
-  );
-
   applyOperationalTemplateTermScopes(opt, "sv");
   assertEquals(
     scoped.archetype_term_definitions?.[BP]?.sv?.at0004?.text,
@@ -226,7 +214,7 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
     scoped.archetype_term_definitions?.[BP]?.qq?.at0004?.text,
     "Q-Systolic",
   );
-  const swedishAgain = buildWebTemplate(opt, { language: "sv" });
+  const swedishAgain = buildWebTemplate(opt, { languages: ["sv"] });
   assertEquals(
     nodesWith(swedishAgain.tree, "at0004").find((n) =>
       n.aqlPath === enSys.aqlPath
@@ -243,12 +231,10 @@ Deno.test("#159 single-language OPT ids and names stay on the original language"
   assertEquals(availableTemplateLanguages(opt), ["en"]);
 
   const english = buildWebTemplate(opt);
-  const requested = buildWebTemplate(opt, { language: "sv" });
-  const listed = buildWebTemplate(opt, { languages: ["sv"] });
+  const requested = buildWebTemplate(opt, { languages: ["sv"] });
   assertEquals(requested.defaultLanguage, "sv");
   assertEquals(requested.languages, ["sv"]);
   assertEquals(identity(requested.tree), identity(english.tree));
-  assertEquals(identity(listed.tree), identity(requested.tree));
   assertEquals(
     nodesWith(requested.tree, "at0004").map((n) => n.name),
     nodesWith(english.tree, "at0004").map((n) => n.name),
@@ -273,7 +259,7 @@ Deno.test("#159 language_test.opt lists ontology languages and builds fi/en/de",
   const german = buildWebTemplate(opt);
   const english = buildWebTemplate(opt, { languages: ["en", "fi"] });
   const finnish = buildWebTemplate(opt, {
-    language: "fi",
+    languages: ["fi"],
     idLanguage: "original",
   });
 

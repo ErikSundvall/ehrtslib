@@ -144,7 +144,7 @@ Deno.test("buildWebTemplate - promotes L10n annotations into localizedNames", ()
     },
   );
 
-  const wt = buildWebTemplate(operationalTemplate, { defaultLanguage: "en" });
+  const wt = buildWebTemplate(operationalTemplate, { languages: ["en"] });
   const section = wt.tree.children?.find((c) =>
     c.nodeId === "openEHR-EHR-SECTION.adhoc.v1"
   );
