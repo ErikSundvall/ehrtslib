@@ -39,7 +39,9 @@ create/update end user docs
 ## Phase X - Contribution builder
 Design: [contribution-builder-design.md](contribution-builder-design.md) and
 ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
-[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus
+[0011](../adr/0011-cb-optional-graphql-api.md) (optional GraphQL API) and
+[0012](../adr/0012-cb-add-on-packages-and-patch-formats.md) (add-on packages).
 
 Implement the "contribution builder" suggested in
 https://link.springer.com/article/10.1186/1472-6947-13-57, including the verbs
@@ -54,14 +56,23 @@ The design covers every versioned type; delivery is staged:
    envelope (all generic over `VERSION<T>`), single-app adapter, for
    **COMPOSITION** first. Template binding with canonical hash, validation
    (complete and incomplete), conflict data on 412, ADL 1.4 down-conversion
-   at commit.
+   at commit, and up-conversion of legacy OPT 1.4 XML to an ADL2 operational
+   template with id-codes.
 2. Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then
    demographic `PARTY` types. No log or envelope format changes.
 3. Pluggable storage and optional encrypted local draft persistence.
 4. Integration tests against EHRbase and FerroEHR dev instances.
+5. Optional GraphQL module over build content
+   ([ADR 0011](../adr/0011-cb-optional-graphql-api.md)): addressing by uid,
+   ADL2 codes, any template annotation (including `a.id` symbols), node
+   names in a chosen language, or mixed paths of these. Every mutation goes
+   through the operation log. Shipped as a separate add-on release file,
+   not in the main bundles.
+6. Add-on packages ([ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md)),
+   each a separate release file: Simplified Formats (FLAT and STRUCTURED
+   create, read and patch) and canonical XML (create, and patch with RFC
+   5261 XML Patch). Later: an htmx add-on for server-rendered forms.
 
-Open item: check whether legacy OPT 1.4 XML can be up-converted to an ADL2
-operational template with id-codes (archetype-level ADL 1.4 → ADL2 exists).
 
 ## Phase X - multiuser contribution builder
 CRDT-based multi-user / multi-device contribution builder for collaborative

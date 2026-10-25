@@ -3,7 +3,9 @@
 Status: **draft for review.** Design only; nothing here is implemented yet.
 Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
-[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL
+API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md) and the add-on packages in
+[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md).
 
 ## 1. Product
 
@@ -243,7 +245,8 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   `originating_system_audit` (supplied by the caller) describes what created
   the content, with form name and version and renderer in `other_details`;
   `feeder_system_audit` (always set by the builder) has `system_id`
-  `ehrtslib-contribution-builder` and the builder version, log format and
+  set to the deploying organisation's system id, and the builder name
+  (`ehrtslib-contribution-builder`) and version, log format and
   CRDT library version in `other_details`. A missing
   `originating_system_audit` gives a warning that can be silenced.
 
@@ -287,6 +290,103 @@ Discarded drafts are **not committed to the CDR**.
   path. A single first commit as `abandoned` is not covered by the RM Common
   section 6 lifecycle (see 11.8). The maintainer judged the CDR route
   overkill; the log is sufficient (ADR 0004, 0005, 0010).
+
+### 9.3 Optional GraphQL API
+
+Summary of [ADR 0011](../adr/0011-cb-optional-graphql-api.md), still open
+for review:
+
+- An optional module exposes one contribution build as a GraphQL schema,
+  executed in process. HTTP or WebSocket serving is up to the caller.
+- It ships as a separate add-on release file (for example
+  `ehrtslib-<version>-cb-graphql.min.js`), not in `mod.ts` or the main
+  bundles, so users who don't need GraphQL don't carry it.
+- It covers uncommitted CB content only. Committed EHR data stays with AQL
+  and REST.
+- A node is addressed by `uid`, or by a path whose steps can mix ADL2
+  codes, node names in a chosen ISO `lang` (default `lang.1`), **any
+  template annotation** (`@key=value`), symbols (`$name`, shorthand for
+  `a.id` or `am.symbol_binding`) and 0-based indexes. Annotation values
+  need not be unique: a path that matches several nodes is narrowed by
+  adding prefix steps.
+- Every address resolves to uids, and every mutation becomes ordinary
+  operations in the log, with the author taken from the request context.
+  An ambiguous or empty address in a mutation is an error that lists the
+  candidates.
+- Nodes expose `uid`, `codePath`, `namePath`, their template annotations
+  and their validation `problems`, so callers can switch between the ways
+  of addressing.
+
+#### Prior openEHR GraphQL discussions (informative)
+
+Earlier openEHR Discourse threads on GraphQL, and what they mean for this
+API:
+
+- [AQL through GraphQL](https://discourse.openehr.org/t/aql-through-graphql/1573)
+  (2021) discusses GraphQL as an aggregator over AQL, demographics and other
+  services. It describes GraphQL as one possible ITS for AQL and warns against
+  making openEHR depend on GraphQL. This is about committed data, so it is
+  out of scope here.
+- [CONTRIBUTION builder supporting collaborative editing? GraphQL?](https://discourse.openehr.org/t/contribution-builder-supporting-collaborative-multi-user-multi-device-editing-graphql-operational-transformation/2071)
+  (2021) proposes template-specific GraphQL for a contribution builder,
+  derived from the Web Template's simplified structure and naming. It values
+  "a simple object that hides much of the complexity, not unlike
+  FLAT/STRUCTURED".
+- [Generating GraphQL from OPTs](https://discourse.openehr.org/t/generating-graphql-from-opts/2144)
+  (2021–2022) describes a generator with one GraphQL type per template path.
+  It produced long path-derived type names and repeated copies of
+  unconstrained data value types, and was simplified to shared data value
+  types with separate constraints. This favours a generic schema, or shared
+  RM types, over per-path types.
+- [Separating Models from Implementation](https://discourse.openehr.org/t/separating-models-from-implementation/2093)
+  and [Modularisation vs openEHR monoliths](https://discourse.openehr.org/t/modularisation-vs-openehr-monoliths-what-would-be-interesting-today/2057)
+  (2021) place GraphQL as an optional simplification layer or a separable
+  module on top of the standard APIs and formats, not as part of the core.
+- [Querying an openEHR CDR with SQL, Cypher, and GraphQL?](https://discourse.openehr.org/t/querying-an-openehr-cdr-with-sql-cypher-and-graphql-yes-its-possible/17088)
+  (2026) debates at-codes versus natural-language keys. Language-dependent
+  names are the main objection. The proposed answers are rewriting names to
+  codes, or showing labels while storing codes, which matches using names
+  only as one way of addressing.
+- The [Simplified Formats](https://specifications.openehr.org/releases/ITS-REST/latest/simplified_formats.html)
+  node id rules (section 4.2) are the only normative openEHR naming rules
+  derived from term texts:
+  - lowercase snake case with Unicode letters kept;
+  - a numeric suffix for duplicate sibling names;
+  - a 0-based `:n` instance index.
+
+  GraphQL names are limited to `[_A-Za-z][_0-9A-Za-z]*`, so such ids are
+  valid as argument values but not always as field names.
+
+- [Agreeing on optional user interface hints in templates](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406)
+  (2022–2026) proposes interim template annotations for tools without
+  rules support:
+  - `a.id` and later `am.symbol_binding` give a node a short,
+    language-independent symbol;
+  - `am.rule` holds a rule that refers to those symbols;
+  - `a.hide_on_form` is a UI hint.
+
+  This mirrors the ADL2 rules variable bindings and the draft
+  `symbol_bindings`, and is the basis for symbol addresses in
+  [ADR 0011](../adr/0011-cb-optional-graphql-api.md).
+
+None of these threads defines GraphQL mutations, choice (`DV_*`
+alternative) handling or slot handling for openEHR content.
+
+### 9.4 Add-on packages and patch formats
+
+Summary of [ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md),
+still open for review:
+
+- Each access style is a separate add-on release file, not part of the
+  main bundles: GraphQL, Simplified Formats (FLAT and STRUCTURED), canonical
+  XML, and later htmx.
+- Every add-on translates its input into ordinary operations on uids, so
+  add-ons can be mixed in one build.
+- FLAT is patched with a partial key map (`null` removes), STRUCTURED with
+  JSON Merge Patch (RFC 7386), and canonical XML with XML Patch (RFC 5261)
+  using XPath selectors mapped from archetype paths and uids.
+- A future htmx add-on turns form posts into operations and returns
+  updated HTML fragments with validation messages.
 
 ## 10. Testing
 
@@ -392,12 +492,12 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   that the content passed through the builder. `FEEDER_AUDIT_DETAILS.system_id`
   identifies an organisation's IT system, so software names and versions go
   in `other_details` (`ITEM_STRUCTURE`, may be archetyped).
-- ADR 0010 sets `feeder_system_audit.system_id` to the builder's id. The
-  RM defines `system_id` as "the IT system owned by the organisation
-  legally responsible for handling the data", and the builder is a library
-  inside such a system rather than a system of its own, so this stretches
-  the definition. Recording the deployment's system id there, with the
-  builder identified only in `other_details`, would be the strict reading.
+- The RM defines `system_id` as "the IT system owned by the organisation
+  legally responsible for handling the data". The builder is a library
+  inside such a system, so ADR 0010 follows the strict reading (decided by
+  Erik, 2026-10-25): `feeder_system_audit.system_id` is the deployment's
+  system id, and the builder is identified by name and version in
+  `other_details`.
 - Accepted consequence: queries that look for imported data via
   `feeder_audit` also find builder commits.
 - Possible later clarification: informative guidance that `FEEDER_AUDIT`

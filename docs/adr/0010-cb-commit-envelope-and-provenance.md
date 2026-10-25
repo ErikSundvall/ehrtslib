@@ -1,8 +1,7 @@
 # Contribution Builder: commit envelope, log link and provenance in FEEDER_AUDIT
 
 Status: proposed (draft for review). Provenance in `FEEDER_AUDIT` decided by
-the maintainer; the `original_content` log reference is pending the
-maintainer's review. Part of the
+the maintainer; no `original_content` log reference (decided 2026-10-25). Part of the
 [Contribution Builder design](../maintainers/contribution-builder-design.md).
 
 ## Context
@@ -58,19 +57,24 @@ The RM (Common, archetyped package) offers:
     name, form version and renderer (name and version) go in
     `other_details`.
   - `feeder_system_audit` records that the content ran through the
-    builder. The builder always sets it: `system_id` =
-    `ehrtslib-contribution-builder` (or the id of another builder
-    implementation); `other_details` holds the builder (ehrtslib) version,
-    the log format version and the CRDT library name and version.
+    builder. The builder always sets it: `system_id` = the deploying
+    organisation's system id from config, following the RM definition
+    (decided by Erik, 2026-10-25); `other_details` holds the builder name
+    (`ehrtslib-contribution-builder`, or another builder implementation's
+    name), the builder version (one value:
+    the ehrtslib release, which also fixes the CB version), the log format
+    version and the CRDT library name and version. Decided by Erik
+    (2026-10-25): the builder version must be readable from the committed
+    version or its content; this location satisfies that.
   - If the caller provides no `originating_system_audit`, the builder emits
     a warning (silenced by a config flag) and still sets
     `feeder_system_audit`. Because `originating_system_audit` is mandatory
     in `FEEDER_AUDIT`, the builder then fills it with a minimal placeholder
-    (`system_id` from config, or the builder id) so the RM object is valid.
-- **Optional, pending the maintainer's review:** `FEEDER_AUDIT.original_content`
-  references the replayable log as a `DV_MULTIMEDIA` with `uri` (and the
-  log's media type), in addition to the link and hash in the contribution
-  audit.
+    (`system_id` from config, or the builder id) so the RM object is valid. Decided
+    by Erik (2026-10-25).
+- `FEEDER_AUDIT.original_content` is not set by the builder. Decided by
+  Erik (2026-10-25): the log link and hash in the contribution audit are
+  enough.
 - Future work: a small archetype for these `other_details` structures
   (form, renderer, builder, log format, CRDT library) would make the
   pattern clearer and queryable across systems.
@@ -85,8 +89,8 @@ The RM (Common, archetyped package) offers:
 - **Accepted by the maintainer:** the RM frames `FEEDER_AUDIT` as describing
   content from feeder systems (imported or converted data). Queries that
   filter on the presence of `feeder_audit` to find "imported" data will
-  also match builder commits. Such queries should instead test
-  `feeder_system_audit/system_id`. See design section 11.6.
+  also match builder commits. Such queries should instead test the
+  builder name in `feeder_system_audit/other_details`. See design section 11.6.
 - Until the `other_details` archetype exists, the structures are
   builder-defined and must be documented with the builder.
 - The log link in `AUDIT_DETAILS.description` is still free text; design

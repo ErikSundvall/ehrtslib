@@ -24,7 +24,18 @@ data.
   hash of a **canonical serialisation** of the operational template
   (ehrtslib's own deterministic serialisation), not of the uploaded bytes.
   Re-serialising the same template on upload therefore does not change the
-  hash.
+  hash. Decided by Erik (2026-10-25): the canonical serialisation is RFC 8785
+  (JSON Canonicalization Scheme) applied to ehrtslib's JSON form of the
+  ADL2 operational template (after any OPT 1.4 up-conversion), and the
+  binding records the serialisation version next to the hash.
+- Tool-supplied identifiers in the source template (`MD5-CAM-1.0.1`,
+  `PARENT:MD5-CAM-1.0.1` and `build_uid` from Archetype Designer or CKM
+  exports) are recorded with the binding for information only. A mismatch
+  gives a warning and never refuses a draft. A survey of 96 OPTs in the
+  Region Stockholm CKM mirror showed that `MD5-CAM` follows template
+  content, `PARENT:MD5-CAM` is a snapshot of the root archetype's hash at
+  build time, `build_uid` is neither always stable nor unique, and the
+  MD5-CAM algorithm is unpublished so it cannot be recomputed.
 - When the hash or version differs from what the draft was bound to, the CB
   reports it. Moving to another template is an explicit `migrate-template`
   operation in the log, never a silent rebind.
@@ -36,7 +47,8 @@ data.
   (`parser/adl14_to_adl2_converter.ts`, applied automatically by the
   parser). Full up-conversion of a legacy OPT 1.4 XML into an ADL2
   operational template with id-codes is not verified yet; the OPT XML parser
-  currently keeps at-codes. This is an open implementation item.
+  currently keeps at-codes. Decided by Erik (2026-10-25): this up-conversion
+  is part of phase 1, so legacy OPT 1.4 templates can be used from the start.
 - ADL2 id-codes remove the ADL 1.4 need for sibling name predicates, but not
   the need to tell runtime instances apart; that is what
   [ADR 0003](0003-cb-identity-and-uids.md) uids are for.
