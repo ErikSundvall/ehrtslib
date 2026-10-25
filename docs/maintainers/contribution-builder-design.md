@@ -103,15 +103,15 @@ roadmap) and formal openEHR specification proposals (see section 11).
   └───────────────────────────────────────────────────────┘
         │ apply ops                     │ build
         ▼                               ▼
-  single-app adapter        UPDATE_CONTRIBUTION → CDR (REST)
+  single-app adapter        NewContribution  → CDR (REST)
   CRDT sync adapter  ◄──►   other replicas (ops as CRDT changes)
   storage adapter    ──►    caller-chosen storage (drafts, log bytes)
 ```
 
 - **One core model**, `ContributionBuild`, with adapters for single-app
   and CRDT use.
-- **Commit shapes follow the REST ITS** `UPDATE_CONTRIBUTION`,
-  `UPDATE_VERSION` and `UPDATE_AUDIT`. Version `data` is always real RM
+- **Commit shapes follow the REST ITS** `NewContribution` request body,
+  with `UPDATE_VERSION` and `UPDATE_AUDIT` (field list in ADR 0010). Version `data` is always real RM
   objects from ehrtslib's RM classes.
 - **Internal format is canonical RM JSON** (ehrtslib's canonical JSON
   serialiser). FLAT, STRUCTURED and other simplified formats are import and
@@ -260,7 +260,7 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
 4. Serialise the log, compute `sha256`, hand the bytes to the storage
    adapter, and (if a URI comes back or is given) write the audit
    description.
-5. Build `UPDATE_CONTRIBUTION` with one `UPDATE_VERSION` per draft and send
+5. Build the `NewContribution` body with one `UPDATE_VERSION` per draft and send
    it.
 6. On 412, enter the conflict flow; on success, record the new version ids
    as the new base and close or reset the build.
@@ -426,3 +426,12 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   `incomplete` by the `abandon` transition, and "any transition requires
   the commit of a new version". A first commit directly in the `abandoned`
   state is not described.
+
+### 11.9 Naming of the REST commit types (ADR 0010)
+
+- The ITS-REST OpenAPI names the commit types `UPDATE_VERSION`,
+  `UPDATE_AUDIT` and `UPDATE_ATTESTATION`, but the contribution request
+  body is `NewContribution`; there is no `UPDATE_CONTRIBUTION`.
+  `UPDATE_AUDIT` carries a `_type`, while `UPDATE_VERSION` declares none.
+- Possible later clarification: consistent naming and `_type` handling for
+  the commit DTOs.

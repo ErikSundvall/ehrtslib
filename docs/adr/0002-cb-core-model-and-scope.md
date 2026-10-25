@@ -19,8 +19,9 @@ format when `EHR_STATUS`, `FOLDER` or demographic `PARTY` versions are added.
 - The core is generic over `VERSION<T>`: `COMPOSITION`, `EHR_STATUS`,
   `EHR_ACCESS`, `FOLDER`, demographic `PARTY` subtypes and later versioned
   types. The implementation ships `COMPOSITION` first.
-- The commit follows the openEHR REST ITS shapes `UPDATE_CONTRIBUTION`,
-  `UPDATE_VERSION` and `UPDATE_AUDIT`. Version `data` is always real RM
+- The commit follows the openEHR REST ITS request shape for
+  `POST /ehr/{ehr_id}/contribution`: a `NewContribution` body holding
+  `UPDATE_VERSION` items and `UPDATE_AUDIT` audits. Version `data` is always real RM
   objects (ehrtslib RM classes).
 - The internal format is canonical RM JSON. FLAT, STRUCTURED and other
   simplified formats are import/export adapters only.

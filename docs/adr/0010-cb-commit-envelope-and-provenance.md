@@ -32,8 +32,15 @@ The RM (Common, archetyped package) offers:
 
 ## Decision
 
-- The commit uses the REST ITS `UPDATE_CONTRIBUTION` with one
-  `UPDATE_VERSION` per draft and `UPDATE_AUDIT` audits.
+- The commit uses the REST ITS `NewContribution` request body with
+  one `UPDATE_VERSION` per draft and `UPDATE_AUDIT` audits. Checked against
+  the ITS-REST OpenAPI (`ehr-validation.openapi.yaml`, master 2026-10-10):
+  `NewContribution` has `versions` and `audit` (required) and optional
+  `uid`; `UPDATE_VERSION` has `lifecycle_state`, `data` and `commit_audit`
+  (required) and optional `preceding_version_uid`, `signature` and
+  `attestations`; `UPDATE_AUDIT` has `change_type` and `committer`
+  (required) and optional `description` and `system_id`. The server sets
+  `time_committed`.
 - **Log link in the contribution audit (unchanged).** Every commit writes
   `AUDIT_DETAILS.description` as a `DV_TEXT` whose text contains
   `oplog sha256:<hex>` and, when the caller provides a log URI, whose
