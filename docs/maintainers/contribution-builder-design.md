@@ -164,7 +164,11 @@ Summary of [ADR 0004](../adr/0004-cb-operation-log-and-sync.md):
   single-app flavour. Initial operations: `set-value`, `add-instance`,
   `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
   `set-participation`, `set-lifecycle`, `bind-template`,
-  `migrate-template`, `import` (adapter input recorded as operations).
+  `migrate-template`, `import` (adapter input recorded as operations) and
+  `discard` (a draft or item removed from the build before commit; see
+  section 9.2).
+- The builder never deletes the log. An optional, deployment-configured
+  append-only log sink can stream it to a server as work happens.
 - Each operation records author, timestamp and replica, and **targets a
   node uid, not a path**. Paths are derived for display and for fallback
   matching only.
@@ -229,11 +233,13 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   structured data. The caller sends back a list of resolutions.
 - **Storage** ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)):
   ehrtslib is policy-neutral. Storage is pluggable; local draft persistence
-  is off by default and encrypted at rest when on.
+  is off by default and encrypted at rest when on. An optional append-only
+  log sink streams the log to durable storage while editing.
 - **Commit envelope and provenance**
   ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)): the log
   hash, the optional log URI and the builder name, version, log format and
-  CRDT library version go into `AUDIT_DETAILS.description`.
+  CRDT library version go into `AUDIT_DETAILS.description`. Every commit
+  links the log this way.
 
 ### 9.1 Commit sequence
 
@@ -249,6 +255,29 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
    it.
 6. On 412, enter the conflict flow; on success, record the new version ids
    as the new base and close or reset the build.
+
+Drafts marked `discard` are left out of step 5 (see 9.2).
+
+### 9.2 Discarded drafts
+
+Discarded drafts are **not committed to the CDR**.
+
+- Discarding a whole draft, or removing a composition or other item from a
+  build before commit, is a `discard` operation in the replayable log. The
+  builder never deletes the log.
+- When the build still commits other drafts, the commit links the log from
+  `AUDIT_DETAILS.description` (hyperlink and `oplog sha256:<hex>`), so the
+  discarded items are visible in that linked log.
+- A build in which everything is discarded never commits, so there is no
+  contribution audit to carry the link. The optional append-only log sink
+  (configured by the deployment, see ADR 0005) is how such logs reach
+  durable storage. In the multi-user flavour the log is synchronised to the
+  other replicas anyway.
+- Rejected alternative: committing discarded drafts to the CDR as
+  `incomplete` and then `abandoned` (`801`), the RM-conformant two-version
+  path. A single first commit as `abandoned` is not covered by the RM Common
+  section 6 lifecycle (see 11.8). The maintainer judged the CDR route
+  overkill; the log is sufficient (ADR 0004, 0005, 0010).
 
 ## 10. Testing
 

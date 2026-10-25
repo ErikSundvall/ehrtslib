@@ -16,8 +16,13 @@ behave differently.
 - Every change, also in the single-app flavour, is an operation in one
   append-only log. Initial operation set: `set-value`, `add-instance`,
   `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
-  `set-participation`, `set-lifecycle`, `bind-template`, `migrate-template`
-  and `import` (adapter input such as FLAT, recorded as operations).
+  `set-participation`, `set-lifecycle`, `bind-template`, `migrate-template`,
+  `import` (adapter input such as FLAT, recorded as operations) and
+  `discard`.
+- Discarding a draft, or removing a composition or other item from a build
+  before commit, is a `discard` operation. Discarded drafts are not
+  committed to the CDR; the log is their record. The builder never deletes
+  the log.
 - Each operation records author, timestamp and replica, and targets a node
   uid ([ADR 0003](0003-cb-identity-and-uids.md)), not a path.
 - Single-app applies operations directly. Multi-user synchronises the same
@@ -45,6 +50,12 @@ behave differently.
   library-independent operation schema makes that possible.
 
 ## Alternatives considered
+
+- **Commit discarded drafts to the CDR** as `incomplete` and then
+  `abandoned` (`801`), the RM-conformant two-version path (a single first
+  commit as `abandoned` is not covered by the RM Common section 6 lifecycle;
+  see design section 11.8). Rejected by the maintainer as overkill; the
+  log is sufficient.
 
 - **Direct tree mutation in single-app mode.** Rejected: no playback, and
   two behaviours to test.

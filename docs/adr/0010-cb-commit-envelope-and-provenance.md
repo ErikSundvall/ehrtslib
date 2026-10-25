@@ -33,6 +33,12 @@ are `AUDIT_DETAILS.description` (a `DV_TEXT`) and
 
   Without a log URI the hash and provenance are still written, so the
   commit can be matched to a log stored elsewhere.
+- Every commit links the builder log this way. Drafts or items discarded
+  before commit are not in the contribution; they appear as `discard`
+  operations in the linked log ([ADR 0004](0004-cb-operation-log-and-sync.md)).
+  A build where everything is discarded has no commit and no audit; its log
+  reaches durable storage only through the optional log sink
+  ([ADR 0005](0005-cb-storage-encryption-policy-neutrality.md)).
 
 ## Consequences
 
@@ -51,5 +57,10 @@ are `AUDIT_DETAILS.description` (a `DV_TEXT`) and
   information item (for example "interim" or "final"), not a software
   version. Builder commits would look like imported data in queries that
   look for feeder content.
+- **Commit discarded drafts so the CDR records them** (`incomplete`, then
+  `abandoned` (`801`) as a second version; a single first commit as
+  `abandoned` is not covered by RM Common section 6, see design section
+  11.8). Rejected by the maintainer as overkill; the linked log is
+  sufficient.
 - **A new attribute or extension.** Rejected for now: needs a spec change,
   which waits until the builder has been implemented and tested.

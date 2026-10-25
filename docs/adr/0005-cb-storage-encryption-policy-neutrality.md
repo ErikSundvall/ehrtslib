@@ -26,6 +26,13 @@ advising against saving unfinished content locally on the client.
   is a non-extractable key kept in IndexedDB. That protects against copying
   the disk or browser profile, not against code running in the same origin.
   Deployments may plug in session-derived or server-derived keys instead.
+- The builder never deletes the operation log; deleting or expiring it is
+  the deployment's retention decision.
+- An optional append-only **log sink**, configured by the deployment,
+  streams the log to a server as work happens. A build whose drafts are all
+  discarded never commits, so no contribution audit carries a link to its
+  log; the sink is how such logs reach durable storage. In the multi-user
+  flavour the log is also synchronised to the other replicas anyway.
 
 ## Consequences
 
@@ -36,6 +43,10 @@ advising against saving unfinished content locally on the client.
   survive across devices or sessions.
 
 ## Alternatives considered
+
+- **Keep discarded drafts in the CDR** (commit as `incomplete`, then
+  `abandoned`). Rejected by the maintainer as overkill; the log, plus the
+  optional sink, is sufficient.
 
 - **Built-in server storage or retention rules.** Rejected: policy belongs
   to the deployment.
