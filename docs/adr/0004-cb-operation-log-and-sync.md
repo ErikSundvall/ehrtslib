@@ -39,6 +39,33 @@ behave differently.
 - Any implementation must be able to recreate the session from the log.
   The log format is versioned so a later reader knows how to replay it.
 
+## Implementation (phase 1, #164)
+
+Code: `contribution_builder/operation_log.ts` (format, reader, canonical
+bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
+`SingleAppLogAdapter`).
+
+- Log document: `{ format: "ehrtslib-cb-oplog", formatVersion: 1, buildId,
+  operations }`. Readers reject unknown formats and newer versions. Export as
+  RFC 8785 bytes plus sha256 (`exportLogBytes`), so the same log always gives
+  the same bytes.
+- Phase 1 operations: `create-draft` (carries the template binding, the
+  provisional versioned-object uuid and the initial canonical RM JSON, so
+  replay does not depend on the instance generator), `set-value`,
+  `add-instance`, `remove-instance`, `set-composer`. The others in the list
+  above come with the phases that need them.
+- Every operation has `replica`, per-replica `seq`, `author` (from the
+  caller's context, overridable per call), `timestamp` and `draft`.
+  `replica` + `seq` identifies an operation across replicas.
+- Operations target nodes by short key; `root` addresses the draft root.
+  `add-instance` positions by sibling anchor (`before` / `after` a short key),
+  not by index, so concurrent inserts do not shift each other.
+- New keys are recorded in the operation (`keys`, depth-first with object
+  members in sorted order), never re-minted on replay.
+- No CRDT library is chosen: the single-app adapter needs none, and the core
+  sees only the `OperationLogAdapter` interface (`append`, `operations`).
+  The Automerge / Loro spike stays open.
+
 ## Consequences
 
 - Undo, playback, per-value author colouring and conflict replay all come
