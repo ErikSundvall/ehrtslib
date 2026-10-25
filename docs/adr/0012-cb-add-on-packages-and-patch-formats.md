@@ -50,6 +50,8 @@ the address resolver from ADR 0011.
     `remove`), whose selectors are XPath 1.0. openEHR archetype paths map
     to XPath predicates on `archetype_node_id` and `name`, and uids map to
     predicates on `uid/value`.
+  - Created and patched documents can also be checked against the ITS-XML
+    XSDs, in addition to the CB's own template validation.
   - This is a separate format, not GraphQL. Selectors resolve through the
     same core resolver as ADR 0011 addresses.
 - **htmx package (future):** server-side helpers for HTML forms driven by
@@ -76,8 +78,9 @@ the address resolver from ADR 0011.
 - **JSON Patch (RFC 6902) for STRUCTURED.** Possible, but its array-index
   paths are fragile under concurrent edits. Merge Patch with Web Template
   keys fits better. JSON Patch can be added later if asked for.
-- **XQuery Update Facility for XML.** More powerful, but heavy to
-  implement in the browser. RFC 5261 is small and declarative.
+- **XQuery Update Facility or XSLT for XML.** More powerful, but heavy to
+  implement in the browser. RFC 5261 is small and declarative. XUpdate is
+  no longer maintained.
 
 ## Open questions
 
