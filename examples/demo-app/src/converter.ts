@@ -370,7 +370,7 @@ function writeOptXmlOutput(
   const includeAnnotations = options.optXmlIncludeAnnotations ?? true;
   const emitL10n = options.optXmlEmitL10n ?? true;
   const l10nFromWebTemplate = includeAnnotations && emitL10n
-    ? buildWebTemplate(opt, { defaultLanguage: options.templateLanguage })
+    ? buildWebTemplate(opt, { language: options.templateLanguage })
     : undefined;
   outputs["opt.xml"] = new OptXmlSerializer({
     includeAnnotations,
@@ -427,7 +427,7 @@ export function resolveWebTemplate(
   try {
     const { operationalTemplate } = ws.resolveOperational();
     return buildWebTemplate(operationalTemplate, {
-      defaultLanguage: options.templateLanguage,
+      language: options.templateLanguage,
     });
   } catch (error) {
     throw new Error(
@@ -707,7 +707,7 @@ async function convertTemplateInput(
 
   writeSimplifiedOutputs(
     generatedInstance,
-    buildWebTemplate(template, { defaultLanguage: options.templateLanguage }),
+    buildWebTemplate(template, { language: options.templateLanguage }),
     options.outputFormats,
     outputs,
   );

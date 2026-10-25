@@ -56,74 +56,120 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
     "Systoliskt",
   );
 
-  const english = buildWebTemplate(opt, { defaultLanguage: "en" });
-  const swedish = buildWebTemplate(opt, { language: "sv" });
+  const english = buildWebTemplate(opt);
+  const swedish = buildWebTemplate(opt, { languages: ["sv", "en"] });
+  const swedishOnly = buildWebTemplate(opt, { language: "sv" });
   const german = buildWebTemplate(opt, { defaultLanguage: "de" });
-  const qq = buildWebTemplate(opt, { language: "qq" });
+  const swedishThenGerman = buildWebTemplate(opt, { languages: ["sv", "de"] });
+  const swedishOriginalIds = buildWebTemplate(opt, {
+    languages: ["sv", "en"],
+    idLanguage: "original",
+  });
 
   assertEquals(english.defaultLanguage, "en");
-  assertEquals(swedish.defaultLanguage, "en");
-  assertEquals(english.languages, ["en", "sv", "de", "qq"]);
-  assertEquals(swedish.languages, english.languages);
+  assertEquals(
+    english.languages,
+    ["en"],
+    "default includes the original language only",
+  );
+  assertEquals(swedish.defaultLanguage, "sv");
+  assertEquals(swedish.languages, ["sv", "en"]);
+  assertEquals(swedishOnly.defaultLanguage, "sv");
+  assertEquals(swedishOnly.languages, ["sv"]);
+  assertEquals(german.defaultLanguage, "de");
+  assertEquals(german.languages, ["de"]);
 
   const enSys = nodesWith(english.tree, "at0004").find((n) =>
     n.name === "Systolic"
   );
   assertExists(enSys);
+  assertEquals(enSys.id, "systolic");
+  assertEquals(enSys.localizedNames, { en: "Systolic" });
+
   const svSys = nodesWith(swedish.tree, "at0004").find((n) =>
+    n.aqlPath === enSys.aqlPath
+  );
+  const svOnlySys = nodesWith(swedishOnly.tree, "at0004").find((n) =>
     n.aqlPath === enSys.aqlPath
   );
   const deSys = nodesWith(german.tree, "at0004").find((n) =>
     n.aqlPath === enSys.aqlPath
   );
-  const qqSys = nodesWith(qq.tree, "at0004").find((n) =>
+  const svOrig = nodesWith(swedishOriginalIds.tree, "at0004").find((n) =>
     n.aqlPath === enSys.aqlPath
   );
   assertExists(svSys);
+  assertExists(svOnlySys);
   assertExists(deSys);
-  assertExists(qqSys);
+  assertExists(svOrig);
 
   assertEquals(svSys.name, "Systoliskt");
   assertEquals(svSys.localizedName, "Systoliskt");
+  assertEquals(svSys.id, "systoliskt");
+  assertEquals(svOnlySys.id, "systoliskt");
+  assertEquals(svOnlySys.name, "Systoliskt");
   assertEquals(deSys.name, "Systolisch");
-  assertEquals(qqSys.name, "Q-Systolic");
-  assertEquals(svSys.id, enSys.id);
-  assertEquals(deSys.id, enSys.id);
-  assertEquals(qqSys.id, enSys.id);
+  assertEquals(deSys.id, "systolisch");
   assertEquals(svSys.aqlPath, enSys.aqlPath);
+  assertEquals(svOrig.name, "Systoliskt");
+  assertEquals(svOrig.id, enSys.id);
+  assertEquals(svOrig.aqlPath, enSys.aqlPath);
 
-  assertEquals(enSys.localizedNames, {
-    en: "Systolic",
+  assertEquals(svSys.localizedNames, {
     sv: "Systoliskt",
-    de: "Systolisch",
-    qq: "Q-Systolic",
+    en: "Systolic",
   });
-  assertEquals(svSys.localizedNames, enSys.localizedNames);
-  assertEquals(enSys.localizedDescriptions?.sv, "Systoliskt blodtryck.");
-  assertEquals(deSys.localizedDescriptions?.de, "Systolischer Blutdruck.");
+  assertEquals(svOnlySys.localizedNames, { sv: "Systoliskt" });
+  assertEquals(svSys.localizedDescriptions, {
+    sv: "Systoliskt blodtryck.",
+    en: "Peak systemic arterial blood pressure.",
+  });
+  assertEquals(deSys.localizedDescriptions, {
+    de: "Systolischer Blutdruck.",
+  });
 
   const enEvent = nodesWith(english.tree, "at0006").find((n) =>
     n.name === "Any event"
   );
   assertExists(enEvent);
+  assertEquals(enEvent.id, "any_event");
   const svEvent = nodesWith(swedish.tree, "at0006").find((n) =>
     n.aqlPath === enEvent.aqlPath
   );
-  const deEvent = nodesWith(german.tree, "at0006").find((n) =>
+  const chainEvent = nodesWith(swedishThenGerman.tree, "at0006").find((n) =>
     n.aqlPath === enEvent.aqlPath
   );
+  const chainSys = nodesWith(swedishThenGerman.tree, "at0004").find((n) =>
+    n.aqlPath === enSys.aqlPath
+  );
   assertExists(svEvent);
-  assertExists(deEvent);
+  assertExists(chainEvent);
+  assertExists(chainSys);
   assertEquals(
     svEvent.name,
     "Any event",
-    "a missing Swedish term falls back to the original language",
+    "a missing Swedish term falls back to the next listed language, then the original",
   );
-  assertEquals(svEvent.localizedNames?.sv, undefined);
-  assertEquals(svEvent.localizedNames?.en, "Any event");
-  assertEquals(deEvent.name, "Beliebiges Ereignis");
-  assertEquals(svEvent.id, enEvent.id);
-  assertEquals(deEvent.id, enEvent.id);
+  assertEquals(svEvent.localizedNames, { en: "Any event" });
+  assertEquals(svEvent.id, "any_event");
+  assertEquals(chainSys.name, "Systoliskt");
+  assertEquals(chainSys.id, "systoliskt");
+  assertEquals(
+    chainEvent.name,
+    "Beliebiges Ereignis",
+    "de is the next listed language and wins over the original English term",
+  );
+  assertEquals(chainEvent.id, "beliebiges_ereignis");
+  assertEquals(chainEvent.localizedNames, { de: "Beliebiges Ereignis" });
+  const chainOriginalIds = buildWebTemplate(opt, {
+    languages: ["sv", "de"],
+    idLanguage: "original",
+  });
+  const chainEventOriginal = nodesWith(chainOriginalIds.tree, "at0006").find((
+    n,
+  ) => n.aqlPath === enEvent.aqlPath);
+  assertEquals(chainEventOriginal?.name, "Beliebiges Ereignis");
+  assertEquals(chainEventOriginal?.id, "any_event");
 
   const enObs = nodesWith(english.tree, BP)[0];
   const svObs = nodesWith(swedish.tree, BP)[0];
@@ -131,7 +177,8 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
   assertExists(svObs);
   assertEquals(enObs.name, "Blood pressure");
   assertEquals(svObs.name, "Blodtryck");
-  assertEquals(svObs.id, enObs.id);
+  assertEquals(svObs.id, "blodtryck");
+  assertEquals(enObs.aqlPath, svObs.aqlPath);
 
   const enPosition = nodesWith(english.tree, "at0008")[0];
   const svPosition = nodesWith(swedish.tree, "at0008")[0];
@@ -142,16 +189,24 @@ Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scope
   const svSitting = svPosition.inputs?.find((i) => i.suffix === "code")?.list
     ?.find((item) => item.value === "at1001");
   assertEquals(enSitting?.label, "Sitting");
+  assertEquals(enSitting?.localizedLabels, undefined);
   assertEquals(svSitting?.label, "Sittande");
   assertEquals(svSitting?.localizedLabels, {
-    en: "Sitting",
     sv: "Sittande",
-    de: "Sitzend",
+    en: "Sitting",
   });
 
-  assertEquals(identity(swedish.tree), identity(english.tree));
-  assertEquals(identity(german.tree), identity(english.tree));
-  assertEquals(identity(qq.tree), identity(english.tree));
+  const languagesWin = buildWebTemplate(opt, {
+    languages: ["de"],
+    language: "sv",
+  });
+  assertEquals(languagesWin.defaultLanguage, "de");
+  assertEquals(
+    nodesWith(languagesWin.tree, "at0004").find((n) =>
+      n.aqlPath === enSys.aqlPath
+    )?.name,
+    "Systolisch",
+  );
 
   applyOperationalTemplateTermScopes(opt, "sv");
   assertEquals(
@@ -189,7 +244,11 @@ Deno.test("#159 single-language OPT ids and names stay on the original language"
 
   const english = buildWebTemplate(opt);
   const requested = buildWebTemplate(opt, { language: "sv" });
+  const listed = buildWebTemplate(opt, { languages: ["sv"] });
+  assertEquals(requested.defaultLanguage, "sv");
+  assertEquals(requested.languages, ["sv"]);
   assertEquals(identity(requested.tree), identity(english.tree));
+  assertEquals(identity(listed.tree), identity(requested.tree));
   assertEquals(
     nodesWith(requested.tree, "at0004").map((n) => n.name),
     nodesWith(english.tree, "at0004").map((n) => n.name),
@@ -212,13 +271,19 @@ Deno.test("#159 language_test.opt lists ontology languages and builds fi/en/de",
   assertEquals(availableTemplateLanguages(opt), ["de", "en", "ar-sy", "fi"]);
 
   const german = buildWebTemplate(opt);
-  const english = buildWebTemplate(opt, { language: "en" });
-  const finnish = buildWebTemplate(opt, { defaultLanguage: "fi" });
+  const english = buildWebTemplate(opt, { languages: ["en", "fi"] });
+  const finnish = buildWebTemplate(opt, {
+    language: "fi",
+    idLanguage: "original",
+  });
 
+  assertEquals(german.defaultLanguage, "de");
+  assertEquals(german.languages, ["de"]);
   const deSys = nodesWith(german.tree, "at0004").find((n) =>
     n.name === "Systolisch"
   );
   assertExists(deSys, "original-language inline term");
+  assertEquals(deSys.id, "systolisch");
   const enSys = nodesWith(english.tree, "at0004").find((n) =>
     n.aqlPath === deSys.aqlPath
   );
@@ -226,11 +291,13 @@ Deno.test("#159 language_test.opt lists ontology languages and builds fi/en/de",
     n.aqlPath === deSys.aqlPath
   );
   assertEquals(enSys?.name, "Systolic");
+  assertEquals(enSys?.id, "systolic");
+  assertEquals(enSys?.aqlPath, deSys.aqlPath);
+  assertEquals(enSys?.localizedNames, {
+    en: "Systolic",
+    fi: "Systolinen",
+  });
   assertEquals(fiSys?.name, "Systolinen");
-  assertEquals(enSys?.id, deSys.id);
   assertEquals(fiSys?.id, deSys.id);
-  assertEquals(identity(english.tree), identity(german.tree));
-  assertEquals(identity(finnish.tree), identity(german.tree));
-  assertEquals(fiSys?.localizedNames?.["ar-sy"], "الانقباضي");
-  assertEquals(fiSys?.localizedNames?.fi, "Systolinen");
+  assertEquals(fiSys?.localizedNames, { fi: "Systolinen" });
 });

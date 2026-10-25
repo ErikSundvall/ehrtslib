@@ -22,6 +22,7 @@ export {
   buildWebTemplate,
   WebTemplateBuilder,
   type WebTemplateBuilderOptions,
+  type WebTemplateIdLanguage,
 } from "./web_template_builder.ts";
 
 export {

@@ -19,7 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
-`buildWebTemplate` accepts `language` as an alias of `defaultLanguage` (issue #159). `defaultLanguage` still wins when both are set. Web Template `languages`, and per-node `localizedNames` / `localizedDescriptions` for every language that has a term, are filled from OPT 1.4 `<ontology>` and `<component_ontologies>` as well as the merged ontology. Node ids stay on the original language. `applyOperationalTemplateTermScopes(opt, language)` files inline OPT terms under the template's original language when that is known; `language` is only the inline-term language when the template has none.
+`buildWebTemplate` takes `languages` (primary language first) and `idLanguage` (`"primary"` or `"original"`, default `"primary"`) (issue #159). `language` is shorthand for `languages: [language]`. The previous option `defaultLanguage` is still accepted as that shorthand and is used only when `languages` and `language` are omitted. Output `defaultLanguage` is the primary language. Output `languages` is the selected list, not every language on the OPT; `availableTemplateLanguages` still lists all of them. `original_language` on the operational template is unchanged. `applyOperationalTemplateTermScopes(opt, language)` files inline OPT terms under the template's original language when that is known; `language` is only the inline-term language when the template has none.
 
 `OPT2Serializer`, `filterOperationalTemplateLanguages`, and `opt2SizeMetrics` in `generation/mod.ts` export in-memory `OPERATIONAL_TEMPLATE` to ADL2 `operational_template` text (OPT2), with optional language filtering and separate `inlineTermLabels` enrichment (issue #130).
 

@@ -30,10 +30,7 @@ import {
   type TermEntry,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
-import {
-  availableTemplateLanguages,
-  languageCode,
-} from "../../generation/term_codes.ts";
+import { languageCode } from "../../generation/term_codes.ts";
 import {
   readTemplateId,
   type TermBag,
@@ -65,17 +62,38 @@ function complexShellFromSlot(
   return obj;
 }
 
+/**
+ * Which language supplies Web Template node ids.
+ * `"primary"` slugs the resolved label (primary language, then the other
+ * listed languages, then `original_language`). `"original"` slugs
+ * `original_language` only.
+ */
+export type WebTemplateIdLanguage = "primary" | "original";
+
 export interface WebTemplateBuilderOptions {
   /**
-   * Language for node `name` / `localizedName` and input labels.
-   * `language` is the same option. When both are set, `defaultLanguage` wins.
-   * Ids and AQL paths stay those of the template's original language.
-   * A term missing in the requested language falls back to the original
-   * language for that term only.
+   * Languages to include, in order. The first entry is the primary language:
+   * it drives labels and, unless `idLanguage` is `"original"`, node ids.
+   * Further entries are additional languages for `localizedNames`,
+   * `localizedDescriptions`, and coded-list `localizedLabels`.
+   * Omitted means `language`, then `defaultLanguage`, then the template's
+   * `original_language` alone.
+   */
+  languages?: string[];
+  /**
+   * Shorthand for `languages: [language]`. Ignored when `languages` is set.
+   */
+  language?: string;
+  /**
+   * Previous name of `language`. Ignored when `languages` or `language` is set.
    */
   defaultLanguage?: string;
-  /** Alias of `defaultLanguage`. */
-  language?: string;
+  /**
+   * Language used for node ids, and therefore FLAT path segments.
+   * Defaults to `"primary"`. AQL paths stay archetype node ids plus any
+   * fixed `name/value` predicate already written in the OPT.
+   */
+  idLanguage?: WebTemplateIdLanguage;
   /** Mark composition-level metadata nodes as ctx (for FLAT ctx/ prefix). */
   includeContextNodes?: boolean;
   /**
@@ -362,14 +380,29 @@ function dedupeSiblingIds(node: WebTemplateNode): void {
   for (const child of node.children) dedupeSiblingIds(child);
 }
 
+/** Trim, drop empties, and keep the first occurrence of each language code. */
+function orderedLanguages(values: readonly string[] | undefined): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values ?? []) {
+    const lang = value.trim();
+    if (!lang || seen.has(lang)) continue;
+    seen.add(lang);
+    out.push(lang);
+  }
+  return out;
+}
+
 export class WebTemplateBuilder {
-  private lang: string;
-  private requestedLang?: string;
+  private lang = "en";
+  private options?: WebTemplateBuilderOptions;
   private includeContext: boolean;
   private applyL10n: boolean;
   private templateTerms: Record<string, TermBag> = {};
   private archetypeTerms: Record<string, TermDefinitionTable> = {};
-  private languages: string[] = [];
+  /** Primary language first, then the additional languages the caller included. */
+  private selectedLanguages: string[] = [];
+  private idLanguage: WebTemplateIdLanguage = "primary";
   private bagCache = new Map<
     string,
     { template: TermBag; archetype: Record<string, TermBag> }
@@ -378,10 +411,12 @@ export class WebTemplateBuilder {
   private originalLang = "en";
 
   constructor(options?: WebTemplateBuilderOptions) {
-    this.requestedLang = options?.defaultLanguage ?? options?.language;
-    this.lang = this.requestedLang ?? "en";
+    this.options = options;
     this.includeContext = options?.includeContextNodes ?? true;
     this.applyL10n = options?.applyL10nAnnotations ?? true;
+    this.idLanguage = options?.idLanguage === "original"
+      ? "original"
+      : "primary";
   }
 
   private bags(lang: string): {
@@ -429,18 +464,30 @@ export class WebTemplateBuilder {
   }
 
   /**
-   * Requested language, with each missing text or description filled from
-   * the original language.
+   * Primary language, then the other listed languages, then
+   * `original_language` when it was not already listed.
+   */
+  private fallbackLanguages(): string[] {
+    if (this.selectedLanguages.includes(this.originalLang)) {
+      return this.selectedLanguages;
+    }
+    return [...this.selectedLanguages, this.originalLang];
+  }
+
+  /**
+   * Label for the primary language. Each missing text or description is
+   * filled from the next language in `fallbackLanguages()`.
    */
   private displayTerm(obj: openehr_am.C_OBJECT): TermEntry {
-    const requested = this.labelTerm(obj, this.lang);
-    if (this.lang === this.originalLang) return requested;
-    if (requested.text && requested.description) return requested;
-    const original = this.labelTerm(obj, this.originalLang);
-    return {
-      text: requested.text ?? original.text,
-      description: requested.description ?? original.description,
-    };
+    let text: string | undefined;
+    let description: string | undefined;
+    for (const lang of this.fallbackLanguages()) {
+      const term = this.labelTerm(obj, lang);
+      if (!text && term.text) text = term.text;
+      if (!description && term.description) description = term.description;
+      if (text && description) break;
+    }
+    return { text, description };
   }
 
   private localizedMaps(obj: openehr_am.C_OBJECT): {
@@ -449,8 +496,7 @@ export class WebTemplateBuilder {
   } {
     const names: Record<string, string> = {};
     const descriptions: Record<string, string> = {};
-    const langs = this.languages.length ? this.languages : [this.lang];
-    for (const lang of langs) {
+    for (const lang of this.selectedLanguages) {
       const term = this.labelTerm(obj, lang);
       if (term.text) names[lang] = term.text;
       if (term.description) descriptions[lang] = term.description;
@@ -459,6 +505,17 @@ export class WebTemplateBuilder {
       names: Object.keys(names).length ? names : undefined,
       descriptions: Object.keys(descriptions).length ? descriptions : undefined,
     };
+  }
+
+  private idText(
+    obj: openehr_am.C_OBJECT,
+    display: TermEntry,
+    idHint: string,
+  ): string {
+    if (this.idLanguage === "original") {
+      return this.labelTerm(obj, this.originalLang).text ?? idHint;
+    }
+    return display.text ?? idHint;
   }
 
   private termFields(
@@ -470,14 +527,9 @@ export class WebTemplateBuilder {
     "id" | "name" | "localizedName" | "localizedNames" | "localizedDescriptions"
   > {
     const display = this.displayTerm(obj);
-    // Ids always come from the original language so every requested language
-    // produces the same id. A missing original term keeps the previous hint
-    // (`rm` type, attribute name, or "event"), which is what a single-language
-    // build already used.
-    const idText = this.labelTerm(obj, this.originalLang).text ?? idHint;
     const maps = this.localizedMaps(obj);
     return {
-      id: normalizeWebTemplateId(idText),
+      id: normalizeWebTemplateId(this.idText(obj, display, idHint)),
       name: display.text ?? (nameFallback ? idHint : undefined),
       localizedName: display.text,
       localizedNames: maps.names,
@@ -485,24 +537,27 @@ export class WebTemplateBuilder {
     };
   }
 
-  private labelForCode(code: string, scope?: string): string | undefined {
-    const bags = this.bags(this.lang);
-    const text = resolveTermEntry(
+  private textForCode(
+    code: string,
+    lang: string,
+    scope?: string,
+  ): TermEntry | undefined {
+    const bags = this.bags(lang);
+    return resolveTermEntry(
       code,
       undefined,
       bags.template,
       bags.archetype,
       scope,
-    )?.text;
-    if (text || this.lang === this.originalLang) return text;
-    const original = this.bags(this.originalLang);
-    return resolveTermEntry(
-      code,
-      undefined,
-      original.template,
-      original.archetype,
-      scope,
-    )?.text;
+    );
+  }
+
+  private labelForCode(code: string, scope?: string): string | undefined {
+    for (const lang of this.fallbackLanguages()) {
+      const text = this.textForCode(code, lang, scope)?.text;
+      if (text) return text;
+    }
+    return undefined;
   }
 
   private codeLabels(
@@ -515,16 +570,8 @@ export class WebTemplateBuilder {
   } {
     const localizedLabels: Record<string, string> = {};
     const localizedDescriptions: Record<string, string> = {};
-    const langs = this.languages.length ? this.languages : [this.lang];
-    for (const lang of langs) {
-      const bags = this.bags(lang);
-      const entry = resolveTermEntry(
-        code,
-        undefined,
-        bags.template,
-        bags.archetype,
-        scope,
-      );
+    for (const lang of this.selectedLanguages) {
+      const entry = this.textForCode(code, lang, scope);
       if (entry?.text) localizedLabels[lang] = entry.text;
       if (entry?.description) localizedDescriptions[lang] = entry.description;
     }
@@ -606,33 +653,25 @@ export class WebTemplateBuilder {
       "template.en.v1";
 
     const scoped = opt as OperationalTemplateWithTermScopes;
-    const defaultLanguage = languageCode(opt.original_language) ??
+    this.originalLang = languageCode(opt.original_language) ??
       languageCode(
         (opt.ontology as { original_language?: unknown } | undefined)
           ?.original_language,
       ) ??
-      this.requestedLang ?? "en";
-
-    this.originalLang = defaultLanguage;
+      "en";
+    const listed = orderedLanguages(this.options?.languages);
+    const single = this.options?.language?.trim() ||
+      this.options?.defaultLanguage?.trim();
+    this.selectedLanguages = listed.length
+      ? listed
+      : [single || this.originalLang];
+    this.lang = this.selectedLanguages[0];
     this.templateTerms = (opt.ontology?.term_definitions ?? {}) as Record<
       string,
       TermBag
     >;
     this.archetypeTerms = scoped.archetype_term_definitions ?? {};
-    this.languages = availableTemplateLanguages(scoped);
     this.bagCache.clear();
-    // The requested language is used when any archetype bag or the merged
-    // ontology has it. Otherwise the original language, then the first
-    // language that actually has terms.
-    const hasTerms = (lang: string): boolean => {
-      if (Object.keys(this.templateTerms[lang] ?? {}).length > 0) return true;
-      return Object.values(this.archetypeTerms).some((table) =>
-        Object.keys(table?.[lang] ?? {}).length > 0
-      );
-    };
-    this.lang = [this.requestedLang, defaultLanguage, ...this.languages].find(
-      (lang): lang is string => !!lang && hasTerms(lang),
-    ) ?? this.requestedLang ?? defaultLanguage;
     this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};
 
     if (!opt.definition) {
@@ -672,8 +711,8 @@ export class WebTemplateBuilder {
     return {
       templateId,
       version: "1.0.0",
-      defaultLanguage,
-      ...(this.languages.length ? { languages: this.languages } : {}),
+      defaultLanguage: this.lang,
+      languages: this.selectedLanguages,
       tree: fullTree,
     };
   }
