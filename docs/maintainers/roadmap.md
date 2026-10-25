@@ -56,7 +56,8 @@ The design covers every versioned type; delivery is staged:
    envelope (all generic over `VERSION<T>`), single-app adapter, for
    **COMPOSITION** first. Template binding with canonical hash, validation
    (complete and incomplete), conflict data on 412, ADL 1.4 down-conversion
-   at commit.
+   at commit, and up-conversion of legacy OPT 1.4 XML to an ADL2 operational
+   template with id-codes.
 2. Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then
    demographic `PARTY` types. No log or envelope format changes.
 3. Pluggable storage and optional encrypted local draft persistence.
@@ -72,8 +73,6 @@ The design covers every versioned type; delivery is staged:
    create, read and patch) and canonical XML (create, and patch with RFC
    5261 XML Patch). Later: an htmx add-on for server-rendered forms.
 
-Open item: check whether legacy OPT 1.4 XML can be up-converted to an ADL2
-operational template with id-codes (archetype-level ADL 1.4 → ADL2 exists).
 
 ## Phase X - multiuser contribution builder
 CRDT-based multi-user / multi-device contribution builder for collaborative

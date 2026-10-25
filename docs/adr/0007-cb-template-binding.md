@@ -36,7 +36,8 @@ data.
   (`parser/adl14_to_adl2_converter.ts`, applied automatically by the
   parser). Full up-conversion of a legacy OPT 1.4 XML into an ADL2
   operational template with id-codes is not verified yet; the OPT XML parser
-  currently keeps at-codes. This is an open implementation item.
+  currently keeps at-codes. Decided by Erik (2026-10-25): this up-conversion
+  is part of phase 1, so legacy OPT 1.4 templates can be used from the start.
 - ADL2 id-codes remove the ADL 1.4 need for sibling name predicates, but not
   the need to tell runtime instances apart; that is what
   [ADR 0003](0003-cb-identity-and-uids.md) uids are for.
