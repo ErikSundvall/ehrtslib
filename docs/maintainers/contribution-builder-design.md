@@ -236,10 +236,16 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   is off by default and encrypted at rest when on. An optional append-only
   log sink streams the log to durable storage while editing.
 - **Commit envelope and provenance**
-  ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)): the log
-  hash, the optional log URI and the builder name, version, log format and
-  CRDT library version go into `AUDIT_DETAILS.description`. Every commit
-  links the log this way.
+  ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)): every
+  commit links the log from the contribution's `AUDIT_DETAILS.description`
+  (`oplog sha256:<hex>`, plus a `DV_URI` hyperlink when a log URI is given).
+  Each committed top-level item carries a `FEEDER_AUDIT`:
+  `originating_system_audit` (supplied by the caller) describes what created
+  the content, with form name and version and renderer in `other_details`;
+  `feeder_system_audit` (always set by the builder) has `system_id`
+  `ehrtslib-contribution-builder` and the builder version, log format and
+  CRDT library version in `other_details`. A missing
+  `originating_system_audit` gives a warning that can be silenced.
 
 ### 9.1 Commit sequence
 
@@ -247,6 +253,9 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
    on invalid present content (incomplete mode).
 2. Set any missing build fields that the caller supplies at commit
    (composer, committer).
+   Set `FEEDER_AUDIT` on each top-level item: the caller's
+   `originating_system_audit` (warn if missing) and the builder's
+   `feeder_system_audit`.
 3. Down-convert codes if the target CDR needs ADL 1.4.
 4. Serialise the log, compute `sha256`, hand the bytes to the storage
    adapter, and (if a URI comes back or is given) write the audit
