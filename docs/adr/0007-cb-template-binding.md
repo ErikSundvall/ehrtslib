@@ -53,6 +53,41 @@ data.
   the need to tell runtime instances apart; that is what
   [ADR 0003](0003-cb-identity-and-uids.md) uids are for.
 
+## Implementation (phase 1, #163)
+
+Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
+`checkTemplateBinding`), `contribution_builder/jcs.ts` (RFC 8785),
+`parser/legacy/opt14_upconvert.ts` and `parser/legacy/opt14_code_mapping.ts`.
+
+- **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
+  `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=am2-archie-1`.
+- **Hashed form**: `JsonCanonicalSerializer` output for the ADL2
+  `OPERATIONAL_TEMPLATE` (`_type` on every object), minus identity and tool
+  identifiers that the binding records separately (top-level `uid`,
+  `build_uid`, `archetype_id`, `template_id`, `adl_version`, and
+  `description.other_details` keys `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1`,
+  `build_uid`, `sem_ver`). A release that only bumps `sem_ver` therefore keeps
+  its hash and is reported as a version change.
+- **Array order**: RFC 8785 sorts object members, not arrays. `attributes` of
+  each object node are sorted by `rm_attribute_name` (then
+  `differential_path`). Sibling `children` and code lists keep document order,
+  which is template content (display order).
+- **OPT 1.4 up-conversion** (AM 2.x rule, as in Archie's converter): node ids
+  `at0004` → `id5`; local value codes stay at-codes without zero padding
+  (`at0009` → `at10`); value-set codes `ac0001` → `ac2`. Object nodes without
+  a node id in ADL 1.4, and local code lists with more than one code (which
+  get an ac value set), get minted codes: per archetype scope, numbering
+  starts after the highest code used in that scope, in depth-first document
+  order, so the result is deterministic. The rule is isolated in
+  `opt14_code_mapping.ts` because AM 2.4.0 (SPECAM-90, unreleased) moves ADL2
+  node ids back to at-codes; a rule change bumps the serialisation version.
+- **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
+  `template_id` and `sem_ver` from `description/other_details` (null when
+  absent).
+- **Rebind**: changed template id, version, hash or serialisation version is an
+  error-level issue (`migrationRequired`, `TemplateBindingMismatchError`). A
+  changed `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1` or `build_uid` is a warning.
+
 ## Consequences
 
 - Silent template drift is detected before replay or commit.

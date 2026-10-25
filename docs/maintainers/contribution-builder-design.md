@@ -200,11 +200,11 @@ Summary of [ADR 0007](../adr/0007-cb-template-binding.md):
 - For CDRs that need ADL 1.4 at-codes, the commit is down-converted with
   ehrtslib's existing ADL2 → 1.4 code mapping (`generation/id_to_at_code.ts`)
   and OPT 1.4 exporter (`exportAdl2TemplateToOpt14`).
-- ADL 1.4 sources: ehrtslib already converts ADL 1.4 **archetype** text to
-  ADL2 (`parser/adl14_to_adl2_converter.ts`). Whether a legacy OPT 1.4 XML
-  can be brought fully to an ADL2 operational template with id-codes is not
-  yet verified (the OPT XML parser keeps at-codes). This is only needed for
-  third-party templates that exist only as 1.4.
+- ADL 1.4 sources: ehrtslib converts ADL 1.4 **archetype** text to ADL2
+  (`parser/adl14_to_adl2_converter.ts`), and a legacy OPT 1.4 XML to an ADL2
+  operational template with id-codes (`parser.upconvertOpt14ToAdl2`, #163).
+  The hash rule and code mapping are described in ADR 0007, section
+  "Implementation".
 
 ## 8. Validation and lifecycle
 

@@ -27,6 +27,7 @@ export const LIBRARY_ENTRY_FILES = [
 export const LIBRARY_PACKAGES = [
   "am",
   "base",
+  "contribution_builder",
   "generation",
   "lang",
   "meta",
@@ -46,6 +47,7 @@ export const LIBRARY_PACKAGES = [
 export const LIBRARY_CLOSURE_ROOTS = [
   ...LIBRARY_ENTRY_FILES,
   "parser/mod.ts",
+  "contribution_builder/mod.ts",
   "serialization/mod.ts",
   "generation/mod.ts",
   "validation/mod.ts",

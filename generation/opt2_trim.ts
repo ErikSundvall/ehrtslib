@@ -34,7 +34,7 @@ function filterTermTable(
  * `structuredClone` turns `definition` into a plain `Object`, and the ADL2
  * serializer then emits nothing for it (`instanceof` checks fail).
  */
-function clonePreservingPrototype<T>(
+export function clonePreservingPrototype<T>(
   value: T,
   seen = new WeakMap<object, unknown>(),
 ): T {
