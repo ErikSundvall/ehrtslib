@@ -48,6 +48,8 @@ export interface ValidationMessage {
   sourceLine?: number;
   /** 1-based column in the original JSON source (when available). */
   sourceColumn?: number;
+  /** Node id (or archetype id for an archetype root) of the constraint the message is about. */
+  constraintNodeId?: string;
 }
 
 /**
@@ -281,6 +283,10 @@ export class TemplateValidator {
     // Validate occurrences
     if (cObject.occurrences) {
       const msgs = this.occurrenceValidator.validate(rmNode, cObject, path);
+      const nodeId = cObject instanceof openehr_am.C_ARCHETYPE_ROOT
+        ? cObject.archetype_ref
+        : cObject.node_id;
+      if (nodeId) for (const m of msgs) m.constraintNodeId = nodeId;
       errors.push(...msgs.filter(m => m.severity === "error"));
       warnings.push(...msgs.filter(m => m.severity === "warning"));
     }
@@ -963,6 +969,20 @@ function matchConstraintChild(
   rmItem: unknown,
 ): openehr_am.C_OBJECT | undefined {
   if (children.length === 1) return children[0];
+  // Siblings of the same RM type (several ELEMENTs under ITEM_TREE.items)
+  // are told apart by node id: archetype_node_id is the archetype id for
+  // archetype roots and the node id otherwise.
+  const nodeId = rmItem && typeof rmItem === "object"
+    ? (rmItem as { archetype_node_id?: unknown }).archetype_node_id
+    : undefined;
+  if (typeof nodeId === "string" && nodeId) {
+    const byId = children.find((child) =>
+      child instanceof openehr_am.C_ARCHETYPE_ROOT
+        ? child.archetype_ref === nodeId
+        : child.node_id === nodeId
+    );
+    if (byId) return byId;
+  }
   const actual = TypeRegistry.getTypeNameFromInstance(rmItem);
   if (!actual) return children[0];
   return children.find((child) => {

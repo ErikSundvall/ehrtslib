@@ -58,3 +58,18 @@ export {
   type SetValueOperation,
   SHORT_KEY_RE,
 } from "./operation_log.ts";
+export {
+  type DraftProblem,
+  type DraftProblemKind,
+  type DraftProblemSource,
+  type DraftValidateOptions,
+  type DraftValidationMode,
+  type DraftValidationResult,
+  DraftValidator,
+  LIFECYCLE_STATE_COMPLETE,
+  LIFECYCLE_STATE_INCOMPLETE,
+  lifecycleStateFor,
+  parseInstancePath,
+  problemsForNode,
+  validateDraft,
+} from "./draft_validation.ts";

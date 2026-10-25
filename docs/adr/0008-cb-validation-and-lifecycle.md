@@ -45,3 +45,42 @@ version that is missing mandatory content (ehrbase#1630), while FerroEHR
 - **Validation only at commit.** Rejected: poor user feedback.
 - **Treat incomplete as unvalidated.** Rejected: present content must still
   be correct.
+
+## Implementation (phase 1, #165)
+
+Code: `contribution_builder/draft_validation.ts` (`DraftValidator`,
+`validateDraft`, `problemsForNode`, `lifecycleStateFor`).
+
+- The checks are ehrtslib's existing `TemplateValidator` (template
+  constraints) and its `RMSpecificationValidator` (RM rules and BMM
+  invariants), run on the draft's canonical JSON. The draft must be validated
+  against the template it is bound to (same hash); otherwise
+  `TemplateBindingMismatchError`.
+- Lifecycle: `complete` = openEHR code 532, `incomplete` = 553.
+  `lifecycleStateFor(mode)` gives the `DV_CODED_TEXT` that commit (#166)
+  records.
+- Every problem has `kind`: `missing` (required content is absent: existence,
+  occurrences or cardinality lower bound, an RM-required attribute, or an RM
+  invariant that only tests for presence, such as `HISTORY.Events_valid`) or
+  `invalid` (present content is wrong). `source` is `template` or `rm`.
+- **incomplete**: template `missing` problems are listed in `missing` but do
+  not fail. `invalid` problems fail ("may be missing, but it may not be
+  wrong", RM Common section 6). RM-level `missing` problems (no composer, no
+  `ENTRY.subject`, …) also fail, because no CDR can store a COMPOSITION
+  without them.
+- **complete**: everything fails.
+- RM-level checks come from the RM validator: language (ISO 639-1),
+  territory (ISO 3166-1), category (openEHR 431 / 433 / 451), composer
+  (required, `PARTY_PROXY` invariants) and `ENTRY.subject` (required).
+- Each problem names the nearest LOCATABLE node at or above it: `node` (short
+  key, or `root` for the COMPOSITION) and `uid` (`<uuid>::<short key>`; none
+  for the root, whose uid is fixed at commit). Paths: `path` (instance path,
+  `/content[0]/data/events[0]/…`), `archetypePath` (node ids,
+  `/content[openEHR-EHR-OBSERVATION.x.v1]/data[id2]/…`) and `relativePath`
+  (below `node`, usable with `setValue`). For a missing node,
+  `constraintNodeId` names the template node.
+- Removing the last member of a list now drops the attribute
+  (`events: []` → no `events`); RM invariants reject an empty list.
+
+Not yet: the quick check after each operation, and the per-CDR capability
+profile (follow-ups).
