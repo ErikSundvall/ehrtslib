@@ -56,7 +56,8 @@ Every change must still go through the operation log and target a node uid
   - `namePath` plus optional `lang`: a path of node names taken from the
     bound operational template's terminology in that language.
   - `symbol`: a symbolic node name defined by a template annotation,
-    `a.id` by default (the annotation key is configurable). Symbols are
+    read from a configurable list of annotation keys, by default `a.id` and
+    `am.symbol_binding` (the final default is question 5). Symbols are
     language-independent, so they suit rules, expressions, form logic and
     automation. A symbol may be combined with further name or code steps
     below the annotated node. Spec anchors: template annotations are the
@@ -128,9 +129,10 @@ Every change must still go through the operation log and target a node uid
 - **Natural-language names as the only way of addressing.** Rejected: names
   are ambiguous and change with language and translation; code paths and
   uids are needed for reliable automation.
-- **Inventing a CB-specific alias mechanism.** Rejected: the `a.id`
-  annotation already exists in community discussion and in ehrtslib's
-  annotation handling, and template tools can author it today.
+- **Inventing a CB-specific alias mechanism.** Rejected: symbol annotations
+  (`a.id`, and the later `am.symbol_binding` from t/2406 #46) already exist
+  in community discussion, ehrtslib's annotation handling knows the `a.`
+  family, and template tools can author annotations today.
 - **Matching on instance `name` values only.** Rejected as the default:
   names in data may be free text, but kept as an explicit step.
 
