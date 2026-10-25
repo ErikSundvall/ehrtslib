@@ -39,7 +39,8 @@ create/update end user docs
 ## Phase X - Contribution builder
 Design: [contribution-builder-design.md](contribution-builder-design.md) and
 ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
-[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus
+[0011](../adr/0011-cb-optional-graphql-api.md) (optional GraphQL API).
 
 Implement the "contribution builder" suggested in
 https://link.springer.com/article/10.1186/1472-6947-13-57, including the verbs
@@ -59,6 +60,10 @@ The design covers every versioned type; delivery is staged:
    demographic `PARTY` types. No log or envelope format changes.
 3. Pluggable storage and optional encrypted local draft persistence.
 4. Integration tests against EHRbase and FerroEHR dev instances.
+5. Optional GraphQL module over build content
+   ([ADR 0011](../adr/0011-cb-optional-graphql-api.md)): addressing by uid,
+   ADL2 code path, or node names in a chosen language. Every mutation goes
+   through the operation log.
 
 Open item: check whether legacy OPT 1.4 XML can be up-converted to an ADL2
 operational template with id-codes (archetype-level ADL 1.4 → ADL2 exists).

@@ -3,7 +3,8 @@
 Status: **draft for review.** Design only; nothing here is implemented yet.
 Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
-[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL
+API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md).
 
 ## 1. Product
 
@@ -287,6 +288,26 @@ Discarded drafts are **not committed to the CDR**.
   path. A single first commit as `abandoned` is not covered by the RM Common
   section 6 lifecycle (see 11.8). The maintainer judged the CDR route
   overkill; the log is sufficient (ADR 0004, 0005, 0010).
+
+### 9.3 Optional GraphQL API
+
+Summary of [ADR 0011](../adr/0011-cb-optional-graphql-api.md), still open
+for review:
+
+- An optional module exposes one contribution build as a GraphQL schema,
+  executed in process. HTTP or WebSocket serving is up to the caller.
+- It covers uncommitted CB content only. Committed EHR data stays with AQL
+  and REST.
+- A node is addressed by `uid`, by `codePath` (ADL2 id-codes, or at-codes
+  for ADL 1.4 callers), or by `namePath` with an optional ISO `lang`. The
+  default language is the build's primary language (`lang.1`), and names
+  come from the bound template's terminology.
+- Every address resolves to uids, and every mutation becomes ordinary
+  operations in the log, with the author taken from the request context.
+  An ambiguous or empty address in a mutation is an error that lists the
+  candidates.
+- Nodes expose `uid`, `codePath`, `namePath` and their validation
+  `problems`, so callers can switch between the three ways of addressing.
 
 ## 10. Testing
 
