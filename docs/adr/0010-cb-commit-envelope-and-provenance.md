@@ -69,7 +69,8 @@ The RM (Common, archetyped package) offers:
     a warning (silenced by a config flag) and still sets
     `feeder_system_audit`. Because `originating_system_audit` is mandatory
     in `FEEDER_AUDIT`, the builder then fills it with a minimal placeholder
-    (`system_id` from config, or the builder id) so the RM object is valid.
+    (`system_id` from config, or the builder id) so the RM object is valid. Decided
+    by Erik (2026-10-25).
 - **Optional, pending the maintainer's review:** `FEEDER_AUDIT.original_content`
   references the replayable log as a `DV_MULTIMEDIA` with `uri` (and the
   log's media type), in addition to the link and hash in the contribution
