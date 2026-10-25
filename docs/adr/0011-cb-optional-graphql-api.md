@@ -118,3 +118,14 @@ Every change must still go through the operation log and target a node uid
    which phase?
 5. **Prior work:** how much to align with earlier openEHR community
    discussions of GraphQL (to be summarised in the design document).
+   Evidence so far (design document section 9.3, "Prior openEHR GraphQL
+   discussions"):
+   - Earlier threads treat GraphQL as an optional layer on top of the
+     standard APIs, and several of them as an interface to a contribution
+     builder.
+   - The one published OPT-to-GraphQL generator moved away from per-path
+     types towards shared data value types.
+   - The only normative naming rules from term texts are the Simplified
+     Formats node id rules.
+   - No prior work covers mutations, choices or slots, so there is little to
+     align with beyond those naming rules.

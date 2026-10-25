@@ -312,6 +312,49 @@ for review:
 - Nodes expose `uid`, `codePath`, `namePath` and their validation
   `problems`, so callers can switch between the three ways of addressing.
 
+#### Prior openEHR GraphQL discussions (informative)
+
+Earlier openEHR Discourse threads on GraphQL, and what they mean for this
+API:
+
+- [AQL through GraphQL](https://discourse.openehr.org/t/aql-through-graphql/1573)
+  (2021) discusses GraphQL as an aggregator over AQL, demographics and other
+  services. It describes GraphQL as one possible ITS for AQL and warns against
+  making openEHR depend on GraphQL. This is about committed data, so it is
+  out of scope here.
+- [CONTRIBUTION builder supporting collaborative editing? GraphQL?](https://discourse.openehr.org/t/contribution-builder-supporting-collaborative-multi-user-multi-device-editing-graphql-operational-transformation/2071)
+  (2021) proposes template-specific GraphQL for a contribution builder,
+  derived from the Web Template's simplified structure and naming. It values
+  "a simple object that hides much of the complexity, not unlike
+  FLAT/STRUCTURED".
+- [Generating GraphQL from OPTs](https://discourse.openehr.org/t/generating-graphql-from-opts/2144)
+  (2021–2022) describes a generator with one GraphQL type per template path.
+  It produced long path-derived type names and repeated copies of
+  unconstrained data value types, and was simplified to shared data value
+  types with separate constraints. This favours a generic schema, or shared
+  RM types, over per-path types.
+- [Separating Models from Implementation](https://discourse.openehr.org/t/separating-models-from-implementation/2093)
+  and [Modularisation vs openEHR monoliths](https://discourse.openehr.org/t/modularisation-vs-openehr-monoliths-what-would-be-interesting-today/2057)
+  (2021) place GraphQL as an optional simplification layer or a separable
+  module on top of the standard APIs and formats, not as part of the core.
+- [Querying an openEHR CDR with SQL, Cypher, and GraphQL?](https://discourse.openehr.org/t/querying-an-openehr-cdr-with-sql-cypher-and-graphql-yes-its-possible/17088)
+  (2026) debates at-codes versus natural-language keys. Language-dependent
+  names are the main objection. The proposed answers are rewriting names to
+  codes, or showing labels while storing codes, which matches using names
+  only as one way of addressing.
+- The [Simplified Formats](https://specifications.openehr.org/releases/ITS-REST/latest/simplified_formats.html)
+  node id rules (section 4.2) are the only normative openEHR naming rules
+  derived from term texts:
+  - lowercase snake case with Unicode letters kept;
+  - a numeric suffix for duplicate sibling names;
+  - a 0-based `:n` instance index.
+
+  GraphQL names are limited to `[_A-Za-z][_0-9A-Za-z]*`, so such ids are
+  valid as argument values but not always as field names.
+
+None of these threads defines GraphQL mutations, choice (`DV_*`
+alternative) handling or slot handling for openEHR content.
+
 ## 10. Testing
 
 Development setup on the maintainer box (not needed for unit tests):
