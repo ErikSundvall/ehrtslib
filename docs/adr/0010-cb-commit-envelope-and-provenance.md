@@ -1,8 +1,7 @@
 # Contribution Builder: commit envelope, log link and provenance in FEEDER_AUDIT
 
 Status: proposed (draft for review). Provenance in `FEEDER_AUDIT` decided by
-the maintainer; the `original_content` log reference is pending the
-maintainer's review. Part of the
+the maintainer; no `original_content` log reference (decided 2026-10-25). Part of the
 [Contribution Builder design](../maintainers/contribution-builder-design.md).
 
 ## Context
@@ -71,10 +70,9 @@ The RM (Common, archetyped package) offers:
     in `FEEDER_AUDIT`, the builder then fills it with a minimal placeholder
     (`system_id` from config, or the builder id) so the RM object is valid. Decided
     by Erik (2026-10-25).
-- **Optional, pending the maintainer's review:** `FEEDER_AUDIT.original_content`
-  references the replayable log as a `DV_MULTIMEDIA` with `uri` (and the
-  log's media type), in addition to the link and hash in the contribution
-  audit.
+- `FEEDER_AUDIT.original_content` is not set by the builder. Decided by
+  Erik (2026-10-25): the log link and hash in the contribution audit are
+  enough.
 - Future work: a small archetype for these `other_details` structures
   (form, renderer, builder, log format, CRDT library) would make the
   pattern clearer and queryable across systems.
