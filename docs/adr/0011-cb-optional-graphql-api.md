@@ -18,6 +18,12 @@ People and agents name nodes in different ways:
 - by **natural-language names** of the nodes in a chosen language, for
   example `Blodtryck/Systoliskt` in Swedish or `Blood pressure/Systolic` in
   English;
+- by **symbolic names from template annotations**, such as the `a.id`
+  annotation (for example `tobacco_user`) proposed in the openEHR Discourse
+  thread [Agreeing on optional user interface hints in templates](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19)
+  as a binding between a variable name in rules or expressions and a
+  template node. ehrtslib already treats the `a.` annotation family as
+  language-independent;
 - by **instance uid**, as the builder does internally ([ADR 0003](0003-cb-identity-and-uids.md)).
 
 Every change must still go through the operation log and target a node uid
@@ -42,13 +48,18 @@ Every change must still go through the operation log and target a node uid
 - **Scope is uncommitted CB content only**: drafts, their nodes, values,
   validation results, template binding and the build's audit input. Querying
   committed EHR data stays with AQL and the REST API.
-- **A node can be addressed in three ways**, all through one `NodeAddress`
+- **A node can be addressed in four ways**, all through one `NodeAddress`
   input that has exactly one of:
   - `uid`: the instance uid;
   - `codePath`: an ADL2 path with id-codes, or with at-codes for ADL 1.4
     style callers (mapped with the existing id-code to at-code mapping);
   - `namePath` plus optional `lang`: a path of node names taken from the
     bound operational template's terminology in that language.
+  - `symbol`: a symbolic node name defined by a template annotation,
+    `a.id` by default (the annotation key is configurable). Symbols are
+    language-independent, so they suit rules, expressions, form logic and
+    automation. A symbol may be combined with further name or code steps
+    below the annotated node.
 - **Language follows the ehrtslib language design** (ehrtslib#160): `lang`
   is an ISO language code. When it is left out, the build's primary language
   (`lang.1`) is used. A name with no translation falls back along the
@@ -61,6 +72,10 @@ Every change must still go through the operation log and target a node uid
   with an explicit instance-name step. Web Template node ids (Simplified
   Formats section 4.2, including the `_1` suffix for duplicate sibling names)
   are accepted as name-path steps too.
+- **Symbols bind to template nodes, not instances.** As Thomas Beale points
+  out in the same thread, the mapping from a template node to runtime data
+  is 1:N, so a symbol can match several instances. The index, uid and
+  ambiguity rules below apply to symbols as to any other address.
 - **Repeated instances** are picked with a 0-based index step (`event:1` for
   the second event, as in FLAT paths) or by uid. The result of resolving an
   address is always a list of uids.
@@ -83,8 +98,8 @@ Every change must still go through the operation log and target a node uid
 - **Results carry validation.** Each mutation returns the changed nodes with
   their quick-check results ([ADR 0008](0008-cb-validation-and-lifecycle.md)).
   Each node in a query can return its own `problems`, and every node exposes
-  its uid, code path and name path, so a caller can move between the three
-  ways of addressing.
+  its uid, code path, name path and symbol (if it has one), so a caller can
+  move between the four ways of addressing.
 
 ## Consequences
 
@@ -107,6 +122,9 @@ Every change must still go through the operation log and target a node uid
 - **Natural-language names as the only way of addressing.** Rejected: names
   are ambiguous and change with language and translation; code paths and
   uids are needed for reliable automation.
+- **Inventing a CB-specific alias mechanism.** Rejected: the `a.id`
+  annotation already exists in community discussion and in ehrtslib's
+  annotation handling, and template tools can author it today.
 - **Matching on instance `name` values only.** Rejected as the default:
   names in data may be free text, but kept as an explicit step.
 
@@ -120,14 +138,17 @@ Every change must still go through the operation log and target a node uid
    normalisation. Proposed: generic schema now, and an optional generated
    schema later with ASCII-folded Web Template ids as field names and the
    ADL2 code in a directive such as `@node(code: "id5")`.
-2. **Name-path syntax:** `/`-separated names as above, a list of steps in
+2. **Symbol uniqueness:** should duplicate `a.id` values in one template be
+   a template-authoring error, or resolved by scoping (for example by the
+   nearest enclosing annotated node)?
+3. **Name-path syntax:** `/`-separated names as above, a list of steps in
    the input type, or both.
-3. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
+4. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
    GraphQL mutations, or stay in the TypeScript API only?
-4. **Subscriptions:** should live changes (for example from other replicas
+5. **Subscriptions:** should live changes (for example from other replicas
    in the multi-user flavour) be offered as GraphQL subscriptions, and in
    which phase?
-5. **Prior work:** how much to align with earlier openEHR community
+6. **Prior work:** how much to align with earlier openEHR community
    discussions of GraphQL (to be summarised in the design document).
    Evidence so far (design document section 9.3, "Prior openEHR GraphQL
    discussions"):
