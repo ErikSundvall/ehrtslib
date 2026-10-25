@@ -60,8 +60,11 @@ The RM (Common, archetyped package) offers:
   - `feeder_system_audit` records that the content ran through the
     builder. The builder always sets it: `system_id` =
     `ehrtslib-contribution-builder` (or the id of another builder
-    implementation); `other_details` holds the builder (ehrtslib) version,
-    the log format version and the CRDT library name and version.
+    implementation); `other_details` holds the builder version (one value:
+    the ehrtslib release, which also fixes the CB version), the log format
+    version and the CRDT library name and version. Decided by Erik
+    (2026-10-25): the builder version must be readable from the committed
+    version or its content; this location satisfies that.
   - If the caller provides no `originating_system_audit`, the builder emits
     a warning (silenced by a config flag) and still sets
     `feeder_system_audit`. Because `originating_system_audit` is mandatory
