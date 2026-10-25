@@ -363,14 +363,15 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   `other_details`-style extension) on `AUDIT_DETAILS` for session or
   provenance references.
 
-### 11.8 Discarded drafts and the `abandoned` state (section 9, pending)
+### 11.8 Discarded drafts and the `abandoned` state (section 9)
 
-- RM Common, section 6: `801|abandoned|` is reached from `incomplete` by
-  the `abandon` transition, and "any transition requires the commit of a
-  new version". Throwing an unfinished item away is described as logical
-  deletion (`deleted`). A first commit directly in the `abandoned` state is
-  not described.
-- If deployments want the CDR to show that a discarded draft existed, the
-  spec-aligned route is two versions: commit as `incomplete`, then
-  `abandon`. Whether a single first commit as `abandoned` is acceptable is
-  a question to raise after testing on the CDRs.
+- The design records discarded drafts only in the operation log (a
+  `discard` operation), not in the CDR. When the build still commits other
+  drafts, the contribution audit links to that log as usual. A build in
+  which everything is discarded never commits, so only the optional server
+  log sink keeps a trace of it.
+- For reference, should a deployment later want the CDR to show discarded
+  drafts: RM Common, section 6, reaches `801|abandoned|` only from
+  `incomplete` by the `abandon` transition, and "any transition requires
+  the commit of a new version". A first commit directly in the `abandoned`
+  state is not described.
