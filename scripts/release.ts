@@ -17,6 +17,7 @@ import {
   assertGhAuth,
   assertReleasePrerequisites,
   bumpPackageVersion,
+  LIBRARY_VERSION_MODULE,
   PACKAGES,
   parseSemver,
   readPackageVersion,
@@ -158,6 +159,9 @@ if (args.dryRun) {
 
 if (args.version) {
   await run("git", ["add", relativeVersionFile(args.pkg)]);
+  if (args.pkg === "library") {
+    await run("git", ["add", LIBRARY_VERSION_MODULE]);
+  }
   if (cfg.buildTask === "build:taaat") {
     await run("git", ["add", "docs/taaat"]);
   }

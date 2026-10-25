@@ -10,6 +10,7 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
+import { openehrCodeMeaning } from "../validation/rm_specification_validator.ts";
 import { isSubtypeOf } from "../meta/mod.ts";
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import {
@@ -163,7 +164,12 @@ export class RMInstanceGenerator {
     const archetypeRef = cObject instanceof openehr_am.C_ARCHETYPE_ROOT
       ? cObject.archetype_ref
       : undefined;
-    if ((archetypeRef || cObject.node_id) && !rmType.startsWith("DV_")) {
+    // Only LOCATABLEs carry archetype_node_id (EVENT_CONTEXT, for example,
+    // has a node id in the template but none in the RM).
+    if (
+      (archetypeRef || cObject.node_id) && !rmType.startsWith("DV_") &&
+      isSubtypeOf(rmType, "LOCATABLE")
+    ) {
       instance.archetype_node_id = archetypeRef ?? cObject.node_id;
       if (isSubtypeOf(rmType, "LOCATABLE")) {
         const label = this.locatableLabel(cObject, ctx);
@@ -173,6 +179,10 @@ export class RMInstanceGenerator {
 
     if (isComplex) {
       this.generateAttributes(instance, cObject, depth, ctx);
+      if (rmType === "DV_CODED_TEXT" && instance.value === undefined) {
+        // DV_TEXT.value is mandatory; templates constrain only defining_code.
+        instance.value = this.codedTextValue(instance.defining_code, ctx);
+      }
     } else if (!isSlot) {
       return this.generateDataValueByType(rmType, pathHint);
     }
@@ -717,6 +727,19 @@ export class RMInstanceGenerator {
       if (text) return text;
     }
     return undefined;
+  }
+
+  private codedTextValue(definingCode: unknown, ctx: TermContext): string {
+    const dc = definingCode as {
+      code_string?: string;
+      terminology_id?: { value?: string };
+    } | undefined;
+    const code = dc?.code_string;
+    if (!code) return "Generated coded value";
+    const terminology = dc?.terminology_id?.value;
+    if (terminology === "openehr") return openehrCodeMeaning(code) ?? code;
+    if (terminology === "local") return this.termText(code, ctx.scope) ?? code;
+    return code;
   }
 
   private readableRmType(rmType: string): string {

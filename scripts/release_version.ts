@@ -138,6 +138,21 @@ export async function bumpPackageVersion(
   const path = PACKAGES[pkg].versionFile;
   const text = await Deno.readTextFile(path);
   await Deno.writeTextFile(path, bumpVersionInText(text, version));
+  if (pkg === "library") {
+    const vPath = join(root, LIBRARY_VERSION_MODULE);
+    const vText = await Deno.readTextFile(vPath);
+    await Deno.writeTextFile(vPath, bumpVersionConstant(vText, version));
+  }
+}
+
+/** Runtime copy of the library version (read by the contribution builder). */
+export const LIBRARY_VERSION_MODULE = "version.ts";
+
+export function bumpVersionConstant(text: string, version: string): string {
+  parseSemver(version);
+  const re = /EHRTSLIB_VERSION = "[^"]+"/;
+  if (!re.test(text)) throw new Error("no EHRTSLIB_VERSION to bump");
+  return text.replace(re, `EHRTSLIB_VERSION = "${version}"`);
 }
 
 export async function run(cmd: string, args: string[]): Promise<void> {

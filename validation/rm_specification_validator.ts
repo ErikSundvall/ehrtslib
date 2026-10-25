@@ -336,6 +336,19 @@ const RM_CONSTRAINTS = {
 };
 
 /**
+ * English rubric of an openEHR terminology code that the RM constrains
+ * (category, setting, ISM states, …), or undefined.
+ */
+export function openehrCodeMeaning(code: string): string | undefined {
+  for (const c of Object.values(RM_CONSTRAINTS)) {
+    const meanings = (c as { code_meanings?: Record<string, string> })
+      .code_meanings;
+    if (meanings?.[code]) return meanings[code];
+  }
+  return undefined;
+}
+
+/**
  * Validates instances against RM specification constraints
  */
 export class RMSpecificationValidator {

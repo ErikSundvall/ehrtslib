@@ -122,9 +122,12 @@ export function applyContextFromFields(
   }
 }
 
-/** Accept `ctx/setting: "other care"` (bare value only) as coded-text value. */
+/**
+ * Accept `ctx/setting: "other care"` as the coded-text value, alone or next to
+ * `|code` / `|terminology`.
+ */
 function normalizeCoded(fields: Fields): Fields {
-  if (fields.code != null || fields.value != null) return fields;
+  if (fields.value != null) return fields;
   const b = bare(fields);
   return b != null ? { ...fields, value: b } : fields;
 }

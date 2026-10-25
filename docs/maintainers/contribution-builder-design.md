@@ -256,8 +256,8 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
 
 1. Run full validation for every draft; stop on errors (complete mode) or
    on invalid present content (incomplete mode).
-2. Set any missing build fields that the caller supplies at commit
-   (composer, committer).
+2. Require the committer (given at commit) and the composer (set with
+   `set-composer` before commit); either missing is a hard error.
    Set `FEEDER_AUDIT` on each top-level item: the caller's
    `originating_system_audit` (warn if missing) and the builder's
    `feeder_system_audit`.
@@ -271,6 +271,10 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
    as the new base and close or reset the build.
 
 Drafts marked `discard` are left out of step 5 (see 9.2).
+
+Phase 1 (#166) implements steps 1–5 for new COMPOSITIONs
+(`contributionBuilder.prepareContribution`, `ItsRestContributionAdapter`);
+see ADR 0010, section "Implementation". Step 6 and the 412 flow come later.
 
 ### 9.2 Discarded drafts
 
