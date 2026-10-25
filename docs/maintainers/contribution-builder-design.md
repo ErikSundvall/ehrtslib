@@ -271,23 +271,106 @@ Both run with their development default credentials. Planned test layers:
 
 ## 11. Spec observations (informative)
 
-> **Placeholder.** This section will be written by the openEHR SEC Specs
-> assistant in a follow-up commit. It lists observations only. No formal
-> specification proposals will be made until the builder has been
-> implemented and tested.
+These are observations, not change proposals. They record where the builder
+design touches wording in the openEHR specifications that is unclear,
+narrower than practice, or in conflict with other parts. Formal proposals
+will only be written once the builder has been implemented and tested,
+since details are likely to change with experience. References are to the
+openEHR specification sources (RM = Reference Model, CNF = Conformance).
 
-Candidate topics:
+### 11.1 `uid` on inner `LOCATABLE` nodes (ADR 0003)
 
-- Wording on `uid` being allowed (and useful) on inner `LOCATABLE` nodes.
-- Incomplete lifecycle: RM versioning rules versus Conformance (CNF)
-  section 8 (see ADR 0008).
-- The RM Common section 6 sentence about not saving unfinished content
-  locally on the client (see ADR 0005).
-- Preservation of inner uids by clients and CDRs is not required by the
-  specifications (see ADR 0003 and 0009).
-- `ENTRY.provider` versus `other_participations` for data-entry editors
-  (see ADR 0006).
-- `FEEDER_AUDIT` is feeder-oriented and does not fit builder provenance
-  (see ADR 0010).
-- A structured field for the operation-log link and hash would be cleaner
-  than text in `AUDIT_DETAILS.description` (see ADR 0010).
+- RM Common, archetyped package (section 3): `LOCATABLE` descendants *may*
+  have a `uid`; paths are the normal way to reference inner nodes and "the
+  `uid` attribute will usually be empty in most EHR data". For Extracts it
+  allows `uid` on "some or all nodes".
+- The `LOCATABLE.uid` class text says "Optional globally unique object
+  identifier for root points of archetyped structures", which reads
+  narrower than the narrative.
+- The builder sets `uid` on every node it creates, because paths are not
+  stable while several authors add, remove and move repeated items.
+- Possible later clarification: align the class text with the narrative,
+  and describe the stable-instance-id use alongside the Extract use.
+
+### 11.2 Preservation of inner uids (ADR 0003, ADR 0009)
+
+- Nothing in the specifications requires a CDR or a client to keep
+  inner-node `uid` values when content is read, modified and committed
+  again. A client posting FLAT or STRUCTURED data without uid fields drops
+  them.
+- Both development CDRs keep them today (section 10), which the builder
+  relies on for replay; path fallback covers the rest.
+- Possible later clarification: a statement (normative or conformance
+  test) that a CDR returns `uid` values as committed.
+
+### 11.3 Incomplete lifecycle: RM versus CNF (ADR 0008)
+
+- RM Common, change control package (section 6, *Incomplete Content*): in
+  the `553|incomplete|` state mandatory content may be absent ("existence
+  and cardinality lower limits set to zero"), but what is present must be
+  valid: "data may be missing, but it may not be wrong".
+- CNF platform test schedule, EHR/contribution tests
+  (`master08-func_tc_ehr_contribution.adoc`): "the incomplete cases should
+  be equal to the complete, because the flag is just adding semantics
+  about the content, not setting how the content should be processed".
+- CDR behaviour follows the two texts differently: EHRbase 2.36.0 rejects
+  an incomplete composition that misses mandatory content (ehrbase#1630);
+  FerroEHR 5.4.1 accepts it and rejects the same content committed as
+  complete.
+- This one is independent of the builder and is already drafted as a
+  SPECCNF issue for the maintainer to file.
+
+### 11.4 Unfinished content on the client (ADR 0005)
+
+- RM Common, section 6, *Incomplete Content*: "Unfinished content items
+  (EHR Compositions, Demographic Parties etc) cannot be saved locally on
+  the client machine, as this represents a security risk". They must be
+  persisted on the server, in the EHR or in a secure "holding area".
+- Offline and multi-device drafting needs local persistence. The builder
+  keeps it pluggable, off by default and encrypted at rest when on; the
+  optional server log sink matches the "holding area" idea.
+- Possible later clarification: phrase the sentence as a security
+  consideration subject to local policy (for example, permitted when
+  encrypted and access-controlled) instead of a blanket rule.
+
+### 11.5 `ENTRY.provider` versus data-entry editors (ADR 0006)
+
+- `ENTRY.provider` identifies the source of the information (patient,
+  relative, clinician who observed). It is not the person who typed it.
+- The builder records editors in `other_participations` with a function
+  such as "data entry", and leaves `provider` to an explicit choice.
+- Possible later clarification: informative guidance on recording
+  data-entry and multi-author participation, and a coded participation
+  function for it.
+
+### 11.6 Builder provenance and `FEEDER_AUDIT` (ADR 0010)
+
+- `FEEDER_AUDIT` is an attribute of `LOCATABLE`, not of `CONTRIBUTION`,
+  and is defined for content received from feeder systems (RM EHR package,
+  imported versions). Using it for the authoring tool would make native
+  content look imported.
+- The builder therefore writes its name, version, log format and CRDT
+  library version into `AUDIT_DETAILS.description`.
+- Possible later clarification: where to record the authoring application
+  and its version for natively authored content.
+
+### 11.7 Operation-log link and hash (ADR 0010)
+
+- `AUDIT_DETAILS` has no structured place for a link to an editing-session
+  log or its hash. The builder uses the `DV_TEXT` description with a
+  `hyperlink` (`DV_URI`) and a fixed text form `oplog sha256:<hex>`.
+- Possible later proposal: an optional structured attribute (or an
+  `other_details`-style extension) on `AUDIT_DETAILS` for session or
+  provenance references.
+
+### 11.8 Discarded drafts and the `abandoned` state (section 9, pending)
+
+- RM Common, section 6: `801|abandoned|` is reached from `incomplete` by
+  the `abandon` transition, and "any transition requires the commit of a
+  new version". Throwing an unfinished item away is described as logical
+  deletion (`deleted`). A first commit directly in the `abandoned` state is
+  not described.
+- If deployments want the CDR to show that a discarded draft existed, the
+  spec-aligned route is two versions: commit as `incomplete`, then
+  `abandon`. Whether a single first commit as `abandoned` is acceptable is
+  a question to raise after testing on the CDRs.
