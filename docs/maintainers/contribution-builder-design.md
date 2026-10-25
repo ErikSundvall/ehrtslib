@@ -372,16 +372,23 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   data-entry and multi-author participation, and a coded participation
   function for it.
 
-### 11.6 Builder provenance and `FEEDER_AUDIT` (ADR 0010)
+### 11.6 Builder provenance in `FEEDER_AUDIT` (ADR 0010)
 
-- `FEEDER_AUDIT` is an attribute of `LOCATABLE`, not of `CONTRIBUTION`,
-  and is defined for content received from feeder systems (RM EHR package,
-  imported versions). Using it for the authoring tool would make native
-  content look imported.
-- The builder therefore writes its name, version, log format and CRDT
-  library version into `AUDIT_DETAILS.description`.
-- Possible later clarification: where to record the authoring application
-  and its version for natively authored content.
+- `FEEDER_AUDIT` is an attribute of `LOCATABLE` (so of the COMPOSITION, not
+  the `CONTRIBUTION`). The RM describes it for content received from feeder
+  systems (RM EHR package, imported versions).
+- The design uses it for natively authored content as well:
+  `originating_system_audit` describes what created the content (form and
+  version, renderer), supplied by the caller; `feeder_system_audit` records
+  that the content passed through the builder. `FEEDER_AUDIT_DETAILS.system_id`
+  identifies an organisation's IT system, so software names and versions go
+  in `other_details` (`ITEM_STRUCTURE`, may be archetyped).
+- Accepted consequence: queries that look for imported data via
+  `feeder_audit` also find builder commits.
+- Possible later clarification: informative guidance that `FEEDER_AUDIT`
+  may describe the authoring chain of native content, and a published
+  archetype for the software details in `other_details`, so the pattern is
+  queryable across systems.
 
 ### 11.7 Operation-log link and hash (ADR 0010)
 
