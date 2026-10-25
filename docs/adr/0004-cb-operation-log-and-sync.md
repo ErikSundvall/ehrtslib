@@ -52,7 +52,12 @@ bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
 - Phase 1 operations: `create-draft` (carries the template binding, the
   provisional versioned-object uuid and the initial canonical RM JSON, so
   replay does not depend on the instance generator), `set-value`,
-  `add-instance`, `remove-instance`, `set-composer`. The others in the list
+  `add-instance`, `remove-instance`, `set-composer`. #167 adds
+  `open-version` (a `modify` draft: binding, base version uid, the stored
+  data and the short keys given to nodes without a uid), `copiedFrom` on
+  `create-draft`, and `record-commit` (version uid, contribution uid,
+  change type, lifecycle state and log hash of a successful commit). These
+  are additions, so the format version stays 1. The others in the list
   above come with the phases that need them.
 - Every operation has `replica`, per-replica `seq`, `author` (from the
   caller's context, overridable per call), `timestamp` and `draft`.

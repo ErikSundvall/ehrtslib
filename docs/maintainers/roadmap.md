@@ -55,7 +55,8 @@ The design covers every versioned type; delivery is staged:
 1. Core `ContributionBuild`, operation log, uid scheme and `UPDATE_*` commit
    envelope (all generic over `VERSION<T>`), single-app adapter, for
    **COMPOSITION** first. Template binding with canonical hash, validation
-   (complete and incomplete), conflict data on 412, ADL 1.4 down-conversion
+   (complete and incomplete), conflict data on a failed commit (re-read the
+   latest version; the status code is only a hint), ADL 1.4 down-conversion
    at commit, and up-conversion of legacy OPT 1.4 XML to an ADL2 operational
    template with id-codes.
 2. Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then

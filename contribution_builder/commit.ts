@@ -99,6 +99,10 @@ export interface PrepareContributionOptions {
 
 export interface PreparedVersion {
   draftId: string;
+  /** openEHR change type code sent for this version (249, 251, …). */
+  changeType: string;
+  /** update-version: the `preceding_version_uid` sent. */
+  precedingVersionUid?: string;
   /** `<object uuid>::<creating system id>::1` */
   versionUid: string;
   lifecycleState: "532" | "553";
@@ -120,7 +124,8 @@ export type CommitErrorCode =
   | "missing-composer"
   | "invalid-draft"
   | "bad-config"
-  | "unsupported-draft";
+  | "unsupported-draft"
+  | "already-committed";
 
 export class CommitError extends Error {
   constructor(
@@ -196,10 +201,11 @@ export async function prepareContribution(
         `Draft ${d.draftId} has no composer; call setComposer before commit`,
       );
     }
-    if (build.getDraft(d.draftId).kind !== "create") {
+    const committed = build.getDraft(d.draftId).committed;
+    if (committed) {
       throw new CommitError(
-        "unsupported-draft",
-        `Draft ${d.draftId}: only new COMPOSITIONs can be committed in phase 1`,
+        "already-committed",
+        `Draft ${d.draftId} is already committed as ${committed.versionUid}`,
       );
     }
   }
@@ -225,7 +231,10 @@ export async function prepareContribution(
   const changeTypes = new Set<ChangeType>();
   for (const d of options.drafts) {
     const info = build.getDraft(d.draftId);
-    const changeType = d.changeType ?? "creation";
+    // update-version is a modification (251); a new build or copy-version
+    // creates a new versioned object (249).
+    const changeType = d.changeType ??
+      (info.kind === "modify" ? "modification" : "creation");
     changeTypes.add(changeType);
     let data = build.toCanonicalJson(d.draftId) as Obj;
     if ((config.codes ?? "adl14") === "adl14") {
@@ -235,22 +244,34 @@ export async function prepareContribution(
     }
     stripFunctions(data);
     addArchetypeDetails(data);
-    const versionUid =
-      `${info.provisionalObjectUuid}::${options.creatingSystemId}::1`;
+    const versionUid = info.kind === "modify"
+      ? nextVersionUid(info.baseVersionUid!, options.creatingSystemId)
+      : `${info.provisionalObjectUuid}::${options.creatingSystemId}::1`;
     data.uid = { _type: "OBJECT_VERSION_ID", value: versionUid };
     data.feeder_audit = structuredClone(feederAudit);
     versions.push({
       draftId: d.draftId,
+      changeType: CHANGE_TYPE[changeType].code,
+      ...(info.kind === "modify"
+        ? { precedingVersionUid: info.baseVersionUid! }
+        : {}),
       versionUid,
       lifecycleState: mode === "complete" ? "532" : "553",
     });
     // UPDATE_VERSION is a REST ITS request object, not an RM type: no
     // `_type` (servers built on RM type registries reject an unknown one).
-    updateVersions.push({
+    const update: Obj = {
       lifecycle_state: lifecycleStateFor(mode),
       commit_audit: updateAudit(changeType, committer, config.auditSystemId),
       data: orderRoot(data),
-    });
+    };
+    if (info.kind === "modify") {
+      update.preceding_version_uid = {
+        _type: "OBJECT_VERSION_ID",
+        value: info.baseVersionUid!,
+      };
+    }
+    updateVersions.push(update);
   }
 
   const contributionChange: ChangeType = changeTypes.size === 1
@@ -317,6 +338,22 @@ export function feederAuditFor(
       },
     },
   };
+}
+
+/**
+ * The version uid after `base`: same object id, the committing system, the
+ * trunk version number plus one (`x::sys::2` → `x::cdr::3`).
+ */
+export function nextVersionUid(base: string, creatingSystemId: string): string {
+  const [objectId, , tree] = base.split("::");
+  const n = Number(tree?.split(".")[0]);
+  if (!objectId || !Number.isInteger(n) || n < 1) {
+    throw new CommitError(
+      "unsupported-draft",
+      `Cannot derive the next version of ${base}`,
+    );
+  }
+  return `${objectId}::${creatingSystemId}::${n + 1}`;
 }
 
 /** Read the builder name and version back from a committed COMPOSITION. */

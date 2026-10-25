@@ -148,6 +148,7 @@ export class DraftValidator {
       compareTemplateBindings(draft.templateBinding, template.binding),
     );
     const root = build.toCanonicalJson(draftId);
+    fillEventOffsets(root);
     const raw = this.validator.validate(root, template.operationalTemplate);
 
     const seen = new Set<string>();
@@ -329,4 +330,32 @@ function invariantFailsOnAbsence(
     if (present) return false;
   }
   return true;
+}
+
+/**
+ * `EVENT.offset` is an RM function (`time - parent.origin`). Commits do not
+ * store it, so a version read back has none; compute it for validation so
+ * template constraints and the RM invariant on it see the real value.
+ */
+function fillEventOffsets(v: RmJson, origin?: string): void {
+  if (Array.isArray(v)) return v.forEach((x) => fillEventOffsets(x, origin));
+  if (!isObj(v)) return;
+  let o = origin;
+  if (v._type === "HISTORY" && isObj(v.origin)) o = String(v.origin.value);
+  if (
+    typeof v._type === "string" && /_EVENT$/.test(v._type) &&
+    v.offset === undefined && isObj(v.time) && o
+  ) {
+    const ms = Date.parse(String(v.time.value)) - Date.parse(o);
+    if (Number.isFinite(ms)) {
+      v.offset = { _type: "DV_DURATION", value: isoSeconds(ms) };
+    }
+  }
+  for (const x of Object.values(v)) fillEventOffsets(x, o);
+}
+
+function isoSeconds(ms: number): string {
+  const sign = ms < 0 ? "-" : "";
+  const s = Math.abs(ms) / 1000;
+  return `${sign}PT${Number.isInteger(s) ? s : s.toFixed(3)}S`;
 }

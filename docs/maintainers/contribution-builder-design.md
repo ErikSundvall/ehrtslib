@@ -230,9 +230,11 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   source; `COMPOSITION.composer` is an explicit build field set before or at
   commit; the committer is separate. Per-value author colouring comes only
   from the log, never from RM data.
-- **Conflicts** ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)): on
-  HTTP 412 (`preceding_version_uid` is no longer the latest) the CB never
-  overwrites. It fetches the new version, replays the log by uid, falls back
+- **Conflicts** ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)): the CB
+  never overwrites. On any failed commit it re-reads the latest version of
+  each modified object; if that is no longer the draft's base
+  (`preceding_version_uid`), it is a conflict, whatever the status code. It
+  fetches the new version, replays the log by uid, falls back
   to path matching where uids are missing, and returns conflicts as
   structured data. The caller sends back a list of resolutions.
 - **Storage** ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)):
@@ -267,14 +269,18 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
    description.
 5. Build the `NewContribution` body with one `UPDATE_VERSION` per draft and send
    it.
-6. On 412, enter the conflict flow; on success, record the new version ids
+6. On failure, re-read the latest versions and enter the conflict flow if a
+   base is no longer the latest; on success, record the new version ids
    as the new base and close or reset the build.
 
 Drafts marked `discard` are left out of step 5 (see 9.2).
 
 Phase 1 (#166) implements steps 1–5 for new COMPOSITIONs
 (`contributionBuilder.prepareContribution`, `ItsRestContributionAdapter`);
-see ADR 0010, section "Implementation". Step 6 and the 412 flow come later.
+see ADR 0010, section "Implementation". #167 adds `update-version`,
+`copy-version`, the commit record of step 6, and conflict detection with
+conflict data (ADR 0009, section "Implementation"); resolutions and retry
+come later (#177).
 
 ### 9.2 Discarded drafts
 
@@ -410,7 +416,7 @@ Both run with their development default credentials. Planned test layers:
   validation in both modes.
 - CRDT tests: two or more replicas editing offline then merging; playback.
 - Integration tests against both CDRs (opt-in, skipped when the CDR is not
-  reachable): inner uid preservation, AQL on inner uids, 412 handling,
+  reachable): inner uid preservation, AQL on inner uids, conflict handling,
   incomplete commits, ADL 1.4 down-conversion.
 
 ## 11. Spec observations (informative)
