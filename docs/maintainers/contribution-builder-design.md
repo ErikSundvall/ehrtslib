@@ -4,7 +4,8 @@ Status: **draft for review.** Design only; nothing here is implemented yet.
 Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL
-API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md).
+API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md) and the add-on packages in
+[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md).
 
 ## 1. Product
 
@@ -369,6 +370,22 @@ API:
 
 None of these threads defines GraphQL mutations, choice (`DV_*`
 alternative) handling or slot handling for openEHR content.
+
+### 9.4 Add-on packages and patch formats
+
+Summary of [ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md),
+still open for review:
+
+- Each access style is a separate add-on release file, not part of the
+  main bundles: GraphQL, Simplified Formats (FLAT and STRUCTURED), canonical
+  XML, and later htmx.
+- Every add-on translates its input into ordinary operations on uids, so
+  add-ons can be mixed in one build.
+- FLAT is patched with a partial key map (`null` removes), STRUCTURED with
+  JSON Merge Patch (RFC 7386), and canonical XML with XML Patch (RFC 5261)
+  using XPath selectors mapped from archetype paths and uids.
+- A future htmx add-on turns form posts into operations and returns
+  updated HTML fragments with validation messages.
 
 ## 10. Testing
 

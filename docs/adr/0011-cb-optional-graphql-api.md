@@ -109,6 +109,23 @@ Every change must still go through the operation log and target a node uid
   fails with a structured error that lists the candidates (uid, code path,
   name path in the requested language, and the annotations that would make
   the path unique).
+- **Deep trees without deep queries.** GraphQL has no recursion or
+  wildcards, so openEHR's deep trees are reached in three ways:
+  - `nodes(at: [steps])` returns a flat list of matching nodes with `uid`,
+    `parentUid`, `rmType`, value, and the path as an array (like the
+    `path` array in GraphQL errors). Clients rebuild a tree from parent
+    links if they need one;
+  - `subtree(at: [steps], format: CANONICAL | FLAT | STRUCTURED)` returns a
+    whole subtree as a JSON scalar in canonical RM JSON or one of the
+    Simplified Formats;
+  - the later generated schema (question 1) exposes annotation and symbol
+    steps as **shortcut fields** that skip intermediate RM layers, as Web
+    Template and FLAT do, so annotations become the natural entry points.
+- **Typed steps are canonical; strings are shorthand.** A path is a list of
+  typed step input objects (a one-of with `code`, `name`, `annotation
+  {key, value}`, `symbol` or `index`), which is how GraphQL APIs usually
+  take filters and needs no escaping. A `/`-separated string form is
+  accepted as shorthand for people, AI agents and logs.
 - **Every mutation is a thin layer over operations.** For example,
   `setValue`, `addInstance`, `removeInstance`, `moveInstance`,
   `setComposer`, `setParticipation` and `setLifecycle` each resolve their
@@ -190,10 +207,9 @@ Every change must still go through the operation log and target a node uid
    The evidence suggested treating duplicates as an authoring error; the
    maintainer chose prefixing instead, which matches the sub-path pattern
    above.
-3. **Path syntax:** a `/`-separated string with the step prefixes above
-   (`$`, `@key=`, `:n`, bracketed codes), a list of typed steps in the
-   input type, or both. Escaping of `/` and `=` in names and values needs a
-   rule.
+3. **Path string shorthand:** typed steps are canonical (see Decision).
+   The string shorthand (`$`, `@key=`, `:n`, bracketed codes) still needs
+   an escaping rule for `/` and `=` in names and values.
 4. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
    GraphQL mutations, or stay in the TypeScript API only?
 5. **Annotation key (decision needed from Erik):** `a.id` (t/2406 #19,
