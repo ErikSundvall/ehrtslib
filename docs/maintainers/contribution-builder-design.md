@@ -301,18 +301,19 @@ for review:
   bundles, so users who don't need GraphQL don't carry it.
 - It covers uncommitted CB content only. Committed EHR data stays with AQL
   and REST.
-- A node is addressed by `uid`, by `codePath` (ADL2 id-codes, or at-codes
-  for ADL 1.4 callers), by `symbol` (a language-independent name from a
-  template annotation such as `a.id`), or by `namePath` with an optional
-  ISO `lang`. The
-  default language is the build's primary language (`lang.1`), and names
-  come from the bound template's terminology.
+- A node is addressed by `uid`, or by a path whose steps can mix ADL2
+  codes, node names in a chosen ISO `lang` (default `lang.1`), **any
+  template annotation** (`@key=value`), symbols (`$name`, shorthand for
+  `a.id` or `am.symbol_binding`) and 0-based indexes. Annotation values
+  need not be unique: a path that matches several nodes is narrowed by
+  adding prefix steps.
 - Every address resolves to uids, and every mutation becomes ordinary
   operations in the log, with the author taken from the request context.
   An ambiguous or empty address in a mutation is an error that lists the
   candidates.
-- Nodes expose `uid`, `codePath`, `namePath`, `symbol` and their validation
-  `problems`, so callers can switch between the four ways of addressing.
+- Nodes expose `uid`, `codePath`, `namePath`, their template annotations
+  and their validation `problems`, so callers can switch between the ways
+  of addressing.
 
 #### Prior openEHR GraphQL discussions (informative)
 

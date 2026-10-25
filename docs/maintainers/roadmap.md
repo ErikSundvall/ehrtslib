@@ -62,8 +62,8 @@ The design covers every versioned type; delivery is staged:
 4. Integration tests against EHRbase and FerroEHR dev instances.
 5. Optional GraphQL module over build content
    ([ADR 0011](../adr/0011-cb-optional-graphql-api.md)): addressing by uid,
-   ADL2 code path, `a.id` annotation symbol, or node names in a chosen
-   language. Every mutation goes
+   ADL2 codes, any template annotation (including `a.id` symbols), node
+   names in a chosen language, or mixed paths of these. Every mutation goes
    through the operation log. Shipped as a separate add-on release file,
    not in the main bundles.
 

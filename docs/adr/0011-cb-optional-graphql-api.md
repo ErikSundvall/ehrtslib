@@ -18,12 +18,11 @@ People and agents name nodes in different ways:
 - by **natural-language names** of the nodes in a chosen language, for
   example `Blodtryck/Systoliskt` in Swedish or `Blood pressure/Systolic` in
   English;
-- by **symbolic names from template annotations**, such as the `a.id`
-  annotation (for example `tobacco_user`) proposed in the openEHR Discourse
-  thread [Agreeing on optional user interface hints in templates](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19)
-  as a binding between a variable name in rules or expressions and a
-  template node. ehrtslib already treats the `a.` annotation family as
-  language-independent;
+- by **template annotations**: any annotation on a template node, for
+  example the symbol annotations `a.id` or `am.symbol_binding` (such as
+  `tobacco_user`) from the openEHR Discourse thread [Agreeing on optional user interface hints in templates](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/19),
+  or a project's own keys. The bound template is in the builder's memory,
+  so all of its annotations are available for lookup;
 - by **instance uid**, as the builder does internally ([ADR 0003](0003-cb-identity-and-uids.md)).
 
 Every change must still go through the operation log and target a node uid
@@ -48,25 +47,40 @@ Every change must still go through the operation log and target a node uid
 - **Scope is uncommitted CB content only**: drafts, their nodes, values,
   validation results, template binding and the build's audit input. Querying
   committed EHR data stays with AQL and the REST API.
-- **A node can be addressed in four ways**, all through one `NodeAddress`
-  input that has exactly one of:
-  - `uid`: the instance uid;
-  - `codePath`: an ADL2 path with id-codes, or with at-codes for ADL 1.4
-    style callers (mapped with the existing id-code to at-code mapping);
-  - `namePath` plus optional `lang`: a path of node names taken from the
-    bound operational template's terminology in that language.
-  - `symbol`: a symbolic node name defined by a template annotation,
-    read from a configurable list of annotation keys, by default `a.id` and
-    `am.symbol_binding` (the final default is question 5). Symbols are
-    language-independent, so they suit rules, expressions, form logic and
-    automation. A symbol may be combined with further name or code steps
-    below the annotated node. Spec anchors: template annotations are the
-    path-keyed, per-language `RESOURCE_ANNOTATIONS.documentation` structure
-    (BASE Resource; ADL2 "Annotations Section"). Variable-to-path bindings
-    in rules are ADL2 rules variable declarations (`$name: Type := /path`)
-    and, in the draft revised rules section, `symbols.symbol_bindings` with
-    multilingual `symbol_definitions`. The annotation is an interim way to
-    author such a binding in tools without rules support. (Proposal.)
+- **A `NodeAddress` is either a `uid` or a path of steps.** The steps can
+  be mixed freely in one path, and each step is one of:
+  - a **code step**: an ADL2 id-code (or an at-code for ADL 1.4 style
+    callers, mapped with the existing id-code to at-code mapping), with the
+    archetype id where a path enters an archetype;
+  - a **name step**: a node name from the bound template's terminology in
+    the request's `lang`, or a Web Template node id;
+  - an **annotation step**: `@key=value`, matching template nodes that
+    carry that annotation key with that value. **Any annotation key can be
+    used**, not only symbol keys;
+  - a **symbol step**: `$value`, shorthand for an annotation step over a
+    configurable list of symbol keys, by default `a.id` and
+    `am.symbol_binding`;
+  - an **index**: a 0-based instance index (`:1`), as in FLAT paths.
+  Spec anchors: template annotations are the path-keyed, per-language
+  `RESOURCE_ANNOTATIONS.documentation` structure (BASE Resource; ADL2
+  "Annotations Section"). Variable-to-path bindings in rules are ADL2 rules
+  variable declarations (`$name: Type := /path`) and, in the draft revised
+  rules section, `symbols.symbol_bindings` with multilingual
+  `symbol_definitions`; a symbol annotation is an interim way to author
+  such a binding in tools without rules support.
+- **A path does not have to start at the root.** A path that starts with a
+  symbol or annotation step finds every matching template node anywhere in
+  the template. Steps after it navigate down from those nodes.
+- **No uniqueness is required of annotation values.** A step that matches
+  several template nodes is fine in a query. If a mutation needs one node,
+  the caller adds more prefix steps until the path matches only one, for
+  example `$bp/$systolic` or `@ui.section=vitals/$systolic`. This follows
+  the ADL2 rules pattern of narrowing with sub-paths of a bound symbol
+  instead of requiring globally unique names.
+- **Language of annotation values.** Annotations are stored per language.
+  An annotation step matches in the request's `lang` and then falls back
+  as for names. Values in language-independent families such as `a.` and
+  `am.` are read from the original language when no translation exists.
 - **Language follows the ehrtslib language design** (ehrtslib#160): `lang`
   is an ISO language code. When it is left out, the build's primary language
   (`lang.1`) is used. A name with no translation falls back along the
@@ -79,20 +93,22 @@ Every change must still go through the operation log and target a node uid
   with an explicit instance-name step. Web Template node ids (Simplified
   Formats section 4.2, including the `_1` suffix for duplicate sibling names)
   are accepted as name-path steps too.
-- **Symbols bind to template nodes, not instances.** As Thomas Beale points
-  out in the same thread, the mapping from a template node to runtime data
-  is 1:N, so a symbol can match several instances. The index, uid and
-  ambiguity rules below apply to symbols as to any other address.
+- **Annotations and symbols bind to template nodes, not instances.** As
+  Thomas Beale points out in the same thread, the mapping from a template
+  node to runtime data is 1:N, so an annotation step can match several
+  instances. The index, uid and ambiguity rules below apply as for any
+  other step.
 - **Repeated instances** are picked with a 0-based index step (`event:1` for
   the second event, as in FLAT paths) or by uid. The result of resolving an
   address is always a list of uids.
-- **Address resolution lives in the core**, as a plain function from `uid`,
-  code path or name path to uids. It is useful without GraphQL, and the
+- **Address resolution lives in the core**, as a plain function from a
+  `uid` or a step path to uids. It is useful without GraphQL, and the
   add-on only wraps it.
 - **Ambiguity is never guessed in a mutation.** A query may return several
   matches. A mutation whose address matches more than one node, or none,
-  fails with a structured error that lists the candidates (uid, code path and
-  name path in the requested language).
+  fails with a structured error that lists the candidates (uid, code path,
+  name path in the requested language, and the annotations that would make
+  the path unique).
 - **Every mutation is a thin layer over operations.** For example,
   `setValue`, `addInstance`, `removeInstance`, `moveInstance`,
   `setComposer`, `setParticipation` and `setLifecycle` each resolve their
@@ -105,8 +121,8 @@ Every change must still go through the operation log and target a node uid
 - **Results carry validation.** Each mutation returns the changed nodes with
   their quick-check results ([ADR 0008](0008-cb-validation-and-lifecycle.md)).
   Each node in a query can return its own `problems`, and every node exposes
-  its uid, code path, name path and symbol (if it has one), so a caller can
-  move between the four ways of addressing.
+  its uid, code path, name path and its template annotations, so a caller
+  can move between the ways of addressing.
 
 ## Consequences
 
@@ -129,10 +145,13 @@ Every change must still go through the operation log and target a node uid
 - **Natural-language names as the only way of addressing.** Rejected: names
   are ambiguous and change with language and translation; code paths and
   uids are needed for reliable automation.
-- **Inventing a CB-specific alias mechanism.** Rejected: symbol annotations
-  (`a.id`, and the later `am.symbol_binding` from t/2406 #46) already exist
-  in community discussion, ehrtslib's annotation handling knows the `a.`
-  family, and template tools can author annotations today.
+- **Inventing a CB-specific alias mechanism.** Rejected: annotations
+  (including the symbol keys `a.id` and the later `am.symbol_binding` from
+  t/2406 #46) already exist, ehrtslib reads them, and template tools can
+  author them today.
+- **Requiring unique symbol values, with duplicates as an authoring
+  error.** Rejected by the maintainer: any annotation may be used for
+  addressing, and ambiguity is solved by adding prefix steps.
 - **Matching on instance `name` values only.** Rejected as the default:
   names in data may be free text, but kept as an explicit step.
 
@@ -146,9 +165,9 @@ Every change must still go through the operation log and target a node uid
    normalisation. Proposed: generic schema now, and an optional generated
    schema later with ASCII-folded Web Template ids as field names and the
    ADL2 code in a directive such as `@node(code: "id5")`.
-2. **Symbol uniqueness:** should duplicate `a.id` values in one template be
-   a template-authoring error, or resolved by scoping (for example by the
-   nearest enclosing annotated node)?
+2. **Symbol uniqueness (decided by Erik, 2026-10-25):** not required. Any
+   annotation can address nodes, and non-unique matches need more path
+   prefixing (see Decision). The evidence below is kept for the record.
    Evidence:
    - ADL2 rules declare variables once, in the archetype's or template's
      single `rules` section. The draft `symbol_bindings` is likewise one
@@ -168,11 +187,13 @@ Every change must still go through the operation log and target a node uid
      be identical in every language, or be read from the original language.
    - t/2406 does not settle uniqueness.
 
-   This suggests treating duplicates in the flattened template as an
-   authoring error, and refusing with the candidate list at resolution
-   time.
-3. **Name-path syntax:** `/`-separated names as above, a list of steps in
-   the input type, or both.
+   The evidence suggested treating duplicates as an authoring error; the
+   maintainer chose prefixing instead, which matches the sub-path pattern
+   above.
+3. **Path syntax:** a `/`-separated string with the step prefixes above
+   (`$`, `@key=`, `:n`, bracketed codes), a list of typed steps in the
+   input type, or both. Escaping of `/` and `=` in names and values needs a
+   rule.
 4. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
    GraphQL mutations, or stay in the TypeScript API only?
 5. **Annotation key (decision needed from Erik):** `a.id` (t/2406 #19,
@@ -181,7 +202,9 @@ Every change must still go through the operation log and target a node uid
    with Thomas Beale's approval in #47). The `am.` prefix marks things that
    ADL rules could represent natively, while `a.` is for hints passed on to
    other layers. #51 notes that "key" has also been used in ADL2 evolution
-   discussions. The resolver could accept a configured list of keys.
+   discussions. The resolver accepts a configured list of symbol keys for
+   the `$` shorthand, so this only decides the default list; any key also
+   works through `@key=value`.
 6. **Subscriptions:** should live changes (for example from other replicas
    in the multi-user flavour) be offered as GraphQL subscriptions, and in
    which phase?
