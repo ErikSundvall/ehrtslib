@@ -23,7 +23,8 @@ OPT XML constraint closeout (#75 serialize, #76 quantity intervals, #77 `C_DV_CO
 - One version of this code needs to be small so that it can fit and be run
   eficiently inside form engines etc.
 - Also make a (less lightweight) version that can be synchronously multiuser
-  updated using Y.js or
+  updated using a CRDT (library chosen in the multi-user contribution builder
+  spike below)
 - Create build step to genenrate minified and web component versions
 
 
@@ -36,10 +37,55 @@ targeted purposes for example
 create/update end user docs 
 
 ## Phase X - Contribution builder
-Implement "contribution builder" suggestion in https://link.springer.com/article/10.1186/1472-6947-13-57 including the table https://link.springer.com/article/10.1186/1472-6947-13-57/tables/2 Ît should be possible to run a variant of this on the client side in web/mobile apps so that they can send valid entire contributions to backend openEHR REST servers. Also a variant should be runanble on server side.
+Design: [contribution-builder-design.md](contribution-builder-design.md) and
+ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
+[0010](../adr/0010-cb-commit-envelope-and-provenance.md).
 
-## Phaze X - multiuser contribution builder
-CRDT or OT enabled multiuser contribution builder enabling collaborative editing of uncomitted contribution in a style similar to "google docs" collaboration. (Preferably P2P with continous server persistence possiblility) Include indicators of what users are editing where currently and possibility to switch on source/user coloring of enteresd inf in a way similar to https://etherpad.org/. Also allow conversion of this info to openEHR's ENTRY.provider attribute
+Implement the "contribution builder" suggested in
+https://link.springer.com/article/10.1186/1472-6947-13-57, including the verbs
+in [Table 2](https://link.springer.com/article/10.1186/1472-6947-13-57/tables/2)
+(new build, update-version, copy-version, from-form, from-ehr-path,
+from-instance-template, validate, commit). It must run client side in
+web/mobile apps, so they can send valid whole contributions to openEHR REST
+servers, and server side.
+
+The design covers every versioned type; delivery is staged:
+1. Core `ContributionBuild`, operation log, uid scheme and `UPDATE_*` commit
+   envelope (all generic over `VERSION<T>`), single-app adapter, for
+   **COMPOSITION** first. Template binding with canonical hash, validation
+   (complete and incomplete), conflict data on 412, ADL 1.4 down-conversion
+   at commit.
+2. Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then
+   demographic `PARTY` types. No log or envelope format changes.
+3. Pluggable storage and optional encrypted local draft persistence.
+4. Integration tests against EHRbase and FerroEHR dev instances.
+
+Open item: check whether legacy OPT 1.4 XML can be up-converted to an ADL2
+operational template with id-codes (archetype-level ADL 1.4 → ADL2 exists).
+
+## Phase X - multiuser contribution builder
+CRDT-based multi-user / multi-device contribution builder for collaborative
+editing of an uncommitted contribution, similar to "Google Docs"
+collaboration (preferably P2P, with optional continuous server persistence).
+Builds on the same core and operation log as the single-app builder.
+1. **Spike first:** compare Automerge and Loro on a real template (full
+   replayable history, compact binary log, Deno + browser support, licence).
+   Record the choice in its own ADR.
+2. CRDT sync adapter, replica uid prefixes, presence indicators showing who
+   is editing where.
+3. Optional source/user colouring of entered information, similar to
+   https://etherpad.org/, taken from the operation log (not stored in RM
+   data).
+4. Conversion of editor attribution into `other_participations` (function
+   such as "data entry"). `ENTRY.provider` stays for an explicitly recorded
+   information source only.
+5. Session playback (replay of the log).
+
+## Phase X - openEHR merge conflict resolver UI
+Separate later project, depends on the contribution builder's structured
+conflict output (ADR 0009). A clinician-facing UI, likely AI-assisted, that
+shows our change, their change and the base value per conflict and returns a
+list of resolutions to the builder.
 
 ## Phase X - CDR proxy
 Make a Deno based ehrtslib openEHR CDR proxy 
