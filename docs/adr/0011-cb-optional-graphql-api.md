@@ -59,7 +59,13 @@ Every change must still go through the operation log and target a node uid
     `a.id` by default (the annotation key is configurable). Symbols are
     language-independent, so they suit rules, expressions, form logic and
     automation. A symbol may be combined with further name or code steps
-    below the annotated node.
+    below the annotated node. Spec anchors: template annotations are the
+    path-keyed, per-language `RESOURCE_ANNOTATIONS.documentation` structure
+    (BASE Resource; ADL2 "Annotations Section"). Variable-to-path bindings
+    in rules are ADL2 rules variable declarations (`$name: Type := /path`)
+    and, in the draft revised rules section, `symbols.symbol_bindings` with
+    multilingual `symbol_definitions`. The annotation is an interim way to
+    author such a binding in tools without rules support. (Proposal.)
 - **Language follows the ehrtslib language design** (ehrtslib#160): `lang`
   is an ISO language code. When it is left out, the build's primary language
   (`lang.1`) is used. A name with no translation falls back along the
@@ -141,14 +147,43 @@ Every change must still go through the operation log and target a node uid
 2. **Symbol uniqueness:** should duplicate `a.id` values in one template be
    a template-authoring error, or resolved by scoping (for example by the
    nearest enclosing annotated node)?
+   Evidence:
+   - ADL2 rules declare variables once, in the archetype's or template's
+     single `rules` section. The draft `symbol_bindings` is likewise one
+     keyed table per artefact, so a symbol is unique within the (flattened)
+     artefact. AOM2 rule VOKU requires keys in keyed lists to be unique. An `a.id` value is an annotation value, not a key, so VOKU does not enforce its uniqueness.
+   - Nesting is expressed by sub-paths of a bound symbol, not by repeating
+     names. Examples are `for_all $event : /data/events` with
+     `$event/data/...` (ADL2 rules), and a `root` plus `children` binding
+     (Thomas Beale, [t/2406 #44](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/44)).
+   - Specialisation: templates are specialised archetypes (AOM2 Templates),
+     so overlays add or override annotations at a path. Erik Sundvall
+     ([#43](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/43))
+     notes that a renderer "just gets the sum of all layers' annotations".
+     The sections checked do not define merge rules for annotations.
+   - Annotations are keyed by language first (AOM2 validation: annotations
+     must be translations of each other). A symbol value should therefore
+     be identical in every language, or be read from the original language.
+   - t/2406 does not settle uniqueness.
+
+   This suggests treating duplicates in the flattened template as an
+   authoring error, and refusing with the candidate list at resolution
+   time.
 3. **Name-path syntax:** `/`-separated names as above, a list of steps in
    the input type, or both.
 4. **Lifecycle verbs:** should `validate`, `discard` and `commit` be
    GraphQL mutations, or stay in the TypeScript API only?
-5. **Subscriptions:** should live changes (for example from other replicas
+5. **Annotation key (decision needed from Erik):** `a.id` (t/2406 #19,
+   #39), or `am.symbol_binding` (Erik Sundvall,
+   [#46](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406/46),
+   with Thomas Beale's approval in #47). The `am.` prefix marks things that
+   ADL rules could represent natively, while `a.` is for hints passed on to
+   other layers. #51 notes that "key" has also been used in ADL2 evolution
+   discussions. The resolver could accept a configured list of keys.
+6. **Subscriptions:** should live changes (for example from other replicas
    in the multi-user flavour) be offered as GraphQL subscriptions, and in
    which phase?
-6. **Prior work:** how much to align with earlier openEHR community
+7. **Prior work:** how much to align with earlier openEHR community
    discussions of GraphQL (to be summarised in the design document).
    Evidence so far (design document section 9.3, "Prior openEHR GraphQL
    discussions"):

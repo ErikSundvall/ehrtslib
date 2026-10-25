@@ -354,6 +354,18 @@ API:
   GraphQL names are limited to `[_A-Za-z][_0-9A-Za-z]*`, so such ids are
   valid as argument values but not always as field names.
 
+- [Agreeing on optional user interface hints in templates](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406)
+  (2022–2026) proposes interim template annotations for tools without
+  rules support:
+  - `a.id` and later `am.symbol_binding` give a node a short,
+    language-independent symbol;
+  - `am.rule` holds a rule that refers to those symbols;
+  - `a.hide_on_form` is a UI hint.
+
+  This mirrors the ADL2 rules variable bindings and the draft
+  `symbol_bindings`, and is the basis for symbol addresses in
+  [ADR 0011](../adr/0011-cb-optional-graphql-api.md).
+
 None of these threads defines GraphQL mutations, choice (`DV_*`
 alternative) handling or slot handling for openEHR content.
 
