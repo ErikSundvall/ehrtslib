@@ -4,7 +4,8 @@
  * ADR 0007).
  *
  * Kept in one module on purpose: the openEHR AM specification is still moving
- * here (AM 2.4.0, SPECAM-90, unreleased, moves ADL2 node ids back to at-codes),
+ * here (AM 2.4.0, SPECAM-90, unreleased, adds an at-coded ADL2 coding system
+ * alongside id-coding and requires it for openEHR RM conformance),
  * so a change of rule should be a change of this file plus a bump of
  * {@link OPT14_CODE_MAPPING_VERSION}.
  *
