@@ -59,6 +59,12 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
 `checkTemplateBinding`), `contribution_builder/jcs.ts` (RFC 8785),
 `parser/legacy/opt14_upconvert.ts` and `parser/legacy/opt14_code_mapping.ts`.
 
+- **RFC 8785** is done by the `canonicalize` npm package, pinned exactly in
+  `deno.json` (Apache-2.0, maintained by an RFC 8785 co-author).
+  `jcs.ts` wraps it with ehrtslib's I-JSON checks: lone surrogates,
+  non-finite numbers, cycles and values with no JSON form throw `JcsError`
+  before the library is called. The switch kept every canonical byte and
+  hash unchanged (decided by Erik, 2026-10-26).
 - **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
   `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=am2-archie-1`.
 - **Hashed form**: `JsonCanonicalSerializer` output for the ADL2

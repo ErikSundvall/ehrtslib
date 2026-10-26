@@ -112,6 +112,7 @@ Deno.test("staged source zip ships deno.json, the guide, and no examples", async
     `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@${tag}/`,
   );
   assert(importMap.imports.yaml.startsWith("npm:yaml@"));
+  assertEquals(importMap.imports.canonicalize, "npm:canonicalize@5.1.0");
 });
 
 Deno.test("release notes and Pages index name the archives and import URLs", async () => {
