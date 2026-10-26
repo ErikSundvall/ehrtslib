@@ -189,7 +189,15 @@ Deno.test("rebind: changed content is reported and needs migrate-template", asyn
   );
   assertEquals(check.unchanged, false);
   assertEquals(check.migrationRequired, true);
-  assertEquals(check.issues.map((i) => i.code), ["hash-changed"]);
+  assertEquals(check.issues.map((i) => i.code), [
+    "hash-changed",
+    "content-changed",
+  ]);
+  assertEquals(check.diagnosis, {
+    templateIdChanged: false,
+    versionChanged: false,
+    contentChanged: true,
+  });
   const err = assertThrows(
     () => assertTemplateBindingUnchanged(check),
     TemplateBindingMismatchError,
@@ -197,15 +205,96 @@ Deno.test("rebind: changed content is reported and needs migrate-template", asyn
   assertEquals(err.comparison.issues[0].code, "hash-changed");
 });
 
-Deno.test("rebind: version-only bump keeps the hash but reports the version", async () => {
+Deno.test("rebind: OPT 1.4 version-only bump changes the hash; diagnosis says version", async () => {
   const xml = await read("conformance_ehrbase.de.v0.opt");
   const { binding } = await bindTemplate(xml);
-  const bumped = xml.replace('id="sem_ver">1.0.0<', 'id="sem_ver">1.0.1<');
-  assertNotEquals(bumped, xml);
-  const check = await checkTemplateBinding(binding, bumped);
-  assertEquals(check.template.binding.hash.value, binding.hash.value);
-  assertEquals(check.issues.map((i) => i.code), ["version-changed"]);
-  assertEquals(check.migrationRequired, true);
+  for (const v of ["1.0.1", "1.0.0-rc.2"]) {
+    const bumped = xml.replace('id="sem_ver">1.0.0<', `id="sem_ver">${v}<`);
+    assertNotEquals(bumped, xml);
+    const check = await checkTemplateBinding(binding, bumped);
+    assertEquals(check.template.binding.version, v);
+    assertNotEquals(check.template.binding.hash.value, binding.hash.value);
+    assertEquals(check.issues.map((i) => i.code), [
+      "hash-changed",
+      "version-changed",
+    ]);
+    assertEquals(check.diagnosis, {
+      templateIdChanged: false,
+      versionChanged: true,
+      contentChanged: false,
+    });
+    assertEquals(check.migrationRequired, true);
+    // From the bindings alone, content cannot be told apart.
+    assertEquals(
+      compareTemplateBindings(binding, check.template.binding).diagnosis
+        .contentChanged,
+      null,
+    );
+  }
+});
+
+Deno.test("rebind: OPT 1.4 template-id-only change changes the hash; diagnosis says id", async () => {
+  const xml = await read("minimal_evaluation.opt");
+  const { binding } = await bindTemplate(xml);
+  const renamed = xml.replace(
+    /(<template_id>\s*<value>)([^<]+)(<\/value>)/,
+    (_m, a, id, b) => `${a}${id}.renamed${b}`,
+  );
+  assertNotEquals(renamed, xml);
+  const check = await checkTemplateBinding(binding, renamed);
+  assertNotEquals(check.template.binding.hash.value, binding.hash.value);
+  assertEquals(check.issues.map((i) => i.code), [
+    "hash-changed",
+    "template-id-changed",
+  ]);
+  assertEquals(check.diagnosis.contentChanged, false);
+  // Id and content changed together.
+  const both = await checkTemplateBinding(
+    binding,
+    renamed.replace("<upper>1</upper>", "<upper>2</upper>"),
+  );
+  assertEquals(both.issues.map((i) => i.code), [
+    "hash-changed",
+    "template-id-changed",
+    "content-changed",
+  ]);
+});
+
+Deno.test("rebind: ADL2 HRID version and lifecycle suffix are in the hash, the build count is not", async () => {
+  const adl = new OPT2Serializer().serializeOperationalTemplate(
+    await flattenedAdl2Template(),
+  );
+  const base = await bindTemplate(adl);
+  const hrid = base.binding.hrid;
+  const m = /^(.*\.v)(\d+\.\d+\.\d+)$/.exec(hrid);
+  assert(m, hrid);
+  // A new release: the id changes everywhere in the text.
+  const withHrid = (h: string) => adl.replaceAll(hrid, h);
+  const hashOf = async (h: string) => (await bindTemplate(withHrid(h))).binding;
+  const patch = await hashOf(`${m[1]}${m[2].replace(/\d+$/, "9")}`);
+  const rc = await hashOf(`${m[1]}${m[2]}-rc.2`);
+  // HRID text has no build count (ADL2 grammar); a programmatic HRID with
+  // semver build metadata (`+7`) hashes as without it.
+  const opt = await flattenedAdl2Template();
+  opt.archetype_id!.value = `${hrid}+7`;
+  const build = (await bindTemplate(opt)).binding;
+  const plain = (await bindTemplate(await flattenedAdl2Template())).binding;
+  assertEquals(build.hash.value, plain.hash.value);
+  assertNotEquals(patch.hash.value, base.binding.hash.value);
+  assertNotEquals(rc.hash.value, base.binding.hash.value);
+  assertNotEquals(rc.hash.value, patch.hash.value);
+  assertEquals(rc.version, `${m[2]}-rc.2`);
+  assertEquals(build.version, m[2]);
+  assertEquals(build.hrid, `${hrid}+7`);
+  const check = await checkTemplateBinding(
+    base.binding,
+    withHrid(`${m[1]}${m[2]}-rc.2`),
+  );
+  assertEquals(check.issues.map((i) => i.code), [
+    "hash-changed",
+    "version-changed",
+  ]);
+  assertEquals(check.diagnosis.contentChanged, false);
 });
 
 Deno.test("rebind: MD5-CAM / build_uid mismatch only warns", async () => {
@@ -261,7 +350,42 @@ const AD_DIR = (() => {
 
 Deno.test({
   name:
-    "optional: Archetype Designer exports bind; version-only releases keep the hash",
+    "optional: ChemoForm oral administration 1.0.0 and 1.0.1 (same content) hash differently",
+  ignore: !AD_DIR ||
+    ![
+      "ChemoForm-MBA.oral_administration.1.0.0.sv.en.opt",
+      "ChemoForm-MBA.oral_administration.1.0.1.sv.en.opt",
+    ].every((n) => {
+      try {
+        return Deno.statSync(`${AD_DIR}/${n}`).isFile;
+      } catch {
+        return false;
+      }
+    }),
+  fn: async () => {
+    const read = (v: string) =>
+      Deno.readTextFile(
+        `${AD_DIR}/ChemoForm-MBA.oral_administration.${v}.sv.en.opt`,
+      );
+    const a = await bindTemplate(await read("1.0.0"));
+    const b = await bindTemplate(await read("1.0.1"));
+    assertEquals(
+      a.binding.sourceIdentifiers.md5Cam,
+      b.binding.sourceIdentifiers.md5Cam,
+    );
+    assertNotEquals(a.binding.hash.value, b.binding.hash.value);
+    const check = await checkTemplateBinding(a.binding, await read("1.0.1"));
+    assertEquals(check.diagnosis, {
+      templateIdChanged: false,
+      versionChanged: true,
+      contentChanged: false,
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "optional: Archetype Designer exports bind; version-only releases differ only in version",
   ignore: !AD_DIR,
   fn: async () => {
     const byTemplate = new Map<string, TemplateBinding[]>();
@@ -280,7 +404,11 @@ Deno.test({
       for (const b of list.slice(1)) {
         const sameContent =
           b.sourceIdentifiers.md5Cam === list[0].sourceIdentifiers.md5Cam;
-        assertEquals(b.hash.value === list[0].hash.value, sameContent);
+        const cmp = compareTemplateBindings(list[0], b);
+        assertEquals(
+          b.hash.value === list[0].hash.value,
+          sameContent && !cmp.diagnosis.versionChanged,
+        );
       }
     }
   },
