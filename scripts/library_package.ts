@@ -322,8 +322,8 @@ export function libraryDenoJson(repoDenoText: string): string {
 
 /**
  * Import map for `deno run --import-map=…`.
- * `ehrtslib/` points at the git tag on jsDelivr; `yaml` and `fast-xml-parser`
- * stay on the same pins as the repository import map.
+ * `ehrtslib/` points at the git tag on jsDelivr; `yaml`, `fast-xml-parser`
+ * and `canonicalize` stay on the same pins as the repository import map.
  */
 export function cdnImportMap(version: string, repoDenoText: string): string {
   const { cdnDir } = libraryLocations(version);
@@ -334,7 +334,7 @@ export function cdnImportMap(version: string, repoDenoText: string): string {
   const out: Record<string, string> = {
     "ehrtslib/": `${cdnDir}/`,
   };
-  for (const key of ["fast-xml-parser", "yaml"]) {
+  for (const key of ["canonicalize", "fast-xml-parser", "yaml"]) {
     const value = imports[key];
     if (value) out[key] = value;
   }
