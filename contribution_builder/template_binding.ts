@@ -32,13 +32,32 @@ import { canonicalizeJson, sha256Hex } from "./jcs.ts";
  * Version of the canonical serialisation the hash is computed over. Bump it
  * whenever {@link templateCanonicalForm}, ehrtslib's AOM JSON shape, or the
  * OPT 1.4 code mapping changes in a way that changes hashes.
+ *
+ * `/2` (Erik, 2026-10-26): the hashed form also holds the template identity
+ * (`identity` member, see {@link TemplateHashIdentity}).
  */
 export const TEMPLATE_BINDING_SERIALISATION_VERSION =
-  `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=${OPT14_CODE_MAPPING_VERSION}`;
+  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=${OPT14_CODE_MAPPING_VERSION}`;
 
 /** `description/other_details` keys that are tool identifiers, not template content. */
 export const MD5_CAM_KEY = "MD5-CAM-1.0.1";
 export const PARENT_MD5_CAM_KEY = "PARENT:MD5-CAM-1.0.1";
+
+/**
+ * The template identity included in the hash, so a new release with the same
+ * content still gets a new hash.
+ *
+ * - ADL2: `{ hrid }`, the full HRID with namespace (if any),
+ *   major.minor.patch and any lifecycle suffix (`-rc.2`, `-alpha`), without
+ *   the build count (semver build metadata `+…`).
+ * - OPT 1.4: `{ template_id, sem_ver }` (`sem_ver` with any lifecycle
+ *   suffix; `null` when absent).
+ *
+ * Never `build_uid`, `uid` or MD5-CAM.
+ */
+export type TemplateHashIdentity =
+  | { hrid: string }
+  | { template_id: string; sem_ver: string | null };
 
 /** Where the bound template came from. */
 export type TemplateSourceFormat = "adl2-opt" | "opt14-xml";
@@ -55,7 +74,10 @@ export interface TemplateSourceIdentifiers {
 export interface TemplateBinding {
   /** ADL2: archetype id without the version part. OPT 1.4: `template_id`. */
   templateId: string;
-  /** ADL2: version from the HRID (`1.0.0`). OPT 1.4: `sem_ver` from `other_details`, if any. */
+  /**
+   * ADL2: version from the HRID (`1.0.0`, `1.0.0-rc.2`; build count dropped).
+   * OPT 1.4: `sem_ver` from `other_details`, if any.
+   */
   version: string | null;
   /** ADL2: full archetype id with version. OPT 1.4: `template_id` (there is no HRID). */
   hrid: string;
@@ -89,9 +111,10 @@ export interface BoundTemplate {
 
 /** Severity `error` means the draft cannot continue without `migrate-template`. */
 export type TemplateBindingIssueCode =
+  | "hash-changed"
   | "template-id-changed"
   | "version-changed"
-  | "hash-changed"
+  | "content-changed"
   | "serialisation-version-changed"
   | "source-md5-cam-changed"
   | "source-parent-md5-cam-changed"
@@ -105,12 +128,24 @@ export interface TemplateBindingIssue {
   candidate?: string | null;
 }
 
+/**
+ * Why the hash changed. The hash covers identity and content together;
+ * `content` is found by hashing the candidate's content under the bound
+ * identity (`null` when the candidate template is not available).
+ */
+export interface TemplateBindingDiagnosis {
+  templateIdChanged: boolean;
+  versionChanged: boolean;
+  contentChanged: boolean | null;
+}
+
 export interface TemplateBindingComparison {
   /** True when no `error` issue was found (warnings may still be present). */
   unchanged: boolean;
   /** True when moving the draft needs an explicit `migrate-template` step. */
   migrationRequired: boolean;
   issues: TemplateBindingIssue[];
+  diagnosis: TemplateBindingDiagnosis;
   bound: TemplateBinding;
   candidate: TemplateBinding;
 }
@@ -224,7 +259,27 @@ function str(v: unknown): string | undefined {
   return undefined;
 }
 
-const ADL2_VERSION_RE = /^(.*)\.v(\d+(?:\.\d+){0,2}(?:-[0-9A-Za-z.+-]+)?)$/;
+/** `<id>.v<major.minor.patch>[-<lifecycle>][+<build>]`; groups: id, version. */
+const ADL2_VERSION_RE =
+  /^(.*)\.v(\d+(?:\.\d+){0,2}(?:-[0-9A-Za-z.-]+)?)(?:\+[0-9A-Za-z.-]+)?$/;
+
+/** The HRID without the build count (`+…`). */
+function hridWithoutBuild(hrid: string): string {
+  const m = ADL2_VERSION_RE.exec(hrid);
+  return m ? `${m[1]}.v${m[2]}` : hrid;
+}
+
+/** The identity a binding's hash covers (see {@link TemplateHashIdentity}). */
+export function templateHashIdentity(
+  binding: Pick<
+    TemplateBinding,
+    "sourceFormat" | "templateId" | "version" | "hrid"
+  >,
+): TemplateHashIdentity {
+  return binding.sourceFormat === "opt14-xml"
+    ? { template_id: binding.templateId, sem_ver: binding.version ?? null }
+    : { hrid: hridWithoutBuild(binding.hrid) };
+}
 
 function identityOf(
   src: LoadedSource,
@@ -297,13 +352,18 @@ function sortAttributeArrays(value: unknown): void {
 }
 
 /**
- * The JSON value the template hash is computed over: ehrtslib's canonical
+ * The template content part of the hashed form: ehrtslib's canonical
  * JSON for the ADL2 operational template (`_type` on every object), with
  *
  * - identity and tool identifiers removed, since the binding records them
  *   separately: top-level `uid`, `build_uid`, `archetype_id`, `template_id`,
  *   `adl_version` (syntax version), and `description.other_details` keys
  *   `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1`, `build_uid`, `sem_ver`;
+ * - the template's own HRID, where ehrtslib uses it to scope terms
+ *   (`term_archetype_scope` values and `archetype_term_definitions` keys),
+ *   replaced by `#template`. An ADL2 template scopes its own nodes to
+ *   itself; this keeps the identity only in the `identity` member, so a
+ *   release with the same content has the same content form;
  * - a fixed array order where order carries no meaning: `attributes` of each
  *   object node sorted by `rm_attribute_name` (then `differential_path`).
  *   Other arrays keep document order: sibling `children` order and code-list
@@ -311,7 +371,7 @@ function sortAttributeArrays(value: unknown): void {
  *
  * Object member order does not matter: RFC 8785 sorts members.
  */
-export function templateCanonicalForm(
+export function templateContentForm(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
 ): unknown {
   const json = new JsonCanonicalSerializer().serialize(opt, {
@@ -325,22 +385,65 @@ export function templateCanonicalForm(
     for (const k of EXCLUDED_OTHER_DETAILS) delete od[k];
     if (!Object.keys(od).length) delete desc!.other_details;
   }
+  const self = opt.archetype_id?.value;
+  if (self) replaceSelfScope(plain, new Set([self, hridWithoutBuild(self)]));
   sortAttributeArrays(plain);
   return plain;
+}
+
+/** Replaces the template's own HRID in term scopes and term-map keys (see templateContentForm). */
+export const SELF_TERM_SCOPE = "#template";
+
+function replaceSelfScope(value: unknown, self: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const v of value) replaceSelfScope(v, self);
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  const rec = value as Record<string, unknown>;
+  if (
+    typeof rec.term_archetype_scope === "string" &&
+    self.has(rec.term_archetype_scope)
+  ) {
+    rec.term_archetype_scope = SELF_TERM_SCOPE;
+  }
+  for (const k of Object.keys(rec)) {
+    // Term maps keyed by archetype id (`archetype_term_definitions`).
+    if (self.has(k) && !(SELF_TERM_SCOPE in rec)) {
+      rec[SELF_TERM_SCOPE] = rec[k];
+      delete rec[k];
+    }
+  }
+  for (const v of Object.values(rec)) replaceSelfScope(v, self);
+}
+
+/**
+ * The JSON value the template hash is computed over:
+ * `{ identity, content }`, where `identity` is the template identity
+ * ({@link TemplateHashIdentity}) and `content` is
+ * {@link templateContentForm}. There is no content-only hash.
+ */
+export function templateCanonicalForm(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  identity: TemplateHashIdentity,
+): { identity: TemplateHashIdentity; content: unknown } {
+  return { identity, content: templateContentForm(opt) };
 }
 
 /** RFC 8785 string of {@link templateCanonicalForm}. */
 export function canonicalTemplateJson(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
+  identity: TemplateHashIdentity,
 ): string {
-  return canonicalizeJson(templateCanonicalForm(opt));
+  return canonicalizeJson(templateCanonicalForm(opt, identity));
 }
 
 /** sha256 (hex) of {@link canonicalTemplateJson}. */
 export function templateHash(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
+  identity: TemplateHashIdentity,
 ): Promise<string> {
-  return sha256Hex(canonicalTemplateJson(opt));
+  return sha256Hex(canonicalTemplateJson(opt, identity));
 }
 
 /**
@@ -357,11 +460,15 @@ export async function bindTemplate(
   if (!identity.templateId) {
     src.warnings.push("Template has no template id or archetype id");
   }
+  const hashIdentity = templateHashIdentity({
+    ...identity,
+    sourceFormat: src.sourceFormat,
+  });
   const binding: TemplateBinding = {
     ...identity,
     hash: {
       algorithm: "sha256",
-      value: await templateHash(src.opt),
+      value: await templateHash(src.opt, hashIdentity),
       serialisationVersion: TEMPLATE_BINDING_SERIALISATION_VERSION,
     },
     sourceFormat: src.sourceFormat,
@@ -371,14 +478,29 @@ export async function bindTemplate(
 }
 
 /**
- * Compare the binding a draft holds with a freshly computed one. Template id,
- * version, hash or serialisation-version changes are errors (the draft needs
- * `migrate-template`). Differences in source identifiers are warnings only,
- * and only when both sides have a value.
+ * Compare the binding a draft holds with a freshly computed one. A changed
+ * hash or serialisation version is an error (the draft needs
+ * `migrate-template`). The hash covers template id, version and content
+ * together; the diagnosis issues `template-id-changed`, `version-changed`
+ * and `content-changed` say which of them changed. From the bindings alone,
+ * content is known only when id and version are unchanged (otherwise
+ * `diagnosis.contentChanged` is `null`); {@link checkTemplateBinding} also
+ * hashes the candidate's content under the bound identity to tell. Differences
+ * in source identifiers are warnings only, and only when both sides have a
+ * value.
  */
 export function compareTemplateBindings(
   bound: TemplateBinding,
   candidate: TemplateBinding,
+): TemplateBindingComparison {
+  return compareWith(bound, candidate, undefined);
+}
+
+function compareWith(
+  bound: TemplateBinding,
+  candidate: TemplateBinding,
+  /** From hashing the candidate content under the bound identity. */
+  contentHint: boolean | undefined,
 ): TemplateBindingComparison {
   const issues: TemplateBindingIssue[] = [];
   const err = (
@@ -388,22 +510,10 @@ export function compareTemplateBindings(
     c?: string | null,
   ) =>
     issues.push({ code, severity: "error", message, bound: b, candidate: c });
-  if (bound.templateId !== candidate.templateId) {
-    err(
-      "template-id-changed",
-      "Template id differs",
-      bound.templateId,
-      candidate.templateId,
-    );
-  }
-  if ((bound.version ?? null) !== (candidate.version ?? null)) {
-    err(
-      "version-changed",
-      "Template version differs",
-      bound.version,
-      candidate.version,
-    );
-  }
+  const templateIdChanged = bound.templateId !== candidate.templateId;
+  const versionChanged = (bound.version ?? null) !==
+    (candidate.version ?? null);
+  let contentChanged: boolean | null = null;
   if (bound.hash.serialisationVersion !== candidate.hash.serialisationVersion) {
     err(
       "serialisation-version-changed",
@@ -411,13 +521,36 @@ export function compareTemplateBindings(
       bound.hash.serialisationVersion,
       candidate.hash.serialisationVersion,
     );
-  } else if (bound.hash.value !== candidate.hash.value) {
+  } else if (bound.hash.value === candidate.hash.value) {
+    contentChanged = false;
+  } else {
     err(
       "hash-changed",
-      "Template content hash differs",
+      "Template hash (identity and content) differs",
       bound.hash.value,
       candidate.hash.value,
     );
+    if (!templateIdChanged && !versionChanged) contentChanged = true;
+    else if (contentHint !== undefined) contentChanged = contentHint;
+  }
+  if (templateIdChanged) {
+    err(
+      "template-id-changed",
+      "Template id differs",
+      bound.templateId,
+      candidate.templateId,
+    );
+  }
+  if (versionChanged) {
+    err(
+      "version-changed",
+      "Template version differs",
+      bound.version,
+      candidate.version,
+    );
+  }
+  if (contentChanged) {
+    err("content-changed", "Template content differs");
   }
   const warnIf = (
     code: TemplateBindingIssueCode,
@@ -450,6 +583,7 @@ export function compareTemplateBindings(
     unchanged: !migrationRequired,
     migrationRequired,
     issues,
+    diagnosis: { templateIdChanged, versionChanged, contentChanged },
     bound,
     candidate,
   };
@@ -462,7 +596,19 @@ export async function checkTemplateBinding(
   options: BindTemplateOptions = {},
 ): Promise<TemplateBindingComparison & { template: BoundTemplate }> {
   const template = await bindTemplate(input, options);
-  return { ...compareTemplateBindings(bound, template.binding), template };
+  const c = template.binding;
+  let contentHint: boolean | undefined;
+  if (
+    bound.hash.serialisationVersion === c.hash.serialisationVersion &&
+    bound.hash.value !== c.hash.value
+  ) {
+    // Same content under the bound identity gives the bound hash.
+    contentHint = await templateHash(
+      template.operationalTemplate,
+      templateHashIdentity(bound),
+    ) !== bound.hash.value;
+  }
+  return { ...compareWith(bound, c, contentHint), template };
 }
 
 /** Throw {@link TemplateBindingMismatchError} when the comparison needs a migration. */

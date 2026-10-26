@@ -17,7 +17,10 @@ import {
   opt14ValueCodeToAdl2,
   opt14ValueSetCodeToAdl2,
 } from "../../../parser/legacy/opt14_code_mapping.ts";
-import { canonicalTemplateJson } from "../../../contribution_builder/mod.ts";
+import {
+  canonicalizeJson,
+  templateContentForm,
+} from "../../../contribution_builder/mod.ts";
 import { TERM_ARCHETYPE_SCOPE_KEY } from "../../../generation/term_scope.ts";
 
 const OPT14 = new URL("../../opt14/", import.meta.url);
@@ -224,8 +227,8 @@ Deno.test("OPT 1.4 up-conversion — deterministic: converting twice gives ident
     const b = upconvert(xml);
     assertEquals(a.mintedIdCodes, b.mintedIdCodes, name);
     assertEquals(
-      canonicalTemplateJson(a.operationalTemplate),
-      canonicalTemplateJson(b.operationalTemplate),
+      canonicalizeJson(templateContentForm(a.operationalTemplate)),
+      canonicalizeJson(templateContentForm(b.operationalTemplate)),
       name,
     );
   }
