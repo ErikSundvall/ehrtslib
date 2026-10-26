@@ -104,8 +104,9 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
   get an ac value set), get minted codes: per archetype scope, numbering
   starts after the highest code used in that scope, in depth-first document
   order, so the result is deterministic. The rule is isolated in
-  `opt14_code_mapping.ts` because AM 2.4.0 (SPECAM-90, unreleased) moves ADL2
-  node ids back to at-codes; a rule change bumps the serialisation version.
+  `opt14_code_mapping.ts` because AM 2.4.0 (SPECAM-90, unreleased) adds an
+  at-coded ADL2 coding system alongside id-coding and requires it for openEHR
+  RM conformance; a rule change bumps the serialisation version.
 - **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
   `template_id` and `sem_ver` from `description/other_details` (null when
   absent).
