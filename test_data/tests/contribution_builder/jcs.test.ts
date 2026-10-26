@@ -210,22 +210,42 @@ Deno.test("JCS — I-JSON wrapper rules kept from the hand-written version", () 
   assertEquals(canonicalizeJson([shared, shared]), '[{"a":1},{"a":1}]');
 });
 
-Deno.test("JCS — template hashes equal those of the hand-written implementation", async () => {
-  const { bindTemplate } = await import("../../../contribution_builder/mod.ts");
-  // Computed with the hand-written RFC 8785 code before the switch to the
-  // `canonicalize` package; the canonical bytes must not change.
-  const golden: Record<string, string> = {
-    "ehrbase_blood_pressure_simple.de.v0.opt":
-      "a681198f5ade6a30efa05efabc4ee71e51c139cfd09f145c7256f9d2c5f7bb1c",
-    "Test_all_types.opt":
-      "21a729c77f27aee4f45f9a37bc425085829331ffc80409f3d0c8daf7fc4f2693",
-    "multilingual_en_sv_de.opt":
-      "772a3f24e4d55731a32e213cfe6724f943c1021d7fa7a5b7e4c9a9f18d70948b",
+Deno.test("JCS — golden template hashes; only the identity member changed them (/1 → /2)", async () => {
+  const { bindTemplate, templateContentForm, templateHashIdentity } =
+    await import("../../../contribution_builder/mod.ts");
+  // v1: computed with the hand-written RFC 8785 code over the content alone
+  // (`ehrtslib-cb-opt-json/1`). v2: `{ identity, content }` (`/2`).
+  const golden: Record<string, { v1: string; v2: string }> = {
+    "ehrbase_blood_pressure_simple.de.v0.opt": {
+      v1: "a681198f5ade6a30efa05efabc4ee71e51c139cfd09f145c7256f9d2c5f7bb1c",
+      v2: "b8b03dbdbe65e3985c83f25878346d0c87c202a830914fc2fcd62a8edef319cf",
+    },
+    "Test_all_types.opt": {
+      v1: "21a729c77f27aee4f45f9a37bc425085829331ffc80409f3d0c8daf7fc4f2693",
+      v2: "b61ea1ba3baf79abaccdf3fe5f650c4caa909cfb58823ba5765ae94c9d1d1759",
+    },
+    "multilingual_en_sv_de.opt": {
+      v1: "772a3f24e4d55731a32e213cfe6724f943c1021d7fa7a5b7e4c9a9f18d70948b",
+      v2: "3c6b6332d1e2e94b97337cf9291c461a00bd346f4071cc7f4b5e28d96057e56a",
+    },
   };
-  for (const [name, hash] of Object.entries(golden)) {
+  for (const [name, { v1, v2 }] of Object.entries(golden)) {
     const xml = await Deno.readTextFile(
       new URL(`../../opt14/${name}`, import.meta.url),
     );
-    assertEquals((await bindTemplate(xml)).binding.hash.value, hash, name);
+    const { binding, operationalTemplate } = await bindTemplate(xml);
+    assertEquals(binding.hash.value, v2, name);
+    // The content part is byte-identical to the /1 hashed form ...
+    const content = canonicalizeJson(templateContentForm(operationalTemplate));
+    assertEquals(await sha256Hex(content), v1, name);
+    // ... and /2 is exactly {identity, content} over it.
+    const identity = templateHashIdentity(binding);
+    assertEquals(
+      await sha256Hex(
+        `{"content":${content},"identity":${canonicalizeJson(identity)}}`,
+      ),
+      v2,
+      name,
+    );
   }
 });

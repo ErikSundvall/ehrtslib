@@ -36,6 +36,16 @@ data.
   content, `PARENT:MD5-CAM` is a snapshot of the root archetype's hash at
   build time, `build_uid` is neither always stable nor unique, and the
   MD5-CAM algorithm is unpublished so it cannot be recomputed.
+- Decided by Erik (2026-10-26): the hash also covers the template's full
+  identity, and there is no second, content-only hash. For ADL2 that is the
+  full HRID (namespace if any, major.minor.patch and any lifecycle suffix
+  such as `-rc.2`), without the build count. For OPT 1.4 it is
+  `template_id` plus `sem_ver` (with any lifecycle suffix). `build_uid`,
+  `uid` and MD5-CAM are never included. Reason: openEHR identifies an
+  artefact by id plus release version, and the hash is read outside
+  ehrtslib, in audits and logs, where one value should name exactly one
+  released template. Two releases with the same content therefore have
+  different hashes.
 - When the hash or version differs from what the draft was bound to, the CB
   reports it. Moving to another template is an explicit `migrate-template`
   operation in the log, never a silent rebind.
@@ -66,14 +76,23 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
   before the library is called. The switch kept every canonical byte and
   hash unchanged (decided by Erik, 2026-10-26).
 - **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
-  `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=am2-archie-1`.
-- **Hashed form**: `JsonCanonicalSerializer` output for the ADL2
-  `OPERATIONAL_TEMPLATE` (`_type` on every object), minus identity and tool
-  identifiers that the binding records separately (top-level `uid`,
-  `build_uid`, `archetype_id`, `template_id`, `adl_version`, and
-  `description.other_details` keys `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1`,
-  `build_uid`, `sem_ver`). A release that only bumps `sem_ver` therefore keeps
-  its hash and is reported as a version change.
+  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=am2-archie-1`. `/2`
+  (2026-10-26) added the `identity` member; `/1` hashed the content alone.
+- **Hashed form** (`templateCanonicalForm`): `{ identity, content }`.
+  - `identity` (`templateHashIdentity`): ADL2 `{ hrid }`, the HRID without
+    a build count (semver build metadata `+…`); OPT 1.4
+    `{ template_id, sem_ver }` (`sem_ver` is `null` when absent).
+  - `content` (`templateContentForm`): `JsonCanonicalSerializer` output for
+    the ADL2 `OPERATIONAL_TEMPLATE` (`_type` on every object), minus the
+    identity and tool identifiers (top-level `uid`, `build_uid`,
+    `archetype_id`, `template_id`, `adl_version`, and
+    `description.other_details` keys `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1`,
+    `build_uid`, `sem_ver`). Where ehrtslib scopes terms by the template's
+    own HRID (`term_archetype_scope` values, `archetype_term_definitions`
+    keys), the HRID is replaced by `#template`, so the identity appears only
+    in `identity`. For OPT 1.4 templates this content is byte-identical to
+    the `/1` form; for ADL2 templates only the `#template` replacement
+    differs.
 - **Array order**: RFC 8785 sorts object members, not arrays. `attributes` of
   each object node are sorted by `rm_attribute_name` (then
   `differential_path`). Sibling `children` and code lists keep document order,
@@ -90,9 +109,16 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
 - **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
   `template_id` and `sem_ver` from `description/other_details` (null when
   absent).
-- **Rebind**: changed template id, version, hash or serialisation version is an
-  error-level issue (`migrationRequired`, `TemplateBindingMismatchError`). A
-  changed `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1` or `build_uid` is a warning.
+- **Rebind**: a changed hash (`hash-changed`) or serialisation version is an
+  error-level issue (`migrationRequired`, `TemplateBindingMismatchError`).
+  Since the hash covers id, version and content, the comparison also says
+  which of them changed, as `template-id-changed`, `version-changed` and
+  `content-changed` issues and `diagnosis`. `checkTemplateBinding` finds
+  the content part by hashing the candidate's content under the bound
+  identity: if that gives the bound hash, only id or version changed. From
+  two bindings alone (`compareTemplateBindings`) content is known only when
+  id and version are unchanged (`contentChanged: null` otherwise). A changed
+  `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1` or `build_uid` is a warning.
 
 ## Consequences
 
