@@ -52,8 +52,8 @@ import {
 import * as spec from "ehrtslib/spec/mod.ts";
 ```
 
-`deno.json` inside the archive already maps `yaml` and `fast-xml-parser` (and
-the other pins from the repository). From that directory, `deno run` and
+`deno.json` inside the archive already maps `yaml`, `fast-xml-parser` and
+`canonicalize` (and the other pins from the repository). From that directory, `deno run` and
 `deno check` resolve those specifiers.
 
 Terminology XML is loaded from the process working directory:
@@ -82,15 +82,16 @@ https://raw.githubusercontent.com/ErikSundvall/ehrtslib/v0.3.1/mod.ts
 ```
 
 The release asset `ehrtslib-<version>.import-map.json` maps `ehrtslib/` to the
-jsDelivr prefix and pins `yaml` and `fast-xml-parser`:
+jsDelivr prefix and pins `yaml`, `fast-xml-parser` and `canonicalize`:
 
 ```bash
 deno run --import-map=ehrtslib-0.3.1.import-map.json app.ts
 ```
 
 Relative imports inside the library (`./rm/mod.ts` and the rest) resolve against
-the tag URL. Bare specifiers `yaml` and `fast-xml-parser` resolve through that
-import map, or through the `deno.json` next to a local unpack.
+the tag URL. Bare specifiers `yaml`, `fast-xml-parser` and `canonicalize`
+resolve through that import map, or through the `deno.json` next to a local
+unpack.
 
 ## Development package
 
