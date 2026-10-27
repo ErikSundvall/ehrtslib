@@ -10,7 +10,8 @@
   "publish": {
     "exclude": [
       "test_data/",
-      "docs/vendor/"
+      "docs/vendor/",
+      "spike/"
     ]
   },
   "imports": {
