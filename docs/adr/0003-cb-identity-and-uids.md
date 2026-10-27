@@ -31,6 +31,19 @@ UUID, ISO OID or internet id; the extension may be any string.
 Verified on the development CDRs: EHRbase 2.36.0 and FerroEHR 5.4.1 both
 store and return inner uids unchanged, and AQL can filter on them.
 
+## Implementation (phase 1, #164)
+
+- Short keys are `<replica>.<counter>` (`a.7`, `b2.3`), replica prefixes
+  `[a-z][a-z0-9]*`, so a key never contains `::`. The single-app default
+  replica is `a`; a build imported from a log continues that replica's
+  counter.
+- The draft root (the `COMPOSITION`) gets no short-key uid. Its uid is the
+  version's `OBJECT_VERSION_ID`, set at commit.
+- For a new build the versioned-object uuid is fixed only at commit, and
+  ITS-REST does not promise to keep a client-supplied one. Inner uids use a
+  provisional uuid recorded in `create-draft`; operations store only short
+  keys, so the commit step (#166) can swap the root without changing the log.
+
 ## Consequences
 
 - Operations and results can target nodes reliably, including repeated

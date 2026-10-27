@@ -30,3 +30,35 @@ export {
   type TemplateSourceIdentifiers,
 } from "./template_binding.ts";
 export { canonicalizeJson, JcsError, sha256Hex } from "./jcs.ts";
+export {
+  type BuildContext,
+  CbOperationError,
+  ContributionBuild,
+  type NewCompositionOptions,
+  type OperationLogAdapter,
+  type OperationOptions,
+  SingleAppLogAdapter,
+  toCanonicalRmJson,
+  type VersionDraftInfo,
+} from "./contribution_build.ts";
+export {
+  type AddInstanceOperation,
+  canonicalLogText,
+  type CbOperation,
+  type CbOperationType,
+  type CreateDraftOperation,
+  OPERATION_LOG_FORMAT,
+  OPERATION_LOG_FORMAT_VERSION,
+  type OperationAuthor,
+  operationLogBytes,
+  type OperationLogDocument,
+  OperationLogFormatError,
+  readOperationLog,
+  type RemoveInstanceOperation,
+  REPLICA_RE,
+  type RmJson,
+  ROOT_TARGET,
+  type SetComposerOperation,
+  type SetValueOperation,
+  SHORT_KEY_RE,
+} from "./operation_log.ts";
