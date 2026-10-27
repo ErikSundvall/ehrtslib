@@ -17,9 +17,6 @@ const ADL2_DIR = fromFileUrl(new URL("../../adl2/", import.meta.url));
 const VALIDITY_TEMPLATES_DIR = fromFileUrl(
   new URL("../../archie-tests/validity-templates/", import.meta.url),
 );
-const RUN_VALIDITY_OVERLAY_TEMPLATES =
-  Deno.env.get("EHRTEST_VALIDITY_TEMPLATES") === "1";
-
 Deno.test("ArchetypeRepository.fromEntries loads archetypes and templates", async () => {
   const archText = await Deno.readTextFile(`${ADL2_DIR}/simple_observation.adl`);
   const repo = ArchetypeRepository.fromEntries([
@@ -30,7 +27,6 @@ Deno.test("ArchetypeRepository.fromEntries loads archetypes and templates", asyn
 
 Deno.test({
   name: "parseTemplateInput flattens ADL2 template when repository provided",
-  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
   async fn() {
   const repo = await ArchetypeRepository.fromDirectory(VALIDITY_TEMPLATES_DIR);
   const templateText = await Deno.readTextFile(
@@ -65,7 +61,6 @@ Deno.test("TemplateWorkspace resolves OPT from active file", async () => {
 
 Deno.test({
   name: "TemplateWorkspace file set: archetype + ADL2 template",
-  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
   async fn() {
   const ws = new TemplateWorkspace();
   const entries: Array<{ path: string; content: string }> = [];
@@ -89,7 +84,6 @@ Deno.test({
 
 Deno.test({
   name: "TemplateWorkspace generation root vs active editor file",
-  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
   async fn() {
   const ws = new TemplateWorkspace();
   const entries: Array<{ path: string; content: string }> = [];
@@ -112,7 +106,6 @@ Deno.test({
 
 Deno.test({
   name: "getOperationalTemplateFromInput with repository",
-  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
   async fn() {
   const repo = await ArchetypeRepository.fromDirectory(VALIDITY_TEMPLATES_DIR);
   const templateText = await Deno.readTextFile(

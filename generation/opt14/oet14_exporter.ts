@@ -451,6 +451,14 @@ export class Oet14Exporter {
           if ((ch.occ.lower ?? 0) !== (bc.occ?.lower ?? 0)) {
             rule.min = ch.occ.lower ?? 0;
           }
+          // OET rules need both bounds when narrowing; omitting one widens the interval.
+          if (rule.max !== undefined && rule.min === undefined) {
+            rule.min = bc.occ?.lower ?? 0;
+          }
+          if (rule.min !== undefined && rule.max === undefined) {
+            const baseUpper = bc.occ?.upper;
+            if (baseUpper !== undefined) rule.max = baseUpper;
+          }
         }
         const name = this.rename(c, ch, bc, caql);
         if (name) rule.name = name;

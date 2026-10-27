@@ -450,14 +450,19 @@ export class OptXmlSerializer {
       ? serializeCObject(opt.definition, ctx)
       : { rm_type_name: "COMPOSITION", "@_xsi:type": "C_COMPLEX_OBJECT" };
 
+    const langCode = opt.original_language?.code_string ??
+      (typeof opt.original_language === "string"
+        ? opt.original_language
+        : "en");
     const template: Record<string, unknown> = {
       "@_xmlns": this.config.templateNamespace,
       "@_xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
       "@_xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+      language: {
+        terminology_id: { value: "ISO_639-1" },
+        code_string: langCode,
+      },
       template_id: { value: templateId },
-      language: opt.original_language
-        ? { code_string: opt.original_language }
-        : { code_string: "en" },
       concept: opt.concept ?? templateId,
       definition,
     };

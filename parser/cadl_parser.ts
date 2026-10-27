@@ -25,16 +25,25 @@ export class CadlParser {
    * Parse root c_object (complex, use archetype, allow archetype).
    */
   parseComplexObject(): openehr_am.C_COMPLEX_OBJECT {
-    if (this.isUseArchetype()) {
-      return this.parseCArchetypeRoot();
+    const obj = this.isUseArchetype()
+      ? this.parseCArchetypeRoot()
+      : this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
+    this.skipComments();
+    if (!this.isAtEnd() && this.peek().type !== TokenType.EOF) {
+      throw this.error(
+        `Unexpected token after definition: ${this.peek().value}`,
+      );
     }
-    return this.parseComplexObjectBody(new openehr_am.C_COMPLEX_OBJECT());
+    return obj;
   }
 
   private parseComplexObjectBody(
     cObject: openehr_am.C_COMPLEX_OBJECT,
   ): openehr_am.C_COMPLEX_OBJECT {
     const typeId = this.consume(TokenType.IDENTIFIER, "Expected type identifier");
+    if (!/^[A-Z]/.test(typeId.value)) {
+      throw this.error(`Unexpected token: ${typeId.value}`);
+    }
     cObject.rm_type_name = typeId.value;
 
     if (this.check(TokenType.LBRACKET)) {
@@ -77,8 +86,7 @@ export class CadlParser {
           if (!cObject.attributes) cObject.attributes = [];
           cObject.attributes.push(attribute);
         } else if (this.position === posBefore) {
-          if (this.check(TokenType.RBRACE)) break;
-          this.advance();
+          this.rejectUnexpectedInMatches();
         }
       }
 
@@ -317,19 +325,38 @@ export class CadlParser {
         const intervalChild = this.tryParseIntervalConstraint();
         if (intervalChild) {
           this.pushAttributeChild(attribute, intervalChild);
+          this.maybeApplyAssumedValueSuffix(intervalChild);
+          continue;
+        }
+        const regexChild = this.tryParseRegexConstraint();
+        if (regexChild) {
+          this.pushAttributeChild(attribute, regexChild);
+          this.maybeApplyAssumedValueSuffix(regexChild);
           continue;
         }
         const stringChild = this.tryParseStringConstraint();
         if (stringChild) {
           this.pushAttributeChild(attribute, stringChild);
+          this.maybeApplyAssumedValueSuffix(stringChild);
+          continue;
+        }
+        const numChild = this.tryParseNumericConstraint();
+        if (numChild) {
+          this.pushAttributeChild(attribute, numChild);
+          this.maybeApplyAssumedValueSuffix(numChild);
+          continue;
+        }
+        const literalChild = this.tryParseLiteralPrimitiveConstraint();
+        if (literalChild) {
+          this.pushAttributeChild(attribute, literalChild);
+          this.maybeApplyAssumedValueSuffix(literalChild);
           continue;
         }
         const child = this.parseChildObject();
         if (child) {
           this.pushAttributeChild(attribute, child);
         } else if (this.position === posBefore) {
-          if (this.check(TokenType.RBRACE)) break;
-          this.advance();
+          this.rejectUnexpectedInMatches();
         }
       }
       this.consume(TokenType.RBRACE, "Expected '}' to close path attribute matches");
@@ -400,12 +427,18 @@ export class CadlParser {
 
   private consumeArchetypeRef(): string {
     const parts: string[] = [];
-    while (
-      this.check(TokenType.IDENTIFIER) ||
-      this.check(TokenType.DOT) ||
-      this.check(TokenType.INTEGER)
-    ) {
-      parts.push(this.advance().value);
+    while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+      const t = this.peek();
+      if (
+        t.type === TokenType.IDENTIFIER ||
+        t.type === TokenType.DOT ||
+        t.type === TokenType.INTEGER ||
+        t.type === TokenType.REAL
+      ) {
+        parts.push(this.advance().value);
+      } else {
+        break;
+      }
     }
     return parts.join("");
   }
@@ -416,6 +449,26 @@ export class CadlParser {
     // Specialised overlay paths may start with '/', e.g. /items[id6]/value
     if (this.check(TokenType.SLASH)) {
       return this.parsePathAttribute();
+    }
+    // `TYPE[id]` child objects are not RM attributes (`data`, `items`, …).
+    if (
+      this.check(TokenType.IDENTIFIER) &&
+      this.checkAhead(TokenType.LBRACKET, 1)
+    ) {
+      return null;
+    }
+    // OPT2 / ADL 1.4 down-convert: `DV_CODED_TEXT occurrences matches {…}` (no node id).
+    if (
+      this.check(TokenType.IDENTIFIER) &&
+      /^[A-Z]/.test(this.peek().value) &&
+      this.peekAhead(1)?.type === TokenType.OCCURRENCES
+    ) {
+      return null;
+    }
+    if (
+      this.isUseNode() || this.isUseArchetype() || this.isAllowArchetype()
+    ) {
+      return null;
     }
     // RM attribute names can collide with ADL section keywords, e.g.
     // ACTIVITY.description or ENTRY.language; accept any word token that is
@@ -469,6 +522,13 @@ export class CadlParser {
         const intervalChild = this.tryParseIntervalConstraint();
         if (intervalChild) {
           this.pushAttributeChild(attribute, intervalChild);
+          this.maybeApplyAssumedValueSuffix(intervalChild);
+          continue;
+        }
+        const literalChild = this.tryParseLiteralPrimitiveConstraint();
+        if (literalChild) {
+          this.pushAttributeChild(attribute, literalChild);
+          this.maybeApplyAssumedValueSuffix(literalChild);
           continue;
         }
         const unitListChild = attributeName === "units"
@@ -478,17 +538,29 @@ export class CadlParser {
           this.pushAttributeChild(attribute, unitListChild);
           continue;
         }
+        const regexChild = this.tryParseRegexConstraint();
+        if (regexChild) {
+          this.pushAttributeChild(attribute, regexChild);
+          this.maybeApplyAssumedValueSuffix(regexChild);
+          continue;
+        }
         const stringChild = this.tryParseStringConstraint();
         if (stringChild) {
           this.pushAttributeChild(attribute, stringChild);
+          this.maybeApplyAssumedValueSuffix(stringChild);
+          continue;
+        }
+        const numChild = this.tryParseNumericConstraint();
+        if (numChild) {
+          this.pushAttributeChild(attribute, numChild);
+          this.maybeApplyAssumedValueSuffix(numChild);
           continue;
         }
         const child = this.parseChildObject();
         if (child) {
           this.pushAttributeChild(attribute, child);
         } else if (this.position === posBefore) {
-          if (this.check(TokenType.RBRACE)) break;
-          this.advance();
+          this.rejectUnexpectedInMatches();
         }
       }
 
@@ -570,19 +642,29 @@ export class CadlParser {
 
   private parseChildObject(): openehr_am.C_OBJECT | null {
     if (this.check(TokenType.RBRACE)) return null;
+    if (this.isUseNode()) {
+      return this.parseUseNode();
+    }
     const termChild = this.tryParseTerminologyConstraint();
     if (termChild) return termChild;
     const stringChild = this.tryParseStringConstraint();
     if (stringChild) return stringChild;
     const boolChild = this.tryParseBooleanConstraint();
-    if (boolChild) return boolChild;
+    if (boolChild) {
+      this.maybeApplyAssumedValueSuffix(boolChild);
+      return boolChild;
+    }
+    const numChild = this.tryParseNumericConstraint();
+    if (numChild) {
+      this.maybeApplyAssumedValueSuffix(numChild);
+      return numChild;
+    }
     if (this.check(TokenType.REGEX)) {
-      const prim = new openehr_am.C_PRIMITIVE_OBJECT();
-      prim.rm_type_name = "STRING";
-      const str = new openehr_am.C_STRING();
-      str.pattern = this.advance().value;
-      prim.item = str;
-      return prim;
+      const prim = this.tryParseRegexConstraint();
+      if (prim) {
+        this.maybeApplyAssumedValueSuffix(prim);
+        return prim;
+      }
     }
     if (!this.check(TokenType.IDENTIFIER)) {
       throw this.error(`Unexpected token: ${this.peek().value}`);
@@ -613,6 +695,8 @@ export class CadlParser {
    */
   private tryParseIntervalConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
     if (!this.check(TokenType.PIPE)) return null;
+    const prev = this.previous();
+    if (prev?.type === TokenType.SLASH) return null;
     this.advance(); // opening |
     let expr = "";
     while (!this.check(TokenType.PIPE) && !this.check(TokenType.RBRACE) && !this.isAtEnd()) {
@@ -620,7 +704,7 @@ export class CadlParser {
     }
     if (this.check(TokenType.PIPE)) this.advance(); // closing |
     const prim = new openehr_am.C_PRIMITIVE_OBJECT();
-    prim.rm_type_name = "Integer";
+    prim.rm_type_name = /\./.test(expr) ? "Real" : "Integer";
     const str = new openehr_am.C_STRING();
     str.pattern = expr;
     prim.item = str;
@@ -683,11 +767,33 @@ export class CadlParser {
       next.type === TokenType.ID_CODE
     ) {
       this.advance(); // '['
-      const code = this.advance().value;
+      const codes: string[] = [this.advance().value];
+      while (this.check(TokenType.SEMICOLON)) {
+        this.advance();
+        const codeToken = this.peek();
+        if (
+          codeToken.type !== TokenType.AC_CODE &&
+          codeToken.type !== TokenType.AT_CODE &&
+          codeToken.type !== TokenType.ID_CODE
+        ) {
+          break;
+        }
+        codes.push(this.advance().value);
+      }
       this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
       const term = new openehr_am.C_TERMINOLOGY_CODE();
       term.rm_type_name = "CODE_PHRASE";
-      term.constraint = code;
+      const runtime = term as openehr_am.C_TERMINOLOGY_CODE & {
+        code_list?: string[];
+        assumed_value?: string;
+      };
+      if (codes.length > 1) {
+        runtime.constraint = codes[0];
+        runtime.assumed_value = codes[codes.length - 1];
+        runtime.code_list = codes;
+      } else {
+        term.constraint = codes[0];
+      }
       return term;
     }
     if (next.type === TokenType.IDENTIFIER) {
@@ -1081,6 +1187,276 @@ export class CadlParser {
     }
 
     return interval;
+  }
+
+  private isRmTypeIdentifier(value: string): boolean {
+    if (!/^[A-Z]/.test(value)) return false;
+    if (value.includes("_")) return true;
+    return /^(HISTORY|COMPOSITION|OBSERVATION|EVALUATION|INSTRUCTION|ACTION|CLUSTER|EVENT|ELEMENT|ITEM|ACTIVITY|SECTION|ENTRY|ADMIN|DV|CODE|ISM|PARTY|LOCATABLE|ARCHETYPE|SLOT)/i
+      .test(value);
+  }
+
+  private rejectUnexpectedInMatches(): void {
+    if (this.check(TokenType.RBRACE)) return;
+    throw this.error(`Unexpected token: ${this.peek().value}`);
+  }
+
+  private isUseNode(): boolean {
+    return this.checkIdentifier("use_node");
+  }
+
+  private parseUseNode(): openehr_am.C_COMPLEX_OBJECT_PROXY {
+    this.advance(); // use_node
+    const proxy = new openehr_am.C_COMPLEX_OBJECT_PROXY();
+    if (
+      this.check(TokenType.IDENTIFIER) &&
+      !this.checkAhead(TokenType.SLASH, 1)
+    ) {
+      proxy.rm_type_name = this.advance().value;
+      if (this.check(TokenType.LBRACKET)) {
+        this.advance();
+        const nodeIdToken = this.peek();
+        if (
+          nodeIdToken.type === TokenType.ID_CODE ||
+          nodeIdToken.type === TokenType.AT_CODE
+        ) {
+          proxy.node_id = this.advance().value;
+        }
+        this.consume(TokenType.RBRACKET, "Expected ']' after use_node id");
+      }
+    }
+    proxy.target_path = this.consumeArchetypePath();
+    return proxy;
+  }
+
+  private consumeArchetypePath(): string {
+    let path = "";
+    while (!this.isAtEnd()) {
+      const t = this.peek();
+      if (t.type === TokenType.SLASH || t.type === TokenType.IDENTIFIER) {
+        path += this.advance().value;
+      } else if (t.type === TokenType.LBRACKET) {
+        path += this.advance().value;
+        while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+          path += this.advance().value;
+        }
+        if (this.check(TokenType.RBRACKET)) path += this.advance().value;
+      } else {
+        break;
+      }
+    }
+    if (!path) throw this.error("Expected archetype path after use_node");
+    return path;
+  }
+
+  private tryParseRegexConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    if (!this.check(TokenType.REGEX)) return null;
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "STRING";
+    const str = new openehr_am.C_STRING();
+    str.pattern = this.advance().value;
+    prim.item = str;
+    while (this.check(TokenType.COMMA) && this.checkAhead(TokenType.REGEX, 1)) {
+      this.advance();
+      str.pattern += "|" + this.advance().value;
+    }
+    return prim;
+  }
+
+  private tryParseLiteralPrimitiveConstraint():
+    openehr_am.C_PRIMITIVE_OBJECT | null {
+    const start = this.position;
+    const next = this.peekAhead(1);
+    if (
+      this.check(TokenType.IDENTIFIER) &&
+      (next?.type === TokenType.LBRACKET ||
+        this.isUseNode() ||
+        this.isUseArchetype() ||
+        this.isAllowArchetype())
+    ) {
+      return null;
+    }
+    const isoDateTail = next?.type === TokenType.INTEGER &&
+      String(next.value).startsWith("-");
+    if (this.check(TokenType.IDENTIFIER)) {
+      const v = this.peek().value;
+      // RM type names and bare lowercase words are not pattern literals.
+      if (this.isRmTypeIdentifier(v)) return null;
+      const isPattern =
+        /^pt/i.test(v) ||
+        v.includes("-") ||
+        v.includes("?") ||
+        this.checkAhead(TokenType.COLON, 1);
+      if (/^[a-z][a-z0-9_]*$/.test(v) && !isPattern) {
+        return null;
+      }
+    }
+    const canStart =
+      this.check(TokenType.IDENTIFIER) ||
+      (this.check(TokenType.INTEGER) &&
+        (this.checkAhead(TokenType.COLON, 1) || isoDateTail));
+    if (!canStart) return null;
+    const parts: string[] = [];
+    while (!this.isAtEnd()) {
+      const t = this.peek();
+      if (t.type === TokenType.RBRACE || t.type === TokenType.SEMICOLON) break;
+      if (t.type === TokenType.COMMA) {
+        const n = this.peekAhead(1);
+        if (
+          n?.type === TokenType.INTEGER || n?.type === TokenType.REAL ||
+          n?.type === TokenType.STRING || n?.type === TokenType.REGEX ||
+          n?.type === TokenType.IDENTIFIER
+        ) {
+          break;
+        }
+      }
+      if (t.type === TokenType.PIPE) {
+        parts.push(this.advance().value);
+        while (!this.check(TokenType.PIPE) && !this.isAtEnd()) {
+          parts.push(this.advance().value);
+        }
+        if (this.check(TokenType.PIPE)) parts.push(this.advance().value);
+        continue;
+      }
+      if (
+        t.type === TokenType.IDENTIFIER ||
+        t.type === TokenType.INTEGER ||
+        t.type === TokenType.REAL ||
+        t.type === TokenType.COLON ||
+        t.type === TokenType.COMMA ||
+        t.type === TokenType.DOT ||
+        t.type === TokenType.SLASH
+      ) {
+        const v = this.advance().value;
+        if (
+          t.type === TokenType.INTEGER && String(v).startsWith("-") &&
+          parts.length > 0
+        ) {
+          parts[parts.length - 1] += v;
+        } else {
+          parts.push(v);
+        }
+        continue;
+      }
+      break;
+    }
+    if (!parts.length) {
+      this.position = start;
+      return null;
+    }
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "STRING";
+    const str = new openehr_am.C_STRING();
+    str.pattern = parts.join("");
+    prim.item = str;
+    return prim;
+  }
+
+  private tryParseNumericConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    if (!this.check(TokenType.INTEGER) && !this.check(TokenType.REAL)) {
+      return null;
+    }
+    const next = this.peekAhead(1);
+    if (
+      next &&
+      next.type !== TokenType.COMMA &&
+      next.type !== TokenType.RBRACE &&
+      next.type !== TokenType.SEMICOLON
+    ) {
+      return null;
+    }
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    const isReal = this.check(TokenType.REAL);
+    prim.rm_type_name = isReal ? "Real" : "Integer";
+    const item = isReal ? new openehr_am.C_REAL() : new openehr_am.C_INTEGER();
+    const values: number[] = [];
+    for (;;) {
+      const raw = this.advance().value;
+      values.push(Number(raw));
+      if (
+        this.check(TokenType.COMMA) &&
+        (this.checkAhead(TokenType.INTEGER, 1) ||
+          this.checkAhead(TokenType.REAL, 1))
+      ) {
+        this.advance();
+        continue;
+      }
+      break;
+    }
+    (item as { list?: number[] }).list = values;
+    prim.item = item;
+    return prim;
+  }
+
+  private maybeApplyAssumedValueSuffix(
+    prim: openehr_am.C_PRIMITIVE_OBJECT,
+  ): void {
+    if (!this.check(TokenType.SEMICOLON)) return;
+    this.advance();
+    const item = prim.item;
+    if (!item) return;
+    const assumed = this.parseAssumedValueLiteral();
+    if (assumed !== undefined) {
+      (item as { assumed_value?: unknown }).assumed_value = assumed;
+    }
+  }
+
+  private parseAssumedValueLiteral(): unknown {
+    if (this.check(TokenType.STRING)) {
+      return this.advance().value.replace(/^["']|["']$/g, "");
+    }
+    if (this.check(TokenType.REGEX)) {
+      return this.advance().value;
+    }
+    if (
+      this.check(TokenType.IDENTIFIER) &&
+      /^(true|false)$/i.test(this.peek().value)
+    ) {
+      return this.advance().value.toLowerCase() === "true";
+    }
+    if (this.check(TokenType.PIPE)) {
+      const intervalChild = this.tryParseIntervalConstraint();
+      if (intervalChild?.item) {
+        return (intervalChild.item as openehr_am.C_STRING).pattern;
+      }
+      return undefined;
+    }
+    if (
+      this.check(TokenType.INTEGER) || this.check(TokenType.REAL) ||
+      this.check(TokenType.IDENTIFIER)
+    ) {
+      const parts: string[] = [];
+      while (!this.isAtEnd()) {
+        const t = this.peek();
+        if (t.type === TokenType.RBRACE || t.type === TokenType.COMMA) break;
+        if (
+          t.type === TokenType.IDENTIFIER ||
+          t.type === TokenType.INTEGER ||
+          t.type === TokenType.REAL ||
+          t.type === TokenType.COLON ||
+          t.type === TokenType.COMMA ||
+          t.type === TokenType.DOT ||
+          t.type === TokenType.SLASH
+        ) {
+          const v = this.advance().value;
+          if (
+            t.type === TokenType.INTEGER && String(v).startsWith("-") &&
+            parts.length > 0
+          ) {
+            parts[parts.length - 1] += v;
+          } else {
+            parts.push(v);
+          }
+          continue;
+        }
+        break;
+      }
+      if (!parts.length) return undefined;
+      const joined = parts.join("");
+      if (/^-?\d+(\.\d+)?$/.test(joined)) return Number(joined);
+      return joined;
+    }
+    return undefined;
   }
 
   private skipComments(): void {
