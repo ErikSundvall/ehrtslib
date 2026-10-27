@@ -4,14 +4,12 @@
 
 import { ADL2Tokenizer } from "./adl2_tokenizer.ts";
 import { ADL2Parser, type ADL2ParseResult } from "./adl2_parser.ts";
-import { convertAdl14ToAdl2 } from "./adl14_to_adl2_converter.ts";
+import { convertAdl14ToAdl2, type Adl14ConversionOptions } from "./adl14_to_adl2_converter.ts";
 import { detectAdlVersion, type AdlDetectedVersion } from "./adl_version.ts";
 
-export interface ParseAdlOptions {
+export interface ParseAdlOptions extends Adl14ConversionOptions {
   /** When true (default), run ADL 1.4 syntactic conversion before parsing. */
   convertAdl14?: boolean;
-  targetAdlVersion?: string;
-  rmRelease?: string;
 }
 
 export interface ParseAdlResult extends ADL2ParseResult {
@@ -37,10 +35,7 @@ export function parseAdl(
   let conversionWarnings: string[] = [];
 
   if (convert && detectedVersion === "1.4") {
-    const conv = convertAdl14ToAdl2(source, {
-      targetAdlVersion: options?.targetAdlVersion,
-      rmRelease: options?.rmRelease,
-    });
+    const conv = convertAdl14ToAdl2(source, options);
     adl2Source = conv.adl2Text;
     convertedFrom14 = conv.converted;
     conversionWarnings = conv.warnings;

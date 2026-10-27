@@ -12,7 +12,9 @@ Deno.test("convertAdl14ToAdl2 - ac-codes in term_definitions become id keys", as
   const original = await Deno.readTextFile(
     new URL("adl14/openEHR-TEST_PKG-WHOLE.most_minimal.v1.adl", TEST_DATA),
   );
-  const { adl2Text, converted, warnings } = convertAdl14ToAdl2(original);
+  const { adl2Text, converted, warnings } = convertAdl14ToAdl2(original, {
+    adl2CodingSystem: "id-coded",
+  });
   assert(converted);
   assert(warnings.length > 0);
   assert(adl2Text.includes('["id2"]'));
@@ -46,7 +48,9 @@ ontology
         >
     >
 `;
-  const { adl2Text, converted } = convertAdl14ToAdl2(source);
+  const { adl2Text, converted } = convertAdl14ToAdl2(source, {
+    adl2CodingSystem: "id-coded",
+  });
   assert(converted);
   assert(adl2Text.includes("terminology"));
   assert(adl2Text.includes('["id2"]'));
@@ -124,7 +128,7 @@ ontology
         >
     >
 `;
-  const { adl2Text } = convertAdl14ToAdl2(source);
+  const { adl2Text } = convertAdl14ToAdl2(source, { adl2CodingSystem: "id-coded" });
   assert(adl2Text.includes("OBSERVATION[id1]"));
   assert(adl2Text.includes("HISTORY[id2]"));
   assert(adl2Text.includes("ITEM_TREE[id4]"));

@@ -11,11 +11,13 @@
 
 import { detectAdlVersion } from "./adl_version.ts";
 import {
+  type Adl2CodingOptions,
   collectAdl14NodeAndValueCodes,
   opt14TerminologyKeyToAdl2,
+  resolveAdl2CodingSystem,
 } from "./legacy/opt14_code_mapping.ts";
 
-export interface Adl14ConversionOptions {
+export interface Adl14ConversionOptions extends Adl2CodingOptions {
   targetAdlVersion?: string;
   rmRelease?: string;
   /** Mark output as machine-converted (openEHR `generated` metadata flag). */
@@ -65,11 +67,14 @@ export function convertAdl14ToAdl2(
   text = renameSectionKeyword(text, "constraint_bindings", "term_bindings");
   text = stripTerminologiesAvailable(text);
   text = flattenTermDefinitionItemsWrappers(text);
+  const coding = resolveAdl2CodingSystem(options);
   const codeScopes = collectAdl14NodeAndValueCodesFromArchetype(text);
-  text = convertTerminologyAcCodes(text, warnings, codeScopes);
+  text = convertTerminologyAcCodes(text, warnings, codeScopes, options);
   text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings, codeScopes);
-  text = migrateValueSetsSection(text, warnings, codeScopes);
-  text = convertDefinitionNodeIds(text);
+  text = migrateValueSetsSection(text, warnings, codeScopes, options);
+  if (coding === "id-coded") {
+    text = convertDefinitionNodeIds(text);
+  }
   text = stripDeprecatedMatchesAny(text);
   text = normalizeArchetypeHridVersion(text, warnings);
 
@@ -195,6 +200,7 @@ function convertTerminologyAcCodes(
   text: string,
   warnings: string[],
   codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
+  options?: Adl2CodingOptions,
 ): string {
   const sections = splitTopLevelSections(text);
   let changed = false;
@@ -205,13 +211,18 @@ function convertTerminologyAcCodes(
       sec.body,
       codeScopes.nodeIds,
       codeScopes.valueCodes,
+      options,
     );
     if (body !== sec.body) changed = true;
     return sec.header + "\n" + body;
   });
-  if (changed) {
+  if (changed && resolveAdl2CodingSystem(options) === "id-coded") {
     warnings.push(
       "Converted ADL 1.4 at-codes in terminology to ADL2 id-codes (at0000 → id1).",
+    );
+  } else if (changed) {
+    warnings.push(
+      "Normalised ADL 1.4 terminology keys for at-coded ADL2.",
     );
   }
   return converted.join("\n");
@@ -221,9 +232,10 @@ function convertAcCodeKeysInTerminologyBody(
   body: string,
   nodeIds: Set<string>,
   valueCodes: Set<string>,
+  options?: Adl2CodingOptions,
 ): string {
   const mapKey = (code: string) =>
-    opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes);
+    opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes, options);
   return body
     .replace(
       /\["(at\d+(?:\.\d+)*|ac[\d.]+)"\]/gi,
@@ -427,12 +439,13 @@ function migrateValueSetsSection(
   text: string,
   warnings: string[],
   codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
+  options?: Adl2CodingOptions,
 ): string {
   const re = /^([ \t]*)value_sets\s*=\s*<\s*\n([\s\S]*?)^\1>/gim;
   if (!re.test(text)) return text;
   warnings.push("Normalised value_sets block under terminology.");
   const mapKey = (code: string) =>
-    opt14TerminologyKeyToAdl2(code, codeScopes.nodeIds, codeScopes.valueCodes);
+    opt14TerminologyKeyToAdl2(code, codeScopes.nodeIds, codeScopes.valueCodes, options);
   return text.replace(re, (_full, indent: string, body: string) => {
     const inner = body.replace(
       /\[(at\d+|ac[\d.]+)\]/gi,

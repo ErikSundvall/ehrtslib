@@ -24,7 +24,13 @@ import {
   readOpt14Header,
   upconvertOpt14ToAdl2,
 } from "../parser/legacy/opt14_upconvert.ts";
-import { OPT14_CODE_MAPPING_VERSION } from "../parser/legacy/opt14_code_mapping.ts";
+import {
+  type Adl2CodingSystem,
+  DEFAULT_ADL2_CODING_SYSTEM,
+  opt14CodeMappingVersion,
+  resolveAdl2CodingSystem,
+  type Adl2CodingOptions,
+} from "../parser/legacy/opt14_code_mapping.ts";
 import type { Opt14ExportBindingMetadata } from "./adl14_downconvert.ts";
 import { JsonCanonicalSerializer } from "../serialization/json/json_canonical_serializer.ts";
 import { canonicalizeJson, sha256Hex } from "./jcs.ts";
@@ -37,8 +43,21 @@ import { canonicalizeJson, sha256Hex } from "./jcs.ts";
  * `/2` (Erik, 2026-10-26): the hashed form also holds the template identity
  * (`identity` member, see {@link TemplateHashIdentity}).
  */
+/** Serialisation version for a template binding hash (includes coding system). */
+export function templateBindingSerialisationVersion(
+  coding: Adl2CodingSystem = DEFAULT_ADL2_CODING_SYSTEM,
+): string {
+  return `ehrtslib-cb-opt-json/3;jcs=rfc8785;opt14-codes=${
+    opt14CodeMappingVersion(coding)
+  };adl2-coding=${coding}`;
+}
+
+/**
+ * Latest serialisation version for the default at-coded binding (exported for
+ * callers comparing against {@link TemplateBinding.hash.serialisationVersion}).
+ */
 export const TEMPLATE_BINDING_SERIALISATION_VERSION =
-  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=${OPT14_CODE_MAPPING_VERSION}`;
+  templateBindingSerialisationVersion();
 
 /** `description/other_details` keys that are tool identifiers, not template content. */
 export const MD5_CAM_KEY = "MD5-CAM-1.0.1";
@@ -89,6 +108,8 @@ export interface TemplateBinding {
     serialisationVersion: string;
   };
   sourceFormat: TemplateSourceFormat;
+  /** ADL2 coding system used when the binding was created (OPT 1.4 up-convert). */
+  adl2CodingSystem: Adl2CodingSystem;
   sourceIdentifiers: TemplateSourceIdentifiers;
   /**
    * OPT 1.4 export code maps for ADL2-native templates (commit down-conversion,
@@ -100,7 +121,7 @@ export interface TemplateBinding {
 /** Input accepted by {@link bindTemplate}. */
 export type TemplateInput = string | openehr_am.OPERATIONAL_TEMPLATE;
 
-export interface BindTemplateOptions {
+export interface BindTemplateOptions extends Adl2CodingOptions {
   /**
    * Header of the OPT 1.4 XML, when `input` is an already parsed OPT 1.4
    * object (gives template id, `sem_ver`, description and source identifiers).
@@ -116,7 +137,7 @@ export interface BindTemplateOptions {
 
 export interface BoundTemplate {
   binding: TemplateBinding;
-  /** The ADL2 operational template (id-codes) the binding refers to. */
+  /** The ADL2 operational template the binding refers to. */
   operationalTemplate: openehr_am.OPERATIONAL_TEMPLATE;
   warnings: string[];
 }
@@ -179,9 +200,18 @@ export class TemplateBindingMismatchError extends Error {
 interface LoadedSource {
   opt: openehr_am.OPERATIONAL_TEMPLATE;
   sourceFormat: TemplateSourceFormat;
+  adl2CodingSystem: Adl2CodingSystem;
   opt14Header?: Opt14Header;
   adl2HeaderIds: TemplateSourceIdentifiers;
   warnings: string[];
+}
+
+function inferAdl2CodingSystem(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+): Adl2CodingSystem {
+  const rootId = opt.definition?.node_id;
+  if (rootId && /^id\d/i.test(rootId)) return "id-coded";
+  return DEFAULT_ADL2_CODING_SYSTEM;
 }
 
 function adl2HeaderIdentifiers(text: string): TemplateSourceIdentifiers {
@@ -207,11 +237,16 @@ function loadSource(
       const parsed = parseOptXml(input);
       warnings.push(...parsed.warnings);
       const header = readOpt14Header(input);
-      const up = upconvertOpt14ToAdl2(parsed.operationalTemplate, header);
+      const up = upconvertOpt14ToAdl2(
+        parsed.operationalTemplate,
+        header,
+        options,
+      );
       warnings.push(...up.warnings);
       return {
         opt: up.operationalTemplate,
         sourceFormat: "opt14-xml",
+        adl2CodingSystem: up.adl2CodingSystem,
         opt14Header: header,
         adl2HeaderIds: {},
         warnings,
@@ -229,6 +264,7 @@ function loadSource(
       return {
         opt,
         sourceFormat: "adl2-opt",
+        adl2CodingSystem: inferAdl2CodingSystem(opt),
         adl2HeaderIds: adl2HeaderIdentifiers(input),
         warnings,
       };
@@ -239,16 +275,23 @@ function loadSource(
     );
   }
   if (hasAdl14NodeIds(input)) {
-    const up = upconvertOpt14ToAdl2(input, options.opt14Header);
+    const up = upconvertOpt14ToAdl2(input, options.opt14Header, options);
     return {
       opt: up.operationalTemplate,
       sourceFormat: "opt14-xml",
+      adl2CodingSystem: up.adl2CodingSystem,
       opt14Header: options.opt14Header,
       adl2HeaderIds: {},
       warnings: up.warnings,
     };
   }
-  return { opt: input, sourceFormat: "adl2-opt", adl2HeaderIds: {}, warnings };
+  return {
+    opt: input,
+    sourceFormat: "adl2-opt",
+    adl2CodingSystem: inferAdl2CodingSystem(input),
+    adl2HeaderIds: {},
+    warnings,
+  };
 }
 
 function otherDetailsOf(
@@ -476,14 +519,18 @@ export async function bindTemplate(
     ...identity,
     sourceFormat: src.sourceFormat,
   });
+  const serialisationVersion = templateBindingSerialisationVersion(
+    src.adl2CodingSystem,
+  );
   const binding: TemplateBinding = {
     ...identity,
     hash: {
       algorithm: "sha256",
       value: await templateHash(src.opt, hashIdentity),
-      serialisationVersion: TEMPLATE_BINDING_SERIALISATION_VERSION,
+      serialisationVersion,
     },
     sourceFormat: src.sourceFormat,
+    adl2CodingSystem: src.adl2CodingSystem,
     sourceIdentifiers: sourceIdentifiersOf(src),
     ...(options.opt14Export ? { opt14Export: options.opt14Export } : {}),
   };

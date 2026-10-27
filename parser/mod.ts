@@ -46,15 +46,21 @@ export {
   upconvertOpt14ToAdl2,
 } from "./legacy/opt14_upconvert.ts";
 export {
+  type Adl2CodingOptions,
+  type Adl2CodingSystem,
   collectAdl14NodeAndValueCodes,
+  DEFAULT_ADL2_CODING_SYSTEM,
   isAdl14AtCode,
   Opt14CodeMinter,
   OPT14_CODE_MAPPING_VERSION,
+  opt14CodeMapper,
+  opt14CodeMappingVersion,
   opt14NodeIdToAdl2,
   opt14PathToAdl2,
   opt14TerminologyKeyToAdl2,
   opt14ValueCodeToAdl2,
   opt14ValueSetCodeToAdl2,
+  resolveAdl2CodingSystem,
 } from "./legacy/opt14_code_mapping.ts";
 export { RulesParser } from "./rules_parser.ts";
 export { serializeRulesSection } from "./rules_serializer.ts";

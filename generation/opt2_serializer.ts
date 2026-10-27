@@ -29,12 +29,14 @@ import { resolveTemplateLanguage } from "./term_codes.ts";
 import type { TermBag } from "../am/util/ontology_merge.ts";
 import { filterOperationalTemplateLanguages } from "./opt2_trim.ts";
 import {
+  type Adl2CodingOptions,
   opt14NodeIdToAdl2,
   opt14TerminologyKeyToAdl2,
+  resolveAdl2CodingSystem,
 } from "../parser/legacy/opt14_code_mapping.ts";
 
 /** Options for {@link OPT2Serializer.serializeOperationalTemplate}. */
-export interface Opt2SerializeOptions {
+export interface Opt2SerializeOptions extends Adl2CodingOptions {
   indent?: string;
   adlVersion?: string;
   rmRelease?: string;
@@ -66,6 +68,7 @@ export interface OPT2SerializerConfig extends ADL2SerializerConfig {
  */
 export class OPT2Serializer extends ADL2Serializer {
   private labelContext?: CadlLabelContext;
+  private serializeCoding?: Adl2CodingOptions;
 
   constructor(config?: OPT2SerializerConfig) {
     super(config);
@@ -83,6 +86,7 @@ export class OPT2Serializer extends ADL2Serializer {
     opt: openehr_am.OPERATIONAL_TEMPLATE,
     options?: Opt2SerializeOptions,
   ): string {
+    this.serializeCoding = options;
     const working = options?.languages?.length
       ? filterOperationalTemplateLanguages(opt, options.languages)
       : opt;
@@ -150,7 +154,7 @@ export class OPT2Serializer extends ADL2Serializer {
     const { nodeIds, valueCodes } = collectNodeAndValueCodes(working.definition);
     const ontologyBag = working.ontology as Record<string, unknown> | undefined;
     adl += serializeTerminologySection(
-      remapOntologyNodeIds(ontologyBag, nodeIds, valueCodes),
+      remapOntologyNodeIds(ontologyBag, nodeIds, valueCodes, options),
       indent,
     );
 
@@ -160,6 +164,7 @@ export class OPT2Serializer extends ADL2Serializer {
         scoped.archetype_term_definitions,
         nodeIds,
         valueCodes,
+        options,
       ),
       indent,
     );
@@ -174,12 +179,6 @@ export class OPT2Serializer extends ADL2Serializer {
     );
 
     return adl;
-  }
-
-  /** ADL 1.4 node ids are 0-based at-codes; ADL2 id-codes are 1-based. */
-  protected override formatNodeId(nodeId?: string): string {
-    if (!nodeId) return "";
-    return opt14NodeIdToAdl2(nodeId);
   }
 
   protected override decorateObjectLine(
@@ -237,11 +236,12 @@ function remapTermBag(
   bag: TermBag,
   nodeIds: Set<string>,
   valueCodes: Set<string>,
+  coding?: Adl2CodingOptions,
 ): TermBag {
   const out: TermBag = {};
   for (const [code, entry] of Object.entries(bag)) {
-    const mapped = opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes);
-    const idCode = opt14NodeIdToAdl2(code);
+    const mapped = opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes, coding);
+    const idCode = opt14NodeIdToAdl2(code, coding);
     const converts = idCode !== code && nodeIds.has(code);
     if (mapped !== code) {
       out[mapped] = { ...entry };
@@ -264,13 +264,14 @@ function remapOntologyNodeIds(
   ontology: Record<string, unknown> | undefined,
   nodeIds: Set<string>,
   valueCodes: Set<string>,
+  coding?: Adl2CodingOptions,
 ): Record<string, unknown> | undefined {
   if (!ontology) return ontology;
   const table = ontology.term_definitions as Record<string, TermBag> | undefined;
   if (!table) return ontology;
   const term_definitions: Record<string, TermBag> = {};
   for (const [lang, bag] of Object.entries(table)) {
-    term_definitions[lang] = remapTermBag(bag, nodeIds, valueCodes);
+    term_definitions[lang] = remapTermBag(bag, nodeIds, valueCodes, coding);
   }
   return { ...ontology, term_definitions };
 }
@@ -279,13 +280,14 @@ function remapComponentTerminologies(
   index: OperationalTemplateWithTermScopes["archetype_term_definitions"],
   nodeIds: Set<string>,
   valueCodes: Set<string>,
+  coding?: Adl2CodingOptions,
 ): OperationalTemplateWithTermScopes["archetype_term_definitions"] {
   if (!index) return index;
   const out: NonNullable<typeof index> = {};
   for (const [archId, byLang] of Object.entries(index)) {
     const langs: Record<string, TermBag> = {};
     for (const [lang, bag] of Object.entries(byLang)) {
-      langs[lang] = remapTermBag(bag, nodeIds, valueCodes);
+      langs[lang] = remapTermBag(bag, nodeIds, valueCodes, coding);
     }
     out[archId] = langs;
   }

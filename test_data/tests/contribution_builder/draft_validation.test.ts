@@ -26,7 +26,10 @@ async function template(file: string): Promise<BoundTemplate> {
   if (!cache.has(file)) {
     cache.set(
       file,
-      await bindTemplate(await Deno.readTextFile(new URL(file, OPT14))),
+      await bindTemplate(
+        await Deno.readTextFile(new URL(file, OPT14)),
+        { adl2CodingSystem: "id-coded" },
+      ),
     );
   }
   return cache.get(file)!;

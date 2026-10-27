@@ -205,7 +205,7 @@ Deno.test("ADL 1.4 down-conversion: node ids, local value codes, template_id", a
     obs.archetype_node_id,
     "openEHR-EHR-OBSERVATION.sample_blood_pressure.v1",
   );
-  assertEquals(adl2.content[0].data.archetype_node_id, "id2");
+  assertEquals(adl2.content[0].data.archetype_node_id, "at0001");
   assertEquals(obs.data.archetype_node_id, "at0001");
   assertEquals(obs.data.events[0].archetype_node_id, "at0002");
   const pos = obs.data.events[0].state.items[0].value.defining_code;
@@ -235,7 +235,7 @@ Deno.test("ADL 1.4 down-conversion: node ids, local value codes, template_id", a
   });
   assertEquals(
     (p2.body as any).versions[0].data.content[0].data.archetype_node_id,
-    "id2",
+    "at0001",
   );
 });
 
@@ -258,7 +258,11 @@ Deno.test("downConvertToAdl14 warns for ADL2-native templates without a code map
       data: { _type: "HISTORY", archetype_node_id: "id2" },
     }],
   };
-  const binding = { templateId: "t.adl2", sourceFormat: "adl2-opt" } as any;
+  const binding = {
+    templateId: "t.adl2",
+    sourceFormat: "adl2-opt",
+    adl2CodingSystem: "id-coded",
+  } as any;
   const r = downConvertToAdl14(data as any, binding, {
     codeMap: (a, c) =>
       a === "openEHR-EHR-OBSERVATION.y.v1" && c === "id2"
@@ -385,7 +389,7 @@ Deno.test("commit refuses missing committer, missing composer and invalid builds
 
   // Missing mandatory content: fails complete, passes incomplete.
   const d = await setup();
-  d.build.removeInstance(d.draft, d.build.findNodeKey(d.draft, "id12")!);
+  d.build.removeInstance(d.draft, d.build.findNodeKey(d.draft, "at0011")!);
   const inc = await assertRejects(
     () =>
       adapter.commit(d.build, d.v, CONFIG, "ehr-1", {

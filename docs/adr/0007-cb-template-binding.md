@@ -83,9 +83,11 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
   non-finite numbers, cycles and values with no JSON form throw `JcsError`
   before the library is called. The switch kept every canonical byte and
   hash unchanged (decided by Erik, 2026-10-26).
-- **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
-  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=am2-archie-1`. `/2`
-  (2026-10-26) added the `identity` member; `/1` hashed the content alone.
+- **Serialisation version** `templateBindingSerialisationVersion(coding)`, currently
+  `ehrtslib-cb-opt-json/3;jcs=rfc8785;opt14-codes=am24-at;adl2-coding=at-coded`
+  for the default at-coded binding (#181). `/2` (2026-10-26) added the
+  `identity` member with id-coded OPT up-conversion (`opt14-codes=am2-archie-id`);
+  `/1` hashed the content alone.
 - **Hashed form** (`templateCanonicalForm`): `{ identity, content }`.
   - `identity` (`templateHashIdentity`): ADL2 `{ hrid }`, the HRID without
     a build count (semver build metadata `+…`); OPT 1.4
@@ -105,9 +107,11 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
   each object node are sorted by `rm_attribute_name` (then
   `differential_path`). Sibling `children` and code lists keep document order,
   which is template content (display order).
-- **OPT 1.4 up-conversion** (AM 2.x rule, as in Archie's converter): node ids
-  `at0004` → `id5`; local value codes stay at-codes without zero padding
-  (`at0009` → `at10`); value-set codes `ac0001` → `ac2`. Object nodes without
+- **OPT 1.4 up-conversion** (default **at-coded**, SPECAM-90): node and value
+  codes from ADL 1.4 are kept as at/ac codes. Optional **`adl2CodingSystem:
+  "id-coded"`** uses the Archie rule: node ids `at0004` → `id5`; local value
+  codes without zero padding (`at0009` → `at10`); value-set codes `ac0001` →
+  `ac2`. Object nodes without
   a node id in ADL 1.4, and local code lists with more than one code (which
   get an ac value set), get minted codes: per archetype scope, numbering
   starts after the highest code used in that scope, in depth-first document

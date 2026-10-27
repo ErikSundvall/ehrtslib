@@ -210,42 +210,51 @@ Deno.test("JCS — I-JSON wrapper rules kept from the hand-written version", () 
   assertEquals(canonicalizeJson([shared, shared]), '[{"a":1},{"a":1}]');
 });
 
-Deno.test("JCS — golden template hashes; only the identity member changed them (/1 → /2)", async () => {
+Deno.test("JCS — golden template hashes (/3 at-coded default; id-coded still /2)", async () => {
   const { bindTemplate, templateContentForm, templateHashIdentity } =
     await import("../../../contribution_builder/mod.ts");
-  // v1: computed with the hand-written RFC 8785 code over the content alone
-  // (`ehrtslib-cb-opt-json/1`). v2: `{ identity, content }` (`/2`).
-  const golden: Record<string, { v1: string; v2: string }> = {
+  const atCoded: Record<string, { content: string; binding: string }> = {
     "ehrbase_blood_pressure_simple.de.v0.opt": {
-      v1: "a681198f5ade6a30efa05efabc4ee71e51c139cfd09f145c7256f9d2c5f7bb1c",
-      v2: "b8b03dbdbe65e3985c83f25878346d0c87c202a830914fc2fcd62a8edef319cf",
+      content: "ab3d39d68b5e6c7788b702ece522ad76442a7005904f1a5b734c618f1ec99fff",
+      binding: "7a6b5c494fa25b30b9ffe1bfff39f336295e08209b3128cabeaba6b4df9baffa",
     },
     "Test_all_types.opt": {
-      v1: "21a729c77f27aee4f45f9a37bc425085829331ffc80409f3d0c8daf7fc4f2693",
-      v2: "b61ea1ba3baf79abaccdf3fe5f650c4caa909cfb58823ba5765ae94c9d1d1759",
+      content: "aad623e83a1c1de477613003ba8311927d8993040b02201f73062deb1136b62f",
+      binding: "08f905f075a1e75c0a3eb350a8624fb7b56a58a9c50c89490b1090e4acc13fe6",
     },
     "multilingual_en_sv_de.opt": {
-      v1: "772a3f24e4d55731a32e213cfe6724f943c1021d7fa7a5b7e4c9a9f18d70948b",
-      v2: "3c6b6332d1e2e94b97337cf9291c461a00bd346f4071cc7f4b5e28d96057e56a",
+      content: "3c6ba83c113f612543aa78b40e278b7fe3235e499195a45a023cc658afb1eb0d",
+      binding: "a47ab592d2a4bec88097368ce45b9c97809f9bb07a290c5832c5ecbfa872d827",
     },
   };
-  for (const [name, { v1, v2 }] of Object.entries(golden)) {
+  const idCodedBinding: Record<string, string> = {
+    "ehrbase_blood_pressure_simple.de.v0.opt":
+      "b8b03dbdbe65e3985c83f25878346d0c87c202a830914fc2fcd62a8edef319cf",
+    "Test_all_types.opt":
+      "b61ea1ba3baf79abaccdf3fe5f650c4caa909cfb58823ba5765ae94c9d1d1759",
+    "multilingual_en_sv_de.opt":
+      "3c6b6332d1e2e94b97337cf9291c461a00bd346f4071cc7f4b5e28d96057e56a",
+  };
+  for (const [name, { content: contentHex, binding: bindingHex }] of Object
+    .entries(atCoded)) {
     const xml = await Deno.readTextFile(
       new URL(`../../opt14/${name}`, import.meta.url),
     );
     const { binding, operationalTemplate } = await bindTemplate(xml);
-    assertEquals(binding.hash.value, v2, name);
-    // The content part is byte-identical to the /1 hashed form ...
+    assertEquals(binding.adl2CodingSystem, "at-coded", name);
+    assertEquals(binding.hash.value, bindingHex, name);
     const content = canonicalizeJson(templateContentForm(operationalTemplate));
-    assertEquals(await sha256Hex(content), v1, name);
-    // ... and /2 is exactly {identity, content} over it.
+    assertEquals(await sha256Hex(content), contentHex, name);
     const identity = templateHashIdentity(binding);
     assertEquals(
       await sha256Hex(
         `{"content":${content},"identity":${canonicalizeJson(identity)}}`,
       ),
-      v2,
+      bindingHex,
       name,
     );
+    const idBound = await bindTemplate(xml, { adl2CodingSystem: "id-coded" });
+    assertEquals(idBound.binding.hash.value, idCodedBinding[name], name);
+    assertEquals(idBound.binding.adl2CodingSystem, "id-coded", name);
   }
 });

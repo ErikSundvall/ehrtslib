@@ -166,19 +166,26 @@ function isLocal(tid: RmJson | undefined): boolean {
  * alike (`at1001`), so call this only for ADL 1.4 data (see
  * {@link usesAdl14Codes}). Returns a copy.
  */
-export function upConvertFromAdl14(data: RmJson): RmJson {
+export function upConvertFromAdl14(
+  data: RmJson,
+  options?: import("../parser/legacy/opt14_code_mapping.ts").Adl2CodingOptions,
+): RmJson {
+  const coding = options?.adl2CodingSystem ?? "at-coded";
+  if (coding === "at-coded") {
+    return JSON.parse(JSON.stringify(data)) as RmJson;
+  }
   const copy = JSON.parse(JSON.stringify(data)) as RmJson;
   const walk = (v: RmJson) => {
     if (Array.isArray(v)) return v.forEach(walk);
     if (!isObj(v)) return;
     const nodeId = v.archetype_node_id;
     if (typeof nodeId === "string" && /^at\d/.test(nodeId)) {
-      v.archetype_node_id = opt14NodeIdToAdl2(nodeId);
+      v.archetype_node_id = opt14NodeIdToAdl2(nodeId, { adl2CodingSystem: "id-coded" });
     }
     if (v._type === "CODE_PHRASE" && isLocal(v.terminology_id)) {
       const code = v.code_string;
       if (typeof code === "string" && /^at\d/.test(code)) {
-        v.code_string = opt14ValueCodeToAdl2(code);
+        v.code_string = opt14ValueCodeToAdl2(code, { adl2CodingSystem: "id-coded" });
       }
     }
     for (const [k, x] of Object.entries(v)) {

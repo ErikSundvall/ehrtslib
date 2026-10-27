@@ -14,7 +14,7 @@ import {
   bindTemplate,
   checkTemplateBinding,
   compareTemplateBindings,
-  TEMPLATE_BINDING_SERIALISATION_VERSION,
+  templateBindingSerialisationVersion,
   type TemplateBinding,
   TemplateBindingMismatchError,
 } from "../../../contribution_builder/mod.ts";
@@ -65,7 +65,7 @@ function assertBinding(b: TemplateBinding) {
   assert(HEX64.test(b.hash.value), b.hash.value);
   assertEquals(
     b.hash.serialisationVersion,
-    TEMPLATE_BINDING_SERIALISATION_VERSION,
+    templateBindingSerialisationVersion(b.adl2CodingSystem),
   );
 }
 
@@ -80,15 +80,16 @@ Deno.test("bind ADL2 operational template (flattened ADL2 source template)", asy
   assertEquals(again.binding.hash.value, binding.hash.value);
 });
 
-Deno.test("bind OPT 1.4 XML: hash, template id, sem_ver version, ADL2 template with id-codes", async () => {
+Deno.test("bind OPT 1.4 XML: hash, template id, sem_ver version, at-coded ADL2 template", async () => {
   const { binding, operationalTemplate } = await bindTemplate(
     await read("conformance_ehrbase.de.v0.opt"),
   );
   assertBinding(binding);
   assertEquals(binding.sourceFormat, "opt14-xml");
+  assertEquals(binding.adl2CodingSystem, "at-coded");
   assertEquals(binding.templateId, "conformance-ehrbase.de.v0");
   assertEquals(binding.version, "1.0.0");
-  assertEquals(operationalTemplate.definition?.node_id, "id1");
+  assertEquals(operationalTemplate.definition?.node_id, "at0000");
 });
 
 Deno.test("bind every OPT 1.4 fixture", async () => {
