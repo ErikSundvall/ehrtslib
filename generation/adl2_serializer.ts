@@ -441,7 +441,7 @@ export class ADL2Serializer {
     return magnitudes.size <= 1 && precisions.size <= 1;
   }
 
-  /** Co-varying units / magnitude / precision. The cADL parser skips tuples. */
+  /** Co-varying units / magnitude / precision (ADL2 tuple constraint). */
   private quantityTuple(items: QuantityItemView[], level: number): string {
     const columns: Array<"units" | "magnitude" | "precision"> = [];
     if (items.some((item) => item.units)) columns.push("units");

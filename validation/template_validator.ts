@@ -1090,7 +1090,9 @@ function validateQuantityConstraint(
   path: string,
 ): ValidationMessage[] {
   const messages: ValidationMessage[] = [];
-  const list = (cObject as { list?: Array<{ units?: string; magnitude?: RangeLike }> }).list ?? [];
+  const list = (cObject as {
+    list?: Array<{ units?: string; magnitude?: RangeLike; precision?: RangeLike }>;
+  }).list ?? [];
   const units = rmValue?.units;
   if (list.length && units) {
     const match = list.find((item) => item.units === units);
@@ -1101,17 +1103,31 @@ function validateQuantityConstraint(
         severity: "error",
         constraintType: "quantity_units",
       });
-    } else if (
-      match.magnitude &&
-      rmValue.magnitude !== undefined &&
-      !inOrderedRange(rmValue.magnitude, match.magnitude)
-    ) {
-      messages.push({
-        path,
-        message: `magnitude ${rmValue.magnitude} is outside the units interval for ${units}`,
-        severity: "error",
-        constraintType: "quantity_magnitude",
-      });
+    } else {
+      if (
+        match.magnitude &&
+        rmValue.magnitude !== undefined &&
+        !inOrderedRange(rmValue.magnitude, match.magnitude)
+      ) {
+        messages.push({
+          path,
+          message: `magnitude ${rmValue.magnitude} is outside the units interval for ${units}`,
+          severity: "error",
+          constraintType: "quantity_magnitude",
+        });
+      }
+      if (
+        match.precision &&
+        rmValue.precision !== undefined &&
+        !inOrderedRange(rmValue.precision, match.precision)
+      ) {
+        messages.push({
+          path,
+          message: `precision ${rmValue.precision} is outside the allowed interval for ${units}`,
+          severity: "error",
+          constraintType: "quantity_precision",
+        });
+      }
     }
   }
   return messages;

@@ -693,6 +693,30 @@ export class CadlParser {
   /**
    * Primitive interval constraint: `{|>0|}`, `{|0..10|}`, `{|0..<100|}`.
    */
+  /** Tuple cell: `{|0..10|}` or exact `{1}` / `{1.5}`. */
+  private tryParseTupleNumericCell(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    const interval = this.tryParseIntervalConstraint();
+    if (interval) return interval;
+    if (
+      !this.check(TokenType.INTEGER) && !this.check(TokenType.REAL) &&
+      !this.check(TokenType.MINUS)
+    ) {
+      return null;
+    }
+    let expr = "";
+    if (this.check(TokenType.MINUS)) expr += this.advance().value;
+    if (this.check(TokenType.INTEGER) || this.check(TokenType.REAL)) {
+      expr += this.advance().value;
+    }
+    if (!expr) return null;
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = expr.includes(".") ? "Real" : "Integer";
+    const str = new openehr_am.C_STRING();
+    str.pattern = expr;
+    prim.item = str;
+    return prim;
+  }
+
   private tryParseIntervalConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
     if (!this.check(TokenType.PIPE)) return null;
     const prev = this.previous();
@@ -997,6 +1021,11 @@ export class CadlParser {
       this.position = start;
       return null;
     }
+    const quantityTupleColumns = new Set(["units", "magnitude", "precision"]);
+    if (!columns.every((c) => quantityTupleColumns.has(c))) {
+      this.position = start;
+      return null;
+    }
     this.advance();
     if (!this.check(TokenType.MATCHES)) {
       this.position = start;
@@ -1014,7 +1043,7 @@ export class CadlParser {
     while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
       this.skipComments();
       while (this.check(TokenType.COMMA)) this.advance();
-      if (this.check(TokenType.RBRACKET)) {
+      if (this.check(TokenType.LBRACKET)) {
         const row = this.parseQuantityTupleRow(columns);
         if (row) children.push(row);
         continue;
@@ -1054,7 +1083,7 @@ export class CadlParser {
         prim.item = str;
         cells[col] = prim;
       } else if (col === "magnitude" || col === "precision") {
-        const interval = this.tryParseIntervalConstraint();
+        const interval = this.tryParseTupleNumericCell();
         if (interval) cells[col] = interval;
       }
       this.consume(TokenType.RBRACE, "Expected '}' in quantity tuple cell");
@@ -1530,10 +1559,11 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
   const t = expr.trim();
   if (!t) return undefined;
   const interval: QuantityItemInterval = {};
-  const range = /^(.+)\.\.<?(.+)$/.exec(t);
+  const range = /^(.+)\.\.(<)?(.+)$/.exec(t);
   if (range) {
     const lowerPart = range[1];
-    const upperPart = range[2];
+    const exclusiveUpper = range[2] === "<";
+    const upperPart = range[3];
     if (lowerPart.startsWith(">")) {
       interval.lower_included = false;
       interval.lower = parseFloat(lowerPart.slice(1));
@@ -1541,9 +1571,11 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
       interval.lower_included = true;
       interval.lower = parseFloat(lowerPart);
     }
-    if (upperPart.startsWith("<")) {
+    if (exclusiveUpper || upperPart.startsWith("<")) {
       interval.upper_included = false;
-      interval.upper = parseFloat(upperPart.slice(1));
+      interval.upper = parseFloat(
+        exclusiveUpper ? upperPart : upperPart.slice(1),
+      );
     } else {
       interval.upper_included = true;
       interval.upper = parseFloat(upperPart);
@@ -1576,6 +1608,15 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
     interval.upper = parseFloat(lt[1]);
     interval.upper_included = false;
     interval.lower_unbounded = true;
+    return interval;
+  }
+  const exact = /^-?\d+(?:\.\d+)?$/.exec(t);
+  if (exact) {
+    const n = parseFloat(exact[0]);
+    interval.lower = n;
+    interval.upper = n;
+    interval.lower_included = true;
+    interval.upper_included = true;
     return interval;
   }
   return undefined;
