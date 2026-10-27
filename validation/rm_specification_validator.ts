@@ -146,7 +146,7 @@ const RM_CONSTRAINTS = {
   },
   "DV_CODED_TEXT.value": {
     type: "non_empty_string",
-    message: "DV_CODED_TEXT.value must be a non-empty string when present",
+    message: "DV_CODED_TEXT.value must be a non-empty string",
     spec_ref:
       "https://specifications.openehr.org/releases/RM/latest/data_types.html#_dv_coded_text_class",
   },
@@ -439,7 +439,9 @@ export class RMSpecificationValidator {
       return;
     }
     if (type === "non_empty_string") {
-      if (typeof rmValue === "string" && rmValue.length === 0) {
+      const empty = rmValue === undefined || rmValue === null ||
+        (typeof rmValue === "string" && rmValue.length === 0);
+      if (empty) {
         messages.push({
           path,
           message: (constraint.message as string) ||

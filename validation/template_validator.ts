@@ -87,6 +87,8 @@ export class TemplateValidator {
   private ucumService?: UcumService;
   private intervalValidator?: IntervalValidator;
   private rmSpecValidator?: RMSpecificationValidator;
+  /** Paths already checked for UCUM during the current `validate()` call. */
+  private ucumPathsChecked = new Set<string>();
 
   constructor(config?: ValidationConfig) {
     this.config = {
@@ -146,6 +148,7 @@ export class TemplateValidator {
   ): ValidationResult {
     const errors: ValidationMessage[] = [];
     const warnings: ValidationMessage[] = [];
+    this.ucumPathsChecked.clear();
     const sourceIndex = options?.jsonSource
       ? buildJsonSourceIndex(options.jsonSource)
       : undefined;
@@ -168,6 +171,10 @@ export class TemplateValidator {
         0,
         template.definition.rm_type_name,
       );
+    }
+
+    if (this.config.validateUnits && this.ucumService) {
+      this.validateRemainingUcum(rmInstance, "/", errors, warnings);
     }
 
     if (this.config.validateRMSpecification && this.rmSpecValidator) {
@@ -315,11 +322,21 @@ export class TemplateValidator {
       warnings.push(...msgs.filter((m) => m.severity === "warning"));
     }
 
-    // Validate UCUM units if enabled
+    // Validate UCUM units once per DV_QUANTITY at this template node (no subtree walk).
     if (this.config.validateUnits && this.ucumService && rmNode) {
-      const unitMsgs = this.validateUnits(rmNode, path);
-      errors.push(...unitMsgs.filter(m => m.severity === "error"));
-      warnings.push(...unitMsgs.filter(m => m.severity === "warning"));
+      const qtyConstraint = cObject instanceof openehr_am.C_QUANTITY
+        ? cObject
+        : undefined;
+      const actualType = this.getTypeName(rmNode) ?? cObject.rm_type_name;
+      if (actualType === "DV_QUANTITY") {
+        const unitMsgs = this.validateUcumQuantity(
+          rmNode,
+          path,
+          qtyConstraint,
+        );
+        errors.push(...unitMsgs.filter((m) => m.severity === "error"));
+        warnings.push(...unitMsgs.filter((m) => m.severity === "warning"));
+      }
     }
 
     // Validate terminology if enabled
@@ -430,7 +447,7 @@ export class TemplateValidator {
           this.validateNode(
             item,
             child,
-            `${attrPath}[${i}]/`,
+            appendArrayIndex(attrPath, i),
             errors,
             warnings,
             depth + 1,
@@ -464,37 +481,94 @@ export class TemplateValidator {
     }
   }
 
-  private validateUnits(rmNode: any, path: string): ValidationMessage[] {
+  /**
+   * UCUM check for a single DV_QUANTITY instance at `path`.
+   * When the template lists the unit in C_DV_QUANTITY, invalid UCUM is a warning only.
+   */
+  private validateUcumQuantity(
+    rmNode: any,
+    path: string,
+    cQuantity?: openehr_am.C_QUANTITY,
+  ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
     if (!rmNode || typeof rmNode !== "object") return messages;
+    const units = rmNode.units;
+    if (typeof units !== "string" || !units) return messages;
+    this.ucumPathsChecked.add(path);
 
-    if (rmNode.units && typeof rmNode.units === "string") {
-      const validationResult = this.ucumService!.validate(rmNode.units);
-      if (validationResult && validationResult.status === "invalid") {
-        messages.push({
-          path,
-          archetypePath: path,
-          message: `Invalid UCUM unit: "${rmNode.units}"${
-            validationResult.msg ? ": " + validationResult.msg.join(", ") : ""
-          }`,
-          severity: "error",
-          constraintType: "ucum",
-        });
-      }
+    const validationResult = this.ucumService!.validate(units);
+    if (!validationResult || validationResult.status !== "invalid") {
+      return messages;
     }
 
-    for (const [key, val] of Object.entries(rmNode)) {
-      if (val && typeof val === "object") {
-        messages.push(...this.validateUnits(val, `${path}${key}/`));
-      }
-    }
+    const list = (cQuantity as { list?: Array<{ units?: string }> } | undefined)
+      ?.list ?? [];
+    const allowedUnits = list
+      .map((item) => item.units)
+      .filter((u): u is string => typeof u === "string" && u.length > 0);
+    const inTemplateList = allowedUnits.length > 0 && allowedUnits.includes(units);
 
+    const detail = validationResult.msg
+      ? `: ${validationResult.msg.join(", ")}`
+      : "";
+    const message = inTemplateList
+      ? `Unit "${units}" is allowed by the template C_DV_QUANTITY constraint but is not valid UCUM${detail}`
+      : `Invalid UCUM unit: "${units}"${detail}`;
+
+    messages.push({
+      path,
+      archetypePath: path,
+      message,
+      severity: inTemplateList ? "warning" : "error",
+      constraintType: "ucum",
+    });
     return messages;
+  }
+
+  /** Strict UCUM for DV_QUANTITY nodes not reached by template-guided validation. */
+  private validateRemainingUcum(
+    rmValue: unknown,
+    path: string,
+    errors: ValidationMessage[],
+    warnings: ValidationMessage[],
+  ): void {
+    if (rmValue == null || typeof rmValue !== "object") return;
+    if (Array.isArray(rmValue)) return;
+
+    const rec = rmValue as Record<string, unknown>;
+    const type = typeof rec._type === "string" ? rec._type : undefined;
+    if (type === "DV_QUANTITY" && !this.ucumPathsChecked.has(path)) {
+      const msgs = this.validateUcumQuantity(rec, path, undefined);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    for (const [key, val] of Object.entries(rec)) {
+      if (key === "_type" || val == null || typeof val !== "object") continue;
+      const attrPath = path.endsWith("/") ? `${path}${key}/` : `${path}/${key}/`;
+      if (Array.isArray(val)) {
+        val.forEach((item, i) => {
+          this.validateRemainingUcum(
+            item,
+            appendArrayIndex(attrPath, i),
+            errors,
+            warnings,
+          );
+        });
+      } else {
+        this.validateRemainingUcum(val, attrPath, errors, warnings);
+      }
+    }
   }
 
   private getTypeName(instance: any): string | undefined {
     return TypeRegistry.getTypeNameFromInstance(instance);
   }
+}
+
+function appendArrayIndex(attrPath: string, index: number): string {
+  const base = attrPath.endsWith("/") ? attrPath.slice(0, -1) : attrPath;
+  return `${base}[${index}]/`;
 }
 
 /**

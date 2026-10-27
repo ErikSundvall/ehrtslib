@@ -19,6 +19,8 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+`TemplateValidator` UCUM messages are emitted once per `DV_QUANTITY` with canonical instance paths; template-listed units that fail strict UCUM are warnings (`severity: "warning"`, `constraintType: "ucum"`), not errors. `RMSpecificationValidator.validateInstance` reports missing or empty `DV_TEXT.value` and `DV_CODED_TEXT.value` as `rm_invariant` errors ([#174](https://github.com/ErikSundvall/ehrtslib/issues/174)).
+
 `Opt14ExportResult` includes `componentCodeMaps` (ADL2 → ADL 1.4 per component archetype id). `TemplateBinding` may carry optional `opt14Export` (`templateId` + `componentCodeMaps`) for commit down-conversion; set it only via `bindTemplate({ opt14Export })` (caller-supplied from the CDR OPT export; not part of the binding hash; bind does not run `exportAdl2TemplateToOpt14`). Alternatively pass maps through per-draft `adl14` on commit or `Adl14DownconversionOptions` / `resolveAdl14DownconversionOptions`. `hasAdl14CdrExportContext` and `adl14DownconversionCdrWarnings` support the commit warning when ADL2-native bindings commit with default mapping only ([#178](https://github.com/ErikSundvall/ehrtslib/issues/178)).
 
 `parser/mod.ts` exports `collectAdl14NodeAndValueCodes` and `opt14TerminologyKeyToAdl2` from `opt14_code_mapping.ts` ([#168](https://github.com/ErikSundvall/ehrtslib/issues/168)).
