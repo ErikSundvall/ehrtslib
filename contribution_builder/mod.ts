@@ -79,9 +79,12 @@ export {
   validateDraft,
 } from "./draft_validation.ts";
 export {
+  adl14DownconversionFromOpt14Export,
   type Adl14DownconversionOptions,
   type Adl14DownconversionResult,
   downConvertToAdl14,
+  type Opt14ExportBindingMetadata,
+  resolveAdl14DownconversionOptions,
   upConvertFromAdl14,
   usesAdl14Codes,
 } from "./adl14_downconvert.ts";

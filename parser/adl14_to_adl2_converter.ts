@@ -10,6 +10,10 @@
  */
 
 import { detectAdlVersion } from "./adl_version.ts";
+import {
+  collectAdl14NodeAndValueCodes,
+  opt14TerminologyKeyToAdl2,
+} from "./legacy/opt14_code_mapping.ts";
 
 export interface Adl14ConversionOptions {
   targetAdlVersion?: string;
@@ -61,9 +65,10 @@ export function convertAdl14ToAdl2(
   text = renameSectionKeyword(text, "constraint_bindings", "term_bindings");
   text = stripTerminologiesAvailable(text);
   text = flattenTermDefinitionItemsWrappers(text);
-  text = convertTerminologyAcCodes(text, warnings);
-  text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings);
-  text = migrateValueSetsSection(text, warnings);
+  const codeScopes = collectAdl14NodeAndValueCodesFromArchetype(text);
+  text = convertTerminologyAcCodes(text, warnings, codeScopes);
+  text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings, codeScopes);
+  text = migrateValueSetsSection(text, warnings, codeScopes);
   text = convertDefinitionNodeIds(text);
   text = stripDeprecatedMatchesAny(text);
   text = normalizeArchetypeHridVersion(text, warnings);
@@ -169,13 +174,38 @@ function flattenTermDefinitionItemsWrappers(text: string): string {
 }
 
 /** Convert `[at0001]` / `[ac1]` keys in terminology blocks to ADL2 `[id1]` form. */
-function convertTerminologyAcCodes(text: string, warnings: string[]): string {
+function collectAdl14NodeAndValueCodesFromArchetype(text: string): {
+  nodeIds: Set<string>;
+  valueCodes: Set<string>;
+} {
+  const nodeIds = new Set<string>();
+  const valueCodes = new Set<string>();
+  const sections = splitTopLevelSections(text);
+  for (const sec of sections) {
+    const header = sec.header.trim().toLowerCase();
+    if (header !== "definition" && header !== "rules") continue;
+    const part = collectAdl14NodeAndValueCodes(sec.body);
+    part.nodeIds.forEach((c) => nodeIds.add(c));
+    part.valueCodes.forEach((c) => valueCodes.add(c));
+  }
+  return { nodeIds, valueCodes };
+}
+
+function convertTerminologyAcCodes(
+  text: string,
+  warnings: string[],
+  codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
+): string {
   const sections = splitTopLevelSections(text);
   let changed = false;
   const converted = sections.map((sec) => {
     const header = sec.header.trim().toLowerCase();
     if (header !== "ontology" && header !== "terminology") return sec.raw;
-    const body = convertAcCodeKeysInTerminologyBody(sec.body);
+    const body = convertAcCodeKeysInTerminologyBody(
+      sec.body,
+      codeScopes.nodeIds,
+      codeScopes.valueCodes,
+    );
     if (body !== sec.body) changed = true;
     return sec.header + "\n" + body;
   });
@@ -187,15 +217,21 @@ function convertTerminologyAcCodes(text: string, warnings: string[]): string {
   return converted.join("\n");
 }
 
-function convertAcCodeKeysInTerminologyBody(body: string): string {
+function convertAcCodeKeysInTerminologyBody(
+  body: string,
+  nodeIds: Set<string>,
+  valueCodes: Set<string>,
+): string {
+  const mapKey = (code: string) =>
+    opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes);
   return body
     .replace(
       /\["(at\d+(?:\.\d+)*|ac[\d.]+)"\]/gi,
-      (_m, code: string) => `["${acCodeToIdKey(code)}"]`,
+      (_m, code: string) => `["${mapKey(code)}"]`,
     )
     .replace(
       /\[(at\d+(?:\.\d+)*|ac[\d.]+)\]/gi,
-      (_m, code: string) => `[${acCodeToIdKey(code)}]`,
+      (_m, code: string) => `[${mapKey(code)}]`,
     );
 }
 
@@ -212,12 +248,6 @@ export function adl14AtToId(code: string): string {
   return `id${parseInt(m[1], 10) + 1}${m[2] ?? ""}`;
 }
 
-function acCodeToIdKey(code: string): string {
-  if (/^at/i.test(code)) return adl14AtToId(code);
-  const ac = /^ac([\d.]+)$/i.exec(code);
-  if (ac) return `ac${ac[1]}`;
-  return code;
-}
 
 interface TermEntry {
   code: string;
@@ -292,6 +322,7 @@ function parseLanguageBlocks(block: string): Map<string, string> {
 function mergeLanguageTermBlocks(
   termDefsBlock: string,
   constraintDefsBlock: string,
+  codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
 ): string {
   const termLangs = parseLanguageBlocks(termDefsBlock);
   const constraintLangs = parseLanguageBlocks(constraintDefsBlock);
@@ -303,7 +334,11 @@ function mergeLanguageTermBlocks(
     const byCode = new Map(termEntries.map((e) => [e.code, e]));
 
     for (const ce of constraintEntries) {
-      const idCode = acCodeToIdKey(ce.code);
+      const idCode = opt14TerminologyKeyToAdl2(
+        ce.code,
+        codeScopes.nodeIds,
+        codeScopes.valueCodes,
+      );
       const existing = byCode.get(idCode) ?? byCode.get(ce.code);
       if (existing) {
         existing.lines = mergeTermEntryLines(existing.lines, ce.lines);
@@ -352,6 +387,7 @@ function extractOdinAssignmentBlock(text: string, key: string): string | undefin
 function mergeConstraintDefinitionsIntoTermDefinitions(
   text: string,
   warnings: string[],
+  codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
 ): string {
   const termBody = extractOdinAssignmentBlock(text, "term_definitions");
   const constraintBody = extractOdinAssignmentBlock(text, "constraint_definitions");
@@ -362,7 +398,7 @@ function mergeConstraintDefinitionsIntoTermDefinitions(
   warnings.push(
     "constraint_definitions merged into term_definitions by code (ADL 1.4 → 2).",
   );
-  const merged = mergeLanguageTermBlocks(termBody, constraintBody);
+  const merged = mergeLanguageTermBlocks(termBody, constraintBody, codeScopes);
   const termStart = text.search(/\bterm_definitions\s*=/i);
   const termOpen = text.indexOf("<", termStart);
   let depth = 0;
@@ -387,14 +423,20 @@ function mergeConstraintDefinitionsIntoTermDefinitions(
 }
 
 /** ADL 1.4 value_sets under ontology: ensure block survives terminology rename. */
-function migrateValueSetsSection(text: string, warnings: string[]): string {
+function migrateValueSetsSection(
+  text: string,
+  warnings: string[],
+  codeScopes: { nodeIds: Set<string>; valueCodes: Set<string> },
+): string {
   const re = /^([ \t]*)value_sets\s*=\s*<\s*\n([\s\S]*?)^\1>/gim;
   if (!re.test(text)) return text;
   warnings.push("Normalised value_sets block under terminology.");
+  const mapKey = (code: string) =>
+    opt14TerminologyKeyToAdl2(code, codeScopes.nodeIds, codeScopes.valueCodes);
   return text.replace(re, (_full, indent: string, body: string) => {
     const inner = body.replace(
       /\[(at\d+|ac[\d.]+)\]/gi,
-      (_m, code: string) => `[${acCodeToIdKey(code)}]`,
+      (_m, code: string) => `[${mapKey(code)}]`,
     );
     return `${indent}value_sets = <\n${inner}${indent}>`;
   });

@@ -25,6 +25,7 @@ import {
   upconvertOpt14ToAdl2,
 } from "../parser/legacy/opt14_upconvert.ts";
 import { OPT14_CODE_MAPPING_VERSION } from "../parser/legacy/opt14_code_mapping.ts";
+import type { Opt14ExportBindingMetadata } from "./adl14_downconvert.ts";
 import { JsonCanonicalSerializer } from "../serialization/json/json_canonical_serializer.ts";
 import { canonicalizeJson, sha256Hex } from "./jcs.ts";
 
@@ -89,6 +90,11 @@ export interface TemplateBinding {
   };
   sourceFormat: TemplateSourceFormat;
   sourceIdentifiers: TemplateSourceIdentifiers;
+  /**
+   * OPT 1.4 export code maps for ADL2-native templates (commit down-conversion,
+   * #178). Not part of the template content hash.
+   */
+  opt14Export?: Opt14ExportBindingMetadata;
 }
 
 /** Input accepted by {@link bindTemplate}. */
@@ -100,6 +106,8 @@ export interface BindTemplateOptions {
    * object (gives template id, `sem_ver`, description and source identifiers).
    */
   opt14Header?: Opt14Header;
+  /** From {@link exportAdl2TemplateToOpt14}; used when committing with ADL 1.4 codes. */
+  opt14Export?: Opt14ExportBindingMetadata;
 }
 
 export interface BoundTemplate {
@@ -473,6 +481,7 @@ export async function bindTemplate(
     },
     sourceFormat: src.sourceFormat,
     sourceIdentifiers: sourceIdentifiersOf(src),
+    ...(options.opt14Export ? { opt14Export: options.opt14Export } : {}),
   };
   return { binding, operationalTemplate: src.opt, warnings: src.warnings };
 }

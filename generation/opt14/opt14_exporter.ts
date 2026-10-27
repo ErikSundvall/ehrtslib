@@ -79,6 +79,11 @@ export interface Opt14ExportResult {
   translationsDropped: boolean;
   annotations: Array<{ path: string; items: Record<string, string> }>;
   componentArchetypeIds: string[];
+  /**
+   * ADL2 → ADL 1.4 code map per component archetype id (`id14`). Use with
+   * {@link contribution_builder/adl14_downconvert.ts} for ADL2-native templates.
+   */
+  componentCodeMaps: Record<string, Record<string, string>>;
 }
 
 interface Component {
@@ -655,6 +660,12 @@ export class Opt14Exporter {
     }
     out.push("</template>");
 
+    const componentCodeMaps: Record<string, Record<string, string>> = {};
+    for (const c of this.occurrences) {
+      if (componentCodeMaps[c.id14]) continue;
+      componentCodeMaps[c.id14] = Object.fromEntries(c.codeMap.entries());
+    }
+
     return {
       xml: out.filter((l) => l.trim()).join("\n") + "\n",
       templateId: tid,
@@ -663,6 +674,7 @@ export class Opt14Exporter {
       translationsDropped: dropped,
       annotations,
       componentArchetypeIds: [...seen],
+      componentCodeMaps,
     };
   }
 

@@ -238,7 +238,11 @@ export async function prepareContribution(
     changeTypes.add(changeType);
     let data = build.toCanonicalJson(d.draftId) as Obj;
     if ((config.codes ?? "adl14") === "adl14") {
-      const down = downConvertToAdl14(data, info.templateBinding, d.adl14);
+      const down = downConvertToAdl14(
+        data,
+        info.templateBinding,
+        d.adl14,
+      );
       warnings.push(...down.warnings.map((w) => `${d.draftId}: ${w}`));
       data = down.data as Obj;
     }

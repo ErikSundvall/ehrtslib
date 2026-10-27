@@ -24,6 +24,12 @@ import {
 import type { RmJson } from "./operation_log.ts";
 import type { TemplateBinding } from "./template_binding.ts";
 
+/** OPT 1.4 export metadata stored on a template binding (#178). */
+export interface Opt14ExportBindingMetadata {
+  templateId: string;
+  componentCodeMaps: Record<string, Record<string, string>>;
+}
+
 export interface Adl14DownconversionOptions {
   /** OPT 1.4 template id to write in `archetype_details.template_id`. */
   templateId?: string;
@@ -47,6 +53,32 @@ const isObj = (v: unknown): v is Obj =>
 const ARCHETYPE_ID_RE = /^[A-Za-z][\w-]*-[A-Za-z]+-[A-Za-z_]+\.[\w-]+\.v\d/;
 const ADL2_CODE_RE = /^(id|at)\d+(\.\d+)*$/;
 
+/** Build down-conversion options from an {@link exportAdl2TemplateToOpt14} result. */
+export function adl14DownconversionFromOpt14Export(
+  result: Opt14ExportBindingMetadata,
+): Adl14DownconversionOptions {
+  return {
+    templateId: result.templateId,
+    codeMap: (archetypeId, code) => result.componentCodeMaps[archetypeId]?.[code],
+  };
+}
+
+/** Merge explicit commit options with metadata stored on the template binding. */
+export function resolveAdl14DownconversionOptions(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): Adl14DownconversionOptions {
+  const fromBinding = binding.opt14Export
+    ? adl14DownconversionFromOpt14Export(binding.opt14Export)
+    : {};
+  return {
+    templateId: draft?.templateId ?? fromBinding.templateId,
+    codeMap: (archetypeId, code) =>
+      draft?.codeMap?.(archetypeId, code) ??
+      fromBinding.codeMap?.(archetypeId, code),
+  };
+}
+
 /** Down-convert (returns a copy; the input is not changed). */
 export function downConvertToAdl14(
   data: RmJson,
@@ -54,14 +86,18 @@ export function downConvertToAdl14(
   options: Adl14DownconversionOptions = {},
 ): Adl14DownconversionResult {
   const warnings: string[] = [];
-  const templateId = options.templateId ?? binding.templateId;
+  const resolved = resolveAdl14DownconversionOptions(binding, options);
+  const templateId = resolved.templateId ?? binding.templateId;
   if (binding.sourceFormat !== "opt14-xml") {
-    if (!options.codeMap) {
+    const hasCodeMap = !!options.codeMap || !!binding.opt14Export?.componentCodeMaps;
+    if (!hasCodeMap) {
       warnings.push(
         "ADL2-native template: ADL 1.4 codes use the plain shift; pass the OPT 1.4 exporter's code map if it renumbered node ids",
       );
     }
-    if (!options.templateId) {
+    const hasOptTemplateId = !!options.templateId ||
+      !!binding.opt14Export?.templateId;
+    if (!hasOptTemplateId) {
       warnings.push(
         `ADL2-native template: archetype_details.template_id set to ${templateId}; pass the OPT 1.4 template id if it differs`,
       );
@@ -69,7 +105,7 @@ export function downConvertToAdl14(
   }
   const map = (archetypeId: string, code: string): string => {
     if (!ADL2_CODE_RE.test(code)) return code;
-    return options.codeMap?.(archetypeId, code) ?? idToAtCode(code);
+    return resolved.codeMap?.(archetypeId, code) ?? idToAtCode(code);
   };
   const copy = JSON.parse(JSON.stringify(data)) as RmJson;
   const walk = (v: RmJson, archetypeId: string, isRoot: boolean) => {
