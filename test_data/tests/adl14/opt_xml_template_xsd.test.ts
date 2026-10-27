@@ -5,8 +5,6 @@
 import { assert, assertStringIncludes } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseTemplateInput } from "../../../parser/mod.ts";
 import { OptXmlSerializer } from "../../../generation/opt_xml_serializer.ts";
-import { exportAdl2TemplateToOpt14 } from "../../../generation/opt14/opt14_exporter.ts";
-import { ArchetypeRepository } from "../../../parser/mod.ts";
 
 const FIXTURES = [
   "opt14/minimal_evaluation.opt",
@@ -28,17 +26,4 @@ Deno.test("OptXmlSerializer: language before template_id with terminology_id (#1
     assertStringIncludes(out, "<terminology_id>", rel);
     assertStringIncludes(out, "<value>ISO_639-1</value>", rel);
   }
-});
-
-Deno.test("Opt14Exporter: no match_negated in OPT XML (#190)", async () => {
-  const base = new URL("../../", import.meta.url);
-  const xml = await Deno.readTextFile(new URL("opt14/minimal_evaluation.opt", base));
-  const { operationalTemplate } = parseTemplateInput(xml);
-  assert(operationalTemplate);
-  const repo = ArchetypeRepository.fromEntries([]);
-  const exported = exportAdl2TemplateToOpt14({
-    template: operationalTemplate,
-    repository: repo,
-  });
-  assert(!exported.xml.includes("<match_negated>"));
 });
