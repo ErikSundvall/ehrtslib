@@ -4,6 +4,7 @@
  */
 
 import * as openehr_am from "../openehr_am.ts";
+import { isSubtypeOf } from "../meta/mod.ts";
 import type { GenerationMode } from "./rm_instance_generator.ts";
 
 type Bounds = { min: number; max: number; unbounded: boolean };
@@ -316,6 +317,9 @@ function slotSatisfied(
   const obj = value as Record<string, unknown>;
   if (obj._type !== slot.rmType) return false;
   if (slot.nodeId && obj.archetype_node_id !== slot.nodeId) {
+    // Template at-codes on non-LOCATABLE constraints (e.g. ISM_TRANSITION) are not
+    // serialized on RM instances; presence and _type are enough.
+    if (!isSubtypeOf(slot.rmType, "LOCATABLE")) return true;
     // RM instances use archetype id on inlined roots; template slots use at-codes.
     const id = obj.archetype_node_id;
     if (

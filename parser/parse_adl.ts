@@ -47,7 +47,17 @@ export function parseAdl(
   }
 
   const tokenizer = new ADL2Tokenizer(adl2Source);
-  const parseResult = new ADL2Parser(tokenizer.tokenize()).parse();
+  let parseResult: ADL2ParseResult;
+  try {
+    parseResult = new ADL2Parser(tokenizer.tokenize()).parse();
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    throw new Error(message, { cause: e });
+  }
+
+  if (parseResult.errors.length > 0) {
+    throw new Error(parseResult.errors.join("; "));
+  }
 
   return {
     ...parseResult,

@@ -320,18 +320,9 @@ export class ADL2Tokenizer {
     const rest = this.input.slice(this.position + 1);
     const scheme = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.exec(rest);
     if (!scheme) return undefined;
-    // RFC 3986: unreserved, pct-encoded, sub-delims, and gen-delims except `>`.
-    const allowed = /[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]/;
+    // Body runs until `>`; allow IRIs (non-ASCII) as in Archie term_bindings URIs.
     let i = scheme[0].length;
     while (i < rest.length && rest[i] !== ">") {
-      const c = rest[i];
-      if (!allowed.test(c)) {
-        throw new Error(
-          `Unexpected character '${c}' in URI at line ${startLine}, column ${
-            startColumn + 1 + i
-          }`,
-        );
-      }
       i++;
     }
     if (rest[i] !== ">") {

@@ -224,6 +224,24 @@ export class RMInstanceGenerator {
         termContext,
       );
     }
+
+    if (
+      cObject.rm_type_name === "ACTION" && instance.ism_transition === undefined
+    ) {
+      const ismAttr = cObject.attributes?.find((a) =>
+        a.rm_attribute_name === "ism_transition"
+      );
+      const ismChild = (ismAttr as { children?: openehr_am.C_OBJECT[] })
+        ?.children?.[0];
+      instance.ism_transition = ismChild
+        ? this.generateFromCObject(ismChild, depth + 1, "ism_transition", termContext)
+        : this.generateDefaultValue(
+          "ACTION",
+          "ism_transition",
+          cObject.node_id,
+          termContext,
+        );
+    }
   }
 
   private generateAttributeValue(
@@ -394,7 +412,9 @@ export class RMInstanceGenerator {
       case "ism_transition":
         return {
           _type: "ISM_TRANSITION",
-          current_state: this.dvCodedText("completed", "openehr", "532"),
+          current_state: this.dvCodedText("active", "openehr", "245"),
+          transition: this.dvCodedText("initiate", "openehr", "535"),
+          careflow_step: this.dvCodedText("start", "openehr", "271"),
         };
       case "description":
       case "data":
