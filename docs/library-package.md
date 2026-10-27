@@ -121,7 +121,7 @@ The core and full barrels export `am`, `base`, `lang`, `term`, `generation`,
 `ehrtslib/contribution-builder` from `deno.json` exports) when you need the CB
 without the rest of the library.
 
-At release **0.6.0**, `ehrtslib-*-core.min.js` is typically only a few percent
+At release **0.7.0**, `ehrtslib-*-core.min.js` is typically only a few percent
 smaller than the full `.min.js` because both include the parser, serialization,
 generation, validation stacks and the bundled `@lhncbc/ucum-lhc` tables (loaded
 when validators call `initialize()`). The contribution-builder subtree is what

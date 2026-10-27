@@ -19,6 +19,12 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+## 0.7.0 (tag `v0.7`)
+
+**Breaking — default import surface.** `mod.ts` no longer exports `contributionBuilder`. Use `mod_full.ts` (`ehrtslib/full` in `deno.json` exports) or `contribution_builder/mod.ts` (`ehrtslib/contribution-builder`) ([#201](https://github.com/ErikSundvall/ehrtslib/issues/201)). Release ships three runtime bundles: full (`mod_full.ts`), core (`mod.ts`), and contribution-only.
+
+`TemplateValidator` optional-attribute descent ([#198](https://github.com/ErikSundvall/ehrtslib/issues/198)), derived `EVENT.offset` ([#200](https://github.com/ErikSundvall/ehrtslib/issues/200)), UCUM rate-unit fallback ([#199](https://github.com/ErikSundvall/ehrtslib/issues/199)), and ADL2 tuple export/validation follow-ups ([#196](https://github.com/ErikSundvall/ehrtslib/issues/196)).
+
 ## 0.6.0 (tag `v0.6.0`)
 
 **Breaking — validator instance paths.** `TemplateValidator`, `DraftValidator`, and related validation results use RM-style paths without a slash before index brackets (`/content[0]/…`, not `/content/[0]/…`). Update downstream parsers, golden tests, or string compares that assumed the old shape ([#184](https://github.com/ErikSundvall/ehrtslib/pull/184)).
