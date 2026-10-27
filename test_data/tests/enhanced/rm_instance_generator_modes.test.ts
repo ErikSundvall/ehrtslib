@@ -162,10 +162,7 @@ const OPT_FIXTURES = [
   "nested.en.v1.opt",
 ];
 
-/** Nested ACTION ism_transition slots in Test_all_types.opt (#generator follow-up). */
-const SKIP_COVERAGE: Partial<Record<string, GenerationMode[]>> = {
-  "Test_all_types.opt": ["example", "maximal"],
-};
+const SKIP_COVERAGE: Partial<Record<string, GenerationMode[]>> = {};
 
 for (const fixture of OPT_FIXTURES) {
   for (const mode of ["minimal", "example", "maximal"] as const) {

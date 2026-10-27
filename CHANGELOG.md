@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- GitHub Actions CI runs `deno task check` and `deno task test` on pushes and pull requests ([#189](https://github.com/ErikSundvall/ehrtslib/issues/189)).
+- `RMInstanceGenerator` fills `ACTION.ism_transition` when optional in the template; template instance coverage no longer requires `archetype_node_id` on non-LOCATABLE slots such as `ISM_TRANSITION` ([#188](https://github.com/ErikSundvall/ehrtslib/issues/188)).
 - OPT 1.4 XML: drop non-schema `match_negated`, emit `language` (with `terminology_id`) before `template_id` in `OptXmlSerializer`, and keep OET occurrence rules from widening intervals when only `min` or `max` is set ([#190](https://github.com/ErikSundvall/ehrtslib/issues/190)).
 - cADL parser: fatal definition errors (no silent junk tokens), Archie primitive/assumed-value/date-time literals, `use_node` paths, archetype refs with semver (`v1.0.0`), terminology `[ac; at]` forms, and IRI term-binding URIs ([#113](https://github.com/ErikSundvall/ehrtslib/issues/113), [#186](https://github.com/ErikSundvall/ehrtslib/issues/186), [#187](https://github.com/ErikSundvall/ehrtslib/issues/187)).
 - `parseAdl` throws on fatal parser errors instead of returning a partial archetype.
