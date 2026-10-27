@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- OPT 1.4 XML: drop non-schema `match_negated`, emit `language` (with `terminology_id`) before `template_id` in `OptXmlSerializer`, and keep OET occurrence rules from widening intervals when only `min` or `max` is set ([#190](https://github.com/ErikSundvall/ehrtslib/issues/190)).
 - cADL parser: fatal definition errors (no silent junk tokens), Archie primitive/assumed-value/date-time literals, `use_node` paths, archetype refs with semver (`v1.0.0`), terminology `[ac; at]` forms, and IRI term-binding URIs ([#113](https://github.com/ErikSundvall/ehrtslib/issues/113), [#186](https://github.com/ErikSundvall/ehrtslib/issues/186), [#187](https://github.com/ErikSundvall/ehrtslib/issues/187)).
 - `parseAdl` throws on fatal parser errors instead of returning a partial archetype.
 - `RMSpecificationValidator` reports one `rm_invariant` per node for empty `DV_CODED_TEXT.value` (no duplicate `DV_TEXT.value` on the same path). Optional `EVENT.offset` is not validated until present on the instance.

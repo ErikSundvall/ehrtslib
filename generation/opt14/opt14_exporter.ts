@@ -898,7 +898,6 @@ export class Opt14Exporter {
           a.existence ??
             (meta?.mandatory ? { lower: 1, upper: 1 } : { lower: 0, upper: 1 }),
         );
-        x.leaf("match_negated", false);
         for (const c of a.children) {
           this.writeObject(
             x,
