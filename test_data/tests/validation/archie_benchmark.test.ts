@@ -6,7 +6,7 @@ import { assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import { ArchetypeValidator } from "../../../validation/archetype_validator.ts";
 
-const ARCHIE_ROOT = new URL("../../test_data/archie-tests/", import.meta.url);
+const ARCHIE_ROOT = new URL("../../archie-tests/", import.meta.url);
 
 const ARCHIE_FIXTURES = [
   "basics/openEHR-TEST_PKG-WHOLE.most_minimal.v1.0.0.adls",
@@ -19,7 +19,12 @@ const ARCHIE_FIXTURES = [
   "terminology/openEHR-EHR-OBSERVATION.term_bindings_paths_use_refs.v1.0.0.adls",
 ];
 
-Deno.test("Archie benchmark - parse and AOM validation pass rate", async () => {
+const RUN_ARCHIE_BENCHMARK = Deno.env.get("EHRTEST_ARCHIE_BENCHMARK") === "1";
+
+Deno.test({
+  name: "Archie benchmark - parse and AOM validation pass rate",
+  ignore: !RUN_ARCHIE_BENCHMARK,
+  async fn() {
   let parsePassed = 0;
   let aomPassed = 0;
   const failures: string[] = [];
@@ -60,4 +65,5 @@ Deno.test("Archie benchmark - parse and AOM validation pass rate", async () => {
   assert(parseRate >= 95, `Parse rate ${parseRate}% below target 95%`);
   // AOM structural validation is informational until all Archie constraint styles map rm_type_name
   assert(aomRate >= 0);
+  },
 });

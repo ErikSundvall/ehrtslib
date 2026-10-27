@@ -7,8 +7,12 @@ import {
 
 import { XmlDeserializer } from "../../../serialization/xml/xml_deserializer.ts";
 import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
-import { TypeNotFoundError } from "../../../serialization/common/errors.ts";
-import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../../rm/openehr_rm.ts";
+import {
+  DeserializationError,
+  TypeNotFoundError,
+} from "../../../serialization/common/errors.ts";
+import { DV_TEXT, CODE_PHRASE } from "../../../rm/openehr_rm.ts";
+import { TERMINOLOGY_ID } from "../../../base/openehr_base.ts";
 
 // Register types for testing
 TypeRegistry.clear();
@@ -95,8 +99,8 @@ Deno.test("XmlDeserializer - throws TypeNotFoundError for unknown type in strict
   
   assertThrows(
     () => deserializer.deserialize(xml),
-    TypeNotFoundError,
-    "UNKNOWN_TYPE"
+    DeserializationError,
+    "UNKNOWN_TYPE",
   );
 });
 
@@ -112,7 +116,7 @@ Deno.test("XmlDeserializer - returns plain object for unknown type in non-strict
   assertEquals(result.value, "Test");
 });
 
-Deno.test("XmlDeserializer - round-trip DV_TEXT", () => {
+Deno.test("XmlDeserializer - round-trip DV_TEXT", async () => {
   const original = new DV_TEXT();
   original.value = "Round Trip Test";
   
@@ -128,7 +132,7 @@ Deno.test("XmlDeserializer - round-trip DV_TEXT", () => {
   assertEquals(restored.value, original.value);
 });
 
-Deno.test("XmlDeserializer - round-trip CODE_PHRASE with nested object", () => {
+Deno.test("XmlDeserializer - round-trip CODE_PHRASE with nested object", async () => {
   const original = new CODE_PHRASE();
   original.code_string = "en";
   

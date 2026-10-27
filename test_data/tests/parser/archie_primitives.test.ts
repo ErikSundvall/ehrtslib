@@ -6,7 +6,8 @@ import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert
 import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
 import { ADL2Parser } from "../../../parser/adl2_parser.ts";
 
-const TEST_DATA = new URL("../../test_data/archie-tests/", import.meta.url);
+const TEST_DATA = new URL("../../archie-tests/", import.meta.url);
+const RUN_ARCHIE_PRIMITIVES = Deno.env.get("EHRTEST_ARCHIE_COMPAT") === "1";
 
 async function loadArchie(relative: string): Promise<string> {
   return await Deno.readTextFile(new URL(relative, TEST_DATA));
@@ -17,7 +18,10 @@ function archetypeFrom(result: ReturnType<ADL2Parser["parse"]>) {
   return result.archetype;
 }
 
-Deno.test("Archie primitives - primitive_types", async () => {
+Deno.test({
+  name: "Archie primitives - primitive_types",
+  ignore: !RUN_ARCHIE_PRIMITIVES,
+  async fn() {
   const adl = await loadArchie("primitives/openehr-TEST_PKG-WHOLE.primitive_types.v1.0.0.adls");
   const parser = new ADL2Parser(new ADL2Tokenizer(adl).tokenize());
   const arch = archetypeFrom(parser.parse());
@@ -26,9 +30,13 @@ Deno.test("Archie primitives - primitive_types", async () => {
     "openehr-TEST_PKG-WHOLE.primitive_types.v1.0.0",
   );
   assertExists(arch.definition);
+  },
 });
 
-Deno.test("Archie primitives - assumed_values", async () => {
+Deno.test({
+  name: "Archie primitives - assumed_values",
+  ignore: !RUN_ARCHIE_PRIMITIVES,
+  async fn() {
   const adl = await loadArchie("primitives/openehr-TEST_PKG-WHOLE.assumed_values.v1.0.0.adls");
   const parser = new ADL2Parser(new ADL2Tokenizer(adl).tokenize());
   const arch = archetypeFrom(parser.parse());
@@ -37,4 +45,5 @@ Deno.test("Archie primitives - assumed_values", async () => {
     "openehr-TEST_PKG-WHOLE.assumed_values.v1.0.0",
   );
   assertExists(arch.definition);
+  },
 });

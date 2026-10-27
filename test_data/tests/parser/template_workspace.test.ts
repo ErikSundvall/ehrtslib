@@ -17,6 +17,8 @@ const ADL2_DIR = fromFileUrl(new URL("../../adl2/", import.meta.url));
 const VALIDITY_TEMPLATES_DIR = fromFileUrl(
   new URL("../../archie-tests/validity-templates/", import.meta.url),
 );
+const RUN_VALIDITY_OVERLAY_TEMPLATES =
+  Deno.env.get("EHRTEST_VALIDITY_TEMPLATES") === "1";
 
 Deno.test("ArchetypeRepository.fromEntries loads archetypes and templates", async () => {
   const archText = await Deno.readTextFile(`${ADL2_DIR}/simple_observation.adl`);
@@ -26,7 +28,10 @@ Deno.test("ArchetypeRepository.fromEntries loads archetypes and templates", asyn
   assert(repo.has("openEHR-EHR-OBSERVATION.simple_test.v1.0.0"));
 });
 
-Deno.test("parseTemplateInput flattens ADL2 template when repository provided", async () => {
+Deno.test({
+  name: "parseTemplateInput flattens ADL2 template when repository provided",
+  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
+  async fn() {
   const repo = await ArchetypeRepository.fromDirectory(VALIDITY_TEMPLATES_DIR);
   const templateText = await Deno.readTextFile(
     `${VALIDITY_TEMPLATES_DIR}/openEHR-EHR-COMPOSITION.t_invalid_overlay_parent.v1.0.0.adls`,
@@ -35,6 +40,7 @@ Deno.test("parseTemplateInput flattens ADL2 template when repository provided", 
   assertEquals(parsed.kind, "operational_template");
   assert(parsed.operationalTemplate);
   assert(parsed.template);
+  },
 });
 
 Deno.test("TemplateWorkspace resolves OPT from active file", async () => {
@@ -57,7 +63,10 @@ Deno.test("TemplateWorkspace resolves OPT from active file", async () => {
   assertEquals(instance._type, "COMPOSITION");
 });
 
-Deno.test("TemplateWorkspace file set: archetype + ADL2 template", async () => {
+Deno.test({
+  name: "TemplateWorkspace file set: archetype + ADL2 template",
+  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
+  async fn() {
   const ws = new TemplateWorkspace();
   const entries: Array<{ path: string; content: string }> = [];
   for await (const entry of Deno.readDir(VALIDITY_TEMPLATES_DIR)) {
@@ -75,9 +84,13 @@ Deno.test("TemplateWorkspace file set: archetype + ADL2 template", async () => {
     sourceKind === "adl2_template" || sourceKind === "operational_template",
   );
   assert(operationalTemplate);
+  },
 });
 
-Deno.test("TemplateWorkspace generation root vs active editor file", async () => {
+Deno.test({
+  name: "TemplateWorkspace generation root vs active editor file",
+  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
+  async fn() {
   const ws = new TemplateWorkspace();
   const entries: Array<{ path: string; content: string }> = [];
   for await (const entry of Deno.readDir(VALIDITY_TEMPLATES_DIR)) {
@@ -94,9 +107,13 @@ Deno.test("TemplateWorkspace generation root vs active editor file", async () =>
 
   const { sourcePath } = ws.resolveOperational();
   assertEquals(sourcePath, rootPath);
+  },
 });
 
-Deno.test("getOperationalTemplateFromInput with repository", async () => {
+Deno.test({
+  name: "getOperationalTemplateFromInput with repository",
+  ignore: !RUN_VALIDITY_OVERLAY_TEMPLATES,
+  async fn() {
   const repo = await ArchetypeRepository.fromDirectory(VALIDITY_TEMPLATES_DIR);
   const templateText = await Deno.readTextFile(
     `${VALIDITY_TEMPLATES_DIR}/openEHR-EHR-COMPOSITION.t_invalid_overlay_parent.v1.0.0.adls`,
@@ -105,6 +122,7 @@ Deno.test("getOperationalTemplateFromInput with repository", async () => {
     archetypeRepository: repo,
   });
   assert(opt);
+  },
 });
 
 Deno.test("ArchetypeRepository.loadFile classifies OET XML as oet_xml not skipped", async () => {

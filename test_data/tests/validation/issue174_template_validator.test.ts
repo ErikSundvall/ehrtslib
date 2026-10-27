@@ -74,11 +74,13 @@ Deno.test("#174 RMSpecificationValidator requires DV_TEXT and DV_CODED_TEXT valu
     "DV_CODED_TEXT",
     "/",
   );
-  assert(
-    coded.some((m) => m.message.includes("DV_CODED_TEXT.value")),
-    coded.map((m) => m.message).join("; "),
-  );
+  assertEquals(coded.length, 1);
+  assert(coded[0].message.includes("DV_CODED_TEXT.value"));
   assert(coded.every((m) => m.constraintType === "rm_invariant"));
+  assert(
+    !coded.some((m) => m.message.includes("DV_TEXT.value")),
+    "inherited DV_TEXT.value should not be reported separately",
+  );
 
   const text = rm.validateInstance({ _type: "DV_TEXT" }, "DV_TEXT", "/");
   assertEquals(text.length, 1);

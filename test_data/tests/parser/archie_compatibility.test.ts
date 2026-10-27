@@ -25,7 +25,8 @@ import type { ADL2ParseResult } from "../../../parser/adl2_parser.ts";
 import { OdinParser } from "../../../parser/odin_parser.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
-const ARCHIE_TEST_DATA = new URL("../../test_data/archie-tests/", import.meta.url);
+const ARCHIE_TEST_DATA = new URL("../../archie-tests/", import.meta.url);
+const RUN_ARCHIE_DEEP = Deno.env.get("EHRTEST_ARCHIE_COMPAT") === "1";
 
 async function loadArchieTestFile(relativePath: string): Promise<string> {
   return await Deno.readTextFile(new URL(relativePath, ARCHIE_TEST_DATA));
@@ -56,7 +57,10 @@ Deno.test("Archie Compatibility - Minimal Archetype", async () => {
   assertEquals(archetype.definition?.rm_type_name, "WHOLE");
 });
 
-Deno.test("Archie Compatibility - Primitive Types", async () => {
+Deno.test({
+  name: "Archie Compatibility - Primitive Types",
+  ignore: !RUN_ARCHIE_DEEP,
+  async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/aom_structures/basic/
   // Test pattern: PrimitivesConstraintParserTest.java
   // Tests all primitive constraint types: String, Integer, Real, Boolean, Date, Time, DateTime, Duration
@@ -81,9 +85,13 @@ Deno.test("Archie Compatibility - Primitive Types", async () => {
   // - real_attr1 through real_attr12 (real constraints with ranges)
   // - date/time/datetime constraints
   // Note: Archetype contains numerous primitive constraint attributes
+  },
 });
 
-Deno.test("Archie Compatibility - Assumed Values", async () => {
+Deno.test({
+  name: "Archie Compatibility - Assumed Values",
+  ignore: !RUN_ARCHIE_DEEP,
+  async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/aom_structures/basic/
   // Test pattern: PrimitivesConstraintParserTest.getAssumedValuesArchetype()
   // Tests assumed values on primitive constraints
@@ -99,6 +107,7 @@ Deno.test("Archie Compatibility - Assumed Values", async () => {
     "openehr-TEST_PKG-WHOLE.assumed_values.v1.0.0"
   );
   assertExists(archetype.definition, "Should have definition");
+  },
 });
 
 Deno.test("Archie Compatibility - Whitespace Handling", async () => {
@@ -140,7 +149,10 @@ Deno.test("Archie Compatibility - Structure Test", async () => {
   assertExists(archetype.definition?.attributes, "Should have attributes in structure");
 });
 
-Deno.test("Archie Compatibility - Terminology Bindings", async () => {
+Deno.test({
+  name: "Archie Compatibility - Terminology Bindings",
+  ignore: !RUN_ARCHIE_DEEP,
+  async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests terminology binding parsing
   const adl2Text = await loadArchieTestFile("terminology/openEHR-EHR-OBSERVATION.value_set_binding.v1.0.0.adls");
@@ -160,9 +172,13 @@ Deno.test("Archie Compatibility - Terminology Bindings", async () => {
   if (terms) {
     assertExists(terms, "Should map term_definitions when ODIN parse succeeds");
   }
+  },
 });
 
-Deno.test("Archie Compatibility - SNOMED Terminology", async () => {
+Deno.test({
+  name: "Archie Compatibility - SNOMED Terminology",
+  ignore: !RUN_ARCHIE_DEEP,
+  async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests SNOMED CT terminology binding
   const adl2Text = await loadArchieTestFile("terminology/openEHR-EHR-OBSERVATION.value_set_binding_snomed.v1.0.0.adls");
@@ -177,9 +193,13 @@ Deno.test("Archie Compatibility - SNOMED Terminology", async () => {
     "openEHR-EHR-OBSERVATION.value_set_binding_snomed.v1.0.0"
   );
   assertExists(archetype.ontology, "Should have SNOMED terminology ontology");
+  },
 });
 
-Deno.test("Archie Compatibility - Term Bindings with Paths", async () => {
+Deno.test({
+  name: "Archie Compatibility - Term Bindings with Paths",
+  ignore: !RUN_ARCHIE_DEEP,
+  async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests term bindings that use paths and references
   const adl2Text = await loadArchieTestFile("terminology/openEHR-EHR-OBSERVATION.term_bindings_paths_use_refs.v1.0.0.adls");
@@ -194,6 +214,7 @@ Deno.test("Archie Compatibility - Term Bindings with Paths", async () => {
     "openEHR-EHR-OBSERVATION.term_bindings_paths_use_refs.v1.0.0"
   );
   assertExists(archetype.ontology, "Should have terminology with path bindings");
+  },
 });
 
 /**

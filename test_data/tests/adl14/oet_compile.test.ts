@@ -7,7 +7,7 @@ import { fromFileUrl } from "https://deno.land/std@0.220.0/path/mod.ts";
 import { ArchetypeRepository, parseOetXml, compileOetToOperational } from "../../../parser/mod.ts";
 import { resolveAomPath } from "../../../am/util/aom_path_navigator.ts";
 
-const ADL2_DIR = new URL("../../test_data/adl2/", import.meta.url);
+const ADL2_DIR = new URL("../../adl2/", import.meta.url);
 
 const MINIMAL_OET = `<?xml version="1.0"?>
 <template xmlns="openEHR/v1/Template">

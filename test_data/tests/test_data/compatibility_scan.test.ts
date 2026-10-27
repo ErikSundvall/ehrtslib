@@ -6,7 +6,7 @@ import { assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 
-const ROOT = new URL("../../test_data/", import.meta.url);
+const ROOT = new URL("../../", import.meta.url);
 
 interface ScanResult {
   path: string;

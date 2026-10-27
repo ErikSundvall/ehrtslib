@@ -10,7 +10,7 @@ import { RulesParser } from "../../../parser/rules_parser.ts";
 import { TokenType } from "../../../parser/adl2_tokenizer.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 Deno.test("RulesParser - variable declaration and tagged assertion", () => {
   const source = `

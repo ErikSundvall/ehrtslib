@@ -5,7 +5,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseOetXml, isOetXml } from "../../../parser/legacy/oet_xml_parser.ts";
 
-const OET_DIR = new URL("../../test_data/oet14/", import.meta.url);
+const OET_DIR = new URL("../../oet14/", import.meta.url);
 
 Deno.test("isOetXml distinguishes OET from OPT", async () => {
   const opt = await Deno.readTextFile(new URL("../opt14/minimal_evaluation.opt", OET_DIR));

@@ -14,7 +14,7 @@ import {
 import { resolveOptTag } from "../../serialization/zipehr/opt_html5_deserialize.ts";
 
 const OPT_PATH =
-  new URL("../../test_data/opt14/ehrbase_blood_pressure_simple.de.v0.opt", import.meta.url);
+  new URL("../opt14/ehrbase_blood_pressure_simple.de.v0.opt", import.meta.url);
 
 Deno.test("optTagForType compounds AM+RM emoji", () => {
   assertEquals(
