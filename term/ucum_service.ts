@@ -83,7 +83,11 @@ export class UcumService {
   }
 
   /**
-   * Validate a UCUM unit string
+   * Validate a UCUM unit string.
+   *
+   * Uses `@lhncbc/ucum-lhc` after {@link initialize}; otherwise a permissive
+   * syntax fallback (division, annotations, common clinical units). Callers
+   * that need authoritative UCUM checks should `await initialize()` first.
    *
    * @param unitStr The unit string to validate
    * @param suggest Whether to provide suggestions for invalid units
@@ -91,7 +95,6 @@ export class UcumService {
    */
   validate(unitStr: string, suggest: boolean = false): UcumValidationResult {
     if (!this.initialized || !this.ucumUtils) {
-      // Fallback validation for common units
       return this.fallbackValidate(unitStr);
     }
 
@@ -254,6 +257,7 @@ export class UcumService {
       // Common clinical
       "mmol/L", "mg/dL", "g/dL", "mL/min", "L/min",
       "kg/m2", "%", "1", "[pH]", "[IU]",
+      "/min", "/h", "/s", "1/min", "{beats}/min", "{breaths}/min",
     ]);
 
     // Empty or "1" is dimensionless
@@ -270,9 +274,13 @@ export class UcumService {
     const microChar = UcumService.MICRO_SYMBOL;
     const ucumPatterns = [
       new RegExp(`^[yzafpnu${microChar}mcdhkMGTPEZY]?[a-zA-Z]+(\\d+)?$`),
-      /^[a-zA-Z]+(\d*)\/[a-zA-Z]+(\d*)$/,
-      /^[a-zA-Z]*\[[^\]]+\]$/,
-      /^[a-zA-Z]+\{[^}]+\}$/,
+      /^[a-zA-Z]+(\d*)\/[a-zA-Z0-9\[\]{}]+(\d*)$/,
+      /^[a-zA-Z]*\[[^\]]+\](\^?-?\d+)?$/,
+      /^[a-zA-Z]+\{[^}]+\}(\^?-?\d+)?$/,
+      /^(\d+\/)?\/[a-zA-Z\[\]{}][a-zA-Z0-9\[\]{}./^\-]*$/,
+      /^\d+\/[a-zA-Z\[\]{}][a-zA-Z0-9\[\]{}./^\-]*$/,
+      /^\{[^}]+\}\/[a-zA-Z\[\]{}][a-zA-Z0-9\[\]{}./^\-]*$/,
+      /^[a-zA-Z0-9\[\]{}]+(\.[a-zA-Z0-9\[\]{}]+)+(\^?-?\d+)?$/,
     ];
 
     for (const pattern of ucumPatterns) {

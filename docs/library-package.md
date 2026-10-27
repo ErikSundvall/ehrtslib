@@ -106,15 +106,21 @@ Identifiers stay readable. Each file is one entry. The jsDelivr column is the
 TypeScript module on the git tag (Deno). jsDelivr does not host the `.min.js`
 attachments; those are on GitHub Pages and the Release download.
 
-| File                                      | Entry                  | jsDelivr (git tag)                                                              |
-| ----------------------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| `ehrtslib-<version>.min.js`               | `mod.ts`               | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts`               |
-| `ehrtslib-<version>-rm.min.js`            | `openehr_rm.ts`        | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_rm.ts`        |
+| File                                      | Entry                         | jsDelivr (git tag)                                                              |
+| ----------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------- |
+| `ehrtslib-<version>.min.js`               | `mod_full.ts` (full barrel)   | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod_full.ts`          |
+| `ehrtslib-<version>-core.min.js`          | `mod.ts` (no contribution CB) | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/mod.ts`               |
+| `ehrtslib-<version>-contribution.min.js`  | `contribution_builder/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/contribution_builder/mod.ts` |
+| `ehrtslib-<version>-rm.min.js`            | `openehr_rm.ts`               | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_rm.ts`        |
 | `ehrtslib-<version>-parser.min.js`        | `parser/mod.ts`        | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/parser/mod.ts`        |
 | `ehrtslib-<version>-serialization.min.js` | `serialization/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/mod.ts` |
 
-The full barrel also exports `am`, `base`, `lang`, `term`, `generation`, `meta`,
-and `validation`. Those namespaces do not have their own `.min.js` files. `spec`
+The core and full barrels export `am`, `base`, `lang`, `term`, `generation`,
+`meta`, and `validation`. Only `mod_full.ts` / the full `.min.js` includes
+`contributionBuilder`; import `contribution_builder/mod.ts` (or
+`ehrtslib/contribution-builder` from `deno.json` exports) when you need the CB
+without the rest of the library. Those namespaces do not have their own
+`.min.js` files. `spec`
 (`classSpec`, `attributeSpec`) is omitted from `mod.ts` and from every minified
 file; import `spec/mod.ts` from the source package or from jsDelivr.
 `serialization/xml/mod.ts` and `serialization/typescript/mod.ts` are the same:

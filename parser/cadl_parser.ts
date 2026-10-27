@@ -997,8 +997,48 @@ export class CadlParser {
       const list = scaleListFromTuple(scaleTuple);
       if (list.length) (s as { list?: openehr_am.ORDINAL[] }).list = list;
     }
+    if (!(s as { list?: openehr_am.ORDINAL[] }).list?.length) {
+      const legacy = this.legacyOrdinalListFromAttributes(obj);
+      if (legacy.length) (s as { list?: openehr_am.ORDINAL[] }).list = legacy;
+    }
     copyAttributeTuples(obj, s);
     return s;
+  }
+
+  private legacyOrdinalListFromAttributes(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+  ): openehr_am.ORDINAL[] {
+    const valueAttr = obj.attributes?.find((a) =>
+      a.rm_attribute_name === "value"
+    );
+    const symbolAttr = obj.attributes?.find((a) =>
+      a.rm_attribute_name === "symbol"
+    );
+    const value = this.readIntervalConstraint(valueAttr);
+    const symbolChild = (symbolAttr as { children?: openehr_am.C_OBJECT[] })
+      ?.children?.[0];
+    let code: string | undefined;
+    let terminology = "local";
+    if (symbolChild instanceof openehr_am.C_CODED_TEXT) {
+      code = symbolChild.defining_code?.code_string;
+      terminology = symbolChild.defining_code?.terminology_id?.value ?? "local";
+    } else if (symbolChild instanceof openehr_am.C_TERMINOLOGY_CODE) {
+      code = symbolChild.constraint ?? symbolChild.code_list?.[0];
+      terminology = (symbolChild as { terminology_id?: string }).terminology_id ??
+        "local";
+    }
+    if (value === undefined && !code) return [];
+    const ord = new openehr_am.ORDINAL();
+    if (value !== undefined) {
+      const n = typeof value.lower === "number" && value.lower === value.upper
+        ? value.lower
+        : value.lower;
+      if (typeof n === "number") ord.value = n;
+    }
+    if (code) {
+      ord.symbol = openehr_base.CODE_PHRASE.from(terminology, code);
+    }
+    return [ord];
   }
 
   private readUnitsConstraint(

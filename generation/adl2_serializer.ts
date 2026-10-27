@@ -662,26 +662,49 @@ export class ADL2Serializer {
         symbol?: { code_string?: string; terminology_id?: unknown };
       }>;
     }).list ?? [];
-    const tuple = existingTuple ??
-      (items.length ? buildOrdinalAttributeTuple(items.map((item) => ({
-        value: item.value,
-        symbol: item.symbol?.code_string
-          ? openehr_base.CODE_PHRASE.from(
-            asTerminologyId(item.symbol?.terminology_id) ?? "local",
-            item.symbol.code_string,
-          )
-          : undefined,
-      }))) : undefined);
-    if (tuple) {
+    if (existingTuple) {
       const head = this.cObjectHead(
         scale.rm_type_name || "DV_SCALE",
         scale,
         level,
       );
-      const body = this.serializeAttributeTuple(tuple, level + 1).trimEnd();
+      const body = this.serializeAttributeTuple(existingTuple, level + 1).trimEnd();
       return `${head} matches {\n${body}\n${this.getIndent(level)}}\n`;
     }
-    return this.cObjectHead(scale.rm_type_name || "DV_SCALE", scale, level) + "\n";
+    if (!items.length) {
+      return this.cObjectHead(scale.rm_type_name || "DV_SCALE", scale, level) + "\n";
+    }
+    // Legacy: separate DV_SCALE per list entry when no attribute_tuples (#196).
+    let adl = "";
+    items.forEach((item, index) => {
+      const shell = new openehr_am.C_SCALE();
+      shell.rm_type_name = scale.rm_type_name || "DV_SCALE";
+      if (index === 0) shell.node_id = scale.node_id;
+      const head = this.cObjectHead(shell.rm_type_name || "DV_SCALE", shell, level);
+      const inner = this.getIndent(level + 1);
+      const lines: string[] = [];
+      if (item.value !== undefined) {
+        lines.push(`${inner}value matches {|${item.value}|}`);
+      }
+      const code = item.symbol?.code_string;
+      if (code) {
+        const term = this.formatTermCode(
+          asTerminologyId(item.symbol?.terminology_id),
+          code,
+        );
+        const deep = this.getIndent(level + 2);
+        const deeper = this.getIndent(level + 3);
+        lines.push(
+          `${inner}symbol matches {\n${deep}DV_CODED_TEXT matches {\n${deeper}defining_code matches {${term}}\n${deep}}\n${inner}}`,
+        );
+      }
+      if (!lines.length) {
+        adl += head + "\n";
+        return;
+      }
+      adl += `${head} matches {\n${lines.join("\n")}\n${this.getIndent(level)}}\n`;
+    });
+    return adl;
   }
 
   protected serializeCodedText(

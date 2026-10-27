@@ -16,6 +16,7 @@ export const PACKAGE_GUIDE_PATH = "docs/library-package.md";
 /** Public entry files a consumer imports from the package root. */
 export const LIBRARY_ENTRY_FILES = [
   "mod.ts",
+  "mod_full.ts",
   "openehr_am.ts",
   "openehr_base.ts",
   "openehr_lang.ts",
@@ -95,9 +96,21 @@ export function libraryAssetNames(version: string): LibraryAssetNames {
     bundles: [
       {
         id: "full",
-        entry: "mod.ts",
+        entry: "mod_full.ts",
         file: `${prefix}.min.js`,
-        label: "Full barrel (`mod.ts`)",
+        label: "Full barrel (`mod_full.ts`, includes contribution builder)",
+      },
+      {
+        id: "core",
+        entry: "mod.ts",
+        file: `${prefix}-core.min.js`,
+        label: "Core barrel (`mod.ts`, no contribution builder)",
+      },
+      {
+        id: "contribution",
+        entry: "contribution_builder/mod.ts",
+        file: `${prefix}-contribution.min.js`,
+        label: "Contribution builder (`contribution_builder/mod.ts`)",
       },
       {
         id: "rm",
@@ -470,7 +483,7 @@ ${bundleRows}
 \`\`\`
 
 \`\`\`ts
-import { parseAdl } from "${loc.pagesDir}/${assets.bundles[2].file}";
+  import { parseAdl } from "${loc.pagesDir}/${assets.bundles.find((b) => b.id === "parser")!.file}";
 import { parseAdl as parseAdlFromCdn } from "${loc.cdnDir}/parser/mod.ts";
 import * as rmOnly from "${loc.cdnDir}/openehr_rm.ts";
 import {
@@ -491,8 +504,8 @@ export function renderLibraryWebIndex(version: string): string {
       <td><a href="${esc(cdn)}"><code>${esc(bundle.entry)}</code></a></td>
     </tr>`;
   }).join("\n");
-  const full = assets.bundles[0].file;
-  const parser = assets.bundles[2].file;
+  const full = assets.bundles.find((b) => b.id === "full")!.file;
+  const parser = assets.bundles.find((b) => b.id === "parser")!.file;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

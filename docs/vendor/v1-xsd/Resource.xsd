@@ -4,10 +4,8 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 		   xmlns="http://schemas.openehr.org/v2" targetNamespace="http://schemas.openehr.org/v2" elementFormDefault="qualified"
 		   id="Resources.xsd" version="v1.4">
-	<!-- dependencies -->
-	<xs:include schemaLocation="../../RM/Release-1.0.2/BaseTypes.xsd"/>
-	<xs:include schemaLocation="../../RM/Release-1.0.2/DataTypes.xsd"/>
-	<xs:include schemaLocation="../../RM/Release-1.0.2/Common.xsd"/>
+	<!-- dependencies (Common pulls in DataTypes and BaseTypes) -->
+	<xs:include schemaLocation="RM/Release-1.0.2/Common.xsd"/>
 
 	<xs:complexType name="AUTHORED_RESOURCE" abstract="true">
 		<xs:sequence>

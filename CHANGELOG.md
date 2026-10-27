@@ -8,6 +8,9 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- `TemplateValidator` no longer descends into child constraints when an optional attribute is absent (#198), and skips stored validation for derived `EVENT.offset` (#200). UCUM fallback accepts common rate units such as `/min` when `initialize()` was not called; call `await validator.initialize()` for full `ucum-lhc` checks (#199). ADL2 tuple follow-ups: specialise tuple narrowing warnings, `serializeScale` legacy list ADL, vendored OPT 1.4 `Template.xsd` with RM includes, and XSD validation in tests (#196).
+- **Breaking (import path only).** `mod.ts` no longer re-exports `contributionBuilder`; use `mod_full.ts` or `contribution_builder/mod.ts` (same as `deno.json` export `./contribution-builder`). Release runtime bundles: unchanged full `ehrtslib-<version>.min.js` (from `mod_full.ts`), new lean `ehrtslib-<version>-core.min.js`, and `ehrtslib-<version>-contribution.min.js` (#201).
+
 ## [0.6.0] - 2026-10-27
 
 - **Breaking.** `TemplateValidator` and other validators that report RM instance paths now use the canonical shape `/content[0]/data/...` (no slash before `[n]`). Paths such as `/content/[0]/data/...` are no longer emitted ([#184](https://github.com/ErikSundvall/ehrtslib/pull/184)).

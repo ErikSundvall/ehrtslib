@@ -42,6 +42,7 @@ Deno.test("Validator - missing required attribute", () => {
   
   const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
   attr.rm_attribute_name = "data";
+  attr.existence = { lower: 1, upper: 1 } as openehr_am.C_SINGLE_ATTRIBUTE["existence"];
   
   const child = new openehr_am.C_COMPLEX_OBJECT();
   child.rm_type_name = "HISTORY";

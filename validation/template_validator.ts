@@ -94,7 +94,6 @@ export class TemplateValidator {
   private rmSpecValidator?: RMSpecificationValidator;
   /** Paths already checked for UCUM during the current `validate()` call. */
   private ucumPathsChecked = new Set<string>();
-
   constructor(config?: ValidationConfig) {
     this.config = {
       failFast: false,
@@ -131,7 +130,12 @@ export class TemplateValidator {
   }
 
   /**
-   * Initialize async dependencies (UCUM service)
+   * Initialize async dependencies (UCUM service).
+   *
+   * `validate()` is synchronous; until this resolves, unit checks use a
+   * syntax-oriented UCUM fallback in {@link UcumService}. Call `await
+   * validator.initialize()` when full `@lhncbc/ucum-lhc` validation is
+   * required (recommended whenever `validateUnits` is enabled).
    */
   async initialize(): Promise<void> {
     if (this.ucumService) {
@@ -157,7 +161,6 @@ export class TemplateValidator {
     const sourceIndex = options?.jsonSource
       ? buildJsonSourceIndex(options.jsonSource)
       : undefined;
-
     // Validate against definition
     if (!template.definition) {
       errors.push({
@@ -450,15 +453,18 @@ export class TemplateValidator {
       const attrName = cAttribute.rm_attribute_name;
       if (!attrName) continue;
 
-      const rmValue = rmNode[attrName];
+      const rawValue = rmNode[attrName];
+      if (shouldSkipTemplateAttributeValidation(cObject.rm_type_name, attrName, rawValue)) {
+        continue;
+      }
+      const rmValue = rawValue;
       const attrPath = `${path}${attrName}/`;
       const existence = (
         cAttribute as { existence?: { lower?: number } }
       ).existence;
 
       if (existence && (existence.lower ?? 0) > 0) {
-        const missing = rmValue === null || rmValue === undefined ||
-          (Array.isArray(rmValue) && rmValue.length === 0);
+        const missing = !isPresentRmAttributeValue(rmValue);
         if (missing) {
           errors.push({
             path: attrPath,
@@ -472,7 +478,7 @@ export class TemplateValidator {
 
       const members = Array.isArray(rmValue)
         ? rmValue
-        : (rmValue === null || rmValue === undefined ? [] : [rmValue]);
+        : (isPresentRmAttributeValue(rmValue) ? [rmValue] : []);
       if (
         cAttribute instanceof openehr_am.C_MULTIPLE_ATTRIBUTE ||
         Array.isArray(rmValue)
@@ -502,7 +508,7 @@ export class TemplateValidator {
             cObject.rm_type_name,
           );
         });
-      } else if (rmValue !== null && rmValue !== undefined) {
+      } else if (isPresentRmAttributeValue(rmValue)) {
         const child = matchConstraintChild(children, rmValue) ?? children[0];
         this.validateNode(
           rmValue,
@@ -513,19 +519,9 @@ export class TemplateValidator {
           depth + 1,
           cObject.rm_type_name,
         );
-      } else {
-        for (const child of children) {
-          this.validateNode(
-            rmValue,
-            child,
-            attrPath,
-            errors,
-            warnings,
-            depth + 1,
-            cObject.rm_type_name,
-          );
-        }
       }
+      // When the attribute is absent, existence/cardinality on the attribute
+      // itself is enough; do not descend into child constraints (#198, #200).
     }
   }
 
@@ -1067,6 +1063,32 @@ function isPrimitiveConstraint(cObject: unknown): boolean {
     cObject instanceof openehr_am.C_TIME ||
     cObject instanceof openehr_am.C_DATE_TIME ||
     cObject instanceof openehr_am.C_DURATION;
+}
+
+const EVENT_RM_TYPES = new Set(["EVENT", "POINT_EVENT", "INTERVAL_EVENT"]);
+
+/**
+ * Skip template constraints on RM-derived attributes (e.g. EVENT.offset from
+ * time − history.origin) that are not stored on instances (#200).
+ */
+function shouldSkipTemplateAttributeValidation(
+  rmTypeName: string | undefined,
+  attrName: string,
+  rawValue: unknown,
+): boolean {
+  if (typeof rawValue === "function") return true;
+  if (attrName === "offset" && rmTypeName && EVENT_RM_TYPES.has(rmTypeName)) {
+    return true;
+  }
+  return false;
+}
+
+/** RM data on an instance (excludes computed RM methods such as EVENT.offset). */
+function isPresentRmAttributeValue(rmValue: unknown): boolean {
+  if (rmValue === null || rmValue === undefined) return false;
+  if (typeof rmValue === "function") return false;
+  if (Array.isArray(rmValue) && rmValue.length === 0) return false;
+  return true;
 }
 
 function unwrapPrimitiveConstraint(cObject: unknown): unknown {
