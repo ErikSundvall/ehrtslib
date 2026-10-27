@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 		   xmlns="http://schemas.openehr.org/v2" targetNamespace="http://schemas.openehr.org/v2" elementFormDefault="qualified"
-		   id="DataTypes.xsd" version="v1.0.2">
+		   id="DataTypes.xsd" version="v1.1.0">
 	<!-- dependencies -->
-	<xs:include schemaLocation="BaseTypes.xsd"/>
-
+	<xs:include schemaLocation="../../BASE/latest/BaseTypes.xsd"/>
 	<xs:complexType name="DATA_VALUE" abstract="true">
 		<xs:sequence/>
 	</xs:complexType>
@@ -21,10 +20,10 @@
 		<xs:complexContent>
 			<xs:extension base="DATA_VALUE">
 				<xs:sequence>
-					<xs:element name="issuer" type="NonEmptyString"/>
-					<xs:element name="assigner" type="NonEmptyString"/>
+					<xs:element name="issuer" type="xs:string" minOccurs="0"/>
+					<xs:element name="assigner" type="xs:string" minOccurs="0"/>
 					<xs:element name="id" type="NonEmptyString"/>
-					<xs:element name="type" type="NonEmptyString"/>
+					<xs:element name="type" type="xs:string" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -120,6 +119,8 @@
 					<xs:element name="magnitude" type="xs:float"/>
 					<xs:element name="units" type="NonEmptyString"/>
 					<xs:element name="precision" type="xs:int" default="-1" minOccurs="0"/>
+					<xs:element name="units_system" type="NonEmptyUri" minOccurs="0"/>
+					<xs:element name="units_display_name" type="NonEmptyString" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -129,6 +130,16 @@
 			<xs:extension base="DV_ORDERED">
 				<xs:sequence>
 					<xs:element name="value" type="xs:int"/>
+					<xs:element name="symbol" type="DV_CODED_TEXT"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DV_SCALE">
+		<xs:complexContent>
+			<xs:extension base="DV_ORDERED">
+				<xs:sequence>
+					<xs:element name="value" type="xs:float"/>
 					<xs:element name="symbol" type="DV_CODED_TEXT"/>
 				</xs:sequence>
 			</xs:extension>
@@ -192,6 +203,7 @@
 		<xs:sequence>
 			<xs:element name="terminology_id" type="TERMINOLOGY_ID"/>
 			<xs:element name="code_string" type="NonEmptyString"/>
+			<xs:element name="preferred_term" type="xs:string" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="TERM_MAPPING">
@@ -264,9 +276,6 @@
 		<xs:complexContent>
 			<xs:extension base="DATA_VALUE">
 				<xs:sequence>
-                    <!-- For legacy reasons on DV_MULTIMEDIA instances, this is disabled here, and has only concrete implementation in child types
-                    <xs:element name="size" type="xs:int"/>
-                    -->
 					<xs:element name="charset" type="CODE_PHRASE" minOccurs="0"/>
 					<xs:element name="language" type="CODE_PHRASE" minOccurs="0"/>
 				</xs:sequence>
@@ -296,7 +305,8 @@
 				<xs:sequence>
 					<xs:element name="value" type="xs:string"/>
 					<xs:element name="formalism" type="NonEmptyString"/>
-                    <xs:element name="size" type="xs:int"/>
+					<!-- the following will support legacy data instances by allowing 'size' -->
+					<xs:element name="size" type="xs:int" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>

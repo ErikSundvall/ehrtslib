@@ -1,14 +1,19 @@
 /**
- * Validate exported OPT 1.4 XML against the vendored Template.xsd (issue #196).
+ * Validate exported OPT 1.4 XML against vendored Template.xsd (issue #196).
  *
- * The exporter uses the v1 namespace; Template.xsd targets v2 — tests rewrite
- * the root namespace before xmllint validation.
+ * Schemas live under `test_data/xsd/openehr-its-xml/` (unmodified
+ * openEHR/specifications-ITS-XML). Relative `xs:include` paths match upstream.
+ *
+ * The exporter uses the v1 namespace; AM Release-1.4 Template.xsd targets v2 —
+ * tests rewrite the root namespace before xmllint validation.
  */
 
 import { join } from "@std/path";
 
+const XSD_ROOT = join(Deno.cwd(), "test_data/xsd/openehr-its-xml");
+
 export function vendoredTemplateXsdPath(): string {
-  return join(Deno.cwd(), "docs/vendor/v1-xsd/Template.xsd");
+  return join(XSD_ROOT, "components/AM/Release-1.4/Template.xsd");
 }
 
 /** Map exporter v1 namespace to the XSD targetNamespace (v2). */

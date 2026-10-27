@@ -219,6 +219,13 @@
 			<xs:enumeration value="2024" id="exponent"/>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:simpleType name="VALIDITY_KIND">
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1001" id="mandatory"/>
+			<xs:enumeration value="1002" id="optional"/>
+			<xs:enumeration value="1003" id="disallowed"/>
+		</xs:restriction>
+	</xs:simpleType>
 
 	<xs:complexType name="C_PRIMITIVE" abstract="true">
 		<xs:sequence/>

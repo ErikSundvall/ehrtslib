@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns="http://schemas.openehr.org/v2" targetNamespace="http://schemas.openehr.org/v2" elementFormDefault="qualified"
-           id="Common.xsd" version="v1.0.2">
+           id="Common.xsd" version="v1.1.0">
 	<!-- dependencies -->
 	<xs:include schemaLocation="DataTypes.xsd"/>
+	<xs:include schemaLocation="DataStructures.xsd"/><!-- note: this is required by FOLDER.details -->
     <!-- Archetyped Package -->
 	<xs:complexType name="PATHABLE" abstract="true"/>
 	<xs:complexType name="LOCATABLE" abstract="true">
@@ -53,6 +54,7 @@
             <xs:element name="subject" type="PARTY_PROXY" minOccurs="0"/>
             <xs:element name="time" type="DV_DATE_TIME" minOccurs="0"/>
             <xs:element name="version_id" type="xs:string" minOccurs="0"/>
+            <xs:element name="other_details" type="ITEM_STRUCTURE" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     <!-- Generic Package -->
@@ -127,7 +129,7 @@
 			<xs:element name="function" type="DV_TEXT"/>
 			<xs:element name="performer" type="PARTY_PROXY"/>
 			<xs:element name="time" type="DV_INTERVAL" minOccurs="0"/>
-			<xs:element name="mode" type="DV_CODED_TEXT"/>
+			<xs:element name="mode" type="DV_CODED_TEXT" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
 	<!-- Change Control Package -->
@@ -197,6 +199,7 @@
 				<xs:sequence>
 					<xs:element name="folders" type="FOLDER" minOccurs="0" maxOccurs="unbounded"/>
 					<xs:element name="items" type="OBJECT_REF" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element name="details" type="ITEM_STRUCTURE" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>

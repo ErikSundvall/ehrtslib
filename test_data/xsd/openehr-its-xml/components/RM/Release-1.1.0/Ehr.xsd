@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns="http://schemas.openehr.org/v2" targetNamespace="http://schemas.openehr.org/v2" elementFormDefault="qualified"
-           id="Ehr.xsd" version="v1.0.2">
+           id="Ehr.xsd" version="v1.1.0">
     <!-- dependencies -->
 	<xs:include schemaLocation="DataStructures.xsd"/>
 	<xs:complexType name="EHR">
@@ -13,6 +13,7 @@
 			<xs:element name="ehr_access" type="OBJECT_REF"/>
 			<xs:element name="ehr_status" type="OBJECT_REF"/>
 			<xs:element name="directory" type="OBJECT_REF" minOccurs="0"/>
+			<xs:element name="folders" type="OBJECT_REF" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="compositions" type="OBJECT_REF" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -156,7 +157,7 @@
 			<xs:extension base="LOCATABLE">
 				<xs:sequence>
 					<xs:element name="description" type="ITEM_STRUCTURE"/>
-					<xs:element name="timing" type="DV_PARSABLE"/>
+					<xs:element name="timing" type="DV_PARSABLE" minOccurs="0"/>
 					<xs:element name="action_archetype_id" type="NonEmptyString" default="/.*/"/>
 				</xs:sequence>
 			</xs:extension>
@@ -165,7 +166,7 @@
 	<xs:complexType name="INSTRUCTION_DETAILS">
 		<xs:sequence>
 			<xs:element name="instruction_id" type="LOCATABLE_REF"/>
-			<xs:element name="activity_id" type="atCode"/>
+			<xs:element name="activity_id" type="NonEmptyString"/>
 			<xs:element name="wf_details" type="ITEM_STRUCTURE" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -174,6 +175,7 @@
 			<xs:element name="current_state" type="DV_CODED_TEXT"/>
 			<xs:element name="transition" type="DV_CODED_TEXT" minOccurs="0"/>
 			<xs:element name="careflow_step" type="DV_CODED_TEXT" minOccurs="0"/>
+			<xs:element name="reason" type="DV_TEXT" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="COMPOSITION">

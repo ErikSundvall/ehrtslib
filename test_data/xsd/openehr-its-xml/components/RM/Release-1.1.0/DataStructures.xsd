@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns="http://schemas.openehr.org/v2" targetNamespace="http://schemas.openehr.org/v2" elementFormDefault="qualified"
-           id="DataStructures.xsd" version="v1.0.2">
+           id="DataStructures.xsd" version="v1.1.0">
     <!-- dependencies -->
 	<xs:include schemaLocation="Common.xsd"/>
 
+	<xs:complexType name="DATA_STRUCTURE" abstract="true">
+		<xs:complexContent>
+			<xs:extension base="LOCATABLE"/>
+		</xs:complexContent>
+	</xs:complexType>
 	<xs:complexType name="HISTORY">
 		<xs:complexContent>
-			<xs:extension base="LOCATABLE">
+			<xs:extension base="DATA_STRUCTURE">
 				<xs:sequence>
 					<xs:element name="origin" type="DV_DATE_TIME"/>
 					<xs:element name="period" type="DV_DURATION" minOccurs="0"/>
@@ -47,7 +52,7 @@
 	</xs:complexType>
 	<xs:complexType name="ITEM_STRUCTURE" abstract="true">
 		<xs:complexContent>
-			<xs:extension base="LOCATABLE"/>
+			<xs:extension base="DATA_STRUCTURE"/>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="ITEM_SINGLE">
@@ -107,7 +112,10 @@
 			<xs:extension base="ITEM">
 				<xs:choice>
 					<xs:element name="value" type="DATA_VALUE"/>
-					<xs:element name="null_flavour" type="DV_CODED_TEXT"/>
+					<xs:sequence>
+						<xs:element name="null_flavour" type="DV_CODED_TEXT"/>
+						<xs:element name="null_reason" type="DV_TEXT" minOccurs="0"/>
+					</xs:sequence>
 				</xs:choice>
 			</xs:extension>
 		</xs:complexContent>
