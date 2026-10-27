@@ -8,9 +8,11 @@ import {
 
 const BLOB_URL =
   "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
+const RUN_LIVE_GITHUB = Deno.env.get("EHRTEST_LIVE_GITHUB") === "1";
 
 Deno.test({
   name: "Diagnostic_MDT_Lung_cancer uses Swedish labels and all content sections",
+  ignore: !RUN_LIVE_GITHUB,
   permissions: { net: true },
   async fn() {
     const ws = new ClinicalModelWorkspace();

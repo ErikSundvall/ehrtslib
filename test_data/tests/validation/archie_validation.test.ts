@@ -77,8 +77,11 @@ Deno.test("Archie-Inspired - Occurrence Validation", () => {
   });
 
   assertEquals(
-    validator.validate({ data: { origin: {} } }, template).valid,
-    true
+    validator.validate(
+      { data: { origin: {}, events: [{ time: {}, data: {} }] } },
+      template,
+    ).valid,
+    true,
   );
   const missing = validator.validate({}, template);
   assertEquals(missing.valid, false);

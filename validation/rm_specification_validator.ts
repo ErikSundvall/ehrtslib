@@ -541,6 +541,10 @@ export class RMSpecificationValidator {
       const owner = key.slice(0, dot);
       const attr = key.slice(dot + 1);
       if (!owners.has(owner) && !isSubtypeOf(rmType, owner)) continue;
+      // DV_CODED_TEXT inherits DV_TEXT.value; report once on the concrete type.
+      if (owner === "DV_TEXT" && isSubtypeOf(rmType, "DV_CODED_TEXT")) {
+        continue;
+      }
       if (coveredByBmm.has(key)) continue;
       this.applyConstraint(
         rmValue[attr],
@@ -570,6 +574,13 @@ export class RMSpecificationValidator {
       if (row.schema !== "rm" && row.schema !== "base") continue;
       if (!owners.has(row.className)) continue;
       if (!row.expression.trim()) continue;
+      // Offset is optional on instances until a CDR or generator sets it.
+      if (
+        row.className === "EVENT" && row.name === "Offset_validity1" &&
+        (rmValue as Record<string, unknown>).offset == null
+      ) {
+        continue;
+      }
       const result = evaluateBmmExpression(row.expression, rmValue);
       if (result === undefined) continue;
       for (const name of attributeNamesInExpression(row.expression)) {

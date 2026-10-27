@@ -9,7 +9,7 @@ import { ADL2Serializer } from "../../../generation/adl2_serializer.ts";
 import type { ADL2ParseResult } from "../../../parser/adl2_parser.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 function readTestData(relativePath: string): Promise<string> {
   return Deno.readTextFile(new URL(relativePath, TEST_DATA));

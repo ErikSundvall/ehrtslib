@@ -8,7 +8,8 @@ import {
 
 import { XmlSerializer } from "../../../serialization/xml/xml_serializer.ts";
 import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
-import { DV_TEXT, CODE_PHRASE, TERMINOLOGY_ID } from "../../../rm/openehr_rm.ts";
+import { DV_TEXT, CODE_PHRASE } from "../../../rm/openehr_rm.ts";
+import { TERMINOLOGY_ID } from "../../../base/openehr_base.ts";
 
 // Register types for testing
 TypeRegistry.clear();

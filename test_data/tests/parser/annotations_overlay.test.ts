@@ -11,7 +11,7 @@ import {
   getRmOverlayVisibility,
 } from "../../../parser/aom_odin_sections.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 async function readTestAdl2(relativePath: string): Promise<string> {
   return await Deno.readTextFile(new URL(relativePath, TEST_DATA));

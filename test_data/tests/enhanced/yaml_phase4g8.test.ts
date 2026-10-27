@@ -21,6 +21,14 @@ TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);
 
 // Helper function to validate YAML
+function dvTextValue(field: unknown): string | undefined {
+  if (typeof field === "string") return field;
+  if (field && typeof field === "object" && "value" in field) {
+    return (field as { value?: string }).value;
+  }
+  return undefined;
+}
+
 function assertValidYaml(yaml: string, testName: string): any {
   try {
     const parsed = parseYaml(yaml);
@@ -99,10 +107,10 @@ Deno.test("Phase 4g.8: Block style produces valid YAML", () => {
   const parsed = assertValidYaml(yaml, "Block style");
 
   // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assertEquals(parsed.archetype_node_id, "at0003");
   assert(Array.isArray(parsed.items));
-  assertEquals(parsed.items[0].name.value, "Vårdenhet");
+  assertEquals(dvTextValue(parsed.items[0].name), "Vårdenhet");
 });
 
 Deno.test("Phase 4g.8: Hybrid style produces valid YAML", () => {
@@ -117,10 +125,10 @@ Deno.test("Phase 4g.8: Hybrid style produces valid YAML", () => {
   const parsed = assertValidYaml(yaml, "Hybrid style");
 
   // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assertEquals(parsed.archetype_node_id, "at0003");
   assert(Array.isArray(parsed.items));
-  assertEquals(parsed.items[0].name.value, "Vårdenhet");
+  assertEquals(dvTextValue(parsed.items[0].name), "Vårdenhet");
 });
 
 Deno.test("Phase 4g.8: Flow style without archetype inline produces valid YAML", () => {
@@ -138,10 +146,10 @@ Deno.test("Phase 4g.8: Flow style without archetype inline produces valid YAML",
   const parsed = assertValidYaml(yaml, "Flow style without archetype inline");
 
   // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assertEquals(parsed.archetype_node_id, "at0003");
   assert(Array.isArray(parsed.items));
-  assertEquals(parsed.items[0].name.value, "Vårdenhet");
+  assertEquals(dvTextValue(parsed.items[0].name), "Vårdenhet");
 });
 
 Deno.test("Phase 4g.8: Flow style with archetype inline produces valid YAML", () => {
@@ -159,10 +167,10 @@ Deno.test("Phase 4g.8: Flow style with archetype inline produces valid YAML", ()
   const parsed = assertValidYaml(yaml, "Flow style with archetype inline");
 
   // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assertEquals(parsed.archetype_node_id, "at0003");
   assert(Array.isArray(parsed.items));
-  assertEquals(parsed.items[0].name.value, "Vårdenhet");
+  assertEquals(dvTextValue(parsed.items[0].name), "Vårdenhet");
 
   // Check that archetype inline formatting produces line breaks
   assert(yaml.includes("\n"), "Should contain line breaks for readability");
@@ -180,7 +188,7 @@ Deno.test("Phase 4g.8: Default config produces valid YAML", () => {
   const parsed = assertValidYaml(yaml, "Default style");
 
   // Verify structure
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assertEquals(parsed.archetype_node_id, "at0003");
   assert(Array.isArray(parsed.items));
 });
@@ -200,7 +208,7 @@ Deno.test("Phase 4g.8: mainStyle option works correctly", () => {
   const parsed = assertValidYaml(yaml, "mainStyle flow");
 
   // Should use flow style
-  assertEquals(parsed.name.value, "Item tree");
+  assertEquals(dvTextValue(parsed.name), "Item tree");
   assert(Array.isArray(parsed.items));
 });
 
@@ -234,8 +242,8 @@ Deno.test("Phase 4g.8: keepArchetypeDetailsInline only affects flow style", () =
   const parsedBlock = assertValidYaml(blockYaml, "Block ignores keepArchetypeDetailsInline");
 
   // Both should produce valid results
-  assertEquals(parsedHybrid.name.value, "Item tree");
-  assertEquals(parsedBlock.name.value, "Item tree");
+  assertEquals(dvTextValue(parsedHybrid.name), "Item tree");
+  assertEquals(dvTextValue(parsedBlock.name), "Item tree");
 });
 
 Deno.test("Phase 4g.8: Simple object example from ROADMAP", () => {
@@ -258,7 +266,7 @@ Deno.test("Phase 4g.8: Simple object example from ROADMAP", () => {
 
   const parsed = assertValidYaml(yaml, "ROADMAP example");
 
-  assertEquals(parsed.name.value, "Namn");
+  assertEquals(dvTextValue(parsed.name), "Namn");
   assertEquals(parsed.archetype_node_id, "at0001");
-  assertEquals(parsed.value.value, "Brandbergens vårdcentral");
+  assertEquals(dvTextValue(parsed.value), "Brandbergens vårdcentral");
 });

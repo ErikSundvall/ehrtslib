@@ -6,7 +6,7 @@ import { assertEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
 import { parseAdl } from "../../../parser/mod.ts";
 import { resolveAomPath } from "../../../am/util/aom_path_navigator.ts";
 
-const TEST_DATA = new URL("../../test_data/", import.meta.url);
+const TEST_DATA = new URL("../../", import.meta.url);
 
 Deno.test("resolveAomPath - simple_observation element", async () => {
   const adl = await Deno.readTextFile(new URL("adl2/simple_observation.adl", TEST_DATA));

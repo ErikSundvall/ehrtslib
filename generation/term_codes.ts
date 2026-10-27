@@ -16,6 +16,10 @@ export function termCodeCandidates(nodeId: string): string[] {
     const padded = dotted[1].padStart(4, "0");
     out.add(`at${padded}`);
     out.add(`at${padded}.${dotted[2]}`);
+    if (!dotted[2].includes(".")) {
+      const combined = `${dotted[1]}${dotted[2]}`;
+      out.add(`at${combined.padStart(4, "0")}`);
+    }
   }
 
   const base = nodeId.replace(/\.\d+(?:\.\d+)*$/, "");

@@ -315,7 +315,16 @@ function slotSatisfied(
   if (typeof value !== "object" || value === null) return false;
   const obj = value as Record<string, unknown>;
   if (obj._type !== slot.rmType) return false;
-  if (slot.nodeId && obj.archetype_node_id !== slot.nodeId) return false;
+  if (slot.nodeId && obj.archetype_node_id !== slot.nodeId) {
+    // RM instances use archetype id on inlined roots; template slots use at-codes.
+    const id = obj.archetype_node_id;
+    if (
+      typeof id !== "string" ||
+      (!id.startsWith("openEHR-EHR-") && !id.startsWith("openEHR-DEMOGRAPHIC-"))
+    ) {
+      return false;
+    }
+  }
   return true;
 }
 

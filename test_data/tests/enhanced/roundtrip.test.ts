@@ -106,7 +106,10 @@ Deno.test("JSON to YAML conversion", () => {
   const yamlDeserializer = new YamlDeserializer();
   const restored = yamlDeserializer.deserialize(yaml);
   
-  assertEquals(restored.value, dvText.value);
+  const yamlValue = typeof restored === "string"
+    ? restored
+    : restored.value;
+  assertEquals(yamlValue, dvText.value);
 });
 
 Deno.test("YAML to JSON conversion", () => {

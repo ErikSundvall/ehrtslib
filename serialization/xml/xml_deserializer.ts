@@ -47,9 +47,9 @@ export class XmlDeserializer {
       });
       
       const parsed = parser.parse(xml);
-      
-      // The root element is the first key
-      const rootKey = Object.keys(parsed)[0];
+
+      const rootKey = Object.keys(parsed).find((k) => !k.startsWith("?")) ??
+        Object.keys(parsed)[0];
       const rootData = parsed[rootKey];
       
       const instance = this.reconstructObject(rootData, rootKey) as T;
@@ -80,9 +80,10 @@ export class XmlDeserializer {
       });
       
       const parsed = parser.parse(xml);
-      const rootKey = Object.keys(parsed)[0];
+      const rootKey = Object.keys(parsed).find((k) => !k.startsWith("?")) ??
+        Object.keys(parsed)[0];
       const rootData = parsed[rootKey];
-      
+
       // Get type name from constructor
       const typeName = TypeRegistry.getTypeName(type);
       if (!typeName) {

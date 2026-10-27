@@ -26,7 +26,7 @@ decision_table:
     - [null, null, null, "[ABC, OPQ]", "local", "rejected", ["rm_schema: code_string and terminology_id are both mandatory"]]
     - ["ABC", null, null, "[ABC, OPQ]", "local", "rejected", ["rm_schema: terminology_id is mandatory"]]
     - [null, "local", null, "[ABC, OPQ]", "local", "rejected", ["rm_schema: code_string is mandatory"]]
-    - ["ABC", "local", null, "[ABC, OPQ]", "local", "accepted", []]
+    - ["ABC", "local", null, "[ABC, OPQ]", "local", "rejected", ["rm_invariant: DV_CODED_TEXT.value must be a non-empty string"]]
     - ["82272006", "SNOMED-CT", null, "[ABC, OPQ]", "local", "rejected", ["constraint(C_CODE_PHRASE.terminology_id): terminology_id does not match the constrained terminology"]]
     # Value dimension (acceptance direction): with a valid defining_code the
     # only RM invariant on value is dv_text.adoc Valid_value (not value.is_empty)
