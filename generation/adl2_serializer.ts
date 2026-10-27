@@ -223,6 +223,9 @@ export class ADL2Serializer {
     if (cObject instanceof openehr_am.C_ORDINAL) {
       return this.serializeOrdinal(cObject, level);
     }
+    if (cObject instanceof openehr_am.C_SCALE) {
+      return this.serializeScale(cObject, level);
+    }
     if (cObject instanceof openehr_am.C_CODED_TEXT) {
       return this.serializeCodedText(cObject, level);
     }
@@ -529,6 +532,10 @@ export class ADL2Serializer {
   }
 
   private serializeTupleCell(cell: openehr_am.C_OBJECT): string {
+    if (cell instanceof openehr_am.C_COMPLEX_OBJECT) {
+      const body = this.serializeCObject(cell, 0).trim().replace(/\s+/g, " ");
+      return `{${body}}`;
+    }
     if (cell instanceof openehr_am.C_TERMINOLOGY_CODE) {
       const codes = (cell as { code_list?: string[] }).code_list;
       const tid = (cell as { terminology_id?: string }).terminology_id;
@@ -638,6 +645,43 @@ export class ADL2Serializer {
       adl += `${head} matches {\n${lines.join("\n")}\n${this.getIndent(level)}}\n`;
     });
     return adl;
+  }
+
+  protected serializeScale(
+    scale: openehr_am.C_SCALE,
+    level: number,
+  ): string {
+    const tupleHost = scale as AttributeTupleHost;
+    const existingTuple = tupleHost.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
+    const items = (scale as {
+      list?: Array<{
+        value?: number;
+        symbol?: { code_string?: string; terminology_id?: unknown };
+      }>;
+    }).list ?? [];
+    const tuple = existingTuple ??
+      (items.length ? buildOrdinalAttributeTuple(items.map((item) => ({
+        value: item.value,
+        symbol: item.symbol?.code_string
+          ? openehr_base.CODE_PHRASE.from(
+            asTerminologyId(item.symbol?.terminology_id) ?? "local",
+            item.symbol.code_string,
+          )
+          : undefined,
+      }))) : undefined);
+    if (tuple) {
+      const head = this.cObjectHead(
+        scale.rm_type_name || "DV_SCALE",
+        scale,
+        level,
+      );
+      const body = this.serializeAttributeTuple(tuple, level + 1).trimEnd();
+      return `${head} matches {\n${body}\n${this.getIndent(level)}}\n`;
+    }
+    return this.cObjectHead(scale.rm_type_name || "DV_SCALE", scale, level) + "\n";
   }
 
   protected serializeCodedText(

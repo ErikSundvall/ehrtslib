@@ -327,6 +327,12 @@ export class TemplateValidator {
       warnings.push(...msgs.filter((m) => m.severity === "warning"));
     }
 
+    if (cObject instanceof openehr_am.C_SCALE && rmNode) {
+      const msgs = validateOrdinalConstraint(rmNode, cObject as openehr_am.C_ORDINAL, path);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
     const attributeTuples = (cObject as {
       attribute_tuples?: openehr_am.C_ATTRIBUTE_TUPLE[];
     }).attribute_tuples;
@@ -338,6 +344,13 @@ export class TemplateValidator {
         }
         if (
           cObject instanceof openehr_am.C_ORDINAL &&
+          cols.includes("value") &&
+          cols.includes("symbol")
+        ) {
+          return false;
+        }
+        if (
+          cObject instanceof openehr_am.C_SCALE &&
           cols.includes("value") &&
           cols.includes("symbol")
         ) {

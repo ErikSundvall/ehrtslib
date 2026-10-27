@@ -5,6 +5,10 @@
  */
 
 import * as openehr_am from "../../am/openehr_am.ts";
+import {
+  attributeTuplesFromAom,
+  type PAttributeTuple,
+} from "./attribute_tuple_p_model.ts";
 
 export interface PInterval {
   lower?: number;
@@ -29,6 +33,8 @@ export interface PObject {
   nodeId?: string;
   occ?: PInterval;
   attrs?: PAttribute[];
+  /** ADL2 co-varying attribute constraints (flattened). */
+  attributeTuples?: PAttributeTuple[];
   /** root: referenced archetype / overlay id (ADL2 `use_archetype`). */
   archetypeRef?: string;
   /** slot include / exclude archetype id regexes. */
@@ -129,7 +135,13 @@ export function pFromAom(obj: openehr_am.C_OBJECT): PObject {
       attrs: attrs.length ? attrs : undefined,
     };
   }
-  return { ...base, kind: "complex", attrs: attrs.length ? attrs : undefined };
+  const attributeTuples = attributeTuplesFromAom(obj);
+  return {
+    ...base,
+    kind: "complex",
+    attrs: attrs.length ? attrs : undefined,
+    attributeTuples,
+  };
 }
 
 function pAttrFromAom(attr: openehr_am.C_ATTRIBUTE): PAttribute {

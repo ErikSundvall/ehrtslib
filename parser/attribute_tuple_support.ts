@@ -62,6 +62,32 @@ function quantityItemFromPrimitiveTuple(
   return item.units || item.magnitude || item.precision ? item : undefined;
 }
 
+export function scaleListFromTuple(
+  tuple: openehr_am.C_ATTRIBUTE_TUPLE,
+): openehr_am.ORDINAL[] {
+  const columns = tupleColumnNames(tuple);
+  const valueIdx = columns.indexOf("value");
+  const symbolIdx = columns.indexOf("symbol");
+  if (valueIdx < 0 && symbolIdx < 0) return [];
+  const items: openehr_am.ORDINAL[] = [];
+  for (const row of tuple.tuples ?? []) {
+    const members = row.members ?? [];
+    const entry: { value?: number; symbol?: openehr_base.CODE_PHRASE } = {};
+    if (valueIdx >= 0) {
+      const v = numericPointFromConstraint(members[valueIdx]);
+      if (v !== undefined) entry.value = v;
+    }
+    if (symbolIdx >= 0) {
+      const sym = terminologyFromConstraint(members[symbolIdx]);
+      if (sym) entry.symbol = sym;
+    }
+    if (entry.value !== undefined || entry.symbol) {
+      items.push(entry as openehr_am.ORDINAL);
+    }
+  }
+  return items;
+}
+
 export function ordinalListFromTuple(
   tuple: openehr_am.C_ATTRIBUTE_TUPLE,
 ): openehr_am.ORDINAL[] {
@@ -74,7 +100,8 @@ export function ordinalListFromTuple(
     const ord = new openehr_am.ORDINAL();
     const members = row.members ?? [];
     if (valueIdx >= 0) {
-      const v = integerPointFromConstraint(members[valueIdx]);
+      const v = integerPointFromConstraint(members[valueIdx]) ??
+        numericPointFromConstraint(members[valueIdx]);
       if (v !== undefined) ord.value = v;
     }
     if (symbolIdx >= 0) {
@@ -106,6 +133,15 @@ export function syncDomainListsFromAttributeTuples(
       if (!cols.includes("value") && !cols.includes("symbol")) continue;
       const items = ordinalListFromTuple(tuple);
       if (items.length) o.list = items;
+    }
+  }
+  if (host instanceof openehr_am.C_SCALE || host.rm_type_name === "DV_SCALE") {
+    const s = host as openehr_am.C_SCALE & { list?: openehr_am.ORDINAL[] };
+    for (const tuple of tuples) {
+      const cols = tupleColumnNames(tuple);
+      if (!cols.includes("value") && !cols.includes("symbol")) continue;
+      const items = scaleListFromTuple(tuple);
+      if (items.length) s.list = items;
     }
   }
 }
@@ -157,6 +193,40 @@ function intervalFromConstraint(
   return undefined;
 }
 
+function numericPointFromConstraint(cell?: openehr_am.C_OBJECT): number | undefined {
+  if (!cell) return undefined;
+  if (!(cell instanceof openehr_am.C_PRIMITIVE_OBJECT)) {
+    if (cell instanceof openehr_am.C_COMPLEX_OBJECT) {
+      const valueAttr = (cell as { attributes?: openehr_am.C_ATTRIBUTE[] })
+        .attributes?.find((a) => a.rm_attribute_name === "value");
+      const child = (valueAttr as { children?: openehr_am.C_OBJECT[] })
+        ?.children?.[0];
+      return numericPointFromConstraint(child);
+    }
+    return undefined;
+  }
+  const body = cell.item;
+  if (body instanceof openehr_am.C_REAL) {
+    const list = (body as { list?: number[] }).list;
+    if (list?.length) return list[0];
+    const range = (body as { range?: QuantityItemInterval }).range;
+    if (range?.lower !== undefined && range.lower === range.upper) {
+      return range.lower;
+    }
+  }
+  if (body instanceof openehr_am.C_STRING && body.pattern) {
+    const interval = parseIntervalPattern(body.pattern);
+    if (
+      interval?.lower !== undefined && interval.lower === interval.upper
+    ) {
+      return interval.lower;
+    }
+    const n = Number(body.pattern);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return integerPointFromConstraint(cell);
+}
+
 function integerPointFromConstraint(cell?: openehr_am.C_OBJECT): number | undefined {
   if (!cell) return undefined;
   if (!(cell instanceof openehr_am.C_PRIMITIVE_OBJECT)) return undefined;
@@ -191,6 +261,12 @@ function terminologyFromConstraint(
     if (!code) return undefined;
     const tid = (cell as { terminology_id?: string }).terminology_id ?? "local";
     return openehr_base.CODE_PHRASE.from(tid, code);
+  }
+  if (cell instanceof openehr_am.C_COMPLEX_OBJECT) {
+    const defAttr = (cell as { attributes?: openehr_am.C_ATTRIBUTE[] })
+      .attributes?.find((a) => a.rm_attribute_name === "defining_code");
+    const child = (defAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+    if (child) return terminologyFromConstraint(child);
   }
   if (cell instanceof openehr_am.C_PRIMITIVE_OBJECT) {
     const nested = (cell as { children?: openehr_am.C_OBJECT[] }).children?.[0];
@@ -292,7 +368,8 @@ function cellMatchesConstraint(
   if (column === "value" && typeof actual === "number") {
     const interval = intervalFromConstraint(cell);
     if (interval) return inOrderedRange(actual, interval);
-    const point = integerPointFromConstraint(cell);
+    const point = numericPointFromConstraint(cell) ??
+      integerPointFromConstraint(cell);
     return point === undefined || point === actual;
   }
   if (column === "symbol" && typeof actual === "object") {

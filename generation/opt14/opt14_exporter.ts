@@ -29,6 +29,10 @@ import {
   type TermTable,
 } from "./adl2_template_library.ts";
 import {
+  ordinalListRowsFromP,
+  quantityListRowsFromP,
+} from "./attribute_tuple_p_model.ts";
+import {
   type PAttribute,
   pClone,
   type PInterval,
@@ -820,6 +824,13 @@ export class Opt14Exporter {
       this.writeQuantity(x, o, tag, occ, comp);
       return;
     }
+    if (
+      o.kind === "complex" &&
+      (o.rmType === "DV_ORDINAL" || o.rmType === "DV_SCALE")
+    ) {
+      this.writeOrdinalOrScale(x, o, tag, occ);
+      return;
+    }
 
     let xsiType = "C_COMPLEX_OBJECT";
     if (isRoot) xsiType = "C_ARCHETYPE_ROOT";
@@ -1019,26 +1030,75 @@ export class Opt14Exporter {
         x.close("property");
       }
     }
-    const units = attr("units")?.flatMap((c) =>
-      c.prim?.type === "string" ? c.prim.list ?? [] : []
-    ) ?? [];
-    const mag = attr("magnitude")?.find((c) => c.prim?.type === "interval");
-    const range = mag?.prim?.type === "interval"
-      ? parseRange(mag.prim.expr)
-      : undefined;
-    const prec = attr("precision")?.find((c) => c.prim?.type === "interval");
-    const precRange = prec?.prim?.type === "interval"
-      ? parseRange(prec.prim.expr)
-      : undefined;
-    for (const u of units) {
-      x.open("list");
-      if (range) writeRange(x, "magnitude", range);
-      if (precRange) writeRange(x, "precision", precRange);
-      x.leaf("units", u);
-      x.close("list");
+    const tupleRows = quantityListRowsFromP(o.attributeTuples);
+    if (tupleRows.length) {
+      for (const row of tupleRows) {
+        x.open("list");
+        if (row.magnitudeExpr) {
+          const range = parseRange(row.magnitudeExpr);
+          if (range) writeRange(x, "magnitude", range);
+        }
+        if (row.precisionExpr) {
+          const precRange = parseRange(row.precisionExpr);
+          if (precRange) writeRange(x, "precision", precRange);
+        }
+        x.leaf("units", row.units);
+        x.close("list");
+      }
+    } else {
+      const units = attr("units")?.flatMap((c) =>
+        c.prim?.type === "string" ? c.prim.list ?? [] : []
+      ) ?? [];
+      const mag = attr("magnitude")?.find((c) => c.prim?.type === "interval");
+      const range = mag?.prim?.type === "interval"
+        ? parseRange(mag.prim.expr)
+        : undefined;
+      const prec = attr("precision")?.find((c) => c.prim?.type === "interval");
+      const precRange = prec?.prim?.type === "interval"
+        ? parseRange(prec.prim.expr)
+        : undefined;
+      for (const u of units) {
+        x.open("list");
+        if (range) writeRange(x, "magnitude", range);
+        if (precRange) writeRange(x, "precision", precRange);
+        x.leaf("units", u);
+        x.close("list");
+      }
+      if (!units.length && range) {
+        this.warn(`${comp.base.id}: DV_QUANTITY magnitude without units dropped`);
+      }
     }
-    if (!units.length && range) {
-      this.warn(`${comp.base.id}: DV_QUANTITY magnitude without units dropped`);
+    x.close(tag);
+  }
+
+  private writeOrdinalOrScale(
+    x: Xml,
+    o: PObject,
+    tag: string,
+    occ: PInterval,
+  ): void {
+    const xsi = o.rmType === "DV_SCALE" ? "C_DV_SCALE" : "C_DV_ORDINAL";
+    x.open(tag, ` xsi:type="${xsi}"`);
+    x.leaf("rm_type_name", o.rmType);
+    writeInterval(x, "occurrences", occ);
+    x.leaf("node_id", "");
+    const rows = ordinalListRowsFromP(o.attributeTuples);
+    if (rows.length) {
+      for (const row of rows) {
+        x.open("list");
+        if (row.value !== undefined) x.leaf("value", row.value);
+        if (row.symbolCode) {
+          x.open("symbol");
+          x.open("defining_code");
+          x.open("terminology_id");
+          x.leaf("value", row.symbolTerminology ?? "local");
+          x.close("terminology_id");
+          x.leaf("code_string", row.symbolCode);
+          x.close("defining_code");
+          x.close("symbol");
+        }
+        x.close("list");
+      }
     }
     x.close(tag);
   }

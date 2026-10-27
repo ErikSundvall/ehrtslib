@@ -14,6 +14,7 @@ import {
   isQuantityTupleColumns,
   ordinalListFromTuple,
   quantityItemsFromTuple,
+  scaleListFromTuple,
   syncDomainListsFromAttributeTuples,
   tupleColumnNames,
 } from "./attribute_tuple_support.ts";
@@ -106,6 +107,9 @@ export class CadlParser {
     }
     if (cObject.rm_type_name === "DV_ORDINAL") {
       return this.reifyOrdinal(cObject);
+    }
+    if (cObject.rm_type_name === "DV_SCALE") {
+      return this.reifyScale(cObject);
     }
     syncDomainListsFromAttributeTuples(cObject);
     return cObject;
@@ -978,6 +982,25 @@ export class CadlParser {
     return o;
   }
 
+  private reifyScale(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+  ): openehr_am.C_SCALE {
+    const s = new openehr_am.C_SCALE();
+    s.rm_type_name = obj.rm_type_name ?? "DV_SCALE";
+    s.node_id = obj.node_id;
+    s.occurrences = obj.occurrences;
+    const scaleTuple = obj.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
+    if (scaleTuple) {
+      const list = scaleListFromTuple(scaleTuple);
+      if (list.length) (s as { list?: openehr_am.ORDINAL[] }).list = list;
+    }
+    copyAttributeTuples(obj, s);
+    return s;
+  }
+
   private readUnitsConstraint(
     attr?: openehr_am.C_ATTRIBUTE,
   ): string[] {
@@ -1100,6 +1123,15 @@ export class CadlParser {
         str.pattern = this.advance().value.replace(/^["']|["']$/g, "");
         prim.item = str;
         obj = prim;
+      }
+      if (!obj && this.check(TokenType.REGEX)) {
+        obj = this.tryParseRegexConstraint();
+      }
+      if (!obj && this.check(TokenType.IDENTIFIER)) {
+        const checkpoint = this.position;
+        const nested = this.parseChildObject();
+        if (nested) obj = nested;
+        else this.position = checkpoint;
       }
     }
     this.consume(TokenType.RBRACE, "Expected '}' in tuple cell");

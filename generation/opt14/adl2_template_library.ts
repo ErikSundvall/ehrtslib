@@ -6,6 +6,7 @@
 
 import * as openehr_am from "../../am/openehr_am.ts";
 import { parseAdl } from "../../parser/parse_adl.ts";
+import { mergeAttributeTupleSets } from "./attribute_tuple_p_model.ts";
 import {
   type PAttribute,
   pClone,
@@ -359,6 +360,10 @@ export function specialiseObject(
     }
     mergeAttribute(ta, da, warn);
   }
+  result.attributeTuples = mergeAttributeTupleSets(
+    parentFlat.attributeTuples,
+    diff.attributeTuples,
+  );
   return result;
 }
 
