@@ -19,7 +19,15 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
-`TemplateValidator` UCUM messages are emitted once per `DV_QUANTITY` with canonical instance paths; template-listed units that fail strict UCUM are warnings (`severity: "warning"`, `constraintType: "ucum"`), not errors. `RMSpecificationValidator.validateInstance` reports missing or empty `DV_TEXT.value` and `DV_CODED_TEXT.value` as `rm_invariant` errors ([#174](https://github.com/ErikSundvall/ehrtslib/issues/174)).
+## 0.6.0 (tag `v0.6.0`)
+
+**Breaking — validator instance paths.** `TemplateValidator`, `DraftValidator`, and related validation results use RM-style paths without a slash before index brackets (`/content[0]/…`, not `/content/[0]/…`). Update downstream parsers, golden tests, or string compares that assumed the old shape ([#184](https://github.com/ErikSundvall/ehrtslib/pull/184)).
+
+`TemplateValidator` UCUM messages are emitted once per `DV_QUANTITY` with those canonical instance paths; template-listed units that fail strict UCUM are warnings (`severity: "warning"`, `constraintType: "ucum"`), not errors. `RMSpecificationValidator.validateInstance` reports missing or empty `DV_TEXT.value` and `DV_CODED_TEXT.value` as `rm_invariant` errors ([#174](https://github.com/ErikSundvall/ehrtslib/issues/174)).
+
+`contributionBuilder` phase 1 exports (`ContributionBuild`, `bindTemplate`, `DraftValidator`, `prepareContribution`, `ItsRestContributionAdapter`, `canonicalizeJson`, conflict helpers) ship on `mod.ts` ([#163](https://github.com/ErikSundvall/ehrtslib/issues/163)–[#167](https://github.com/ErikSundvall/ehrtslib/issues/167)). `EHRTSLIB_VERSION` in `version.ts` tracks `deno.json`.
+
+cADL attribute tuples (`C_ATTRIBUTE_TUPLE`, quantity `[units, magnitude, precision]`, ordinals/scales) parse, flatten, and validate; OPT 1.4 export maps tuple rows to legacy `<list>` XML ([#183](https://github.com/ErikSundvall/ehrtslib/issues/183), [#195](https://github.com/ErikSundvall/ehrtslib/pull/195)).
 
 `Opt14ExportResult` includes `componentCodeMaps` (ADL2 → ADL 1.4 per component archetype id). `TemplateBinding` may carry optional `opt14Export` (`templateId` + `componentCodeMaps`) for commit down-conversion; set it only via `bindTemplate({ opt14Export })` (caller-supplied from the CDR OPT export; not part of the binding hash; bind does not run `exportAdl2TemplateToOpt14`). Alternatively pass maps through per-draft `adl14` on commit or `Adl14DownconversionOptions` / `resolveAdl14DownconversionOptions`. `hasAdl14CdrExportContext` and `adl14DownconversionCdrWarnings` support the commit warning when ADL2-native bindings commit with default mapping only ([#178](https://github.com/ErikSundvall/ehrtslib/issues/178)).
 
