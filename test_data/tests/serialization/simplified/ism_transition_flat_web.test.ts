@@ -7,6 +7,8 @@ import {
   deserializeFromFlat,
   serializeToFlat,
 } from "../../../../serialization/simplified/mod.ts";
+import { deserializeFromFlatWithIssues } from "../../../../serialization/simplified/flat_deserializer.ts";
+import { instructionStateRubric } from "../../../../term/openehr_group_rubrics.ts";
 import { openehrCodeMeaning } from "../../../../validation/rm_specification_validator.ts";
 import { TemplateValidator } from "../../../../validation/template_validator.ts";
 import { resolveAllAtWebTemplateNode } from "../../../../serialization/simplified/instance_nav.ts";
@@ -71,6 +73,11 @@ Deno.test("buildWebTemplate — ACTION ISM_TRANSITION uses RM attribute ids", as
     ism.children?.some((c) => c.id.startsWith("dv_coded_text")),
     false,
   );
+  const currentList = current.inputs?.find((i) => i.suffix === "code")?.list ??
+    [];
+  assertEquals(currentList.some((i) => i.value === "526" && i.label === "planned"), true);
+  const careList = careflow.inputs?.find((i) => i.suffix === "code")?.list ?? [];
+  assertEquals(careList.find((i) => i.value === "at0003")?.currentStates, ["526"]);
 });
 
 Deno.test("deserializeFromFlat — ACTION ism_transition defaults without ISM keys", async () => {
@@ -171,4 +178,88 @@ Deno.test("FLAT round trip — ism_transition careflow_step survives serialize",
     flatOut[`${actionPath}/ism_transition/careflow_step|terminology`],
     "local",
   );
+});
+
+const CONFORMANCE_ACTION_PREFIX =
+  "conformance-ehrbase.de.v0/conformance_section/conformance_action";
+
+function stripIsmKeys(flat: Record<string, unknown>): void {
+  for (const key of Object.keys(flat)) {
+    if (key.includes("ism_transition")) delete flat[key];
+  }
+}
+
+Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
+  const opt = await loadConformanceTemplate();
+  const wt = buildWebTemplate(opt);
+  const fullFlat = serializeToFlat(
+    new RMInstanceGenerator({ mode: "example" }).generate(opt),
+    wt,
+  );
+
+  // No ISM keys + ctx default
+  const noIsm = { ...fullFlat };
+  stripIsmKeys(noIsm);
+  noIsm["ctx/action_ism_transition_current_state"] = "524";
+  const rm1 = deserializeFromFlat(noIsm, wt);
+  const ism1 = (resolveAllAtWebTemplateNode(
+    rm1,
+    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+  )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
+  const cs1 = ism1.current_state as Record<string, unknown>;
+  assertEquals((cs1.defining_code as { code_string?: string }).code_string, "524");
+  assertEquals(cs1.value, instructionStateRubric("524"));
+
+  // careflow_step code only
+  const careflowOnly = { ...fullFlat };
+  stripIsmKeys(careflowOnly);
+  careflowOnly[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/careflow_step|code`] =
+    "at0005";
+  careflowOnly[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/careflow_step|terminology`] =
+    "local";
+  const rm2 = deserializeFromFlat(careflowOnly, wt);
+  const ism2 = (resolveAllAtWebTemplateNode(
+    rm2,
+    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+  )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
+  assertEquals(
+    (ism2.current_state as { defining_code?: { code_string?: string } })
+      .defining_code?.code_string,
+    "524",
+  );
+
+  // full Better-style keys (unchanged round-trip)
+  const rm3 = deserializeFromFlat(fullFlat, wt);
+  const validator = new TemplateValidator({ validateUnits: false });
+  const ismMsgs = [...validator.validate(rm3, opt).errors].filter((m) =>
+    m.path.includes("ism_transition")
+  );
+  assertEquals(ismMsgs.length, 0);
+
+  // current_state value only (single-code template would use 532 — multi-code uses rubric match)
+  const valueOnly = { ...fullFlat };
+  stripIsmKeys(valueOnly);
+  valueOnly[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/current_state|value`] =
+    "initial";
+  const { composition: rm4, issues: issues4 } = deserializeFromFlatWithIssues(
+    valueOnly,
+    wt,
+  );
+  assertEquals(issues4.length, 0);
+  const ism4 = (resolveAllAtWebTemplateNode(
+    rm4,
+    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+  )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
+  assertEquals(
+    (ism4.current_state as { defining_code?: { code_string?: string } })
+      .defining_code?.code_string,
+    "524",
+  );
+
+  const wrongValue = { ...fullFlat };
+  stripIsmKeys(wrongValue);
+  wrongValue[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/current_state|value`] =
+    "not-a-real-state";
+  const { issues: badIssues } = deserializeFromFlatWithIssues(wrongValue, wt);
+  assertEquals(badIssues.some((i) => i.severity === "error"), true);
 });

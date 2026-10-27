@@ -42,6 +42,11 @@ import {
   flattenOptPathAnnotations,
   type OptPathAnnotationMap,
 } from "../../generation/opt_l10n.ts";
+import { instructionStateRubric } from "../../term/openehr_group_rubrics.ts";
+import {
+  useRmAttributeAsWebTemplateId,
+  webTemplateChildIdHint,
+} from "./web_template_id_hints.ts";
 
 /** Empty complex shell so a slot still appears as a node, as it did when OPT XML mapped slots to `C_COMPLEX_OBJECT`. */
 function complexShellFromSlot(
@@ -302,11 +307,16 @@ function applyTerminologyInputs(
   const codes = term.code_list?.length
     ? term.code_list
     : (term.constraint ? [term.constraint] : []);
+  const terminology = term.terminology_id ?? term.assumed_value?.terminology_id;
   if (codes.length) {
     codeInput.list = codes.map((value) => {
       const labels = labelsFor(value, scope);
       const item: WebTemplateInputListItem = { value };
-      if (labels.label) item.label = labels.label;
+      const openehrRubric = terminology === "openehr"
+        ? instructionStateRubric(value)
+        : undefined;
+      if (openehrRubric) item.label = openehrRubric;
+      else if (labels.label) item.label = labels.label;
       if (labels.localizedLabels) item.localizedLabels = labels.localizedLabels;
       if (labels.localizedDescriptions) {
         item.localizedDescriptions = labels.localizedDescriptions;
@@ -316,7 +326,6 @@ function applyTerminologyInputs(
   }
   const assumed = term.assumed_value?.code_string;
   if (assumed) codeInput.defaultValue = assumed;
-  const terminology = term.terminology_id ?? term.assumed_value?.terminology_id;
   if (terminology) codeInput.terminology = terminology;
 }
 
@@ -828,13 +837,38 @@ export class WebTemplateBuilder {
       }
     }
     if (mergedCodes.size) {
+      const variants = ismObjects.map((ism) => ({
+        careflowStep: singleConstrainedCode(ism, "careflow_step"),
+        currentState: singleConstrainedCode(ism, "current_state"),
+      }));
       leaf.inputs = (leaf.inputs ?? []).map((input) => {
         if (input.suffix && input.suffix !== "code") return input;
-        return {
-          ...input,
-          list: [...mergedCodes.values()],
-        };
+        const list = [...mergedCodes.values()].map((item) => {
+          if (attrName !== "careflow_step") return item;
+          const variant = variants.find((v) => v.careflowStep === item.value);
+          if (!variant?.currentState) return item;
+          return {
+            ...item,
+            currentStates: [variant.currentState],
+          };
+        });
+        return { ...input, list };
       });
+    }
+    if (attrName === "careflow_step" && ismObjects.length === 1) {
+      const current = singleConstrainedCode(ismObjects[0], "current_state");
+      if (current) {
+        leaf.inputs = (leaf.inputs ?? []).map((input) => {
+          if (input.suffix && input.suffix !== "code") return input;
+          return {
+            ...input,
+            list: (input.list ?? []).map((item) => ({
+              ...item,
+              currentStates: [current],
+            })),
+          };
+        });
+      }
     }
     return leaf;
   }
@@ -870,12 +904,25 @@ export class WebTemplateBuilder {
           if (!(c instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
           if (!isRmAttributeValueLeaf(c)) return undefined;
           const bounds = attributeExistenceBounds(a!);
-          return this.buildRmAttributeLeaf(
+          const leaf = this.buildRmAttributeLeaf(
             c,
             joinAqlPath(ismPath, attrName),
             attrName,
             bounds,
           );
+          if (attrName === "careflow_step") {
+            const current = singleConstrainedCode(first, "current_state");
+            if (current && leaf.inputs) {
+              for (const input of leaf.inputs) {
+                if (input.suffix && input.suffix !== "code") continue;
+                input.list = (input.list ?? []).map((item) => ({
+                  ...item,
+                  currentStates: [current],
+                }));
+              }
+            }
+          }
+          return leaf;
         })()
         : this.mergeIsmCodedAttribute(ismObjects, attrName, ismPath);
       if (child) shell.children!.push(child);
@@ -962,17 +1009,20 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const childLabel = attrName;
+        const childLabel = webTemplateChildIdHint(rmType, attrName, child);
         if (
           child instanceof openehr_am.C_COMPLEX_OBJECT ||
           child instanceof openehr_am.ARCHETYPE_SLOT
         ) {
-          const complex = child instanceof openehr_am.ARCHETYPE_SLOT
+          const complex = child instanceof openehr_am.C_COMPLEX_OBJECT
+            ? child
+            : child instanceof openehr_am.ARCHETYPE_SLOT
             ? complexShellFromSlot(child)
-            : child;
-          if (isRmAttributeValueLeaf(complex)) {
+            : undefined;
+          if (!complex) continue;
+          if (useRmAttributeAsWebTemplateId(rmType, attrName, complex)) {
             node.children!.push(
-              this.buildRmAttributeLeaf(complex, childPath, childLabel, attrBounds),
+              this.buildRmAttributeLeaf(complex, childPath, attrName, attrBounds),
             );
           } else if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
             const flattened = this.flattenDataStructure(
@@ -1012,10 +1062,15 @@ export class WebTemplateBuilder {
               childLabel,
             ));
           }
-        } else if (isDataValueType(child.rm_type_name ?? "")) {
+        } else if (
+          isDataValueType(child.rm_type_name ?? "") &&
+          useRmAttributeAsWebTemplateId(rmType, attrName, child)
+        ) {
           node.children!.push(
-            this.buildRmAttributeLeaf(child, childPath, childLabel, attrBounds),
+            this.buildRmAttributeLeaf(child, childPath, attrName, attrBounds),
           );
+        } else if (isDataValueType(child.rm_type_name ?? "")) {
+          node.children!.push(this.buildLeaf(child, childPath, childLabel));
         }
       }
     }
@@ -1041,7 +1096,8 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const itemLabel = attrName;
+        const parentRm = obj.rm_type_name ?? "";
+        const itemLabel = webTemplateChildIdHint(parentRm, attrName, child);
         const complex = child instanceof openehr_am.ARCHETYPE_SLOT
           ? complexShellFromSlot(child)
           : child instanceof openehr_am.C_COMPLEX_OBJECT

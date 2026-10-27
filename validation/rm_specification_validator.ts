@@ -16,6 +16,7 @@ import {
   isDataValueType,
   isSubtypeOf,
 } from "../meta/mod.ts";
+import { instructionStateRubric } from "../term/openehr_group_rubrics.ts";
 import {
   attributeNamesInExpression,
   evaluateBmmExpression,
@@ -240,18 +241,7 @@ const RM_CONSTRAINTS = {
       "532",
       "533",
     ],
-    code_meanings: {
-      "245": "active",
-      "524": "initial",
-      "526": "planned",
-      "527": "postponed",
-      "528": "cancelled",
-      "529": "scheduled",
-      "530": "active",
-      "531": "suspended",
-      "532": "aborted",
-      "533": "completed",
-    },
+    terminology_group: "instruction_states",
     spec_ref:
       "https://specifications.openehr.org/releases/RM/latest/ehr.html#_ism_transition_class",
   },
@@ -340,12 +330,26 @@ const RM_CONSTRAINTS = {
  * (category, setting, ISM states, …), or undefined.
  */
 export function openehrCodeMeaning(code: string): string | undefined {
+  const instruction = instructionStateRubric(code);
+  if (instruction) return instruction;
   for (const c of Object.values(RM_CONSTRAINTS)) {
+    const group = (c as { terminology_group?: string }).terminology_group;
+    if (group) continue;
     const meanings = (c as { code_meanings?: Record<string, string> })
       .code_meanings;
     if (meanings?.[code]) return meanings[code];
   }
   return undefined;
+}
+
+function rubricForConstraintCode(
+  constraint: { terminology_group?: string; code_meanings?: Record<string, string> },
+  code: string,
+): string | undefined {
+  if (constraint.terminology_group === "instruction_states") {
+    return instructionStateRubric(code);
+  }
+  return constraint.code_meanings?.[code];
 }
 
 /**
@@ -662,6 +666,21 @@ export class RMSpecificationValidator {
 
       if (code && terminology) {
         this.checkCodeValue(terminology, code, constraint, path, messages);
+        if (
+          constraint.terminology_group === "instruction_states" &&
+          typeof rmValue.value === "string" && rmValue.value.length > 0
+        ) {
+          const expected = instructionStateRubric(code);
+          if (expected && rmValue.value !== expected) {
+            messages.push({
+              path: `${path}/value`,
+              message:
+                `DV_CODED_TEXT.value must be the openEHR instruction-state rubric "${expected}" for code ${code}, not "${rmValue.value}"`,
+              severity: "error",
+              constraintType: "rm_specification",
+            });
+          }
+        }
       }
     }
   }
@@ -693,7 +712,7 @@ export class RMSpecificationValidator {
     // Check code is in allowed list
     if (constraint.allowed_codes && !constraint.allowed_codes.includes(code)) {
       const allowedList = constraint.allowed_codes.map((c: string) => {
-        const meaning = constraint.code_meanings?.[c];
+        const meaning = rubricForConstraintCode(constraint, c);
         return meaning ? `${c}|${meaning}|` : c;
       }).join(", ");
 

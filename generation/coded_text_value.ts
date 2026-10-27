@@ -2,20 +2,11 @@
  * Resolve DV_CODED_TEXT.value from defining_code and optional template labels.
  */
 
+import {
+  instructionStateCodes,
+  instructionStateRubric,
+} from "../term/openehr_group_rubrics.ts";
 import { openehrCodeMeaning } from "../validation/rm_specification_validator.ts";
-
-const INSTRUCTION_STATE_CODES = [
-  "245",
-  "524",
-  "526",
-  "527",
-  "528",
-  "529",
-  "530",
-  "531",
-  "532",
-  "533",
-];
 
 export type DefiningCodeLike = {
   code_string?: string;
@@ -47,7 +38,7 @@ export function resolveDvCodedTextValue(
   if (!code) return "Generated coded value";
   const terminology = terminologyIdValue(definingCode);
   if (terminology === "openehr") {
-    return openehrCodeMeaning(code) ?? code;
+    return instructionStateRubric(code) ?? openehrCodeMeaning(code) ?? code;
   }
   if (terminology === "local") {
     return options?.archetypeTerm ?? options?.templateLabel ?? code;
@@ -61,8 +52,17 @@ export function resolveInstructionStateCode(raw: string): string | undefined {
   if (!trimmed) return undefined;
   if (/^\d+$/.test(trimmed)) return trimmed;
   const lower = trimmed.toLowerCase();
-  for (const code of INSTRUCTION_STATE_CODES) {
+  for (const code of instructionStateCodes()) {
+    const rubric = instructionStateRubric(code);
+    if (rubric?.toLowerCase() === lower) return code;
+  }
+  for (const code of instructionStateCodes()) {
     if (openehrCodeMeaning(code)?.toLowerCase() === lower) return code;
   }
   return undefined;
+}
+
+/** Expected English rubric for an openEHR instruction-state code (never localised). */
+export function instructionStateValue(code: string): string | undefined {
+  return instructionStateRubric(code);
 }

@@ -35,7 +35,9 @@ export {
 export {
   deserializeFromFlat,
   deserializeFromFlatJson,
+  deserializeFromFlatWithIssues,
   FlatDeserializer,
+  type FlatRmDefaultIssue,
 } from "./flat_deserializer.ts";
 
 export {
