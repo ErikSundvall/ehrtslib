@@ -79,10 +79,12 @@ export {
   validateDraft,
 } from "./draft_validation.ts";
 export {
+  adl14DownconversionCdrWarnings,
   adl14DownconversionFromOpt14Export,
   type Adl14DownconversionOptions,
   type Adl14DownconversionResult,
   downConvertToAdl14,
+  hasAdl14CdrExportContext,
   type Opt14ExportBindingMetadata,
   resolveAdl14DownconversionOptions,
   upConvertFromAdl14,

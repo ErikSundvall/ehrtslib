@@ -162,8 +162,11 @@ Code: `contribution_builder/commit.ts` (`prepareContribution`,
   (`id5` → `at0004`), `local` value codes (`at10` → `at0009`) and
   `archetype_details.template_id`. For a binding from an OPT 1.4 XML this
   is the exact inverse of the up-conversion. For ADL2-native templates,
-  pass the OPT 1.4 exporter's code map and template id; otherwise the plain
-  shift is used and a warning is returned.
+  supply the OPT 1.4 on the CDR via `bindTemplate({ opt14Export })` (from
+  `exportAdl2TemplateToOpt14`; bind never auto-exports) or per-draft
+  `adl14.templateId` and `adl14.codeMap` on commit. Otherwise the plain
+  shift is used and `prepareContribution` records one warning per draft
+  (`adl14DownconversionCdrWarnings`), not a thrown error.
 - **Commit-time fixes to the data.** `archetype_details` is added to inner
   archetype roots that lack it (RM `Is_archetype_root`), and `EVENT.offset`
   (an RM function, not stored) is removed.

@@ -267,9 +267,78 @@ Deno.test("downConvertToAdl14 warns for ADL2-native templates without a code map
   });
   assertEquals((r.data as any).content[0].data.archetype_node_id, "at9000");
   assertEquals((r.data as any).archetype_details.template_id.value, "t.adl2");
-  assertEquals(r.warnings.length, 1); // template id not given
-  assertEquals(downConvertToAdl14(data as any, binding).warnings.length, 2);
+  assertEquals(r.warnings.length, 1);
+  assertEquals(downConvertToAdl14(data as any, binding).warnings.length, 1);
   assertEquals(data.content[0].data.archetype_node_id, "id2"); // input untouched
+});
+
+Deno.test("prepareContribution warns when ADL2-native binding lacks OPT 1.4 export metadata", async () => {
+  const { t, v, build } = await setup();
+  const adl2Native: BoundTemplate = {
+    ...t,
+    binding: { ...t.binding, sourceFormat: "adl2-opt", opt14Export: undefined },
+  };
+  const draft = build.newComposition(adl2Native, { language: "en", territory: "SE" });
+  build.setComposer(draft, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
+  const p = await prepareContribution(build, v, CONFIG, {
+    drafts: [{ draftId: draft, template: adl2Native }],
+    committer: COMMITTER,
+    creatingSystemId: "cdr.example",
+  });
+  const mappingWarnings = p.warnings.filter((w) => w.includes("default code shift"));
+  assertEquals(mappingWarnings.length, 1);
+  assertMatch(mappingWarnings[0], /opt14Export/);
+});
+
+Deno.test("prepareContribution: no ADL 1.4 mapping warning with opt14Export or explicit adl14", async () => {
+  const { t, v, build } = await setup();
+  const adl2Native: BoundTemplate = {
+    ...t,
+    binding: {
+      ...t.binding,
+      sourceFormat: "adl2-opt",
+      opt14Export: {
+        templateId: "cdr-template-id",
+        componentCodeMaps: {
+          "openEHR-EHR-OBSERVATION.blood_pressure.v1": { id2: "at0001" },
+        },
+      },
+    },
+  };
+  const draft = build.newComposition(adl2Native, { language: "en", territory: "SE" });
+  build.setComposer(draft, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
+  const withExport = await prepareContribution(build, v, CONFIG, {
+    drafts: [{ draftId: draft, template: adl2Native }],
+    committer: COMMITTER,
+    creatingSystemId: "cdr.example",
+  });
+  assertEquals(
+    withExport.warnings.filter((w) => w.includes("default code shift")).length,
+    0,
+  );
+
+  const adl2Bare: BoundTemplate = {
+    ...t,
+    binding: { ...t.binding, sourceFormat: "adl2-opt", opt14Export: undefined },
+  };
+  const draft2 = build.newComposition(adl2Bare, { language: "en", territory: "SE" });
+  build.setComposer(draft2, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
+  const withExplicit = await prepareContribution(build, v, CONFIG, {
+    drafts: [{
+      draftId: draft2,
+      template: adl2Bare,
+      adl14: {
+        templateId: "cdr-template-id",
+        codeMap: () => "at0001",
+      },
+    }],
+    committer: COMMITTER,
+    creatingSystemId: "cdr.example",
+  });
+  assertEquals(
+    withExplicit.warnings.filter((w) => w.includes("default code shift")).length,
+    0,
+  );
 });
 
 Deno.test("commit refuses missing committer, missing composer and invalid builds without calling the server", async () => {

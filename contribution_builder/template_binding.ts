@@ -106,7 +106,11 @@ export interface BindTemplateOptions {
    * object (gives template id, `sem_ver`, description and source identifiers).
    */
   opt14Header?: Opt14Header;
-  /** From {@link exportAdl2TemplateToOpt14}; used when committing with ADL 1.4 codes. */
+  /**
+   * From {@link exportAdl2TemplateToOpt14} on the OPT 1.4 uploaded to the CDR.
+   * Caller-supplied only; bind never runs export for ADL2-native templates.
+   * Not part of the template content hash.
+   */
   opt14Export?: Opt14ExportBindingMetadata;
 }
 

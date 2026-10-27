@@ -63,6 +63,39 @@ export function adl14DownconversionFromOpt14Export(
   };
 }
 
+/**
+ * True when ADL 1.4 down-conversion can use the OPT 1.4 on the CDR (up-converted
+ * binding, caller-supplied export metadata, or explicit commit `adl14` options).
+ */
+export function hasAdl14CdrExportContext(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): boolean {
+  if (binding.sourceFormat === "opt14-xml") return true;
+  if (
+    binding.opt14Export?.templateId &&
+    Object.keys(binding.opt14Export.componentCodeMaps ?? {}).length > 0
+  ) {
+    return true;
+  }
+  if (draft?.templateId && draft?.codeMap) return true;
+  return false;
+}
+
+/** Warnings when an ADL2-native binding commits with default ADL 1.4 mapping only. */
+export function adl14DownconversionCdrWarnings(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): string[] {
+  if (hasAdl14CdrExportContext(binding, draft)) return [];
+  return [
+    "ADL2-native template: ADL 1.4 down-conversion uses the default code shift only " +
+      "(id→at and value de-padding) and may not match the OPT 1.4 on the CDR. " +
+      "Pass bindTemplate({ opt14Export }) from exportAdl2TemplateToOpt14 on the OPT " +
+      "actually uploaded to the CDR, or set draft adl14.templateId and adl14.codeMap on commit.",
+  ];
+}
+
 /** Merge explicit commit options with metadata stored on the template binding. */
 export function resolveAdl14DownconversionOptions(
   binding: TemplateBinding,
@@ -85,24 +118,9 @@ export function downConvertToAdl14(
   binding: TemplateBinding,
   options: Adl14DownconversionOptions = {},
 ): Adl14DownconversionResult {
-  const warnings: string[] = [];
+  const warnings = adl14DownconversionCdrWarnings(binding, options);
   const resolved = resolveAdl14DownconversionOptions(binding, options);
   const templateId = resolved.templateId ?? binding.templateId;
-  if (binding.sourceFormat !== "opt14-xml") {
-    const hasCodeMap = !!options.codeMap || !!binding.opt14Export?.componentCodeMaps;
-    if (!hasCodeMap) {
-      warnings.push(
-        "ADL2-native template: ADL 1.4 codes use the plain shift; pass the OPT 1.4 exporter's code map if it renumbered node ids",
-      );
-    }
-    const hasOptTemplateId = !!options.templateId ||
-      !!binding.opt14Export?.templateId;
-    if (!hasOptTemplateId) {
-      warnings.push(
-        `ADL2-native template: archetype_details.template_id set to ${templateId}; pass the OPT 1.4 template id if it differs`,
-      );
-    }
-  }
   const map = (archetypeId: string, code: string): string => {
     if (!ADL2_CODE_RE.test(code)) return code;
     return resolved.codeMap?.(archetypeId, code) ?? idToAtCode(code);

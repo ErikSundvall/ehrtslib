@@ -198,8 +198,11 @@ Summary of [ADR 0007](../adr/0007-cb-template-binding.md):
 - Changing template is an explicit `migrate-template` operation, never a
   silent rebind.
 - For CDRs that need ADL 1.4 at-codes, the commit is down-converted with
-  ehrtslib's existing ADL2 → 1.4 code mapping (`generation/id_to_at_code.ts`)
-  and OPT 1.4 exporter (`exportAdl2TemplateToOpt14`).
+  ehrtslib's ADL2 → 1.4 mapping (`generation/id_to_at_code.ts`). For
+  ADL2-native templates, callers pass `opt14Export` from
+  `exportAdl2TemplateToOpt14` on the OPT uploaded to the CDR (bind does not
+  run export); commit warns when that metadata and explicit `adl14` options are
+  both absent (ADR 0007, 0010).
 - ADL 1.4 sources: ehrtslib converts ADL 1.4 **archetype** text to ADL2
   (`parser/adl14_to_adl2_converter.ts`), and a legacy OPT 1.4 XML to an ADL2
   operational template with id-codes (`parser.upconvertOpt14ToAdl2`, #163).

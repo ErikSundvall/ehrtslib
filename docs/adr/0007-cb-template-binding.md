@@ -50,8 +50,16 @@ data.
   reports it. Moving to another template is an explicit `migrate-template`
   operation in the log, never a silent rebind.
 - At commit, for CDRs that need ADL 1.4 codes, the CB down-converts with
-  ehrtslib's existing converter (`generation/id_to_at_code.ts`, and
-  `exportAdl2TemplateToOpt14` for the matching OPT 1.4).
+  ehrtslib's existing converter (`generation/id_to_at_code.ts`). For
+  ADL2-native templates, the OPT 1.4 exporter may renumber colliding node ids;
+  the caller supplies that map (decided by Erik, 2026-10-27): optional
+  `opt14Export` on the binding (`templateId` + `componentCodeMaps` from
+  `exportAdl2TemplateToOpt14` on the OPT actually uploaded to the CDR), set
+  only via `bindTemplate({ opt14Export })`. `bindTemplate` never runs export
+  automatically for ADL2-native templates. `opt14Export` is not part of the
+  template content hash. If an ADL2-native binding has no `opt14Export` and
+  commit does not pass `adl14.templateId` and `adl14.codeMap`, commit adds a
+  warning (not an error) that default mapping may not match the CDR OPT.
 - Third-party templates that exist only as ADL 1.4 need up-conversion.
   ehrtslib converts ADL 1.4 archetype text to ADL2
   (`parser/adl14_to_adl2_converter.ts`, applied automatically by the
@@ -110,6 +118,11 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
 - **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
   `template_id` and `sem_ver` from `description/other_details` (null when
   absent).
+- **`opt14Export` (ADL2-native, #178)**: caller-only metadata on
+  `TemplateBinding`; omitted from `templateCanonicalForm` / hash. Helpers:
+  `adl14DownconversionFromOpt14Export`, `resolveAdl14DownconversionOptions`,
+  `hasAdl14CdrExportContext`, `adl14DownconversionCdrWarnings` in
+  `contribution_builder/adl14_downconvert.ts`.
 - **Rebind**: a changed hash (`hash-changed`) or serialisation version is an
   error-level issue (`migrationRequired`, `TemplateBindingMismatchError`).
   Since the hash covers id, version and content, the comparison also says
