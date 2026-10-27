@@ -28,7 +28,10 @@ import {
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import type { TermBag } from "../am/util/ontology_merge.ts";
 import { filterOperationalTemplateLanguages } from "./opt2_trim.ts";
-import { adl14AtToId } from "../parser/adl14_to_adl2_converter.ts";
+import {
+  opt14NodeIdToAdl2,
+  opt14TerminologyKeyToAdl2,
+} from "../parser/legacy/opt14_code_mapping.ts";
 
 /** Options for {@link OPT2Serializer.serializeOperationalTemplate}. */
 export interface Opt2SerializeOptions {
@@ -176,7 +179,7 @@ export class OPT2Serializer extends ADL2Serializer {
   /** ADL 1.4 node ids are 0-based at-codes; ADL2 id-codes are 1-based. */
   protected override formatNodeId(nodeId?: string): string {
     if (!nodeId) return "";
-    return adl14AtToId(nodeId);
+    return opt14NodeIdToAdl2(nodeId);
   }
 
   protected override decorateObjectLine(
@@ -237,9 +240,15 @@ function remapTermBag(
 ): TermBag {
   const out: TermBag = {};
   for (const [code, entry] of Object.entries(bag)) {
-    const idCode = adl14AtToId(code);
+    const mapped = opt14TerminologyKeyToAdl2(code, nodeIds, valueCodes);
+    const idCode = opt14NodeIdToAdl2(code);
     const converts = idCode !== code && nodeIds.has(code);
-    if (converts && !valueCodes.has(code)) {
+    if (mapped !== code) {
+      out[mapped] = { ...entry };
+      if (converts && valueCodes.has(code) && mapped !== idCode && !out[idCode]) {
+        out[idCode] = { ...entry };
+      }
+    } else if (converts && !valueCodes.has(code)) {
       out[idCode] = { ...entry };
     } else if (converts) {
       out[code] = { ...entry };

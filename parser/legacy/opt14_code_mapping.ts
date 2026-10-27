@@ -110,3 +110,45 @@ export class Opt14CodeMinter {
     return `ac${this.acCounter}`;
   }
 }
+
+/**
+ * Collect ADL 1.4 node ids and value at-codes from a `definition` / `rules`
+ * body so terminology keys can be remapped like {@link opt14TerminologyKeyToAdl2}.
+ */
+export function collectAdl14NodeAndValueCodes(
+  definitionOrRules: string,
+): { nodeIds: Set<string>; valueCodes: Set<string> } {
+  const nodeIds = new Set<string>();
+  const allAt = new Set<string>();
+  for (const m of definitionOrRules.matchAll(
+    /\b[A-Z][A-Z0-9_]*\[(at\d+(?:\.\d+)*)\]/gi,
+  )) {
+    nodeIds.add(m[1]);
+  }
+  for (const m of definitionOrRules.matchAll(/\[(at\d+(?:\.\d+)*)\]/gi)) {
+    allAt.add(m[1]);
+  }
+  const valueCodes = new Set<string>();
+  for (const code of allAt) {
+    if (!nodeIds.has(code)) valueCodes.add(code);
+  }
+  return { nodeIds, valueCodes };
+}
+
+/**
+ * Remap a terminology table key from ADL 1.4 to ADL2 (same rule as OPT2
+ * {@link generation/opt2_serializer.ts} term bags and OPT 1.4 up-conversion).
+ */
+export function opt14TerminologyKeyToAdl2(
+  code: string,
+  nodeIds: Set<string>,
+  valueCodes: Set<string>,
+): string {
+  if (/^ac\d+(?:\.\d+)*$/i.test(code)) {
+    return opt14ValueSetCodeToAdl2(code);
+  }
+  if (!isAdl14AtCode(code)) return code;
+  if (valueCodes.has(code)) return opt14ValueCodeToAdl2(code);
+  if (nodeIds.has(code)) return opt14NodeIdToAdl2(code);
+  return opt14NodeIdToAdl2(code);
+}

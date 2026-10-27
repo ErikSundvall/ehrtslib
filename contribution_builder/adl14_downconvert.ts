@@ -24,6 +24,12 @@ import {
 import type { RmJson } from "./operation_log.ts";
 import type { TemplateBinding } from "./template_binding.ts";
 
+/** OPT 1.4 export metadata stored on a template binding (#178). */
+export interface Opt14ExportBindingMetadata {
+  templateId: string;
+  componentCodeMaps: Record<string, Record<string, string>>;
+}
+
 export interface Adl14DownconversionOptions {
   /** OPT 1.4 template id to write in `archetype_details.template_id`. */
   templateId?: string;
@@ -47,29 +53,77 @@ const isObj = (v: unknown): v is Obj =>
 const ARCHETYPE_ID_RE = /^[A-Za-z][\w-]*-[A-Za-z]+-[A-Za-z_]+\.[\w-]+\.v\d/;
 const ADL2_CODE_RE = /^(id|at)\d+(\.\d+)*$/;
 
+/** Build down-conversion options from an {@link exportAdl2TemplateToOpt14} result. */
+export function adl14DownconversionFromOpt14Export(
+  result: Opt14ExportBindingMetadata,
+): Adl14DownconversionOptions {
+  return {
+    templateId: result.templateId,
+    codeMap: (archetypeId, code) => result.componentCodeMaps[archetypeId]?.[code],
+  };
+}
+
+/**
+ * True when ADL 1.4 down-conversion can use the OPT 1.4 on the CDR (up-converted
+ * binding, caller-supplied export metadata, or explicit commit `adl14` options).
+ */
+export function hasAdl14CdrExportContext(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): boolean {
+  if (binding.sourceFormat === "opt14-xml") return true;
+  if (
+    binding.opt14Export?.templateId &&
+    Object.keys(binding.opt14Export.componentCodeMaps ?? {}).length > 0
+  ) {
+    return true;
+  }
+  if (draft?.templateId && draft?.codeMap) return true;
+  return false;
+}
+
+/** Warnings when an ADL2-native binding commits with default ADL 1.4 mapping only. */
+export function adl14DownconversionCdrWarnings(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): string[] {
+  if (hasAdl14CdrExportContext(binding, draft)) return [];
+  return [
+    "ADL2-native template: ADL 1.4 down-conversion uses the default code shift only " +
+      "(id→at and value de-padding) and may not match the OPT 1.4 on the CDR. " +
+      "Pass bindTemplate({ opt14Export }) from exportAdl2TemplateToOpt14 on the OPT " +
+      "actually uploaded to the CDR, or set draft adl14.templateId and adl14.codeMap on commit.",
+  ];
+}
+
+/** Merge explicit commit options with metadata stored on the template binding. */
+export function resolveAdl14DownconversionOptions(
+  binding: TemplateBinding,
+  draft?: Adl14DownconversionOptions,
+): Adl14DownconversionOptions {
+  const fromBinding = binding.opt14Export
+    ? adl14DownconversionFromOpt14Export(binding.opt14Export)
+    : {};
+  return {
+    templateId: draft?.templateId ?? fromBinding.templateId,
+    codeMap: (archetypeId, code) =>
+      draft?.codeMap?.(archetypeId, code) ??
+      fromBinding.codeMap?.(archetypeId, code),
+  };
+}
+
 /** Down-convert (returns a copy; the input is not changed). */
 export function downConvertToAdl14(
   data: RmJson,
   binding: TemplateBinding,
   options: Adl14DownconversionOptions = {},
 ): Adl14DownconversionResult {
-  const warnings: string[] = [];
-  const templateId = options.templateId ?? binding.templateId;
-  if (binding.sourceFormat !== "opt14-xml") {
-    if (!options.codeMap) {
-      warnings.push(
-        "ADL2-native template: ADL 1.4 codes use the plain shift; pass the OPT 1.4 exporter's code map if it renumbered node ids",
-      );
-    }
-    if (!options.templateId) {
-      warnings.push(
-        `ADL2-native template: archetype_details.template_id set to ${templateId}; pass the OPT 1.4 template id if it differs`,
-      );
-    }
-  }
+  const warnings = adl14DownconversionCdrWarnings(binding, options);
+  const resolved = resolveAdl14DownconversionOptions(binding, options);
+  const templateId = resolved.templateId ?? binding.templateId;
   const map = (archetypeId: string, code: string): string => {
     if (!ADL2_CODE_RE.test(code)) return code;
-    return options.codeMap?.(archetypeId, code) ?? idToAtCode(code);
+    return resolved.codeMap?.(archetypeId, code) ?? idToAtCode(code);
   };
   const copy = JSON.parse(JSON.stringify(data)) as RmJson;
   const walk = (v: RmJson, archetypeId: string, isRoot: boolean) => {

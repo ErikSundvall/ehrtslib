@@ -46,11 +46,13 @@ export {
   upconvertOpt14ToAdl2,
 } from "./legacy/opt14_upconvert.ts";
 export {
+  collectAdl14NodeAndValueCodes,
   isAdl14AtCode,
   Opt14CodeMinter,
   OPT14_CODE_MAPPING_VERSION,
   opt14NodeIdToAdl2,
   opt14PathToAdl2,
+  opt14TerminologyKeyToAdl2,
   opt14ValueCodeToAdl2,
   opt14ValueSetCodeToAdl2,
 } from "./legacy/opt14_code_mapping.ts";

@@ -19,6 +19,10 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+`Opt14ExportResult` includes `componentCodeMaps` (ADL2 → ADL 1.4 per component archetype id). `TemplateBinding` may carry optional `opt14Export` (`templateId` + `componentCodeMaps`) for commit down-conversion; set it only via `bindTemplate({ opt14Export })` (caller-supplied from the CDR OPT export; not part of the binding hash; bind does not run `exportAdl2TemplateToOpt14`). Alternatively pass maps through per-draft `adl14` on commit or `Adl14DownconversionOptions` / `resolveAdl14DownconversionOptions`. `hasAdl14CdrExportContext` and `adl14DownconversionCdrWarnings` support the commit warning when ADL2-native bindings commit with default mapping only ([#178](https://github.com/ErikSundvall/ehrtslib/issues/178)).
+
+`parser/mod.ts` exports `collectAdl14NodeAndValueCodes` and `opt14TerminologyKeyToAdl2` from `opt14_code_mapping.ts` ([#168](https://github.com/ErikSundvall/ehrtslib/issues/168)).
+
 `buildWebTemplate` options are `languages` (primary language first) and `idLanguage` (`"primary"` or `"original"`, default `"primary"`) (issue #159). The input options `defaultLanguage` and `language` are removed. Omitting `languages` uses the template's `original_language` only. Output `defaultLanguage` is the primary language (the Web Template field). Output `languages` is the selected list, not every language on the OPT; `availableTemplateLanguages` still lists all of them. `original_language` on the operational template is unchanged. The demo passes `languages: [templateLanguage]` when a language is selected. `applyOperationalTemplateTermScopes(opt, language)` files inline OPT terms under the template's original language when that is known; `language` is only the inline-term language when the template has none.
 
 `OPT2Serializer`, `filterOperationalTemplateLanguages`, and `opt2SizeMetrics` in `generation/mod.ts` export in-memory `OPERATIONAL_TEMPLATE` to ADL2 `operational_template` text (OPT2), with optional language filtering and separate `inlineTermLabels` enrichment (issue #130).
