@@ -1,4 +1,4 @@
-# ehrtslib (Electronic Health Record TypeScript Library)
+# Ehrtslib (Electronic Health Record TypeScript Library)
 
 [Experimental website](https://eriksundvall.github.io/ehrtslib) · [Live demo](https://eriksundvall.github.io/ehrtslib/demo) · [TAAAT](https://eriksundvall.github.io/ehrtslib/taaat)
 
