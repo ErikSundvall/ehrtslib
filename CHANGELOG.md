@@ -8,7 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
-- cADL: parse and round-trip `C_DV_QUANTITY` tuple constraints (`[units, magnitude, precision] matches { … }`), including exact scalar cells (`{1}`) and exclusive interval bounds (`0..<100`). OPT2 output keeps per-unit magnitude/precision ranges; `TemplateValidator` checks precision per list entry ([#183](https://github.com/ErikSundvall/ehrtslib/issues/183)).
+- cADL: full ADL2 attribute tuple support (`C_ATTRIBUTE_TUPLE` / `C_PRIMITIVE_TUPLE`) for co-varying constraints (`[value, symbol]`, `[units, magnitude, precision]`, and custom column sets). Parser, ADL2/OPT2 serializers, and `TemplateValidator` (instance must match at least one tuple row) stay aligned with legacy `C_QUANTITY.list` / `C_ORDINAL.list` and OPT 1.4 import ([#183](https://github.com/ErikSundvall/ehrtslib/issues/183)).
 - GitHub Actions CI runs `deno task check` and `deno task test` on pushes and pull requests ([#189](https://github.com/ErikSundvall/ehrtslib/issues/189)).
 - `RMInstanceGenerator` fills `ACTION.ism_transition` when optional in the template; template instance coverage no longer requires `archetype_node_id` on non-LOCATABLE slots such as `ISM_TRANSITION` ([#188](https://github.com/ErikSundvall/ehrtslib/issues/188)).
 - OPT 1.4 XML: drop non-schema `match_negated`, emit `language` (with `terminology_id`) before `template_id` in `OptXmlSerializer`, and keep OET occurrence rules from widening intervals when only `min` or `max` is set ([#190](https://github.com/ErikSundvall/ehrtslib/issues/190)).

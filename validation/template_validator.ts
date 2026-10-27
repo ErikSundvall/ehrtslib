@@ -18,6 +18,11 @@ import { IntervalValidator } from "./interval_validator.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
 import { InvariantEvaluator } from "./invariant_evaluator.ts";
 import {
+  isQuantityTupleColumns,
+  tupleColumnNames,
+  validateAttributeTuples,
+} from "../parser/attribute_tuple_support.ts";
+import {
   inOrderedRange,
   matchesAdlTemporalPattern,
 } from "./temporal_pattern.ts";
@@ -320,6 +325,36 @@ export class TemplateValidator {
       const msgs = validateOrdinalConstraint(rmNode, cObject, path);
       errors.push(...msgs.filter((m) => m.severity === "error"));
       warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    const attributeTuples = (cObject as {
+      attribute_tuples?: openehr_am.C_ATTRIBUTE_TUPLE[];
+    }).attribute_tuples;
+    if (attributeTuples?.length && rmNode) {
+      const general = attributeTuples.filter((tuple) => {
+        const cols = tupleColumnNames(tuple);
+        if (cObject instanceof openehr_am.C_QUANTITY && isQuantityTupleColumns(cols)) {
+          return false;
+        }
+        if (
+          cObject instanceof openehr_am.C_ORDINAL &&
+          cols.includes("value") &&
+          cols.includes("symbol")
+        ) {
+          return false;
+        }
+        return true;
+      });
+      if (general.length) {
+        const tupleMsgs = validateAttributeTuples(
+          rmNode as Record<string, unknown>,
+          general,
+          path,
+        );
+        for (const m of tupleMsgs) {
+          errors.push({ ...m, severity: "error" });
+        }
+      }
     }
 
     // Validate UCUM units once per DV_QUANTITY at this template node (no subtree walk).

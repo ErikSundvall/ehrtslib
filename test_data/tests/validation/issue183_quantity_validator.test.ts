@@ -4,6 +4,7 @@
 
 import { assert, assertEquals } from "@std/assert";
 import * as openehr_am from "../../../am/openehr_am.ts";
+import * as openehr_base from "../../../base/openehr_base.ts";
 import { TemplateValidator } from "../../../validation/template_validator.ts";
 
 function archetypeWithDefinition(
@@ -87,6 +88,58 @@ Deno.test("#183: TemplateValidator checks magnitude per unit in C_DV_QUANTITY.li
     result.errors.some((m) => m.constraintType === "quantity_magnitude"),
     "expected quantity_magnitude error",
   );
+});
+
+Deno.test("#183: TemplateValidator rejects DV_ORDINAL outside tuple rows", async () => {
+  const tuple = new openehr_am.C_ATTRIBUTE_TUPLE();
+  tuple.members = ["value", "symbol"].map((name) => {
+    const a = new openehr_am.C_SINGLE_ATTRIBUTE();
+    a.rm_attribute_name = name;
+    return a;
+  });
+  const row = new openehr_am.C_PRIMITIVE_TUPLE();
+  const valueCell = new openehr_am.C_PRIMITIVE_OBJECT();
+  valueCell.rm_type_name = "Integer";
+  const int = new openehr_am.C_INTEGER();
+  (int as { list?: number[] }).list = [0];
+  valueCell.item = int;
+  const sym = new openehr_am.C_TERMINOLOGY_CODE();
+  sym.constraint = "at1";
+  row.members = [valueCell, sym];
+  tuple.tuples = [row];
+
+  const template = archetypeWithDefinition("ELEMENT", "id1", (def) => {
+    const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
+    attr.rm_attribute_name = "value";
+    const ord = new openehr_am.C_ORDINAL();
+    ord.rm_type_name = "DV_ORDINAL";
+    (ord as { attribute_tuples?: openehr_am.C_ATTRIBUTE_TUPLE[] }).attribute_tuples =
+      [tuple];
+    (ord as { list?: openehr_am.ORDINAL[] }).list = [{
+      value: 0,
+      symbol: openehr_base.CODE_PHRASE.from("local", "at1"),
+    } as openehr_am.ORDINAL];
+    attr.children = [ord];
+    def.attributes = [attr];
+  });
+
+  const validator = new TemplateValidator({
+    validateUnits: false,
+    validateTerminology: false,
+    validateIntervals: false,
+    validateRMSpecification: false,
+  });
+  await validator.initialize();
+
+  const bad = {
+    value: {
+      value: 2,
+      symbol: { defining_code: { terminology_id: { value: "local" }, code_string: "at9" } },
+    },
+  };
+  const result = validator.validate(bad, template);
+  assertEquals(result.valid, false);
+  assert(result.errors.some((m) => m.constraintType === "ordinal_list"));
 });
 
 Deno.test("#183: TemplateValidator checks precision per unit", async () => {

@@ -435,7 +435,7 @@ export abstract class C_SECOND_ORDER {
   /**
    * Members of this second order constrainer. Normally redefined in descendants.
    */
-  members?: undefined;
+  members: C_ATTRIBUTE[] | C_OBJECT[] = [];
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
    * @param other - Parameter
@@ -462,11 +462,11 @@ export class C_ATTRIBUTE_TUPLE extends C_SECOND_ORDER {
   /**
    * Tuple definitions.
    */
-  tuples?: undefined;
+  tuples?: C_PRIMITIVE_TUPLE[];
   /**
    * List of \`C_ATTRIBUTEs\` forming the definition of the tuple.
    */
-  declare members?: undefined;
+  override members: C_ATTRIBUTE[] = [];
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
    * @param other - Parameter
@@ -501,7 +501,7 @@ export class C_PRIMITIVE_TUPLE extends C_SECOND_ORDER {
   /**
    * Object constraint members of this tuple group.
    */
-  declare members?: undefined;
+  override members: C_OBJECT[] = [];
   /**
    * True if constraints represented by this node, ignoring any sub-parts, are narrower or the same as other. Typically used during validation of specialised archetype nodes.
    * @param other - Parameter
@@ -537,6 +537,10 @@ export class C_COMPLEX_OBJECT extends C_DEFINED_OBJECT {
    * List of constraints on attributes of the reference model type represented by this object.
    */
   attributes?: C_ATTRIBUTE[];
+  /**
+   * Co-varying attribute constraints (ADL2 tuple syntax).
+   */
+  attribute_tuples?: C_ATTRIBUTE_TUPLE[];
   /**
    * True if any value of the reference model type being constrained is allowed.
    * @returns Result value
