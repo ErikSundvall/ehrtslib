@@ -21,6 +21,7 @@ export const LIBRARY_ENTRY_FILES = [
   "openehr_lang.ts",
   "openehr_rm.ts",
   "openehr_term.ts",
+  "version.ts",
 ] as const;
 
 /** Directories the library loads. `generated/` is not part of this closure. */

@@ -117,3 +117,58 @@ The RM (Common, archetyped package) offers:
   sufficient.
 - **A new attribute or extension.** Rejected for now: needs a spec change,
   which waits until the builder has been implemented and tested.
+
+## Implementation (phase 1, #166)
+
+Code: `contribution_builder/commit.ts` (`prepareContribution`,
+`feederAuditFor`, `builderProvenance`), `contribution_builder/adl14_downconvert.ts`
+(`downConvertToAdl14`) and `contribution_builder/rest_adapter.ts`
+(`ItsRestContributionAdapter`).
+
+- **Checks before any request.** A missing committer or composer is a
+  `CommitError` (`missing-committer`, `missing-composer`). Each draft is
+  validated in the requested mode (ADR 0008) and an invalid one is
+  `invalid-draft`. The adapter runs all of these before it sends anything.
+- **Envelope.** `{ versions, audit }`. Each version has `lifecycle_state`
+  (532 or 553 from the mode), its own `commit_audit` with `change_type`
+  (`creation` for a new COMPOSITION) and `data`. The contribution audit's
+  `change_type` is the versions' common change type (`modification` when
+  they differ). `UPDATE_VERSION` and `UPDATE_AUDIT` are sent without
+  `_type`, which the REST ITS says servers should accept; at least one
+  server rejects these names as unknown RM types. `UPDATE_AUDIT.system_id`
+  is set only when `CommitConfig.auditSystemId` is configured (some servers
+  require it, contrary to the REST ITS).
+- **Log link.** `audit.description` is a `DV_TEXT` `oplog sha256:<hex>`
+  (sha256 of the RFC 8785 log bytes), with `hyperlink` when `logUri` is
+  given.
+- **FEEDER_AUDIT** on each COMPOSITION:
+  `originating_system_audit` from the caller, or the placeholder
+  `{ system_id: config.systemId }` and a warning
+  (`silenceMissingOriginatingAudit` turns it off);
+  `feeder_system_audit.system_id = config.systemId`; `other_details` is an
+  `ITEM_TREE` (`archetype_node_id` `at0000`/`id1`, name
+  "contribution builder") with `ELEMENT`s *builder name*, *builder version*
+  (`EHRTSLIB_VERSION`, kept equal to `deno.json` by the release script),
+  *log format*, *log format version* and *CRDT library* (`none` for the
+  single-app adapter). No `original_content`.
+- **Version uid.** The root gets
+  `<provisional object uuid>::<creating system id>::1`; the adapter reads the
+  creating system id from `EHR.system_id`. The provisional uuid is the one
+  inner node uids already use, so no uid rewrite is needed when the server
+  keeps the sent uid. A server that assigns its own uuid is detected
+  (`serverAssignedUids`, with a warning): inner uids then keep the
+  provisional prefix.
+- **ADL 1.4 down-conversion** (default `codes: "adl14"`): node ids
+  (`id5` → `at0004`), `local` value codes (`at10` → `at0009`) and
+  `archetype_details.template_id`. For a binding from an OPT 1.4 XML this
+  is the exact inverse of the up-conversion. For ADL2-native templates,
+  pass the OPT 1.4 exporter's code map and template id; otherwise the plain
+  shift is used and a warning is returned.
+- **Commit-time fixes to the data.** `archetype_details` is added to inner
+  archetype roots that lack it (RM `Is_archetype_root`), and `EVENT.offset`
+  (an RM function, not stored) is removed.
+- **Adapter.** `POST {base}/ehr/{ehr_id}/contribution` with
+  `Prefer: return=representation`; `fetch` and extra headers are
+  injectable. `getComposition` and `getContribution` read back.
+- Integration tests (`commit_cdr.integration.test.ts`) run only when
+  `EHRTSLIB_CDR_TARGETS` lists target servers.

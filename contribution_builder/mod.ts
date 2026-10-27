@@ -77,3 +77,29 @@ export {
   problemsForNode,
   validateDraft,
 } from "./draft_validation.ts";
+export {
+  type Adl14DownconversionOptions,
+  type Adl14DownconversionResult,
+  downConvertToAdl14,
+} from "./adl14_downconvert.ts";
+export {
+  BUILDER_NAME,
+  builderProvenance,
+  CHANGE_TYPE,
+  type ChangeType,
+  type CommitConfig,
+  type CommitDraftOptions,
+  CommitError,
+  type CommitErrorCode,
+  feederAuditFor,
+  prepareContribution,
+  type PrepareContributionOptions,
+  type PreparedContribution,
+  type PreparedVersion,
+} from "./commit.ts";
+export {
+  type CommitResult,
+  type ItsRestAdapterOptions,
+  ItsRestContributionAdapter,
+  ItsRestError,
+} from "./rest_adapter.ts";

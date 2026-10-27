@@ -109,10 +109,12 @@ Deno.test("fresh draft from a template skeleton is valid in both modes", async (
 Deno.test("unfinished draft passes incomplete validation and lists the missing nodes", async () => {
   const { t, build, draft, key } = await bpDraft();
   const protocol = key("id12");
-  const context = key("id1035");
   const obs = key("openEHR-EHR-OBSERVATION.sample_blood_pressure.v1");
   build.removeInstance(draft, protocol);
-  build.removeInstance(draft, context);
+  // EVENT_CONTEXT is not LOCATABLE, so a problem under it belongs to the root.
+  const otherContext = (build.toCanonicalJson(draft) as any).context
+    .other_context.uid.value.split("::")[1];
+  build.removeInstance(draft, otherContext);
   const v = await validator();
 
   const inc = v.validate(build, draft, t, { mode: "incomplete" });
@@ -122,7 +124,7 @@ Deno.test("unfinished draft passes incomplete validation and lists the missing n
     Boolean,
   );
   assert(missingIds.includes("id12"), JSON.stringify(inc.missing));
-  assert(missingIds.includes("id1035"));
+  assert(missingIds.includes("id2"));
   const prot = inc.missing.find((m) => m.constraintNodeId === "id12")!;
   assertEquals(prot.node, obs);
   assertEquals(prot.path, "/content[0]/protocol");
@@ -132,8 +134,11 @@ Deno.test("unfinished draft passes incomplete validation and lists the missing n
   );
   assertEquals(prot.relativePath, "protocol");
   assertEquals(prot.kind, "missing");
-  const ctxMissing = inc.missing.find((m) => m.constraintNodeId === "id1035")!;
+  const ctxMissing = inc.missing.find((m) =>
+    m.path === "/context/other_context"
+  )!;
   assertEquals(ctxMissing.node, ROOT_TARGET);
+  assertEquals(ctxMissing.archetypePath, "/context/other_context");
   for (const p of inc.missing) assertCarriesNode(p, build, draft);
 
   const comp = v.validate(build, draft, t, { mode: "complete" });

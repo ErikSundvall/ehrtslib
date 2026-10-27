@@ -14,6 +14,7 @@ import { JsonCanonicalSerializer } from "../serialization/json/json_canonical_se
 import { JsonConfigurableDeserializer } from "../serialization/json/json_configurable_deserializer.ts";
 import { RMInstanceGenerator } from "../generation/rm_instance_generator.ts";
 import type * as openehr_rm from "../openehr_rm.ts";
+import { isSubtypeOf } from "../meta/mod.ts";
 import type { BoundTemplate, TemplateBinding } from "./template_binding.ts";
 import {
   type AddInstanceOperation,
@@ -122,8 +123,14 @@ function isObject(v: unknown): v is JsonObject {
 }
 
 /** LOCATABLE in canonical JSON: has `archetype_node_id`. */
+/**
+ * A LOCATABLE node. `archetype_node_id` alone is not enough: generators and
+ * other tools sometimes put one on PATHABLE-only types such as EVENT_CONTEXT.
+ */
 function isLocatable(v: unknown): v is JsonObject {
-  return isObject(v) && typeof v.archetype_node_id === "string";
+  if (!isObject(v) || typeof v.archetype_node_id !== "string") return false;
+  return typeof v._type !== "string" || v._type === "LOCATABLE" ||
+    isSubtypeOf(v._type, "LOCATABLE");
 }
 
 function clone<T extends RmJson>(v: T): T {
