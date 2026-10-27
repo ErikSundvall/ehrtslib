@@ -1,37 +1,28 @@
-# openEHR ITS XML schemas (test fixtures)
+# openEHR ITS XML schemas (test fixtures, not in Git)
 
-Vendored **unmodified** XSD files from the [openEHR specifications-ITS-XML](https://github.com/openEHR/specifications-ITS-XML) repository. Used only at **build/test time** (OPT 1.4 `Template.xsd` validation in `test_data/tests/parser/`). They are **not** part of the published library, runtime bundles, or jsDelivr entry points (`test_data/` is excluded from `deno task pack:library`).
+Unmodified XSD files from [openEHR/specifications-ITS-XML](https://github.com/openEHR/specifications-ITS-XML) for OPT 1.4 `Template.xsd` validation in tests. **Not** shipped in library bundles, `deno publish`, or jsDelivr (`test_data/` is excluded from `pack:library`).
 
-| Path | Upstream source |
-|------|-----------------|
+| Fetched path | Upstream source |
+|--------------|-----------------|
 | `components/AM/Release-1.4/` | `components/AM/Release-1.4/` |
 | `components/RM/Release-1.1.0/` | `components/RM/Release-1.1.0/` (included by AM `Resource.xsd`) |
 | `components/BASE/latest/` | `components/BASE/latest/` (included by RM `DataTypes.xsd`) |
 
-- **Pinned commit:** `265752ffb01db88a8ced56b7b371ba0ed9aa531c` ( `master` at time of import )
-- **License:** see [`UPSTREAM-LICENSE`](UPSTREAM-LICENSE) (Apache 2.0)
+- **Pinned commit:** `265752ffb01db88a8ced56b7b371ba0ed9aa531c` (see [`PIN`](PIN))
+- **License:** Apache 2.0 — `UPSTREAM-LICENSE` is written by the refresh task from upstream `LICENSE`
 
-## Refresh from upstream
+## Fetch (required for XSD tests)
+
+`deno task test` runs this automatically. You can also run:
 
 ```bash
 deno task refresh:openehr-its-xml
 ```
 
-Or manually:
+The task is idempotent: if `.stamp` matches `PIN` and `components/AM/Release-1.4/Template.xsd` exists, it does nothing. Template.xsd tests **fail** (they do not skip) if fixtures or `xmllint` are missing.
 
-```bash
-git clone --depth 1 https://github.com/openEHR/specifications-ITS-XML.git /tmp/openehr-its-xml
-COMMIT=$(git -C /tmp/openehr-its-xml rev-parse HEAD)
-DEST=test_data/xsd/openehr-its-xml
-rm -rf "$DEST/components"
-mkdir -p "$DEST/components/AM" "$DEST/components/RM" "$DEST/components/BASE"
-cp -r /tmp/openehr-its-xml/components/AM/Release-1.4 "$DEST/components/AM/"
-cp -r /tmp/openehr-its-xml/components/RM/Release-1.1.0 "$DEST/components/RM/"
-cp -r /tmp/openehr-its-xml/components/BASE/latest "$DEST/components/BASE/"
-cp /tmp/openehr-its-xml/LICENSE "$DEST/UPSTREAM-LICENSE"
-echo "Update README pinned commit to $COMMIT"
-```
+Downloaded paths are listed in [`.gitignore`](../../../.gitignore) (`components/`, `UPSTREAM-LICENSE`, `.stamp`).
 
-After refresh, update the pinned commit line in this README and run the OPT XSD tests.
+CI caches the fetched tree keyed on `PIN` + `scripts/refresh_openehr_its_xml.ts`, then runs the same task before `deno task test`.
 
-**Note:** `docs/vendor/v1-xsd/` may still hold documentation mirrors; tests use **this** tree only.
+**Note:** `docs/vendor/v1-xsd/` may hold documentation mirrors only; tests use the fetched tree here.

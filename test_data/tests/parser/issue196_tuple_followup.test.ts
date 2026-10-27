@@ -20,7 +20,7 @@ import { parseCObject } from "../../../parser/legacy/xml_aom_mapper.ts";
 import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
 import {
   assertOptValidatesAgainstTemplateXsd,
-  xmllintAvailable,
+  assertTemplateXsdTestPrerequisites,
 } from "./opt14_template_xsd.ts";
 
 const ARCHIE = new URL("../../archie-tests/", import.meta.url);
@@ -170,10 +170,7 @@ Deno.test({
   name: "#196 exported ADL2 template OPT validates against vendored Template.xsd",
   permissions: { read: true, write: true, run: true },
   async fn() {
-    if (!(await xmllintAvailable())) {
-      console.warn("xmllint not installed; skipping Template.xsd validation");
-      return;
-    }
+    await assertTemplateXsdTestPrerequisites();
     const lib = new Adl2TemplateLibrary();
     const dir = new URL("../../adl2/template_export_123/", import.meta.url);
     for (const f of Deno.readDirSync(dir)) {

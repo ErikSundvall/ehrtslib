@@ -25,3 +25,8 @@ tmp/
 
 # temp test files
 serialization/zipehr/examples/
+
+# openEHR ITS-XML XSDs for tests (fetch: deno task refresh:openehr-its-xml)
+test_data/xsd/openehr-its-xml/components/
+test_data/xsd/openehr-its-xml/UPSTREAM-LICENSE
+test_data/xsd/openehr-its-xml/.stamp

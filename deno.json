@@ -7,6 +7,12 @@
     "./contribution-builder": "./contribution_builder/mod.ts"
   },
   "nodeModulesDir": "auto",
+  "publish": {
+    "exclude": [
+      "test_data/",
+      "docs/vendor/"
+    ]
+  },
   "imports": {
     "@lezer/highlight": "npm:@lezer/highlight@^1.2.1",
     "@codemirror/commands": "npm:@codemirror/commands@^6.8.1",
@@ -27,7 +33,7 @@
     "@std/path": "jsr:@std/path@1"
   },
   "tasks": {
-    "test": "deno test test_data/tests/ --allow-read --allow-env --allow-net --allow-run --allow-write --no-check",
+    "test": "deno task refresh:openehr-its-xml && deno test test_data/tests/ --allow-read --allow-env --allow-net --allow-run --allow-write --no-check",
     "check": "deno check openehr_*.ts base/*.ts rm/*.ts am/mod.ts am/openehr_am.ts lang/*.ts term/*.ts meta/mod.ts serialization/terse_format.ts serialization/terse_strings.ts",
     "check:all": "deno check mod.ts base/*.ts rm/*.ts am/*.ts am/util/mod.ts lang/*.ts term/*.ts parser/mod.ts serialization/mod.ts validation/mod.ts generation/mod.ts meta/mod.ts spec/mod.ts contribution_builder/mod.ts",
     "generate:rm-meta": "deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts",
