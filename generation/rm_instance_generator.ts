@@ -183,6 +183,12 @@ export class RMInstanceGenerator {
         // DV_TEXT.value is mandatory; templates constrain only defining_code.
         instance.value = this.codedTextValue(instance.defining_code, ctx);
       }
+      if (rmType === "DV_TEXT" && instance.value === undefined) {
+        const nodeId = cObject.node_id;
+        instance.value = (nodeId
+          ? this.termText(nodeId, ctx.scope)
+          : undefined) ?? this.exampleText(pathHint);
+      }
     } else if (!isSlot) {
       return this.generateDataValueByType(rmType, pathHint);
     }
