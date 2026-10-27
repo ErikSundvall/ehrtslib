@@ -17,6 +17,9 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Install xmllint (OPT 1.4 Template.xsd tests)
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
       - name: Typecheck model modules
         run: deno task check
 

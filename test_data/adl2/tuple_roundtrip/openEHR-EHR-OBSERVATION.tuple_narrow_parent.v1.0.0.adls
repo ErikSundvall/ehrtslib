@@ -1,0 +1,56 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-OBSERVATION.tuple_narrow_parent.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Parent quantity tuple for specialise narrowing (#196).">
+		>
+	>
+
+definition
+	OBSERVATION[id1] matches {
+		data matches {
+			HISTORY[id2] matches {
+				events cardinality matches {1..*; unordered} matches {
+					EVENT[id3] occurrences matches {0..*} matches {
+						data matches {
+							ITEM_TREE[id4] matches {
+								items cardinality matches {0..*; unordered} matches {
+									ELEMENT[id10] occurrences matches {0..1} matches {
+										value matches {
+											DV_QUANTITY[id11] matches {
+												[units, magnitude, precision] matches {
+													[{"mg"}, {|0..10|}, {1}]
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Narrow parent">>
+			["id2"] = <text = <"History">>
+			["id3"] = <text = <"Event">>
+			["id4"] = <text = <"Tree">>
+			["id10"] = <text = <"Quantity">>
+			["id11"] = <text = <"Qty">>
+		>
+	>

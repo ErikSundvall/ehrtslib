@@ -18,20 +18,12 @@ import { CadlParser } from "../../../parser/cadl_parser.ts";
 import { ADL2Tokenizer } from "../../../parser/adl2_tokenizer.ts";
 import { parseCObject } from "../../../parser/legacy/xml_aom_mapper.ts";
 import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
+import {
+  assertOptValidatesAgainstTemplateXsd,
+  xmllintAvailable,
+} from "./opt14_template_xsd.ts";
 
 const ARCHIE = new URL("../../archie-tests/", import.meta.url);
-function templateXsdPath(): string {
-  const fromModule = new URL(
-    "../../../docs/vendor/v1-xsd/Template.xsd",
-    import.meta.url,
-  ).pathname;
-  if (fromModule.startsWith("/workspace/") || fromModule.includes("/docs/vendor/")) {
-    return fromModule.startsWith("/docs/")
-      ? `${Deno.cwd()}/docs/vendor/v1-xsd/Template.xsd`
-      : fromModule;
-  }
-  return `${Deno.cwd()}/docs/vendor/v1-xsd/Template.xsd`;
-}
 
 function parseComplex(cadl: string): openehr_am.C_COMPLEX_OBJECT {
   return new CadlParser(new ADL2Tokenizer(cadl).tokenize())
@@ -174,7 +166,14 @@ Deno.test("#196 ADL2 archetype quantity tuple -> OPT 1.4 -> re-import rows", asy
   }
 });
 
-Deno.test("#196 exported ADL2 template OPT validates against vendored Template.xsd", async () => {
+Deno.test({
+  name: "#196 exported ADL2 template OPT validates against vendored Template.xsd",
+  permissions: { read: true, write: true, run: true },
+  async fn() {
+    if (!(await xmllintAvailable())) {
+      console.warn("xmllint not installed; skipping Template.xsd validation");
+      return;
+    }
     const lib = new Adl2TemplateLibrary();
     const dir = new URL("../../adl2/template_export_123/", import.meta.url);
     for (const f of Deno.readDirSync(dir)) {
@@ -182,16 +181,9 @@ Deno.test("#196 exported ADL2 template OPT validates against vendored Template.x
       lib.addSource(Deno.readTextFileSync(new URL(f.name, dir)), f.name);
     }
     const tid = "openEHR-EHR-COMPOSITION.t_demo_report.v1.0.0";
-    const f = await Deno.makeTempFile({ suffix: ".opt" });
-    const xml = exportAdl2TemplateToOpt14(lib, tid).xml.replaceAll(
-      "http://schemas.openehr.org/v1",
-      "http://schemas.openehr.org/v2",
-    );
-    await Deno.writeTextFile(f, xml);
-    const out = await new Deno.Command("xmllint", {
-      args: ["--noout", "--schema", templateXsdPath(), f],
-    }).output();
-    assert(out.success, new TextDecoder().decode(out.stderr));
+    const xml = exportAdl2TemplateToOpt14(lib, tid).xml;
+    await assertOptValidatesAgainstTemplateXsd(xml);
+  },
 });
 
 function archetypeWithValue(

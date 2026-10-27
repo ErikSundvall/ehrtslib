@@ -119,8 +119,16 @@ The core and full barrels export `am`, `base`, `lang`, `term`, `generation`,
 `meta`, and `validation`. Only `mod_full.ts` / the full `.min.js` includes
 `contributionBuilder`; import `contribution_builder/mod.ts` (or
 `ehrtslib/contribution-builder` from `deno.json` exports) when you need the CB
-without the rest of the library. Those namespaces do not have their own
-`.min.js` files. `spec`
+without the rest of the library.
+
+At release **0.6.0**, `ehrtslib-*-core.min.js` is typically only a few percent
+smaller than the full `.min.js` because both include the parser, serialization,
+generation, validation stacks and the bundled `@lhncbc/ucum-lhc` tables (loaded
+when validators call `initialize()`). The contribution-builder subtree is what
+the core bundle omits. The standalone `*-contribution.min.js` is a separate entry
+that still embeds its own copy of shared dependencies.
+
+Those namespaces do not have their own `.min.js` files. `spec`
 (`classSpec`, `attributeSpec`) is omitted from `mod.ts` and from every minified
 file; import `spec/mod.ts` from the source package or from jsDelivr.
 `serialization/xml/mod.ts` and `serialization/typescript/mod.ts` are the same:

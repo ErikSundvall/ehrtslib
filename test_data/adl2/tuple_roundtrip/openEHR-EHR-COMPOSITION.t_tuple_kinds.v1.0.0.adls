@@ -1,0 +1,39 @@
+template (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-COMPOSITION.t_tuple_kinds.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Template for tuple OPT round-trip (#196).">
+		>
+	>
+
+definition
+	COMPOSITION[id1] matches {
+		context matches {
+			EVENT_CONTEXT[id2] matches {
+				start_time matches {DV_DATE_TIME[id3]}
+			}
+		}
+		content matches {
+			use_archetype OBSERVATION[id4.1, openEHR-EHR-OBSERVATION.tuple_kinds.v1] occurrences matches {1}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Tuple kinds template">>
+			["id2"] = <text = <"Context">>
+			["id3"] = <text = <"Start">>
+			["id4"] = <text = <"Observation">>
+		>
+	>

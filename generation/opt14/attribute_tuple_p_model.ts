@@ -216,6 +216,19 @@ export interface PQuantityListRow {
   precisionExpr?: string;
 }
 
+/** OPT 1.4 list XML only represents standard quantity / ordinal / scale tuples. */
+export function isOpt14ExportableTuple(t: PAttributeTuple): boolean {
+  if (isQuantityTupleColumns(t.columns)) return true;
+  return t.columns.length === 2 && t.columns.includes("value") &&
+    t.columns.includes("symbol");
+}
+
+export function opt14UnexportableTuples(
+  tuples: PAttributeTuple[] | undefined,
+): PAttributeTuple[] {
+  return (tuples ?? []).filter((t) => !isOpt14ExportableTuple(t));
+}
+
 export function quantityListRowsFromP(
   tuples: PAttributeTuple[] | undefined,
 ): PQuantityListRow[] {
