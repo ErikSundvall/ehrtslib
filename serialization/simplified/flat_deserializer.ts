@@ -17,6 +17,7 @@ import {
   type OccurrenceHints,
   type RmTypeHints,
 } from "./rm_instance_builder.ts";
+import { applyFlatRmDefaults } from "./flat_rm_defaults.ts";
 import { applyContextFromFields, buildRmValue } from "./value_build.ts";
 
 type RmObject = Record<string, unknown>;
@@ -132,6 +133,8 @@ export class FlatDeserializer {
 
     // ctx fields last so composition-level defaults are not clobbered
     this.applyContext(comp, flat);
+
+    applyFlatRmDefaults(comp, this.webTemplate, flat);
 
     return comp;
   }

@@ -10,7 +10,7 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
-import { openehrCodeMeaning } from "../validation/rm_specification_validator.ts";
+import { resolveDvCodedTextValue } from "./coded_text_value.ts";
 import { isSubtypeOf } from "../meta/mod.ts";
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import {
@@ -756,16 +756,12 @@ export class RMInstanceGenerator {
   }
 
   private codedTextValue(definingCode: unknown, ctx: TermContext): string {
-    const dc = definingCode as {
-      code_string?: string;
-      terminology_id?: { value?: string };
-    } | undefined;
-    const code = dc?.code_string;
-    if (!code) return "Generated coded value";
-    const terminology = dc?.terminology_id?.value;
-    if (terminology === "openehr") return openehrCodeMeaning(code) ?? code;
-    if (terminology === "local") return this.termText(code, ctx.scope) ?? code;
-    return code;
+    const code = (definingCode as { code_string?: string } | undefined)
+      ?.code_string;
+    return resolveDvCodedTextValue(
+      definingCode as Record<string, unknown>,
+      { archetypeTerm: this.termText(code, ctx.scope) },
+    );
   }
 
   private readableRmType(rmType: string): string {
