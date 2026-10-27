@@ -26,7 +26,6 @@ import { OdinParser } from "../../../parser/odin_parser.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
 const ARCHIE_TEST_DATA = new URL("../../archie-tests/", import.meta.url);
-const RUN_ARCHIE_DEEP = Deno.env.get("EHRTEST_ARCHIE_COMPAT") === "1";
 
 async function loadArchieTestFile(relativePath: string): Promise<string> {
   return await Deno.readTextFile(new URL(relativePath, ARCHIE_TEST_DATA));
@@ -59,7 +58,6 @@ Deno.test("Archie Compatibility - Minimal Archetype", async () => {
 
 Deno.test({
   name: "Archie Compatibility - Primitive Types",
-  ignore: !RUN_ARCHIE_DEEP,
   async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/aom_structures/basic/
   // Test pattern: PrimitivesConstraintParserTest.java
@@ -90,7 +88,6 @@ Deno.test({
 
 Deno.test({
   name: "Archie Compatibility - Assumed Values",
-  ignore: !RUN_ARCHIE_DEEP,
   async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/aom_structures/basic/
   // Test pattern: PrimitivesConstraintParserTest.getAssumedValuesArchetype()
@@ -151,7 +148,6 @@ Deno.test("Archie Compatibility - Structure Test", async () => {
 
 Deno.test({
   name: "Archie Compatibility - Terminology Bindings",
-  ignore: !RUN_ARCHIE_DEEP,
   async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests terminology binding parsing
@@ -177,7 +173,6 @@ Deno.test({
 
 Deno.test({
   name: "Archie Compatibility - SNOMED Terminology",
-  ignore: !RUN_ARCHIE_DEEP,
   async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests SNOMED CT terminology binding
@@ -198,7 +193,6 @@ Deno.test({
 
 Deno.test({
   name: "Archie Compatibility - Term Bindings with Paths",
-  ignore: !RUN_ARCHIE_DEEP,
   async fn() {
   // Source: archie/tools/src/test/resources/adl2-tests/features/terminology/
   // Tests term bindings that use paths and references

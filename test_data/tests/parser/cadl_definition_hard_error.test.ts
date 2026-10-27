@@ -50,8 +50,6 @@ terminology
 
 Deno.test({
   name: "issue #113: cADL definition failure throws (hard error)",
-  ignore: true,
-  // Parser still recovers with a warning instead of throwing (#113 open).
   fn() {
   const err = assertThrows(
     () => parseAdl(FATAL_DEFINITION_ADL),
