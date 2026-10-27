@@ -225,6 +225,9 @@ export class ADL2Parser {
       } else if (this.check(TokenType.REAL)) {
         // Version number like v1.0.0
         id += this.advance().value;
+      } else if (this.check(TokenType.INTEGER) && id.endsWith(".")) {
+        // Lifecycle issue number: v1.0.0-rc.2
+        id += this.advance().value;
       } else {
         break;
       }

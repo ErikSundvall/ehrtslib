@@ -17,6 +17,7 @@
     "yaml": "npm:yaml@^2.3.4",
     "fflate": "npm:fflate@^0.8.2",
     "d3": "npm:d3@7.9.0",
+    "canonicalize": "npm:canonicalize@5.1.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/fs": "jsr:@std/fs@1",
     "@std/path": "jsr:@std/path@1"
@@ -24,7 +25,7 @@
   "tasks": {
     "test": "deno test --allow-read",
     "check": "deno check openehr_*.ts base/*.ts rm/*.ts am/mod.ts am/openehr_am.ts lang/*.ts term/*.ts meta/mod.ts serialization/terse_format.ts serialization/terse_strings.ts",
-    "check:all": "deno check mod.ts base/*.ts rm/*.ts am/*.ts am/util/mod.ts lang/*.ts term/*.ts parser/mod.ts serialization/mod.ts validation/mod.ts generation/mod.ts meta/mod.ts spec/mod.ts",
+    "check:all": "deno check mod.ts base/*.ts rm/*.ts am/*.ts am/util/mod.ts lang/*.ts term/*.ts parser/mod.ts serialization/mod.ts validation/mod.ts generation/mod.ts meta/mod.ts spec/mod.ts contribution_builder/mod.ts",
     "generate:rm-meta": "deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts",
     "generate:spec-docs": "deno run --allow-read --allow-net --allow-write tasks/generate_spec_docs.ts",
     "generate:symbol-table": "deno run --allow-read --allow-write serialization/zipehr/gen_symbol_table.ts",

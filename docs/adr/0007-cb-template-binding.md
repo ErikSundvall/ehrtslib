@@ -36,6 +36,16 @@ data.
   content, `PARENT:MD5-CAM` is a snapshot of the root archetype's hash at
   build time, `build_uid` is neither always stable nor unique, and the
   MD5-CAM algorithm is unpublished so it cannot be recomputed.
+- Decided by Erik (2026-10-26): the hash also covers the template's full
+  identity, and there is no second, content-only hash. For ADL2 that is the
+  full HRID (namespace if any, major.minor.patch and any lifecycle suffix
+  such as `-rc.2`), without the build count. For OPT 1.4 it is
+  `template_id` plus `sem_ver` (with any lifecycle suffix). `build_uid`,
+  `uid` and MD5-CAM are never included. Reason: openEHR identifies an
+  artefact by id plus release version, and the hash is read outside
+  ehrtslib, in audits and logs, where one value should name exactly one
+  released template. Two releases with the same content therefore have
+  different hashes.
 - When the hash or version differs from what the draft was bound to, the CB
   reports it. Moving to another template is an explicit `migrate-template`
   operation in the log, never a silent rebind.
@@ -52,6 +62,64 @@ data.
 - ADL2 id-codes remove the ADL 1.4 need for sibling name predicates, but not
   the need to tell runtime instances apart; that is what
   [ADR 0003](0003-cb-identity-and-uids.md) uids are for.
+
+## Implementation (phase 1, #163)
+
+Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
+`checkTemplateBinding`), `contribution_builder/jcs.ts` (RFC 8785),
+`parser/legacy/opt14_upconvert.ts` and `parser/legacy/opt14_code_mapping.ts`.
+
+- **RFC 8785** is done by the `canonicalize` npm package, pinned exactly in
+  `deno.json` (Apache-2.0, maintained by an RFC 8785 co-author).
+  `jcs.ts` wraps it with ehrtslib's I-JSON checks: lone surrogates,
+  non-finite numbers, cycles and values with no JSON form throw `JcsError`
+  before the library is called. The switch kept every canonical byte and
+  hash unchanged (decided by Erik, 2026-10-26).
+- **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
+  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=am2-archie-1`. `/2`
+  (2026-10-26) added the `identity` member; `/1` hashed the content alone.
+- **Hashed form** (`templateCanonicalForm`): `{ identity, content }`.
+  - `identity` (`templateHashIdentity`): ADL2 `{ hrid }`, the HRID without
+    a build count (semver build metadata `+…`); OPT 1.4
+    `{ template_id, sem_ver }` (`sem_ver` is `null` when absent).
+  - `content` (`templateContentForm`): `JsonCanonicalSerializer` output for
+    the ADL2 `OPERATIONAL_TEMPLATE` (`_type` on every object), minus the
+    identity and tool identifiers (top-level `uid`, `build_uid`,
+    `archetype_id`, `template_id`, `adl_version`, and
+    `description.other_details` keys `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1`,
+    `build_uid`, `sem_ver`). Where ehrtslib scopes terms by the template's
+    own HRID (`term_archetype_scope` values, `archetype_term_definitions`
+    keys), the HRID is replaced by `#template`, so the identity appears only
+    in `identity`. For OPT 1.4 templates this content is byte-identical to
+    the `/1` form; for ADL2 templates only the `#template` replacement
+    differs.
+- **Array order**: RFC 8785 sorts object members, not arrays. `attributes` of
+  each object node are sorted by `rm_attribute_name` (then
+  `differential_path`). Sibling `children` and code lists keep document order,
+  which is template content (display order).
+- **OPT 1.4 up-conversion** (AM 2.x rule, as in Archie's converter): node ids
+  `at0004` → `id5`; local value codes stay at-codes without zero padding
+  (`at0009` → `at10`); value-set codes `ac0001` → `ac2`. Object nodes without
+  a node id in ADL 1.4, and local code lists with more than one code (which
+  get an ac value set), get minted codes: per archetype scope, numbering
+  starts after the highest code used in that scope, in depth-first document
+  order, so the result is deterministic. The rule is isolated in
+  `opt14_code_mapping.ts` because AM 2.4.0 (SPECAM-90, unreleased) adds an
+  at-coded ADL2 coding system alongside id-coding and requires it for openEHR
+  RM conformance; a rule change bumps the serialisation version.
+- **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
+  `template_id` and `sem_ver` from `description/other_details` (null when
+  absent).
+- **Rebind**: a changed hash (`hash-changed`) or serialisation version is an
+  error-level issue (`migrationRequired`, `TemplateBindingMismatchError`).
+  Since the hash covers id, version and content, the comparison also says
+  which of them changed, as `template-id-changed`, `version-changed` and
+  `content-changed` issues and `diagnosis`. `checkTemplateBinding` finds
+  the content part by hashing the candidate's content under the bound
+  identity: if that gives the bound hash, only id or version changed. From
+  two bindings alone (`compareTemplateBindings`) content is known only when
+  id and version are unchanged (`contentChanged: null` otherwise). A changed
+  `MD5-CAM-1.0.1`, `PARENT:MD5-CAM-1.0.1` or `build_uid` is a warning.
 
 ## Consequences
 
