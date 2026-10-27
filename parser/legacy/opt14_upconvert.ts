@@ -1,6 +1,6 @@
 /**
  * Up-convert a legacy OPT 1.4 (parsed by {@link parseOptXml}, still carrying
- * ADL 1.4 at-codes) into an ADL2 operational template with id-codes.
+ * ADL 1.4 at-codes) into an ADL2 operational template (at-coded by default).
  *
  * The input is never modified: the result is a prototype-preserving deep copy.
  * The conversion is deterministic, so converting the same OPT twice gives the
@@ -17,12 +17,11 @@ import {
   TERM_NAME_FALLBACK_NODE_ID_KEY,
 } from "../../generation/term_scope.ts";
 import {
+  type Adl2CodingOptions,
   isAdl14AtCode,
   Opt14CodeMinter,
-  opt14NodeIdToAdl2,
-  opt14PathToAdl2,
-  opt14ValueCodeToAdl2,
-  opt14ValueSetCodeToAdl2,
+  opt14CodeMapper,
+  resolveAdl2CodingSystem,
 } from "./opt14_code_mapping.ts";
 
 /** Template-level metadata read straight from OPT 1.4 XML (not mapped by `parseOptXml`). */
@@ -42,10 +41,14 @@ export interface Opt14ValueSet {
   members: string[];
 }
 
+export interface Opt14UpconversionOptions extends Adl2CodingOptions {}
+
 export interface Opt14UpconversionResult {
   operationalTemplate: openehr_am.OPERATIONAL_TEMPLATE;
-  /** Id-codes minted for nodes that had no node id in ADL 1.4. */
+  /** ADL2 node codes minted for nodes that had no node id in ADL 1.4. */
   mintedIdCodes: number;
+  /** Coding system used for this conversion. */
+  adl2CodingSystem: ReturnType<typeof resolveAdl2CodingSystem>;
   /** Value-set ac-codes minted for local code lists. */
   mintedValueSets: number;
   warnings: string[];
@@ -206,15 +209,18 @@ function symbolParts(ord: openehr_am.ORDINAL): { tid?: string; code?: string } {
 }
 
 /**
- * Convert one parsed OPT 1.4 into an ADL2 operational template with id-codes.
+ * Convert one parsed OPT 1.4 into an ADL2 operational template.
  * Pass the {@link Opt14Header} from {@link readOpt14Header} to carry over the
  * template id and top-level description, which `parseOptXml` does not map.
  */
 export function upconvertOpt14ToAdl2(
   source: openehr_am.OPERATIONAL_TEMPLATE,
   header?: Opt14Header,
+  options?: Opt14UpconversionOptions,
 ): Opt14UpconversionResult {
   const warnings: string[] = [];
+  const adl2CodingSystem = resolveAdl2CodingSystem(options);
+  const mapper = opt14CodeMapper(options);
   const opt = clonePreservingPrototype(source);
   const root = opt.definition;
   if (!root) {
@@ -267,13 +273,16 @@ export function upconvertOpt14ToAdl2(
     code: string,
     codes: ScopeCodes | undefined,
   ): string[] => {
-    if (/^ac\d/i.test(code)) return [opt14ValueSetCodeToAdl2(code)];
+    if (/^ac\d/i.test(code)) return [mapper.valueSetCodeToAdl2(code)];
     if (!isAdl14AtCode(code)) return [code];
     const out: string[] = [];
     const isValue = codes?.valueCodes.has(code) ?? false;
     const isNode = codes?.nodeIds.has(code) ?? false;
-    if (isNode || !isValue) out.push(opt14NodeIdToAdl2(code));
-    if (isValue) out.push(opt14ValueCodeToAdl2(code));
+    if (isNode || !isValue) out.push(mapper.nodeIdToAdl2(code));
+    if (isValue) out.push(mapper.valueCodeToAdl2(code));
+    if (adl2CodingSystem === "at-coded" && out.length > 1 && out[0] === out[1]) {
+      return [out[0]];
+    }
     return out;
   };
   const remapBag = <T>(
@@ -332,7 +341,7 @@ export function upconvertOpt14ToAdl2(
         const mapped: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(byKey ?? {})) {
           const keys = k.startsWith("/")
-            ? [opt14PathToAdl2(k)]
+            ? [mapper.pathToAdl2(k)]
             : mapTermCode(k, rootCodes);
           for (const nk of keys) mapped[nk] = v;
         }
@@ -348,7 +357,7 @@ export function upconvertOpt14ToAdl2(
       for (const [term, byKey] of Object.entries(cb)) {
         const mapped: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(byKey ?? {})) {
-          mapped[opt14ValueSetCodeToAdl2(k)] = v;
+          mapped[mapper.valueSetCodeToAdl2(k)] = v;
         }
         out[term] = mapped;
       }
@@ -361,10 +370,10 @@ export function upconvertOpt14ToAdl2(
   const minterFor = (scope: string): Opt14CodeMinter => {
     let m = minters.get(scope);
     if (m) return m;
-    m = new Opt14CodeMinter();
+    m = new Opt14CodeMinter(adl2CodingSystem);
     const codes = scopes.get(scope);
-    for (const c of codes?.nodeIds ?? []) m.seen(opt14NodeIdToAdl2(c));
-    for (const c of codes?.valueCodes ?? []) m.seen(opt14ValueCodeToAdl2(c));
+    for (const c of codes?.nodeIds ?? []) m.seen(mapper.nodeIdToAdl2(c));
+    for (const c of codes?.valueCodes ?? []) m.seen(mapper.valueCodeToAdl2(c));
     const bags = scope === rootScope
       ? [termIndex?.[scope], ontology?.term_definitions]
       : [termIndex?.[scope]];
@@ -400,19 +409,19 @@ export function upconvertOpt14ToAdl2(
     const meta = node as Meta;
     if (!isPrimitive(node)) {
       const id = obj.node_id;
-      if (isAdl14AtCode(id)) obj.node_id = opt14NodeIdToAdl2(id);
+      if (isAdl14AtCode(id)) obj.node_id = mapper.nodeIdToAdl2(id);
       else if (!id && underAttribute) {
-        obj.node_id = minterFor(scope).nextId();
+        obj.node_id = minterFor(scope).nextNodeId();
         mintedIdCodes++;
       }
       const fallback = meta[TERM_NAME_FALLBACK_NODE_ID_KEY];
       if (typeof fallback === "string" && isAdl14AtCode(fallback)) {
-        meta[TERM_NAME_FALLBACK_NODE_ID_KEY] = opt14NodeIdToAdl2(fallback);
+        meta[TERM_NAME_FALLBACK_NODE_ID_KEY] = mapper.nodeIdToAdl2(fallback);
       }
       if (
         node instanceof openehr_am.ARCHETYPE_INTERNAL_REF && node.target_path
       ) {
-        node.target_path = opt14PathToAdl2(node.target_path);
+        node.target_path = mapper.pathToAdl2(node.target_path);
       }
       const local = meta[COMPONENT_TERM_DEFINITIONS_KEY];
       if (local && typeof local === "object") {
@@ -428,13 +437,13 @@ export function upconvertOpt14ToAdl2(
     ) {
       const tc = node as unknown as Meta;
       const list = ((tc.code_list as unknown[]) ?? []).map((c) =>
-        typeof c === "string" ? opt14ValueCodeToAdl2(c) : c
+        typeof c === "string" ? mapper.valueCodeToAdl2(c) : c
       ) as string[];
       if (Array.isArray(tc.code_list)) tc.code_list = list;
       if (typeof tc.constraint === "string") {
         tc.constraint = /^ac\d/i.test(tc.constraint)
-          ? opt14ValueSetCodeToAdl2(tc.constraint)
-          : opt14ValueCodeToAdl2(tc.constraint);
+          ? mapper.valueSetCodeToAdl2(tc.constraint)
+          : mapper.valueCodeToAdl2(tc.constraint);
       } else if (list.length > 1) {
         const ac = minterFor(scope).nextAc();
         tc.constraint = ac;
@@ -447,7 +456,7 @@ export function upconvertOpt14ToAdl2(
       if (isLocalTerminology(tid) && isAdl14AtCode(code)) {
         (ord as unknown as Meta).symbol = openehr_base.CODE_PHRASE.from(
           tid ?? "local",
-          opt14ValueCodeToAdl2(code),
+          mapper.valueCodeToAdl2(code),
         );
       }
     }
@@ -475,7 +484,7 @@ export function upconvertOpt14ToAdl2(
     for (const [lang, byPath] of Object.entries(doc)) {
       const mapped: Record<string, unknown> = {};
       for (const [p, v] of Object.entries(byPath ?? {})) {
-        mapped[opt14PathToAdl2(p)] = v;
+        mapped[mapper.pathToAdl2(p)] = v;
       }
       out[lang] = mapped;
     }
@@ -486,5 +495,11 @@ export function upconvertOpt14ToAdl2(
   if (header?.templateId) opt.template_id = header.templateId;
   if (header?.description) opt.description = header.description;
 
-  return { operationalTemplate: opt, mintedIdCodes, mintedValueSets, warnings };
+  return {
+    operationalTemplate: opt,
+    mintedIdCodes,
+    mintedValueSets,
+    warnings,
+    adl2CodingSystem,
+  };
 }

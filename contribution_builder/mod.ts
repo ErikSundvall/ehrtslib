@@ -14,6 +14,7 @@ export {
   MD5_CAM_KEY,
   PARENT_MD5_CAM_KEY,
   TEMPLATE_BINDING_SERIALISATION_VERSION,
+  templateBindingSerialisationVersion,
   type TemplateBinding,
   type TemplateBindingComparison,
   type TemplateBindingDiagnosis,

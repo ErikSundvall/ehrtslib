@@ -1,5 +1,5 @@
 /**
- * OPT 1.4 XML → ADL2 operational template with id-codes (#163, ADR 0007).
+ * OPT 1.4 XML → ADL2 operational template (#163, ADR 0007; at-coded default #181).
  */
 
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
@@ -30,10 +30,16 @@ const ALL_OPT14 = [...Deno.readDirSync(OPT14)]
   .map((e) => e.name)
   .sort();
 
-function upconvert(xml: string) {
+const ID_CODED = { adl2CodingSystem: "id-coded" as const };
+
+function upconvert(
+  xml: string,
+  options?: { adl2CodingSystem?: "at-coded" | "id-coded" },
+) {
   return upconvertOpt14ToAdl2(
     parseOptXml(xml).operationalTemplate,
     readOpt14Header(xml),
+    options,
   );
 }
 
@@ -51,28 +57,32 @@ function walk(node: unknown, visit: Visit, scope = "") {
   }
 }
 
-Deno.test("OPT 1.4 code mapping — node ids, value codes, value-set codes, paths", () => {
-  assertEquals(opt14NodeIdToAdl2("at0000"), "id1");
-  assertEquals(opt14NodeIdToAdl2("at0004"), "id5");
-  assertEquals(opt14NodeIdToAdl2("at0004.1"), "id5.1");
-  assertEquals(opt14NodeIdToAdl2("at0.1"), "id0.1");
-  assertEquals(opt14ValueCodeToAdl2("at0009"), "at10");
-  assertEquals(opt14ValueCodeToAdl2("at1000"), "at1001");
-  assertEquals(opt14ValueCodeToAdl2("at0.3"), "at0.3");
-  assertEquals(opt14ValueSetCodeToAdl2("ac0001"), "ac2");
-  assertEquals(opt14ValueSetCodeToAdl2("ac0000"), "ac1");
+Deno.test("OPT 1.4 code mapping — id-coded node ids, value codes, value-set codes, paths", () => {
+  assertEquals(opt14NodeIdToAdl2("at0000", ID_CODED), "id1");
+  assertEquals(opt14NodeIdToAdl2("at0004", ID_CODED), "id5");
+  assertEquals(opt14NodeIdToAdl2("at0004.1", ID_CODED), "id5.1");
+  assertEquals(opt14NodeIdToAdl2("at0.1", ID_CODED), "id0.1");
+  assertEquals(opt14ValueCodeToAdl2("at0009", ID_CODED), "at10");
+  assertEquals(opt14ValueCodeToAdl2("at1000", ID_CODED), "at1001");
+  assertEquals(opt14ValueCodeToAdl2("at0.3", ID_CODED), "at0.3");
+  assertEquals(opt14ValueSetCodeToAdl2("ac0001", ID_CODED), "ac2");
+  assertEquals(opt14ValueSetCodeToAdl2("ac0000", ID_CODED), "ac1");
   assertEquals(
     opt14PathToAdl2(
       "/content[openEHR-EHR-OBSERVATION.x.v1]/data[at0001]/events[at0002 and name/value='x']",
+      ID_CODED,
     ),
     "/content[openEHR-EHR-OBSERVATION.x.v1]/data[id2]/events[id3 and name/value='x']",
   );
-  const m = new Opt14CodeMinter();
+  const m = new Opt14CodeMinter("id-coded");
   m.seen("id5");
   m.seen("at12");
   m.seen("ac2");
   m.seen("id7.1");
-  assertEquals([m.nextId(), m.nextId(), m.nextAc()], ["id13", "id14", "ac3"]);
+  assertEquals(
+    [m.nextNodeId(), m.nextNodeId(), m.nextAc()],
+    ["id13", "id14", "ac3"],
+  );
 });
 
 Deno.test("OPT 1.4 up-conversion — id-coded nodes and terms, input untouched", async () => {
@@ -81,6 +91,7 @@ Deno.test("OPT 1.4 up-conversion — id-coded nodes and terms, input untouched",
   const { operationalTemplate: opt } = upconvertOpt14ToAdl2(
     parsed,
     readOpt14Header(xml),
+    ID_CODED,
   );
   assertEquals(parsed.definition?.node_id, "at0000");
   assertEquals(opt.definition?.node_id, "id1");
@@ -93,7 +104,7 @@ Deno.test("OPT 1.4 up-conversion — id-coded nodes and terms, input untouched",
   assertEquals(keys.sort(), ["id1", "id2", "id3"]);
 });
 
-Deno.test("OPT 1.4 up-conversion — every fixture: no at-coded nodes, every object node has an id", async () => {
+Deno.test("OPT 1.4 up-conversion — every fixture: at-coded nodes, every object node has an id", async () => {
   for (const name of ALL_OPT14) {
     const { operationalTemplate: opt, mintedIdCodes } = upconvert(
       await read(name),
@@ -103,7 +114,7 @@ Deno.test("OPT 1.4 up-conversion — every fixture: no at-coded nodes, every obj
       if (node instanceof openehr_am.C_PRIMITIVE_OBJECT) return;
       objects++;
       assert(
-        /^id\d+(\.\d+)*$/.test(node.node_id ?? ""),
+        /^at\d+(\.\d+)*$/.test(node.node_id ?? ""),
         `${name}: node id ${node.node_id} on ${node.rm_type_name}`,
       );
     });
@@ -123,11 +134,14 @@ Deno.test("OPT 1.4 up-conversion — minted id-codes are unique per archetype sc
         return;
       }
       if (!sourceIds.has(scope)) sourceIds.set(scope, new Set());
-      sourceIds.get(scope)!.add(opt14NodeIdToAdl2(node.node_id));
+      sourceIds.get(scope)!.add(
+        opt14NodeIdToAdl2(node.node_id, ID_CODED),
+      );
     });
     const { operationalTemplate: opt, mintedIdCodes } = upconvertOpt14ToAdl2(
       parsed,
       readOpt14Header(xml),
+      ID_CODED,
     );
     const seen = new Map<string, Set<string>>();
     walk(opt.definition, (node, scope) => {
@@ -151,11 +165,11 @@ Deno.test("OPT 1.4 up-conversion — minted id-codes are unique per archetype sc
   assert(minted > 0);
 });
 
-Deno.test("OPT 1.4 up-conversion — local value codes stay at-codes, code lists get ac value sets", async () => {
+Deno.test("OPT 1.4 up-conversion (id-coded) — local value codes unpadded, code lists get ac value sets", async () => {
   let localCodeNodes = 0;
   let valueSets = 0;
   for (const name of ALL_OPT14) {
-    const { operationalTemplate: opt } = upconvert(await read(name));
+    const { operationalTemplate: opt } = upconvert(await read(name), ID_CODED);
     const sets = (opt as unknown as Record<
       string,
       Record<string, Record<string, { members: string[] }>>
@@ -192,10 +206,10 @@ Deno.test("OPT 1.4 up-conversion — local value codes stay at-codes, code lists
   assert(valueSets > 0);
 });
 
-Deno.test("OPT 1.4 up-conversion — local ordinal symbols use ADL2 value codes", async () => {
+Deno.test("OPT 1.4 up-conversion (id-coded) — local ordinal symbols use unpadded ADL2 value codes", async () => {
   let ordinals = 0;
   for (const name of ALL_OPT14) {
-    const { operationalTemplate: opt } = upconvert(await read(name));
+    const { operationalTemplate: opt } = upconvert(await read(name), ID_CODED);
     walk(opt.definition, (node) => {
       if (!(node instanceof openehr_am.C_ORDINAL)) return;
       for (

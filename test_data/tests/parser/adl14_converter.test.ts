@@ -31,8 +31,9 @@ Deno.test("convertAdl14ToAdl2 - normalises header and terminology", async () => 
   assert(adl2Text.includes("adl_version=2"));
   assert(adl2Text.includes("terminology"));
   assert(!adl2Text.includes("\nontology\n"));
-  assert(adl2Text.includes("WHOLE[id2]"), "at0001 shifts to id2");
-  assert(!adl2Text.includes("[at0001]"));
+  assert(adl2Text.includes("WHOLE[at0001]"), "at-coded keeps node at-codes");
+  const idCoded = convertAdl14ToAdl2(text, { adl2CodingSystem: "id-coded" });
+  assert(idCoded.adl2Text.includes("WHOLE[id2]"), "id-coded shifts at0001 to id2");
 });
 
 Deno.test("parseAdl - ADL 1.4 fixture end-to-end", async () => {
@@ -43,12 +44,15 @@ Deno.test("parseAdl - ADL 1.4 fixture end-to-end", async () => {
   assertEquals(result.detectedVersion, "1.4");
   assert(result.convertedFrom14);
   assertEquals(result.kind, "archetype");
-  assertEquals(result.archetype?.definition?.node_id, "id2");
+  assertEquals(result.archetype?.definition?.node_id, "at0001");
   assertEquals(result.archetype?.definition?.rm_type_name, "WHOLE");
 
   const ontology = result.archetype?.ontology as Record<string, unknown>;
   const en = (ontology?.term_definitions as Record<string, Record<string, { text?: string }>>)?.en;
-  assertEquals(en?.id2?.text, "whole");
+  assertEquals(en?.at0001?.text, "whole");
+
+  const idParsed = parseAdl(text, { adl2CodingSystem: "id-coded" });
+  assertEquals(idParsed.archetype?.definition?.node_id, "id2");
 
   const aomCheck = new ArchetypeValidator().validate(result.archetype!);
   assertEquals(aomCheck.valid, true);

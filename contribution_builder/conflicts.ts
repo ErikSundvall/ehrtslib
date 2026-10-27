@@ -82,7 +82,11 @@ export function detectConflicts(
   const latestVersionUid = isObj(latest.uid) ? String(latest.uid.value) : "";
   if (latestVersionUid === info.baseVersionUid) return undefined;
   const codes = options.codes ?? (usesAdl14Codes(latest) ? "adl14" : "adl2");
-  if (codes === "adl14") latest = upConvertFromAdl14(latest) as Obj;
+  if (codes === "adl14") {
+    latest = upConvertFromAdl14(latest, {
+      adl2CodingSystem: info.templateBinding.adl2CodingSystem ?? "id-coded",
+    }) as Obj;
+  }
   delete latest.uid;
   delete latest.feeder_audit;
 

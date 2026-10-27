@@ -40,7 +40,7 @@ const CONFIG: CommitConfig = {
 const COMMITTER = { _type: "PARTY_IDENTIFIED", name: "Committer" };
 const SYSTOLIC = (magnitude: number) => ({
   _type: "ELEMENT",
-  archetype_node_id: "id5",
+  archetype_node_id: "at0004",
   name: { _type: "DV_TEXT", value: "Systolic" },
   value: { _type: "DV_QUANTITY", magnitude, units: "mm[Hg]" },
 });
@@ -61,7 +61,7 @@ async function storedV1(): Promise<any> {
   const b = ContributionBuild.create({ author: { id: "author-1" } });
   const d = b.newComposition(t, { language: "en", territory: "SE" });
   b.setComposer(d, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
-  b.addInstance(d, b.findNodeKey(d, "id4")!, "items", SYSTOLIC(120));
+  b.addInstance(d, b.findNodeKey(d, "at0003")!, "items", SYSTOLIC(120));
   const p = await prepareContribution(b, v, CONFIG, {
     drafts: [{ draftId: d, template: t }],
     committer: COMMITTER,
@@ -79,16 +79,20 @@ Deno.test("nextVersionUid increments the trunk version", () => {
 });
 
 Deno.test("ADL 1.4 data is detected and up-converted", async () => {
+  const { t } = await base();
   const stored = await storedV1();
   assert(usesAdl14Codes(stored));
-  const up = upConvertFromAdl14(stored) as any;
-  assertEquals(up.content[0].data.archetype_node_id, "id2");
+  const up = upConvertFromAdl14(stored, {
+    adl2CodingSystem: t.binding.adl2CodingSystem,
+  }) as any;
+  assertEquals(up.content[0].data.archetype_node_id, "at0001");
   assertEquals(
     up.content[0].data.events[0].state.items[0].value.defining_code
       .code_string,
-    "at1001",
+    "at1000",
   );
-  assert(!usesAdl14Codes(up));
+  // At-coded ADL2 keeps the same padded at node ids as ADL 1.4 on the wire.
+  assert(usesAdl14Codes(up));
 });
 
 Deno.test("update-version keeps uids, keys nodes without one, commits as 251 with preceding_version_uid", async () => {
@@ -112,7 +116,7 @@ Deno.test("update-version keeps uids, keys nodes without one, commits as 251 wit
   assertEquals(json.uid, undefined);
   assertEquals(json.feeder_audit, undefined);
   assertEquals(systolicOf(json).uid.value, sysUid); // kept
-  assertEquals(systolicOf(json).archetype_node_id, "id5"); // ADL2 codes
+  assertEquals(systolicOf(json).archetype_node_id, "at0004"); // ADL2 codes
   const dia = json.content[0].data.events[0].data.items[1];
   // Fresh key, above every key this replica already used in the version.
   const used = build.listNodeKeys(d).filter((k) => k !== keyOf(dia.uid.value));

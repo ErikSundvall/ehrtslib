@@ -123,7 +123,7 @@ Deno.test("OPT2 — language filter keeps definition prototypes (#157)", async (
   assertGreater(JSON.stringify(web).length, 400);
 });
 
-Deno.test("OPT2 — constraints, slots, and id-coded root (#157)", async () => {
+Deno.test("OPT2 — constraints, slots, and at-coded root (#157)", async () => {
   const xml = await Deno.readTextFile(
     new URL("opt14/ehrbase_blood_pressure_simple.de.v0.opt", TEST_DATA),
   );
@@ -153,10 +153,9 @@ Deno.test("OPT2 — constraints, slots, and id-coded root (#157)", async () => {
     if (!line.includes("use_archetype")) continue;
     assert(/use_archetype \w+\[[^\]]*\]/.test(line), line);
     assert(!line.includes("],"), line);
-    assert(/\[id\d+/.test(line), line);
+    assert(/\[at\d+/.test(line), line);
   }
-  assert((definition.match(/\[id\d+/g) ?? []).length > 0);
-  assert(!definition.includes("[at0000]"));
+  assert((definition.match(/\[at\d+/g) ?? []).length > 0);
 
   const reparsed = parseOpt2(opt2);
   assertEquals(reparsed.kind, "operational_template");
@@ -174,7 +173,7 @@ Deno.test("OPT2 — ordinals, durations, and value codes stay at-codes (#157)", 
   assert(typesDef.includes("DV_ORDINAL"));
   assert(typesDef.includes("[at0014]"));
   assert(types.includes('["at0014"]') || types.includes("[at0014]"));
-  assert(/\[id\d+/.test(typesDef));
+  assert(/\[at\d+/.test(typesDef));
   const typesParsed = parseOpt2(types);
   assertEquals(typesParsed.kind, "operational_template");
 

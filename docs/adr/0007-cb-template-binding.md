@@ -83,9 +83,12 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
   non-finite numbers, cycles and values with no JSON form throw `JcsError`
   before the library is called. The switch kept every canonical byte and
   hash unchanged (decided by Erik, 2026-10-26).
-- **Serialisation version** `TEMPLATE_BINDING_SERIALISATION_VERSION`, currently
-  `ehrtslib-cb-opt-json/2;jcs=rfc8785;opt14-codes=am2-archie-1`. `/2`
-  (2026-10-26) added the `identity` member; `/1` hashed the content alone.
+- **Serialisation version** `templateBindingSerialisationVersion(coding)`, e.g.
+  `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=am24-at;adl2-coding=at-coded`
+  for the default at-coded binding (#181). The `ehrtslib-cb-opt-json/1` prefix
+  stays at `/1` until ehrtslib 1.0; pre-1.0 releases may change hash inputs
+  (canonical form, `opt14-codes`, `adl2-coding`, and so on) without bumping
+  that prefix and without backward-compatibility guarantees for stored bindings.
 - **Hashed form** (`templateCanonicalForm`): `{ identity, content }`.
   - `identity` (`templateHashIdentity`): ADL2 `{ hrid }`, the HRID without
     a build count (semver build metadata `+…`); OPT 1.4
@@ -99,22 +102,26 @@ Code: `contribution_builder/template_binding.ts` (`bindTemplate`,
     own HRID (`term_archetype_scope` values, `archetype_term_definitions`
     keys), the HRID is replaced by `#template`, so the identity appears only
     in `identity`. For OPT 1.4 templates this content is byte-identical to
-    the `/1` form; for ADL2 templates only the `#template` replacement
-    differs.
+    the legacy content-only form; for ADL2 templates only the `#template`
+    replacement differs.
 - **Array order**: RFC 8785 sorts object members, not arrays. `attributes` of
   each object node are sorted by `rm_attribute_name` (then
   `differential_path`). Sibling `children` and code lists keep document order,
   which is template content (display order).
-- **OPT 1.4 up-conversion** (AM 2.x rule, as in Archie's converter): node ids
-  `at0004` → `id5`; local value codes stay at-codes without zero padding
-  (`at0009` → `at10`); value-set codes `ac0001` → `ac2`. Object nodes without
+- **OPT 1.4 up-conversion** (default **at-coded**, SPECAM-90): node and value
+  codes from ADL 1.4 are kept as at/ac codes. Optional **`adl2CodingSystem:
+  "id-coded"`** uses the Archie rule: node ids `at0004` → `id5`; local value
+  codes without zero padding (`at0009` → `at10`); value-set codes `ac0001` →
+  `ac2`. Object nodes without
   a node id in ADL 1.4, and local code lists with more than one code (which
   get an ac value set), get minted codes: per archetype scope, numbering
   starts after the highest code used in that scope, in depth-first document
   order, so the result is deterministic. The rule is isolated in
   `opt14_code_mapping.ts` because AM 2.4.0 (SPECAM-90, unreleased) adds an
   at-coded ADL2 coding system alongside id-coding and requires it for openEHR
-  RM conformance; a rule change bumps the serialisation version.
+  RM conformance; a rule change is reflected in the `opt14-codes` and
+  `adl2-coding` parameters of the serialisation version string (prefix `/1`
+  until 1.0).
 - **Template id and version**: ADL2 uses the archetype id HRID. OPT 1.4 uses
   `template_id` and `sem_ver` from `description/other_details` (null when
   absent).

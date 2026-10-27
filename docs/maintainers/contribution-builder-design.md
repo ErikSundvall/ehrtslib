@@ -194,7 +194,10 @@ Summary of [ADR 0007](../adr/0007-cb-template-binding.md):
   hash of a canonical serialisation** of the operational template (not of
   uploaded bytes). This detects templates re-uploaded under the same id with
   changed content, and ADL 1.4 OPTs that have only an id string and no
-  version.
+  version. The binding serialisation label stays at
+  `ehrtslib-cb-opt-json/1` until ehrtslib **1.0**; before 1.0 there are no
+  backward-compatibility guarantees for stored bindings when canonicalisation
+  or code-mapping rules change (see ADR 0007).
 - Changing template is an explicit `migrate-template` operation, never a
   silent rebind.
 - For CDRs that need ADL 1.4 at-codes, the commit is down-converted with

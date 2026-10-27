@@ -85,10 +85,13 @@ function quantityUnitLists(node: unknown): string[][] {
 Deno.test("#168: terminology key mapping matches OPT 1.4 up-converter rule", () => {
   const nodeIds = new Set(["at0004"]);
   const valueCodes = new Set(["at0009"]);
-  assertEquals(opt14TerminologyKeyToAdl2("at0004", nodeIds, valueCodes), "id5");
-  assertEquals(opt14TerminologyKeyToAdl2("at0009", nodeIds, valueCodes), "at10");
-  assertEquals(opt14ValueSetCodeToAdl2("ac0001"), "ac2");
-  assertEquals(opt14ValueCodeToAdl2("at0009"), "at10");
+  const id = { adl2CodingSystem: "id-coded" as const };
+  assertEquals(opt14TerminologyKeyToAdl2("at0004", nodeIds, valueCodes), "at0004");
+  assertEquals(opt14TerminologyKeyToAdl2("at0009", nodeIds, valueCodes), "at0009");
+  assertEquals(opt14TerminologyKeyToAdl2("at0004", nodeIds, valueCodes, id), "id5");
+  assertEquals(opt14TerminologyKeyToAdl2("at0009", nodeIds, valueCodes, id), "at10");
+  assertEquals(opt14ValueSetCodeToAdl2("ac0001", id), "ac2");
+  assertEquals(opt14ValueCodeToAdl2("at0009", id), "at10");
 
   const adl14 = `archetype (adl_version=1.4; rm_release=1.0.4)
 openEHR-EHR-OBSERVATION.term_probe.v1
@@ -123,7 +126,7 @@ ontology
         >
     >
 `;
-  const { adl2Text } = convertAdl14ToAdl2(adl14);
+  const { adl2Text } = convertAdl14ToAdl2(adl14, { adl2CodingSystem: "id-coded" });
   assert(adl2Text.includes('["at10"]'), "value code stays bumped at-code");
   assert(adl2Text.includes('["ac2"]'), "value-set code is ac2 not ac0001");
   assert(adl2Text.includes('["id2"]'), "node id term becomes id-code");

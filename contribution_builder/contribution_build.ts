@@ -679,7 +679,11 @@ export class ContributionBuild {
       throw new CbOperationError("Expected a stored COMPOSITION");
     }
     const codes = options.codes ?? (usesAdl14Codes(data) ? "adl14" : "adl2");
-    if (codes === "adl14") data = upConvertFromAdl14(data) as JsonObject;
+    if (codes === "adl14") {
+      data = upConvertFromAdl14(data, {
+        adl2CodingSystem: template.binding.adl2CodingSystem ?? "id-coded",
+      }) as JsonObject;
+    }
     const details = data.archetype_details;
     const tid = isObject(details) && isObject(details.template_id)
       ? details.template_id.value

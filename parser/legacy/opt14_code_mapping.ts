@@ -3,31 +3,45 @@
  * into an ADL2 operational template (contribution builder template binding,
  * ADR 0007).
  *
- * Kept in one module on purpose: the openEHR AM specification is still moving
- * here (AM 2.4.0, SPECAM-90, unreleased, adds an at-coded ADL2 coding system
- * alongside id-coding and requires it for openEHR RM conformance),
- * so a change of rule should be a change of this file plus a bump of
- * {@link OPT14_CODE_MAPPING_VERSION}.
+ * Kept in one module on purpose: SPECAM-90 adds an at-coded ADL2 coding system
+ * (default since #181) alongside id-coding. A rule change bumps
+ * {@link opt14CodeMappingVersion}.
  *
- * Rule (AM 2.x, as applied by Archie's ADL 1.4 converter):
- * - Node ids become id-codes, first segment + 1: `at0000` → `id1`,
- *   `at0004` → `id5`, `at0.1` → `id0.1`, `at0004.1` → `id5.1`.
- * - Codes used as **values** stay at-codes, first segment + 1, without zero
- *   padding: `at0009` → `at10`.
- * - Value-set (constraint) codes stay ac-codes, first segment + 1, without zero
- *   padding: `ac0001` → `ac2`.
- * - Nodes that have no node id in ADL 1.4 (for example a `DV_CODED_TEXT`
- *   object under `ELEMENT.value`), and local code lists that have no value-set
- *   code, get freshly minted codes. Minting is deterministic: per archetype
- *   scope, numbering starts at the highest top-level number already used in
- *   that scope plus one, and codes are handed out in depth-first document
- *   order of the definition.
+ * **id-coded** (legacy ADL2 2.0–2.3, Archie ADL 1.4 converter):
+ * - Node ids: `at0000` → `id1`, `at0004` → `id5`, `at0.1` → `id0.1`.
+ * - Value at-codes: `at0009` → `at10` (unpadded bump).
+ * - Value-set ac-codes: `ac0001` → `ac2`.
+ *
+ * **at-coded** (SPECAM-90 / AM 2.4 default for openEHR RM):
+ * - Node, value and value-set codes from ADL 1.4 are kept as at/ac codes
+ *   (same strings as in the OPT 1.4 / ADL 1.4 source).
+ * - Minted node codes are new at-codes in the archetype scope.
  */
 
 import { adl14AtToId } from "../adl14_to_adl2_converter.ts";
+import {
+  type Adl2CodingOptions,
+  type Adl2CodingSystem,
+  DEFAULT_ADL2_CODING_SYSTEM,
+  opt14CodeMappingVersion,
+  resolveAdl2CodingSystem,
+} from "./adl2_coding_system.ts";
 
-/** Version of the mapping rule; part of the template binding serialisation version. */
-export const OPT14_CODE_MAPPING_VERSION = "am2-archie-1";
+export {
+  DEFAULT_ADL2_CODING_SYSTEM,
+  opt14CodeMappingVersion,
+  type Adl2CodingOptions,
+  type Adl2CodingSystem,
+  resolveAdl2CodingSystem,
+} from "./adl2_coding_system.ts";
+
+/**
+ * Default mapping version token (at-coded). Prefer
+ * {@link opt14CodeMappingVersion} with an explicit {@link Adl2CodingSystem}.
+ */
+export const OPT14_CODE_MAPPING_VERSION = opt14CodeMappingVersion(
+  DEFAULT_ADL2_CODING_SYSTEM,
+);
 
 const CODE_RE = /^(at|ac|id)(\d+)((?:\.\d+)*)$/i;
 
@@ -36,9 +50,71 @@ export function isAdl14AtCode(code: string | undefined): code is string {
   return !!code && /^at\d+(?:\.\d+)*$/i.test(code);
 }
 
-/** ADL 1.4 node id → ADL2 id-code (`at0000` → `id1`). Other codes unchanged. */
-export function opt14NodeIdToAdl2(code: string): string {
-  return adl14AtToId(code);
+export class Opt14CodeMapper {
+  readonly coding: Adl2CodingSystem;
+
+  constructor(coding: Adl2CodingSystem = DEFAULT_ADL2_CODING_SYSTEM) {
+    this.coding = coding;
+  }
+
+  /** ADL 1.4 node id → ADL2 node code for the chosen coding system. */
+  nodeIdToAdl2(code: string): string {
+    if (!isAdl14AtCode(code)) return code;
+    if (this.coding === "at-coded") return code;
+    return adl14AtToId(code);
+  }
+
+  /** ADL 1.4 value at-code → ADL2 value code. */
+  valueCodeToAdl2(code: string): string {
+    if (!isAdl14AtCode(code)) return code;
+    if (this.coding === "at-coded") return code;
+    return bumpFirstSegment("at", code);
+  }
+
+  /** ADL 1.4 value-set ac-code → ADL2 ac-code. */
+  valueSetCodeToAdl2(code: string): string {
+    if (!/^ac\d+(?:\.\d+)*$/i.test(code)) return code;
+    if (this.coding === "at-coded") return code;
+    return bumpFirstSegment("ac", code);
+  }
+
+  /** Replace node at-codes inside an archetype path. */
+  pathToAdl2(path: string): string {
+    return path.replace(
+      /\[(at\d+(?:\.\d+)*)(?=[\],\s])/gi,
+      (_m, code: string) => `[${this.nodeIdToAdl2(code)}`,
+    );
+  }
+
+  terminologyKeyToAdl2(
+    code: string,
+    nodeIds: Set<string>,
+    valueCodes: Set<string>,
+  ): string {
+    if (/^ac\d+(?:\.\d+)*$/i.test(code)) {
+      return this.valueSetCodeToAdl2(code);
+    }
+    if (!isAdl14AtCode(code)) return code;
+    if (valueCodes.has(code)) return this.valueCodeToAdl2(code);
+    if (nodeIds.has(code)) return this.nodeIdToAdl2(code);
+    return this.nodeIdToAdl2(code);
+  }
+
+  createMinter(): Opt14CodeMinter {
+    return new Opt14CodeMinter(this.coding);
+  }
+}
+
+export function opt14CodeMapper(options?: Adl2CodingOptions): Opt14CodeMapper {
+  return new Opt14CodeMapper(resolveAdl2CodingSystem(options));
+}
+
+/** ADL 1.4 node id → ADL2 node code (`at0000` → `id1` when id-coded). */
+export function opt14NodeIdToAdl2(
+  code: string,
+  options?: Adl2CodingOptions,
+): string {
+  return opt14CodeMapper(options).nodeIdToAdl2(code);
 }
 
 function bumpFirstSegment(prefix: string, code: string): string {
@@ -46,29 +122,32 @@ function bumpFirstSegment(prefix: string, code: string): string {
   if (!m) return code;
   const first = m[2];
   const rest = m[3] ?? "";
-  // Specialised-only codes (`at0.1`) keep the 0 top segment, as for node ids.
   if (/^0+$/.test(first) && rest) return `${prefix}0${rest}`;
   return `${prefix}${parseInt(first, 10) + 1}${rest}`;
 }
 
-/** ADL 1.4 value code → ADL2 value at-code (`at0009` → `at10`). */
-export function opt14ValueCodeToAdl2(code: string): string {
-  if (!isAdl14AtCode(code)) return code;
-  return bumpFirstSegment("at", code);
+/** ADL 1.4 value code → ADL2 value at-code (`at0009` → `at10` when id-coded). */
+export function opt14ValueCodeToAdl2(
+  code: string,
+  options?: Adl2CodingOptions,
+): string {
+  return opt14CodeMapper(options).valueCodeToAdl2(code);
 }
 
-/** ADL 1.4 value-set code → ADL2 ac-code (`ac0001` → `ac2`). */
-export function opt14ValueSetCodeToAdl2(code: string): string {
-  if (!/^ac\d+(?:\.\d+)*$/i.test(code)) return code;
-  return bumpFirstSegment("ac", code);
+/** ADL 1.4 value-set code → ADL2 ac-code (`ac0001` → `ac2` when id-coded). */
+export function opt14ValueSetCodeToAdl2(
+  code: string,
+  options?: Adl2CodingOptions,
+): string {
+  return opt14CodeMapper(options).valueSetCodeToAdl2(code);
 }
 
-/** Replace node at-codes inside an archetype path (`/data[at0001]` → `/data[id2]`). */
-export function opt14PathToAdl2(path: string): string {
-  return path.replace(
-    /\[(at\d+(?:\.\d+)*)(?=[\],\s])/gi,
-    (_m, code: string) => `[${opt14NodeIdToAdl2(code)}`,
-  );
+/** Replace node at-codes inside an archetype path. */
+export function opt14PathToAdl2(
+  path: string,
+  options?: Adl2CodingOptions,
+): string {
+  return opt14CodeMapper(options).pathToAdl2(path);
 }
 
 /** Top-level number of an at/ac/id code, or 0. */
@@ -79,14 +158,24 @@ export function topLevelCodeNumber(code: string | undefined): number {
   return parseInt(m[2], 10);
 }
 
+function mintAtNodeCode(n: number): string {
+  if (n < 1000) return `at${String(n).padStart(4, "0")}`;
+  return `at${n}`;
+}
+
 /**
- * Deterministic minting of new codes for one archetype scope. Seed it with
- * every code already present in the scope (after mapping), then call
- * {@link nextId} / {@link nextAc} in depth-first document order.
+ * Deterministic minting of new codes for one archetype scope. Seed with every
+ * code already present in the scope (after mapping), then call {@link nextNodeId}
+ * / {@link nextAc} in depth-first document order.
  */
 export class Opt14CodeMinter {
-  private idCounter = 0;
+  private nodeCounter = 0;
   private acCounter = 0;
+  private readonly coding: Adl2CodingSystem;
+
+  constructor(coding: Adl2CodingSystem = DEFAULT_ADL2_CODING_SYSTEM) {
+    this.coding = coding;
+  }
 
   /** Record an existing ADL2 code so minted codes never collide with it. */
   seen(code: string | undefined): void {
@@ -95,14 +184,26 @@ export class Opt14CodeMinter {
     if (!m) return;
     const n = topLevelCodeNumber(code);
     const p = m[1].toLowerCase();
-    // id- and at-codes share the term namespace; keep minted id-codes clear of both.
-    if (p === "id" || p === "at") this.idCounter = Math.max(this.idCounter, n);
+    if (this.coding === "at-coded") {
+      if (p === "at") this.nodeCounter = Math.max(this.nodeCounter, n);
+    } else {
+      if (p === "id" || p === "at") {
+        this.nodeCounter = Math.max(this.nodeCounter, n);
+      }
+    }
     if (p === "ac") this.acCounter = Math.max(this.acCounter, n);
   }
 
+  /** Mint a new node id (id-code or at-code depending on coding system). */
+  nextNodeId(): string {
+    this.nodeCounter += 1;
+    if (this.coding === "at-coded") return mintAtNodeCode(this.nodeCounter);
+    return `id${this.nodeCounter}`;
+  }
+
+  /** @deprecated Use {@link nextNodeId}. */
   nextId(): string {
-    this.idCounter += 1;
-    return `id${this.idCounter}`;
+    return this.nextNodeId();
   }
 
   nextAc(): string {
@@ -111,10 +212,6 @@ export class Opt14CodeMinter {
   }
 }
 
-/**
- * Collect ADL 1.4 node ids and value at-codes from a `definition` / `rules`
- * body so terminology keys can be remapped like {@link opt14TerminologyKeyToAdl2}.
- */
 export function collectAdl14NodeAndValueCodes(
   definitionOrRules: string,
 ): { nodeIds: Set<string>; valueCodes: Set<string> } {
@@ -135,20 +232,15 @@ export function collectAdl14NodeAndValueCodes(
   return { nodeIds, valueCodes };
 }
 
-/**
- * Remap a terminology table key from ADL 1.4 to ADL2 (same rule as OPT2
- * {@link generation/opt2_serializer.ts} term bags and OPT 1.4 up-conversion).
- */
 export function opt14TerminologyKeyToAdl2(
   code: string,
   nodeIds: Set<string>,
   valueCodes: Set<string>,
+  options?: Adl2CodingOptions,
 ): string {
-  if (/^ac\d+(?:\.\d+)*$/i.test(code)) {
-    return opt14ValueSetCodeToAdl2(code);
-  }
-  if (!isAdl14AtCode(code)) return code;
-  if (valueCodes.has(code)) return opt14ValueCodeToAdl2(code);
-  if (nodeIds.has(code)) return opt14NodeIdToAdl2(code);
-  return opt14NodeIdToAdl2(code);
+  return opt14CodeMapper(options).terminologyKeyToAdl2(
+    code,
+    nodeIds,
+    valueCodes,
+  );
 }
