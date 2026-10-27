@@ -9,6 +9,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 ## [Unreleased]
 
 - **Behaviour change.** ADL2 **at-coded** output (SPECAM-90 / AM 2.4) is the default for OPT 1.4 up-conversion, ADL 1.4 → ADL2 conversion, and contribution-builder template binding. Pass `adl2CodingSystem: "id-coded"` on `bindTemplate`, `upconvertOpt14ToAdl2`, `convertAdl14ToAdl2`, and `OPT2Serializer.serializeOperationalTemplate` to keep the legacy id-coded mapping (`at0000` → `id1`, and so on). Parsing still accepts both coding systems ([#181](https://github.com/ErikSundvall/ehrtslib/issues/181)).
+- Contribution builder template-binding serialisation label remains **`ehrtslib-cb-opt-json/1`** (with `jcs`, `opt14-codes`, and `adl2-coding` parameters) until ehrtslib **1.0**. Pre-1.0 releases may change binding hashes when canonicalisation or code-mapping rules change; there are no backward-compatibility guarantees for stored bindings before 1.0.
 
 ## [0.7.0] - 2026-10-27
 

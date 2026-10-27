@@ -36,18 +36,16 @@ import { JsonCanonicalSerializer } from "../serialization/json/json_canonical_se
 import { canonicalizeJson, sha256Hex } from "./jcs.ts";
 
 /**
- * Version of the canonical serialisation the hash is computed over. Bump it
- * whenever {@link templateCanonicalForm}, ehrtslib's AOM JSON shape, or the
- * OPT 1.4 code mapping changes in a way that changes hashes.
- *
- * `/2` (Erik, 2026-10-26): the hashed form also holds the template identity
- * (`identity` member, see {@link TemplateHashIdentity}).
+ * Label for the canonical serialisation the hash is computed over. The prefix
+ * `ehrtslib-cb-opt-json/1` is fixed until ehrtslib 1.0 (no backward-compat
+ * guarantees for stored bindings before then). Semicolon parameters record
+ * JCS profile, OPT 1.4 code mapping, and ADL2 coding when they affect the hash.
  */
 /** Serialisation version for a template binding hash (includes coding system). */
 export function templateBindingSerialisationVersion(
   coding: Adl2CodingSystem = DEFAULT_ADL2_CODING_SYSTEM,
 ): string {
-  return `ehrtslib-cb-opt-json/3;jcs=rfc8785;opt14-codes=${
+  return `ehrtslib-cb-opt-json/1;jcs=rfc8785;opt14-codes=${
     opt14CodeMappingVersion(coding)
   };adl2-coding=${coding}`;
 }

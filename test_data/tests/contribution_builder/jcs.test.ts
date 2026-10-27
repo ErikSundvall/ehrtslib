@@ -210,7 +210,7 @@ Deno.test("JCS — I-JSON wrapper rules kept from the hand-written version", () 
   assertEquals(canonicalizeJson([shared, shared]), '[{"a":1},{"a":1}]');
 });
 
-Deno.test("JCS — golden template hashes (/3 at-coded default; id-coded still /2)", async () => {
+Deno.test("JCS — golden template hashes (at-coded default; id-coded alternate)", async () => {
   const { bindTemplate, templateContentForm, templateHashIdentity } =
     await import("../../../contribution_builder/mod.ts");
   const atCoded: Record<string, { content: string; binding: string }> = {

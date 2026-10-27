@@ -32,7 +32,6 @@ import {
   type Adl2CodingOptions,
   opt14NodeIdToAdl2,
   opt14TerminologyKeyToAdl2,
-  resolveAdl2CodingSystem,
 } from "../parser/legacy/opt14_code_mapping.ts";
 
 /** Options for {@link OPT2Serializer.serializeOperationalTemplate}. */
