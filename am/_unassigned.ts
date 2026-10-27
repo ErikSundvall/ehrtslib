@@ -149,6 +149,16 @@ export class C_ORDINAL extends C_DOMAIN_TYPE {
 }
 
 /**
+ * Constrainer class for Scale data (DV_SCALE).
+ */
+export class C_SCALE extends C_DOMAIN_TYPE {
+  /**
+   * Value set of allowed scale values in the constraint.
+   */
+  list?: undefined;
+}
+
+/**
  * Constrainer class for Coded text data.
  */
 export class C_CODED_TEXT extends C_DOMAIN_TYPE {

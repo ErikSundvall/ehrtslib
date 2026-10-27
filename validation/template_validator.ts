@@ -18,6 +18,11 @@ import { IntervalValidator } from "./interval_validator.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
 import { InvariantEvaluator } from "./invariant_evaluator.ts";
 import {
+  isQuantityTupleColumns,
+  tupleColumnNames,
+  validateAttributeTuples,
+} from "../parser/attribute_tuple_support.ts";
+import {
   inOrderedRange,
   matchesAdlTemporalPattern,
 } from "./temporal_pattern.ts";
@@ -320,6 +325,49 @@ export class TemplateValidator {
       const msgs = validateOrdinalConstraint(rmNode, cObject, path);
       errors.push(...msgs.filter((m) => m.severity === "error"));
       warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    if (cObject instanceof openehr_am.C_SCALE && rmNode) {
+      const msgs = validateOrdinalConstraint(rmNode, cObject as openehr_am.C_ORDINAL, path);
+      errors.push(...msgs.filter((m) => m.severity === "error"));
+      warnings.push(...msgs.filter((m) => m.severity === "warning"));
+    }
+
+    const attributeTuples = (cObject as {
+      attribute_tuples?: openehr_am.C_ATTRIBUTE_TUPLE[];
+    }).attribute_tuples;
+    if (attributeTuples?.length && rmNode) {
+      const general = attributeTuples.filter((tuple) => {
+        const cols = tupleColumnNames(tuple);
+        if (cObject instanceof openehr_am.C_QUANTITY && isQuantityTupleColumns(cols)) {
+          return false;
+        }
+        if (
+          cObject instanceof openehr_am.C_ORDINAL &&
+          cols.includes("value") &&
+          cols.includes("symbol")
+        ) {
+          return false;
+        }
+        if (
+          cObject instanceof openehr_am.C_SCALE &&
+          cols.includes("value") &&
+          cols.includes("symbol")
+        ) {
+          return false;
+        }
+        return true;
+      });
+      if (general.length) {
+        const tupleMsgs = validateAttributeTuples(
+          rmNode as Record<string, unknown>,
+          general,
+          path,
+        );
+        for (const m of tupleMsgs) {
+          errors.push({ ...m, severity: "error" });
+        }
+      }
     }
 
     // Validate UCUM units once per DV_QUANTITY at this template node (no subtree walk).
@@ -1090,7 +1138,9 @@ function validateQuantityConstraint(
   path: string,
 ): ValidationMessage[] {
   const messages: ValidationMessage[] = [];
-  const list = (cObject as { list?: Array<{ units?: string; magnitude?: RangeLike }> }).list ?? [];
+  const list = (cObject as {
+    list?: Array<{ units?: string; magnitude?: RangeLike; precision?: RangeLike }>;
+  }).list ?? [];
   const units = rmValue?.units;
   if (list.length && units) {
     const match = list.find((item) => item.units === units);
@@ -1101,17 +1151,31 @@ function validateQuantityConstraint(
         severity: "error",
         constraintType: "quantity_units",
       });
-    } else if (
-      match.magnitude &&
-      rmValue.magnitude !== undefined &&
-      !inOrderedRange(rmValue.magnitude, match.magnitude)
-    ) {
-      messages.push({
-        path,
-        message: `magnitude ${rmValue.magnitude} is outside the units interval for ${units}`,
-        severity: "error",
-        constraintType: "quantity_magnitude",
-      });
+    } else {
+      if (
+        match.magnitude &&
+        rmValue.magnitude !== undefined &&
+        !inOrderedRange(rmValue.magnitude, match.magnitude)
+      ) {
+        messages.push({
+          path,
+          message: `magnitude ${rmValue.magnitude} is outside the units interval for ${units}`,
+          severity: "error",
+          constraintType: "quantity_magnitude",
+        });
+      }
+      if (
+        match.precision &&
+        rmValue.precision !== undefined &&
+        !inOrderedRange(rmValue.precision, match.precision)
+      ) {
+        messages.push({
+          path,
+          message: `precision ${rmValue.precision} is outside the allowed interval for ${units}`,
+          severity: "error",
+          constraintType: "quantity_precision",
+        });
+      }
     }
   }
   return messages;

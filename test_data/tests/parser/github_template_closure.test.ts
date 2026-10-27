@@ -18,6 +18,7 @@ import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace
 
 const BLOB_URL =
   "https://github.com/regionstockholm/CKM-mirror-via-modellbibliotek/blob/MultiDiciplinery_Tumor_meetings/local/Diagnostic_MDT_Lung_cancer.t.json";
+const RUN_LIVE_GITHUB = Deno.env.get("EHRTEST_LIVE_GITHUB") === "1";
 
 Deno.test("parseGitHubClinicalModelFileUrl accepts archetype adl links", () => {
   const adl = parseGitHubClinicalModelFileUrl(
@@ -70,6 +71,7 @@ Deno.test("resolveClinicalModelRef finds archetype and template paths", () => {
 
 Deno.test({
   name: "loadGitHubTemplateClosure fetches Diagnostic_MDT_Lung_cancer dependencies",
+  ignore: !RUN_LIVE_GITHUB,
   permissions: { net: true },
   async fn() {
     const events: string[] = [];

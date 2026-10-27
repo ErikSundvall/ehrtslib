@@ -169,6 +169,8 @@ function mapPrimitiveType(xsi: string): string {
     C_DURATION: "C_DURATION",
     C_DV_ORDINAL: "C_ORDINAL",
     C_ORDINAL: "C_ORDINAL",
+    C_DV_SCALE: "C_SCALE",
+    C_SCALE: "C_SCALE",
   };
   return map[xsi] ?? xsi;
 }
@@ -209,6 +211,7 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
   if (mapped === "C_TERMINOLOGY_CODE") return parseCTerminologyCode(n);
   if (mapped === "C_CODED_TEXT") return parseCCodedText(n);
   if (mapped === "C_ORDINAL") return parseCOrdinal(n);
+  if (mapped === "C_SCALE") return parseCScale(n);
   // The primitive constraint classes do not extend C_OBJECT in the generated
   // model but carry equivalent runtime metadata (see ConstraintMeta).
   const primitive = parsePrimitiveItem(n, mapped);
@@ -744,6 +747,16 @@ function parseOrdinalSymbol(
     defining.terminology_id ?? defining.terminologyId ?? rec.terminology_id,
   ) ?? "local";
   return openehr_base.CODE_PHRASE.from(tid, code);
+}
+
+function parseCScale(n: Record<string, unknown>): openehr_am.C_SCALE {
+  const base = parseCOrdinal(n) as OrdinalRuntime;
+  const s = new openehr_am.C_SCALE();
+  s.rm_type_name = n.rm_type_name ? String(n.rm_type_name) : "DV_SCALE";
+  s.occurrences = base.occurrences;
+  if (base.list?.length) (s as OrdinalRuntime).list = base.list;
+  if (base.assumed_value) s.assumed_value = base.assumed_value;
+  return s;
 }
 
 function parseCOrdinal(n: Record<string, unknown>): openehr_am.C_ORDINAL {

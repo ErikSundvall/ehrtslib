@@ -9,6 +9,15 @@ import { Token, TokenType } from "./adl2_tokenizer.ts";
 import * as openehr_am from "../am/openehr_am.ts";
 import * as openehr_base from "../base/openehr_base.ts";
 import type { QuantityItemInterval } from "./legacy/xml_aom_mapper.ts";
+import {
+  copyAttributeTuples,
+  isQuantityTupleColumns,
+  ordinalListFromTuple,
+  quantityItemsFromTuple,
+  scaleListFromTuple,
+  syncDomainListsFromAttributeTuples,
+  tupleColumnNames,
+} from "./attribute_tuple_support.ts";
 
 /**
  * cADL Parser for definition section
@@ -71,10 +80,10 @@ export class CadlParser {
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
         this.skipComments();
         if (this.check(TokenType.LBRACKET)) {
-          const tupleAttr = this.tryParseQuantityTupleAttribute();
-          if (tupleAttr) {
-            if (!cObject.attributes) cObject.attributes = [];
-            cObject.attributes.push(tupleAttr);
+          const tuple = this.tryParseAttributeTuple();
+          if (tuple) {
+            if (!cObject.attribute_tuples) cObject.attribute_tuples = [];
+            cObject.attribute_tuples.push(tuple);
             continue;
           }
           this.skipTupleAttribute();
@@ -96,6 +105,13 @@ export class CadlParser {
     if (cObject.rm_type_name === "DV_QUANTITY") {
       return this.reifyQuantity(cObject);
     }
+    if (cObject.rm_type_name === "DV_ORDINAL") {
+      return this.reifyOrdinal(cObject);
+    }
+    if (cObject.rm_type_name === "DV_SCALE") {
+      return this.reifyScale(cObject);
+    }
+    syncDomainListsFromAttributeTuples(cObject);
     return cObject;
   }
 
@@ -693,6 +709,30 @@ export class CadlParser {
   /**
    * Primitive interval constraint: `{|>0|}`, `{|0..10|}`, `{|0..<100|}`.
    */
+  /** Tuple cell: `{|0..10|}` or exact `{1}` / `{1.5}`. */
+  private tryParseTupleNumericCell(): openehr_am.C_PRIMITIVE_OBJECT | null {
+    const interval = this.tryParseIntervalConstraint();
+    if (interval) return interval;
+    if (
+      !this.check(TokenType.INTEGER) && !this.check(TokenType.REAL) &&
+      !this.check(TokenType.MINUS)
+    ) {
+      return null;
+    }
+    let expr = "";
+    if (this.check(TokenType.MINUS)) expr += this.advance().value;
+    if (this.check(TokenType.INTEGER) || this.check(TokenType.REAL)) {
+      expr += this.advance().value;
+    }
+    if (!expr) return null;
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = expr.includes(".") ? "Real" : "Integer";
+    const str = new openehr_am.C_STRING();
+    str.pattern = expr;
+    prim.item = str;
+    return prim;
+  }
+
   private tryParseIntervalConstraint(): openehr_am.C_PRIMITIVE_OBJECT | null {
     if (!this.check(TokenType.PIPE)) return null;
     const prev = this.previous();
@@ -870,15 +910,11 @@ export class CadlParser {
     q.node_id = obj.node_id;
     q.occurrences = obj.occurrences;
     const items: openehr_am.C_QUANTITY_ITEM[] = [];
-    const tupleAttr = obj.attributes?.find((a) =>
-      a.rm_attribute_name.startsWith("[")
+    const qtyTuple = obj.attribute_tuples?.find((t) =>
+      isQuantityTupleColumns(tupleColumnNames(t))
     );
-    if (tupleAttr) {
-      for (const row of (tupleAttr as { children?: openehr_am.C_OBJECT[] })
-        .children ?? []) {
-        const item = this.quantityItemFromTupleRow(row);
-        if (item) items.push(item);
-      }
+    if (qtyTuple) {
+      items.push(...quantityItemsFromTuple(qtyTuple));
     } else {
       const unitsAttr = obj.attributes?.find((a) =>
         a.rm_attribute_name === "units"
@@ -923,7 +959,46 @@ export class CadlParser {
       }
     }
     if (items.length) (q as { list?: openehr_am.C_QUANTITY_ITEM[] }).list = items;
+    copyAttributeTuples(obj, q);
     return q;
+  }
+
+  private reifyOrdinal(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+  ): openehr_am.C_ORDINAL {
+    const o = new openehr_am.C_ORDINAL();
+    o.rm_type_name = obj.rm_type_name ?? "DV_ORDINAL";
+    o.node_id = obj.node_id;
+    o.occurrences = obj.occurrences;
+    const ordTuple = obj.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
+    if (ordTuple) {
+      const list = ordinalListFromTuple(ordTuple);
+      if (list.length) (o as { list?: openehr_am.ORDINAL[] }).list = list;
+    }
+    copyAttributeTuples(obj, o);
+    return o;
+  }
+
+  private reifyScale(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+  ): openehr_am.C_SCALE {
+    const s = new openehr_am.C_SCALE();
+    s.rm_type_name = obj.rm_type_name ?? "DV_SCALE";
+    s.node_id = obj.node_id;
+    s.occurrences = obj.occurrences;
+    const scaleTuple = obj.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
+    if (scaleTuple) {
+      const list = scaleListFromTuple(scaleTuple);
+      if (list.length) (s as { list?: openehr_am.ORDINAL[] }).list = list;
+    }
+    copyAttributeTuples(obj, s);
+    return s;
   }
 
   private readUnitsConstraint(
@@ -952,36 +1027,7 @@ export class CadlParser {
     return parseCadlIntervalPattern(str.pattern);
   }
 
-  private quantityItemFromTupleRow(
-    row: openehr_am.C_OBJECT,
-  ): openehr_am.C_QUANTITY_ITEM | undefined {
-    if (!(row instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
-    const item = new openehr_am.C_QUANTITY_ITEM();
-    for (const attr of row.attributes ?? []) {
-      const child = (attr as { children?: openehr_am.C_OBJECT[] }).children?.[0];
-      if (attr.rm_attribute_name === "units") {
-        const units = this.readUnitsConstraint(attr);
-        if (units[0]) item.units = units[0];
-      } else if (attr.rm_attribute_name === "magnitude") {
-        item.magnitude = this.readIntervalConstraint(attr);
-      } else if (attr.rm_attribute_name === "precision") {
-        item.precision = this.readIntervalConstraint(attr);
-      } else if (child instanceof openehr_am.C_PRIMITIVE_OBJECT) {
-        const body = child.item;
-        if (body instanceof openehr_am.C_STRING && body.pattern) {
-          if (attr.rm_attribute_name === "units") item.units = body.pattern;
-          else if (attr.rm_attribute_name === "magnitude") {
-            item.magnitude = this.readIntervalConstraint(attr);
-          } else if (attr.rm_attribute_name === "precision") {
-            item.precision = this.readIntervalConstraint(attr);
-          }
-        }
-      }
-    }
-    return item.units || item.magnitude || item.precision ? item : undefined;
-  }
-
-  private tryParseQuantityTupleAttribute(): openehr_am.C_ATTRIBUTE | null {
+  private tryParseAttributeTuple(): openehr_am.C_ATTRIBUTE_TUPLE | null {
     if (!this.check(TokenType.LBRACKET)) return null;
     const start = this.position;
     this.advance();
@@ -1008,69 +1054,88 @@ export class CadlParser {
       return null;
     }
     this.advance();
-    const attr = new openehr_am.C_MULTIPLE_ATTRIBUTE();
-    attr.rm_attribute_name = `[${columns.join(", ")}]`;
-    const children: openehr_am.C_OBJECT[] = [];
+    const tuple = new openehr_am.C_ATTRIBUTE_TUPLE();
+    tuple.members = columns.map((name) => {
+      const member = new openehr_am.C_SINGLE_ATTRIBUTE();
+      member.rm_attribute_name = name;
+      return member;
+    });
+    const rows: openehr_am.C_PRIMITIVE_TUPLE[] = [];
     while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
       this.skipComments();
       while (this.check(TokenType.COMMA)) this.advance();
-      if (this.check(TokenType.RBRACKET)) {
-        const row = this.parseQuantityTupleRow(columns);
-        if (row) children.push(row);
+      if (this.check(TokenType.LBRACKET)) {
+        const row = this.parseAttributeTupleRow(columns.length);
+        if (row) rows.push(row);
         continue;
       }
       if (this.check(TokenType.RBRACE)) break;
       this.advance();
     }
-    this.consume(TokenType.RBRACE, "Expected '}' to close quantity tuple");
-    if (!children.length) {
+    this.consume(TokenType.RBRACE, "Expected '}' to close attribute tuple");
+    if (!rows.length) {
       this.position = start;
       return null;
     }
-    (attr as { children: openehr_am.C_OBJECT[] }).children = children;
-    return attr;
+    tuple.tuples = rows;
+    return tuple;
   }
 
-  private parseQuantityTupleRow(
-    columns: string[],
-  ): openehr_am.C_COMPLEX_OBJECT | null {
+  private parseAttributeTupleRow(
+    columnCount: number,
+  ): openehr_am.C_PRIMITIVE_TUPLE | null {
     if (!this.check(TokenType.LBRACKET)) return null;
     this.advance();
-    const cells: Record<string, openehr_am.C_OBJECT> = {};
-    for (let i = 0; i < columns.length; i++) {
-      if (!this.check(TokenType.LBRACE)) return null;
+    const members: openehr_am.C_OBJECT[] = [];
+    for (let i = 0; i < columnCount; i++) {
+      const cell = this.parseTupleCell();
+      if (!cell) return null;
+      members.push(cell);
+      if (this.check(TokenType.COMMA)) this.advance();
+    }
+    this.consume(TokenType.RBRACKET, "Expected ']' to close attribute tuple row");
+    const row = new openehr_am.C_PRIMITIVE_TUPLE();
+    row.members = members;
+    return row;
+  }
+
+  private parseTupleCell(): openehr_am.C_OBJECT | null {
+    if (!this.check(TokenType.LBRACE)) return null;
+    this.advance();
+    let obj: openehr_am.C_OBJECT | null = null;
+    if (this.check(TokenType.STAR)) {
       this.advance();
-      const col = columns[i];
-      if (col === "units") {
+      const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+      prim.rm_type_name = "STRING";
+      const str = new openehr_am.C_STRING();
+      str.pattern = "*";
+      prim.item = str;
+      obj = prim;
+    } else {
+      obj = this.tryParseTerminologyConstraint() ??
+        this.tryParseTupleNumericCell() ??
+        this.tryParseIntervalConstraint() ??
+        this.tryParseNumericConstraint();
+      if (!obj && this.check(TokenType.STRING)) {
         const prim = new openehr_am.C_PRIMITIVE_OBJECT();
         prim.rm_type_name = "STRING";
         const str = new openehr_am.C_STRING();
-        if (this.check(TokenType.STRING)) {
-          str.pattern = this.advance().value.replace(/^["']|["']$/g, "");
-        } else if (this.check(TokenType.STAR)) {
-          this.advance();
-          str.pattern = "*";
-        }
+        str.pattern = this.advance().value.replace(/^["']|["']$/g, "");
         prim.item = str;
-        cells[col] = prim;
-      } else if (col === "magnitude" || col === "precision") {
-        const interval = this.tryParseIntervalConstraint();
-        if (interval) cells[col] = interval;
+        obj = prim;
       }
-      this.consume(TokenType.RBRACE, "Expected '}' in quantity tuple cell");
-      if (this.check(TokenType.COMMA)) this.advance();
+      if (!obj && this.check(TokenType.REGEX)) {
+        obj = this.tryParseRegexConstraint();
+      }
+      if (!obj && this.check(TokenType.IDENTIFIER)) {
+        const checkpoint = this.position;
+        const nested = this.parseChildObject();
+        if (nested) obj = nested;
+        else this.position = checkpoint;
+      }
     }
-    this.consume(TokenType.RBRACKET, "Expected ']' to close quantity tuple row");
-    const row = new openehr_am.C_COMPLEX_OBJECT();
-    row.attributes = columns
-      .filter((c) => cells[c])
-      .map((c) => {
-        const a = new openehr_am.C_SINGLE_ATTRIBUTE();
-        a.rm_attribute_name = c;
-        (a as { children: openehr_am.C_OBJECT[] }).children = [cells[c]];
-        return a;
-      });
-    return row.attributes?.length ? row : null;
+    this.consume(TokenType.RBRACE, "Expected '}' in tuple cell");
+    return obj;
   }
 
   /** `[units, magnitude] matches { … }` — kept in the text, not reified. */
@@ -1530,10 +1595,11 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
   const t = expr.trim();
   if (!t) return undefined;
   const interval: QuantityItemInterval = {};
-  const range = /^(.+)\.\.<?(.+)$/.exec(t);
+  const range = /^(.+)\.\.(<)?(.+)$/.exec(t);
   if (range) {
     const lowerPart = range[1];
-    const upperPart = range[2];
+    const exclusiveUpper = range[2] === "<";
+    const upperPart = range[3];
     if (lowerPart.startsWith(">")) {
       interval.lower_included = false;
       interval.lower = parseFloat(lowerPart.slice(1));
@@ -1541,9 +1607,11 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
       interval.lower_included = true;
       interval.lower = parseFloat(lowerPart);
     }
-    if (upperPart.startsWith("<")) {
+    if (exclusiveUpper || upperPart.startsWith("<")) {
       interval.upper_included = false;
-      interval.upper = parseFloat(upperPart.slice(1));
+      interval.upper = parseFloat(
+        exclusiveUpper ? upperPart : upperPart.slice(1),
+      );
     } else {
       interval.upper_included = true;
       interval.upper = parseFloat(upperPart);
@@ -1576,6 +1644,15 @@ function parseCadlIntervalPattern(expr: string): QuantityItemInterval | undefine
     interval.upper = parseFloat(lt[1]);
     interval.upper_included = false;
     interval.lower_unbounded = true;
+    return interval;
+  }
+  const exact = /^-?\d+(?:\.\d+)?$/.exec(t);
+  if (exact) {
+    const n = parseFloat(exact[0]);
+    interval.lower = n;
+    interval.upper = n;
+    interval.lower_included = true;
+    interval.upper_included = true;
     return interval;
   }
   return undefined;

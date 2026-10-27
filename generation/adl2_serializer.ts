@@ -6,6 +6,12 @@
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
+import * as openehr_base from "../base/openehr_base.ts";
+import {
+  buildOrdinalAttributeTuple,
+  tupleColumnNames,
+  type AttributeTupleHost,
+} from "../parser/attribute_tuple_support.ts";
 import {
   serializeAnnotationsSection,
   serializeDescriptionSection,
@@ -217,6 +223,9 @@ export class ADL2Serializer {
     if (cObject instanceof openehr_am.C_ORDINAL) {
       return this.serializeOrdinal(cObject, level);
     }
+    if (cObject instanceof openehr_am.C_SCALE) {
+      return this.serializeScale(cObject, level);
+    }
     if (cObject instanceof openehr_am.C_CODED_TEXT) {
       return this.serializeCodedText(cObject, level);
     }
@@ -246,10 +255,14 @@ export class ADL2Serializer {
     );
 
     const attrs = cObject.attributes;
-    if (attrs && attrs.length > 0) {
+    const tuples = (cObject as AttributeTupleHost).attribute_tuples ?? [];
+    if ((attrs && attrs.length > 0) || tuples.length > 0) {
       let adl = line + " matches {\n";
-      for (const attr of attrs) {
+      for (const attr of attrs ?? []) {
         adl += this.serializeAttribute(attr, level + 1);
+      }
+      for (const tuple of tuples) {
+        adl += this.serializeAttributeTuple(tuple, level + 1);
       }
       adl += `${indent}}\n`;
       return adl;
@@ -392,6 +405,34 @@ export class ADL2Serializer {
     level: number,
   ): string {
     const indent = this.getIndent(level);
+    const tupleHost = quantity as AttributeTupleHost;
+    const existingTuple = tupleHost.attribute_tuples?.find((t) =>
+      tupleColumnNames(t).some((c) =>
+        c === "units" || c === "magnitude" || c === "precision"
+      )
+    );
+    if (existingTuple) {
+      const head = this.cObjectHead(
+        quantity.rm_type_name || "DV_QUANTITY",
+        quantity,
+        level,
+      );
+      const lines: string[] = [];
+      const inner = this.getIndent(level + 1);
+      if (quantity.property) {
+        const tid = (quantity as { property_terminology_id?: string })
+          .property_terminology_id;
+        const code = quantity.property;
+        const coded = tid || /^(?:at|ac|id)\d/i.test(code);
+        const body = coded
+          ? this.formatTermCode(tid, code)
+          : JSON.stringify(code);
+        lines.push(`${inner}property matches {${body}}`);
+      }
+      lines.push(this.serializeAttributeTuple(existingTuple, level + 1).trimEnd());
+      if (!lines.length) return head + "\n";
+      return `${head} matches {\n${lines.join("\n")}\n${indent}}\n`;
+    }
     const items = ((quantity as { list?: QuantityItemView[] }).list ?? [])
       .filter((item) => item);
     const head = this.cObjectHead(
@@ -441,7 +482,7 @@ export class ADL2Serializer {
     return magnitudes.size <= 1 && precisions.size <= 1;
   }
 
-  /** Co-varying units / magnitude / precision. The cADL parser skips tuples. */
+  /** Co-varying units / magnitude / precision (ADL2 tuple constraint). */
   private quantityTuple(items: QuantityItemView[], level: number): string {
     const columns: Array<"units" | "magnitude" | "precision"> = [];
     if (items.some((item) => item.units)) columns.push("units");
@@ -474,16 +515,98 @@ export class ADL2Serializer {
     return text ? `{|${text}|}` : `{*}`;
   }
 
+  protected serializeAttributeTuple(
+    tuple: openehr_am.C_ATTRIBUTE_TUPLE,
+    level: number,
+  ): string {
+    const columns = tupleColumnNames(tuple);
+    const inner = this.getIndent(level);
+    const rowIndent = this.getIndent(level + 1);
+    const rows = (tuple.tuples ?? []).map((row) => {
+      const cells = (row.members ?? []).map((member) =>
+        this.serializeTupleCell(member)
+      );
+      return `${rowIndent}[${cells.join(", ")}]`;
+    });
+    return `${inner}[${columns.join(", ")}] matches {\n${rows.join(",\n")}\n${inner}}\n`;
+  }
+
+  private serializeTupleCell(cell: openehr_am.C_OBJECT): string {
+    if (cell instanceof openehr_am.C_COMPLEX_OBJECT) {
+      const body = this.serializeCObject(cell, 0).trim().replace(/\s+/g, " ");
+      return `{${body}}`;
+    }
+    if (cell instanceof openehr_am.C_TERMINOLOGY_CODE) {
+      const codes = (cell as { code_list?: string[] }).code_list;
+      const tid = (cell as { terminology_id?: string }).terminology_id;
+      if (codes?.length) {
+        const body = codes.map((c) => this.formatTermCode(tid, c)).join(", ");
+        return `{${body}}`;
+      }
+      const code = cell.constraint;
+      if (code) return `{${this.formatTermCode(tid, code)}}`;
+    }
+    if (cell instanceof openehr_am.C_PRIMITIVE_OBJECT && cell.item) {
+      if (
+        cell.item instanceof openehr_am.C_INTEGER ||
+        cell.item instanceof openehr_am.C_REAL
+      ) {
+        const list = (cell.item as { list?: number[] }).list;
+        const range = formatInterval(
+          (cell.item as { range?: IntervalLike }).range,
+        );
+        if (list?.length === 1 && !range) return `{${list[0]}}`;
+        if (range) return `{|${range}|}`;
+        if (list?.length) {
+          return `{${list.map((n) => `|${n}|`).join(", ")}}`;
+        }
+      }
+      const inline = this.inlinePrimitiveMatch(cell);
+      if (inline) return `{${inline}}`;
+      const body = this.primitiveBody(cell.item, cell.rm_type_name);
+      if (body) {
+        if (body.startsWith("|") && body.endsWith("|")) return `{${body}}`;
+        if (body.startsWith("/")) return `{${body}}`;
+        return `{${body}}`;
+      }
+    }
+    return "{*}";
+  }
+
   protected serializeOrdinal(
     ordinal: openehr_am.C_ORDINAL,
     level: number,
   ): string {
+    const tupleHost = ordinal as AttributeTupleHost;
+    const existingTuple = tupleHost.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
     const items = (ordinal as {
       list?: Array<{
         value?: number;
         symbol?: { code_string?: string; terminology_id?: unknown };
       }>;
     }).list ?? [];
+    const tuple = existingTuple ??
+      (items.length ? buildOrdinalAttributeTuple(items.map((item) => ({
+        value: item.value,
+        symbol: item.symbol?.code_string
+          ? openehr_base.CODE_PHRASE.from(
+            asTerminologyId(item.symbol?.terminology_id) ?? "local",
+            item.symbol.code_string,
+          )
+          : undefined,
+      }))) : undefined);
+    if (tuple) {
+      const head = this.cObjectHead(
+        ordinal.rm_type_name || "DV_ORDINAL",
+        ordinal,
+        level,
+      );
+      const body = this.serializeAttributeTuple(tuple, level + 1).trimEnd();
+      return `${head} matches {\n${body}\n${this.getIndent(level)}}\n`;
+    }
     if (!items.length) {
       return this.cObjectHead(
         ordinal.rm_type_name || "DV_ORDINAL",
@@ -491,8 +614,7 @@ export class ADL2Serializer {
         level,
       ) + "\n";
     }
-    // One alternative per rung so value and symbol stay paired and cADL can
-    // re-read the block. Occurrences stay on the parent attribute.
+    // Legacy: separate DV_ORDINAL per list entry when tuple cannot be built.
     let adl = "";
     items.forEach((item, index) => {
       const shell = new openehr_am.C_ORDINAL();
@@ -523,6 +645,43 @@ export class ADL2Serializer {
       adl += `${head} matches {\n${lines.join("\n")}\n${this.getIndent(level)}}\n`;
     });
     return adl;
+  }
+
+  protected serializeScale(
+    scale: openehr_am.C_SCALE,
+    level: number,
+  ): string {
+    const tupleHost = scale as AttributeTupleHost;
+    const existingTuple = tupleHost.attribute_tuples?.find((t) => {
+      const cols = tupleColumnNames(t);
+      return cols.includes("value") || cols.includes("symbol");
+    });
+    const items = (scale as {
+      list?: Array<{
+        value?: number;
+        symbol?: { code_string?: string; terminology_id?: unknown };
+      }>;
+    }).list ?? [];
+    const tuple = existingTuple ??
+      (items.length ? buildOrdinalAttributeTuple(items.map((item) => ({
+        value: item.value,
+        symbol: item.symbol?.code_string
+          ? openehr_base.CODE_PHRASE.from(
+            asTerminologyId(item.symbol?.terminology_id) ?? "local",
+            item.symbol.code_string,
+          )
+          : undefined,
+      }))) : undefined);
+    if (tuple) {
+      const head = this.cObjectHead(
+        scale.rm_type_name || "DV_SCALE",
+        scale,
+        level,
+      );
+      const body = this.serializeAttributeTuple(tuple, level + 1).trimEnd();
+      return `${head} matches {\n${body}\n${this.getIndent(level)}}\n`;
+    }
+    return this.cObjectHead(scale.rm_type_name || "DV_SCALE", scale, level) + "\n";
   }
 
   protected serializeCodedText(
