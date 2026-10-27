@@ -903,6 +903,13 @@ function detach(parent: JsonObject, node: JsonObject): boolean {
         delete v[k];
         return true;
       }
+      // Removing the last member drops the attribute: RM invariants such as
+      // ITEM_TREE / HISTORY ones reject an empty list but allow a Void one.
+      if (Array.isArray(x) && x.includes(node)) {
+        x.splice(x.indexOf(node), 1);
+        if (x.length === 0) delete v[k];
+        return true;
+      }
       if (k !== "uid" && !isLocatable(x) && visit(x)) return true;
     }
     return false;

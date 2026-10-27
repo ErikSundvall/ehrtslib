@@ -559,7 +559,10 @@ export class RMInstanceGenerator {
     const codes = (cObject as { code_list?: string[] }).code_list;
     const code = cObject.default_value?.code_string ??
       cObject.assumed_value?.code_string ??
-      cObject.constraint ??
+      // An ac-code names a value set; the instance holds one of its members.
+      (cObject.constraint && !(/^ac\d/.test(cObject.constraint) && codes?.length)
+        ? cObject.constraint
+        : undefined) ??
       codes?.[0] ??
       "at0000";
     const terminology =
@@ -594,7 +597,7 @@ export class RMInstanceGenerator {
     const rmType = "rm_type_name" in cObject
       ? (cObject.rm_type_name ?? "")
       : "";
-    if (rmType === "DURATION") return "PT1H";
+    if (rmType === "DURATION") return durationWithinRange(cObject) ?? "PT1H";
     return this.generateDataValueByType(rmType, pathHint);
   }
 
@@ -760,5 +763,29 @@ function termLabel(val: unknown): string | undefined {
     const o = val as Record<string, unknown>;
     return termLabel(o.value) ?? termLabel(o.text) ?? termLabel(o["#text"]);
   }
+  return undefined;
+}
+
+/**
+ * A duration that satisfies the constraint's range (legacy OPT wraps C_DURATION
+ * in `C_PRIMITIVE_OBJECT.item`): the lower bound when included, else the upper.
+ */
+function durationWithinRange(cObject: unknown): string | undefined {
+  const c = cObject as {
+    range?: unknown;
+    constraint?: unknown;
+    item?: { range?: unknown };
+  };
+  const raw = c.item?.range ?? c.range ??
+    (Array.isArray(c.constraint) ? c.constraint[0] : c.constraint);
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as {
+    lower?: unknown;
+    upper?: unknown;
+    lower_included?: boolean;
+    upper_included?: boolean;
+  };
+  if (typeof r.lower === "string" && r.lower_included !== false) return r.lower;
+  if (typeof r.upper === "string" && r.upper_included !== false) return r.upper;
   return undefined;
 }

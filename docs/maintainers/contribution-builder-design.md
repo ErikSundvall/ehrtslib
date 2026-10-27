@@ -219,6 +219,8 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   must be valid. Incomplete mode lists the missing required fields.
 - CDR behaviour differs today: EHRbase 2.36 rejects an incomplete version
   that misses mandatory content (ehrbase#1630); FerroEHR accepts it.
+- Phase 1 (#165): `contributionBuilder.DraftValidator` runs the full check on
+  request; see ADR 0008, section "Implementation".
 
 ## 9. Attribution, conflicts, storage and commit
 
