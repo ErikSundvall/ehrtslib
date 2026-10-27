@@ -575,11 +575,11 @@ export class RMSpecificationValidator {
       if (!owners.has(row.className)) continue;
       if (!row.expression.trim()) continue;
       // Offset is optional on instances until a CDR or generator sets it.
-      if (
-        row.className === "EVENT" && row.name === "Offset_validity1" &&
-        (rmValue as Record<string, unknown>).offset == null
-      ) {
-        continue;
+      if (row.className === "EVENT" && row.name === "Offset_validity1") {
+        const offset = (rmValue as Record<string, unknown>).offset;
+        if (offset == null || typeof offset === "function") {
+          continue;
+        }
       }
       const result = evaluateBmmExpression(row.expression, rmValue);
       if (result === undefined) continue;

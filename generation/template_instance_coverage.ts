@@ -135,7 +135,8 @@ function shouldIncludeObject(
   return bounds.min > 0 || mode !== "minimal";
 }
 
-function shouldIncludeAttribute(
+/** Whether {@link RMInstanceGenerator} materialises this attribute in `mode`. */
+export function shouldIncludeAttribute(
   cAttribute: openehr_am.C_ATTRIBUTE,
   mode: GenerationMode,
 ): boolean {

@@ -28,5 +28,4 @@ export * as serialization from "./serialization/mod.ts";
 export * as validation from "./validation/mod.ts";
 export * as generation from "./generation/mod.ts";
 export * as meta from "./meta/mod.ts";
-export * as contributionBuilder from "./contribution_builder/mod.ts";
 export { EHRTSLIB_VERSION } from "./version.ts";

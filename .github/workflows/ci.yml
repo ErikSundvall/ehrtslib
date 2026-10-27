@@ -17,6 +17,21 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Install xmllint (OPT 1.4 Template.xsd tests)
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+      - name: Cache openEHR ITS-XML test XSDs
+        uses: actions/cache@v4
+        with:
+          path: |
+            test_data/xsd/openehr-its-xml/components
+            test_data/xsd/openehr-its-xml/UPSTREAM-LICENSE
+            test_data/xsd/openehr-its-xml/.stamp
+          key: openehr-its-xml-${{ hashFiles('test_data/xsd/openehr-its-xml/PIN', 'scripts/refresh_openehr_its_xml.ts') }}
+
+      - name: Fetch openEHR ITS-XML test XSDs
+        run: deno task refresh:openehr-its-xml
+
       - name: Typecheck model modules
         run: deno task check
 

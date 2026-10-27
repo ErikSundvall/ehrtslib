@@ -6,7 +6,10 @@
 
 import * as openehr_am from "../../am/openehr_am.ts";
 import { parseAdl } from "../../parser/parse_adl.ts";
-import { mergeAttributeTupleSets } from "./attribute_tuple_p_model.ts";
+import {
+  childTupleRowsNarrowParent,
+  mergeAttributeTupleSets,
+} from "./attribute_tuple_p_model.ts";
 import {
   type PAttribute,
   pClone,
@@ -359,6 +362,26 @@ export function specialiseObject(
       continue;
     }
     mergeAttribute(ta, da, warn);
+  }
+  if (diff.attributeTuples?.length && parentFlat.attributeTuples?.length) {
+    const pairs = Math.min(
+      diff.attributeTuples.length,
+      parentFlat.attributeTuples.length,
+    );
+    for (let i = 0; i < pairs; i++) {
+      const parentTuple = parentFlat.attributeTuples[i];
+      const childTuple = diff.attributeTuples[i];
+      if (
+        parentTuple && childTuple &&
+        !childTupleRowsNarrowParent(parentTuple, childTuple)
+      ) {
+        warn(
+          `specialised attribute tuple rows do not narrow parent (columns ${
+            childTuple.columns.join(", ")
+          }) on ${diff.rmType || result.rmType}`,
+        );
+      }
+    }
   }
   result.attributeTuples = mergeAttributeTupleSets(
     parentFlat.attributeTuples,

@@ -65,6 +65,10 @@ Deno.test("Archie-Inspired - Occurrence Validation", () => {
   const template = archetypeWithDefinition("OBSERVATION", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "data";
+    const existence = new openehr_base.Multiplicity_interval();
+    existence.lower = 1;
+    existence.upper = 1;
+    attr.existence = existence;
     const history = new openehr_am.C_COMPLEX_OBJECT();
     history.rm_type_name = "HISTORY";
     history.node_id = "id2";

@@ -29,7 +29,9 @@ import {
   type TermTable,
 } from "./adl2_template_library.ts";
 import {
+  isOpt14ExportableTuple,
   ordinalListRowsFromP,
+  opt14UnexportableTuples,
   quantityListRowsFromP,
 } from "./attribute_tuple_p_model.ts";
 import {
@@ -819,6 +821,14 @@ export class Opt14Exporter {
         upper: 1,
       });
 
+    for (const tuple of opt14UnexportableTuples(o.attributeTuples)) {
+      this.warn(
+        `${comp.base.id}: attribute tuple [${
+          tuple.columns.join(", ")
+        }] has no OPT 1.4 representation (rows dropped from export)`,
+      );
+    }
+
     // DV_QUANTITY → C_DV_QUANTITY
     if (o.kind === "complex" && o.rmType === "DV_QUANTITY") {
       this.writeQuantity(x, o, tag, occ, comp);
@@ -1031,6 +1041,13 @@ export class Opt14Exporter {
       }
     }
     const tupleRows = quantityListRowsFromP(o.attributeTuples);
+    if (
+      o.attributeTuples?.some(isOpt14ExportableTuple) && !tupleRows.length
+    ) {
+      this.warn(
+        `${comp.base.id}: DV_QUANTITY tuple rows could not be written to OPT 1.4 list`,
+      );
+    }
     if (tupleRows.length) {
       for (const row of tupleRows) {
         x.open("list");
@@ -1083,6 +1100,15 @@ export class Opt14Exporter {
     writeInterval(x, "occurrences", occ);
     x.leaf("node_id", "");
     const rows = ordinalListRowsFromP(o.attributeTuples);
+    if (
+      o.attributeTuples?.some((t) =>
+        t.columns.includes("value") && t.columns.includes("symbol")
+      ) && !rows.length
+    ) {
+      this.warn(
+        `${comp.base.id}: ${o.rmType} tuple rows could not be written to OPT 1.4 list`,
+      );
+    }
     if (rows.length) {
       for (const row of rows) {
         x.open("list");

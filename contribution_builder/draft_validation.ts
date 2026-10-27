@@ -19,6 +19,9 @@
  * LOCATABLE node with a uid.
  */
 
+import * as openehr_am from "../am/openehr_am.ts";
+import { RMInstanceGenerator } from "../generation/rm_instance_generator.ts";
+import { toCanonicalRmJson } from "./contribution_build.ts";
 import {
   TemplateValidator,
   type ValidationConfig,
@@ -150,21 +153,29 @@ export class DraftValidator {
     const root = build.toCanonicalJson(draftId);
     fillEventOffsets(root);
     const raw = this.validator.validate(root, template.operationalTemplate);
+    const minimalRef = minimalSkeletonReference(template.operationalTemplate);
+    const optionalAbsent = optionalAbsentAttributeMessages(
+      root,
+      template.operationalTemplate.definition,
+      "/",
+      minimalRef,
+    );
 
     const seen = new Set<string>();
     const errors: DraftProblem[] = [];
     const warnings: DraftProblem[] = [];
     const missing: DraftProblem[] = [];
-    for (const m of [...raw.errors, ...raw.warnings]) {
+    for (const m of [...raw.errors, ...raw.warnings, ...optionalAbsent]) {
       const p = toProblem(root, m);
       const id = `${p.severity}|${p.path}|${p.constraintType}|${p.message}`;
       if (seen.has(id)) continue;
       seen.add(id);
+      if (p.kind === "missing") missing.push(p);
       if (p.severity === "warning") {
         warnings.push(p);
+        if (p.kind === "missing" && mode === "complete") errors.push(p);
         continue;
       }
-      if (p.kind === "missing") missing.push(p);
       if (mode === "complete" || p.kind === "invalid" || p.source === "rm") {
         errors.push(p);
       }
@@ -337,6 +348,99 @@ function invariantFailsOnAbsence(
  * store it, so a version read back has none; compute it for validation so
  * template constraints and the RM invariant on it see the real value.
  */
+function isPresentRmValue(rmValue: unknown): boolean {
+  if (rmValue === null || rmValue === undefined) return false;
+  if (typeof rmValue === "function") return false;
+  if (Array.isArray(rmValue) && rmValue.length === 0) return false;
+  return true;
+}
+
+function minimalSkeletonReference(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+): RmJson {
+  const skeleton = toCanonicalRmJson(
+    new RMInstanceGenerator({ mode: "minimal" }).generate(opt),
+  ) as Record<string, unknown>;
+  delete skeleton.composer;
+  delete skeleton.uid;
+  return skeleton as RmJson;
+}
+
+/** Optional template attributes removed from the instance (not unfilled placeholders). */
+function optionalAbsentAttributeMessages(
+  rmNode: unknown,
+  cObject: openehr_am.C_OBJECT | undefined,
+  path: string,
+  minimalNode: unknown,
+): ValidationMessage[] {
+  const out: ValidationMessage[] = [];
+  if (!cObject || !(cObject instanceof openehr_am.C_COMPLEX_OBJECT)) {
+    return out;
+  }
+  if (!isObj(rmNode) && !Array.isArray(rmNode)) return out;
+  const skipAbsentHere = cObject.rm_type_name === "ITEM_TREE" ||
+    cObject.rm_type_name === "ITEM_LIST";
+  for (const attr of cObject.attributes ?? []) {
+    const attrName = attr.rm_attribute_name;
+    if (!attrName) continue;
+    const rawValue = isObj(rmNode) ? rmNode[attrName] : undefined;
+    const attrPath = `${path}${attrName}/`;
+    const existence = (attr as { existence?: { lower?: number } }).existence;
+    const children = attr.children ?? [];
+    const keyMissing = isObj(rmNode) &&
+      !Object.prototype.hasOwnProperty.call(rmNode, attrName);
+    const minimalHadKey = isObj(minimalNode) &&
+      Object.prototype.hasOwnProperty.call(minimalNode, attrName);
+    if (
+      !skipAbsentHere &&
+      (existence?.lower ?? 0) === 0 &&
+      keyMissing &&
+      minimalHadKey &&
+      children.length
+    ) {
+      const child = children[0];
+      out.push({
+        path: attrPath,
+        archetypePath: attrPath,
+        message: `Optional attribute absent: ${attrName}`,
+        severity: "warning",
+        constraintType: "existence",
+        constraintNodeId: child instanceof openehr_am.C_OBJECT
+          ? child.node_id
+          : undefined,
+      });
+      continue;
+    }
+    const rmValue = rawValue;
+    const minValue = isObj(minimalNode) ? minimalNode[attrName] : undefined;
+    if (Array.isArray(rmValue)) {
+      const minArr = Array.isArray(minValue) ? minValue : [];
+      rmValue.forEach((item, i) => {
+        const child = children[0];
+        if (child) {
+          out.push(...optionalAbsentAttributeMessages(
+            item,
+            child,
+            `${attrPath.replace(/\/$/, "")}[${i}]/`,
+            minArr[i],
+          ));
+        }
+      });
+    } else if (isPresentRmValue(rmValue)) {
+      const child = children[0];
+      if (child) {
+        out.push(...optionalAbsentAttributeMessages(
+          rmValue,
+          child,
+          attrPath,
+          minValue,
+        ));
+      }
+    }
+  }
+  return out;
+}
+
 function fillEventOffsets(v: RmJson, origin?: string): void {
   if (Array.isArray(v)) return v.forEach((x) => fillEventOffsets(x, origin));
   if (!isObj(v)) return;

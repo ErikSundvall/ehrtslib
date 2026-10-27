@@ -1,0 +1,97 @@
+archetype (adl_version=2.0.6; rm_release=1.1.0)
+	openEHR-EHR-OBSERVATION.tuple_kinds.v1.0.0
+
+language
+	original_language = <[ISO_639-1::en]>
+
+description
+	lifecycle_state = <"unmanaged">
+	original_author = <
+		["name"] = <"ehrtslib test">
+	>
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"Fixture for ADL2 tuple OPT 1.4 round-trip (#196).">
+		>
+	>
+
+definition
+	OBSERVATION[id1] matches {
+		data matches {
+			HISTORY[id2] matches {
+				events cardinality matches {1..*; unordered} matches {
+					EVENT[id3] occurrences matches {0..*} matches {
+						data matches {
+							ITEM_TREE[id4] matches {
+								items cardinality matches {0..*; unordered} matches {
+									ELEMENT[id10] occurrences matches {0..1} matches {
+										value matches {
+											DV_QUANTITY[id11] matches {
+												[units, magnitude, precision] matches {
+													[{"mg"}, {|0..100|}, {1}],
+													[{"kg"}, {|0..2|}, {2}]
+												}
+											}
+										}
+									}
+									ELEMENT[id20] occurrences matches {0..1} matches {
+										value matches {
+											DV_ORDINAL[id21] matches {
+												[value, symbol] matches {
+													[{1}, {[at1]}],
+													[{2}, {[at2]}]
+												}
+											}
+										}
+									}
+									ELEMENT[id30] occurrences matches {0..1} matches {
+										value matches {
+											DV_SCALE[id31] matches {
+												[value, symbol] matches {
+													[{1}, {[at3]}],
+													[{2}, {[at4]}]
+												}
+											}
+										}
+									}
+									ELEMENT[id40] occurrences matches {0..1} matches {
+										value matches {
+											DV_ORDINAL[id41] matches {
+												[value, qualifier] matches {
+													[{1}, {"low"}],
+													[{2}, {"high"}]
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+terminology
+	term_definitions = <
+		["en"] = <
+			["id1"] = <text = <"Tuple kinds">>
+			["id2"] = <text = <"History">>
+			["id3"] = <text = <"Event">>
+			["id4"] = <text = <"Tree">>
+			["id10"] = <text = <"Quantity">>
+			["id11"] = <text = <"Qty value">>
+			["id20"] = <text = <"Ordinal">>
+			["id21"] = <text = <"Ord value">>
+			["id30"] = <text = <"Scale">>
+			["id31"] = <text = <"Scale value">>
+			["id40"] = <text = <"Custom tuple">>
+			["id41"] = <text = <"Custom ord">>
+			["at1"] = <text = <"one">>
+			["at2"] = <text = <"two">>
+			["at3"] = <text = <"half">>
+			["at4"] = <text = <"full">>
+		>
+	>
