@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 /**
- * CB commit against real CDRs over the REST ITS (#166). Opt-in: set
+ * CB commit, update-version, copy-version and conflict data against real
+ * CDRs over the REST ITS (#166, #167). Opt-in: set
  * `EHRTSLIB_CDR_TARGETS` to a JSON array of targets, for example
  *
  *   [{"name": "cdr-a", "baseUrl": "http://127.0.0.1:8080/x/rest/openehr/v1",
@@ -17,8 +18,10 @@
 import { assert, assertEquals, assertMatch } from "@std/assert";
 import {
   bindTemplate,
+  type BoundTemplate,
   builderProvenance,
   type CommitConfig,
+  CommitConflictError,
   ContributionBuild,
   DraftValidator,
   ItsRestContributionAdapter,
@@ -207,6 +210,178 @@ for (const target of targets()) {
         `  ${target.name}: rejected incomplete version (${e.status})`,
       );
     }
+  });
+}
+
+const SYSTOLIC = (magnitude: number) => ({
+  _type: "ELEMENT",
+  archetype_node_id: "id5",
+  name: { _type: "DV_TEXT", value: "Systolic" },
+  value: { _type: "DV_QUANTITY", magnitude, units: "mm[Hg]" },
+});
+const systolicOf = (c: any) => c.content[0].data.events[0].data.items[0];
+
+/** Commits a first version (systolic 120); returns its version uid. */
+async function commitV1(
+  adapter: ItsRestContributionAdapter,
+  ehrId: string,
+  config: CommitConfig,
+  template: BoundTemplate,
+  validator: DraftValidator,
+): Promise<string> {
+  const build = ContributionBuild.create({ author: { id: "user-1" } });
+  const draft = build.newComposition(template, {
+    language: "en",
+    territory: "SE",
+  });
+  build.setComposer(draft, { _type: "PARTY_IDENTIFIED", name: "Dr Test" });
+  build.addInstance(
+    draft,
+    build.findNodeKey(draft, "id4")!,
+    "items",
+    SYSTOLIC(120),
+  );
+  const r = await adapter.commit(build, validator, config, ehrId, {
+    drafts: [{ draftId: draft, template }],
+    committer: COMMITTER,
+    originatingSystemAudit: ORIGINATING,
+  });
+  return r.versionUids[0];
+}
+
+for (const target of targets()) {
+  Deno.test(`CDR ${target.name}: update-version keeps uids and commits 251; copy-version 249`, async () => {
+    const { adapter, ehrId, config, template } = await prepareTarget(target);
+    const validator = await DraftValidator.create();
+    const v1 = await commitV1(adapter, ehrId, config, template, validator);
+    const objectUuid = v1.split("::")[0];
+
+    const build = ContributionBuild.create({ author: { id: "user-2" } });
+    const draft = await adapter.updateVersion(
+      build,
+      template,
+      ehrId,
+      objectUuid,
+    );
+    assertEquals(build.getDraft(draft).baseVersionUid, v1);
+    const before = await adapter.getComposition(ehrId, v1) as any;
+    const sysKey = build.findNodeKey(draft, "id5")!;
+    build.setValue(draft, sysKey, "value/magnitude", 130);
+    const r = await adapter.commit(build, validator, config, ehrId, {
+      drafts: [{ draftId: draft, template }],
+      committer: COMMITTER,
+      originatingSystemAudit: ORIGINATING,
+    });
+    const v2 = r.versionUids[0];
+    assertEquals(v2.split("::")[0], objectUuid);
+    assertMatch(v2, /::2$/);
+    assertEquals(
+      (r.prepared.body as any).versions[0].commit_audit.change_type
+        .defining_code.code_string,
+      "251",
+    );
+    assertEquals(build.getDraft(draft).committed?.versionUid, v2);
+    const after = await adapter.getComposition(ehrId, v2) as any;
+    assertEquals(systolicOf(after).value.magnitude, 130);
+    assertEquals(systolicOf(after).uid.value, systolicOf(before).uid.value);
+    assertEquals(after.content[0].uid.value, before.content[0].uid.value);
+
+    // copy-version: a new versioned object with fresh uids.
+    const copyBuild = ContributionBuild.create({ author: { id: "user-3" } });
+    const copy = await adapter.copyVersion(copyBuild, template, ehrId, v2);
+    assertEquals(copyBuild.getDraft(copy).copiedFrom, v2);
+    const rc = await adapter.commit(copyBuild, validator, config, ehrId, {
+      drafts: [{ draftId: copy, template }],
+      committer: COMMITTER,
+      originatingSystemAudit: ORIGINATING,
+    });
+    const c = await adapter.getComposition(ehrId, rc.versionUids[0]) as any;
+    assert(rc.versionUids[0].split("::")[0] !== objectUuid);
+    assertEquals(
+      (rc.prepared.body as any).versions[0].commit_audit.change_type
+        .defining_code.code_string,
+      "249",
+    );
+    assertEquals(systolicOf(c).value.magnitude, 130);
+    assert(systolicOf(c).uid.value !== systolicOf(after).uid.value);
+    console.log(
+      `  ${target.name}: ${v1} -> ${v2}; copy ${
+        rc.versionUids[0]
+      } (server-assigned uuid: ${rc.serverAssignedUids})`,
+    );
+  });
+
+  Deno.test(`CDR ${target.name}: concurrent update gives conflict data`, async () => {
+    const { adapter, ehrId, config, template } = await prepareTarget(target);
+    const validator = await DraftValidator.create();
+    const v1 = await commitV1(adapter, ehrId, config, template, validator);
+    const objectUuid = v1.split("::")[0];
+    const mine = ContributionBuild.create({ author: { id: "me" } });
+    const theirs = ContributionBuild.create({ author: { id: "them" } });
+    const dMine = await adapter.updateVersion(
+      mine,
+      template,
+      ehrId,
+      objectUuid,
+    );
+    const dTheirs = await adapter.updateVersion(
+      theirs,
+      template,
+      ehrId,
+      objectUuid,
+    );
+    theirs.setValue(
+      dTheirs,
+      theirs.findNodeKey(dTheirs, "id5")!,
+      "value/magnitude",
+      130,
+    );
+    const rt = await adapter.commit(theirs, validator, config, ehrId, {
+      drafts: [{ draftId: dTheirs, template }],
+      committer: COMMITTER,
+      originatingSystemAudit: ORIGINATING,
+    });
+    mine.setValue(
+      dMine,
+      mine.findNodeKey(dMine, "id5")!,
+      "value/magnitude",
+      140,
+    );
+    mine.setValue(
+      dMine,
+      mine.findNodeKey(dMine, "id9")!,
+      "value/value",
+      "Standing",
+    );
+    let conflict: CommitConflictError | undefined;
+    try {
+      await adapter.commit(mine, validator, config, ehrId, {
+        drafts: [{ draftId: dMine, template }],
+        committer: COMMITTER,
+        originatingSystemAudit: ORIGINATING,
+      });
+    } catch (e) {
+      if (!(e instanceof CommitConflictError)) throw e;
+      conflict = e;
+    }
+    assert(conflict, "expected a conflict");
+    const report = conflict.reports[0];
+    assertEquals(report.baseVersionUid, v1);
+    assertEquals(report.latestVersionUid, rt.versionUids[0]);
+    assertEquals(report.conflicts.length, 1);
+    const [c] = report.conflicts;
+    assertEquals([c.reason, c.match, c.base, c.theirs, c.ours], [
+      "changed-by-them",
+      "uid",
+      120,
+      130,
+      140,
+    ]);
+    assertEquals(report.clean.length, 1);
+    assertEquals(mine.getDraft(dMine).committed, undefined);
+    console.log(
+      `  ${target.name}: conflict on ${c.target} (status hint ${report.statusHint})`,
+    );
   });
 }
 

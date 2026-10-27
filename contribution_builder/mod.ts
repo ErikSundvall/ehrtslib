@@ -34,6 +34,7 @@ export {
   type BuildContext,
   CbOperationError,
   ContributionBuild,
+  type LoadVersionOptions,
   type NewCompositionOptions,
   type OperationLogAdapter,
   type OperationOptions,
@@ -81,6 +82,8 @@ export {
   type Adl14DownconversionOptions,
   type Adl14DownconversionResult,
   downConvertToAdl14,
+  upConvertFromAdl14,
+  usesAdl14Codes,
 } from "./adl14_downconvert.ts";
 export {
   BUILDER_NAME,
@@ -92,14 +95,23 @@ export {
   CommitError,
   type CommitErrorCode,
   feederAuditFor,
+  nextVersionUid,
   prepareContribution,
   type PrepareContributionOptions,
   type PreparedContribution,
   type PreparedVersion,
 } from "./commit.ts";
 export {
+  CommitConflictError,
   type CommitResult,
   type ItsRestAdapterOptions,
   ItsRestContributionAdapter,
   ItsRestError,
 } from "./rest_adapter.ts";
+export {
+  type ConflictMatch,
+  type ConflictReason,
+  type ConflictReport,
+  detectConflicts,
+  type DraftConflict,
+} from "./conflicts.ts";

@@ -64,6 +64,45 @@ export interface CreateDraftOperation extends OperationBase {
   initial: RmJson;
   /** Short keys for the LOCATABLE nodes in `initial` that have no uid, depth-first. */
   keys: string[];
+  /** copy-version: the version the content was copied from (informative). */
+  copiedFrom?: string;
+}
+
+/**
+ * update-version: start a draft for a new version of an existing versioned
+ * object (ADR 0002 `kind: modify`). `initial` is the stored version (ADL2
+ * codes, root uid and `feeder_audit` removed). Existing inner uids are kept;
+ * LOCATABLE nodes without a uid get the recorded `keys` (ADR 0003).
+ */
+export interface OpenVersionOperation extends OperationBase {
+  type: "open-version";
+  rmType: "COMPOSITION";
+  kind: "modify";
+  template: TemplateBinding;
+  /** The versioned object's uuid (object id of the base version uid). */
+  versionedObjectUuid: string;
+  /** `OBJECT_VERSION_ID` the draft starts from: the commit's `preceding_version_uid`. */
+  baseVersionUid: string;
+  initial: RmJson;
+  keys: string[];
+}
+
+/**
+ * The draft was committed (#177 in part). Recorded after the server accepted
+ * it; a committed draft takes no further operations and cannot be committed
+ * again.
+ */
+export interface RecordCommitOperation extends OperationBase {
+  type: "record-commit";
+  /** Version uid as stored by the server. */
+  versionUid: string;
+  contributionUid?: string;
+  /** openEHR audit change type code (249 creation, 251 modification). */
+  changeType: string;
+  /** openEHR lifecycle state code (532, 553). */
+  lifecycleState: string;
+  /** sha256 of the log bytes cited in the contribution audit. */
+  logSha256: string;
 }
 
 /** Set (or with `value: null`, clear) a value under a node. */
@@ -106,6 +145,8 @@ export interface SetComposerOperation extends OperationBase {
 
 export type CbOperation =
   | CreateDraftOperation
+  | OpenVersionOperation
+  | RecordCommitOperation
   | SetValueOperation
   | AddInstanceOperation
   | RemoveInstanceOperation
@@ -130,6 +171,8 @@ export class OperationLogFormatError extends Error {
 
 const OP_TYPES: ReadonlySet<string> = new Set<CbOperationType>([
   "create-draft",
+  "open-version",
+  "record-commit",
   "set-value",
   "add-instance",
   "remove-instance",

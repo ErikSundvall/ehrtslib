@@ -4,7 +4,13 @@
  * conformant CDR. `fetch` is injectable (tests, auth, proxies).
  */
 
-import type { ContributionBuild } from "./contribution_build.ts";
+import type {
+  ContributionBuild,
+  LoadVersionOptions,
+} from "./contribution_build.ts";
+import { type ConflictReport, detectConflicts } from "./conflicts.ts";
+import type { OperationAuthor } from "./operation_log.ts";
+import type { BoundTemplate } from "./template_binding.ts";
 import type { DraftValidator } from "./draft_validation.ts";
 import {
   type CommitConfig,
@@ -21,6 +27,26 @@ export interface ItsRestAdapterOptions {
   fetch?: typeof fetch;
   /** Extra headers on every request (for example `Authorization`). */
   headers?: Record<string, string>;
+}
+
+/**
+ * A commit failed and at least one updated object has a newer version than
+ * the draft's base. `reports` holds the conflict data (ADR 0009).
+ */
+export class CommitConflictError extends Error {
+  constructor(
+    readonly reports: ConflictReport[],
+    readonly cause: ItsRestError,
+  ) {
+    super(
+      `Commit conflict: ${
+        reports.map((r) =>
+          `${r.draftId} based on ${r.baseVersionUid}, latest ${r.latestVersionUid} (${r.conflicts.length} conflicting operations)`
+        ).join("; ")
+      }`,
+    );
+    this.name = "CommitConflictError";
+  }
 }
 
 export class ItsRestError extends Error {
@@ -155,6 +181,8 @@ export class ItsRestContributionAdapter {
     ehrId: string,
     options: Omit<PrepareContributionOptions, "creatingSystemId"> & {
       creatingSystemId?: string;
+      /** Author of the `record-commit` operation; default the build's author. */
+      recordAs?: OperationAuthor;
     },
   ): Promise<CommitResult> {
     // Local checks first, so a bad build never reaches the server.
@@ -162,18 +190,82 @@ export class ItsRestContributionAdapter {
       ...options,
       creatingSystemId: options.creatingSystemId ?? "local.check",
     });
-    if (options.creatingSystemId) {
-      return this.postContribution(ehrId, probe);
+    const prepared = options.creatingSystemId
+      ? probe
+      : await prepareContribution(
+        build,
+        validator,
+        config,
+        { ...options, creatingSystemId: await this.systemId(ehrId) },
+      );
+    let result: CommitResult;
+    try {
+      result = await this.postContribution(ehrId, prepared);
+    } catch (e) {
+      if (!(e instanceof ItsRestError)) throw e;
+      // Status-independent conflict check (ADR 0009): re-read the latest
+      // version of every updated object; the status code is only a hint.
+      const reports: ConflictReport[] = [];
+      for (const v of prepared.versions) {
+        if (!v.precedingVersionUid) continue;
+        const latest = await this.getComposition(
+          ehrId,
+          v.precedingVersionUid.split("::")[0],
+        );
+        const report = detectConflicts(build, v.draftId, latest, {
+          statusHint: e.status,
+        });
+        if (report) reports.push(report);
+      }
+      if (reports.length) throw new CommitConflictError(reports, e);
+      throw e;
     }
-    const creatingSystemId = await this.systemId(ehrId);
-    const prepared = await prepareContribution(build, validator, config, {
-      ...options,
-      creatingSystemId,
+    // Record the commit in the log (#177): blocks a second commit of the draft.
+    prepared.versions.forEach((v, i) => {
+      build.recordCommit(v.draftId, {
+        versionUid: result.versionUids[i],
+        ...(result.contributionUid
+          ? { contributionUid: result.contributionUid }
+          : {}),
+        changeType: v.changeType,
+        lifecycleState: v.lifecycleState,
+        logSha256: prepared.logSha256,
+      }, options.recordAs ? { author: options.recordAs } : {});
     });
-    return this.postContribution(ehrId, prepared);
+    return result;
   }
 
-  /** GET a COMPOSITION version by its version uid. */
+  /**
+   * update-version: read the latest version of a versioned object (or the
+   * given version) and open a modify draft on it.
+   */
+  async updateVersion(
+    build: ContributionBuild,
+    template: BoundTemplate,
+    ehrId: string,
+    uid: string,
+    options: LoadVersionOptions = {},
+  ): Promise<string> {
+    const stored = await this.getComposition(ehrId, uid);
+    return build.openVersion(template, stored, options);
+  }
+
+  /** copy-version: read a version and start a new versioned object from its content. */
+  async copyVersion(
+    build: ContributionBuild,
+    template: BoundTemplate,
+    ehrId: string,
+    uid: string,
+    options: LoadVersionOptions = {},
+  ): Promise<string> {
+    const stored = await this.getComposition(ehrId, uid);
+    return build.copyVersion(template, stored, options);
+  }
+
+  /**
+   * GET a COMPOSITION: by version uid, or by versioned-object uuid for the
+   * latest version.
+   */
   getComposition(ehrId: string, versionUid: string): Promise<RmJson> {
     return this.getJson(
       `/ehr/${encodeURIComponent(ehrId)}/composition/${

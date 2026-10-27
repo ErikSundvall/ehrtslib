@@ -15,17 +15,20 @@ import { JsonConfigurableDeserializer } from "../serialization/json/json_configu
 import { RMInstanceGenerator } from "../generation/rm_instance_generator.ts";
 import type * as openehr_rm from "../openehr_rm.ts";
 import { isSubtypeOf } from "../meta/mod.ts";
+import { upConvertFromAdl14, usesAdl14Codes } from "./adl14_downconvert.ts";
 import type { BoundTemplate, TemplateBinding } from "./template_binding.ts";
 import {
   type AddInstanceOperation,
   type CbOperation,
   type CreateDraftOperation,
+  type OpenVersionOperation,
   OPERATION_LOG_FORMAT,
   OPERATION_LOG_FORMAT_VERSION,
   type OperationAuthor,
   operationLogBytes,
   type OperationLogDocument,
   readOperationLog,
+  type RecordCommitOperation,
   type RemoveInstanceOperation,
   REPLICA_RE,
   type RmJson,
@@ -88,10 +91,41 @@ export class CbOperationError extends Error {
 /** Read-only view of a draft. */
 export interface VersionDraftInfo {
   draftId: string;
-  kind: "create";
+  /** `create`: new versioned object (new build or copy-version); `modify`: update-version. */
+  kind: "create" | "modify";
   rmType: "COMPOSITION";
   templateBinding: TemplateBinding;
+  /**
+   * Uuid that inner node uids start with: provisional for `create`, the
+   * versioned object's uuid for `modify`.
+   */
   provisionalObjectUuid: string;
+  /** `modify`: the version the draft started from (`preceding_version_uid`). */
+  baseVersionUid?: string;
+  /** copy-version: the version the content was copied from. */
+  copiedFrom?: string;
+  /** Set once the draft is committed (`record-commit`). */
+  committed?: {
+    versionUid: string;
+    contributionUid?: string;
+    changeType: string;
+    lifecycleState: string;
+    logSha256: string;
+  };
+}
+
+/** Options for {@link ContributionBuild.openVersion} and {@link ContributionBuild.copyVersion}. */
+export interface LoadVersionOptions {
+  /**
+   * Codes in the stored data. Default: detected (zero-padded at-code node ids
+   * mean ADL 1.4, which is converted to ADL2 codes).
+   */
+  codes?: "adl14" | "adl2";
+  draftId?: string;
+  /** update-version: base version uid when the data has no `uid`. */
+  versionUid?: string;
+  /** copy-version: provisional uuid for the new versioned object. */
+  provisionalObjectUuid?: string;
 }
 
 export interface NewCompositionOptions {
@@ -112,6 +146,8 @@ interface NodeEntry {
 
 interface DraftState extends VersionDraftInfo {
   root: Record<string, RmJson>;
+  /** `modify`: the base version with keys assigned (for conflict data). */
+  base?: Record<string, RmJson>;
   /** short key or full uid → node */
   nodes: Map<string, NodeEntry>;
 }
@@ -414,6 +450,125 @@ export class ContributionBuild {
   }
 
   /**
+   * update-version: start a draft for the next version of a stored
+   * COMPOSITION (as read from the CDR). Existing inner uids are kept, so
+   * operations address the same nodes as before; LOCATABLE nodes without a
+   * uid get short keys, recorded in the operation (ADR 0003). Inner uids
+   * whose uuid part differs from the versioned object's (a server that
+   * assigned its own uuid, #176) are kept as they are.
+   */
+  openVersion(
+    template: BoundTemplate,
+    stored: unknown,
+    options: LoadVersionOptions = {},
+    opOptions: OperationOptions = {},
+  ): string {
+    const data = this.loadStored(template, stored, options);
+    const rootUid = uidValue(data);
+    const baseVersionUid = options.versionUid ?? rootUid;
+    if (!baseVersionUid || baseVersionUid.split("::").length < 3) {
+      throw new CbOperationError(
+        "update-version needs the stored version uid (OBJECT_VERSION_ID)",
+      );
+    }
+    delete data.uid;
+    const versionedObjectUuid = baseVersionUid.split("::")[0];
+    const draftId = options.draftId ?? this.context.uuid();
+    if (this.drafts.has(draftId)) {
+      throw new CbOperationError(`Draft ${draftId} exists`);
+    }
+    this.bumpKeyCounter(data);
+    const keys = locatablesNeedingKeys(data, true).map(() => this.mintKey());
+    return this.commitOp<OpenVersionOperation>({
+      type: "open-version",
+      draft: draftId,
+      rmType: "COMPOSITION",
+      kind: "modify",
+      template: clone(
+        template.binding as unknown as RmJson,
+      ) as unknown as TemplateBinding,
+      versionedObjectUuid,
+      baseVersionUid,
+      initial: data,
+      keys,
+    }, opOptions).draft;
+  }
+
+  /**
+   * copy-version: start a new versioned object from a stored COMPOSITION's
+   * content. All uids are dropped and every LOCATABLE gets a fresh key.
+   */
+  copyVersion(
+    template: BoundTemplate,
+    stored: unknown,
+    options: LoadVersionOptions = {},
+    opOptions: OperationOptions = {},
+  ): string {
+    const data = this.loadStored(template, stored, options);
+    const from = options.versionUid ?? uidValue(data);
+    stripUids(data);
+    const draftId = options.draftId ?? this.context.uuid();
+    if (this.drafts.has(draftId)) {
+      throw new CbOperationError(`Draft ${draftId} exists`);
+    }
+    const keys = locatablesNeedingKeys(data, true).map(() => this.mintKey());
+    const op: Omit<
+      CreateDraftOperation,
+      "replica" | "seq" | "author" | "timestamp"
+    > = {
+      type: "create-draft",
+      draft: draftId,
+      rmType: "COMPOSITION",
+      kind: "create",
+      template: clone(
+        template.binding as unknown as RmJson,
+      ) as unknown as TemplateBinding,
+      provisionalObjectUuid: options.provisionalObjectUuid ??
+        this.context.uuid(),
+      initial: data,
+      keys,
+    };
+    if (from) op.copiedFrom = from;
+    return this.commitOp(op, opOptions).draft;
+  }
+
+  /**
+   * Record that a draft was committed (the REST adapter calls this after the
+   * server accepted it). Afterwards the draft takes no further operations.
+   */
+  recordCommit(
+    draftId: string,
+    result: {
+      versionUid: string;
+      contributionUid?: string;
+      changeType: string;
+      lifecycleState: string;
+      logSha256: string;
+    },
+    opOptions: OperationOptions = {},
+  ): void {
+    const body: Omit<
+      RecordCommitOperation,
+      "replica" | "seq" | "author" | "timestamp"
+    > = {
+      type: "record-commit",
+      draft: draftId,
+      versionUid: result.versionUid,
+      changeType: result.changeType,
+      lifecycleState: result.lifecycleState,
+      logSha256: result.logSha256,
+    };
+    if (result.contributionUid) body.contributionUid = result.contributionUid;
+    this.commitOp(body, opOptions);
+  }
+
+  /** update-version: the base version as loaded (ADL2 codes, keys assigned), a copy. */
+  baseData(draftId: string): RmJson | undefined {
+    const b = this.state(draftId).base;
+    return b ? clone(b) : undefined;
+  }
+
+  /**
    * Set a value under a node. `path` is relative to the node (`value`,
    * `value/magnitude`, `name`). `value: null` clears it. LOCATABLE content
    * goes through {@link addInstance}; the composer through {@link setComposer}.
@@ -513,6 +668,43 @@ export class ContributionBuild {
 
   // ---------------------------------------------------------------- internals
 
+  /** Canonical, ADL2-coded copy of a stored COMPOSITION, checked against the template. */
+  private loadStored(
+    template: BoundTemplate,
+    stored: unknown,
+    options: LoadVersionOptions,
+  ): JsonObject {
+    let data = toCanonicalRmJson(stored) as JsonObject;
+    if (!isObject(data) || data._type !== "COMPOSITION") {
+      throw new CbOperationError("Expected a stored COMPOSITION");
+    }
+    const codes = options.codes ?? (usesAdl14Codes(data) ? "adl14" : "adl2");
+    if (codes === "adl14") data = upConvertFromAdl14(data) as JsonObject;
+    const details = data.archetype_details;
+    const tid = isObject(details) && isObject(details.template_id)
+      ? details.template_id.value
+      : undefined;
+    if (tid !== template.binding.templateId) {
+      throw new CbOperationError(
+        `Stored COMPOSITION uses template ${tid}, not ${template.binding.templateId}`,
+      );
+    }
+    // Provenance of the stored version; the commit writes a new one.
+    delete data.feeder_audit;
+    return data;
+  }
+
+  /** Never mint a key this replica already used in loaded content. */
+  private bumpKeyCounter(tree: RmJson): void {
+    for (const n of locatablesWithUid(tree)) {
+      const key = keyOfUid(uidValue(n)!);
+      const m = key ? /^([a-z][a-z0-9]*)\.(\d+)$/.exec(key) : null;
+      if (m && m[1] === this.context.replica) {
+        this.keyCounter = Math.max(this.keyCounter, Number(m[2]));
+      }
+    }
+  }
+
   private info(d: DraftState): VersionDraftInfo {
     return {
       draftId: d.draftId,
@@ -522,6 +714,9 @@ export class ContributionBuild {
         d.templateBinding as unknown as RmJson,
       ) as unknown as TemplateBinding,
       provisionalObjectUuid: d.provisionalObjectUuid,
+      ...(d.baseVersionUid ? { baseVersionUid: d.baseVersionUid } : {}),
+      ...(d.copiedFrom ? { copiedFrom: d.copiedFrom } : {}),
+      ...(d.committed ? { committed: { ...d.committed } } : {}),
     };
   }
 
@@ -684,6 +879,7 @@ export class ContributionBuild {
         rmType: op.rmType,
         templateBinding: op.template,
         provisionalObjectUuid: op.provisionalObjectUuid,
+        ...(op.copiedFrom ? { copiedFrom: op.copiedFrom } : {}),
         root,
         nodes: new Map(),
       };
@@ -692,9 +888,52 @@ export class ContributionBuild {
       this.reindex(d);
       return;
     }
+    if (op.type === "open-version") {
+      if (this.drafts.has(op.draft)) {
+        throw new CbOperationError(`Draft ${op.draft} exists`, op);
+      }
+      const root = clone(op.initial) as JsonObject;
+      if (!isLocatable(root)) {
+        throw new CbOperationError("Draft root must be LOCATABLE", op);
+      }
+      const d: DraftState = {
+        draftId: op.draft,
+        kind: op.kind,
+        rmType: op.rmType,
+        templateBinding: op.template,
+        provisionalObjectUuid: op.versionedObjectUuid,
+        baseVersionUid: op.baseVersionUid,
+        root,
+        nodes: new Map(),
+      };
+      this.reindex(d);
+      this.assignKeys(d, root, op.keys, true, op);
+      d.base = clone(root);
+      this.drafts.set(op.draft, d);
+      this.reindex(d);
+      return;
+    }
     const d = this.drafts.get(op.draft);
     if (!d) throw new CbOperationError(`No draft ${op.draft}`, op);
+    if (d.committed) {
+      throw new CbOperationError(
+        `Draft ${op.draft} is committed (${d.committed.versionUid}); start a new draft with update-version`,
+        op,
+      );
+    }
     switch (op.type) {
+      case "record-commit": {
+        d.committed = {
+          versionUid: op.versionUid,
+          changeType: op.changeType,
+          lifecycleState: op.lifecycleState,
+          logSha256: op.logSha256,
+          ...(op.contributionUid
+            ? { contributionUid: op.contributionUid }
+            : {}),
+        };
+        return;
+      }
       case "set-value": {
         const node = this.nodeFor(d, op.target, op);
         const segments = op.path.split("/").filter((s) => s.length);
@@ -839,9 +1078,25 @@ function codePhrase(terminology: string, code: string): JsonObject {
 }
 
 function keysOf(op: CbOperation): string[] {
+  if (op.type === "open-version") {
+    // Loaded keys count too, so replay never re-mints one of them.
+    return [
+      ...op.keys,
+      ...locatablesWithUid(op.initial).map((n) => keyOfUid(uidValue(n)!) ?? "")
+        .filter((k) => SHORT_KEY_RE.test(k)),
+    ];
+  }
   return op.type === "create-draft" || op.type === "add-instance"
     ? op.keys
     : [];
+}
+
+/** Drop every `uid` (copy-version: the copy is a new versioned object). */
+function stripUids(v: RmJson): void {
+  if (Array.isArray(v)) return v.forEach(stripUids);
+  if (!isObject(v)) return;
+  if (isLocatable(v)) delete v.uid;
+  for (const x of Object.values(v)) stripUids(x);
 }
 
 function containsLocatable(v: RmJson): boolean {
