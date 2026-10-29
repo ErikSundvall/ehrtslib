@@ -272,7 +272,7 @@ Deno.test("#217 DV_CODED_TEXT without value is an error on JSON and instances", 
   }
 });
 
-Deno.test("#217 ENTRY.language string is a type error on JSON and instances", async () => {
+Deno.test("#217 ENTRY.language string is a type error on JSON; assignment coerces it", async () => {
   const forms = materialise((root) => {
     const entry = findNode(
       root,
@@ -283,19 +283,41 @@ Deno.test("#217 ENTRY.language string is a type error on JSON and instances", as
   });
   const v = await validator();
   const rm = new RMSpecificationValidator();
-  for (const form of ["plain", "instance"] as const) {
-    const result = v.validate(forms[form], template);
-    const direct = rm.validateInstance(forms[form], "COMPOSITION");
-    const hit = errorsOf(
-      [...result.errors, ...direct],
-      (message) =>
-        message.path.includes("language") &&
-        message.message.includes("CODE_PHRASE") &&
-        message.constraintType === "rm_type",
-    );
-    assert(hit.length > 0, `${form} did not report language type`);
-    assertEquals(result.valid, false, form);
-  }
+
+  const plain = v.validate(forms.plain, template);
+  const plainDirect = rm.validateInstance(forms.plain, "COMPOSITION");
+  const plainHit = errorsOf(
+    [...plain.errors, ...plainDirect],
+    (message) =>
+      message.path.includes("language") &&
+      message.message.includes("CODE_PHRASE") &&
+      message.constraintType === "rm_type",
+  );
+  assert(plainHit.length > 0, "plain did not report language type");
+  assertEquals(plain.valid, false);
+
+  // CODE_PHRASE assignment turns the terse string into a code phrase, so the
+  // instance no longer has a string for the validator to reject.
+  const instanceResult = v.validate(forms.instance, template);
+  const instanceDirect = rm.validateInstance(forms.instance, "COMPOSITION");
+  const instanceHit = errorsOf(
+    [...instanceResult.errors, ...instanceDirect],
+    (message) =>
+      message.path.includes("language") &&
+      message.constraintType === "rm_type",
+  );
+  assertEquals(instanceHit, []);
+  const entry = findNode(
+    forms.instance,
+    (node) =>
+      rmTypeOf(node) === "OBSERVATION" || rmTypeOf(node) === "EVALUATION",
+  );
+  const language = entry.language as {
+    code_string?: string;
+    terminology_id?: { value?: string };
+  };
+  assertEquals(language.code_string, "en");
+  assertEquals(language.terminology_id?.value, "ISO_639-1");
 });
 
 Deno.test("#217 subject rmType object is a type error on JSON and instances", async () => {
