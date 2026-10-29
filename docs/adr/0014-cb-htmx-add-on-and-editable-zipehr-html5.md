@@ -69,14 +69,19 @@ What already exists:
 
 ### The `zipehr.html5-hx` variant
 
-- **A control profile over the existing HTML5 dialects**, not a new tag
-  set:
+- **A control layer over two existing HTML5 dialects**, not a new tag
+  set. Only these two dialect settings get an editable variant, so the
+  number of combinations stays small:
 
-  | Variant id | Format URI | `fmt` |
-  | --- | --- | --- |
-  | `zipehr.html5-hx.short` | `http://purl.org/ehrtslib/zipehr/html5-hx/short/v1` | `hs1` |
-  | `zipehr.html5-hx.full` | `http://purl.org/ehrtslib/zipehr/html5-hx/full/v1` | `hf1` |
-  | `zipehr.html5-hx.emoji` | `http://purl.org/ehrtslib/zipehr/html5-hx/emoji/v1` | `he1` |
+  | Variant id | Dialect settings | Format URI | `fmt` |
+  | --- | --- | --- | --- |
+  | `zipehr.html5-hx.full` | `o-` RM kebab tags, linesaving (hybrid) layout, RM property names as attributes | `http://purl.org/ehrtslib/zipehr/html5-hx/full/v1` | `hf1` |
+  | `zipehr.html5-hx.short` | `o-` letter tags, oneliner (compact) layout, RM property names omitted when possible | `http://purl.org/ehrtslib/zipehr/html5-hx/short/v1` | `hs1` |
+
+  Each variant is rendered in one of two render profiles (see [Render
+  profiles](#render-profiles)), which gives a 2×2 matrix of editable
+  documents. Other `zipehr.html5` settings (emoji symbols, other layouts)
+  stay read-only.
 
 - **Projection rule.** Removing the control layer gives a valid
   `zipehr.html5` v1 document of the same dialect with the same canonical
@@ -180,19 +185,67 @@ Example (short dialect, excerpt):
 Requests are same-origin by default (htmx 2 `selfRequestsOnly`, htmx 4
 `mode: "same-origin"`).
 
-### Fallback without htmx
+### Render profiles
 
-- **No JavaScript:** each control is a real `<form>`, so editing still
-  works with full-page posts (progressive enhancement).
+The root element records the profile as `data-cb-profile`. Both editable
+profiles post to the same endpoints and strip to the same `zipehr.html5`
+document, so the server side does not depend on the profile.
+
+| | `forms` (no JavaScript) | `htmx` |
+| --- | --- | --- |
+| `zipehr.html5-hx.full` | 1 | 2 |
+| `zipehr.html5-hx.short` | 3 | 4 |
+
+- **`forms`:** plain `<form method="post">` controls and `<cb-ctl>`
+  markers, with no `hx-*` attributes. Every change is a full-page post.
+  Works with a strict CSP and without any script. This is the
+  implementation-neutral baseline.
+- **`htmx`:** the page loads the pinned htmx library and the renderer adds
+  `hx-*` attributes for partial updates. The form underneath stays, so the
+  page falls back to `forms` by itself when htmx does not load. Optional
+  htmx features (`hx-select`, `hx-indicator`, `hx-sync`, the SSE and
+  WebSocket extensions for live updates) are allowed here, within the
+  rules in [Security](#security).
+- **Host extensions stay outside the document.** A host app that wants
+  more scripting adds its own scripts and htmx attributes in its page
+  shell. The Contribution Builder renderer itself never emits script.
 - **Read-only:** a viewer that ignores `cb-ctl` (CSS
   `cb-ctl { display: none }`, shipped as a read-only stylesheet next to the
   existing `zipehr-html5-*.css`) shows the plain clinical document;
   `stripControls` gives a storable `zipehr.html5` file.
 
+#### `basic` output for old browsers and email (render-only)
+
+An optional fifth output for old phones and for forms sent by email. It
+is rendered from the same build as variant 3 (short, `forms`), but it is
+**not a ZipEHR variant**: it has no `o-*` tags, so it is never stored,
+exchanged or parsed as `zipehr.html5`. Only the 2×2 variants are editable
+ZipEHR documents.
+
+- **Markup:** `<div>`/`<span>` with `class` and `data-cb-*` attributes,
+  one column with labels above fields, and one form per section instead of
+  per field, so a slow connection makes fewer round trips.
+- **CSS:** inlined, simple block layout; no grid, custom properties or
+  newer selectors. Newer input types (`date`, `number`) are allowed because
+  old browsers fall back to a text box. A build step may use CSS inlining
+  and downlevelling tools (for example Juice and postcss-preset-env with a
+  Browserslist target) instead of hand-written CSS.
+- **Email:** the same markup works as an HTML email body. Many email
+  clients block or disable form submission, so each emailed form also
+  carries a link to the same form on the web. The form `action` and the
+  link use a single-use, expiring capability URL issued by the host, since
+  an email has no session; the author is still taken from what the host
+  binds to that URL, never from form fields.
+- **Test targets:** an old Android WebView, Opera Mini and a few common
+  email clients. Old devices may also fail on HTTPS (outdated root
+  certificates or no TLS 1.2); that is a hosting concern, not one the
+  markup can solve.
+
 ### Security
 
-- **No script in the format.** The renderer never emits `<script>`, inline
-  event handlers, `hx-on` or `javascript:` URLs. Recommended CSP:
+- **No script in the format.** In every profile the renderer never emits
+  `<script>`, inline event handlers, `hx-on`, `hx-vals` with `js:`
+  expressions or `javascript:` URLs. Recommended CSP:
   `script-src 'self'` (the pinned htmx with SRI), `connect-src 'self'`, no
   `unsafe-inline` or `unsafe-eval`; htmx 4's `hx-csp` extension or htmx 2
   `allowEval: false` and `allowScriptTags: false`.
@@ -278,7 +331,7 @@ which edits are accepted.
 
 ## Open questions
 
-1. **Name:** `zipehr.html5-hx` with `fmt` `hs1`/`hf1`/`he1`, or another
+1. **Name:** `zipehr.html5-hx` with `fmt` `hs1`/`hf1`, or another
    name such as `zipehr.html5-cb`?
 2. **Control placement:** controls always shown, or a `focus` mode as in
    `hydrateOptHtml5`, where an editor appears only for the focused field?
@@ -288,7 +341,8 @@ which edits are accepted.
    (`am.rule`, ADL2 rules) change other nodes?
 5. **`data-cb-uid` value:** short key only (smaller), or the full uid?
 6. **Live updates from other users:** offer an SSE or WebSocket stream of
-   changed fragments (htmx `hx-sse`/`hx-ws`), and in which phase? The
+   changed fragments (htmx `hx-sse`/`hx-ws`, `htmx` profile only), and in
+   which phase? The
    stream would carry fragments only, never sync-library messages.
 7. **`DV_*` choices and slots:** how to render a choice of data value types
    and archetype slots as controls.
@@ -298,6 +352,8 @@ which edits are accepted.
    it becomes `latest`?
 10. **Token check:** does the add-on own CSRF checks, or only call a host
     callback?
+11. **Email capability URLs:** lifetime and scope of the single-use URL,
+    and whether one emailed form may cover more than one draft.
 
 ## Implementation plan (future, tracer bullets)
 
@@ -311,9 +367,12 @@ Each step is small enough for one PR and ends with tests.
    `Request` objects and no browser.
 3. **Structure and feedback:** `add-instance`, `remove-instance`, `rev`
    handling, `<cb-msg>` validation messages and out-of-band fragments.
-4. **Hosts:** a service-worker example in the demo app, and the no-JS form
-   fallback checked in a browser test with htmx 2 and 4.
+4. **Hosts:** a service-worker example in the demo app, and the `forms`
+   profile checked in a browser test next to the `htmx` profile with htmx 2
+   and 4.
 5. **Release:** bundle target and asset row (needs a release-workflow
    change by the maintainer).
-6. **Later:** `address` fields with ADR 0011 paths, lifecycle verbs, live
+6. **`basic` output:** the old-browser and email rendering with inlined
+   CSS and capability URLs.
+7. **Later:** `address` fields with ADR 0011 paths, lifecycle verbs, live
    updates (question 6), and the `hydrateOptHtml5` bridge.
