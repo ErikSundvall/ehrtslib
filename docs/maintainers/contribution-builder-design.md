@@ -413,9 +413,12 @@ Summary of [ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md),
 still open for review:
 
 - The htmx add-on (`ehrtslib-<version>-cb-htmx.min.js`) renders a draft as
-  `zipehr.html5-hx`: the existing ZipEHR HTML5 dialects plus a control layer
-  (`hx-*` and `data-cb-*` attributes, `<cb-ctl>` elements). Removing the
-  layer gives plain `zipehr.html5` with the same canonical JSON.
+  `zipehr.html5-hx`: the full and short ZipEHR HTML5 dialects plus a control
+  layer (`hx-*` and `data-cb-*` attributes, `<cb-ctl>` elements). Removing
+  the layer gives plain `zipehr.html5` with the same canonical JSON.
+- Each dialect has a `forms` profile (no JavaScript) and an `htmx` profile,
+  a 2×2 matrix. An optional render-only `basic` output serves old phones
+  and forms sent by email.
 - Controls are real form posts with an `op` field, so htmx and no-JS forms
   send the same request. A Fetch-API handler turns them into ordinary
   operations on short keys or ADR 0011 addresses and returns HTML
