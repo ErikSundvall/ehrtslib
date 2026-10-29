@@ -23,7 +23,7 @@
     "@codemirror/language": "npm:@codemirror/language@^6.11.3",
     "@codemirror/state": "npm:@codemirror/state@^6.5.2",
     "@codemirror/view": "npm:@codemirror/view@^6.38.0",
-    "fast-xml-parser": "npm:fast-xml-parser@^4.3.0",
+    "fast-xml-parser": "npm:fast-xml-parser@^5.11.2",
     "yaml": "npm:yaml@^2.3.4",
     "fflate": "npm:fflate@^0.8.2",
     "d3": "npm:d3@7.9.0",

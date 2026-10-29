@@ -746,7 +746,7 @@ cat deno.json | grep fast-xml-parser
    ```json
    {
      "imports": {
-       "fast-xml-parser": "npm:fast-xml-parser@^4.5.0"
+       "fast-xml-parser": "npm:fast-xml-parser@^5.11.2"
      }
    }
    ```
