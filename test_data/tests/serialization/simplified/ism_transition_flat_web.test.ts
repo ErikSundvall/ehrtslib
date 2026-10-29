@@ -109,10 +109,21 @@ Deno.test("deserializeFromFlat — ACTION ism_transition defaults without ISM ke
 
   const validator = new TemplateValidator({ validateUnits: false });
   const result = validator.validate(rm, opt);
-  const ismErrors = [...result.errors, ...result.warnings].filter((m) =>
+  const ismErrors = result.errors.filter((m) =>
     m.path.includes("ism_transition")
   );
-  assertEquals(ismErrors.length, 0);
+  assertEquals(ismErrors, []);
+  // ISM_TRANSITION is PATHABLE. The FLAT default still stores the template
+  // node id so ism_transition[atNNNN] can be recovered. That key is a warning.
+  const ismWarnings = result.warnings.filter((m) =>
+    m.path.includes("ism_transition")
+  );
+  assertEquals(
+    ismWarnings.map((m) => m.message),
+    [
+      "ISM_TRANSITION.archetype_node_id is not an attribute of the reference model",
+    ],
+  );
 });
 
 Deno.test("deserializeFromFlat — careflow_step code-only gets archetype value", async () => {

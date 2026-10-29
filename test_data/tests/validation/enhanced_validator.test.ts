@@ -7,7 +7,8 @@ import { TemplateValidator } from "../../../validation/template_validator.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 
 Deno.test("Enhanced Validator - C_STRING pattern validation", () => {
-  const validator = new TemplateValidator();
+  // Skeletal ELEMENT; RM multiplicity is not what this case checks.
+  const validator = new TemplateValidator({ validateRMSpecification: false });
   const template = new openehr_am.ARCHETYPE();
   
   const definition = new openehr_am.C_COMPLEX_OBJECT();
@@ -37,7 +38,7 @@ Deno.test("Enhanced Validator - C_STRING pattern validation", () => {
 });
 
 Deno.test("Enhanced Validator - C_INTEGER range validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator({ validateRMSpecification: false });
   const template = new openehr_am.ARCHETYPE();
   
   const definition = new openehr_am.C_COMPLEX_OBJECT();

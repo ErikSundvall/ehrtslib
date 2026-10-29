@@ -78,6 +78,11 @@ export interface ValidationConfig {
   validateIntervals?: boolean;          // Enable DV_INTERVAL validation
   validateRMSpecification?: boolean;    // Enable RM specification constraints
   validateInvariants?: boolean;         // Evaluate archetype rules / invariants
+  /**
+   * Attributes that are not in the RM are errors when true, warnings when
+   * false (default). Passed to RM specification validation.
+   */
+  strict?: boolean;
 }
 
 /**
@@ -125,7 +130,9 @@ export class TemplateValidator {
     }
     
     if (this.config.validateRMSpecification) {
-      this.rmSpecValidator = new RMSpecificationValidator();
+      this.rmSpecValidator = new RMSpecificationValidator(true, {
+        strict: this.config.strict === true,
+      });
     }
   }
 
@@ -158,6 +165,13 @@ export class TemplateValidator {
     const errors: ValidationMessage[] = [];
     const warnings: ValidationMessage[] = [];
     this.ucumPathsChecked.clear();
+    if (this.terminologyValidator) {
+      const language = compositionLanguage(rmInstance, template);
+      this.terminologyValidator.setRubricContext({
+        language,
+        lookup: (code) => lookupTemplateRubric(template, code, language),
+      });
+    }
     const sourceIndex = options?.jsonSource
       ? buildJsonSourceIndex(options.jsonSource)
       : undefined;
@@ -933,6 +947,21 @@ export class PrimitiveValidator {
  * Terminology validator
  */
 export class TerminologyValidator {
+  private rubricContext?: {
+    language: string;
+    lookup: (code: string) => string | undefined;
+  };
+
+  /** Template rubrics for the composition language. Cleared when unset. */
+  setRubricContext(
+    context?: {
+      language: string;
+      lookup: (code: string) => string | undefined;
+    },
+  ): void {
+    this.rubricContext = context;
+  }
+
   validate(
     rmValue: any,
     cObject: openehr_am.C_OBJECT,
@@ -956,6 +985,7 @@ export class TerminologyValidator {
           path,
           messages,
         );
+        this.warnRubricMismatch(rmValue, path, messages);
       } else if (cObject.rm_type_name === "DV_CODED_TEXT") {
         messages.push({
           path,
@@ -967,6 +997,36 @@ export class TerminologyValidator {
     }
 
     return messages;
+  }
+
+  /**
+   * local / openehr DV_CODED_TEXT.value should be the template rubric in the
+   * composition language. Mismatch is a warning and is case-sensitive.
+   */
+  private warnRubricMismatch(
+    rmValue: { value?: unknown; defining_code?: unknown },
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    const ctx = this.rubricContext;
+    if (!ctx) return;
+    const terminology = terminologyIdOf(rmValue.defining_code);
+    const term = terminology?.toLowerCase();
+    if (term !== "local" && term !== "openehr") return;
+    const code = codeStringOf(rmValue.defining_code);
+    if (!code) return;
+    if (typeof rmValue.value !== "string" || rmValue.value.length === 0) return;
+    const rubric = ctx.lookup(code);
+    if (!rubric || rmValue.value === rubric) return;
+    const valuePath = path.endsWith("/") ? `${path}value` : `${path}/value`;
+    messages.push({
+      path: valuePath,
+      archetypePath: valuePath,
+      message:
+        `DV_CODED_TEXT.value "${rmValue.value}" does not match the ${ctx.language} template rubric "${rubric}" for ${terminology}::${code}`,
+      severity: "warning",
+      constraintType: "term_rubric",
+    });
   }
 
   private validateCodePhrase(
@@ -1141,6 +1201,112 @@ function terminologyIdOf(code: unknown): string | undefined {
   const rec = code as { terminology_id?: { value?: string } | string };
   if (typeof rec.terminology_id === "string") return rec.terminology_id;
   return rec.terminology_id?.value;
+}
+
+function compositionLanguage(
+  instance: unknown,
+  template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+): string {
+  const fromInstance = languageCodeOf(instanceLanguage(instance));
+  if (fromInstance) return fromInstance;
+  const original = (template as { original_language?: unknown }).original_language;
+  const fromTemplate = languageCodeOf(original);
+  if (fromTemplate) return fromTemplate;
+  const ontologyLang = (template as {
+    ontology?: { original_language?: unknown };
+  }).ontology?.original_language;
+  return languageCodeOf(ontologyLang) ?? "en";
+}
+
+function instanceLanguage(instance: unknown): unknown {
+  if (!instance || typeof instance !== "object") return undefined;
+  return (instance as { language?: unknown }).language;
+}
+
+function languageCodeOf(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const terse = value.match(/^[^:]+::([^|]+)/);
+    const code = (terse?.[1] ?? value).trim();
+    return code || undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const rec = value as { code_string?: unknown; value?: unknown };
+  if (typeof rec.code_string === "string" && rec.code_string.trim()) {
+    return rec.code_string.trim();
+  }
+  if (typeof rec.value === "string") return languageCodeOf(rec.value);
+  return undefined;
+}
+
+/**
+ * Rubric text for `code` in `language`, from the template ontology and any
+ * per-archetype term tables. Other languages are used only when this language
+ * has no term tables at all.
+ */
+function lookupTemplateRubric(
+  template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+  code: string,
+  language: string,
+): string | undefined {
+  const tables = termTablesOf(template);
+  const preferred = rubricInTables(tables, code, language);
+  if (preferred) return preferred;
+  if (tables.some((table) => tableHasLanguage(table, language))) return undefined;
+  for (const table of tables) {
+    if (!table) continue;
+    for (const lang of Object.keys(table)) {
+      const text = entryText(table[lang]?.[code]);
+      if (text) return text;
+    }
+  }
+  return undefined;
+}
+
+function termTablesOf(
+  template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+): Array<Record<string, Record<string, unknown>> | undefined> {
+  const tables: Array<Record<string, Record<string, unknown>> | undefined> = [];
+  const onto = (template as {
+    ontology?: { term_definitions?: Record<string, Record<string, unknown>> };
+  }).ontology?.term_definitions;
+  tables.push(onto);
+  const scoped = (template as {
+    archetype_term_definitions?: Record<
+      string,
+      Record<string, Record<string, unknown>> | undefined
+    >;
+  }).archetype_term_definitions;
+  if (scoped) {
+    for (const bag of Object.values(scoped)) tables.push(bag);
+  }
+  return tables;
+}
+
+function rubricInTables(
+  tables: Array<Record<string, Record<string, unknown>> | undefined>,
+  code: string,
+  language: string,
+): string | undefined {
+  for (const table of tables) {
+    const text = entryText(table?.[language]?.[code]);
+    if (text) return text;
+  }
+  return undefined;
+}
+
+function tableHasLanguage(
+  table: Record<string, Record<string, unknown>> | undefined,
+  language: string,
+): boolean {
+  const bag = table?.[language];
+  return !!bag && Object.keys(bag).length > 0;
+}
+
+function entryText(entry: unknown): string | undefined {
+  if (typeof entry === "string" && entry.length > 0) return entry;
+  if (!entry || typeof entry !== "object") return undefined;
+  const text = (entry as { text?: unknown }).text;
+  return typeof text === "string" && text.length > 0 ? text : undefined;
 }
 
 function looksLikeArchetypeId(id: string): boolean {
