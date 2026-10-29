@@ -107,6 +107,20 @@ async function loadCssIntoEditor(variant: OptHtml5Variant): Promise<void> {
   }
 }
 
+/**
+ * Open a same-origin preview window and keep the handle so later syncs can
+ * rewrite it. `noopener` and `noreferrer` make `window.open` return null, so
+ * the about:blank window stays empty and never receives the styled document.
+ */
+function openSyncedPreviewPopup(name: string): Window | null {
+  if (previewPopup && !previewPopup.closed) {
+    previewPopup.focus();
+    return previewPopup;
+  }
+  previewPopup = window.open("about:blank", name, "width=720,height=900");
+  return previewPopup;
+}
+
 function syncPreviewNow(html: string): void {
   const css = cssEditor?.value ?? "";
   const docHtml = wrapOptHtml5PreviewDocument(html, css, { hydrateMode });
@@ -204,17 +218,9 @@ export function initOptHtml5Preview(options: {
   document.getElementById("opt-html5-preview-popup-btn")?.addEventListener(
     "click",
     () => {
-      if (previewPopup && !previewPopup.closed) {
-        previewPopup.focus();
+      if (openSyncedPreviewPopup("opt-html5-preview")) {
         syncPreviewNow(options.getActiveHtml());
-        return;
       }
-      previewPopup = window.open(
-        "",
-        "opt-html5-preview",
-        "noopener,noreferrer,width=720,height=900",
-      );
-      if (previewPopup) syncPreviewNow(options.getActiveHtml());
     },
   );
 

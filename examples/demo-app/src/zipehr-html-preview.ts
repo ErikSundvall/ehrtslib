@@ -136,6 +136,20 @@ function writeToWindow(win: Window, docHtml: string): void {
   }
 }
 
+/**
+ * Open a same-origin preview window and keep the handle so later syncs can
+ * rewrite it. `noopener` and `noreferrer` make `window.open` return null, so
+ * the about:blank window stays empty and never receives the styled document.
+ */
+function openSyncedPreviewPopup(name: string): Window | null {
+  if (previewPopup && !previewPopup.closed) {
+    previewPopup.focus();
+    return previewPopup;
+  }
+  previewPopup = window.open("about:blank", name, "width=720,height=900");
+  return previewPopup;
+}
+
 function syncPreviewNow(html: string): void {
   const css = cssEditor?.value ?? "";
   const docHtml = buildPreviewDocument(html, css);
@@ -251,17 +265,7 @@ export function initZipehrHtmlPreview(options: {
 
   const popupBtn = document.getElementById("zipehr-preview-popup-btn");
   popupBtn?.addEventListener("click", () => {
-    if (previewPopup && !previewPopup.closed) {
-      previewPopup.focus();
-      syncPreviewNow(options.getActiveHtml());
-      return;
-    }
-    previewPopup = window.open(
-      "",
-      "zipehr-html-preview",
-      "noopener,noreferrer,width=720,height=900",
-    );
-    if (previewPopup) {
+    if (openSyncedPreviewPopup("zipehr-html-preview")) {
       syncPreviewNow(options.getActiveHtml());
     }
   });
