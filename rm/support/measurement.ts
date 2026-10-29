@@ -4,6 +4,7 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Defines an object providing proxy access to a measurement information service.
@@ -19,6 +20,8 @@ import * as openehr_base from "../../base/mod.ts";
  * - ucum-lhc: https://github.com/lhncbc/ucum-lhc
  */
 export class MEASUREMENT_SERVICE {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Common valid UCUM unit strings for clinical measurements.
    * This is a subset of the full UCUM specification covering common clinical use cases.

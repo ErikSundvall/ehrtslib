@@ -9,6 +9,7 @@ import { VERSIONED_OBJECT } from "../common/change_control.ts";
 import type { ITEM_STRUCTURE } from "../data_structures/item_structure.ts";
 import type { DV_TEXT } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Ancestor of all Party types, including real world entities and their roles. A Party is any entity which can participate in an activity. The \`_name_\` attribute inherited from \`LOCATABLE\` is used to indicate the actual type of party (note that the actual names, i.e. identities of parties are indicated in the \`_identities_\` attribute, not the \`_name_\` attribute).
@@ -54,6 +55,8 @@ export abstract class PARTY extends LOCATABLE {
  * Description of a means of contact of a Party. Actual structure is archetyped.
  */
 export class CONTACT extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * A set of address alternatives for this contact purpose and time validity combination.
    */
@@ -79,6 +82,8 @@ export class CONTACT extends LOCATABLE {
  * Address of contact, which may be electronic or geographic.
  */
 export class ADDRESS extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Archetypable structured address.
    */
@@ -100,6 +105,8 @@ export class ADDRESS extends LOCATABLE {
  * An identity  owned  by a Party, such as a person name or company name, and which is used by the Party to identify itself. Actual structure is archetyped.
  */
 export class PARTY_IDENTITY extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The value of the identity. This will often taken the form of a parseable string or a small structure of strings.
    */
@@ -121,6 +128,8 @@ export class PARTY_IDENTITY extends LOCATABLE {
  * Generic description of a role performed by an Actor. The role corresponds to a competency of the Party. Roles are used to define the responsibilities undertaken by a Party for a purpose. Roles should have credentials qualifying the performer to perform the role.
  */
 export class ROLE extends PARTY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Valid time interval for this role.
    */
@@ -153,6 +162,8 @@ export abstract class ACTOR extends PARTY {
  * Capability of a role, such as  ehr modifier,  health care provider. Capability should be backed up by credentials.
  */
 export class CAPABILITY extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The qualifications of the performer of the role for this capability. This might include professional qualifications and official identifications such as provider numbers etc.
    */
@@ -167,30 +178,40 @@ export class CAPABILITY extends LOCATABLE {
  * Generic concept of any kind of agent, including devices, software systems, but not humans or organisations.
  */
 export class AGENT extends ACTOR {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Generic description of organisations. An organisation is a legally constituted body whose existence (in general) outlives the existence of parties considered to be part of it.
  */
 export class ORGANISATION extends ACTOR {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * A group is a real world group of parties which is created by another party, usually an organisation, for some specific purpose. A typical clinical example is that of the specialist care team, e.g.  cardiology team . The members of the group usually work together.
  */
 export class GROUP extends ACTOR {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Generic description of persons. Provides a dedicated type to which Person archetypes can be targeted.
  */
 export class PERSON extends ACTOR {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Generic description of a relationship between parties.
  */
 export class PARTY_RELATIONSHIP extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The detailed description of the relationship.
    */
@@ -224,4 +245,6 @@ export class PARTY_RELATIONSHIP extends LOCATABLE {
  * Static type formed by binding generic parameter of \`VERSIONED_OBJECT<T>\` to \`PARTY\`.
  */
 export class VERSIONED_PARTY extends VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }

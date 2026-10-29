@@ -7,11 +7,14 @@ import type { AUDIT_DETAILS } from "../common/generic.ts";
 import type { DV_DATE_TIME } from "../data_types/quantity/date_time.ts";
 import { MESSAGE_CONTENT } from "./message.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Type of request designed for synchronisation of Contributions between openEHR servers.
  */
 export class SYNC_EXTRACT_REQUEST extends MESSAGE_CONTENT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Details of specification of synchronisation request.
    */
@@ -19,6 +22,8 @@ export class SYNC_EXTRACT_REQUEST extends MESSAGE_CONTENT {
 }
 
 export class SYNC_EXTRACT extends MESSAGE_CONTENT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Details of specification of this Extract.
    */
@@ -33,6 +38,8 @@ export class SYNC_EXTRACT extends MESSAGE_CONTENT {
  * Serialised form of Contribution for an Extract.
  */
 export class X_CONTRIBUTION {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Uid of Contribution in source system.
    */
@@ -51,6 +58,8 @@ export class X_CONTRIBUTION {
  * Details of specification of Extract, used in a request to specify an Extract, or in a response, to describe what is actually in the Extract.
  */
 export class SYNC_EXTRACT_SPEC {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for includes_versions
    * @protected

@@ -6,11 +6,14 @@
 import { OpenEHRTerminologyService } from "../../term/terminology_service.ts";
 import { CODE_PHRASE } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * List of identifiers for groups in the openEHR terminology.
  */
 export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Validity function to test if an identifier is in the set defined by this class.
    * @param an_id - Parameter
@@ -30,6 +33,8 @@ export class OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
  * List of identifiers for code sets in the openEHR terminology.
  */
 export class OPENEHR_CODE_SET_IDENTIFIERS {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Validity function to test if an identifier is in the set defined by this class.
    * @param an_id - Parameter
@@ -47,6 +52,8 @@ export class OPENEHR_CODE_SET_IDENTIFIERS {
  * Defines an object providing proxy access to a terminology service.
  */
 export class TERMINOLOGY_SERVICE extends OPENEHR_TERMINOLOGY_GROUP_IDENTIFIERS {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Return an interface to the terminology named name. Allowable names include:-
    *
@@ -171,8 +178,14 @@ export class CODE_SET_ACCESS {
   private codeSetId: string;
   private language: string;
   
-  constructor(codeSetId: string, language: string = "en") {
-    this.codeSetId = codeSetId;
+  constructor(codeSetIdOrInit?: string | RmInit, language: string = "en") {
+    if (codeSetIdOrInit !== undefined && typeof codeSetIdOrInit === "object" && codeSetIdOrInit !== null) {
+      this.codeSetId = "";
+      this.language = language;
+      applyRmInit(this, codeSetIdOrInit);
+      return;
+    }
+    this.codeSetId = codeSetIdOrInit as string;
     this.language = language;
   }
   
@@ -236,8 +249,14 @@ export class TERMINOLOGY_ACCESS {
   private terminologyId: string;
   private language: string;
   
-  constructor(terminologyId: string, language: string = "en") {
-    this.terminologyId = terminologyId;
+  constructor(terminologyIdOrInit?: string | RmInit, language: string = "en") {
+    if (terminologyIdOrInit !== undefined && typeof terminologyIdOrInit === "object" && terminologyIdOrInit !== null) {
+      this.terminologyId = "";
+      this.language = language;
+      applyRmInit(this, terminologyIdOrInit);
+      return;
+    }
+    this.terminologyId = terminologyIdOrInit as string;
     this.language = language;
   }
   

@@ -8,6 +8,7 @@ import { DATA_STRUCTURE } from "./data_structures.ts";
 import { CLUSTER, ELEMENT } from "./representation.ts";
 import type { ITEM } from "./representation.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Abstract parent class of all spatial data types.
@@ -19,6 +20,8 @@ export abstract class ITEM_STRUCTURE extends DATA_STRUCTURE {
  * Logical tree data structure. The tree may be empty. Used for representing data which are logically a tree such as audiology results, microbiology results, biochemistry results.
  */
 export class ITEM_TREE extends ITEM_STRUCTURE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The items comprising the \`ITEM_TREE\`. Can include 0 or more \`CLUSTERs\` and/or 0 or more individual \`ELEMENTs\`.
    */
@@ -64,6 +67,8 @@ export class ITEM_TREE extends ITEM_STRUCTURE {
  * Logical single value data structure. Used to represent any data which is logically a single value, such as a person's height or weight.
  */
 export class ITEM_SINGLE extends ITEM_STRUCTURE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   item?: ELEMENT;
   /**
    * Generate a CEN EN13606-compatible hierarchy consisting of a single \`ELEMENT\`.
@@ -88,6 +93,8 @@ export class ITEM_SINGLE extends ITEM_STRUCTURE {
  * Misuse: Not to be used for time-based data, which should be represented with the temporal class \`HISTORY\`. The table may be empty.
  */
 export class ITEM_TABLE extends ITEM_STRUCTURE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Physical representation of the table as a list of \`CLUSTERs\`, each containing the data of one row of the table.
    */
@@ -241,6 +248,8 @@ export class ITEM_TABLE extends ITEM_STRUCTURE {
  * Not to be used for time-based lists, which should be represented with the proper temporal class, i.e. \`HISTORY\`.
  */
 export class ITEM_LIST extends ITEM_STRUCTURE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Physical representation of the list.
    */

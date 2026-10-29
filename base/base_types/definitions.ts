@@ -4,11 +4,19 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import { String } from "../foundation_types/primitive_types.ts";
+import { applyRmInit, type RmInit } from "../apply_rm_init.ts";
 
 /**
  * Defines globally used constant values.
+ *
+ * `DATA_VALUE` reaches this class, not `Any`. Concrete descendants that
+ * declare fields still apply init in their own constructors; this only
+ * helps types with no further field initialisers.
  */
 export class BASIC_DEFINITIONS {
+  constructor(init?: RmInit) {
+    applyRmInit(this, init);
+  }
 }
 
 /**

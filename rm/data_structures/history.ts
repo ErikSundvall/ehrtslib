@@ -10,6 +10,7 @@ import type { DV_CODED_TEXT } from "../data_types/text.ts";
 import { DATA_STRUCTURE } from "./data_structures.ts";
 import type { ITEM_STRUCTURE } from "./item_structure.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Defines the abstract notion of a single event in a series. This class is generic, allowing types to be generated which are locked to particular spatial types, such as \`EVENT<ITEM_LIST>\`. Subtypes express point or intveral data.
@@ -56,12 +57,16 @@ export abstract class EVENT<T extends ITEM_STRUCTURE> extends LOCATABLE {
  * Defines a single point event in a series.
  */
 export class POINT_EVENT<T extends ITEM_STRUCTURE> extends EVENT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Defines a single interval event in a series.
  */
 export class INTERVAL_EVENT<T extends ITEM_STRUCTURE> extends EVENT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Duration of the time interval during which the values recorded under \`data\` are true and, if set, the values recorded under \`state\` are true. Void if an instantaneous event.
    */
@@ -125,6 +130,8 @@ export class INTERVAL_EVENT<T extends ITEM_STRUCTURE> extends EVENT<T> {
  * For a periodic series of events, period will be set, and the time of each Event in the History must correspond; i.e. the \`EVENT._offset_\` must be a multiple of period for each Event. Missing events in a period History are however allowed.
  */
 export class HISTORY<T extends ITEM_STRUCTURE> extends DATA_STRUCTURE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Time origin of this event history. The first event is not necessarily at the origin point.
    */

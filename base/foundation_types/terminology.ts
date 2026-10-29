@@ -3,8 +3,10 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
+import { createRequire } from "node:module";
 import { TYPE_REGISTRY } from "../_shared.ts";
 import { TERMINOLOGY_ID } from "../base_types/identification.ts";
+import { applyRmInit, type RmInit } from "../apply_rm_init.ts";
 import { Any } from "./foundation_types.ts";
 import { Boolean, String } from "./primitive_types.ts";
 import type { Uri } from "./primitive_types.ts";
@@ -236,6 +238,27 @@ export class Terminology_term extends Any {
  * path is unchanged so existing imports keep working.
  */
 export class CODE_PHRASE {
+  /**
+   * Object init matches the RM `CODE_PHRASE` constructor. The TypeScript
+   * serializer imports this BASE class. A terse `terminology::code` string
+   * is accepted too. `undefined` leaves the instance empty.
+   */
+  constructor(init?: string | RmInit) {
+    if (typeof init === "string") {
+      const { initCodePhrase } = createRequire(import.meta.url)(
+        "../init_helpers.ts",
+      ) as { initCodePhrase: (value: string) => CODE_PHRASE | undefined };
+      const parsed = initCodePhrase(init);
+      if (parsed) {
+        this.terminology_id = parsed.terminology_id;
+        this.code_string = parsed.code_string;
+        if (parsed.preferred_term) this.preferred_term = parsed.preferred_term;
+      }
+      return;
+    }
+    applyRmInit(this, init);
+  }
+
   /**
    * Identifier of the distinct terminology from which the code_string (or its elements) was extracted.
    */

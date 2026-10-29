@@ -11,6 +11,7 @@ import type { ITEM_STRUCTURE } from "../data_structures/item_structure.ts";
 import type { DV_DATE_TIME } from "../data_types/quantity/date_time.ts";
 import type { CODE_PHRASE, DV_CODED_TEXT } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 export class COMPOSITION extends LOCATABLE {
   /**
@@ -156,6 +157,8 @@ export class COMPOSITION extends LOCATABLE {
  * Documents the context information of a healthcare event involving the subject of care and the health system. The context information recorded here are independent of the attributes recorded in the version audit, which document the  system interaction  context, i.e. the context of a user interacting with the health record system. Healthcare events include patient contacts, and any other business activity, such as pathology investigations which take place on behalf of the patient.
  */
 export class EVENT_CONTEXT extends PATHABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Start time of the clinical session or other kind of event during which a provider performs a service of any kind for the patient.
    */
