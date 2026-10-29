@@ -96,7 +96,11 @@ export interface JsonDeserializationConfig {
   typePropertyName?: string;
 
   /**
-   * Strict mode: fail on unknown types or missing required properties
+   * Strict mode (canonical JSON). When true, fail on unknown types, require
+   * `_type` when the declared attribute type is abstract or polymorphic,
+   * reject a primitive where an RM object type is declared, and reject
+   * attributes the class does not have. Lenient mode (`false`) still infers
+   * types and keeps unknown attributes.
    * @default false
    */
   strict?: boolean;
@@ -170,8 +174,9 @@ export const CANONICAL_JSON_CONFIG: JsonSerializationConfig = {
 };
 
 /**
- * Preset: Canonical JSON deserialization (strict openEHR compliance). Note: Requires _type fields.
- * Requires _type fields and uses strict mode
+ * Preset: Canonical JSON deserialization (strict openEHR compliance).
+ * Requires `_type` on abstract or polymorphic slots, rejects a primitive where
+ * an RM object type is declared, and rejects unknown attributes.
  */
 export const CANONICAL_JSON_DESERIALIZE_CONFIG: JsonDeserializationConfig = {
   typePropertyName: '_type',

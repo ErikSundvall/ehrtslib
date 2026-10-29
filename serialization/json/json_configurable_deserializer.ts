@@ -36,6 +36,10 @@ import {
   DEFAULT_JSON_DESERIALIZATION_CONFIG,
 } from './json_config.ts';
 import { validateDeserializedInstance } from '../common/post_deserialize_validation.ts';
+import {
+  declaredAttributeSlot,
+  knownRmAttributeNames,
+} from './canonical_rm_values.ts';
 
 /**
  * JSON Configurable Deserializer for openEHR RM objects
@@ -146,6 +150,15 @@ export class JsonConfigurableDeserializer {
     }
     
     if (typeof obj !== 'object') {
+      if (this.config.strict) {
+        this.rejectPrimitiveWhereObjectDeclared(
+          obj,
+          parentType,
+          propertyName,
+          jsonPointer,
+          sourceIndex,
+        );
+      }
       return obj;
     }
     
@@ -171,6 +184,16 @@ export class JsonConfigurableDeserializer {
       ) as T;
     }
     
+    if (this.config.strict) {
+      this.rejectMissingTypeOnAbstractSlot(
+        obj,
+        parentType,
+        propertyName,
+        jsonPointer,
+        sourceIndex,
+      );
+    }
+
     // Resolve type
     const typeName = this.resolveType(obj, expectedType, parentType, propertyName);
     
@@ -205,6 +228,10 @@ export class JsonConfigurableDeserializer {
     
     // Create instance
     const instance = new constructor();
+
+    if (this.config.strict) {
+      this.rejectUnknownAttributes(obj, typeName, jsonPointer, sourceIndex);
+    }
     
     // Populate properties
     for (const [key, value] of Object.entries(obj)) {
@@ -246,6 +273,82 @@ export class JsonConfigurableDeserializer {
     }
     
     return instance as T;
+  }
+
+  /**
+   * Strict mode: a JSON primitive cannot stand in for an RM object type.
+   * Lenient mode still returns the primitive (terse strings included).
+   */
+  private rejectPrimitiveWhereObjectDeclared(
+    value: unknown,
+    parentType: string | undefined,
+    propertyName: string | undefined,
+    jsonPointer: string,
+    sourceIndex: JsonSourceIndex | undefined,
+  ): void {
+    const slot = declaredAttributeSlot(parentType, propertyName);
+    if (!slot?.isRmObject) return;
+    throw this.deserializationError(
+      `Attribute '${propertyName}' on ${parentType} expects ${slot.rawTypeName}, got ${typeof value}`,
+      JSON.stringify(value),
+      undefined,
+      jsonPointer,
+      sourceIndex,
+    );
+  }
+
+  /**
+   * Strict mode: abstract or polymorphic slots need an explicit `_type`.
+   * Concrete non-polymorphic slots (CODE_PHRASE, TERMINOLOGY_ID, …) may still
+   * be inferred. This runs before type inference so an abstract type such as
+   * PARTY_PROXY is not chosen as a best guess.
+   */
+  private rejectMissingTypeOnAbstractSlot(
+    obj: Record<string, unknown>,
+    parentType: string | undefined,
+    propertyName: string | undefined,
+    jsonPointer: string,
+    sourceIndex: JsonSourceIndex | undefined,
+  ): void {
+    if (obj[this.config.typePropertyName]) return;
+    const slot = declaredAttributeSlot(parentType, propertyName);
+    if (!slot?.requiresTypeTag) return;
+    throw this.deserializationError(
+      `Missing ${this.config.typePropertyName} for attribute '${propertyName}' on ${parentType}: declared type '${slot.typeName}' is abstract or polymorphic`,
+      JSON.stringify(obj),
+      undefined,
+      jsonPointer,
+      sourceIndex,
+    );
+  }
+
+  /**
+   * Strict mode: reject keys the RM class does not declare (BMM `attributesFor`).
+   * The type discriminator is not an RM attribute. Types we cannot describe are
+   * left alone so non-RM documents are unchanged. Only called when `strict` is true.
+   */
+  private rejectUnknownAttributes(
+    obj: object,
+    typeName: string,
+    jsonPointer: string,
+    sourceIndex: JsonSourceIndex | undefined,
+  ): void {
+    const known = knownRmAttributeNames(typeName);
+    if (!known) return;
+    for (const key of Object.keys(obj)) {
+      if (key === this.config.typePropertyName) continue;
+      if (known.has(key)) continue;
+      const childPointer = jsonPointer === ''
+        ? `/${escapeJsonPointerSegment(key)}`
+        : `${jsonPointer}/${escapeJsonPointerSegment(key)}`;
+      throw this.deserializationError(
+        `Unknown attribute '${key}' on ${typeName}`,
+        JSON.stringify(obj),
+        undefined,
+        childPointer,
+        sourceIndex,
+      );
+    }
   }
 
   private deserializationError(
