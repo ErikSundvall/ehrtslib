@@ -214,13 +214,13 @@ document, so the server side does not depend on the profile.
   existing `zipehr-html5-*.css`) shows the plain clinical document;
   `stripControls` gives a storable `zipehr.html5` file.
 
-#### `basic` output for old browsers and email (render-only)
+#### `basic` output for old browsers (render-only)
 
-An optional fifth output for old phones and for forms sent by email. It
-is rendered from the same build as variant 3 (short, `forms`), but it is
-**not a ZipEHR variant**: it has no `o-*` tags, so it is never stored,
-exchanged or parsed as `zipehr.html5`. Only the 2×2 variants are editable
-ZipEHR documents.
+An optional fifth output for old phones and browsers. It is rendered
+from the same build as variant 3 (short, `forms`), but it is **not a
+ZipEHR variant**: it has no `o-*` tags, so it is never stored, exchanged
+or parsed as `zipehr.html5`. Only the 2×2 variants are editable ZipEHR
+documents.
 
 - **Markup:** `<div>`/`<span>` with `class` and `data-cb-*` attributes,
   one column with labels above fields, and one form per section instead of
@@ -230,22 +230,13 @@ ZipEHR documents.
   old browsers fall back to a text box. A build step may use CSS inlining
   and downlevelling tools (for example Juice and postcss-preset-env with a
   Browserslist target) instead of hand-written CSS.
-- **Email:** the same markup works as an HTML email body. Many email
-  clients block or disable form submission, so each emailed form also
-  carries a link to the same form on the web. The form `action` and the
-  link use a single-use, expiring capability URL issued by the host, since
-  an email has no session; the author is still taken from what the host
-  binds to that URL, never from form fields.
-- **Email carries patient data and edit rights.** Whoever holds the email
-  can read it and post to the build, so the emailed form carries as little
-  pre-filled data as possible, and its capability URL is short-lived,
-  single-use and scoped to one build. A post through it only adds
-  operations to the draft; committing to the CDR still needs a normal
-  sign-in.
-- **Test targets:** an old Android WebView, Opera Mini and a few common
-  email clients. Old devices may also fail on HTTPS (outdated root
-  certificates or no TLS 1.2); that is a hosting concern, not one the
-  markup can solve.
+- **Sessions as in the other profiles:** the same sign-in, token check and
+  author binding apply; nothing is sent outside the web session.
+- **Test targets:** an old Android WebView and Opera Mini. Old devices may
+  also fail on HTTPS (outdated root certificates or no TLS 1.2); that is a
+  hosting concern, not one the markup can solve.
+- **Not by email.** Forms are not sent as email: patient data in email is
+  seldom allowed in healthcare.
 
 ### Security
 
@@ -358,8 +349,30 @@ which edits are accepted.
    it becomes `latest`?
 10. **Token check:** does the add-on own CSRF checks, or only call a host
     callback?
-11. **Email capability URLs:** lifetime and scope of the single-use URL,
-    and whether one emailed form may cover more than one draft.
+
+## Future: chat-framework plugins
+
+Not part of this decision; recorded as a roadmap idea.
+
+- **Idea.** Let clinicians fill in or confirm parts of a build inside the
+  chat tools they already use, instead of opening a separate form page.
+  Candidates: the clinic's own messaging platform (for example Microsoft
+  Teams Adaptive Cards, Slack Block Kit or Matrix widgets) and AI chat
+  clients that render interactive tool UIs (for example MCP Apps).
+- **Same contract.** A plugin renders a small part of a draft (one entry
+  or a few fields) in the chat framework's own card or widget format and
+  sends the answers as the same `op` requests to `handleCbRequest`. The
+  build, operation log, validation and commit stay in the Contribution
+  Builder; the chat only shows a view, like the 2×2 web variants.
+- **Privacy first.** Only for chat platforms that the healthcare
+  organisation approves for patient data. Cards carry as little patient
+  data as possible and link to the web form for the rest; the user's
+  identity comes from the platform's sign-in mapped to the host, never
+  from the message.
+- **Open:** which frameworks first, whether one neutral card description
+  (generated from the template and the `basic` output's structure) can be
+  translated to several card formats, and how presence and
+  `changed-by-someone-else` answers show up in a chat.
 
 ## Implementation plan (future, tracer bullets)
 
@@ -378,7 +391,6 @@ Each step is small enough for one PR and ends with tests.
    and 4.
 5. **Release:** bundle target and asset row (needs a release-workflow
    change by the maintainer).
-6. **`basic` output:** the old-browser and email rendering with inlined
-   CSS and capability URLs.
+6. **`basic` output:** the old-browser rendering with inlined CSS.
 7. **Later:** `address` fields with ADR 0011 paths, lifecycle verbs, live
    updates (question 6), and the `hydrateOptHtml5` bridge.
