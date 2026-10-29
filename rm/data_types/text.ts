@@ -9,7 +9,11 @@ import type { CodePhraseInit, DvCodedTextInit, DvTextInit } from "../_unassigned
 import { DATA_VALUE } from "./basic.ts";
 import type { DV_URI } from "./uri.ts";
 import * as openehr_base from "../../base/mod.ts";
-import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
+import {
+  applyRmInit,
+  installAssignmentCoercion,
+  type RmInit,
+} from "../../base/apply_rm_init.ts";
 
 /**
  * DEPRECATED: use markdown formatted \`DV_TEXT\` instead.
@@ -46,6 +50,7 @@ export class DV_TEXT extends DATA_VALUE {
    */
   constructor(init?: string | Partial<DvTextInit>) {
     super();
+    installAssignmentCoercion(this);
     if (typeof init === 'string') {
       this.value = init;
     } else if (init) {
@@ -188,12 +193,15 @@ export class DV_CODED_TEXT extends DV_TEXT {
       const parsed = parseTerseDvCodedText(init);
       if (parsed) {
         super({ value: parsed.value });
+        installAssignmentCoercion(this);
         this.defining_code = parsed.defining_code;
       } else {
         super();
+        installAssignmentCoercion(this);
       }
     } else {
       super(init);
+      installAssignmentCoercion(this);
       if (init && init.defining_code !== undefined) {
         this.defining_code = initCodePhrase(init.defining_code as any);
       }
@@ -323,6 +331,7 @@ export class CODE_PHRASE {
    * ```
    */
   constructor(init?: string | Partial<CodePhraseInit>) {
+    installAssignmentCoercion(this);
     if (typeof init === 'string') {
       // Initialize from terse format
       const parsed = initCodePhrase(init);

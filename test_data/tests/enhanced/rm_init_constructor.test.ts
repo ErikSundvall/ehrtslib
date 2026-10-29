@@ -313,3 +313,43 @@ Deno.test("every concrete RM class with BMM attributes keeps a known init value"
   }
   assertEquals(failures, []);
 });
+
+Deno.test("Object.assign coerces terse strings the way the constructor does", () => {
+  const element = Object.assign(new ELEMENT(), {
+    archetype_node_id: "at0008",
+    value: "local::at1001|Sitting|",
+  });
+  const json = canonical(element);
+  const value = json.value as Record<string, unknown>;
+  assertEquals(value._type, "DV_CODED_TEXT");
+  const defining = value.defining_code as Record<string, unknown>;
+  assertEquals(defining.code_string, "at1001");
+  assertEquals(value.value, "Sitting");
+
+  const coded = Object.assign(new DV_CODED_TEXT(), {
+    value: "Sitting",
+    defining_code: "local::at1001",
+  });
+  const codedJson = canonical(coded);
+  const codedDefining = codedJson.defining_code as Record<string, unknown>;
+  assertEquals(codedDefining.code_string, "at1001");
+
+  const fromObject = Object.assign(new DV_CODED_TEXT(), {
+    value: "Sitting",
+    defining_code: { terminology_id: "local", code_string: "at1001" },
+  });
+  const fromObjectJson = canonical(fromObject);
+  const fromObjectDefining = fromObjectJson.defining_code as Record<string, unknown>;
+  assertEquals(
+    (fromObjectDefining.terminology_id as Record<string, unknown>).value,
+    "local",
+  );
+  assertEquals(fromObjectDefining.code_string, "at1001");
+
+  const observation = Object.assign(new OBSERVATION(), {
+    language: "ISO_639-1::en",
+  });
+  const language = canonical(observation).language as Record<string, unknown>;
+  assertEquals(language._type, "CODE_PHRASE");
+  assertEquals(language.code_string, "en");
+});

@@ -9,8 +9,10 @@
  * `DV_CODED_TEXT`, and abstract `DATA_VALUE` slots. A plain object with
  * `_type` is built via `TypeRegistry` (`registerOpenEhrModelTypes`).
  *
- * `Object.assign(new X(), init)` does not use this function, so it still
- * does not coerce terse strings. The constructor is the supported path.
+ * Property assignment and `Object.assign(new X(), init)` use the same
+ * coercion. Accessors are installed on the instance after field
+ * initialisers, so a terse string written to a `CODE_PHRASE`, `DV_TEXT`,
+ * `DV_CODED_TEXT`, or `DATA_VALUE` attribute becomes an RM object.
  */
 
 import { createRequire } from "node:module";
@@ -343,11 +345,93 @@ function applyRmInitObject(
   }
 }
 
+const installing = new WeakSet<object>();
+
+function protoDescriptor(
+  instance: object,
+  key: string,
+): PropertyDescriptor | undefined {
+  let current = Object.getPrototypeOf(instance);
+  while (current && current !== Object.prototype) {
+    const desc = Object.getOwnPropertyDescriptor(current, key);
+    if (desc) return desc;
+    current = Object.getPrototypeOf(current);
+  }
+  return undefined;
+}
+
+function shouldCoerceAttribute(attr: RmAttributeMeta): boolean {
+  // Lists and other containers stay as the deserializer left them. A single
+  // object in a List slot is a lenient JSON shape, not a terse string.
+  if (attr.name === "parent" || unwrapContainer(attr.typeName)) return false;
+  const base = rmTypeBaseName(attr.typeName);
+  if (
+    base === "CODE_PHRASE" || base === "DV_TEXT" || base === "DV_CODED_TEXT"
+  ) return true;
+  // ELEMENT.value and other abstract DATA_VALUE slots: a terse coded-text
+  // string or a plain string becomes DV_CODED_TEXT / DV_TEXT.
+  return isAbstractType(base) && isDataValueType(base);
+}
+
+/**
+ * Install per-instance setters so later assignment coerces the same way as
+ * the constructor. Call this from the most derived constructor body, after
+ * `super()`, so subclass field initialisers do not wipe the accessors.
+ */
+export function installAssignmentCoercion(instance: object): void {
+  if (installing.has(instance)) return;
+  installing.add(instance);
+  try {
+    const typeName = instance.constructor?.name || "object";
+    const record = instance as Record<string, unknown>;
+    for (const attr of attributesFor(typeName)) {
+      if (!shouldCoerceAttribute(attr)) continue;
+      const proto = protoDescriptor(instance, attr.name);
+      if (proto && "value" in proto && typeof proto.value === "function") {
+        continue;
+      }
+      if (proto?.get && !proto.set) continue;
+
+      if (proto?.get && proto.set) {
+        const get = proto.get;
+        const set = proto.set;
+        Object.defineProperty(instance, attr.name, {
+          configurable: true,
+          enumerable: proto.enumerable !== false,
+          get() {
+            return get.call(this);
+          },
+          set(value: unknown) {
+            set.call(this, coerceValue(value, attr, typeName));
+          },
+        });
+        continue;
+      }
+
+      let stored = record[attr.name];
+      Object.defineProperty(instance, attr.name, {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return stored;
+        },
+        set(value: unknown) {
+          stored = coerceValue(value, attr, typeName);
+        },
+      });
+    }
+  } finally {
+    installing.delete(instance);
+  }
+}
+
 /**
  * Assign known attributes from `init` onto `instance`.
- * No-op when `init` is `undefined` or `null`.
+ * No-op when `init` is `undefined` or `null`. Still installs assignment
+ * coercion, so `applyRmInit(instance, undefined)` arms `Object.assign`.
  */
 export function applyRmInit(instance: object, init: unknown): void {
+  installAssignmentCoercion(instance);
   if (init === undefined || init === null) return;
   if (typeof init !== "object" || Array.isArray(init)) {
     const typeName = instance.constructor?.name || "object";

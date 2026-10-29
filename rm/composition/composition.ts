@@ -3,6 +3,7 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
+import { installAssignmentCoercion } from "../../base/apply_rm_init.ts";
 import { initArchetyped, initCodePhrase, initDvCodedText, initDvText, initEventContext, initObjectVersionId, initPartyProxy } from "../../base/init_helpers.ts";
 import type { CompositionInit } from "../_unassigned.ts";
 import { LOCATABLE, PATHABLE } from "../common/archetyped.ts";
@@ -35,6 +36,7 @@ export class COMPOSITION extends LOCATABLE {
    */
   constructor(init?: Partial<CompositionInit>) {
     super();
+    installAssignmentCoercion(this);
     if (init) {
       this._applyInit(init);
     }
