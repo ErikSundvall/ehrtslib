@@ -418,7 +418,7 @@ still open for review:
   the layer gives plain `zipehr.html5` with the same canonical JSON.
 - Each dialect has a `forms` profile (no JavaScript) and an `htmx` profile,
   a 2×2 matrix. An optional render-only `basic` output serves old phones
-  and browsers. Chat-framework plugins are a future roadmap idea.
+  and browsers.
 - Controls are real form posts with an `op` field, so htmx and no-JS forms
   send the same request. A Fetch-API handler turns them into ordinary
   operations on short keys or ADR 0011 addresses and returns HTML

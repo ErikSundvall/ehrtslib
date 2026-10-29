@@ -350,30 +350,6 @@ which edits are accepted.
 10. **Token check:** does the add-on own CSRF checks, or only call a host
     callback?
 
-## Future: chat-framework plugins
-
-Not part of this decision; recorded as a roadmap idea.
-
-- **Idea.** Let clinicians fill in or confirm parts of a build inside the
-  chat tools they already use, instead of opening a separate form page.
-  Candidates: the clinic's own messaging platform (for example Microsoft
-  Teams Adaptive Cards, Slack Block Kit or Matrix widgets) and AI chat
-  clients that render interactive tool UIs (for example MCP Apps).
-- **Same contract.** A plugin renders a small part of a draft (one entry
-  or a few fields) in the chat framework's own card or widget format and
-  sends the answers as the same `op` requests to `handleCbRequest`. The
-  build, operation log, validation and commit stay in the Contribution
-  Builder; the chat only shows a view, like the 2×2 web variants.
-- **Privacy first.** Only for chat platforms that the healthcare
-  organisation approves for patient data. Cards carry as little patient
-  data as possible and link to the web form for the rest; the user's
-  identity comes from the platform's sign-in mapped to the host, never
-  from the message.
-- **Open:** which frameworks first, whether one neutral card description
-  (generated from the template and the `basic` output's structure) can be
-  translated to several card formats, and how presence and
-  `changed-by-someone-else` answers show up in a chat.
-
 ## Implementation plan (future, tracer bullets)
 
 Each step is small enough for one PR and ends with tests.
