@@ -51,9 +51,22 @@ function aqlSegmentCount(aqlPath: string): number {
   return aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g)?.length ?? 0;
 }
 
+function flatLanguage(flat: FlatPayload): string | undefined {
+  for (const [key, value] of Object.entries(flat)) {
+    if (!key.startsWith("ctx/language")) continue;
+    if (value == null || typeof value === "object") continue;
+    const pipe = key.indexOf("|");
+    const suffix = pipe === -1 ? "" : key.slice(pipe + 1);
+    if (suffix && suffix !== "value" && suffix !== "code") continue;
+    return String(value);
+  }
+  return undefined;
+}
+
 export class FlatDeserializer {
   /** Issues from the most recent {@link deserialize} call (defaults / rubrics). */
   issues: FlatRmDefaultIssue[] = [];
+  private language?: string;
   private rootId: string;
   /** id-chain (indices stripped, without root) → node */
   private nodeByChain = new Map<string, WebTemplateNode>();
@@ -83,6 +96,7 @@ export class FlatDeserializer {
 
   deserialize(flat: FlatPayload): RmObject {
     this.issues = [];
+    this.language = flatLanguage(flat) ?? this.webTemplate.defaultLanguage;
     const comp: RmObject = { _type: "COMPOSITION" };
     const groups = new Map<string, LeafGroup>();
 
@@ -237,7 +251,12 @@ export class FlatDeserializer {
     assignAtAqlPath(
       comp,
       node.aqlPath,
-      buildRmValue(node.rmType, group.fields),
+      buildRmValue(node.rmType, group.fields, {
+        node,
+        language: this.language,
+        issues: this.issues,
+        path: node.aqlPath,
+      }),
       node.rmType,
       node.nodeId,
       hints,

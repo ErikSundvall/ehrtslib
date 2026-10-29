@@ -8,7 +8,40 @@
  * date/time types). `|value` is accepted as a read alias for the bare key.
  */
 
+import type { WebTemplateNode } from "./types.ts";
+import {
+  completeDvCodedText,
+  type FlatRmDefaultIssue,
+} from "./flat_rm_defaults.ts";
+
 type RmObject = Record<string, unknown>;
+
+/** Code-list entry used to complete a partial DV_CODED_TEXT. */
+export interface CodedTextListEntry {
+  value: string;
+  label?: string;
+  terminology?: string;
+  localizedLabels?: Record<string, string>;
+}
+
+/**
+ * Template context for {@link buildDvValue} / {@link buildRmValue}.
+ * Without `node` or `codes`, coded text is not completed.
+ */
+export interface DvValueBuildContext {
+  /** Web Template node that carries the code list. */
+  node?: WebTemplateNode;
+  /** Code list used when `node` is omitted. */
+  codes?: CodedTextListEntry[];
+  /** Terminology id for `codes` when an entry does not set one. */
+  terminology?: string;
+  /** Composition language used to choose the rubric. */
+  language?: string;
+  /** Rubric-mismatch errors. Omit to complete without reporting. */
+  issues?: FlatRmDefaultIssue[];
+  /** Path attached to reported issues. */
+  path?: string;
+}
 
 export type FieldKind = "string" | "number" | "integer" | "boolean";
 
@@ -380,22 +413,119 @@ export function extractFields(
   return out;
 }
 
+function listedCodes(node: WebTemplateNode): CodedTextListEntry[] {
+  const out: CodedTextListEntry[] = [];
+  for (const input of node.inputs ?? []) {
+    if (input.suffix && input.suffix !== "code") continue;
+    for (const item of input.list ?? []) {
+      if (!item.value) continue;
+      out.push({
+        value: item.value,
+        label: item.label,
+        terminology: input.terminology,
+        localizedLabels: item.localizedLabels,
+      });
+    }
+  }
+  return out;
+}
+
+function nodeTerminology(node: WebTemplateNode): string | undefined {
+  return node.inputs?.find((input) => input.suffix === "code" || !input.suffix)
+    ?.terminology;
+}
+
+/** Minimal node so a bare code list can drive the same completion as a Web Template node. */
+function nodeFromContext(context: DvValueBuildContext): WebTemplateNode | undefined {
+  if (context.node) return context.node;
+  if (!context.codes?.length) return undefined;
+  const terminology = context.terminology ??
+    context.codes.find((code) => code.terminology)?.terminology;
+  return {
+    id: "value",
+    rmType: "DV_CODED_TEXT",
+    min: 0,
+    max: 1,
+    aqlPath: context.path ?? "/",
+    inputs: [{
+      type: "CODED_TEXT",
+      suffix: "code",
+      terminology,
+      list: context.codes.map((code) => ({
+        value: code.value,
+        label: code.label,
+        localizedLabels: code.localizedLabels,
+      })),
+    }],
+  };
+}
+
+/**
+ * Bare DV_CODED_TEXT key: a listed code (any case) is `|code`, otherwise `|value`.
+ * Does nothing when the caller already set `|code` or `|value`.
+ */
+function interpretCodedTextBareField(
+  fields: Record<string, string | number | boolean | null | undefined>,
+  codes: CodedTextListEntry[],
+  terminology?: string,
+): Record<string, string | number | boolean | null | undefined> {
+  const bare = fields[""];
+  if (bare == null || fields.code != null || fields.value != null) return fields;
+  const text = String(bare);
+  const codeHit = codes.find((code) =>
+    code.value.toLowerCase() === text.toLowerCase()
+  );
+  const rest: Record<string, string | number | boolean | null | undefined> = {
+    ...fields,
+  };
+  delete rest[""];
+  if (codeHit) {
+    const next: Record<string, string | number | boolean | null | undefined> = {
+      ...rest,
+      code: codeHit.value,
+    };
+    if (
+      next.terminology == null && terminology &&
+      terminology.toLowerCase() !== "local" &&
+      terminology.toLowerCase() !== "openehr"
+    ) {
+      next.terminology = terminology;
+    }
+    return next;
+  }
+  return { ...rest, value: text };
+}
+
 /**
  * Build an RM data value object (plain, with `_type` markers) from
  * simplified-format fields keyed by suffix ("" = bare).
+ *
+ * When `context` carries a Web Template node or code list, a bare
+ * DV_CODED_TEXT value is read as `|code` or `|value` and the missing half is
+ * filled for local / openEHR lists. Without that context the bare key is not
+ * turned into a code.
  */
 export function buildDvValue(
   rmType: string,
   fields: Record<string, string | number | boolean | null | undefined>,
+  context?: DvValueBuildContext,
 ): RmObject {
   const resolved = resolveDvType(rmType);
+  const codedNode = context ? nodeFromContext(context) : undefined;
+  const source = codedNode && resolved === "DV_CODED_TEXT"
+    ? interpretCodedTextBareField(
+      fields,
+      listedCodes(codedNode),
+      nodeTerminology(codedNode),
+    )
+    : fields;
   const map = getFieldMap(resolved) ?? fallbackFieldMap(resolved);
   const root: RmObject = { _type: resolved };
 
   for (const field of map.fields) {
-    let value = fields[field.suffix];
+    let value = source[field.suffix];
     // `|value` is a read alias for the bare suffix
-    if (value == null && field.suffix === "") value = fields.value;
+    if (value == null && field.suffix === "") value = source.value;
     if (value == null) continue;
     const coerced = coerce(value, field.kind);
     if (coerced === undefined) continue;
@@ -416,6 +546,15 @@ export function buildDvValue(
   // Apply build defaults (e.g. default terminology) when the owning object
   // was created but the defaulted leaf is missing.
   applyBuildDefaults(resolved, root, map);
+  if (codedNode && root._type === "DV_CODED_TEXT") {
+    completeDvCodedText(
+      root,
+      codedNode,
+      context?.issues ?? [],
+      context?.path ?? codedNode.aqlPath,
+      context?.language,
+    );
+  }
   return root;
 }
 

@@ -10,7 +10,10 @@ import {
 } from "../../generation/coded_text_value.ts";
 import { instructionStateRubric } from "../../term/openehr_group_rubrics.ts";
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
-import { resolveAllAtWebTemplateNode } from "./instance_nav.ts";
+import {
+  resolveAllAtWebTemplateNode,
+  resolveChildWebTemplateNodes,
+} from "./instance_nav.ts";
 
 type RmObject = Record<string, unknown>;
 
@@ -33,19 +36,87 @@ function listItemLabel(
   return undefined;
 }
 
-function codedListEntries(
-  node: WebTemplateNode,
-): Array<{ value: string; label?: string; terminology?: string }> {
-  const out: Array<{ value: string; label?: string; terminology?: string }> =
-    [];
+interface CodedListEntry {
+  value: string;
+  label?: string;
+  terminology?: string;
+  localizedLabels?: Record<string, string>;
+}
+
+function codedListEntries(node: WebTemplateNode): CodedListEntry[] {
+  const out: CodedListEntry[] = [];
   for (const input of node.inputs ?? []) {
     if (input.suffix && input.suffix !== "code") continue;
     const terminology = input.terminology;
     for (const item of input.list ?? []) {
-      if (item.value) out.push({ value: item.value, label: item.label, terminology });
+      if (item.value) {
+        out.push({
+          value: item.value,
+          label: item.label,
+          terminology,
+          localizedLabels: item.localizedLabels,
+        });
+      }
     }
   }
   return out;
+}
+
+function isLocalOrOpenehr(term: string | undefined): boolean {
+  if (!term) return true;
+  const normalized = term.toLowerCase();
+  return normalized === "local" || normalized === "openehr";
+}
+
+function rubricTexts(entry: CodedListEntry, term: string): string[] {
+  const texts: string[] = [];
+  if (term === "openehr") {
+    const rubric = instructionStateRubric(entry.value);
+    if (rubric) texts.push(rubric);
+  } else if (entry.label) {
+    texts.push(entry.label);
+  }
+  if (term !== "openehr") {
+    for (const label of Object.values(entry.localizedLabels ?? {})) {
+      if (label) texts.push(label);
+    }
+  }
+  return texts;
+}
+
+function matchesRubric(entry: CodedListEntry, val: string, term: string): boolean {
+  const lower = val.toLowerCase();
+  if (rubricTexts(entry, term).some((text) => text.toLowerCase() === lower)) {
+    return true;
+  }
+  return resolveInstructionStateCode(val) === entry.value;
+}
+
+function findListEntry(
+  node: WebTemplateNode,
+  code: string,
+): CodedListEntry | undefined {
+  const lower = code.toLowerCase();
+  return codedListEntries(node).find((entry) => entry.value.toLowerCase() === lower);
+}
+
+/** Template rubric for `code`, preferring the composition language. */
+function labelForCode(
+  node: WebTemplateNode,
+  code: string,
+  language?: string,
+): string | undefined {
+  const item = findListEntry(node, code);
+  if (!item) return undefined;
+  if (language && item.localizedLabels) {
+    const exact = item.localizedLabels[language];
+    if (exact) return exact;
+    const key = Object.keys(item.localizedLabels).find((candidate) =>
+      candidate.toLowerCase() === language.toLowerCase()
+    );
+    if (key && item.localizedLabels[key]) return item.localizedLabels[key];
+  }
+  return item.label;
 }
 
 function templateTerminology(node: WebTemplateNode): string {
@@ -68,31 +139,41 @@ function currentStatesForCareflow(
   return undefined;
 }
 
-function completeDvCodedText(
+/**
+ * Fill a partial DV_CODED_TEXT from the Web Template code list.
+ *
+ * Local and openEHR lists only. External terminologies are left as given.
+ * Rubrics match case-insensitively; `value` is written with the template
+ * rubric for `language` (canonical casing).
+ */
+export function completeDvCodedText(
   value: RmObject,
   wtNode: WebTemplateNode,
   issues: FlatRmDefaultIssue[],
   path: string,
+  language?: string,
 ): void {
   if (value._type !== "DV_CODED_TEXT") return;
 
+  const nodeTerm = templateTerminology(wtNode);
+  if (!isLocalOrOpenehr(nodeTerm)) return;
+
   const entries = codedListEntries(wtNode);
   const only = entries.length === 1 ? entries[0] : undefined;
-  const terminology = templateTerminology(wtNode);
 
   let dc = value.defining_code as RmObject | undefined;
-  let code = dc?.code_string as string | undefined;
-  const term = terminologyIdValue(dc) ?? only?.terminology ?? terminology;
-  let val = typeof value.value === "string" ? value.value : undefined;
+  const instanceTerm = terminologyIdValue(dc);
+  if (instanceTerm && !isLocalOrOpenehr(instanceTerm)) return;
 
-  if (!code && val) {
-    const rubricMatches = entries.filter((entry) => {
-      const expected = term === "openehr"
-        ? instructionStateRubric(entry.value)
-        : entry.label;
-      if (expected && expected.toLowerCase() === val.toLowerCase()) return true;
-      return resolveInstructionStateCode(val) === entry.value;
-    });
+  let code = dc?.code_string as string | undefined;
+  const term = instanceTerm ?? only?.terminology ?? nodeTerm;
+  const val = typeof value.value === "string" ? value.value : undefined;
+
+  if (!code && val && entries.length) {
+    const text = val;
+    const rubricMatches = entries.filter((entry) =>
+      matchesRubric(entry, text, term)
+    );
     if (rubricMatches.length === 1) {
       code = rubricMatches[0].value;
     } else if (rubricMatches.length > 1) {
@@ -106,17 +187,18 @@ function completeDvCodedText(
       });
       return;
     } else if (only) {
-      const expectedRubric = resolveDvCodedTextValue(
-        { code_string: only.value, terminology_id: { value: term } },
-        { templateLabel: only.label },
-      );
-      const byRubric = val.toLowerCase() === expectedRubric.toLowerCase()
-        ? only.value
-        : undefined;
-      const byCtx = resolveInstructionStateCode(val);
-      const resolved = byRubric ??
-        (byCtx === only.value ? byCtx : undefined);
-      if (!resolved) {
+      const expectedRubric = term === "openehr"
+        ? (instructionStateRubric(only.value) ?? resolveDvCodedTextValue(
+          { code_string: only.value, terminology_id: { value: term } },
+          { templateLabel: only.label },
+        ))
+        : (labelForCode(wtNode, only.value, language) ?? resolveDvCodedTextValue(
+          { code_string: only.value, terminology_id: { value: term } },
+          { templateLabel: only.label },
+        ));
+      const accepted = matchesRubric(only, val, term) ||
+        val.toLowerCase() === expectedRubric.toLowerCase();
+      if (!accepted) {
         issues.push({
           path,
           severity: "error",
@@ -125,7 +207,7 @@ function completeDvCodedText(
         });
         return;
       }
-      code = resolved;
+      code = only.value;
     } else {
       issues.push({
         path,
@@ -139,6 +221,13 @@ function completeDvCodedText(
     code = only.value;
   }
 
+  if (code) {
+    const canonical = entries.find((entry) =>
+      entry.value.toLowerCase() === code!.toLowerCase()
+    );
+    if (canonical) code = canonical.value;
+  }
+
   if (code && (!dc || !dc.code_string)) {
     value.defining_code = {
       _type: "CODE_PHRASE",
@@ -146,24 +235,50 @@ function completeDvCodedText(
       terminology_id: { _type: "TERMINOLOGY_ID", value: term },
     };
     dc = value.defining_code as RmObject;
+  } else if (
+    code && dc && dc.code_string !== code &&
+    String(dc.code_string).toLowerCase() === code.toLowerCase()
+  ) {
+    dc.code_string = code;
   }
 
-  if (code && !val) {
-    const templateLabel = listItemLabel(wtNode, code);
-    value.value = resolveDvCodedTextValue(dc, { templateLabel });
-    val = value.value as string;
-  }
-
-  if (code && val && term === "openehr") {
+  if (code && term === "openehr") {
     const expected = instructionStateRubric(code) ??
-      resolveDvCodedTextValue(dc, { templateLabel: listItemLabel(wtNode, code) });
-    if (expected && val !== expected && resolveInstructionStateCode(val) !== code) {
-      issues.push({
-        path,
-        severity: "error",
-        message:
-          `DV_CODED_TEXT value "${val}" does not match openEHR rubric "${expected}" for code ${code}`,
+      resolveDvCodedTextValue(dc, {
+        templateLabel: labelForCode(wtNode, code, language),
       });
+    if (!val && expected) {
+      value.value = expected;
+    } else if (val && expected && val !== expected) {
+      if (
+        val.toLowerCase() === expected.toLowerCase() ||
+        resolveInstructionStateCode(val) === code
+      ) {
+        value.value = expected;
+      } else {
+        issues.push({
+          path,
+          severity: "error",
+          message:
+            `DV_CODED_TEXT value "${val}" does not match openEHR rubric "${expected}" for code ${code}`,
+        });
+      }
+    }
+    return;
+  }
+
+  if (code && term !== "openehr") {
+    const canonical = labelForCode(wtNode, code, language);
+    if (!val) {
+      if (canonical || entries.length === 1) {
+        value.value = resolveDvCodedTextValue(dc, { templateLabel: canonical });
+      }
+    } else if (canonical) {
+      const item = findListEntry(wtNode, code);
+      const matched = item
+        ? matchesRubric(item, val, term)
+        : val.toLowerCase() === canonical.toLowerCase();
+      if (matched && val !== canonical) value.value = canonical;
     }
   }
 }
@@ -237,6 +352,7 @@ function fillIsmFromWebTemplate(
   ctxCurrentState?: string,
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
+  language?: string,
 ): void {
   const variant = inferFromCareflow(ism, ismWt);
   if (variant?.nodeId && !ism.archetype_node_id) {
@@ -265,6 +381,7 @@ function fillIsmFromWebTemplate(
       currentWt,
       issues,
       `${pathPrefix}/current_state`,
+      language,
     );
   }
 
@@ -275,6 +392,7 @@ function fillIsmFromWebTemplate(
       careWt,
       issues,
       `${pathPrefix}/careflow_step`,
+      language,
     );
   }
 }
@@ -284,10 +402,18 @@ function defaultIsmTransition(
   ctxCurrentState?: string,
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
+  language?: string,
 ): RmObject {
   const ism: RmObject = { _type: "ISM_TRANSITION" };
   if (ismWt.nodeId) ism.archetype_node_id = ismWt.nodeId;
-  fillIsmFromWebTemplate(ism, ismWt, ctxCurrentState, issues, pathPrefix);
+  fillIsmFromWebTemplate(
+    ism,
+    ismWt,
+    ctxCurrentState,
+    issues,
+    pathPrefix,
+    language,
+  );
   return ism;
 }
 
@@ -313,23 +439,71 @@ function walkTemplate(
   }
 }
 
-function enrichCodedValuesInTree(
-  instance: unknown,
-  wtNode: WebTemplateNode,
+function compositionLanguage(composition: RmObject): string | undefined {
+  const lang = composition.language;
+  if (!lang || typeof lang !== "object") return undefined;
+  const code = (lang as RmObject).code_string;
+  return typeof code === "string" && code ? code : undefined;
+}
+
+/**
+ * Visit every DV_CODED_TEXT in the composition. Child AQL paths are absolute,
+ * so resolution uses the composition root (the same walk FLAT serialization uses).
+ */
+function enrichCodedValues(
+  root: unknown,
+  node: WebTemplateNode,
   issues: FlatRmDefaultIssue[],
-  path = "",
+  language: string | undefined,
+  scope?: unknown,
 ): void {
-  if (!instance || typeof instance !== "object") return;
-  if (wtNode.rmType === "DV_CODED_TEXT") {
-    completeDvCodedText(instance as RmObject, wtNode, issues, path || wtNode.aqlPath);
+  if (node.inContext) return;
+  const values = scope !== undefined
+    ? [scope]
+    : resolveAllAtWebTemplateNode(root, node);
+  if (!values.length) return;
+
+  if (node.rmType === "DV_CODED_TEXT") {
+    for (const value of values) {
+      if (value && typeof value === "object") {
+        completeDvCodedText(
+          value as RmObject,
+          node,
+          issues,
+          node.aqlPath,
+          language,
+        );
+      }
+    }
     return;
   }
-  for (const childWt of wtNode.children ?? []) {
-    const children = resolveAllAtWebTemplateNode(instance, childWt);
-    for (const child of children) {
-      enrichCodedValuesInTree(child, childWt, issues, childWt.aqlPath);
+
+  for (const value of values) {
+    if (!value || typeof value !== "object") continue;
+    for (const child of node.children ?? []) {
+      const childValues = resolveChildWebTemplateNodes(
+        root,
+        value,
+        node,
+        child,
+      );
+      for (const childValue of childValues) {
+        enrichCodedValues(root, child, issues, language, childValue);
+      }
     }
   }
+}
+
+function dedupeIssues(issues: FlatRmDefaultIssue[]): void {
+  const seen = new Set<string>();
+  let write = 0;
+  for (const issue of issues) {
+    const key = `${issue.severity}\0${issue.path}\0${issue.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    issues[write++] = issue;
+  }
+  issues.length = write;
 }
 
 /**
@@ -343,6 +517,7 @@ export function applyFlatRmDefaults(
   issues: FlatRmDefaultIssue[] = [],
 ): void {
   const ctxState = ctxCurrentStateDefault(flat);
+  const language = compositionLanguage(composition) ?? webTemplate.defaultLanguage;
   const root = webTemplate.tree;
 
   walkTemplate(root.children ?? [], (node) => {
@@ -360,6 +535,7 @@ export function applyFlatRmDefaults(
           ctxState,
           issues,
           ismPath,
+          language,
         );
       } else if (typeof record.ism_transition === "object") {
         fillIsmFromWebTemplate(
@@ -368,11 +544,12 @@ export function applyFlatRmDefaults(
           ctxState,
           issues,
           ismPath,
+          language,
         );
       }
-      enrichCodedValuesInTree(record, node, issues);
     }
   });
 
-  enrichCodedValuesInTree(composition, root, issues);
+  enrichCodedValues(composition, root, issues, language);
+  dedupeIssues(issues);
 }

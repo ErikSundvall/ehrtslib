@@ -80,6 +80,7 @@ export {
   getFieldMap,
   inputsForRmType,
   resolveDvType,
+  type DvValueBuildContext,
 } from "./dv_field_maps.ts";
 
 export { countInstancesAtPath, resolveAtPath } from "./instance_nav.ts";
