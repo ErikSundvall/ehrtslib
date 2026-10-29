@@ -10,6 +10,31 @@ import { TemplateValidator } from "../../../validation/template_validator.ts";
 import * as openehr_am from "../../../am/openehr_am.ts";
 import * as openehr_base from "../../../base/openehr_base.ts";
 
+/** RM-complete enough that only COMPOSITION.category differs between cases. */
+function compositionShell(code: string, value: string): Record<string, unknown> {
+  return {
+    _type: "COMPOSITION",
+    name: { value: "Encounter" },
+    archetype_node_id: "at0000",
+    language: {
+      terminology_id: { value: "ISO_639-1" },
+      code_string: "en",
+    },
+    territory: {
+      terminology_id: { value: "ISO_3166-1" },
+      code_string: "SE",
+    },
+    composer: { _type: "PARTY_SELF" },
+    category: {
+      value,
+      defining_code: {
+        terminology_id: { value: "openehr" },
+        code_string: code,
+      },
+    },
+  };
+}
+
 function archetypeWithDefinition(
   rmType: string,
   nodeId: string,
@@ -24,8 +49,12 @@ function archetypeWithDefinition(
   return template;
 }
 
+// These cases exercise one AOM constraint on a skeletal node. Full RM
+// multiplicity is covered by issue217_rm_instance_validator.test.ts.
+const aomOnly = { validateRMSpecification: false } as const;
+
 Deno.test("Archie-Inspired - String Pattern Validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator(aomOnly);
   const template = archetypeWithDefinition("ELEMENT", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "value";
@@ -44,7 +73,7 @@ Deno.test("Archie-Inspired - String Pattern Validation", () => {
 });
 
 Deno.test("Archie-Inspired - Integer Range Validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator(aomOnly);
   const template = archetypeWithDefinition("ELEMENT", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "value";
@@ -61,7 +90,7 @@ Deno.test("Archie-Inspired - Integer Range Validation", () => {
 });
 
 Deno.test("Archie-Inspired - Occurrence Validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator(aomOnly);
   const template = archetypeWithDefinition("OBSERVATION", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "data";
@@ -92,7 +121,10 @@ Deno.test("Archie-Inspired - Occurrence Validation", () => {
 });
 
 Deno.test("Archie-Inspired - DV_INTERVAL Bounds Validation", async () => {
-  const validator = new TemplateValidator({ validateIntervals: true });
+  const validator = new TemplateValidator({
+    validateIntervals: true,
+    validateRMSpecification: false,
+  });
   await validator.initialize();
 
   const template = archetypeWithDefinition("OBSERVATION", "id1", (def) => {
@@ -148,37 +180,24 @@ Deno.test("Archie-Inspired - COMPOSITION.category RM Constraint", async () => {
   });
 
   const validResult = validator.validate(
-    {
-      category: {
-        value: "persistent",
-        defining_code: {
-          terminology_id: { value: "openehr" },
-          code_string: "431",
-        },
-      },
-    },
-    template
+    compositionShell("431", "persistent"),
+    template,
   );
   assertEquals(validResult.valid, true);
 
   const invalidResult = validator.validate(
-    {
-      category: {
-        value: "invalid",
-        defining_code: {
-          terminology_id: { value: "openehr" },
-          code_string: "999",
-        },
-      },
-    },
-    template
+    compositionShell("999", "invalid"),
+    template,
   );
   assertEquals(invalidResult.valid, false);
   assertEquals(invalidResult.errors[0]?.constraintType, "rm_specification");
 });
 
 Deno.test("Archie-Inspired - UCUM Unit Validation", async () => {
-  const validator = new TemplateValidator({ validateUnits: true });
+  const validator = new TemplateValidator({
+    validateUnits: true,
+    validateRMSpecification: false,
+  });
   await validator.initialize();
 
   const template = archetypeWithDefinition("OBSERVATION", "id1", (def) => {
@@ -230,7 +249,7 @@ Deno.test("Archie-Inspired - DV_CODED_TEXT Terminology Structure", async () => {
 });
 
 Deno.test("Archie-Inspired - Real Number Range Validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator(aomOnly);
   const template = archetypeWithDefinition("ELEMENT", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "value";
@@ -247,7 +266,7 @@ Deno.test("Archie-Inspired - Real Number Range Validation", () => {
 });
 
 Deno.test("Archie-Inspired - Boolean Constraint Validation", () => {
-  const validator = new TemplateValidator();
+  const validator = new TemplateValidator(aomOnly);
   const template = archetypeWithDefinition("ELEMENT", "id1", (def) => {
     const attr = new openehr_am.C_SINGLE_ATTRIBUTE();
     attr.rm_attribute_name = "value";
