@@ -5,7 +5,8 @@ Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL
 API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md) and the add-on packages in
-[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md).
+[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md), and the htmx add-on in
+[ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md).
 
 ## 1. Product
 
@@ -405,6 +406,23 @@ still open for review:
   using XPath selectors mapped from archetype paths and uids.
 - A future htmx add-on turns form posts into operations and returns
   updated HTML fragments with validation messages.
+
+### 9.5 htmx add-on and editable ZipEHR HTML5
+
+Summary of [ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md),
+still open for review:
+
+- The htmx add-on (`ehrtslib-<version>-cb-htmx.min.js`) renders a draft as
+  `zipehr.html5-hx`: the existing ZipEHR HTML5 dialects plus a control layer
+  (`hx-*` and `data-cb-*` attributes, `<cb-ctl>` elements). Removing the
+  layer gives plain `zipehr.html5` with the same canonical JSON.
+- Controls are real form posts with an `op` field, so htmx and no-JS forms
+  send the same request. A Fetch-API handler turns them into ordinary
+  operations on short keys or ADR 0011 addresses and returns HTML
+  fragments with validation messages.
+- The handler runs in a service worker, a local or app server, or the CDR
+  proxy. The variant and request contract are sync-technology neutral;
+  ehrtslib's multi-user flavour uses Automerge 3 behind them.
 
 ## 10. Testing
 

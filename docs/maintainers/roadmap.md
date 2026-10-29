@@ -41,7 +41,8 @@ Design: [contribution-builder-design.md](contribution-builder-design.md) and
 ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus
 [0011](../adr/0011-cb-optional-graphql-api.md) (optional GraphQL API) and
-[0012](../adr/0012-cb-add-on-packages-and-patch-formats.md) (add-on packages).
+[0012](../adr/0012-cb-add-on-packages-and-patch-formats.md) (add-on packages) and
+[0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md) (htmx add-on).
 
 Implement the "contribution builder" suggested in
 https://link.springer.com/article/10.1186/1472-6947-13-57, including the verbs
@@ -72,7 +73,9 @@ The design covers every versioned type; delivery is staged:
 6. Add-on packages ([ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md)),
    each a separate release file: Simplified Formats (FLAT and STRUCTURED
    create, read and patch) and canonical XML (create, and patch with RFC
-   5261 XML Patch). Later: an htmx add-on for server-rendered forms.
+   5261 XML Patch). Later: an htmx add-on for server-rendered forms and the
+   editable `zipehr.html5-hx` variant
+   ([ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md)).
 
 
 ## Phase X - multiuser contribution builder
