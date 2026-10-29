@@ -87,7 +87,8 @@ Deno.test("TemplateValidator.validate - enriches messages with jsonSource metada
   "value": "ab1"
 }`;
 
-  const validator = new TemplateValidator();
+  // One template-pattern error, so source metadata stays on that message.
+  const validator = new TemplateValidator({ validateRMSpecification: false });
   const template = new openehr_am.ARCHETYPE();
 
   const definition = new openehr_am.C_COMPLEX_OBJECT();
