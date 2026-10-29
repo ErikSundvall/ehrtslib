@@ -140,7 +140,9 @@ function headingText(node: XhtmlElement): string | undefined {
 }
 
 function firstLabelSpan(node: XhtmlElement): string | undefined {
-  const first = childElements(node).find((c) => c.tag === "span");
+  // Value spans carry a class token (`dt`, `q`, …). Only an unclassed span is
+  // the LOCATABLE name; otherwise EVENT.time is read back as the name.
+  const first = childElements(node).find((c) => c.tag === "span" && !c.attrs.class);
   return first ? elementText(first) : undefined;
 }
 
@@ -279,16 +281,27 @@ function resolveChildPropertyName(
 
   if (candidates.length === 1) return candidates[0]!;
   if (candidates.length > 1) {
+    const exact = candidates.filter((p) => map[p] === childRmType);
     const polySlots = candidates.filter((p) => isPolymorphicType(map[p]!));
-    if (polySlots.length === 1) return polySlots[0]!;
-    for (const preferred of [
+    const preferredValueSlots = [
       "value",
       "data",
       "content",
       "items",
       "events",
       "activities",
-    ]) {
+    ];
+    const preferredPoly = polySlots.filter((p) =>
+      preferredValueSlots.includes(p)
+    );
+    // Polymorphic value slots (ELEMENT.value : DATA_VALUE) beat an exact
+    // sibling such as null_flavour. An exact attribute
+    // (INTERVAL_EVENT.math_function) beats LOCATABLE.name, which only matches
+    // as a DV_TEXT supertype.
+    if (preferredPoly.length === 1) return preferredPoly[0]!;
+    if (exact.length === 1) return exact[0]!;
+    if (polySlots.length === 1) return polySlots[0]!;
+    for (const preferred of preferredValueSlots) {
       if (candidates.includes(preferred)) return preferred;
     }
     return candidates[0]!;
