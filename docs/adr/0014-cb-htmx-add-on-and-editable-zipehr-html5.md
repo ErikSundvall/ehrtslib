@@ -9,7 +9,8 @@ where htmx is listed as a future add-on).
 ## Context
 
 Simple server-rendered apps, the planned CDR proxy and offline browser apps
-want an editable form over CB content without a JavaScript framework.
+want an editable form over Contribution Builder content without a JavaScript
+framework.
 htmx fits: controls carry `hx-*` attributes, the browser sends ordinary form
 data, and the answer is an HTML fragment that replaces part of the page.
 
@@ -31,7 +32,7 @@ What already exists:
   contribution builder".
 - **ZipEHR XHTML** (`zipehr.xhtml`): FHIR `Narrative.div`-safe. Narrative
   forbids scripts and forms, so it is not a base for editing.
-- **CB core** (`contribution_builder/`): the operation log with
+- **Contribution Builder core** (`contribution_builder/`): the operation log with
   `set-value` (target short key plus an attribute path such as
   `value/magnitude`), `add-instance`, `remove-instance` and `set-composer`;
   uids `<versioned-object-uuid>::<replica>.<n>`
@@ -173,7 +174,8 @@ Example (short dialect, excerpt):
 - **in a service worker** in the same origin (offline, build stored through
   the ADR 0005 storage adapter);
 - **in a local server** (`Deno.serve`) or an app server;
-- **in the planned CDR proxy**, which adds a CB to a standard CDR.
+- **in the planned CDR proxy**, which adds a Contribution Builder to a standard
+  CDR.
 
 Requests are same-origin by default (htmx 2 `selfRequestsOnly`, htmx 4
 `mode: "same-origin"`).
@@ -247,8 +249,8 @@ which edits are accepted.
 
 ## Consequences
 
-- Server-rendered and offline apps get CB editing with no framework and
-  little JavaScript.
+- Server-rendered and offline apps get Contribution Builder editing with no
+  framework and little JavaScript.
 - Every change is an ordinary operation, so replay, attribution, conflicts
   and multi-user sync are the same as for the other add-ons.
 - The projection rule keeps one HTML5 parser for both variants and makes
@@ -264,7 +266,7 @@ which edits are accepted.
   views from data.
 - **Build on ZipEHR XHTML.** Rejected: FHIR narrative forbids forms and
   scripts.
-- **Extend `hydrateOptHtml5` into the CB form.** Rejected as the main path:
+- **Extend `hydrateOptHtml5` into the Contribution Builder form.** Rejected as the main path:
   it edits an empty template on the client, while a build needs instance
   data, uids and a server-side log. It is kept as a later bridge.
 - **Web components or a JSON API with a client framework.** Possible, and
