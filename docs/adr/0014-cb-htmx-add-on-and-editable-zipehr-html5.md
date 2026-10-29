@@ -236,6 +236,12 @@ ZipEHR documents.
   link use a single-use, expiring capability URL issued by the host, since
   an email has no session; the author is still taken from what the host
   binds to that URL, never from form fields.
+- **Email carries patient data and edit rights.** Whoever holds the email
+  can read it and post to the build, so the emailed form carries as little
+  pre-filled data as possible, and its capability URL is short-lived,
+  single-use and scoped to one build. A post through it only adds
+  operations to the draft; committing to the CDR still needs a normal
+  sign-in.
 - **Test targets:** an old Android WebView, Opera Mini and a few common
   email clients. Old devices may also fail on HTTPS (outdated root
   certificates or no TLS 1.2); that is a hosting concern, not one the
