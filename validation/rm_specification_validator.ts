@@ -718,6 +718,18 @@ export class RMSpecificationValidator {
     }
     const actual = instanceRmType(value);
     if (actual) {
+      // `{rmType:"PARTY_SELF"}` deserializes as abstract PARTY_PROXY. The
+      // declared slot accepts that class, but an abstract party is not a
+      // concrete subtype a CDR will store. Other abstract RM types, such as
+      // EVENT, are still accepted: generated compositions use them and the
+      // content decision tables treat those rows as valid.
+      if (isAbstractType(actual) && isSubtypeOf(actual, "PARTY_PROXY")) {
+        messages.push(typeMessage(
+          path,
+          `must be a concrete ${expected} subtype, got abstract ${actual}`,
+        ));
+        return false;
+      }
       if (actual === expected || isSubtypeOf(actual, expected)) return true;
       messages.push(typeMessage(
         path,
