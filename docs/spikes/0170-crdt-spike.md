@@ -34,6 +34,8 @@ Multi-user should keep that invariant:
 Storing the full composition tree inside the CRDT (Yjs-style shared doc) was
 not prototyped: it duplicates the RM model, fights template constraints, and
 makes audit playback harder.
+Co-editing of free text and presence still work on top of the log; see the
+[ADR 0013 amendment](../adr/0013-cb-crdt-library-and-apply-policy.md#amendment-shared-editing-presence-and-group-builds).
 
 ### Prototype data model (both libraries)
 
