@@ -120,6 +120,20 @@ Deno.test("strict canonical deserialize throws on unknown CODE_PHRASE attribute 
   assertStringIncludes(err.message, "CODE_PHRASE");
 });
 
+Deno.test("strict canonical deserialize keeps derived EVENT.offset", () => {
+  registered();
+  const json = JSON.stringify({
+    _type: "POINT_EVENT",
+    name: { _type: "DV_TEXT", value: "Any event" },
+    archetype_node_id: "at0002",
+    time: { _type: "DV_DATE_TIME", value: "2026-01-01T12:00:00Z" },
+    offset: { _type: "DV_DURATION", value: "PT0S" },
+  });
+  const event = new JsonConfigurableDeserializer(CANONICAL_JSON_DESERIALIZE_CONFIG)
+    .deserialize(json) as { offset?: { value?: string } };
+  assertEquals(event.offset?.value, "PT0S");
+});
+
 Deno.test("strict canonical deserialize throws on unknown EVENT_CONTEXT attribute name", () => {
   registered();
   const json = JSON.stringify({

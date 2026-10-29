@@ -109,6 +109,27 @@ export function knownRmAttributeNames(
   return new Set(attributesFor(normalized).map((a) => a.name));
 }
 
+/**
+ * RM functions that canonical JSON still carries. They are not BMM attributes.
+ * `EVENT.offset` is computed from `time` and the parent history origin (#200);
+ * generated compositions include it, and strict deserialize keeps the value
+ * instead of rejecting the document.
+ */
+const DERIVED_RM_PROPERTIES: ReadonlyArray<{ type: string; name: string }> = [
+  { type: "EVENT", name: "offset" },
+];
+
+export function isDerivedRmProperty(
+  typeName: string,
+  propertyName: string,
+): boolean {
+  const normalized = normalizeRmTypeName(typeName);
+  if (!normalized) return false;
+  return DERIVED_RM_PROPERTIES.some((row) =>
+    row.name === propertyName && isSubtypeOf(normalized, row.type)
+  );
+}
+
 export function resolveOnNonRmValue(
   mode: CanonicalOnNonRmValue | undefined,
 ): CanonicalOnNonRmValue {

@@ -38,6 +38,7 @@ import {
 import { validateDeserializedInstance } from '../common/post_deserialize_validation.ts';
 import {
   declaredAttributeSlot,
+  isDerivedRmProperty,
   knownRmAttributeNames,
 } from './canonical_rm_values.ts';
 
@@ -324,8 +325,9 @@ export class JsonConfigurableDeserializer {
 
   /**
    * Strict mode: reject keys the RM class does not declare (BMM `attributesFor`).
-   * The type discriminator is not an RM attribute. Types we cannot describe are
-   * left alone so non-RM documents are unchanged. Only called when `strict` is true.
+   * The type discriminator is not an RM attribute. Derived RM functions such as
+   * `EVENT.offset` are allowed. Types we cannot describe are left alone so
+   * non-RM documents are unchanged. Only called when `strict` is true.
    */
   private rejectUnknownAttributes(
     obj: object,
@@ -337,7 +339,7 @@ export class JsonConfigurableDeserializer {
     if (!known) return;
     for (const key of Object.keys(obj)) {
       if (key === this.config.typePropertyName) continue;
-      if (known.has(key)) continue;
+      if (known.has(key) || isDerivedRmProperty(typeName, key)) continue;
       const childPointer = jsonPointer === ''
         ? `/${escapeJsonPointerSegment(key)}`
         : `${jsonPointer}/${escapeJsonPointerSegment(key)}`;

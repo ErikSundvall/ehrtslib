@@ -19,7 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
-- **Behaviour.** `JsonCanonicalSerializer` option `onNonRmValue` (`"throw"` | `"coerce"` | `"pass"`, default `"throw"`). Canonical serialize throws on a non-RM attribute value unless the option is `"pass"` or `"coerce"`. Strict JSON deserialize (`strict: true`, `CANONICAL_JSON_DESERIALIZE_CONFIG`) rejects a missing `_type` on abstract or polymorphic slots, a primitive where an object type is declared, and unknown attributes ([#219](https://github.com/ErikSundvall/ehrtslib/issues/219)).
+- **Behaviour.** `JsonCanonicalSerializer` option `onNonRmValue` (`"throw"` | `"coerce"` | `"pass"`, default `"throw"`). Canonical serialize throws on a non-RM attribute value unless the option is `"pass"` or `"coerce"`. Strict JSON deserialize (`strict: true`, `CANONICAL_JSON_DESERIALIZE_CONFIG`) rejects a missing `_type` on abstract or polymorphic slots, a primitive where an object type is declared, and unknown attributes. Derived `EVENT.offset` is accepted ([#219](https://github.com/ErikSundvall/ehrtslib/issues/219)).
 - **`adl2CodingSystem`** (`"at-coded"` | `"id-coded"`, default `"at-coded"`) on `bindTemplate`, `upconvertOpt14ToAdl2`, `convertAdl14ToAdl2`, and `Opt2SerializeOptions`. `TemplateBinding.adl2CodingSystem` records the coding used. Template binding serialisation stays at `ehrtslib-cb-opt-json/1` (with `opt14-codes` and `adl2-coding` parameters) until 1.0; no backward-compat guarantees for stored bindings before then ([#181](https://github.com/ErikSundvall/ehrtslib/issues/181)).
 
 ## 0.7.0 (tag `v0.7`)
