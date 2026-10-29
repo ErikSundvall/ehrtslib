@@ -60,7 +60,7 @@ single bad operation. It:
 | `set-value` / `set-composer` on removed node | **Skip**; record conflict (`target-removed`, match `none`). |
 | `remove-instance` on missing node | **Skip**; `target-removed`. |
 | `add-instance` with missing sibling anchor | **Retry once** without `before`/`after` (append to parent attribute); record `anchor-missing-appended` with the original op. If still failing, **skip** (`parent-removed`). |
-| Concurrent `set-value` on same path | **Both apply** in sort order (last writer wins on that field); surface optional UI hint, not a CDR-style conflict. Free-text leaves use the text op instead (see the amendment). |
+| Concurrent `set-value` on same path | Between replicas merged in the CRDT (native path): **both apply** in sort order (last writer wins on that field); surface optional UI hint, not a CDR-style conflict. A `set-value` sent with a stale base `rev` is **not** applied; see text sync levels in the amendment. |
 | `remove-instance` vs edit on same node | Order-dependent; loser **skipped** with `target-removed` or `changed-by-peer`. |
 | `move-instance` (#171) | Same as remove/reparent vs edit: if target not attached when op runs, **skip** and record conflict. |
 | Ops after `record-commit` on that draft | **Skip** (`already-committed`); aligns with [#177](https://github.com/ErikSundvall/ehrtslib/issues/177). |
@@ -105,21 +105,42 @@ allows Google Docs-style co-editing: who edits where, and several people
 typing in one free-text field. The tree stays derived from the log, so
 template validation and audit replay are unchanged.
 
-### Text op for free-text leaves
+### Text sync levels
 
-- The default stays **last writer wins per field** for concurrent
-  `set-value`, as in the apply policy above.
-- Free-text leaves (`DV_TEXT.value`, `DV_PARSABLE.value`) also accept a
-  **text op** (name provisional, `edit-text`) that targets the leaf by
-  node uid ([ADR 0003](0003-cb-identity-and-uids.md)) and carries
-  character-level inserts and deletes. Concurrent typing merges character
-  by character instead of one edit replacing the other.
-- In ehrtslib each such leaf is backed by an **Automerge 3 text object**:
-  a CRDT island inside one leaf, not a CRDT of the whole tree. Replay
-  writes the merged text into the leaf like any other value.
-- Other implementations may use OT or another CRDT for the same field.
-  Only the **shape of the text op** has to interoperate; the merge
-  engine does not.
+Free-text leaves (`DV_TEXT.value`, `DV_PARSABLE.value`) sync at one of
+three levels. Only levels 1 and 2 are candidates for normative spec text.
+
+1. **Baseline (required): whole value with a base `rev`.** A `set-value`
+   carries the opaque log position (`rev`) the client last saw. If someone
+   else changed the field since that `rev`, the change is **not** applied
+   as last writer wins: the response returns the current value with a
+   `changed-by-someone-else` status so the client can show it. Silently
+   overwriting a free-text clinical note is data loss. Last writer wins
+   remains only for concurrent operations that replicas merge inside the
+   CRDT (level 3) per the apply policy above.
+2. **Neutral text op (optional standard fallback).** A text op (name
+   provisional, `edit-text`) targets the leaf by node uid ([ADR
+   0003](0003-cb-identity-and-uids.md)) and carries plain splices
+   `{at, delete, insert, rev}`. Positions count Unicode code points and
+   never split a surrogate pair; JavaScript and Automerge count UTF-16
+   code units, so implementations convert. The node holding the build
+   orders splices and transforms them onto the current text (central-server
+   OT), so simple clients need no CRDT library.
+3. **Native profiles (optional, registered names only),** for example
+   `automerge-3`. Replicas that announce the same engine sync that field
+   with the engine's own protocol. In ehrtslib each free-text leaf is
+   backed by an Automerge 3 text object: a CRDT island inside one leaf,
+   not a CRDT of the whole tree.
+
+- **Announced up front.** Each member announces the levels and native
+  profiles it supports when it joins, like `data-cb-api` in [ADR
+  0014](0014-cb-htmx-add-on-and-editable-zipehr-html5.md).
+- **Chosen per connection, not per session.** Same-engine peers keep
+  native sync. The hub bridges: it translates their changes into neutral
+  splices or whole values for clients that speak only level 1 or 2, so one
+  simple client does not degrade the session.
+- **Same result on every path.** Whichever level carried an edit, the
+  compacted log and the committed RM content come out identical.
 
 ### Presence
 
@@ -156,7 +177,7 @@ template validation and audit replay are unchanged.
 - **Compaction before hashing.** A keystroke-level log keeps text that was
   typed and then deleted, which can be sensitive. Before the commit audit
   links to and hashes the log ([ADR
-  0010](0010-cb-commit-envelope-and-provenance.md)), text ops are compacted
+  0010](0010-cb-commit-envelope-and-provenance.md)), text edits at any level are compacted
   to **one `set-value` per author and field**, and the compacted log still
   replays to the same canonical RM JSON. Keeping a finer-grained log needs
   its own retention rule ([ADR
@@ -169,9 +190,10 @@ template validation and audit replay are unchanged.
 
 ### Open questions (amendment)
 
-1. **Text-op wire shape:** index-based splices, or positions anchored to
-   character ids so that the op is engine-independent? Which form must
-   interoperate?
+1. **Text sync details** (wire shape resolved above: code-point splices,
+   central-server OT): exact payload of the `changed-by-someone-else`
+   response, how a level 2 client rebases pending splices after a
+   transform, and who keeps the registry of native profile names.
 2. **Compaction granularity:** per author and field only, or also per
    author turn when several authors interleave in one field? Which
    compacted op carries the merged final value?
