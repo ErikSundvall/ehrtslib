@@ -156,6 +156,39 @@ three levels. Only levels 1 and 2 are candidates for normative spec text.
   [#212](https://github.com/ErikSundvall/ehrtslib/pull/212)) may render it,
   for example as markers on each field.
 
+### Validation state during editing
+
+- A build is often invalid while it is being edited; that is normal.
+  Edits are never rejected for template reasons. Template validation only
+  gates commit to the CDR, in the complete or incomplete mode of [ADR
+  0008](0008-cb-validation-and-lifecycle.md).
+- **Derived, not synced.** Validation status is not sent over the presence
+  channel and is never synced or logged: it follows from the log plus the
+  bound template. Thick replicas compute it locally after each merge. Thin
+  clients (htmx, sync levels 1 and 2) get it from the hub as a derived
+  view tagged with the `rev` it was computed at and the validator id and
+  version. In `zipehr.html5-hx` ([ADR
+  0014](0014-cb-htmx-add-on-and-editable-zipehr-html5.md)) it is the
+  existing quick-check fragments plus a build-level summary.
+- **Per-node status:**
+  - `unfinished`: a mandatory node is missing or empty (ADR 0008 `kind:
+    missing`). Expected while editing; shown as a quiet marker.
+  - `invalid`: a value is present but violates a constraint such as a
+    range, pattern or code list.
+
+  `changed-by-someone-else` (text sync level 1) is a separate field, not
+  a validation status.
+- **Build summary.** It states whether the build can commit now as
+  complete or as incomplete, so a commit button can say why it is
+  disabled. Incomplete mode follows the RM rule for `553|incomplete|`
+  (RM Common: data may be missing, but it may not be wrong): `unfinished`
+  nodes are allowed, `invalid` ones are not, and RM-level required content
+  (composer, `ENTRY.subject`) still fails as in ADR 0008. CDRs differ
+  today, so the summary reports the target CDR's own behaviour separately
+  when it is stricter or looser.
+- **Advisory only.** The status is advice; the CDR decides at commit.
+  Validators and validator versions can disagree.
+
 ### Group builds
 
 - **Build identity.** A shared build has its own id under the EHR (the
@@ -202,3 +235,7 @@ three levels. Only levels 1 and 2 are candidates for normative spec text.
 4. **Presence and access logging:** should the builder emit a hook when a
    member first receives presence or content for a build, so deployments
    can log it as EHR access?
+5. **Validation message codes:** a standard code set in the openEHR support
+   terminology for validation messages (`unfinished` and `invalid`, with
+   severity, mappable to FHIR `OperationOutcome` severities), so thin
+   clients from different vendors show the same markers?

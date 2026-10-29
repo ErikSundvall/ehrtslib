@@ -23,6 +23,8 @@ version that is missing mandatory content (ehrbase#1630), while FerroEHR
   before `commit`.
 - Results are attached to nodes by uid so a UI can show each one next to
   the right field.
+  In multi-user builds this status is a derived view, never synced or
+  logged ([ADR 0013 amendment](0013-cb-crdt-library-and-apply-policy.md#validation-state-during-editing)).
 - Two modes:
   - **complete**: all template constraints apply.
   - **incomplete**: existence and cardinality lower bounds count as zero,
