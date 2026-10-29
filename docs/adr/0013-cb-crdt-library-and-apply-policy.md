@@ -162,14 +162,28 @@ three levels. Only levels 1 and 2 are candidates for normative spec text.
   Edits are never rejected for template reasons. Template validation only
   gates commit to the CDR, in the complete or incomplete mode of [ADR
   0008](0008-cb-validation-and-lifecycle.md).
-- **Derived, not synced.** Validation status is not sent over the presence
-  channel and is never synced or logged: it follows from the log plus the
-  bound template. Thick replicas compute it locally after each merge. Thin
-  clients (htmx, sync levels 1 and 2) get it from the hub as a derived
-  view tagged with the `rev` it was computed at and the validator id and
-  version. In `zipehr.html5-hx` ([ADR
-  0014](0014-cb-htmx-add-on-and-editable-zipehr-html5.md)) it is the
-  existing quick-check fragments plus a build-level summary.
+- **Derived, not synced.** Validation status follows from the log plus
+  the bound template. It is not sent over the presence channel and is
+  never logged. Validation is always done by a CB instance, never by the
+  app or form UI on top; the UI only reads the CB's status (per-node
+  status plus build summary) and shows markers. In `zipehr.html5-hx`
+  ([ADR 0014](0014-cb-htmx-add-on-and-editable-zipehr-html5.md)) these are
+  the existing quick-check fragments plus a build-level summary.
+- **Hub topology.** A node that runs a CB locally (offline work or instant
+  feedback) validates after each merge, but its status is a **preview**.
+  The hub's CB is authoritative for the session, and its answer replaces
+  the local one on sync. Nodes without a local CB (htmx, sync levels 1
+  and 2) get the hub CB's status as a derived view tagged with the `rev`
+  it was computed at and the validator id and version. Local and hub CBs
+  agree only when they run the same validator version, which is why the
+  version tag matters; on disagreement the hub's status wins.
+- **Peer-to-peer topology** (for example Automerge without a hub). All or
+  most peers run a CB and validate the same log against the same
+  template, so peers with the same validator version agree with no
+  validation traffic. The build metadata records the expected validator
+  id and version; a peer running a different version marks its status as
+  a preview. Without a hub, the committing peer's CB gives the
+  authoritative answer at commit time.
 - **Per-node status:**
   - `unfinished`: a mandatory node is missing or empty (ADR 0008 `kind:
     missing`). Expected while editing; shown as a quiet marker.
@@ -186,8 +200,8 @@ three levels. Only levels 1 and 2 are candidates for normative spec text.
   (composer, `ENTRY.subject`) still fails as in ADR 0008. CDRs differ
   today, so the summary reports the target CDR's own behaviour separately
   when it is stricter or looser.
-- **Advisory only.** The status is advice; the CDR decides at commit.
-  Validators and validator versions can disagree.
+- **Advisory only.** In every topology the status is advice; the CDR
+  decides at commit.
 
 ### Group builds
 
