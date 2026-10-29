@@ -485,6 +485,204 @@ Deno.test("zipehr xhtml: golden fragment shape (normalized)", async () => {
   ));
 });
 
+Deno.test("zipehr xhtml: abstract EVENT serializes as PE and round-trips (#210)", async () => {
+  const fixture: Record<string, unknown> = {
+    "_type": "COMPOSITION",
+    "name": { "_type": "DV_TEXT", "value": "Note" },
+    "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "content": [
+      {
+        "_type": "OBSERVATION",
+        "name": { "_type": "DV_TEXT", "value": "Body weight" },
+        "archetype_node_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+        "data": {
+          "_type": "HISTORY",
+          "events": [
+            {
+              "_type": "EVENT",
+              "archetype_node_id": "at0003",
+              "time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2024-03-15T14:30:00Z",
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "archetype_node_id": "at0001",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": { "_type": "DV_TEXT", "value": "Weight" },
+                    "archetype_node_id": "at0004",
+                    "value": {
+                      "_type": "DV_QUANTITY",
+                      "magnitude": 85,
+                      "units": "kg",
+                    },
+                  },
+                ],
+              },
+              "state": {
+                "_type": "ITEM_TREE",
+                "archetype_node_id": "at0008",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": { "_type": "DV_TEXT", "value": "Comment" },
+                    "archetype_node_id": "at0009",
+                    "value": { "_type": "DV_TEXT", "value": "resting" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const xhtml = await serializeCanonicalToXhtml(fixture);
+  assertFhirSafe(xhtml);
+  assert(!/<form\b/i.test(xhtml));
+  assert(xhtml.includes('class="PE"'));
+  assert(!xhtml.includes('class="EVENT"'));
+
+  const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
+  const observation = (restored.content as Record<string, unknown>[])[0];
+  const event = (
+    (observation.data as Record<string, unknown>).events as Record<string, unknown>[]
+  )[0];
+  const weight = (
+    ((event.data as Record<string, unknown>).items as Record<string, unknown>[])[0]
+  );
+  const comment = (
+    ((event.state as Record<string, unknown>).items as Record<string, unknown>[])[0]
+  );
+
+  assertEquals(event._type, "POINT_EVENT");
+  assertEquals(event.name, undefined);
+  assertEquals(
+    (event.time as { value: string }).value,
+    "2024-03-15T14:30:00Z",
+  );
+  assertEquals(
+    (weight.value as { magnitude: number; units: string }).magnitude,
+    85,
+  );
+  assertEquals(
+    (weight.value as { magnitude: number; units: string }).units,
+    "kg",
+  );
+  assertEquals((comment.value as { value: string }).value, "resting");
+});
+
+Deno.test("zipehr xhtml: abstract EVENT with interval fields uses IE (#210)", async () => {
+  const fixture: Record<string, unknown> = {
+    "_type": "COMPOSITION",
+    "name": { "_type": "DV_TEXT", "value": "Note" },
+    "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "content": [
+      {
+        "_type": "OBSERVATION",
+        "name": { "_type": "DV_TEXT", "value": "Heart rate" },
+        "archetype_node_id": "openEHR-EHR-OBSERVATION.pulse.v2",
+        "data": {
+          "_type": "HISTORY",
+          "events": [
+            {
+              "_type": "EVENT",
+              "archetype_node_id": "at0003",
+              "time": {
+                "_type": "DV_DATE_TIME",
+                "value": "2024-03-15T15:00:00Z",
+              },
+              "width": { "_type": "DV_DURATION", "value": "PT1H" },
+              "math_function": {
+                "_type": "DV_CODED_TEXT",
+                "value": "mean",
+                "defining_code": {
+                  "_type": "CODE_PHRASE",
+                  "terminology_id": {
+                    "_type": "TERMINOLOGY_ID",
+                    "value": "openehr",
+                  },
+                  "code_string": "146",
+                },
+              },
+              "data": {
+                "_type": "ITEM_TREE",
+                "archetype_node_id": "at0001",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": { "_type": "DV_TEXT", "value": "Rate" },
+                    "archetype_node_id": "at0004",
+                    "value": {
+                      "_type": "DV_QUANTITY",
+                      "magnitude": 72,
+                      "units": "/min",
+                    },
+                  },
+                ],
+              },
+              "state": {
+                "_type": "ITEM_TREE",
+                "archetype_node_id": "at0008",
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": { "_type": "DV_TEXT", "value": "Position" },
+                    "archetype_node_id": "at0009",
+                    "value": { "_type": "DV_TEXT", "value": "sitting" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const xhtml = await serializeCanonicalToXhtml(fixture);
+  assertFhirSafe(xhtml);
+  assert(!/<form\b/i.test(xhtml));
+  assert(xhtml.includes('class="IE"'));
+  assert(!xhtml.includes('class="PE"'));
+  assert(!xhtml.includes('class="EVENT"'));
+
+  const restored = await zipehrXhtmlToCanonical(xhtml) as Record<string, unknown>;
+  const observation = (restored.content as Record<string, unknown>[])[0];
+  const event = (
+    (observation.data as Record<string, unknown>).events as Record<string, unknown>[]
+  )[0];
+  const rate = (
+    ((event.data as Record<string, unknown>).items as Record<string, unknown>[])[0]
+  );
+  const position = (
+    ((event.state as Record<string, unknown>).items as Record<string, unknown>[])[0]
+  );
+
+  assertEquals(event._type, "INTERVAL_EVENT");
+  assertEquals(event.name, undefined);
+  assertEquals(
+    (event.time as { value: string }).value,
+    "2024-03-15T15:00:00Z",
+  );
+  assertEquals((event.width as { value: string }).value, "PT1H");
+  assertEquals((event.math_function as { value: string }).value, "mean");
+  assertEquals(
+    ((event.math_function as Record<string, unknown>).defining_code as {
+      code_string: string;
+    }).code_string,
+    "146",
+  );
+  assertEquals(
+    (rate.value as { magnitude: number; units: string }).magnitude,
+    72,
+  );
+  assertEquals((position.value as { value: string }).value, "sitting");
+});
+
 Deno.test("zipehr xhtml: whitespace-only fragment rejected", async () => {
   let threw = false;
   try {
