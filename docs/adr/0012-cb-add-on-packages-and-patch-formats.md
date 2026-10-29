@@ -92,4 +92,5 @@ the address resolver from ADR 0011.
    1.0, or only the subset that maps one-to-one onto archetype paths and
    uids?
 4. **htmx scope:** only server-side helpers, or also a small client-side
-   extension, and should it be tied to the CDR proxy?
+   extension, and should it be tied to the CDR proxy? Proposed answer in
+   [ADR 0014](0014-cb-htmx-add-on-and-editable-zipehr-html5.md).
