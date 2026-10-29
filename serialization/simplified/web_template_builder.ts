@@ -42,6 +42,11 @@ import {
   flattenOptPathAnnotations,
   type OptPathAnnotationMap,
 } from "../../generation/opt_l10n.ts";
+import { instructionStateRubric } from "../../term/openehr_group_rubrics.ts";
+import {
+  useRmAttributeAsWebTemplateId,
+  webTemplateChildIdHint,
+} from "./web_template_id_hints.ts";
 
 /** Empty complex shell so a slot still appears as a node, as it did when OPT XML mapped slots to `C_COMPLEX_OBJECT`. */
 function complexShellFromSlot(
@@ -126,6 +131,42 @@ function multiplicityBounds(
   const min = boundValue(m.lower) ?? 0;
   const max = m.upper_unbounded ? -1 : (boundValue(m.upper) ?? 1);
   return { min, max };
+}
+
+function attributeExistenceBounds(
+  attr: openehr_am.C_ATTRIBUTE,
+): { min: number; max: number } {
+  const existence = (attr as { existence?: openehr_base.Multiplicity_interval })
+    .existence;
+  return multiplicityBounds(existence);
+}
+
+function rmAttributeIdentity(
+  attrName: string,
+): Pick<WebTemplateNode, "id" | "name"> {
+  const id = normalizeWebTemplateId(attrName);
+  return { id, name: attrName };
+}
+
+function isRmAttributeValueLeaf(obj: openehr_am.C_COMPLEX_OBJECT): boolean {
+  const rmType = obj.rm_type_name ?? "";
+  return isDataValueType(rmType);
+}
+
+function singleConstrainedCode(
+  ism: openehr_am.C_COMPLEX_OBJECT,
+  attrName: string,
+): string | undefined {
+  const attr = ism.attributes?.find((a) => a.rm_attribute_name === attrName);
+  const dv = (attr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+  if (!(dv instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
+  const dcAttr = dv.attributes?.find((a) =>
+    a.rm_attribute_name === "defining_code"
+  );
+  const phrase = (dcAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+  const list = (phrase as { code_list?: string[] } | undefined)?.code_list;
+  if (list?.length === 1) return list[0];
+  return (phrase as { constraint?: string } | undefined)?.constraint;
 }
 
 function lookupTerm(
@@ -266,11 +307,16 @@ function applyTerminologyInputs(
   const codes = term.code_list?.length
     ? term.code_list
     : (term.constraint ? [term.constraint] : []);
+  const terminology = term.terminology_id ?? term.assumed_value?.terminology_id;
   if (codes.length) {
     codeInput.list = codes.map((value) => {
       const labels = labelsFor(value, scope);
       const item: WebTemplateInputListItem = { value };
-      if (labels.label) item.label = labels.label;
+      const openehrRubric = terminology === "openehr"
+        ? instructionStateRubric(value)
+        : undefined;
+      if (openehrRubric) item.label = openehrRubric;
+      else if (labels.label) item.label = labels.label;
       if (labels.localizedLabels) item.localizedLabels = labels.localizedLabels;
       if (labels.localizedDescriptions) {
         item.localizedDescriptions = labels.localizedDescriptions;
@@ -280,7 +326,6 @@ function applyTerminologyInputs(
   }
   const assumed = term.assumed_value?.code_string;
   if (assumed) codeInput.defaultValue = assumed;
-  const terminology = term.terminology_id ?? term.assumed_value?.terminology_id;
   if (terminology) codeInput.terminology = terminology;
 }
 
@@ -704,6 +749,199 @@ export class WebTemplateBuilder {
     };
   }
 
+  private buildRmAttributeLeaf(
+    obj: openehr_am.C_OBJECT,
+    aqlPath: string,
+    attrName: string,
+    attrBounds: { min: number; max: number },
+  ): WebTemplateNode {
+    const leaf = this.buildLeaf(obj, aqlPath, attrName);
+    return {
+      ...leaf,
+      ...rmAttributeIdentity(attrName),
+      min: attrBounds.min,
+      max: attrBounds.max,
+    };
+  }
+
+  private buildIsmTransitionObject(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    aqlPath: string,
+    attrBounds: { min: number; max: number },
+  ): WebTemplateNode {
+    const shell: WebTemplateNode = {
+      ...rmAttributeIdentity("ism_transition"),
+      rmType: "ISM_TRANSITION",
+      nodeId: constraintNodeId(obj),
+      min: attrBounds.min,
+      max: attrBounds.max,
+      aqlPath,
+      children: [],
+    };
+    for (const attr of obj.attributes ?? []) {
+      const attrName = attr.rm_attribute_name;
+      if (!attrName) continue;
+      const bounds = attributeExistenceBounds(attr);
+      const child = (attr as { children?: openehr_am.C_OBJECT[] }).children
+        ?.[0];
+      if (!(child instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
+      if (isRmAttributeValueLeaf(child)) {
+        shell.children!.push(
+          this.buildRmAttributeLeaf(
+            child,
+            joinAqlPath(aqlPath, attrName),
+            attrName,
+            bounds,
+          ),
+        );
+      }
+    }
+    if (!shell.children?.length) delete shell.children;
+    return this.decorateWithAnnotations(shell);
+  }
+
+  private mergeIsmCodedAttribute(
+    ismObjects: openehr_am.C_COMPLEX_OBJECT[],
+    attrName: string,
+    ismAqlPath: string,
+  ): WebTemplateNode | undefined {
+    let bounds = { min: 0, max: 1 };
+    for (const ism of ismObjects) {
+      const attr = ism.attributes?.find((a) => a.rm_attribute_name === attrName);
+      if (attr) {
+        bounds = attributeExistenceBounds(attr);
+        break;
+      }
+    }
+    const dvObjects: openehr_am.C_COMPLEX_OBJECT[] = [];
+    for (const ism of ismObjects) {
+      const attr = ism.attributes?.find((a) => a.rm_attribute_name === attrName);
+      const child = (attr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+      if (child instanceof openehr_am.C_COMPLEX_OBJECT) dvObjects.push(child);
+    }
+    if (!dvObjects.length) return undefined;
+    const leaf = this.buildRmAttributeLeaf(
+      dvObjects[0],
+      joinAqlPath(ismAqlPath, attrName),
+      attrName,
+      bounds,
+    );
+    const mergedCodes = new Map<string, WebTemplateInputListItem>();
+    for (const dv of dvObjects) {
+      const inputs = this.buildInputs(dv.rm_type_name ?? "DV_CODED_TEXT", dv);
+      for (const input of inputs) {
+        if (input.suffix && input.suffix !== "code") continue;
+        for (const item of input.list ?? []) {
+          if (item.value) mergedCodes.set(item.value, item);
+        }
+      }
+    }
+    if (mergedCodes.size) {
+      const variants = ismObjects.map((ism) => ({
+        careflowStep: singleConstrainedCode(ism, "careflow_step"),
+        currentState: singleConstrainedCode(ism, "current_state"),
+      }));
+      leaf.inputs = (leaf.inputs ?? []).map((input) => {
+        if (input.suffix && input.suffix !== "code") return input;
+        const list = [...mergedCodes.values()].map((item) => {
+          if (attrName !== "careflow_step") return item;
+          const variant = variants.find((v) => v.careflowStep === item.value);
+          if (!variant?.currentState) return item;
+          return {
+            ...item,
+            currentStates: [variant.currentState],
+          };
+        });
+        return { ...input, list };
+      });
+    }
+    if (attrName === "careflow_step" && ismObjects.length === 1) {
+      const current = singleConstrainedCode(ismObjects[0], "current_state");
+      if (current) {
+        leaf.inputs = (leaf.inputs ?? []).map((input) => {
+          if (input.suffix && input.suffix !== "code") return input;
+          return {
+            ...input,
+            list: (input.list ?? []).map((item) => ({
+              ...item,
+              currentStates: [current],
+            })),
+          };
+        });
+      }
+    }
+    return leaf;
+  }
+
+  private buildIsmTransitionAttribute(
+    attr: openehr_am.C_ATTRIBUTE,
+    parentAqlPath: string,
+    ismObjects: openehr_am.C_COMPLEX_OBJECT[],
+  ): WebTemplateNode {
+    const attrBounds = attributeExistenceBounds(attr);
+    const single = ismObjects.length === 1;
+    const first = ismObjects[0];
+    const nodeId = single ? constraintNodeId(first) : undefined;
+    const ismPath = nodeId
+      ? joinAqlPath(parentAqlPath, `ism_transition[${nodeId}]`)
+      : joinAqlPath(parentAqlPath, "ism_transition");
+
+    const shell: WebTemplateNode = {
+      ...rmAttributeIdentity("ism_transition"),
+      rmType: "ISM_TRANSITION",
+      nodeId,
+      min: attrBounds.min,
+      max: attrBounds.max,
+      aqlPath: ismPath,
+      children: [],
+    };
+
+    for (const attrName of ["current_state", "transition", "careflow_step"]) {
+      const child = single
+        ? (() => {
+          const a = first.attributes?.find((x) => x.rm_attribute_name === attrName);
+          const c = (a as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+          if (!(c instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
+          if (!isRmAttributeValueLeaf(c)) return undefined;
+          const bounds = attributeExistenceBounds(a!);
+          const leaf = this.buildRmAttributeLeaf(
+            c,
+            joinAqlPath(ismPath, attrName),
+            attrName,
+            bounds,
+          );
+          if (attrName === "careflow_step") {
+            const current = singleConstrainedCode(first, "current_state");
+            if (current && leaf.inputs) {
+              for (const input of leaf.inputs) {
+                if (input.suffix && input.suffix !== "code") continue;
+                input.list = (input.list ?? []).map((item) => ({
+                  ...item,
+                  currentStates: [current],
+                }));
+              }
+            }
+          }
+          return leaf;
+        })()
+        : this.mergeIsmCodedAttribute(ismObjects, attrName, ismPath);
+      if (child) shell.children!.push(child);
+    }
+
+    if (!shell.children?.length) delete shell.children;
+    if (ismObjects.length > 1) {
+      shell.annotations = {
+        ...(shell.annotations ?? {}),
+        ismVariants: ismObjects.map((ism) => ({
+          nodeId: constraintNodeId(ism),
+          currentState: singleConstrainedCode(ism, "current_state"),
+          careflowStep: singleConstrainedCode(ism, "careflow_step"),
+        })),
+      };
+    }
+    return this.decorateWithAnnotations(shell);
+  }
+
   private buildFromComplex(
     obj: openehr_am.C_COMPLEX_OBJECT,
     aqlPath: string,
@@ -749,21 +987,44 @@ export class WebTemplateBuilder {
       const children =
         (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
 
+      if (attrName === "ism_transition") {
+        const ismObjects = children.filter(
+          (c): c is openehr_am.C_COMPLEX_OBJECT =>
+            c instanceof openehr_am.C_COMPLEX_OBJECT &&
+            c.rm_type_name === "ISM_TRANSITION",
+        );
+        if (ismObjects.length) {
+          node.children!.push(
+            this.buildIsmTransitionAttribute(attr, aqlPath, ismObjects),
+          );
+          continue;
+        }
+      }
+
+      const attrBounds = attributeExistenceBounds(attr);
+
       for (const child of children) {
         const childId = childPathPredicate(child, children);
         const childPath = joinAqlPath(
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const childLabel = child.rm_type_name?.toLowerCase() ?? attrName;
+        const childLabel = webTemplateChildIdHint(rmType, attrName, child);
         if (
           child instanceof openehr_am.C_COMPLEX_OBJECT ||
           child instanceof openehr_am.ARCHETYPE_SLOT
         ) {
-          const complex = child instanceof openehr_am.ARCHETYPE_SLOT
+          const complex = child instanceof openehr_am.C_COMPLEX_OBJECT
+            ? child
+            : child instanceof openehr_am.ARCHETYPE_SLOT
             ? complexShellFromSlot(child)
-            : child;
-          if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
+            : undefined;
+          if (!complex) continue;
+          if (useRmAttributeAsWebTemplateId(rmType, attrName, complex)) {
+            node.children!.push(
+              this.buildRmAttributeLeaf(complex, childPath, attrName, attrBounds),
+            );
+          } else if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
             const flattened = this.flattenDataStructure(
               complex,
               childPath,
@@ -790,6 +1051,10 @@ export class WebTemplateBuilder {
                 this.elementShell(complex, childPath),
               ),
             );
+          } else if (complex.rm_type_name === "ISM_TRANSITION") {
+            node.children!.push(
+              this.buildIsmTransitionObject(complex, childPath, attrBounds),
+            );
           } else {
             node.children!.push(this.buildFromComplex(
               complex,
@@ -797,6 +1062,13 @@ export class WebTemplateBuilder {
               childLabel,
             ));
           }
+        } else if (
+          isDataValueType(child.rm_type_name ?? "") &&
+          useRmAttributeAsWebTemplateId(rmType, attrName, child)
+        ) {
+          node.children!.push(
+            this.buildRmAttributeLeaf(child, childPath, attrName, attrBounds),
+          );
         } else if (isDataValueType(child.rm_type_name ?? "")) {
           node.children!.push(this.buildLeaf(child, childPath, childLabel));
         }
@@ -824,7 +1096,8 @@ export class WebTemplateBuilder {
           aqlPath,
           childId ? `${attrName}[${childId}]` : attrName,
         );
-        const itemLabel = attrName;
+        const parentRm = obj.rm_type_name ?? "";
+        const itemLabel = webTemplateChildIdHint(parentRm, attrName, child);
         const complex = child instanceof openehr_am.ARCHETYPE_SLOT
           ? complexShellFromSlot(child)
           : child instanceof openehr_am.C_COMPLEX_OBJECT

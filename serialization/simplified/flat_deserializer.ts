@@ -17,6 +17,10 @@ import {
   type OccurrenceHints,
   type RmTypeHints,
 } from "./rm_instance_builder.ts";
+import {
+  applyFlatRmDefaults,
+  type FlatRmDefaultIssue,
+} from "./flat_rm_defaults.ts";
 import { applyContextFromFields, buildRmValue } from "./value_build.ts";
 
 type RmObject = Record<string, unknown>;
@@ -48,6 +52,8 @@ function aqlSegmentCount(aqlPath: string): number {
 }
 
 export class FlatDeserializer {
+  /** Issues from the most recent {@link deserialize} call (defaults / rubrics). */
+  issues: FlatRmDefaultIssue[] = [];
   private rootId: string;
   /** id-chain (indices stripped, without root) → node */
   private nodeByChain = new Map<string, WebTemplateNode>();
@@ -76,6 +82,7 @@ export class FlatDeserializer {
   }
 
   deserialize(flat: FlatPayload): RmObject {
+    this.issues = [];
     const comp: RmObject = { _type: "COMPOSITION" };
     const groups = new Map<string, LeafGroup>();
 
@@ -132,6 +139,8 @@ export class FlatDeserializer {
 
     // ctx fields last so composition-level defaults are not clobbered
     this.applyContext(comp, flat);
+
+    applyFlatRmDefaults(comp, this.webTemplate, flat, this.issues);
 
     return comp;
   }
@@ -249,4 +258,17 @@ export function deserializeFromFlatJson(
   webTemplate: WebTemplate,
 ): RmObject {
   return new FlatDeserializer(webTemplate).deserializeJson(json);
+}
+
+export type { FlatRmDefaultIssue } from "./flat_rm_defaults.ts";
+
+export function deserializeFromFlatWithIssues(
+  flat: FlatPayload,
+  webTemplate: WebTemplate,
+): { composition: RmObject; issues: FlatRmDefaultIssue[] } {
+  const deserializer = new FlatDeserializer(webTemplate);
+  return {
+    composition: deserializer.deserialize(flat),
+    issues: deserializer.issues,
+  };
 }
