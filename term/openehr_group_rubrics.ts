@@ -1,52 +1,49 @@
 /**
- * Group-aware openEHR terminology rubrics (English), parsed from
- * `terminology_data/openehr_terminology_en.xml`.
+ * Group-aware openEHR terminology rubrics (English).
  *
  * Instruction-state codes are group-specific (SPECPR-51): e.g. 532 is
  * "completed" in `instruction_states`, not "complete" from other groups.
+ *
+ * The rubrics are embedded rather than read from
+ * `terminology_data/openehr_terminology_en.xml` at runtime, so this module
+ * also works in browsers (no file system access). A test checks them against
+ * the XML file.
  */
 
-import { fromFileUrl, join } from "@std/path";
+type GroupMap = ReadonlyMap<string, string>;
 
-const TERMINOLOGY_XML = join(
-  fromFileUrl(new URL("../terminology_data/openehr_terminology_en.xml", import.meta.url)),
-);
+export const INSTRUCTION_STATES_GROUP = "instruction_states";
 
-type GroupMap = Map<string, string>;
+const GROUPS: ReadonlyMap<string, GroupMap> = new Map([
+  [
+    INSTRUCTION_STATES_GROUP,
+    new Map([
+      ["524", "initial"],
+      ["526", "planned"],
+      ["527", "postponed"],
+      ["528", "cancelled"],
+      ["529", "scheduled"],
+      ["245", "active"],
+      ["530", "suspended"],
+      ["531", "aborted"],
+      ["532", "completed"],
+      ["533", "expired"],
+    ]),
+  ],
+]);
 
-let groupCache: Map<string, GroupMap> | null = null;
-
-function loadGroups(): Map<string, GroupMap> {
-  if (groupCache) return groupCache;
-  const xml = Deno.readTextFileSync(TERMINOLOGY_XML);
-  const groups = new Map<string, GroupMap>();
-  const groupRe = /<group\b([^>]*)>([\s\S]*?)<\/group>/g;
-  for (const groupMatch of xml.matchAll(groupRe)) {
-    const attrs = groupMatch[1];
-    const openehrId = /openehr_id="([^"]+)"/.exec(attrs)?.[1];
-    if (!openehrId) continue;
-    const concepts = new Map<string, string>();
-    const conceptRe = /<concept\b([^>]*?)\/?>/g;
-    for (const conceptMatch of groupMatch[2].matchAll(conceptRe)) {
-      const id = /id="([^"]+)"/.exec(conceptMatch[1])?.[1];
-      const rubric = /rubric="([^"]+)"/.exec(conceptMatch[1])?.[1];
-      if (id && rubric) concepts.set(id, rubric);
-    }
-    groups.set(openehrId, concepts);
-  }
-  groupCache = groups;
-  return groups;
+/** Group ids whose rubrics are embedded in this module. */
+export function embeddedOpenEhrGroupIds(): string[] {
+  return [...GROUPS.keys()];
 }
 
-/** Rubric for a code within an openEHR terminology group (English). */
+/** Rubric for a code within an embedded openEHR terminology group (English). */
 export function openEhrGroupRubric(
   groupId: string,
   code: string,
 ): string | undefined {
-  return loadGroups().get(groupId)?.get(code);
+  return GROUPS.get(groupId)?.get(code);
 }
-
-export const INSTRUCTION_STATES_GROUP = "instruction_states";
 
 export function instructionStateRubric(code: string): string | undefined {
   return openEhrGroupRubric(INSTRUCTION_STATES_GROUP, code);
@@ -54,6 +51,6 @@ export function instructionStateRubric(code: string): string | undefined {
 
 /** All instruction-state codes defined in the English terminology file. */
 export function instructionStateCodes(): string[] {
-  const group = loadGroups().get(INSTRUCTION_STATES_GROUP);
+  const group = GROUPS.get(INSTRUCTION_STATES_GROUP);
   return group ? [...group.keys()] : [];
 }
