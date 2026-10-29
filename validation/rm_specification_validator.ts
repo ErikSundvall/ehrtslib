@@ -13,9 +13,13 @@
 import {
   ancestorsOf,
   attributesFor,
+  hasRmType,
+  isAbstractType,
   isDataValueType,
   isSubtypeOf,
+  type RmAttributeMeta,
 } from "../meta/mod.ts";
+import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import { instructionStateRubric } from "../term/openehr_group_rubrics.ts";
 import {
   attributeNamesInExpression,
@@ -353,13 +357,28 @@ function rubricForConstraintCode(
 }
 
 /**
+ * Options for {@link RMSpecificationValidator}.
+ *
+ * `strict` controls attributes that are not in the RM: warnings by default,
+ * errors when `strict` is true. It does not change multiplicity or type checks.
+ */
+export interface RMSpecificationValidatorOptions {
+  strict?: boolean;
+}
+
+/**
  * Validates instances against RM specification constraints
  */
 export class RMSpecificationValidator {
   private enabled: boolean;
+  private strict: boolean;
 
-  constructor(enabled: boolean = true) {
+  constructor(
+    enabled: boolean = true,
+    options?: RMSpecificationValidatorOptions,
+  ) {
     this.enabled = enabled;
+    this.strict = options?.strict === true;
   }
 
   /**
@@ -397,8 +416,11 @@ export class RMSpecificationValidator {
    * Walk a canonical RM instance (including attributes the OPT does not
    * constrain) and apply RM_CONSTRAINTS for the value's type and ancestors.
    *
-   * Required-attribute checks run only when the object has `_type` and is not
-   * a skeletal identity stub, so partial unit-test objects still pass.
+   * The RM type is `_type` when present, otherwise the type-registry class
+   * name. Attributes are read by BMM name so getter-backed fields count.
+   * Required-attribute checks run for data values and for any other object
+   * that has a resolved RM type plus at least one non-identity attribute.
+   * Skeletal identity stubs still skip required checks.
    */
   validateInstance(
     rmValue: unknown,
@@ -484,10 +506,7 @@ export class RMSpecificationValidator {
       const itemType = unwrapRmTypeName(rmType);
       rmValue.forEach((item, i) => {
         const itemPath = `${stripTrailingSlash(path)}[${i}]/`;
-        const inferred = (item && typeof item === "object" &&
-            typeof (item as { _type?: unknown })._type === "string")
-          ? (item as { _type: string })._type
-          : itemType;
+        const inferred = instanceRmType(item) ?? itemType;
         this.walkInstance(item, inferred, itemPath, messages, depth + 1);
       });
       return;
@@ -495,33 +514,244 @@ export class RMSpecificationValidator {
     if (typeof rmValue !== "object") return;
 
     const rec = rmValue as Record<string, unknown>;
-    const type = (typeof rec._type === "string" ? rec._type : rmType) ??
-      undefined;
+    const type = instanceRmType(rec) ?? rmType;
     if (type) {
       this.applyConstraintsForType(rec, type, path, messages);
     }
+    if (type && hasRmType(type)) {
+      this.applyStructure(rec, type, path, messages, depth);
+      return;
+    }
+    this.walkUntypedChildren(rec, path, messages, depth);
+  }
 
-    const childTypes = new Map<string, string>();
-    if (type) {
-      for (const attr of attributesFor(type)) {
-        const inner = unwrapRmTypeName(attr.typeName);
-        if (inner) childTypes.set(attr.name, inner);
+  /**
+   * BMM multiplicity, value types, and attributes that are not in the model.
+   * Recurses through BMM attribute names (getters included), not Object.entries.
+   */
+  private applyStructure(
+    rmValue: Record<string, unknown>,
+    rmType: string,
+    path: string,
+    messages: ValidationMessage[],
+    depth: number,
+  ): void {
+    const attrs = attributesFor(rmType);
+    const known = new Set(attrs.map((attr) => attr.name));
+    const skipRequired = !shouldCheckRequired(rmValue, rmType);
+
+    for (const key of ownPublicKeys(rmValue)) {
+      if (known.has(key)) continue;
+      const val = rmValue[key];
+      if (typeof val === "function") continue;
+      messages.push({
+        path: joinRmPath(path, key),
+        message:
+          `${rmType}.${key} is not an attribute of the reference model`,
+        severity: this.strict ? "error" : "warning",
+        constraintType: "rm_schema",
+      });
+      if (val && typeof val === "object") {
+        this.walkInstance(
+          val,
+          instanceRmType(val),
+          joinRmPath(path, key),
+          messages,
+          depth + 1,
+        );
       }
     }
-    for (const [key, val] of Object.entries(rec)) {
-      if (key === "_type" || val == null || typeof val !== "object") continue;
-      const childType = (val && !Array.isArray(val) &&
-          typeof (val as { _type?: unknown })._type === "string")
-        ? (val as { _type: string })._type
-        : childTypes.get(key);
+
+    if (isSubtypeOf(rmType, "ENTRY")) {
+      this.checkEntryEncoding(rmValue, path, messages);
+    }
+
+    for (const attr of attrs) {
+      const value = readAttribute(rmValue, attr.name);
+      const attrPath = joinRmPath(path, attr.name);
+      const present = isPresentValue(value);
+      if (
+        !skipRequired && attributeIsMandatory(attr) && !present &&
+        !rmConstraintCoversAbsence(rmType, attr.name)
+      ) {
+        messages.push({
+          path: attrPath,
+          message:
+            `${attr.declaredIn}.${attr.name} is required by RM specification`,
+          severity: "error",
+          constraintType: "rm_specification",
+        });
+      }
+      if (!present) continue;
+      this.walkAttribute(value, attr, attrPath, messages, depth, skipRequired);
+    }
+  }
+
+  private walkUntypedChildren(
+    rmValue: Record<string, unknown>,
+    path: string,
+    messages: ValidationMessage[],
+    depth: number,
+  ): void {
+    for (const [key, val] of Object.entries(rmValue)) {
+      if (key === "_type" || key === "_parent" || key === "parent") continue;
+      if (val == null || typeof val === "function") continue;
+      if (typeof val !== "object") continue;
       this.walkInstance(
         val,
-        childType,
+        instanceRmType(val),
         joinRmPath(path, key),
         messages,
         depth + 1,
       );
     }
+  }
+
+  private walkAttribute(
+    value: unknown,
+    attr: RmAttributeMeta,
+    path: string,
+    messages: ValidationMessage[],
+    depth: number,
+    skipRequired: boolean,
+  ): void {
+    const container = containerKind(attr.typeName);
+    if (container?.kind === "list") {
+      if (!Array.isArray(value)) {
+        messages.push(typeMessage(
+          path,
+          `must be a ${attr.typeName}, got ${valueKind(value)}`,
+        ));
+        return;
+      }
+      if (
+        !skipRequired && attr.multiplicity.min > 0 &&
+        value.length < attr.multiplicity.min
+      ) {
+        messages.push({
+          path,
+          message:
+            `${attr.declaredIn}.${attr.name} must contain at least ${attr.multiplicity.min} item(s)`,
+          severity: "error",
+          constraintType: "rm_specification",
+        });
+      }
+      value.forEach((item, i) => {
+        const itemPath = `${stripTrailingSlash(path)}[${i}]/`;
+        if (
+          !this.acceptsTypedValue(
+            item,
+            container.itemType,
+            itemPath,
+            messages,
+          )
+        ) return;
+        const next = instanceRmType(item) ?? container.itemType;
+        this.walkInstance(item, next, itemPath, messages, depth + 1);
+      });
+      return;
+    }
+    if (container?.kind === "hash") {
+      if (value === null || typeof value !== "object" || Array.isArray(value)) {
+        messages.push(typeMessage(
+          path,
+          `must be a ${attr.typeName}, got ${valueKind(value)}`,
+        ));
+        return;
+      }
+      for (const [hashKey, item] of Object.entries(value)) {
+        const itemPath = joinRmPath(path, hashKey);
+        if (
+          !this.acceptsTypedValue(item, container.valueType, itemPath, messages)
+        ) continue;
+        if (item && typeof item === "object") {
+          this.walkInstance(
+            item,
+            instanceRmType(item) ?? container.valueType,
+            itemPath,
+            messages,
+            depth + 1,
+          );
+        }
+      }
+      return;
+    }
+
+    if (!this.acceptsTypedValue(value, attr.typeName, path, messages)) return;
+    if (value && typeof value === "object" && !isPrimitiveBmmType(rootTypeName(attr.typeName))) {
+      const declared = rootTypeName(attr.typeName);
+      const next = instanceRmType(value) ??
+        (hasRmType(declared) ? declared : undefined);
+      this.walkInstance(value, next, path, messages, depth + 1);
+    }
+  }
+
+  /**
+   * @returns false when the value is the wrong kind and must not be walked
+   * as the declared type.
+   */
+  private acceptsTypedValue(
+    value: unknown,
+    typeName: string,
+    path: string,
+    messages: ValidationMessage[],
+  ): boolean {
+    const expected = rootTypeName(typeName);
+    if (!expected || isOpenTypeName(expected)) return true;
+    if (isPrimitiveBmmType(expected)) {
+      if (!valueMatchesPrimitive(value, expected)) {
+        messages.push(typeMessage(
+          path,
+          `must be a ${expected}, got ${valueKind(value)}`,
+        ));
+        return false;
+      }
+      return false;
+    }
+    if (!hasRmType(expected)) return true;
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      messages.push(typeMessage(
+        path,
+        `must be a ${expected}, got ${valueKind(value)}`,
+      ));
+      return false;
+    }
+    const actual = instanceRmType(value);
+    if (actual) {
+      if (actual === expected || isSubtypeOf(actual, expected)) return true;
+      messages.push(typeMessage(
+        path,
+        `must be a ${expected} or subtype, got ${actual}`,
+      ));
+      return false;
+    }
+    if (isAbstractType(expected)) {
+      messages.push(typeMessage(
+        path,
+        `must be a ${expected} or subtype`,
+      ));
+      return false;
+    }
+    return true;
+  }
+
+  /** ENTRY.encoding is coded from the openEHR character-sets code set. */
+  private checkEntryEncoding(
+    rmValue: Record<string, unknown>,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    const encoding = readAttribute(rmValue, "encoding");
+    if (!isPresentValue(encoding)) return;
+    const terminology = terminologyIdOf(encoding);
+    if (!terminology || terminology === IANA_CHARACTER_SETS) return;
+    messages.push({
+      path: joinRmPath(path, "encoding"),
+      message:
+        `ENTRY.encoding terminology_id must be "${IANA_CHARACTER_SETS}", not "${terminology}"`,
+      severity: "error",
+      constraintType: "rm_specification",
+    });
   }
 
   private applyConstraintsForType(
@@ -551,7 +781,7 @@ export class RMSpecificationValidator {
       }
       if (coveredByBmm.has(key)) continue;
       this.applyConstraint(
-        rmValue[attr],
+        readAttribute(rmValue, attr),
         constraint as Record<string, unknown>,
         key,
         joinRmPath(path, attr),
@@ -822,11 +1052,227 @@ function shouldCheckRequired(
   rmValue: Record<string, unknown>,
   rmType?: string,
 ): boolean {
-  const type = (typeof rmValue._type === "string" ? rmValue._type : rmType) ??
-    "";
-  if (type && isDataValueType(type)) return true;
-  if (typeof rmValue._type !== "string") return false;
-  return Object.keys(rmValue).some((k) => !IDENTITY_KEYS.has(k));
+  const type = instanceRmType(rmValue) ?? rmType ?? "";
+  if (!type || !hasRmType(type)) return false;
+  if (isDataValueType(type)) return true;
+  return hasNonIdentityContent(rmValue, type);
+}
+
+/** openEHR code-set external id for character encodings (ENTRY.encoding). */
+const IANA_CHARACTER_SETS = "IANA_character-sets";
+
+const PRIMITIVE_BMM_TYPES = new Set([
+  "String",
+  "Integer",
+  "Integer64",
+  "Real",
+  "Double",
+  "Boolean",
+  "Character",
+  "Octet",
+  "Byte",
+  "Uri",
+  "Numeric",
+  "Ordered_Numeric",
+  "Iso8601_date",
+  "Iso8601_time",
+  "Iso8601_date_time",
+  "Iso8601_duration",
+]);
+
+function instanceRmType(value: unknown): string | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const rec = value as Record<string, unknown>;
+  if (typeof rec._type === "string" && rec._type.length > 0) return rec._type;
+  const ctor = (value as object).constructor;
+  if (typeof ctor !== "function" || ctor === Object) return undefined;
+  const name = TypeRegistry.getTypeNameFromInstance(value);
+  if (!name || name === "OBJECT" || name === "ARRAY") return undefined;
+  return name;
+}
+
+function readAttribute(obj: object, name: string): unknown {
+  try {
+    const value = (obj as Record<string, unknown>)[name];
+    if (typeof value === "function") return undefined;
+    return value;
+  } catch {
+    return undefined;
+  }
+}
+
+function ownPublicKeys(obj: object): string[] {
+  return Object.keys(obj).filter((key) =>
+    key !== "_type" && !key.startsWith("_") && !key.startsWith("$")
+  );
+}
+
+function isPresentValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "function") return false;
+  return true;
+}
+
+function hasNonIdentityContent(
+  obj: Record<string, unknown>,
+  type: string,
+): boolean {
+  for (const attr of attributesFor(type)) {
+    if (IDENTITY_KEYS.has(attr.name)) continue;
+    if (isPresentValue(readAttribute(obj, attr.name))) return true;
+  }
+  for (const key of ownPublicKeys(obj)) {
+    if (IDENTITY_KEYS.has(key)) continue;
+    if (typeof obj[key] === "function") continue;
+    if (isPresentValue(obj[key])) return true;
+  }
+  return false;
+}
+
+function attributeIsMandatory(attr: RmAttributeMeta): boolean {
+  return attr.mandatory || attr.multiplicity.min >= 1;
+}
+
+function rmConstraintCoversAbsence(rmType: string, attrName: string): boolean {
+  const owners = new Set(ancestorsOf(rmType));
+  owners.add(rmType);
+  for (const [key, constraint] of Object.entries(RM_CONSTRAINTS)) {
+    const dot = key.indexOf(".");
+    if (dot < 0) continue;
+    const owner = key.slice(0, dot);
+    const name = key.slice(dot + 1);
+    if (name !== attrName) continue;
+    if (!owners.has(owner) && !isSubtypeOf(rmType, owner)) continue;
+    const kind = (constraint as { type?: string }).type;
+    if (
+      kind === "required" || kind === "required_code_phrase" ||
+      kind === "non_empty_string"
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function terminologyIdOf(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value.match(/^([^:]+)::/)?.[1];
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const rec = value as Record<string, unknown>;
+  const direct = rec.terminology_id ?? rec.terminologyId;
+  if (typeof direct === "string") return direct;
+  if (direct && typeof direct === "object") {
+    const inner = (direct as { value?: unknown }).value;
+    if (typeof inner === "string") return inner;
+  }
+  return undefined;
+}
+
+type ContainerInfo =
+  | { kind: "list"; itemType: string }
+  | { kind: "hash"; valueType: string };
+
+function containerKind(typeName: string): ContainerInfo | undefined {
+  const parsed = splitGeneric(typeName);
+  if (!parsed) return undefined;
+  if (
+    parsed.base === "List" || parsed.base === "Set" || parsed.base === "Array"
+  ) {
+    return { kind: "list", itemType: rootTypeName(parsed.args[0] ?? "") };
+  }
+  if (parsed.base === "Hash") {
+    return {
+      kind: "hash",
+      valueType: rootTypeName(parsed.args[1] ?? parsed.args[0] ?? ""),
+    };
+  }
+  return undefined;
+}
+
+function rootTypeName(typeName: string): string {
+  const trimmed = typeName.trim();
+  const parsed = splitGeneric(trimmed);
+  if (!parsed) return trimmed;
+  if (
+    parsed.base === "List" || parsed.base === "Set" ||
+    parsed.base === "Array" || parsed.base === "Hash"
+  ) {
+    const arg = parsed.base === "Hash"
+      ? (parsed.args[1] ?? parsed.args[0] ?? "")
+      : (parsed.args[0] ?? "");
+    return rootTypeName(arg);
+  }
+  return parsed.base;
+}
+
+function splitGeneric(
+  typeName: string,
+): { base: string; args: string[] } | undefined {
+  const lt = typeName.indexOf("<");
+  if (lt < 0) return undefined;
+  const gt = typeName.lastIndexOf(">");
+  if (gt < lt) return undefined;
+  const inner = typeName.slice(lt + 1, gt);
+  const args: string[] = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of inner) {
+    if (ch === "<") depth++;
+    else if (ch === ">") depth--;
+    if (ch === "," && depth === 0) {
+      args.push(cur.trim());
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur.trim()) args.push(cur.trim());
+  return { base: typeName.slice(0, lt).trim(), args };
+}
+
+function isOpenTypeName(typeName: string): boolean {
+  return typeName === "Any" || typeName === "T";
+}
+
+function isPrimitiveBmmType(typeName: string): boolean {
+  return PRIMITIVE_BMM_TYPES.has(typeName);
+}
+
+function valueMatchesPrimitive(value: unknown, typeName: string): boolean {
+  switch (typeName) {
+    case "Boolean":
+      return typeof value === "boolean";
+    case "Integer":
+    case "Integer64":
+    case "Byte":
+    case "Octet":
+      return typeof value === "number" && Number.isInteger(value);
+    case "Real":
+    case "Double":
+    case "Numeric":
+    case "Ordered_Numeric":
+      return typeof value === "number" && Number.isFinite(value);
+    default:
+      return typeof value === "string";
+  }
+}
+
+function valueKind(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  return typeof value;
+}
+
+function typeMessage(path: string, detail: string): ValidationMessage {
+  return {
+    path,
+    message: detail,
+    severity: "error",
+    constraintType: "rm_type",
+  };
 }
 
 function joinRmPath(path: string, attr: string): string {
