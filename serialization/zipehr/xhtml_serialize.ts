@@ -464,6 +464,46 @@ function langAttrFromSiblings(
   return code ? ` lang="${escapeXmlAttr(code)}"` : "";
 }
 
+/**
+ * Stored INTERVAL_EVENT attributes. `interval_start_time` is derived and is
+ * not on the wire. HTML5 tags the concrete `_type` and does not sniff these;
+ * abstract `EVENT` has no letter code, so XHTML uses them to choose `IE` vs `PE`.
+ */
+const INTERVAL_EVENT_FIELDS = ["width", "math_function", "sample_count"] as const;
+
+function hasIntervalEventFields(obj: Record<string, unknown>): boolean {
+  return INTERVAL_EVENT_FIELDS.some((name) =>
+    Object.prototype.hasOwnProperty.call(obj, name) && obj[name] != null
+  );
+}
+
+/**
+ * Map a ZipEHR type marker to an XHTML `class` token.
+ * Letter codes (`PE`, `HI`, …) pass through. A literal RM type name that is
+ * not itself a class token (abstract `EVENT`) is mapped with `classFromRmType`.
+ * Plain `EVENT` and `POINT_EVENT` use `PE`. `EVENT` uses `IE` when interval
+ * fields are present; `INTERVAL_EVENT` always uses `IE`.
+ */
+function resolveXhtmlTypeToken(
+  token: string,
+  letterMap: Record<string, string>,
+  reverseMap: Map<string, string>,
+  fields?: Record<string, unknown>,
+): { classToken: string; rmType: string } | undefined {
+  const known = rmTypeFromClass(token, reverseMap);
+  if (known) return { classToken: token, rmType: known };
+
+  let rmType = token;
+  if (rmType === "EVENT" && fields && hasIntervalEventFields(fields)) {
+    rmType = "INTERVAL_EVENT";
+  }
+  const classToken = classFromRmType(rmType, letterMap);
+  if (!classToken || classToken === token) return undefined;
+  const concrete = rmTypeFromClass(classToken, reverseMap);
+  if (!concrete) return undefined;
+  return { classToken, rmType: concrete };
+}
+
 function renderLocatableDiv(
   classToken: string,
   rmType: string,
@@ -541,9 +581,15 @@ function renderZipehrNode(
   const symbolKeys = Object.keys(obj).filter((k) =>
     k !== "_" && isClassTokenKey(k, reverseMap)
   );
+  // Literal RM type names (`EVENT`) have no letter-code key of their own.
+  const literalRmTypeKeys = Object.keys(obj).filter((k) =>
+    k !== "_" &&
+    !isClassTokenKey(k, reverseMap) &&
+    classFromRmType(k, letterMap) != null
+  );
 
   // ELEMENT fold: { E: {na, id}, q: "85|kg|" }
-  const locatableKeys = symbolKeys.filter((k) =>
+  const locatableKeys = [...symbolKeys, ...literalRmTypeKeys].filter((k) =>
     isLocatableStructuredObject(obj[k], letterMap)
   );
   if (locatableKeys.length === 1) {
@@ -626,15 +672,21 @@ function renderZipehrNode(
       );
     }
 
-    if (!rmTypeFromClass(locKey, reverseMap)) {
-      throw new UnsupportedZipehrXhtmlTypeError(locKey);
-    }
     const siblings = Object.fromEntries(
       Object.entries(obj).filter(([k]) => k !== locKey && k !== "_"),
     );
-    return renderLocatableDiv(
+    const resolved = resolveXhtmlTypeToken(
       locKey,
-      rmType,
+      letterMap,
+      reverseMap,
+      siblings,
+    );
+    if (!resolved) {
+      throw new UnsupportedZipehrXhtmlTypeError(locKey);
+    }
+    return renderLocatableDiv(
+      resolved.classToken,
+      resolved.rmType,
       obj[locKey] as Record<string, unknown>,
       siblings,
       ctx,
@@ -643,22 +695,22 @@ function renderZipehrNode(
     );
   }
 
-  // Type marker object: { _: "HI", events: [...] } — `_` is already a class token.
+  // Type marker object: { _: "HI", events: [...] } — `_` is a class token or
+  // a literal RM type name (`EVENT`) that still needs a letter code.
   if (typeof obj._ === "string") {
-    const classToken = obj._;
-    const rmType = rmTypeFromClass(classToken, reverseMap) ?? classToken;
+    const rawToken = obj._;
     const childKeys = Object.keys(obj).filter((k) =>
       k !== "_" && k !== "_type"
     );
     if (
-      !rmTypeFromClass(classToken, reverseMap) &&
-      !reverseMap.has(classToken) &&
+      !rmTypeFromClass(rawToken, reverseMap) &&
+      !reverseMap.has(rawToken) &&
       childKeys.length === 1 &&
       childKeys[0] === "value"
     ) {
       const valueRm = inferrablePropertyType(parentType, propertyName) ??
-        classToken;
-      const valueClass = classFromRmType(valueRm, letterMap) ?? classToken;
+        rawToken;
+      const valueClass = classFromRmType(valueRm, letterMap) ?? rawToken;
       return renderValueSpan(
         valueRm,
         valueClass,
@@ -668,9 +720,16 @@ function renderZipehrNode(
         propertyName,
       );
     }
-    if (!rmTypeFromClass(classToken, reverseMap) && !reverseMap.has(classToken)) {
-      throw new UnsupportedZipehrXhtmlTypeError(classToken);
+    const resolved = resolveXhtmlTypeToken(
+      rawToken,
+      letterMap,
+      reverseMap,
+      obj,
+    );
+    if (!resolved) {
+      throw new UnsupportedZipehrXhtmlTypeError(rawToken);
     }
+    const { classToken, rmType } = resolved;
     const langAttr = langAttrFromSiblings(rmType, obj);
     const childHtml = renderChildren(obj, rmType, ctx);
     const titleAttr = composeTitleAttr(
