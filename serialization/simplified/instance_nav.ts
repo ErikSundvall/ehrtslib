@@ -3,6 +3,7 @@
  */
 
 import { TypeRegistry } from "../common/type_registry.ts";
+import { hasRmType, isSubtypeOf } from "../../meta/mod.ts";
 import type { WebTemplateNode } from "./types.ts";
 
 type RmObject = Record<string, unknown>;
@@ -40,6 +41,22 @@ function normalizeNodeId(id: string): string {
     return `at${digits.padStart(4, "0")}`;
   }
   return id;
+}
+
+/**
+ * True for RM types known not to be LOCATABLE (e.g. ISM_TRANSITION). They have
+ * no archetype_node_id, so a template path predicate cannot be checked on them.
+ */
+function isNonLocatable(obj: unknown): boolean {
+  const type = rmTypeName(obj);
+  return !!type && hasRmType(type) && !isSubtypeOf(type, "LOCATABLE");
+}
+
+/** A single-valued attribute object matches the path predicate `nodeId`. */
+function singleMatchesNodeId(obj: unknown, nodeId: string): boolean {
+  const id = rmProp(obj, "archetype_node_id");
+  if (id == null || id === "") return isNonLocatable(obj);
+  return nodeIdsMatch(id, nodeId);
 }
 
 function nodeIdsMatch(a: unknown, b: string): boolean {
@@ -184,7 +201,7 @@ export function resolveAllAtPath(
       if (Array.isArray(next)) {
         nextValues.push(...valuesByNodeId(next, nodeId));
       } else if (
-        !nodeId || nodeIdsMatch(rmProp(next, "archetype_node_id"), nodeId)
+        !nodeId || singleMatchesNodeId(next, nodeId)
       ) {
         nextValues.push(next);
       }

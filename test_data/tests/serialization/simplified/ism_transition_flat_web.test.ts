@@ -12,6 +12,13 @@ import { instructionStateRubric } from "../../../../term/openehr_group_rubrics.t
 import { openehrCodeMeaning } from "../../../../validation/rm_specification_validator.ts";
 import { TemplateValidator } from "../../../../validation/template_validator.ts";
 import { resolveAllAtWebTemplateNode } from "../../../../serialization/simplified/instance_nav.ts";
+import type { WebTemplateNode } from "../../../../serialization/simplified/types.ts";
+import { assignAtAqlPath } from "../../../../serialization/simplified/rm_instance_builder.ts";
+import { registerOpenEhrModelTypes } from "../../../../serialization/common/openehr_model_registry.ts";
+import {
+  CANONICAL_JSON_DESERIALIZE_CONFIG,
+  JsonConfigurableDeserializer,
+} from "../../../../serialization/json/mod.ts";
 
 const MINIMAL_ACTION_OPT = new URL(
   "../../../veredictum/templates/minimal_action.opt",
@@ -113,16 +120,19 @@ Deno.test("deserializeFromFlat — ACTION ism_transition defaults without ISM ke
     m.path.includes("ism_transition")
   );
   assertEquals(ismErrors, []);
-  // ISM_TRANSITION is PATHABLE. The FLAT default still stores the template
-  // node id so ism_transition[atNNNN] can be recovered. That key is a warning.
+  // ISM_TRANSITION is PATHABLE, not LOCATABLE: no archetype_node_id (#232).
+  assertEquals("archetype_node_id" in ism, false);
   const ismWarnings = result.warnings.filter((m) =>
     m.path.includes("ism_transition")
   );
+  assertEquals(ismWarnings.map((m) => m.message), []);
+  const strict = new TemplateValidator({ validateUnits: false, strict: true })
+    .validate(rm, opt);
   assertEquals(
-    ismWarnings.map((m) => m.message),
-    [
-      "ISM_TRANSITION.archetype_node_id is not an attribute of the reference model",
-    ],
+    [...strict.errors, ...strict.warnings].filter((m) =>
+      m.path.includes("ism_transition")
+    ).map((m) => m.message),
+    [],
   );
 });
 
@@ -159,7 +169,7 @@ Deno.test("deserializeFromFlat — careflow_step code-only gets archetype value"
       .defining_code?.code_string,
     "526",
   );
-  assertEquals(ism.archetype_node_id, "at0003");
+  assertEquals("archetype_node_id" in ism, false);
 });
 
 Deno.test("FLAT round trip — ism_transition careflow_step survives serialize", async () => {
@@ -189,6 +199,106 @@ Deno.test("FLAT round trip — ism_transition careflow_step survives serialize",
     flatOut[`${actionPath}/ism_transition/careflow_step|terminology`],
     "local",
   );
+  assertEquals(
+    flatOut[`${actionPath}/ism_transition/current_state|code`],
+    "526",
+  );
+});
+
+function minimalActionFlat(actionPath: string): Record<string, string> {
+  return {
+    "ctx/category|code": "433",
+    "ctx/category|value": "event",
+    "ctx/category|terminology": "openehr",
+    "ctx/composer_name": "Test Composer",
+    "ctx/language": "en",
+    "ctx/territory": "US",
+    [`${actionPath}/time`]: "2026-01-01T12:00:00Z",
+    [`${actionPath}/description`]: "Example action",
+    [`${actionPath}/ism_transition/careflow_step|code`]: "at0003",
+    [`${actionPath}/ism_transition/careflow_step|terminology`]: "local",
+  };
+}
+
+Deno.test("#232 ACTION from FLAT passes strict canonical JSON and strict validation", async () => {
+  registerOpenEhrModelTypes();
+  const opt = await loadMinimalActionTemplate();
+  const wt = buildWebTemplate(opt);
+  const rm = deserializeFromFlat(minimalActionFlat(actionFlatPrefix(wt)), wt);
+  const action = (rm.content as Array<Record<string, unknown>>)[0];
+  assertEquals("archetype_node_id" in (action.ism_transition as object), false);
+
+  // Strict canonical JSON rejects attributes the RM class does not have.
+  new JsonConfigurableDeserializer(CANONICAL_JSON_DESERIALIZE_CONFIG)
+    .deserialize(JSON.stringify(action));
+
+  const strict = new TemplateValidator({ validateUnits: false, strict: true })
+    .validate(rm, opt);
+  assertEquals(
+    [...strict.errors, ...strict.warnings].filter((m) =>
+      m.path.includes("ism_transition")
+    ).map((m) => m.message),
+    [],
+  );
+});
+
+Deno.test("#232 older RM with ISM_TRANSITION.archetype_node_id is still read", async () => {
+  const opt = await loadMinimalActionTemplate();
+  const wt = buildWebTemplate(opt);
+  const actionPath = actionFlatPrefix(wt);
+  const rm = deserializeFromFlat(minimalActionFlat(actionPath), wt);
+  const ism = (rm.content as Array<Record<string, unknown>>)[0]
+    .ism_transition as Record<string, unknown>;
+  ism.archetype_node_id = "at0003";
+
+  const flatOut = serializeToFlat(rm, wt);
+  assertEquals(
+    flatOut[`${actionPath}/ism_transition/careflow_step|code`],
+    "at0003",
+  );
+  const again = deserializeFromFlat(flatOut, wt);
+  const ismAgain = (again.content as Array<Record<string, unknown>>)[0]
+    .ism_transition as Record<string, unknown>;
+  assertEquals("archetype_node_id" in ismAgain, false);
+});
+
+Deno.test("#232 multi-variant ACTION: variant comes from careflow_step, no node id", async () => {
+  const opt = await loadConformanceTemplate();
+  const wt = buildWebTemplate(opt);
+  const flat = serializeToFlat(
+    new RMInstanceGenerator({ mode: "example" }).generate(opt),
+    wt,
+  );
+  stripIsmKeys(flat);
+  flat[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/careflow_step|code`] = "at0005";
+  flat[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/careflow_step|terminology`] =
+    "local";
+  const rm = deserializeFromFlat(flat, wt);
+  const ism = (resolveAllAtWebTemplateNode(
+    rm,
+    findActionNode(wt.tree) as unknown as WebTemplateNode,
+  )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
+  assertEquals("archetype_node_id" in ism, false);
+
+  const flatOut = serializeToFlat(rm, wt);
+  assertEquals(
+    flatOut[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/careflow_step|code`],
+    "at0005",
+  );
+  assertEquals(
+    flatOut[`${CONFORMANCE_ACTION_PREFIX}/ism_transition/current_state|code`],
+    "524",
+  );
+  const strict = new TemplateValidator({ validateUnits: false, strict: true })
+    .validate(rm, opt);
+  assertEquals(
+    [...strict.errors, ...strict.warnings].filter((m) =>
+      m.path.includes("ism_transition") &&
+      (m.message.includes("archetype_node_id") ||
+        m.message.includes("ISM_TRANSITION"))
+    ).map((m) => m.message),
+    [],
+  );
 });
 
 const CONFORMANCE_ACTION_PREFIX =
@@ -215,7 +325,7 @@ Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
   const rm1 = deserializeFromFlat(noIsm, wt);
   const ism1 = (resolveAllAtWebTemplateNode(
     rm1,
-    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+    findActionNode(wt.tree) as unknown as WebTemplateNode,
   )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
   const cs1 = ism1.current_state as Record<string, unknown>;
   assertEquals((cs1.defining_code as { code_string?: string }).code_string, "524");
@@ -231,7 +341,7 @@ Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
   const rm2 = deserializeFromFlat(careflowOnly, wt);
   const ism2 = (resolveAllAtWebTemplateNode(
     rm2,
-    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+    findActionNode(wt.tree) as unknown as WebTemplateNode,
   )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
   assertEquals(
     (ism2.current_state as { defining_code?: { code_string?: string } })
@@ -259,7 +369,7 @@ Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
   assertEquals(issues4.length, 0);
   const ism4 = (resolveAllAtWebTemplateNode(
     rm4,
-    findActionNode(wt.tree) as { aqlPath: string; rmType: string },
+    findActionNode(wt.tree) as unknown as WebTemplateNode,
   )[0] as Record<string, unknown>).ism_transition as Record<string, unknown>;
   assertEquals(
     (ism4.current_state as { defining_code?: { code_string?: string } })
@@ -273,4 +383,22 @@ Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
     "not-a-real-state";
   const { issues: badIssues } = deserializeFromFlatWithIssues(wrongValue, wt);
   assertEquals(badIssues.some((i) => i.severity === "error"), true);
+});
+
+Deno.test("#232 FLAT instance builder: no archetype_node_id on non-LOCATABLE objects", () => {
+  const root: Record<string, unknown> = { _type: "COMPOSITION" };
+  assignAtAqlPath(
+    root,
+    "/context/other_context[at0001]/items[at0002]/value",
+    { _type: "DV_TEXT", value: "x" },
+    "DV_TEXT",
+    undefined,
+    undefined,
+    { 1: "EVENT_CONTEXT", 2: "ITEM_TREE", 3: "ELEMENT" },
+  );
+  const context = root.context as Record<string, unknown>;
+  assertEquals(context._type, "EVENT_CONTEXT");
+  assertEquals("archetype_node_id" in context, false);
+  const other = context.other_context as Record<string, unknown>;
+  assertEquals(other.archetype_node_id, "at0001");
 });
