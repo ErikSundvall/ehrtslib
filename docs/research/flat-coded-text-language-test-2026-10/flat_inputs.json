@@ -1,0 +1,99 @@
+{
+ "template_id": "ChemoForm-MBA(oral_administration).v1",
+ "leaf": "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning",
+ "base": {
+  "ctx/territory": "SE",
+  "ctx/composer_name": "Test",
+  "ctx/time": "2026-10-30T06:00:00Z",
+  "ctx/setting": "238",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/category|code": "433",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/category|value": "event",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/category|terminology": "openehr",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/symptom_tecken-benämning|code": "267036007",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/symptom_tecken-benämning|value": "andnöd (dyspné)",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/symptom_tecken-benämning|terminology": "SNOMED-CT",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_något_eller_några_av_de_symptom_du_skattat_förvärrats_sedan_föregående_behandling|code": "at0004",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_något_eller_några_av_de_symptom_du_skattat_förvärrats_sedan_föregående_behandling|value": "Ja",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_något_eller_några_av_de_symptom_du_skattat_förvärrats_sedan_föregående_behandling|terminology": "local",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_ytterligare_biverkningar_som_du_vill_förmedla_eller_förtydliga_för_oss|terminology": "local",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_ytterligare_biverkningar_som_du_vill_förmedla_eller_förtydliga_för_oss|value": "Ja",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_ytterligare_biverkningar_som_du_vill_förmedla_eller_förtydliga_för_oss|code": "at0009",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_någon_fråga_inför_kommande_behandling|code": "at0013",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_någon_fråga_inför_kommande_behandling|value": "Ja",
+  "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/generella_behandlingsrelaterade_frågor/har_du_någon_fråga_inför_kommande_behandling|terminology": "local"
+ },
+ "variants": [
+  {
+   "id": "V1",
+   "ctx/language": "sv",
+   "description": "code only at0023",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|code": "at0023"
+   }
+  },
+  {
+   "id": "V2",
+   "ctx/language": "en",
+   "description": "code only at0023",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|code": "at0023"
+   }
+  },
+  {
+   "id": "V3",
+   "ctx/language": "sv",
+   "description": "value only 'Ja'",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|value": "Ja"
+   }
+  },
+  {
+   "id": "V4",
+   "ctx/language": "sv",
+   "description": "value only 'Yes' (en rubric)",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|value": "Yes"
+   }
+  },
+  {
+   "id": "V5",
+   "ctx/language": "en",
+   "description": "value only 'Yes'",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|value": "Yes"
+   }
+  },
+  {
+   "id": "V6",
+   "ctx/language": "en",
+   "description": "value only 'Ja' (sv rubric)",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning|value": "Ja"
+   }
+  },
+  {
+   "id": "V7",
+   "ctx/language": "sv",
+   "description": "bare key 'Ja'",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning": "Ja"
+   }
+  },
+  {
+   "id": "V8",
+   "ctx/language": "en",
+   "description": "bare key 'Yes'",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning": "Yes"
+   }
+  },
+  {
+   "id": "V9",
+   "ctx/language": "en",
+   "description": "bare key at0023",
+   "leaf_input": {
+    "patientrapporterade_symptom_inför_medicinsk_onkologisk_behandling_oral_administrering/frågeformulär_för_symptom_och_andra_tecken/ospecificerad_händelse:0/andning/upplever_du_svårigheter_med_din_andning": "at0023"
+   }
+  }
+ ]
+}
