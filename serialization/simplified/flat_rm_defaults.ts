@@ -453,18 +453,11 @@ function fillIsmFromWebTemplate(
   language?: string,
   match: CodedValueMatch = "exact",
 ): void {
+  // ISM_TRANSITION is PATHABLE, not LOCATABLE: it has no archetype_node_id.
+  // The template variant is identified by careflow_step / current_state.
+  // Older data (or a |raw object) may still carry the key; drop it.
+  delete ism.archetype_node_id;
   const variant = inferFromCareflow(ism, ismWt);
-  if (variant?.nodeId && !ism.archetype_node_id) {
-    ism.archetype_node_id = variant.nodeId;
-  }
-  if (!ism.archetype_node_id && ctxCurrentState) {
-    const resolved = resolveInstructionStateCode(ctxCurrentState);
-    const byCtx = ismVariants(ismWt).find((v) => v.currentState === resolved);
-    if (byCtx?.nodeId) ism.archetype_node_id = byCtx.nodeId;
-  }
-  if (!ism.archetype_node_id && ismWt.nodeId) {
-    ism.archetype_node_id = ismWt.nodeId;
-  }
 
   const currentWt = ismWt.children?.find((c) => c.id === "current_state");
   if (currentWt && !ism.current_state) {
@@ -507,7 +500,6 @@ function defaultIsmTransition(
   match: CodedValueMatch = "exact",
 ): RmObject {
   const ism: RmObject = { _type: "ISM_TRANSITION" };
-  if (ismWt.nodeId) ism.archetype_node_id = ismWt.nodeId;
   fillIsmFromWebTemplate(
     ism,
     ismWt,
