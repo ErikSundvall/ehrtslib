@@ -43,13 +43,17 @@ Deno.test("serializeToFlat - minimal_evaluation instance", async () => {
     operationalTemplate,
   );
 
-  const flat = serializeToFlat(instance, wt);
+  const flat = serializeToFlat(instance, wt, { flavor: "input" });
   assertEquals(flat["ctx/language"], "en");
   assertEquals(flat["ctx/territory"], "US");
   assert("ctx/composer_name" in flat);
 
+  const output = serializeToFlat(instance, wt);
+  assertEquals(output[`${wt.tree.id}/language|code`], "en");
+  assert(`${wt.tree.id}/composer|name` in output);
+
   const json = serializeToFlatJson(instance, wt, { prettyPrint: true });
-  assert(json.includes("ctx/language"));
+  assert(json.includes(`${wt.tree.id}/language|code`));
 });
 
 Deno.test("serializeToStructured - minimal_evaluation instance", async () => {
@@ -63,7 +67,7 @@ Deno.test("serializeToStructured - minimal_evaluation instance", async () => {
   );
 
   const structured = serializeToStructured(instance, wt);
-  assert("minimal_evaluation" in structured || "ctx" in structured);
+  assertEquals(Object.keys(structured), [wt.tree.id]);
 });
 
 Deno.test("validateFlatPayload - round-trip keys", async () => {
@@ -168,7 +172,7 @@ Deno.test("buildWebTemplate - Systolic unit input lists mm[Hg]", async () => {
   );
   const { operationalTemplate } = parseOptXml(xml);
   const wt = buildWebTemplate(operationalTemplate);
-  const systolic = findWtNode(wt.tree, (n) => n.nodeId === "at0004");
+  const systolic = findWtNode(wt.tree, (n) => n.nodeId === "at0004" && n.id === "systolic");
   assert(systolic, "expected Systolic node");
   const unit = systolic.inputs?.find((i) => i.suffix === "unit");
   assertEquals(unit?.list?.map((item) => item.value), ["mm[Hg]"]);

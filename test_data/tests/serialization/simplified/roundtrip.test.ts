@@ -39,32 +39,48 @@ async function loadMinimalEvaluationFixture() {
   return { operationalTemplate, wt, instance };
 }
 
-Deno.test("FLAT roundtrip preserves ctx fields", async () => {
+Deno.test("FLAT roundtrip (output flavour) writes context values at their paths", async () => {
   const { wt, instance } = await loadMinimalEvaluationFixture();
   const flat = serializeToFlat(instance, wt);
   const restored = deserializeFromFlat(flat, wt);
   const flat2 = serializeToFlat(restored, wt);
 
+  assertEquals(flat[`${wt.tree.id}/language|code`], "en");
+  assertEquals(flat[`${wt.tree.id}/territory|code`], "US");
+  assertEquals(Object.keys(flat).filter((k) => k.startsWith("ctx/")), []);
+  assertEquals(flat2, flat);
+  assertEquals(ctxCode(restored, "language"), "en");
+  assertEquals(ctxCode(restored, "territory"), "US");
+});
+
+Deno.test("FLAT roundtrip (input flavour) preserves ctx fields", async () => {
+  const { wt, instance } = await loadMinimalEvaluationFixture();
+  const flat = serializeToFlat(instance, wt, { flavor: "input" });
+  const restored = deserializeFromFlat(flat, wt);
+  const flat2 = serializeToFlat(restored, wt, { flavor: "input" });
+
   assertEquals(flat["ctx/language"], "en");
-  assertEquals(flat2["ctx/language"], flat["ctx/language"]);
-  assertEquals(flat2["ctx/territory"], flat["ctx/territory"]);
+  assertEquals(flat2, flat);
   assertEquals(ctxCode(restored, "language"), "en");
   assertEquals(ctxCode(restored, "territory"), "US");
 });
 
 Deno.test("STRUCTURED roundtrip preserves ctx fields", async () => {
   const { wt, instance } = await loadMinimalEvaluationFixture();
-  const structured = serializeToStructured(instance, wt);
+  const structured = serializeToStructured(instance, wt, { flavor: "input" });
   const restored = deserializeFromStructured(structured, wt);
-  const structured2 = serializeToStructured(restored, wt);
+  const structured2 = serializeToStructured(restored, wt, { flavor: "input" });
 
   assertExists(structured.ctx);
   assertEquals((structured.ctx as Record<string, unknown>).language, "en");
   assertEquals(ctxCode(restored, "language"), "en");
-  assertEquals(
-    (structured2.ctx as Record<string, unknown>).language,
-    (structured.ctx as Record<string, unknown>).language,
-  );
+  assertEquals(structured2, structured);
+
+  const output = serializeToStructured(instance, wt);
+  assertEquals(output.ctx, undefined);
+  const root = output[wt.tree.id] as Record<string, Array<Record<string, unknown>>>;
+  assertEquals(root.language[0]["|code"], "en");
+  assertEquals(serializeToStructured(deserializeFromStructured(output, wt), wt), output);
 });
 
 Deno.test("FLAT and STRUCTURED deserialize to equivalent ctx", async () => {

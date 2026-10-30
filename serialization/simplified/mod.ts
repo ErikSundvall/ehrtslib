@@ -32,6 +32,8 @@ export {
   serializeToFlatJson,
 } from "./flat_serializer.ts";
 
+export { type SimplifiedFlavor } from "./flavor.ts";
+
 export {
   deserializeFromFlat,
   deserializeFromFlatJson,
@@ -45,6 +47,7 @@ export {
 } from "./flat_deserializer.ts";
 
 export {
+  flatToStructured,
   serializeToStructured,
   serializeToStructuredJson,
   StructuredSerializer,
