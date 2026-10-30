@@ -7,6 +7,7 @@ import { LOCATABLE } from "../common/archetyped.ts";
 import type { DATA_VALUE } from "../data_types/basic.ts";
 import type { DV_CODED_TEXT, DV_TEXT } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * The abstract parent of \`CLUSTER\` and \`ELEMENT\` representation classes.
@@ -18,6 +19,8 @@ export abstract class ITEM extends LOCATABLE {
  * The grouping variant of \`ITEM\`, which may contain further instances of \`ITEM\`, in an ordered list.
  */
 export class CLUSTER extends ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Ordered list of items - \`CLUSTER\` or \`ELEMENT\` objects - under this \`CLUSTER\`.
    */
@@ -28,6 +31,8 @@ export class CLUSTER extends ITEM {
  * The leaf variant of \`ITEM\`, to which a \`DATA_VALUE\` instance is attached.
  */
 export class ELEMENT extends ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Flavour of null value, e.g. \`253|unknown|\`, \`271|no information|\`, \`272|masked|\`, and \`273|not applicable|\`.
    */

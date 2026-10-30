@@ -8,11 +8,14 @@ import type { REVISION_HISTORY } from "../common/generic.ts";
 import type { DV_DATE_TIME } from "../data_types/quantity/date_time.ts";
 import { EXTRACT_CONTENT_ITEM } from "./common.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Form of \`EHR EXTRACT_ITEM\` containing openEHR serialised \`VERSIONED_OBJECTs\`.
  */
 export class OPENEHR_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Content object.
    */
@@ -23,6 +26,8 @@ export class OPENEHR_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
  * Variety of Extract content that consists is a sharable data-oriented version of \`VERSIONED_OBJECT<T>\`.
  */
 export class X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Uid of original \`VERSIONED_OBJECT\`.
    */
@@ -117,28 +122,38 @@ export class X_VERSIONED_OBJECT<T> {
  * Form of \`X_VERSIONED_OBJECT\` for \`EHR_ACCESS\` EHR object.
  */
 export class X_VERSIONED_EHR_ACCESS extends X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`EHR_STATUS\` EHR object.
  */
 export class X_VERSIONED_EHR_STATUS extends X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`COMPOSITION\` EHR object.
  */
 export class X_VERSIONED_COMPOSITION extends X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`FOLDER\` EHR object.
  */
 export class X_VERSIONED_FOLDER extends X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Form of \`X_VERSIONED_OBJECT\` for \`PARTY\` demographic object.
  */
 export class X_VERSIONED_PARTY extends X_VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }

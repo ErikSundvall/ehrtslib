@@ -7,11 +7,14 @@ import type { LOCATABLE } from "../common/archetyped.ts";
 import type { DV_CODED_TEXT } from "../data_types/text.ts";
 import { EXTRACT_CONTENT_ITEM } from "./common.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Single item in generic extract, designed for 13606 and CDA data.
  */
 export class GENERIC_CONTENT_ITEM extends EXTRACT_CONTENT_ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Identifier of model or schema used to create the content.
    */

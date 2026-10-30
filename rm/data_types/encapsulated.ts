@@ -7,6 +7,7 @@ import { DATA_VALUE } from "./basic.ts";
 import type { CODE_PHRASE } from "./text.ts";
 import type { DV_URI } from "./uri.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Abstract class defining the common meta-data of all types of encapsulated data.
@@ -26,6 +27,8 @@ export abstract class DV_ENCAPSULATED extends DATA_VALUE {
  * A specialisation of \`DV_ENCAPSULATED\` for audiovisual and bio-signal types. Includes further metadata relating to multimedia types which are not applicable to other subtypes of \`DV_ENCAPSULATED\`.
  */
 export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for alternate_text
    * @protected
@@ -163,6 +166,8 @@ export class DV_MULTIMEDIA extends DV_ENCAPSULATED {
  * Encapsulated data expressed as a parsable String. The internal model of the data item is not described in the openEHR model in common with other encapsulated types, but in this case, the form of the data is assumed to be plaintext, rather than compressed or other types of large binary data.
  */
 export class DV_PARSABLE extends DV_ENCAPSULATED {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected

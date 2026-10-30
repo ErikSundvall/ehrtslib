@@ -29,9 +29,21 @@ function registered(): void {
   registerOpenEhrModelTypes();
 }
 
+// RM instances coerce terse strings on assignment (#216). Define the raw
+// values directly so these tests still see a non-RM value in an RM slot,
+// as code that bypasses the setters (or an older instance) could produce.
 function observationWith(values: Record<string, unknown>): rm.OBSERVATION {
   registered();
-  return Object.assign(new rm.OBSERVATION(), values);
+  const obs = new rm.OBSERVATION();
+  for (const [key, value] of Object.entries(values)) {
+    Object.defineProperty(obs, key, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  return obs;
 }
 
 Deno.test("canonical serialize throws on a terse string in a CODE_PHRASE attribute", () => {
@@ -288,7 +300,10 @@ Deno.test("lenient JSON presets still accept non-canonical values", () => {
   ) {
     const deser = new JsonConfigurableDeserializer(config);
     const obs = deser.deserialize(observation);
-    assertEquals(obs.language, "ISO_639-1::en");
+    // The terse string is coerced to CODE_PHRASE on assignment (#216).
+    assertEquals(obs.language.constructor.name, "CODE_PHRASE");
+    assertEquals(obs.language.code_string, "en");
+    assertEquals(obs.language.terminology_id.value, "ISO_639-1");
     assertEquals(obs.subject.constructor.name, "PARTY_PROXY");
     const ctx = deser.deserialize(context);
     assertEquals(ctx.name.value, "EVENT_CONTEXT");

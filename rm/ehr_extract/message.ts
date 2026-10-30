@@ -5,6 +5,7 @@
 
 import type { AUDIT_DETAILS, PARTY_PROXY } from "../common/generic.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Abstract parent of message payload types.
@@ -16,6 +17,8 @@ export abstract class MESSAGE_CONTENT {
  * A “message” is an authored, possibly signed, piece of content intended for one or more recipients. Since the recipient may or may not be known directly, recipients are specified in the \`ADDRESSED_MESSAGE\` class.
  */
 export class MESSAGE {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Details of who actually created the message and when. This is the person who entered the data or otherwise caused the message to be created, or might be a piece of software.
    */
@@ -67,6 +70,8 @@ export class MESSAGE {
  * The concept of a message addressed to nominated recipients.
  */
 export class ADDRESSED_MESSAGE {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for sender
    * @protected

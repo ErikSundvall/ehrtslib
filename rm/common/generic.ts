@@ -7,11 +7,14 @@ import type { DV_MULTIMEDIA } from "../data_types/encapsulated.ts";
 import type { DV_DATE_TIME } from "../data_types/quantity/date_time.ts";
 import type { DV_CODED_TEXT, DV_TEXT } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * An entry in a revision history, corresponding to a version from a versioned container. Consists of \`AUDIT_DETAILS\` instances with revision identifier of the revision to which the \`AUDIT_DETAILS\` instance belongs.
  */
 export class REVISION_HISTORY_ITEM {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Version identifier for this revision.
    */
@@ -26,6 +29,8 @@ export class REVISION_HISTORY_ITEM {
  * The set of attributes required to document the committal of an information item to a repository.
  */
 export class AUDIT_DETAILS {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for system_id
    * @protected
@@ -86,6 +91,8 @@ export class AUDIT_DETAILS {
  * * indicating acknowledgement of content by intended recipient, e.g. GP who ordered a test result.
  */
 export class ATTESTATION extends AUDIT_DETAILS {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Optional visual representation of content attested e.g. screen image.
    */
@@ -173,6 +180,8 @@ export class ATTESTATION extends AUDIT_DETAILS {
  * Should not be used in place of more permanent relationships between demographic entities.
  */
 export class PARTICIPATION {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The function of the Party in this participation (note that a given party might participate in more than one way in a particular activity). This attribute should be coded, but cannot be limited to the HL7v3:ParticipationFunction vocabulary, since it is too limited and hospital-oriented.
    */
@@ -209,6 +218,8 @@ export abstract class PARTY_PROXY {
  * Should not be used to include patient identifying information.
  */
 export class PARTY_IDENTIFIED extends PARTY_PROXY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for name
    * @protected
@@ -253,12 +264,16 @@ export class PARTY_IDENTIFIED extends PARTY_PROXY {
  * Party proxy representing the subject of the record. Used to indicate that the party is the owner of the record. May or may not have \`_external_ref_\` set.
  */
 export class PARTY_SELF extends PARTY_PROXY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Proxy type for identifying a party and its relationship to the subject of the record. Use where the relationship between the party and the subject of the record must be known.
  */
 export class PARTY_RELATED extends PARTY_IDENTIFIED {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Relationship of subject of this ENTRY to the subject of the record. May be coded. If it is the patient, coded as  self.
    */
@@ -269,6 +284,8 @@ export class PARTY_RELATED extends PARTY_IDENTIFIED {
  * Purpose Defines the notion of a revision history of audit items, each associated with the version for which that audit was committed. The list is in most-recent-first order.
  */
 export class REVISION_HISTORY {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The items in this history in most-recent-last order.
    */

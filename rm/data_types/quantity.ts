@@ -7,6 +7,7 @@ import { accuracyAsNumber } from "../_shared.ts";
 import { DATA_VALUE } from "./basic.ts";
 import type { CODE_PHRASE, DV_CODED_TEXT, DV_TEXT } from "./text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Abstract class defining the concept of ordered values, which includes ordinals as well as true quantities. It defines the functions  \`<\` and \`_is_strictly_comparable_to()_\`, the latter of which must evaluate to \`True\` for instances being compared with the  \`<\` function, or used as limits in the \`DV_INTERVAL<T>\` class.
@@ -80,12 +81,16 @@ export abstract class DV_ORDERED extends DATA_VALUE {
  * The basic semantics are derived from the class \`Interval<T>\`, described in the support RM.
  */
 export class DV_INTERVAL<T extends DV_ORDERED> extends DATA_VALUE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Defines a named range to be associated with any \`DV_ORDERED\` datum. Each such range is particular to the patient and context, e.g. sex, age, and any other factor which affects ranges. May be used to represent normal, therapeutic, dangerous, critical etc ranges.
  */
 export class REFERENCE_RANGE<T extends DV_ORDERED> {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Term whose value indicates the meaning of this range, e.g.  normal,  critical,  therapeutic  etc.
    */
@@ -225,6 +230,15 @@ export abstract class DV_QUANTIFIED extends DV_ORDERED {
  * Class of enumeration constants defining types of proportion for the \`DV_PROPORTION\` class.
  */
 export class PROPORTION_KIND extends openehr_base.Integer {
+  constructor(init?: number | RmInit) {
+    if (typeof init === "number" || init === undefined) {
+      super(init);
+      return;
+    }
+    super();
+    applyRmInit(this, init);
+  }
+
 }
 
 /**
@@ -372,6 +386,8 @@ export abstract class DV_AMOUNT extends DV_QUANTIFIED {
  * Misuse: Should not be used to represent things like blood pressure which are often written using a  '/' character, giving the misleading impression that the item is a ratio, when in fact it is a structured value. Similarly, visual acuity, often written as (e.g.) "6/24" in clinical notes is not a ratio but an ordinal (which includes non-numeric symbols like CF = count fingers etc). Should not be used for formulations.
  */
 export class DV_PROPORTION extends DV_AMOUNT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Numerator of ratio
    */
@@ -584,6 +600,8 @@ export class DV_PROPORTION extends DV_AMOUNT {
  * Can also be used for time durations, where it is more convenient to treat these as simply a number of seconds rather than days, months, years (in the latter case, \`DV_DURATION\` may be used).
  */
 export class DV_QUANTITY extends DV_AMOUNT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Numeric magnitude of the quantity.
    */
@@ -892,6 +910,8 @@ export class DV_QUANTITY extends DV_AMOUNT {
  * Misuse: Not to be used for amounts of physical entities (which all have units).
  */
 export class DV_COUNT extends DV_AMOUNT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for magnitude
    * @protected
@@ -1086,6 +1106,8 @@ export abstract class DV_ABSOLUTE_QUANTITY extends DV_QUANTIFIED {
  * For scores or scales that include Real numbers (or might in the future, i.e. not fixed for all time, such as Apgar), use \`DV_SCALE\`. \`DV_SCALE\` may also be used in future for representing purely Integer-based scales, however, the \`DV_ORDINAL\` type should continue to be supported in software implementations in order to accommodate existing data that are instances of this type.
  */
 export class DV_ORDINAL extends DV_ORDERED {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Coded textual representation of this value in the enumeration, which may be strings made from  +  symbols, or other enumerations of terms such as  \`mild\`, \`moderate\`, \`severe\`, or even the same number series as the values, e.g. 1, 2, 3.
    */
@@ -1171,6 +1193,8 @@ export class DV_ORDINAL extends DV_ORDERED {
  * For scores that include only Integers, \`DV_SCALE\` may also be used, but \`DV_ORDINAL\` should be supported to accommodate existing data instances of that type.
  */
 export class DV_SCALE extends DV_ORDERED {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Coded textual representation of this value in the scale range, which may be strings made from symbols or other enumerations of terms such as  \`no breathlessness\`, \`very very slight\`, \`slight breathlessness\`. Codes come from archetypes.
    *

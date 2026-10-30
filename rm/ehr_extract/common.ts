@@ -8,11 +8,14 @@ import type { ITEM_STRUCTURE } from "../data_structures/item_structure.ts";
 import type { DV_DATE_TIME, DV_DURATION } from "../data_types/quantity/date_time.ts";
 import type { CODE_PHRASE, DV_CODED_TEXT, DV_TEXT } from "../data_types/text.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Generic model of an Extract of some information from a repository.
  */
 export class EXTRACT extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The content extracted and serialised from the source repository for this Extract.
    */
@@ -77,6 +80,8 @@ export class EXTRACT extends LOCATABLE {
  * Generic model of a Request for an Extract, containing an Extract specification.
  */
 export class EXTRACT_ACTION_REQUEST extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Identifier of previous \`EXTRACT_REQUEST\`.
    */
@@ -92,6 +97,8 @@ export class EXTRACT_ACTION_REQUEST extends LOCATABLE {
  * One content chapter of an Extract; contains information relating to only one entity.
  */
 export class EXTRACT_CHAPTER extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The information content of this chapter.
    */
@@ -220,6 +227,8 @@ export abstract class EXTRACT_CONTENT_ITEM extends EXTRACT_ITEM {
  * Type of chapter that contains information relating to a single demographic entity.
  */
 export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for extract_id_key
    * @protected
@@ -261,6 +270,8 @@ export class EXTRACT_ENTITY_CHAPTER extends EXTRACT_CHAPTER {
  * Various identifiers may be provided for the entity; these are to be used by the receiver system to locate the entity. The \`_extract_id_key_\` attribute is used to record the identifier that will be used throughout the Extract for this entity, including in instances of \`EXTRACT_ENTITY_IDENTIFIER\`.
  */
 export class EXTRACT_ENTITY_MANIFEST {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for extract_id_key
    * @protected
@@ -374,6 +385,8 @@ export class EXTRACT_ENTITY_MANIFEST {
 }
 
 export class EXTRACT_ERROR {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   request_id?: openehr_base.OBJECT_REF;
   reason?: DV_TEXT;
 }
@@ -382,6 +395,8 @@ export class EXTRACT_ERROR {
  * Folder in local Folder structure in an Extract. Empty Folders are allowed.
  */
 export class EXTRACT_FOLDER extends EXTRACT_ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * List of Folders and content items in this Folder.
    */
@@ -392,6 +407,8 @@ export class EXTRACT_FOLDER extends EXTRACT_ITEM {
  * Specification of the candidate entities and optionally top-level items (e.g. Compositions) to be included in the Extract.
  */
 export class EXTRACT_MANIFEST {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * List of entity manifests uids of items included in the Extract; for openEHR data, these are uids identifying the version containers.
    */
@@ -404,6 +421,8 @@ export class EXTRACT_MANIFEST {
  * Should not be used in place of more permanent relationships between demographic entities.
  */
 export class EXTRACT_PARTICIPATION {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The time interval during which the participation took place, if it is used in an observational context (i.e. recording facts about the past); or the intended time interval of the participation when used in future contexts, such as EHR Instructions.
    */
@@ -455,6 +474,8 @@ export class EXTRACT_PARTICIPATION {
  * Generic model of a Request for an Extract, containing an Extract specification.
  */
 export class EXTRACT_REQUEST extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Specification details of the request.
    */
@@ -475,6 +496,8 @@ export class EXTRACT_REQUEST extends LOCATABLE {
  * Use: Used in a request to specify an Extract, as well as to describe what is contained in an Extract.
  */
 export class EXTRACT_SPEC {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Specification of which versions of information items to include in the Extract. If Void, the default is latest versions only (which is reasonable for non-versioning systems as well).
    */
@@ -622,6 +645,8 @@ export class EXTRACT_SPEC {
  * The update mode may be event-driven and periodic update or a mixture of both. The candidate items to be sent each time are the result of re-evaluating the content and versioning parts of the specification; what is actually sent is determined by the \`_send_changes_only_\` flag.
  */
 export class EXTRACT_UPDATE_SPEC {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for persist_in_server
    * @protected
@@ -680,6 +705,8 @@ export class EXTRACT_UPDATE_SPEC {
  * Specification of what versions should be included in an Extract. By default, only latest versions are included in the Extract, in which case this part of the Extract specification is not needed at all. The attributes \`_include_all_versions_\` and \`_commit_time_interval_\` are used to modify this; the former forces all versions to be included; the latter limits the versions to be those latest versions committed in the time interval, or if \`_include_all_versions_\` is \`True\`, all versions committed in the time interval.
  */
 export class EXTRACT_VERSION_SPEC {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for include_all_versions
    * @protected

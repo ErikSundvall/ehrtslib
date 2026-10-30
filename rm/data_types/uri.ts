@@ -5,11 +5,14 @@
 
 import { DATA_VALUE } from "./basic.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * A reference to an object which structurally conforms to the Universal Resource Identifier (URI) RFC-3986 standard. The reference is contained in the \`_value_\` attribute, which is a \`String\`. So-called 'plain-text URIs' that contain RFC-3986 forbidden characters such as spaces etc, are allowed on the basis that they need to be RFC-3986 encoded prior to use in e.g. REST APIs or other contexts relying on machine-level conformance.
  */
 export class DV_URI extends DATA_VALUE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected
@@ -137,4 +140,6 @@ export class DV_URI extends DATA_VALUE {
  * Used to reference items in an EHR, which may be the same as the current EHR (containing this link), or another.
  */
 export class DV_EHR_URI extends DV_URI {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }

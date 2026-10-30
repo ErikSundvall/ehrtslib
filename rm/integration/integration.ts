@@ -5,11 +5,14 @@
 
 import { CONTENT_ITEM } from "../composition/content.ts";
 import type { ITEM } from "../data_structures/representation.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * This class is used to create intermediate representations of data from sources not otherwise conforming to openEHR classes, such as HL7 messages, relational databases and so on.
  */
 export class GENERIC_ENTRY extends CONTENT_ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The data from the source message or record. May be recorded in any structural openEHR representation.
    */

@@ -9,11 +9,14 @@ import type { DV_CODED_TEXT } from "../data_types/text.ts";
 import { REVISION_HISTORY, REVISION_HISTORY_ITEM } from "./generic.ts";
 import type { ATTESTATION, AUDIT_DETAILS } from "./generic.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Version control abstraction, defining semantics for versioning one complex object.
  */
 export class VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Unique identifier of this version container in the form of a UID with no extension. This id will be the same in all instances of the same container in a distributed environment, meaning that it can be understood as the uid of the  virtual version tree.
    */
@@ -328,6 +331,8 @@ export class VERSIONED_OBJECT<T> {
  * Documents a Contribution (change set) of one or more versions added to a change-controlled repository.
  */
 export class CONTRIBUTION {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Unique identifier for this Contribution.
    */
@@ -472,6 +477,8 @@ export abstract class VERSION<T> {
  * Versions whose content is an \`ORIGINAL_VERSION\` copied from another location; this class inherits \`_commit_audit_\` and \`_contribution_\` from \`VERSION<T>\`, providing imported versions with their own audit trail and Contribution, distinct from those of the imported \`ORIGINAL_VERSION\`.
  */
 export class IMPORTED_VERSION<T> extends VERSION<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The \`ORIGINAL_VERSION\` object that was imported.
    */
@@ -482,6 +489,8 @@ export class IMPORTED_VERSION<T> extends VERSION<T> {
  * A Version containing locally created content and optional attestations.
  */
 export class ORIGINAL_VERSION<T> extends VERSION<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Identifiers of other versions whose content was merged into this version, if any.
    */

@@ -7,11 +7,14 @@ import type { T } from "../_shared.ts";
 import type { ITEM_STRUCTURE } from "../data_structures/item_structure.ts";
 import { LOCATABLE } from "./archetyped.ts";
 import { VERSIONED_OBJECT } from "./change_control.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * A version-controlled hierarchy of \`FOLDERs\` giving the effect of a directory.
  */
 export class VERSIONED_FOLDER extends VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
@@ -21,6 +24,8 @@ export class VERSIONED_FOLDER extends VERSIONED_OBJECT<T> {
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\`  would be copied to the \`_uid_\` field of the top \`FOLDER\` object.
  */
 export class FOLDER extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The list of references to other (usually) versioned objects logically in this folder.
    */

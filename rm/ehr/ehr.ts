@@ -10,11 +10,14 @@ import type { PARTY_SELF } from "../common/generic.ts";
 import type { ITEM_STRUCTURE } from "../data_structures/item_structure.ts";
 import type { DV_DATE_TIME } from "../data_types/quantity/date_time.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * The EHR object is the root object and access point of an EHR for a subject of care.
  */
 export class EHR {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The identifier of the logical EHR management system in which this EHR was created.
    */
@@ -63,18 +66,24 @@ export class EHR {
  * Version container for \`EHR_ACCESS\` instance.
  */
 export class VERSIONED_EHR_ACCESS extends VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Version container for \`EHR_STATUS\` instance.
  */
 export class VERSIONED_EHR_STATUS extends VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
 }
 
 /**
  * Version-controlled composition abstraction, defined by inheriting \`VERSIONED_OBJECT<COMPOSITION>\`.
  */
 export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Indicates whether this composition set is persistent; derived from first version.
    * @returns Result value
@@ -93,6 +102,8 @@ export class VERSIONED_COMPOSITION extends VERSIONED_OBJECT<T> {
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\` would be copied to the \`_uid_\` field of the \`EHR_ACCESS\` object.
  */
 export class EHR_ACCESS extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Access control settings for the EHR. Instance is a subtype of the type \`ACCESS_CONTROL_SETTINGS\`, allowing for the use of different access control schemes.
    */
@@ -117,6 +128,8 @@ export class EHR_ACCESS extends LOCATABLE {
  * For example, the \`ORIGINAL_VERSION.uid\` \`87284370-2D4B-4e3d-A3F3-F303D2F4F34B::uk.nhs.ehr1::2\`  would be copied to the \`_uid_\` field of the \`EHR_STATUS\` object.
  */
 export class EHR_STATUS extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The subject of this EHR. The \`_external_ref_\` attribute can be used to contain a direct reference to the subject in a demographic or identity service. Alternatively, the association between patients and their records may be done elsewhere for security reasons.
    */
