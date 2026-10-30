@@ -10,6 +10,7 @@
 
 import type { WebTemplateNode } from "./types.ts";
 import {
+  type CodedTextDisplayValue,
   type CodedTextMismatch,
   completeDvCodedText,
   type FlatRmDefaultIssue,
@@ -51,6 +52,12 @@ export interface DvValueBuildContext {
    * `"reject"` (default), `"keep"`, or `"correct"`. See `CodedTextMismatch`.
    */
   codedTextMismatch?: CodedTextMismatch;
+  /**
+   * Valid `|code` with a `|value` that matches no listed term: `"keep"`
+   * (default), `"keep-and-set-preferred-term"`, or `"replace-with-rubric"`
+   * (not recommended; EHRbase compatibility). See `CodedTextDisplayValue`.
+   */
+  codedTextDisplayValue?: CodedTextDisplayValue;
 }
 
 export type FieldKind = "string" | "number" | "integer" | "boolean";
@@ -575,7 +582,10 @@ export function buildDvValue(
       issues,
       context?.path ?? codedNode.aqlPath,
       context?.language,
-      context?.codedTextMismatch,
+      {
+        mismatch: context?.codedTextMismatch,
+        displayValue: context?.codedTextDisplayValue,
+      },
     );
     if (!context?.issues) throwOnCodedTextMismatch(issues);
   }

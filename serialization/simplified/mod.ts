@@ -36,6 +36,7 @@ export {
   deserializeFromFlat,
   deserializeFromFlatJson,
   deserializeFromFlatWithIssues,
+  type CodedTextDisplayValue,
   type CodedTextMismatch,
   CodedTextMismatchError,
   type FlatDeserializeOptions,

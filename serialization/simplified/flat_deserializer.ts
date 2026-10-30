@@ -269,6 +269,7 @@ export class FlatDeserializer {
         issues: this.issues,
         path: node.aqlPath,
         codedTextMismatch: this.options.codedTextMismatch,
+        codedTextDisplayValue: this.options.codedTextDisplayValue,
       }),
       node.rmType,
       node.nodeId,
@@ -298,6 +299,7 @@ export function deserializeFromFlatJson(
 }
 
 export {
+  type CodedTextDisplayValue,
   type CodedTextMismatch,
   CodedTextMismatchError,
   type FlatRmDefaultIssue,

@@ -39,7 +39,7 @@ export interface FlatRmDefaultIssue {
  * | `"correct"` | normalised + warning | error | value := rubric of `\|code` + warning | translated + warning |
  *
  * A valid local `|code` with a `|value` that matches no listed term is not a
- * mismatch: the value is display text and is kept in every mode.
+ * mismatch: it is display text, handled by {@link CodedTextDisplayValue}.
  *
  * Errors are issues from `deserializeFromFlatWithIssues`; `deserializeFromFlat`,
  * `buildRmValue`, and `buildDvValue` (without a caller `issues` array) throw
@@ -48,10 +48,45 @@ export interface FlatRmDefaultIssue {
  */
 export type CodedTextMismatch = "reject" | "keep" | "correct";
 
+/**
+ * What FLAT → RM does with display text: a valid local `|code` whose `|value`
+ * matches no listed term in any template language. This is not a mismatch
+ * (SPECPR-165: `code_string` and `preferred_term` correspond, `value` may
+ * differ), so it is independent of {@link CodedTextMismatch}.
+ *
+ * - `"keep"` (default, as Better and FerroEHR): `value` is kept as sent.
+ *   `defining_code.preferred_term` is set only from `|preferred_term`.
+ * - `"keep-and-set-preferred-term"`: `value` is kept as sent and
+ *   `defining_code.preferred_term` is set to the template rubric in the
+ *   composition language, unless `|preferred_term` is sent. The same applies
+ *   when `codedTextMismatch: "keep"` keeps a `|value` next to a valid `|code`.
+ * - `"replace-with-rubric"`: **not recommended.** Compatibility mode for
+ *   EHRbase-like behaviour: `value` is overwritten with the template rubric
+ *   and a warning names the value that was sent. It loses what the user saw.
+ */
+export type CodedTextDisplayValue =
+  | "keep"
+  | "keep-and-set-preferred-term"
+  | "replace-with-rubric";
+
+/** Both coded-text settings, as threaded through FLAT → RM completion. */
+export interface CodedTextHandling {
+  /** Default `"reject"`. */
+  mismatch?: CodedTextMismatch;
+  /** Default `"keep"`. */
+  displayValue?: CodedTextDisplayValue;
+}
+
 /** Options for {@link applyFlatRmDefaults} and the FLAT deserializers. */
 export interface FlatRmDefaultOptions {
   /** DV_CODED_TEXT input without an exact template match. Default `"reject"`. */
   codedTextMismatch?: CodedTextMismatch;
+  /**
+   * Valid `|code` with a `|value` that matches no listed term. Default
+   * `"keep"`; `"replace-with-rubric"` is a not-recommended EHRbase
+   * compatibility mode. See {@link CodedTextDisplayValue}.
+   */
+  codedTextDisplayValue?: CodedTextDisplayValue;
 }
 
 /** Thrown by the non-collecting FLAT APIs on a coded-text mismatch error. */
@@ -273,11 +308,11 @@ function currentStatesForCareflow(
  *
  * Local and openEHR lists only. External terminologies are left as given.
  * `|code` and `|value` must match the template codes and rubrics exactly;
- * other input is handled per `mode` (see {@link CodedTextMismatch}). A valid
- * local `|code` with a `|value` that matches no listed term is display text:
- * `value` is kept and `defining_code.preferred_term` gets the template rubric
- * unless one was sent. The stored `value` is the template rubric for
- * `language` when it is filled or corrected.
+ * other input is handled per `handling.mismatch` (see {@link CodedTextMismatch}).
+ * A valid local `|code` with a `|value` that matches no listed term is display
+ * text, handled per `handling.displayValue` (see {@link CodedTextDisplayValue}).
+ * The stored `value` is the template rubric for `language` when it is filled
+ * or corrected.
  */
 export function completeDvCodedText(
   value: RmObject,
@@ -285,9 +320,11 @@ export function completeDvCodedText(
   issues: FlatRmDefaultIssue[],
   path: string,
   language?: string,
-  mode: CodedTextMismatch = "reject",
+  handling: CodedTextHandling = {},
 ): void {
   if (value._type !== "DV_CODED_TEXT") return;
+  const mode = handling.mismatch ?? "reject";
+  const display = handling.displayValue ?? "keep";
 
   const nodeTerm = templateTerminology(wtNode);
   if (!isLocalOrOpenehr(nodeTerm)) return;
@@ -403,6 +440,7 @@ export function completeDvCodedText(
       }`,
     });
     if (action === "correct") value.value = rubric;
+    if (action === "keep") setPreferredTerm(dc, rubric, display);
     return;
   }
   if (matchesRubric(item, val, term, true)) {
@@ -411,6 +449,7 @@ export function completeDvCodedText(
       target: caseOnlyRubric(item, val, term),
     });
     if (action === "correct") value.value = rubric;
+    if (action === "keep") setPreferredTerm(dc, rubric, display);
     return;
   }
   const other = entries.find((entry) =>
@@ -419,6 +458,8 @@ export function completeDvCodedText(
   if (other) {
     if (reportConflict(issues, path, mode, code, val, other.value, rubric)) {
       value.value = rubric;
+    } else if (mode === "keep") {
+      setPreferredTerm(dc, rubric, display);
     }
     return;
   }
@@ -430,7 +471,26 @@ export function completeDvCodedText(
   }
   // A valid |code with a value that matches no listed term is display text
   // (SPECPR-165: code_string and preferred_term correspond, value may differ).
-  // Keep it; record the template rubric as preferred_term unless one was sent.
+  if (display === "replace-with-rubric") {
+    issues.push({
+      path,
+      severity: "warning",
+      message:
+        `DV_CODED_TEXT value "${val}" replaced by the template rubric "${rubric}" of code ${code} (codedTextDisplayValue: "replace-with-rubric", an EHRbase compatibility mode; "keep" keeps the value as sent)`,
+    });
+    value.value = rubric;
+  } else {
+    setPreferredTerm(dc, rubric, display);
+  }
+}
+
+/** Template rubric as `preferred_term` when the display-value mode asks for it. */
+function setPreferredTerm(
+  dc: RmObject | undefined,
+  rubric: string,
+  display: CodedTextDisplayValue,
+): void {
+  if (display !== "keep-and-set-preferred-term") return;
   if (dc && dc.preferred_term == null) dc.preferred_term = rubric;
 }
 
@@ -548,7 +608,7 @@ function fillIsmFromWebTemplate(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
-  mode: CodedTextMismatch = "reject",
+  handling: CodedTextHandling = {},
 ): void {
   // ISM_TRANSITION is PATHABLE, not LOCATABLE: it has no archetype_node_id.
   // The template variant is identified by careflow_step / current_state.
@@ -571,7 +631,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/current_state`,
       language,
-      mode,
+      handling,
     );
   }
 
@@ -583,7 +643,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/careflow_step`,
       language,
-      mode,
+      handling,
     );
   }
 }
@@ -594,7 +654,7 @@ function defaultIsmTransition(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
-  mode: CodedTextMismatch = "reject",
+  handling: CodedTextHandling = {},
 ): RmObject {
   const ism: RmObject = { _type: "ISM_TRANSITION" };
   fillIsmFromWebTemplate(
@@ -604,7 +664,7 @@ function defaultIsmTransition(
     issues,
     pathPrefix,
     language,
-    mode,
+    handling,
   );
   return ism;
 }
@@ -647,7 +707,7 @@ function enrichCodedValues(
   node: WebTemplateNode,
   issues: FlatRmDefaultIssue[],
   language: string | undefined,
-  mode: CodedTextMismatch,
+  handling: CodedTextHandling,
   scope?: unknown,
 ): void {
   if (node.inContext) return;
@@ -665,7 +725,7 @@ function enrichCodedValues(
           issues,
           node.aqlPath,
           language,
-          mode,
+          handling,
         );
       }
     }
@@ -682,7 +742,7 @@ function enrichCodedValues(
         child,
       );
       for (const childValue of childValues) {
-        enrichCodedValues(root, child, issues, language, mode, childValue);
+        enrichCodedValues(root, child, issues, language, handling, childValue);
       }
     }
   }
@@ -711,7 +771,10 @@ export function applyFlatRmDefaults(
   issues: FlatRmDefaultIssue[] = [],
   options: FlatRmDefaultOptions = {},
 ): void {
-  const mode = options.codedTextMismatch ?? "reject";
+  const handling: CodedTextHandling = {
+    mismatch: options.codedTextMismatch,
+    displayValue: options.codedTextDisplayValue,
+  };
   const ctxState = ctxCurrentStateDefault(flat);
   const language = compositionLanguage(composition) ?? webTemplate.defaultLanguage;
   const root = webTemplate.tree;
@@ -732,7 +795,7 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
-          mode,
+          handling,
         );
       } else if (typeof record.ism_transition === "object") {
         fillIsmFromWebTemplate(
@@ -742,12 +805,12 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
-          mode,
+          handling,
         );
       }
     }
   });
 
-  enrichCodedValues(composition, root, issues, language, mode);
+  enrichCodedValues(composition, root, issues, language, handling);
   dedupeIssues(issues);
 }

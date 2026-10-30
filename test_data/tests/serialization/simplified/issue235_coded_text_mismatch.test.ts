@@ -460,37 +460,94 @@ Deno.test("#235 openEHR rubric: case-only value and conflict follow the mode", (
 
 const MODES = ["reject", "keep", "correct"] as const;
 
-Deno.test("#235 valid |code with an unlisted |value is display text in every mode", async () => {
-  const { wt, key, node } = await loadPosition();
-  for (const mode of MODES) {
-    const { composition, issues } = deserializeFromFlatWithIssues(
-      flatFor(key, { code: "at1001", value: "Seated, legs crossed" }),
-      wt,
-      { codedTextMismatch: mode },
-    );
-    const position = positionValue(composition);
-    assertEquals(
-      snapshot(position),
-      sent("Seated, legs crossed", "at1001"),
-      mode,
-    );
-    assertEquals(
-      (position?.defining_code as { preferred_term?: string }).preferred_term,
-      "Sitting",
-      mode,
-    );
-    assertEquals(issues, [], mode);
+const DISPLAY = "Seated, legs crossed";
 
-    const built = buildRmValue("DV_CODED_TEXT", {
-      code: "at1001",
-      value: "Seated, legs crossed",
-      preferred_term: "Seated",
-    }, { node, codedTextMismatch: mode });
-    assertEquals(built.value, "Seated, legs crossed");
-    assertEquals(
-      (built.defining_code as { preferred_term?: string }).preferred_term,
-      "Seated",
+function preferredTerm(value: Record<string, unknown> | undefined): unknown {
+  return (value?.defining_code as { preferred_term?: string } | undefined)
+    ?.preferred_term;
+}
+
+Deno.test("#235 display text: codedTextDisplayValue modes, with and without |preferred_term", async () => {
+  const { wt, key, node } = await loadPosition();
+  const expectations = {
+    // [value, preferred_term without |preferred_term, with |preferred_term "Seated"]
+    "keep": [DISPLAY, undefined, "Seated"],
+    "keep-and-set-preferred-term": [DISPLAY, "Sitting", "Seated"],
+    "replace-with-rubric": ["Sitting", undefined, "Seated"],
+  } as const;
+  for (const [display, [value, noPt, withPt]] of Object.entries(expectations)) {
+    for (const mismatch of MODES) {
+      const options = {
+        codedTextMismatch: mismatch,
+        codedTextDisplayValue: display as keyof typeof expectations,
+      };
+      const label = `${display} / ${mismatch}`;
+      for (const sentPt of [undefined, "Seated"]) {
+        const fields: Record<string, string> = {
+          code: "at1001",
+          value: DISPLAY,
+        };
+        if (sentPt) fields.preferred_term = sentPt;
+        const { composition, issues } = deserializeFromFlatWithIssues(
+          flatFor(key, fields),
+          wt,
+          options,
+        );
+        const position = positionValue(composition);
+        assertEquals(position?.value, value, label);
+        assertEquals(preferredTerm(position), sentPt ? withPt : noPt, label);
+        assertEquals(mismatchIssues(issues), [], label);
+        if (display === "replace-with-rubric") {
+          assertEquals(issues.length, 1, label);
+          assertEquals(issues[0].severity, "warning");
+          assert(issues[0].message.includes(`"${DISPLAY}"`), issues[0].message);
+          assert(
+            issues[0].message.includes("compatibility"),
+            issues[0].message,
+          );
+        } else {
+          assertEquals(issues, [], label);
+        }
+        const built = buildRmValue("DV_CODED_TEXT", fields, {
+          node,
+          ...options,
+        });
+        assertEquals(built.value, value, label);
+        assertEquals(preferredTerm(built), sentPt ? withPt : noPt, label);
+      }
+    }
+  }
+  // Default is "keep": no preferred_term from the template.
+  const plain = deserializeFromFlat(
+    flatFor(key, { code: "at1001", value: DISPLAY }),
+    wt,
+  );
+  assertEquals(positionValue(plain)?.value, DISPLAY);
+  assertEquals(preferredTerm(positionValue(plain)), undefined);
+});
+
+Deno.test("#235 keep-and-set-preferred-term also applies to values kept by codedTextMismatch keep", async () => {
+  const { wt, key } = await loadPosition();
+  for (
+    const fields of [
+      { code: "at1001", value: "sitting" }, // case-only
+      { code: "at1001", value: "Standing" }, // conflict
+    ]
+  ) {
+    const { composition } = deserializeFromFlatWithIssues(
+      flatFor(key, fields),
+      wt,
+      {
+        codedTextMismatch: "keep",
+        codedTextDisplayValue: "keep-and-set-preferred-term",
+      },
     );
+    assertEquals(positionValue(composition)?.value, fields.value);
+    assertEquals(preferredTerm(positionValue(composition)), "Sitting");
+    const plain = deserializeFromFlatWithIssues(flatFor(key, fields), wt, {
+      codedTextMismatch: "keep",
+    });
+    assertEquals(preferredTerm(positionValue(plain.composition)), undefined);
   }
 });
 
