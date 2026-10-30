@@ -2,7 +2,20 @@
  * Assign RM values at Web Template AQL paths on plain composition instances.
  */
 
+import { hasRmType, isSubtypeOf } from "../../meta/mod.ts";
+
 type RmObject = Record<string, unknown>;
+
+/**
+ * New RM object of `rmType`. Only LOCATABLE types get `archetype_node_id`;
+ * PATHABLE-only types such as ISM_TRANSITION or EVENT_CONTEXT do not.
+ */
+function newRmObject(rmType: string, nodeId: string | null): RmObject {
+  if (hasRmType(rmType) && !isSubtypeOf(rmType, "LOCATABLE")) {
+    return { _type: rmType };
+  }
+  return { _type: rmType, archetype_node_id: nodeId };
+}
 
 const ATTR_RM_TYPE: Record<string, string> = {
   content: "SECTION",
@@ -49,13 +62,13 @@ function findOrCreateInArray(
     // Create missing instances up to the requested occurrence
     let created: RmObject | undefined;
     for (let i = matches.length; i <= occurrence; i++) {
-      created = { _type: rmType, archetype_node_id: nodeId };
+      created = newRmObject(rmType, nodeId);
       arr.push(created);
     }
     return created!;
   }
   if (occurrence < arr.length) return arr[occurrence];
-  const item: RmObject = { _type: rmType, archetype_node_id: null };
+  const item: RmObject = newRmObject(rmType, null);
   arr.push(item);
   return item;
 }
@@ -74,7 +87,7 @@ function ensureChild(
   if (existing && typeof existing === "object" && occurrence === 0) {
     return existing as RmObject;
   }
-  const child: RmObject = { _type: rmType, archetype_node_id: nodeId ?? null };
+  const child: RmObject = newRmObject(rmType, nodeId ?? null);
   if (ARRAY_ATTRS.has(attr) || occurrence > 0) {
     const arr: RmObject[] = existing && typeof existing === "object"
       ? [existing as RmObject]
