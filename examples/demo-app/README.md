@@ -18,9 +18,10 @@ Browser demo that converts openEHR RM instances and generates examples from temp
 ## Using the converter
 
 1. Open the [bleeding-edge demo](https://eriksundvall.github.io/ehrtslib/demo/) or a frozen `/demo-vX.Y/` release. The lower-left footer shows the package version and build id.
-2. Pick an instance preset, or paste JSON, XML, or YAML. For FLAT / STRUCTURED output, load a template (upload, or **Template from AD@git**).
-3. Choose output formats. With auto-convert on, the outputs update as you edit.
-4. On GitHub Pages, a page that is not the recommended stable release shows a notice with a link to that release, the bleeding-edge `/demo/` build, this tutorial, and this README. Dismissing it with “don’t show again” applies only to that recommended tag; the footer keeps a switch link. Add `?version-warning=preview` on any host to review the notice.
+2. Pick an example with **Select Preset Example** in the Input header, or paste JSON, XML, YAML, FLAT or STRUCTURED. **Format** defaults to **Auto detect**. For FLAT / STRUCTURED input or output, load a template (upload, or **Template from AD@git**).
+3. Pick a **Deserializer Preset**, or **Custom…** to set each option. Only the options for the detected input format are shown, and each has an (i) tip.
+4. Choose output formats. On the Simplified tab, **Flavour** picks FLAT/STRUCTURED output (no `ctx/`) or input (with `ctx/`). With auto-convert on, the outputs update as you edit.
+5. On GitHub Pages, a page that is not the recommended stable release shows a notice with a link to that release, the bleeding-edge `/demo/` build, this tutorial, and this README. Dismissing it with “don’t show again” applies only to that recommended tag; the footer keeps a switch link. Add `?version-warning=preview` on any host to review the notice.
 
 ## Build / run
 
@@ -38,7 +39,8 @@ Or: `cd examples/demo-app && deno task dev`.
 | Path | Role |
 |------|------|
 | `src/main.ts` | UI / workspace orchestration |
-| `src/converter.ts` | Format conversion adapter |
+| `src/converter.ts` | Format conversion adapter and deserializer presets |
+| `src/info-tip.ts` | (i) info tips: hover, focus and click balloons |
 | `src/examples.ts` | Instance presets (incl. Ehrlibs FLAT) |
 | `src/model-examples-catalog.ts` | Curated AD@git template URLs |
 | `public/` | HTML / CSS template for the bundle |
@@ -48,3 +50,15 @@ Or: `cd examples/demo-app && deno task dev`.
 ## Configuration
 
 JSON, YAML, XML, TypeScript, and ZipEHR options live in the demo’s config panels (presets, terse format, type inference, hybrid YAML, etc.). Details: [serialization/](../../serialization/README.md).
+
+Deserializer presets (input):
+
+| Preset | JSON/YAML | FLAT/STRUCTURED |
+|---|---|---|
+| Default | type inference | coded-text mismatch and unknown keys are errors |
+| Canonical (Strict) | strict: unknown properties and missing `_type` are errors | as Default |
+| Compact | terse strings | case-only coded-text mismatches are corrected; unknown keys are warnings |
+| Hybrid (Flexible) | terse strings, incomplete objects | coded text kept as sent; unknown keys are warnings |
+| Custom… | the checkboxes | the selects |
+
+FLAT/STRUCTURED options are described in [docs/SIMPLIFIED_FORMATS.md](../../docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours).

@@ -173,7 +173,9 @@ On the **Instance** input tab, choose **FLAT (simplified)** or **STRUCTURED (sim
 
 Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `ClinicalModelWorkspace` (backed by `TemplateWorkspace`) for ADL2 flattening.
 
-**Auto** input format detects simplified JSON (`ctx/` keys → FLAT; top-level `ctx` object → STRUCTURED).
+**Auto detect** (the default input format) recognises simplified JSON: `ctx/` keys, `|` attributes, or only path keys with primitive values → FLAT; a top-level `ctx` object, or one root object with `|` attributes → STRUCTURED. This also covers output-flavour payloads without `ctx/`.
+
+The deserializer panel shows the FLAT/STRUCTURED options when such input is detected: **Coded text mismatch**, **Coded text display value**, **RM defaults** (`contextDefaults`) and **Unknown keys**. Presets set them; **Custom…** unlocks them. Errors that stop the conversion (`CodedTextMismatchError`, `UnknownFlatKeyError`) list each path. Warnings and notes are listed above the output. The Simplified output tab has a **Flavour** select (output or input).
 
 ## Limitations
 

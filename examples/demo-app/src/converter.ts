@@ -66,9 +66,17 @@ import {
 
 import {
   buildWebTemplate,
-  deserializeFromFlat,
-  deserializeFromStructured,
+  type CodedTextDisplayValue,
+  type CodedTextMismatch,
+  CodedTextMismatchError,
+  type ContextDefaults,
+  deserializeFromFlatWithIssues,
+  deserializeFromStructuredWithIssues,
+  type FlatRmDefaultIssue,
   isWebTemplateJson,
+  type SimplifiedFlavor,
+  type UnknownFlatKeys,
+  UnknownFlatKeyError,
   parseWebTemplate,
   serializeToFlatJson,
   serializeToStructuredJson,
@@ -240,6 +248,10 @@ export interface ConversionOptions {
     includeNamespaces: boolean;
   };
   typescriptConfig: TypeScriptConstructorSerializationConfig;
+  /** FLAT/STRUCTURED input settings (ignored for other input formats). */
+  simplifiedInput?: SimplifiedInputSettings;
+  /** FLAT/STRUCTURED output flavour. Default `"output"` (no `ctx/`). */
+  simplifiedFlavor?: SimplifiedFlavor;
   /** Loaded template/archetype file set (ADL2, OPT/OET, `.t.json`). */
   templateWorkspace?: TemplateWorkspace | ClinicalModelWorkspace;
 }
@@ -293,6 +305,151 @@ export interface ConversionResult {
   };
   error?: string;
   errorDetails?: any;
+  /**
+   * FLAT/STRUCTURED input issues that did not stop the conversion
+   * (warnings and info, e.g. kept or corrected coded text, filled defaults).
+   */
+  inputIssues?: FlatRmDefaultIssue[];
+}
+
+/** FLAT/STRUCTURED deserializer settings shown in the demo. */
+export interface SimplifiedInputSettings {
+  codedTextMismatch?: CodedTextMismatch;
+  codedTextDisplayValue?: CodedTextDisplayValue;
+  contextDefaults?: ContextDefaults;
+  unknownKeys?: UnknownFlatKeys;
+}
+
+/** JSON/YAML deserializer checkboxes shown in the demo. */
+export interface JsonDeserializerChecks {
+  strict: boolean;
+  parseTerseFormat: boolean;
+  allowIncomplete: boolean;
+}
+
+export type InputDeserializerPresetId =
+  | "default"
+  | "canonical"
+  | "compact"
+  | "hybrid"
+  | "custom";
+
+export interface InputDeserializerPreset {
+  label: string;
+  description: string;
+  checks: JsonDeserializerChecks;
+  simplified: Required<SimplifiedInputSettings>;
+}
+
+/**
+ * Demo deserializer presets. One table drives the select, the checkboxes and
+ * {@link resolveInputDeserializerSettings}. `custom` is not listed: it uses
+ * the values the user set.
+ */
+export const INPUT_DESERIALIZER_PRESETS: Record<
+  Exclude<InputDeserializerPresetId, "custom">,
+  InputDeserializerPreset
+> = {
+  default: {
+    label: "Default",
+    description:
+      "Standard openEHR input with type inference where _type is missing. FLAT/STRUCTURED: coded text that matches no template term is an error.",
+    checks: { strict: false, parseTerseFormat: false, allowIncomplete: false },
+    simplified: {
+      codedTextMismatch: "reject",
+      codedTextDisplayValue: "keep",
+      contextDefaults: "apply",
+      unknownKeys: "error",
+    },
+  },
+  canonical: {
+    label: "Canonical (Strict)",
+    description:
+      "Canonical openEHR JSON/YAML only: unknown properties and missing _type are errors. FLAT/STRUCTURED: coded-text mismatches and unknown keys are errors.",
+    checks: { strict: true, parseTerseFormat: false, allowIncomplete: false },
+    simplified: {
+      codedTextMismatch: "reject",
+      codedTextDisplayValue: "keep",
+      contextDefaults: "apply",
+      unknownKeys: "error",
+    },
+  },
+  compact: {
+    label: "Compact",
+    description:
+      "Compact JSON/YAML with terse strings such as \"ISO_639-1::en\". FLAT/STRUCTURED: coded text that matches a term except for case is corrected; unknown keys are warnings.",
+    checks: { strict: false, parseTerseFormat: true, allowIncomplete: false },
+    simplified: {
+      codedTextMismatch: "correct",
+      codedTextDisplayValue: "keep",
+      contextDefaults: "apply",
+      unknownKeys: "warning",
+    },
+  },
+  hybrid: {
+    label: "Hybrid (Flexible)",
+    description:
+      "Most lenient: terse strings and incomplete objects are accepted. FLAT/STRUCTURED: coded text is kept as sent, with a warning; unknown keys are warnings.",
+    checks: { strict: false, parseTerseFormat: true, allowIncomplete: true },
+    simplified: {
+      codedTextMismatch: "keep",
+      codedTextDisplayValue: "keep",
+      contextDefaults: "apply",
+      unknownKeys: "warning",
+    },
+  },
+};
+
+/**
+ * Deserializer settings for a preset. `custom` uses `custom` as given; a
+ * named preset ignores it.
+ */
+export function resolveInputDeserializerSettings(
+  preset: string,
+  custom?: {
+    checks?: Partial<JsonDeserializerChecks>;
+    simplified?: SimplifiedInputSettings;
+  },
+): {
+  deserializerConfig: JsonDeserializationConfig;
+  simplifiedInput: Required<SimplifiedInputSettings>;
+} {
+  const base = INPUT_DESERIALIZER_PRESETS[
+    preset as keyof typeof INPUT_DESERIALIZER_PRESETS
+  ] ?? INPUT_DESERIALIZER_PRESETS.default;
+  const isCustom = preset === "custom";
+  const checks = isCustom ? { ...base.checks, ...custom?.checks } : base.checks;
+  const simplified = isCustom
+    ? { ...base.simplified, ...custom?.simplified }
+    : base.simplified;
+  return {
+    deserializerConfig: {
+      ...DEFAULT_JSON_DESERIALIZATION_CONFIG,
+      strict: checks.strict,
+      parseTerseFormat: checks.parseTerseFormat,
+      allowIncomplete: checks.allowIncomplete,
+    },
+    simplifiedInput: { ...simplified },
+  };
+}
+
+/** Readable message for FLAT/STRUCTURED input errors that carry issues. */
+export function describeConversionError(error: unknown): string {
+  if (error instanceof CodedTextMismatchError) {
+    return [
+      `Coded text mismatch (${error.issues.length}):`,
+      ...error.issues.map((issue) => `• ${issue.path}: ${issue.message}`),
+      "Set “Coded text mismatch” to Keep or Correct in the deserializer settings to accept such input.",
+    ].join("\n");
+  }
+  if (error instanceof UnknownFlatKeyError) {
+    return [
+      `Unknown FLAT keys (${error.issues.length}):`,
+      ...error.issues.map((issue) => `• ${issue.path}: ${issue.message}`),
+      "Set “Unknown keys” to Warning or Ignore in the deserializer settings to accept such input.",
+    ].join("\n");
+  }
+  return (error as Error)?.message ?? String(error);
 }
 
 const SIMPLIFIED_OUTPUT_FORMATS = new Set<OutputFormat>([
@@ -388,17 +545,20 @@ function writeSimplifiedOutputs(
   webTemplate: WebTemplate,
   outputFormats: OutputFormat[],
   outputs: Record<string, string>,
+  flavor: SimplifiedFlavor = "output",
 ): void {
   for (const format of outputFormats) {
     switch (format) {
       case "flat":
         outputs.flat = serializeToFlatJson(instance, webTemplate, {
           prettyPrint: true,
+          flavor,
         });
         break;
       case "structured":
         outputs.structured = serializeToStructuredJson(instance, webTemplate, {
           prettyPrint: true,
+          flavor,
         });
         break;
       case "webtemplate":
@@ -504,7 +664,10 @@ export async function convert(
     }
 
     // Step 1: Deserialize input to RM object
-    const rmObject = await deserializeInput(input, options);
+    const { rmObject, issues: inputIssues } = await deserializeInput(
+      input,
+      options,
+    );
 
     // Step 2: Serialize to requested output formats
     const outputs: Record<string, string> = {};
@@ -594,7 +757,13 @@ export async function convert(
 
     if (simplifiedFormats.length) {
       const webTemplate = resolveWebTemplate(options);
-      writeSimplifiedOutputs(rmObject, webTemplate, simplifiedFormats, outputs);
+      writeSimplifiedOutputs(
+        rmObject,
+        webTemplate,
+        simplifiedFormats,
+        outputs,
+        options.simplifiedFlavor,
+      );
     }
 
     if (optHtml5Formats.length) {
@@ -615,12 +784,13 @@ export async function convert(
     return {
       success: true,
       outputs,
+      ...(inputIssues.length ? { inputIssues } : {}),
     };
   } catch (error) {
     console.error("Conversion error:", error);
     return {
       success: false,
-      error: (error as Error).message,
+      error: describeConversionError(error),
       errorDetails: error,
     };
   }
@@ -723,6 +893,7 @@ async function convertTemplateInput(
     ),
     options.outputFormats,
     outputs,
+    options.simplifiedFlavor,
   );
 
   writeOptHtml5Outputs(
@@ -876,11 +1047,38 @@ function detectSimplifiedJson(
     ) {
       return "structured";
     }
+    if ("_type" in obj) return null;
     if (keys.some((k) => k.includes("|"))) return "flat";
+    // Output flavour: no ctx/, so look at the shape instead.
+    if (
+      keys.length > 0 &&
+      keys.every((k) => k.includes("/")) &&
+      Object.values(obj).every((v) => v === null || typeof v !== "object")
+    ) {
+      return "flat";
+    }
+    if (
+      keys.length > 0 && keys.length <= 2 &&
+      keys.every((k) => k === "ctx" || !k.includes("/")) &&
+      hasPipeKey(obj, 8)
+    ) {
+      return "structured";
+    }
   } catch {
     // not JSON
   }
   return null;
+}
+
+/** True when a STRUCTURED-style `|attribute` key occurs within `depth` levels. */
+function hasPipeKey(value: unknown, depth: number): boolean {
+  if (depth <= 0 || value === null || typeof value !== "object") return false;
+  if (Array.isArray(value)) {
+    return value.some((item) => hasPipeKey(item, depth - 1));
+  }
+  return Object.entries(value as Record<string, unknown>).some(([k, v]) =>
+    k.startsWith("|") || hasPipeKey(v, depth - 1)
+  );
 }
 
 type ResolvedWireFormat = "xml" | "json" | "yaml" | "flat" | "structured";
@@ -965,52 +1163,69 @@ export function resolveInputFormat(
 async function deserializeInput(
   input: string,
   options: ConversionOptions,
-): Promise<any> {
+): Promise<{ rmObject: any; issues: FlatRmDefaultIssue[] }> {
   const config = options.inputDeserializerConfig;
   const resolved = resolveInputFormat(input, options.inputFormat);
+  const plain = (rmObject: any) => ({ rmObject, issues: [] });
 
   if (resolved.isZipehr) {
     const canonical = await zipehrTextToCanonical(input);
     const deserializer = new JsonConfigurableDeserializer(
       config as JsonDeserializationConfig,
     );
-    return deserializer.deserialize(JSON.stringify(canonical));
+    return plain(deserializer.deserialize(JSON.stringify(canonical)));
   }
 
   switch (resolved.format) {
-    case "flat": {
-      const webTemplate = resolveWebTemplate(options);
-      return deserializeFromFlat(
-        JSON.parse(input) as Record<string, string | number | boolean | null>,
-        webTemplate,
-      );
-    }
+    case "flat":
     case "structured": {
       const webTemplate = resolveWebTemplate(options);
-      return deserializeFromStructured(
-        JSON.parse(input) as Record<string, unknown>,
-        webTemplate,
-      );
+      const parsed = JSON.parse(input);
+      const { composition, issues } = resolved.format === "flat"
+        ? deserializeFromFlatWithIssues(
+          parsed as Record<string, string | number | boolean | null>,
+          webTemplate,
+          options.simplifiedInput,
+        )
+        : deserializeFromStructuredWithIssues(
+          parsed as Record<string, unknown>,
+          webTemplate,
+          options.simplifiedInput,
+        );
+      throwOnSimplifiedInputErrors(issues);
+      return { rmObject: composition, issues };
     }
     case "json": {
       const deserializer = new JsonConfigurableDeserializer(
         config as JsonDeserializationConfig,
       );
-      return deserializer.deserialize(input);
+      return plain(deserializer.deserialize(input));
     }
     case "yaml": {
       const deserializer = new YamlDeserializer(
         config as YamlDeserializationConfig,
       );
-      return deserializer.deserialize(input);
+      return plain(deserializer.deserialize(input));
     }
     case "xml": {
       const deserializer = new XmlDeserializer();
-      return deserializer.deserialize(input);
+      return plain(deserializer.deserialize(input));
     }
     default:
       throw new Error(`Unsupported input format: ${resolved.format}`);
   }
+}
+
+/** Same stop rules as `deserializeFromFlat`, but keeps the other issues. */
+function throwOnSimplifiedInputErrors(issues: FlatRmDefaultIssue[]): void {
+  const mismatches = issues.filter((issue) =>
+    issue.kind === "coded-text-mismatch" && issue.severity === "error"
+  );
+  if (mismatches.length) throw new CodedTextMismatchError(mismatches);
+  const unknown = issues.filter((issue) =>
+    issue.kind === "unknown-key" && issue.severity === "error"
+  );
+  if (unknown.length) throw new UnknownFlatKeyError(unknown);
 }
 
 /**
