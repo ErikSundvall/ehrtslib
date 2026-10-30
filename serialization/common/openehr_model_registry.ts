@@ -9,6 +9,7 @@
 import { TypeRegistry } from "./type_registry.ts";
 import * as rm from "../../rm/mod.ts";
 import * as base from "../../base/mod.ts";
+import { rmInitLate } from "../../base/rm_init_late.ts";
 
 /** openEHR type names are uppercase with underscores (excludes helper exports like `registerType`). */
 export const OPENEHR_TYPE_NAME_PATTERN = /^[A-Z][A-Z0-9_]*$/;
@@ -59,3 +60,7 @@ export function collectTypeNamesFromJsonTree(
   }
   return out;
 }
+
+// RM init coercion builds nested RM objects by type name (apply_rm_init.ts).
+rmInitLate.registerModelTypes = registerOpenEhrModelTypes;
+rmInitLate.ctorModules.push(rm as Record<string, unknown>, base as Record<string, unknown>);
