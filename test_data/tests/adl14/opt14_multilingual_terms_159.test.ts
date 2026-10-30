@@ -39,8 +39,13 @@ function identity(
 }
 
 Deno.test("#159 OPT 1.4 component ontologies: languages, labels, ids, term scopes", async () => {
-  const xml = await Deno.readTextFile(
+  // Make the event repeatable so the Web Template keeps an event node (a
+  // single event with max 1 is collapsed, spec "Level Removal").
+  const xml = (await Deno.readTextFile(
     new URL("multilingual_en_sv_de.opt", OPT_DIR),
+  )).replace(
+    "<rm_type_name>POINT_EVENT</rm_type_name>",
+    "<rm_type_name>POINT_EVENT</rm_type_name><occurrences><lower_included>true</lower_included><upper_included>false</upper_included><lower_unbounded>false</lower_unbounded><upper_unbounded>true</upper_unbounded><lower>0</lower></occurrences>",
   );
   const { operationalTemplate: opt } = parseOptXml(xml);
   const scoped = opt as OperationalTemplateWithTermScopes;

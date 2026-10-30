@@ -29,6 +29,13 @@ export interface WebTemplateInput {
   defaultValue?: unknown;
 }
 
+/** An RM object without a Web Template node of its own (spec "Level Removal"). */
+export interface CollapsedRmObject {
+  rmType: string;
+  name?: string;
+  localizedNames?: Record<string, string>;
+}
+
 export interface WebTemplateNode {
   id: string;
   name?: string;
@@ -47,6 +54,13 @@ export interface WebTemplateNode {
   localizedDescriptions?: Record<string, string>;
   annotations?: Record<string, unknown>;
   termBindings?: Record<string, { value?: string; terminologyId?: string }>;
+  /**
+   * ehrtslib extension, set on the tree root only: RM objects that the
+   * simplified formats collapse (HISTORY, a single EVENT, ITEM_STRUCTUREs),
+   * keyed by AQL path. FLAT/STRUCTURED → RM uses it for their RM type and
+   * name. Optional; without it the deserializer falls back to RM defaults.
+   */
+  collapsed?: Record<string, CollapsedRmObject>;
 }
 
 export interface WebTemplate {
