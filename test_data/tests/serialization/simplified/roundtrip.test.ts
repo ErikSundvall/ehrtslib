@@ -26,6 +26,19 @@ TypeRegistry.registerModule(base);
 
 const OPT_DIR = new URL("../../../opt14/", import.meta.url);
 
+/**
+ * The input flavour cannot say "no context": its ctx/ keys create an
+ * EVENT_CONTEXT for an event composition, with `ctx/time` from the clock and
+ * setting 238. The fixture has no context, so drop those keys.
+ */
+const CLOCK = () => "2026-10-30T12:00:00Z";
+const CREATED_CONTEXT_KEYS = /^ctx\/(time|setting)(\||$)/;
+function withoutCreatedContext<T extends Record<string, unknown>>(flat: T): T {
+  return Object.fromEntries(
+    Object.entries(flat).filter(([k]) => !CREATED_CONTEXT_KEYS.test(k)),
+  ) as T;
+}
+
 function ctxCode(instance: Record<string, unknown>, field: "language" | "territory"): string | undefined {
   const obj = instance[field] as Record<string, unknown> | undefined;
   return obj?.code_string as string | undefined;
@@ -56,11 +69,12 @@ Deno.test("FLAT roundtrip (output flavour) writes context values at their paths"
 Deno.test("FLAT roundtrip (input flavour) preserves ctx fields", async () => {
   const { wt, instance } = await loadMinimalEvaluationFixture();
   const flat = serializeToFlat(instance, wt, { flavor: "input" });
-  const restored = deserializeFromFlat(flat, wt);
+  const restored = deserializeFromFlat(flat, wt, { clock: CLOCK });
   const flat2 = serializeToFlat(restored, wt, { flavor: "input" });
 
   assertEquals(flat["ctx/language"], "en");
-  assertEquals(flat2, flat);
+  assertEquals(flat2["ctx/time"], CLOCK());
+  assertEquals(withoutCreatedContext(flat2), flat);
   assertEquals(ctxCode(restored, "language"), "en");
   assertEquals(ctxCode(restored, "territory"), "US");
 });
@@ -68,12 +82,16 @@ Deno.test("FLAT roundtrip (input flavour) preserves ctx fields", async () => {
 Deno.test("STRUCTURED roundtrip preserves ctx fields", async () => {
   const { wt, instance } = await loadMinimalEvaluationFixture();
   const structured = serializeToStructured(instance, wt, { flavor: "input" });
-  const restored = deserializeFromStructured(structured, wt);
+  const restored = deserializeFromStructured(structured, wt, { clock: CLOCK });
   const structured2 = serializeToStructured(restored, wt, { flavor: "input" });
 
   assertExists(structured.ctx);
   assertEquals((structured.ctx as Record<string, unknown>).language, "en");
   assertEquals(ctxCode(restored, "language"), "en");
+  const ctx2 = structured2.ctx as Record<string, unknown>;
+  assertEquals(ctx2.time, CLOCK());
+  delete ctx2.time;
+  delete ctx2.setting;
   assertEquals(structured2, structured);
 
   const output = serializeToStructured(instance, wt);
