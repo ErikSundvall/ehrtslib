@@ -28,13 +28,18 @@ export interface FlatRmDefaultIssue {
 
 /**
  * What FLAT → RM does with a DV_CODED_TEXT `|code`, `|value`, or bare key that
- * has no exact (case-sensitive) match in the Web Template code list.
+ * has no exact (case-sensitive) match in the Web Template code list, with a
+ * code/value conflict (`|value` is the term of a different code), and with a
+ * `|code` whose `|value` is its rubric in another template language.
  *
- * | Mode | Case-only mismatch | No match at all |
- * |---|---|---|
- * | `"reject"` (default) | error | error |
- * | `"keep"` | kept as sent + warning | kept as sent + warning |
- * | `"correct"` | normalised to the template code/rubric + warning | error |
+ * | Mode | Case-only mismatch | No match (value-only, bare key, `\|code`) | Conflict | Other-language rubric |
+ * |---|---|---|---|---|
+ * | `"reject"` (default) | error | error | error | error |
+ * | `"keep"` | kept + warning | kept + warning | both kept + warning | kept + warning |
+ * | `"correct"` | normalised + warning | error | value := rubric of `\|code` + warning | translated + warning |
+ *
+ * A valid local `|code` with a `|value` that matches no listed term is not a
+ * mismatch: the value is display text and is kept in every mode.
  *
  * Errors are issues from `deserializeFromFlatWithIssues`; `deserializeFromFlat`,
  * `buildRmValue`, and `buildDvValue` (without a caller `issues` array) throw
@@ -76,10 +81,11 @@ function reportMismatch(
   path: string,
   mode: CodedTextMismatch,
   subject: string,
-  caseOnly?: { kind: "code" | "rubric"; target: string },
+  caseOnly?: { kind: "code" | "rubric"; target: string; detail?: string },
 ): MismatchAction {
   const detail = caseOnly
-    ? `matches template ${caseOnly.kind} "${caseOnly.target}" only when case is ignored`
+    ? caseOnly.detail ??
+      `matches template ${caseOnly.kind} "${caseOnly.target}" only when case is ignored`
     : "has no unique match among the template-allowed codes and rubrics";
   if (caseOnly && mode === "correct") {
     issues.push({
@@ -267,9 +273,11 @@ function currentStatesForCareflow(
  *
  * Local and openEHR lists only. External terminologies are left as given.
  * `|code` and `|value` must match the template codes and rubrics exactly;
- * other input is handled per `mode` (see {@link CodedTextMismatch}). The
- * stored `value` is the template rubric for `language` when it is filled or
- * corrected.
+ * other input is handled per `mode` (see {@link CodedTextMismatch}). A valid
+ * local `|code` with a `|value` that matches no listed term is display text:
+ * `value` is kept and `defining_code.preferred_term` gets the template rubric
+ * unless one was sent. The stored `value` is the template rubric for
+ * `language` when it is filled or corrected.
  */
 export function completeDvCodedText(
   value: RmObject,
@@ -292,6 +300,7 @@ export function completeDvCodedText(
   if (instanceTerm && !isLocalOrOpenehr(instanceTerm)) return;
 
   let code = dc?.code_string as string | undefined;
+  const codeSent = !!code;
   const term = instanceTerm ?? only?.terminology ?? nodeTerm;
   let val = typeof value.value === "string" ? value.value : undefined;
 
@@ -379,8 +388,21 @@ export function completeDvCodedText(
   const item = entries.find((entry) => entry.value === code);
   if (!item) return;
   if (matchesRubric(item, val, term)) {
-    // Exact rubric in another language, or an openEHR meaning.
-    value.value = rubric;
+    // An openEHR meaning, or a value-only rubric matched in another template
+    // language: store the rubric for the composition language.
+    if (!codeSent || term === "openehr") {
+      value.value = rubric;
+      return;
+    }
+    // |code with its rubric from another template language.
+    const action = reportMismatch(issues, path, mode, `value "${val}"`, {
+      kind: "rubric",
+      target: rubric,
+      detail: `is the rubric of code ${code} in another template language, not "${rubric}"${
+        language ? ` (${language})` : ""
+      }`,
+    });
+    if (action === "correct") value.value = rubric;
     return;
   }
   if (matchesRubric(item, val, term, true)) {
@@ -400,8 +422,16 @@ export function completeDvCodedText(
     }
     return;
   }
-  const action = reportMismatch(issues, path, mode, `value "${val}"`);
-  if (action === "correct") value.value = rubric;
+  if (term === "openehr") {
+    // openEHR instruction-state values must match the rubric (#205/#206).
+    const action = reportMismatch(issues, path, mode, `value "${val}"`);
+    if (action === "correct") value.value = rubric;
+    return;
+  }
+  // A valid |code with a value that matches no listed term is display text
+  // (SPECPR-165: code_string and preferred_term correspond, value may differ).
+  // Keep it; record the template rubric as preferred_term unless one was sent.
+  if (dc && dc.preferred_term == null) dc.preferred_term = rubric;
 }
 
 /**

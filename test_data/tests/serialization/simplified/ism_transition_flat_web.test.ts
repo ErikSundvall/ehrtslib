@@ -186,7 +186,7 @@ Deno.test("FLAT round trip — ism_transition careflow_step survives serialize",
     [`${actionPath}/time`]: "2026-01-01T12:00:00Z",
     [`${actionPath}/description`]: "Example action",
     [`${actionPath}/ism_transition/careflow_step|code`]: "at0003",
-    [`${actionPath}/ism_transition/careflow_step|value`]: "Planned",
+    [`${actionPath}/ism_transition/careflow_step|value`]: "Start",
     [`${actionPath}/ism_transition/careflow_step|terminology`]: "local",
   };
   const rm = deserializeFromFlat(flatIn, wt);

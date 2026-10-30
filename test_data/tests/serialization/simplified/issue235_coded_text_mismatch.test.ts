@@ -1,7 +1,8 @@
 /**
  * FLAT coded text: `codedTextMismatch` ("reject" | "keep" | "correct") for
  * `|value`, bare keys, and `|code` without an exact template match, and for
- * code/value conflicts (#235, replacing #231's `codedValueMatch`).
+ * code/value conflicts and other-language rubrics (#235, replacing #231's
+ * `codedValueMatch`). A valid `|code` with an unlisted `|value` is display text.
  */
 
 import { assert, assertEquals, assertThrows } from "@std/assert";
@@ -206,12 +207,6 @@ const CASES: MismatchCase[] = [
     fields: { code: "at1001", value: "sitting" },
     caseOnly: true,
     kept: sent("sitting", "at1001"),
-  },
-  {
-    name: "|code + |value no match",
-    fields: { code: "at1001", value: "Kneeling" },
-    caseOnly: false,
-    kept: sent("Kneeling", "at1001"),
   },
 ];
 
@@ -460,5 +455,128 @@ Deno.test("#235 openEHR rubric: case-only value and conflict follow the mode", (
       codedTextMismatch: "correct",
     }).value,
     "completed",
+  );
+});
+
+const MODES = ["reject", "keep", "correct"] as const;
+
+Deno.test("#235 valid |code with an unlisted |value is display text in every mode", async () => {
+  const { wt, key, node } = await loadPosition();
+  for (const mode of MODES) {
+    const { composition, issues } = deserializeFromFlatWithIssues(
+      flatFor(key, { code: "at1001", value: "Seated, legs crossed" }),
+      wt,
+      { codedTextMismatch: mode },
+    );
+    const position = positionValue(composition);
+    assertEquals(
+      snapshot(position),
+      sent("Seated, legs crossed", "at1001"),
+      mode,
+    );
+    assertEquals(
+      (position?.defining_code as { preferred_term?: string }).preferred_term,
+      "Sitting",
+      mode,
+    );
+    assertEquals(issues, [], mode);
+
+    const built = buildRmValue("DV_CODED_TEXT", {
+      code: "at1001",
+      value: "Seated, legs crossed",
+      preferred_term: "Seated",
+    }, { node, codedTextMismatch: mode });
+    assertEquals(built.value, "Seated, legs crossed");
+    assertEquals(
+      (built.defining_code as { preferred_term?: string }).preferred_term,
+      "Seated",
+    );
+  }
+});
+
+const BILINGUAL = {
+  codes: [
+    {
+      value: "at1000",
+      label: "Standing",
+      localizedLabels: { en: "Standing", de: "Stehend" },
+    },
+    {
+      value: "at1001",
+      label: "Sitting",
+      localizedLabels: { en: "Sitting", de: "Sitzend" },
+    },
+  ],
+  terminology: "local",
+  language: "en",
+};
+
+Deno.test("#235 |code with its rubric in another template language follows the mode", () => {
+  const fields = { code: "at1001", value: "Sitzend" };
+  const issues: FlatRmDefaultIssue[] = [];
+  buildRmValue("DV_CODED_TEXT", fields, { ...BILINGUAL, issues });
+  const [error] = mismatchIssues(issues);
+  assertEquals(error.severity, "error");
+  assert(error.message.includes("another template language"), error.message);
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", fields, BILINGUAL),
+    CodedTextMismatchError,
+  );
+
+  const keepIssues: FlatRmDefaultIssue[] = [];
+  const kept = buildRmValue("DV_CODED_TEXT", fields, {
+    ...BILINGUAL,
+    issues: keepIssues,
+    codedTextMismatch: "keep",
+  });
+  assertEquals(kept.value, "Sitzend");
+  assertEquals(mismatchIssues(keepIssues).map((i) => i.severity), ["warning"]);
+
+  const correctIssues: FlatRmDefaultIssue[] = [];
+  const corrected = buildRmValue("DV_CODED_TEXT", fields, {
+    ...BILINGUAL,
+    issues: correctIssues,
+    codedTextMismatch: "correct",
+  });
+  assertEquals(corrected.value, "Sitting");
+  assertEquals(mismatchIssues(correctIssues).map((i) => i.severity), [
+    "warning",
+  ]);
+
+  // Value-only input in another template language still completes the code.
+  for (const mode of MODES) {
+    const valueOnly: FlatRmDefaultIssue[] = [];
+    const built = buildRmValue("DV_CODED_TEXT", { value: "Sitzend" }, {
+      ...BILINGUAL,
+      issues: valueOnly,
+      codedTextMismatch: mode,
+    });
+    assertEquals(snapshot(built), SITTING, mode);
+    assertEquals(valueOnly, [], mode);
+  }
+});
+
+Deno.test("#235 openEHR instruction state: unlisted value with a code follows the mode", () => {
+  const ctx = {
+    codes: [{ value: "245" }, { value: "532" }],
+    terminology: "openehr",
+  };
+  const fields = { code: "532", value: "done", terminology: "openehr" };
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", fields, ctx),
+    CodedTextMismatchError,
+  );
+  assertEquals(
+    buildRmValue("DV_CODED_TEXT", fields, { ...ctx, codedTextMismatch: "keep" })
+      .value,
+    "done",
+  );
+  assertThrows(
+    () =>
+      buildRmValue("DV_CODED_TEXT", fields, {
+        ...ctx,
+        codedTextMismatch: "correct",
+      }),
+    CodedTextMismatchError,
   );
 });
