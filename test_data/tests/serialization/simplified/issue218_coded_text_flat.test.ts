@@ -1,6 +1,6 @@
 /**
  * FLAT → RM completion of partial DV_CODED_TEXT (#218). Matching is exact by
- * default; the case-insensitive option is covered in issue231_*.test.ts.
+ * default; `codedTextMismatch` is covered in issue235_*.test.ts.
  *
  * The reported template is simple-diagnose-and-vitals.opt. This repo does not
  * carry that file; ehrbase_blood_pressure_simple.de.v0.opt has the same local
@@ -194,7 +194,7 @@ Deno.test("#218 code-only DV_CODED_TEXT fills the template rubric", async () => 
   };
   assertRoundTrip(wt, { ...baseFlat, [`${key}|code`]: "at1001" }, expected);
   assertEquals(
-    snapshot(buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, {
+    snapshot(buildRmValue("DV_CODED_TEXT", { code: "at1001" }, {
       node,
       language: "en",
     }) as Record<string, unknown>),

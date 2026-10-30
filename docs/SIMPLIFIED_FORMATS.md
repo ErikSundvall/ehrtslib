@@ -81,6 +81,43 @@ Example (from openEHR curated example `openehr://examples/flat/vital_signs_blood
 - Arrays at every data-bearing node, even cardinality 1.
 - Pipe-prefixed keys inside leaf objects (`{"|magnitude": 128, "|unit": "mm[Hg]"}`).
 
+## Coded text input (`DV_CODED_TEXT`)
+
+FLAT → RM completes a partial `DV_CODED_TEXT` from the Web Template code list (`|code` alone fills `value`, `|value` alone fills `defining_code`). Input that does not fit the code list exactly is handled by two independent options. Both are on `deserializeFromFlat`, `deserializeFromFlatJson`, `deserializeFromFlatWithIssues`, `FlatDeserializer`, the STRUCTURED deserializers, and `DvValueBuildContext` (`buildRmValue` / `buildDvValue`).
+
+### Why these are options
+
+openEHR platforms handle such input differently, and the Simplified Formats specification does not settle every case. ehrtslib can serve as a front end for different platforms and as a converter between them, so it lets the caller choose the behaviour instead of building one platform's choices into the library. Pick the modes that match the platform you send to, or the stricter defaults when testing producers.
+
+Behaviour observed in October 2026 (it may change between versions; see #231 and #235):
+
+| Input | EHRbase 2.36.0 | FerroEHR 5.4.2 | Better web-template 3.2.9 |
+|---|---|---|---|
+| `\|value` / bare key with no exact match | rejected | rejected | stored as sent |
+| valid `\|code` with a `\|value` that is no listed term | `value` overwritten with the rubric | `value` kept | `value` kept |
+
+### `codedTextMismatch`: input without an exact match
+
+`"reject"` (default) | `"keep"` | `"correct"`. This applies to a `|code`, `|value`, or bare key with no exact (case-sensitive) match, to a code/value conflict (`|value` is the term of a different code), and to a `|code` sent with its rubric in another template language.
+
+| Mode | Case-only mismatch | No match | Conflict | Other-language rubric |
+|---|---|---|---|---|
+| `"reject"` | error | error | error | error |
+| `"keep"` | kept + warning | kept + warning | both kept + warning | kept + warning |
+| `"correct"` | normalised + warning | error | `value` := rubric of `\|code` + warning | translated + warning |
+
+`deserializeFromFlatWithIssues` returns errors as issues (`kind: "coded-text-mismatch"`). `deserializeFromFlat`, the STRUCTURED deserializers, and `buildRmValue` / `buildDvValue` without an `issues` array throw `CodedTextMismatchError`.
+
+### `codedTextDisplayValue`: display text next to a valid code
+
+A valid local `|code` whose `|value` matches no listed term is not a mismatch. The value is display text, i.e. what the user saw. `code_string` and `preferred_term` must correspond, but `value` may differ.
+
+- `"keep"` (default): `value` is kept as sent, and `defining_code.preferred_term` is set only from `|preferred_term`.
+- `"keep-and-set-preferred-term"`: `value` is kept, and `preferred_term` is set to the template rubric in the composition language unless `|preferred_term` is sent. This also applies to a `|value` that `codedTextMismatch: "keep"` keeps next to a valid `|code`.
+- `"replace-with-rubric"`: **not recommended.** This compatibility mode is for platforms that overwrite `value`: it replaces `value` with the template rubric and warns with the value that was sent. The original display text is lost.
+
+openEHR instruction-state values (`ISM_TRANSITION.current_state` / `careflow_step` in terminology `openehr`) must match the rubric. They follow `codedTextMismatch`, not this option.
+
 ## Demo app features related to simplified formats
 
 ### Template → simplified output

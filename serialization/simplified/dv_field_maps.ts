@@ -10,10 +10,11 @@
 
 import type { WebTemplateNode } from "./types.ts";
 import {
-  type CodedValueMatch,
-  codedTextEquals,
+  type CodedTextDisplayValue,
+  type CodedTextMismatch,
   completeDvCodedText,
   type FlatRmDefaultIssue,
+  throwOnCodedTextMismatch,
 } from "./flat_rm_defaults.ts";
 
 type RmObject = Record<string, unknown>;
@@ -39,15 +40,24 @@ export interface DvValueBuildContext {
   terminology?: string;
   /** Composition language used to choose the rubric. */
   language?: string;
-  /** Rubric-mismatch errors. Omit to complete without reporting. */
+  /**
+   * Collects coded-text issues. When omitted, a mismatch error throws
+   * `CodedTextMismatchError` and warnings are dropped.
+   */
   issues?: FlatRmDefaultIssue[];
   /** Path attached to reported issues. */
   path?: string;
   /**
-   * How `|value` and a bare key match rubrics and codes. Default `"exact"`
-   * (case-sensitive); `"case-insensitive"` ignores case.
+   * `|code`, `|value`, or bare key without an exact template match:
+   * `"reject"` (default), `"keep"`, or `"correct"`. See `CodedTextMismatch`.
    */
-  codedValueMatch?: CodedValueMatch;
+  codedTextMismatch?: CodedTextMismatch;
+  /**
+   * Valid `|code` with a `|value` that matches no listed term: `"keep"`
+   * (default), `"keep-and-set-preferred-term"`, or `"replace-with-rubric"`
+   * (not recommended; EHRbase compatibility). See `CodedTextDisplayValue`.
+   */
+  codedTextDisplayValue?: CodedTextDisplayValue;
 }
 
 export type FieldKind = "string" | "number" | "integer" | "boolean";
@@ -469,19 +479,28 @@ function nodeFromContext(context: DvValueBuildContext): WebTemplateNode | undefi
 
 /**
  * Bare DV_CODED_TEXT key: a listed code is `|code`, otherwise `|value`.
- * The code must match exactly unless `match` is `"case-insensitive"`.
+ * Text that equals no code or rubric exactly but one code ignoring case is
+ * read as that `|code` as sent, so the mismatch mode applies to it.
  * Does nothing when the caller already set `|code` or `|value`.
  */
 function interpretCodedTextBareField(
   fields: Record<string, string | number | boolean | null | undefined>,
   codes: CodedTextListEntry[],
   terminology?: string,
-  match: CodedValueMatch = "exact",
 ): Record<string, string | number | boolean | null | undefined> {
   const bare = fields[""];
   if (bare == null || fields.code != null || fields.value != null) return fields;
   const text = String(bare);
-  const codeHit = codes.find((code) => codedTextEquals(code.value, text, match));
+  const lower = text.toLowerCase();
+  const isRubric = codes.some((code) =>
+    code.label === text ||
+    Object.values(code.localizedLabels ?? {}).includes(text)
+  );
+  const folded = codes.filter((code) => code.value.toLowerCase() === lower);
+  const codeHit = codes.find((code) => code.value === text) ??
+    (!isRubric && folded.length === 1
+      ? { ...folded[0], value: text }
+      : undefined);
   const rest: Record<string, string | number | boolean | null | undefined> = {
     ...fields,
   };
@@ -509,9 +528,10 @@ function interpretCodedTextBareField(
  *
  * When `context` carries a Web Template node or code list, a bare
  * DV_CODED_TEXT value is read as `|code` or `|value` and the missing half is
- * filled for local / openEHR lists. Matching is exact unless
- * `context.codedValueMatch` is `"case-insensitive"`. Without that context the
- * bare key is not turned into a code.
+ * filled for local / openEHR lists. Input without an exact template match is
+ * handled per `context.codedTextMismatch` (default `"reject"`); without a
+ * `context.issues` array a mismatch error throws `CodedTextMismatchError`.
+ * Without a node or code list the bare key is not turned into a code.
  */
 export function buildDvValue(
   rmType: string,
@@ -525,7 +545,6 @@ export function buildDvValue(
       fields,
       listedCodes(codedNode),
       nodeTerminology(codedNode),
-      context?.codedValueMatch,
     )
     : fields;
   const map = getFieldMap(resolved) ?? fallbackFieldMap(resolved);
@@ -556,14 +575,19 @@ export function buildDvValue(
   // was created but the defaulted leaf is missing.
   applyBuildDefaults(resolved, root, map);
   if (codedNode && root._type === "DV_CODED_TEXT") {
+    const issues = context?.issues ?? [];
     completeDvCodedText(
       root,
       codedNode,
-      context?.issues ?? [],
+      issues,
       context?.path ?? codedNode.aqlPath,
       context?.language,
-      context?.codedValueMatch,
+      {
+        mismatch: context?.codedTextMismatch,
+        displayValue: context?.codedTextDisplayValue,
+      },
     );
+    if (!context?.issues) throwOnCodedTextMismatch(issues);
   }
   return root;
 }

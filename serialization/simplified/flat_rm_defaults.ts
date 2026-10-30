@@ -22,39 +22,146 @@ export interface FlatRmDefaultIssue {
   path: string;
   message: string;
   severity: "error" | "warning";
+  /** Set on issues raised under {@link CodedTextMismatch}. */
+  kind?: "coded-text-mismatch";
 }
 
 /**
- * How a FLAT `|value` or bare key is matched against Web Template rubrics and
- * codes when a partial DV_CODED_TEXT is completed.
+ * What FLAT → RM does with a DV_CODED_TEXT `|code`, `|value`, or bare key that
+ * has no exact (case-sensitive) match in the Web Template code list, with a
+ * code/value conflict (`|value` is the term of a different code), and with a
+ * `|code` whose `|value` is its rubric in another template language.
  *
- * - `"exact"` (default): case-sensitive, as in EHRbase. A value that matches
- *   only when case is ignored is kept and reported, with a hint.
- * - `"case-insensitive"`: case is ignored and the stored `value` gets the
- *   template rubric.
+ * | Mode | Case-only mismatch | No match (value-only, bare key, `\|code`) | Conflict | Other-language rubric |
+ * |---|---|---|---|---|
+ * | `"reject"` (default) | error | error | error | error |
+ * | `"keep"` | kept + warning | kept + warning | both kept + warning | kept + warning |
+ * | `"correct"` | normalised + warning | error | value := rubric of `\|code` + warning | translated + warning |
+ *
+ * A valid local `|code` with a `|value` that matches no listed term is not a
+ * mismatch: it is display text, handled by {@link CodedTextDisplayValue}.
+ *
+ * Why an option: openEHR platforms differ here (some reject such input, some
+ * store it as sent), and ehrtslib is used as a front end for, and a converter
+ * between, such platforms. Choose the mode that matches the target platform.
+ * See docs/SIMPLIFIED_FORMATS.md, "Coded text input".
+ *
+ * Errors are issues from `deserializeFromFlatWithIssues`; `deserializeFromFlat`,
+ * `buildRmValue`, and `buildDvValue` (without a caller `issues` array) throw
+ * {@link CodedTextMismatchError}. Exact matches and code-only completion are
+ * the same in every mode.
  */
-export type CodedValueMatch = "exact" | "case-insensitive";
+export type CodedTextMismatch = "reject" | "keep" | "correct";
+
+/**
+ * What FLAT → RM does with display text: a valid local `|code` whose `|value`
+ * matches no listed term in any template language. This is not a mismatch
+ * (SPECPR-165: `code_string` and `preferred_term` correspond, `value` may
+ * differ), so it is independent of {@link CodedTextMismatch}.
+ *
+ * - `"keep"` (default, as Better and FerroEHR): `value` is kept as sent.
+ *   `defining_code.preferred_term` is set only from `|preferred_term`.
+ * - `"keep-and-set-preferred-term"`: `value` is kept as sent and
+ *   `defining_code.preferred_term` is set to the template rubric in the
+ *   composition language, unless `|preferred_term` is sent. The same applies
+ *   when `codedTextMismatch: "keep"` keeps a `|value` next to a valid `|code`.
+ * - `"replace-with-rubric"`: **not recommended.** Compatibility mode for
+ *   EHRbase-like behaviour: `value` is overwritten with the template rubric
+ *   and a warning names the value that was sent. It loses what the user saw.
+ *
+ * Why an option: openEHR platforms differ here (some keep `value`, some
+ * overwrite it with the rubric), and ehrtslib is used as a front end for, and a
+ * converter between, such platforms. See docs/SIMPLIFIED_FORMATS.md,
+ * "Coded text input".
+ */
+export type CodedTextDisplayValue =
+  | "keep"
+  | "keep-and-set-preferred-term"
+  | "replace-with-rubric";
+
+/** Both coded-text settings, as threaded through FLAT → RM completion. */
+export interface CodedTextHandling {
+  /** Default `"reject"`. */
+  mismatch?: CodedTextMismatch;
+  /** Default `"keep"`. */
+  displayValue?: CodedTextDisplayValue;
+}
 
 /** Options for {@link applyFlatRmDefaults} and the FLAT deserializers. */
 export interface FlatRmDefaultOptions {
-  /** Rubric and bare-key matching for partial DV_CODED_TEXT. Default `"exact"`. */
-  codedValueMatch?: CodedValueMatch;
+  /** DV_CODED_TEXT input without an exact template match. Default `"reject"`. */
+  codedTextMismatch?: CodedTextMismatch;
+  /**
+   * Valid `|code` with a `|value` that matches no listed term. Default
+   * `"keep"`; `"replace-with-rubric"` is a not-recommended EHRbase
+   * compatibility mode. See {@link CodedTextDisplayValue}.
+   */
+  codedTextDisplayValue?: CodedTextDisplayValue;
 }
 
-/** Compare two strings under the chosen {@link CodedValueMatch} mode. */
-export function codedTextEquals(
-  a: string,
-  b: string,
-  match: CodedValueMatch = "exact",
-): boolean {
-  return match === "case-insensitive"
-    ? a.toLowerCase() === b.toLowerCase()
-    : a === b;
+/** Thrown by the non-collecting FLAT APIs on a coded-text mismatch error. */
+export class CodedTextMismatchError extends Error {
+  constructor(readonly issues: FlatRmDefaultIssue[]) {
+    super(issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
+    this.name = "CodedTextMismatchError";
+  }
 }
 
-/** Issue-message suffix for a value that only matches when case is ignored. */
-export function caseOnlyMatchHint(kind: "rubric" | "code", target: string): string {
-  return `; matches ${kind} "${target}" ignoring case; enable codedValueMatch: "case-insensitive" to accept`;
+/** Throw {@link CodedTextMismatchError} when `issues` has a mismatch error. */
+export function throwOnCodedTextMismatch(issues: FlatRmDefaultIssue[]): void {
+  const errors = issues.filter((issue) =>
+    issue.kind === "coded-text-mismatch" && issue.severity === "error"
+  );
+  if (errors.length) throw new CodedTextMismatchError(errors);
+}
+
+type MismatchAction = "correct" | "keep" | "stop";
+
+/**
+ * Report input without an exact template match and say what to do with it.
+ * `caseOnly` names the template code or rubric it matches ignoring case.
+ */
+function reportMismatch(
+  issues: FlatRmDefaultIssue[],
+  path: string,
+  mode: CodedTextMismatch,
+  subject: string,
+  caseOnly?: { kind: "code" | "rubric"; target: string; detail?: string },
+): MismatchAction {
+  const detail = caseOnly
+    ? caseOnly.detail ??
+      `matches template ${caseOnly.kind} "${caseOnly.target}" only when case is ignored`
+    : "has no unique match among the template-allowed codes and rubrics";
+  if (caseOnly && mode === "correct") {
+    issues.push({
+      path,
+      severity: "warning",
+      kind: "coded-text-mismatch",
+      message:
+        `DV_CODED_TEXT ${subject} ${detail}; corrected to "${caseOnly.target}" (codedTextMismatch: "correct")`,
+    });
+    return "correct";
+  }
+  if (mode === "keep") {
+    issues.push({
+      path,
+      severity: "warning",
+      kind: "coded-text-mismatch",
+      message:
+        `DV_CODED_TEXT ${subject} ${detail}; kept as sent (codedTextMismatch: "keep")`,
+    });
+    return "keep";
+  }
+  const alternatives = caseOnly
+    ? `set codedTextMismatch: "correct" to normalise it or "keep" to keep it as sent`
+    : `set codedTextMismatch: "keep" to keep it as sent`;
+  issues.push({
+    path,
+    severity: "error",
+    kind: "coded-text-mismatch",
+    message: `DV_CODED_TEXT ${subject} ${detail}; ${alternatives}`,
+  });
+  return "stop";
 }
 
 function listItemLabel(
@@ -122,10 +229,10 @@ function rubricTexts(entry: CodedListEntry, term: string): string[] {
 function matchesInstructionState(
   val: string,
   code: string,
-  match: CodedValueMatch,
+  ignoreCase: boolean,
 ): boolean {
   if (resolveInstructionStateCode(val) !== code) return false;
-  if (match === "case-insensitive") return true;
+  if (ignoreCase) return true;
   const trimmed = val.trim();
   return /^\d+$/.test(trimmed) || instructionStateRubric(code) === trimmed ||
     openehrCodeMeaning(code) === trimmed;
@@ -135,45 +242,28 @@ function matchesRubric(
   entry: CodedListEntry,
   val: string,
   term: string,
-  match: CodedValueMatch = "exact",
+  ignoreCase = false,
 ): boolean {
-  if (rubricTexts(entry, term).some((text) => codedTextEquals(text, val, match))) {
+  const lower = val.toLowerCase();
+  if (
+    rubricTexts(entry, term).some((text) =>
+      ignoreCase ? text.toLowerCase() === lower : text === val
+    )
+  ) {
     return true;
   }
-  return matchesInstructionState(val, entry.value, match);
+  return matchesInstructionState(val, entry.value, ignoreCase);
 }
 
-/** First rubric of `entries` that equals `val` ignoring case (for the hint). */
+/** Rubric of `entry` that equals `val` ignoring case. */
 function caseOnlyRubric(
-  entries: CodedListEntry[],
+  entry: CodedListEntry,
   val: string,
   term: string,
-): string | undefined {
-  const lower = val.toLowerCase();
-  for (const entry of entries) {
-    const hit = rubricTexts(entry, term).find((text) => text.toLowerCase() === lower);
-    if (hit) return hit;
-    if (matchesInstructionState(val, entry.value, "case-insensitive")) {
-      return instructionStateRubric(entry.value) ?? entry.value;
-    }
-  }
-  return undefined;
-}
-
-/** Hint for an exact-mode miss that would match ignoring case, else "". */
-function exactMissHint(
-  entries: CodedListEntry[],
-  val: string,
-  term: string,
-  match: CodedValueMatch,
 ): string {
-  if (match !== "exact") return "";
-  const rubric = caseOnlyRubric(entries, val, term);
-  if (rubric) return caseOnlyMatchHint("rubric", rubric);
-  const code = entries.find((entry) =>
-    entry.value.toLowerCase() === val.toLowerCase()
-  );
-  return code ? caseOnlyMatchHint("code", code.value) : "";
+  const lower = val.toLowerCase();
+  return rubricTexts(entry, term).find((text) => text.toLowerCase() === lower) ??
+    instructionStateRubric(entry.value) ?? entry.value;
 }
 
 function findListEntry(
@@ -227,9 +317,12 @@ function currentStatesForCareflow(
  * Fill a partial DV_CODED_TEXT from the Web Template code list.
  *
  * Local and openEHR lists only. External terminologies are left as given.
- * `|value` is matched against the rubrics exactly unless `match` is
- * `"case-insensitive"`, which also writes the template rubric for `language`
- * (canonical casing) into `value`. A `|code` is matched ignoring case either way.
+ * `|code` and `|value` must match the template codes and rubrics exactly;
+ * other input is handled per `handling.mismatch` (see {@link CodedTextMismatch}).
+ * A valid local `|code` with a `|value` that matches no listed term is display
+ * text, handled per `handling.displayValue` (see {@link CodedTextDisplayValue}).
+ * The stored `value` is the template rubric for `language` when it is filled
+ * or corrected.
  */
 export function completeDvCodedText(
   value: RmObject,
@@ -237,9 +330,11 @@ export function completeDvCodedText(
   issues: FlatRmDefaultIssue[],
   path: string,
   language?: string,
-  match: CodedValueMatch = "exact",
+  handling: CodedTextHandling = {},
 ): void {
   if (value._type !== "DV_CODED_TEXT") return;
+  const mode = handling.mismatch ?? "reject";
+  const display = handling.displayValue ?? "keep";
 
   const nodeTerm = templateTerminology(wtNode);
   if (!isLocalOrOpenehr(nodeTerm)) return;
@@ -252,73 +347,61 @@ export function completeDvCodedText(
   if (instanceTerm && !isLocalOrOpenehr(instanceTerm)) return;
 
   let code = dc?.code_string as string | undefined;
+  const codeSent = !!code;
   const term = instanceTerm ?? only?.terminology ?? nodeTerm;
-  const val = typeof value.value === "string" ? value.value : undefined;
+  let val = typeof value.value === "string" ? value.value : undefined;
+
+  if (code && entries.length && !entries.some((entry) => entry.value === code)) {
+    const folded = entries.filter((entry) =>
+      entry.value.toLowerCase() === code!.toLowerCase()
+    );
+    const action = reportMismatch(
+      issues,
+      path,
+      mode,
+      `code "${code}"`,
+      folded.length === 1 ? { kind: "code", target: folded[0].value } : undefined,
+    );
+    if (action !== "correct") return;
+    code = folded[0].value;
+    dc!.code_string = code;
+  }
 
   if (!code && val && entries.length) {
     const text = val;
-    const rubricMatches = entries.filter((entry) =>
-      matchesRubric(entry, text, term, match)
-    );
-    if (rubricMatches.length === 1) {
-      code = rubricMatches[0].value;
-    } else if (rubricMatches.length > 1) {
+    const exact = entries.filter((entry) => matchesRubric(entry, text, term));
+    if (exact.length === 1) {
+      code = exact[0].value;
+    } else if (exact.length > 1) {
       issues.push({
         path,
         severity: "error",
         message:
           `DV_CODED_TEXT value "${val}" is ambiguous for template codes: ${
-            rubricMatches.map((m) => m.value).join(", ")
+            exact.map((m) => m.value).join(", ")
           }`,
       });
       return;
-    } else if (only) {
-      const expectedRubric = term === "openehr"
-        ? (instructionStateRubric(only.value) ?? resolveDvCodedTextValue(
-          { code_string: only.value, terminology_id: { value: term } },
-          { templateLabel: only.label },
-        ))
-        : (labelForCode(wtNode, only.value, language) ?? resolveDvCodedTextValue(
-          { code_string: only.value, terminology_id: { value: term } },
-          { templateLabel: only.label },
-        ));
-      const accepted = matchesRubric(only, val, term, match) ||
-        codedTextEquals(val, expectedRubric, match);
-      if (!accepted) {
-        const hint = exactMissHint(entries, val, term, match) ||
-          (match === "exact" &&
-              val.toLowerCase() === expectedRubric.toLowerCase()
-            ? caseOnlyMatchHint("rubric", expectedRubric)
-            : "");
-        issues.push({
-          path,
-          severity: "error",
-          message:
-            `DV_CODED_TEXT value "${val}" does not match the only template-allowed code ${only.value} (expected rubric "${expectedRubric}")${hint}`,
-        });
-        return;
-      }
-      code = only.value;
     } else {
-      issues.push({
+      const folded = entries.filter((entry) =>
+        matchesRubric(entry, text, term, true)
+      );
+      const action = reportMismatch(
+        issues,
         path,
-        severity: "error",
-        message:
-          `DV_CODED_TEXT value "${val}" does not match any template-allowed code${
-            exactMissHint(entries, val, term, match)
-          }`,
-      });
-      return;
+        mode,
+        `value "${val}"`,
+        folded.length === 1
+          ? { kind: "rubric", target: caseOnlyRubric(folded[0], text, term) }
+          : undefined,
+      );
+      if (action !== "correct") return;
+      code = folded[0].value;
+      delete value.value;
+      val = undefined;
     }
   } else if (!code && only) {
     code = only.value;
-  }
-
-  if (code) {
-    const canonical = entries.find((entry) =>
-      entry.value.toLowerCase() === code!.toLowerCase()
-    );
-    if (canonical) code = canonical.value;
   }
 
   if (code && (!dc || !dc.code_string)) {
@@ -328,57 +411,141 @@ export function completeDvCodedText(
       terminology_id: { _type: "TERMINOLOGY_ID", value: term },
     };
     dc = value.defining_code as RmObject;
-  } else if (
-    code && dc && dc.code_string !== code &&
-    String(dc.code_string).toLowerCase() === code.toLowerCase()
-  ) {
-    dc.code_string = code;
   }
 
-  if (code && term === "openehr") {
-    const expected = instructionStateRubric(code) ??
+  if (!code) return;
+
+  const rubric = term === "openehr"
+    ? instructionStateRubric(code) ??
       resolveDvCodedTextValue(dc, {
         templateLabel: labelForCode(wtNode, code, language),
-      });
-    if (!val && expected) {
-      value.value = expected;
-    } else if (val && expected && val !== expected) {
-      if (
-        codedTextEquals(val, expected, match) ||
-        matchesInstructionState(val, code, match)
-      ) {
-        value.value = expected;
-      } else {
-        const hint = match === "exact" &&
-            (val.toLowerCase() === expected.toLowerCase() ||
-              matchesInstructionState(val, code, "case-insensitive"))
-          ? caseOnlyMatchHint("rubric", expected)
-          : "";
-        issues.push({
-          path,
-          severity: "error",
-          message:
-            `DV_CODED_TEXT value "${val}" does not match openEHR rubric "${expected}" for code ${code}${hint}`,
-        });
-      }
+      })
+    : labelForCode(wtNode, code, language);
+
+  if (!val) {
+    if (term === "openehr") {
+      if (rubric) value.value = rubric;
+    } else if (rubric || entries.length === 1) {
+      value.value = resolveDvCodedTextValue(dc, { templateLabel: rubric });
     }
     return;
   }
+  if (!rubric || val === rubric) return;
 
-  if (code && term !== "openehr") {
-    const canonical = labelForCode(wtNode, code, language);
-    if (!val) {
-      if (canonical || entries.length === 1) {
-        value.value = resolveDvCodedTextValue(dc, { templateLabel: canonical });
-      }
-    } else if (canonical) {
-      const item = findListEntry(wtNode, code);
-      const matched = item
-        ? matchesRubric(item, val, term, match)
-        : codedTextEquals(val, canonical, match);
-      if (matched && val !== canonical) value.value = canonical;
+  const item = entries.find((entry) => entry.value === code);
+  if (!item) return;
+  if (matchesRubric(item, val, term)) {
+    // An openEHR meaning, or a value-only rubric matched in another template
+    // language: store the rubric for the composition language.
+    if (!codeSent || term === "openehr") {
+      value.value = rubric;
+      return;
     }
+    // |code with its rubric from another template language.
+    const action = reportMismatch(issues, path, mode, `value "${val}"`, {
+      kind: "rubric",
+      target: rubric,
+      detail: `is the rubric of code ${code} in another template language, not "${rubric}"${
+        language ? ` (${language})` : ""
+      }`,
+    });
+    if (action === "correct") value.value = rubric;
+    if (action === "keep") setPreferredTerm(dc, rubric, display);
+    return;
   }
+  if (matchesRubric(item, val, term, true)) {
+    const action = reportMismatch(issues, path, mode, `value "${val}"`, {
+      kind: "rubric",
+      target: caseOnlyRubric(item, val, term),
+    });
+    if (action === "correct") value.value = rubric;
+    if (action === "keep") setPreferredTerm(dc, rubric, display);
+    return;
+  }
+  const other = entries.find((entry) =>
+    entry !== item && matchesRubric(entry, val!, term, true)
+  );
+  if (other) {
+    if (reportConflict(issues, path, mode, code, val, other.value, rubric)) {
+      value.value = rubric;
+    } else if (mode === "keep") {
+      setPreferredTerm(dc, rubric, display);
+    }
+    return;
+  }
+  if (term === "openehr") {
+    // openEHR instruction-state values must match the rubric (#205/#206).
+    const action = reportMismatch(issues, path, mode, `value "${val}"`);
+    if (action === "correct") value.value = rubric;
+    return;
+  }
+  // A valid |code with a value that matches no listed term is display text
+  // (SPECPR-165: code_string and preferred_term correspond, value may differ).
+  if (display === "replace-with-rubric") {
+    issues.push({
+      path,
+      severity: "warning",
+      message:
+        `DV_CODED_TEXT value "${val}" replaced by the template rubric "${rubric}" of code ${code} (codedTextDisplayValue: "replace-with-rubric", an EHRbase compatibility mode; "keep" keeps the value as sent)`,
+    });
+    value.value = rubric;
+  } else {
+    setPreferredTerm(dc, rubric, display);
+  }
+}
+
+/** Template rubric as `preferred_term` when the display-value mode asks for it. */
+function setPreferredTerm(
+  dc: RmObject | undefined,
+  rubric: string,
+  display: CodedTextDisplayValue,
+): void {
+  if (display !== "keep-and-set-preferred-term") return;
+  if (dc && dc.preferred_term == null) dc.preferred_term = rubric;
+}
+
+/**
+ * `|code` and `|value` each match a template entry, but different ones.
+ * Returns true when `value` should be replaced by the rubric of `|code`.
+ */
+function reportConflict(
+  issues: FlatRmDefaultIssue[],
+  path: string,
+  mode: CodedTextMismatch,
+  code: string,
+  val: string,
+  valueCode: string,
+  rubric: string,
+): boolean {
+  const detail =
+    `DV_CODED_TEXT code "${code}" and value "${val}" name different template entries (the value matches code ${valueCode})`;
+  if (mode === "correct") {
+    issues.push({
+      path,
+      severity: "warning",
+      kind: "coded-text-mismatch",
+      message:
+        `${detail}; value replaced by "${rubric}" (codedTextMismatch: "correct")`,
+    });
+    return true;
+  }
+  if (mode === "keep") {
+    issues.push({
+      path,
+      severity: "warning",
+      kind: "coded-text-mismatch",
+      message: `${detail}; both kept as sent (codedTextMismatch: "keep")`,
+    });
+    return false;
+  }
+  issues.push({
+    path,
+    severity: "error",
+    kind: "coded-text-mismatch",
+    message:
+      `${detail}; set codedTextMismatch: "correct" to use the rubric of the code or "keep" to keep both as sent`,
+  });
+  return false;
 }
 
 function pickCurrentStateCode(
@@ -451,7 +618,7 @@ function fillIsmFromWebTemplate(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
-  match: CodedValueMatch = "exact",
+  handling: CodedTextHandling = {},
 ): void {
   // ISM_TRANSITION is PATHABLE, not LOCATABLE: it has no archetype_node_id.
   // The template variant is identified by careflow_step / current_state.
@@ -474,7 +641,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/current_state`,
       language,
-      match,
+      handling,
     );
   }
 
@@ -486,7 +653,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/careflow_step`,
       language,
-      match,
+      handling,
     );
   }
 }
@@ -497,7 +664,7 @@ function defaultIsmTransition(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
-  match: CodedValueMatch = "exact",
+  handling: CodedTextHandling = {},
 ): RmObject {
   const ism: RmObject = { _type: "ISM_TRANSITION" };
   fillIsmFromWebTemplate(
@@ -507,7 +674,7 @@ function defaultIsmTransition(
     issues,
     pathPrefix,
     language,
-    match,
+    handling,
   );
   return ism;
 }
@@ -550,7 +717,7 @@ function enrichCodedValues(
   node: WebTemplateNode,
   issues: FlatRmDefaultIssue[],
   language: string | undefined,
-  match: CodedValueMatch,
+  handling: CodedTextHandling,
   scope?: unknown,
 ): void {
   if (node.inContext) return;
@@ -568,7 +735,7 @@ function enrichCodedValues(
           issues,
           node.aqlPath,
           language,
-          match,
+          handling,
         );
       }
     }
@@ -585,7 +752,7 @@ function enrichCodedValues(
         child,
       );
       for (const childValue of childValues) {
-        enrichCodedValues(root, child, issues, language, match, childValue);
+        enrichCodedValues(root, child, issues, language, handling, childValue);
       }
     }
   }
@@ -614,7 +781,10 @@ export function applyFlatRmDefaults(
   issues: FlatRmDefaultIssue[] = [],
   options: FlatRmDefaultOptions = {},
 ): void {
-  const match = options.codedValueMatch ?? "exact";
+  const handling: CodedTextHandling = {
+    mismatch: options.codedTextMismatch,
+    displayValue: options.codedTextDisplayValue,
+  };
   const ctxState = ctxCurrentStateDefault(flat);
   const language = compositionLanguage(composition) ?? webTemplate.defaultLanguage;
   const root = webTemplate.tree;
@@ -635,7 +805,7 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
-          match,
+          handling,
         );
       } else if (typeof record.ism_transition === "object") {
         fillIsmFromWebTemplate(
@@ -645,12 +815,12 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
-          match,
+          handling,
         );
       }
     }
   });
 
-  enrichCodedValues(composition, root, issues, language, match);
+  enrichCodedValues(composition, root, issues, language, handling);
   dedupeIssues(issues);
 }

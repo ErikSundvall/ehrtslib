@@ -21,6 +21,7 @@ import {
   applyFlatRmDefaults,
   type FlatRmDefaultIssue,
   type FlatRmDefaultOptions,
+  throwOnCodedTextMismatch,
 } from "./flat_rm_defaults.ts";
 import { applyContextFromFields, buildRmValue } from "./value_build.ts";
 
@@ -68,7 +69,11 @@ function flatLanguage(flat: FlatPayload): string | undefined {
 export type FlatDeserializeOptions = FlatRmDefaultOptions;
 
 export class FlatDeserializer {
-  /** Issues from the most recent {@link deserialize} call (defaults / rubrics). */
+  /**
+   * Issues from the most recent {@link deserialize} call (defaults, rubrics,
+   * coded-text mismatches). `deserialize` collects them and does not throw;
+   * `deserializeFromFlat` throws `CodedTextMismatchError` on a mismatch error.
+   */
   issues: FlatRmDefaultIssue[] = [];
   private language?: string;
   private rootId: string;
@@ -263,7 +268,8 @@ export class FlatDeserializer {
         language: this.language,
         issues: this.issues,
         path: node.aqlPath,
-        codedValueMatch: this.options.codedValueMatch,
+        codedTextMismatch: this.options.codedTextMismatch,
+        codedTextDisplayValue: this.options.codedTextDisplayValue,
       }),
       node.rmType,
       node.nodeId,
@@ -278,7 +284,10 @@ export function deserializeFromFlat(
   webTemplate: WebTemplate,
   options?: FlatDeserializeOptions,
 ): RmObject {
-  return new FlatDeserializer(webTemplate, options).deserialize(flat);
+  const deserializer = new FlatDeserializer(webTemplate, options);
+  const composition = deserializer.deserialize(flat);
+  throwOnCodedTextMismatch(deserializer.issues);
+  return composition;
 }
 
 export function deserializeFromFlatJson(
@@ -286,12 +295,14 @@ export function deserializeFromFlatJson(
   webTemplate: WebTemplate,
   options?: FlatDeserializeOptions,
 ): RmObject {
-  return new FlatDeserializer(webTemplate, options).deserializeJson(json);
+  return deserializeFromFlat(JSON.parse(json) as FlatPayload, webTemplate, options);
 }
 
-export type {
-  CodedValueMatch,
-  FlatRmDefaultIssue,
+export {
+  type CodedTextDisplayValue,
+  type CodedTextMismatch,
+  CodedTextMismatchError,
+  type FlatRmDefaultIssue,
 } from "./flat_rm_defaults.ts";
 
 export function deserializeFromFlatWithIssues(
