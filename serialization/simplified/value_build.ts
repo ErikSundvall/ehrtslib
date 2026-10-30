@@ -7,13 +7,19 @@
  * alias for compatibility with older payloads.
  */
 
-import { buildDvValue } from "./dv_field_maps.ts";
+import { buildDvValue, type DvValueBuildContext } from "./dv_field_maps.ts";
+
+export type { DvValueBuildContext };
 
 type RmObject = Record<string, unknown>;
 type Fields = Record<string, string | number | boolean | null | undefined>;
 
-export function buildRmValue(rmType: string, fields: Fields): RmObject {
-  return buildDvValue(rmType, fields);
+export function buildRmValue(
+  rmType: string,
+  fields: Fields,
+  context?: DvValueBuildContext,
+): RmObject {
+  return buildDvValue(rmType, fields, context);
 }
 
 function bare(fields: Fields): string | number | boolean | undefined {

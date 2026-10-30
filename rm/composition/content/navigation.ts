@@ -4,11 +4,14 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import { CONTENT_ITEM } from "../content.ts";
+import { applyRmInit, type RmInit } from "../../../base/apply_rm_init.ts";
 
 /**
  * Represents a heading in a heading structure, or  section tree.  Created according to archetyped structures for typical headings such as SOAP,  physical examination, but also pathology result heading structures.  Should not be used instead of \`ENTRY\` hierarchical structures.
  */
 export class SECTION extends CONTENT_ITEM {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Ordered list of content items under this section, which may include:
    *

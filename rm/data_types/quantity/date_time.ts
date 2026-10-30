@@ -6,6 +6,7 @@
 import { DV_ABSOLUTE_QUANTITY, DV_AMOUNT } from "../quantity.ts";
 import type { DV_ORDERED, DV_QUANTIFIED } from "../quantity.ts";
 import * as openehr_base from "../../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../../base/apply_rm_init.ts";
 
 /**
  * Represents a period of time with respect to a notional point in time, which is not specified. A sign may be used to indicate the duration is  backwards  in time rather than forwards.
@@ -17,6 +18,8 @@ import * as openehr_base from "../../../base/mod.ts";
  * Misuse: Durations cannot be used to represent points in time, or intervals of time.
  */
 export class DV_DURATION extends DV_AMOUNT {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected
@@ -224,6 +227,8 @@ export abstract class DV_TEMPORAL extends DV_ABSOLUTE_QUANTITY {
  * Represents an absolute point in time, as measured on the Gregorian calendar, and specified only to the day. Semantics defined by ISO 8601. Used for recording dates in real world time. The partial form is used for approximate birth dates, dates of death, etc.
  */
 export class DV_DATE extends DV_TEMPORAL {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected
@@ -412,6 +417,8 @@ export class DV_DATE extends DV_TEMPORAL {
  * Used for recording real world times, rather than scientifically measured fine amounts of time. The partial form is used for approximate times of events and substance administrations.
  */
 export class DV_TIME extends DV_TEMPORAL {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected
@@ -585,6 +592,8 @@ export class DV_TIME extends DV_TEMPORAL {
  * Used for recording a precise point in real world time, and for approximate time stamps, e.g. the origin of a \`HISTORY\` in an \`OBSERVATION\` which is only partially known.
  */
 export class DV_DATE_TIME extends DV_TEMPORAL {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Internal storage for value
    * @protected

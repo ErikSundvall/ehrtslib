@@ -7,6 +7,7 @@ import { DATA_VALUE } from "./basic.ts";
 import type { DV_PARSABLE } from "./encapsulated.ts";
 import { DV_DURATION } from "./quantity/date_time.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * This is an abstract class of which all timing specifications are specialisations. Specifies points in time, possibly linked to the calendar, or a real world repeating event, such as  breakfast.
@@ -41,6 +42,8 @@ export abstract class DV_TIME_SPECIFICATION extends DATA_VALUE {
  * Used in therapeutic prescriptions, expressed as \`INSTRUCTIONs\` in the openEHR model.
  */
 export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * HL7::TimingEvent codes for event-linked specifications (EIVL).
    * Ordered by length (longest first) for proper matching.
@@ -187,6 +190,8 @@ export class DV_PERIODIC_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
  * Specifies points in time in a general syntax. Based on the HL7v3 GTS data type.
  */
 export class DV_GENERAL_TIME_SPECIFICATION extends DV_TIME_SPECIFICATION {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * HL7::TimingEvent codes for event-linked specifications.
    * Ordered by length (longest first) for proper matching.

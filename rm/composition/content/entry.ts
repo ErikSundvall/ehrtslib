@@ -12,6 +12,7 @@ import type { DV_DATE_TIME } from "../../data_types/quantity/date_time.ts";
 import type { CODE_PHRASE, DV_CODED_TEXT, DV_TEXT } from "../../data_types/text.ts";
 import { CONTENT_ITEM } from "../content.ts";
 import * as openehr_base from "../../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../../base/apply_rm_init.ts";
 
 /**
  * The abstract parent of all \`ENTRY\` subtypes. An \`ENTRY\` is the root of a logical item of  hard  clinical information created in the  clinical statement  context, within a clinical session. There can be numerous such contexts in a clinical session. Observations and other Entry types only ever document information captured/created in the event documented by the enclosing Composition.
@@ -73,6 +74,8 @@ export abstract class ENTRY extends CONTENT_ITEM {
  * Not to be used for any clinically significant information.
  */
 export class ADMIN_ENTRY extends ENTRY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Content of the Admin Entry.
    */
@@ -99,6 +102,8 @@ export abstract class CARE_ENTRY extends ENTRY {
  * Not to be used for recording opinion or future statements of any kind, including instructions, intentions, plans etc.
  */
 export class OBSERVATION extends CARE_ENTRY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The data of this observation, in the form of a history of values which may be of any complexity.
    */
@@ -115,6 +120,8 @@ export class OBSERVATION extends CARE_ENTRY {
  * Should not be used for actionable statements such as medication orders - these are represented using the \`INSTRUCTION\` type.
  */
 export class EVALUATION extends CARE_ENTRY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The data of this evaluation, in the form of a spatial data structure.
    */
@@ -125,6 +132,8 @@ export class EVALUATION extends CARE_ENTRY {
  * Used to record a clinical action that has been performed, which may have been ad hoc, or due to the execution of an Activity in an Instruction workflow. Every Action corresponds to a careflow step of some kind or another.
  */
 export class ACTION extends CARE_ENTRY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Point in time at which this action completed. To indicate an unknown time, use a \`DV_DATE_TIME\` instance with \`_value_\` set to the time of creation (or some other known time before which the Action is known to have occurred, e.g. data accession timestamp from integration engine), and \`_magnitude_status_\` set to \`<\`.
    */
@@ -147,6 +156,8 @@ export class ACTION extends CARE_ENTRY {
  * Defines a single activity within an Instruction, such as a medication administration.
  */
 export class ACTIVITY extends LOCATABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Timing of the activity, in the form of a parsable string. If used, the preferred syntax is ISO8601 'R' format, but other formats may be used including HL7 GTS.
    *
@@ -202,6 +213,8 @@ export class ACTIVITY extends LOCATABLE {
  * Model of a transition in the Instruction State Machine, caused by a careflow step. The attributes document the careflow step as well as the ISM transition.
  */
 export class ISM_TRANSITION extends PATHABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * The ISM current state. Coded by openEHR terminology group Instruction states.
    */
@@ -224,6 +237,8 @@ export class ISM_TRANSITION extends PATHABLE {
  * Used to record details of the Instruction causing an Action.
  */
 export class INSTRUCTION_DETAILS extends PATHABLE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Reference to causing Instruction.
    */
@@ -280,6 +295,8 @@ export class INSTRUCTION_DETAILS extends PATHABLE {
  * Not to be used for plan items which are only specified in general terms.
  */
 export class INSTRUCTION extends CARE_ENTRY {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Mandatory human-readable version of what the Instruction is about.
    */

@@ -9,6 +9,11 @@ import type { CodePhraseInit, DvCodedTextInit, DvTextInit } from "../_unassigned
 import { DATA_VALUE } from "./basic.ts";
 import type { DV_URI } from "./uri.ts";
 import * as openehr_base from "../../base/mod.ts";
+import {
+  applyRmInit,
+  installAssignmentCoercion,
+  type RmInit,
+} from "../../base/apply_rm_init.ts";
 
 /**
  * DEPRECATED: use markdown formatted \`DV_TEXT\` instead.
@@ -20,6 +25,8 @@ import * as openehr_base from "../../base/mod.ts";
  * \`DV_PARAGRAPH\` is the standard way for constructing longer text items in summaries, reports and so on.
  */
 export class DV_PARAGRAPH extends DATA_VALUE {
+  constructor(init?: RmInit) { super(); applyRmInit(this, init); }
+
   /**
    * Items making up the paragraph, each of which is a text item (which may have its own formatting, and/or have hyperlinks).
    */
@@ -43,6 +50,7 @@ export class DV_TEXT extends DATA_VALUE {
    */
   constructor(init?: string | Partial<DvTextInit>) {
     super();
+    installAssignmentCoercion(this);
     if (typeof init === 'string') {
       this.value = init;
     } else if (init) {
@@ -185,12 +193,15 @@ export class DV_CODED_TEXT extends DV_TEXT {
       const parsed = parseTerseDvCodedText(init);
       if (parsed) {
         super({ value: parsed.value });
+        installAssignmentCoercion(this);
         this.defining_code = parsed.defining_code;
       } else {
         super();
+        installAssignmentCoercion(this);
       }
     } else {
       super(init);
+      installAssignmentCoercion(this);
       if (init && init.defining_code !== undefined) {
         this.defining_code = initCodePhrase(init.defining_code as any);
       }
@@ -232,6 +243,8 @@ export class DV_CODED_TEXT extends DV_TEXT {
  * Used for adding classification terms (e.g. adding ICD classifiers to SNOMED descriptive terms), or mapping into equivalents in other terminologies (e.g. across nursing vocabularies).
  */
 export class TERM_MAPPING {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The relative match of the target term with respect to the mapped text item. Result meanings:
    *
@@ -318,6 +331,7 @@ export class CODE_PHRASE {
    * ```
    */
   constructor(init?: string | Partial<CodePhraseInit>) {
+    installAssignmentCoercion(this);
     if (typeof init === 'string') {
       // Initialize from terse format
       const parsed = initCodePhrase(init);

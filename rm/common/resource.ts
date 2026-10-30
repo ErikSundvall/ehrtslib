@@ -6,6 +6,7 @@
 import type { CODE_PHRASE } from "../data_types/text.ts";
 import type { REVISION_HISTORY } from "./generic.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * Abstract idea of an online resource created by a human author.
@@ -102,6 +103,8 @@ export abstract class AUTHORED_RESOURCE {
  * Defines the descriptive meta-data of a resource.
  */
 export class RESOURCE_DESCRIPTION {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Original author of this resource, with all relevant details, including organisation.
    */
@@ -196,6 +199,8 @@ export class RESOURCE_DESCRIPTION {
  * Class providing details of a natural language translation.
  */
 export class TRANSLATION_DETAILS {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Language of the translation.
    */
@@ -248,6 +253,8 @@ export class TRANSLATION_DETAILS {
  * Language-specific detail of resource description. When a resource is translated for use in another language environment, each \`RESOURCE_DESCRIPTION_ITEM\` needs to be copied and translated into the new language.
  */
 export class RESOURCE_DESCRIPTION_ITEM {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * The localised language in which the items in this description item are written. Coded from openEHR code set \`languages\`.
    */

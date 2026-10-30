@@ -10,6 +10,7 @@ import type { DV_TEXT } from "../data_types/text.ts";
 import type { DV_EHR_URI } from "../data_types/uri.ts";
 import type { PARTY_IDENTIFIED, PARTY_PROXY } from "./generic.ts";
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * The \`PATHABLE\` class defines the pathing capabilities used by nearly all classes in the openEHR reference model, mostly via inheritance of \`LOCATABLE\`. The defining characteristics of \`PATHABLE\` objects are that they can locate child objects using paths, and they know their parent object in a compositional hierarchy. The parent feature is defined as abstract in the model, and may be implemented in any way convenient.
@@ -293,6 +294,8 @@ export abstract class PATHABLE extends openehr_base.Any {
  * Links should be between archetyped structures only, i.e. between objects representing complete domain concepts because relationships between sub-elements of whole concepts are not necessarily meaningful, and may be downright confusing. Sensible links only exist between whole \`ENTRYs\`, \`SECTIONs\`, \`COMPOSITIONs\` and so on.
  */
 export class LINK {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Used to describe the relationship, usually in clinical terms, such as  in response to  (the relationship between test results and an order),  follow-up to  and so on. Such relationships can represent any clinically meaningful connection between pieces of information. Values for meaning include those described in Annex C, ENV 13606 pt 2 under the categories of  generic ,  documenting and reporting ,  organisational ,  clinical ,  circumstancial , and  view management .
    */
@@ -396,6 +399,8 @@ export abstract class LOCATABLE extends PATHABLE {
  * An instance of the class \`ARCHETYPED\` contains the relevant archetype identification information, allowing generating archetypes to be matched up with data instances.
  */
 export class ARCHETYPED {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Globally unique archetype identifier.
    */
@@ -443,6 +448,8 @@ export class ARCHETYPED {
  * The \`FEEDER_AUDIT\` class defines the semantics of an audit trail which is constructed to describe the origin of data that have been transformed into openEHR form and committed to the system.
  */
 export class FEEDER_AUDIT {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Identifiers used for the item in the originating system, e.g. filler and placer ids.
    */
@@ -469,6 +476,8 @@ export class FEEDER_AUDIT {
  * Audit details for any system in a feeder system chain. Audit details here means the general notion of who/where/when the information item to which the audit is attached was created. None of the attributes is defined as mandatory, however, in different scenarios, various combinations of attributes will usually be mandatory. This can be controlled by specifying feeder audit details in legacy archetypes.
  */
 export class FEEDER_AUDIT_DETAILS {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for system_id
    * @protected

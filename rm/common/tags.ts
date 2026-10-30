@@ -4,11 +4,14 @@
 // but re-run the splitter rather than hand-moving declarations between packages.
 
 import * as openehr_base from "../../base/mod.ts";
+import { applyRmInit, type RmInit } from "../../base/apply_rm_init.ts";
 
 /**
  * A tag with optional value that is associated with a target information entity identified by a UID.
  */
 export class ITEM_TAG {
+  constructor(init?: RmInit) { applyRmInit(this, init); }
+
   /**
    * Internal storage for key
    * @protected
