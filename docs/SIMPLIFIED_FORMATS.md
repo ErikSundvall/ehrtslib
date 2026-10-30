@@ -56,6 +56,8 @@ RM instance → JsonCanonicalSerializer → JSON
 
 Template-scoped fields (ctx + template content paths) round-trip; RM attributes not in the Web Template are not preserved.
 
+Background: [research note on FLAT/STRUCTURED input and output flavours and `ctx` defaults (2026-10)](research/flat-input-output-ctx-2026-10.md).
+
 ## FLAT format
 
 - Composition metadata uses `ctx/` prefix (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).

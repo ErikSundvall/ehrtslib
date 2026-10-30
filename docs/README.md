@@ -37,3 +37,7 @@ Also: [examples/](../examples/README.md), the [demo app](../examples/demo-app/RE
 ## Offline openEHR language specs
 
 [vendor/](vendor/) summarizes relevant parts of official specs for offline/LLM use. Prefer live specs or the openehr-assistant MCP when available.
+
+## Background research
+
+[research/](research/) holds dated, non-normative research notes linked from issues and forum posts.
