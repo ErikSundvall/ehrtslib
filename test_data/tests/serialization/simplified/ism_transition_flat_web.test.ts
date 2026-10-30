@@ -148,7 +148,6 @@ Deno.test("deserializeFromFlat — careflow_step code-only gets archetype value"
     "ctx/language": "en",
     "ctx/territory": "US",
     [`${actionPath}/time`]: "2026-01-01T12:00:00Z",
-    [`${actionPath}/description`]: "Example action",
     [`${actionPath}/ism_transition/careflow_step|code`]: "at0003",
     [`${actionPath}/ism_transition/careflow_step|terminology`]: "local",
   };
@@ -184,7 +183,6 @@ Deno.test("FLAT round trip — ism_transition careflow_step survives serialize",
     "ctx/language": "en",
     "ctx/territory": "US",
     [`${actionPath}/time`]: "2026-01-01T12:00:00Z",
-    [`${actionPath}/description`]: "Example action",
     [`${actionPath}/ism_transition/careflow_step|code`]: "at0003",
     [`${actionPath}/ism_transition/careflow_step|value`]: "Start",
     [`${actionPath}/ism_transition/careflow_step|terminology`]: "local",
@@ -214,7 +212,6 @@ function minimalActionFlat(actionPath: string): Record<string, string> {
     "ctx/language": "en",
     "ctx/territory": "US",
     [`${actionPath}/time`]: "2026-01-01T12:00:00Z",
-    [`${actionPath}/description`]: "Example action",
     [`${actionPath}/ism_transition/careflow_step|code`]: "at0003",
     [`${actionPath}/ism_transition/careflow_step|terminology`]: "local",
   };

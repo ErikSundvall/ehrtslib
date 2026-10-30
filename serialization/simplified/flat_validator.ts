@@ -164,20 +164,19 @@ export function validateFlatPayload(
     }
   }
 
-  // Mandatory context fields per spec
-  if (!("ctx/language" in payload)) {
-    warnings.push({
-      path: "ctx/language",
-      message: "Mandatory context field missing",
-      severity: "warning",
-    });
-  }
-  if (!("ctx/territory" in payload)) {
-    warnings.push({
-      path: "ctx/territory",
-      message: "Mandatory context field missing",
-      severity: "warning",
-    });
+  // Mandatory composition fields: as ctx/ (input flavour) or at their own
+  // path (output flavour).
+  for (const field of ["language", "territory"]) {
+    const atPath = Object.keys(payload).some((k) =>
+      k === `${rootId}/${field}` || k.startsWith(`${rootId}/${field}|`)
+    );
+    if (!(`ctx/${field}` in payload) && !atPath) {
+      warnings.push({
+        path: `ctx/${field}`,
+        message: "Mandatory context field missing",
+        severity: "warning",
+      });
+    }
   }
 
   // Mandatory leaves (min > 0, not inContext)
@@ -217,17 +216,6 @@ export function collectExpectedFlatKeys(webTemplate: WebTemplate): Set<string> {
   const keys = new Set<string>();
   const rootId = templateRootId(webTemplate.templateId);
   const walk = (node: WebTemplateNode, parts: string[]) => {
-    if (node.inContext) {
-      for (const input of node.inputs ?? [{ type: "TEXT" }]) {
-        const suffix = input.suffix ?? "";
-        keys.add(
-          suffix === "" || suffix === "value"
-            ? `ctx/${node.id}`
-            : `ctx/${node.id}|${suffix}`,
-        );
-      }
-      return;
-    }
     const next = [...parts, node.id];
     const isLeaf = !!node.inputs?.length && !node.children?.length;
     if (isLeaf) {

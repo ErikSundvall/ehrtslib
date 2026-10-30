@@ -13,6 +13,8 @@
 type GroupMap = ReadonlyMap<string, string>;
 
 export const INSTRUCTION_STATES_GROUP = "instruction_states";
+export const SETTING_GROUP = "setting";
+export const COMPOSITION_CATEGORY_GROUP = "composition_category";
 
 const GROUPS: ReadonlyMap<string, GroupMap> = new Map([
   [
@@ -30,7 +32,52 @@ const GROUPS: ReadonlyMap<string, GroupMap> = new Map([
       ["533", "expired"],
     ]),
   ],
+  [
+    SETTING_GROUP,
+    new Map([
+      ["225", "home"],
+      ["227", "emergency care"],
+      ["228", "primary medical care"],
+      ["229", "primary nursing care"],
+      ["230", "primary allied health care"],
+      ["231", "midwifery care"],
+      ["232", "secondary medical care"],
+      ["233", "secondary nursing care"],
+      ["234", "secondary allied health care"],
+      ["235", "complementary health care"],
+      ["236", "dental care"],
+      ["237", "nursing home care"],
+      ["802", "mental healthcare"],
+      ["238", "other care"],
+    ]),
+  ],
+  [
+    COMPOSITION_CATEGORY_GROUP,
+    new Map([
+      ["431", "persistent"],
+      ["451", "episodic"],
+      ["433", "event"],
+      ["815", "report"],
+    ]),
+  ],
 ]);
+
+/** Codes of an embedded openEHR group, in terminology file order. */
+export function openEhrGroupCodes(groupId: string): string[] {
+  const group = GROUPS.get(groupId);
+  return group ? [...group.keys()] : [];
+}
+
+/** Code for an English rubric within an embedded openEHR group. */
+export function openEhrGroupCode(
+  groupId: string,
+  rubric: string,
+): string | undefined {
+  for (const [code, text] of GROUPS.get(groupId) ?? []) {
+    if (text === rubric) return code;
+  }
+  return undefined;
+}
 
 /** Group ids whose rubrics are embedded in this module. */
 export function embeddedOpenEhrGroupIds(): string[] {

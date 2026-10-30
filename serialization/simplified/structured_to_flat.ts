@@ -17,7 +17,6 @@ import type {
   WebTemplate,
   WebTemplateNode,
 } from "./types.ts";
-import { templateRootId } from "./normalize.ts";
 import { getFieldMap, resolveDvType } from "./dv_field_maps.ts";
 
 type StructuredValue = Record<string, unknown>;
@@ -109,17 +108,22 @@ class StructuredToFlatConverter {
 
   convert(structured: StructuredValue): FlatPayload {
     this.flat = {};
-    const rootId = templateRootId(this.webTemplate.templateId);
 
     if (isPlainObject(structured.ctx)) {
       flattenCtx(structured.ctx, this.flat);
     }
 
-    const rootBranch = structured[rootId];
-    if (isPlainObject(rootBranch)) {
+    // Any top-level key other than `ctx` is a root branch (normally the
+    // template id; EHRbase-style output may use the tree id instead).
+    for (const [root, rootBranch] of Object.entries(structured)) {
+      if (root === "ctx") continue;
+      if (!isPlainObject(rootBranch)) {
+        if (rootBranch != null) this.flat[root] = rootBranch as FlatValue;
+        continue;
+      }
       for (const [k, v] of Object.entries(rootBranch)) {
         if (k.startsWith("|")) continue;
-        this.flattenValue(`${rootId}/${k}`, k, v);
+        this.flattenValue(`${root}/${k}`, k, v);
       }
     }
 

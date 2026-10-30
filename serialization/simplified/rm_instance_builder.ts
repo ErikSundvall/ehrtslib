@@ -26,6 +26,7 @@ const ATTR_RM_TYPE: Record<string, string> = {
   state: "ITEM_TREE",
   description: "ITEM_TREE",
   other_participations: "PARTICIPATION",
+  other_context: "ITEM_TREE",
 };
 
 /** Attributes that are containers (arrays) in the RM. */
@@ -144,6 +145,10 @@ export function assignAtAqlPath(
     const occurrence = occurrences?.[si + 1] ?? 0;
 
     if (isLast) {
+      if (leafRmType === "STRING") {
+        current[attr] = leafValue;
+        return;
+      }
       const isDataValue = leafRmType.startsWith("DV_") ||
         leafRmType.startsWith("C_") ||
         leafRmType === "CODE_PHRASE" ||
@@ -169,6 +174,18 @@ export function assignAtAqlPath(
             archetype_node_id: elemNodeId,
             value: leafValue,
           });
+        }
+      } else if (isDataValue && attr === "item") {
+        // ITEM_SINGLE.item is an ELEMENT, like ITEM_TREE/ITEM_LIST items.
+        const existing = current.item as RmObject | undefined;
+        if (existing && existing._type === "ELEMENT") {
+          existing.value = leafValue;
+        } else {
+          current.item = {
+            _type: "ELEMENT",
+            archetype_node_id: elementNodeId || nodeId || null,
+            value: leafValue,
+          };
         }
       } else if (isDataValue) {
         current[attr] = leafValue;

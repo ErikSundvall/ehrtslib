@@ -44,6 +44,11 @@ export {
   type FlatDeserializeOptions,
   FlatDeserializer,
   type FlatRmDefaultIssue,
+  type ContextDefaults,
+  type FlatContextOptions,
+  throwOnUnknownFlatKey,
+  UnknownFlatKeyError,
+  type UnknownFlatKeys,
 } from "./flat_deserializer.ts";
 
 export {
@@ -57,6 +62,7 @@ export {
 export {
   deserializeFromStructured,
   deserializeFromStructuredJson,
+  deserializeFromStructuredWithIssues,
   StructuredDeserializer,
 } from "./structured_deserializer.ts";
 

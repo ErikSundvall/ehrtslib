@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import {
   embeddedOpenEhrGroupIds,
+  openEhrGroupCodes,
   instructionStateCodes,
   instructionStateRubric,
   openEhrGroupRubric,
@@ -36,11 +37,9 @@ Deno.test("embedded group rubrics equal openehr_terminology_en.xml", () => {
       const rubric = /rubric="([^"]+)"/.exec(c[1])?.[1];
       if (id && rubric) fromXml.push([id, rubric]);
     }
-    const embedded = groupId === "instruction_states"
-      ? instructionStateCodes().map((
-        code,
-      ): [string, string] => [code, openEhrGroupRubric(groupId, code)!])
-      : [];
+    const embedded = openEhrGroupCodes(groupId).map((
+      code,
+    ): [string, string] => [code, openEhrGroupRubric(groupId, code)!]);
     assertEquals(embedded, fromXml, groupId);
   }
 });
