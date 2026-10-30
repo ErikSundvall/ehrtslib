@@ -19,6 +19,8 @@
 // JSON exports
 export {
   JsonCanonicalSerializer,
+  type CanonicalOnNonRmValue,
+  type JsonCanonicalSerializeOptions,
   JsonCanonicalDeserializer,
   JsonConfigurableSerializer,
   JsonConfigurableDeserializer,

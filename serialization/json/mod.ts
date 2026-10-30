@@ -30,7 +30,11 @@
  */
 
 // Canonical classes (simple, canonical only)
-export { JsonCanonicalSerializer } from './json_canonical_serializer.ts';
+export {
+  JsonCanonicalSerializer,
+  type CanonicalOnNonRmValue,
+  type JsonCanonicalSerializeOptions,
+} from './json_canonical_serializer.ts';
 export { JsonCanonicalDeserializer } from './json_canonical_deserializer.ts';
 
 // Configurable classes (advanced, flexible)
