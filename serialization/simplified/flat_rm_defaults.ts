@@ -41,6 +41,11 @@ export interface FlatRmDefaultIssue {
  * A valid local `|code` with a `|value` that matches no listed term is not a
  * mismatch: it is display text, handled by {@link CodedTextDisplayValue}.
  *
+ * Why an option: openEHR platforms differ here (some reject such input, some
+ * store it as sent), and ehrtslib is used as a front end for, and a converter
+ * between, such platforms. Choose the mode that matches the target platform.
+ * See docs/SIMPLIFIED_FORMATS.md, "Coded text input".
+ *
  * Errors are issues from `deserializeFromFlatWithIssues`; `deserializeFromFlat`,
  * `buildRmValue`, and `buildDvValue` (without a caller `issues` array) throw
  * {@link CodedTextMismatchError}. Exact matches and code-only completion are
@@ -63,6 +68,11 @@ export type CodedTextMismatch = "reject" | "keep" | "correct";
  * - `"replace-with-rubric"`: **not recommended.** Compatibility mode for
  *   EHRbase-like behaviour: `value` is overwritten with the template rubric
  *   and a warning names the value that was sent. It loses what the user saw.
+ *
+ * Why an option: openEHR platforms differ here (some keep `value`, some
+ * overwrite it with the rubric), and ehrtslib is used as a front end for, and a
+ * converter between, such platforms. See docs/SIMPLIFIED_FORMATS.md,
+ * "Coded text input".
  */
 export type CodedTextDisplayValue =
   | "keep"
