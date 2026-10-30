@@ -4,18 +4,24 @@
  */
 
 import type { WebTemplate } from "./types.ts";
-import { deserializeFromFlat } from "./flat_deserializer.ts";
+import {
+  deserializeFromFlat,
+  type FlatDeserializeOptions,
+} from "./flat_deserializer.ts";
 import { structuredToFlat } from "./structured_to_flat.ts";
 
 type RmObject = Record<string, unknown>;
 type StructuredValue = Record<string, unknown>;
 
 export class StructuredDeserializer {
-  constructor(private webTemplate: WebTemplate) {}
+  constructor(
+    private webTemplate: WebTemplate,
+    private options: FlatDeserializeOptions = {},
+  ) {}
 
   deserialize(structured: StructuredValue): RmObject {
     const flat = structuredToFlat(structured, this.webTemplate);
-    return deserializeFromFlat(flat, this.webTemplate);
+    return deserializeFromFlat(flat, this.webTemplate, this.options);
   }
 
   deserializeJson(json: string): RmObject {
@@ -26,13 +32,15 @@ export class StructuredDeserializer {
 export function deserializeFromStructured(
   structured: StructuredValue,
   webTemplate: WebTemplate,
+  options?: FlatDeserializeOptions,
 ): RmObject {
-  return new StructuredDeserializer(webTemplate).deserialize(structured);
+  return new StructuredDeserializer(webTemplate, options).deserialize(structured);
 }
 
 export function deserializeFromStructuredJson(
   json: string,
   webTemplate: WebTemplate,
+  options?: FlatDeserializeOptions,
 ): RmObject {
-  return new StructuredDeserializer(webTemplate).deserializeJson(json);
+  return new StructuredDeserializer(webTemplate, options).deserializeJson(json);
 }

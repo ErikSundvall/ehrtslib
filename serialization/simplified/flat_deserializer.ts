@@ -20,6 +20,7 @@ import {
 import {
   applyFlatRmDefaults,
   type FlatRmDefaultIssue,
+  type FlatRmDefaultOptions,
 } from "./flat_rm_defaults.ts";
 import { applyContextFromFields, buildRmValue } from "./value_build.ts";
 
@@ -63,6 +64,9 @@ function flatLanguage(flat: FlatPayload): string | undefined {
   return undefined;
 }
 
+/** Options for {@link FlatDeserializer} and `deserializeFromFlat*`. */
+export type FlatDeserializeOptions = FlatRmDefaultOptions;
+
 export class FlatDeserializer {
   /** Issues from the most recent {@link deserialize} call (defaults / rubrics). */
   issues: FlatRmDefaultIssue[] = [];
@@ -73,7 +77,10 @@ export class FlatDeserializer {
   /** id-chain → chain of nodes from tree root (exclusive) to node (inclusive) */
   private pathNodes = new Map<string, WebTemplateNode[]>();
 
-  constructor(private webTemplate: WebTemplate) {
+  constructor(
+    private webTemplate: WebTemplate,
+    private options: FlatDeserializeOptions = {},
+  ) {
     this.rootId = templateRootId(webTemplate.templateId);
     this.indexNodes(webTemplate.tree.children ?? [], "", []);
   }
@@ -154,7 +161,7 @@ export class FlatDeserializer {
     // ctx fields last so composition-level defaults are not clobbered
     this.applyContext(comp, flat);
 
-    applyFlatRmDefaults(comp, this.webTemplate, flat, this.issues);
+    applyFlatRmDefaults(comp, this.webTemplate, flat, this.issues, this.options);
 
     return comp;
   }
@@ -256,6 +263,7 @@ export class FlatDeserializer {
         language: this.language,
         issues: this.issues,
         path: node.aqlPath,
+        codedValueMatch: this.options.codedValueMatch,
       }),
       node.rmType,
       node.nodeId,
@@ -268,24 +276,30 @@ export class FlatDeserializer {
 export function deserializeFromFlat(
   flat: FlatPayload,
   webTemplate: WebTemplate,
+  options?: FlatDeserializeOptions,
 ): RmObject {
-  return new FlatDeserializer(webTemplate).deserialize(flat);
+  return new FlatDeserializer(webTemplate, options).deserialize(flat);
 }
 
 export function deserializeFromFlatJson(
   json: string,
   webTemplate: WebTemplate,
+  options?: FlatDeserializeOptions,
 ): RmObject {
-  return new FlatDeserializer(webTemplate).deserializeJson(json);
+  return new FlatDeserializer(webTemplate, options).deserializeJson(json);
 }
 
-export type { FlatRmDefaultIssue } from "./flat_rm_defaults.ts";
+export type {
+  CodedValueMatch,
+  FlatRmDefaultIssue,
+} from "./flat_rm_defaults.ts";
 
 export function deserializeFromFlatWithIssues(
   flat: FlatPayload,
   webTemplate: WebTemplate,
+  options?: FlatDeserializeOptions,
 ): { composition: RmObject; issues: FlatRmDefaultIssue[] } {
-  const deserializer = new FlatDeserializer(webTemplate);
+  const deserializer = new FlatDeserializer(webTemplate, options);
   return {
     composition: deserializer.deserialize(flat),
     issues: deserializer.issues,
