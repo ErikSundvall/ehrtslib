@@ -10,6 +10,8 @@
 
 import type { WebTemplateNode } from "./types.ts";
 import {
+  type CodedValueMatch,
+  codedTextEquals,
   completeDvCodedText,
   type FlatRmDefaultIssue,
 } from "./flat_rm_defaults.ts";
@@ -41,6 +43,11 @@ export interface DvValueBuildContext {
   issues?: FlatRmDefaultIssue[];
   /** Path attached to reported issues. */
   path?: string;
+  /**
+   * How `|value` and a bare key match rubrics and codes. Default `"exact"`
+   * (case-sensitive); `"case-insensitive"` ignores case.
+   */
+  codedValueMatch?: CodedValueMatch;
 }
 
 export type FieldKind = "string" | "number" | "integer" | "boolean";
@@ -461,20 +468,20 @@ function nodeFromContext(context: DvValueBuildContext): WebTemplateNode | undefi
 }
 
 /**
- * Bare DV_CODED_TEXT key: a listed code (any case) is `|code`, otherwise `|value`.
+ * Bare DV_CODED_TEXT key: a listed code is `|code`, otherwise `|value`.
+ * The code must match exactly unless `match` is `"case-insensitive"`.
  * Does nothing when the caller already set `|code` or `|value`.
  */
 function interpretCodedTextBareField(
   fields: Record<string, string | number | boolean | null | undefined>,
   codes: CodedTextListEntry[],
   terminology?: string,
+  match: CodedValueMatch = "exact",
 ): Record<string, string | number | boolean | null | undefined> {
   const bare = fields[""];
   if (bare == null || fields.code != null || fields.value != null) return fields;
   const text = String(bare);
-  const codeHit = codes.find((code) =>
-    code.value.toLowerCase() === text.toLowerCase()
-  );
+  const codeHit = codes.find((code) => codedTextEquals(code.value, text, match));
   const rest: Record<string, string | number | boolean | null | undefined> = {
     ...fields,
   };
@@ -502,8 +509,9 @@ function interpretCodedTextBareField(
  *
  * When `context` carries a Web Template node or code list, a bare
  * DV_CODED_TEXT value is read as `|code` or `|value` and the missing half is
- * filled for local / openEHR lists. Without that context the bare key is not
- * turned into a code.
+ * filled for local / openEHR lists. Matching is exact unless
+ * `context.codedValueMatch` is `"case-insensitive"`. Without that context the
+ * bare key is not turned into a code.
  */
 export function buildDvValue(
   rmType: string,
@@ -517,6 +525,7 @@ export function buildDvValue(
       fields,
       listedCodes(codedNode),
       nodeTerminology(codedNode),
+      context?.codedValueMatch,
     )
     : fields;
   const map = getFieldMap(resolved) ?? fallbackFieldMap(resolved);
@@ -553,6 +562,7 @@ export function buildDvValue(
       context?.issues ?? [],
       context?.path ?? codedNode.aqlPath,
       context?.language,
+      context?.codedValueMatch,
     );
   }
   return root;

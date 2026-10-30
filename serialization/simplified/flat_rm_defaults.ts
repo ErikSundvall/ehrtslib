@@ -9,6 +9,7 @@ import {
   terminologyIdValue,
 } from "../../generation/coded_text_value.ts";
 import { instructionStateRubric } from "../../term/openehr_group_rubrics.ts";
+import { openehrCodeMeaning } from "../../validation/rm_specification_validator.ts";
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import {
   resolveAllAtWebTemplateNode,
@@ -21,6 +22,39 @@ export interface FlatRmDefaultIssue {
   path: string;
   message: string;
   severity: "error" | "warning";
+}
+
+/**
+ * How a FLAT `|value` or bare key is matched against Web Template rubrics and
+ * codes when a partial DV_CODED_TEXT is completed.
+ *
+ * - `"exact"` (default): case-sensitive, as in EHRbase. A value that matches
+ *   only when case is ignored is kept and reported, with a hint.
+ * - `"case-insensitive"`: case is ignored and the stored `value` gets the
+ *   template rubric.
+ */
+export type CodedValueMatch = "exact" | "case-insensitive";
+
+/** Options for {@link applyFlatRmDefaults} and the FLAT deserializers. */
+export interface FlatRmDefaultOptions {
+  /** Rubric and bare-key matching for partial DV_CODED_TEXT. Default `"exact"`. */
+  codedValueMatch?: CodedValueMatch;
+}
+
+/** Compare two strings under the chosen {@link CodedValueMatch} mode. */
+export function codedTextEquals(
+  a: string,
+  b: string,
+  match: CodedValueMatch = "exact",
+): boolean {
+  return match === "case-insensitive"
+    ? a.toLowerCase() === b.toLowerCase()
+    : a === b;
+}
+
+/** Issue-message suffix for a value that only matches when case is ignored. */
+export function caseOnlyMatchHint(kind: "rubric" | "code", target: string): string {
+  return `; matches ${kind} "${target}" ignoring case; enable codedValueMatch: "case-insensitive" to accept`;
 }
 
 function listItemLabel(
@@ -84,12 +118,62 @@ function rubricTexts(entry: CodedListEntry, term: string): string[] {
   return texts;
 }
 
-function matchesRubric(entry: CodedListEntry, val: string, term: string): boolean {
-  const lower = val.toLowerCase();
-  if (rubricTexts(entry, term).some((text) => text.toLowerCase() === lower)) {
+/** True when `val` names openEHR instruction state `code` (digits, rubric, or meaning). */
+function matchesInstructionState(
+  val: string,
+  code: string,
+  match: CodedValueMatch,
+): boolean {
+  if (resolveInstructionStateCode(val) !== code) return false;
+  if (match === "case-insensitive") return true;
+  const trimmed = val.trim();
+  return /^\d+$/.test(trimmed) || instructionStateRubric(code) === trimmed ||
+    openehrCodeMeaning(code) === trimmed;
+}
+
+function matchesRubric(
+  entry: CodedListEntry,
+  val: string,
+  term: string,
+  match: CodedValueMatch = "exact",
+): boolean {
+  if (rubricTexts(entry, term).some((text) => codedTextEquals(text, val, match))) {
     return true;
   }
-  return resolveInstructionStateCode(val) === entry.value;
+  return matchesInstructionState(val, entry.value, match);
+}
+
+/** First rubric of `entries` that equals `val` ignoring case (for the hint). */
+function caseOnlyRubric(
+  entries: CodedListEntry[],
+  val: string,
+  term: string,
+): string | undefined {
+  const lower = val.toLowerCase();
+  for (const entry of entries) {
+    const hit = rubricTexts(entry, term).find((text) => text.toLowerCase() === lower);
+    if (hit) return hit;
+    if (matchesInstructionState(val, entry.value, "case-insensitive")) {
+      return instructionStateRubric(entry.value) ?? entry.value;
+    }
+  }
+  return undefined;
+}
+
+/** Hint for an exact-mode miss that would match ignoring case, else "". */
+function exactMissHint(
+  entries: CodedListEntry[],
+  val: string,
+  term: string,
+  match: CodedValueMatch,
+): string {
+  if (match !== "exact") return "";
+  const rubric = caseOnlyRubric(entries, val, term);
+  if (rubric) return caseOnlyMatchHint("rubric", rubric);
+  const code = entries.find((entry) =>
+    entry.value.toLowerCase() === val.toLowerCase()
+  );
+  return code ? caseOnlyMatchHint("code", code.value) : "";
 }
 
 function findListEntry(
@@ -143,8 +227,9 @@ function currentStatesForCareflow(
  * Fill a partial DV_CODED_TEXT from the Web Template code list.
  *
  * Local and openEHR lists only. External terminologies are left as given.
- * Rubrics match case-insensitively; `value` is written with the template
- * rubric for `language` (canonical casing).
+ * `|value` is matched against the rubrics exactly unless `match` is
+ * `"case-insensitive"`, which also writes the template rubric for `language`
+ * (canonical casing) into `value`. A `|code` is matched ignoring case either way.
  */
 export function completeDvCodedText(
   value: RmObject,
@@ -152,6 +237,7 @@ export function completeDvCodedText(
   issues: FlatRmDefaultIssue[],
   path: string,
   language?: string,
+  match: CodedValueMatch = "exact",
 ): void {
   if (value._type !== "DV_CODED_TEXT") return;
 
@@ -172,7 +258,7 @@ export function completeDvCodedText(
   if (!code && val && entries.length) {
     const text = val;
     const rubricMatches = entries.filter((entry) =>
-      matchesRubric(entry, text, term)
+      matchesRubric(entry, text, term, match)
     );
     if (rubricMatches.length === 1) {
       code = rubricMatches[0].value;
@@ -196,14 +282,19 @@ export function completeDvCodedText(
           { code_string: only.value, terminology_id: { value: term } },
           { templateLabel: only.label },
         ));
-      const accepted = matchesRubric(only, val, term) ||
-        val.toLowerCase() === expectedRubric.toLowerCase();
+      const accepted = matchesRubric(only, val, term, match) ||
+        codedTextEquals(val, expectedRubric, match);
       if (!accepted) {
+        const hint = exactMissHint(entries, val, term, match) ||
+          (match === "exact" &&
+              val.toLowerCase() === expectedRubric.toLowerCase()
+            ? caseOnlyMatchHint("rubric", expectedRubric)
+            : "");
         issues.push({
           path,
           severity: "error",
           message:
-            `DV_CODED_TEXT value "${val}" does not match the only template-allowed code ${only.value} (expected rubric "${expectedRubric}")`,
+            `DV_CODED_TEXT value "${val}" does not match the only template-allowed code ${only.value} (expected rubric "${expectedRubric}")${hint}`,
         });
         return;
       }
@@ -213,7 +304,9 @@ export function completeDvCodedText(
         path,
         severity: "error",
         message:
-          `DV_CODED_TEXT value "${val}" does not match any template-allowed code`,
+          `DV_CODED_TEXT value "${val}" does not match any template-allowed code${
+            exactMissHint(entries, val, term, match)
+          }`,
       });
       return;
     }
@@ -251,16 +344,21 @@ export function completeDvCodedText(
       value.value = expected;
     } else if (val && expected && val !== expected) {
       if (
-        val.toLowerCase() === expected.toLowerCase() ||
-        resolveInstructionStateCode(val) === code
+        codedTextEquals(val, expected, match) ||
+        matchesInstructionState(val, code, match)
       ) {
         value.value = expected;
       } else {
+        const hint = match === "exact" &&
+            (val.toLowerCase() === expected.toLowerCase() ||
+              matchesInstructionState(val, code, "case-insensitive"))
+          ? caseOnlyMatchHint("rubric", expected)
+          : "";
         issues.push({
           path,
           severity: "error",
           message:
-            `DV_CODED_TEXT value "${val}" does not match openEHR rubric "${expected}" for code ${code}`,
+            `DV_CODED_TEXT value "${val}" does not match openEHR rubric "${expected}" for code ${code}${hint}`,
         });
       }
     }
@@ -276,8 +374,8 @@ export function completeDvCodedText(
     } else if (canonical) {
       const item = findListEntry(wtNode, code);
       const matched = item
-        ? matchesRubric(item, val, term)
-        : val.toLowerCase() === canonical.toLowerCase();
+        ? matchesRubric(item, val, term, match)
+        : codedTextEquals(val, canonical, match);
       if (matched && val !== canonical) value.value = canonical;
     }
   }
@@ -353,6 +451,7 @@ function fillIsmFromWebTemplate(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
+  match: CodedValueMatch = "exact",
 ): void {
   const variant = inferFromCareflow(ism, ismWt);
   if (variant?.nodeId && !ism.archetype_node_id) {
@@ -382,6 +481,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/current_state`,
       language,
+      match,
     );
   }
 
@@ -393,6 +493,7 @@ function fillIsmFromWebTemplate(
       issues,
       `${pathPrefix}/careflow_step`,
       language,
+      match,
     );
   }
 }
@@ -403,6 +504,7 @@ function defaultIsmTransition(
   issues: FlatRmDefaultIssue[] = [],
   pathPrefix = "",
   language?: string,
+  match: CodedValueMatch = "exact",
 ): RmObject {
   const ism: RmObject = { _type: "ISM_TRANSITION" };
   if (ismWt.nodeId) ism.archetype_node_id = ismWt.nodeId;
@@ -413,6 +515,7 @@ function defaultIsmTransition(
     issues,
     pathPrefix,
     language,
+    match,
   );
   return ism;
 }
@@ -455,6 +558,7 @@ function enrichCodedValues(
   node: WebTemplateNode,
   issues: FlatRmDefaultIssue[],
   language: string | undefined,
+  match: CodedValueMatch,
   scope?: unknown,
 ): void {
   if (node.inContext) return;
@@ -472,6 +576,7 @@ function enrichCodedValues(
           issues,
           node.aqlPath,
           language,
+          match,
         );
       }
     }
@@ -488,7 +593,7 @@ function enrichCodedValues(
         child,
       );
       for (const childValue of childValues) {
-        enrichCodedValues(root, child, issues, language, childValue);
+        enrichCodedValues(root, child, issues, language, match, childValue);
       }
     }
   }
@@ -515,7 +620,9 @@ export function applyFlatRmDefaults(
   webTemplate: WebTemplate,
   flat: FlatPayload,
   issues: FlatRmDefaultIssue[] = [],
+  options: FlatRmDefaultOptions = {},
 ): void {
+  const match = options.codedValueMatch ?? "exact";
   const ctxState = ctxCurrentStateDefault(flat);
   const language = compositionLanguage(composition) ?? webTemplate.defaultLanguage;
   const root = webTemplate.tree;
@@ -536,6 +643,7 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
+          match,
         );
       } else if (typeof record.ism_transition === "object") {
         fillIsmFromWebTemplate(
@@ -545,11 +653,12 @@ export function applyFlatRmDefaults(
           issues,
           ismPath,
           language,
+          match,
         );
       }
     }
   });
 
-  enrichCodedValues(composition, root, issues, language);
+  enrichCodedValues(composition, root, issues, language, match);
   dedupeIssues(issues);
 }
