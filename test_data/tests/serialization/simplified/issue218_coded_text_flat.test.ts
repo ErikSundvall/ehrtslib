@@ -194,7 +194,7 @@ Deno.test("#218 code-only DV_CODED_TEXT fills the template rubric", async () => 
   };
   assertRoundTrip(wt, { ...baseFlat, [`${key}|code`]: "at1001" }, expected);
   assertEquals(
-    snapshot(buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, {
+    snapshot(buildRmValue("DV_CODED_TEXT", { code: "at1001" }, {
       node,
       language: "en",
     }) as Record<string, unknown>),

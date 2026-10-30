@@ -25,19 +25,19 @@ export interface FlatRmDefaultIssue {
 }
 
 /**
- * How a FLAT `|value` or bare key is matched against Web Template rubrics and
- * codes when a partial DV_CODED_TEXT is completed.
+ * How a FLAT `|code`, `|value`, or bare key is matched against Web Template
+ * codes and rubrics when a DV_CODED_TEXT is completed.
  *
- * - `"exact"` (default): case-sensitive, as in EHRbase. A value that matches
- *   only when case is ignored is kept and reported, with a hint.
- * - `"case-insensitive"`: case is ignored and the stored `value` gets the
- *   template rubric.
+ * - `"exact"` (default): case-sensitive, as in EHRbase. A code or value that
+ *   matches only when case is ignored is kept as given and reported, with a hint.
+ * - `"case-insensitive"`: case is ignored; the stored code and `value` get the
+ *   template code and rubric.
  */
 export type CodedValueMatch = "exact" | "case-insensitive";
 
 /** Options for {@link applyFlatRmDefaults} and the FLAT deserializers. */
 export interface FlatRmDefaultOptions {
-  /** Rubric and bare-key matching for partial DV_CODED_TEXT. Default `"exact"`. */
+  /** Code, rubric, and bare-key matching for DV_CODED_TEXT. Default `"exact"`. */
   codedValueMatch?: CodedValueMatch;
 }
 
@@ -227,9 +227,10 @@ function currentStatesForCareflow(
  * Fill a partial DV_CODED_TEXT from the Web Template code list.
  *
  * Local and openEHR lists only. External terminologies are left as given.
- * `|value` is matched against the rubrics exactly unless `match` is
- * `"case-insensitive"`, which also writes the template rubric for `language`
- * (canonical casing) into `value`. A `|code` is matched ignoring case either way.
+ * `|code` and `|value` are matched against the template codes and rubrics
+ * exactly unless `match` is `"case-insensitive"`, which also writes the
+ * template code and the rubric for `language` (canonical casing). In exact
+ * mode a code that differs only by case is kept as given and reported.
  */
 export function completeDvCodedText(
   value: RmObject,
@@ -314,11 +315,22 @@ export function completeDvCodedText(
     code = only.value;
   }
 
-  if (code) {
-    const canonical = entries.find((entry) =>
+  if (code && !entries.some((entry) => entry.value === code)) {
+    const folded = entries.find((entry) =>
       entry.value.toLowerCase() === code!.toLowerCase()
     );
-    if (canonical) code = canonical.value;
+    if (folded && match === "case-insensitive") {
+      code = folded.value;
+    } else if (folded) {
+      issues.push({
+        path,
+        severity: "error",
+        message: `DV_CODED_TEXT code "${code}" is not a template-allowed code${
+          caseOnlyMatchHint("code", folded.value)
+        }`,
+      });
+      return;
+    }
   }
 
   if (code && (!dc || !dc.code_string)) {

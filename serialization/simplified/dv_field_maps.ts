@@ -44,8 +44,8 @@ export interface DvValueBuildContext {
   /** Path attached to reported issues. */
   path?: string;
   /**
-   * How `|value` and a bare key match rubrics and codes. Default `"exact"`
-   * (case-sensitive); `"case-insensitive"` ignores case.
+   * How `|code`, `|value`, and a bare key match template codes and rubrics.
+   * Default `"exact"` (case-sensitive); `"case-insensitive"` ignores case.
    */
   codedValueMatch?: CodedValueMatch;
 }

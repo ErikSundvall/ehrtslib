@@ -1,6 +1,7 @@
 /**
  * FLAT coded text: exact, case-sensitive `|value` and bare-key matching by
- * default; case-insensitive matching as an opt-in (#231).
+ * default; case-insensitive matching as an opt-in (#231). `|code` follows
+ * the same option (#235).
  */
 
 import { assert, assertEquals } from "@std/assert";
@@ -231,7 +232,7 @@ Deno.test("#231 code-only completion is the same in both modes", async () => {
     assertEquals(snapshot(positionValue(composition)), SITTING);
     assertEquals(issues, []);
     assertEquals(
-      snapshot(buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, {
+      snapshot(buildRmValue("DV_CODED_TEXT", { code: "at1001" }, {
         node,
         codedValueMatch,
       })),
@@ -338,4 +339,109 @@ Deno.test("#231 openEHR rubric with a code: case-only value is reported unless o
     terminology: "openehr",
   }, { codes, terminology: "openehr", codedValueMatch: "case-insensitive" });
   assertEquals(folded.value, "completed");
+});
+
+Deno.test("#235 case-only |code is kept and reported by default", async () => {
+  const { wt, key, node } = await loadPosition();
+  const unmatchedCode: CodedSnapshot = {
+    type: "DV_CODED_TEXT",
+    value: undefined,
+    code: "AT1001",
+    terminology: "local",
+  };
+  const { composition, issues } = deserializeFromFlatWithIssues(
+    { ...baseFlat, [`${key}|code`]: "AT1001" },
+    wt,
+  );
+  assertEquals(snapshot(positionValue(composition)), unmatchedCode);
+  assertHint(issues, "AT1001", "at1001");
+
+  const buildIssues: FlatRmDefaultIssue[] = [];
+  assertEquals(
+    snapshot(buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, {
+      node,
+      issues: buildIssues,
+    })),
+    unmatchedCode,
+  );
+  assertHint(buildIssues, "AT1001", "at1001");
+});
+
+Deno.test("#235 case-only |code with |value is kept as given and reported by default", async () => {
+  const { wt, key, node } = await loadPosition();
+  const given: CodedSnapshot = {
+    type: "DV_CODED_TEXT",
+    value: "Sitting",
+    code: "AT1001",
+    terminology: "local",
+  };
+  const { composition, issues } = deserializeFromFlatWithIssues(
+    {
+      ...baseFlat,
+      [`${key}|code`]: "AT1001",
+      [`${key}|value`]: "Sitting",
+      [`${key}|terminology`]: "local",
+    },
+    wt,
+  );
+  assertEquals(snapshot(positionValue(composition)), given);
+  assertHint(issues, "AT1001", "at1001");
+
+  const buildIssues: FlatRmDefaultIssue[] = [];
+  assertEquals(
+    snapshot(buildDvValue("DV_CODED_TEXT", {
+      code: "AT1001",
+      value: "Sitting",
+      terminology: "local",
+    }, { node, issues: buildIssues })),
+    given,
+  );
+  assertHint(buildIssues, "AT1001", "at1001");
+});
+
+Deno.test("#235 codedValueMatch case-insensitive normalises |code", async () => {
+  const { wt, key, node } = await loadPosition();
+  const options = { codedValueMatch: "case-insensitive" as const };
+  for (
+    const fields of [
+      { [`${key}|code`]: "AT1001" },
+      { [`${key}|code`]: "AT1001", [`${key}|value`]: "Sitting" },
+      { [`${key}|code`]: "AT1001", [`${key}|value`]: "sitting" },
+    ]
+  ) {
+    const { composition, issues } = deserializeFromFlatWithIssues(
+      { ...baseFlat, ...fields },
+      wt,
+      options,
+    );
+    assertEquals(snapshot(positionValue(composition)), SITTING);
+    assertEquals(issues, []);
+  }
+  assertEquals(
+    snapshot(buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, {
+      node,
+      ...options,
+    })),
+    SITTING,
+  );
+  assertEquals(
+    snapshot(buildDvValue("DV_CODED_TEXT", {
+      code: "AT1001",
+      value: "Sitting",
+    }, { node, ...options })),
+    SITTING,
+  );
+});
+
+Deno.test("#235 exact |code with |value is unchanged in both modes", async () => {
+  const { wt, key } = await loadPosition();
+  for (const codedValueMatch of ["exact", "case-insensitive"] as const) {
+    const { composition, issues } = deserializeFromFlatWithIssues(
+      { ...baseFlat, [`${key}|code`]: "at1001", [`${key}|value`]: "Sitting" },
+      wt,
+      { codedValueMatch },
+    );
+    assertEquals(snapshot(positionValue(composition)), SITTING);
+    assertEquals(issues, []);
+  }
 });
