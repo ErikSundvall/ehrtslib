@@ -1,0 +1,464 @@
+/**
+ * FLAT coded text: `codedTextMismatch` ("reject" | "keep" | "correct") for
+ * `|value`, bare keys, and `|code` without an exact template match, and for
+ * code/value conflicts (#235, replacing #231's `codedValueMatch`).
+ */
+
+import { assert, assertEquals, assertThrows } from "@std/assert";
+import { parseOptXml } from "../../../../parser/legacy/opt_xml_parser.ts";
+import { buildWebTemplate } from "../../../../serialization/simplified/web_template_builder.ts";
+import {
+  CodedTextMismatchError,
+  deserializeFromFlat,
+  deserializeFromFlatWithIssues,
+} from "../../../../serialization/simplified/flat_deserializer.ts";
+import { buildDvValue } from "../../../../serialization/simplified/dv_field_maps.ts";
+import { buildRmValue } from "../../../../serialization/simplified/value_build.ts";
+import type {
+  CodedTextMismatch,
+  FlatRmDefaultIssue,
+} from "../../../../serialization/simplified/flat_rm_defaults.ts";
+import type {
+  WebTemplate,
+  WebTemplateNode,
+} from "../../../../serialization/simplified/types.ts";
+
+const OPT = new URL(
+  "../../../opt14/ehrbase_blood_pressure_simple.de.v0.opt",
+  import.meta.url,
+);
+
+const baseFlat = {
+  "ctx/language": "en",
+  "ctx/territory": "DE",
+  "ctx/composer_name": "Tester",
+};
+
+interface CodedSnapshot {
+  type?: unknown;
+  value?: unknown;
+  code?: string;
+  terminology?: string;
+}
+
+function findChain(
+  node: WebTemplateNode,
+  pred: (candidate: WebTemplateNode) => boolean,
+  acc: WebTemplateNode[] = [],
+): WebTemplateNode[] | undefined {
+  if (pred(node)) return acc;
+  for (const child of node.children ?? []) {
+    const found = findChain(child, pred, [...acc, child]);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+function snapshot(value: Record<string, unknown> | undefined): CodedSnapshot {
+  const defining = value?.defining_code as {
+    code_string?: string;
+    terminology_id?: { value?: string };
+  } | undefined;
+  return {
+    type: value?._type,
+    value: value?.value,
+    code: defining?.code_string,
+    terminology: defining?.terminology_id?.value,
+  };
+}
+
+function positionValue(
+  composition: unknown,
+): Record<string, unknown> | undefined {
+  const walk = (node: unknown): Record<string, unknown> | undefined => {
+    if (!node || typeof node !== "object") return undefined;
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        const found = walk(item);
+        if (found) return found;
+      }
+      return undefined;
+    }
+    const record = node as Record<string, unknown>;
+    if (record._type === "ELEMENT" && record.archetype_node_id === "at0008") {
+      return record.value as Record<string, unknown>;
+    }
+    for (const child of Object.values(record)) {
+      const found = walk(child);
+      if (found) return found;
+    }
+    return undefined;
+  };
+  return walk(composition);
+}
+
+async function loadPosition(): Promise<{
+  wt: WebTemplate;
+  key: string;
+  node: WebTemplateNode;
+}> {
+  const xml = await Deno.readTextFile(OPT);
+  const { operationalTemplate } = parseOptXml(xml);
+  const wt = buildWebTemplate(operationalTemplate!);
+  const chain = findChain(
+    wt.tree,
+    (node) =>
+      node.id === "position" &&
+      node.rmType === "DV_CODED_TEXT" &&
+      !!node.inputs?.some((input) =>
+        input.list?.some((item) =>
+          item.value === "at1001" && item.label === "Sitting"
+        )
+      ),
+  );
+  assert(chain, "expected position DV_CODED_TEXT");
+  const node = chain[chain.length - 1];
+  return {
+    wt,
+    node,
+    key: `${wt.tree.id}/${chain.map((part) => part.id).join("/")}`,
+  };
+}
+
+const SITTING: CodedSnapshot = {
+  type: "DV_CODED_TEXT",
+  value: "Sitting",
+  code: "at1001",
+  terminology: "local",
+};
+
+function sent(value?: string, code?: string): CodedSnapshot {
+  return {
+    type: "DV_CODED_TEXT",
+    value,
+    code,
+    terminology: code ? "local" : undefined,
+  };
+}
+
+type Outcome = "error" | "kept" | "corrected";
+
+interface MismatchCase {
+  name: string;
+  /** Suffix ("" = bare key) → value. */
+  fields: Record<string, string>;
+  caseOnly: boolean;
+  kept: CodedSnapshot;
+}
+
+const CASES: MismatchCase[] = [
+  {
+    name: "|value case-only",
+    fields: { value: "sitting" },
+    caseOnly: true,
+    kept: sent("sitting"),
+  },
+  {
+    name: "|value no match",
+    fields: { value: "Kneeling" },
+    caseOnly: false,
+    kept: sent("Kneeling"),
+  },
+  {
+    name: "bare rubric case-only",
+    fields: { "": "sitting" },
+    caseOnly: true,
+    kept: sent("sitting"),
+  },
+  {
+    name: "bare code case-only",
+    fields: { "": "AT1001" },
+    caseOnly: true,
+    kept: sent(undefined, "AT1001"),
+  },
+  {
+    name: "bare no match",
+    fields: { "": "Kneeling" },
+    caseOnly: false,
+    kept: sent("Kneeling"),
+  },
+  {
+    name: "|code case-only",
+    fields: { code: "AT1001" },
+    caseOnly: true,
+    kept: sent(undefined, "AT1001"),
+  },
+  {
+    name: "|code no match",
+    fields: { code: "at9999" },
+    caseOnly: false,
+    kept: sent(undefined, "at9999"),
+  },
+  {
+    name: "|code case-only + |value",
+    fields: { code: "AT1001", value: "Sitting" },
+    caseOnly: true,
+    kept: sent("Sitting", "AT1001"),
+  },
+  {
+    name: "|code no match + |value",
+    fields: { code: "at9999", value: "Sitting" },
+    caseOnly: false,
+    kept: sent("Sitting", "at9999"),
+  },
+  {
+    name: "|code + |value case-only",
+    fields: { code: "at1001", value: "sitting" },
+    caseOnly: true,
+    kept: sent("sitting", "at1001"),
+  },
+  {
+    name: "|code + |value no match",
+    fields: { code: "at1001", value: "Kneeling" },
+    caseOnly: false,
+    kept: sent("Kneeling", "at1001"),
+  },
+];
+
+function outcome(mode: CodedTextMismatch, caseOnly: boolean): Outcome {
+  if (mode === "keep") return "kept";
+  if (mode === "correct" && caseOnly) return "corrected";
+  return "error";
+}
+
+function flatFor(key: string, fields: Record<string, string>) {
+  const flat: Record<string, string> = { ...baseFlat };
+  for (const [suffix, value] of Object.entries(fields)) {
+    flat[suffix ? `${key}|${suffix}` : key] = value;
+  }
+  return flat;
+}
+
+function mismatchIssues(issues: FlatRmDefaultIssue[]): FlatRmDefaultIssue[] {
+  return issues.filter((issue) => issue.kind === "coded-text-mismatch");
+}
+
+function assertOutcome(
+  label: string,
+  expected: Outcome,
+  snap: CodedSnapshot,
+  kept: CodedSnapshot,
+  issues: FlatRmDefaultIssue[],
+): void {
+  const found = mismatchIssues(issues);
+  assertEquals(found.length, 1, `${label}: ${JSON.stringify(issues)}`);
+  const [issue] = found;
+  assert(issue.message.includes("codedTextMismatch"), label);
+  if (expected === "error") {
+    assertEquals(issue.severity, "error", label);
+    return;
+  }
+  assertEquals(issue.severity, "warning", label);
+  assertEquals(snap, expected === "kept" ? kept : SITTING, label);
+}
+
+for (const mode of ["reject", "keep", "correct"] as const) {
+  Deno.test(`#235 FLAT ${mode}: case-only and no-match input`, async () => {
+    const { wt, key } = await loadPosition();
+    for (const c of CASES) {
+      const label = `${mode} ${c.name}`;
+      const expected = outcome(mode, c.caseOnly);
+      const flat = flatFor(key, c.fields);
+      const { composition, issues } = deserializeFromFlatWithIssues(flat, wt, {
+        codedTextMismatch: mode,
+      });
+      assertOutcome(
+        label,
+        expected,
+        snapshot(positionValue(composition)),
+        c.kept,
+        issues,
+      );
+      if (expected === "error") {
+        assertThrows(
+          () => deserializeFromFlat(flat, wt, { codedTextMismatch: mode }),
+          CodedTextMismatchError,
+          undefined,
+          label,
+        );
+      } else {
+        deserializeFromFlat(flat, wt, { codedTextMismatch: mode });
+      }
+    }
+  });
+
+  Deno.test(`#235 buildRmValue / buildDvValue ${mode}: case-only and no-match input`, async () => {
+    const { node } = await loadPosition();
+    for (const c of CASES) {
+      const label = `${mode} ${c.name}`;
+      const expected = outcome(mode, c.caseOnly);
+      const issues: FlatRmDefaultIssue[] = [];
+      const built = buildDvValue("DV_CODED_TEXT", c.fields, {
+        node,
+        issues,
+        codedTextMismatch: mode,
+      });
+      assertOutcome(label, expected, snapshot(built), c.kept, issues);
+      if (expected === "error") {
+        assertThrows(
+          () =>
+            buildRmValue("DV_CODED_TEXT", c.fields, {
+              node,
+              codedTextMismatch: mode,
+            }),
+          CodedTextMismatchError,
+          undefined,
+          label,
+        );
+      } else {
+        assertEquals(
+          snapshot(
+            buildRmValue("DV_CODED_TEXT", c.fields, {
+              node,
+              codedTextMismatch: mode,
+            }),
+          ),
+          snapshot(built),
+          label,
+        );
+      }
+    }
+  });
+}
+
+Deno.test("#235 reject is the default", async () => {
+  const { wt, key, node } = await loadPosition();
+  const flat = flatFor(key, { value: "sitting" });
+  const { issues } = deserializeFromFlatWithIssues(flat, wt);
+  const [issue] = mismatchIssues(issues);
+  assertEquals(issue.severity, "error");
+  assert(
+    issue.message.includes(
+      'matches template rubric "Sitting" only when case is ignored',
+    ),
+  );
+  assert(issue.message.includes('codedTextMismatch: "correct"'));
+  assert(issue.message.includes('"keep"'));
+  assertThrows(() => deserializeFromFlat(flat, wt), CodedTextMismatchError);
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", { code: "AT1001" }, { node }),
+    CodedTextMismatchError,
+  );
+});
+
+Deno.test("#235 code/value conflict in each mode", async () => {
+  const { wt, key, node } = await loadPosition();
+  const fields = { code: "at1001", value: "Standing" };
+  const flat = flatFor(key, fields);
+
+  const rejected = deserializeFromFlatWithIssues(flat, wt);
+  const [error] = mismatchIssues(rejected.issues);
+  assertEquals(error.severity, "error");
+  assert(error.message.includes("at1000"), error.message);
+  assertThrows(() => deserializeFromFlat(flat, wt), CodedTextMismatchError);
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", fields, { node }),
+    CodedTextMismatchError,
+  );
+
+  const kept = deserializeFromFlatWithIssues(flat, wt, {
+    codedTextMismatch: "keep",
+  });
+  assertEquals(
+    snapshot(positionValue(kept.composition)),
+    sent("Standing", "at1001"),
+  );
+  assertEquals(mismatchIssues(kept.issues).map((i) => i.severity), ["warning"]);
+
+  const corrected = deserializeFromFlatWithIssues(flat, wt, {
+    codedTextMismatch: "correct",
+  });
+  assertEquals(snapshot(positionValue(corrected.composition)), SITTING);
+  assertEquals(mismatchIssues(corrected.issues).map((i) => i.severity), [
+    "warning",
+  ]);
+  assertEquals(
+    snapshot(
+      buildRmValue("DV_CODED_TEXT", fields, {
+        node,
+        codedTextMismatch: "correct",
+      }),
+    ),
+    SITTING,
+  );
+});
+
+Deno.test("#235 exact input and code-only completion are the same in every mode", async () => {
+  const { wt, key, node } = await loadPosition();
+  for (const mode of ["reject", "keep", "correct"] as const) {
+    for (
+      const fields of <Record<string, string>[]> [
+        { value: "Sitting" },
+        { "": "Sitting" },
+        { "": "at1001" },
+        { code: "at1001" },
+        { code: "at1001", value: "Sitting" },
+      ]
+    ) {
+      const { composition, issues } = deserializeFromFlatWithIssues(
+        flatFor(key, fields),
+        wt,
+        { codedTextMismatch: mode },
+      );
+      assertEquals(
+        snapshot(positionValue(composition)),
+        SITTING,
+        `${mode} ${JSON.stringify(fields)}`,
+      );
+      assertEquals(issues, []);
+      assertEquals(
+        snapshot(
+          buildDvValue("DV_CODED_TEXT", fields, {
+            node,
+            codedTextMismatch: mode,
+          }),
+        ),
+        SITTING,
+      );
+    }
+  }
+});
+
+Deno.test("#235 openEHR rubric: case-only value and conflict follow the mode", () => {
+  const codes = [{ value: "245" }, { value: "532" }];
+  const ctx = { codes, terminology: "openehr" };
+  const caseOnly = { code: "532", value: "Completed", terminology: "openehr" };
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", caseOnly, ctx),
+    CodedTextMismatchError,
+  );
+  assertEquals(
+    buildRmValue("DV_CODED_TEXT", caseOnly, {
+      ...ctx,
+      codedTextMismatch: "keep",
+    }).value,
+    "Completed",
+  );
+  assertEquals(
+    buildRmValue("DV_CODED_TEXT", caseOnly, {
+      ...ctx,
+      codedTextMismatch: "correct",
+    }).value,
+    "completed",
+  );
+
+  const conflict = { code: "532", value: "active", terminology: "openehr" };
+  assertThrows(
+    () => buildRmValue("DV_CODED_TEXT", conflict, ctx),
+    CodedTextMismatchError,
+  );
+  assertEquals(
+    buildRmValue("DV_CODED_TEXT", conflict, {
+      ...ctx,
+      codedTextMismatch: "keep",
+    }).value,
+    "active",
+  );
+  assertEquals(
+    buildRmValue("DV_CODED_TEXT", conflict, {
+      ...ctx,
+      codedTextMismatch: "correct",
+    }).value,
+    "completed",
+  );
+});
