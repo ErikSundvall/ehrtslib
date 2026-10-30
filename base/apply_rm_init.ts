@@ -15,7 +15,6 @@
  * `DV_CODED_TEXT`, or `DATA_VALUE` attribute becomes an RM object.
  */
 
-import { createRequire } from "node:module";
 import {
   attributesFor,
   isAbstractType,
@@ -26,6 +25,7 @@ import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import {
   isTerseDvCodedTextString,
 } from "../serialization/terse_strings.ts";
+import { type RmInitHelpers, rmInitLate } from "./rm_init_late.ts";
 
 /** Partial attribute bag accepted by RM constructors. */
 export type RmInit = object;
@@ -43,26 +43,44 @@ const PRIMITIVE_TYPES = new Set([
   "Ordered_Numeric",
 ]);
 
-type InitHelpers = {
-  initCodePhrase: (value: unknown) => unknown;
-  initDvCodedText: (value: unknown) => unknown;
-  initDvText: (value: unknown) => unknown;
-};
+type InitHelpers = RmInitHelpers;
 
 type Ctor = new () => object;
 
-const require = createRequire(import.meta.url);
 const initStack = new WeakSet<object>();
 
-let initHelpers: InitHelpers | undefined;
 let modelTypesReady = false;
 let exportCtors: Map<string, Ctor> | undefined;
+let exportCtorModules = 0;
 
+/**
+ * Synchronous `require` for a module that has not registered itself yet, for
+ * `file:` imports of single package files only (a deep import that never
+ * loads the RM barrel). Over `https:` or in a browser bundle there is none:
+ * the public entry points register everything on load. Looked up at run time
+ * so no `node:module` import reaches a browser bundle.
+ */
+function fileRequire(): ((path: string) => unknown) | undefined {
+  if (!import.meta.url.startsWith("file:")) return undefined;
+  const proc = (globalThis as {
+    process?: { getBuiltinModule?: (id: string) => unknown };
+  }).process;
+  const mod = proc?.getBuiltinModule?.("node:module") as
+    | { createRequire?: (url: string) => (path: string) => unknown }
+    | undefined;
+  return mod?.createRequire?.(import.meta.url);
+}
+
+/** `init_helpers.ts` registers itself on load (every RM data type module imports it). */
 function loadInitHelpers(): InitHelpers {
-  if (!initHelpers) {
-    initHelpers = require("./init_helpers.ts") as InitHelpers;
+  if (!rmInitLate.initHelpers) fileRequire()?.("./init_helpers.ts");
+  const helpers = rmInitLate.initHelpers;
+  if (!helpers) {
+    throw new Error(
+      "ehrtslib RM init helpers are not loaded: import the RM (openehr_rm.ts or rm/mod.ts) before constructing RM objects from init objects",
+    );
   }
-  return initHelpers;
+  return helpers;
 }
 
 function ensureModelTypes(): void {
@@ -70,24 +88,22 @@ function ensureModelTypes(): void {
     modelTypesReady = true;
     return;
   }
-  const { registerOpenEhrModelTypes } = require(
-    "../serialization/common/openehr_model_registry.ts",
-  ) as { registerOpenEhrModelTypes: () => void };
-  registerOpenEhrModelTypes();
-  modelTypesReady = true;
+  // Set by openehr_model_registry.ts when it is loaded (openehr_rm.ts loads it).
+  if (!rmInitLate.registerModelTypes) fileRequire()?.("../serialization/common/openehr_model_registry.ts");
+  if (rmInitLate.registerModelTypes) {
+    rmInitLate.registerModelTypes();
+    modelTypesReady = true;
+  }
 }
 
 function ctorFor(typeName: string): Ctor | undefined {
   ensureModelTypes();
   const registered = TypeRegistry.getConstructor(typeName);
   if (registered) return registered as Ctor;
-  if (!exportCtors) {
+  if (!exportCtors || exportCtorModules !== rmInitLate.ctorModules.length) {
     exportCtors = new Map();
-    const mods = [
-      require("../rm/mod.ts") as Record<string, unknown>,
-      require("../base/mod.ts") as Record<string, unknown>,
-    ];
-    for (const mod of mods) {
+    exportCtorModules = rmInitLate.ctorModules.length;
+    for (const mod of rmInitLate.ctorModules) {
       for (const [name, value] of Object.entries(mod)) {
         if (exportCtors.has(name)) continue;
         if (typeof value === "function" && value.prototype) {
@@ -448,3 +464,5 @@ export function applyRmInit(instance: object, init: unknown): void {
     initStack.delete(init);
   }
 }
+
+rmInitLate.applyRmInit = applyRmInit;

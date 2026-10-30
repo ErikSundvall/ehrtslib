@@ -3,13 +3,9 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import { createRequire } from "node:module";
 import { TYPE_REGISTRY } from "../_shared.ts";
+import { rmInitLate } from "../rm_init_late.ts";
 import { Boolean, String } from "./primitive_types.ts";
-
-type ApplyRmInit = (instance: object, init: unknown) => void;
-
-let applyRmInitLazy: ApplyRmInit | undefined;
 
 /**
  * Abstract ancestor class for all other classes. Usually maps to a type like \`Any\` or \`Object\` in an object-oriented technology. Defined here to provide value and reference equality semantics.
@@ -18,18 +14,16 @@ export abstract class Any {
   /**
    * Optional init is applied only when an argument is passed.
    * `undefined` is a no-op so primitive wrappers can keep calling `super()`.
-   * `applyRmInit` is loaded here, not at module scope, so this file does not
+   * `applyRmInit` is late-bound (`rm_init_late.ts`), so this file does not
    * import `rm/` or `meta/` while it is still evaluating.
    */
   constructor(init?: unknown) {
     if (init === undefined || init === null) return;
-    if (!applyRmInitLazy) {
-      const require = createRequire(import.meta.url);
-      applyRmInitLazy = (require("../apply_rm_init.ts") as {
-        applyRmInit: ApplyRmInit;
-      }).applyRmInit;
+    const applyRmInit = rmInitLate.applyRmInit;
+    if (!applyRmInit) {
+      throw new Error("ehrtslib apply_rm_init.ts is not loaded; import base/mod.ts or openehr_base.ts");
     }
-    applyRmInitLazy(this, init);
+    applyRmInit(this, init);
   }
 
   /**

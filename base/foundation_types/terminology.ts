@@ -3,11 +3,11 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
-import { createRequire } from "node:module";
 import { TYPE_REGISTRY } from "../_shared.ts";
 import { TERMINOLOGY_ID } from "../base_types/identification.ts";
 import { applyRmInit, type RmInit } from "../apply_rm_init.ts";
 import { Any } from "./foundation_types.ts";
+import { matchTerseCodePhrase } from "../../serialization/terse_strings.ts";
 import { Boolean, String } from "./primitive_types.ts";
 import type { Uri } from "./primitive_types.ts";
 
@@ -245,15 +245,18 @@ export class CODE_PHRASE {
    */
   constructor(init?: string | RmInit) {
     if (typeof init === "string") {
-      const { initCodePhrase } = createRequire(import.meta.url)(
-        "../init_helpers.ts",
-      ) as { initCodePhrase: (value: string) => CODE_PHRASE | undefined };
-      const parsed = initCodePhrase(init);
-      if (parsed) {
-        this.terminology_id = parsed.terminology_id;
-        this.code_string = parsed.code_string;
-        if (parsed.preferred_term) this.preferred_term = parsed.preferred_term;
+      // Same parse as init_helpers `initCodePhrase`, without importing it
+      // (init_helpers imports the RM, which imports this module).
+      const parts = matchTerseCodePhrase(init);
+      if (!parts) {
+        throw new Error(
+          `Invalid CODE_PHRASE format: "${init}"\nExpected terse format like "terminology::code"`,
+        );
       }
+      const terminologyId = new TERMINOLOGY_ID();
+      terminologyId.value = parts.termId;
+      this.terminology_id = terminologyId;
+      this.code_string = parts.code;
       return;
     }
     applyRmInit(this, init);

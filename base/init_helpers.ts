@@ -22,6 +22,7 @@ import {
   EVENT_CONTEXT
 } from "../rm/openehr_rm.ts";
 import { parseTerseCodePhrase, parseTerseDvCodedText } from "../serialization/terse_format.ts";
+import { rmInitLate } from "./rm_init_late.ts";
 
 /**
  * Initialize any single-value wrapper type (TERMINOLOGY_ID, ARCHETYPE_ID, OBJECT_VERSION_ID, etc.)
@@ -345,3 +346,10 @@ export function initEventContext(
   
   return context;
 }
+
+// apply_rm_init.ts reads these late (it cannot import this module: cycle).
+rmInitLate.initHelpers = {
+  initCodePhrase: initCodePhrase as (value: unknown) => unknown,
+  initDvCodedText: initDvCodedText as (value: unknown) => unknown,
+  initDvText: initDvText as (value: unknown) => unknown,
+};
