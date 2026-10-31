@@ -27,13 +27,16 @@ export interface FlatRmDefaultIssue {
    * `unknown-key`: a FLAT key that matches no Web Template node (see
    * `unknownKeys`). `legacy-path`: a key in an older ehrtslib path form that
    * was accepted. `missing-mandatory`: an RM-mandatory value that is neither
-   * in the payload nor in `ctx/` and that no default filled.
+   * in the payload nor in `ctx/` and that no default filled. `context-rule`:
+   * ctx/ context keys ignored for a persistent composition, or a context
+   * given for one (see docs/SIMPLIFIED_FORMATS.md "Event context").
    */
   kind?:
     | "coded-text-mismatch"
     | "unknown-key"
     | "legacy-path"
-    | "missing-mandatory";
+    | "missing-mandatory"
+    | "context-rule";
 }
 
 /**

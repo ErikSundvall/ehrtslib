@@ -70,6 +70,15 @@ export const KNOWN_CTX_FIELDS = new Set([
   "work_flow_id",
 ]);
 
+/** ctx keys that set EVENT_CONTEXT attributes (they never create one). */
+const CONTEXT_CTX_FIELDS = [
+  "time",
+  "end_time",
+  "location",
+  "setting",
+  "health_care_facility",
+];
+
 const COLLAPSED_NAMES: Record<string, string> = {
   HISTORY: "History",
   EVENT: "Event",
@@ -270,32 +279,91 @@ class ContextDefaulter {
       }
     }
 
+    const category = get("category");
+    if (category && !c.category) {
+      const code = category.code ?? bare(category);
+      if (code != null) c.category = this.category(String(code));
+    }
+  }
+
+  /** ctx/ keys that set EVENT_CONTEXT attributes. */
+  private contextCtxKeys(): string[] {
+    return CONTEXT_CTX_FIELDS.filter((id) => this.ctx.has(id));
+  }
+
+  /** ctx/ values for an existing EVENT_CONTEXT; explicit paths win. */
+  private applyContextCtx(ctx: RmObject): void {
+    const get = (id: string) => this.ctx.get(id);
     const time = bare(get("time"));
     const end = bare(get("end_time"));
     const location = bare(get("location"));
     const setting = get("setting");
     const hcf = get("health_care_facility");
-    if (time != null || end != null || location != null || setting || hcf) {
-      const ctx = this.ensureContext();
-      if (time != null && !ctx.start_time) ctx.start_time = dateTime(String(time));
-      if (end != null && !ctx.end_time) ctx.end_time = dateTime(String(end));
-      if (location != null && ctx.location == null) ctx.location = String(location);
-      if (setting && !ctx.setting) ctx.setting = this.settingFromCtx(setting);
-      if (hcf && !ctx.health_care_facility) {
-        const name = hcf.name ?? bare(hcf);
-        const facility: RmObject = { _type: "PARTY_IDENTIFIED" };
-        if (name != null) facility.name = String(name);
-        if (hcf.id != null) {
-          facility.external_ref = { ...partyRef(hcf.id, hcf), type: "ORGANISATION" };
+    if (time != null && !ctx.start_time) ctx.start_time = dateTime(String(time));
+    if (end != null && !ctx.end_time) ctx.end_time = dateTime(String(end));
+    if (location != null && ctx.location == null) ctx.location = String(location);
+    if (setting && !ctx.setting) ctx.setting = this.settingFromCtx(setting);
+    if (hcf && !ctx.health_care_facility) {
+      const name = hcf.name ?? bare(hcf);
+      const facility: RmObject = { _type: "PARTY_IDENTIFIED" };
+      if (name != null) facility.name = String(name);
+      if (hcf.id != null) {
+        facility.external_ref = { ...partyRef(hcf.id, hcf), type: "ORGANISATION" };
+      }
+      ctx.health_care_facility = facility;
+    }
+  }
+
+  /**
+   * EVENT_CONTEXT by category, as Better does: an event (non-persistent)
+   * composition gets one (with contextDefaults "none" only when ctx/ context
+   * keys are given); a persistent one (431) only from explicit `context/…`
+   * paths, and its ctx/ context keys are then ignored with a warning.
+   */
+  private decideContext(): void {
+    const c = this.comp;
+    const categoryCode = String(
+      ((c.category as RmObject | undefined)?.defining_code as RmObject | undefined)?.code_string ??
+        fixedCategoryCode(this.wt) ?? "",
+    );
+    const persistent = categoryCode === "431";
+    const ctxKeys = this.contextCtxKeys();
+    if (persistent) {
+      if (!c.context) {
+        if (ctxKeys.length) {
+          this.issues.push({
+            path: "/context",
+            severity: "warning",
+            kind: "context-rule",
+            message: `ctx/${ctxKeys.join(", ctx/")} ignored: a persistent composition (category 431) has no EVENT_CONTEXT unless context/… paths are given`,
+          });
         }
-        ctx.health_care_facility = facility;
+        return;
+      }
+      this.issues.push({
+        path: "/context",
+        severity: "warning",
+        kind: "context-rule",
+        message: "context/… paths given for a persistent composition (category 431); kept, but the RM invariant Is_persistent_validity requires no context",
+      });
+    } else if (!c.context) {
+      // ctx/ values are always used, so they fill the event context even
+      // with contextDefaults "none".
+      if (this.apply || ctxKeys.length) this.ensureContext();
+      else {
+        this.issue("/context", "EVENT_CONTEXT is missing for an event composition (contextDefaults: \"none\")", "warning");
+        return;
       }
     }
-
-    const category = get("category");
-    if (category && !c.category) {
-      const code = category.code ?? bare(category);
-      if (code != null) c.category = this.category(String(code));
+    const ctx = c.context as RmObject;
+    this.applyContextCtx(ctx);
+    if (!ctx.start_time) {
+      const t = this.now("/context/start_time", "EVENT_CONTEXT.start_time");
+      if (t) ctx.start_time = dateTime(t);
+    }
+    if (!ctx.setting) {
+      if (this.apply) ctx.setting = this.settingFromCtx({ code: "238" });
+      else this.issue("/context/setting", "EVENT_CONTEXT.setting is missing (contextDefaults: \"none\")");
     }
   }
 
@@ -351,29 +419,7 @@ class ContextDefaulter {
         this.issue(`/${attr}`, `COMPOSITION.${attr} is required: send it at its path or as ctx/${attr === "composer" ? "composer_name" : attr}`);
       }
     }
-    const categoryCode = String(
-      ((c.category as RmObject | undefined)?.defining_code as RmObject | undefined)?.code_string ?? "",
-    );
-    const contextNode = this.wt.tree.children?.find((n) => n.rmType === "EVENT_CONTEXT");
-    // Create a missing EVENT_CONTEXT when the template requires one, or for
-    // input-flavour payloads (with ctx/ keys), as `ctx/time` defaults to now.
-    // An output-flavour payload without context describes a composition
-    // without one.
-    const wantsContext = (contextNode?.min ?? 0) > 0 || this.ctx.size > 0;
-    if (!c.context && categoryCode !== "431" && this.apply && wantsContext) {
-      this.ensureContext();
-    }
-    const ctx = c.context as RmObject | undefined;
-    if (ctx) {
-      if (!ctx.start_time) {
-        const t = this.now("/context/start_time", "EVENT_CONTEXT.start_time");
-        if (t) ctx.start_time = dateTime(t);
-      }
-      if (!ctx.setting) {
-        if (this.apply) ctx.setting = this.settingFromCtx({ code: "238" });
-        else this.issue("/context/setting", "EVENT_CONTEXT.setting is missing (contextDefaults: \"none\")");
-      }
-    }
+    this.decideContext();
   }
 
   private name(node: WebTemplateNode): string {

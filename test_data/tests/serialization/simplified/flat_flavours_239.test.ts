@@ -265,6 +265,17 @@ Deno.test("#239 STRUCTURED: both flavours round trip, input ctx is applied", asy
   assertEquals((composition as Rm).content[0].data.events[0].time.value, "2026-10-30T10:00:00+01:00");
 });
 
+/** The blood pressure Web Template with its category fixed to persistent (431). */
+async function loadPersistent() {
+  const { opt, wt } = await load("ehrbase_blood_pressure_simple.de.v0.opt");
+  const persistent = structuredClone(wt);
+  const category = persistent.tree.children!.find((n) => n.aqlPath === "/category")!;
+  for (const input of category.inputs ?? []) {
+    if (input.list?.length) input.list = [{ value: "431", label: "persistent" }];
+  }
+  return { opt, wt: persistent };
+}
+
 Deno.test("#239 composer PARTY_SELF: output writes composer|_type, no ctx/", async () => {
   const { opt, wt } = await load("ehrbase_blood_pressure_simple.de.v0.opt");
   const instance = new RMInstanceGenerator({ mode: "example" }).generate(opt) as Rm;
@@ -303,4 +314,62 @@ Deno.test("#239 composer PARTY_SELF: output writes composer|_type, no ctx/", asy
   const self = { ...INPUT, "ctx/composer_self": true };
   delete self["ctx/composer_name"];
   assertEquals((deserializeFromFlat(self, wt, { clock: CLOCK }) as Rm).composer._type, "PARTY_SELF");
+});
+
+Deno.test("#239 context by category: event gets one, persistent only from context/ paths", async () => {
+  // Event composition (433): a context is created even without ctx/ keys.
+  const { wt } = await load("ehrbase_blood_pressure_simple.de.v0.opt");
+  const noCtx: FlatPayload = Object.fromEntries(
+    Object.entries(INPUT).filter(([k]) => !k.startsWith("ctx/time")),
+  );
+  const event = deserializeFromFlatWithIssues(
+    { ...noCtx, [`${ROOT}/language|code`]: "de", [`${ROOT}/language|terminology`]: "ISO_639-1" },
+    wt,
+    { clock: CLOCK },
+  );
+  assertEquals((event.composition as Rm).context.start_time.value, CLOCK());
+
+  // contextDefaults "none": ctx/ context keys still fill the event context;
+  // without them the missing context is reported.
+  const none = deserializeFromFlatWithIssues(INPUT, wt, { contextDefaults: "none" });
+  assertEquals((none.composition as Rm).context.start_time.value, "2026-10-30T10:00:00+01:00");
+  const noneNoCtx = deserializeFromFlatWithIssues(noCtx, wt, { contextDefaults: "none" });
+  assertEquals((noneNoCtx.composition as Rm).context, undefined);
+  assert(noneNoCtx.issues.some((i) => i.path === "/context" && i.severity === "warning"));
+
+  // Persistent composition (431): ctx/ context keys are ignored with a warning.
+  const p = await loadPersistent();
+  const persistent = deserializeFromFlatWithIssues(
+    { ...INPUT, "ctx/setting": "238" },
+    p.wt,
+    { clock: CLOCK },
+  );
+  const pc = persistent.composition as Rm;
+  assertEquals(pc.category.defining_code.code_string, "431");
+  assertEquals(pc.context, undefined);
+  const warning = persistent.issues.find((i) => i.kind === "context-rule");
+  assert(warning && warning.severity === "warning" && /ctx\/time, ctx\/setting/.test(warning.message), warning?.message);
+  assertEquals(persistent.issues.filter((i) => i.severity === "error"), []);
+
+  // ... and explicit context/ paths are kept, with an RM-invariant warning.
+  const explicit = deserializeFromFlatWithIssues(
+    { ...INPUT, [`${ROOT}/context/start_time`]: "2026-10-30T09:00:00+01:00" },
+    p.wt,
+    { clock: CLOCK },
+  );
+  const ec = explicit.composition as Rm;
+  assertEquals(ec.context.start_time.value, "2026-10-30T09:00:00+01:00");
+  assertEquals(ec.context.setting.defining_code.code_string, "238");
+  assert(explicit.issues.some((i) => i.kind === "context-rule" && /Is_persistent_validity/.test(i.message)));
+
+  // Both flavours round trip a persistent composition without context.
+  const instance = deserializeFromFlat({ ...INPUT }, p.wt, { clock: CLOCK, unknownKeys: "ignore" });
+  for (const flavor of ["output", "input"] as const) {
+    const flat = serializeToFlat(instance, p.wt, { flavor });
+    assertEquals(Object.keys(flat).filter((k) => /context|ctx\/time/.test(k)), [], flavor);
+    const again = deserializeFromFlatWithIssues(flat, p.wt, { clock: CLOCK });
+    assertEquals((again.composition as Rm).context, undefined, flavor);
+    assertEquals(again.issues.filter((i) => i.kind === "context-rule"), [], flavor);
+    assertEquals(serializeToFlat(again.composition, p.wt, { flavor }), flat, `${flavor} stable`);
+  }
 });

@@ -27,12 +27,12 @@ TypeRegistry.registerModule(base);
 const OPT_DIR = new URL("../../../opt14/", import.meta.url);
 
 /**
- * The input flavour cannot say "no context": its ctx/ keys create an
- * EVENT_CONTEXT for an event composition, with `ctx/time` from the clock and
- * setting 238. The fixture has no context, so drop those keys.
+ * The fixture is an event composition (433) without context. Reading gives
+ * every event composition an EVENT_CONTEXT (category rule, as Better does),
+ * with start_time from the clock and setting 238, so drop those keys.
  */
 const CLOCK = () => "2026-10-30T12:00:00Z";
-const CREATED_CONTEXT_KEYS = /^ctx\/(time|setting)(\||$)/;
+const CREATED_CONTEXT_KEYS = /(^ctx\/(time|setting)|\/context\/(start_time|setting))(\||$)/;
 function withoutCreatedContext<T extends Record<string, unknown>>(flat: T): T {
   return Object.fromEntries(
     Object.entries(flat).filter(([k]) => !CREATED_CONTEXT_KEYS.test(k)),
@@ -55,13 +55,14 @@ async function loadMinimalEvaluationFixture() {
 Deno.test("FLAT roundtrip (output flavour) writes context values at their paths", async () => {
   const { wt, instance } = await loadMinimalEvaluationFixture();
   const flat = serializeToFlat(instance, wt);
-  const restored = deserializeFromFlat(flat, wt);
+  const restored = deserializeFromFlat(flat, wt, { clock: CLOCK });
   const flat2 = serializeToFlat(restored, wt);
 
   assertEquals(flat[`${wt.tree.id}/language|code`], "en");
   assertEquals(flat[`${wt.tree.id}/territory|code`], "US");
   assertEquals(Object.keys(flat).filter((k) => k.startsWith("ctx/")), []);
-  assertEquals(flat2, flat);
+  assertEquals(flat2[`${wt.tree.id}/context/start_time`], CLOCK());
+  assertEquals(withoutCreatedContext(flat2), flat);
   assertEquals(ctxCode(restored, "language"), "en");
   assertEquals(ctxCode(restored, "territory"), "US");
 });
@@ -98,7 +99,11 @@ Deno.test("STRUCTURED roundtrip preserves ctx fields", async () => {
   assertEquals(output.ctx, undefined);
   const root = output[wt.tree.id] as Record<string, Array<Record<string, unknown>>>;
   assertEquals(root.language[0]["|code"], "en");
-  assertEquals(serializeToStructured(deserializeFromStructured(output, wt), wt), output);
+  const output2 = serializeToStructured(deserializeFromStructured(output, wt, { clock: CLOCK }), wt);
+  const root2 = output2[wt.tree.id] as Record<string, unknown>;
+  assertEquals(root2.context, [{ start_time: [CLOCK()], setting: [{ "|code": "238", "|value": "other care", "|terminology": "openehr" }] }]);
+  delete root2.context;
+  assertEquals(output2, output);
 });
 
 Deno.test("FLAT and STRUCTURED deserialize to equivalent ctx", async () => {

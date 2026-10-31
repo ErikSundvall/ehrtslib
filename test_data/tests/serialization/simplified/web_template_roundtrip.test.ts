@@ -189,8 +189,8 @@ Deno.test("STRUCTURED roundtrip preserves ctx and root branch keys", async () =>
   assertExists(structured.ctx);
   assertExists(structured[wt.tree.id]);
   assertEquals(ctxCode(restored, "language"), "en");
-  // The fixture has no context; input-flavour ctx/ keys create one, so
-  // ctx/time and ctx/setting are added on the way back.
+  // The fixture is an event composition without context; reading gives it
+  // one (category rule), so ctx/time and ctx/setting are added on the way back.
   const ctx2 = { ...(structured2.ctx as Record<string, unknown>) };
   delete ctx2.time;
   delete ctx2.setting;
