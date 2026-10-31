@@ -210,3 +210,31 @@ export function assignAtAqlPath(
     current = ensureChild(current, attr, nodeId, rmType, occurrence);
   }
 }
+
+/**
+ * The RM object at `aqlPath`, created (with intermediates) when missing.
+ * `lastNodeId` overrides the node id of the last path predicate (the Web
+ * Template node id of an ELEMENT).
+ */
+export function ensureAtAqlPath(
+  root: RmObject,
+  aqlPath: string,
+  rmType: string,
+  lastNodeId?: string,
+  occurrences?: OccurrenceHints,
+  rmTypes?: RmTypeHints,
+): RmObject {
+  const segments = aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g);
+  if (!segments?.length) return root;
+  let current: RmObject = root;
+  for (let si = 0; si < segments.length; si++) {
+    const m = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(segments[si]);
+    if (!m) continue;
+    const [, attr, nodeId] = m;
+    const isLast = si === segments.length - 1;
+    const occurrence = occurrences?.[si + 1] ?? 0;
+    const type = isLast ? rmType : rmTypes?.[si + 1] ?? inferRmType(attr);
+    current = ensureChild(current, attr, isLast ? lastNodeId ?? nodeId : nodeId, type, occurrence);
+  }
+  return current;
+}
